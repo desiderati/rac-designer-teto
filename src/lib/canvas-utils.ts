@@ -1,0 +1,682 @@
+import { Canvas as FabricCanvas, Rect, Circle, IText, Group, Line, Triangle, Polygon, Polyline, Text, Pattern, FabricObject } from 'fabric';
+
+export const CANVAS_WIDTH = 1300;
+export const CANVAS_HEIGHT = 1300;
+export const BASE_TOP_WIDTH = 610;
+export const BASE_TOP_HEIGHT = 300;
+
+export const customProps = ['myType', 'lockScalingFlip', 'subTargetCheck', 'id', 'selectable', 'lockScalingY', 'houseView', 'isHouseBody'];
+
+export function getHouseScaleFactors(canvas: FabricCanvas) {
+  const objs = canvas.getObjects();
+  let houseBody = objs.find((o: any) => o.myType === 'house' && o.houseView === 'top') as any;
+  if (!houseBody) {
+    houseBody = objs.find((o: any) => o.isHouseBody === true);
+  }
+  if (houseBody) {
+    const currentW = houseBody.width * houseBody.scaleX;
+    const currentH = houseBody.height * houseBody.scaleY;
+    return { widthFactor: currentW / BASE_TOP_WIDTH, depthFactor: currentH / BASE_TOP_HEIGHT };
+  }
+  const defaultS = 0.6;
+  return { widthFactor: defaultS, depthFactor: defaultS };
+}
+
+export function createHouseTop(canvas: FabricCanvas): Group {
+  const s = 0.6;
+  const w = BASE_TOP_WIDTH * s;
+  const h = BASE_TOP_HEIGHT * s;
+  const rad = 15 * s;
+  const cD = 155 * s;
+  const rD = 135 * s;
+  
+  const rect = new Rect({
+    width: w,
+    height: h,
+    fill: 'transparent',
+    stroke: 'black',
+    strokeWidth: 2 * s,
+    originX: 'center',
+    originY: 'center',
+  });
+  (rect as any).isHouseBody = true;
+  
+  const houseObjects: FabricObject[] = [rect];
+  
+  [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach(x => {
+    [-rD, 0, rD].forEach(y => {
+      const circle = new Circle({
+        radius: rad,
+        fill: 'white',
+        stroke: 'black',
+        strokeWidth: 1.5 * s,
+        left: x,
+        top: y,
+        originX: 'center',
+        originY: 'center',
+      });
+      const text = new IText('1,0', {
+        fontSize: 15 * s,
+        fontFamily: 'Arial',
+        fill: '#333',
+        originX: 'center',
+        originY: 'center',
+        left: x,
+        top: y,
+      });
+      houseObjects.push(circle);
+      houseObjects.push(text);
+    });
+  });
+  
+  const group = new Group(houseObjects, {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+    subTargetCheck: true,
+  });
+  (group as any).myType = 'house';
+  (group as any).houseView = 'top';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Group {
+  const factors = getHouseScaleFactors(canvas);
+  const s = factors.widthFactor;
+  const bodyW = 610 * s;
+  const bodyH = 220 * s;
+  const roofH = 80 * s;
+  const pilotH = 120 * s;
+  const pilotW = 30 * s;
+  
+  const pilots: FabricObject[] = [];
+  const margin = 55 * s;
+  const step = (bodyW - 2 * margin - pilotW) / 3;
+  
+  for (let i = 0; i < 4; i++) {
+    pilots.push(new Rect({
+      width: pilotW,
+      height: pilotH,
+      fill: '#ffffff',
+      stroke: '#333',
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: margin + (i * step),
+      top: roofH + bodyH,
+    }));
+  }
+  
+  const roofFill = new Polygon(
+    [{ x: 0, y: roofH }, { x: bodyW / 2, y: 0 }, { x: bodyW, y: roofH }],
+    { fill: '#eeeeee', strokeWidth: 0, left: 0, top: 0 }
+  );
+  
+  const bodyFill = new Rect({
+    width: bodyW,
+    height: bodyH,
+    fill: '#eeeeee',
+    strokeWidth: 0,
+    left: 0,
+    top: roofH,
+  });
+  
+  const roofLines = [
+    new Line([0, roofH, bodyW / 2, 0], {
+      stroke: '#333',
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: 0,
+      top: 0,
+    }),
+    new Line([bodyW / 2, 0, bodyW, roofH], {
+      stroke: '#333',
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: bodyW / 2,
+      top: 0,
+    }),
+  ];
+  
+  const bodyStroke = new Polyline(
+    [{ x: 0, y: roofH }, { x: 0, y: roofH + bodyH }, { x: bodyW, y: roofH + bodyH }, { x: bodyW, y: roofH }],
+    { fill: 'transparent', stroke: '#333', strokeWidth: 2, strokeUniform: true, left: 0, top: roofH }
+  );
+  
+  const elements: FabricObject[] = [...pilots, roofFill, bodyFill, ...roofLines, bodyStroke];
+  
+  if (isFront) {
+    const doorW = 100 * s;
+    const doorH = 180 * s;
+    const windowW = 90 * s;
+    const windowH = 75 * s;
+    const doorY = roofH + (bodyH - doorH);
+    
+    const doorObj = new Rect({
+      width: doorW,
+      height: doorH,
+      fill: '#fff',
+      stroke: '#333',
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: bodyW - 250 * s,
+      top: doorY,
+    });
+    
+    const w1 = new Rect({
+      width: windowW,
+      height: windowH,
+      fill: '#fff',
+      stroke: '#333',
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: bodyW - 130 * s,
+      top: doorY,
+    });
+    
+    const w2 = new Rect({
+      width: windowW,
+      height: windowH,
+      fill: '#fff',
+      stroke: '#333',
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: 40 * s,
+      top: doorY,
+    });
+    
+    elements.push(doorObj, w1, w2);
+  }
+  
+  const group = new Group(elements, {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  (group as any).myType = 'house';
+  (group as any).houseView = isFront ? 'front' : 'back';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
+  const factors = getHouseScaleFactors(canvas);
+  const s = factors.depthFactor;
+  const sideWidth = 300 * s;
+  const wallHeight = 220 * s;
+  const pilotW = 30 * s;
+  const pilotH = 120 * s;
+  
+  const p1 = new Rect({
+    width: pilotW,
+    height: pilotH,
+    fill: '#fff',
+    stroke: '#333',
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: 0,
+    top: wallHeight,
+  });
+  
+  const p2 = new Rect({
+    width: pilotW,
+    height: pilotH,
+    fill: '#fff',
+    stroke: '#333',
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: (sideWidth - pilotW) / 2,
+    top: wallHeight,
+  });
+  
+  const p3 = new Rect({
+    width: pilotW,
+    height: pilotH,
+    fill: '#fff',
+    stroke: '#333',
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: sideWidth - pilotW,
+    top: wallHeight,
+  });
+  
+  const wall = new Rect({
+    width: sideWidth,
+    height: wallHeight,
+    fill: '#eeeeee',
+    stroke: '#333',
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: 0,
+    top: 0,
+  });
+  
+  const elements: FabricObject[] = [p1, p2, p3, wall];
+  
+  if (hasDoor) {
+    const doorW = 100 * s;
+    const doorH = 180 * s;
+    const windowW = 90 * s;
+    const windowH = 75 * s;
+    const doorLeft = (sideWidth / 2 + (sideWidth - pilotW)) / 2 - (doorW / 2);
+    
+    const doorObj = new Rect({
+      width: doorW,
+      height: doorH,
+      fill: '#fff',
+      stroke: '#333',
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: doorLeft,
+      top: wallHeight - doorH,
+    });
+    
+    const windowLeft = (doorLeft - windowW) / 2;
+    const windowObj = new Rect({
+      width: windowW,
+      height: windowH,
+      fill: '#fff',
+      stroke: '#333',
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: windowLeft,
+      top: wallHeight - doorH,
+    });
+    
+    elements.push(windowObj, doorObj);
+  }
+  
+  const group = new Group(elements, {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  (group as any).myType = 'house';
+  (group as any).houseView = 'side';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createLine(canvas: FabricCanvas): Line {
+  const line = new Line([50, 50, 250, 50], {
+    stroke: 'red',
+    strokeWidth: 2,
+    strokeLineCap: 'round',
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+    lockScalingY: true,
+  });
+  (line as any).myType = 'line';
+  line.setControlsVisibility({ mt: false, mb: false, tl: false, tr: false, bl: false, br: false });
+  return line;
+}
+
+export function createArrow(canvas: FabricCanvas): Group {
+  const w = 150;
+  const h = 15;
+  
+  const line = new Rect({
+    width: w,
+    height: 2,
+    fill: '#333',
+    originX: 'center',
+    originY: 'center',
+    left: 0,
+  });
+  
+  const head = new Triangle({
+    width: h,
+    height: h,
+    fill: '#333',
+    angle: 90,
+    left: w / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  
+  const group = new Group([line, head], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+    lockScalingY: true,
+  });
+  (group as any).myType = 'arrow';
+  group.setControlsVisibility({ mt: false, mb: false });
+  
+  group.on('scaling', function (this: Group) {
+    const nw = this.width! * this.scaleX!;
+    (this._objects[0] as Rect).set({ width: nw });
+    (this._objects[1] as Triangle).set({ left: nw / 2 });
+    this.set({ width: nw, scaleX: 1, scaleY: 1 });
+  });
+  
+  return group;
+}
+
+export function createDimension(canvas: FabricCanvas): Group {
+  const w = 200;
+  const as = 12;
+  
+  const line = new Rect({
+    width: w,
+    height: 2,
+    fill: '#333',
+    originX: 'center',
+    originY: 'center',
+  });
+  
+  const a1 = new Triangle({
+    width: as,
+    height: as,
+    fill: '#333',
+    angle: -90,
+    left: -w / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  
+  const a2 = new Triangle({
+    width: as,
+    height: as,
+    fill: '#333',
+    angle: 90,
+    left: w / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  
+  const text = new IText(' ', {
+    fontSize: 16,
+    fontFamily: 'Arial',
+    fill: '#333',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    top: -15,
+    originX: 'center',
+    originY: 'center',
+  });
+  
+  const group = new Group([line, a1, a2, text], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+    subTargetCheck: true,
+    lockScalingY: true,
+  });
+  (group as any).myType = 'dimension';
+  group.setControlsVisibility({ mt: false, mb: false });
+  
+  group.on('scaling', function (this: Group) {
+    const nw = this.width! * this.scaleX!;
+    (this._objects[0] as Rect).set({ width: nw });
+    (this._objects[1] as Triangle).set({ left: -nw / 2 });
+    (this._objects[2] as Triangle).set({ left: nw / 2 });
+    this.set({ width: nw, scaleX: 1, scaleY: 1 });
+  });
+  
+  return group;
+}
+
+export function createWaterPatternSource(): HTMLCanvasElement {
+  const patternCanvas = document.createElement('canvas');
+  const ctx = patternCanvas.getContext('2d')!;
+  patternCanvas.width = 40;
+  patternCanvas.height = 50;
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#0092DD';
+  ctx.lineCap = 'round';
+  
+  const drawWave = (y: number) => {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(10, y - 5, 30, y + 5, 40, y);
+    ctx.stroke();
+  };
+  
+  drawWave(15);
+  drawWave(25);
+  drawWave(35);
+  
+  return patternCanvas;
+}
+
+export function createWater(canvas: FabricCanvas): Group {
+  const rect = new Rect({
+    width: 200,
+    height: 50,
+    originX: 'center',
+    originY: 'center',
+    fill: new Pattern({
+      source: createWaterPatternSource(),
+      repeat: 'repeat-x',
+    }),
+    transparentCorners: false,
+  });
+  
+  const text = new Text('Água', {
+    fontSize: 12,
+    fontFamily: 'Arial',
+    fill: '#0092DD',
+    originX: 'center',
+    originY: 'center',
+    fontWeight: 'bold',
+    stroke: 'white',
+    strokeWidth: 3,
+    paintFirst: 'stroke',
+  });
+  
+  const group = new Group([rect, text], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  (group as any).myType = 'water';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createStairsPatternSource(): HTMLCanvasElement {
+  const patternCanvas = document.createElement('canvas');
+  patternCanvas.width = 20;
+  patternCanvas.height = 20;
+  const ctx = patternCanvas.getContext('2d')!;
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#8B4513';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(20, 0);
+  ctx.stroke();
+  return patternCanvas;
+}
+
+export function createStairs(canvas: FabricCanvas): Rect {
+  const rect = new Rect({
+    width: 100,
+    height: 75,
+    originX: 'center',
+    originY: 'center',
+    fill: new Pattern({
+      source: createStairsPatternSource(),
+      repeat: 'repeat',
+    }),
+    stroke: '#8B4513',
+    strokeWidth: 2,
+    transparentCorners: false,
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+  });
+  (rect as any).myType = 'stairs';
+  
+  rect.on('scaling', function (this: Rect) {
+    this.set({
+      width: this.width! * this.scaleX!,
+      height: this.height! * this.scaleY!,
+      scaleX: 1,
+      scaleY: 1,
+    });
+  });
+  
+  return rect;
+}
+
+export function createWall(canvas: FabricCanvas): Rect {
+  const wall = new Rect({
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    width: 200,
+    height: 50,
+    fill: 'rgba(160, 82, 45, 0.4)',
+    stroke: '#8B4513',
+    strokeWidth: 2,
+    strokeDashArray: [10, 5],
+    originX: 'center',
+    originY: 'center',
+    lockScalingFlip: true,
+  });
+  (wall as any).myType = 'wall';
+  
+  wall.on('scaling', function (this: Rect) {
+    this.set({
+      width: this.width! * this.scaleX!,
+      height: this.height! * this.scaleY!,
+      scaleX: 1,
+      scaleY: 1,
+    });
+  });
+  
+  return wall;
+}
+
+export function createDoor(canvas: FabricCanvas): Group {
+  const rect = new Rect({
+    width: 60,
+    height: 15,
+    fill: '#aaddff',
+    stroke: 'black',
+    strokeWidth: 1,
+    originX: 'center',
+    originY: 'center',
+    top: -10,
+  });
+  
+  const text = new Text('Porta', {
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: '#333',
+    originX: 'center',
+    originY: 'center',
+    top: 15,
+  });
+  
+  const group = new Group([rect, text], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  (group as any).myType = 'gate';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createTree(canvas: FabricCanvas): Group {
+  const top = new Circle({
+    radius: 35,
+    fill: 'rgba(46, 204, 113, 0.6)',
+    stroke: '#27ae60',
+    strokeWidth: 2,
+    originX: 'center',
+    originY: 'center',
+    top: -10,
+  });
+  
+  const trunk = new Circle({
+    radius: 3,
+    fill: '#5d4037',
+    originX: 'center',
+    originY: 'center',
+    top: -10,
+  });
+  
+  const text = new Text('Árvore', {
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: '#333',
+    originX: 'center',
+    originY: 'center',
+    top: 35,
+  });
+  
+  const group = new Group([top, trunk, text], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: 'center',
+    originY: 'center',
+  });
+  (group as any).myType = 'tree';
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  
+  return group;
+}
+
+export function createText(canvas: FabricCanvas): IText {
+  const text = new IText('Texto', {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    fontFamily: 'Arial',
+    fill: '#333',
+    fontSize: 18,
+  });
+  text.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  return text;
+}
+
+export function getHintForObject(obj: FabricObject | null): string {
+  if (!obj) {
+    return 'Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)';
+  }
+  
+  const myType = (obj as any).myType;
+  
+  switch (myType) {
+    case 'house':
+      return '<b>Casa:</b> Para editar valores, use "Desbloquear". Para mover a casa inteira, "Bloquear" novamente.';
+    case 'gate':
+      return '<b>Porta:</b> Posicione na lateral da casa.';
+    case 'wall':
+      return '<b>Objeto:</b> Puxe as laterais para aumentar.';
+    case 'stairs':
+      return '<b>Escada:</b> Redimensione para ajustar. Os degraus se ajustam automaticamente.';
+    case 'tree':
+      return '<b>Árvore:</b> Escala proporcional.';
+    case 'water':
+      return '<b>Água:</b> Escala proporcional.';
+    case 'line':
+      return '<b>Reta:</b> Rotação livre e redimensionamento lateral.';
+    case 'arrow':
+      return '<b>Seta:</b> Redimensiona no comprimento.';
+    case 'dimension':
+      return '<b>Distância:</b> Clique duas vezes no meio para digitar a medida.';
+    default:
+      if (obj.type === 'i-text') {
+        return '<b>Texto:</b> Clique duas vezes para editar.';
+      } else if (obj.type === 'activeSelection') {
+        return 'Múltiplos itens selecionados. Use "Bloquear" para Agrupar.';
+      } else if (obj.type === 'group') {
+        return '<b>Grupo:</b> Use "Desbloquear" para editar partes.';
+      }
+      return 'Objeto selecionado.';
+  }
+}
