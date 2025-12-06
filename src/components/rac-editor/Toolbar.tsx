@@ -3,7 +3,7 @@ import {
   LockOpen, 
   Lock, 
   Shapes, 
-  PenTool, 
+  Pencil, 
   Type, 
   Download, 
   FolderOpen, 
@@ -57,26 +57,17 @@ function ToolButton({
   icon: Icon, 
   title, 
   onClick, 
-  variant = 'default',
+  colorClass,
   isActive = false,
   className = ''
 }: { 
   icon: React.ElementType; 
   title: string; 
   onClick: () => void;
-  variant?: 'default' | 'delete' | 'save' | 'json' | 'ungroup' | 'group';
+  colorClass: string;
   isActive?: boolean;
   className?: string;
 }) {
-  const variantClasses = {
-    default: 'bg-sidebar-accent/20 text-sidebar-foreground hover:bg-primary hover:text-primary-foreground',
-    delete: 'bg-sidebar-accent/20 text-destructive/70 hover:bg-destructive hover:text-destructive-foreground',
-    save: 'bg-sidebar-accent/20 text-green-400 hover:bg-green-600 hover:text-primary-foreground',
-    json: 'bg-sidebar-accent/20 text-yellow-400 hover:bg-yellow-600 hover:text-primary-foreground',
-    ungroup: 'bg-sidebar-accent/20 text-sidebar-foreground hover:bg-yellow-500 hover:text-secondary',
-    group: 'bg-sidebar-accent/20 text-sidebar-foreground hover:bg-purple-600 hover:text-primary-foreground',
-  };
-
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -85,13 +76,12 @@ function ToolButton({
           size="icon"
           onClick={onClick}
           className={cn(
-            'w-10 h-10 rounded-lg transition-all duration-200',
-            variantClasses[variant],
-            isActive && 'bg-orange-500 border-2 border-primary-foreground',
+            'w-10 h-10 rounded-none bg-transparent hover:bg-muted/30 transition-all duration-200',
+            isActive && 'bg-orange-500/20 ring-2 ring-orange-500',
             className
           )}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className={cn('h-5 w-5', colorClass)} />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right" className="bg-secondary text-secondary-foreground">
@@ -104,11 +94,13 @@ function ToolButton({
 function SubButton({ 
   icon: Icon, 
   title, 
-  onClick 
+  onClick,
+  colorClass = 'text-muted-foreground'
 }: { 
   icon: React.ElementType; 
   title: string; 
   onClick: () => void;
+  colorClass?: string;
 }) {
   return (
     <Tooltip>
@@ -117,9 +109,9 @@ function SubButton({
           variant="ghost"
           size="icon"
           onClick={onClick}
-          className="w-9 h-9 rounded-lg bg-sidebar-accent/20 text-sidebar-foreground hover:bg-primary hover:text-primary-foreground"
+          className="w-9 h-9 rounded bg-muted/20 hover:bg-muted/40"
         >
-          <Icon className="h-4 w-4" />
+          <Icon className={cn('h-4 w-4', colorClass)} />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="right" className="bg-secondary text-secondary-foreground">
@@ -178,89 +170,120 @@ export function Toolbar({
       
       {/* House Submenu */}
       {activeSubmenu === 'house' && (
-        <div className="absolute left-16 top-16 z-50 bg-sidebar-accent p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
-          <SubButton icon={Layers} title="Visão Superior (Planta)" onClick={onAddHouseTop} />
-          <SubButton icon={Home} title="Visão Frontal" onClick={onAddHouseFront} />
-          <SubButton icon={Home} title="Visão Traseira" onClick={onAddHouseBack} />
-          <SubButton icon={ArrowLeft} title="Lateral Esquerda" onClick={onAddHouseSide1} />
-          <SubButton icon={ArrowRight} title="Lateral Direita" onClick={onAddHouseSide2} />
+        <div className="absolute left-16 top-16 z-50 bg-card border border-border p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
+          <SubButton icon={Layers} title="Visão Superior (Planta)" onClick={onAddHouseTop} colorClass="text-[#6c757d]" />
+          <SubButton icon={Home} title="Visão Frontal" onClick={onAddHouseFront} colorClass="text-[#6c757d]" />
+          <SubButton icon={Home} title="Visão Traseira" onClick={onAddHouseBack} colorClass="text-[#6c757d]" />
+          <SubButton icon={ArrowLeft} title="Lateral Esquerda" onClick={onAddHouseSide1} colorClass="text-[#6c757d]" />
+          <SubButton icon={ArrowRight} title="Lateral Direita" onClick={onAddHouseSide2} colorClass="text-[#6c757d]" />
         </div>
       )}
 
       {/* Elements Submenu */}
       {activeSubmenu === 'elements' && (
-        <div className="absolute left-16 top-60 z-50 bg-sidebar-accent p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
-          <SubButton icon={Square} title="Objeto / Muro" onClick={onAddWall} />
-          <SubButton icon={DoorOpen} title="Porta" onClick={onAddDoor} />
-          <SubButton icon={Layers} title="Escada" onClick={onAddStairs} />
-          <SubButton icon={TreePine} title="Árvore" onClick={onAddTree} />
-          <SubButton icon={Droplets} title="Água / Rio" onClick={onAddWater} />
-          <SubButton icon={Minus} title="Linha Reta" onClick={onAddLine} />
-          <SubButton icon={MoveRight} title="Seta Simples" onClick={onAddArrow} />
-          <SubButton icon={ArrowLeftRight} title="Distância" onClick={onAddDimension} />
+        <div className="absolute left-16 top-60 z-50 bg-card border border-border p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
+          <SubButton icon={Square} title="Objeto / Muro" onClick={onAddWall} colorClass="text-[#6c757d]" />
+          <SubButton icon={DoorOpen} title="Porta" onClick={onAddDoor} colorClass="text-[#6c757d]" />
+          <SubButton icon={Layers} title="Escada" onClick={onAddStairs} colorClass="text-[#6c757d]" />
+          <SubButton icon={TreePine} title="Árvore" onClick={onAddTree} colorClass="text-[#6c757d]" />
+          <SubButton icon={Droplets} title="Água / Rio" onClick={onAddWater} colorClass="text-[#6c757d]" />
+          <SubButton icon={Minus} title="Linha Reta" onClick={onAddLine} colorClass="text-[#6c757d]" />
+          <SubButton icon={MoveRight} title="Seta Simples" onClick={onAddArrow} colorClass="text-[#6c757d]" />
+          <SubButton icon={ArrowLeftRight} title="Distância" onClick={onAddDimension} colorClass="text-[#6c757d]" />
         </div>
       )}
 
-      {/* Main Sidebar */}
-      <aside className="w-16 h-full bg-secondary flex flex-col items-center py-4 gap-2 shadow-lg overflow-y-auto flex-shrink-0">
+      {/* Main Sidebar - matching original HTML style */}
+      <aside className="w-16 h-full bg-card border-r border-border flex flex-col items-center py-4 gap-3 overflow-y-auto flex-shrink-0">
         {/* Logo */}
         <div className="text-center mb-2">
-          <span className="font-bold text-secondary-foreground text-xs">RAC</span>
+          <span className="font-bold text-muted-foreground text-xs">RAC</span>
           <br />
-          <span className="font-bold text-primary text-xs">TETO</span>
+          <span className="font-bold text-[#28a745] text-xs">TETO</span>
         </div>
 
-        {/* House Button */}
+        {/* House Button - gray/brown like original */}
         <ToolButton
           icon={Home}
           title="Casa TETO (Opções)"
           onClick={onToggleHouseMenu}
+          colorClass="text-[#6c757d]"
           isActive={activeSubmenu === 'house'}
         />
 
-        {/* Divider */}
-        <div className="w-8 h-px bg-muted my-1" />
+        {/* Unlock - orange/brown like original */}
+        <ToolButton 
+          icon={LockOpen} 
+          title="Desbloquear (Desagrupar)" 
+          onClick={onUngroup} 
+          colorClass="text-[#d4a373]"
+        />
+        
+        {/* Lock - gray like original */}
+        <ToolButton 
+          icon={Lock} 
+          title="Bloquear (Agrupar)" 
+          onClick={onGroup} 
+          colorClass="text-[#6c757d]"
+        />
 
-        {/* Group/Ungroup */}
-        <ToolButton icon={LockOpen} title="Desbloquear (Desagrupar)" onClick={onUngroup} variant="ungroup" />
-        <ToolButton icon={Lock} title="Bloquear (Agrupar)" onClick={onGroup} variant="group" />
-
-        {/* Divider */}
-        <div className="w-8 h-px bg-muted my-1" />
-
-        {/* Elements */}
+        {/* Elements - gray like original */}
         <ToolButton
           icon={Shapes}
           title="Elementos"
           onClick={onToggleElementsMenu}
+          colorClass="text-[#6c757d]"
           isActive={activeSubmenu === 'elements'}
         />
+        
+        {/* Pencil - olive/green like original */}
         <ToolButton
-          icon={PenTool}
+          icon={Pencil}
           title="Lápis"
           onClick={onToggleDrawMode}
+          colorClass="text-[#808000]"
           isActive={isDrawing}
         />
-        <ToolButton icon={Type} title="Texto Livre" onClick={onAddText} />
+        
+        {/* Text - dark gray like original */}
+        <ToolButton 
+          icon={Type} 
+          title="Texto Livre" 
+          onClick={onAddText} 
+          colorClass="text-[#495057]"
+        />
 
-        {/* Divider */}
-        <div className="w-8 h-px bg-muted my-1" />
-
-        {/* Export/Import */}
-        <ToolButton icon={Download} title="Exportar Projeto (JSON)" onClick={onExportJSON} variant="json" />
+        {/* Export JSON - gold/yellow like original */}
+        <ToolButton 
+          icon={Download} 
+          title="Exportar Projeto (JSON)" 
+          onClick={onExportJSON} 
+          colorClass="text-[#c9a227]"
+        />
+        
+        {/* Open JSON - tan/brown like original */}
         <ToolButton 
           icon={FolderOpen} 
           title="Abrir Projeto (JSON)" 
           onClick={() => fileInputRef.current?.click()} 
-          variant="json" 
+          colorClass="text-[#d4a373]"
         />
 
-        {/* Divider */}
-        <div className="w-8 h-px bg-muted my-1" />
-
-        {/* Delete & Save */}
-        <ToolButton icon={Trash2} title="Excluir" onClick={onDelete} variant="delete" />
-        <ToolButton icon={FileText} title="Salvar PDF" onClick={onSavePDF} variant="save" />
+        {/* Delete - dark red/brown like original */}
+        <ToolButton 
+          icon={Trash2} 
+          title="Excluir" 
+          onClick={onDelete} 
+          colorClass="text-[#8b4513]"
+        />
+        
+        {/* Save PDF - green like original */}
+        <ToolButton 
+          icon={FileText} 
+          title="Salvar PDF" 
+          onClick={onSavePDF} 
+          colorClass="text-[#28a745]"
+        />
       </aside>
     </>
   );
