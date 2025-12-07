@@ -27,8 +27,6 @@ export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | null>(null);
-  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
-  const [isInfoBarCollapsed, setIsInfoBarCollapsed] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
@@ -381,8 +379,6 @@ export function RACEditor() {
         activeSubmenu={activeSubmenu}
         onToggleHouseMenu={handleToggleHouseMenu}
         onToggleElementsMenu={handleToggleElementsMenu}
-        isCollapsed={isToolbarCollapsed}
-        onToggleCollapse={() => setIsToolbarCollapsed(!isToolbarCollapsed)}
       />
       
       <div className="flex-1 flex flex-col bg-muted p-5 gap-5 overflow-hidden">
@@ -394,11 +390,7 @@ export function RACEditor() {
           />
         </div>
         
-        <InfoBar 
-          message={infoMessage} 
-          isCollapsed={isInfoBarCollapsed}
-          onToggleCollapse={() => setIsInfoBarCollapsed(!isInfoBarCollapsed)}
-        />
+        <InfoBar message={infoMessage} />
       </div>
     </div>
   );
