@@ -1,6 +1,6 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection } from 'fabric';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, customProps, getHintForObject } from '@/lib/canvas-utils';
+import { customProps, getHintForObject } from '@/lib/canvas-utils';
 
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
@@ -100,9 +100,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => {
       if (!canvasRef.current) return;
 
+      const container = canvasRef.current.parentElement;
+      if (!container) return;
+
       const canvas = new FabricCanvas(canvasRef.current, {
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
+        width: container.clientWidth,
+        height: container.clientHeight,
         backgroundColor: '#ffffff',
       });
 
@@ -130,6 +133,19 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvas.on('selection:created', updateHint);
       canvas.on('selection:updated', updateHint);
       canvas.on('selection:cleared', updateHint);
+
+      // Resize handler
+      const handleResize = () => {
+        if (!container || !canvas) return;
+        canvas.setDimensions({
+          width: container.clientWidth,
+          height: container.clientHeight,
+        });
+        canvas.renderAll();
+      };
+
+      const resizeObserver = new ResizeObserver(handleResize);
+      resizeObserver.observe(container);
 
       // Rotation snapping
       canvas.on('object:rotating', (e) => {
@@ -186,18 +202,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
+        resizeObserver.disconnect();
         canvas.dispose();
       };
     }, []);
 
     return (
-      <div className="flex-1 bg-muted overflow-auto flex items-start justify-start p-5">
-        <div 
-          className="bg-card shadow-xl"
-          style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-        >
-          <canvas ref={canvasRef} />
-        </div>
+      <div className="w-full h-full bg-card shadow-xl">
+        <canvas ref={canvasRef} />
       </div>
     );
   }
