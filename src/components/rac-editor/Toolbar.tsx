@@ -21,7 +21,9 @@ import {
   faArrowRightLong,
   faArrowsLeftRight,
   faDoorOpen,
-  faStairs
+  faStairs,
+  faChevronLeft,
+  faChevronRight
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { Button } from '@/components/ui/button';
@@ -55,6 +57,8 @@ interface ToolbarProps {
   activeSubmenu: 'house' | 'elements' | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 function ToolButton({ 
@@ -147,6 +151,8 @@ export function Toolbar({
   activeSubmenu,
   onToggleHouseMenu,
   onToggleElementsMenu,
+  isCollapsed,
+  onToggleCollapse,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -194,96 +200,111 @@ export function Toolbar({
       )}
 
       {/* Main Sidebar - matching original HTML style */}
-      <aside className="w-16 h-full bg-[#2c3e50] flex flex-col items-center py-4 gap-3 overflow-y-auto flex-shrink-0 shadow-[2px_0_5px_rgba(0,0,0,0.2)]">
-        {/* Logo */}
-        <div className="text-center mb-2">
-          <span className="font-bold text-white text-xs">RAC</span>
-          <br />
-          <span className="font-bold text-xs" style={{ color: '#0092DD' }}>TETO</span>
-        </div>
+      <aside className={cn(
+        'h-full bg-[#2c3e50] flex flex-col items-center py-4 gap-3 overflow-y-auto flex-shrink-0 shadow-[2px_0_5px_rgba(0,0,0,0.2)] transition-all duration-300',
+        isCollapsed ? 'w-10' : 'w-16'
+      )}>
+        {/* Toggle Button */}
+        <button
+          onClick={onToggleCollapse}
+          className="w-6 h-6 mb-2 border-none rounded bg-white/10 text-[#ecf0f1] text-xs cursor-pointer transition-all duration-200 flex justify-center items-center hover:bg-[#0092DD]"
+        >
+          <FontAwesomeIcon icon={isCollapsed ? faChevronRight : faChevronLeft} />
+        </button>
 
-        {/* House Button */}
-        <ToolButton
-          icon={faHome}
-          title="Casa TETO (Opções)"
-          onClick={onToggleHouseMenu}
-          color="#ecf0f1"
-          isActive={activeSubmenu === 'house'}
-        />
+        {!isCollapsed && (
+          <>
+            {/* Logo */}
+            <div className="text-center mb-2">
+              <span className="font-bold text-white text-xs">RAC</span>
+              <br />
+              <span className="font-bold text-xs" style={{ color: '#0092DD' }}>TETO</span>
+            </div>
 
-        {/* Unlock */}
-        <ToolButton 
-          icon={faLockOpen} 
-          title="Desbloquear (Desagrupar)" 
-          onClick={onUngroup} 
-          color="#ecf0f1"
-        />
-        
-        {/* Lock */}
-        <ToolButton 
-          icon={faLock} 
-          title="Bloquear (Agrupar)" 
-          onClick={onGroup} 
-          color="#ecf0f1"
-        />
+            {/* House Button */}
+            <ToolButton
+              icon={faHome}
+              title="Casa TETO (Opções)"
+              onClick={onToggleHouseMenu}
+              color="#ecf0f1"
+              isActive={activeSubmenu === 'house'}
+            />
 
-        {/* Elements */}
-        <ToolButton
-          icon={faShapes}
-          title="Elementos"
-          onClick={onToggleElementsMenu}
-          color="#ecf0f1"
-          isActive={activeSubmenu === 'elements'}
-        />
-        
-        {/* Pencil */}
-        <ToolButton
-          icon={faPenNib}
-          title="Lápis"
-          onClick={onToggleDrawMode}
-          color="#ecf0f1"
-          isActive={isDrawing}
-        />
-        
-        {/* Text */}
-        <ToolButton 
-          icon={faFont} 
-          title="Texto Livre" 
-          onClick={onAddText} 
-          color="#ecf0f1"
-        />
+            {/* Unlock */}
+            <ToolButton 
+              icon={faLockOpen} 
+              title="Desbloquear (Desagrupar)" 
+              onClick={onUngroup} 
+              color="#ecf0f1"
+            />
+            
+            {/* Lock */}
+            <ToolButton 
+              icon={faLock} 
+              title="Bloquear (Agrupar)" 
+              onClick={onGroup} 
+              color="#ecf0f1"
+            />
 
-        {/* Export JSON */}
-        <ToolButton 
-          icon={faFileDownload} 
-          title="Exportar Projeto (JSON)" 
-          onClick={onExportJSON} 
-          color="#ffeaa7"
-        />
-        
-        {/* Open JSON */}
-        <ToolButton 
-          icon={faFolderOpen} 
-          title="Abrir Projeto (JSON)" 
-          onClick={() => fileInputRef.current?.click()} 
-          color="#ffeaa7"
-        />
+            {/* Elements */}
+            <ToolButton
+              icon={faShapes}
+              title="Elementos"
+              onClick={onToggleElementsMenu}
+              color="#ecf0f1"
+              isActive={activeSubmenu === 'elements'}
+            />
+            
+            {/* Pencil */}
+            <ToolButton
+              icon={faPenNib}
+              title="Lápis"
+              onClick={onToggleDrawMode}
+              color="#ecf0f1"
+              isActive={isDrawing}
+            />
+            
+            {/* Text */}
+            <ToolButton 
+              icon={faFont} 
+              title="Texto Livre" 
+              onClick={onAddText} 
+              color="#ecf0f1"
+            />
 
-        {/* Delete */}
-        <ToolButton 
-          icon={faTrash} 
-          title="Excluir" 
-          onClick={onDelete} 
-          color="#ffaaaa"
-        />
-        
-        {/* Save PDF */}
-        <ToolButton 
-          icon={faFilePdf} 
-          title="Salvar PDF" 
-          onClick={onSavePDF} 
-          color="#aaffaa"
-        />
+            {/* Export JSON */}
+            <ToolButton 
+              icon={faFileDownload} 
+              title="Exportar Projeto (JSON)" 
+              onClick={onExportJSON} 
+              color="#ffeaa7"
+            />
+            
+            {/* Open JSON */}
+            <ToolButton 
+              icon={faFolderOpen} 
+              title="Abrir Projeto (JSON)" 
+              onClick={() => fileInputRef.current?.click()} 
+              color="#ffeaa7"
+            />
+
+            {/* Delete */}
+            <ToolButton 
+              icon={faTrash} 
+              title="Excluir" 
+              onClick={onDelete} 
+              color="#ffaaaa"
+            />
+            
+            {/* Save PDF */}
+            <ToolButton 
+              icon={faFilePdf} 
+              title="Salvar PDF" 
+              onClick={onSavePDF} 
+              color="#aaffaa"
+            />
+          </>
+        )}
       </aside>
     </>
   );
