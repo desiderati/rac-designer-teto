@@ -352,40 +352,77 @@ export function RACEditor() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" onClick={handleContainerClick}>
-      <Toolbar
-        onAddHouseTop={handleAddHouseTop}
-        onAddHouseFront={handleAddHouseFront}
-        onAddHouseBack={handleAddHouseBack}
-        onAddHouseSide1={handleAddHouseSide1}
-        onAddHouseSide2={handleAddHouseSide2}
-        onUngroup={handleUngroup}
-        onGroup={handleGroup}
-        onAddWall={handleAddWall}
-        onAddDoor={handleAddDoor}
-        onAddStairs={handleAddStairs}
-        onAddTree={handleAddTree}
-        onAddWater={handleAddWater}
-        onAddLine={handleAddLine}
-        onAddArrow={handleAddArrow}
-        onAddDimension={handleAddDimension}
-        onToggleDrawMode={handleToggleDrawMode}
-        onAddText={handleAddText}
-        onExportJSON={handleExportJSON}
-        onImportJSON={handleImportJSON}
-        onDelete={handleDelete}
-        onSavePDF={handleSavePDF}
-        isDrawing={isDrawing}
-        activeSubmenu={activeSubmenu}
-        onToggleHouseMenu={handleToggleHouseMenu}
-        onToggleElementsMenu={handleToggleElementsMenu}
-      />
-      
-      <Canvas
-        ref={canvasRef}
-        onSelectionChange={setInfoMessage}
-        onHistorySave={() => {}}
-      />
+    <div className="flex flex-col h-screen overflow-hidden" onClick={handleContainerClick}>
+      {/* Mobile: Toolbar horizontal no topo */}
+      <div className="md:hidden">
+        <Toolbar
+          onAddHouseTop={handleAddHouseTop}
+          onAddHouseFront={handleAddHouseFront}
+          onAddHouseBack={handleAddHouseBack}
+          onAddHouseSide1={handleAddHouseSide1}
+          onAddHouseSide2={handleAddHouseSide2}
+          onUngroup={handleUngroup}
+          onGroup={handleGroup}
+          onAddWall={handleAddWall}
+          onAddDoor={handleAddDoor}
+          onAddStairs={handleAddStairs}
+          onAddTree={handleAddTree}
+          onAddWater={handleAddWater}
+          onAddLine={handleAddLine}
+          onAddArrow={handleAddArrow}
+          onAddDimension={handleAddDimension}
+          onToggleDrawMode={handleToggleDrawMode}
+          onAddText={handleAddText}
+          onExportJSON={handleExportJSON}
+          onImportJSON={handleImportJSON}
+          onDelete={handleDelete}
+          onSavePDF={handleSavePDF}
+          isDrawing={isDrawing}
+          activeSubmenu={activeSubmenu}
+          onToggleHouseMenu={handleToggleHouseMenu}
+          onToggleElementsMenu={handleToggleElementsMenu}
+          isMobile
+        />
+      </div>
+
+      <div className="flex flex-1 min-h-0">
+        {/* Desktop: Toolbar vertical na lateral */}
+        <div className="hidden md:block">
+          <Toolbar
+            onAddHouseTop={handleAddHouseTop}
+            onAddHouseFront={handleAddHouseFront}
+            onAddHouseBack={handleAddHouseBack}
+            onAddHouseSide1={handleAddHouseSide1}
+            onAddHouseSide2={handleAddHouseSide2}
+            onUngroup={handleUngroup}
+            onGroup={handleGroup}
+            onAddWall={handleAddWall}
+            onAddDoor={handleAddDoor}
+            onAddStairs={handleAddStairs}
+            onAddTree={handleAddTree}
+            onAddWater={handleAddWater}
+            onAddLine={handleAddLine}
+            onAddArrow={handleAddArrow}
+            onAddDimension={handleAddDimension}
+            onToggleDrawMode={handleToggleDrawMode}
+            onAddText={handleAddText}
+            onExportJSON={handleExportJSON}
+            onImportJSON={handleImportJSON}
+            onDelete={handleDelete}
+            onSavePDF={handleSavePDF}
+            isDrawing={isDrawing}
+            activeSubmenu={activeSubmenu}
+            onToggleHouseMenu={handleToggleHouseMenu}
+            onToggleElementsMenu={handleToggleElementsMenu}
+          />
+        </div>
+        
+        <Canvas
+          ref={canvasRef}
+          onSelectionChange={setInfoMessage}
+          onHistorySave={() => {}}
+        />
+      </div>
       
       <InfoBar message={infoMessage} />
     </div>
