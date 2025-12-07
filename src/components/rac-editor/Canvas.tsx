@@ -191,7 +191,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     }, []);
 
     return (
-      <div className="flex-1 bg-muted overflow-auto flex items-center justify-center p-5">
+      <div className="flex-1 bg-muted overflow-auto flex items-start justify-start p-5">
         <div 
           className="bg-card shadow-xl"
           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}

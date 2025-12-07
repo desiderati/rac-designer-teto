@@ -55,7 +55,6 @@ interface ToolbarProps {
   activeSubmenu: 'house' | 'elements' | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
-  isMobile?: boolean;
 }
 
 function ToolButton({ 
@@ -148,7 +147,6 @@ export function Toolbar({
   activeSubmenu,
   onToggleHouseMenu,
   onToggleElementsMenu,
-  isMobile = false,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -172,12 +170,7 @@ export function Toolbar({
       
       {/* House Submenu */}
       {activeSubmenu === 'house' && (
-        <div className={cn(
-          "absolute z-50 bg-[#34495e] p-2 shadow-lg flex gap-1 animate-in",
-          isMobile 
-            ? "left-2 top-16 flex-row rounded-lg slide-in-from-top-2" 
-            : "left-16 top-16 flex-col rounded-r-lg slide-in-from-left-2"
-        )}>
+        <div className="absolute left-16 top-16 z-50 bg-[#34495e] p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
           <SubButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={onAddHouseTop} color="#ecf0f1" />
           <SubButton icon={faHouseChimney} title="Visão Frontal" onClick={onAddHouseFront} color="#ecf0f1" />
           <SubButton icon={faHome} title="Visão Traseira" onClick={onAddHouseBack} color="#ecf0f1" />
@@ -188,12 +181,7 @@ export function Toolbar({
 
       {/* Elements Submenu */}
       {activeSubmenu === 'elements' && (
-        <div className={cn(
-          "absolute z-50 bg-[#34495e] p-2 shadow-lg flex gap-1 animate-in",
-          isMobile 
-            ? "left-2 top-16 flex-row rounded-lg slide-in-from-top-2 flex-wrap max-w-[calc(100vw-1rem)]" 
-            : "left-16 top-60 flex-col rounded-r-lg slide-in-from-left-2"
-        )}>
+        <div className="absolute left-16 top-60 z-50 bg-[#34495e] p-2 rounded-r-lg shadow-lg flex flex-col gap-1 animate-in slide-in-from-left-2">
           <SubButton icon={faBars} title="Objeto / Muro" onClick={onAddWall} color="#ecf0f1" />
           <SubButton icon={faDoorOpen} title="Porta" onClick={onAddDoor} color="#ecf0f1" />
           <SubButton icon={faStairs} title="Escada" onClick={onAddStairs} color="#ecf0f1" />
@@ -205,18 +193,13 @@ export function Toolbar({
         </div>
       )}
 
-      {/* Main Toolbar */}
-      <aside className={cn(
-        "bg-[#2c3e50] flex items-center gap-3 flex-shrink-0 shadow-[2px_0_5px_rgba(0,0,0,0.2)]",
-        isMobile 
-          ? "w-full h-14 flex-row px-4 py-2 overflow-x-auto" 
-          : "w-16 h-full flex-col py-4 overflow-y-auto"
-      )}>
+      {/* Main Sidebar - matching original HTML style */}
+      <aside className="w-16 h-full bg-[#2c3e50] flex flex-col items-center py-4 gap-3 overflow-y-auto flex-shrink-0 shadow-[2px_0_5px_rgba(0,0,0,0.2)]">
         {/* Logo */}
-        <div className={cn("text-center", isMobile ? "mr-2" : "mb-2")}>
+        <div className="text-center mb-2">
           <span className="font-bold text-white text-xs">RAC</span>
-          {!isMobile && <br />}
-          <span className="font-bold text-xs" style={{ color: '#0092DD' }}>{isMobile ? ' ' : ''}TETO</span>
+          <br />
+          <span className="font-bold text-xs" style={{ color: '#0092DD' }}>TETO</span>
         </div>
 
         {/* House Button */}
