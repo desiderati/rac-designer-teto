@@ -24,7 +24,8 @@ import {
   faArrowRightLong,
   faArrowsLeftRight,
   faDoorOpen,
-  faStairs
+  faStairs,
+  faLightbulb
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -56,6 +57,8 @@ interface ToolbarProps {
   activeSubmenu: 'house' | 'elements' | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
+  showTips: boolean;
+  onToggleTips: () => void;
 }
 
 function FABButton({ 
@@ -151,6 +154,8 @@ export function Toolbar({
   activeSubmenu,
   onToggleHouseMenu,
   onToggleElementsMenu,
+  showTips,
+  onToggleTips,
 }: ToolbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -304,6 +309,15 @@ export function Toolbar({
               title="Salvar PDF" 
               onClick={() => handleAction(onSavePDF)} 
               color="#aaffaa"
+            />
+
+            {/* Tips Toggle */}
+            <FABButton 
+              icon={faLightbulb} 
+              title="Dicas" 
+              onClick={onToggleTips}
+              isActive={showTips}
+              color="#f1c40f"
             />
           </div>
         )}

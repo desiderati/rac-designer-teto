@@ -27,6 +27,7 @@ export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | null>(null);
+  const [showTips, setShowTips] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
@@ -379,18 +380,22 @@ export function RACEditor() {
         activeSubmenu={activeSubmenu}
         onToggleHouseMenu={handleToggleHouseMenu}
         onToggleElementsMenu={handleToggleElementsMenu}
+        showTips={showTips}
+        onToggleTips={() => setShowTips(!showTips)}
       />
       
-      <div className="flex flex-col h-full p-5 gap-5 overflow-hidden">
-        <div className="flex-1 min-h-0">
-          <Canvas
-            ref={canvasRef}
-            onSelectionChange={setInfoMessage}
-            onHistorySave={() => {}}
-          />
-        </div>
+      <div className="h-full p-2.5 overflow-hidden relative">
+        <Canvas
+          ref={canvasRef}
+          onSelectionChange={setInfoMessage}
+          onHistorySave={() => {}}
+        />
         
-        <InfoBar message={infoMessage} />
+        {showTips && (
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 max-w-md w-full px-2.5">
+            <InfoBar message={infoMessage} />
+          </div>
+        )}
       </div>
     </div>
   );
