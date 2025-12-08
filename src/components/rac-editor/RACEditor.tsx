@@ -408,7 +408,11 @@ export function RACEditor() {
       </div>
 
       {showTutorial && (
-        <Tutorial onComplete={() => setShowTutorial(false)} />
+        <Tutorial 
+          onComplete={() => setShowTutorial(false)} 
+          isMenuOpen={activeSubmenu !== null}
+          onOpenMenu={() => setActiveSubmenu('house')}
+        />
       )}
     </div>
   );
