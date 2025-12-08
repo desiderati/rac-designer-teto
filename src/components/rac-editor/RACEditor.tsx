@@ -352,7 +352,7 @@ export function RACEditor() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" onClick={handleContainerClick}>
+    <div className="relative h-screen overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
         onAddHouseTop={handleAddHouseTop}
         onAddHouseFront={handleAddHouseFront}
@@ -381,7 +381,7 @@ export function RACEditor() {
         onToggleElementsMenu={handleToggleElementsMenu}
       />
       
-      <div className="flex-1 flex flex-col bg-muted p-5 gap-5 overflow-hidden">
+      <div className="flex flex-col h-full p-5 gap-5 overflow-hidden">
         <div className="flex-1 min-h-0">
           <Canvas
             ref={canvasRef}
