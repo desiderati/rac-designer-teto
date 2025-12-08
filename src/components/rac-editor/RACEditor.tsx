@@ -1,10 +1,11 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject } from 'fabric';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
 import { Canvas, CanvasHandle } from './Canvas';
 import { InfoBar } from './InfoBar';
+import { Tutorial } from './Tutorial';
 import {
   createHouseTop,
   createHouseFrontBack,
@@ -28,7 +29,15 @@ export function RACEditor() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | null>(null);
   const [showTips, setShowTips] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
+
+  useEffect(() => {
+    const tutorialCompleted = localStorage.getItem('rac-tutorial-completed');
+    if (!tutorialCompleted) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
 
@@ -397,6 +406,10 @@ export function RACEditor() {
           </div>
         )}
       </div>
+
+      {showTutorial && (
+        <Tutorial onComplete={() => setShowTutorial(false)} />
+      )}
     </div>
   );
 }
