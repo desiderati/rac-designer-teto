@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
 import { Canvas, CanvasHandle } from './Canvas';
 import { InfoBar } from './InfoBar';
-import { Tutorial } from './Tutorial';
+import { Tutorial, getTutorialStepIds } from './Tutorial';
 import {
   createHouseTop,
   createHouseFrontBack,
@@ -24,20 +24,35 @@ import {
   CANVAS_HEIGHT,
 } from '@/lib/canvas-utils';
 
+type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'tips';
+
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | null>(null);
   const [showTips, setShowTips] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const canvasRef = useRef<CanvasHandle>(null);
 
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('rac-tutorial-completed');
     if (!tutorialCompleted) {
-      setShowTutorial(true);
+      setTutorialStep('main-fab');
     }
   }, []);
+
+  const advanceTutorial = (completedStep: TutorialStepId) => {
+    const steps = getTutorialStepIds() as TutorialStepId[];
+    const currentIndex = steps.indexOf(completedStep);
+    if (currentIndex < steps.length - 1) {
+      setTutorialStep(steps[currentIndex + 1]);
+    } else {
+      // Tutorial complete
+      setTutorialStep(null);
+      localStorage.setItem('rac-tutorial-completed', 'true');
+    }
+  };
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
 
@@ -50,6 +65,21 @@ export function RACEditor() {
       canvas.isDrawingMode = false;
       canvas.selection = true;
       setInfoMessage('Dica: Selecione uma ferramenta.');
+    }
+  };
+
+  const handleToggleMenu = () => {
+    const newIsOpen = !isMenuOpen;
+    setIsMenuOpen(newIsOpen);
+    
+    if (!newIsOpen) {
+      // Closing menu - reset submenus
+      setActiveSubmenu(null);
+    }
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'main-fab' && newIsOpen) {
+      advanceTutorial('main-fab');
     }
   };
 
@@ -346,11 +376,30 @@ export function RACEditor() {
   const handleToggleHouseMenu = () => {
     disableDrawingMode();
     setActiveSubmenu(prev => prev === 'house' ? null : 'house');
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'house') {
+      advanceTutorial('house');
+    }
   };
 
   const handleToggleElementsMenu = () => {
     disableDrawingMode();
     setActiveSubmenu(prev => prev === 'elements' ? null : 'elements');
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'elements') {
+      advanceTutorial('elements');
+    }
+  };
+
+  const handleToggleTips = () => {
+    setShowTips(!showTips);
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'tips') {
+      advanceTutorial('tips');
+    }
   };
 
   // Close menus when clicking outside
@@ -359,6 +408,11 @@ export function RACEditor() {
     if (!target.closest('.submenu') && !target.closest('button')) {
       closeAllMenus();
     }
+  };
+
+  const handleTutorialComplete = () => {
+    setTutorialStep(null);
+    localStorage.setItem('rac-tutorial-completed', 'true');
   };
 
   return (
@@ -390,7 +444,10 @@ export function RACEditor() {
         onToggleHouseMenu={handleToggleHouseMenu}
         onToggleElementsMenu={handleToggleElementsMenu}
         showTips={showTips}
-        onToggleTips={() => setShowTips(!showTips)}
+        onToggleTips={handleToggleTips}
+        tutorialHighlight={tutorialStep}
+        isMenuOpen={isMenuOpen}
+        onToggleMenu={handleToggleMenu}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -407,11 +464,10 @@ export function RACEditor() {
         )}
       </div>
 
-      {showTutorial && (
+      {tutorialStep && (
         <Tutorial 
-          onComplete={() => setShowTutorial(false)} 
-          isMenuOpen={activeSubmenu !== null}
-          onOpenMenu={() => setActiveSubmenu('house')}
+          onComplete={handleTutorialComplete} 
+          currentStepId={tutorialStep}
         />
       )}
     </div>

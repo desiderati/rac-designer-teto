@@ -59,6 +59,9 @@ interface ToolbarProps {
   onToggleElementsMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'tips' | null;
+  isMenuOpen: boolean;
+  onToggleMenu: () => void;
 }
 
 function FABButton({ 
@@ -68,7 +71,8 @@ function FABButton({
   color = '#ecf0f1',
   isActive = false,
   isMain = false,
-  className = ''
+  className = '',
+  isPulsing = false,
 }: { 
   icon: IconDefinition; 
   title: string; 
@@ -77,6 +81,7 @@ function FABButton({
   isActive?: boolean;
   isMain?: boolean;
   className?: string;
+  isPulsing?: boolean;
 }) {
   return (
     <Tooltip>
@@ -87,6 +92,7 @@ function FABButton({
             'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
             isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
             isActive && 'bg-[#e67e22] border-2 border-white',
+            isPulsing && 'animate-pulse ring-4 ring-amber-400 ring-opacity-75 z-50',
             className
           )}
         >
@@ -156,8 +162,10 @@ export function Toolbar({
   onToggleElementsMenu,
   showTips,
   onToggleTips,
+  tutorialHighlight,
+  isMenuOpen,
+  onToggleMenu,
 }: ToolbarProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,17 +173,6 @@ export function Toolbar({
     if (file) {
       onImportJSON(file);
       e.target.value = '';
-    }
-  };
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-    if (isOpen) {
-      // Closing menu - reset submenus
-      if (activeSubmenu) {
-        onToggleHouseMenu();
-        onToggleElementsMenu();
-      }
     }
   };
 
@@ -197,15 +194,16 @@ export function Toolbar({
       <div className="fixed top-5 left-5 z-50 flex flex-col gap-2">
         {/* Main FAB Button */}
         <FABButton
-          icon={isOpen ? faTimes : faPlus}
-          title={isOpen ? "Fechar Menu" : "Abrir Menu"}
-          onClick={toggleMenu}
+          icon={isMenuOpen ? faTimes : faPlus}
+          title={isMenuOpen ? "Fechar Menu" : "Abrir Menu"}
+          onClick={onToggleMenu}
           isMain
-          className={isOpen ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : ''}
+          className={isMenuOpen ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : ''}
+          isPulsing={tutorialHighlight === 'main-fab'}
         />
 
         {/* Menu Items - shown when open */}
-        {isOpen && (
+        {isMenuOpen && (
           <div className="flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
             {/* House Button */}
             <div className="relative">
@@ -214,6 +212,7 @@ export function Toolbar({
                 title="Casa TETO (Opções)"
                 onClick={() => handleAction(onToggleHouseMenu)}
                 isActive={activeSubmenu === 'house'}
+                isPulsing={tutorialHighlight === 'house'}
               />
               {/* House Submenu */}
               {activeSubmenu === 'house' && (
@@ -248,6 +247,7 @@ export function Toolbar({
                 title="Elementos"
                 onClick={() => handleAction(onToggleElementsMenu)}
                 isActive={activeSubmenu === 'elements'}
+                isPulsing={tutorialHighlight === 'elements'}
               />
               {/* Elements Submenu */}
               {activeSubmenu === 'elements' && (
@@ -318,6 +318,7 @@ export function Toolbar({
               onClick={onToggleTips}
               isActive={showTips}
               color="#f1c40f"
+              isPulsing={tutorialHighlight === 'tips'}
             />
           </div>
         )}
