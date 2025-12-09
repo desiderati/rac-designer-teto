@@ -92,7 +92,7 @@ function FABButton({
             'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
             isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
             isActive && 'bg-[#e67e22] border-2 border-white',
-            isPulsing && 'animate-pulse ring-4 ring-amber-400 ring-opacity-75 z-50',
+            isPulsing && 'animate-[pulse_2s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
             className
           )}
         >
