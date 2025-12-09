@@ -13,31 +13,33 @@ interface TutorialStep {
     right?: string;
   };
   arrowDirection: 'left' | 'top' | 'bottom' | 'right';
+  arrowOffset?: number;
 }
 
 const tutorialSteps: TutorialStep[] = [
   {
-    title: 'Menu FAB',
+    title: 'Menu Principal',
     description: 'Clique aqui para abrir o menu principal com todas as ferramentas.',
-    position: { top: '16px', left: '80px' },
+    position: { top: '20px', left: '72px' },
     arrowDirection: 'left',
+    arrowOffset: 4,
   },
   {
-    title: 'Adicionar Casa',
-    description: 'Use este botão para adicionar paredes, portas, janelas e escadas.',
-    position: { top: '16px', left: '140px' },
+    title: 'Casa TETO',
+    description: 'Use este botão para adicionar a vista desejada para a casa.',
+    position: { top: '72px', left: '72px' },
     arrowDirection: 'left',
   },
   {
     title: 'Elementos',
-    description: 'Abre um submenu com formas geométricas, linhas e setas.',
-    position: { top: '16px', left: '200px' },
+    description: 'Abre um submenu com as opções extras para diagramação.',
+    position: { top: '216px', left: '72px' },
     arrowDirection: 'left',
   },
   {
     title: 'Dicas',
     description: 'Ative para ver dicas contextuais enquanto trabalha.',
-    position: { top: '16px', left: '260px' },
+    position: { top: '528px', left: '72px' },
     arrowDirection: 'left',
   },
 ];
@@ -52,15 +54,8 @@ export function Tutorial({ onComplete, isMenuOpen, onOpenMenu }: TutorialProps) 
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
-  // Open menu when tutorial starts if not already open
-  useState(() => {
-    if (!isMenuOpen && currentStep > 0) {
-      onOpenMenu();
-    }
-  });
-
   const handleNext = () => {
-    // Open menu when going past first step
+    // Open menu automatically when going past first step
     if (currentStep === 0 && !isMenuOpen) {
       onOpenMenu();
     }
@@ -85,9 +80,12 @@ export function Tutorial({ onComplete, isMenuOpen, onOpenMenu }: TutorialProps) 
 
   const getArrowStyles = () => {
     const base = 'absolute w-0 h-0 border-8 border-transparent';
+    const offset = step.arrowOffset !== undefined ? `${step.arrowOffset}px` : '50%';
+    const translateY = step.arrowOffset !== undefined ? '0' : '-50%';
+    
     switch (step.arrowDirection) {
       case 'left':
-        return `${base} -left-4 top-1/2 -translate-y-1/2 border-r-amber-100`;
+        return `${base} -left-4 border-r-amber-100`;
       case 'right':
         return `${base} -right-4 top-1/2 -translate-y-1/2 border-l-amber-100`;
       case 'top':
@@ -95,6 +93,15 @@ export function Tutorial({ onComplete, isMenuOpen, onOpenMenu }: TutorialProps) 
       case 'bottom':
         return `${base} -bottom-4 left-1/2 -translate-x-1/2 border-t-amber-100`;
     }
+  };
+
+  const getArrowInlineStyles = () => {
+    if (step.arrowDirection === 'left') {
+      const offset = step.arrowOffset !== undefined ? `${step.arrowOffset}px` : '50%';
+      const translateY = step.arrowOffset !== undefined ? '0' : '-50%';
+      return { top: offset, transform: `translateY(${translateY})` };
+    }
+    return {};
   };
 
   return (
@@ -114,7 +121,7 @@ export function Tutorial({ onComplete, isMenuOpen, onOpenMenu }: TutorialProps) 
       >
         <div className="relative bg-amber-100 text-amber-900 rounded-xl shadow-lg p-4 max-w-[240px]">
           {/* Arrow */}
-          <div className={getArrowStyles()} />
+          <div className={getArrowStyles()} style={getArrowInlineStyles()} />
           
           {/* Close button */}
           <button
