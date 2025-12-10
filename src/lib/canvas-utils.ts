@@ -222,10 +222,13 @@ export function getAdjacentPilotiId(currentId: string, direction: "next" | "prev
 }
 
 // Get piloti data from group
-export function getPilotiFromGroup(group: Group, pilotiId: string): { 
-  circle: FabricObject; 
-  height: number; 
-  isMaster: boolean; 
+export function getPilotiFromGroup(
+  group: Group,
+  pilotiId: string,
+): {
+  circle: FabricObject;
+  height: number;
+  isMaster: boolean;
   nivel: number;
 } | null {
   const objects = group.getObjects();
@@ -261,12 +264,7 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
   group.dirty = true;
 }
 
-export function updatePilotiMaster(
-  group: Group, 
-  pilotiId: string, 
-  isMaster: boolean, 
-  nivel: number
-): void {
+export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boolean, nivel: number): void {
   const objects = group.getObjects();
 
   // If setting as master, first remove master status from all other pilotis
@@ -293,7 +291,7 @@ export function updatePilotiMaster(
       if (obj.isPilotiCircle) {
         obj.pilotiIsMaster = isMaster;
         obj.pilotiNivel = nivel;
-        
+
         // Update visual style based on isMaster
         if (isMaster) {
           obj.set("fill", MASTER_PILOTI_FILL);
@@ -321,11 +319,11 @@ export function updatePilotiMaster(
 }
 
 export function updatePilotiAll(
-  group: Group, 
-  pilotiId: string, 
+  group: Group,
+  pilotiId: string,
   newHeight: number,
-  isMaster: boolean, 
-  nivel: number
+  isMaster: boolean,
+  nivel: number,
 ): void {
   updatePilotiHeight(group, pilotiId, newHeight);
   updatePilotiMaster(group, pilotiId, isMaster, nivel);
@@ -823,8 +821,8 @@ export function createWall(canvas: FabricCanvas): Rect {
 
 export function createDoor(canvas: FabricCanvas): Group {
   const rect = new Rect({
-    width: 60,
-    height: 15,
+    width: 100,
+    height: 20,
     fill: "#D2A679",
     stroke: "black",
     strokeWidth: 1,
