@@ -1,18 +1,18 @@
-import { useState, useRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
+import { useState, useRef } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
   faPlus,
   faTimes,
-  faHome, 
+  faHome,
   faHouseChimney,
-  faLockOpen, 
-  faLock, 
-  faShapes, 
-  faPenNib, 
-  faFont, 
-  faFileDownload, 
-  faFolderOpen, 
-  faTrash, 
+  faLockOpen,
+  faLock,
+  faShapes,
+  faPenNib,
+  faFont,
+  faFileDownload,
+  faFolderOpen,
+  faTrash,
   faFilePdf,
   faLayerGroup,
   faBars,
@@ -27,11 +27,11 @@ import {
   faEllipsisVertical,
   faRotateLeft,
   faSquare,
-  faSquareFull
-} from '@fortawesome/free-solid-svg-icons';
-import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+  faSquareFull,
+} from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
   onAddHouseTop: () => void;
@@ -56,33 +56,33 @@ interface ToolbarProps {
   onDelete: () => void;
   onSavePDF: () => void;
   isDrawing: boolean;
-  activeSubmenu: 'house' | 'elements' | 'overflow' | null;
+  activeSubmenu: "house" | "elements" | "overflow" | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
+  tutorialHighlight?: "main-fab" | "house" | "elements" | "zoom-minimap" | "more-options" | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
   isTutorialActive?: boolean;
 }
 
-function FABButton({ 
-  icon, 
-  title, 
-  onClick, 
-  color = '#ecf0f1',
+function FABButton({
+  icon,
+  title,
+  onClick,
+  color = "#ecf0f1",
   isActive = false,
   isMain = false,
-  className = '',
+  className = "",
   isPulsing = false,
   hideTooltip = false,
-  tooltipSide = 'right' as 'right' | 'left',
-}: { 
-  icon: IconDefinition; 
-  title: string; 
+  tooltipSide = "right" as "right" | "left",
+}: {
+  icon: IconDefinition;
+  title: string;
   onClick: () => void;
   color?: string;
   isActive?: boolean;
@@ -90,17 +90,17 @@ function FABButton({
   className?: string;
   isPulsing?: boolean;
   hideTooltip?: boolean;
-  tooltipSide?: 'right' | 'left';
+  tooltipSide?: "right" | "left";
 }) {
   const button = (
     <button
       onClick={onClick}
       className={cn(
-        'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
-        isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
-        isActive && 'bg-[#e67e22] border-2 border-white',
-        isPulsing && 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
-        className
+        "border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95",
+        isMain ? "w-12 h-12 text-xl" : "w-11 h-11 text-lg",
+        isActive && "bg-[#e67e22] border-2 border-white",
+        isPulsing && "animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50",
+        className,
       )}
     >
       <FontAwesomeIcon icon={icon} style={{ color }} />
@@ -113,9 +113,7 @@ function FABButton({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        {button}
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side={tooltipSide} className="bg-[#333] text-white">
         {title}
       </TooltipContent>
@@ -123,20 +121,20 @@ function FABButton({
   );
 }
 
-function SubMenuButton({ 
-  icon, 
-  title, 
+function SubMenuButton({
+  icon,
+  title,
   onClick,
-  color = '#ecf0f1',
+  color = "#ecf0f1",
   hideTooltip = false,
-  tooltipSide = 'bottom' as 'bottom' | 'left',
-}: { 
-  icon: IconDefinition; 
-  title: string; 
+  tooltipSide = "bottom" as "bottom" | "left",
+}: {
+  icon: IconDefinition;
+  title: string;
   onClick: () => void;
   color?: string;
   hideTooltip?: boolean;
-  tooltipSide?: 'bottom' | 'left';
+  tooltipSide?: "bottom" | "left";
 }) {
   const button = (
     <button
@@ -153,9 +151,7 @@ function SubMenuButton({
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        {button}
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side={tooltipSide} align="center" className="bg-[#333] text-white">
         {title}
       </TooltipContent>
@@ -204,7 +200,7 @@ export function Toolbar({
     const file = e.target.files?.[0];
     if (file) {
       onImportJSON(file);
-      e.target.value = '';
+      e.target.value = "";
     }
   };
 
@@ -214,14 +210,8 @@ export function Toolbar({
 
   return (
     <>
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept=".json"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      
+      <input type="file" ref={fileInputRef} accept=".json" onChange={handleFileChange} className="hidden" />
+
       {/* FAB Container - Fixed position top left */}
       <div className="fixed top-5 left-5 z-50 flex flex-col gap-2">
         {/* Main FAB Button */}
@@ -230,8 +220,8 @@ export function Toolbar({
           title={isMenuOpen ? "Fechar Menu" : "Abrir Menu"}
           onClick={onToggleMenu}
           isMain
-          className={isMenuOpen ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : ''}
-          isPulsing={tutorialHighlight === 'main-fab'}
+          className={isMenuOpen ? "bg-[#e74c3c] hover:bg-[#c0392b]" : ""}
+          isPulsing={tutorialHighlight === "main-fab"}
           hideTooltip={isTutorialActive}
         />
 
@@ -244,34 +234,59 @@ export function Toolbar({
                 icon={faHome}
                 title="Casa TETO (Opções)"
                 onClick={() => handleAction(onToggleHouseMenu)}
-                isActive={activeSubmenu === 'house'}
-                isPulsing={tutorialHighlight === 'house'}
-                hideTooltip={activeSubmenu === 'house' || isTutorialActive}
+                isActive={activeSubmenu === "house"}
+                isPulsing={tutorialHighlight === "house"}
+                hideTooltip={activeSubmenu === "house" || isTutorialActive}
               />
               {/* House Submenu */}
-              {activeSubmenu === 'house' && (
+              {activeSubmenu === "house" && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faSquareFull} title="Quadrado Fechado" onClick={() => handleAction(onAddHouseSide1)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faDoorOpen} title="Quadrado Aberto" onClick={() => handleAction(onAddHouseSide2)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton
+                    icon={faLayerGroup}
+                    title="Visão Superior (Planta)"
+                    onClick={() => handleAction(onAddHouseTop)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faHouseChimney}
+                    title="Visão Frontal"
+                    onClick={() => handleAction(onAddHouseFront)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faHomeWindow}
+                    title="Visão Traseira"
+                    onClick={() => handleAction(onAddHouseBack)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faSquareFull}
+                    title="Quadrado Fechado"
+                    onClick={() => handleAction(onAddHouseSide1)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faDoorOpen}
+                    title="Quadrado Aberto"
+                    onClick={() => handleAction(onAddHouseSide2)}
+                    hideTooltip={isTutorialActive}
+                  />
                 </div>
               )}
             </div>
 
             {/* Unlock */}
-            <FABButton 
-              icon={faLockOpen} 
-              title="Desbloquear (Desagrupar)" 
+            <FABButton
+              icon={faLockOpen}
+              title="Desbloquear (Desagrupar)"
               onClick={() => handleAction(onUngroup)}
               hideTooltip={isTutorialActive}
             />
-            
+
             {/* Lock */}
-            <FABButton 
-              icon={faLock} 
-              title="Bloquear (Agrupar)" 
+            <FABButton
+              icon={faLock}
+              title="Bloquear (Agrupar)"
               onClick={() => handleAction(onGroup)}
               hideTooltip={isTutorialActive}
             />
@@ -282,25 +297,65 @@ export function Toolbar({
                 icon={faShapes}
                 title="Elementos"
                 onClick={() => handleAction(onToggleElementsMenu)}
-                isActive={activeSubmenu === 'elements'}
-                isPulsing={tutorialHighlight === 'elements'}
-                hideTooltip={activeSubmenu === 'elements' || isTutorialActive}
+                isActive={activeSubmenu === "elements"}
+                isPulsing={tutorialHighlight === "elements"}
+                hideTooltip={activeSubmenu === "elements" || isTutorialActive}
               />
               {/* Elements Submenu */}
-              {activeSubmenu === 'elements' && (
+              {activeSubmenu === "elements" && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faBars} title="Objeto / Muro" onClick={() => handleAction(onAddWall)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faDoorOpen} title="Porta" onClick={() => handleAction(onAddDoor)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faStairs} title="Escada" onClick={() => handleAction(onAddStairs)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faTree} title="Árvore" onClick={() => handleAction(onAddTree)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faWater} title="Água / Rio" onClick={() => handleAction(onAddWater)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faSlash} title="Linha Reta" onClick={() => handleAction(onAddLine)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faArrowRightLong} title="Seta Simples" onClick={() => handleAction(onAddArrow)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faArrowsLeftRight} title="Distância" onClick={() => handleAction(onAddDimension)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton
+                    icon={faBars}
+                    title="Objeto / Muro"
+                    onClick={() => handleAction(onAddWall)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faDoorOpen}
+                    title="Porta"
+                    onClick={() => handleAction(onAddDoor)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faStairs}
+                    title="Escada"
+                    onClick={() => handleAction(onAddStairs)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faTree}
+                    title="Árvore"
+                    onClick={() => handleAction(onAddTree)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faWater}
+                    title="Água / Rio"
+                    onClick={() => handleAction(onAddWater)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faSlash}
+                    title="Linha Reta"
+                    onClick={() => handleAction(onAddLine)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faArrowRightLong}
+                    title="Seta Simples"
+                    onClick={() => handleAction(onAddArrow)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faArrowsLeftRight}
+                    title="Distância"
+                    onClick={() => handleAction(onAddDimension)}
+                    hideTooltip={isTutorialActive}
+                  />
                 </div>
               )}
             </div>
-            
+
             {/* Pencil */}
             <FABButton
               icon={faPenNib}
@@ -309,15 +364,14 @@ export function Toolbar({
               isActive={isDrawing}
               hideTooltip={isTutorialActive}
             />
-            
+
             {/* Text */}
-            <FABButton 
-              icon={faFont} 
-              title="Texto Livre" 
+            <FABButton
+              icon={faFont}
+              title="Texto Livre"
               onClick={() => handleAction(onAddText)}
               hideTooltip={isTutorialActive}
             />
-
           </div>
         )}
       </div>
@@ -329,20 +383,62 @@ export function Toolbar({
           title="Mais Opções"
           onClick={() => handleAction(onToggleOverflowMenu)}
           isMain
-          isActive={activeSubmenu === 'overflow'}
-          isPulsing={tutorialHighlight === 'more-options'}
-          hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
+          isActive={activeSubmenu === "overflow"}
+          isPulsing={tutorialHighlight === "more-options"}
+          hideTooltip={activeSubmenu === "overflow" || isTutorialActive}
           tooltipSide="left"
         />
         {/* Overflow Submenu - opens downward */}
-        {activeSubmenu === 'overflow' && (
+        {activeSubmenu === "overflow" && (
           <div className="flex flex-col gap-1 items-end animate-in slide-in-from-top-2 duration-200">
-            <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faRotateLeft} title="Reiniciar Canvas" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton
+              icon={faFileDownload}
+              title="Exportar Projeto (JSON)"
+              onClick={() => handleAction(onExportJSON)}
+              color="#ffeaa7"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faFolderOpen}
+              title="Abrir Projeto (JSON)"
+              onClick={() => fileInputRef.current?.click()}
+              color="#ffeaa7"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faTrash}
+              title="Excluir Item"
+              onClick={() => handleAction(onDelete)}
+              color="#ffaaaa"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faFilePdf}
+              title="Salvar PDF"
+              onClick={() => handleAction(onSavePDF)}
+              color="#aaffaa"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faLightbulb}
+              title="Dicas"
+              onClick={onToggleTips}
+              color="#f1c40f"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faRotateLeft}
+              title="Reiniciar Canvas"
+              onClick={onRestartTutorial}
+              color="#74b9ff"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
           </div>
         )}
       </div>
