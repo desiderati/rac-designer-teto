@@ -45,9 +45,9 @@ const tutorialSteps: TutorialStep[] = [
     id: "zoom-minimap",
     title: "Zoom e Navegação",
     description: "Use o controle de zoom e o minimapa para ajustar a visualização e navegar pelo canvas.",
-    position: { bottom: "25px", left: "110px" },
+    position: { bottom: "20x", left: "110px" },
     arrowDirection: "left",
-    arrowOffset: "20px",
+    arrowOffset: "25px",
   },
   {
     id: "more-options",
