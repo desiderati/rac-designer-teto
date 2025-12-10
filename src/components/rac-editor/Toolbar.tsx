@@ -25,7 +25,8 @@ import {
   faArrowsLeftRight,
   faDoorOpen,
   faStairs,
-  faLightbulb
+  faLightbulb,
+  faEllipsisVertical
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -54,9 +55,10 @@ interface ToolbarProps {
   onDelete: () => void;
   onSavePDF: () => void;
   isDrawing: boolean;
-  activeSubmenu: 'house' | 'elements' | null;
+  activeSubmenu: 'house' | 'elements' | 'overflow' | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
+  onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'tips' | null;
@@ -170,6 +172,7 @@ export function Toolbar({
   activeSubmenu,
   onToggleHouseMenu,
   onToggleElementsMenu,
+  onToggleOverflowMenu,
   showTips,
   onToggleTips,
   tutorialHighlight,
@@ -289,47 +292,25 @@ export function Toolbar({
               onClick={() => handleAction(onAddText)} 
             />
 
-            {/* Export JSON */}
-            <FABButton 
-              icon={faFileDownload} 
-              title="Exportar Projeto (JSON)" 
-              onClick={() => handleAction(onExportJSON)} 
-              color="#ffeaa7"
-            />
-            
-            {/* Open JSON */}
-            <FABButton 
-              icon={faFolderOpen} 
-              title="Abrir Projeto (JSON)" 
-              onClick={() => fileInputRef.current?.click()} 
-              color="#ffeaa7"
-            />
-
-            {/* Delete */}
-            <FABButton 
-              icon={faTrash} 
-              title="Excluir" 
-              onClick={() => handleAction(onDelete)} 
-              color="#ffaaaa"
-            />
-            
-            {/* Save PDF */}
-            <FABButton 
-              icon={faFilePdf} 
-              title="Salvar PDF" 
-              onClick={() => handleAction(onSavePDF)} 
-              color="#aaffaa"
-            />
-
-            {/* Tips Toggle */}
-            <FABButton 
-              icon={faLightbulb} 
-              title="Dicas" 
-              onClick={onToggleTips}
-              isActive={showTips}
-              color="#f1c40f"
-              isPulsing={tutorialHighlight === 'tips'}
-            />
+            {/* Overflow Menu (three dots) */}
+            <div className="relative">
+              <FABButton
+                icon={faEllipsisVertical}
+                title="Mais Opções"
+                onClick={() => handleAction(onToggleOverflowMenu)}
+                isActive={activeSubmenu === 'overflow'}
+              />
+              {/* Overflow Submenu */}
+              {activeSubmenu === 'overflow' && (
+                <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
+                  <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" />
+                  <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" />
+                  <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" />
+                  <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" />
+                  <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
