@@ -165,7 +165,7 @@ export function PilotiEditor({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label htmlFor="is-master" className="text-sm font-medium">
-          Piloti mestre
+          Este será o piloti mestre?
         </Label>
         <Switch
           id="is-master"
@@ -176,19 +176,18 @@ export function PilotiEditor({
       
       {tempIsMaster && (
         <div className="space-y-2 pl-2 border-l-2 border-primary/30">
-          <Label htmlFor="nivel" className="text-sm font-medium">
-            Nível do mestre (m)
-          </Label>
           <div className="flex items-center gap-2">
+            <Label htmlFor="nivel" className="text-sm font-medium whitespace-nowrap">
+              Nível do mestre (m)
+            </Label>
             <Input
               id="nivel"
               type="text"
               value={formatPilotiHeight(tempNivel)}
               onChange={(e) => handleNivelChange(e.target.value)}
-              className="w-24 text-center"
+              className="w-20 text-center"
               placeholder="0,30"
             />
-            <span className="text-sm text-muted-foreground">m</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Parte visível acima do terreno
