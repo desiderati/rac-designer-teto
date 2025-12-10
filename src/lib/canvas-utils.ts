@@ -269,6 +269,25 @@ export function updatePilotiMaster(
 ): void {
   const objects = group.getObjects();
 
+  // If setting as master, first remove master status from all other pilotis
+  if (isMaster) {
+    objects.forEach((obj: any) => {
+      if (obj.pilotiId !== pilotiId) {
+        if (obj.isPilotiCircle && obj.pilotiIsMaster) {
+          obj.pilotiIsMaster = false;
+          obj.set("fill", "white");
+          obj.set("stroke", "black");
+          obj.set("strokeWidth", 1.5 * 0.6);
+        }
+        if (obj.isPilotiNivelText) {
+          obj.set("text", "");
+          obj.set("visible", false);
+        }
+      }
+    });
+  }
+
+  // Now update the target piloti
   objects.forEach((obj: any) => {
     if (obj.pilotiId === pilotiId) {
       if (obj.isPilotiCircle) {
@@ -283,7 +302,7 @@ export function updatePilotiMaster(
         } else {
           obj.set("fill", "white");
           obj.set("stroke", "black");
-          obj.set("strokeWidth", 1.5 * 0.6); // Original scale
+          obj.set("strokeWidth", 1.5 * 0.6);
         }
       }
       if (obj.isPilotiNivelText) {
