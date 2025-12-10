@@ -1,6 +1,7 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection } from 'fabric';
-import { customProps, getHintForObject } from '@/lib/canvas-utils';
+import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvas-utils';
+import { Minimap } from './Minimap';
 
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
@@ -17,11 +18,25 @@ export interface CanvasHandle {
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
   ({ onSelectionChange, onHistorySave }, ref) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
     const historyRef = useRef<string[]>([]);
     const historyProcessingRef = useRef(false);
     const clipboardRef = useRef<any>(null);
+    
+    // Viewport state
+    const [zoom, setZoom] = useState(1);
+    const [viewportX, setViewportX] = useState(0);
+    const [viewportY, setViewportY] = useState(0);
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+    const [isPanning, setIsPanning] = useState(false);
+    const lastPanPoint = useRef({ x: 0, y: 0 });
+
+    // Check if minimap should be visible
+    const canvasFitsInViewport = 
+      CANVAS_WIDTH * zoom <= containerSize.width && 
+      CANVAS_HEIGHT * zoom <= containerSize.height;
 
     const saveHistory = () => {
       if (historyProcessingRef.current) return;
@@ -89,6 +104,35 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       onSelectionChange('Objeto colado.');
     };
 
+    // Handle viewport change from minimap
+    const handleViewportChange = useCallback((x: number, y: number) => {
+      setViewportX(x);
+      setViewportY(y);
+    }, []);
+
+    // Handle zoom change from slider
+    const handleZoomChange = useCallback((newZoom: number) => {
+      const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+
+      // Calculate center point before zoom
+      const centerX = viewportX + containerSize.width / 2;
+      const centerY = viewportY + containerSize.height / 2;
+
+      // Calculate new viewport position to keep center consistent
+      const zoomRatio = newZoom / zoom;
+      const newViewportX = centerX * zoomRatio - containerSize.width / 2;
+      const newViewportY = centerY * zoomRatio - containerSize.height / 2;
+
+      setZoom(newZoom);
+      
+      // Clamp viewport to valid range
+      const maxX = Math.max(0, CANVAS_WIDTH * newZoom - containerSize.width);
+      const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - containerSize.height);
+      setViewportX(Math.max(0, Math.min(newViewportX, maxX)));
+      setViewportY(Math.max(0, Math.min(newViewportY, maxY)));
+    }, [zoom, viewportX, viewportY, containerSize]);
+
     useImperativeHandle(ref, () => ({
       canvas: fabricCanvasRef.current,
       saveHistory,
@@ -98,14 +142,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     }));
 
     useEffect(() => {
-      if (!canvasRef.current) return;
-
-      const container = canvasRef.current.parentElement;
-      if (!container) return;
+      if (!canvasRef.current || !containerRef.current) return;
 
       const canvas = new FabricCanvas(canvasRef.current, {
-        width: container.clientWidth,
-        height: container.clientHeight,
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
         backgroundColor: '#ffffff',
       });
 
@@ -133,19 +174,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvas.on('selection:created', updateHint);
       canvas.on('selection:updated', updateHint);
       canvas.on('selection:cleared', updateHint);
-
-      // Resize handler
-      const handleResize = () => {
-        if (!container || !canvas) return;
-        canvas.setDimensions({
-          width: container.clientWidth,
-          height: container.clientHeight,
-        });
-        canvas.renderAll();
-      };
-
-      const resizeObserver = new ResizeObserver(handleResize);
-      resizeObserver.observe(container);
 
       // Rotation snapping
       canvas.on('object:rotating', (e) => {
@@ -202,14 +230,132 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
-        resizeObserver.disconnect();
         canvas.dispose();
       };
     }, []);
 
+    // Update container size on resize
+    useEffect(() => {
+      if (!containerRef.current) return;
+
+      const updateSize = () => {
+        if (containerRef.current) {
+          setContainerSize({
+            width: containerRef.current.clientWidth,
+            height: containerRef.current.clientHeight,
+          });
+        }
+      };
+
+      updateSize();
+
+      const resizeObserver = new ResizeObserver(updateSize);
+      resizeObserver.observe(containerRef.current);
+
+      return () => resizeObserver.disconnect();
+    }, []);
+
+    // Clamp viewport when container or zoom changes
+    useEffect(() => {
+      const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
+      const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
+      
+      setViewportX(prev => Math.max(0, Math.min(prev, maxX)));
+      setViewportY(prev => Math.max(0, Math.min(prev, maxY)));
+    }, [containerSize, zoom]);
+
+    // Pan handlers
+    const handleMouseDown = (e: React.MouseEvent) => {
+      // Only start panning with middle mouse button or when holding space
+      if (e.button === 1) {
+        e.preventDefault();
+        setIsPanning(true);
+        lastPanPoint.current = { x: e.clientX, y: e.clientY };
+      }
+    };
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+      if (!isPanning) return;
+
+      const deltaX = e.clientX - lastPanPoint.current.x;
+      const deltaY = e.clientY - lastPanPoint.current.y;
+      lastPanPoint.current = { x: e.clientX, y: e.clientY };
+
+      const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
+      const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
+
+      setViewportX(prev => Math.max(0, Math.min(prev - deltaX, maxX)));
+      setViewportY(prev => Math.max(0, Math.min(prev - deltaY, maxY)));
+    }, [isPanning, zoom, containerSize]);
+
+    const handleMouseUp = () => {
+      setIsPanning(false);
+    };
+
+    // Mouse wheel - zoom with Ctrl, pan without
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+      e.preventDefault();
+      
+      if (e.ctrlKey || e.metaKey) {
+        // Zoom
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
+        handleZoomChange(newZoom);
+      } else {
+        // Pan
+        const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
+        const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
+        
+        setViewportX(prev => Math.max(0, Math.min(prev + e.deltaX, maxX)));
+        setViewportY(prev => Math.max(0, Math.min(prev + e.deltaY, maxY)));
+      }
+    }, [zoom, handleZoomChange, containerSize]);
+
+    // Calculate canvas position - center it when it fits, otherwise use viewport offset
+    const scaledWidth = CANVAS_WIDTH * zoom;
+    const scaledHeight = CANVAS_HEIGHT * zoom;
+    
+    const canvasX = scaledWidth <= containerSize.width 
+      ? (containerSize.width - scaledWidth) / 2 
+      : -viewportX;
+    const canvasY = scaledHeight <= containerSize.height 
+      ? (containerSize.height - scaledHeight) / 2 
+      : -viewportY;
+
     return (
-      <div className="w-full h-full bg-card shadow-xl">
-        <canvas ref={canvasRef} />
+      <div 
+        ref={containerRef}
+        className="w-full h-full overflow-hidden relative bg-muted"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
+      >
+        <div
+          className="absolute shadow-xl bg-card"
+          style={{
+            transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
+            transformOrigin: '0 0',
+            width: CANVAS_WIDTH,
+            height: CANVAS_HEIGHT,
+          }}
+        >
+          <canvas ref={canvasRef} />
+        </div>
+
+        <Minimap
+          canvasWidth={CANVAS_WIDTH}
+          canvasHeight={CANVAS_HEIGHT}
+          viewportWidth={containerSize.width}
+          viewportHeight={containerSize.height}
+          viewportX={viewportX}
+          viewportY={viewportY}
+          zoom={zoom}
+          onViewportChange={handleViewportChange}
+          onZoomChange={handleZoomChange}
+          visible={!canvasFitsInViewport}
+        />
       </div>
     );
   }
