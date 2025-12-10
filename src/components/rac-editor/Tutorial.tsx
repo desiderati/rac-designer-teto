@@ -21,9 +21,9 @@ const tutorialSteps: TutorialStep[] = [
     id: "main-fab",
     title: "Menu Principal",
     description: "Clique aqui para abrir o menu principal com todas as ferramentas.",
-    position: { top: "15px", left: "80px" },
+    position: { top: "20px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "25px",
+    arrowOffset: "15px",
   },
   {
     id: "house",
