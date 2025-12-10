@@ -119,24 +119,18 @@ export function PilotiEditor({
   );
 
   const HeightControls = () => (
-    <div className="flex flex-col items-center gap-2">
-      <div className="text-base font-medium text-muted-foreground text-center">
-        {formatPilotiHeight(tempHeight)} m
-      </div>
-      
-      <div className="flex gap-2 flex-wrap justify-center">
-        {PILOTI_HEIGHTS.map((h) => (
-          <Button
-            key={h}
-            variant={tempHeight === h ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setTempHeight(h)}
-            className="min-w-[50px]"
-          >
-            {formatPilotiHeight(h)}
-          </Button>
-        ))}
-      </div>
+    <div className="flex gap-2 flex-wrap justify-center">
+      {PILOTI_HEIGHTS.map((h) => (
+        <Button
+          key={h}
+          variant={tempHeight === h ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTempHeight(h)}
+          className="min-w-[50px]"
+        >
+          {formatPilotiHeight(h)}
+        </Button>
+      ))}
     </div>
   );
 
@@ -184,10 +178,6 @@ export function PilotiEditor({
       <PopoverContent className="w-auto p-4 bg-popover" side="right" align="center">
         <div className="space-y-3">
           <NavigationHeader />
-          
-          <div className="text-sm font-medium text-muted-foreground text-center">
-            {formatPilotiHeight(tempHeight)} m
-          </div>
           
           <div className="flex gap-1 flex-wrap justify-center">
             {PILOTI_HEIGHTS.map((h) => (
