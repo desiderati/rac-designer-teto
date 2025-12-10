@@ -85,22 +85,22 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
       case "left":
         return {
           className: `${base} border-r-amber-100`,
-          style: { left: "-16px", top: offset },
+          style: { left: "-15px", top: offset, transform: "translateY(-50%)" },
         };
       case "right":
         return {
           className: `${base} border-l-amber-100`,
-          style: { right: "-16px", top: offset },
+          style: { right: "-15px", top: offset, transform: "translateY(-50%)" },
         };
       case "top":
         return {
           className: `${base} border-b-amber-100`,
-          style: { top: "-16px", left: offset },
+          style: { top: "-15px", left: offset, transform: "translateX(-50%)" },
         };
       case "bottom":
         return {
           className: `${base} border-t-amber-100`,
-          style: { bottom: "-16px", left: offset },
+          style: { bottom: "-15px", left: offset, transform: "translateX(-50%)" },
         };
     }
   };
