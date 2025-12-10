@@ -265,13 +265,26 @@ export function RACEditor() {
     if (!canvas) return;
     
     const activeObj = canvas.getActiveObject();
-    if (!activeObj || activeObj.type !== 'activeSelection') {
+    console.log('Active object:', activeObj);
+    console.log('Active object type:', activeObj?.type);
+    
+    if (!activeObj) {
+      setInfoMessage('Selecione vários itens para bloquear (agrupar).');
+      return;
+    }
+    
+    // In Fabric.js v6, check for ActiveSelection using isType or constructor
+    const isActiveSelection = activeObj.type === 'activeSelection' || activeObj.type === 'activeselection';
+    console.log('Is ActiveSelection:', isActiveSelection);
+    
+    if (!isActiveSelection) {
       setInfoMessage('Selecione vários itens para bloquear (agrupar).');
       return;
     }
     
     const activeSelection = activeObj as ActiveSelection;
     const objects = activeSelection.getObjects();
+    console.log('Objects to group:', objects.length);
     
     if (objects.length < 2) {
       setInfoMessage('Selecione pelo menos 2 itens para agrupar.');
