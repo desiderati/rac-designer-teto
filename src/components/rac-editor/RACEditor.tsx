@@ -35,6 +35,7 @@ import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   formatPilotiHeight,
+  getPilotiFromGroup,
 } from '@/lib/canvas-utils';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
@@ -496,6 +497,40 @@ export function RACEditor() {
     setInfoMessage(`Altura do piloti atualizada para ${formatPilotiHeight(newHeight)} m.`);
   };
 
+  const handlePilotiNavigate = (pilotiId: string, height: number) => {
+    if (!pilotiSelection?.group) return;
+    
+    const canvas = canvasRef.current?.canvas;
+    if (!canvas) return;
+    
+    // Reset all pilotis stroke
+    pilotiSelection.group.getObjects().forEach((obj: any) => {
+      if (obj.isPilotiCircle) {
+        obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+      }
+    });
+    
+    // Highlight the new piloti
+    const pilotiData = getPilotiFromGroup(pilotiSelection.group, pilotiId);
+    if (pilotiData) {
+      pilotiData.circle.set({
+        stroke: '#3b82f6',
+        strokeWidth: 3,
+      });
+    }
+    
+    canvas.renderAll();
+    
+    // Update selection state
+    setPilotiSelection(prev => prev ? {
+      ...prev,
+      pilotiId,
+      currentHeight: height,
+    } : null);
+    
+    setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
+  };
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
@@ -567,6 +602,7 @@ export function RACEditor() {
         isMobile={isMobile}
         anchorPosition={pilotiSelection?.screenPosition}
         onHeightChange={handlePilotiHeightChange}
+        onNavigate={handlePilotiNavigate}
       />
 
       {tutorialStep && (
