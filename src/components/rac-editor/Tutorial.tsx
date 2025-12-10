@@ -52,7 +52,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "minimap",
     title: "Minimapa",
     description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
-    position: { bottom: "25px", left: "110px" },
+    position: { bottom: "25px", left: "115px" },
     arrowDirection: "left",
     arrowOffset: "65px",
   },
