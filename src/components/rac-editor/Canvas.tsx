@@ -9,6 +9,7 @@ interface CanvasProps {
   children?: ReactNode;
   onZoomInteraction?: () => void;
   onMinimapInteraction?: () => void;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap' | null;
 }
 
 export interface CanvasHandle {
@@ -21,7 +22,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -392,6 +393,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             onZoomChange={handleZoomChange}
             visible={!canvasFitsInViewport}
             objects={minimapObjects}
+            highlightZoom={tutorialHighlight === 'zoom'}
+            highlightMinimap={tutorialHighlight === 'minimap'}
           />
         </div>
 
