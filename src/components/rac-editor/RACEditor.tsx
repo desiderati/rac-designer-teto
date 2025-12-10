@@ -29,7 +29,7 @@ type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'tips';
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
   const [isDrawing, setIsDrawing] = useState(false);
-  const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | null>(null);
+  const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'overflow' | null>(null);
   const [showTips, setShowTips] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
@@ -393,6 +393,11 @@ export function RACEditor() {
     }
   };
 
+  const handleToggleOverflowMenu = () => {
+    disableDrawingMode();
+    setActiveSubmenu(prev => prev === 'overflow' ? null : 'overflow');
+  };
+
   const handleToggleTips = () => {
     setShowTips(!showTips);
     
@@ -443,6 +448,7 @@ export function RACEditor() {
         activeSubmenu={activeSubmenu}
         onToggleHouseMenu={handleToggleHouseMenu}
         onToggleElementsMenu={handleToggleElementsMenu}
+        onToggleOverflowMenu={handleToggleOverflowMenu}
         showTips={showTips}
         onToggleTips={handleToggleTips}
         tutorialHighlight={tutorialStep}

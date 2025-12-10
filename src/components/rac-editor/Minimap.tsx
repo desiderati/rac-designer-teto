@@ -131,8 +131,6 @@ export function Minimap({
     }
   }, [isDragging, isSliderDragging, handleMouseMove, handleSliderMove, handleMouseUp]);
 
-  if (!visible) return null;
-
   // Invert slider position (top = 200%, bottom = 50%)
   const thumbY = SLIDER_HEIGHT - sliderPosition;
 
@@ -150,15 +148,11 @@ export function Minimap({
           {/* Track */}
           <div className="absolute left-1/2 -translate-x-1/2 top-1 bottom-1 w-0.5 bg-muted-foreground/30 rounded" />
           
-          {/* Triangle Thumb */}
+          {/* Circle Thumb */}
           <div 
-            className="absolute left-1/2 -translate-x-1/2 transition-all duration-75"
+            className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
             style={{ top: thumbY - 6 }}
-          >
-            <svg width="12" height="12" viewBox="0 0 12 12" className="fill-primary">
-              <polygon points="6,12 0,0 12,0" />
-            </svg>
-          </div>
+          />
         </div>
       </div>
 
