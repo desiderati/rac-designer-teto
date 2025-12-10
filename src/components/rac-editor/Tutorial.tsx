@@ -45,7 +45,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "zoom-minimap",
     title: "Zoom e Navegação",
     description: "Use o controle de zoom e o minimapa para ajustar a visualização e navegar pelo canvas.",
-    position: { bottom: "25px", left: "105px" },
+    position: { bottom: "25px", left: "110px" },
     arrowDirection: "left",
     arrowOffset: "25px",
   },
@@ -108,12 +108,14 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
   const arrowStyles = getArrowStyles();
 
   // Only show full blur on steps before "more-options" to keep zoom/minimap visible
-  const showFullBlur = step.id !== 'more-options';
+  const showFullBlur = step.id !== "more-options";
 
   return (
     <>
       {/* Overlay sutil - reduced blur on more-options step */}
-      <div className={`fixed inset-0 z-40 pointer-events-none ${showFullBlur ? 'bg-background/40 backdrop-blur-[2px]' : 'bg-background/20'}`} />
+      <div
+        className={`fixed inset-0 z-40 pointer-events-none ${showFullBlur ? "bg-background/40 backdrop-blur-[2px]" : "bg-background/20"}`}
+      />
 
       {/* Balloon tooltip */}
       <div
