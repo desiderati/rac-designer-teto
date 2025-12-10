@@ -1,4 +1,4 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvas-utils';
 import { Minimap } from './Minimap';
@@ -6,6 +6,7 @@ import { Minimap } from './Minimap';
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
+  children?: ReactNode;
 }
 
 export interface CanvasHandle {
@@ -14,10 +15,11 @@ export interface CanvasHandle {
   undo: () => void;
   copy: () => void;
   paste: () => void;
+  getCanvasPosition: () => { x: number; y: number; zoom: number };
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave }, ref) => {
+  ({ onSelectionChange, onHistorySave, children }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -139,6 +141,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       undo,
       copy,
       paste,
+      getCanvasPosition: () => ({ x: viewportX, y: viewportY, zoom }),
     }));
 
     useEffect(() => {
@@ -333,29 +336,56 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         onWheel={handleWheel}
       >
         <div
-          className="absolute shadow-xl bg-card"
+          className="absolute"
           style={{
-            transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
+            transform: `translate(${canvasX}px, ${canvasY}px)`,
+            width: scaledWidth,
+            height: scaledHeight,
           }}
         >
-          <canvas ref={canvasRef} />
-        </div>
+          {/* Canvas with zoom */}
+          <div
+            className="shadow-xl bg-card"
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: '0 0',
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+            }}
+          >
+            <canvas ref={canvasRef} />
+          </div>
 
-        <Minimap
-          canvasWidth={CANVAS_WIDTH}
-          canvasHeight={CANVAS_HEIGHT}
-          viewportWidth={containerSize.width}
-          viewportHeight={containerSize.height}
-          viewportX={viewportX}
-          viewportY={viewportY}
-          zoom={zoom}
-          onViewportChange={handleViewportChange}
-          onZoomChange={handleZoomChange}
-          visible={!canvasFitsInViewport}
-        />
+          {/* UI elements anchored to canvas - use inverse scale to maintain size */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              transform: `scale(${1/zoom})`,
+              transformOrigin: '0 0',
+              width: CANVAS_WIDTH * zoom,
+              height: CANVAS_HEIGHT * zoom,
+            }}
+          >
+            {/* Minimap in bottom-left of canvas */}
+            <div className="absolute bottom-4 left-4 pointer-events-auto">
+              <Minimap
+                canvasWidth={CANVAS_WIDTH}
+                canvasHeight={CANVAS_HEIGHT}
+                viewportWidth={containerSize.width}
+                viewportHeight={containerSize.height}
+                viewportX={viewportX}
+                viewportY={viewportY}
+                zoom={zoom}
+                onViewportChange={handleViewportChange}
+                onZoomChange={handleZoomChange}
+                visible={!canvasFitsInViewport}
+              />
+            </div>
+
+            {/* Children (InfoBar, etc.) positioned relative to canvas */}
+            {children}
+          </div>
+        </div>
       </div>
     );
   }

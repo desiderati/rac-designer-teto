@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Slider } from '@/components/ui/slider';
 
 interface MinimapProps {
   canvasWidth: number;
@@ -14,7 +13,7 @@ interface MinimapProps {
   visible: boolean;
 }
 
-const MINIMAP_SIZE = 120;
+const MINIMAP_SIZE = 30; // Reduced from 120 (75% smaller)
 
 export function Minimap({
   canvasWidth,
@@ -29,7 +28,9 @@ export function Minimap({
   visible,
 }: MinimapProps) {
   const minimapRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isSliderDragging, setIsSliderDragging] = useState(false);
 
   // Calculate the scale factor for minimap
   const scale = MINIMAP_SIZE / Math.max(canvasWidth, canvasHeight);
@@ -41,6 +42,13 @@ export function Minimap({
   // Calculate viewport rectangle position in minimap
   const viewRectX = (viewportX / zoom) * scale;
   const viewRectY = (viewportY / zoom) * scale;
+
+  // Zoom slider config
+  const SLIDER_HEIGHT = 80;
+  const MIN_ZOOM = 50;
+  const MAX_ZOOM = 200;
+  const zoomPercent = Math.round(zoom * 100);
+  const sliderPosition = ((zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * SLIDER_HEIGHT;
 
   const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!minimapRef.current) return;
@@ -61,6 +69,7 @@ export function Minimap({
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   }, []);
 
@@ -83,43 +92,80 @@ export function Minimap({
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    setIsSliderDragging(false);
   }, []);
 
+  // Slider handlers
+  const handleSliderMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsSliderDragging(true);
+    updateZoomFromMouse(e.clientY);
+  }, []);
+
+  const updateZoomFromMouse = useCallback((clientY: number) => {
+    if (!sliderRef.current) return;
+    
+    const rect = sliderRef.current.getBoundingClientRect();
+    const relativeY = clientY - rect.top;
+    const normalizedY = Math.max(0, Math.min(SLIDER_HEIGHT, relativeY));
+    
+    // Invert: top = max zoom, bottom = min zoom
+    const zoomValue = MAX_ZOOM - (normalizedY / SLIDER_HEIGHT) * (MAX_ZOOM - MIN_ZOOM);
+    onZoomChange(zoomValue / 100);
+  }, [onZoomChange]);
+
+  const handleSliderMove = useCallback((e: MouseEvent) => {
+    if (!isSliderDragging) return;
+    updateZoomFromMouse(e.clientY);
+  }, [isSliderDragging, updateZoomFromMouse]);
+
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
+    if (isDragging || isSliderDragging) {
+      window.addEventListener('mousemove', isDragging ? handleMouseMove : handleSliderMove);
       window.addEventListener('mouseup', handleMouseUp);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mousemove', isDragging ? handleMouseMove : handleSliderMove);
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, isSliderDragging, handleMouseMove, handleSliderMove, handleMouseUp]);
 
   if (!visible) return null;
 
+  // Invert slider position (top = 200%, bottom = 50%)
+  const thumbY = SLIDER_HEIGHT - sliderPosition;
+
   return (
-    <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-20">
+    <div className="flex flex-col gap-2 items-center">
       {/* Zoom Slider */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-muted-foreground font-medium">{Math.round(zoom * 100)}%</span>
-        <div className="h-24 flex items-center">
-          <Slider
-            orientation="vertical"
-            min={50}
-            max={200}
-            step={10}
-            value={[zoom * 100]}
-            onValueChange={(value) => onZoomChange(value[0] / 100)}
-            className="h-full"
-          />
+        <span className="text-[10px] text-muted-foreground font-medium">{zoomPercent}%</span>
+        <div 
+          ref={sliderRef}
+          className="relative bg-background/90 border border-border rounded cursor-pointer"
+          style={{ width: 16, height: SLIDER_HEIGHT }}
+          onMouseDown={handleSliderMouseDown}
+        >
+          {/* Track */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-1 bottom-1 w-0.5 bg-muted-foreground/30 rounded" />
+          
+          {/* Triangle Thumb */}
+          <div 
+            className="absolute left-1/2 -translate-x-1/2 transition-all duration-75"
+            style={{ top: thumbY - 6 }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" className="fill-primary">
+              <polygon points="6,12 0,0 12,0" />
+            </svg>
+          </div>
         </div>
       </div>
 
       {/* Minimap */}
       <div
         ref={minimapRef}
-        className="bg-background/90 border border-border rounded-lg shadow-lg cursor-crosshair overflow-hidden"
+        className="bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden"
         style={{
           width: MINIMAP_SIZE,
           height: MINIMAP_SIZE,
@@ -137,10 +183,10 @@ export function Minimap({
         >
           {/* Viewport indicator */}
           <div
-            className="absolute border-2 border-primary bg-primary/20 rounded-sm transition-all duration-75"
+            className="absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75"
             style={{
-              width: Math.max(8, viewRectWidth),
-              height: Math.max(8, viewRectHeight),
+              width: Math.max(4, viewRectWidth),
+              height: Math.max(4, viewRectHeight),
               left: Math.max(0, Math.min(viewRectX, MINIMAP_SIZE - viewRectWidth)),
               top: Math.max(0, Math.min(viewRectY, MINIMAP_SIZE - viewRectHeight)),
             }}
