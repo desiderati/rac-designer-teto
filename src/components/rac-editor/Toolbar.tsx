@@ -323,7 +323,7 @@ export function Toolbar({
       </div>
 
       {/* FAB for Overflow Menu - Fixed position top right */}
-      <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
+      <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 items-end">
         <FABButton
           icon={faEllipsisVertical}
           title="Mais Opções"
@@ -335,7 +335,7 @@ export function Toolbar({
         />
         {/* Overflow Submenu - opens downward */}
         {activeSubmenu === 'overflow' && (
-          <div className="flex flex-col gap-1 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col gap-1 items-end animate-in slide-in-from-top-2 duration-200">
             <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
             <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
             <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} tooltipSide="left" />
