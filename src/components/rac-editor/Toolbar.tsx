@@ -92,7 +92,7 @@ function FABButton({
             'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
             isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
             isActive && 'bg-[#e67e22] border-2 border-white',
-            isPulsing && 'animate-[pulse_2s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
+            isPulsing && 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
             className
           )}
         >
@@ -110,24 +110,34 @@ function SubMenuButton({
   icon, 
   title, 
   onClick,
-  color = '#ecf0f1'
+  color = '#ecf0f1',
+  hideTooltip = false,
 }: { 
   icon: IconDefinition; 
   title: string; 
   onClick: () => void;
   color?: string;
+  hideTooltip?: boolean;
 }) {
+  const button = (
+    <button
+      onClick={onClick}
+      className="w-10 h-10 border-none rounded-xl bg-[#34495e] text-[#ecf0f1] text-base cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:bg-[#0092DD] hover:scale-105 active:scale-95"
+    >
+      <FontAwesomeIcon icon={icon} style={{ color }} />
+    </button>
+  );
+
+  if (hideTooltip) {
+    return button;
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          onClick={onClick}
-          className="w-10 h-10 border-none rounded-xl bg-[#34495e] text-[#ecf0f1] text-base cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:bg-[#0092DD] hover:scale-105 active:scale-95"
-        >
-          <FontAwesomeIcon icon={icon} style={{ color }} />
-        </button>
+        {button}
       </TooltipTrigger>
-      <TooltipContent side="right" className="bg-[#333] text-white">
+      <TooltipContent side="bottom" className="bg-[#333] text-white">
         {title}
       </TooltipContent>
     </Tooltip>
@@ -217,11 +227,11 @@ export function Toolbar({
               {/* House Submenu */}
               {activeSubmenu === 'house' && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} />
-                  <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} />
-                  <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} />
-                  <SubMenuButton icon={faArrowLeft} title="Lateral Esquerda" onClick={() => handleAction(onAddHouseSide1)} />
-                  <SubMenuButton icon={faArrowRight} title="Lateral Direita" onClick={() => handleAction(onAddHouseSide2)} />
+                  <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} hideTooltip={activeSubmenu === 'house'} />
+                  <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} hideTooltip={activeSubmenu === 'house'} />
+                  <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} hideTooltip={activeSubmenu === 'house'} />
+                  <SubMenuButton icon={faArrowLeft} title="Lateral Esquerda" onClick={() => handleAction(onAddHouseSide1)} hideTooltip={activeSubmenu === 'house'} />
+                  <SubMenuButton icon={faArrowRight} title="Lateral Direita" onClick={() => handleAction(onAddHouseSide2)} hideTooltip={activeSubmenu === 'house'} />
                 </div>
               )}
             </div>
@@ -252,14 +262,14 @@ export function Toolbar({
               {/* Elements Submenu */}
               {activeSubmenu === 'elements' && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faBars} title="Objeto / Muro" onClick={() => handleAction(onAddWall)} />
-                  <SubMenuButton icon={faDoorOpen} title="Porta" onClick={() => handleAction(onAddDoor)} />
-                  <SubMenuButton icon={faStairs} title="Escada" onClick={() => handleAction(onAddStairs)} />
-                  <SubMenuButton icon={faTree} title="Árvore" onClick={() => handleAction(onAddTree)} />
-                  <SubMenuButton icon={faWater} title="Água / Rio" onClick={() => handleAction(onAddWater)} />
-                  <SubMenuButton icon={faSlash} title="Linha Reta" onClick={() => handleAction(onAddLine)} />
-                  <SubMenuButton icon={faArrowRightLong} title="Seta Simples" onClick={() => handleAction(onAddArrow)} />
-                  <SubMenuButton icon={faArrowsLeftRight} title="Distância" onClick={() => handleAction(onAddDimension)} />
+                  <SubMenuButton icon={faBars} title="Objeto / Muro" onClick={() => handleAction(onAddWall)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faDoorOpen} title="Porta" onClick={() => handleAction(onAddDoor)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faStairs} title="Escada" onClick={() => handleAction(onAddStairs)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faTree} title="Árvore" onClick={() => handleAction(onAddTree)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faWater} title="Água / Rio" onClick={() => handleAction(onAddWater)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faSlash} title="Linha Reta" onClick={() => handleAction(onAddLine)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faArrowRightLong} title="Seta Simples" onClick={() => handleAction(onAddArrow)} hideTooltip={activeSubmenu === 'elements'} />
+                  <SubMenuButton icon={faArrowsLeftRight} title="Distância" onClick={() => handleAction(onAddDimension)} hideTooltip={activeSubmenu === 'elements'} />
                 </div>
               )}
             </div>
