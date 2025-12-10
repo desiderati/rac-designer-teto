@@ -7,6 +7,8 @@ import { Minimap, ZoomSlider } from './Minimap';
 export interface PilotiSelection {
   pilotiId: string;
   currentHeight: number;
+  currentIsMaster: boolean;
+  currentNivel: number;
   group: Group;
   screenPosition: { x: number; y: number };
 }
@@ -244,6 +246,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         let pilotiId = (subTarget as any).pilotiId;
         let piloti: FabricObject | null = null;
         let pilotiHeight = 1.0;
+        let pilotiIsMaster = false;
+        let pilotiNivel = 0.3;
         
         // If clicked on hit area, find the actual piloti circle
         if ((subTarget as any).isPilotiHitArea) {
@@ -251,10 +255,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           if (pilotiData) {
             piloti = pilotiData.circle;
             pilotiHeight = pilotiData.height;
+            pilotiIsMaster = pilotiData.isMaster;
+            pilotiNivel = pilotiData.nivel;
           }
         } else if ((subTarget as any).isPilotiCircle) {
           piloti = subTarget;
           pilotiHeight = (subTarget as any).pilotiHeight || 1.0;
+          pilotiIsMaster = (subTarget as any).pilotiIsMaster || false;
+          pilotiNivel = (subTarget as any).pilotiNivel ?? 0.3;
         }
         
         if (!piloti) return;
@@ -292,10 +300,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
           const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
           
-          // Reset all pilotis stroke first
+          // Reset all pilotis stroke first (respecting master status)
           group.getObjects().forEach((obj: any) => {
             if (obj.isPilotiCircle) {
-              obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+              if (obj.pilotiIsMaster) {
+                obj.set({ stroke: '#8B4513', strokeWidth: 2 });
+              } else {
+                obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+              }
             }
           });
           
@@ -309,6 +321,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           onPilotiSelect?.({
             pilotiId,
             currentHeight: pilotiHeight,
+            currentIsMaster: pilotiIsMaster,
+            currentNivel: pilotiNivel,
             group,
             screenPosition: { x: screenX, y: screenY },
           });

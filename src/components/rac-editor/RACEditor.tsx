@@ -253,7 +253,7 @@ export function RACEditor() {
     
     items.forEach((item: FabricObject) => {
       const pilotiId = (item as any).pilotiId;
-      if (pilotiId && ((item as any).isPilotiCircle || (item as any).isPilotiText || (item as any).isPilotiHitArea)) {
+      if (pilotiId && ((item as any).isPilotiCircle || (item as any).isPilotiText || (item as any).isPilotiHitArea || (item as any).isPilotiNivelText)) {
         if (!pilotiMap.has(pilotiId)) {
           pilotiMap.set(pilotiId, []);
         }
@@ -586,15 +586,22 @@ export function RACEditor() {
 
   const handlePilotiEditorClose = () => {
     setIsPilotiEditorOpen(false);
-    // Reset piloti highlight
+    // Reset piloti highlight (respecting master status)
     if (pilotiSelection?.group) {
       const objects = pilotiSelection.group.getObjects();
       objects.forEach((obj: any) => {
         if (obj.isPilotiCircle) {
-          obj.set({
-            stroke: 'black',
-            strokeWidth: 1.5 * 0.6, // Same as original
-          });
+          if (obj.pilotiIsMaster) {
+            obj.set({
+              stroke: '#8B4513',
+              strokeWidth: 2,
+            });
+          } else {
+            obj.set({
+              stroke: 'black',
+              strokeWidth: 1.5 * 0.6,
+            });
+          }
         }
       });
       canvasRef.current?.canvas?.renderAll();
@@ -608,16 +615,20 @@ export function RACEditor() {
     setInfoMessage(`Altura do piloti atualizada para ${formatPilotiHeight(newHeight)} m.`);
   };
 
-  const handlePilotiNavigate = (pilotiId: string, height: number) => {
+  const handlePilotiNavigate = (pilotiId: string, height: number, isMaster: boolean, nivel: number) => {
     if (!pilotiSelection?.group) return;
     
     const canvas = canvasRef.current?.canvas;
     if (!canvas) return;
     
-    // Reset all pilotis stroke
+    // Reset all pilotis stroke (respecting master status)
     pilotiSelection.group.getObjects().forEach((obj: any) => {
       if (obj.isPilotiCircle) {
-        obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+        if (obj.pilotiIsMaster) {
+          obj.set({ stroke: '#8B4513', strokeWidth: 2 });
+        } else {
+          obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+        }
       }
     });
     
@@ -637,6 +648,8 @@ export function RACEditor() {
       ...prev,
       pilotiId,
       currentHeight: height,
+      currentIsMaster: isMaster,
+      currentNivel: nivel,
     } : null);
     
     setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
@@ -709,6 +722,8 @@ export function RACEditor() {
         onClose={handlePilotiEditorClose}
         pilotiId={pilotiSelection?.pilotiId ?? null}
         currentHeight={pilotiSelection?.currentHeight ?? 1.0}
+        currentIsMaster={pilotiSelection?.currentIsMaster ?? false}
+        currentNivel={pilotiSelection?.currentNivel ?? 0.3}
         group={pilotiSelection?.group ?? null}
         isMobile={isMobile}
         anchorPosition={pilotiSelection?.screenPosition}

@@ -29,12 +29,19 @@ export const customProps = [
   "isHouseBody",
   "pilotiId",
   "pilotiHeight",
+  "pilotiIsMaster",
+  "pilotiNivel",
   "isPilotiCircle",
   "isPilotiText",
   "isPilotiHitArea",
+  "isPilotiNivelText",
 ];
 
 export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+
+// Colors for master piloti (same as door - light brown)
+export const MASTER_PILOTI_FILL = "#D4A574";
+export const MASTER_PILOTI_STROKE = "#8B4513";
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
@@ -77,6 +84,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     [-rD, 0, rD].forEach((y, rowIdx) => {
       const pilotiId = `piloti_${colIdx}_${rowIdx}`;
       const defaultHeight = 1.0;
+      const defaultIsMaster = false;
+      const defaultNivel = 0.3;
 
       // Invisible hit area for mobile (larger touch target)
       const hitArea = new Circle({
@@ -106,6 +115,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (circle as any).myType = "piloti";
       (circle as any).pilotiId = pilotiId;
       (circle as any).pilotiHeight = defaultHeight;
+      (circle as any).pilotiIsMaster = defaultIsMaster;
+      (circle as any).pilotiNivel = defaultNivel;
       (circle as any).isPilotiCircle = true;
 
       const text = new IText(formatPilotiHeight(defaultHeight), {
@@ -123,10 +134,28 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (text as any).pilotiId = pilotiId;
       (text as any).isPilotiText = true;
 
-      // Add hit area first (behind), then circle, then text
+      // Text for nivel (only visible when isMaster = true)
+      const nivelText = new IText("", {
+        fontSize: 11 * s,
+        fontFamily: "Arial",
+        fill: "#8B4513",
+        originX: "center",
+        originY: "center",
+        left: x,
+        top: y + rad + 12 * s,
+        editable: false,
+        selectable: false,
+        visible: false,
+      });
+      (nivelText as any).myType = "pilotiNivelText";
+      (nivelText as any).pilotiId = pilotiId;
+      (nivelText as any).isPilotiNivelText = true;
+
+      // Add hit area first (behind), then circle, then text, then nivel text
       houseObjects.push(hitArea);
       houseObjects.push(circle);
       houseObjects.push(text);
+      houseObjects.push(nivelText);
       pilotiIndex++;
     });
   });
@@ -193,7 +222,12 @@ export function getAdjacentPilotiId(currentId: string, direction: "next" | "prev
 }
 
 // Get piloti data from group
-export function getPilotiFromGroup(group: Group, pilotiId: string): { circle: FabricObject; height: number } | null {
+export function getPilotiFromGroup(group: Group, pilotiId: string): { 
+  circle: FabricObject; 
+  height: number; 
+  isMaster: boolean; 
+  nivel: number;
+} | null {
   const objects = group.getObjects();
 
   for (const obj of objects) {
@@ -201,6 +235,8 @@ export function getPilotiFromGroup(group: Group, pilotiId: string): { circle: Fa
       return {
         circle: obj,
         height: (obj as any).pilotiHeight || 1.0,
+        isMaster: (obj as any).pilotiIsMaster || false,
+        nivel: (obj as any).pilotiNivel ?? 0.3,
       };
     }
   }
@@ -223,6 +259,57 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
   });
 
   group.dirty = true;
+}
+
+export function updatePilotiMaster(
+  group: Group, 
+  pilotiId: string, 
+  isMaster: boolean, 
+  nivel: number
+): void {
+  const objects = group.getObjects();
+
+  objects.forEach((obj: any) => {
+    if (obj.pilotiId === pilotiId) {
+      if (obj.isPilotiCircle) {
+        obj.pilotiIsMaster = isMaster;
+        obj.pilotiNivel = nivel;
+        
+        // Update visual style based on isMaster
+        if (isMaster) {
+          obj.set("fill", MASTER_PILOTI_FILL);
+          obj.set("stroke", MASTER_PILOTI_STROKE);
+          obj.set("strokeWidth", 2);
+        } else {
+          obj.set("fill", "white");
+          obj.set("stroke", "black");
+          obj.set("strokeWidth", 1.5 * 0.6); // Original scale
+        }
+      }
+      if (obj.isPilotiNivelText) {
+        if (isMaster) {
+          obj.set("text", `Nível = ${formatPilotiHeight(nivel)}`);
+          obj.set("visible", true);
+        } else {
+          obj.set("text", "");
+          obj.set("visible", false);
+        }
+      }
+    }
+  });
+
+  group.dirty = true;
+}
+
+export function updatePilotiAll(
+  group: Group, 
+  pilotiId: string, 
+  newHeight: number,
+  isMaster: boolean, 
+  nivel: number
+): void {
+  updatePilotiHeight(group, pilotiId, newHeight);
+  updatePilotiMaster(group, pilotiId, isMaster, nivel);
 }
 
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Group {
