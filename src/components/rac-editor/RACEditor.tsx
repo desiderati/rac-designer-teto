@@ -271,9 +271,19 @@ export function RACEditor() {
     }
     
     const activeSelection = activeObj as ActiveSelection;
+    const objects = activeSelection.getObjects();
     
-    // In Fabric.js v6, use removeAll() to properly extract objects
-    const objects = activeSelection.removeAll();
+    if (objects.length < 2) {
+      setInfoMessage('Selecione pelo menos 2 itens para agrupar.');
+      return;
+    }
+    
+    // Save selection position
+    const selLeft = activeSelection.left;
+    const selTop = activeSelection.top;
+    
+    // Discard selection first
+    canvas.discardActiveObject();
     
     // Remove objects from canvas
     objects.forEach((obj: FabricObject) => {
@@ -282,8 +292,8 @@ export function RACEditor() {
     
     // Create group with the objects
     const group = new Group(objects, {
-      left: activeSelection.left,
-      top: activeSelection.top,
+      left: selLeft,
+      top: selTop,
     });
     group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
     
