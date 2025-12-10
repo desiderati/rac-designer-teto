@@ -271,14 +271,16 @@ export function RACEditor() {
     }
     
     const activeSelection = activeObj as ActiveSelection;
-    const objects = activeSelection.getObjects();
     
-    canvas.discardActiveObject();
+    // In Fabric.js v6, use removeAll() to properly extract objects
+    const objects = activeSelection.removeAll();
     
+    // Remove objects from canvas
     objects.forEach((obj: FabricObject) => {
       canvas.remove(obj);
     });
     
+    // Create group with the objects
     const group = new Group(objects, {
       left: activeSelection.left,
       top: activeSelection.top,
