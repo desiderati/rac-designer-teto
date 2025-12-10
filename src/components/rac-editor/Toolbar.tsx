@@ -153,7 +153,7 @@ function SubMenuButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={tooltipSide} align="start" className="bg-[#333] text-white">
+      <TooltipContent side={tooltipSide} align={tooltipSide === "left" ? "center" : "start"} className="bg-[#333] text-white">
         {title}
       </TooltipContent>
     </Tooltip>
