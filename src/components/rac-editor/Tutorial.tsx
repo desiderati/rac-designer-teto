@@ -28,7 +28,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "house",
     title: "Casa TETO",
     description: "Use este botão para adicionar a vista desejada para a casa.",
-    position: { top: "60px", left: "80px" },
+    position: { top: "65px", left: "80px" },
     arrowDirection: "left",
     arrowOffset: "24px",
   },
