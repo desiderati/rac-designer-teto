@@ -47,7 +47,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Use o controle de zoom e o minimapa para ajustar a visualização e navegar pelo canvas.",
     position: { bottom: "20x", left: "110px" },
     arrowDirection: "left",
-    arrowOffset: "25px",
+    arrowOffset: "30px",
   },
   {
     id: "more-options",
