@@ -48,6 +48,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     }>>([]);
     const lastPanPoint = useRef({ x: 0, y: 0 });
     const lastPinchDistance = useRef<number | null>(null);
+    const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
     const pinchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Check if minimap should be visible
@@ -335,9 +336,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       e.preventDefault();
       
       if (e.ctrlKey || e.metaKey) {
-        // Zoom
+        // Zoom (25% to 200%)
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
+        const newZoom = Math.max(0.25, Math.min(2, zoom + delta));
         handleZoomChange(newZoom);
       } else {
         // Pan
@@ -349,14 +350,29 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       }
     }, [zoom, handleZoomChange, containerSize]);
 
-    // Pinch-to-zoom handlers for touch devices
+    // Pinch-to-zoom and pan handlers for touch devices
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         lastPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
+        
+        // Store pinch center for panning
+        lastPinchCenter.current = {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        };
+        
         setIsPinching(true);
+        
+        // Disable selection during pinch
+        const canvas = fabricCanvasRef.current;
+        if (canvas) {
+          canvas.discardActiveObject();
+          canvas.selection = false;
+          canvas.renderAll();
+        }
         
         // Clear any existing timeout
         if (pinchTimeoutRef.current) {
@@ -366,25 +382,50 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     }, []);
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
-      if (e.touches.length === 2 && lastPinchDistance.current !== null) {
+      if (e.touches.length === 2 && lastPinchDistance.current !== null && lastPinchCenter.current !== null) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const currentDistance = Math.sqrt(dx * dx + dy * dy);
         
+        // Calculate current pinch center
+        const currentCenter = {
+          x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+          y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        };
+        
+        // Pan based on center movement
+        const panDeltaX = lastPinchCenter.current.x - currentCenter.x;
+        const panDeltaY = lastPinchCenter.current.y - currentCenter.y;
+        
+        const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
+        const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
+        
+        setViewportX(prev => Math.max(0, Math.min(prev + panDeltaX, maxX)));
+        setViewportY(prev => Math.max(0, Math.min(prev + panDeltaY, maxY)));
+        
+        // Zoom based on pinch distance (25% to 200%)
         const delta = (currentDistance - lastPinchDistance.current) * 0.005;
-        const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
+        const newZoom = Math.max(0.25, Math.min(2, zoom + delta));
         
         if (newZoom !== zoom) {
           handleZoomChange(newZoom);
         }
         
         lastPinchDistance.current = currentDistance;
+        lastPinchCenter.current = currentCenter;
       }
-    }, [zoom, handleZoomChange]);
+    }, [zoom, handleZoomChange, containerSize]);
 
     const handleTouchEnd = useCallback(() => {
       lastPinchDistance.current = null;
+      lastPinchCenter.current = null;
+      
+      // Re-enable selection after pinch ends
+      const canvas = fabricCanvasRef.current;
+      if (canvas) {
+        canvas.selection = true;
+      }
       
       // Delay hiding the indicator for smooth UX
       pinchTimeoutRef.current = setTimeout(() => {

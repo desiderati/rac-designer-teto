@@ -32,7 +32,7 @@ interface MinimapProps {
 const MINIMAP_SIZE = 75;
 const SLIDER_WIDTH = MINIMAP_SIZE;
 const THUMB_SIZE = 12;
-const MIN_ZOOM = 50;
+const MIN_ZOOM = 25;
 const MAX_ZOOM = 200;
 
 export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSliderProps) {
