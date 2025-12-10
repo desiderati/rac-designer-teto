@@ -335,57 +335,37 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
       >
+        {/* Canvas */}
         <div
-          className="absolute"
+          className="absolute shadow-xl bg-card"
           style={{
-            transform: `translate(${canvasX}px, ${canvasY}px)`,
-            width: scaledWidth,
-            height: scaledHeight,
+            transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
+            transformOrigin: '0 0',
+            width: CANVAS_WIDTH,
+            height: CANVAS_HEIGHT,
           }}
         >
-          {/* Canvas with zoom */}
-          <div
-            className="shadow-xl bg-card"
-            style={{
-              transform: `scale(${zoom})`,
-              transformOrigin: '0 0',
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
-            }}
-          >
-            <canvas ref={canvasRef} />
-          </div>
-
-          {/* UI elements anchored to canvas - use inverse scale to maintain size */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              transform: `scale(${1/zoom})`,
-              transformOrigin: '0 0',
-              width: CANVAS_WIDTH * zoom,
-              height: CANVAS_HEIGHT * zoom,
-            }}
-          >
-            {/* Minimap in bottom-left of canvas */}
-            <div className="absolute bottom-4 left-4 pointer-events-auto">
-              <Minimap
-                canvasWidth={CANVAS_WIDTH}
-                canvasHeight={CANVAS_HEIGHT}
-                viewportWidth={containerSize.width}
-                viewportHeight={containerSize.height}
-                viewportX={viewportX}
-                viewportY={viewportY}
-                zoom={zoom}
-                onViewportChange={handleViewportChange}
-                onZoomChange={handleZoomChange}
-                visible={!canvasFitsInViewport}
-              />
-            </div>
-
-            {/* Children (InfoBar, etc.) positioned relative to canvas */}
-            {children}
-          </div>
+          <canvas ref={canvasRef} />
         </div>
+
+        {/* Minimap - anchored to viewport (bottom-left) */}
+        <div className="absolute bottom-4 left-4 z-10">
+          <Minimap
+            canvasWidth={CANVAS_WIDTH}
+            canvasHeight={CANVAS_HEIGHT}
+            viewportWidth={containerSize.width}
+            viewportHeight={containerSize.height}
+            viewportX={viewportX}
+            viewportY={viewportY}
+            zoom={zoom}
+            onViewportChange={handleViewportChange}
+            onZoomChange={handleZoomChange}
+            visible={!canvasFitsInViewport}
+          />
+        </div>
+
+        {/* Children (InfoBar, etc.) - anchored to viewport */}
+        {children}
       </div>
     );
   }

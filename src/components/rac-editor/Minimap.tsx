@@ -13,7 +13,7 @@ interface MinimapProps {
   visible: boolean;
 }
 
-const MINIMAP_SIZE = 30; // Reduced from 120 (75% smaller)
+const MINIMAP_SIZE = 75; // 2.5x the previous size of 30
 
 export function Minimap({
   canvasWidth,
