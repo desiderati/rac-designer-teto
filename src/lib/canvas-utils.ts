@@ -371,13 +371,10 @@ export function createDimension(canvas: FabricCanvas): Group {
   const w = 200;
   const as = 12;
   
-  const line = new Rect({
-    width: w,
-    height: 0,
-    fill: 'transparent',
+  const line = new Line([-w / 2, 0, w / 2, 0], {
     stroke: '#8B5CF6',
     strokeWidth: 2,
-    strokeDashArray: [8, 4],
+    strokeDashArray: [2, 4],
     originX: 'center',
     originY: 'center',
   });
@@ -425,7 +422,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   
   group.on('scaling', function (this: Group) {
     const nw = this.width! * this.scaleX!;
-    (this._objects[0] as Rect).set({ width: nw });
+    (this._objects[0] as Line).set({ x1: -nw / 2, x2: nw / 2 });
     (this._objects[1] as Triangle).set({ left: -nw / 2 });
     (this._objects[2] as Triangle).set({ left: nw / 2 });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
@@ -570,7 +567,7 @@ export function createDoor(canvas: FabricCanvas): Group {
   const rect = new Rect({
     width: 60,
     height: 15,
-    fill: '#aaddff',
+    fill: '#D2A679',
     stroke: 'black',
     strokeWidth: 1,
     originX: 'center',
