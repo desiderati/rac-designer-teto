@@ -429,7 +429,7 @@ export function RACEditor() {
   };
 
   return (
-    <div className="relative h-screen overflow-hidden bg-muted" onClick={handleContainerClick}>
+    <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
         onAddHouseTop={handleAddHouseTop}
         onAddHouseFront={handleAddHouseFront}
