@@ -1,7 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvas-utils';
-import { Minimap } from './Minimap';
+import { Minimap, ZoomSlider } from './Minimap';
 
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
@@ -379,8 +379,17 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           <canvas ref={canvasRef} />
         </div>
 
-        {/* Minimap - anchored to viewport (bottom-left) */}
-        <div className="absolute bottom-4 left-4 z-10">
+        {/* Zoom Slider */}
+        <div className={`absolute bottom-[110px] left-4 ${tutorialHighlight === 'zoom' ? 'z-50' : 'z-10'}`}>
+          <ZoomSlider
+            zoom={zoom}
+            onZoomChange={handleZoomChange}
+            highlight={tutorialHighlight === 'zoom'}
+          />
+        </div>
+
+        {/* Minimap */}
+        <div className={`absolute bottom-4 left-4 ${tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
@@ -390,11 +399,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             viewportY={viewportY}
             zoom={zoom}
             onViewportChange={handleViewportChange}
-            onZoomChange={handleZoomChange}
             visible={!canvasFitsInViewport}
             objects={minimapObjects}
-            highlightZoom={tutorialHighlight === 'zoom'}
-            highlightMinimap={tutorialHighlight === 'minimap'}
+            highlight={tutorialHighlight === 'minimap'}
           />
         </div>
 
