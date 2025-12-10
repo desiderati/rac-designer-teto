@@ -310,7 +310,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
 
 export function createLine(canvas: FabricCanvas): Line {
   const line = new Line([50, 50, 250, 50], {
-    stroke: 'red',
+    stroke: 'black',
     strokeWidth: 2,
     strokeLineCap: 'round',
     left: canvas.width! / 2,
@@ -369,30 +369,30 @@ export function createArrow(canvas: FabricCanvas): Group {
 
 export function createDimension(canvas: FabricCanvas): Group {
   const w = 200;
-  const as = 12;
+  const tickHeight = 10;
+  const color = '#C94C4C'; // Softer red
   
   const line = new Line([-w / 2, 0, w / 2, 0], {
-    stroke: '#8B5CF6',
+    stroke: color,
     strokeWidth: 2,
+    strokeDashArray: [6, 4],
     originX: 'center',
     originY: 'center',
   });
   
-  const a1 = new Triangle({
-    width: as,
-    height: as,
-    fill: '#8B5CF6',
-    angle: -90,
+  // Left transversal tick
+  const tick1 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
+    stroke: color,
+    strokeWidth: 2,
     left: -w / 2,
     originX: 'center',
     originY: 'center',
   });
   
-  const a2 = new Triangle({
-    width: as,
-    height: as,
-    fill: '#8B5CF6',
-    angle: 90,
+  // Right transversal tick
+  const tick2 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
+    stroke: color,
+    strokeWidth: 2,
     left: w / 2,
     originX: 'center',
     originY: 'center',
@@ -401,14 +401,14 @@ export function createDimension(canvas: FabricCanvas): Group {
   const text = new IText(' ', {
     fontSize: 16,
     fontFamily: 'Arial',
-    fill: '#8B5CF6',
+    fill: color,
     backgroundColor: 'rgba(255,255,255,0.8)',
     top: -15,
     originX: 'center',
     originY: 'center',
   });
   
-  const group = new Group([line, a1, a2, text], {
+  const group = new Group([line, tick1, tick2, text], {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: 'center',
@@ -422,8 +422,8 @@ export function createDimension(canvas: FabricCanvas): Group {
   group.on('scaling', function (this: Group) {
     const nw = this.width! * this.scaleX!;
     (this._objects[0] as Line).set({ x1: -nw / 2, x2: nw / 2 });
-    (this._objects[1] as Triangle).set({ left: -nw / 2 });
-    (this._objects[2] as Triangle).set({ left: nw / 2 });
+    (this._objects[1] as Line).set({ left: -nw / 2 });
+    (this._objects[2] as Line).set({ left: nw / 2 });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
   });
   
