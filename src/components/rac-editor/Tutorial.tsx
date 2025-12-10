@@ -54,7 +54,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
     position: { bottom: "30px", left: "110px" },
     arrowDirection: "left",
-    arrowOffset: "40px",
+    arrowOffset: "60px",
   },
 ];
 
