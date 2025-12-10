@@ -30,7 +30,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Use este botão para adicionar a vista desejada para a casa.",
     position: { top: "65px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "24px",
+    arrowOffset: "25px",
   },
   {
     id: "elements",
@@ -38,7 +38,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Abre um submenu com as opções extras para diagramação.",
     position: { top: "225px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "24px",
+    arrowOffset: "25px",
   },
   {
     id: "zoom",
@@ -46,13 +46,13 @@ const tutorialSteps: TutorialStep[] = [
     description: "Arraste o controle para ajustar o nível de zoom do canvas.",
     position: { bottom: "100px", left: "90px" },
     arrowDirection: "left",
-    arrowOffset: "0px",
+    arrowOffset: "40px",
   },
   {
     id: "minimap",
     title: "Minimapa",
     description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
-    position: { bottom: "30px", right: "90px" },
+    position: { bottom: "30px", left: "90px" },
     arrowDirection: "right",
     arrowOffset: "40px",
   },
