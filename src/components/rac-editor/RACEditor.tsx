@@ -477,7 +477,7 @@ export function RACEditor() {
         >
           {/* InfoBar centered at bottom of canvas */}
           {showTips && (
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 max-w-md w-full px-2.5 pointer-events-auto">
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 max-w-md w-full px-2.5 pointer-events-auto">
               <InfoBar message={infoMessage} />
             </div>
           )}
