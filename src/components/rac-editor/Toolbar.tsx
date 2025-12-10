@@ -4,7 +4,7 @@ import {
   faPlus,
   faTimes,
   faHome,
-  faHouseWindow,
+  faHouseChimneyWindow,
   faHouseChimney,
   faLockOpen,
   faLock,
@@ -255,7 +255,7 @@ export function Toolbar({
                     hideTooltip={isTutorialActive}
                   />
                   <SubMenuButton
-                    icon={faHouseWindow}
+                    icon={faHouseChimneyWindow}
                     title="Visão Traseira"
                     onClick={() => handleAction(onAddHouseBack)}
                     hideTooltip={isTutorialActive}
