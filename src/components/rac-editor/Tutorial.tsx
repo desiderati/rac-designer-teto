@@ -44,9 +44,9 @@ const tutorialSteps: TutorialStep[] = [
     id: "zoom",
     title: "Controle de Zoom",
     description: "Arraste o controle para ajustar o nível de zoom do canvas.",
-    position: { bottom: "100px", left: "80px" },
+    position: { bottom: "100px", left: "90px" },
     arrowDirection: "left",
-    arrowOffset: "24px",
+    arrowOffset: "0px",
   },
   {
     id: "minimap",
