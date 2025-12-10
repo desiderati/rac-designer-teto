@@ -380,7 +380,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         </div>
 
         {/* Minimap - anchored to viewport (bottom-left) */}
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className={`absolute bottom-4 left-4 ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
