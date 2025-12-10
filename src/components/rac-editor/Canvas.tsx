@@ -303,6 +303,24 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       setViewportY(prev => Math.max(0, Math.min(prev, maxY)));
     }, [containerSize, zoom]);
 
+    // Prevent browser zoom on Ctrl + wheel
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const preventBrowserZoom = (e: WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+        }
+      };
+
+      container.addEventListener('wheel', preventBrowserZoom, { passive: false });
+
+      return () => {
+        container.removeEventListener('wheel', preventBrowserZoom);
+      };
+    }, []);
+
     // Pan handlers
     const handleMouseDown = (e: React.MouseEvent) => {
       // Only start panning with middle mouse button or when holding space
