@@ -3,9 +3,11 @@ import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject } from 'fa
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle } from './Canvas';
+import { Canvas, CanvasHandle, PilotiSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
+import { PilotiEditor } from './PilotiEditor';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +34,7 @@ import {
   customProps,
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
+  formatPilotiHeight,
 } from '@/lib/canvas-utils';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
@@ -44,7 +47,10 @@ export function RACEditor() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [pilotiSelection, setPilotiSelection] = useState<PilotiSelection | null>(null);
+  const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('rac-tutorial-completed');
@@ -459,6 +465,37 @@ export function RACEditor() {
     localStorage.setItem('rac-tutorial-completed', 'true');
   };
 
+  const handlePilotiSelect = (selection: PilotiSelection | null) => {
+    setPilotiSelection(selection);
+    if (selection) {
+      setIsPilotiEditorOpen(true);
+    }
+  };
+
+  const handlePilotiEditorClose = () => {
+    setIsPilotiEditorOpen(false);
+    // Reset piloti highlight
+    if (pilotiSelection?.group) {
+      const objects = pilotiSelection.group.getObjects();
+      objects.forEach((obj: any) => {
+        if (obj.isPilotiCircle) {
+          obj.set({
+            stroke: 'black',
+            strokeWidth: 1.5 * 0.6, // Same as original
+          });
+        }
+      });
+      canvasRef.current?.canvas?.renderAll();
+    }
+    setPilotiSelection(null);
+  };
+
+  const handlePilotiHeightChange = (newHeight: number) => {
+    canvasRef.current?.saveHistory();
+    canvasRef.current?.canvas?.renderAll();
+    setInfoMessage(`Altura do piloti atualizada para ${formatPilotiHeight(newHeight)} m.`);
+  };
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
@@ -510,6 +547,7 @@ export function RACEditor() {
           }}
           tutorialHighlight={tutorialStep}
           showTips={showTips}
+          onPilotiSelect={handlePilotiSelect}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips && (
@@ -519,6 +557,17 @@ export function RACEditor() {
           )}
         </Canvas>
       </div>
+
+      <PilotiEditor
+        isOpen={isPilotiEditorOpen}
+        onClose={handlePilotiEditorClose}
+        pilotiId={pilotiSelection?.pilotiId ?? null}
+        currentHeight={pilotiSelection?.currentHeight ?? 1.0}
+        group={pilotiSelection?.group ?? null}
+        isMobile={isMobile}
+        anchorPosition={pilotiSelection?.screenPosition}
+        onHeightChange={handlePilotiHeightChange}
+      />
 
       {tutorialStep && (
         <Tutorial 

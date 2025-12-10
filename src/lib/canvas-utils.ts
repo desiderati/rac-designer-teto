@@ -5,7 +5,9 @@ export const CANVAS_HEIGHT = 1300;
 export const BASE_TOP_WIDTH = 610;
 export const BASE_TOP_HEIGHT = 300;
 
-export const customProps = ['myType', 'lockScalingFlip', 'subTargetCheck', 'id', 'selectable', 'lockScalingY', 'houseView', 'isHouseBody'];
+export const customProps = ['myType', 'lockScalingFlip', 'subTargetCheck', 'id', 'selectable', 'lockScalingY', 'houseView', 'isHouseBody', 'pilotiId', 'pilotiHeight', 'isPilotiCircle', 'isPilotiText'];
+
+export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
@@ -43,8 +45,12 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   
   const houseObjects: FabricObject[] = [rect];
   
-  [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach(x => {
-    [-rD, 0, rD].forEach(y => {
+  let pilotiIndex = 0;
+  [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach((x, colIdx) => {
+    [-rD, 0, rD].forEach((y, rowIdx) => {
+      const pilotiId = `piloti_${colIdx}_${rowIdx}`;
+      const defaultHeight = 1.0;
+      
       const circle = new Circle({
         radius: rad,
         fill: 'white',
@@ -55,7 +61,12 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         originX: 'center',
         originY: 'center',
       });
-      const text = new IText('1,0', {
+      (circle as any).myType = 'piloti';
+      (circle as any).pilotiId = pilotiId;
+      (circle as any).pilotiHeight = defaultHeight;
+      (circle as any).isPilotiCircle = true;
+      
+      const text = new IText(formatPilotiHeight(defaultHeight), {
         fontSize: 15 * s,
         fontFamily: 'Arial',
         fill: '#333',
@@ -63,9 +74,16 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         originY: 'center',
         left: x,
         top: y,
+        editable: false,
+        selectable: false,
       });
+      (text as any).myType = 'pilotiText';
+      (text as any).pilotiId = pilotiId;
+      (text as any).isPilotiText = true;
+      
       houseObjects.push(circle);
       houseObjects.push(text);
+      pilotiIndex++;
     });
   });
   
@@ -81,6 +99,27 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
   
   return group;
+}
+
+export function formatPilotiHeight(height: number): string {
+  return height.toFixed(1).replace('.', ',');
+}
+
+export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
+  const objects = group.getObjects();
+  
+  objects.forEach((obj: any) => {
+    if (obj.pilotiId === pilotiId) {
+      if (obj.isPilotiCircle) {
+        obj.pilotiHeight = newHeight;
+      }
+      if (obj.isPilotiText) {
+        obj.set('text', formatPilotiHeight(newHeight));
+      }
+    }
+  });
+  
+  group.dirty = true;
 }
 
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Group {
@@ -656,7 +695,9 @@ export function getHintForObject(obj: FabricObject | null): string {
   
   switch (myType) {
     case 'house':
-      return '<b>Casa:</b> Para editar valores, use "Desbloquear". Para mover a casa inteira, "Bloquear" novamente.';
+      return '<b>Casa:</b> Clique em um piloti para editar sua altura. Para mover a casa inteira, arraste.';
+    case 'piloti':
+      return '<b>Piloti:</b> Clique para editar a altura.';
     case 'gate':
       return '<b>Porta:</b> Posicione na lateral da casa.';
     case 'wall':
