@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Group } from 'fabric';
-import { Minus, Plus } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
@@ -11,7 +12,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { PILOTI_HEIGHTS, updatePilotiHeight, formatPilotiHeight } from '@/lib/canvas-utils';
+import { 
+  PILOTI_HEIGHTS, 
+  updatePilotiHeight, 
+  formatPilotiHeight, 
+  getPilotiName, 
+  getAdjacentPilotiId,
+  getPilotiFromGroup,
+  getAllPilotiIds
+} from '@/lib/canvas-utils';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -22,6 +31,7 @@ interface PilotiEditorProps {
   isMobile: boolean;
   anchorPosition?: { x: number; y: number };
   onHeightChange: (newHeight: number) => void;
+  onNavigate?: (pilotiId: string, height: number) => void;
 }
 
 export function PilotiEditor({
@@ -33,24 +43,37 @@ export function PilotiEditor({
   isMobile,
   anchorPosition,
   onHeightChange,
+  onNavigate,
 }: PilotiEditorProps) {
   const [tempHeight, setTempHeight] = useState(currentHeight);
 
   useEffect(() => {
     setTempHeight(currentHeight);
-  }, [currentHeight, isOpen]);
+  }, [currentHeight, isOpen, pilotiId]);
 
-  const handleIncrement = () => {
-    const currentIndex = PILOTI_HEIGHTS.indexOf(tempHeight);
-    if (currentIndex < PILOTI_HEIGHTS.length - 1) {
-      setTempHeight(PILOTI_HEIGHTS[currentIndex + 1]);
+  const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
+  const allIds = getAllPilotiIds();
+  const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
+
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    if (!pilotiId || !group) return;
+    
+    const newId = getAdjacentPilotiId(pilotiId, direction);
+    if (!newId) return;
+    
+    // Apply current changes before navigating
+    if (tempHeight !== currentHeight) {
+      updatePilotiHeight(group, pilotiId, tempHeight);
+      onHeightChange(tempHeight);
     }
-  };
-
-  const handleDecrement = () => {
-    const currentIndex = PILOTI_HEIGHTS.indexOf(tempHeight);
-    if (currentIndex > 0) {
-      setTempHeight(PILOTI_HEIGHTS[currentIndex - 1]);
+    
+    // Get new piloti data
+    const pilotiData = getPilotiFromGroup(group, newId);
+    if (pilotiData && onNavigate) {
+      onNavigate(newId, pilotiData.height);
+      setTempHeight(pilotiData.height);
     }
   };
 
@@ -67,32 +90,38 @@ export function PilotiEditor({
     onClose();
   };
 
+  const NavigationHeader = () => (
+    <div className="flex items-center justify-center gap-4">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => handleNavigate('prev')}
+        disabled={!hasPrev}
+        className="h-8 w-8"
+      >
+        <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
+      </Button>
+      
+      <span className="font-medium text-lg min-w-[80px] text-center">
+        Piloti {pilotiName}
+      </span>
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => handleNavigate('next')}
+        disabled={!hasNext}
+        className="h-8 w-8"
+      >
+        <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
   const HeightControls = () => (
     <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleDecrement}
-          disabled={tempHeight === PILOTI_HEIGHTS[0]}
-          className="h-12 w-12"
-        >
-          <Minus className="h-6 w-6" />
-        </Button>
-        
-        <div className="text-4xl font-bold min-w-[100px] text-center">
-          {formatPilotiHeight(tempHeight)} m
-        </div>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleIncrement}
-          disabled={tempHeight === PILOTI_HEIGHTS[PILOTI_HEIGHTS.length - 1]}
-          className="h-12 w-12"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
+      <div className="text-3xl font-bold text-center">
+        {formatPilotiHeight(tempHeight)} m
       </div>
       
       <div className="flex gap-2 flex-wrap justify-center">
@@ -116,7 +145,9 @@ export function PilotiEditor({
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>Altura do Piloti</DrawerTitle>
+            <DrawerTitle>
+              <NavigationHeader />
+            </DrawerTitle>
           </DrawerHeader>
           <div className="p-4">
             <HeightControls />
@@ -152,31 +183,10 @@ export function PilotiEditor({
       </PopoverTrigger>
       <PopoverContent className="w-auto p-4 bg-popover" side="right" align="center">
         <div className="space-y-4">
-          <h4 className="font-medium text-sm text-center">Altura do Piloti</h4>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleDecrement}
-              disabled={tempHeight === PILOTI_HEIGHTS[0]}
-              className="h-10 w-10"
-            >
-              <Minus className="h-5 w-5" />
-            </Button>
-            
-            <div className="text-2xl font-bold min-w-[80px] text-center">
-              {formatPilotiHeight(tempHeight)} m
-            </div>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleIncrement}
-              disabled={tempHeight === PILOTI_HEIGHTS[PILOTI_HEIGHTS.length - 1]}
-              className="h-10 w-10"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+          <NavigationHeader />
+          
+          <div className="text-2xl font-bold text-center">
+            {formatPilotiHeight(tempHeight)} m
           </div>
           
           <div className="flex gap-1 flex-wrap justify-center">

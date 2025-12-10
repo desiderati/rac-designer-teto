@@ -1,6 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject } from 'fabric';
-import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight } from '@/lib/canvas-utils';
+import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds } from '@/lib/canvas-utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
 
 export interface PilotiSelection {
@@ -32,6 +33,7 @@ export interface CanvasHandle {
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
   ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect }, ref) => {
+    const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -236,66 +238,114 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvas.on('selection:updated', updateHint);
       canvas.on('selection:cleared', updateHint);
 
-      // Handle sub-target selection for pilotis
+      // Helper function to handle piloti selection
+      const handlePilotiSelection = (subTarget: FabricObject, target: FabricObject) => {
+        const group = target as Group;
+        let pilotiId = (subTarget as any).pilotiId;
+        let piloti: FabricObject | null = null;
+        let pilotiHeight = 1.0;
+        
+        // If clicked on hit area, find the actual piloti circle
+        if ((subTarget as any).isPilotiHitArea) {
+          const pilotiData = getPilotiFromGroup(group, pilotiId);
+          if (pilotiData) {
+            piloti = pilotiData.circle;
+            pilotiHeight = pilotiData.height;
+          }
+        } else if ((subTarget as any).isPilotiCircle) {
+          piloti = subTarget;
+          pilotiHeight = (subTarget as any).pilotiHeight || 1.0;
+        }
+        
+        if (!piloti) return;
+        
+        // Calculate screen position of piloti using refs
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const currentContainerSize = containerSizeRef.current;
+        
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+        
+        const currentCanvasX = scaledWidth <= currentContainerSize.width 
+          ? (currentContainerSize.width - scaledWidth) / 2 
+          : -currentViewportX;
+        const currentCanvasY = scaledHeight <= currentContainerSize.height 
+          ? (currentContainerSize.height - scaledHeight) / 2 
+          : -currentViewportY;
+        
+        // Calculate screen position of piloti
+        const groupMatrix = group.calcTransformMatrix();
+        const pilotiLeft = piloti.left || 0;
+        const pilotiTop = piloti.top || 0;
+        
+        // Transform piloti position to canvas coordinates
+        const canvasPoint = {
+          x: groupMatrix[4] + pilotiLeft * groupMatrix[0] + pilotiTop * groupMatrix[2],
+          y: groupMatrix[5] + pilotiLeft * groupMatrix[1] + pilotiTop * groupMatrix[3],
+        };
+        
+        // Convert to screen coordinates
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
+          const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
+          
+          // Reset all pilotis stroke first
+          group.getObjects().forEach((obj: any) => {
+            if (obj.isPilotiCircle) {
+              obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+            }
+          });
+          
+          // Highlight the selected piloti
+          piloti.set({
+            stroke: '#3b82f6',
+            strokeWidth: 3,
+          });
+          canvas.renderAll();
+          
+          onPilotiSelect?.({
+            pilotiId,
+            currentHeight: pilotiHeight,
+            group,
+            screenPosition: { x: screenX, y: screenY },
+          });
+          
+          onSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
+        }
+      };
+
+      // Mobile: single tap on piloti or hit area
       canvas.on('mouse:down', (e) => {
         const target = e.target;
-        const subTarget = (e as any).subTargets?.[0];
+        const subTargets = (e as any).subTargets || [];
         
-        if (subTarget && (subTarget as any).myType === 'piloti') {
-          const piloti = subTarget as FabricObject;
-          const group = target as Group;
-          const pilotiId = (piloti as any).pilotiId;
-          const pilotiHeight = (piloti as any).pilotiHeight || 1.0;
-          
-          // Calculate screen position of piloti using refs
-          const currentZoom = zoomRef.current;
-          const currentViewportX = viewportXRef.current;
-          const currentViewportY = viewportYRef.current;
-          const currentContainerSize = containerSizeRef.current;
-          
-          const scaledWidth = CANVAS_WIDTH * currentZoom;
-          const scaledHeight = CANVAS_HEIGHT * currentZoom;
-          
-          const currentCanvasX = scaledWidth <= currentContainerSize.width 
-            ? (currentContainerSize.width - scaledWidth) / 2 
-            : -currentViewportX;
-          const currentCanvasY = scaledHeight <= currentContainerSize.height 
-            ? (currentContainerSize.height - scaledHeight) / 2 
-            : -currentViewportY;
-          
-          // Calculate screen position of piloti
-          const groupMatrix = group.calcTransformMatrix();
-          const pilotiLeft = piloti.left || 0;
-          const pilotiTop = piloti.top || 0;
-          
-          // Transform piloti position to canvas coordinates
-          const canvasPoint = {
-            x: groupMatrix[4] + pilotiLeft * groupMatrix[0] + pilotiTop * groupMatrix[2],
-            y: groupMatrix[5] + pilotiLeft * groupMatrix[1] + pilotiTop * groupMatrix[3],
-          };
-          
-          // Convert to screen coordinates
-          const containerRect = containerRef.current?.getBoundingClientRect();
-          if (containerRect) {
-            const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
-            const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
-            
-            // Highlight the selected piloti
-            piloti.set({
-              stroke: '#3b82f6',
-              strokeWidth: 3,
-            });
-            canvas.renderAll();
-            
-            onPilotiSelect?.({
-              pilotiId,
-              currentHeight: pilotiHeight,
-              group,
-              screenPosition: { x: screenX, y: screenY },
-            });
-            
-            onSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
-          }
+        // Find piloti or hit area in subtargets
+        const pilotiTarget = subTargets.find((st: any) => 
+          st.myType === 'piloti' || st.myType === 'pilotiHitArea'
+        );
+        
+        // Only handle on mobile with single tap
+        if (pilotiTarget && target && window.matchMedia('(max-width: 640px)').matches) {
+          handlePilotiSelection(pilotiTarget, target);
+        }
+      });
+
+      // Desktop: double-click on piloti
+      canvas.on('mouse:dblclick', (e) => {
+        const target = e.target;
+        const subTargets = (e as any).subTargets || [];
+        
+        // Find piloti in subtargets
+        const pilotiTarget = subTargets.find((st: any) => 
+          st.myType === 'piloti' || st.myType === 'pilotiHitArea'
+        );
+        
+        // Only handle on desktop with double click
+        if (pilotiTarget && target && !window.matchMedia('(max-width: 640px)').matches) {
+          handlePilotiSelection(pilotiTarget, target);
         }
       });
 

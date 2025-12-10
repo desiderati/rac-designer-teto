@@ -5,7 +5,7 @@ export const CANVAS_HEIGHT = 1300;
 export const BASE_TOP_WIDTH = 610;
 export const BASE_TOP_HEIGHT = 300;
 
-export const customProps = ['myType', 'lockScalingFlip', 'subTargetCheck', 'id', 'selectable', 'lockScalingY', 'houseView', 'isHouseBody', 'pilotiId', 'pilotiHeight', 'isPilotiCircle', 'isPilotiText'];
+export const customProps = ['myType', 'lockScalingFlip', 'subTargetCheck', 'id', 'selectable', 'lockScalingY', 'houseView', 'isHouseBody', 'pilotiId', 'pilotiHeight', 'isPilotiCircle', 'isPilotiText', 'isPilotiHitArea'];
 
 export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
 
@@ -51,6 +51,21 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       const pilotiId = `piloti_${colIdx}_${rowIdx}`;
       const defaultHeight = 1.0;
       
+      // Invisible hit area for mobile (larger touch target)
+      const hitArea = new Circle({
+        radius: Math.max(rad * 2.5, 20), // At least 40px diameter
+        fill: 'transparent',
+        stroke: 'transparent',
+        strokeWidth: 0,
+        left: x,
+        top: y,
+        originX: 'center',
+        originY: 'center',
+      });
+      (hitArea as any).myType = 'pilotiHitArea';
+      (hitArea as any).pilotiId = pilotiId;
+      (hitArea as any).isPilotiHitArea = true;
+      
       const circle = new Circle({
         radius: rad,
         fill: 'white',
@@ -81,6 +96,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (text as any).pilotiId = pilotiId;
       (text as any).isPilotiText = true;
       
+      // Add hit area first (behind), then circle, then text
+      houseObjects.push(hitArea);
       houseObjects.push(circle);
       houseObjects.push(text);
       pilotiIndex++;
@@ -103,6 +120,65 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
 export function formatPilotiHeight(height: number): string {
   return height.toFixed(1).replace('.', ',');
+}
+
+// Get piloti name from ID (e.g., "piloti_0_0" -> "A1")
+export function getPilotiName(pilotiId: string): string {
+  const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
+  if (!match) return pilotiId;
+  
+  const col = parseInt(match[1], 10);
+  const row = parseInt(match[2], 10);
+  
+  const rowLetter = String.fromCharCode(65 + row); // 0 -> A, 1 -> B, 2 -> C
+  const colNumber = col + 1; // 0 -> 1, 1 -> 2, etc.
+  
+  return `${rowLetter}${colNumber}`;
+}
+
+// Get ordered list of all piloti IDs
+export function getAllPilotiIds(): string[] {
+  const ids: string[] = [];
+  // Order: A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 4; col++) {
+      ids.push(`piloti_${col}_${row}`);
+    }
+  }
+  return ids;
+}
+
+// Get next/previous piloti ID
+export function getAdjacentPilotiId(currentId: string, direction: 'next' | 'prev'): string | null {
+  const allIds = getAllPilotiIds();
+  const currentIndex = allIds.indexOf(currentId);
+  
+  if (currentIndex === -1) return null;
+  
+  if (direction === 'next' && currentIndex < allIds.length - 1) {
+    return allIds[currentIndex + 1];
+  }
+  if (direction === 'prev' && currentIndex > 0) {
+    return allIds[currentIndex - 1];
+  }
+  
+  return null;
+}
+
+// Get piloti data from group
+export function getPilotiFromGroup(group: Group, pilotiId: string): { circle: FabricObject; height: number } | null {
+  const objects = group.getObjects();
+  
+  for (const obj of objects) {
+    if ((obj as any).pilotiId === pilotiId && (obj as any).isPilotiCircle) {
+      return {
+        circle: obj,
+        height: (obj as any).pilotiHeight || 1.0,
+      };
+    }
+  }
+  
+  return null;
 }
 
 export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
