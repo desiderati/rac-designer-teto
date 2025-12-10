@@ -49,6 +49,8 @@ export function RACEditor() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
+  const [groupToUngroup, setGroupToUngroup] = useState<Group | null>(null);
   const [pilotiSelection, setPilotiSelection] = useState<PilotiSelection | null>(null);
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
@@ -244,6 +246,23 @@ export function RACEditor() {
     
     const group = activeObj as Group;
     
+    // Check if this is a house (has pilotis)
+    const hasPilotis = group.getObjects().some((obj: any) => obj.isPilotiCircle);
+    
+    if (hasPilotis) {
+      // Show confirmation dialog for houses
+      setGroupToUngroup(group);
+      setShowUngroupConfirm(true);
+    } else {
+      // Direct ungroup for non-house groups
+      performUngroup(group);
+    }
+  };
+
+  const performUngroup = (group: Group) => {
+    const canvas = getCanvas();
+    if (!canvas) return;
+    
     // In Fabric.js v6, removeAll() properly extracts objects with correct coordinates
     const items = group.removeAll();
     
@@ -292,6 +311,14 @@ export function RACEditor() {
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
     setInfoMessage('Itens desbloqueados (Desagrupados). Pilotis mantidos agrupados.');
+  };
+
+  const confirmUngroup = () => {
+    if (groupToUngroup) {
+      performUngroup(groupToUngroup);
+    }
+    setShowUngroupConfirm(false);
+    setGroupToUngroup(null);
   };
 
   const handleGroup = () => {
@@ -757,6 +784,23 @@ export function RACEditor() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRestartTutorial}>
               Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desagrupar Casa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setGroupToUngroup(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmUngroup}>
+              Desagrupar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
