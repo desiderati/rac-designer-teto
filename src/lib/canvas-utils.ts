@@ -371,8 +371,11 @@ export function createDimension(canvas: FabricCanvas): Group {
   const w = 200;
   const as = 12;
   
-  const line = new Line([-w / 2, 0, w / 2, 0], {
-    stroke: '#333',
+  const line = new Rect({
+    width: w,
+    height: 0,
+    fill: 'transparent',
+    stroke: '#8B5CF6',
     strokeWidth: 2,
     strokeDashArray: [8, 4],
     originX: 'center',
@@ -382,7 +385,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   const a1 = new Triangle({
     width: as,
     height: as,
-    fill: '#333',
+    fill: '#8B5CF6',
     angle: -90,
     left: -w / 2,
     originX: 'center',
@@ -392,7 +395,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   const a2 = new Triangle({
     width: as,
     height: as,
-    fill: '#333',
+    fill: '#8B5CF6',
     angle: 90,
     left: w / 2,
     originX: 'center',
@@ -402,7 +405,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   const text = new IText(' ', {
     fontSize: 16,
     fontFamily: 'Arial',
-    fill: '#333',
+    fill: '#8B5CF6',
     backgroundColor: 'rgba(255,255,255,0.8)',
     top: -15,
     originX: 'center',
@@ -422,7 +425,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   
   group.on('scaling', function (this: Group) {
     const nw = this.width! * this.scaleX!;
-    (this._objects[0] as Line).set({ x1: -nw / 2, x2: nw / 2 });
+    (this._objects[0] as Rect).set({ width: nw });
     (this._objects[1] as Triangle).set({ left: -nw / 2 });
     (this._objects[2] as Triangle).set({ left: nw / 2 });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
@@ -541,8 +544,8 @@ export function createWall(canvas: FabricCanvas): Rect {
     top: canvas.height! / 2,
     width: 200,
     height: 50,
-    fill: 'rgba(160, 82, 45, 0.4)',
-    stroke: '#8B4513',
+    fill: 'rgba(128, 128, 128, 0.3)',
+    stroke: '#666666',
     strokeWidth: 2,
     strokeDashArray: [10, 5],
     originX: 'center',
