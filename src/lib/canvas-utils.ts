@@ -374,7 +374,6 @@ export function createDimension(canvas: FabricCanvas): Group {
   const line = new Line([-w / 2, 0, w / 2, 0], {
     stroke: '#8B5CF6',
     strokeWidth: 2,
-    strokeDashArray: [2, 4],
     originX: 'center',
     originY: 'center',
   });
