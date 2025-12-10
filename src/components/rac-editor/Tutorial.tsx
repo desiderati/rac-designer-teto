@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 interface TutorialStep {
-  id: "main-fab" | "house" | "elements" | "zoom-minimap";
+  id: "main-fab" | "house" | "elements" | "zoom-minimap" | "more-options";
   title: string;
   description: string;
   position: {
@@ -13,6 +13,7 @@ interface TutorialStep {
   };
   arrowDirection: "left" | "top" | "bottom" | "right";
   arrowOffset?: string; // Custom offset for arrow positioning
+  closeButtonPosition?: "left" | "right"; // Default is "right"
 }
 
 const tutorialSteps: TutorialStep[] = [
@@ -55,6 +56,7 @@ const tutorialSteps: TutorialStep[] = [
     position: { top: "20px", right: "80px" },
     arrowDirection: "right",
     arrowOffset: "25px",
+    closeButtonPosition: "left",
   },
 ];
 
@@ -127,7 +129,9 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
           {/* Close button */}
           <button
             onClick={handleComplete}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-amber-200 hover:bg-amber-300 rounded-full flex items-center justify-center transition-colors z-50"
+            className={`absolute -top-2 w-6 h-6 bg-amber-200 hover:bg-amber-300 rounded-full flex items-center justify-center transition-colors z-50 ${
+              step.closeButtonPosition === "left" ? "-left-2" : "-right-2"
+            }`}
           >
             <FontAwesomeIcon icon={faXmark} className="text-amber-800 text-xs" />
           </button>
