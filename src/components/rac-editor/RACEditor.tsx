@@ -7,6 +7,7 @@ import { Canvas, CanvasHandle, PilotiSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
+import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
@@ -50,6 +51,7 @@ export function RACEditor() {
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const [pilotiSelection, setPilotiSelection] = useState<PilotiSelection | null>(null);
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
+  const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
 
@@ -130,6 +132,54 @@ export function RACEditor() {
   };
 
   // House actions
+  const showPilotiTutorialIfNeeded = (house: Group) => {
+    // Only show on desktop
+    if (isMobile) return;
+    
+    const pilotiTutorialShown = localStorage.getItem('rac-piloti-tutorial-shown');
+    if (pilotiTutorialShown) return;
+    
+    // Find piloti A1 (piloti_0_0) in the house group
+    const canvas = canvasRef.current?.canvas;
+    if (!canvas) return;
+    
+    // Small delay to ensure the house is rendered
+    setTimeout(() => {
+      const objects = house.getObjects();
+      const pilotiA1 = objects.find((obj: any) => obj.pilotiId === 'piloti_0_0' && obj.isPilotiCircle);
+      
+      if (pilotiA1) {
+        // Get the screen position of piloti A1
+        const groupMatrix = house.calcTransformMatrix();
+        const pilotiLeft = (pilotiA1 as any).left || 0;
+        const pilotiTop = (pilotiA1 as any).top || 0;
+        
+        // Transform from local to canvas coordinates
+        const canvasPoint = {
+          x: groupMatrix[4] + pilotiLeft * groupMatrix[0],
+          y: groupMatrix[5] + pilotiTop * groupMatrix[3],
+        };
+        
+        // Get container bounds
+        const container = canvas.getElement().parentElement;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+          
+          const screenX = rect.left + canvasPoint.x * vpt[0] + vpt[4];
+          const screenY = rect.top + canvasPoint.y * vpt[3] + vpt[5];
+          
+          setPilotiTutorialPosition({ x: screenX, y: screenY });
+        }
+      }
+    }, 100);
+  };
+
+  const handleClosePilotiTutorial = () => {
+    setPilotiTutorialPosition(null);
+    localStorage.setItem('rac-piloti-tutorial-shown', 'true');
+  };
+
   const handleAddHouseTop = () => {
     closeAllMenus();
     const canvas = getCanvas();
@@ -137,6 +187,7 @@ export function RACEditor() {
       const house = createHouseTop(canvas);
       canvas.add(house);
       canvas.setActiveObject(house);
+      showPilotiTutorialIfNeeded(house);
     }
   };
 
@@ -470,6 +521,10 @@ export function RACEditor() {
     setPilotiSelection(selection);
     if (selection) {
       setIsPilotiEditorOpen(true);
+      // Close piloti tutorial if open (user figured it out)
+      if (pilotiTutorialPosition) {
+        handleClosePilotiTutorial();
+      }
     }
   };
 
@@ -609,6 +664,13 @@ export function RACEditor() {
         <Tutorial 
           onComplete={handleTutorialComplete} 
           currentStepId={tutorialStep}
+        />
+      )}
+
+      {pilotiTutorialPosition && (
+        <PilotiTutorialBalloon
+          position={pilotiTutorialPosition}
+          onClose={handleClosePilotiTutorial}
         />
       )}
 
