@@ -7,6 +7,16 @@ import { Canvas, CanvasHandle } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   createHouseTop,
   createHouseFrontBack,
   createHouseSide,
@@ -33,6 +43,7 @@ export function RACEditor() {
   const [showTips, setShowTips] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
 
   useEffect(() => {
@@ -55,11 +66,31 @@ export function RACEditor() {
   };
 
   const handleRestartTutorial = () => {
+    setShowRestartConfirm(true);
+  };
+
+  const confirmRestartTutorial = () => {
+    // Clear canvas
+    const canvas = canvasRef.current?.canvas;
+    if (canvas) {
+      canvas.clear();
+      canvas.backgroundColor = '#ffffff';
+      canvas.renderAll();
+      canvasRef.current?.saveHistory();
+    }
+    
     // Close all menus
     setActiveSubmenu(null);
     setIsMenuOpen(false);
+    setShowRestartConfirm(false);
+    
+    // Remove tutorial completion flag
+    localStorage.removeItem('rac-tutorial-completed');
+    
     // Start tutorial from beginning
     setTutorialStep('main-fab');
+    
+    toast.success('Tutorial reiniciado!');
   };
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
@@ -495,6 +526,23 @@ export function RACEditor() {
           currentStepId={tutorialStep}
         />
       )}
+
+      <AlertDialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reiniciar Tutorial</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso irá limpar todo o conteúdo do canvas e reiniciar o tutorial do início. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRestartTutorial}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
