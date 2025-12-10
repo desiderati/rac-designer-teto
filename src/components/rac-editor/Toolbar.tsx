@@ -342,7 +342,7 @@ export function Toolbar({
             <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} tooltipSide="left" />
             <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" hideTooltip={isTutorialActive} tooltipSide="left" />
             <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" hideTooltip={isTutorialActive} tooltipSide="left" />
-            <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faRotateLeft} title="Reiniciar Canvas" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} tooltipSide="left" />
           </div>
         )}
       </div>
