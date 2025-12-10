@@ -417,7 +417,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         </div>
 
         {/* Minimap and Zoom Slider Container */}
-        <div className={`absolute left-2.5 bottom-2.5 flex flex-col items-start gap-1 transition-all duration-200 ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
+        <div className={`absolute left-2.5 flex flex-col items-start gap-1 transition-all duration-200 ${showTips ? 'bottom-16 sm:bottom-2.5' : 'bottom-2.5'} ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
           <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
             <ZoomSlider
               zoom={zoom}
