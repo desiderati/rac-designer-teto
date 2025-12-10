@@ -244,43 +244,17 @@ export function RACEditor() {
     
     const group = activeObj as Group;
     
-    // Get group transformation data before ungrouping
-    const groupMatrix = group.calcTransformMatrix();
-    const groupAngle = group.angle || 0;
-    const groupScaleX = group.scaleX || 1;
-    const groupScaleY = group.scaleY || 1;
+    // In Fabric.js v6, removeAll() properly extracts objects with correct coordinates
+    const items = group.removeAll();
     
-    // Get objects from group
-    const objects = group.getObjects();
+    // Add all items to canvas
+    canvas.add(...items);
     
-    // Remove group from canvas first
+    // Remove the now-empty group
     canvas.remove(group);
     
-    // Transform each object to canvas coordinates
-    objects.forEach((obj: FabricObject) => {
-      // Calculate the object's position in canvas coordinates using the group's matrix
-      const objLeft = obj.left || 0;
-      const objTop = obj.top || 0;
-      
-      // Apply the group's transformation matrix to get canvas coordinates
-      const transformedX = groupMatrix[0] * objLeft + groupMatrix[2] * objTop + groupMatrix[4];
-      const transformedY = groupMatrix[1] * objLeft + groupMatrix[3] * objTop + groupMatrix[5];
-      
-      // Apply group's transformations to the object
-      obj.set({
-        left: transformedX,
-        top: transformedY,
-        angle: ((obj.angle || 0) + groupAngle) % 360,
-        scaleX: (obj.scaleX || 1) * groupScaleX,
-        scaleY: (obj.scaleY || 1) * groupScaleY,
-      });
-      
-      obj.setCoords();
-      canvas.add(obj);
-    });
-    
     // Create selection with ungrouped objects
-    const selection = new ActiveSelection(objects, { canvas });
+    const selection = new ActiveSelection(items, { canvas });
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
     setInfoMessage('Itens desbloqueados (Desagrupados).');
