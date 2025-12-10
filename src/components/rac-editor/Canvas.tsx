@@ -7,6 +7,8 @@ interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
   children?: ReactNode;
+  onZoomInteraction?: () => void;
+  onMinimapInteraction?: () => void;
 }
 
 export interface CanvasHandle {
@@ -19,7 +21,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -135,7 +137,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const handleViewportChange = useCallback((x: number, y: number) => {
       setViewportX(x);
       setViewportY(y);
-    }, []);
+      onMinimapInteraction?.();
+    }, [onMinimapInteraction]);
 
     // Handle zoom change from slider
     const handleZoomChange = useCallback((newZoom: number) => {
@@ -158,7 +161,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - containerSize.height);
       setViewportX(Math.max(0, Math.min(newViewportX, maxX)));
       setViewportY(Math.max(0, Math.min(newViewportY, maxY)));
-    }, [zoom, viewportX, viewportY, containerSize]);
+      
+      onZoomInteraction?.();
+    }, [zoom, viewportX, viewportY, containerSize, onZoomInteraction]);
 
     useImperativeHandle(ref, () => ({
       canvas: fabricCanvasRef.current,

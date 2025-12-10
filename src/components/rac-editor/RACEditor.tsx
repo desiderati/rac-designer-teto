@@ -24,7 +24,7 @@ import {
   CANVAS_HEIGHT,
 } from '@/lib/canvas-utils';
 
-type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'tips';
+type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap';
 
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
@@ -52,6 +52,14 @@ export function RACEditor() {
       setTutorialStep(null);
       localStorage.setItem('rac-tutorial-completed', 'true');
     }
+  };
+
+  const handleRestartTutorial = () => {
+    // Close all menus
+    setActiveSubmenu(null);
+    setIsMenuOpen(false);
+    // Start tutorial from beginning
+    setTutorialStep('main-fab');
   };
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
@@ -400,11 +408,6 @@ export function RACEditor() {
 
   const handleToggleTips = () => {
     setShowTips(!showTips);
-    
-    // Advance tutorial if this was the highlighted step
-    if (tutorialStep === 'tips') {
-      advanceTutorial('tips');
-    }
   };
 
   // Close menus when clicking outside
@@ -454,6 +457,7 @@ export function RACEditor() {
         tutorialHighlight={tutorialStep}
         isMenuOpen={isMenuOpen}
         onToggleMenu={handleToggleMenu}
+        onRestartTutorial={handleRestartTutorial}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -461,6 +465,12 @@ export function RACEditor() {
           ref={canvasRef}
           onSelectionChange={setInfoMessage}
           onHistorySave={() => {}}
+          onZoomInteraction={() => {
+            if (tutorialStep === 'zoom') advanceTutorial('zoom');
+          }}
+          onMinimapInteraction={() => {
+            if (tutorialStep === 'minimap') advanceTutorial('minimap');
+          }}
         >
           {/* InfoBar centered at bottom of canvas */}
           {showTips && (

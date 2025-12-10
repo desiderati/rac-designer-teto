@@ -26,7 +26,8 @@ import {
   faDoorOpen,
   faStairs,
   faLightbulb,
-  faEllipsisVertical
+  faEllipsisVertical,
+  faRotateLeft
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -61,9 +62,10 @@ interface ToolbarProps {
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'tips' | null;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap' | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
+  onRestartTutorial: () => void;
 }
 
 function FABButton({ 
@@ -188,6 +190,7 @@ export function Toolbar({
   tutorialHighlight,
   isMenuOpen,
   onToggleMenu,
+  onRestartTutorial,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -321,6 +324,7 @@ export function Toolbar({
                   <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" />
                   <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" />
                   <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" />
+                  <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" />
                 </div>
               )}
             </div>

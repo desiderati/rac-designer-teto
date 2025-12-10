@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 interface TutorialStep {
-  id: "main-fab" | "house" | "elements" | "tips";
+  id: "main-fab" | "house" | "elements" | "zoom" | "minimap";
   title: string;
   description: string;
   position: {
@@ -13,6 +12,7 @@ interface TutorialStep {
     right?: string;
   };
   arrowDirection: "left" | "top" | "bottom" | "right";
+  arrowOffset?: string; // Custom offset for arrow positioning
 }
 
 const tutorialSteps: TutorialStep[] = [
@@ -20,29 +20,41 @@ const tutorialSteps: TutorialStep[] = [
     id: "main-fab",
     title: "Menu Principal",
     description: "Clique aqui para abrir o menu principal com todas as ferramentas.",
-    position: { top: "16px", left: "80px" },
+    position: { top: "4px", left: "80px" },
     arrowDirection: "left",
+    arrowOffset: "24px",
   },
   {
     id: "house",
     title: "Casa TETO",
     description: "Use este botão para adicionar a vista desejada para a casa.",
-    position: { top: "60px", left: "80px" },
+    position: { top: "48px", left: "80px" },
     arrowDirection: "left",
+    arrowOffset: "24px",
   },
   {
     id: "elements",
     title: "Elementos",
     description: "Abre um submenu com as opções extras para diagramação.",
-    position: { top: "204px", left: "80px" },
+    position: { top: "188px", left: "80px" },
     arrowDirection: "left",
+    arrowOffset: "24px",
   },
   {
-    id: "tips",
-    title: "Dicas",
-    description: "Ative para ver dicas contextuais enquanto trabalha.",
-    position: { top: "568px", left: "80px" },
-    arrowDirection: "left",
+    id: "zoom",
+    title: "Controle de Zoom",
+    description: "Arraste o controle para ajustar o nível de zoom do canvas.",
+    position: { bottom: "180px", right: "90px" },
+    arrowDirection: "right",
+    arrowOffset: "24px",
+  },
+  {
+    id: "minimap",
+    title: "Minimapa",
+    description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
+    position: { bottom: "30px", right: "90px" },
+    arrowDirection: "right",
+    arrowOffset: "40px",
   },
 ];
 
@@ -65,18 +77,33 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
 
   const getArrowStyles = () => {
     const base = "absolute w-0 h-0 border-8 border-transparent";
+    const offset = step.arrowOffset || "50%";
 
     switch (step.arrowDirection) {
       case "left":
-        return `${base} -left-4 top-1/2 -translate-y-1/2 border-r-amber-100`;
+        return {
+          className: `${base} border-r-amber-100`,
+          style: { left: "-16px", top: offset }
+        };
       case "right":
-        return `${base} -right-4 top-1/2 -translate-y-1/2 border-l-amber-100`;
+        return {
+          className: `${base} border-l-amber-100`,
+          style: { right: "-16px", top: offset }
+        };
       case "top":
-        return `${base} -top-4 left-1/2 -translate-x-1/2 border-b-amber-100`;
+        return {
+          className: `${base} border-b-amber-100`,
+          style: { top: "-16px", left: offset }
+        };
       case "bottom":
-        return `${base} -bottom-4 left-1/2 -translate-x-1/2 border-t-amber-100`;
+        return {
+          className: `${base} border-t-amber-100`,
+          style: { bottom: "-16px", left: offset }
+        };
     }
   };
+
+  const arrowStyles = getArrowStyles();
 
   return (
     <>
@@ -95,7 +122,7 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
       >
         <div className="relative bg-amber-100 text-amber-900 rounded-xl shadow-lg p-4 max-w-[240px]">
           {/* Arrow */}
-          <div className={getArrowStyles()} />
+          <div className={arrowStyles.className} style={arrowStyles.style} />
 
           {/* Close button */}
           <button
