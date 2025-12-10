@@ -1,7 +1,14 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection } from 'fabric';
-import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT } from '@/lib/canvas-utils';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject } from 'fabric';
+import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight } from '@/lib/canvas-utils';
 import { Minimap, ZoomSlider } from './Minimap';
+
+export interface PilotiSelection {
+  pilotiId: string;
+  currentHeight: number;
+  group: Group;
+  screenPosition: { x: number; y: number };
+}
 
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
@@ -11,6 +18,7 @@ interface CanvasProps {
   onMinimapInteraction?: () => void;
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
   showTips?: boolean;
+  onPilotiSelect?: (selection: PilotiSelection | null) => void;
 }
 
 export interface CanvasHandle {
@@ -23,7 +31,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -50,6 +58,18 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const lastPinchDistance = useRef<number | null>(null);
     const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
     const pinchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    
+    // Refs for accessing viewport state in event handlers
+    const zoomRef = useRef(zoom);
+    const viewportXRef = useRef(viewportX);
+    const viewportYRef = useRef(viewportY);
+    const containerSizeRef = useRef(containerSize);
+    
+    // Keep refs in sync with state
+    useEffect(() => { zoomRef.current = zoom; }, [zoom]);
+    useEffect(() => { viewportXRef.current = viewportX; }, [viewportX]);
+    useEffect(() => { viewportYRef.current = viewportY; }, [viewportY]);
+    useEffect(() => { containerSizeRef.current = containerSize; }, [containerSize]);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
@@ -208,11 +228,76 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       const updateHint = () => {
         const obj = canvas.getActiveObject();
         onSelectionChange(getHintForObject(obj));
+        // Clear piloti selection when general selection changes
+        onPilotiSelect?.(null);
       };
 
       canvas.on('selection:created', updateHint);
       canvas.on('selection:updated', updateHint);
       canvas.on('selection:cleared', updateHint);
+
+      // Handle sub-target selection for pilotis
+      canvas.on('mouse:down', (e) => {
+        const target = e.target;
+        const subTarget = (e as any).subTargets?.[0];
+        
+        if (subTarget && (subTarget as any).myType === 'piloti') {
+          const piloti = subTarget as FabricObject;
+          const group = target as Group;
+          const pilotiId = (piloti as any).pilotiId;
+          const pilotiHeight = (piloti as any).pilotiHeight || 1.0;
+          
+          // Calculate screen position of piloti using refs
+          const currentZoom = zoomRef.current;
+          const currentViewportX = viewportXRef.current;
+          const currentViewportY = viewportYRef.current;
+          const currentContainerSize = containerSizeRef.current;
+          
+          const scaledWidth = CANVAS_WIDTH * currentZoom;
+          const scaledHeight = CANVAS_HEIGHT * currentZoom;
+          
+          const currentCanvasX = scaledWidth <= currentContainerSize.width 
+            ? (currentContainerSize.width - scaledWidth) / 2 
+            : -currentViewportX;
+          const currentCanvasY = scaledHeight <= currentContainerSize.height 
+            ? (currentContainerSize.height - scaledHeight) / 2 
+            : -currentViewportY;
+          
+          // Calculate screen position of piloti
+          const groupMatrix = group.calcTransformMatrix();
+          const pilotiLeft = piloti.left || 0;
+          const pilotiTop = piloti.top || 0;
+          
+          // Transform piloti position to canvas coordinates
+          const canvasPoint = {
+            x: groupMatrix[4] + pilotiLeft * groupMatrix[0] + pilotiTop * groupMatrix[2],
+            y: groupMatrix[5] + pilotiLeft * groupMatrix[1] + pilotiTop * groupMatrix[3],
+          };
+          
+          // Convert to screen coordinates
+          const containerRect = containerRef.current?.getBoundingClientRect();
+          if (containerRect) {
+            const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
+            const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
+            
+            // Highlight the selected piloti
+            piloti.set({
+              stroke: '#3b82f6',
+              strokeWidth: 3,
+            });
+            canvas.renderAll();
+            
+            onPilotiSelect?.({
+              pilotiId,
+              currentHeight: pilotiHeight,
+              group,
+              screenPosition: { x: screenX, y: screenY },
+            });
+            
+            onSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
+          }
+        }
+      });
 
       // Rotation snapping
       canvas.on('object:rotating', (e) => {
