@@ -380,7 +380,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         </div>
 
         {/* Zoom Slider */}
-        <div className={`absolute bottom-[110px] left-4 ${tutorialHighlight === 'zoom' ? 'z-50' : 'z-10'}`}>
+        <div className={`absolute bottom-[110px] left-4 ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
           <ZoomSlider
             zoom={zoom}
             onZoomChange={handleZoomChange}
