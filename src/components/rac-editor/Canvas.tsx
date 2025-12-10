@@ -37,6 +37,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const [viewportY, setViewportY] = useState(0);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [isPanning, setIsPanning] = useState(false);
+    const [isPinching, setIsPinching] = useState(false);
     const [minimapObjects, setMinimapObjects] = useState<Array<{
       left: number;
       top: number;
@@ -47,6 +48,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     }>>([]);
     const lastPanPoint = useRef({ x: 0, y: 0 });
     const lastPinchDistance = useRef<number | null>(null);
+    const pinchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
@@ -354,6 +356,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         lastPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
+        setIsPinching(true);
+        
+        // Clear any existing timeout
+        if (pinchTimeoutRef.current) {
+          clearTimeout(pinchTimeoutRef.current);
+        }
       }
     }, []);
 
@@ -377,6 +385,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
     const handleTouchEnd = useCallback(() => {
       lastPinchDistance.current = null;
+      
+      // Delay hiding the indicator for smooth UX
+      pinchTimeoutRef.current = setTimeout(() => {
+        setIsPinching(false);
+      }, 500);
     }, []);
 
     // Calculate canvas position - center it when it fits, otherwise use viewport offset
@@ -415,6 +428,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         >
           <canvas ref={canvasRef} />
         </div>
+
+        {/* Pinch-zoom feedback indicator */}
+        {isPinching && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+            <div className="bg-foreground/80 text-background px-4 py-2 rounded-full text-lg font-medium shadow-lg animate-scale-in">
+              {Math.round(zoom * 100)}%
+            </div>
+          </div>
+        )}
 
         {/* Desktop: Minimap fixed position */}
         <div className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
