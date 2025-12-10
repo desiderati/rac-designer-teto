@@ -367,7 +367,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
   const sideWidth = 300 * s;
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
-  const pilotH = 120 * s;
+  const pilotH = 100 * s;
 
   const p1 = new Rect({
     width: pilotW,
@@ -733,7 +733,7 @@ export function createDoor(canvas: FabricCanvas): Group {
     fill: "#333",
     originX: "center",
     originY: "center",
-    top: 15,
+    top: 5,
   });
 
   const group = new Group([rect, text], {
