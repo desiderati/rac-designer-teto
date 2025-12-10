@@ -24,7 +24,7 @@ import {
   CANVAS_HEIGHT,
 } from '@/lib/canvas-utils';
 
-type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap';
+type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap';
 
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
@@ -467,10 +467,10 @@ export function RACEditor() {
           onSelectionChange={setInfoMessage}
           onHistorySave={() => {}}
           onZoomInteraction={() => {
-            if (tutorialStep === 'zoom') advanceTutorial('zoom');
+            if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
           }}
           onMinimapInteraction={() => {
-            if (tutorialStep === 'minimap') advanceTutorial('minimap');
+            if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
           }}
           tutorialHighlight={tutorialStep}
           showTips={showTips}

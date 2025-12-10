@@ -62,7 +62,7 @@ interface ToolbarProps {
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap' | null;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
