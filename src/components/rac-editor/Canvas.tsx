@@ -1,5 +1,5 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject } from 'fabric';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds } from '@/lib/canvas-utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
@@ -299,10 +299,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             }
           });
           
-          // Highlight the selected piloti
+          // Highlight the selected piloti with thicker border
           piloti.set({
             stroke: '#3b82f6',
-            strokeWidth: 3,
+            strokeWidth: 4,
           });
           canvas.renderAll();
           
@@ -335,17 +335,45 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       // Desktop: double-click on piloti
       canvas.on('mouse:dblclick', (e) => {
+        // Skip on mobile
+        if (window.matchMedia('(max-width: 640px)').matches) return;
+        
         const target = e.target;
-        const subTargets = (e as any).subTargets || [];
+        if (!target) return;
         
-        // Find piloti in subtargets
-        const pilotiTarget = subTargets.find((st: any) => 
-          st.myType === 'piloti' || st.myType === 'pilotiHitArea'
-        );
-        
-        // Only handle on desktop with double click
-        if (pilotiTarget && target && !window.matchMedia('(max-width: 640px)').matches) {
-          handlePilotiSelection(pilotiTarget, target);
+        // Check if target is a group (house)
+        if (target.type === 'group') {
+          const group = target as Group;
+          const pointer = canvas.getPointer(e.e);
+          
+          // Find piloti at click position within the group
+          const groupMatrix = group.calcTransformMatrix();
+          const invertedMatrix = fabricUtil.invertTransform(groupMatrix);
+          const localPoint = fabricUtil.transformPoint(
+            { x: pointer.x, y: pointer.y },
+            invertedMatrix
+          );
+          
+          // Search for piloti or hit area at this position
+          const objects = group.getObjects();
+          for (let i = objects.length - 1; i >= 0; i--) {
+            const obj = objects[i] as any;
+            if (obj.myType === 'piloti' || obj.myType === 'pilotiHitArea') {
+              const objLeft = obj.left || 0;
+              const objTop = obj.top || 0;
+              const radius = obj.radius || (obj.width / 2) || 10;
+              
+              const dist = Math.sqrt(
+                Math.pow(localPoint.x - objLeft, 2) + 
+                Math.pow(localPoint.y - objTop, 2)
+              );
+              
+              if (dist <= radius) {
+                handlePilotiSelection(obj, target);
+                return;
+              }
+            }
+          }
         }
       });
 

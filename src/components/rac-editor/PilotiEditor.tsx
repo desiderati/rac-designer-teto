@@ -91,7 +91,7 @@ export function PilotiEditor({
   };
 
   const NavigationHeader = () => (
-    <div className="flex items-center justify-center gap-4">
+    <div className="flex items-center justify-center gap-2">
       <Button
         variant="ghost"
         size="icon"
@@ -102,7 +102,7 @@ export function PilotiEditor({
         <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
       </Button>
       
-      <span className="font-medium text-lg min-w-[80px] text-center">
+      <span className="font-bold text-2xl min-w-[80px] text-center">
         Piloti {pilotiName}
       </span>
       
@@ -119,8 +119,8 @@ export function PilotiEditor({
   );
 
   const HeightControls = () => (
-    <div className="flex flex-col items-center gap-4">
-      <div className="text-3xl font-bold text-center">
+    <div className="flex flex-col items-center gap-2">
+      <div className="text-base font-medium text-muted-foreground text-center">
         {formatPilotiHeight(tempHeight)} m
       </div>
       
@@ -182,10 +182,10 @@ export function PilotiEditor({
         />
       </PopoverTrigger>
       <PopoverContent className="w-auto p-4 bg-popover" side="right" align="center">
-        <div className="space-y-4">
+        <div className="space-y-3">
           <NavigationHeader />
           
-          <div className="text-2xl font-bold text-center">
+          <div className="text-sm font-medium text-muted-foreground text-center">
             {formatPilotiHeight(tempHeight)} m
           </div>
           
