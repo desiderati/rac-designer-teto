@@ -23,7 +23,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Clique aqui para abrir o menu principal com todas as ferramentas.",
     position: { top: "20px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "15px",
+    arrowOffset: "25px",
   },
   {
     id: "house",
