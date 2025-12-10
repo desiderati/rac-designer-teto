@@ -79,6 +79,7 @@ function FABButton({
   className = '',
   isPulsing = false,
   hideTooltip = false,
+  tooltipSide = 'right' as 'right' | 'left',
 }: { 
   icon: IconDefinition; 
   title: string; 
@@ -89,6 +90,7 @@ function FABButton({
   className?: string;
   isPulsing?: boolean;
   hideTooltip?: boolean;
+  tooltipSide?: 'right' | 'left';
 }) {
   const button = (
     <button
@@ -114,7 +116,7 @@ function FABButton({
       <TooltipTrigger asChild>
         {button}
       </TooltipTrigger>
-      <TooltipContent side="right" className="bg-[#333] text-white">
+      <TooltipContent side={tooltipSide} className="bg-[#333] text-white">
         {title}
       </TooltipContent>
     </Tooltip>
@@ -127,12 +129,14 @@ function SubMenuButton({
   onClick,
   color = '#ecf0f1',
   hideTooltip = false,
+  tooltipSide = 'bottom' as 'bottom' | 'left',
 }: { 
   icon: IconDefinition; 
   title: string; 
   onClick: () => void;
   color?: string;
   hideTooltip?: boolean;
+  tooltipSide?: 'bottom' | 'left';
 }) {
   const button = (
     <button
@@ -152,7 +156,7 @@ function SubMenuButton({
       <TooltipTrigger asChild>
         {button}
       </TooltipTrigger>
-      <TooltipContent side="bottom" align="start" className="bg-[#333] text-white">
+      <TooltipContent side={tooltipSide} align="start" className="bg-[#333] text-white">
         {title}
       </TooltipContent>
     </Tooltip>
@@ -314,27 +318,30 @@ export function Toolbar({
               hideTooltip={isTutorialActive}
             />
 
-            {/* Overflow Menu (three dots) */}
-            <div className="relative">
-              <FABButton
-                icon={faEllipsisVertical}
-                title="Mais Opções"
-                onClick={() => handleAction(onToggleOverflowMenu)}
-                isActive={activeSubmenu === 'overflow'}
-                hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
-              />
-              {/* Overflow Submenu */}
-              {activeSubmenu === 'overflow' && (
-                <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} />
-                </div>
-              )}
-            </div>
+          </div>
+        )}
+      </div>
+
+      {/* FAB for Overflow Menu - Fixed position top right */}
+      <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
+        <FABButton
+          icon={faEllipsisVertical}
+          title="Mais Opções"
+          onClick={() => handleAction(onToggleOverflowMenu)}
+          isMain
+          isActive={activeSubmenu === 'overflow'}
+          hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
+          tooltipSide="left"
+        />
+        {/* Overflow Submenu - opens downward */}
+        {activeSubmenu === 'overflow' && (
+          <div className="flex flex-col gap-1 animate-in slide-in-from-top-2 duration-200">
+            <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" hideTooltip={isTutorialActive} tooltipSide="left" />
+            <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} tooltipSide="left" />
           </div>
         )}
       </div>
