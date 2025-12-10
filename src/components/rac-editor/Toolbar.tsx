@@ -66,6 +66,7 @@ interface ToolbarProps {
   isMenuOpen: boolean;
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
+  isTutorialActive?: boolean;
 }
 
 function FABButton({ 
@@ -191,6 +192,7 @@ export function Toolbar({
   isMenuOpen,
   onToggleMenu,
   onRestartTutorial,
+  isTutorialActive = false,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -226,6 +228,7 @@ export function Toolbar({
           isMain
           className={isMenuOpen ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : ''}
           isPulsing={tutorialHighlight === 'main-fab'}
+          hideTooltip={isTutorialActive}
         />
 
         {/* Menu Items - shown when open */}
@@ -239,16 +242,16 @@ export function Toolbar({
                 onClick={() => handleAction(onToggleHouseMenu)}
                 isActive={activeSubmenu === 'house'}
                 isPulsing={tutorialHighlight === 'house'}
-                hideTooltip={activeSubmenu === 'house'}
+                hideTooltip={activeSubmenu === 'house' || isTutorialActive}
               />
               {/* House Submenu */}
               {activeSubmenu === 'house' && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} />
-                  <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} />
-                  <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} />
-                  <SubMenuButton icon={faArrowLeft} title="Lateral Esquerda" onClick={() => handleAction(onAddHouseSide1)} />
-                  <SubMenuButton icon={faArrowRight} title="Lateral Direita" onClick={() => handleAction(onAddHouseSide2)} />
+                  <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faArrowLeft} title="Quadrado Fechado" onClick={() => handleAction(onAddHouseSide1)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faArrowRight} title="Quadrado Aberto" onClick={() => handleAction(onAddHouseSide2)} hideTooltip={isTutorialActive} />
                 </div>
               )}
             </div>
@@ -257,14 +260,16 @@ export function Toolbar({
             <FABButton 
               icon={faLockOpen} 
               title="Desbloquear (Desagrupar)" 
-              onClick={() => handleAction(onUngroup)} 
+              onClick={() => handleAction(onUngroup)}
+              hideTooltip={isTutorialActive}
             />
             
             {/* Lock */}
             <FABButton 
               icon={faLock} 
               title="Bloquear (Agrupar)" 
-              onClick={() => handleAction(onGroup)} 
+              onClick={() => handleAction(onGroup)}
+              hideTooltip={isTutorialActive}
             />
 
             {/* Elements */}
@@ -275,19 +280,19 @@ export function Toolbar({
                 onClick={() => handleAction(onToggleElementsMenu)}
                 isActive={activeSubmenu === 'elements'}
                 isPulsing={tutorialHighlight === 'elements'}
-                hideTooltip={activeSubmenu === 'elements'}
+                hideTooltip={activeSubmenu === 'elements' || isTutorialActive}
               />
               {/* Elements Submenu */}
               {activeSubmenu === 'elements' && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faBars} title="Objeto / Muro" onClick={() => handleAction(onAddWall)} />
-                  <SubMenuButton icon={faDoorOpen} title="Porta" onClick={() => handleAction(onAddDoor)} />
-                  <SubMenuButton icon={faStairs} title="Escada" onClick={() => handleAction(onAddStairs)} />
-                  <SubMenuButton icon={faTree} title="Árvore" onClick={() => handleAction(onAddTree)} />
-                  <SubMenuButton icon={faWater} title="Água / Rio" onClick={() => handleAction(onAddWater)} />
-                  <SubMenuButton icon={faSlash} title="Linha Reta" onClick={() => handleAction(onAddLine)} />
-                  <SubMenuButton icon={faArrowRightLong} title="Seta Simples" onClick={() => handleAction(onAddArrow)} />
-                  <SubMenuButton icon={faArrowsLeftRight} title="Distância" onClick={() => handleAction(onAddDimension)} />
+                  <SubMenuButton icon={faBars} title="Objeto / Muro" onClick={() => handleAction(onAddWall)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faDoorOpen} title="Porta" onClick={() => handleAction(onAddDoor)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faStairs} title="Escada" onClick={() => handleAction(onAddStairs)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faTree} title="Árvore" onClick={() => handleAction(onAddTree)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faWater} title="Água / Rio" onClick={() => handleAction(onAddWater)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faSlash} title="Linha Reta" onClick={() => handleAction(onAddLine)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faArrowRightLong} title="Seta Simples" onClick={() => handleAction(onAddArrow)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faArrowsLeftRight} title="Distância" onClick={() => handleAction(onAddDimension)} hideTooltip={isTutorialActive} />
                 </div>
               )}
             </div>
@@ -298,13 +303,15 @@ export function Toolbar({
               title="Lápis"
               onClick={() => handleAction(onToggleDrawMode)}
               isActive={isDrawing}
+              hideTooltip={isTutorialActive}
             />
             
             {/* Text */}
             <FABButton 
               icon={faFont} 
               title="Texto Livre" 
-              onClick={() => handleAction(onAddText)} 
+              onClick={() => handleAction(onAddText)}
+              hideTooltip={isTutorialActive}
             />
 
             {/* Overflow Menu (three dots) */}
@@ -314,17 +321,17 @@ export function Toolbar({
                 title="Mais Opções"
                 onClick={() => handleAction(onToggleOverflowMenu)}
                 isActive={activeSubmenu === 'overflow'}
-                hideTooltip={activeSubmenu === 'overflow'}
+                hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
               />
               {/* Overflow Submenu */}
               {activeSubmenu === 'overflow' && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" />
-                  <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" />
-                  <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" />
-                  <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" />
-                  <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" />
-                  <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" />
+                  <SubMenuButton icon={faFileDownload} title="Exportar Projeto (JSON)" onClick={() => handleAction(onExportJSON)} color="#ffeaa7" hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faFolderOpen} title="Abrir Projeto (JSON)" onClick={() => fileInputRef.current?.click()} color="#ffeaa7" hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faTrash} title="Excluir Item" onClick={() => handleAction(onDelete)} color="#ffaaaa" hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faFilePdf} title="Salvar PDF" onClick={() => handleAction(onSavePDF)} color="#aaffaa" hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faLightbulb} title="Dicas" onClick={onToggleTips} color="#f1c40f" hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faRotateLeft} title="Reiniciar Tutorial" onClick={onRestartTutorial} color="#74b9ff" hideTooltip={isTutorialActive} />
                 </div>
               )}
             </div>

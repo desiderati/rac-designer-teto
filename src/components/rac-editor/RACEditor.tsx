@@ -458,6 +458,7 @@ export function RACEditor() {
         isMenuOpen={isMenuOpen}
         onToggleMenu={handleToggleMenu}
         onRestartTutorial={handleRestartTutorial}
+        isTutorialActive={tutorialStep !== null}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -471,6 +472,7 @@ export function RACEditor() {
           onMinimapInteraction={() => {
             if (tutorialStep === 'minimap') advanceTutorial('minimap');
           }}
+          tutorialHighlight={tutorialStep}
         >
           {/* InfoBar centered at bottom of canvas */}
           {showTips && (

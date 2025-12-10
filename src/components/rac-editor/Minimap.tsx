@@ -21,6 +21,8 @@ interface MinimapProps {
   onZoomChange: (zoom: number) => void;
   visible: boolean;
   objects?: MinimapObject[];
+  highlightZoom?: boolean;
+  highlightMinimap?: boolean;
 }
 
 const MINIMAP_SIZE = 75; // 2.5x the previous size of 30
@@ -37,6 +39,8 @@ export function Minimap({
   onZoomChange,
   visible,
   objects = [],
+  highlightZoom = false,
+  highlightMinimap = false,
 }: MinimapProps) {
   const minimapRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -151,7 +155,7 @@ export function Minimap({
   return (
     <div className="flex flex-col gap-2 items-center">
       {/* Zoom Slider */}
-      <div className="flex flex-col items-center gap-1">
+      <div className={`flex flex-col items-center gap-1 ${highlightZoom ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
         <span className="text-[10px] text-muted-foreground font-medium">{zoomPercent}%</span>
         <div 
           ref={sliderRef}
@@ -173,7 +177,7 @@ export function Minimap({
       {/* Minimap */}
       <div
         ref={minimapRef}
-        className="bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden"
+        className={`bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden ${highlightMinimap ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75' : ''}`}
         style={{
           width: MINIMAP_SIZE,
           height: MINIMAP_SIZE,
