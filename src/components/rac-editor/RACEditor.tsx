@@ -473,6 +473,7 @@ export function RACEditor() {
             if (tutorialStep === 'minimap') advanceTutorial('minimap');
           }}
           tutorialHighlight={tutorialStep}
+          showTips={showTips}
         >
           {/* InfoBar centered at bottom of canvas */}
           {showTips && (
