@@ -107,10 +107,13 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
 
   const arrowStyles = getArrowStyles();
 
+  // Only show full blur on steps before "more-options" to keep zoom/minimap visible
+  const showFullBlur = step.id !== 'more-options';
+
   return (
     <>
-      {/* Overlay sutil */}
-      <div className="fixed inset-0 bg-background/40 backdrop-blur-[2px] z-40 pointer-events-none" />
+      {/* Overlay sutil - reduced blur on more-options step */}
+      <div className={`fixed inset-0 z-40 pointer-events-none ${showFullBlur ? 'bg-background/40 backdrop-blur-[2px]' : 'bg-background/20'}`} />
 
       {/* Balloon tooltip */}
       <div

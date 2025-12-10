@@ -62,7 +62,7 @@ interface ToolbarProps {
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | null;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
@@ -330,6 +330,7 @@ export function Toolbar({
           onClick={() => handleAction(onToggleOverflowMenu)}
           isMain
           isActive={activeSubmenu === 'overflow'}
+          isPulsing={tutorialHighlight === 'more-options'}
           hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
           tooltipSide="left"
         />
