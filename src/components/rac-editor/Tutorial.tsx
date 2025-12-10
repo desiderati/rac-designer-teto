@@ -36,7 +36,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "elements",
     title: "Elementos",
     description: "Abre um submenu com as opções extras para diagramação.",
-    position: { top: "188px", left: "80px" },
+    position: { top: "195px", left: "80px" },
     arrowDirection: "left",
     arrowOffset: "24px",
   },
