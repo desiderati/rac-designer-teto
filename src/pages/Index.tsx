@@ -1,4 +1,4 @@
-import { RACEditor } from '@/components/rac-editor/RACEditor';
+import { RACEditor } from "@/components/rac-editor/RACEditor";
 
 const Index = () => {
   return <RACEditor />;
