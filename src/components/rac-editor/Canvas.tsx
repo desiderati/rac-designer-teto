@@ -33,17 +33,42 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const [viewportY, setViewportY] = useState(0);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [isPanning, setIsPanning] = useState(false);
+    const [minimapObjects, setMinimapObjects] = useState<Array<{
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+      angle: number;
+      type: string;
+    }>>([]);
     const lastPanPoint = useRef({ x: 0, y: 0 });
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
       CANVAS_WIDTH * zoom <= containerSize.width && 
       CANVAS_HEIGHT * zoom <= containerSize.height;
+    
+    // Update minimap objects
+    const updateMinimapObjects = useCallback(() => {
+      const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+      
+      const objects = canvas.getObjects().map((obj: any) => ({
+        left: obj.left - (obj.width * obj.scaleX) / 2,
+        top: obj.top - (obj.height * obj.scaleY) / 2,
+        width: obj.width * obj.scaleX,
+        height: obj.height * obj.scaleY,
+        angle: obj.angle || 0,
+        type: obj.type || 'unknown',
+      }));
+      setMinimapObjects(objects);
+    }, []);
 
     const saveHistory = () => {
       if (historyProcessingRef.current) return;
       if (historyRef.current.length > 50) historyRef.current.shift();
       historyRef.current.push(JSON.stringify(fabricCanvasRef.current));
+      updateMinimapObjects();
       onHistorySave();
     };
 
@@ -361,6 +386,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             onViewportChange={handleViewportChange}
             onZoomChange={handleZoomChange}
             visible={!canvasFitsInViewport}
+            objects={minimapObjects}
           />
         </div>
 

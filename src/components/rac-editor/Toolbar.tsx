@@ -75,6 +75,7 @@ function FABButton({
   isMain = false,
   className = '',
   isPulsing = false,
+  hideTooltip = false,
 }: { 
   icon: IconDefinition; 
   title: string; 
@@ -84,22 +85,31 @@ function FABButton({
   isMain?: boolean;
   className?: string;
   isPulsing?: boolean;
+  hideTooltip?: boolean;
 }) {
+  const button = (
+    <button
+      onClick={onClick}
+      className={cn(
+        'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
+        isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
+        isActive && 'bg-[#e67e22] border-2 border-white',
+        isPulsing && 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
+        className
+      )}
+    >
+      <FontAwesomeIcon icon={icon} style={{ color }} />
+    </button>
+  );
+
+  if (hideTooltip) {
+    return button;
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          onClick={onClick}
-          className={cn(
-            'border-none rounded-xl bg-[#2c3e50] text-[#ecf0f1] cursor-pointer transition-all duration-200 flex justify-center items-center shadow-lg hover:bg-[#0092DD] hover:scale-105 active:scale-95',
-            isMain ? 'w-12 h-12 text-xl' : 'w-11 h-11 text-lg',
-            isActive && 'bg-[#e67e22] border-2 border-white',
-            isPulsing && 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
-            className
-          )}
-        >
-          <FontAwesomeIcon icon={icon} style={{ color }} />
-        </button>
+        {button}
       </TooltipTrigger>
       <TooltipContent side="right" className="bg-[#333] text-white">
         {title}
@@ -139,7 +149,7 @@ function SubMenuButton({
       <TooltipTrigger asChild>
         {button}
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="bg-[#333] text-white">
+      <TooltipContent side="bottom" align="start" className="bg-[#333] text-white">
         {title}
       </TooltipContent>
     </Tooltip>
@@ -226,6 +236,7 @@ export function Toolbar({
                 onClick={() => handleAction(onToggleHouseMenu)}
                 isActive={activeSubmenu === 'house'}
                 isPulsing={tutorialHighlight === 'house'}
+                hideTooltip={activeSubmenu === 'house'}
               />
               {/* House Submenu */}
               {activeSubmenu === 'house' && (
@@ -261,6 +272,7 @@ export function Toolbar({
                 onClick={() => handleAction(onToggleElementsMenu)}
                 isActive={activeSubmenu === 'elements'}
                 isPulsing={tutorialHighlight === 'elements'}
+                hideTooltip={activeSubmenu === 'elements'}
               />
               {/* Elements Submenu */}
               {activeSubmenu === 'elements' && (
@@ -299,6 +311,7 @@ export function Toolbar({
                 title="Mais Opções"
                 onClick={() => handleAction(onToggleOverflowMenu)}
                 isActive={activeSubmenu === 'overflow'}
+                hideTooltip={activeSubmenu === 'overflow'}
               />
               {/* Overflow Submenu */}
               {activeSubmenu === 'overflow' && (
