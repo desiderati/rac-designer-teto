@@ -31,7 +31,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Use este botão para adicionar uma ou mais vistas da casa.",
     position: { top: "65px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "25px",
+    arrowOffset: "30px",
   },
   {
     id: "elements",
@@ -39,7 +39,7 @@ const tutorialSteps: TutorialStep[] = [
     description: "Abre um submenu com as opções extras para diagramação.",
     position: { top: "225px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "25px",
+    arrowOffset: "30x",
   },
   {
     id: "zoom-minimap",
