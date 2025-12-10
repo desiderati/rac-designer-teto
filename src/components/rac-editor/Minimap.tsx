@@ -127,12 +127,12 @@ export function Minimap({
   const viewRectX = (viewportX / zoom) * scale;
   const viewRectY = (viewportY / zoom) * scale;
 
-  const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const updateViewportFromPosition = useCallback((clientX: number, clientY: number) => {
     if (!minimapRef.current) return;
 
     const rect = minimapRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const clickX = clientX - rect.left;
+    const clickY = clientY - rect.top;
 
     const canvasX = (clickX / scale) * zoom - (viewportWidth / 2);
     const canvasY = (clickY / scale) * zoom - (viewportHeight / 2);
@@ -143,6 +143,10 @@ export function Minimap({
     );
   }, [scale, zoom, viewportWidth, viewportHeight, canvasWidth, canvasHeight, onViewportChange]);
 
+  const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    updateViewportFromPosition(e.clientX, e.clientY);
+  }, [updateViewportFromPosition]);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -150,22 +154,33 @@ export function Minimap({
   }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !minimapRef.current) return;
-
-    const rect = minimapRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    const canvasX = (clickX / scale) * zoom - (viewportWidth / 2);
-    const canvasY = (clickY / scale) * zoom - (viewportHeight / 2);
-
-    onViewportChange(
-      Math.max(0, Math.min(canvasX, canvasWidth * zoom - viewportWidth)),
-      Math.max(0, Math.min(canvasY, canvasHeight * zoom - viewportHeight))
-    );
-  }, [isDragging, scale, zoom, viewportWidth, viewportHeight, canvasWidth, canvasHeight, onViewportChange]);
+    if (!isDragging) return;
+    updateViewportFromPosition(e.clientX, e.clientY);
+  }, [isDragging, updateViewportFromPosition]);
 
   const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    if (e.touches.length > 0) {
+      updateViewportFromPosition(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [updateViewportFromPosition]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      updateViewportFromPosition(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, [isDragging, updateViewportFromPosition]);
+
+  const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
@@ -173,23 +188,28 @@ export function Minimap({
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   return (
     <div
       ref={minimapRef}
-      className={`bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75' : ''}`}
+      className={`bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75' : ''}`}
       style={{
         width: MINIMAP_SIZE,
         height: MINIMAP_SIZE,
       }}
       onClick={handleMinimapClick}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       <div
         className="bg-card relative"
