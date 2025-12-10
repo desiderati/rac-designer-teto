@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 interface TutorialStep {
-  id: "main-fab" | "house" | "elements" | "zoom" | "minimap";
+  id: "main-fab" | "house" | "elements" | "zoom-minimap";
   title: string;
   description: string;
   position: {
@@ -41,20 +41,12 @@ const tutorialSteps: TutorialStep[] = [
     arrowOffset: "25px",
   },
   {
-    id: "zoom",
-    title: "Controle de Zoom",
-    description: "Arraste o controle para ajustar o nível de zoom do canvas.",
-    position: { bottom: "100px", left: "90px" },
+    id: "zoom-minimap",
+    title: "Zoom e Navegação",
+    description: "Use o controle de zoom e o minimapa para ajustar a visualização e navegar pelo canvas.",
+    position: { bottom: "60px", left: "115px" },
     arrowDirection: "left",
-    arrowOffset: "40px",
-  },
-  {
-    id: "minimap",
-    title: "Minimapa",
-    description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
-    position: { bottom: "25px", left: "115px" },
-    arrowDirection: "left",
-    arrowOffset: "65px",
+    arrowOffset: "50px",
   },
 ];
 

@@ -9,7 +9,7 @@ interface CanvasProps {
   children?: ReactNode;
   onZoomInteraction?: () => void;
   onMinimapInteraction?: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap' | null;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | null;
   showTips?: boolean;
 }
 
@@ -417,12 +417,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         </div>
 
         {/* Minimap and Zoom Slider Container */}
-        <div className={`absolute left-5 flex flex-col items-start gap-1 transition-all duration-200 ${showTips ? 'bottom-[4.5rem] sm:bottom-5' : 'bottom-5'} ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
-          <div className={tutorialHighlight === 'zoom' ? '' : ''}>
+        <div className={`absolute left-5 flex flex-col items-start gap-1 transition-all duration-200 ${showTips ? 'bottom-[4.5rem] sm:bottom-5' : 'bottom-5'} ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
+          <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
             <ZoomSlider
               zoom={zoom}
               onZoomChange={handleZoomChange}
-              highlight={tutorialHighlight === 'zoom'}
+              highlight={false}
             />
           </div>
           <Minimap
@@ -436,7 +436,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             onViewportChange={handleViewportChange}
             visible={!canvasFitsInViewport}
             objects={minimapObjects}
-            highlight={tutorialHighlight === 'minimap'}
+            highlight={tutorialHighlight === 'zoom-minimap'}
           />
         </div>
 
