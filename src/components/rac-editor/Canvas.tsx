@@ -416,8 +416,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           <canvas ref={canvasRef} />
         </div>
 
-        {/* Minimap and Zoom Slider Container */}
-        <div className={`absolute left-2.5 flex flex-col items-start gap-1 transition-all duration-200 ${showTips ? 'bottom-12 sm:bottom-2.5' : 'bottom-2.5'} ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
+        {/* Desktop: Minimap fixed position */}
+        <div className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
           <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
             <ZoomSlider
               zoom={zoom}
@@ -440,8 +440,36 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           />
         </div>
 
-        {/* Children (InfoBar, etc.) - anchored to viewport */}
-        {children}
+        {/* Mobile: Minimap + InfoBar stacked in flex container */}
+        <div className={`absolute left-2.5 bottom-2.5 right-2.5 flex flex-col items-start gap-2 sm:hidden ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
+          <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
+            <ZoomSlider
+              zoom={zoom}
+              onZoomChange={handleZoomChange}
+              highlight={false}
+            />
+          </div>
+          <Minimap
+            canvasWidth={CANVAS_WIDTH}
+            canvasHeight={CANVAS_HEIGHT}
+            viewportWidth={containerSize.width}
+            viewportHeight={containerSize.height}
+            viewportX={viewportX}
+            viewportY={viewportY}
+            zoom={zoom}
+            onViewportChange={handleViewportChange}
+            visible={!canvasFitsInViewport}
+            objects={minimapObjects}
+            highlight={tutorialHighlight === 'zoom-minimap'}
+          />
+          {/* Mobile InfoBar rendered here */}
+          {showTips && children}
+        </div>
+
+        {/* Desktop: Children (InfoBar) - centered at bottom */}
+        <div className="hidden sm:block">
+          {children}
+        </div>
       </div>
     );
   }

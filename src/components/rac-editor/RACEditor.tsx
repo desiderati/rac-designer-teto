@@ -475,9 +475,9 @@ export function RACEditor() {
           tutorialHighlight={tutorialStep}
           showTips={showTips}
         >
-          {/* InfoBar centered at bottom of canvas */}
+          {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips && (
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 max-w-md w-full px-2.5 pointer-events-auto">
+            <div className="sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto">
               <InfoBar message={infoMessage} />
             </div>
           )}
