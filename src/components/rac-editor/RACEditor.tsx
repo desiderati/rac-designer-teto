@@ -243,20 +243,43 @@ export function RACEditor() {
     }
     
     const group = activeObj as Group;
-    const objects = group.getObjects();
-    const groupLeft = group.left || 0;
-    const groupTop = group.top || 0;
     
+    // Get group transformation data before ungrouping
+    const groupMatrix = group.calcTransformMatrix();
+    const groupAngle = group.angle || 0;
+    const groupScaleX = group.scaleX || 1;
+    const groupScaleY = group.scaleY || 1;
+    
+    // Get objects from group
+    const objects = group.getObjects();
+    
+    // Remove group from canvas first
     canvas.remove(group);
     
+    // Transform each object to canvas coordinates
     objects.forEach((obj: FabricObject) => {
+      // Calculate the object's position in canvas coordinates using the group's matrix
+      const objLeft = obj.left || 0;
+      const objTop = obj.top || 0;
+      
+      // Apply the group's transformation matrix to get canvas coordinates
+      const transformedX = groupMatrix[0] * objLeft + groupMatrix[2] * objTop + groupMatrix[4];
+      const transformedY = groupMatrix[1] * objLeft + groupMatrix[3] * objTop + groupMatrix[5];
+      
+      // Apply group's transformations to the object
       obj.set({
-        left: (obj.left || 0) + groupLeft,
-        top: (obj.top || 0) + groupTop,
+        left: transformedX,
+        top: transformedY,
+        angle: ((obj.angle || 0) + groupAngle) % 360,
+        scaleX: (obj.scaleX || 1) * groupScaleX,
+        scaleY: (obj.scaleY || 1) * groupScaleY,
       });
+      
+      obj.setCoords();
       canvas.add(obj);
     });
     
+    // Create selection with ungrouped objects
     const selection = new ActiveSelection(objects, { canvas });
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
