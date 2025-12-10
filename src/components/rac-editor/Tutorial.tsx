@@ -20,9 +20,9 @@ const tutorialSteps: TutorialStep[] = [
     id: "main-fab",
     title: "Menu Principal",
     description: "Clique aqui para abrir o menu principal com todas as ferramentas.",
-    position: { top: "13px", left: "80px" },
+    position: { top: "15px", left: "80px" },
     arrowDirection: "left",
-    arrowOffset: "24px",
+    arrowOffset: "25px",
   },
   {
     id: "house",
@@ -52,9 +52,9 @@ const tutorialSteps: TutorialStep[] = [
     id: "minimap",
     title: "Minimapa",
     description: "Visualize o canvas completo e navegue rapidamente pela área de trabalho.",
-    position: { bottom: "30px", left: "110px" },
+    position: { bottom: "25px", left: "110px" },
     arrowDirection: "left",
-    arrowOffset: "60px",
+    arrowOffset: "65px",
   },
 ];
 
