@@ -247,17 +247,51 @@ export function RACEditor() {
     // In Fabric.js v6, removeAll() properly extracts objects with correct coordinates
     const items = group.removeAll();
     
+    // Group piloti objects together (circle + text + hitArea with same pilotiId)
+    const pilotiMap = new Map<string, FabricObject[]>();
+    const nonPilotiItems: FabricObject[] = [];
+    
+    items.forEach((item: FabricObject) => {
+      const pilotiId = (item as any).pilotiId;
+      if (pilotiId && ((item as any).isPilotiCircle || (item as any).isPilotiText || (item as any).isPilotiHitArea)) {
+        if (!pilotiMap.has(pilotiId)) {
+          pilotiMap.set(pilotiId, []);
+        }
+        pilotiMap.get(pilotiId)!.push(item);
+      } else {
+        nonPilotiItems.push(item);
+      }
+    });
+    
+    // Create piloti groups and add to canvas
+    const resultItems: FabricObject[] = [...nonPilotiItems];
+    
+    pilotiMap.forEach((pilotiItems, pilotiId) => {
+      if (pilotiItems.length > 1) {
+        // Create a group for this piloti
+        const pilotiGroup = new Group(pilotiItems, {
+          subTargetCheck: true,
+        });
+        (pilotiGroup as any).myType = 'pilotiGroup';
+        (pilotiGroup as any).pilotiId = pilotiId;
+        pilotiGroup.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+        resultItems.push(pilotiGroup);
+      } else if (pilotiItems.length === 1) {
+        resultItems.push(pilotiItems[0]);
+      }
+    });
+    
     // Add all items to canvas
-    canvas.add(...items);
+    canvas.add(...resultItems);
     
     // Remove the now-empty group
     canvas.remove(group);
     
     // Create selection with ungrouped objects
-    const selection = new ActiveSelection(items, { canvas });
+    const selection = new ActiveSelection(resultItems, { canvas });
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
-    setInfoMessage('Itens desbloqueados (Desagrupados).');
+    setInfoMessage('Itens desbloqueados (Desagrupados). Pilotis mantidos agrupados.');
   };
 
   const handleGroup = () => {
