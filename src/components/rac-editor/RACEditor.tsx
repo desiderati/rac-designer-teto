@@ -90,7 +90,7 @@ export function RACEditor() {
     // Start tutorial from beginning
     setTutorialStep('main-fab');
     
-    toast.success('Tutorial reiniciado!');
+    toast.success('Canvas reiniciado!');
   };
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
@@ -530,9 +530,9 @@ export function RACEditor() {
       <AlertDialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Reiniciar Tutorial</AlertDialogTitle>
+            <AlertDialogTitle>Reiniciar Canvas</AlertDialogTitle>
             <AlertDialogDescription>
-              Isso irá limpar todo o conteúdo do canvas e reiniciar o tutorial do início. Deseja continuar?
+              Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
