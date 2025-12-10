@@ -30,7 +30,7 @@ interface MinimapProps {
 }
 
 const MINIMAP_SIZE = 75;
-const SLIDER_WIDTH = 80;
+const SLIDER_WIDTH = MINIMAP_SIZE;
 const THUMB_SIZE = 12;
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
@@ -103,7 +103,7 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
   }, [isSliderDragging, handleSliderMove, handleSliderTouchMove, handleMouseUp]);
 
   return (
-    <div className={`flex items-center gap-2 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
+    <div className={`flex flex-col items-center gap-0.5 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
       <div 
         ref={sliderRef}
         className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
@@ -117,7 +117,7 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
           style={{ left: thumbX - THUMB_SIZE / 2 }}
         />
       </div>
-      <span className="text-[10px] text-muted-foreground font-medium min-w-[32px]">{zoomPercent}%</span>
+      <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
     </div>
   );
 }

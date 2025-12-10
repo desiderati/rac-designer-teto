@@ -46,6 +46,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       type: string;
     }>>([]);
     const lastPanPoint = useRef({ x: 0, y: 0 });
+    const lastPinchDistance = useRef<number | null>(null);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
@@ -346,6 +347,38 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       }
     }, [zoom, handleZoomChange, containerSize]);
 
+    // Pinch-to-zoom handlers for touch devices
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, []);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+      if (e.touches.length === 2 && lastPinchDistance.current !== null) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDistance = Math.sqrt(dx * dx + dy * dy);
+        
+        const delta = (currentDistance - lastPinchDistance.current) * 0.005;
+        const newZoom = Math.max(0.5, Math.min(2, zoom + delta));
+        
+        if (newZoom !== zoom) {
+          handleZoomChange(newZoom);
+        }
+        
+        lastPinchDistance.current = currentDistance;
+      }
+    }, [zoom, handleZoomChange]);
+
+    const handleTouchEnd = useCallback(() => {
+      lastPinchDistance.current = null;
+    }, []);
+
     // Calculate canvas position - center it when it fits, otherwise use viewport offset
     const scaledWidth = CANVAS_WIDTH * zoom;
     const scaledHeight = CANVAS_HEIGHT * zoom;
@@ -360,12 +393,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     return (
       <div 
         ref={containerRef}
-        className="w-full h-full overflow-hidden relative bg-muted"
+        className="w-full h-full overflow-hidden relative bg-muted touch-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Canvas */}
         <div
@@ -381,7 +417,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         </div>
 
         {/* Minimap and Zoom Slider Container */}
-        <div className={`absolute left-5 flex items-end gap-5 transition-all duration-200 ${showTips ? 'bottom-[4.5rem] sm:bottom-5' : 'bottom-5'} ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
+        <div className={`absolute left-5 flex flex-col items-start gap-1 transition-all duration-200 ${showTips ? 'bottom-[4.5rem] sm:bottom-5' : 'bottom-5'} ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
+          <div className={tutorialHighlight === 'zoom' ? '' : ''}>
+            <ZoomSlider
+              zoom={zoom}
+              onZoomChange={handleZoomChange}
+              highlight={tutorialHighlight === 'zoom'}
+            />
+          </div>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
@@ -394,11 +437,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             visible={!canvasFitsInViewport}
             objects={minimapObjects}
             highlight={tutorialHighlight === 'minimap'}
-          />
-          <ZoomSlider
-            zoom={zoom}
-            onZoomChange={handleZoomChange}
-            highlight={tutorialHighlight === 'zoom'}
           />
         </div>
 
