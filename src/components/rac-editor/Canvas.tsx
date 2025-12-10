@@ -9,7 +9,7 @@ interface CanvasProps {
   children?: ReactNode;
   onZoomInteraction?: () => void;
   onMinimapInteraction?: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | null;
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
   showTips?: boolean;
 }
 

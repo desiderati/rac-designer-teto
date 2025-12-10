@@ -24,7 +24,7 @@ import {
   CANVAS_HEIGHT,
 } from '@/lib/canvas-utils';
 
-type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap';
+type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
 
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
@@ -404,6 +404,11 @@ export function RACEditor() {
   const handleToggleOverflowMenu = () => {
     disableDrawingMode();
     setActiveSubmenu(prev => prev === 'overflow' ? null : 'overflow');
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'more-options') {
+      advanceTutorial('more-options');
+    }
   };
 
   const handleToggleTips = () => {
