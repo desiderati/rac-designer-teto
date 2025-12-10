@@ -141,7 +141,7 @@ function SubMenuButton({
   const button = (
     <button
       onClick={onClick}
-      className="w-10 h-10 border-none rounded-xl bg-[#34495e] text-[#ecf0f1] text-base cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:bg-[#0092DD] hover:scale-105 active:scale-95"
+      className="w-11 h-11 border-none rounded-xl bg-[#34495e] text-[#ecf0f1] text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:bg-[#0092DD] hover:scale-105 active:scale-95"
     >
       <FontAwesomeIcon icon={icon} style={{ color }} />
     </button>
