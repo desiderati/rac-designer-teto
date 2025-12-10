@@ -60,9 +60,8 @@ export function Minimap({
   const MIN_ZOOM = 50;
   const MAX_ZOOM = 200;
   const zoomPercent = Math.round(zoom * 100);
-  // Calculate slider position with bounds to keep thumb within track
-  const trackRange = SLIDER_HEIGHT - THUMB_SIZE;
-  const sliderPosition = ((zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * trackRange;
+  // Calculate normalized position (0 to 1)
+  const normalizedZoom = (zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM);
 
   const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!minimapRef.current) return;
@@ -146,8 +145,8 @@ export function Minimap({
   }, [isDragging, isSliderDragging, handleMouseMove, handleSliderMove, handleMouseUp]);
 
   // Invert slider position (top = 200%, bottom = 50%)
-  // Offset by half thumb size to keep thumb within bounds
-  const thumbY = (trackRange - sliderPosition) + (THUMB_SIZE / 2);
+  // thumbY ranges from THUMB_SIZE/2 (at max zoom) to SLIDER_HEIGHT - THUMB_SIZE/2 (at min zoom)
+  const thumbY = (THUMB_SIZE / 2) + (1 - normalizedZoom) * (SLIDER_HEIGHT - THUMB_SIZE);
 
   return (
     <div className="flex flex-col gap-2 items-center">
@@ -166,7 +165,7 @@ export function Minimap({
           {/* Circle Thumb */}
           <div 
             className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
-            style={{ top: thumbY - (THUMB_SIZE / 2) }}
+            style={{ top: thumbY - THUMB_SIZE / 2 }}
           />
         </div>
       </div>
