@@ -30,7 +30,7 @@ interface MinimapProps {
 }
 
 const MINIMAP_SIZE = 75;
-const SLIDER_HEIGHT = 80;
+const SLIDER_WIDTH = 80;
 const THUMB_SIZE = 12;
 const MIN_ZOOM = 50;
 const MAX_ZOOM = 200;
@@ -41,16 +41,16 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
   
   const zoomPercent = Math.round(zoom * 100);
   const normalizedZoom = (zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM);
-  const thumbY = (THUMB_SIZE / 2) + (1 - normalizedZoom) * (SLIDER_HEIGHT - THUMB_SIZE);
+  const thumbX = (THUMB_SIZE / 2) + normalizedZoom * (SLIDER_WIDTH - THUMB_SIZE);
 
-  const updateZoomFromMouse = useCallback((clientY: number) => {
+  const updateZoomFromPosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
     
     const rect = sliderRef.current.getBoundingClientRect();
-    const relativeY = clientY - rect.top;
-    const normalizedY = Math.max(0, Math.min(SLIDER_HEIGHT, relativeY));
+    const relativeX = clientX - rect.left;
+    const normalizedX = Math.max(0, Math.min(SLIDER_WIDTH, relativeX));
     
-    const zoomValue = MAX_ZOOM - (normalizedY / SLIDER_HEIGHT) * (MAX_ZOOM - MIN_ZOOM);
+    const zoomValue = MIN_ZOOM + (normalizedX / SLIDER_WIDTH) * (MAX_ZOOM - MIN_ZOOM);
     onZoomChange(zoomValue / 100);
   }, [onZoomChange]);
 
@@ -58,13 +58,30 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
     e.preventDefault();
     e.stopPropagation();
     setIsSliderDragging(true);
-    updateZoomFromMouse(e.clientY);
-  }, [updateZoomFromMouse]);
+    updateZoomFromPosition(e.clientX);
+  }, [updateZoomFromPosition]);
 
   const handleSliderMove = useCallback((e: MouseEvent) => {
     if (!isSliderDragging) return;
-    updateZoomFromMouse(e.clientY);
-  }, [isSliderDragging, updateZoomFromMouse]);
+    updateZoomFromPosition(e.clientX);
+  }, [isSliderDragging, updateZoomFromPosition]);
+
+  const handleSliderTouchMove = useCallback((e: TouchEvent) => {
+    if (!isSliderDragging) return;
+    e.preventDefault();
+    if (e.touches.length > 0) {
+      updateZoomFromPosition(e.touches[0].clientX);
+    }
+  }, [isSliderDragging, updateZoomFromPosition]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsSliderDragging(true);
+    if (e.touches.length > 0) {
+      updateZoomFromPosition(e.touches[0].clientX);
+    }
+  }, [updateZoomFromPosition]);
 
   const handleMouseUp = useCallback(() => {
     setIsSliderDragging(false);
@@ -74,28 +91,33 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
     if (isSliderDragging) {
       window.addEventListener('mousemove', handleSliderMove);
       window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleSliderTouchMove, { passive: false });
+      window.addEventListener('touchend', handleMouseUp);
       return () => {
         window.removeEventListener('mousemove', handleSliderMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('touchmove', handleSliderTouchMove);
+        window.removeEventListener('touchend', handleMouseUp);
       };
     }
-  }, [isSliderDragging, handleSliderMove, handleMouseUp]);
+  }, [isSliderDragging, handleSliderMove, handleSliderTouchMove, handleMouseUp]);
 
   return (
-    <div className={`flex flex-col items-center gap-1 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
-      <span className="text-[10px] text-muted-foreground font-medium">{zoomPercent}%</span>
+    <div className={`flex items-center gap-2 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
       <div 
         ref={sliderRef}
-        className="relative bg-background/90 border border-border rounded cursor-pointer"
-        style={{ width: 16, height: SLIDER_HEIGHT }}
+        className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
+        style={{ width: SLIDER_WIDTH, height: 16 }}
         onMouseDown={handleSliderMouseDown}
+        onTouchStart={handleTouchStart}
       >
-        <div className="absolute left-1/2 -translate-x-1/2 top-1 bottom-1 w-0.5 bg-muted-foreground/30 rounded" />
+        <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded" />
         <div 
-          className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
-          style={{ top: thumbY - THUMB_SIZE / 2 }}
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
+          style={{ left: thumbX - THUMB_SIZE / 2 }}
         />
       </div>
+      <span className="text-[10px] text-muted-foreground font-medium min-w-[32px]">{zoomPercent}%</span>
     </div>
   );
 }

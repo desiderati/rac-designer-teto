@@ -10,6 +10,7 @@ interface CanvasProps {
   onZoomInteraction?: () => void;
   onMinimapInteraction?: () => void;
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom' | 'minimap' | null;
+  showTips?: boolean;
 }
 
 export interface CanvasHandle {
@@ -22,7 +23,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -379,17 +380,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           <canvas ref={canvasRef} />
         </div>
 
-        {/* Zoom Slider */}
-        <div className={`absolute bottom-[110px] left-4 ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
-          <ZoomSlider
-            zoom={zoom}
-            onZoomChange={handleZoomChange}
-            highlight={tutorialHighlight === 'zoom'}
-          />
-        </div>
-
-        {/* Minimap */}
-        <div className={`absolute bottom-4 left-4 ${tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
+        {/* Minimap and Zoom Slider Container */}
+        <div className={`absolute left-4 flex items-end gap-2 transition-all duration-200 ${showTips ? 'bottom-16 sm:bottom-4' : 'bottom-4'} ${tutorialHighlight === 'zoom' || tutorialHighlight === 'minimap' ? 'z-50' : 'z-10'}`}>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
@@ -402,6 +394,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             visible={!canvasFitsInViewport}
             objects={minimapObjects}
             highlight={tutorialHighlight === 'minimap'}
+          />
+          <ZoomSlider
+            zoom={zoom}
+            onZoomChange={handleZoomChange}
+            highlight={tutorialHighlight === 'zoom'}
           />
         </div>
 
