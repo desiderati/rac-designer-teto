@@ -104,6 +104,7 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
 
   return (
     <div className={`flex flex-col items-center gap-0.5 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
+      <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
       <div 
         ref={sliderRef}
         className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
@@ -117,7 +118,6 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
           style={{ left: thumbX - THUMB_SIZE / 2 }}
         />
       </div>
-      <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
     </div>
   );
 }
