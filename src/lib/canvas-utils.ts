@@ -733,7 +733,7 @@ export function createDoor(canvas: FabricCanvas): Group {
     fill: "#333",
     originX: "center",
     originY: "center",
-    top: 5,
+    top: 10,
   });
 
   const group = new Group([rect, text], {
