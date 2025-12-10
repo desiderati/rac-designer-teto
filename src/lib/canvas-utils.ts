@@ -147,12 +147,28 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
   
   const elements: FabricObject[] = [...pilots, roofFill, bodyFill, ...roofLines, bodyStroke];
   
+  // Front view: door + 2 windows
+  // Back view: only right window (w1), no door, no left window
+  const windowW = 90 * s;
+  const windowH = 75 * s;
+  const doorY = roofH + (bodyH - 180 * s);
+  
+  // Right window (appears in both front and back)
+  const w1 = new Rect({
+    width: windowW,
+    height: windowH,
+    fill: '#fff',
+    stroke: '#333',
+    strokeWidth: 1.5,
+    strokeUniform: true,
+    left: bodyW - 130 * s,
+    top: doorY,
+  });
+  elements.push(w1);
+  
   if (isFront) {
     const doorW = 100 * s;
     const doorH = 180 * s;
-    const windowW = 90 * s;
-    const windowH = 75 * s;
-    const doorY = roofH + (bodyH - doorH);
     
     const doorObj = new Rect({
       width: doorW,
@@ -162,17 +178,6 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
       strokeWidth: 1.5,
       strokeUniform: true,
       left: bodyW - 250 * s,
-      top: doorY,
-    });
-    
-    const w1 = new Rect({
-      width: windowW,
-      height: windowH,
-      fill: '#fff',
-      stroke: '#333',
-      strokeWidth: 1.5,
-      strokeUniform: true,
-      left: bodyW - 130 * s,
       top: doorY,
     });
     
@@ -187,7 +192,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
       top: doorY,
     });
     
-    elements.push(doorObj, w1, w2);
+    elements.push(doorObj, w2);
   }
   
   const group = new Group(elements, {

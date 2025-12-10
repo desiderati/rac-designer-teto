@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+interface MinimapObject {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  angle: number;
+  type: string;
+}
+
 interface MinimapProps {
   canvasWidth: number;
   canvasHeight: number;
@@ -11,6 +20,7 @@ interface MinimapProps {
   onViewportChange: (x: number, y: number) => void;
   onZoomChange: (zoom: number) => void;
   visible: boolean;
+  objects?: MinimapObject[];
 }
 
 const MINIMAP_SIZE = 75; // 2.5x the previous size of 30
@@ -26,6 +36,7 @@ export function Minimap({
   onViewportChange,
   onZoomChange,
   visible,
+  objects = [],
 }: MinimapProps) {
   const minimapRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -45,10 +56,13 @@ export function Minimap({
 
   // Zoom slider config
   const SLIDER_HEIGHT = 80;
+  const THUMB_SIZE = 12;
   const MIN_ZOOM = 50;
   const MAX_ZOOM = 200;
   const zoomPercent = Math.round(zoom * 100);
-  const sliderPosition = ((zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * SLIDER_HEIGHT;
+  // Calculate slider position with bounds to keep thumb within track
+  const trackRange = SLIDER_HEIGHT - THUMB_SIZE;
+  const sliderPosition = ((zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * trackRange;
 
   const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!minimapRef.current) return;
@@ -132,7 +146,8 @@ export function Minimap({
   }, [isDragging, isSliderDragging, handleMouseMove, handleSliderMove, handleMouseUp]);
 
   // Invert slider position (top = 200%, bottom = 50%)
-  const thumbY = SLIDER_HEIGHT - sliderPosition;
+  // Offset by half thumb size to keep thumb within bounds
+  const thumbY = (trackRange - sliderPosition) + (THUMB_SIZE / 2);
 
   return (
     <div className="flex flex-col gap-2 items-center">
@@ -151,7 +166,7 @@ export function Minimap({
           {/* Circle Thumb */}
           <div 
             className="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
-            style={{ top: thumbY - 6 }}
+            style={{ top: thumbY - (THUMB_SIZE / 2) }}
           />
         </div>
       </div>
@@ -175,6 +190,22 @@ export function Minimap({
             height: canvasHeight * scale,
           }}
         >
+          {/* Canvas objects */}
+          {objects.map((obj, index) => (
+            <div
+              key={index}
+              className="absolute bg-muted-foreground/40 border border-muted-foreground/60"
+              style={{
+                left: obj.left * scale,
+                top: obj.top * scale,
+                width: Math.max(2, obj.width * scale),
+                height: Math.max(2, obj.height * scale),
+                transform: `rotate(${obj.angle}deg)`,
+                transformOrigin: 'center center',
+              }}
+            />
+          ))}
+          
           {/* Viewport indicator */}
           <div
             className="absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75"
