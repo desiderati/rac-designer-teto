@@ -371,10 +371,10 @@ export function createDimension(canvas: FabricCanvas): Group {
   const w = 200;
   const as = 12;
   
-  const line = new Rect({
-    width: w,
-    height: 2,
-    fill: '#333',
+  const line = new Line([-w / 2, 0, w / 2, 0], {
+    stroke: '#333',
+    strokeWidth: 2,
+    strokeDashArray: [8, 4],
     originX: 'center',
     originY: 'center',
   });
@@ -422,7 +422,7 @@ export function createDimension(canvas: FabricCanvas): Group {
   
   group.on('scaling', function (this: Group) {
     const nw = this.width! * this.scaleX!;
-    (this._objects[0] as Rect).set({ width: nw });
+    (this._objects[0] as Line).set({ x1: -nw / 2, x2: nw / 2 });
     (this._objects[1] as Triangle).set({ left: -nw / 2 });
     (this._objects[2] as Triangle).set({ left: nw / 2 });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
