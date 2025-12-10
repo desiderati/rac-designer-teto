@@ -15,8 +15,6 @@ import {
   faTrash, 
   faFilePdf,
   faLayerGroup,
-  faArrowLeft,
-  faArrowRight,
   faBars,
   faTree,
   faWater,
@@ -27,7 +25,9 @@ import {
   faStairs,
   faLightbulb,
   faEllipsisVertical,
-  faRotateLeft
+  faRotateLeft,
+  faSquare,
+  faSquareFull
 } from '@fortawesome/free-solid-svg-icons';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -250,8 +250,8 @@ export function Toolbar({
                   <SubMenuButton icon={faLayerGroup} title="Visão Superior (Planta)" onClick={() => handleAction(onAddHouseTop)} hideTooltip={isTutorialActive} />
                   <SubMenuButton icon={faHouseChimney} title="Visão Frontal" onClick={() => handleAction(onAddHouseFront)} hideTooltip={isTutorialActive} />
                   <SubMenuButton icon={faHome} title="Visão Traseira" onClick={() => handleAction(onAddHouseBack)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faArrowLeft} title="Quadrado Fechado" onClick={() => handleAction(onAddHouseSide1)} hideTooltip={isTutorialActive} />
-                  <SubMenuButton icon={faArrowRight} title="Quadrado Aberto" onClick={() => handleAction(onAddHouseSide2)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faSquareFull} title="Quadrado Fechado" onClick={() => handleAction(onAddHouseSide1)} hideTooltip={isTutorialActive} />
+                  <SubMenuButton icon={faDoorOpen} title="Quadrado Aberto" onClick={() => handleAction(onAddHouseSide2)} hideTooltip={isTutorialActive} />
                 </div>
               )}
             </div>
