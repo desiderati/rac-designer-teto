@@ -52,7 +52,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "more-options",
     title: "Mais Opções",
     description: "Clique aqui para abrir o menu com mais opções, ex.: importar/exportar em JSON.",
-    position: { top: "25px", right: "80px" },
+    position: { top: "20px", right: "80px" },
     arrowDirection: "right",
     arrowOffset: "25px",
   },
