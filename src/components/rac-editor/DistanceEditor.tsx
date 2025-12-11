@@ -62,7 +62,7 @@ export function DistanceEditor({
         type="text"
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}
-        className="text-center placeholder:text-muted-foreground"
+        className="text-center placeholder:text-muted-foreground/50"
         placeholder="Ex.: 1,0 m"
         autoFocus
       />
