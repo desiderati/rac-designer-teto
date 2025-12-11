@@ -536,6 +536,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (!canvas) return;
     
+    // Custom properties are now included via prototype extension
     const json = canvas.toJSON();
     const blob = new Blob([JSON.stringify(json)], { type: 'application/json' });
     const link = document.createElement('a');
