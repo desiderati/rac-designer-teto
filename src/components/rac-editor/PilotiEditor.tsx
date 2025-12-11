@@ -176,7 +176,7 @@ export function PilotiEditor({
       
       {tempIsMaster && (
         <div className="pl-2 border-l-2 border-primary/30">
-          <div className="flex items-start gap-2">
+          <div className="flex items-center gap-2">
             <Input
               id="nivel"
               type="text"
