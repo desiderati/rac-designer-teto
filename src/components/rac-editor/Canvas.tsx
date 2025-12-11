@@ -465,18 +465,32 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       });
 
-      // Mobile: single tap on dimension
+      // Mobile: single tap on dimension (only if tap is near center)
       canvas.on('mouse:down', (e) => {
         const target = e.target;
         
-        // Handle dimension on mobile
+        // Handle dimension on mobile - only open editor if tap is near center
         if (target && target.type === 'group' && (target as any).myType === 'dimension' && window.matchMedia('(max-width: 640px)').matches) {
-          // Use a timeout to differentiate single tap from drag start
-          setTimeout(() => {
-            if (canvas.getActiveObject() === target) {
-              handleDistanceSelection(target as Group);
-            }
-          }, 300);
+          const pointer = canvas.getPointer(e.e);
+          const group = target as Group;
+          
+          // Calculate distance from tap to group center
+          const groupCenterX = group.left || 0;
+          const groupCenterY = group.top || 0;
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(pointer.x - groupCenterX, 2) + Math.pow(pointer.y - groupCenterY, 2)
+          );
+          
+          // Only open editor if tap is within 30px of center
+          const centerThreshold = 30;
+          if (distanceFromCenter <= centerThreshold) {
+            // Use a timeout to differentiate single tap from drag start
+            setTimeout(() => {
+              if (canvas.getActiveObject() === target) {
+                handleDistanceSelection(group);
+              }
+            }, 300);
+          }
         }
       });
 
