@@ -175,8 +175,8 @@ export function PilotiEditor({
       </div>
       
       {tempIsMaster && (
-        <div className="space-y-2 pl-2 border-l-2 border-primary/30">
-          <div className="flex items-center gap-2">
+        <div className="pl-2 border-l-2 border-primary/30">
+          <div className="flex items-start gap-2">
             <Input
               id="nivel"
               type="text"
@@ -185,13 +185,15 @@ export function PilotiEditor({
               className={compact ? "w-20 text-center" : "w-24 text-center text-base"}
               placeholder="0,30"
             />
-            <Label htmlFor="nivel" className={compact ? "text-sm font-medium whitespace-nowrap" : "text-base font-medium whitespace-nowrap"}>
-              Nível do mestre (m)
-            </Label>
+            <div className="flex flex-col">
+              <Label htmlFor="nivel" className={compact ? "text-sm font-medium whitespace-nowrap" : "text-base font-medium whitespace-nowrap"}>
+                Nível do mestre (m)
+              </Label>
+              <p className={compact ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
+                Parte visível acima do terreno
+              </p>
+            </div>
           </div>
-          <p className={compact ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
-            Parte visível acima do terreno
-          </p>
         </div>
       )}
     </div>
