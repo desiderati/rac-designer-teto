@@ -458,6 +458,28 @@ export function RACEditor() {
       const dimension = createDimension(canvas);
       canvas.add(dimension);
       canvas.setActiveObject(dimension);
+      
+      // Automatically open editor for the new dimension
+      const textObj = dimension.getObjects().find(obj => obj.type === 'i-text') as any;
+      const currentValue = textObj?.text?.trim() || '';
+      
+      // Calculate screen position
+      const container = canvas.getElement().parentElement;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const groupLeft = dimension.left || canvas.width! / 2;
+        const groupTop = dimension.top || canvas.height! / 2;
+        
+        setDistanceSelection({
+          group: dimension,
+          currentValue,
+          screenPosition: { 
+            x: rect.left + rect.width / 2, 
+            y: rect.top + rect.height / 2 
+          },
+        });
+        setIsDistanceEditorOpen(true);
+      }
     }
   };
 
