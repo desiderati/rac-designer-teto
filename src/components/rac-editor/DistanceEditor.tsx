@@ -3,7 +3,6 @@ import { Group, IText } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Drawer,
   DrawerClose,
@@ -58,20 +57,15 @@ export function DistanceEditor({
 
   const EditorContent = () => (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="distance-value" className="text-sm font-medium">
-          Medida da distância
-        </Label>
-        <Input
-          id="distance-value"
-          type="text"
-          value={tempValue}
-          onChange={(e) => setTempValue(e.target.value)}
-          className="text-center"
-          placeholder="Ex: 5,00 m"
-          autoFocus
-        />
-      </div>
+      <Input
+        id="distance-value"
+        type="text"
+        value={tempValue}
+        onChange={(e) => setTempValue(e.target.value)}
+        className="text-center"
+        placeholder="Ex: 5,00 m"
+        autoFocus
+      />
     </div>
   );
 
