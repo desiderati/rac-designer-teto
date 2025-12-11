@@ -29,6 +29,7 @@ interface CanvasProps {
   showTips?: boolean;
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
   onDistanceSelect?: (selection: DistanceSelection | null) => void;
+  isEditorOpen?: boolean;
 }
 
 export interface CanvasHandle {
@@ -41,7 +42,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, isEditorOpen = false }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -75,12 +76,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const viewportXRef = useRef(viewportX);
     const viewportYRef = useRef(viewportY);
     const containerSizeRef = useRef(containerSize);
+    const isEditorOpenRef = useRef(isEditorOpen);
     
     // Keep refs in sync with state
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
     useEffect(() => { viewportXRef.current = viewportX; }, [viewportX]);
     useEffect(() => { viewportYRef.current = viewportY; }, [viewportY]);
     useEffect(() => { containerSizeRef.current = containerSize; }, [containerSize]);
+    useEffect(() => { isEditorOpenRef.current = isEditorOpen; }, [isEditorOpen]);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
@@ -500,7 +503,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       // Keyboard shortcuts
       const handleKeyDown = (e: KeyboardEvent) => {
+        // Don't process Delete/Backspace when editor is open
         if (e.key === 'Delete' || e.key === 'Backspace') {
+          if (isEditorOpenRef.current) return;
+          
           const activeObj = canvas.getActiveObject();
           if (!activeObj || (activeObj.type !== 'i-text' || !(activeObj as IText).isEditing)) {
             const activeObjects = canvas.getActiveObjects();
