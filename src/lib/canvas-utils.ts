@@ -663,6 +663,8 @@ export function createDimension(canvas: FabricCanvas): Group {
     top: -15,
     originX: "center",
     originY: "center",
+    editable: false,
+    selectable: false,
   });
 
   const group = new Group([line, tick1, tick2, text], {
