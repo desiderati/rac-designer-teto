@@ -145,14 +145,14 @@ export function PilotiEditor({
   const HeightControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-2">
       <Label className={compact ? "text-sm font-medium" : "text-base font-medium"}>Altura do piloti</Label>
-      <div className="flex gap-2 flex-wrap justify-center">
+      <div className={compact ? "flex gap-1 flex-wrap justify-center" : "flex gap-1.5 justify-center"}>
         {PILOTI_HEIGHTS.map((h) => (
           <Button
             key={h}
             variant={tempHeight === h ? 'default' : 'outline'}
             size={compact ? "sm" : "default"}
             onClick={() => setTempHeight(h)}
-            className={compact ? "min-w-[50px]" : "min-w-[60px] text-base"}
+            className={compact ? "min-w-[40px] h-8 text-xs" : "min-w-[48px] px-2 text-base"}
           >
             {formatPilotiHeight(h)}
           </Button>
