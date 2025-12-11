@@ -57,9 +57,10 @@ interface ToolbarProps {
   onDelete: () => void;
   onSavePDF: () => void;
   isDrawing: boolean;
-  activeSubmenu: "house" | "elements" | "overflow" | null;
+  activeSubmenu: "house" | "elements" | "lines" | "overflow" | null;
   onToggleHouseMenu: () => void;
   onToggleElementsMenu: () => void;
+  onToggleLinesMenu: () => void;
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
@@ -186,6 +187,7 @@ export function Toolbar({
   activeSubmenu,
   onToggleHouseMenu,
   onToggleElementsMenu,
+  onToggleLinesMenu,
   onToggleOverflowMenu,
   showTips,
   onToggleTips,
@@ -306,7 +308,7 @@ export function Toolbar({
               {activeSubmenu === "elements" && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
                   <SubMenuButton
-                    icon={faBars}
+                    icon={faSquare}
                     title="Objeto / Muro"
                     onClick={() => handleAction(onAddWall)}
                     hideTooltip={isTutorialActive}
@@ -335,6 +337,22 @@ export function Toolbar({
                     onClick={() => handleAction(onAddWater)}
                     hideTooltip={isTutorialActive}
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Lines */}
+            <div className="relative">
+              <FABButton
+                icon={faBars}
+                title="Linhas"
+                onClick={() => handleAction(onToggleLinesMenu)}
+                isActive={activeSubmenu === "lines"}
+                hideTooltip={activeSubmenu === "lines" || isTutorialActive}
+              />
+              {/* Lines Submenu */}
+              {activeSubmenu === "lines" && (
+                <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
                   <SubMenuButton
                     icon={faSlash}
                     title="Linha Reta"

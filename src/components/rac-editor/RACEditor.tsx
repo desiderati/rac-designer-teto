@@ -45,7 +45,7 @@ type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more
 export function RACEditor() {
   const [infoMessage, setInfoMessage] = useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
   const [isDrawing, setIsDrawing] = useState(false);
-  const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'overflow' | null>(null);
+  const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'lines' | 'overflow' | null>(null);
   const [showTips, setShowTips] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
@@ -598,6 +598,11 @@ export function RACEditor() {
     }
   };
 
+  const handleToggleLinesMenu = () => {
+    disableDrawingMode();
+    setActiveSubmenu(prev => prev === 'lines' ? null : 'lines');
+  };
+
   const handleToggleOverflowMenu = () => {
     disableDrawingMode();
     setActiveSubmenu(prev => prev === 'overflow' ? null : 'overflow');
@@ -753,6 +758,7 @@ export function RACEditor() {
         activeSubmenu={activeSubmenu}
         onToggleHouseMenu={handleToggleHouseMenu}
         onToggleElementsMenu={handleToggleElementsMenu}
+        onToggleLinesMenu={handleToggleLinesMenu}
         onToggleOverflowMenu={handleToggleOverflowMenu}
         showTips={showTips}
         onToggleTips={handleToggleTips}
