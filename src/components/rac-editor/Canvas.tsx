@@ -404,8 +404,26 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         
         // Check if target is a dimension group
         if (target.type === 'group' && (target as any).myType === 'dimension') {
+          // Prevent entering text edit mode
+          e.e.preventDefault();
+          e.e.stopPropagation();
           handleDistanceSelection(target as Group);
           return;
+        }
+        
+        // Check subTargets for IText inside dimension group
+        const subTargets = (e as any).subTargets || [];
+        for (const subTarget of subTargets) {
+          if (subTarget.type === 'i-text') {
+            // Find parent group
+            const parent = subTarget.group;
+            if (parent && (parent as any).myType === 'dimension') {
+              e.e.preventDefault();
+              e.e.stopPropagation();
+              handleDistanceSelection(parent as Group);
+              return;
+            }
+          }
         }
         
         // Check if target is a group (house)
