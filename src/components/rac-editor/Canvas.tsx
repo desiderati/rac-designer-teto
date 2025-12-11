@@ -13,6 +13,12 @@ export interface PilotiSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface DistanceSelection {
+  group: Group;
+  currentValue: string;
+  screenPosition: { x: number; y: number };
+}
+
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
@@ -22,6 +28,7 @@ interface CanvasProps {
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
   showTips?: boolean;
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
+  onDistanceSelect?: (selection: DistanceSelection | null) => void;
 }
 
 export interface CanvasHandle {
@@ -34,7 +41,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -347,13 +354,59 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       });
 
-      // Desktop: double-click on piloti
+      // Helper function to handle distance selection
+      const handleDistanceSelection = (group: Group) => {
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const currentContainerSize = containerSizeRef.current;
+        
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+        
+        const currentCanvasX = scaledWidth <= currentContainerSize.width 
+          ? (currentContainerSize.width - scaledWidth) / 2 
+          : -currentViewportX;
+        const currentCanvasY = scaledHeight <= currentContainerSize.height 
+          ? (currentContainerSize.height - scaledHeight) / 2 
+          : -currentViewportY;
+        
+        // Get the text value from the dimension group
+        const textObj = group.getObjects().find(obj => obj.type === 'i-text') as any;
+        const currentValue = textObj?.text?.trim() || '';
+        
+        // Calculate screen position of the group
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const groupLeft = group.left || 0;
+          const groupTop = group.top || 0;
+          
+          const screenX = containerRect.left + (groupLeft * currentZoom) + currentCanvasX;
+          const screenY = containerRect.top + (groupTop * currentZoom) + currentCanvasY;
+          
+          onDistanceSelect?.({
+            group,
+            currentValue,
+            screenPosition: { x: screenX, y: screenY },
+          });
+          
+          onSelectionChange('Editando distância.');
+        }
+      };
+
+      // Desktop: double-click on piloti or dimension
       canvas.on('mouse:dblclick', (e) => {
         // Skip on mobile
         if (window.matchMedia('(max-width: 640px)').matches) return;
         
         const target = e.target;
         if (!target) return;
+        
+        // Check if target is a dimension group
+        if (target.type === 'group' && (target as any).myType === 'dimension') {
+          handleDistanceSelection(target as Group);
+          return;
+        }
         
         // Check if target is a group (house)
         if (target.type === 'group') {
@@ -388,6 +441,21 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
               }
             }
           }
+        }
+      });
+
+      // Mobile: single tap on dimension
+      canvas.on('mouse:down', (e) => {
+        const target = e.target;
+        
+        // Handle dimension on mobile
+        if (target && target.type === 'group' && (target as any).myType === 'dimension' && window.matchMedia('(max-width: 640px)').matches) {
+          // Use a timeout to differentiate single tap from drag start
+          setTimeout(() => {
+            if (canvas.getActiveObject() === target) {
+              handleDistanceSelection(target as Group);
+            }
+          }, 300);
         }
       });
 
