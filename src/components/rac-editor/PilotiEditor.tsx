@@ -152,7 +152,7 @@ export function PilotiEditor({
             variant={tempHeight === h ? 'default' : 'outline'}
             size={compact ? "sm" : "default"}
             onClick={() => setTempHeight(h)}
-            className={compact ? "min-w-[40px] h-8 text-xs" : "min-w-[48px] px-2 text-base"}
+            className={compact ? "min-w-[40px] h-8 text-xs" : "flex-1 px-1 text-base"}
           >
             {formatPilotiHeight(h)}
           </Button>
