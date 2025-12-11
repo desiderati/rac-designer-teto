@@ -55,6 +55,13 @@ export function DistanceEditor({
     onClose();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleApply();
+    }
+  };
+
   const EditorContent = () => (
     <div className="space-y-4">
       <Input
@@ -62,6 +69,7 @@ export function DistanceEditor({
         type="text"
         value={tempValue}
         onChange={(e) => setTempValue(e.target.value)}
+        onKeyDown={handleKeyDown}
         className="text-center placeholder:text-muted-foreground/50"
         placeholder="Ex.: 1,0 m"
         autoFocus
