@@ -27,8 +27,8 @@ import {
   faLightbulb,
   faEllipsisVertical,
   faRotateLeft,
-  faSquare,
   faSquareFull,
+  faTrowelBricks,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -308,7 +308,7 @@ export function Toolbar({
               {activeSubmenu === "elements" && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
                   <SubMenuButton
-                    icon={faSquare}
+                    icon={faTrowelBricks}
                     title="Objeto / Muro"
                     onClick={() => handleAction(onAddWall)}
                     hideTooltip={isTutorialActive}
