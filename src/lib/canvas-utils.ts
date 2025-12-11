@@ -37,6 +37,12 @@ export const customProps = [
   "isPilotiNivelText",
 ];
 
+// Extend FabricObject prototype to include custom properties in serialization
+const originalToObject = FabricObject.prototype.toObject;
+FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) {
+  return originalToObject.call(this, [...customProps, ...propertiesToInclude]);
+};
+
 export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
 
 // Colors for master piloti (same as door - light brown)
