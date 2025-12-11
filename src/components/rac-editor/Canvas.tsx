@@ -342,7 +342,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       };
 
       // Mobile: single tap on piloti or hit area
-      canvas.on('mouse:down', (e) => {
+      // Use both mouse:down and touch:gesture events for better mobile compatibility
+      const handleMobilePilotiTap = (e: any) => {
+        // Check if mobile using the same breakpoint as useIsMobile hook (768px)
+        const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+        if (!isMobileDevice) return;
+        
+        // Skip if editor is already open to avoid re-triggering
+        if (isEditorOpenRef.current) return;
+        
         const target = e.target;
         const subTargets = (e as any).subTargets || [];
         
@@ -351,11 +359,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           st.myType === 'piloti' || st.myType === 'pilotiHitArea'
         );
         
-        // Only handle on mobile with single tap
-        if (pilotiTarget && target && window.matchMedia('(max-width: 640px)').matches) {
-          handlePilotiSelection(pilotiTarget, target);
+        if (pilotiTarget && target) {
+          // Small delay to ensure touch event is properly processed
+          setTimeout(() => {
+            handlePilotiSelection(pilotiTarget, target);
+          }, 50);
         }
-      });
+      };
+      
+      canvas.on('mouse:down', handleMobilePilotiTap);
 
       // Helper function to handle distance selection
       const handleDistanceSelection = (group: Group) => {
@@ -399,8 +411,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       // Desktop: double-click on piloti or dimension
       canvas.on('mouse:dblclick', (e) => {
-        // Skip on mobile
-        if (window.matchMedia('(max-width: 640px)').matches) return;
+        // Skip on mobile (use same breakpoint as useIsMobile hook - 768px)
+        if (window.matchMedia('(max-width: 767px)').matches) return;
         
         const target = e.target;
         if (!target) return;
