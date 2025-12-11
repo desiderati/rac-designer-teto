@@ -165,7 +165,7 @@ export function PilotiEditor({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label htmlFor="is-master" className="text-sm font-medium">
-          Este será o piloti mestre?
+          Definir piloti como mestre?
         </Label>
         <Switch
           id="is-master"
@@ -177,9 +177,6 @@ export function PilotiEditor({
       {tempIsMaster && (
         <div className="space-y-2 pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
-            <Label htmlFor="nivel" className="text-sm font-medium whitespace-nowrap">
-              Nível do mestre (m)
-            </Label>
             <Input
               id="nivel"
               type="text"
@@ -188,6 +185,9 @@ export function PilotiEditor({
               className="w-20 text-center"
               placeholder="0,30"
             />
+            <Label htmlFor="nivel" className="text-sm font-medium whitespace-nowrap">
+              Nível do mestre (m)
+            </Label>
           </div>
           <p className="text-xs text-muted-foreground">
             Parte visível acima do terreno

@@ -3,10 +3,11 @@ import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject } from 'fa
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle, PilotiSelection } from './Canvas';
+import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
+import { DistanceEditor } from './DistanceEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -53,6 +54,8 @@ export function RACEditor() {
   const [groupToUngroup, setGroupToUngroup] = useState<Group | null>(null);
   const [pilotiSelection, setPilotiSelection] = useState<PilotiSelection | null>(null);
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
+  const [distanceSelection, setDistanceSelection] = useState<DistanceSelection | null>(null);
+  const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
@@ -682,6 +685,24 @@ export function RACEditor() {
     setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
   };
 
+  const handleDistanceSelect = (selection: DistanceSelection | null) => {
+    setDistanceSelection(selection);
+    if (selection) {
+      setIsDistanceEditorOpen(true);
+    }
+  };
+
+  const handleDistanceEditorClose = () => {
+    setIsDistanceEditorOpen(false);
+    setDistanceSelection(null);
+  };
+
+  const handleDistanceValueChange = (newValue: string) => {
+    canvasRef.current?.saveHistory();
+    canvasRef.current?.canvas?.renderAll();
+    setInfoMessage(`Distância atualizada para: ${newValue || '(vazio)'}.`);
+  };
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
@@ -734,6 +755,7 @@ export function RACEditor() {
           tutorialHighlight={tutorialStep}
           showTips={showTips}
           onPilotiSelect={handlePilotiSelect}
+          onDistanceSelect={handleDistanceSelect}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips && (
@@ -756,6 +778,16 @@ export function RACEditor() {
         anchorPosition={pilotiSelection?.screenPosition}
         onHeightChange={handlePilotiHeightChange}
         onNavigate={handlePilotiNavigate}
+      />
+
+      <DistanceEditor
+        isOpen={isDistanceEditorOpen}
+        onClose={handleDistanceEditorClose}
+        group={distanceSelection?.group ?? null}
+        currentValue={distanceSelection?.currentValue ?? ''}
+        isMobile={isMobile}
+        anchorPosition={distanceSelection?.screenPosition}
+        onValueChange={handleDistanceValueChange}
       />
 
       {tutorialStep && (
