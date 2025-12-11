@@ -391,6 +391,15 @@ export function Toolbar({
               onClick={() => handleAction(onAddText)}
               hideTooltip={isTutorialActive}
             />
+
+            {/* Delete */}
+            <FABButton
+              icon={faTrash}
+              title="Excluir Item"
+              onClick={() => handleAction(onDelete)}
+              color="#ffaaaa"
+              hideTooltip={isTutorialActive}
+            />
           </div>
         )}
       </div>
@@ -423,14 +432,6 @@ export function Toolbar({
               title="Abrir Projeto (JSON)"
               onClick={() => fileInputRef.current?.click()}
               color="#ffeaa7"
-              hideTooltip={isTutorialActive}
-              tooltipSide="left"
-            />
-            <SubMenuButton
-              icon={faTrash}
-              title="Excluir Item"
-              onClick={() => handleAction(onDelete)}
-              color="#ffaaaa"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
