@@ -142,17 +142,17 @@ export function PilotiEditor({
     </div>
   );
 
-  const HeightControls = () => (
+  const HeightControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">Altura do piloti</Label>
+      <Label className={compact ? "text-sm font-medium" : "text-base font-medium"}>Altura do piloti</Label>
       <div className="flex gap-2 flex-wrap justify-center">
         {PILOTI_HEIGHTS.map((h) => (
           <Button
             key={h}
             variant={tempHeight === h ? 'default' : 'outline'}
-            size="sm"
+            size={compact ? "sm" : "default"}
             onClick={() => setTempHeight(h)}
-            className="min-w-[50px]"
+            className={compact ? "min-w-[50px]" : "min-w-[60px] text-base"}
           >
             {formatPilotiHeight(h)}
           </Button>
@@ -161,10 +161,10 @@ export function PilotiEditor({
     </div>
   );
 
-  const MasterControls = () => (
+  const MasterControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label htmlFor="is-master" className="text-sm font-medium">
+        <Label htmlFor="is-master" className={compact ? "text-sm font-medium" : "text-base font-medium"}>
           Definir piloti como mestre?
         </Label>
         <Switch
@@ -182,14 +182,14 @@ export function PilotiEditor({
               type="text"
               value={formatPilotiHeight(tempNivel)}
               onChange={(e) => handleNivelChange(e.target.value)}
-              className="w-20 text-center"
+              className={compact ? "w-20 text-center" : "w-24 text-center text-base"}
               placeholder="0,30"
             />
-            <Label htmlFor="nivel" className="text-sm font-medium whitespace-nowrap">
+            <Label htmlFor="nivel" className={compact ? "text-sm font-medium whitespace-nowrap" : "text-base font-medium whitespace-nowrap"}>
               Nível do mestre (m)
             </Label>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className={compact ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
             Parte visível acima do terreno
           </p>
         </div>
@@ -243,7 +243,7 @@ export function PilotiEditor({
         <div className="space-y-4">
           <NavigationHeader />
           
-          <MasterControls />
+          <MasterControls compact />
           
           <div className="space-y-2">
             <Label className="text-sm font-medium">Altura do piloti</Label>
