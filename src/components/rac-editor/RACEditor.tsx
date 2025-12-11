@@ -98,8 +98,12 @@ export function RACEditor() {
     setIsMenuOpen(false);
     setShowRestartConfirm(false);
     
-    // Remove tutorial completion flag
+    // Remove all tutorial completion flags
     localStorage.removeItem('rac-tutorial-completed');
+    localStorage.removeItem('rac-piloti-tutorial-shown');
+    
+    // Close piloti tutorial balloon if open
+    setPilotiTutorialPosition(null);
     
     // Start tutorial from beginning
     setTutorialStep('main-fab');
@@ -109,7 +113,18 @@ export function RACEditor() {
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
 
-  const closeAllMenus = () => setActiveSubmenu(null);
+  // Dismiss piloti tutorial balloon on any user action
+  const dismissPilotiTutorial = useCallback(() => {
+    if (pilotiTutorialPosition) {
+      setPilotiTutorialPosition(null);
+      localStorage.setItem('rac-piloti-tutorial-shown', 'true');
+    }
+  }, [pilotiTutorialPosition]);
+
+  const closeAllMenus = () => {
+    setActiveSubmenu(null);
+    dismissPilotiTutorial();
+  };
 
   const disableDrawingMode = () => {
     const canvas = getCanvas();
@@ -122,6 +137,7 @@ export function RACEditor() {
   };
 
   const handleToggleMenu = () => {
+    dismissPilotiTutorial();
     const newIsOpen = !isMenuOpen;
     setIsMenuOpen(newIsOpen);
     
@@ -135,6 +151,11 @@ export function RACEditor() {
       advanceTutorial('main-fab');
     }
   };
+
+  // Dismiss piloti tutorial on canvas interaction
+  const handleCanvasInteraction = useCallback(() => {
+    dismissPilotiTutorial();
+  }, [dismissPilotiTutorial]);
 
   // House actions
   const showPilotiTutorialIfNeeded = (house: Group) => {
@@ -772,7 +793,10 @@ export function RACEditor() {
       <div className="h-full p-2.5 overflow-hidden relative">
         <Canvas
           ref={canvasRef}
-          onSelectionChange={setInfoMessage}
+          onSelectionChange={(msg) => {
+            setInfoMessage(msg);
+            dismissPilotiTutorial();
+          }}
           onHistorySave={() => {}}
           onZoomInteraction={() => {
             if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
