@@ -133,16 +133,31 @@ export function RACEditor() {
     const scaledWidth = CANVAS_WIDTH * zoom;
     const scaledHeight = CANVAS_HEIGHT * zoom;
     
-    // Calculate the visible area center in canvas coordinates
-    let visibleCenterX = CANVAS_WIDTH / 2;
-    let visibleCenterY = CANVAS_HEIGHT / 2;
+    // Calculate visible center in canvas coordinates
+    // viewportX/Y is the scroll offset in screen pixels
+    // We need to find the center of the visible area
+    let visibleCenterX: number;
+    let visibleCenterY: number;
     
-    if (scaledWidth > rect.width) {
+    if (scaledWidth <= rect.width) {
+      // Canvas fits in viewport horizontally, center is canvas center
+      visibleCenterX = CANVAS_WIDTH / 2;
+    } else {
+      // Canvas is larger than viewport, calculate center of visible area
       visibleCenterX = (viewportX + rect.width / 2) / zoom;
     }
-    if (scaledHeight > rect.height) {
+    
+    if (scaledHeight <= rect.height) {
+      // Canvas fits in viewport vertically, center is canvas center
+      visibleCenterY = CANVAS_HEIGHT / 2;
+    } else {
+      // Canvas is larger than viewport, calculate center of visible area
       visibleCenterY = (viewportY + rect.height / 2) / zoom;
     }
+    
+    // Clamp to canvas bounds
+    visibleCenterX = Math.max(50, Math.min(CANVAS_WIDTH - 50, visibleCenterX));
+    visibleCenterY = Math.max(50, Math.min(CANVAS_HEIGHT - 50, visibleCenterY));
     
     return { x: visibleCenterX, y: visibleCenterY };
   }, [getCanvas]);
