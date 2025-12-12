@@ -35,6 +35,7 @@ interface CanvasProps {
 export interface CanvasHandle {
   canvas: FabricCanvas | null;
   saveHistory: () => void;
+  clearHistory: () => void;
   undo: () => void;
   copy: () => void;
   paste: () => void;
@@ -112,6 +113,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       historyRef.current.push(JSON.stringify(fabricCanvasRef.current));
       updateMinimapObjects();
       onHistorySave();
+    };
+
+    const clearHistory = () => {
+      historyRef.current = [];
+      updateMinimapObjects();
     };
 
     const undo = () => {
@@ -208,6 +214,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useImperativeHandle(ref, () => ({
       canvas: fabricCanvasRef.current,
       saveHistory,
+      clearHistory,
       undo,
       copy,
       paste,

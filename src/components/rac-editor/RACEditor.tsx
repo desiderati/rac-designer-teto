@@ -84,12 +84,14 @@ export function RACEditor() {
   };
 
   const confirmRestartTutorial = () => {
-    // Clear canvas
+    // Clear canvas and history
     const canvas = canvasRef.current?.canvas;
     if (canvas) {
       canvas.clear();
       canvas.backgroundColor = '#ffffff';
       canvas.renderAll();
+      // Clear history first, then save the empty state as the only entry
+      canvasRef.current?.clearHistory();
       canvasRef.current?.saveHistory();
     }
     
