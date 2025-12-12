@@ -486,20 +486,33 @@ export function RACEditor() {
       const textObj = dimension.getObjects().find(obj => obj.type === 'i-text') as any;
       const currentValue = textObj?.text?.trim() || '';
       
-      // Calculate screen position
-      const container = canvas.getElement().parentElement;
-      if (container) {
+      // Use canvas position info to calculate proper screen position
+      const canvasPosition = canvasRef.current?.getCanvasPosition();
+      const container = canvas.getElement().parentElement?.parentElement;
+      if (container && canvasPosition) {
         const rect = container.getBoundingClientRect();
-        const groupLeft = dimension.left || canvas.width! / 2;
-        const groupTop = dimension.top || canvas.height! / 2;
+        const { x: viewportX, y: viewportY, zoom } = canvasPosition;
+        
+        const scaledWidth = CANVAS_WIDTH * zoom;
+        const scaledHeight = CANVAS_HEIGHT * zoom;
+        
+        const canvasX = scaledWidth <= rect.width 
+          ? (rect.width - scaledWidth) / 2 
+          : -viewportX;
+        const canvasY = scaledHeight <= rect.height 
+          ? (rect.height - scaledHeight) / 2 
+          : -viewportY;
+        
+        const groupLeft = dimension.left || 0;
+        const groupTop = dimension.top || 0;
+        
+        const screenX = rect.left + (groupLeft * zoom) + canvasX;
+        const screenY = rect.top + (groupTop * zoom) + canvasY;
         
         setDistanceSelection({
           group: dimension,
           currentValue,
-          screenPosition: { 
-            x: rect.left + rect.width / 2, 
-            y: rect.top + rect.height / 2 
-          },
+          screenPosition: { x: screenX, y: screenY },
         });
         setIsDistanceEditorOpen(true);
       }
