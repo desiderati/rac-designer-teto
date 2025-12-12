@@ -115,6 +115,49 @@ export function RACEditor() {
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, []);
 
+  // Calculate the center of the visible viewport in canvas coordinates
+  const getVisibleCenter = useCallback(() => {
+    const canvas = getCanvas();
+    if (!canvas) return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+    
+    const canvasPosition = canvasRef.current?.getCanvasPosition();
+    const container = canvas.getElement().parentElement?.parentElement;
+    
+    if (!container || !canvasPosition) {
+      return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+    }
+    
+    const rect = container.getBoundingClientRect();
+    const { x: viewportX, y: viewportY, zoom } = canvasPosition;
+    
+    const scaledWidth = CANVAS_WIDTH * zoom;
+    const scaledHeight = CANVAS_HEIGHT * zoom;
+    
+    // Calculate the visible area center in canvas coordinates
+    let visibleCenterX = CANVAS_WIDTH / 2;
+    let visibleCenterY = CANVAS_HEIGHT / 2;
+    
+    if (scaledWidth > rect.width) {
+      visibleCenterX = (viewportX + rect.width / 2) / zoom;
+    }
+    if (scaledHeight > rect.height) {
+      visibleCenterY = (viewportY + rect.height / 2) / zoom;
+    }
+    
+    return { x: visibleCenterX, y: visibleCenterY };
+  }, [getCanvas]);
+
+  // Add object to canvas at the visible center
+  const addObjectToCanvas = useCallback((obj: FabricObject) => {
+    const canvas = getCanvas();
+    if (!canvas) return;
+    
+    const center = getVisibleCenter();
+    obj.set({ left: center.x, top: center.y });
+    canvas.add(obj);
+    canvas.setActiveObject(obj);
+  }, [getCanvas, getVisibleCenter]);
+
   // Dismiss piloti tutorial balloon on any user action
   const dismissPilotiTutorial = useCallback(() => {
     if (pilotiTutorialPosition) {
@@ -213,8 +256,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const house = createHouseTop(canvas);
-      canvas.add(house);
-      canvas.setActiveObject(house);
+      addObjectToCanvas(house);
       showPilotiTutorialIfNeeded(house);
     }
   };
@@ -224,8 +266,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const house = createHouseFrontBack(canvas, true);
-      canvas.add(house);
-      canvas.setActiveObject(house);
+      addObjectToCanvas(house);
     }
   };
 
@@ -234,8 +275,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const house = createHouseFrontBack(canvas, false);
-      canvas.add(house);
-      canvas.setActiveObject(house);
+      addObjectToCanvas(house);
     }
   };
 
@@ -244,8 +284,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const house = createHouseSide(canvas, false);
-      canvas.add(house);
-      canvas.setActiveObject(house);
+      addObjectToCanvas(house);
     }
   };
 
@@ -254,8 +293,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const house = createHouseSide(canvas, true);
-      canvas.add(house);
-      canvas.setActiveObject(house);
+      addObjectToCanvas(house);
     }
   };
 
@@ -409,8 +447,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const wall = createWall(canvas);
-      canvas.add(wall);
-      canvas.setActiveObject(wall);
+      addObjectToCanvas(wall);
     }
   };
 
@@ -419,8 +456,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const door = createDoor(canvas);
-      canvas.add(door);
-      canvas.setActiveObject(door);
+      addObjectToCanvas(door);
     }
   };
 
@@ -429,8 +465,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const stairs = createStairs(canvas);
-      canvas.add(stairs);
-      canvas.setActiveObject(stairs);
+      addObjectToCanvas(stairs);
     }
   };
 
@@ -439,8 +474,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const tree = createTree(canvas);
-      canvas.add(tree);
-      canvas.setActiveObject(tree);
+      addObjectToCanvas(tree);
     }
   };
 
@@ -449,8 +483,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const water = createWater(canvas);
-      canvas.add(water);
-      canvas.setActiveObject(water);
+      addObjectToCanvas(water);
     }
   };
 
@@ -459,8 +492,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const line = createLine(canvas);
-      canvas.add(line);
-      canvas.setActiveObject(line);
+      addObjectToCanvas(line);
     }
   };
 
@@ -469,8 +501,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const arrow = createArrow(canvas);
-      canvas.add(arrow);
-      canvas.setActiveObject(arrow);
+      addObjectToCanvas(arrow);
     }
   };
 
@@ -478,31 +509,8 @@ export function RACEditor() {
     closeAllMenus();
     const canvas = getCanvas();
     if (canvas) {
-      // Calculate the center of the visible viewport in canvas coordinates
-      const canvasPosition = canvasRef.current?.getCanvasPosition();
-      const container = canvas.getElement().parentElement?.parentElement;
-      
-      let visibleCenterX = canvas.width! / 2;
-      let visibleCenterY = canvas.height! / 2;
-      
-      if (container && canvasPosition) {
-        const rect = container.getBoundingClientRect();
-        const { x: viewportX, y: viewportY, zoom } = canvasPosition;
-        
-        const scaledWidth = CANVAS_WIDTH * zoom;
-        const scaledHeight = CANVAS_HEIGHT * zoom;
-        
-        // Calculate the visible area in canvas coordinates
-        if (scaledWidth > rect.width) {
-          // Canvas is larger than viewport, use viewport center
-          visibleCenterX = (viewportX + rect.width / 2) / zoom;
-        }
-        if (scaledHeight > rect.height) {
-          visibleCenterY = (viewportY + rect.height / 2) / zoom;
-        }
-      }
-      
-      const dimension = createDimension(canvas, { x: visibleCenterX, y: visibleCenterY });
+      const center = getVisibleCenter();
+      const dimension = createDimension(canvas, center);
       canvas.add(dimension);
       canvas.setActiveObject(dimension);
       
@@ -510,7 +518,10 @@ export function RACEditor() {
       const textObj = dimension.getObjects().find(obj => obj.type === 'i-text') as any;
       const currentValue = textObj?.text?.trim() || '';
       
-      // Use canvas position info to calculate proper screen position
+      // Calculate screen position for the editor
+      const canvasPosition = canvasRef.current?.getCanvasPosition();
+      const container = canvas.getElement().parentElement?.parentElement;
+      
       if (container && canvasPosition) {
         const rect = container.getBoundingClientRect();
         const { x: viewportX, y: viewportY, zoom } = canvasPosition;
@@ -563,8 +574,7 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (canvas) {
       const text = createText(canvas);
-      canvas.add(text);
-      canvas.setActiveObject(text);
+      addObjectToCanvas(text);
     }
   };
 
