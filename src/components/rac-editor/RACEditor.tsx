@@ -478,7 +478,31 @@ export function RACEditor() {
     closeAllMenus();
     const canvas = getCanvas();
     if (canvas) {
-      const dimension = createDimension(canvas);
+      // Calculate the center of the visible viewport in canvas coordinates
+      const canvasPosition = canvasRef.current?.getCanvasPosition();
+      const container = canvas.getElement().parentElement?.parentElement;
+      
+      let visibleCenterX = canvas.width! / 2;
+      let visibleCenterY = canvas.height! / 2;
+      
+      if (container && canvasPosition) {
+        const rect = container.getBoundingClientRect();
+        const { x: viewportX, y: viewportY, zoom } = canvasPosition;
+        
+        const scaledWidth = CANVAS_WIDTH * zoom;
+        const scaledHeight = CANVAS_HEIGHT * zoom;
+        
+        // Calculate the visible area in canvas coordinates
+        if (scaledWidth > rect.width) {
+          // Canvas is larger than viewport, use viewport center
+          visibleCenterX = (viewportX + rect.width / 2) / zoom;
+        }
+        if (scaledHeight > rect.height) {
+          visibleCenterY = (viewportY + rect.height / 2) / zoom;
+        }
+      }
+      
+      const dimension = createDimension(canvas, { x: visibleCenterX, y: visibleCenterY });
       canvas.add(dimension);
       canvas.setActiveObject(dimension);
       
@@ -487,8 +511,6 @@ export function RACEditor() {
       const currentValue = textObj?.text?.trim() || '';
       
       // Use canvas position info to calculate proper screen position
-      const canvasPosition = canvasRef.current?.getCanvasPosition();
-      const container = canvas.getElement().parentElement?.parentElement;
       if (container && canvasPosition) {
         const rect = container.getBoundingClientRect();
         const { x: viewportX, y: viewportY, zoom } = canvasPosition;
