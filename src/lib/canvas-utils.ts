@@ -630,7 +630,7 @@ export function createArrow(canvas: FabricCanvas): Group {
   return group;
 }
 
-export function createDimension(canvas: FabricCanvas): Group {
+export function createDimension(canvas: FabricCanvas, position?: { x: number; y: number }): Group {
   const w = 200;
   const tickHeight = 10;
   const color = "#C94C4C"; // Softer red
@@ -673,9 +673,13 @@ export function createDimension(canvas: FabricCanvas): Group {
     selectable: false,
   });
 
+  // Use provided position or default to canvas center
+  const posX = position?.x ?? canvas.width! / 2;
+  const posY = position?.y ?? canvas.height! / 2;
+
   const group = new Group([line, tick1, tick2, text], {
-    left: canvas.width! / 2,
-    top: canvas.height! / 2,
+    left: posX,
+    top: posY,
     originX: "center",
     originY: "center",
     subTargetCheck: true,
