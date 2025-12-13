@@ -55,11 +55,13 @@ export function PilotiEditor({
   const [tempHeight, setTempHeight] = useState(currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(currentIsMaster);
   const [tempNivel, setTempNivel] = useState(currentNivel);
+  const [tempNivelInput, setTempNivelInput] = useState(formatPilotiHeight(currentNivel));
 
   useEffect(() => {
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
+    setTempNivelInput(formatPilotiHeight(currentNivel));
   }, [currentHeight, currentIsMaster, currentNivel, isOpen, pilotiId]);
 
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
@@ -102,11 +104,13 @@ export function PilotiEditor({
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
+    setTempNivelInput(formatPilotiHeight(currentNivel));
     onClose();
   };
 
   const handleNivelChange = (value: string) => {
-    // Allow comma as decimal separator
+    // Allow comma as decimal separator and keep raw text for editing
+    setTempNivelInput(value);
     const normalized = value.replace(',', '.');
     const num = parseFloat(normalized);
     if (!isNaN(num) && num >= 0) {
@@ -180,7 +184,7 @@ export function PilotiEditor({
             <Input
               id="nivel"
               type="text"
-              value={formatPilotiHeight(tempNivel)}
+              value={tempNivelInput}
               onChange={(e) => handleNivelChange(e.target.value)}
               className={compact ? "w-20 text-center" : "w-24 text-center text-base"}
               placeholder="0,30"
