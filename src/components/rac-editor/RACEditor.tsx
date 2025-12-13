@@ -117,50 +117,12 @@ export function RACEditor() {
 
   // Calculate the center of the visible viewport in canvas coordinates
   const getVisibleCenter = useCallback(() => {
-    const canvas = getCanvas();
-    if (!canvas) return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
-    
-    const canvasPosition = canvasRef.current?.getCanvasPosition();
-    const container = canvas.getElement().parentElement?.parentElement;
-    
-    if (!container || !canvasPosition) {
-      return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+    const handle = canvasRef.current;
+    if (handle && typeof handle.getVisibleCenter === 'function') {
+      return handle.getVisibleCenter();
     }
-    
-    const rect = container.getBoundingClientRect();
-    const { x: viewportX, y: viewportY, zoom } = canvasPosition;
-    
-    const scaledWidth = CANVAS_WIDTH * zoom;
-    const scaledHeight = CANVAS_HEIGHT * zoom;
-    
-    // Calculate visible center in canvas coordinates
-    // viewportX/Y is the scroll offset in screen pixels
-    // We need to find the center of the visible area
-    let visibleCenterX: number;
-    let visibleCenterY: number;
-    
-    if (scaledWidth <= rect.width) {
-      // Canvas fits in viewport horizontally, center is canvas center
-      visibleCenterX = CANVAS_WIDTH / 2;
-    } else {
-      // Canvas is larger than viewport, calculate center of visible area
-      visibleCenterX = (viewportX + rect.width / 2) / zoom;
-    }
-    
-    if (scaledHeight <= rect.height) {
-      // Canvas fits in viewport vertically, center is canvas center
-      visibleCenterY = CANVAS_HEIGHT / 2;
-    } else {
-      // Canvas is larger than viewport, calculate center of visible area
-      visibleCenterY = (viewportY + rect.height / 2) / zoom;
-    }
-    
-    // Clamp to canvas bounds
-    visibleCenterX = Math.max(50, Math.min(CANVAS_WIDTH - 50, visibleCenterX));
-    visibleCenterY = Math.max(50, Math.min(CANVAS_HEIGHT - 50, visibleCenterY));
-    
-    return { x: visibleCenterX, y: visibleCenterY };
-  }, [getCanvas]);
+    return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+  }, []);
 
   // Add object to canvas at the visible center
   const addObjectToCanvas = useCallback((obj: FabricObject) => {

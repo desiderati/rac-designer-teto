@@ -40,6 +40,7 @@ export interface CanvasHandle {
   copy: () => void;
   paste: () => void;
   getCanvasPosition: () => { x: number; y: number; zoom: number };
+  getVisibleCenter: () => { x: number; y: number };
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
@@ -219,6 +220,37 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       copy,
       paste,
       getCanvasPosition: () => ({ x: viewportX, y: viewportY, zoom }),
+      getVisibleCenter: () => {
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const { width: containerWidth, height: containerHeight } = containerSizeRef.current;
+
+        if (!containerWidth || !containerHeight) {
+          return { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
+        }
+
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+
+        const canvasX = scaledWidth <= containerWidth
+          ? (containerWidth - scaledWidth) / 2
+          : -currentViewportX;
+        const canvasY = scaledHeight <= containerHeight
+          ? (containerHeight - scaledHeight) / 2
+          : -currentViewportY;
+
+        const screenCenterX = containerWidth / 2;
+        const screenCenterY = containerHeight / 2;
+
+        const centerX = (screenCenterX - canvasX) / currentZoom;
+        const centerY = (screenCenterY - canvasY) / currentZoom;
+
+        return {
+          x: Math.max(0, Math.min(CANVAS_WIDTH, centerX)),
+          y: Math.max(0, Math.min(CANVAS_HEIGHT, centerY)),
+        };
+      },
     }));
 
     useEffect(() => {
@@ -251,6 +283,35 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         onSelectionChange(getHintForObject(obj));
         // Clear piloti selection when general selection changes
         onPilotiSelect?.(null);
+
+        // Reset piloti styles for all house groups
+        canvas.getObjects().forEach((item: any) => {
+          if (item.type === 'group' && item.myType === 'house') {
+            item.getObjects().forEach((child: any) => {
+              if (child.isPilotiCircle) {
+                if (child.pilotiIsMaster) {
+                  child.set({ stroke: '#8B4513', strokeWidth: 2 });
+                } else {
+                  child.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+                }
+              }
+            });
+          }
+        });
+
+        // If a house is selected, highlight all its pilotis
+        if (obj && obj.type === 'group' && (obj as any).myType === 'house') {
+          (obj as Group).getObjects().forEach((child: any) => {
+            if (child.isPilotiCircle) {
+              child.set({
+                stroke: '#facc15',
+                strokeWidth: 3,
+              });
+            }
+          });
+        }
+
+        canvas.renderAll();
       };
 
       canvas.on('selection:created', updateHint);
