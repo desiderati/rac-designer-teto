@@ -89,12 +89,22 @@ export function PilotiEditor({
       setTempHeight(pilotiData.height);
       setTempIsMaster(pilotiData.isMaster);
       setTempNivel(pilotiData.nivel);
+      setTempNivelInput(formatPilotiHeight(pilotiData.nivel));
     }
   };
 
   const handleApply = () => {
+    // Converte o texto do nível apenas na hora de aplicar
+    let nivelToApply = tempNivel;
+    const normalized = tempNivelInput.replace(',', '.');
+    const parsed = parseFloat(normalized);
+    if (!isNaN(parsed) && parsed >= 0) {
+      nivelToApply = parsed;
+      setTempNivel(parsed);
+    }
+
     if (group && pilotiId) {
-      updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, tempNivel);
+      updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, nivelToApply);
       onHeightChange(tempHeight);
     }
     onClose();
@@ -109,13 +119,8 @@ export function PilotiEditor({
   };
 
   const handleNivelChange = (value: string) => {
-    // Allow comma as decimal separator and keep raw text for editing
+    // Mantém o texto livremente editável; validação só ao aplicar
     setTempNivelInput(value);
-    const normalized = value.replace(',', '.');
-    const num = parseFloat(normalized);
-    if (!isNaN(num) && num >= 0) {
-      setTempNivel(num);
-    }
   };
 
   const NavigationHeader = () => (
