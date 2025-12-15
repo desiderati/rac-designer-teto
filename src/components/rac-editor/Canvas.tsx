@@ -597,10 +597,18 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       // Keyboard shortcuts
       const handleKeyDown = (e: KeyboardEvent) => {
+        // Never hijack keys when user is typing in an input/textarea/select/contenteditable
+        const target = e.target as HTMLElement | null;
+        const tag = target?.tagName;
+        const isTypingTarget =
+          !!target &&
+          (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (target as any).isContentEditable);
+        if (isTypingTarget) return;
+
         // Don't process Delete/Backspace when editor is open
         if (e.key === 'Delete' || e.key === 'Backspace') {
           if (isEditorOpenRef.current) return;
-          
+
           const activeObj = canvas.getActiveObject();
           if (!activeObj || (activeObj.type !== 'i-text' || !(activeObj as IText).isEditing)) {
             const activeObjects = canvas.getActiveObjects();
@@ -611,6 +619,22 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             }
           }
         }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+          e.preventDefault();
+          copy();
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+          e.preventDefault();
+          paste();
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+          e.preventDefault();
+          undo();
+        }
+      };
         
         if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
           e.preventDefault();
