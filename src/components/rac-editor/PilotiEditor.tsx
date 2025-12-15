@@ -95,13 +95,16 @@ export function PilotiEditor({
 
   const handleApply = () => {
     // Converte o texto do nível apenas na hora de aplicar
-    let nivelToApply = tempNivel;
-    const normalized = tempNivelInput.replace(',', '.');
-    const parsed = parseFloat(normalized);
-    if (!isNaN(parsed) && parsed >= 0) {
-      nivelToApply = parsed;
-      setTempNivel(parsed);
+    let nivelToApply = 0.3; // valor padrão
+    const trimmed = tempNivelInput.trim();
+    if (trimmed !== '') {
+      const normalized = trimmed.replace(',', '.');
+      const parsed = parseFloat(normalized);
+      if (!isNaN(parsed) && parsed >= 0) {
+        nivelToApply = parsed;
+      }
     }
+    setTempNivel(nivelToApply);
 
     if (group && pilotiId) {
       updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, nivelToApply);
@@ -118,9 +121,18 @@ export function PilotiEditor({
     onClose();
   };
 
-  const handleNivelChange = (value: string) => {
-    // Mantém o texto livremente editável; validação só ao aplicar
-    setTempNivelInput(value);
+  const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permitir apenas números, vírgula e ponto
+    const filtered = value.replace(/[^0-9.,]/g, '');
+    setTempNivelInput(filtered);
+  };
+
+  const handleNivelBlur = () => {
+    // Se campo vazio, volta ao valor padrão
+    if (tempNivelInput.trim() === '') {
+      setTempNivelInput('0,3');
+    }
   };
 
   const NavigationHeader = () => (
@@ -189,10 +201,11 @@ export function PilotiEditor({
             <Input
               id="nivel"
               type="text"
+              inputMode="decimal"
               value={tempNivelInput}
-              onChange={(e) => handleNivelChange(e.target.value)}
-              className={compact ? "w-20 text-center" : "w-24 text-center text-base"}
-              placeholder="0,30"
+              onChange={handleNivelChange}
+              onBlur={handleNivelBlur}
+              className={compact ? "w-20 text-center cursor-text" : "w-24 text-center text-base cursor-text"}
             />
             <div className="flex flex-col">
               <Label htmlFor="nivel" className={compact ? "text-sm font-medium whitespace-nowrap" : "text-base font-medium whitespace-nowrap"}>
@@ -250,7 +263,12 @@ export function PilotiEditor({
           }}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-4 bg-popover min-w-[280px]" side="right" align="center">
+      <PopoverContent 
+        className="w-auto p-4 bg-popover min-w-[280px] cursor-move" 
+        side="right" 
+        align="center"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <div className="space-y-4">
           <NavigationHeader />
           
@@ -265,7 +283,7 @@ export function PilotiEditor({
                   variant={tempHeight === h ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTempHeight(h)}
-                  className="min-w-[40px] h-8 text-xs"
+                  className="min-w-[40px] h-8 text-xs cursor-default"
                 >
                   {formatPilotiHeight(h)}
                 </Button>
@@ -274,10 +292,10 @@ export function PilotiEditor({
           </div>
           
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
+            <Button variant="outline" size="sm" className="flex-1 cursor-default" onClick={handleCancel}>
               Cancelar
             </Button>
-            <Button size="sm" className="flex-1" onClick={handleApply}>
+            <Button size="sm" className="flex-1 cursor-default" onClick={handleApply}>
               Aplicar
             </Button>
           </div>
