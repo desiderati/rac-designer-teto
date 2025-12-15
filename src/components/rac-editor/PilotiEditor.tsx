@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Group } from 'fabric';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -15,14 +15,14 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { 
-  PILOTI_HEIGHTS, 
-  updatePilotiAll, 
-  formatPilotiHeight, 
-  getPilotiName, 
+import {
+  PILOTI_HEIGHTS,
+  updatePilotiAll,
+  formatPilotiHeight,
+  getPilotiName,
   getAdjacentPilotiId,
   getPilotiFromGroup,
-  getAllPilotiIds
+  getAllPilotiIds,
 } from '@/lib/canvas-utils';
 
 interface PilotiEditorProps {
@@ -39,13 +39,37 @@ interface PilotiEditorProps {
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 }
 
+const DEFAULT_NIVEL = 0.3;
+const DEFAULT_NIVEL_INPUT = '0,3';
+
+function formatNivelForInput(n: number): string {
+  const raw = String(n).replace('.', ',');
+  if (!raw.includes(',')) return raw;
+  const [intPart, decPart = ''] = raw.split(',');
+  const trimmedDec = decPart.replace(/0+$/, '');
+  return trimmedDec ? `${intPart},${trimmedDec}` : intPart;
+}
+
+function filterNivelText(value: string): string {
+  return value.replace(/[^0-9.,]/g, '');
+}
+
+function parseNivelText(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.replace(',', '.');
+  const parsed = Number.parseFloat(normalized);
+  if (Number.isNaN(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
 export function PilotiEditor({
   isOpen,
   onClose,
   pilotiId,
   currentHeight,
   currentIsMaster = false,
-  currentNivel = 0.3,
+  currentNivel = DEFAULT_NIVEL,
   group,
   isMobile,
   anchorPosition,
@@ -55,33 +79,76 @@ export function PilotiEditor({
   const [tempHeight, setTempHeight] = useState(currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(currentIsMaster);
   const [tempNivel, setTempNivel] = useState(currentNivel);
-  const [tempNivelInput, setTempNivelInput] = useState(formatPilotiHeight(currentNivel));
+  const [tempNivelInput, setTempNivelInput] = useState(formatNivelForInput(currentNivel));
 
-  useEffect(() => {
-    setTempHeight(currentHeight);
-    setTempIsMaster(currentIsMaster);
-    setTempNivel(currentNivel);
-    setTempNivelInput(formatPilotiHeight(currentNivel));
-  }, [currentHeight, currentIsMaster, currentNivel, isOpen, pilotiId]);
+  // Popover draggable position (desktop)
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
+  const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
 
-  const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
-  const allIds = getAllPilotiIds();
+  const allIds = useMemo(() => getAllPilotiIds(), []);
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
+  const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
+
+  // Only initialize local state when opening, or when switching piloti
+  const lastPilotiIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const isNewPiloti = pilotiId !== lastPilotiIdRef.current;
+    lastPilotiIdRef.current = pilotiId;
+
+    // Init form values on open or on piloti change
+    if (isNewPiloti) {
+      setTempHeight(currentHeight);
+      setTempIsMaster(currentIsMaster);
+      setTempNivel(currentNivel);
+      setTempNivelInput(formatNivelForInput(currentNivel));
+    }
+
+    // Init draggable position when opening
+    if (anchorPosition) {
+      setPopoverPos({ x: anchorPosition.x + 12, y: anchorPosition.y + 12 });
+    } else {
+      setPopoverPos({ x: 24, y: 24 });
+    }
+  }, [isOpen, pilotiId, anchorPosition, currentHeight, currentIsMaster, currentNivel]);
+
+  // Drag listeners (desktop)
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!dragStateRef.current) return;
+      setPopoverPos({
+        x: e.clientX - dragStateRef.current.offsetX,
+        y: e.clientY - dragStateRef.current.offsetY,
+      });
+    };
+
+    const onUp = () => {
+      dragStateRef.current = null;
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, []);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId || !group) return;
-    
+
     const newId = getAdjacentPilotiId(pilotiId, direction);
     if (!newId) return;
-    
+
     // Apply current changes before navigating
     if (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel) {
       updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, tempNivel);
       onHeightChange(tempHeight);
     }
-    
+
     // Get new piloti data
     const pilotiData = getPilotiFromGroup(group, newId);
     if (pilotiData && onNavigate) {
@@ -89,22 +156,17 @@ export function PilotiEditor({
       setTempHeight(pilotiData.height);
       setTempIsMaster(pilotiData.isMaster);
       setTempNivel(pilotiData.nivel);
-      setTempNivelInput(formatPilotiHeight(pilotiData.nivel));
+      setTempNivelInput(formatNivelForInput(pilotiData.nivel));
     }
   };
 
   const handleApply = () => {
     // Converte o texto do nível apenas na hora de aplicar
-    let nivelToApply = 0.3; // valor padrão
-    const trimmed = tempNivelInput.trim();
-    if (trimmed !== '') {
-      const normalized = trimmed.replace(',', '.');
-      const parsed = parseFloat(normalized);
-      if (!isNaN(parsed) && parsed >= 0) {
-        nivelToApply = parsed;
-      }
-    }
+    const parsed = parseNivelText(tempNivelInput);
+    const nivelToApply = parsed ?? DEFAULT_NIVEL;
+
     setTempNivel(nivelToApply);
+    setTempNivelInput(parsed ? tempNivelInput : DEFAULT_NIVEL_INPUT);
 
     if (group && pilotiId) {
       updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, nivelToApply);
@@ -117,63 +179,60 @@ export function PilotiEditor({
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
-    setTempNivelInput(formatPilotiHeight(currentNivel));
+    setTempNivelInput(formatNivelForInput(currentNivel));
     onClose();
   };
 
   const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Permitir apenas números, vírgula e ponto
-    const filtered = value.replace(/[^0-9.,]/g, '');
-    setTempNivelInput(filtered);
+    // Apenas filtra caracteres; não faz parse aqui (para não quebrar backspace/cursor)
+    const next = filterNivelText(e.target.value);
+    setTempNivelInput(next);
   };
 
   const handleNivelBlur = () => {
-    // Se campo vazio, volta ao valor padrão
+    // Se campo vazio, volta ao valor padrão (default value), sem placeholder
     if (tempNivelInput.trim() === '') {
-      setTempNivelInput('0,3');
+      setTempNivelInput(DEFAULT_NIVEL_INPUT);
     }
   };
 
+  const handlePopoverPointerDown = (e: React.PointerEvent) => {
+    // Drag apenas quando clicar no "fundo" do popover (não em botão/input/switch)
+    const target = e.target as HTMLElement;
+    const noDrag = target.closest('button, input, [role="switch"], [data-no-drag]');
+    if (noDrag) return;
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    dragStateRef.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  };
+
   const NavigationHeader = () => (
-    <div className="flex items-center justify-center gap-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleNavigate('prev')}
-        disabled={!hasPrev}
-        className="h-8 w-8"
-      >
+    <div className="flex items-center justify-center gap-2" data-no-drag>
+      <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
         <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
       </Button>
-      
-      <span className="font-bold text-2xl min-w-[80px] text-center">
-        Piloti {pilotiName}
-      </span>
-      
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => handleNavigate('next')}
-        disabled={!hasNext}
-        className="h-8 w-8"
-      >
+
+      <span className="font-bold text-2xl min-w-[80px] text-center">Piloti {pilotiName}</span>
+
+      <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
         <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
       </Button>
     </div>
   );
 
   const HeightControls = ({ compact = false }: { compact?: boolean }) => (
-    <div className="space-y-2">
-      <Label className={compact ? "text-sm font-medium" : "text-base font-medium"}>Altura do piloti</Label>
-      <div className={compact ? "flex gap-1 flex-wrap justify-center" : "flex gap-1.5 justify-center"}>
+    <div className="space-y-2" data-no-drag>
+      <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
+      <div className={compact ? 'flex gap-1 flex-wrap justify-center' : 'flex gap-1.5 justify-center'}>
         {PILOTI_HEIGHTS.map((h) => (
           <Button
             key={h}
             variant={tempHeight === h ? 'default' : 'outline'}
-            size={compact ? "sm" : "default"}
+            size={compact ? 'sm' : 'default'}
             onClick={() => setTempHeight(h)}
-            className={compact ? "min-w-[40px] h-8 text-xs" : "flex-1 px-1 text-base"}
+            className={compact ? 'min-w-[40px] h-8 text-xs' : 'flex-1 px-1 text-base'}
           >
             {formatPilotiHeight(h)}
           </Button>
@@ -183,18 +242,14 @@ export function PilotiEditor({
   );
 
   const MasterControls = ({ compact = false }: { compact?: boolean }) => (
-    <div className="space-y-3">
+    <div className="space-y-3" data-no-drag>
       <div className="flex items-center justify-between">
-        <Label htmlFor="is-master" className={compact ? "text-sm font-medium" : "text-base font-medium"}>
+        <Label htmlFor="is-master" className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>
           Definir piloti como mestre?
         </Label>
-        <Switch
-          id="is-master"
-          checked={tempIsMaster}
-          onCheckedChange={setTempIsMaster}
-        />
+        <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
       </div>
-      
+
       {tempIsMaster && (
         <div className="pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
@@ -205,13 +260,13 @@ export function PilotiEditor({
               value={tempNivelInput}
               onChange={handleNivelChange}
               onBlur={handleNivelBlur}
-              className={compact ? "w-20 text-center cursor-text" : "w-24 text-center text-base cursor-text"}
+              className={compact ? 'w-20 text-center cursor-text' : 'w-24 text-center text-base cursor-text'}
             />
             <div className="flex flex-col">
-              <Label htmlFor="nivel" className={compact ? "text-sm font-medium whitespace-nowrap" : "text-base font-medium whitespace-nowrap"}>
+              <Label htmlFor="nivel" className={compact ? 'text-sm font-medium whitespace-nowrap' : 'text-base font-medium whitespace-nowrap'}>
                 Nível do mestre (m)
               </Label>
-              <p className={compact ? "text-xs text-muted-foreground" : "text-sm text-muted-foreground"}>
+              <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
                 Parte visível acima do terreno
               </p>
             </div>
@@ -263,18 +318,20 @@ export function PilotiEditor({
           }}
         />
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-auto p-4 bg-popover min-w-[280px] cursor-move" 
-        side="right" 
+
+      <PopoverContent
+        className="w-auto p-4 min-w-[280px]"
+        side="right"
         align="center"
-        onPointerDownOutside={(e) => e.preventDefault()}
+        style={popoverPos ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y } : undefined}
+        onPointerDown={handlePopoverPointerDown}
       >
         <div className="space-y-4">
           <NavigationHeader />
-          
+
           <MasterControls compact />
-          
-          <div className="space-y-2">
+
+          <div className="space-y-2" data-no-drag>
             <Label className="text-sm font-medium">Altura do piloti</Label>
             <div className="flex gap-1 flex-wrap justify-center">
               {PILOTI_HEIGHTS.map((h) => (
@@ -283,19 +340,19 @@ export function PilotiEditor({
                   variant={tempHeight === h ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTempHeight(h)}
-                  className="min-w-[40px] h-8 text-xs cursor-default"
+                  className="min-w-[40px] h-8 text-xs"
                 >
                   {formatPilotiHeight(h)}
                 </Button>
               ))}
             </div>
           </div>
-          
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" className="flex-1 cursor-default" onClick={handleCancel}>
+
+          <div className="flex gap-2 pt-2" data-no-drag>
+            <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
               Cancelar
             </Button>
-            <Button size="sm" className="flex-1 cursor-default" onClick={handleApply}>
+            <Button size="sm" className="flex-1" onClick={handleApply}>
               Aplicar
             </Button>
           </div>
