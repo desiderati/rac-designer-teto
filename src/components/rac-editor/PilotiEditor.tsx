@@ -84,6 +84,7 @@ export function PilotiEditor({
   // Popover draggable position (desktop)
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
+  const nivelInputRef = useRef<HTMLInputElement | null>(null);
 
   const allIds = useMemo(() => getAllPilotiIds(), []);
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
@@ -138,6 +139,25 @@ export function PilotiEditor({
       window.removeEventListener('pointerup', onUp);
     };
   }, []);
+
+  // Mantém o foco no campo de nível enquanto o usuário digita (evita “perder foco” em re-renders)
+  useEffect(() => {
+    if (!isOpen || !tempIsMaster) return;
+    const el = nivelInputRef.current;
+    if (!el) return;
+
+    // Se o input já está focado, não faz nada.
+    if (document.activeElement === el) return;
+
+    // Se o usuário estava interagindo com o nível (campo existe na tela), re-foca.
+    // requestAnimationFrame evita competir com o React na mesma pintura.
+    requestAnimationFrame(() => {
+      // Checagem dupla (pode ter fechado)
+      if (nivelInputRef.current && isOpen && tempIsMaster) {
+        nivelInputRef.current.focus();
+      }
+    });
+  }, [isOpen, tempIsMaster, tempNivelInput]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId || !group) return;
@@ -263,6 +283,7 @@ export function PilotiEditor({
         <div className="pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
             <Input
+              ref={nivelInputRef}
               id="nivel"
               type="text"
               inputMode="decimal"
