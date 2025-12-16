@@ -635,22 +635,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           undo();
         }
       };
-        
-        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-          e.preventDefault();
-          copy();
-        }
-        
-        if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-          e.preventDefault();
-          paste();
-        }
-        
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-          e.preventDefault();
-          undo();
-        }
-      };
 
       window.addEventListener('keydown', handleKeyDown);
 
