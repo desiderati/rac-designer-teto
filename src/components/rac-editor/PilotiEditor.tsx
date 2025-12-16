@@ -107,12 +107,14 @@ export function PilotiEditor({
       setTempNivelInput(formatNivelForInput(currentNivel));
     }
 
-    // Init draggable position when opening
-    if (anchorPosition) {
-      setPopoverPos({ x: anchorPosition.x + 12, y: anchorPosition.y + 12 });
-    } else {
-      setPopoverPos({ x: 24, y: 24 });
-    }
+    // Init draggable position when opening.
+    // IMPORTANT: if anchorPosition is missing (can happen in intermediate renders),
+    // keep the last position instead of snapping to (0,0).
+    setPopoverPos((prev) => {
+      if (prev && !isNewPiloti) return prev;
+      if (anchorPosition) return { x: anchorPosition.x + 12, y: anchorPosition.y + 12 };
+      return prev ?? { x: 24, y: 24 };
+    });
   }, [isOpen, pilotiId, anchorPosition, currentHeight, currentIsMaster, currentNivel]);
 
   // Drag listeners (desktop)
@@ -197,10 +199,11 @@ export function PilotiEditor({
   };
 
   const handlePopoverPointerDown = (e: React.PointerEvent) => {
-    // Drag apenas quando clicar no "fundo" do popover (não em botão/input/switch)
+    // Arrastar quando clicar em qualquer área NÃO interativa dentro do popover.
+    // (não bloquear arrasto em containers, só em controles interativos)
     const target = e.target as HTMLElement;
-    const noDrag = target.closest('button, input, [role="switch"], [data-no-drag]');
-    if (noDrag) return;
+    const isInteractive = target.closest('button, input, textarea, select, [role="switch"], a');
+    if (isInteractive) return;
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     dragStateRef.current = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
@@ -276,6 +279,8 @@ export function PilotiEditor({
     </div>
   );
 
+  if (!isOpen) return null;
+
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
@@ -321,9 +326,18 @@ export function PilotiEditor({
 
       <PopoverContent
         className="w-auto p-4 min-w-[280px]"
-        side="right"
-        align="center"
-        style={popoverPos ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y } : undefined}
+        sideOffset={0}
+        avoidCollisions={false}
+        style={
+          popoverPos
+            ? {
+                position: 'fixed',
+                left: popoverPos.x,
+                top: popoverPos.y,
+                transform: 'none',
+              }
+            : undefined
+        }
         onPointerDown={handlePopoverPointerDown}
       >
         <div className="space-y-4">
