@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Group } from 'fabric';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -228,14 +228,20 @@ export function PilotiEditor({
   const HeightControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-2" data-no-drag>
       <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
-      <div className={compact ? 'flex gap-1 flex-wrap justify-center' : 'flex gap-1.5 justify-center'}>
+      <div
+        className={
+          compact
+            ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
+            : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
+        }
+      >
         {PILOTI_HEIGHTS.map((h) => (
           <Button
             key={h}
             variant={tempHeight === h ? 'default' : 'outline'}
             size={compact ? 'sm' : 'default'}
             onClick={() => setTempHeight(h)}
-            className={compact ? 'min-w-[40px] h-8 text-xs' : 'flex-1 px-1 text-base'}
+            className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
           >
             {formatPilotiHeight(h)}
           </Button>
@@ -309,36 +315,33 @@ export function PilotiEditor({
     );
   }
 
-  // Desktop: Popover
-  return (
-    <Popover open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <PopoverTrigger asChild>
-        <div
-          className="fixed pointer-events-none"
-          style={{
-            left: anchorPosition?.x ?? 0,
-            top: anchorPosition?.y ?? 0,
-            width: 1,
-            height: 1,
-          }}
-        />
-      </PopoverTrigger>
-
-      <PopoverContent
-        className="w-auto p-4 min-w-[280px]"
-        sideOffset={0}
-        avoidCollisions={false}
+  // Desktop: painel flutuante (sem Radix Popover) para termos posição/drag 100% determinísticos
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50"
+      onPointerDown={(e) => {
+        // Clique fora do painel fecha sem aplicar
+        if (e.target === e.currentTarget) handleCancel();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') handleCancel();
+      }}
+      tabIndex={-1}
+    >
+      <div
+        className="rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[280px]"
         style={
           popoverPos
-            ? {
-                position: 'fixed',
-                left: popoverPos.x,
-                top: popoverPos.y,
-                transform: 'none',
-              }
-            : undefined
+            ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
+            : anchorPosition
+              ? { position: 'fixed', left: anchorPosition.x + 12, top: anchorPosition.y + 12 }
+              : { position: 'fixed', left: 24, top: 24 }
         }
-        onPointerDown={handlePopoverPointerDown}
+        onPointerDown={(e) => {
+          // impedir que o clique dentro feche
+          e.stopPropagation();
+          handlePopoverPointerDown(e);
+        }}
       >
         <div className="space-y-4">
           <NavigationHeader />
@@ -347,14 +350,14 @@ export function PilotiEditor({
 
           <div className="space-y-2" data-no-drag>
             <Label className="text-sm font-medium">Altura do piloti</Label>
-            <div className="flex gap-1 flex-wrap justify-center">
+            <div className="flex flex-nowrap gap-1 overflow-x-auto justify-start">
               {PILOTI_HEIGHTS.map((h) => (
                 <Button
                   key={h}
                   variant={tempHeight === h ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setTempHeight(h)}
-                  className="min-w-[40px] h-8 text-xs"
+                  className="flex-none min-w-[40px] h-8 text-xs"
                 >
                   {formatPilotiHeight(h)}
                 </Button>
@@ -371,7 +374,8 @@ export function PilotiEditor({
             </Button>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </div>,
+    document.body,
   );
 }
