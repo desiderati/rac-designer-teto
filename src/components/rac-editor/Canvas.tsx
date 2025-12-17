@@ -542,18 +542,36 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           for (let i = objects.length - 1; i >= 0; i--) {
             const obj = objects[i] as any;
             if (obj.myType === 'piloti' || obj.myType === 'pilotiHitArea') {
-              const objLeft = obj.left || 0;
-              const objTop = obj.top || 0;
-              const radius = obj.radius || (obj.width / 2) || 10;
-              
-              const dist = Math.sqrt(
-                Math.pow(localPoint.x - objLeft, 2) + 
-                Math.pow(localPoint.y - objTop, 2)
-              );
-              
-              if (dist <= radius) {
-                handlePilotiSelection(obj, target);
-                return;
+              // Top view: circles/hit areas
+              if (obj.isPilotiCircle || obj.isPilotiHitArea) {
+                const objLeft = obj.left || 0;
+                const objTop = obj.top || 0;
+                const radius = obj.radius || (obj.width / 2) || 10;
+
+                const dist = Math.sqrt(
+                  Math.pow(localPoint.x - objLeft, 2) + Math.pow(localPoint.y - objTop, 2),
+                );
+
+                if (dist <= radius) {
+                  handlePilotiSelection(obj, target);
+                  return;
+                }
+              }
+
+              // Front/back/side/squares: rectangles
+              if (obj.isPilotiRect) {
+                const left = obj.left || 0;
+                const top = obj.top || 0;
+                const w = (obj.width || 0) * (obj.scaleX || 1);
+                const h = (obj.height || 0) * (obj.scaleY || 1);
+
+                const withinX = localPoint.x >= left && localPoint.x <= left + w;
+                const withinY = localPoint.y >= top && localPoint.y <= top + h;
+
+                if (withinX && withinY) {
+                  handlePilotiSelection(obj, target);
+                  return;
+                }
               }
             }
           }
