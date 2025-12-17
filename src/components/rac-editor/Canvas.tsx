@@ -295,17 +295,24 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
                   child.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
                 }
               }
+              if (child.isPilotiRect) {
+                if (child.pilotiIsMaster) {
+                  child.set({ stroke: '#8B4513', strokeWidth: 3 });
+                } else {
+                  child.set({ stroke: '#333', strokeWidth: 2 });
+                }
+              }
             });
           }
         });
 
-        // If a house is selected, highlight all its pilotis
+        // If a house is selected, highlight all its pilotis in yellow
         if (obj && obj.type === 'group' && (obj as any).myType === 'house') {
           (obj as Group).getObjects().forEach((child: any) => {
-            if (child.isPilotiCircle) {
+            if (child.isPilotiCircle || child.isPilotiRect) {
               child.set({
                 stroke: '#facc15',
-                strokeWidth: 3,
+                strokeWidth: child.isPilotiRect ? 4 : 3,
               });
             }
           });
@@ -327,7 +334,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         let pilotiIsMaster = false;
         let pilotiNivel = 0.3;
         
-        // If clicked on hit area, find the actual piloti circle
+        // If clicked on hit area, find the actual piloti circle/rect
         if ((subTarget as any).isPilotiHitArea) {
           const pilotiData = getPilotiFromGroup(group, pilotiId);
           if (pilotiData) {
@@ -336,7 +343,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             pilotiIsMaster = pilotiData.isMaster;
             pilotiNivel = pilotiData.nivel;
           }
-        } else if ((subTarget as any).isPilotiCircle) {
+        } else if ((subTarget as any).isPilotiCircle || (subTarget as any).isPilotiRect) {
           piloti = subTarget;
           pilotiHeight = (subTarget as any).pilotiHeight || 1.0;
           pilotiIsMaster = (subTarget as any).pilotiIsMaster || false;
@@ -387,12 +394,20 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
                 obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
               }
             }
+            if (obj.isPilotiRect) {
+              if (obj.pilotiIsMaster) {
+                obj.set({ stroke: '#8B4513', strokeWidth: 3 });
+              } else {
+                obj.set({ stroke: '#333', strokeWidth: 2 });
+              }
+            }
           });
           
           // Highlight the selected piloti with thicker border
+          const isPilotiRectType = (piloti as any).isPilotiRect;
           piloti.set({
             stroke: '#3b82f6',
-            strokeWidth: 4,
+            strokeWidth: isPilotiRectType ? 5 : 4,
           });
           canvas.renderAll();
           

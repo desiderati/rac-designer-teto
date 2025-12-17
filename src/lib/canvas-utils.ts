@@ -35,6 +35,8 @@ export const customProps = [
   "isPilotiText",
   "isPilotiHitArea",
   "isPilotiNivelText",
+  "isPilotiRect",
+  "pilotiBaseHeight",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -227,7 +229,7 @@ export function getAdjacentPilotiId(currentId: string, direction: "next" | "prev
   return null;
 }
 
-// Get piloti data from group
+// Get piloti data from group (works for both circles in top view and rects in front/back/side views)
 export function getPilotiFromGroup(
   group: Group,
   pilotiId: string,
@@ -240,7 +242,7 @@ export function getPilotiFromGroup(
   const objects = group.getObjects();
 
   for (const obj of objects) {
-    if ((obj as any).pilotiId === pilotiId && (obj as any).isPilotiCircle) {
+    if ((obj as any).pilotiId === pilotiId && ((obj as any).isPilotiCircle || (obj as any).isPilotiRect)) {
       return {
         circle: obj,
         height: (obj as any).pilotiHeight || 1.0,
@@ -261,6 +263,12 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       if (obj.isPilotiCircle) {
         obj.pilotiHeight = newHeight;
       }
+      if (obj.isPilotiRect) {
+        obj.pilotiHeight = newHeight;
+        // Update visual height based on pilotiHeight
+        const baseHeight = obj.pilotiBaseHeight || 60; // fallback
+        obj.set("height", baseHeight * newHeight);
+      }
       if (obj.isPilotiText) {
         obj.set("text", formatPilotiHeight(newHeight));
       }
@@ -277,11 +285,11 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
   if (isMaster) {
     objects.forEach((obj: any) => {
       if (obj.pilotiId !== pilotiId) {
-        if (obj.isPilotiCircle && obj.pilotiIsMaster) {
+        if ((obj.isPilotiCircle || obj.isPilotiRect) && obj.pilotiIsMaster) {
           obj.pilotiIsMaster = false;
-          obj.set("fill", "white");
-          obj.set("stroke", "black");
-          obj.set("strokeWidth", 1.5 * 0.6);
+          obj.set("fill", obj.isPilotiRect ? "#fff" : "white");
+          obj.set("stroke", obj.isPilotiRect ? "#333" : "black");
+          obj.set("strokeWidth", obj.isPilotiRect ? 2 : 1.5 * 0.6);
         }
         if (obj.isPilotiNivelText) {
           obj.set("text", "");
@@ -294,7 +302,7 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
   // Now update the target piloti
   objects.forEach((obj: any) => {
     if (obj.pilotiId === pilotiId) {
-      if (obj.isPilotiCircle) {
+      if (obj.isPilotiCircle || obj.isPilotiRect) {
         obj.pilotiIsMaster = isMaster;
         obj.pilotiNivel = nivel;
 
@@ -302,11 +310,11 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
         if (isMaster) {
           obj.set("fill", MASTER_PILOTI_FILL);
           obj.set("stroke", MASTER_PILOTI_STROKE);
-          obj.set("strokeWidth", 2);
+          obj.set("strokeWidth", obj.isPilotiRect ? 3 : 2);
         } else {
-          obj.set("fill", "white");
-          obj.set("stroke", "black");
-          obj.set("strokeWidth", 1.5 * 0.6);
+          obj.set("fill", obj.isPilotiRect ? "#fff" : "white");
+          obj.set("stroke", obj.isPilotiRect ? "#333" : "black");
+          obj.set("strokeWidth", obj.isPilotiRect ? 2 : 1.5 * 0.6);
         }
       }
       if (obj.isPilotiNivelText) {
@@ -335,32 +343,55 @@ export function updatePilotiAll(
   updatePilotiMaster(group, pilotiId, isMaster, nivel);
 }
 
+// Base piloti height in pixels for height=1.0
+const BASE_PILOTI_HEIGHT_PX = 100;
+
+// Calculate piloti visual height based on pilotiHeight value
+export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
+  return BASE_PILOTI_HEIGHT_PX * pilotiHeight * scale;
+}
+
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Group {
   const factors = getHouseScaleFactors(canvas);
   const s = factors.widthFactor;
   const bodyW = 610 * s;
   const bodyH = 220 * s;
   const roofH = 80 * s;
-  const pilotH = 100 * s;
   const pilotW = 30 * s;
 
   const pilots: FabricObject[] = [];
   const margin = 55 * s;
   const step = (bodyW - 2 * margin - pilotW) / 3;
 
+  // Front view: pilotis correspond to row 0 (A1, A2, A3, A4)
+  // Back view: pilotis correspond to row 2 (C1, C2, C3, C4)
+  const rowIndex = isFront ? 0 : 2;
+
   for (let i = 0; i < 4; i++) {
-    pilots.push(
-      new Rect({
-        width: pilotW,
-        height: pilotH,
-        fill: "#ffffff",
-        stroke: "#333",
-        strokeWidth: 2,
-        strokeUniform: true,
-        left: margin + i * step,
-        top: roofH + bodyH,
-      }),
-    );
+    const pilotiId = `piloti_${i}_${rowIndex}`;
+    const defaultHeight = 1.0;
+    const pilotH = getPilotiVisualHeight(defaultHeight, s);
+
+    const rect = new Rect({
+      width: pilotW,
+      height: pilotH,
+      fill: "#ffffff",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: margin + i * step,
+      top: roofH + bodyH,
+      originY: "top",
+    });
+    (rect as any).myType = "piloti";
+    (rect as any).pilotiId = pilotiId;
+    (rect as any).pilotiHeight = defaultHeight;
+    (rect as any).pilotiIsMaster = false;
+    (rect as any).pilotiNivel = 0.3;
+    (rect as any).isPilotiRect = true;
+    (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
+
+    pilots.push(rect);
   }
 
   const roofFill = new Polygon(
@@ -463,6 +494,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
     top: canvas.height! / 2,
     originX: "center",
     originY: "center",
+    subTargetCheck: true,
   });
   (group as any).myType = "house";
   (group as any).houseView = isFront ? "front" : "back";
@@ -477,40 +509,42 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
   const sideWidth = 300 * s;
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
-  const pilotH = 100 * s;
 
-  const p1 = new Rect({
-    width: pilotW,
-    height: pilotH,
-    fill: "#fff",
-    stroke: "#333",
-    strokeWidth: 2,
-    strokeUniform: true,
-    left: 0,
-    top: wallHeight,
-  });
+  // Side view (side1): pilotis correspond to column 0 (A1, B1, C1)
+  // Side view (side2 - hasDoor): pilotis correspond to column 3 (A4, B4, C4)
+  const colIndex = hasDoor ? 3 : 0;
 
-  const p2 = new Rect({
-    width: pilotW,
-    height: pilotH,
-    fill: "#fff",
-    stroke: "#333",
-    strokeWidth: 2,
-    strokeUniform: true,
-    left: (sideWidth - pilotW) / 2,
-    top: wallHeight,
-  });
+  // Create pilotis with tracking
+  const createPilotiRect = (rowIndex: number, left: number) => {
+    const pilotiId = `piloti_${colIndex}_${rowIndex}`;
+    const defaultHeight = 1.0;
+    const pilotH = getPilotiVisualHeight(defaultHeight, s);
 
-  const p3 = new Rect({
-    width: pilotW,
-    height: pilotH,
-    fill: "#fff",
-    stroke: "#333",
-    strokeWidth: 2,
-    strokeUniform: true,
-    left: sideWidth - pilotW,
-    top: wallHeight,
-  });
+    const rect = new Rect({
+      width: pilotW,
+      height: pilotH,
+      fill: "#fff",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left,
+      top: wallHeight,
+      originY: "top",
+    });
+    (rect as any).myType = "piloti";
+    (rect as any).pilotiId = pilotiId;
+    (rect as any).pilotiHeight = defaultHeight;
+    (rect as any).pilotiIsMaster = false;
+    (rect as any).pilotiNivel = 0.3;
+    (rect as any).isPilotiRect = true;
+    (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
+
+    return rect;
+  };
+
+  const p1 = createPilotiRect(0, 0);
+  const p2 = createPilotiRect(1, (sideWidth - pilotW) / 2);
+  const p3 = createPilotiRect(2, sideWidth - pilotW);
 
   const wall = new Rect({
     width: sideWidth,
@@ -563,6 +597,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
     top: canvas.height! / 2,
     originX: "center",
     originY: "center",
+    subTargetCheck: true,
   });
   (group as any).myType = "house";
   (group as any).houseView = "side";
