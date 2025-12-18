@@ -11,6 +11,7 @@ export interface PilotiSelection {
   currentNivel: number;
   group: Group;
   screenPosition: { x: number; y: number };
+  houseView: 'top' | 'front' | 'back' | 'side';
 }
 
 export interface DistanceSelection {
@@ -306,16 +307,20 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           }
         });
 
-        // If a house is selected, highlight all its pilotis in yellow
+        // If a house is selected, highlight all its pilotis in yellow (only in top/plant view)
         if (obj && obj.type === 'group' && (obj as any).myType === 'house') {
-          (obj as Group).getObjects().forEach((child: any) => {
-            if (child.isPilotiCircle || child.isPilotiRect) {
-              child.set({
-                stroke: '#facc15',
-                strokeWidth: child.isPilotiRect ? 4 : 3,
-              });
-            }
-          });
+          const houseView = (obj as any).houseView;
+          // Only highlight all pilotis yellow in top view
+          if (houseView === 'top') {
+            (obj as Group).getObjects().forEach((child: any) => {
+              if (child.isPilotiCircle || child.isPilotiRect) {
+                child.set({
+                  stroke: '#facc15',
+                  strokeWidth: child.isPilotiRect ? 4 : 3,
+                });
+              }
+            });
+          }
         }
 
         canvas.renderAll();
@@ -418,6 +423,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             currentNivel: pilotiNivel,
             group,
             screenPosition: { x: screenX, y: screenY },
+            houseView: (group as any).houseView || 'top',
           });
           
           onSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
