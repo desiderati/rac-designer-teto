@@ -85,6 +85,8 @@ export function PilotiEditor({
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
   const nivelInputRef = useRef<HTMLInputElement | null>(null);
+  // Track if user manually dragged the popover - if so, keep position on navigation
+  const userDraggedRef = useRef(false);
 
   const allIds = useMemo(() => getAllPilotiIds(), []);
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
@@ -94,9 +96,17 @@ export function PilotiEditor({
 
   // Only initialize local state when opening, or when switching piloti
   const lastPilotiIdRef = useRef<string | null>(null);
+  const wasOpenRef = useRef(false);
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Reset drag flag when closing
+      wasOpenRef.current = false;
+      return;
+    }
 
+    const isFirstOpen = !wasOpenRef.current;
+    wasOpenRef.current = true;
+    
     const isNewPiloti = pilotiId !== lastPilotiIdRef.current;
     lastPilotiIdRef.current = pilotiId;
 
@@ -108,20 +118,25 @@ export function PilotiEditor({
       setTempNivelInput(formatNivelForInput(currentNivel));
     }
 
-    // Init draggable position when opening.
-    // IMPORTANT: if anchorPosition is missing (can happen in intermediate renders),
-    // keep the last position instead of snapping to (0,0).
-    setPopoverPos((prev) => {
-      if (prev && !isNewPiloti) return prev;
-      if (anchorPosition) return { x: anchorPosition.x + 12, y: anchorPosition.y + 12 };
-      return prev ?? { x: 24, y: 24 };
-    });
+    // Init draggable position only on first open, or if user hasn't dragged
+    // If user dragged, keep current position even when navigating
+    if (isFirstOpen) {
+      userDraggedRef.current = false;
+      if (anchorPosition) {
+        setPopoverPos({ x: anchorPosition.x + 12, y: anchorPosition.y + 12 });
+      } else {
+        setPopoverPos({ x: 24, y: 24 });
+      }
+    }
+    // If navigating and user hasn't dragged, we could update position, but user wants to keep it
+    // So we only set position on first open
   }, [isOpen, pilotiId, anchorPosition, currentHeight, currentIsMaster, currentNivel]);
 
   // Drag listeners (desktop)
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!dragStateRef.current) return;
+      userDraggedRef.current = true; // Mark that user manually dragged
       setPopoverPos({
         x: e.clientX - dragStateRef.current.offsetX,
         y: e.clientY - dragStateRef.current.offsetY,
