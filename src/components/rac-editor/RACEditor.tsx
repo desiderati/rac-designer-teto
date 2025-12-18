@@ -689,25 +689,40 @@ export function RACEditor() {
 
   const handlePilotiEditorClose = () => {
     setIsPilotiEditorOpen(false);
-    // Reset piloti highlight (respecting master status)
-    if (pilotiSelection?.group) {
-      const objects = pilotiSelection.group.getObjects();
+    const canvas = canvasRef.current?.canvas;
+    const group = pilotiSelection?.group;
+    
+    if (group && canvas) {
+      // Check if the house is still selected
+      const activeObject = canvas.getActiveObject();
+      const houseStillSelected = activeObject === group;
+      
+      const objects = group.getObjects();
       objects.forEach((obj: any) => {
-        if (obj.isPilotiCircle) {
-          if (obj.pilotiIsMaster) {
+        if (obj.isPilotiCircle || obj.isPilotiRect) {
+          if (houseStillSelected) {
+            // House is still selected - highlight in yellow
             obj.set({
-              stroke: '#8B4513',
-              strokeWidth: 2,
+              stroke: '#facc15',
+              strokeWidth: obj.isPilotiRect ? 4 : 3,
             });
           } else {
-            obj.set({
-              stroke: 'black',
-              strokeWidth: 1.5 * 0.6,
-            });
+            // House not selected - reset to normal colors
+            if (obj.pilotiIsMaster) {
+              obj.set({
+                stroke: '#8B4513',
+                strokeWidth: obj.isPilotiRect ? 3 : 2,
+              });
+            } else {
+              obj.set({
+                stroke: obj.isPilotiRect ? '#333' : 'black',
+                strokeWidth: obj.isPilotiRect ? 2 : 1.5 * 0.6,
+              });
+            }
           }
         }
       });
-      canvasRef.current?.canvas?.renderAll();
+      canvas.renderAll();
     }
     setPilotiSelection(null);
   };
