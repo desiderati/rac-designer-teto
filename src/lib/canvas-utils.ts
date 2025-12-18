@@ -264,10 +264,16 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
         obj.pilotiHeight = newHeight;
       }
       if (obj.isPilotiRect) {
+        const oldHeight = obj.height || 0;
         obj.pilotiHeight = newHeight;
         // Update visual height based on pilotiHeight
         const baseHeight = obj.pilotiBaseHeight || 60; // fallback
-        obj.set("height", baseHeight * newHeight);
+        const newVisualHeight = baseHeight * newHeight;
+        const heightDiff = newVisualHeight - oldHeight;
+        
+        // Piloti grows downward, so keep top position and just increase height
+        obj.set("height", newVisualHeight);
+        obj.setCoords();
       }
       if (obj.isPilotiText) {
         obj.set("text", formatPilotiHeight(newHeight));
@@ -275,6 +281,10 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     }
   });
 
+  // Recalculate group bounds after changing piloti height
+  group.setCoords();
+  // Force Fabric to recalculate the group's bounding box
+  (group as any)._calcBounds();
   group.dirty = true;
 }
 

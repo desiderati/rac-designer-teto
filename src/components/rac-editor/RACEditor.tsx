@@ -696,18 +696,19 @@ export function RACEditor() {
       // Check if the house is still selected
       const activeObject = canvas.getActiveObject();
       const houseStillSelected = activeObject === group;
+      const houseView = (group as any).houseView;
       
       const objects = group.getObjects();
       objects.forEach((obj: any) => {
         if (obj.isPilotiCircle || obj.isPilotiRect) {
-          if (houseStillSelected) {
-            // House is still selected - highlight in yellow
+          // Only highlight yellow in top view when house is selected
+          if (houseStillSelected && houseView === 'top') {
             obj.set({
               stroke: '#facc15',
               strokeWidth: obj.isPilotiRect ? 4 : 3,
             });
           } else {
-            // House not selected - reset to normal colors
+            // Reset to normal colors
             if (obj.pilotiIsMaster) {
               obj.set({
                 stroke: '#8B4513',
@@ -869,6 +870,7 @@ export function RACEditor() {
         group={pilotiSelection?.group ?? null}
         isMobile={isMobile}
         anchorPosition={pilotiSelection?.screenPosition}
+        houseView={pilotiSelection?.houseView ?? 'top'}
         onHeightChange={handlePilotiHeightChange}
         onNavigate={handlePilotiNavigate}
       />

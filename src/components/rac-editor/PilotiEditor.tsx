@@ -35,6 +35,7 @@ interface PilotiEditorProps {
   group: Group | null;
   isMobile: boolean;
   anchorPosition?: { x: number; y: number };
+  houseView?: 'top' | 'front' | 'back' | 'side';
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 }
@@ -73,6 +74,7 @@ export function PilotiEditor({
   group,
   isMobile,
   anchorPosition,
+  houseView = 'top',
   onHeightChange,
   onNavigate,
 }: PilotiEditorProps) {
@@ -294,7 +296,8 @@ export function PilotiEditor({
         <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
       </div>
 
-      {tempIsMaster && (
+      {/* Show nivel field only in top (plant) view */}
+      {tempIsMaster && houseView === 'top' && (
         <div className="pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
             <Input
