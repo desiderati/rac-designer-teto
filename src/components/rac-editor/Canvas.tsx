@@ -307,20 +307,16 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           }
         });
 
-        // If a house is selected, highlight all its pilotis in yellow (only in top/plant view)
+        // If a house is selected, highlight all its pilotis in yellow (all views)
         if (obj && obj.type === 'group' && (obj as any).myType === 'house') {
-          const houseView = (obj as any).houseView;
-          // Only highlight all pilotis yellow in top view
-          if (houseView === 'top') {
-            (obj as Group).getObjects().forEach((child: any) => {
-              if (child.isPilotiCircle || child.isPilotiRect) {
-                child.set({
-                  stroke: '#facc15',
-                  strokeWidth: child.isPilotiRect ? 4 : 3,
-                });
-              }
-            });
-          }
+          (obj as Group).getObjects().forEach((child: any) => {
+            if (child.isPilotiCircle || child.isPilotiRect) {
+              child.set({
+                stroke: '#facc15',
+                strokeWidth: child.isPilotiRect ? 4 : 3,
+              });
+            }
+          });
         }
 
         canvas.renderAll();
@@ -390,23 +386,16 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
           const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
           
-          // Reset all pilotis stroke first (respecting master status)
-          group.getObjects().forEach((obj: any) => {
-            if (obj.isPilotiCircle) {
-              if (obj.pilotiIsMaster) {
-                obj.set({ stroke: '#8B4513', strokeWidth: 2 });
-              } else {
-                obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
-              }
-            }
-            if (obj.isPilotiRect) {
-              if (obj.pilotiIsMaster) {
-                obj.set({ stroke: '#8B4513', strokeWidth: 3 });
-              } else {
-                obj.set({ stroke: '#333', strokeWidth: 2 });
-              }
-            }
-          });
+           // Deixa TODOS os pilotis amarelos quando o popover abrir/selecionar
+           // (e depois o piloti atual fica azul)
+           group.getObjects().forEach((obj: any) => {
+             if (obj.isPilotiCircle || obj.isPilotiRect) {
+               obj.set({
+                 stroke: '#facc15',
+                 strokeWidth: obj.isPilotiRect ? 4 : 3,
+               });
+             }
+           });
           
           // Highlight the selected piloti with thicker border
           const isPilotiRectType = (piloti as any).isPilotiRect;
