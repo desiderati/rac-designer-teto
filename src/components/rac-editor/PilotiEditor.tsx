@@ -20,9 +20,9 @@ import {
   updatePilotiAll,
   formatPilotiHeight,
   getPilotiName,
-  getAdjacentPilotiId,
   getPilotiFromGroup,
   getAllPilotiIds,
+  getPilotiIdsFromGroup,
 } from '@/lib/canvas-utils';
 
 interface PilotiEditorProps {
@@ -90,7 +90,10 @@ export function PilotiEditor({
   // Track if user manually dragged the popover - if so, keep position on navigation
   const userDraggedRef = useRef(false);
 
-  const allIds = useMemo(() => getAllPilotiIds(), []);
+  const allIds = useMemo(() => {
+    if (group) return getPilotiIdsFromGroup(group);
+    return getAllPilotiIds();
+  }, [group]);
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
@@ -179,7 +182,11 @@ export function PilotiEditor({
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId || !group) return;
 
-    const newId = getAdjacentPilotiId(pilotiId, direction);
+    const idx = allIds.indexOf(pilotiId);
+    if (idx === -1) return;
+
+    const newIndex = direction === 'next' ? idx + 1 : idx - 1;
+    const newId = allIds[newIndex];
     if (!newId) return;
 
     // Apply current changes before navigating
@@ -197,7 +204,7 @@ export function PilotiEditor({
       setTempNivel(pilotiData.nivel);
       setTempNivelInput(formatNivelForInput(pilotiData.nivel));
     }
-  };
+  }; 
 
   const handleApply = () => {
     // Converte o texto do nível apenas na hora de aplicar
@@ -345,9 +352,11 @@ export function PilotiEditor({
                 Cancelar
               </Button>
             </DrawerClose>
-            <Button className="flex-1" onClick={handleApply}>
-              Aplicar
-            </Button>
+            <DrawerClose asChild>
+              <Button className="flex-1" onClick={handleApply}>
+                Aplicar
+              </Button>
+            </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>

@@ -691,24 +691,21 @@ export function RACEditor() {
     setIsPilotiEditorOpen(false);
     const canvas = canvasRef.current?.canvas;
     const group = pilotiSelection?.group;
-    
     if (group && canvas) {
-      // Check if the house is still selected
+      // Se a casa ainda estiver selecionada, TODOS os pilotis ficam amarelos (todas as visões)
       const activeObject = canvas.getActiveObject();
       const houseStillSelected = activeObject === group;
-      const houseView = (group as any).houseView;
-      
+
       const objects = group.getObjects();
       objects.forEach((obj: any) => {
         if (obj.isPilotiCircle || obj.isPilotiRect) {
-          // Only highlight yellow in top view when house is selected
-          if (houseStillSelected && houseView === 'top') {
+          if (houseStillSelected) {
             obj.set({
               stroke: '#facc15',
               strokeWidth: obj.isPilotiRect ? 4 : 3,
             });
           } else {
-            // Reset to normal colors
+            // Reset para cores “normais”
             if (obj.pilotiIsMaster) {
               obj.set({
                 stroke: '#8B4513',
@@ -740,23 +737,34 @@ export function RACEditor() {
     const canvas = canvasRef.current?.canvas;
     if (!canvas) return;
     
-    // Reset all pilotis stroke (respecting master status)
+    // Com popover aberto, a casa continua selecionada: todos amarelos, só o atual azul
+    const activeObject = canvas.getActiveObject();
+    const houseStillSelected = activeObject === pilotiSelection.group;
+
     pilotiSelection.group.getObjects().forEach((obj: any) => {
-      if (obj.isPilotiCircle) {
-        if (obj.pilotiIsMaster) {
-          obj.set({ stroke: '#8B4513', strokeWidth: 2 });
+      if (obj.isPilotiCircle || obj.isPilotiRect) {
+        if (houseStillSelected) {
+          obj.set({
+            stroke: '#facc15',
+            strokeWidth: obj.isPilotiRect ? 4 : 3,
+          });
+        } else if (obj.pilotiIsMaster) {
+          obj.set({ stroke: '#8B4513', strokeWidth: obj.isPilotiRect ? 3 : 2 });
         } else {
-          obj.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+          obj.set({
+            stroke: obj.isPilotiRect ? '#333' : 'black',
+            strokeWidth: obj.isPilotiRect ? 2 : 1.5 * 0.6,
+          });
         }
       }
     });
-    
+
     // Highlight the new piloti
     const pilotiData = getPilotiFromGroup(pilotiSelection.group, pilotiId);
     if (pilotiData) {
-      pilotiData.circle.set({
+      (pilotiData.circle as any).set({
         stroke: '#3b82f6',
-        strokeWidth: 3,
+        strokeWidth: (pilotiData.circle as any).isPilotiRect ? 5 : 4,
       });
     }
     

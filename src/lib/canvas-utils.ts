@@ -212,6 +212,18 @@ export function getAllPilotiIds(): string[] {
   return ids;
 }
 
+// Get piloti IDs that actually exist inside a given house group, ordered like getAllPilotiIds()
+export function getPilotiIdsFromGroup(group: Group): string[] {
+  const present = new Set<string>();
+  group.getObjects().forEach((obj: any) => {
+    if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === 'string') {
+      present.add(obj.pilotiId);
+    }
+  });
+
+  return getAllPilotiIds().filter((id) => present.has(id));
+}
+
 // Get next/previous piloti ID
 export function getAdjacentPilotiId(currentId: string, direction: "next" | "prev"): string | null {
   const allIds = getAllPilotiIds();
