@@ -180,7 +180,7 @@ export function PilotiEditor({
   }, [isOpen, tempIsMaster, tempNivelInput]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
-    if (!pilotiId || !group) return;
+    if (!pilotiId) return;
 
     const idx = allIds.indexOf(pilotiId);
     if (idx === -1) return;
@@ -189,11 +189,16 @@ export function PilotiEditor({
     const newId = allIds[newIndex];
     if (!newId) return;
 
-    // Apply current changes before navigating
-    if (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel) {
+    // Apply current changes before navigating (only if we have a group)
+    if (group && (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel)) {
       updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, tempNivel);
       onHeightChange(tempHeight);
+
+      // Keep external selection in sync (important for non-top views)
+      onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
     }
+
+    if (!group) return;
 
     // Get new piloti data
     const pilotiData = getPilotiFromGroup(group, newId);
@@ -204,7 +209,7 @@ export function PilotiEditor({
       setTempNivel(pilotiData.nivel);
       setTempNivelInput(formatNivelForInput(pilotiData.nivel));
     }
-  }; 
+  };
 
   const handleApply = () => {
     // Converte o texto do nível apenas na hora de aplicar
@@ -217,7 +222,11 @@ export function PilotiEditor({
     if (group && pilotiId) {
       updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, nivelToApply);
       onHeightChange(tempHeight);
+
+      // Critical: keep selection/highlight + displayed values in sync while popover is open
+      onNavigate?.(pilotiId, tempHeight, tempIsMaster, nivelToApply);
     }
+
     onClose();
   };
 

@@ -270,33 +270,45 @@ export function getPilotiFromGroup(
 export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
   const objects = group.getObjects();
 
+  // When changing a rect piloti (front/back/side), the group's bounding box grows downward.
+  // Because the group uses originY="center", Fabric will effectively shift the visual center,
+  // which can make the piloti look "cut" near the canvas edge.
+  // We compensate by moving the whole group UP by half of the height delta, keeping the house in place.
+  let rectHeightDelta = 0;
+
   objects.forEach((obj: any) => {
     if (obj.pilotiId === pilotiId) {
       if (obj.isPilotiCircle) {
         obj.pilotiHeight = newHeight;
       }
+
       if (obj.isPilotiRect) {
         const oldHeight = obj.height || 0;
         obj.pilotiHeight = newHeight;
-        // Update visual height based on pilotiHeight
+
         const baseHeight = obj.pilotiBaseHeight || 60; // fallback
         const newVisualHeight = baseHeight * newHeight;
-        const heightDiff = newVisualHeight - oldHeight;
-        
-        // Piloti grows downward, so keep top position and just increase height
-        obj.set("height", newVisualHeight);
+        rectHeightDelta = newVisualHeight - oldHeight;
+
+        // Piloti grows downward (originY: top)
+        obj.set('height', newVisualHeight);
         obj.setCoords();
       }
+
       if (obj.isPilotiText) {
-        obj.set("text", formatPilotiHeight(newHeight));
+        obj.set('text', formatPilotiHeight(newHeight));
       }
     }
   });
 
+  if (rectHeightDelta !== 0) {
+    group.set('top', (group.top || 0) - rectHeightDelta / 2);
+  }
+
   // Recalculate group bounds after changing piloti height
   group.setCoords();
-  // Force Fabric to recalculate the group's bounding box
   (group as any)._calcBounds();
+  (group as any)._updateObjectsCoords?.();
   group.dirty = true;
 }
 
