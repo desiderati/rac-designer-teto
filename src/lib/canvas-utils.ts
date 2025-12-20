@@ -270,8 +270,10 @@ export function getPilotiFromGroup(
 export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
   const objects = group.getObjects();
 
-  // IMPORTANT (Fabric group caching): when a child grows, the group cache/bounds MUST be recalculated,
-  // otherwise the new geometry can look "cortada".
+  // Fabric caching note:
+  // Groups can cache to an offscreen canvas; when a child grows, the cached bounds can clip the new geometry.
+  // The most reliable fix is to disable caching for this house group + piloti rects.
+  (group as any).objectCaching = false;
 
   // Track delta to keep the house centered while piloti rect grows downwards.
   // (Rects in front/back/side use originY="top", so growth increases maxY only.)
@@ -286,6 +288,9 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     }
 
     if (obj.isPilotiRect) {
+      // Disable caching for the rect itself as well (prevents "corte" after resize)
+      obj.objectCaching = false;
+
       const oldHeight = obj.height || 0;
       obj.pilotiHeight = newHeight;
 
@@ -309,14 +314,15 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
   }
 
   // Recalculate group bounds/cache so the new rect height is actually rendered.
+  (group as any)._clearCache?.();
   (group as any)._calcBounds?.();
   (group as any)._updateObjectsCoords?.();
-  (group as any)._clearCache?.();
   group.setCoords();
   (group as any).dirty = true;
 
   group.canvas?.requestRenderAll();
 }
+
 
 export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boolean, nivel: number): void {
   const objects = group.getObjects();
@@ -422,6 +428,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
       left: margin + i * step,
       top: roofH + bodyH,
       originY: "top",
+      objectCaching: false,
     });
     (rect as any).myType = "piloti";
     (rect as any).pilotiId = pilotiId;
@@ -535,6 +542,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
     originX: "center",
     originY: "center",
     subTargetCheck: true,
+    objectCaching: false,
   });
   (group as any).myType = "house";
   (group as any).houseView = isFront ? "front" : "back";
@@ -570,6 +578,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
       left,
       top: wallHeight,
       originY: "top",
+      objectCaching: false,
     });
     (rect as any).myType = "piloti";
     (rect as any).pilotiId = pilotiId;
@@ -638,6 +647,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
     originX: "center",
     originY: "center",
     subTargetCheck: true,
+    objectCaching: false,
   });
   (group as any).myType = "house";
   (group as any).houseView = "side";
