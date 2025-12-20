@@ -282,8 +282,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       const updateHint = () => {
         const obj = canvas.getActiveObject();
         onSelectionChange(getHintForObject(obj));
-        // Clear piloti selection when general selection changes
-        onPilotiSelect?.(null);
+
+        // Clear piloti selection only when no editor is open.
+        // When the editor is open, selection events (object:modified / selection:updated)
+        // can fire and would otherwise wipe the editor's "group" reference,
+        // breaking < > navigation and Apply.
+        if (!isEditorOpenRef.current) {
+          onPilotiSelect?.(null);
+        }
 
         // Reset piloti styles for all house groups
         canvas.getObjects().forEach((item: any) => {
