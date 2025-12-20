@@ -270,46 +270,52 @@ export function getPilotiFromGroup(
 export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
   const objects = group.getObjects();
 
-  // When changing a rect piloti (front/back/side), the group's bounding box grows downward.
-  // Because the group uses originY="center", Fabric will effectively shift the visual center,
-  // which can make the piloti look "cut" near the canvas edge.
-  // We compensate by moving the whole group UP by half of the height delta, keeping the house in place.
+  // IMPORTANT (Fabric group caching): when a child grows, the group cache/bounds MUST be recalculated,
+  // otherwise the new geometry can look "cortada".
+
+  // Track delta to keep the house centered while piloti rect grows downwards.
+  // (Rects in front/back/side use originY="top", so growth increases maxY only.)
   let rectHeightDelta = 0;
 
   objects.forEach((obj: any) => {
-    if (obj.pilotiId === pilotiId) {
-      if (obj.isPilotiCircle) {
-        obj.pilotiHeight = newHeight;
-      }
+    if (obj.pilotiId !== pilotiId) return;
 
-      if (obj.isPilotiRect) {
-        const oldHeight = obj.height || 0;
-        obj.pilotiHeight = newHeight;
+    if (obj.isPilotiCircle) {
+      obj.pilotiHeight = newHeight;
+      return;
+    }
 
-        const baseHeight = obj.pilotiBaseHeight || 60; // fallback
-        const newVisualHeight = baseHeight * newHeight;
-        rectHeightDelta = newVisualHeight - oldHeight;
+    if (obj.isPilotiRect) {
+      const oldHeight = obj.height || 0;
+      obj.pilotiHeight = newHeight;
 
-        // Piloti grows downward (originY: top)
-        obj.set('height', newVisualHeight);
-        obj.setCoords();
-      }
+      const baseHeight = obj.pilotiBaseHeight || 60; // fallback
+      const newVisualHeight = baseHeight * newHeight;
+      rectHeightDelta = newVisualHeight - oldHeight;
 
-      if (obj.isPilotiText) {
-        obj.set('text', formatPilotiHeight(newHeight));
-      }
+      obj.set({ height: newVisualHeight, scaleY: 1 });
+      obj.setCoords();
+      return;
+    }
+
+    if (obj.isPilotiText) {
+      obj.set('text', formatPilotiHeight(newHeight));
     }
   });
 
+  // Keep the house centered in the canvas when the piloti grows (avoid bottom cut by viewport).
   if (rectHeightDelta !== 0) {
     group.set('top', (group.top || 0) - rectHeightDelta / 2);
   }
 
-  // Recalculate group bounds after changing piloti height
-  group.setCoords();
-  (group as any)._calcBounds();
+  // Recalculate group bounds/cache so the new rect height is actually rendered.
+  (group as any)._calcBounds?.();
   (group as any)._updateObjectsCoords?.();
-  group.dirty = true;
+  (group as any)._clearCache?.();
+  group.setCoords();
+  (group as any).dirty = true;
+
+  group.canvas?.requestRenderAll();
 }
 
 export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boolean, nivel: number): void {
