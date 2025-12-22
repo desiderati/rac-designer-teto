@@ -13,6 +13,7 @@ import {
   FabricObject,
 } from "fabric";
 
+
 export const CANVAS_WIDTH = 1300;
 export const CANVAS_HEIGHT = 1300;
 export const BASE_TOP_WIDTH = 610;
@@ -272,7 +273,7 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
 
   // Fabric caching note:
   // Groups can cache to an offscreen canvas; when a child grows, the cached bounds can clip the new geometry.
-  // The most reliable fix is to disable caching for this house group + piloti rects.
+  // We disable caching + force a refresh to guarantee the new rect is actually redrawn.
   (group as any).objectCaching = false;
 
   // Track delta to keep the house centered while piloti rect grows downwards.
@@ -284,6 +285,7 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
 
     if (obj.isPilotiCircle) {
       obj.pilotiHeight = newHeight;
+      (obj as any).dirty = true;
       return;
     }
 
@@ -291,20 +293,23 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       // Disable caching for the rect itself as well (prevents "corte" after resize)
       obj.objectCaching = false;
 
-      const oldHeight = obj.height || 0;
+      const oldHeight = (obj.getScaledHeight?.() ?? obj.height ?? 0) as number;
       obj.pilotiHeight = newHeight;
 
       const baseHeight = obj.pilotiBaseHeight || 60; // fallback
       const newVisualHeight = baseHeight * newHeight;
       rectHeightDelta = newVisualHeight - oldHeight;
 
+      // IMPORTANT: reset scaling so height is the real source of truth
       obj.set({ height: newVisualHeight, scaleY: 1 });
       obj.setCoords();
+      (obj as any).dirty = true;
       return;
     }
 
     if (obj.isPilotiText) {
       obj.set('text', formatPilotiHeight(newHeight));
+      (obj as any).dirty = true;
     }
   });
 
@@ -313,21 +318,43 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     group.set('top', (group.top || 0) - rectHeightDelta / 2);
   }
 
-  // Recalculate group bounds/cache so the new rect height is actually rendered.
+  refreshHouseGroupRendering(group);
+  group.canvas?.requestRenderAll();
+}
+
+
+/**
+ * Forces Fabric to rebuild caches/bounds for house groups so resized pilotis are actually redrawn.
+ * This also fixes Ctrl+Z restore cases where the group comes back "cortado" due to stale cache.
+ */
+export function refreshHouseGroupRendering(group: Group): void {
+  (group as any).objectCaching = false;
+
+  group.getObjects().forEach((obj: any) => {
+    // Prevent child cache from clipping inside group
+    obj.objectCaching = false;
+    (obj as any).dirty = true;
+    obj.setCoords?.();
+  });
+
   (group as any)._clearCache?.();
   (group as any)._calcBounds?.();
   (group as any)._updateObjectsCoords?.();
   group.setCoords();
   (group as any).dirty = true;
-
-  group.canvas?.requestRenderAll();
 }
 
+export function refreshHouseGroupsOnCanvas(canvas: FabricCanvas): void {
+  canvas.getObjects().forEach((obj: any) => {
+    if (obj?.type === "group" && obj?.myType === "house") {
+      refreshHouseGroupRendering(obj as Group);
+    }
+  });
+}
 
 export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boolean, nivel: number): void {
   const objects = group.getObjects();
 
-  // If setting as master, first remove master status from all other pilotis
   if (isMaster) {
     objects.forEach((obj: any) => {
       if (obj.pilotiId !== pilotiId) {
