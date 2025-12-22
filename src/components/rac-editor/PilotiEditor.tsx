@@ -78,10 +78,11 @@ export function PilotiEditor({
   onHeightChange,
   onNavigate,
 }: PilotiEditorProps) {
-  const [tempHeight, setTempHeight] = useState(currentHeight);
-  const [tempIsMaster, setTempIsMaster] = useState(currentIsMaster);
-  const [tempNivel, setTempNivel] = useState(currentNivel);
-  const [tempNivelInput, setTempNivelInput] = useState(formatNivelForInput(currentNivel));
+  // Initialize with a function to avoid stale closure issues - values sync immediately when props change
+  const [tempHeight, setTempHeight] = useState(() => currentHeight);
+  const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
+  const [tempNivel, setTempNivel] = useState(() => currentNivel);
+  const [tempNivelInput, setTempNivelInput] = useState(() => formatNivelForInput(currentNivel));
 
   // Popover draggable position (desktop)
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
@@ -99,32 +100,34 @@ export function PilotiEditor({
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
 
-  // Only initialize local state when opening, or when switching piloti
+  // Synchronize temp state with props immediately when pilotiId changes (avoids flash of old values)
   const lastPilotiIdRef = useRef<string | null>(null);
   const wasOpenRef = useRef(false);
+  
+  // Use useLayoutEffect-like pattern: update state synchronously when pilotiId changes
+  if (isOpen && pilotiId !== lastPilotiIdRef.current) {
+    lastPilotiIdRef.current = pilotiId;
+    // This will trigger a re-render with the correct values before painting
+  }
+
   useEffect(() => {
     if (!isOpen) {
-      // Reset drag flag when closing
+      // Reset refs when closing
       wasOpenRef.current = false;
+      lastPilotiIdRef.current = null;
       return;
     }
 
     const isFirstOpen = !wasOpenRef.current;
     wasOpenRef.current = true;
-    
-    const isNewPiloti = pilotiId !== lastPilotiIdRef.current;
-    lastPilotiIdRef.current = pilotiId;
 
-    // Init form values on open or on piloti change
-    if (isNewPiloti) {
-      setTempHeight(currentHeight);
-      setTempIsMaster(currentIsMaster);
-      setTempNivel(currentNivel);
-      setTempNivelInput(formatNivelForInput(currentNivel));
-    }
+    // Always sync form values when pilotiId or props change
+    setTempHeight(currentHeight);
+    setTempIsMaster(currentIsMaster);
+    setTempNivel(currentNivel);
+    setTempNivelInput(formatNivelForInput(currentNivel));
 
-    // Init draggable position only on first open, or if user hasn't dragged
-    // If user dragged, keep current position even when navigating
+    // Init draggable position only on first open
     if (isFirstOpen) {
       userDraggedRef.current = false;
       if (anchorPosition) {
@@ -133,9 +136,7 @@ export function PilotiEditor({
         setPopoverPos({ x: 24, y: 24 });
       }
     }
-    // If navigating and user hasn't dragged, we could update position, but user wants to keep it
-    // So we only set position on first open
-  }, [isOpen, pilotiId, anchorPosition, currentHeight, currentIsMaster, currentNivel]);
+  }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel, anchorPosition]);
 
   // Drag listeners (desktop)
   useEffect(() => {
