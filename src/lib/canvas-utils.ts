@@ -326,17 +326,28 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
 /**
  * Forces Fabric to rebuild caches/bounds for house groups so resized pilotis are actually redrawn.
  * This also fixes Ctrl+Z restore cases where the group comes back "cortado" due to stale cache.
+ * IMPORTANT: We must remove and re-add children to force the group to recalculate its bounding box
+ * correctly in Fabric v6.
  */
 export function refreshHouseGroupRendering(group: Group): void {
   (group as any).objectCaching = false;
 
-  group.getObjects().forEach((obj: any) => {
-    // Prevent child cache from clipping inside group
+  // Get all objects and their current state
+  const objects = group.getObjects();
+
+  // Mark all children as dirty and disable their caching
+  objects.forEach((obj: any) => {
     obj.objectCaching = false;
     (obj as any).dirty = true;
     obj.setCoords?.();
   });
 
+  // Remove and re-add all objects to force bounds recalculation
+  // This is the most reliable way to update the group's bounding box in Fabric v6
+  group.remove(...objects);
+  group.add(...objects);
+
+  // Now recalculate bounds
   (group as any)._clearCache?.();
   (group as any)._calcBounds?.();
   (group as any)._updateObjectsCoords?.();
