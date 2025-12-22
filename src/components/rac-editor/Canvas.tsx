@@ -1,6 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil } from 'fabric';
-import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds } from '@/lib/canvas-utils';
+import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
 
@@ -129,7 +130,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const prevState = historyRef.current[historyRef.current.length - 1];
         fabricCanvasRef.current.clear();
         fabricCanvasRef.current.loadFromJSON(prevState).then(() => {
+          // IMPORTANT: after loadFromJSON, Fabric groups may keep a stale cache and clip resized pilotis.
+          // Force-refresh all house groups before rendering.
+          refreshHouseGroupsOnCanvas(fabricCanvasRef.current!);
+
           fabricCanvasRef.current?.renderAll();
+          updateMinimapObjects();
           historyProcessingRef.current = false;
           onSelectionChange('Desfazer realizado.');
         });
