@@ -381,15 +381,13 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           ? (currentContainerSize.height - scaledHeight) / 2 
           : -currentViewportY;
         
-        // Calculate screen position of piloti
-        const groupMatrix = group.calcTransformMatrix();
-        const pilotiLeft = piloti.left || 0;
-        const pilotiTop = piloti.top || 0;
-        
-        // Transform piloti position to canvas coordinates
+        // Calculate screen position of piloti using its fully transformed center
+        // getCenterPoint() returns canvas coordinates with all transformations applied
+        // (group scale, rotation, piloti's own scale, etc.)
+        const pilotiCenter = piloti.getCenterPoint();
         const canvasPoint = {
-          x: groupMatrix[4] + pilotiLeft * groupMatrix[0] + pilotiTop * groupMatrix[2],
-          y: groupMatrix[5] + pilotiLeft * groupMatrix[1] + pilotiTop * groupMatrix[3],
+          x: pilotiCenter.x,
+          y: pilotiCenter.y,
         };
         
         // Convert to screen coordinates
