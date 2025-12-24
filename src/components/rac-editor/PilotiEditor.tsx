@@ -17,13 +17,13 @@ import {
 } from '@/components/ui/drawer';
 import {
   PILOTI_HEIGHTS,
-  updatePilotiAll,
   formatPilotiHeight,
   getPilotiName,
   getPilotiFromGroup,
   getAllPilotiIds,
   getPilotiIdsFromGroup,
 } from '@/lib/canvas-utils';
+import { houseManager } from '@/lib/house-manager';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -190,12 +190,16 @@ export function PilotiEditor({
     const newId = allIds[newIndex];
     if (!newId) return;
 
-    // Apply current changes before navigating (only if we have a group)
-    if (group && (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel)) {
-      updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, tempNivel);
+    // Apply current changes before navigating using house manager (syncs all views)
+    if (pilotiId && (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel)) {
+      houseManager.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: tempIsMaster,
+        nivel: tempNivel,
+      });
       onHeightChange(tempHeight);
 
-      // Keep external selection in sync (important for non-top views)
+      // Keep external selection in sync
       onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
     }
 
@@ -220,8 +224,13 @@ export function PilotiEditor({
     setTempNivel(nivelToApply);
     setTempNivelInput(parsed ? tempNivelInput : DEFAULT_NIVEL_INPUT);
 
-    if (group && pilotiId) {
-      updatePilotiAll(group, pilotiId, tempHeight, tempIsMaster, nivelToApply);
+    // Use house manager to update and sync across all views
+    if (pilotiId) {
+      houseManager.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: tempIsMaster,
+        nivel: nivelToApply,
+      });
       onHeightChange(tempHeight);
 
       // Critical: keep selection/highlight + displayed values in sync while popover is open

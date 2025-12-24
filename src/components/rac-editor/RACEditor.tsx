@@ -9,6 +9,7 @@ import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
 import { DistanceEditor } from './DistanceEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
+import { SideSelector } from './SideSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
@@ -39,6 +40,7 @@ import {
   formatPilotiHeight,
   getPilotiFromGroup,
 } from '@/lib/canvas-utils';
+import { houseManager, ViewType, HouseSide } from '@/lib/house-manager';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
 
@@ -57,9 +59,18 @@ export function RACEditor() {
   const [distanceSelection, setDistanceSelection] = useState<DistanceSelection | null>(null);
   const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
+  const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
+  const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
 
+  // Initialize house manager when canvas is ready
+  useEffect(() => {
+    const canvas = canvasRef.current?.canvas;
+    if (canvas) {
+      houseManager.initialize(canvas);
+    }
+  }, []);
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('rac-tutorial-completed');
     if (!tutorialCompleted) {
@@ -94,6 +105,9 @@ export function RACEditor() {
       canvasRef.current?.clearHistory();
       canvasRef.current?.saveHistory();
     }
+    
+    // Reset house manager
+    houseManager.reset();
     
     // Close all menus
     setActiveSubmenu(null);
@@ -228,50 +242,113 @@ export function RACEditor() {
     localStorage.setItem('rac-piloti-tutorial-shown', 'true');
   };
 
-  const handleAddHouseTop = () => {
+  // Helper to add a view with side selection logic
+  const requestAddView = (viewType: ViewType) => {
+    // Check if view already exists
+    if (houseManager.hasView(viewType)) {
+      toast.error(`Vista ${getViewLabel(viewType)} já foi adicionada. Delete-a primeiro para adicionar novamente.`);
+      return;
+    }
+
+    // Top view doesn't need side selection
+    if (viewType === 'top') {
+      addViewToCanvas(viewType);
+      return;
+    }
+
+    // Check if side selection is needed
+    if (houseManager.needsSideSelection(viewType)) {
+      setPendingViewType(viewType);
+      setSideSelectorOpen(true);
+    } else {
+      // Auto-select side
+      const side = houseManager.getAutoSelectedSide(viewType);
+      addViewToCanvas(viewType, side || undefined);
+    }
+  };
+
+  const getViewLabel = (type: ViewType): string => {
+    switch (type) {
+      case 'top': return 'Planta';
+      case 'front': return 'Frontal';
+      case 'back': return 'Traseira';
+      case 'side1': return 'Lateral Fechada';
+      case 'side2': return 'Lateral Aberta';
+    }
+  };
+
+  const addViewToCanvas = (viewType: ViewType, side?: HouseSide) => {
     closeAllMenus();
     const canvas = getCanvas();
-    if (canvas) {
-      const house = createHouseTop(canvas);
-      addObjectToCanvas(house);
+    if (!canvas) return;
+
+    let house: Group;
+    switch (viewType) {
+      case 'top':
+        house = createHouseTop(canvas);
+        break;
+      case 'front':
+        house = createHouseFrontBack(canvas, true);
+        break;
+      case 'back':
+        house = createHouseFrontBack(canvas, false);
+        break;
+      case 'side1':
+        house = createHouseSide(canvas, false);
+        break;
+      case 'side2':
+        house = createHouseSide(canvas, true);
+        break;
+    }
+
+    // Register with house manager (this applies synced piloti data)
+    houseManager.registerView(viewType, house, side);
+
+    addObjectToCanvas(house);
+    
+    if (viewType === 'top') {
       showPilotiTutorialIfNeeded(house);
     }
+
+    toast.success(`Vista ${getViewLabel(viewType)} adicionada!`);
+  };
+
+  const handleSideSelected = (side: HouseSide) => {
+    if (pendingViewType) {
+      addViewToCanvas(pendingViewType, side);
+      setPendingViewType(null);
+    }
+    setSideSelectorOpen(false);
+  };
+
+  const handleSideSelectorClose = () => {
+    setSideSelectorOpen(false);
+    setPendingViewType(null);
+  };
+
+  const handleAddHouseTop = () => {
+    closeAllMenus();
+    requestAddView('top');
   };
 
   const handleAddHouseFront = () => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (canvas) {
-      const house = createHouseFrontBack(canvas, true);
-      addObjectToCanvas(house);
-    }
+    requestAddView('front');
   };
 
   const handleAddHouseBack = () => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (canvas) {
-      const house = createHouseFrontBack(canvas, false);
-      addObjectToCanvas(house);
-    }
+    requestAddView('back');
   };
 
   const handleAddHouseSide1 = () => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (canvas) {
-      const house = createHouseSide(canvas, false);
-      addObjectToCanvas(house);
-    }
+    requestAddView('side1');
   };
 
   const handleAddHouseSide2 = () => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (canvas) {
-      const house = createHouseSide(canvas, true);
-      addObjectToCanvas(house);
-    }
+    requestAddView('side2');
   };
 
   // Group/Ungroup
@@ -598,7 +675,13 @@ export function RACEditor() {
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length) {
       canvas.discardActiveObject();
-      activeObjects.forEach((obj) => canvas.remove(obj));
+      activeObjects.forEach((obj) => {
+        // If it's a house view, remove from house manager
+        if ((obj as any).myType === 'house') {
+          houseManager.removeView(obj as Group);
+        }
+        canvas.remove(obj);
+      });
       setInfoMessage('Objeto excluído.');
     }
   };
@@ -893,6 +976,15 @@ export function RACEditor() {
         anchorPosition={distanceSelection?.screenPosition}
         onValueChange={handleDistanceValueChange}
       />
+
+      {pendingViewType && (
+        <SideSelector
+          isOpen={sideSelectorOpen}
+          onClose={handleSideSelectorClose}
+          viewType={pendingViewType}
+          onSelectSide={handleSideSelected}
+        />
+      )}
 
       {tutorialStep && (
         <Tutorial 

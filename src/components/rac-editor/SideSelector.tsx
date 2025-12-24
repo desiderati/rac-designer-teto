@@ -1,0 +1,276 @@
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { HouseSide, ViewType, houseManager, OPPOSITE_VIEW } from '@/lib/house-manager';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+
+interface SideSelectorProps {
+  isOpen: boolean;
+  onClose: () => void;
+  viewType: ViewType;
+  onSelectSide: (side: HouseSide) => void;
+}
+
+// Piloti grid layout (3 rows x 4 cols)
+const PILOTI_GRID = [
+  ['A1', 'A2', 'A3', 'A4'],
+  ['B1', 'B2', 'B3', 'B4'],
+  ['C1', 'C2', 'C3', 'C4'],
+];
+
+function getPilotiIdFromName(name: string): string {
+  const row = name.charCodeAt(0) - 65; // A=0, B=1, C=2
+  const col = parseInt(name[1]) - 1; // 1=0, 2=1, 3=2, 4=3
+  return `piloti_${col}_${row}`;
+}
+
+export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSelectorProps) {
+  const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
+
+  const availableSides = houseManager.getAvailableSides(viewType);
+  const house = houseManager.getHouse();
+
+  // Determine which sides can be selected based on view type
+  const isLongSide = viewType === 'front' || viewType === 'back';
+  const selectableSides: HouseSide[] = isLongSide ? ['top', 'bottom'] : ['left', 'right'];
+
+  const handleSideClick = (side: HouseSide) => {
+    if (availableSides.includes(side)) {
+      onSelectSide(side);
+      onClose();
+    }
+  };
+
+  const getViewLabel = (type: ViewType): string => {
+    switch (type) {
+      case 'front': return 'Frontal';
+      case 'back': return 'Traseira';
+      case 'side1': return 'Lateral Fechada';
+      case 'side2': return 'Lateral Aberta';
+      default: return '';
+    }
+  };
+
+  const getSideLabel = (side: HouseSide): string => {
+    switch (side) {
+      case 'top': return 'Superior';
+      case 'bottom': return 'Inferior';
+      case 'left': return 'Esquerda';
+      case 'right': return 'Direita';
+    }
+  };
+
+  const isSideAvailable = (side: HouseSide): boolean => {
+    return availableSides.includes(side) && selectableSides.includes(side);
+  };
+
+  const getSideAssignment = (side: HouseSide): ViewType | null => {
+    return house?.sideAssignments[side] || null;
+  };
+
+  // Get highlight color for pilotis based on hovered side
+  const getPilotiHighlight = (name: string): boolean => {
+    if (!hoveredSide) return false;
+    
+    const row = name.charCodeAt(0) - 65; // A=0, B=1, C=2
+    const col = parseInt(name[1]) - 1; // 0-3
+    
+    // Top side = row A (row 0)
+    // Bottom side = row C (row 2)
+    // Left side = col 1 (col 0)
+    // Right side = col 4 (col 3)
+    switch (hoveredSide) {
+      case 'top': return row === 0;
+      case 'bottom': return row === 2;
+      case 'left': return col === 0;
+      case 'right': return col === 3;
+    }
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+        <SheetHeader className="text-center pb-2">
+          <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
+          <SheetDescription className="text-sm">
+            Toque no lado do retângulo onde deseja posicionar esta vista
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex flex-col items-center gap-4 py-4">
+          {/* Top side button (for front/back views) */}
+          {isLongSide && (
+            <SideButton
+              side="top"
+              label={getSideLabel('top')}
+              isAvailable={isSideAvailable('top')}
+              isHovered={hoveredSide === 'top'}
+              assignment={getSideAssignment('top')}
+              onHover={setHoveredSide}
+              onClick={handleSideClick}
+              className="w-full max-w-xs"
+            />
+          )}
+
+          {/* Middle row: Left + Grid + Right */}
+          <div className="flex items-center gap-2 w-full max-w-md justify-center">
+            {/* Left side button (for side views) */}
+            {!isLongSide && (
+              <SideButton
+                side="left"
+                label={getSideLabel('left')}
+                isAvailable={isSideAvailable('left')}
+                isHovered={hoveredSide === 'left'}
+                assignment={getSideAssignment('left')}
+                onHover={setHoveredSide}
+                onClick={handleSideClick}
+                vertical
+                className="h-full"
+              />
+            )}
+
+            {/* Piloti Grid */}
+            <div className="flex-1 max-w-xs">
+              <div 
+                className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30"
+                style={{ aspectRatio: '4/3' }}
+              >
+                <div className="grid grid-rows-3 gap-2 h-full">
+                  {PILOTI_GRID.map((row, rowIdx) => (
+                    <div key={rowIdx} className="grid grid-cols-4 gap-2">
+                      {row.map((name) => {
+                        const pilotiId = getPilotiIdFromName(name);
+                        const data = houseManager.getPilotiData(pilotiId);
+                        const isHighlighted = getPilotiHighlight(name);
+                        
+                        return (
+                          <div
+                            key={name}
+                            className={cn(
+                              "flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200",
+                              "border-2",
+                              isHighlighted 
+                                ? "bg-primary/20 border-primary scale-110" 
+                                : "bg-background border-foreground/20",
+                              data.isMaster && "bg-amber-100 border-amber-500"
+                            )}
+                          >
+                            <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right side button (for side views) */}
+            {!isLongSide && (
+              <SideButton
+                side="right"
+                label={getSideLabel('right')}
+                isAvailable={isSideAvailable('right')}
+                isHovered={hoveredSide === 'right'}
+                assignment={getSideAssignment('right')}
+                onHover={setHoveredSide}
+                onClick={handleSideClick}
+                vertical
+                className="h-full"
+              />
+            )}
+          </div>
+
+          {/* Bottom side button (for front/back views) */}
+          {isLongSide && (
+            <SideButton
+              side="bottom"
+              label={getSideLabel('bottom')}
+              isAvailable={isSideAvailable('bottom')}
+              isHovered={hoveredSide === 'bottom'}
+              assignment={getSideAssignment('bottom')}
+              onHover={setHoveredSide}
+              onClick={handleSideClick}
+              className="w-full max-w-xs"
+            />
+          )}
+        </div>
+
+        <div className="flex justify-center pb-4">
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+interface SideButtonProps {
+  side: HouseSide;
+  label: string;
+  isAvailable: boolean;
+  isHovered: boolean;
+  assignment: ViewType | null;
+  onHover: (side: HouseSide | null) => void;
+  onClick: (side: HouseSide) => void;
+  vertical?: boolean;
+  className?: string;
+}
+
+function SideButton({
+  side,
+  label,
+  isAvailable,
+  isHovered,
+  assignment,
+  onHover,
+  onClick,
+  vertical,
+  className,
+}: SideButtonProps) {
+  const getAssignmentLabel = (type: ViewType): string => {
+    switch (type) {
+      case 'front': return 'Frontal';
+      case 'back': return 'Traseira';
+      case 'side1': return 'Lat. Fechada';
+      case 'side2': return 'Lat. Aberta';
+      default: return '';
+    }
+  };
+
+  return (
+    <button
+      disabled={!isAvailable}
+      onMouseEnter={() => isAvailable && onHover(side)}
+      onMouseLeave={() => onHover(null)}
+      onTouchStart={() => isAvailable && onHover(side)}
+      onTouchEnd={() => onHover(null)}
+      onClick={() => onClick(side)}
+      className={cn(
+        "px-4 py-2 rounded-lg border-2 transition-all duration-200",
+        "flex items-center justify-center gap-1",
+        vertical && "writing-mode-vertical flex-col min-w-[44px] py-4",
+        isAvailable
+          ? isHovered
+            ? "bg-primary text-primary-foreground border-primary scale-105"
+            : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
+          : "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed",
+        className
+      )}
+      style={vertical ? { writingMode: 'vertical-rl', textOrientation: 'mixed' } : undefined}
+    >
+      {assignment ? (
+        <span className="text-xs opacity-70">{getAssignmentLabel(assignment)}</span>
+      ) : (
+        <span className="text-sm font-medium">{label}</span>
+      )}
+    </button>
+  );
+}
