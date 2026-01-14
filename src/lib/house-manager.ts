@@ -195,13 +195,30 @@ class HouseManager {
     for (const viewType of Object.keys(this.house.views) as ViewType[]) {
       const viewData = this.house.views[viewType];
       if (viewData?.group === group) {
+        console.log(`[HouseManager] Removing view ${viewType}, side: ${viewData.side}`);
         // Clear side assignment
         if (viewData.side) {
           this.house.sideAssignments[viewData.side] = null;
+          console.log(`[HouseManager] Cleared side assignment for ${viewData.side}`);
         }
         this.house.views[viewType] = null;
+        console.log(`[HouseManager] View ${viewType} removed, available views:`, this.getAvailableViews());
         break;
       }
+    }
+  }
+
+  // Remove view by type (alternative method)
+  removeViewByType(viewType: ViewType): void {
+    if (!this.house) return;
+    
+    const viewData = this.house.views[viewType];
+    if (viewData) {
+      console.log(`[HouseManager] Removing view by type: ${viewType}`);
+      if (viewData.side) {
+        this.house.sideAssignments[viewData.side] = null;
+      }
+      this.house.views[viewType] = null;
     }
   }
 
