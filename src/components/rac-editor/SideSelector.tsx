@@ -8,7 +8,15 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SideSelectorProps {
   isOpen: boolean;
@@ -32,6 +40,7 @@ function getPilotiIdFromName(name: string): string {
 
 export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSelectorProps) {
   const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
+  const isMobile = useIsMobile();
 
   const availableSides = houseManager.getAvailableSides(viewType);
   const house = houseManager.getHouse();
@@ -93,6 +102,148 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     }
   };
 
+  // Get display grid - inverted for top side to show transposed view
+  const getDisplayGrid = () => {
+    if (hoveredSide === 'top') {
+      // Invert rows: show C, B, A order (as if looking from the top side)
+      return [...PILOTI_GRID].reverse();
+    }
+    return PILOTI_GRID;
+  };
+
+  const displayGrid = getDisplayGrid();
+
+  const content = (
+    <div className="flex flex-col items-center gap-4 py-4">
+      {/* Top side button (for front/back views) */}
+      {isLongSide && (
+        <SideButton
+          side="top"
+          label={getSideLabel('top')}
+          isAvailable={isSideAvailable('top')}
+          isHovered={hoveredSide === 'top'}
+          assignment={getSideAssignment('top')}
+          onHover={setHoveredSide}
+          onClick={handleSideClick}
+          className="w-full max-w-xs"
+        />
+      )}
+
+      {/* Middle row: Left + Grid + Right */}
+      <div className="flex items-center gap-2 w-full max-w-md justify-center">
+        {/* Left side button (for side views) */}
+        {!isLongSide && (
+          <SideButton
+            side="left"
+            label={getSideLabel('left')}
+            isAvailable={isSideAvailable('left')}
+            isHovered={hoveredSide === 'left'}
+            assignment={getSideAssignment('left')}
+            onHover={setHoveredSide}
+            onClick={handleSideClick}
+            vertical
+            className="h-full"
+          />
+        )}
+
+        {/* Piloti Grid */}
+        <div className="flex-1 max-w-xs">
+          <div 
+            className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
+            style={{ aspectRatio: '4/3' }}
+          >
+            {/* Transposition indicator */}
+            {hoveredSide === 'top' && (
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-primary font-medium bg-primary/10 px-2 py-0.5 rounded">
+                Vista transposta ↕
+              </div>
+            )}
+            <div className="grid grid-rows-3 gap-2 h-full">
+              {displayGrid.map((row, rowIdx) => (
+                <div key={rowIdx} className="grid grid-cols-4 gap-2">
+                  {row.map((name) => {
+                    const pilotiId = getPilotiIdFromName(name);
+                    const data = houseManager.getPilotiData(pilotiId);
+                    const isHighlighted = getPilotiHighlight(name);
+                    
+                    return (
+                      <div
+                        key={name}
+                        className={cn(
+                          "flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200",
+                          "border-2",
+                          isHighlighted 
+                            ? "bg-primary/20 border-primary scale-110" 
+                            : "bg-background border-foreground/20",
+                          data.isMaster && "bg-amber-100 border-amber-500"
+                        )}
+                      >
+                        <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right side button (for side views) */}
+        {!isLongSide && (
+          <SideButton
+            side="right"
+            label={getSideLabel('right')}
+            isAvailable={isSideAvailable('right')}
+            isHovered={hoveredSide === 'right'}
+            assignment={getSideAssignment('right')}
+            onHover={setHoveredSide}
+            onClick={handleSideClick}
+            vertical
+            className="h-full"
+          />
+        )}
+      </div>
+
+      {/* Bottom side button (for front/back views) */}
+      {isLongSide && (
+        <SideButton
+          side="bottom"
+          label={getSideLabel('bottom')}
+          isAvailable={isSideAvailable('bottom')}
+          isHovered={hoveredSide === 'bottom'}
+          assignment={getSideAssignment('bottom')}
+          onHover={setHoveredSide}
+          onClick={handleSideClick}
+          className="w-full max-w-xs"
+        />
+      )}
+
+      <div className="flex justify-center pt-2">
+        <Button variant="ghost" onClick={onClose}>
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Desktop: use Dialog (modal)
+  if (!isMobile) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
+            <DialogDescription className="text-sm">
+              Clique no lado do retângulo onde deseja posicionar esta vista
+            </DialogDescription>
+          </DialogHeader>
+          {content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Mobile: use Sheet (bottom drawer)
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
@@ -102,111 +253,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
             Toque no lado do retângulo onde deseja posicionar esta vista
           </SheetDescription>
         </SheetHeader>
-
-        <div className="flex flex-col items-center gap-4 py-4">
-          {/* Top side button (for front/back views) */}
-          {isLongSide && (
-            <SideButton
-              side="top"
-              label={getSideLabel('top')}
-              isAvailable={isSideAvailable('top')}
-              isHovered={hoveredSide === 'top'}
-              assignment={getSideAssignment('top')}
-              onHover={setHoveredSide}
-              onClick={handleSideClick}
-              className="w-full max-w-xs"
-            />
-          )}
-
-          {/* Middle row: Left + Grid + Right */}
-          <div className="flex items-center gap-2 w-full max-w-md justify-center">
-            {/* Left side button (for side views) */}
-            {!isLongSide && (
-              <SideButton
-                side="left"
-                label={getSideLabel('left')}
-                isAvailable={isSideAvailable('left')}
-                isHovered={hoveredSide === 'left'}
-                assignment={getSideAssignment('left')}
-                onHover={setHoveredSide}
-                onClick={handleSideClick}
-                vertical
-                className="h-full"
-              />
-            )}
-
-            {/* Piloti Grid */}
-            <div className="flex-1 max-w-xs">
-              <div 
-                className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30"
-                style={{ aspectRatio: '4/3' }}
-              >
-                <div className="grid grid-rows-3 gap-2 h-full">
-                  {PILOTI_GRID.map((row, rowIdx) => (
-                    <div key={rowIdx} className="grid grid-cols-4 gap-2">
-                      {row.map((name) => {
-                        const pilotiId = getPilotiIdFromName(name);
-                        const data = houseManager.getPilotiData(pilotiId);
-                        const isHighlighted = getPilotiHighlight(name);
-                        
-                        return (
-                          <div
-                            key={name}
-                            className={cn(
-                              "flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200",
-                              "border-2",
-                              isHighlighted 
-                                ? "bg-primary/20 border-primary scale-110" 
-                                : "bg-background border-foreground/20",
-                              data.isMaster && "bg-amber-100 border-amber-500"
-                            )}
-                          >
-                            <span className="text-[10px] font-medium text-foreground/70">{name}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right side button (for side views) */}
-            {!isLongSide && (
-              <SideButton
-                side="right"
-                label={getSideLabel('right')}
-                isAvailable={isSideAvailable('right')}
-                isHovered={hoveredSide === 'right'}
-                assignment={getSideAssignment('right')}
-                onHover={setHoveredSide}
-                onClick={handleSideClick}
-                vertical
-                className="h-full"
-              />
-            )}
-          </div>
-
-          {/* Bottom side button (for front/back views) */}
-          {isLongSide && (
-            <SideButton
-              side="bottom"
-              label={getSideLabel('bottom')}
-              isAvailable={isSideAvailable('bottom')}
-              isHovered={hoveredSide === 'bottom'}
-              assignment={getSideAssignment('bottom')}
-              onHover={setHoveredSide}
-              onClick={handleSideClick}
-              className="w-full max-w-xs"
-            />
-          )}
-        </div>
-
-        <div className="flex justify-center pb-4">
-          <Button variant="ghost" onClick={onClose}>
-            Cancelar
-          </Button>
-        </div>
+        {content}
       </SheetContent>
     </Sheet>
   );
