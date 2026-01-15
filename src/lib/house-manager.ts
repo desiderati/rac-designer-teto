@@ -112,8 +112,7 @@ class HouseManager {
   }
 
   hasView(viewType: ViewType): boolean {
-    if (!this.house) return false;
-    return this.house.views[viewType] !== null;
+    return this.house?.views[viewType] !== null;
   }
 
   getAvailableViews(): ViewType[] {
