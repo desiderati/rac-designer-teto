@@ -671,15 +671,29 @@ export function RACEditor() {
   const handleDelete = () => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length) {
       canvas.discardActiveObject();
       activeObjects.forEach((obj) => {
         // If it's a house view, remove from house manager
         if ((obj as any).myType === 'house') {
-          houseManager.removeView(obj as Group);
+          const rawView = (obj as any).houseViewType ?? (obj as any).houseView;
+          // houseViewType uses our internal ViewType; houseView comes from canvas-utils
+          const viewType: ViewType | null =
+            rawView === 'top' ? 'top' :
+            rawView === 'front' ? 'front' :
+            rawView === 'back' ? 'back' :
+            // canvas-utils uses "side" for both side1/side2; fallback to reference-based removal
+            null;
+
+          if (viewType) {
+            houseManager.removeViewByType(viewType);
+          } else {
+            houseManager.removeView(obj as Group);
+          }
         }
+
         canvas.remove(obj);
       });
       setInfoMessage('Objeto excluído.');
