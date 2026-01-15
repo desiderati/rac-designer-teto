@@ -32,6 +32,7 @@ interface CanvasProps {
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
   onDistanceSelect?: (selection: DistanceSelection | null) => void;
   isEditorOpen?: boolean;
+  onDelete?: () => void;
 }
 
 export interface CanvasHandle {
@@ -46,7 +47,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, isEditorOpen = false }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, isEditorOpen = false, onDelete }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -649,6 +650,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
           const activeObj = canvas.getActiveObject();
           if (!activeObj || (activeObj.type !== 'i-text' || !(activeObj as IText).isEditing)) {
+            // Delegate deletion to parent when available (so it can sync houseManager)
+            if (onDelete) {
+              e.preventDefault();
+              onDelete();
+              return;
+            }
+
+            // Fallback (legacy behavior)
             const activeObjects = canvas.getActiveObjects();
             if (activeObjects.length) {
               canvas.discardActiveObject();
