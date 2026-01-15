@@ -966,6 +966,7 @@ export function RACEditor() {
           onPilotiSelect={handlePilotiSelect}
           onDistanceSelect={handleDistanceSelect}
           isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen}
+          onDelete={handleDelete}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips && (
