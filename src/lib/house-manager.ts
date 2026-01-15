@@ -178,6 +178,9 @@ class HouseManager {
   registerView(viewType: ViewType, group: Group, side?: HouseSide): void {
     if (!this.house) return;
 
+    // Mark the group with its view type for later identification
+    (group as any).houseViewType = viewType;
+
     // Apply current piloti data to the new group
     this.applyPilotiDataToGroup(group);
 
@@ -186,23 +189,41 @@ class HouseManager {
     if (side) {
       this.house.sideAssignments[side] = viewType;
     }
+    
+    console.log(`[HouseManager] Registered view ${viewType}, side: ${side}`);
   }
 
   // Remove a view (when deleted from canvas)
   removeView(group: Group): void {
     if (!this.house) return;
 
-    for (const viewType of Object.keys(this.house.views) as ViewType[]) {
+    // First try to identify by the houseViewType property we set during registration
+    const viewType = (group as any).houseViewType as ViewType | undefined;
+    
+    if (viewType && this.house.views[viewType]) {
       const viewData = this.house.views[viewType];
+      console.log(`[HouseManager] Removing view by houseViewType: ${viewType}, side: ${viewData?.side}`);
+      
+      // Clear side assignment
+      if (viewData?.side) {
+        this.house.sideAssignments[viewData.side] = null;
+        console.log(`[HouseManager] Cleared side assignment for ${viewData.side}`);
+      }
+      this.house.views[viewType] = null;
+      console.log(`[HouseManager] View ${viewType} removed, available views:`, this.getAvailableViews());
+      return;
+    }
+
+    // Fallback: search by group reference (for backwards compatibility)
+    for (const vt of Object.keys(this.house.views) as ViewType[]) {
+      const viewData = this.house.views[vt];
       if (viewData?.group === group) {
-        console.log(`[HouseManager] Removing view ${viewType}, side: ${viewData.side}`);
-        // Clear side assignment
+        console.log(`[HouseManager] Removing view by reference: ${vt}, side: ${viewData.side}`);
         if (viewData.side) {
           this.house.sideAssignments[viewData.side] = null;
-          console.log(`[HouseManager] Cleared side assignment for ${viewData.side}`);
         }
-        this.house.views[viewType] = null;
-        console.log(`[HouseManager] View ${viewType} removed, available views:`, this.getAvailableViews());
+        this.house.views[vt] = null;
+        console.log(`[HouseManager] View ${vt} removed, available views:`, this.getAvailableViews());
         break;
       }
     }
