@@ -112,7 +112,9 @@ class HouseManager {
   }
 
   hasView(viewType: ViewType): boolean {
-    return this.house?.views[viewType] !== null;
+    // When house isn't initialized yet, no views exist.
+    if (!this.house) return false;
+    return this.house.views[viewType] !== null;
   }
 
   getAvailableViews(): ViewType[] {

@@ -66,10 +66,21 @@ export function RACEditor() {
 
   // Initialize house manager when canvas is ready
   useEffect(() => {
-    const canvas = canvasRef.current?.canvas;
-    if (canvas) {
-      houseManager.initialize(canvas);
-    }
+    let tries = 0;
+    const id = window.setInterval(() => {
+      const canvas = canvasRef.current?.canvas;
+      if (canvas) {
+        houseManager.initialize(canvas);
+        window.clearInterval(id);
+      }
+      tries += 1;
+      if (tries > 50) {
+        // stop trying after ~5s
+        window.clearInterval(id);
+      }
+    }, 100);
+
+    return () => window.clearInterval(id);
   }, []);
   useEffect(() => {
     const tutorialCompleted = localStorage.getItem('rac-tutorial-completed');
