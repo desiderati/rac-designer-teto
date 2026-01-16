@@ -669,6 +669,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   // Right side: pilotis correspond to column 3 (C4, B4, A4 - reversed order)
   const colIndex = isRightSide ? 3 : 0;
 
+  const pilotLabels: FabricObject[] = [];
+  
   // Create pilotis with tracking
   const createPilotiRect = (rowIndex: number, left: number) => {
     const pilotiId = `piloti_${colIndex}_${rowIndex}`;
@@ -694,6 +696,22 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     (rect as any).pilotiNivel = 0.3;
     (rect as any).isPilotiRect = true;
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
+
+    // Create size label below piloti
+    const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
+      fontSize: 20 * s,
+      fill: "#666",
+      left: left + pilotW / 2,
+      top: wallHeight + pilotH + 8 * s,
+      originX: "center",
+      originY: "top",
+      selectable: false,
+      evented: false,
+    });
+    (sizeLabel as any).isPilotiSizeLabel = true;
+    (sizeLabel as any).pilotiId = pilotiId;
+    
+    pilotLabels.push(sizeLabel);
 
     return rect;
   };
@@ -750,6 +768,9 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     elements.push(windowObj, doorObj);
   }
 
+  // Add pilotLabels last so they render on top of everything
+  elements.push(...pilotLabels);
+  
   const group = new Group(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
