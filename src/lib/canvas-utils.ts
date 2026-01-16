@@ -38,6 +38,7 @@ export const customProps = [
   "isPilotiNivelText",
   "isPilotiRect",
   "pilotiBaseHeight",
+  "isPilotiSizeLabel",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -311,6 +312,28 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       obj.set('text', formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
+    
+    if (obj.isPilotiSizeLabel) {
+      obj.set('text', formatPilotiHeight(newHeight));
+      (obj as any).dirty = true;
+    }
+  });
+  
+  // After updating piloti rect height, also update the position of the size label
+  // Need to find the rect to get its new height, then position label below it
+  objects.forEach((obj: any) => {
+    if (obj.pilotiId === pilotiId && obj.isPilotiSizeLabel) {
+      // Find the matching rect to get its current position and height
+      const rect = objects.find((r: any) => r.pilotiId === pilotiId && r.isPilotiRect) as any;
+      if (rect) {
+        const baseHeight = rect.pilotiBaseHeight || 60;
+        const newVisualHeight = baseHeight * newHeight;
+        // Position label 4px below the piloti rect (using same scale factor)
+        const labelOffset = 4 * (baseHeight / 60); // approximate scale
+        obj.set('top', rect.top + newVisualHeight + labelOffset);
+        obj.setCoords();
+      }
+    }
   });
 
   // Keep the house centered in the canvas when the piloti grows (avoid bottom cut by viewport).
@@ -452,6 +475,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Bottom position (flipHorizontal=false): pilotis C1, C2, C3, C4 (row 2, normal order)
   const rowIndex = flipHorizontal ? 0 : 2;
 
+  const pilotLabels: FabricObject[] = [];
+  
   for (let i = 0; i < 4; i++) {
     // Top position: reversed order (A4, A3, A2, A1)
     // Bottom position: normal order (C1, C2, C3, C4)
@@ -481,6 +506,22 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
 
     pilots.push(rect);
+    
+    // Create size label below piloti
+    const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
+      fontSize: 10 * s,
+      fill: "#666",
+      left: margin + i * step + pilotW / 2,
+      top: roofH + bodyH + pilotH + 4 * s,
+      originX: "center",
+      originY: "top",
+      selectable: false,
+      evented: false,
+    });
+    (sizeLabel as any).isPilotiSizeLabel = true;
+    (sizeLabel as any).pilotiId = pilotiId;
+    
+    pilotLabels.push(sizeLabel);
   }
 
   const roofFill = new Polygon(
@@ -528,7 +569,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: roofH },
   );
 
-  const elements: FabricObject[] = [...pilots, roofFill, bodyFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [...pilots, ...pilotLabels, roofFill, bodyFill, ...roofLines, bodyStroke];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
