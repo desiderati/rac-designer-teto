@@ -106,7 +106,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   const displayGrid = PILOTI_GRID;
 
   const content = (
-    <div className="flex flex-col items-center gap-4 py-4">
+    <div className="flex flex-col items-center gap-2 py-2">
       {/* Top side button (for front/back views) */}
       {isLongSide && (
         <SideButton
@@ -287,7 +287,7 @@ function SideButton({
         vertical && "writing-mode-vertical flex-col min-w-[44px] py-4",
         isAvailable
           ? isHovered
-            ? "bg-primary text-primary-foreground border-primary scale-105"
+            ? "bg-primary text-primary-foreground border-primary"
             : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
           : "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed",
         className
