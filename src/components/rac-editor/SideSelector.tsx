@@ -218,11 +218,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
         />
       )}
 
-      <div className="flex justify-center pt-2">
-        <Button variant="ghost" onClick={onClose}>
-          Cancelar
-        </Button>
-      </div>
     </div>
   );
 
@@ -231,9 +226,9 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader className="text-center">
+          <DialogHeader className="text-center max-w-xs mx-auto">
             <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
-            <DialogDescription className="text-sm">
+            <DialogDescription className="text-sm text-left">
               Clique no lado do retângulo onde deseja posicionar esta vista
             </DialogDescription>
           </DialogHeader>
@@ -247,9 +242,9 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-        <SheetHeader className="text-center pb-2">
+        <SheetHeader className="text-center pb-2 max-w-xs mx-auto">
           <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
-          <SheetDescription className="text-sm">
+          <SheetDescription className="text-sm text-left">
             Toque no lado do retângulo onde deseja posicionar esta vista
           </SheetDescription>
         </SheetHeader>
