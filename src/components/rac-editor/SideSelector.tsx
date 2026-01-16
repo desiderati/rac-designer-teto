@@ -253,7 +253,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-sm">
-          <DialogHeader className={cn(isLongSide ? "text-center max-w-xs mx-auto" : "text-left")}>
+          <DialogHeader className={cn(isLongSide ? "text-center max-w-xs mx-auto" : "text-left pl-10")}>
             <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             <DialogDescription className="text-sm text-left">
               Clique no lado da casa onde deseja posicionar esta vista
