@@ -92,10 +92,8 @@ export function ObjectNameEditor({
         const objTop = object.top || 0;
         object.set({ left: 0, top: 0, originX: 'center', originY: 'center' });
         
-        // Position label below the object
-        const objHeight = object.height || 0;
-        const objScaleY = object.scaleY || 1;
-        label.set({ left: 0, top: (objHeight * objScaleY) / 2 + 12 });
+        // Position label at the center of the object
+        label.set({ left: 0, top: 0 });
         
         // Create group
         const group = new Group([object, label], {
