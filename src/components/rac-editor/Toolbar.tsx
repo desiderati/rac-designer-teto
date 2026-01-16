@@ -69,6 +69,12 @@ interface ToolbarProps {
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
   isTutorialActive?: boolean;
+  // Views present on canvas
+  hasTopView?: boolean;
+  hasFrontView?: boolean;
+  hasBackView?: boolean;
+  hasSide1View?: boolean;
+  hasSide2View?: boolean;
 }
 
 function FABButton({
@@ -130,6 +136,7 @@ function SubMenuButton({
   color = "#ecf0f1",
   hideTooltip = false,
   tooltipSide = "bottom" as "bottom" | "left",
+  isViewPresent = false,
 }: {
   icon: IconDefinition;
   title: string;
@@ -137,11 +144,17 @@ function SubMenuButton({
   color?: string;
   hideTooltip?: boolean;
   tooltipSide?: "bottom" | "left";
+  isViewPresent?: boolean;
 }) {
   const button = (
     <button
       onClick={onClick}
-      className="w-11 h-11 border-none rounded-xl bg-[#34495e] text-[#ecf0f1] text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:bg-[#0092DD] hover:scale-105 active:scale-95"
+      className={cn(
+        "w-11 h-11 border-none rounded-xl text-[#ecf0f1] text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:scale-105 active:scale-95",
+        isViewPresent
+          ? "bg-[#34495e] hover:bg-gray-400"
+          : "bg-[#34495e] hover:bg-[#0092DD]"
+      )}
     >
       <FontAwesomeIcon icon={icon} style={{ color }} />
     </button>
@@ -196,6 +209,11 @@ export function Toolbar({
   onToggleMenu,
   onRestartTutorial,
   isTutorialActive = false,
+  hasTopView = false,
+  hasFrontView = false,
+  hasBackView = false,
+  hasSide1View = false,
+  hasSide2View = false,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -249,30 +267,35 @@ export function Toolbar({
                     title="Visão Superior (Planta)"
                     onClick={() => handleAction(onAddHouseTop)}
                     hideTooltip={isTutorialActive}
+                    isViewPresent={hasTopView}
                   />
                   <SubMenuButton
                     icon={faHouseChimney}
                     title="Visão Frontal"
                     onClick={() => handleAction(onAddHouseFront)}
                     hideTooltip={isTutorialActive}
+                    isViewPresent={hasFrontView}
                   />
                   <SubMenuButton
                     icon={faHouseChimneyWindow}
                     title="Visão Traseira"
                     onClick={() => handleAction(onAddHouseBack)}
                     hideTooltip={isTutorialActive}
+                    isViewPresent={hasBackView}
                   />
                   <SubMenuButton
                     icon={faSquareFull}
                     title="Quadrado Fechado"
                     onClick={() => handleAction(onAddHouseSide1)}
                     hideTooltip={isTutorialActive}
+                    isViewPresent={hasSide1View}
                   />
                   <SubMenuButton
                     icon={faDoorOpen}
                     title="Quadrado Aberto"
                     onClick={() => handleAction(onAddHouseSide2)}
                     hideTooltip={isTutorialActive}
+                    isViewPresent={hasSide2View}
                   />
                 </div>
               )}
