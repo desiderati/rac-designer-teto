@@ -75,6 +75,16 @@ function getAllPilotiIds(): string[] {
 class HouseManager {
   private house: HouseState | null = null;
   private canvas: FabricCanvas | null = null;
+  private listeners = new Set<() => void>();
+
+  private notify(): void {
+    this.listeners.forEach((l) => l());
+  }
+
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
 
   initialize(canvas: FabricCanvas): void {
     this.canvas = canvas;
@@ -105,6 +115,8 @@ class HouseManager {
         right: null,
       },
     };
+
+    this.notify();
   }
 
   getHouse(): HouseState | null {
@@ -207,12 +219,13 @@ class HouseManager {
     this.applyPilotiDataToGroup(group);
 
     this.house.views[viewType] = { group, side };
-    
+
     if (side) {
       this.house.sideAssignments[side] = viewType;
     }
-    
+
     console.log(`[HouseManager] Registered view ${viewType}, side: ${side}`);
+    this.notify();
   }
 
   // Remove a view (when deleted from canvas)
@@ -221,11 +234,11 @@ class HouseManager {
 
     // First try to identify by the houseViewType property we set during registration
     const viewType = (group as any).houseViewType as ViewType | undefined;
-    
+
     if (viewType && this.house.views[viewType]) {
       const viewData = this.house.views[viewType];
       console.log(`[HouseManager] Removing view by houseViewType: ${viewType}, side: ${viewData?.side}`);
-      
+
       // Clear side assignment
       if (viewData?.side) {
         this.house.sideAssignments[viewData.side] = null;
@@ -233,6 +246,7 @@ class HouseManager {
       }
       this.house.views[viewType] = null;
       console.log(`[HouseManager] View ${viewType} removed, available views:`, this.getAvailableViews());
+      this.notify();
       return;
     }
 
@@ -246,6 +260,7 @@ class HouseManager {
         }
         this.house.views[vt] = null;
         console.log(`[HouseManager] View ${vt} removed, available views:`, this.getAvailableViews());
+        this.notify();
         break;
       }
     }
@@ -254,7 +269,7 @@ class HouseManager {
   // Remove view by type (alternative method)
   removeViewByType(viewType: ViewType): void {
     if (!this.house) return;
-    
+
     const viewData = this.house.views[viewType];
     if (viewData) {
       console.log(`[HouseManager] Removing view by type: ${viewType}`);
@@ -262,6 +277,7 @@ class HouseManager {
         this.house.sideAssignments[viewData.side] = null;
       }
       this.house.views[viewType] = null;
+      this.notify();
     }
   }
 
@@ -358,6 +374,7 @@ class HouseManager {
     });
 
     this.canvas?.requestRenderAll();
+    this.notify();
   }
 
   // Get piloti data
