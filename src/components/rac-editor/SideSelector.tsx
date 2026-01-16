@@ -252,8 +252,12 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className={cn(isLongSide ? "sm:max-w-sm" : "sm:max-w-lg")}>
-          <div className={cn(!isLongSide && "mx-auto w-fit")}>
+        <DialogContent
+          className={cn(
+            isLongSide ? "sm:max-w-sm" : "w-fit max-w-none p-4",
+          )}
+        >
+          <div className={cn(!isLongSide && "w-fit")}>
             <DialogHeader className={cn(isLongSide ? "text-center max-w-xs mx-auto" : "text-left")}>
               <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
               <DialogDescription className="text-sm text-left">
