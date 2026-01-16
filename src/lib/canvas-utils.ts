@@ -507,9 +507,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
     pilots.push(rect);
     
-    // Create size label below piloti
+    // Create size label below piloti (font size 20 * scale for visibility)
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
-      fontSize: 10 * s,
+      fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
       top: roofH + bodyH + pilotH + 4 * s,

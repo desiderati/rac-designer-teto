@@ -282,8 +282,9 @@ function SideButton({
     }
   };
 
-  // When a view is assigned to this side, use gray hover instead of blue
-  const hasAssignment = assignment !== null;
+  // When a view is already assigned to THIS side (meaning it's occupied), use gray hover instead of blue
+  // This happens when the user already placed a view here and is hovering over it
+  const isOccupied = assignment !== null;
   
   return (
     <button
@@ -299,11 +300,11 @@ function SideButton({
         vertical && "writing-mode-vertical flex-col min-w-[32px] px-1.5 py-3",
         isAvailable
           ? isHovered
-            ? hasAssignment
-              ? "bg-muted text-muted-foreground border-muted-foreground/50"
+            ? isOccupied
+              ? "bg-gray-200 text-gray-600 border-gray-400"
               : "bg-primary text-primary-foreground border-primary"
-            : hasAssignment
-              ? "bg-background border-foreground/30 hover:border-muted-foreground/50 hover:bg-muted/50"
+            : isOccupied
+              ? "bg-background border-foreground/30 hover:bg-gray-200 hover:border-gray-400"
               : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
           : "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed",
         className
