@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FabricObject, IText, Canvas as FabricCanvas } from 'fabric';
+import { FabricObject, IText, Canvas as FabricCanvas, Group } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
@@ -43,41 +43,75 @@ export function ObjectNameEditor({
     if (object && canvas) {
       const name = tempValue.trim();
       
-      // Check if there's already a label text attached to this object
-      const existingLabel = canvas.getObjects().find(
-        (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === object
-      );
+      // Check if the object is already in a group with a label
+      const parentGroup = (object as any)._group as Group | undefined;
+      const existingLabel = parentGroup?.getObjects().find(
+        (obj: any) => obj.myType === 'wallLabel'
+      ) as IText | undefined;
       
-      if (existingLabel) {
-        // Update existing label
+      if (parentGroup && existingLabel) {
+        // Update existing label in group
         if (name) {
-          (existingLabel as IText).set('text', name);
+          existingLabel.set('text', name);
+          parentGroup.setCoords();
         } else {
-          // Remove label if name is empty
-          canvas.remove(existingLabel);
+          // Remove label from group - ungroup and remove label
+          const groupLeft = parentGroup.left || 0;
+          const groupTop = parentGroup.top || 0;
+          
+          canvas.remove(parentGroup);
+          object.set({
+            left: groupLeft,
+            top: groupTop,
+          });
+          object.setCoords();
+          canvas.add(object);
         }
-      } else if (name) {
-        // Create new centered text on the object
-        const objLeft = object.left || 0;
-        const objTop = object.top || 0;
+      } else if (name && !parentGroup) {
+        // Create new label and group it with the object
+        const objCenter = object.getCenterPoint();
         
         const label = new IText(name, {
-          left: objLeft,
-          top: objTop,
           fontSize: 14,
           fontFamily: 'Arial',
           fill: '#333333',
           originX: 'center',
           originY: 'center',
           textAlign: 'center',
-          selectable: true,
-          evented: true,
+          selectable: false,
+          evented: false,
         });
         
         (label as any).myType = 'wallLabel';
-        (label as any).labelFor = object;
         
-        canvas.add(label);
+        // Remove object from canvas before grouping
+        canvas.remove(object);
+        
+        // Reset object position to origin for grouping
+        const objLeft = object.left || 0;
+        const objTop = object.top || 0;
+        object.set({ left: 0, top: 0, originX: 'center', originY: 'center' });
+        
+        // Position label below the object
+        const objHeight = object.height || 0;
+        const objScaleY = object.scaleY || 1;
+        label.set({ left: 0, top: (objHeight * objScaleY) / 2 + 12 });
+        
+        // Create group
+        const group = new Group([object, label], {
+          left: objLeft,
+          top: objTop,
+          originX: 'center',
+          originY: 'center',
+        });
+        
+        // Preserve object properties on group
+        (group as any).myType = (object as any).myType;
+        (group as any).pilotiId = (object as any).pilotiId;
+        (group as any).wallId = (object as any).wallId;
+        
+        canvas.add(group);
+        canvas.setActiveObject(group);
       }
       
       canvas.renderAll();
