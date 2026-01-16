@@ -574,7 +574,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: roofH },
   );
 
-  const elements: FabricObject[] = [...pilots, ...pilotLabels, roofFill, bodyFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [...pilots, roofFill, bodyFill, ...roofLines, bodyStroke];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
@@ -639,6 +639,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     elements.push(doorObj, w2);
   }
 
+  // Add pilotLabels last so they render on top of everything
+  elements.push(...pilotLabels);
+  
   const group = new Group(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
