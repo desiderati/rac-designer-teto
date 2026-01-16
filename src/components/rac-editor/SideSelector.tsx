@@ -252,10 +252,10 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className={cn(isLongSide ? "sm:max-w-sm" : "sm:max-w-md")}>
-          <DialogHeader className="text-center max-w-xs mx-auto">
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader className={cn(isLongSide ? "text-center max-w-xs mx-auto" : "text-left")}>
             <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
-            <DialogDescription className="text-sm text-center">
+            <DialogDescription className="text-sm text-left">
               Clique no lado da casa onde deseja posicionar esta vista
             </DialogDescription>
           </DialogHeader>
@@ -271,7 +271,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
         <SheetHeader className="text-center pb-2 max-w-xs mx-auto">
           <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
-          <SheetDescription className="text-sm text-center">
+          <SheetDescription className="text-sm text-left">
             Toque no lado da casa onde deseja posicionar esta vista
           </SheetDescription>
         </SheetHeader>
