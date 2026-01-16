@@ -6,6 +6,7 @@ import {
   formatPilotiHeight,
   MASTER_PILOTI_FILL,
   MASTER_PILOTI_STROKE,
+  BASE_PILOTI_HEIGHT_PX,
 } from './canvas-utils';
 
 // Types for house sides
@@ -286,8 +287,8 @@ class HouseManager {
     if (!this.house) return;
 
     const objects = group.getObjects();
-    
-    // First pass: set data properties
+
+    // First pass: set data properties (height/master/nivel) and resize rects
     objects.forEach((obj: FabricObject) => {
       const pilotiId = (obj as any).pilotiId;
       if (!pilotiId) return;
@@ -308,7 +309,7 @@ class HouseManager {
         }
 
         // For rect pilotis in front/back/side views, update the visual height
-        if ((obj as any).isPilotiRect && data.height !== 1.0) {
+        if ((obj as any).isPilotiRect) {
           const baseHeight = (obj as any).pilotiBaseHeight || 60;
           const newVisualHeight = baseHeight * data.height;
           obj.set({ height: newVisualHeight, scaleY: 1 });
@@ -321,10 +322,43 @@ class HouseManager {
         (obj as any).set('text', formatPilotiHeight(data.height));
       }
 
-      if ((obj as any).isPilotiNivelText && data.isMaster) {
-        (obj as any).set('text', `Nível = ${formatPilotiHeight(data.nivel)}`);
-        (obj as any).set('visible', true);
+      if ((obj as any).isPilotiNivelText) {
+        if (data.isMaster) {
+          (obj as any).set('text', `Nível = ${formatPilotiHeight(data.nivel)}`);
+          (obj as any).set('visible', true);
+        } else {
+          (obj as any).set('visible', false);
+        }
       }
+
+      if ((obj as any).isPilotiSizeLabel) {
+        (obj as any).set('text', formatPilotiHeight(data.height));
+      }
+    });
+
+    // Second pass: AFTER rects are resized, position size labels using the final rect height.
+    objects.forEach((obj: FabricObject) => {
+      if (!(obj as any).isPilotiSizeLabel) return;
+
+      const pilotiId = (obj as any).pilotiId;
+      if (!pilotiId) return;
+
+      const rect = objects.find(
+        (o: any) => o.pilotiId === pilotiId && o.isPilotiRect,
+      ) as any;
+      if (!rect) return;
+
+      const baseHeight = (rect as any).pilotiBaseHeight || 60;
+      const s = baseHeight / BASE_PILOTI_HEIGHT_PX;
+      const offset = 8 * s;
+
+      const rectWidth = (rect.width ?? 0) as number;
+      const rectHeight = (rect.height ?? 0) as number;
+
+      (obj as any).set('left', (rect.left ?? 0) + rectWidth / 2);
+      (obj as any).set('top', (rect.top ?? 0) + rectHeight + offset);
+      (obj as any).setCoords?.();
+      (obj as any).dirty = true;
     });
 
     refreshHouseGroupRendering(group);

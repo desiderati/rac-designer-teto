@@ -448,7 +448,7 @@ export function updatePilotiAll(
 }
 
 // Base piloti height in pixels for height=1.0
-const BASE_PILOTI_HEIGHT_PX = 100;
+export const BASE_PILOTI_HEIGHT_PX = 100;
 
 // Calculate piloti visual height based on pilotiHeight value
 export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
