@@ -21,6 +21,12 @@ export interface DistanceSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface ObjectSelection {
+  object: FabricObject;
+  objectType: string;
+  screenPosition: { x: number; y: number };
+}
+
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
@@ -31,6 +37,7 @@ interface CanvasProps {
   showTips?: boolean;
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
   onDistanceSelect?: (selection: DistanceSelection | null) => void;
+  onObjectSelect?: (selection: ObjectSelection | null) => void;
   isEditorOpen?: boolean;
   onDelete?: () => void;
 }
@@ -47,7 +54,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, isEditorOpen = false, onDelete }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectSelect, isEditorOpen = false, onDelete }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -498,6 +505,45 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       };
 
+      // Handle object (wall, etc.) selection for editing
+      const handleObjectSelection = (object: FabricObject) => {
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const currentContainerSize = containerSizeRef.current;
+        
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+        
+        const currentCanvasX = scaledWidth <= currentContainerSize.width 
+          ? (currentContainerSize.width - scaledWidth) / 2 
+          : -currentViewportX;
+        const currentCanvasY = scaledHeight <= currentContainerSize.height 
+          ? (currentContainerSize.height - scaledHeight) / 2 
+          : -currentViewportY;
+        
+        // Calculate screen position of the object
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const objLeft = object.left || 0;
+          const objTop = object.top || 0;
+          
+          const screenX = containerRect.left + (objLeft * currentZoom) + currentCanvasX;
+          const screenY = containerRect.top + (objTop * currentZoom) + currentCanvasY;
+          
+          const objectType = (object as any).myType || 'object';
+          
+          onObjectSelect?.({
+            object,
+            objectType,
+            screenPosition: { x: screenX, y: screenY },
+          });
+          
+          const typeLabel = objectType === 'wall' ? 'muro' : objectType;
+          onSelectionChange(`Editando ${typeLabel}.`);
+        }
+      };
+
       // Desktop: double-click on piloti or dimension
       canvas.on('mouse:dblclick', (e) => {
         // Skip on mobile (use same breakpoint as useIsMobile hook - 768px)
@@ -582,6 +628,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             }
           }
         }
+        
+        // Check if target is a wall or other editable object (not a group)
+        const editableTypes = ['wall'];
+        if (target.type === 'rect' && editableTypes.includes((target as any).myType)) {
+          e.e.preventDefault();
+          e.e.stopPropagation();
+          handleObjectSelection(target);
+          return;
+        }
       });
 
       // Mobile: single tap on dimension (only if tap is near center)
@@ -607,6 +662,29 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             setTimeout(() => {
               if (canvas.getActiveObject() === target) {
                 handleDistanceSelection(group);
+              }
+            }, 300);
+          }
+        }
+        
+        // Handle wall/object on mobile - open editor on tap near center
+        const editableTypes = ['wall'];
+        if (target && target.type === 'rect' && editableTypes.includes((target as any).myType) && window.matchMedia('(max-width: 640px)').matches) {
+          const pointer = canvas.getPointer(e.e);
+          
+          // Calculate distance from tap to object center
+          const objCenterX = target.left || 0;
+          const objCenterY = target.top || 0;
+          const distanceFromCenter = Math.sqrt(
+            Math.pow(pointer.x - objCenterX, 2) + Math.pow(pointer.y - objCenterY, 2)
+          );
+          
+          // Only open editor if tap is within 40px of center
+          const centerThreshold = 40;
+          if (distanceFromCenter <= centerThreshold) {
+            setTimeout(() => {
+              if (canvas.getActiveObject() === target) {
+                handleObjectSelection(target);
               }
             }, 300);
           }

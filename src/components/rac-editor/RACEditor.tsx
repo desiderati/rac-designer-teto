@@ -3,11 +3,12 @@ import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject } from 'fa
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection } from './Canvas';
+import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
 import { DistanceEditor } from './DistanceEditor';
+import { ObjectEditor } from './ObjectEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { SideSelector } from './SideSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -58,6 +59,8 @@ export function RACEditor() {
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
   const [distanceSelection, setDistanceSelection] = useState<DistanceSelection | null>(null);
   const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
+  const [objectSelection, setObjectSelection] = useState<ObjectSelection | null>(null);
+  const [isObjectEditorOpen, setIsObjectEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
@@ -913,6 +916,24 @@ export function RACEditor() {
     setInfoMessage(`Distância atualizada para: ${newValue || '(vazio)'}.`);
   };
 
+  const handleObjectSelect = (selection: ObjectSelection | null) => {
+    setObjectSelection(selection);
+    if (selection) {
+      setIsObjectEditorOpen(true);
+    }
+  };
+
+  const handleObjectEditorClose = () => {
+    setIsObjectEditorOpen(false);
+    setObjectSelection(null);
+  };
+
+  const handleObjectValueChange = () => {
+    canvasRef.current?.saveHistory();
+    canvasRef.current?.canvas?.renderAll();
+    setInfoMessage('Objeto atualizado.');
+  };
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
@@ -975,7 +996,8 @@ export function RACEditor() {
           showTips={showTips}
           onPilotiSelect={handlePilotiSelect}
           onDistanceSelect={handleDistanceSelect}
-          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen}
+          onObjectSelect={handleObjectSelect}
+          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectEditorOpen}
           onDelete={handleDelete}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
@@ -1011,6 +1033,15 @@ export function RACEditor() {
         isMobile={isMobile}
         anchorPosition={distanceSelection?.screenPosition}
         onValueChange={handleDistanceValueChange}
+      />
+
+      <ObjectEditor
+        isOpen={isObjectEditorOpen}
+        onClose={handleObjectEditorClose}
+        object={objectSelection?.object ?? null}
+        isMobile={isMobile}
+        anchorPosition={objectSelection?.screenPosition}
+        onValueChange={handleObjectValueChange}
       />
 
       {pendingViewType && (
