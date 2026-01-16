@@ -72,7 +72,7 @@ export function ObjectNameEditor({
         const objCenter = object.getCenterPoint();
         
         const label = new IText(name, {
-          fontSize: 14,
+          fontSize: 28,
           fontFamily: 'Arial',
           fill: '#333333',
           originX: 'center',
