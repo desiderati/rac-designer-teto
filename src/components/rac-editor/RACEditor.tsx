@@ -950,6 +950,11 @@ export function RACEditor() {
         onToggleMenu={handleToggleMenu}
         onRestartTutorial={handleRestartTutorial}
         isTutorialActive={tutorialStep !== null}
+        hasTopView={houseManager.hasView('top')}
+        hasFrontView={houseManager.hasView('front')}
+        hasBackView={houseManager.hasView('back')}
+        hasSide1View={houseManager.hasView('side1')}
+        hasSide2View={houseManager.hasView('side2')}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
