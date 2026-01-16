@@ -216,7 +216,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
           <DialogHeader className="text-center max-w-xs mx-auto">
             <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             <DialogDescription className="text-sm text-left">
-              Clique no lado do retângulo onde deseja posicionar esta vista
+              Clique no lado da casa onde deseja posicionar esta vista
             </DialogDescription>
           </DialogHeader>
           {content}
@@ -232,7 +232,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
         <SheetHeader className="text-center pb-2 max-w-xs mx-auto">
           <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
           <SheetDescription className="text-sm text-left">
-            Toque no lado do retângulo onde deseja posicionar esta vista
+            Toque no lado da casa onde deseja posicionar esta vista
           </SheetDescription>
         </SheetHeader>
         {content}
