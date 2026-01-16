@@ -447,14 +447,14 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const margin = 55 * s;
   const step = (bodyW - 2 * margin - pilotW) / 3;
 
-  // Front view: pilotis correspond to row 0 (A1, A2, A3, A4)
-  // Back view: pilotis correspond to row 2 (C1, C2, C3, C4)
-  // When flipHorizontal is true, we reverse the piloti ID assignment (A4, A3, A2, A1 from left to right)
-  const rowIndex = isFront ? 0 : 2;
+  // Front view (bottom position): pilotis correspond to row 2 (C1, C2, C3, C4)
+  // Back view (top position): pilotis correspond to row 0 (A4, A3, A2, A1 - reversed)
+  const rowIndex = isFront ? 2 : 0;
 
   for (let i = 0; i < 4; i++) {
-    // When flipped, reverse the column index for piloti IDs
-    const colIndex = flipHorizontal ? (3 - i) : i;
+    // Back view: reverse the column index (A4, A3, A2, A1 from left to right)
+    // Front view: normal order (C1, C2, C3, C4 from left to right)
+    const colIndex = isFront ? i : (3 - i);
     const pilotiId = `piloti_${colIndex}_${rowIndex}`;
     const defaultHeight = 1.0;
     const pilotH = getPilotiVisualHeight(defaultHeight, s);
