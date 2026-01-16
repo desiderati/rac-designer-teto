@@ -320,21 +320,21 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
   });
   
   // After updating piloti rect height, also update the position of the size label
-  // Keep it always immediately BELOW the piloti (using the piloti's current height).
+  // Keep it always immediately BELOW the piloti using the *rendered* (scaled) size.
   objects.forEach((obj: any) => {
     if (obj.pilotiId === pilotiId && obj.isPilotiSizeLabel) {
       const rect = objects.find((r: any) => r.pilotiId === pilotiId && r.isPilotiRect) as any;
       if (!rect) return;
 
-      // s = scale factor used in view construction (because pilotiBaseHeight = BASE * s)
-      const s = (rect.pilotiBaseHeight || BASE_PILOTI_HEIGHT_PX) / BASE_PILOTI_HEIGHT_PX;
-      const offset = 8 * s;
+      const base = rect.pilotiBaseHeight || BASE_PILOTI_HEIGHT_PX;
+      const scale = base / BASE_PILOTI_HEIGHT_PX;
+      const offset = 8 * scale;
 
-      const rectHeight = (rect.height ?? 0) as number;
-      const rectWidth = (rect.width ?? 0) as number;
+      const rectHeight = (rect.getScaledHeight?.() ?? rect.height ?? 0) as number;
+      const rectWidth = (rect.getScaledWidth?.() ?? rect.width ?? 0) as number;
 
-      obj.set('left', rect.left + rectWidth / 2);
-      obj.set('top', rect.top + rectHeight + offset);
+      obj.set('left', (rect.left ?? 0) + rectWidth / 2);
+      obj.set('top', (rect.top ?? 0) + rectHeight + offset);
       obj.setCoords();
       (obj as any).dirty = true;
     }
