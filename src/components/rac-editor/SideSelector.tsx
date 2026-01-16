@@ -102,16 +102,8 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     }
   };
 
-  // Get display grid - inverted for top side to show transposed view
-  const getDisplayGrid = () => {
-    if (hoveredSide === 'top') {
-      // Invert rows: show C, B, A order (as if looking from the top side)
-      return [...PILOTI_GRID].reverse();
-    }
-    return PILOTI_GRID;
-  };
-
-  const displayGrid = getDisplayGrid();
+  // Display grid is always in normal order - the flip happens when placing on canvas
+  const displayGrid = PILOTI_GRID;
 
   const content = (
     <div className="flex flex-col items-center gap-4 py-4">
@@ -152,12 +144,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
             className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
             style={{ aspectRatio: '4/3' }}
           >
-            {/* Transposition indicator */}
-            {hoveredSide === 'top' && (
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-primary font-medium bg-primary/10 px-2 py-0.5 rounded">
-                Vista transposta ↕
-              </div>
-            )}
             <div className="grid grid-rows-3 gap-2 h-full">
               {displayGrid.map((row, rowIdx) => (
                 <div key={rowIdx} className="grid grid-cols-4 gap-2">
