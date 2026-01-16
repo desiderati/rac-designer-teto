@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { HouseSide, ViewType, houseManager, OPPOSITE_VIEW } from '@/lib/house-manager';
 import {
@@ -40,9 +40,15 @@ function getPilotiIdFromName(name: string): string {
 
 export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSelectorProps) {
   const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
+  const [, forceUpdate] = useState(0);
   const isMobile = useIsMobile();
 
-  // Force re-read of houseManager data when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    return houseManager.subscribe(() => forceUpdate((v) => v + 1));
+  }, [isOpen]);
+
+  // Re-read of houseManager data; forceUpdate exists only to rerender on updates
   const house = isOpen ? houseManager.getHouse() : null;
   const pilotiData = house?.pilotis || {};
 
@@ -75,6 +81,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       case 'bottom': return 'Inferior';
       case 'left': return 'Esquerda';
       case 'right': return 'Direita';
+      default: return '';
     }
   };
 
@@ -102,6 +109,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       case 'bottom': return row === 2;
       case 'left': return col === 0;
       case 'right': return col === 3;
+      default: return false;
     }
   };
 
