@@ -170,9 +170,20 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
           </div>
         </div>
       ) : (
-        // Side views: keep the piloti grid the SAME size as the top/bottom modal,
-        // and position the left/right buttons outside (absolute) so they don't shrink the grid.
-        <div className="relative w-full max-w-xs overflow-visible">
+        // Side views: Left button + Grid + Right button in a row
+        <div className="flex items-stretch gap-2 w-full justify-center">
+          <SideButton
+            side="left"
+            label={getSideLabel('left')}
+            isAvailable={isSideAvailable('left')}
+            isHovered={hoveredSide === 'left'}
+            assignment={getSideAssignment('left')}
+            onHover={setHoveredSide}
+            onClick={handleSideClick}
+            vertical
+            className="self-stretch"
+          />
+
           <div className="w-full max-w-xs">
             <div
               className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
@@ -206,31 +217,17 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
             </div>
           </div>
 
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+0.5rem)]">
-            <SideButton
-              side="left"
-              label={getSideLabel('left')}
-              isAvailable={isSideAvailable('left')}
-              isHovered={hoveredSide === 'left'}
-              assignment={getSideAssignment('left')}
-              onHover={setHoveredSide}
-              onClick={handleSideClick}
-              vertical
-            />
-          </div>
-
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%+0.5rem)]">
-            <SideButton
-              side="right"
-              label={getSideLabel('right')}
-              isAvailable={isSideAvailable('right')}
-              isHovered={hoveredSide === 'right'}
-              assignment={getSideAssignment('right')}
-              onHover={setHoveredSide}
-              onClick={handleSideClick}
-              vertical
-            />
-          </div>
+          <SideButton
+            side="right"
+            label={getSideLabel('right')}
+            isAvailable={isSideAvailable('right')}
+            isHovered={hoveredSide === 'right'}
+            assignment={getSideAssignment('right')}
+            onHover={setHoveredSide}
+            onClick={handleSideClick}
+            vertical
+            className="self-stretch"
+          />
         </div>
       )}
 
@@ -255,8 +252,8 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-sm px-4">
-          <DialogHeader className="text-center max-w-xs mx-auto">
+        <DialogContent className={cn("px-4", isLongSide ? "sm:max-w-sm" : "sm:max-w-md")}>
+          <DialogHeader className={cn("max-w-xs", isLongSide ? "text-center mx-auto" : "text-left ml-[44px]")}>
             <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             <DialogDescription className="text-sm text-left">
               Clique no lado da casa onde deseja posicionar esta vista
