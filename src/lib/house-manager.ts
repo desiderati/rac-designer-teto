@@ -318,6 +318,17 @@ class HouseManager {
   updatePiloti(pilotiId: string, data: Partial<PilotiData>): void {
     if (!this.house) return;
 
+    // Enforce "single master" globally: when setting a master, clear previous masters
+    const clearedMasters: string[] = [];
+    if (data.isMaster === true) {
+      Object.entries(this.house.pilotis).forEach(([id, p]) => {
+        if (id !== pilotiId && p.isMaster) {
+          this.house!.pilotis[id] = { ...p, isMaster: false };
+          clearedMasters.push(id);
+        }
+      });
+    }
+
     // Update central store
     const current = this.house.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
     this.house.pilotis[pilotiId] = { ...current, ...data };
@@ -327,8 +338,17 @@ class HouseManager {
       if (!viewData?.group) return;
 
       const group = viewData.group;
-      const newData = this.house!.pilotis[pilotiId];
 
+      // First: if we cleared any previous masters, update them in this group
+      if (clearedMasters.length) {
+        clearedMasters.forEach((id) => {
+          const p = this.house!.pilotis[id];
+          updatePilotiMaster(group, id, p.isMaster, p.nivel);
+        });
+      }
+
+      // Then update the target piloti
+      const newData = this.house!.pilotis[pilotiId];
       if (data.height !== undefined) {
         updatePilotiHeight(group, pilotiId, newData.height);
       }
