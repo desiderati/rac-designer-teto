@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { HouseSide, ViewType, houseManager, OPPOSITE_VIEW } from '@/lib/house-manager';
+import { HouseSide, ViewType, houseManager } from '@/lib/house-manager';
 import {
   Sheet,
   SheetContent,
@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SideSelectorProps {
@@ -133,71 +133,106 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       )}
 
       {/* Middle row: Left + Grid + Right */}
-      <div className="flex items-stretch gap-2 w-full max-w-xs justify-center">
-        {/* Left side button (for side views) */}
-        {!isLongSide && (
-          <SideButton
-            side="left"
-            label={getSideLabel('left')}
-            isAvailable={isSideAvailable('left')}
-            isHovered={hoveredSide === 'left'}
-            assignment={getSideAssignment('left')}
-            onHover={setHoveredSide}
-            onClick={handleSideClick}
-            vertical
-          />
-        )}
+      {isLongSide ? (
+        <div className="flex items-stretch gap-2 w-full max-w-xs justify-center">
+          {/* Piloti Grid */}
+          <div className="w-full max-w-xs">
+            <div
+              className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
+              style={{ aspectRatio: '4/3' }}
+            >
+              <div className="grid grid-rows-3 gap-2 h-full">
+                {displayGrid.map((row, rowIdx) => (
+                  <div key={rowIdx} className="grid grid-cols-4 gap-2">
+                    {row.map((name) => {
+                      const pilotiId = getPilotiIdFromName(name);
+                      const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
+                      const isHighlighted = getPilotiHighlight(name);
 
-        {/* Piloti Grid */}
-        <div className="flex-1 max-w-xs">
-          <div 
-            className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
-            style={{ aspectRatio: '4/3' }}
-          >
-            <div className="grid grid-rows-3 gap-2 h-full">
-              {displayGrid.map((row, rowIdx) => (
-                <div key={rowIdx} className="grid grid-cols-4 gap-2">
-                  {row.map((name) => {
-                    const pilotiId = getPilotiIdFromName(name);
-                    const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
-                    const isHighlighted = getPilotiHighlight(name);
-                    
-                    return (
-                      <div
-                        key={name}
-                        className={cn(
-                          "flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200",
-                          "border-2",
-                          isHighlighted 
-                            ? "bg-primary/20 border-primary scale-110" 
-                            : "bg-background border-foreground/20",
-                          data.isMaster && "bg-amber-100 border-amber-500"
-                        )}
-                      >
-                        <span className="text-[10px] font-medium text-foreground/70">{name}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                      return (
+                        <div
+                          key={name}
+                          className={cn(
+                            'flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200',
+                            'border-2',
+                            isHighlighted ? 'bg-primary/20 border-primary scale-110' : 'bg-background border-foreground/20',
+                            data.isMaster && 'bg-amber-100 border-amber-500',
+                          )}
+                        >
+                          <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+      ) : (
+        // Side views: keep the piloti grid the SAME size as the top/bottom modal,
+        // and position the left/right buttons outside (absolute) so they don't shrink the grid.
+        <div className="relative w-full max-w-xs overflow-visible">
+          <div className="w-full max-w-xs">
+            <div
+              className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
+              style={{ aspectRatio: '4/3' }}
+            >
+              <div className="grid grid-rows-3 gap-2 h-full">
+                {displayGrid.map((row, rowIdx) => (
+                  <div key={rowIdx} className="grid grid-cols-4 gap-2">
+                    {row.map((name) => {
+                      const pilotiId = getPilotiIdFromName(name);
+                      const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
+                      const isHighlighted = getPilotiHighlight(name);
 
-        {/* Right side button (for side views) */}
-        {!isLongSide && (
-          <SideButton
-            side="right"
-            label={getSideLabel('right')}
-            isAvailable={isSideAvailable('right')}
-            isHovered={hoveredSide === 'right'}
-            assignment={getSideAssignment('right')}
-            onHover={setHoveredSide}
-            onClick={handleSideClick}
-            vertical
-          />
-        )}
-      </div>
+                      return (
+                        <div
+                          key={name}
+                          className={cn(
+                            'flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200',
+                            'border-2',
+                            isHighlighted ? 'bg-primary/20 border-primary scale-110' : 'bg-background border-foreground/20',
+                            data.isMaster && 'bg-amber-100 border-amber-500',
+                          )}
+                        >
+                          <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[calc(100%+0.5rem)]">
+            <SideButton
+              side="left"
+              label={getSideLabel('left')}
+              isAvailable={isSideAvailable('left')}
+              isHovered={hoveredSide === 'left'}
+              assignment={getSideAssignment('left')}
+              onHover={setHoveredSide}
+              onClick={handleSideClick}
+              vertical
+            />
+          </div>
+
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-[calc(100%+0.5rem)]">
+            <SideButton
+              side="right"
+              label={getSideLabel('right')}
+              isAvailable={isSideAvailable('right')}
+              isHovered={hoveredSide === 'right'}
+              assignment={getSideAssignment('right')}
+              onHover={setHoveredSide}
+              onClick={handleSideClick}
+              vertical
+            />
+          </div>
+        </div>
+      )}
 
       {/* Bottom side button (for front/back views) */}
       {isLongSide && (
