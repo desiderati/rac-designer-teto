@@ -282,6 +282,9 @@ function SideButton({
     }
   };
 
+  // When a view is assigned to this side, use gray hover instead of blue
+  const hasAssignment = assignment !== null;
+  
   return (
     <button
       disabled={!isAvailable}
@@ -296,8 +299,12 @@ function SideButton({
         vertical && "writing-mode-vertical flex-col min-w-[32px] px-1.5 py-3",
         isAvailable
           ? isHovered
-            ? "bg-primary text-primary-foreground border-primary"
-            : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
+            ? hasAssignment
+              ? "bg-muted text-muted-foreground border-muted-foreground/50"
+              : "bg-primary text-primary-foreground border-primary"
+            : hasAssignment
+              ? "bg-background border-foreground/30 hover:border-muted-foreground/50 hover:bg-muted/50"
+              : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
           : "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed",
         className
       )}
