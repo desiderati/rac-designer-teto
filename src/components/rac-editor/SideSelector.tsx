@@ -253,15 +253,13 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-sm">
-          <div className="mx-auto w-full max-w-xs">
-            <DialogHeader className="text-left">
-              <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
-              <DialogDescription className="text-sm">
-                Clique no lado da casa onde deseja posicionar esta vista
-              </DialogDescription>
-            </DialogHeader>
-            {content}
-          </div>
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
+            <DialogDescription className="text-sm">
+              Clique no lado da casa onde deseja posicionar esta vista
+            </DialogDescription>
+          </DialogHeader>
+          {content}
         </DialogContent>
       </Dialog>
     );
@@ -269,19 +267,17 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
 
   // Mobile: use Sheet (bottom drawer)
   return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-          <div className="mx-auto w-full max-w-xs">
-            <SheetHeader className="text-center pb-2">
-              <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
-              <SheetDescription className="text-sm text-left">
-                Toque no lado da casa onde deseja posicionar esta vista
-              </SheetDescription>
-            </SheetHeader>
-            {content}
-          </div>
-        </SheetContent>
-      </Sheet>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+        <SheetHeader className="text-center pb-2 max-w-xs mx-auto">
+          <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
+          <SheetDescription className="text-sm text-left">
+            Toque no lado da casa onde deseja posicionar esta vista
+          </SheetDescription>
+        </SheetHeader>
+        {content}
+      </SheetContent>
+    </Sheet>
   );
 }
 
