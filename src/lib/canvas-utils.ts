@@ -535,18 +535,33 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const windowH = 75 * s;
   const doorY = roofH + (bodyH - 180 * s);
 
-  // Right window (appears in both front and back)
-  const w1 = new Rect({
-    width: windowW,
-    height: windowH,
-    fill: "#fff",
-    stroke: "#333",
-    strokeWidth: 1.5,
-    strokeUniform: true,
-    left: bodyW - 130 * s,
-    top: doorY,
-  });
-  elements.push(w1);
+  if (isFront) {
+    // Front view: right window next to door
+    const w1 = new Rect({
+      width: windowW,
+      height: windowH,
+      fill: "#fff",
+      stroke: "#333",
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: bodyW - 130 * s,
+      top: doorY,
+    });
+    elements.push(w1);
+  } else {
+    // Back view: window on the left side (mirrored from front)
+    const w1 = new Rect({
+      width: windowW,
+      height: windowH,
+      fill: "#fff",
+      stroke: "#333",
+      strokeWidth: 1.5,
+      strokeUniform: true,
+      left: 40 * s,
+      top: doorY,
+    });
+    elements.push(w1);
+  }
 
   if (isFront) {
     const doorW = 100 * s;
