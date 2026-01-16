@@ -125,7 +125,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       )}
 
       {/* Middle row: Left + Grid + Right */}
-      <div className="flex items-stretch gap-2 w-full max-w-md justify-center">
+      <div className="flex items-stretch gap-2 w-full max-w-xs justify-center">
         {/* Left side button (for side views) */}
         {!isLongSide && (
           <SideButton
