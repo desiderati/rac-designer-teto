@@ -111,16 +111,36 @@ class HouseManager {
     return this.house;
   }
 
+  private isGroupOnCanvas(group: Group): boolean {
+    if (!this.canvas) return false;
+    return this.canvas.getObjects().includes(group as any);
+  }
+
+  private cleanupStaleView(viewType: ViewType): void {
+    if (!this.house) return;
+    const viewData = this.house.views[viewType];
+    if (!viewData) return;
+
+    // If the Fabric object is no longer on canvas (e.g. removed, undo/redo, import),
+    // clear internal state so the view can be added again.
+    if (!this.isGroupOnCanvas(viewData.group)) {
+      if (viewData.side) this.house.sideAssignments[viewData.side] = null;
+      this.house.views[viewType] = null;
+    }
+  }
+
   hasView(viewType: ViewType): boolean {
     // When house isn't initialized yet, no views exist.
     if (!this.house) return false;
+
+    this.cleanupStaleView(viewType);
     return this.house.views[viewType] !== null;
   }
 
   getAvailableViews(): ViewType[] {
     if (!this.house) return [];
     return (['top', 'front', 'back', 'side1', 'side2'] as ViewType[]).filter(
-      (v) => !this.house!.views[v]
+      (v) => !this.hasView(v)
     );
   }
 
