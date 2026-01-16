@@ -689,9 +689,6 @@ export function RACEditor() {
     if (activeObjects.length) {
       canvas.discardActiveObject();
       
-      // Track which view types are being deleted
-      const deletedViewTypes: ViewType[] = [];
-      
       activeObjects.forEach((obj) => {
         // If it's a house view, remove from house manager
         if ((obj as any).myType === 'house') {
@@ -707,7 +704,6 @@ export function RACEditor() {
             null;
 
           if (viewType) {
-            deletedViewTypes.push(viewType);
             houseManager.removeViewByType(viewType);
           } else {
             houseManager.removeView(obj as Group);
@@ -717,31 +713,6 @@ export function RACEditor() {
         canvas.remove(obj);
       });
       setInfoMessage('Objeto excluído.');
-      
-      // After deletion, check if we should reopen the side selector modal
-      // Reopen if both front/back are now missing, or both side1/side2 are now missing
-      const hasFront = houseManager.hasView('front');
-      const hasBack = houseManager.hasView('back');
-      const hasSide1 = houseManager.hasView('side1');
-      const hasSide2 = houseManager.hasView('side2');
-      
-      // Check if we deleted a front/back view and now both are missing
-      const deletedFrontOrBack = deletedViewTypes.some(vt => vt === 'front' || vt === 'back');
-      const bothFrontBackMissing = !hasFront && !hasBack;
-      
-      // Check if we deleted a side1/side2 view and now both are missing
-      const deletedSide = deletedViewTypes.some(vt => vt === 'side1' || vt === 'side2');
-      const bothSidesMissing = !hasSide1 && !hasSide2;
-      
-      if (deletedFrontOrBack && bothFrontBackMissing) {
-        // Reopen modal for front view
-        setPendingViewType('front');
-        setSideSelectorOpen(true);
-      } else if (deletedSide && bothSidesMissing) {
-        // Reopen modal for side1 view
-        setPendingViewType('side1');
-        setSideSelectorOpen(true);
-      }
     }
   };
 
