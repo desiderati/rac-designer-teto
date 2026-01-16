@@ -282,9 +282,9 @@ function SideButton({
       onTouchEnd={() => onHover(null)}
       onClick={() => onClick(side)}
       className={cn(
-        "px-4 py-2 rounded-lg border-2 transition-all duration-200",
+        "px-3 py-1.5 rounded-md border-2 transition-all duration-200",
         "flex items-center justify-center gap-1",
-        vertical && "writing-mode-vertical flex-col min-w-[44px] py-4",
+        vertical && "writing-mode-vertical flex-col min-w-[32px] px-1.5 py-3",
         isAvailable
           ? isHovered
             ? "bg-primary text-primary-foreground border-primary"
