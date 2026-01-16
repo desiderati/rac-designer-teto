@@ -307,10 +307,10 @@ export function RACEditor() {
         house = createHouseFrontBack(canvas, false, side === 'top');
         break;
       case 'side1':
-        house = createHouseSide(canvas, false);
+        house = createHouseSide(canvas, false, side === 'right');
         break;
       case 'side2':
-        house = createHouseSide(canvas, true);
+        house = createHouseSide(canvas, true, side === 'right');
         break;
     }
 

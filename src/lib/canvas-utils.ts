@@ -609,16 +609,16 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   return group;
 }
 
-export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
+export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightSide: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
   const s = factors.depthFactor;
   const sideWidth = 300 * s;
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
 
-  // Side view (side1): pilotis correspond to column 0 (A1, B1, C1)
-  // Side view (side2 - hasDoor): pilotis correspond to column 3 (A4, B4, C4)
-  const colIndex = hasDoor ? 3 : 0;
+  // Left side: pilotis correspond to column 0 (A1, B1, C1)
+  // Right side: pilotis correspond to column 3 (C4, B4, A4 - reversed order)
+  const colIndex = isRightSide ? 3 : 0;
 
   // Create pilotis with tracking
   const createPilotiRect = (rowIndex: number, left: number) => {
@@ -649,9 +649,11 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean): Group {
     return rect;
   };
 
-  const p1 = createPilotiRect(0, 0);
+  // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
+  // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
+  const p1 = createPilotiRect(isRightSide ? 2 : 0, 0);
   const p2 = createPilotiRect(1, (sideWidth - pilotW) / 2);
-  const p3 = createPilotiRect(2, sideWidth - pilotW);
+  const p3 = createPilotiRect(isRightSide ? 0 : 2, sideWidth - pilotW);
 
   const wall = new Rect({
     width: sideWidth,
