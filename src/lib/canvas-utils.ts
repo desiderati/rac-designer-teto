@@ -328,10 +328,14 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       if (rect) {
         const baseHeight = rect.pilotiBaseHeight || 60;
         const newVisualHeight = baseHeight * newHeight;
-        // Position label 4px below the piloti rect (using same scale factor)
-        const labelOffset = 4 * (baseHeight / 60); // approximate scale
+        // Position label 8px below the piloti rect (using same scale factor)
+        const labelOffset = 8 * (baseHeight / (100)); // scale based on base height
         obj.set('top', rect.top + newVisualHeight + labelOffset);
+        // Ensure left is centered on the piloti rect
+        const rectWidth = rect.width || 30;
+        obj.set('left', rect.left + rectWidth / 2);
         obj.setCoords();
+        (obj as any).dirty = true;
       }
     }
   });
@@ -508,11 +512,12 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilots.push(rect);
     
     // Create size label below piloti (font size 20 * scale for visibility)
+    // Position at center of piloti rect (rect.left + pilotW/2)
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: roofH + bodyH + pilotH + 4 * s,
+      top: roofH + bodyH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
