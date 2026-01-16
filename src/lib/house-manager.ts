@@ -250,6 +250,8 @@ class HouseManager {
     if (!this.house) return;
 
     const objects = group.getObjects();
+    
+    // First pass: set data properties
     objects.forEach((obj: FabricObject) => {
       const pilotiId = (obj as any).pilotiId;
       if (!pilotiId) return;
@@ -267,6 +269,15 @@ class HouseManager {
           obj.set('fill', MASTER_PILOTI_FILL);
           obj.set('stroke', MASTER_PILOTI_STROKE);
           obj.set('strokeWidth', (obj as any).isPilotiRect ? 3 : 2);
+        }
+
+        // For rect pilotis in front/back/side views, update the visual height
+        if ((obj as any).isPilotiRect && data.height !== 1.0) {
+          const baseHeight = (obj as any).pilotiBaseHeight || 60;
+          const newVisualHeight = baseHeight * data.height;
+          obj.set({ height: newVisualHeight, scaleY: 1 });
+          obj.setCoords();
+          (obj as any).dirty = true;
         }
       }
 
