@@ -122,7 +122,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
       )}
 
       {/* Middle row: Left + Grid + Right */}
-      <div className="flex items-center gap-2 w-full max-w-md justify-center">
+      <div className="flex items-stretch gap-2 w-full max-w-md justify-center">
         {/* Left side button (for side views) */}
         {!isLongSide && (
           <SideButton
@@ -134,7 +134,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
             onHover={setHoveredSide}
             onClick={handleSideClick}
             vertical
-            className="h-full"
           />
         )}
 
@@ -185,7 +184,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
             onHover={setHoveredSide}
             onClick={handleSideClick}
             vertical
-            className="h-full"
           />
         )}
       </div>
