@@ -435,7 +435,7 @@ export function getPilotiVisualHeight(pilotiHeight: number, scale: number): numb
   return BASE_PILOTI_HEIGHT_PX * pilotiHeight * scale;
 }
 
-export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Group {
+export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, flipHorizontal: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
   const s = factors.widthFactor;
   const bodyW = 610 * s;
@@ -581,9 +581,11 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean): Gr
     originY: "center",
     subTargetCheck: true,
     objectCaching: false,
+    flipX: flipHorizontal,
   });
   (group as any).myType = "house";
   (group as any).houseView = isFront ? "front" : "back";
+  (group as any).isFlippedHorizontally = flipHorizontal;
   group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
 
   return group;

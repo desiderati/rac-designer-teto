@@ -299,10 +299,12 @@ export function RACEditor() {
         house = createHouseTop(canvas);
         break;
       case 'front':
-        house = createHouseFrontBack(canvas, true);
+        // Flip horizontally when positioned at top (superior)
+        house = createHouseFrontBack(canvas, true, side === 'top');
         break;
       case 'back':
-        house = createHouseFrontBack(canvas, false);
+        // Flip horizontally when positioned at top (superior)
+        house = createHouseFrontBack(canvas, false, side === 'top');
         break;
       case 'side1':
         house = createHouseSide(canvas, false);
