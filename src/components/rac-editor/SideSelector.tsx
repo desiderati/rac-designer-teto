@@ -253,7 +253,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className={cn(isLongSide ? "sm:max-w-sm" : "sm:max-w-md")}>
-          <div className={cn(!isLongSide && "mx-auto w-fit pr-4")}>
+          <div className={cn(!isLongSide && "mx-auto w-fit px-4")}>
             <DialogHeader className={cn(isLongSide ? "text-center max-w-xs mx-auto" : "text-left")}>
               <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
               <DialogDescription className="text-sm text-left">
@@ -271,7 +271,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-        <div className={cn(!isLongSide && "mx-auto w-fit")}>
+        <div className={cn(!isLongSide && "mx-auto w-fit px-4")}>
           <SheetHeader className="text-center pb-2 max-w-xs mx-auto">
             <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
             <SheetDescription className="text-sm text-left">
