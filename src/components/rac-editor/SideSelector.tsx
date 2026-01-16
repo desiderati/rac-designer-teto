@@ -42,8 +42,11 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
   const isMobile = useIsMobile();
 
+  // Force re-read of houseManager data when modal opens
+  const house = isOpen ? houseManager.getHouse() : null;
+  const pilotiData = house?.pilotis || {};
+
   const availableSides = houseManager.getAvailableSides(viewType);
-  const house = houseManager.getHouse();
 
   // Determine which sides can be selected based on view type
   const isLongSide = viewType === 'front' || viewType === 'back';
@@ -148,7 +151,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
                 <div key={rowIdx} className="grid grid-cols-4 gap-2">
                   {row.map((name) => {
                     const pilotiId = getPilotiIdFromName(name);
-                    const data = houseManager.getPilotiData(pilotiId);
+                    const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
                     const isHighlighted = getPilotiHighlight(name);
                     
                     return (
