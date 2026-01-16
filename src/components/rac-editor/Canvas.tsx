@@ -1,5 +1,5 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil } from 'fabric';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
 
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -21,6 +21,12 @@ export interface DistanceSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface ObjectNameSelection {
+  object: Rect;
+  currentValue: string;
+  screenPosition: { x: number; y: number };
+}
+
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
@@ -31,6 +37,7 @@ interface CanvasProps {
   showTips?: boolean;
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
   onDistanceSelect?: (selection: DistanceSelection | null) => void;
+  onObjectNameSelect?: (selection: ObjectNameSelection | null) => void;
   isEditorOpen?: boolean;
   onDelete?: () => void;
 }
@@ -47,7 +54,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, isEditorOpen = false, onDelete }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, isEditorOpen = false, onDelete }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -498,7 +505,49 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       };
 
-      // Desktop: double-click on piloti or dimension
+      // Helper function to handle wall/object name selection
+      const handleObjectNameSelection = (wall: Rect) => {
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const currentContainerSize = containerSizeRef.current;
+        
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+        
+        const currentCanvasX = scaledWidth <= currentContainerSize.width 
+          ? (currentContainerSize.width - scaledWidth) / 2 
+          : -currentViewportX;
+        const currentCanvasY = scaledHeight <= currentContainerSize.height 
+          ? (currentContainerSize.height - scaledHeight) / 2 
+          : -currentViewportY;
+        
+        // Check if there's already a label for this wall
+        const existingLabel = canvas.getObjects().find(
+          (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === wall
+        ) as IText | undefined;
+        const currentValue = existingLabel?.text?.trim() || '';
+        
+        // Calculate screen position of the wall
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const wallLeft = wall.left || 0;
+          const wallTop = wall.top || 0;
+          
+          const screenX = containerRect.left + (wallLeft * currentZoom) + currentCanvasX;
+          const screenY = containerRect.top + (wallTop * currentZoom) + currentCanvasY;
+          
+          onObjectNameSelect?.({
+            object: wall,
+            currentValue,
+            screenPosition: { x: screenX, y: screenY },
+          });
+          
+          onSelectionChange('Editando nome do objeto.');
+        }
+      };
+
+      // Desktop: double-click on piloti or dimension or wall
       canvas.on('mouse:dblclick', (e) => {
         // Skip on mobile (use same breakpoint as useIsMobile hook - 768px)
         if (window.matchMedia('(max-width: 767px)').matches) return;
@@ -512,6 +561,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           e.e.preventDefault();
           e.e.stopPropagation();
           handleDistanceSelection(target as Group);
+          return;
+        }
+        
+        // Check if target is a wall/object
+        if (target.type === 'rect' && (target as any).myType === 'wall') {
+          handleObjectNameSelection(target as Rect);
           return;
         }
         

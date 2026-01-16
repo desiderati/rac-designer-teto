@@ -1,13 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject } from 'fabric';
+import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect } from 'fabric';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection } from './Canvas';
+import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectNameSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
 import { DistanceEditor } from './DistanceEditor';
+import { ObjectNameEditor } from './ObjectNameEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { SideSelector } from './SideSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -58,6 +59,8 @@ export function RACEditor() {
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
   const [distanceSelection, setDistanceSelection] = useState<DistanceSelection | null>(null);
   const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
+  const [objectNameSelection, setObjectNameSelection] = useState<ObjectNameSelection | null>(null);
+  const [isObjectNameEditorOpen, setIsObjectNameEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
@@ -913,6 +916,24 @@ export function RACEditor() {
     setInfoMessage(`Distância atualizada para: ${newValue || '(vazio)'}.`);
   };
 
+  const handleObjectNameSelect = (selection: ObjectNameSelection | null) => {
+    setObjectNameSelection(selection);
+    if (selection) {
+      setIsObjectNameEditorOpen(true);
+    }
+  };
+
+  const handleObjectNameEditorClose = () => {
+    setIsObjectNameEditorOpen(false);
+    setObjectNameSelection(null);
+  };
+
+  const handleObjectNameValueChange = (newValue: string) => {
+    canvasRef.current?.saveHistory();
+    canvasRef.current?.canvas?.renderAll();
+    setInfoMessage(`Nome do objeto atualizado para: ${newValue || '(vazio)'}.`);
+  };
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
@@ -975,7 +996,8 @@ export function RACEditor() {
           showTips={showTips}
           onPilotiSelect={handlePilotiSelect}
           onDistanceSelect={handleDistanceSelect}
-          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen}
+          onObjectNameSelect={handleObjectNameSelect}
+          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen}
           onDelete={handleDelete}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
@@ -1011,6 +1033,17 @@ export function RACEditor() {
         isMobile={isMobile}
         anchorPosition={distanceSelection?.screenPosition}
         onValueChange={handleDistanceValueChange}
+      />
+
+      <ObjectNameEditor
+        isOpen={isObjectNameEditorOpen}
+        onClose={handleObjectNameEditorClose}
+        object={objectNameSelection?.object ?? null}
+        canvas={canvasRef.current?.canvas ?? null}
+        currentValue={objectNameSelection?.currentValue ?? ''}
+        isMobile={isMobile}
+        anchorPosition={objectNameSelection?.screenPosition}
+        onValueChange={handleObjectNameValueChange}
       />
 
       {pendingViewType && (
