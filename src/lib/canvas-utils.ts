@@ -320,23 +320,23 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
   });
   
   // After updating piloti rect height, also update the position of the size label
-  // Need to find the rect to get its new height, then position label below it
+  // Keep it always immediately BELOW the piloti (using the piloti's current height).
   objects.forEach((obj: any) => {
     if (obj.pilotiId === pilotiId && obj.isPilotiSizeLabel) {
-      // Find the matching rect to get its current position and height
       const rect = objects.find((r: any) => r.pilotiId === pilotiId && r.isPilotiRect) as any;
-      if (rect) {
-        const baseHeight = rect.pilotiBaseHeight || 60;
-        const newVisualHeight = baseHeight * newHeight;
-        // Position label 8px below the piloti rect (using same scale factor)
-        const labelOffset = 8 * (baseHeight / (100)); // scale based on base height
-        obj.set('top', rect.top + newVisualHeight + labelOffset);
-        // Ensure left is centered on the piloti rect
-        const rectWidth = rect.width || 30;
-        obj.set('left', rect.left + rectWidth / 2);
-        obj.setCoords();
-        (obj as any).dirty = true;
-      }
+      if (!rect) return;
+
+      // s = scale factor used in view construction (because pilotiBaseHeight = BASE * s)
+      const s = (rect.pilotiBaseHeight || BASE_PILOTI_HEIGHT_PX) / BASE_PILOTI_HEIGHT_PX;
+      const offset = 8 * s;
+
+      const rectHeight = (rect.height ?? 0) as number;
+      const rectWidth = (rect.width ?? 0) as number;
+
+      obj.set('left', rect.left + rectWidth / 2);
+      obj.set('top', rect.top + rectHeight + offset);
+      obj.setCoords();
+      (obj as any).dirty = true;
     }
   });
 
