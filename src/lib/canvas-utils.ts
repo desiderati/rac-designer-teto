@@ -298,6 +298,7 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       obj.pilotiHeight = newHeight;
 
       const baseHeight = obj.pilotiBaseHeight || 60; // fallback
+      const s = baseHeight / BASE_PILOTI_HEIGHT_PX;
       const newVisualHeight = baseHeight * newHeight;
       rectHeightDelta = newVisualHeight - oldHeight;
 
@@ -305,6 +306,19 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       obj.set({ height: newVisualHeight, scaleY: 1 });
       obj.setCoords();
       (obj as any).dirty = true;
+
+      // Update size label position using the *same* computed height (no guessing)
+      const sizeLabel = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiSizeLabel) as any;
+      if (sizeLabel) {
+        const offset = 8 * s;
+        const rectWidth = (obj.width ?? 0) as number;
+        sizeLabel.set('left', (obj.left ?? 0) + rectWidth / 2);
+        sizeLabel.set('top', (obj.top ?? 0) + newVisualHeight + offset);
+        sizeLabel.set('text', formatPilotiHeight(newHeight));
+        sizeLabel.setCoords();
+        (sizeLabel as any).dirty = true;
+      }
+
       return;
     }
 
@@ -312,30 +326,9 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       obj.set('text', formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
-    
+
     if (obj.isPilotiSizeLabel) {
       obj.set('text', formatPilotiHeight(newHeight));
-      (obj as any).dirty = true;
-    }
-  });
-  
-  // After updating piloti rect height, also update the position of the size label
-  // Keep it always immediately BELOW the piloti using the *rendered* (scaled) size.
-  objects.forEach((obj: any) => {
-    if (obj.pilotiId === pilotiId && obj.isPilotiSizeLabel) {
-      const rect = objects.find((r: any) => r.pilotiId === pilotiId && r.isPilotiRect) as any;
-      if (!rect) return;
-
-      const base = rect.pilotiBaseHeight || BASE_PILOTI_HEIGHT_PX;
-      const scale = base / BASE_PILOTI_HEIGHT_PX;
-      const offset = 8 * scale;
-
-      const rectHeight = (rect.getScaledHeight?.() ?? rect.height ?? 0) as number;
-      const rectWidth = (rect.getScaledWidth?.() ?? rect.width ?? 0) as number;
-
-      obj.set('left', (rect.left ?? 0) + rectWidth / 2);
-      obj.set('top', (rect.top ?? 0) + rectHeight + offset);
-      obj.setCoords();
       (obj as any).dirty = true;
     }
   });
