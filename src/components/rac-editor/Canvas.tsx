@@ -380,8 +380,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         // For now, we'll add a visual indicator by changing the stroke style
         // We'll use a thicker, colored stroke on the appropriate side
         
-        const w = houseBody.width || 0;
-        const h = houseBody.height || 0;
+        // Use scaled dimensions to account for resized plant views
+        const w = (houseBody.width || 0) * (houseBody.scaleX || 1);
+        const h = (houseBody.height || 0) * (houseBody.scaleY || 1);
 
         // Remove any existing highlight lines from the group
         const existingHighlights = group.getObjects().filter((o: any) => o.isSideHighlight);
