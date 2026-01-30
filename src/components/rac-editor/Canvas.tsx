@@ -1,6 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
+import { houseManager, ViewType } from '@/lib/house-manager';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
@@ -346,7 +347,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           });
 
           // If an elevation view is selected, highlight the corresponding side on the plant view
-          const selectedViewType = (obj as any).houseViewType;
+          const selectedViewType = (obj as any).houseViewType as ViewType | undefined;
           if (selectedViewType && selectedViewType !== 'top') {
             // Find the plant view on canvas
             const plantView = canvas.getObjects().find((item: any) => 
@@ -355,7 +356,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
             if (plantView) {
               // Get the side assignment from houseManager
-              const { houseManager } = require('@/lib/house-manager');
               const house = houseManager.getHouse();
               if (house?.views[selectedViewType]?.side) {
                 const side = house.views[selectedViewType].side;
@@ -363,7 +363,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
                 // Highlight the corresponding side of the plant view's house body
                 plantView.getObjects().forEach((child: any) => {
                   if (child.isHouseBody) {
-                    highlightPlantViewSide(child, side);
+                    highlightPlantViewSide(plantView, child, side);
                   }
                 });
               }
@@ -375,25 +375,21 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       };
 
       // Helper function to highlight a specific side of the plant view
-      const highlightPlantViewSide = (houseBody: any, side: 'top' | 'bottom' | 'left' | 'right') => {
+      const highlightPlantViewSide = (group: Group, houseBody: any, side: 'top' | 'bottom' | 'left' | 'right') => {
         // We need to draw a highlight line on the appropriate side
         // For now, we'll add a visual indicator by changing the stroke style
         // We'll use a thicker, colored stroke on the appropriate side
         
         const w = houseBody.width || 0;
         const h = houseBody.height || 0;
-        
+
+        // Remove any existing highlight lines from the group
+        const existingHighlights = group.getObjects().filter((o: any) => o.isSideHighlight);
+        existingHighlights.forEach((o: any) => group.remove(o));
+
         // Create highlight lines for the selected side
         const highlightColor = '#3b82f6'; // Blue
         const highlightWidth = 6;
-        
-        // Get the group containing this house body
-        const group = houseBody.group;
-        if (!group) return;
-
-        // Remove any existing highlight lines
-        const existingHighlights = group.getObjects().filter((o: any) => o.isSideHighlight);
-        existingHighlights.forEach((o: any) => group.remove(o));
 
         // Calculate line positions relative to the house body
         const bodyLeft = houseBody.left || 0;
