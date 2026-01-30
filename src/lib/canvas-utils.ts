@@ -55,17 +55,48 @@ export const MASTER_PILOTI_STROKE = "#8B4513";
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
-  let houseBody = objs.find((o: any) => o.myType === "house" && o.houseView === "top") as any;
-  if (!houseBody) {
-    houseBody = objs.find((o: any) => o.isHouseBody === true);
+  
+  // Find the top view (plant view) group
+  const topViewGroup = objs.find((o: any) => o.myType === "house" && o.houseView === "top") as any;
+  
+  if (topViewGroup) {
+    // Get the house body rect inside the group
+    const houseBody = topViewGroup.getObjects?.().find((o: any) => o.isHouseBody === true) as any;
+    if (houseBody) {
+      // Calculate actual dimensions considering group scale and object scale
+      const groupScaleX = topViewGroup.scaleX || 1;
+      const groupScaleY = topViewGroup.scaleY || 1;
+      const currentW = houseBody.width * (houseBody.scaleX || 1) * groupScaleX;
+      const currentH = houseBody.height * (houseBody.scaleY || 1) * groupScaleY;
+      return { 
+        widthFactor: currentW / BASE_TOP_WIDTH, 
+        depthFactor: currentH / BASE_TOP_HEIGHT,
+        actualWidth: currentW,
+        actualHeight: currentH,
+      };
+    }
   }
+  
+  // Fallback: look for standalone house body (legacy support)
+  const houseBody = objs.find((o: any) => o.isHouseBody === true) as any;
   if (houseBody) {
-    const currentW = houseBody.width * houseBody.scaleX;
-    const currentH = houseBody.height * houseBody.scaleY;
-    return { widthFactor: currentW / BASE_TOP_WIDTH, depthFactor: currentH / BASE_TOP_HEIGHT };
+    const currentW = houseBody.width * (houseBody.scaleX || 1);
+    const currentH = houseBody.height * (houseBody.scaleY || 1);
+    return { 
+      widthFactor: currentW / BASE_TOP_WIDTH, 
+      depthFactor: currentH / BASE_TOP_HEIGHT,
+      actualWidth: currentW,
+      actualHeight: currentH,
+    };
   }
+  
   const defaultS = 0.6;
-  return { widthFactor: defaultS, depthFactor: defaultS };
+  return { 
+    widthFactor: defaultS, 
+    depthFactor: defaultS,
+    actualWidth: BASE_TOP_WIDTH * defaultS,
+    actualHeight: BASE_TOP_HEIGHT * defaultS,
+  };
 }
 
 export function createHouseTop(canvas: FabricCanvas): Group {
@@ -457,8 +488,13 @@ export function getPilotiVisualHeight(pilotiHeight: number, scale: number): numb
 
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, flipHorizontal: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
+  
+  // Front/Back views use the WIDTH of the plant view (horizontal side)
+  // The body width should match the plant view's width exactly
+  const plantWidth = factors.actualWidth;
   const s = factors.widthFactor;
-  const bodyW = 610 * s;
+  
+  const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 220 * s;
   const roofH = 80 * s;
   const pilotW = 30 * s;
@@ -653,8 +689,13 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
 export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightSide: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
+  
+  // Side views use the HEIGHT/DEPTH of the plant view (vertical side)
+  // The side width should match the plant view's height exactly
+  const plantHeight = factors.actualHeight;
   const s = factors.depthFactor;
-  const sideWidth = 300 * s;
+  
+  const sideWidth = plantHeight; // Match the plant view height exactly
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
 
