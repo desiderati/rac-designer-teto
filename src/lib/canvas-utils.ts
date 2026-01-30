@@ -27,7 +27,6 @@ export const customProps = [
   "selectable",
   "lockScalingY",
   "houseView",
-  "houseViewType",
   "isHouseBody",
   "pilotiId",
   "pilotiHeight",
@@ -40,7 +39,6 @@ export const customProps = [
   "isPilotiRect",
   "pilotiBaseHeight",
   "isPilotiSizeLabel",
-  "isSideHighlight",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -68,36 +66,6 @@ export function getHouseScaleFactors(canvas: FabricCanvas) {
   }
   const defaultS = 0.6;
   return { widthFactor: defaultS, depthFactor: defaultS };
-}
-
-// Get the actual pixel dimensions of the plant view (top view) on canvas
-export function getPlantViewDimensions(canvas: FabricCanvas): { width: number; height: number } | null {
-  const objs = canvas.getObjects();
-  const plantGroup = objs.find((o: any) => o.myType === "house" && o.houseView === "top") as any;
-  
-  if (!plantGroup) return null;
-  
-  // Find the house body rect inside the group
-  const houseBody = plantGroup.getObjects?.()?.find((o: any) => o.isHouseBody === true) as any;
-  
-  if (houseBody) {
-    // Get the scaled dimensions of the house body
-    const groupScaleX = plantGroup.scaleX ?? 1;
-    const groupScaleY = plantGroup.scaleY ?? 1;
-    const bodyScaleX = houseBody.scaleX ?? 1;
-    const bodyScaleY = houseBody.scaleY ?? 1;
-    
-    const width = (houseBody.width ?? BASE_TOP_WIDTH) * bodyScaleX * groupScaleX;
-    const height = (houseBody.height ?? BASE_TOP_HEIGHT) * bodyScaleY * groupScaleY;
-    
-    return { width, height };
-  }
-  
-  // Fallback: use group dimensions
-  const width = (plantGroup.width ?? BASE_TOP_WIDTH) * (plantGroup.scaleX ?? 1);
-  const height = (plantGroup.height ?? BASE_TOP_HEIGHT) * (plantGroup.scaleY ?? 1);
-  
-  return { width, height };
 }
 
 export function createHouseTop(canvas: FabricCanvas): Group {
@@ -488,10 +456,9 @@ export function getPilotiVisualHeight(pilotiHeight: number, scale: number): numb
 }
 
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, flipHorizontal: boolean = false): Group {
-  // Get the actual plant dimensions to match view width to plant's horizontal side
-  const plantDimensions = getPlantViewDimensions(canvas);
-  const bodyW = plantDimensions?.width ?? BASE_TOP_WIDTH * 0.6; // Fallback to default
-  const s = bodyW / BASE_TOP_WIDTH; // Calculate scale from width
+  const factors = getHouseScaleFactors(canvas);
+  const s = factors.widthFactor;
+  const bodyW = 610 * s;
   const bodyH = 220 * s;
   const roofH = 80 * s;
   const pilotW = 30 * s;
@@ -685,10 +652,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 }
 
 export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightSide: boolean = false): Group {
-  // Get the actual plant dimensions to match view width to plant's vertical side (depth)
-  const plantDimensions = getPlantViewDimensions(canvas);
-  const sideWidth = plantDimensions?.height ?? BASE_TOP_HEIGHT * 0.6; // Use plant's height (depth)
-  const s = sideWidth / BASE_TOP_HEIGHT; // Calculate scale from depth
+  const factors = getHouseScaleFactors(canvas);
+  const s = factors.depthFactor;
+  const sideWidth = 300 * s;
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
 

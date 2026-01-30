@@ -52,12 +52,14 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   const house = isOpen ? houseManager.getHouse() : null;
   const pilotiData = house?.pilotis || {};
 
+  const availableSides = houseManager.getAvailableSides(viewType);
+
   // Determine which sides can be selected based on view type
   const isLongSide = viewType === 'front' || viewType === 'back';
   const selectableSides: HouseSide[] = isLongSide ? ['top', 'bottom'] : ['left', 'right'];
 
   const handleSideClick = (side: HouseSide) => {
-    if (isSideAvailable(side)) {
+    if (availableSides.includes(side)) {
       onSelectSide(side);
       onClose();
     }
@@ -84,16 +86,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   };
 
   const isSideAvailable = (side: HouseSide): boolean => {
-    // Side must be in the list of valid sides for this view type
-    if (!selectableSides.includes(side)) return false;
-    
-    // Side must not already be assigned to another view
-    const currentAssignment = house?.sideAssignments[side];
-    if (currentAssignment !== null && currentAssignment !== undefined) {
-      return false; // Side is already occupied
-    }
-    
-    return true;
+    return availableSides.includes(side) && selectableSides.includes(side);
   };
 
   const getSideAssignment = (side: HouseSide): ViewType | null => {

@@ -125,14 +125,12 @@ class HouseManager {
   }
 
   private isGroupOnCanvas(group: Group): boolean {
-    if (!this.canvas) return true; // If canvas isn't available, assume object is still there
+    if (!this.canvas) return false;
     return this.canvas.getObjects().includes(group as any);
   }
 
   private cleanupStaleView(viewType: ViewType): void {
     if (!this.house) return;
-    if (!this.canvas) return; // Don't cleanup if canvas isn't available yet
-    
     const viewData = this.house.views[viewType];
     if (!viewData) return;
 
