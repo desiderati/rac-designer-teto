@@ -309,9 +309,15 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           onPilotiSelect?.(null);
         }
 
-        // Reset piloti styles for all house groups and reset plant view side highlights
+        // Reset piloti styles for all house groups and remove side highlights from plant view
         canvas.getObjects().forEach((item: any) => {
           if (item.type === 'group' && item.myType === 'house') {
+            // Remove any existing highlight lines from plant view
+            if (item.houseView === 'top') {
+              const existingHighlights = item.getObjects().filter((o: any) => o.isSideHighlight);
+              existingHighlights.forEach((o: any) => item.remove(o));
+            }
+            
             item.getObjects().forEach((child: any) => {
               if (child.isPilotiCircle) {
                 if (child.pilotiIsMaster) {
@@ -376,14 +382,13 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
       // Helper function to highlight a specific side of the plant view
       const highlightPlantViewSide = (group: Group, houseBody: any, side: 'top' | 'bottom' | 'left' | 'right') => {
-        // We need to draw a highlight line on the appropriate side
-        // For now, we'll add a visual indicator by changing the stroke style
-        // We'll use a thicker, colored stroke on the appropriate side
-        
-        const w = houseBody.width || 0;
-        const h = houseBody.height || 0;
+        // Get the actual dimensions considering scale
+        const scaleX = houseBody.scaleX || 1;
+        const scaleY = houseBody.scaleY || 1;
+        const w = (houseBody.width || 0) * scaleX;
+        const h = (houseBody.height || 0) * scaleY;
 
-        // Remove any existing highlight lines from the group
+        // Remove any existing highlight lines from the group (already done in reset loop, but be safe)
         const existingHighlights = group.getObjects().filter((o: any) => o.isSideHighlight);
         existingHighlights.forEach((o: any) => group.remove(o));
 
@@ -391,7 +396,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const highlightColor = '#3b82f6'; // Blue
         const highlightWidth = 6;
 
-        // Calculate line positions relative to the house body
+        // The houseBody has originX/Y = 'center', so its left/top is the center position
         const bodyLeft = houseBody.left || 0;
         const bodyTop = houseBody.top || 0;
         
