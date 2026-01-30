@@ -395,7 +395,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             return;
         }
 
-        // 9) Create non-interactive highlight line - let Fabric calculate position from coords
+        // 9) Get houseBody's local center (not assuming 0,0)
+        const bodyCx = houseBody.left ?? 0;
+        const bodyCy = houseBody.top ?? 0;
+
+        // 10) Create non-interactive highlight line anchored to houseBody center
         const highlightLine = new Line(coords, {
           stroke: '#3b82f6',
           strokeWidth: 4,
@@ -404,13 +408,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           evented: false,
           originX: 'center',
           originY: 'center',
-          // NOT setting left/top - Fabric calculates from coords with origin center
+          left: bodyCx,
+          top: bodyCy,
         });
         (highlightLine as any).isSideHighlight = true;
         (highlightLine as any).highlightSide = side;
         (highlightLine as any).excludeFromExport = true;
 
-        // 10) Add to topGroup and force refresh to update bounds/cache
+        // 11) Add to topGroup and force refresh to update bounds/cache
         topGroup.add(highlightLine);
         refreshHouseGroupRendering(topGroup);
         canvas.requestRenderAll();
