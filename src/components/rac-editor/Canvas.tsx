@@ -1,7 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
 import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
 import { houseManager, HouseSide } from '@/lib/house-manager';
-import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
+import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas, refreshHouseGroupRendering } from '@/lib/canvas-utils';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
@@ -302,7 +302,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       // Syncs a blue highlight line on the Plant (top) view to indicate which side
       // corresponds to the currently selected elevation view.
       const syncPlantSideHighlight = (activeObject: FabricObject | null) => {
-        // 1) Clean up any stale highlight objects loose on the canvas
+        // 1) Clean up any stale highlight objects loose on the canvas (top-level)
         const staleHighlights = canvas.getObjects().filter(
           (o: any) => o.isSideHighlight === true
         );
@@ -313,32 +313,45 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           (o: any) => o.type === 'group' && o.myType === 'house' && o.houseView === 'top'
         ) as Group | undefined;
 
-        // 3) Remove any existing highlight inside the topGroup
+        // 3) Remove ALL existing highlights inside the topGroup (not just the first one)
+        let removedAny = false;
         if (topGroup) {
-          const existingHighlight = topGroup.getObjects().find(
+          const existingHighlights = topGroup.getObjects().filter(
             (o: any) => o.isSideHighlight === true
           );
-          if (existingHighlight) {
-            topGroup.remove(existingHighlight);
+          if (existingHighlights.length > 0) {
+            topGroup.remove(...existingHighlights);
+            removedAny = true;
           }
         }
 
         // 4) Determine if we should draw a highlight
         //    Only if activeObject is an elevation view (front/back/side1/side2)
         if (!activeObject || activeObject.type !== 'group') {
+          if (removedAny && topGroup) {
+            refreshHouseGroupRendering(topGroup);
+          }
           canvas.requestRenderAll();
           return;
         }
-        const viewType = (activeObject as any).houseViewType;
-        if (!viewType || viewType === 'top') {
+        
+        // Robust detection: try houseViewType first, then houseView as fallback
+        const rawView = (activeObject as any).houseViewType ?? (activeObject as any).houseView;
+        if (!rawView || rawView === 'top') {
+          if (removedAny && topGroup) {
+            refreshHouseGroupRendering(topGroup);
+          }
           canvas.requestRenderAll();
           return;
         }
 
         // 5) Get the side from houseManager
         const house = houseManager.getHouse();
-        const side: HouseSide | undefined = house?.views[viewType]?.side;
+        const side: HouseSide | undefined = house?.views[rawView]?.side;
         if (!side || !topGroup) {
+          if (removedAny && topGroup) {
+            refreshHouseGroupRendering(topGroup);
+          }
           canvas.requestRenderAll();
           return;
         }
@@ -348,6 +361,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           (o: any) => o.isHouseBody === true
         ) as Rect | undefined;
         if (!houseBody) {
+          if (removedAny) {
+            refreshHouseGroupRendering(topGroup);
+          }
           canvas.requestRenderAll();
           return;
         }
@@ -356,7 +372,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const w = (houseBody.width ?? 0) * (houseBody.scaleX ?? 1);
         const h = (houseBody.height ?? 0) * (houseBody.scaleY ?? 1);
 
-        // 8) Calculate line coordinates based on side
+        // 8) Calculate line coordinates based on side (local to group center at 0,0)
         let coords: [number, number, number, number];
         switch (side) {
           case 'top':
@@ -372,11 +388,14 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             coords = [w / 2, -h / 2, w / 2, h / 2];
             break;
           default:
+            if (removedAny) {
+              refreshHouseGroupRendering(topGroup);
+            }
             canvas.requestRenderAll();
             return;
         }
 
-        // 9) Create non-interactive highlight line
+        // 9) Create non-interactive highlight line with EXPLICIT left/top positioning
         const highlightLine = new Line(coords, {
           stroke: '#3b82f6',
           strokeWidth: 4,
@@ -385,14 +404,16 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           evented: false,
           originX: 'center',
           originY: 'center',
+          left: 0,
+          top: 0,
         });
         (highlightLine as any).isSideHighlight = true;
         (highlightLine as any).highlightSide = side;
         (highlightLine as any).excludeFromExport = true;
 
-        // 10) Add to topGroup and refresh
+        // 10) Add to topGroup and force refresh to update bounds/cache
         topGroup.add(highlightLine);
-        topGroup.setCoords();
+        refreshHouseGroupRendering(topGroup);
         canvas.requestRenderAll();
       };
 
