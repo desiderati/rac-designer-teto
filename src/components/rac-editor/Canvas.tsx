@@ -362,7 +362,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const existingHighlight = plantViewGroup.getObjects().find((o: any) => o.isSideHighlight);
         if (existingHighlight) {
           plantViewGroup.remove(existingHighlight);
-          plantViewGroup.setCoords();
         }
 
         // Check if selected object is an elevation view (not plant view)
@@ -394,61 +393,58 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         // If no assigned side found, can't highlight
         if (!assignedSide) return;
 
-        // Get the house body to calculate line positions (relative to group center)
+        // Get the house body dimensions to calculate line positions
         const houseBody = plantViewGroup.getObjects().find((o: any) => o.isHouseBody) as any;
         if (!houseBody) return;
 
-        // The house body is centered at (0,0) within the group
         const bodyWidth = houseBody.width || 0;
         const bodyHeight = houseBody.height || 0;
         const strokeWidth = 4;
 
-        // Calculate line start/end points in group-local coordinates
-        // In Fabric, Line uses x1,y1,x2,y2 but when added to group they need to be relative to group center
-        let x1: number, y1: number, x2: number, y2: number;
+        // Calculate line coordinates based on side
+        let lineCoords: { x1: number; y1: number; x2: number; y2: number };
         
         switch (assignedSide) {
           case 'top':
-            x1 = -bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = -bodyHeight / 2;
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: -bodyHeight / 2,
+            };
             break;
           case 'bottom':
-            x1 = -bodyWidth / 2;
-            y1 = bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = bodyHeight / 2;
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
             break;
           case 'left':
-            x1 = -bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = -bodyWidth / 2;
-            y2 = bodyHeight / 2;
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: -bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
             break;
           case 'right':
-            x1 = bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = bodyHeight / 2;
+            lineCoords = {
+              x1: bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
             break;
           default:
             return;
         }
 
-        // Create highlight line with coordinates relative to group center
-        // For a Line in a group, we need to set left/top to position it correctly
-        // The line's internal coordinates should be relative to its own center
-        const lineWidth = Math.abs(x2 - x1) || strokeWidth;
-        const lineHeight = Math.abs(y2 - y1) || strokeWidth;
-        const lineCenterX = (x1 + x2) / 2;
-        const lineCenterY = (y1 + y2) / 2;
-
+        // Create highlight line
         const highlightLine = new Line(
-          [x1 - lineCenterX, y1 - lineCenterY, x2 - lineCenterX, y2 - lineCenterY],
+          [lineCoords.x1, lineCoords.y1, lineCoords.x2, lineCoords.y2],
           {
-            left: lineCenterX,
-            top: lineCenterY,
             stroke: '#3b82f6',
             strokeWidth: strokeWidth,
             selectable: false,
@@ -459,11 +455,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         );
         (highlightLine as any).isSideHighlight = true;
 
-        // Add to plant view group and refresh
+        // Add to plant view group
         plantViewGroup.add(highlightLine);
-        (plantViewGroup as any)._calcBounds?.();
         plantViewGroup.setCoords();
-        (plantViewGroup as any).dirty = true;
       };
 
       canvas.on('selection:created', updateHint);
