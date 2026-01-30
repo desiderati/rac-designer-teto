@@ -1,6 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect } from 'fabric';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
+import { houseManager, HouseSide, ViewType } from '@/lib/house-manager';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
@@ -342,7 +343,121 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           });
         }
 
+        // Highlight the corresponding side in the plant view when an elevation view is selected
+        updatePlantViewSideHighlight(canvas, obj);
+
         canvas.renderAll();
+      };
+
+      // Helper function to update side highlight in plant view
+      const updatePlantViewSideHighlight = (canvas: FabricCanvas, selectedObj: FabricObject | undefined) => {
+        // Find the plant view (top view) group
+        const plantViewGroup = canvas.getObjects().find((o: any) => 
+          o.type === 'group' && o.myType === 'house' && o.houseView === 'top'
+        ) as Group | undefined;
+
+        if (!plantViewGroup) return;
+
+        // Remove existing side highlight from plant view
+        const existingHighlight = plantViewGroup.getObjects().find((o: any) => o.isSideHighlight);
+        if (existingHighlight) {
+          plantViewGroup.remove(existingHighlight);
+        }
+
+        // Check if selected object is an elevation view (not plant view)
+        if (!selectedObj || selectedObj.type !== 'group' || (selectedObj as any).myType !== 'house') {
+          return;
+        }
+
+        const selectedViewType = (selectedObj as any).houseViewType as ViewType | undefined;
+        const selectedHouseView = (selectedObj as any).houseView as string | undefined;
+        
+        // If it's the plant view itself, don't highlight
+        if (selectedHouseView === 'top' || selectedViewType === 'top') {
+          return;
+        }
+
+        // Get the side assignment for this view from houseManager
+        const house = houseManager.getHouse();
+        if (!house) return;
+
+        // Find which side this view is assigned to
+        let assignedSide: HouseSide | null = null;
+        
+        // First try to get from the view data
+        const viewType = selectedViewType || selectedHouseView as ViewType;
+        if (viewType && house.views[viewType]) {
+          assignedSide = house.views[viewType]?.side || null;
+        }
+
+        // If no assigned side found, can't highlight
+        if (!assignedSide) return;
+
+        // Get the house body dimensions to calculate line positions
+        const houseBody = plantViewGroup.getObjects().find((o: any) => o.isHouseBody) as any;
+        if (!houseBody) return;
+
+        const bodyWidth = houseBody.width || 0;
+        const bodyHeight = houseBody.height || 0;
+        const strokeWidth = 4;
+
+        // Calculate line coordinates based on side
+        let lineCoords: { x1: number; y1: number; x2: number; y2: number };
+        
+        switch (assignedSide) {
+          case 'top':
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: -bodyHeight / 2,
+            };
+            break;
+          case 'bottom':
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
+            break;
+          case 'left':
+            lineCoords = {
+              x1: -bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: -bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
+            break;
+          case 'right':
+            lineCoords = {
+              x1: bodyWidth / 2,
+              y1: -bodyHeight / 2,
+              x2: bodyWidth / 2,
+              y2: bodyHeight / 2,
+            };
+            break;
+          default:
+            return;
+        }
+
+        // Create highlight line
+        const highlightLine = new Line(
+          [lineCoords.x1, lineCoords.y1, lineCoords.x2, lineCoords.y2],
+          {
+            stroke: '#3b82f6',
+            strokeWidth: strokeWidth,
+            selectable: false,
+            evented: false,
+            originX: 'center',
+            originY: 'center',
+          }
+        );
+        (highlightLine as any).isSideHighlight = true;
+
+        // Add to plant view group
+        plantViewGroup.add(highlightLine);
+        plantViewGroup.setCoords();
       };
 
       canvas.on('selection:created', updateHint);
