@@ -1,7 +1,6 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
-import { houseManager, HouseSide, ViewType } from '@/lib/house-manager';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Minimap, ZoomSlider } from './Minimap';
@@ -343,131 +342,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           });
         }
 
-        // Highlight the corresponding side in the plant view when an elevation view is selected
-        updatePlantViewSideHighlight(canvas, obj);
-
         canvas.renderAll();
-      };
-
-      // Helper function to update side highlight in plant view
-      const updatePlantViewSideHighlight = (canvas: FabricCanvas, selectedObj: FabricObject | undefined) => {
-        // Find the plant view (top view) group
-        const plantViewGroup = canvas.getObjects().find(
-          (o: any) => o?.type === 'group' && o?.myType === 'house' && o?.houseView === 'top',
-        ) as Group | undefined;
-
-        if (!plantViewGroup) return;
-
-        // Always remove existing highlight first
-        const existingHighlight = plantViewGroup.getObjects().find((o: any) => o?.isSideHighlight);
-        if (existingHighlight) plantViewGroup.remove(existingHighlight);
-
-        // When nothing is selected (or selection isn't a house group), do not highlight anything.
-        if (!selectedObj || selectedObj.type !== 'group' || (selectedObj as any).myType !== 'house') {
-          return;
-        }
-
-        const selectedHouseView = (selectedObj as any).houseView as string | undefined;
-        const selectedViewTypeHint = (selectedObj as any).houseViewType as ViewType | undefined;
-
-        // If it's the plant view itself, don't highlight
-        if (selectedHouseView === 'top' || selectedViewTypeHint === 'top') {
-          return;
-        }
-
-        // Get the side assignment for the *selected group* from houseManager.
-        // Important: do NOT rely on `houseView === 'side'` (it is ambiguous); instead match by group ref.
-        const house = houseManager.getHouse();
-        if (!house) return;
-
-        let assignedSide: HouseSide | null = null;
-        let resolvedViewType: ViewType | null = null;
-
-        // 1) Prefer the explicit view type tag when available
-        if (selectedViewTypeHint && house.views[selectedViewTypeHint]?.group === (selectedObj as any)) {
-          resolvedViewType = selectedViewTypeHint;
-          assignedSide = house.views[selectedViewTypeHint]?.side ?? null;
-        }
-
-        // 2) Fallback: resolve by comparing the selected group reference with registered groups
-        if (!assignedSide) {
-          for (const vt of Object.keys(house.views) as ViewType[]) {
-            const vd = house.views[vt];
-            if (vd?.group === (selectedObj as any)) {
-              resolvedViewType = vt;
-              assignedSide = vd.side ?? null;
-              break;
-            }
-          }
-        }
-
-        if (!assignedSide || !resolvedViewType) return;
-
-        // Compute house body dimensions in plant view using *scaled* size.
-        const houseBody = plantViewGroup.getObjects().find((o: any) => o?.isHouseBody) as any;
-        if (!houseBody) return;
-
-        const bodyWidth =
-          (typeof houseBody.getScaledWidth === 'function'
-            ? houseBody.getScaledWidth()
-            : (houseBody.width ?? 0) * (houseBody.scaleX || 1)) || 0;
-        const bodyHeight =
-          (typeof houseBody.getScaledHeight === 'function'
-            ? houseBody.getScaledHeight()
-            : (houseBody.height ?? 0) * (houseBody.scaleY || 1)) || 0;
-
-        if (!bodyWidth || !bodyHeight) return;
-
-        // Calculate line coordinates in the plant group's local coordinate system
-        let x1 = 0;
-        let y1 = 0;
-        let x2 = 0;
-        let y2 = 0;
-
-        switch (assignedSide) {
-          case 'top':
-            x1 = -bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = -bodyHeight / 2;
-            break;
-          case 'bottom':
-            x1 = -bodyWidth / 2;
-            y1 = bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = bodyHeight / 2;
-            break;
-          case 'left':
-            x1 = -bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = -bodyWidth / 2;
-            y2 = bodyHeight / 2;
-            break;
-          case 'right':
-            x1 = bodyWidth / 2;
-            y1 = -bodyHeight / 2;
-            x2 = bodyWidth / 2;
-            y2 = bodyHeight / 2;
-            break;
-          default:
-            return;
-        }
-
-        const highlightLine = new Line([x1, y1, x2, y2], {
-          stroke: '#3b82f6',
-          strokeWidth: 4,
-          selectable: false,
-          evented: false,
-          // Make sure the line is anchored at the plant group's origin (0,0)
-          left: 0,
-          top: 0,
-          originX: 'center',
-          originY: 'center',
-        });
-        (highlightLine as any).isSideHighlight = true;
-
-        plantViewGroup.add(highlightLine);
-        plantViewGroup.setCoords();
       };
 
       canvas.on('selection:created', updateHint);
