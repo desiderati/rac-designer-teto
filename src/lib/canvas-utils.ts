@@ -27,6 +27,7 @@ export const customProps = [
   "selectable",
   "lockScalingY",
   "houseView",
+  "houseViewType",
   "isHouseBody",
   "pilotiId",
   "pilotiHeight",
@@ -39,6 +40,7 @@ export const customProps = [
   "isPilotiRect",
   "pilotiBaseHeight",
   "isPilotiSizeLabel",
+  "isSideHighlight",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization

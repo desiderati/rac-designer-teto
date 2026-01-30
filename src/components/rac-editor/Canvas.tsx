@@ -1,5 +1,5 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect } from 'fabric';
+import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
 import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas } from '@/lib/canvas-utils';
 
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -308,7 +308,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           onPilotiSelect?.(null);
         }
 
-        // Reset piloti styles for all house groups
+        // Reset piloti styles for all house groups and reset plant view side highlights
         canvas.getObjects().forEach((item: any) => {
           if (item.type === 'group' && item.myType === 'house') {
             item.getObjects().forEach((child: any) => {
@@ -326,6 +326,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
                   child.set({ stroke: '#333', strokeWidth: 2 });
                 }
               }
+              // Reset house body stroke for plant view
+              if (child.isHouseBody) {
+                child.set({ stroke: 'black', strokeWidth: 2 * 0.6 });
+              }
             });
           }
         });
@@ -340,9 +344,111 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
               });
             }
           });
+
+          // If an elevation view is selected, highlight the corresponding side on the plant view
+          const selectedViewType = (obj as any).houseViewType;
+          if (selectedViewType && selectedViewType !== 'top') {
+            // Find the plant view on canvas
+            const plantView = canvas.getObjects().find((item: any) => 
+              item.type === 'group' && item.myType === 'house' && item.houseView === 'top'
+            ) as Group | undefined;
+
+            if (plantView) {
+              // Get the side assignment from houseManager
+              const { houseManager } = require('@/lib/house-manager');
+              const house = houseManager.getHouse();
+              if (house?.views[selectedViewType]?.side) {
+                const side = house.views[selectedViewType].side;
+                
+                // Highlight the corresponding side of the plant view's house body
+                plantView.getObjects().forEach((child: any) => {
+                  if (child.isHouseBody) {
+                    highlightPlantViewSide(child, side);
+                  }
+                });
+              }
+            }
+          }
         }
 
         canvas.renderAll();
+      };
+
+      // Helper function to highlight a specific side of the plant view
+      const highlightPlantViewSide = (houseBody: any, side: 'top' | 'bottom' | 'left' | 'right') => {
+        // We need to draw a highlight line on the appropriate side
+        // For now, we'll add a visual indicator by changing the stroke style
+        // We'll use a thicker, colored stroke on the appropriate side
+        
+        const w = houseBody.width || 0;
+        const h = houseBody.height || 0;
+        
+        // Create highlight lines for the selected side
+        const highlightColor = '#3b82f6'; // Blue
+        const highlightWidth = 6;
+        
+        // Get the group containing this house body
+        const group = houseBody.group;
+        if (!group) return;
+
+        // Remove any existing highlight lines
+        const existingHighlights = group.getObjects().filter((o: any) => o.isSideHighlight);
+        existingHighlights.forEach((o: any) => group.remove(o));
+
+        // Calculate line positions relative to the house body
+        const bodyLeft = houseBody.left || 0;
+        const bodyTop = houseBody.top || 0;
+        
+        let lineCoords: { x1: number; y1: number; x2: number; y2: number };
+        
+        switch (side) {
+          case 'top':
+            lineCoords = {
+              x1: bodyLeft - w/2,
+              y1: bodyTop - h/2,
+              x2: bodyLeft + w/2,
+              y2: bodyTop - h/2,
+            };
+            break;
+          case 'bottom':
+            lineCoords = {
+              x1: bodyLeft - w/2,
+              y1: bodyTop + h/2,
+              x2: bodyLeft + w/2,
+              y2: bodyTop + h/2,
+            };
+            break;
+          case 'left':
+            lineCoords = {
+              x1: bodyLeft - w/2,
+              y1: bodyTop - h/2,
+              x2: bodyLeft - w/2,
+              y2: bodyTop + h/2,
+            };
+            break;
+          case 'right':
+            lineCoords = {
+              x1: bodyLeft + w/2,
+              y1: bodyTop - h/2,
+              x2: bodyLeft + w/2,
+              y2: bodyTop + h/2,
+            };
+            break;
+        }
+
+        const highlightLine = new Line(
+          [lineCoords.x1, lineCoords.y1, lineCoords.x2, lineCoords.y2],
+          {
+            stroke: highlightColor,
+            strokeWidth: highlightWidth,
+            strokeLineCap: 'round',
+            selectable: false,
+            evented: false,
+          }
+        );
+        (highlightLine as any).isSideHighlight = true;
+        
+        group.add(highlightLine);
       };
 
       canvas.on('selection:created', updateHint);
