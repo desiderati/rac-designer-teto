@@ -29,6 +29,7 @@ import {
   faRotateLeft,
   faSquareFull,
   faTrowelBricks,
+  faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -64,6 +65,8 @@ interface ToolbarProps {
   onToggleOverflowMenu: () => void;
   showTips: boolean;
   onToggleTips: () => void;
+  showZoomControls: boolean;
+  onToggleZoomControls: () => void;
   tutorialHighlight?: "main-fab" | "house" | "elements" | "zoom-minimap" | "more-options" | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
@@ -204,6 +207,8 @@ export function Toolbar({
   onToggleOverflowMenu,
   showTips,
   onToggleTips,
+  showZoomControls,
+  onToggleZoomControls,
   tutorialHighlight,
   isMenuOpen,
   onToggleMenu,
@@ -471,6 +476,14 @@ export function Toolbar({
               title="Dicas"
               onClick={onToggleTips}
               color="#f1c40f"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faMagnifyingGlass}
+              title={showZoomControls ? "Esconder Zoom/Minimap" : "Mostrar Zoom/Minimap"}
+              onClick={onToggleZoomControls}
+              color={showZoomControls ? "#74b9ff" : "#95a5a6"}
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
