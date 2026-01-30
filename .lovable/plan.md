@@ -1,143 +1,104 @@
 
-## Objetivo (exatamente o que você descreveu)
-Quando uma vista de elevação (Frontal/Traseira/Laterais) **já inserida no canvas** for **selecionada**, evidenciar na **Vista Planta** (top) o **lado (Superior/Inferior/Esquerda/Direita)** que foi escolhido no momento da inserção daquela vista.
+Contexto do problema (o que está acontecendo agora)
+- O código atual adiciona a linha como child do grupo da Planta (topGroup), mas ela ainda “aparece longe” ou “parada” em um lugar fixo.
+- Isso é típico de 2 causas no Fabric:
+  1) O Line está sendo criado com posicionamento/origem que faz ele ser desenhado com um offset inesperado dentro do group (por padrão, Line usa x1/y1/x2/y2 + left/top; se left/top/origin não forem coerentes com os pontos negativos, o “zero” não fica onde esperamos).
+  2) O group pode estar com cache/bounds “stale” (o projeto já tem uma função específica para isso: refreshHouseGroupRendering), então o que você vê pode não ser o que está realmente dentro do group (ou fica “congelado” visualmente).
 
-Regras:
-- Se **nenhuma vista** estiver selecionada (selection cleared), **não evidenciar nada**.
-- Se a vista selecionada for a própria **Planta**, **não evidenciar nada**.
-- Implementação deve ser **isolada**, sem mexer em outras funcionalidades.
+Objetivo (mantendo 100% isolado)
+- Ao selecionar uma vista já inserida no canvas (front/back/side1/side2), desenhar (ou atualizar) uma linha azul que fique colada no retângulo do corpo da casa dentro da Planta, no lado correspondente ao “side” escolhido na inserção.
+- Ao deselecionar (selection cleared) ou selecionar a própria Planta (top), remover o highlight.
+- Não tocar em: regras de “uma vista por tipo”, HouseManager, inserção de vistas, piloti editor, nível do mestre, undo/redo, etc.
 
----
+Diagnóstico técnico do que precisa mudar no código atual
+O seu helper syncPlantSideHighlight está correto em “ideia”, mas tem três fragilidades que explicam o bug visual:
 
-## Diagnóstico do bug (por que o destaque “fica longe” da planta)
-Hoje não existe (ou não está ativo) um mecanismo robusto para “atar” o destaque à Planta.
-O sintoma que você descreve (“linha azul parada em um lugar fixo, longe da Planta”) é típico de:
-1) o highlight ter sido desenhado como **objeto no canvas** (coordenadas absolutas), em vez de ser desenhado **dentro do Group** da Planta (coordenadas locais do grupo), ou  
-2) o highlight ter sido desenhado com coordenadas locais erradas (considerando origin/scale de forma incorreta).
+A) Criação do Line sem left/top explícitos
+- Hoje: new Line(coords, { originX:'center', originY:'center' }) sem definir left/top.
+- Em Fabric, Line não funciona “como um path em coordenadas locais puras”; ele combina x1/y1/x2/y2 com posicionamento (left/top) e origin. Se left/top não forem definidos, o Fabric calcula internamente e isso pode deslocar a linha dentro do group.
 
-A correção correta é: **o highlight precisa ser um child do Group da Planta** (top view group) e calculado no **sistema de coordenadas local** daquele group (onde o corpo da casa está centrado em (0,0)).
+B) Adição ao group sem forçar recálculo de bounds/cache
+- O projeto já tem histórico de “group cache/bounds” causando cortes e render incorreto (vide refreshHouseGroupRendering).
+- Para garantir que o highlight realmente seja renderizado no lugar correto (e continue colado ao mover/escala/rotacionar a Planta), precisamos aplicar o mesmo padrão de refresh apenas no topGroup (não no canvas inteiro).
 
----
+C) Remoção parcial de highlights dentro do group
+- Hoje remove apenas 1 existingHighlight (find). Se houver mais de um (por tentativas anteriores), podem sobrar linhas antigas e confundir o render.
+- Precisamos remover todos os filhos com isSideHighlight.
 
-## Estratégia “não quebrar nada” (mudanças mínimas e isoladas)
-Vamos implementar somente:
-- Uma função utilitária local no Canvas (ou helper bem contido) para:
-  - remover highlights antigos (inclusive “stale” soltos no canvas, caso existam de tentativas antigas),
-  - adicionar/atualizar a linha de destaque **dentro** do group da Planta,
-  - remover a linha quando não for necessário.
-- Um pequeno gancho na lógica de seleção já existente (o `updateHint` do `Canvas.tsx`) para chamar essa função.
+Plano de correção (mudança mínima, apenas Canvas.tsx)
+Arquivo: src/components/rac-editor/Canvas.tsx
 
-Não vamos tocar em:
-- HouseManager (regras de “uma vista por tipo”),
-- Piloti editor, nivel, sincronização,
-- inserção de vistas,
-- qualquer lógica de dimensionamento, undo/redo etc.
+1) Ajustar a limpeza de highlights (isolada, sem afetar nada mais)
+- Manter a limpeza de stale highlights soltos no canvas, mas com cuidado:
+  - Continuar removendo canvas.getObjects().filter(o => o.isSideHighlight === true) (isso pega somente highlights soltos, top-level).
+- Dentro do topGroup:
+  - Em vez de find, fazer filter e remover todos:
+    - const highlights = topGroup.getObjects().filter(o => (o as any).isSideHighlight)
+    - if (highlights.length) topGroup.remove(...highlights)
 
----
+2) Tornar a criação do Line determinística no sistema local do group
+- Continuar calculando w/h a partir do houseBody dentro do topGroup (isso está correto).
+- Gerar coords como você já faz (top/bottom/left/right).
+- Criar o Line com posicionamento explícito:
+  - Definir left: 0 e top: 0 (ou outro padrão fixo) e manter origin coerente.
+  - Opção segura e previsível para Fabric em group-local:
+    - originX: 'center', originY: 'center', left: 0, top: 0
+    - coords permanecem com valores negativos/positivos (ex.: -w/2 … +w/2)
+- Garantir que o Line não interfira com interação:
+  - selectable: false, evented: false, excludeFromExport: true, strokeUniform: true
 
-## Onde implementar
-Arquivo principal: `src/components/rac-editor/Canvas.tsx`
+3) Inserir highlight usando fluxo que atualiza o grupo corretamente
+- Trocar topGroup.add(highlightLine) por um método que atualize bounds:
+  - Preferência 1: topGroup.addWithUpdate(highlightLine) (se estiver disponível no Fabric v6 usado aqui).
+  - Preferência 2 (mais alinhada com o padrão do projeto): topGroup.add(highlightLine) + refreshHouseGroupRendering(topGroup)
+- Em seguida: canvas.requestRenderAll()
 
-Por quê:
-- É onde já existe a centralização da lógica de seleção (`selection:created/updated/cleared` -> `updateHint`).
-- Permite reagir ao “objeto selecionado no canvas” sem interferir no fluxo de criação/registro das vistas.
+Observação importante de isolamento:
+- Para não afetar outras funcionalidades, vamos chamar refreshHouseGroupRendering SOMENTE no topGroup e somente quando:
+  - houver remoção de highlight antigo, ou
+  - houver adição de highlight novo.
+Isso evita qualquer impacto em pilotis, outras vistas, ou performance geral.
 
----
+4) Tornar a detecção da vista selecionada mais robusta (sem mexer em regras)
+- Hoje usa somente (activeObject as any).houseViewType.
+- Vamos manter isso, mas adicionar fallback leve (apenas leitura):
+  - const rawView = (activeObject as any).houseViewType ?? (activeObject as any).houseView
+  - Normalizar para ViewType quando possível:
+    - 'front'|'back'|'side1'|'side2' ok
+    - 'top' => não desenha
+  - Isso não altera estado nenhum; só evita casos em que houseViewType não esteja presente por algum JSON/undo/import.
 
-## Como identificar “qual vista está selecionada” e “qual lado destacar”
-1) Na seleção atual do Fabric (`canvas.getActiveObject()`):
-   - se não houver active object: remover highlight.
-   - se for um `group` com `(group as any).myType === 'house'`:
-     - ler `(group as any).houseViewType` (setado no `houseManager.registerView`) e/ou `(group as any).houseView`.
-2) Se `viewType` for `front/back/side1/side2`:
-   - obter o `side` correspondente em `houseManager.getHouse()?.views[viewType]?.side`.
-   - se não houver side (caso raro/legado), não destacar nada.
+5) Garantir o “não desenhar nada” quando não deve
+- Se activeObject == null => remover highlight do topGroup e render
+- Se viewType == 'top' => remover highlight e render
+- Se não achar side no houseManager => remover highlight e render
+- Se não achar topGroup ou houseBody => não desenhar (só render)
 
----
+6) (Opcional e seguro) Pequena instrumentação temporária para confirmar o lado/coords sem mexer em funcionalidade
+- Se você topar, podemos adicionar um console.debug bem específico e fácil de remover, apenas quando desenha:
+  - viewType, side, w, h
+- Mas como você está cansado de regressões, eu posso pular isso e ir direto no ajuste determinístico do Line + refresh.
 
-## Como desenhar o destaque corretamente (atrelado à Planta)
-### 1) Encontrar o group da Planta
-Usar a forma mais segura e independente:
-- procurar no canvas: objeto `group` com `(obj as any).myType === 'house' && (obj as any).houseView === 'top'`.
+Critérios de aceite (o que você vai testar)
+- Selecionar Front (já no canvas) => a linha azul aparece exatamente no lado Superior/Inferior da Planta correspondente ao side escolhido na inserção.
+- Selecionar Side1/Side2 => a linha azul aparece exatamente no lado Esquerda/Direita da Planta.
+- Clicar no vazio (selection cleared) => a linha some.
+- Selecionar a própria Planta => a linha some.
+- Mover/rotacionar/escalar a Planta => a linha continua colada no retângulo da Planta (não fica “parada longe”).
+- Abrir/usar editor de pilotis e campo “Nível do mestre” => nada muda (não tocamos nessa área).
+- Regra “uma vista por tipo” => nada muda (não tocamos em house-manager nem em inserção).
 
-Isso evita depender do estado interno do HouseManager caso haja algum “stale reference”.
+Risco de regressão (e como evitamos)
+- Risco: mexer em refreshHouseGroupRendering pode afetar outros grupos.
+  - Mitigação: aplicar SOMENTE no topGroup, e só no momento de adicionar/remover o highlight.
+- Risco: highlight entrar no histórico/undo.
+  - Já está marcado excludeFromExport e é não-interativo; não vamos alterar history hooks.
+  - O saveHistory é acionado por object:added/removed. Como o highlight é adicionado/ removido, ele pode entrar no histórico. Se isso for indesejado, podemos (num passo separado e ainda isolado) evitar que o highlight dispare saveHistory, mas isso exigiria tocar no handler global de object:added/removed. Por enquanto, manteremos como está para não tocar em fluxo global; primeiro vamos corrigir o bug visual.
 
-### 2) Encontrar o “corpo da casa” dentro do group da Planta
-No `canvas-utils.ts`, o retângulo do corpo tem `(rect as any).isHouseBody = true`.
-Então:
-- `const houseBody = topGroup.getObjects().find(o => (o as any).isHouseBody) as Rect`
-
-### 3) Calcular a linha no espaço local do group
-Na Planta, o `Rect` é criado com:
-- `originX: "center"`, `originY: "center"`, e fica centrado em `(0,0)` dentro do grupo.
-Logo:
-- `w = houseBody.width * (houseBody.scaleX || 1)`
-- `h = houseBody.height * (houseBody.scaleY || 1)`
-
-Coordenadas locais da linha (exemplo):
-- side = top:    de `(-w/2, -h/2)` até `( w/2, -h/2)`
-- side = bottom: de `(-w/2,  h/2)` até `( w/2,  h/2)`
-- side = left:   de `(-w/2, -h/2)` até `(-w/2,  h/2)`
-- side = right:  de `( w/2, -h/2)` até `( w/2,  h/2)`
-
-### 4) Criar um `Line` “não-interativo” e colocar dentro do group
-Configurar o highlight para não interferir com seleção/piloti:
-- `selectable: false`
-- `evented: false`
-- `excludeFromExport: true` (opcional)
-- `strokeUniform: true` (para manter espessura coerente)
-- marcar com flag: `(line as any).isSideHighlight = true` e `(line as any).highlightSide = side`
-
-Adicionar ao group como último child (para ficar “por cima”):
-- remover highlight anterior dentro do group (se existir),
-- `topGroup.addWithUpdate(line)` (ou `topGroup.add(line)` seguido de `refreshHouseGroupRendering(topGroup)`/`canvas.requestRenderAll()` se necessário).
-
----
-
-## Limpeza obrigatória (para resolver as “tentativas antigas”)
-Antes de aplicar o highlight novo:
-- Remover quaisquer objetos do canvas com `(obj as any).isSideHighlight === true` que estejam **soltos** no canvas (não dentro do group da planta).
-- Dentro do topGroup, remover qualquer child com `isSideHighlight`.
-
-Isso garante que nenhum “highlight fantasma” fique parado em outro lugar.
-
----
-
-## Integração com o ciclo de seleção (sem alterar outras features)
-No `updateHint` (Canvas.tsx), ao final (depois de atualizar strokes e etc.):
-- chamar `syncPlantSideHighlight(activeObject)`.
-
-Comportamento:
-- Se `activeObject` for house view != top: aplica highlight.
-- Se `activeObject` for top: remove highlight.
-- Se `activeObject` for null (selection cleared): remove highlight.
-
----
-
-## Casos de teste (manuais) para validar sem regressões
-1) **Base**: Inserir Planta + inserir Frontal (escolher Superior).  
-   - Selecionar Frontal no canvas -> Planta deve mostrar linha azul no lado Superior.  
-   - Clicar no vazio (selection cleared) -> linha some.
-2) Inserir Traseira (escolher Inferior).  
-   - Selecionar Traseira -> highlight muda para Inferior (sem criar múltiplas linhas).
-3) Inserir Lateral (escolher Esquerda).  
-   - Selecionar Lateral -> highlight muda para Esquerda.
-4) Mover/rotacionar/escalar a Planta.  
-   - Selecionar Frontal/Traseira/Lateral -> highlight continua “colado” na Planta.
-5) Regressão: abrir editor de Piloti / editar altura / mestre + nível.  
-   - Garantir que nada muda: popover, navegação < >, nivel do mestre e regra de “single master” continuam ok.
-6) Undo/Redo:  
-   - Depois de Ctrl+Z / Ctrl+Y (ou o fluxo atual), selecionar uma vista -> highlight ainda encontra a Planta corretamente e desenha no lugar certo.
-
----
-
-## Observações técnicas (para garantir que não mexemos no resto)
-- Nenhuma alteração será feita em `house-manager.ts` (evita quebrar regra de uma vista por tipo).
-- Não vamos alterar lógica de seleção de pilotis (apenas acrescentar um passo de render auxiliar depois do updateHint).
-- A linha de highlight será não-interativa para não competir com subTargets do grupo.
-
----
-
-## Arquivos a serem alterados (previsto)
-- `src/components/rac-editor/Canvas.tsx` (apenas; mudança pequena e isolada)
-
+Sequência de implementação (curta e segura)
+1) Editar apenas src/components/rac-editor/Canvas.tsx:
+   - Ajustar remoção de highlight dentro do topGroup para remover todos.
+   - Ajustar criação do Line para setar left/top explicitamente.
+   - Adicionar refreshHouseGroupRendering(topGroup) após add/remove (importando a função de canvas-utils).
+   - Trocar add por addWithUpdate se disponível, senão manter add + refresh.
+2) Testes manuais conforme critérios acima.
