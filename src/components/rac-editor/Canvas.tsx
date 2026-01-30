@@ -395,7 +395,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             return;
         }
 
-        // 9) Create non-interactive highlight line with EXPLICIT left/top positioning
+        // 9) Create non-interactive highlight line - let Fabric calculate position from coords
         const highlightLine = new Line(coords, {
           stroke: '#3b82f6',
           strokeWidth: 4,
@@ -404,8 +404,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           evented: false,
           originX: 'center',
           originY: 'center',
-          left: 0,
-          top: 0,
+          // NOT setting left/top - Fabric calculates from coords with origin center
         });
         (highlightLine as any).isSideHighlight = true;
         (highlightLine as any).highlightSide = side;
