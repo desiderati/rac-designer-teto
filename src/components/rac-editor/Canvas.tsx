@@ -70,6 +70,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
     const [isPanning, setIsPanning] = useState(false);
     const [isPinching, setIsPinching] = useState(false);
+    const [isSingleFingerPanning, setIsSingleFingerPanning] = useState(false);
     const [minimapObjects, setMinimapObjects] = useState<Array<{
       left: number;
       top: number;
@@ -82,6 +83,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const lastPinchDistance = useRef<number | null>(null);
     const lastPinchCenter = useRef<{ x: number; y: number } | null>(null);
     const pinchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const singleFingerStartPoint = useRef<{ x: number; y: number } | null>(null);
+    const singleFingerMoved = useRef(false);
     
     // Refs for accessing viewport state in event handlers
     const zoomRef = useRef(zoom);
@@ -843,8 +846,16 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
     // Pinch-to-zoom and pan handlers for touch devices
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
+      // Check if mobile
+      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      
       if (e.touches.length === 2) {
         e.preventDefault();
+        // Cancel single finger panning if we switch to two fingers
+        setIsSingleFingerPanning(false);
+        singleFingerStartPoint.current = null;
+        singleFingerMoved.current = false;
+        
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         lastPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
@@ -869,10 +880,30 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         if (pinchTimeoutRef.current) {
           clearTimeout(pinchTimeoutRef.current);
         }
+      } else if (e.touches.length === 1 && isMobileDevice) {
+        // Single finger on mobile: start panning mode
+        singleFingerStartPoint.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+        lastPanPoint.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+        singleFingerMoved.current = false;
+        
+        // Disable canvas selection/interaction during pan
+        const canvas = fabricCanvasRef.current;
+        if (canvas) {
+          canvas.selection = false;
+        }
       }
     }, []);
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
+      // Check if mobile
+      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      
       if (e.touches.length === 2 && lastPinchDistance.current !== null && lastPinchCenter.current !== null) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -905,18 +936,46 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         
         lastPinchDistance.current = currentDistance;
         lastPinchCenter.current = currentCenter;
+      } else if (e.touches.length === 1 && singleFingerStartPoint.current && isMobileDevice) {
+        // Single finger pan on mobile
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - lastPanPoint.current.x;
+        const deltaY = touch.clientY - lastPanPoint.current.y;
+        
+        // Check if we've moved enough to consider it a pan (threshold: 5px)
+        const totalDeltaX = Math.abs(touch.clientX - singleFingerStartPoint.current.x);
+        const totalDeltaY = Math.abs(touch.clientY - singleFingerStartPoint.current.y);
+        
+        if (totalDeltaX > 5 || totalDeltaY > 5) {
+          singleFingerMoved.current = true;
+          setIsSingleFingerPanning(true);
+          e.preventDefault();
+          
+          const maxX = Math.max(0, CANVAS_WIDTH * zoom - containerSize.width);
+          const maxY = Math.max(0, CANVAS_HEIGHT * zoom - containerSize.height);
+          
+          setViewportX(prev => Math.max(0, Math.min(prev - deltaX, maxX)));
+          setViewportY(prev => Math.max(0, Math.min(prev - deltaY, maxY)));
+        }
+        
+        lastPanPoint.current = { x: touch.clientX, y: touch.clientY };
       }
     }, [zoom, handleZoomChange, containerSize]);
 
     const handleTouchEnd = useCallback(() => {
       lastPinchDistance.current = null;
       lastPinchCenter.current = null;
+      singleFingerStartPoint.current = null;
       
-      // Re-enable selection after pinch ends
+      // Re-enable selection after touch ends
       const canvas = fabricCanvasRef.current;
       if (canvas) {
         canvas.selection = true;
       }
+      
+      // Reset single finger panning state
+      setIsSingleFingerPanning(false);
+      singleFingerMoved.current = false;
       
       // Delay hiding the indicator for smooth UX
       pinchTimeoutRef.current = setTimeout(() => {
