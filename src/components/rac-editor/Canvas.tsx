@@ -40,6 +40,7 @@ interface CanvasProps {
   onObjectNameSelect?: (selection: ObjectNameSelection | null) => void;
   isEditorOpen?: boolean;
   onDelete?: () => void;
+  showZoomControls?: boolean;
 }
 
 export interface CanvasHandle {
@@ -54,7 +55,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, isEditorOpen = false, onDelete }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, isEditorOpen = false, onDelete, showZoomControls = true }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1030,51 +1031,57 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         )}
 
         {/* Desktop: Minimap fixed position */}
-        <div className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
-          <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
-            <ZoomSlider
+        {showZoomControls && (
+          <div className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
+            <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
+              <ZoomSlider
+                zoom={zoom}
+                onZoomChange={handleZoomChange}
+                highlight={false}
+              />
+            </div>
+            <Minimap
+              canvasWidth={CANVAS_WIDTH}
+              canvasHeight={CANVAS_HEIGHT}
+              viewportWidth={containerSize.width}
+              viewportHeight={containerSize.height}
+              viewportX={viewportX}
+              viewportY={viewportY}
               zoom={zoom}
-              onZoomChange={handleZoomChange}
-              highlight={false}
+              onViewportChange={handleViewportChange}
+              visible={!canvasFitsInViewport}
+              objects={minimapObjects}
+              highlight={tutorialHighlight === 'zoom-minimap'}
             />
           </div>
-          <Minimap
-            canvasWidth={CANVAS_WIDTH}
-            canvasHeight={CANVAS_HEIGHT}
-            viewportWidth={containerSize.width}
-            viewportHeight={containerSize.height}
-            viewportX={viewportX}
-            viewportY={viewportY}
-            zoom={zoom}
-            onViewportChange={handleViewportChange}
-            visible={!canvasFitsInViewport}
-            objects={minimapObjects}
-            highlight={tutorialHighlight === 'zoom-minimap'}
-          />
-        </div>
+        )}
 
         {/* Mobile: Minimap + InfoBar stacked in flex container */}
         <div className={`absolute left-2.5 bottom-2.5 right-2.5 flex flex-col items-start gap-2 sm:hidden ${tutorialHighlight === 'zoom-minimap' ? 'z-50' : 'z-10'}`}>
-          <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
-            <ZoomSlider
-              zoom={zoom}
-              onZoomChange={handleZoomChange}
-              highlight={false}
-            />
-          </div>
-          <Minimap
-            canvasWidth={CANVAS_WIDTH}
-            canvasHeight={CANVAS_HEIGHT}
-            viewportWidth={containerSize.width}
-            viewportHeight={containerSize.height}
-            viewportX={viewportX}
-            viewportY={viewportY}
-            zoom={zoom}
-            onViewportChange={handleViewportChange}
-            visible={!canvasFitsInViewport}
-            objects={minimapObjects}
-            highlight={tutorialHighlight === 'zoom-minimap'}
-          />
+          {showZoomControls && (
+            <>
+              <div className={tutorialHighlight === 'zoom-minimap' ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
+                <ZoomSlider
+                  zoom={zoom}
+                  onZoomChange={handleZoomChange}
+                  highlight={false}
+                />
+              </div>
+              <Minimap
+                canvasWidth={CANVAS_WIDTH}
+                canvasHeight={CANVAS_HEIGHT}
+                viewportWidth={containerSize.width}
+                viewportHeight={containerSize.height}
+                viewportX={viewportX}
+                viewportY={viewportY}
+                zoom={zoom}
+                onViewportChange={handleViewportChange}
+                visible={!canvasFitsInViewport}
+                objects={minimapObjects}
+                highlight={tutorialHighlight === 'zoom-minimap'}
+              />
+            </>
+          )}
           {/* Mobile InfoBar rendered here */}
           {showTips && children}
         </div>

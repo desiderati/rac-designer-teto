@@ -50,6 +50,7 @@ export function RACEditor() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'lines' | 'overflow' | null>(null);
   const [showTips, setShowTips] = useState(false);
+  const [showZoomControls, setShowZoomControls] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
@@ -966,6 +967,8 @@ export function RACEditor() {
         onToggleOverflowMenu={handleToggleOverflowMenu}
         showTips={showTips}
         onToggleTips={handleToggleTips}
+        showZoomControls={showZoomControls}
+        onToggleZoomControls={() => setShowZoomControls(!showZoomControls)}
         tutorialHighlight={tutorialStep}
         isMenuOpen={isMenuOpen}
         onToggleMenu={handleToggleMenu}
@@ -999,6 +1002,7 @@ export function RACEditor() {
           onObjectNameSelect={handleObjectNameSelect}
           isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen}
           onDelete={handleDelete}
+          showZoomControls={showZoomControls}
         >
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips && (
