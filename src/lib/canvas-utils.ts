@@ -39,6 +39,8 @@ export const customProps = [
   "isPilotiRect",
   "pilotiBaseHeight",
   "isPilotiSizeLabel",
+  "isHouseBorderEdge",
+  "edgeSide",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -107,18 +109,46 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   const cD = 155 * s;
   const rD = 135 * s;
 
+  // Main rect with NO stroke (we'll use 4 separate border lines instead)
   const rect = new Rect({
     width: w,
     height: h,
     fill: "transparent",
-    stroke: "black",
-    strokeWidth: 2 * s,
+    stroke: "transparent",
+    strokeWidth: 0,
     originX: "center",
     originY: "center",
   });
   (rect as any).isHouseBody = true;
 
   const houseObjects: FabricObject[] = [rect];
+
+  // Create 4 border lines for individual side highlighting
+  const borderStyle = {
+    stroke: "black",
+    strokeWidth: 2 * s,
+    strokeUniform: true,
+    selectable: false,
+    evented: false,
+  };
+
+  const borderTop = new Line([-w / 2, -h / 2, w / 2, -h / 2], { ...borderStyle });
+  (borderTop as any).isHouseBorderEdge = true;
+  (borderTop as any).edgeSide = "top";
+
+  const borderBottom = new Line([-w / 2, h / 2, w / 2, h / 2], { ...borderStyle });
+  (borderBottom as any).isHouseBorderEdge = true;
+  (borderBottom as any).edgeSide = "bottom";
+
+  const borderLeft = new Line([-w / 2, -h / 2, -w / 2, h / 2], { ...borderStyle });
+  (borderLeft as any).isHouseBorderEdge = true;
+  (borderLeft as any).edgeSide = "left";
+
+  const borderRight = new Line([w / 2, -h / 2, w / 2, h / 2], { ...borderStyle });
+  (borderRight as any).isHouseBorderEdge = true;
+  (borderRight as any).edgeSide = "right";
+
+  houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
 
   let pilotiIndex = 0;
   [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach((x, colIdx) => {

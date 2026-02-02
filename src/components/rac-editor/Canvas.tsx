@@ -299,48 +299,44 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvas.on('object:removed', saveHistory);
 
       // === Side Highlight Logic (isolated) ===
-      // Syncs a blue highlight line on the Plant (top) view to indicate which side
-      // corresponds to the currently selected elevation view.
+      // Changes the stroke of the border line on the Plant (top) view to indicate
+      // which side corresponds to the currently selected elevation view.
+      // Uses the 4 permanent border lines (isHouseBorderEdge) instead of adding/removing objects.
       const syncPlantSideHighlight = (activeObject: FabricObject | null) => {
-        // 1) Clean up any stale highlight objects loose on the canvas (top-level)
-        const staleHighlights = canvas.getObjects().filter(
-          (o: any) => o.isSideHighlight === true
-        );
-        staleHighlights.forEach((h) => canvas.remove(h));
-
-        // 2) Find the Plant (top view) group on the canvas
+        // 1) Find the Plant (top view) group on the canvas
         const topGroup = canvas.getObjects().find(
           (o: any) => o.type === 'group' && o.myType === 'house' && o.houseView === 'top'
         ) as Group | undefined;
 
-        // 3) Remove ALL existing highlights inside the topGroup (not just the first one)
-        let removedAny = false;
-        if (topGroup) {
-          const existingHighlights = topGroup.getObjects().filter(
-            (o: any) => o.isSideHighlight === true
-          );
-          if (existingHighlights.length > 0) {
-            topGroup.remove(...existingHighlights);
-            removedAny = true;
-          }
-        }
-
-        // 4) Determine if we should draw a highlight
-        //    Only if activeObject is an elevation view (front/back/side1/side2)
-        if (!activeObject || activeObject.type !== 'group') {
-          if (removedAny && topGroup) {
-            refreshHouseGroupRendering(topGroup);
-          }
+        if (!topGroup) {
           canvas.requestRenderAll();
           return;
         }
-        
+
+        // 2) Find the 4 border lines inside the group
+        const borderLines = topGroup.getObjects().filter(
+          (o: any) => o.isHouseBorderEdge === true
+        ) as Line[];
+
+        // 3) Reset all borders to default style (black)
+        const defaultStroke = 'black';
+        const defaultStrokeWidth = 2 * 0.6; // 2 * s where s = 0.6
+        borderLines.forEach((line: any) => {
+          line.set({ stroke: defaultStroke, strokeWidth: defaultStrokeWidth });
+          (line as any).dirty = true;
+        });
+
+        // 4) Determine if we should highlight a side
+        if (!activeObject || activeObject.type !== 'group') {
+          topGroup.setCoords();
+          canvas.requestRenderAll();
+          return;
+        }
+
         // Robust detection: try houseViewType first, then houseView as fallback
         const rawView = (activeObject as any).houseViewType ?? (activeObject as any).houseView;
         if (!rawView || rawView === 'top') {
-          if (removedAny && topGroup) {
-            refreshHouseGroupRendering(topGroup);
-          }
+          topGroup.setCoords();
           canvas.requestRenderAll();
           return;
         }
@@ -348,76 +344,23 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         // 5) Get the side from houseManager
         const house = houseManager.getHouse();
         const side: HouseSide | undefined = house?.views[rawView]?.side;
-        if (!side || !topGroup) {
-          if (removedAny && topGroup) {
-            refreshHouseGroupRendering(topGroup);
-          }
+        if (!side) {
+          topGroup.setCoords();
           canvas.requestRenderAll();
           return;
         }
 
-        // 6) Find the house body rect inside topGroup
-        const houseBody = topGroup.getObjects().find(
-          (o: any) => o.isHouseBody === true
-        ) as Rect | undefined;
-        if (!houseBody) {
-          if (removedAny) {
-            refreshHouseGroupRendering(topGroup);
-          }
-          canvas.requestRenderAll();
-          return;
+        // 6) Find the matching border line and apply highlight style
+        const highlightStroke = '#3b82f6';
+        const highlightStrokeWidth = 4;
+        const targetBorder = borderLines.find((line: any) => line.edgeSide === side);
+        if (targetBorder) {
+          (targetBorder as any).set({ stroke: highlightStroke, strokeWidth: highlightStrokeWidth });
+          (targetBorder as any).dirty = true;
         }
 
-        // 7) Calculate dimensions in local group coordinates
-        const w = (houseBody.width ?? 0) * (houseBody.scaleX ?? 1);
-        const h = (houseBody.height ?? 0) * (houseBody.scaleY ?? 1);
-
-        // 8) Calculate line coordinates based on side (local to group center at 0,0)
-        let coords: [number, number, number, number];
-        switch (side) {
-          case 'top':
-            coords = [-w / 2, -h / 2, w / 2, -h / 2];
-            break;
-          case 'bottom':
-            coords = [-w / 2, h / 2, w / 2, h / 2];
-            break;
-          case 'left':
-            coords = [-w / 2, -h / 2, -w / 2, h / 2];
-            break;
-          case 'right':
-            coords = [w / 2, -h / 2, w / 2, h / 2];
-            break;
-          default:
-            if (removedAny) {
-              refreshHouseGroupRendering(topGroup);
-            }
-            canvas.requestRenderAll();
-            return;
-        }
-
-        // 9) Get houseBody's local center (not assuming 0,0)
-        const bodyCx = houseBody.left ?? 0;
-        const bodyCy = houseBody.top ?? 0;
-
-        // 10) Create non-interactive highlight line anchored to houseBody center
-        const highlightLine = new Line(coords, {
-          stroke: '#3b82f6',
-          strokeWidth: 4,
-          strokeUniform: true,
-          selectable: false,
-          evented: false,
-          originX: 'center',
-          originY: 'center',
-          left: bodyCx,
-          top: bodyCy,
-        });
-        (highlightLine as any).isSideHighlight = true;
-        (highlightLine as any).highlightSide = side;
-        (highlightLine as any).excludeFromExport = true;
-
-        // 11) Add to topGroup and force refresh to update bounds/cache
-        topGroup.add(highlightLine);
-        refreshHouseGroupRendering(topGroup);
+        // 7) Refresh group and render
+        topGroup.setCoords();
         canvas.requestRenderAll();
       };
 
