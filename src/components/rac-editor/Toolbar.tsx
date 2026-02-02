@@ -425,6 +425,7 @@ export function Toolbar({
               icon={faMagnifyingGlass}
               title={showZoomControls ? "Esconder Zoom/Minimap" : "Mostrar Zoom/Minimap"}
               onClick={onToggleZoomControls}
+              color={showZoomControls ? "#ecf0f1" : "#74b9ff"}
               isActive={showZoomControls}
               isPulsing={tutorialHighlight === "zoom-minimap"}
               hideTooltip={isTutorialActive}
