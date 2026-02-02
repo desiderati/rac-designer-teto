@@ -420,6 +420,16 @@ export function Toolbar({
               hideTooltip={isTutorialActive}
             />
 
+            {/* Zoom/Minimap Toggle */}
+            <FABButton
+              icon={faMagnifyingGlass}
+              title={showZoomControls ? "Esconder Zoom/Minimap" : "Mostrar Zoom/Minimap"}
+              onClick={onToggleZoomControls}
+              isActive={showZoomControls}
+              isPulsing={tutorialHighlight === "zoom-minimap"}
+              hideTooltip={isTutorialActive}
+            />
+
             {/* Delete */}
             <FABButton
               icon={faTrash}
@@ -476,14 +486,6 @@ export function Toolbar({
               title="Dicas"
               onClick={onToggleTips}
               color="#f1c40f"
-              hideTooltip={isTutorialActive}
-              tooltipSide="left"
-            />
-            <SubMenuButton
-              icon={faMagnifyingGlass}
-              title={showZoomControls ? "Esconder Zoom/Minimap" : "Mostrar Zoom/Minimap"}
-              onClick={onToggleZoomControls}
-              color={showZoomControls ? "#74b9ff" : "#95a5a6"}
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
