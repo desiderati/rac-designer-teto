@@ -478,22 +478,33 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           const screenX = containerRect.left + (canvasPoint.x * currentZoom) + currentCanvasX;
           const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
           
-           // Deixa TODOS os pilotis amarelos quando o popover abrir/selecionar
-           // (e depois o piloti atual fica azul)
-           group.getObjects().forEach((obj: any) => {
-             if (obj.isPilotiCircle || obj.isPilotiRect) {
-               obj.set({
-                 stroke: '#facc15',
-                 strokeWidth: obj.isPilotiRect ? 4 : 3,
+           // Highlight pilotis across ALL house views (cross-view sync)
+           // First, reset all pilotis in all house groups to yellow
+           canvas.getObjects().forEach((obj: any) => {
+             if (obj.type === 'group' && obj.myType === 'house') {
+               obj.getObjects().forEach((child: any) => {
+                 if (child.isPilotiCircle || child.isPilotiRect) {
+                   child.set({
+                     stroke: '#facc15',
+                     strokeWidth: child.isPilotiRect ? 4 : 3,
+                   });
+                 }
                });
              }
            });
           
-          // Highlight the selected piloti with thicker border
-          const isPilotiRectType = (piloti as any).isPilotiRect;
-          piloti.set({
-            stroke: '#3b82f6',
-            strokeWidth: isPilotiRectType ? 5 : 4,
+          // Now highlight the selected piloti in ALL views (same pilotiId)
+          canvas.getObjects().forEach((obj: any) => {
+            if (obj.type === 'group' && obj.myType === 'house') {
+              obj.getObjects().forEach((child: any) => {
+                if ((child.isPilotiCircle || child.isPilotiRect) && child.pilotiId === pilotiId) {
+                  child.set({
+                    stroke: '#3b82f6',
+                    strokeWidth: child.isPilotiRect ? 5 : 4,
+                  });
+                }
+              });
+            }
           });
           canvas.renderAll();
           
