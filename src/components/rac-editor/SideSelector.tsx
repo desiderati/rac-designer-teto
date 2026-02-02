@@ -159,7 +159,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
                             data.isMaster && 'bg-amber-100 border-amber-500',
                           )}
                         >
-                          <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                          <span className="text-sm font-medium text-foreground/70">{name}</span>
                         </div>
                       );
                     })}
@@ -207,7 +207,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
                             data.isMaster && 'bg-amber-100 border-amber-500',
                           )}
                         >
-                          <span className="text-[10px] font-medium text-foreground/70">{name}</span>
+                          <span className="text-sm font-medium text-foreground/70">{name}</span>
                         </div>
                       );
                     })}
