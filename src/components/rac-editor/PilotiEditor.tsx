@@ -322,8 +322,7 @@ export function PilotiEditor({
         <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
       </div>
 
-      {/* Show nivel field only in top (plant) view */}
-      {tempIsMaster && houseView === 'top' && (
+      {tempIsMaster && (
         <div className="pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
             <Input
