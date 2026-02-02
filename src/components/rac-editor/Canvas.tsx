@@ -101,6 +101,39 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => { viewportYRef.current = viewportY; }, [viewportY]);
     useEffect(() => { containerSizeRef.current = containerSize; }, [containerSize]);
     useEffect(() => { isEditorOpenRef.current = isEditorOpen; }, [isEditorOpen]);
+    
+    // Reset all piloti highlights when editor closes
+    const prevEditorOpenRef = useRef(isEditorOpen);
+    useEffect(() => {
+      const wasOpen = prevEditorOpenRef.current;
+      prevEditorOpenRef.current = isEditorOpen;
+      
+      // Only reset when editor transitions from open to closed
+      if (wasOpen && !isEditorOpen && fabricCanvasRef.current) {
+        const canvas = fabricCanvasRef.current;
+        canvas.getObjects().forEach((item: any) => {
+          if (item.type === 'group' && item.myType === 'house') {
+            item.getObjects().forEach((child: any) => {
+              if (child.isPilotiCircle) {
+                if (child.pilotiIsMaster) {
+                  child.set({ stroke: '#8B4513', strokeWidth: 2 });
+                } else {
+                  child.set({ stroke: 'black', strokeWidth: 1.5 * 0.6 });
+                }
+              }
+              if (child.isPilotiRect) {
+                if (child.pilotiIsMaster) {
+                  child.set({ stroke: '#8B4513', strokeWidth: 3 });
+                } else {
+                  child.set({ stroke: '#333', strokeWidth: 2 });
+                }
+              }
+            });
+          }
+        });
+        canvas.requestRenderAll();
+      }
+    }, [isEditorOpen]);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 
