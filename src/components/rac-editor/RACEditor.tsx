@@ -854,36 +854,34 @@ export function RACEditor() {
     const canvas = canvasRef.current?.canvas;
     if (!canvas) return;
     
-    // Com popover aberto, a casa continua selecionada: todos amarelos, só o atual azul
-    const activeObject = canvas.getActiveObject();
-    const houseStillSelected = activeObject === pilotiSelection.group;
-
-    pilotiSelection.group.getObjects().forEach((obj: any) => {
-      if (obj.isPilotiCircle || obj.isPilotiRect) {
-        if (houseStillSelected) {
-          obj.set({
-            stroke: '#facc15',
-            strokeWidth: obj.isPilotiRect ? 4 : 3,
-          });
-        } else if (obj.pilotiIsMaster) {
-          obj.set({ stroke: '#8B4513', strokeWidth: obj.isPilotiRect ? 3 : 2 });
-        } else {
-          obj.set({
-            stroke: obj.isPilotiRect ? '#333' : 'black',
-            strokeWidth: obj.isPilotiRect ? 2 : 1.5 * 0.6,
-          });
-        }
+    // Update highlights across ALL house groups (cross-view sync)
+    // First, set all pilotis in all house groups to yellow
+    canvas.getObjects().forEach((obj: any) => {
+      if (obj.type === 'group' && obj.myType === 'house') {
+        obj.getObjects().forEach((child: any) => {
+          if (child.isPilotiCircle || child.isPilotiRect) {
+            child.set({
+              stroke: '#facc15',
+              strokeWidth: child.isPilotiRect ? 4 : 3,
+            });
+          }
+        });
       }
     });
 
-    // Highlight the new piloti
-    const pilotiData = getPilotiFromGroup(pilotiSelection.group, pilotiId);
-    if (pilotiData) {
-      (pilotiData.circle as any).set({
-        stroke: '#3b82f6',
-        strokeWidth: (pilotiData.circle as any).isPilotiRect ? 5 : 4,
-      });
-    }
+    // Now highlight the selected piloti in ALL views (same pilotiId)
+    canvas.getObjects().forEach((obj: any) => {
+      if (obj.type === 'group' && obj.myType === 'house') {
+        obj.getObjects().forEach((child: any) => {
+          if ((child.isPilotiCircle || child.isPilotiRect) && child.pilotiId === pilotiId) {
+            child.set({
+              stroke: '#3b82f6',
+              strokeWidth: child.isPilotiRect ? 5 : 4,
+            });
+          }
+        });
+      }
+    });
     
     canvas.renderAll();
     
