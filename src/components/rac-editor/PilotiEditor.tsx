@@ -395,7 +395,7 @@ export function PilotiEditor({
       tabIndex={-1}
     >
       <div
-        className="rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[280px]"
+        className="rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[280px] cursor-move"
         style={
           popoverPos
             ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
