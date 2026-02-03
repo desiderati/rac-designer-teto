@@ -12,6 +12,7 @@ import {
 // Types for house sides
 export type HouseSide = 'top' | 'bottom' | 'left' | 'right';
 export type ViewType = 'top' | 'front' | 'back' | 'side1' | 'side2';
+export type HouseType = 'tipo6' | 'tipo3' | null;
 
 // Mapping between sides and view types
 // Front/Back can only be on top/bottom (longer sides)
@@ -47,13 +48,39 @@ export interface PilotiData {
   nivel: number;
 }
 
+// View instance for tracking multiple views of the same type
+export interface ViewInstance {
+  group: Group;
+  side?: HouseSide;
+  instanceId: string;
+}
+
 // House state
 export interface HouseState {
   id: string;
+  houseType: HouseType;
   pilotis: Record<string, PilotiData>; // pilotiId -> data
-  views: Record<ViewType, { group: Group; side?: HouseSide } | null>;
+  views: Record<ViewType, ViewInstance[]>; // Changed to array for multiple instances
   sideAssignments: Record<HouseSide, ViewType | null>;
 }
+
+// View limits per house type
+export const VIEW_LIMITS: Record<Exclude<HouseType, null>, Record<ViewType, number>> = {
+  tipo6: {
+    top: 1,
+    front: 1,
+    back: 1,
+    side1: 2, // Quadrado Fechado
+    side2: 0, // Not available for tipo6
+  },
+  tipo3: {
+    top: 1,
+    front: 0, // Not available for tipo3
+    back: 2, // "Lateral" (renamed for tipo3)
+    side1: 1, // Quadrado Fechado
+    side2: 1, // Quadrado Aberto
+  },
+};
 
 // Default piloti data
 const DEFAULT_PILOTI: PilotiData = {
@@ -101,13 +128,14 @@ class HouseManager {
 
     this.house = {
       id: `house_${Date.now()}`,
+      houseType: null,
       pilotis,
       views: {
-        top: null,
-        front: null,
-        back: null,
-        side1: null,
-        side2: null,
+        top: [],
+        front: [],
+        back: [],
+        side1: [],
+        side2: [],
       },
       sideAssignments: {
         top: null,
@@ -120,6 +148,73 @@ class HouseManager {
     this.notify();
   }
 
+  // Get/Set house type
+  getHouseType(): HouseType {
+    return this.house?.houseType || null;
+  }
+
+  setHouseType(type: HouseType): void {
+    if (!this.house) return;
+    this.house.houseType = type;
+    this.notify();
+  }
+
+  // Get max count for a view type based on current house type
+  getMaxViewCount(viewType: ViewType): number {
+    if (!this.house?.houseType) return 0;
+    return VIEW_LIMITS[this.house.houseType][viewType];
+  }
+
+  // Get current count of a view type
+  getViewCount(viewType: ViewType): number {
+    if (!this.house) return 0;
+    return this.house.views[viewType].length;
+  }
+
+  // Check if can add more of this view type
+  canAddView(viewType: ViewType): boolean {
+    if (!this.house?.houseType) return false;
+    const max = this.getMaxViewCount(viewType);
+    const current = this.getViewCount(viewType);
+    return current < max;
+  }
+
+  // Get available views for current house type (views that can still be added)
+  getAvailableViewsForType(): ViewType[] {
+    if (!this.house?.houseType) return [];
+    
+    const views: ViewType[] = [];
+    const limits = VIEW_LIMITS[this.house.houseType];
+    
+    for (const [viewType, maxCount] of Object.entries(limits)) {
+      if (maxCount > 0 && this.canAddView(viewType as ViewType)) {
+        views.push(viewType as ViewType);
+      }
+    }
+    
+    return views;
+  }
+
+  // Check if plant (top view) can be deleted
+  canDeletePlant(): boolean {
+    if (!this.house) return false;
+    
+    // Check if any other views exist
+    const otherViews = (['front', 'back', 'side1', 'side2'] as ViewType[]).some(
+      (vt) => this.house!.views[vt].length > 0
+    );
+    
+    return !otherViews;
+  }
+
+  // Check if any non-plant views exist
+  hasOtherViews(): boolean {
+    if (!this.house) return false;
+    return (['front', 'back', 'side1', 'side2'] as ViewType[]).some(
+      (vt) => this.house!.views[vt].length > 0
+    );
+  }
+
   getHouse(): HouseState | null {
     return this.house;
   }
@@ -129,31 +224,45 @@ class HouseManager {
     return this.canvas.getObjects().includes(group as any);
   }
 
-  private cleanupStaleView(viewType: ViewType): void {
+  private cleanupStaleViews(viewType: ViewType): void {
     if (!this.house) return;
-    const viewData = this.house.views[viewType];
-    if (!viewData) return;
+    const instances = this.house.views[viewType];
+    if (!instances || instances.length === 0) return;
 
-    // If the Fabric object is no longer on canvas (e.g. removed, undo/redo, import),
-    // clear internal state so the view can be added again.
-    if (!this.isGroupOnCanvas(viewData.group)) {
-      if (viewData.side) this.house.sideAssignments[viewData.side] = null;
-      this.house.views[viewType] = null;
+    // Filter out instances whose groups are no longer on canvas
+    const validInstances: ViewInstance[] = [];
+    for (const instance of instances) {
+      if (this.isGroupOnCanvas(instance.group)) {
+        validInstances.push(instance);
+      } else {
+        // Clear side assignment if this instance had one
+        if (instance.side) {
+          this.house.sideAssignments[instance.side] = null;
+        }
+      }
     }
+    this.house.views[viewType] = validInstances;
   }
 
   hasView(viewType: ViewType): boolean {
     // When house isn't initialized yet, no views exist.
     if (!this.house) return false;
 
-    this.cleanupStaleView(viewType);
-    return this.house.views[viewType] !== null;
+    this.cleanupStaleViews(viewType);
+    return this.house.views[viewType].length > 0;
+  }
+
+  // Check if this specific view type has reached its maximum
+  isViewAtLimit(viewType: ViewType): boolean {
+    if (!this.house?.houseType) return true;
+    this.cleanupStaleViews(viewType);
+    return this.house.views[viewType].length >= this.getMaxViewCount(viewType);
   }
 
   getAvailableViews(): ViewType[] {
     if (!this.house) return [];
     return (['top', 'front', 'back', 'side1', 'side2'] as ViewType[]).filter(
-      (v) => !this.hasView(v)
+      (v) => !this.isViewAtLimit(v)
     );
   }
 
@@ -167,7 +276,7 @@ class HouseManager {
 
     return possibleSides.filter((side) => {
       const assignment = this.house!.sideAssignments[side];
-      // Side is available if not assigned, or if assigned to the opposite view
+      // Side is available if not assigned
       return assignment === null;
     });
   }
@@ -196,13 +305,20 @@ class HouseManager {
     
     const availableSides = this.getAvailableSides(viewType);
     if (availableSides.length === 1) return availableSides[0];
+    if (availableSides.length === 0) return null;
     
-    // Check if opposite view has a side, then use the opposite side
+    // Check if any instance of the opposite view has a side, then use the opposite side
     const oppositeView = OPPOSITE_VIEW[viewType];
-    if (oppositeView && this.house?.views[oppositeView]) {
-      const oppositeViewData = this.house.views[oppositeView];
-      if (oppositeViewData?.side) {
-        return OPPOSITE_SIDE[oppositeViewData.side];
+    if (oppositeView && this.house?.views[oppositeView]?.length) {
+      const oppositeInstances = this.house.views[oppositeView];
+      // Find an instance that has a side assigned
+      for (const instance of oppositeInstances) {
+        if (instance.side) {
+          const oppositeSide = OPPOSITE_SIDE[instance.side];
+          if (availableSides.includes(oppositeSide)) {
+            return oppositeSide;
+          }
+        }
       }
     }
     
@@ -213,19 +329,23 @@ class HouseManager {
   registerView(viewType: ViewType, group: Group, side?: HouseSide): void {
     if (!this.house) return;
 
-    // Mark the group with its view type for later identification
+    const instanceId = `${viewType}_${Date.now()}`;
+    
+    // Mark the group with its view type and instance ID for later identification
     (group as any).houseViewType = viewType;
+    (group as any).houseInstanceId = instanceId;
 
     // Apply current piloti data to the new group
     this.applyPilotiDataToGroup(group);
 
-    this.house.views[viewType] = { group, side };
+    // Add to the array of instances for this view type
+    this.house.views[viewType].push({ group, side, instanceId });
 
     if (side) {
       this.house.sideAssignments[side] = viewType;
     }
 
-    console.log(`[HouseManager] Registered view ${viewType}, side: ${side}`);
+    console.log(`[HouseManager] Registered view ${viewType}, instance: ${instanceId}, side: ${side}`);
     this.notify();
   }
 
@@ -233,51 +353,72 @@ class HouseManager {
   removeView(group: Group): void {
     if (!this.house) return;
 
-    // First try to identify by the houseViewType property we set during registration
+    // First try to identify by the houseViewType and instanceId properties
     const viewType = (group as any).houseViewType as ViewType | undefined;
+    const instanceId = (group as any).houseInstanceId as string | undefined;
 
     if (viewType && this.house.views[viewType]) {
-      const viewData = this.house.views[viewType];
-      console.log(`[HouseManager] Removing view by houseViewType: ${viewType}, side: ${viewData?.side}`);
+      const instances = this.house.views[viewType];
+      
+      // Find and remove the specific instance
+      const instanceIndex = instanceId 
+        ? instances.findIndex((i) => i.instanceId === instanceId)
+        : instances.findIndex((i) => i.group === group);
+      
+      if (instanceIndex !== -1) {
+        const instance = instances[instanceIndex];
+        console.log(`[HouseManager] Removing view instance: ${viewType}, instanceId: ${instance.instanceId}, side: ${instance.side}`);
 
-      // Clear side assignment
-      if (viewData?.side) {
-        this.house.sideAssignments[viewData.side] = null;
-        console.log(`[HouseManager] Cleared side assignment for ${viewData.side}`);
+        // Clear side assignment
+        if (instance.side) {
+          this.house.sideAssignments[instance.side] = null;
+          console.log(`[HouseManager] Cleared side assignment for ${instance.side}`);
+        }
+        
+        // Remove from array
+        instances.splice(instanceIndex, 1);
+        console.log(`[HouseManager] View ${viewType} instance removed, remaining: ${instances.length}`);
+        this.notify();
+        return;
       }
-      this.house.views[viewType] = null;
-      console.log(`[HouseManager] View ${viewType} removed, available views:`, this.getAvailableViews());
-      this.notify();
-      return;
     }
 
-    // Fallback: search by group reference (for backwards compatibility)
+    // Fallback: search by group reference across all view types
     for (const vt of Object.keys(this.house.views) as ViewType[]) {
-      const viewData = this.house.views[vt];
-      if (viewData?.group === group) {
-        console.log(`[HouseManager] Removing view by reference: ${vt}, side: ${viewData.side}`);
-        if (viewData.side) {
-          this.house.sideAssignments[viewData.side] = null;
+      const instances = this.house.views[vt];
+      const instanceIndex = instances.findIndex((i) => i.group === group);
+      
+      if (instanceIndex !== -1) {
+        const instance = instances[instanceIndex];
+        console.log(`[HouseManager] Removing view by reference: ${vt}, side: ${instance.side}`);
+        if (instance.side) {
+          this.house.sideAssignments[instance.side] = null;
         }
-        this.house.views[vt] = null;
-        console.log(`[HouseManager] View ${vt} removed, available views:`, this.getAvailableViews());
+        instances.splice(instanceIndex, 1);
+        console.log(`[HouseManager] View ${vt} removed, remaining: ${instances.length}`);
         this.notify();
         break;
       }
     }
   }
 
-  // Remove view by type (alternative method)
+  // Remove all instances of a view type (alternative method)
   removeViewByType(viewType: ViewType): void {
     if (!this.house) return;
 
-    const viewData = this.house.views[viewType];
-    if (viewData) {
-      console.log(`[HouseManager] Removing view by type: ${viewType}`);
-      if (viewData.side) {
-        this.house.sideAssignments[viewData.side] = null;
+    const instances = this.house.views[viewType];
+    if (instances && instances.length > 0) {
+      console.log(`[HouseManager] Removing all ${instances.length} instances of view type: ${viewType}`);
+      
+      // Clear all side assignments for these instances
+      for (const instance of instances) {
+        if (instance.side) {
+          this.house.sideAssignments[instance.side] = null;
+        }
       }
-      this.house.views[viewType] = null;
+      
+      // Clear the array
+      this.house.views[viewType] = [];
       this.notify();
     }
   }
@@ -383,27 +524,29 @@ class HouseManager {
     const current = this.house.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
     this.house.pilotis[pilotiId] = { ...current, ...data };
 
-    // Sync to all views
-    Object.values(this.house.views).forEach((viewData) => {
-      if (!viewData?.group) return;
+    // Sync to all views (now iterating over arrays of instances)
+    Object.values(this.house.views).forEach((instances) => {
+      if (!instances || instances.length === 0) return;
 
-      const group = viewData.group;
+      for (const instance of instances) {
+        const group = instance.group;
 
-      // First: if we cleared any previous masters, update them in this group
-      if (clearedMasters.length) {
-        clearedMasters.forEach((id) => {
-          const p = this.house!.pilotis[id];
-          updatePilotiMaster(group, id, p.isMaster, p.nivel);
-        });
-      }
+        // First: if we cleared any previous masters, update them in this group
+        if (clearedMasters.length) {
+          clearedMasters.forEach((id) => {
+            const p = this.house!.pilotis[id];
+            updatePilotiMaster(group, id, p.isMaster, p.nivel);
+          });
+        }
 
-      // Then update the target piloti
-      const newData = this.house!.pilotis[pilotiId];
-      if (data.height !== undefined) {
-        updatePilotiHeight(group, pilotiId, newData.height);
-      }
-      if (data.isMaster !== undefined || data.nivel !== undefined) {
-        updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
+        // Then update the target piloti
+        const newData = this.house!.pilotis[pilotiId];
+        if (data.height !== undefined) {
+          updatePilotiHeight(group, pilotiId, newData.height);
+        }
+        if (data.isMaster !== undefined || data.nivel !== undefined) {
+          updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
+        }
       }
     });
 
@@ -419,15 +562,21 @@ class HouseManager {
   // Check if any views exist
   hasAnyView(): boolean {
     if (!this.house) return false;
-    return Object.values(this.house.views).some((v) => v !== null);
+    return Object.values(this.house.views).some((instances) => instances && instances.length > 0);
   }
 
   // Get all registered groups
   getAllGroups(): Group[] {
     if (!this.house) return [];
-    return Object.values(this.house.views)
-      .filter((v) => v !== null)
-      .map((v) => v!.group);
+    const groups: Group[] = [];
+    for (const instances of Object.values(this.house.views)) {
+      if (instances) {
+        for (const instance of instances) {
+          groups.push(instance.group);
+        }
+      }
+    }
+    return groups;
   }
 }
 

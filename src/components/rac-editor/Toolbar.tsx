@@ -35,8 +35,10 @@ import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+import { HouseType } from '@/lib/house-manager';
+
 interface ToolbarProps {
-  onAddHouseTop: () => void;
+  onOpenHouseTypeSelector: () => void;
   onAddHouseFront: () => void;
   onAddHouseBack: () => void;
   onAddHouseSide1: () => void;
@@ -72,12 +74,13 @@ interface ToolbarProps {
   onToggleMenu: () => void;
   onRestartTutorial: () => void;
   isTutorialActive?: boolean;
-  // Views present on canvas
-  hasTopView?: boolean;
-  hasFrontView?: boolean;
-  hasBackView?: boolean;
-  hasSide1View?: boolean;
-  hasSide2View?: boolean;
+  // House type and view counts
+  houseType: HouseType;
+  // View limits: { current, max }
+  frontViewCount?: { current: number; max: number };
+  backViewCount?: { current: number; max: number };
+  side1ViewCount?: { current: number; max: number };
+  side2ViewCount?: { current: number; max: number };
 }
 
 function FABButton({
@@ -139,7 +142,8 @@ function SubMenuButton({
   color = "#ecf0f1",
   hideTooltip = false,
   tooltipSide = "bottom" as "bottom" | "left",
-  isViewPresent = false,
+  isDisabled = false,
+  badge,
 }: {
   icon: IconDefinition;
   title: string;
@@ -147,19 +151,26 @@ function SubMenuButton({
   color?: string;
   hideTooltip?: boolean;
   tooltipSide?: "bottom" | "left";
-  isViewPresent?: boolean;
+  isDisabled?: boolean;
+  badge?: string;
 }) {
   const button = (
     <button
       onClick={onClick}
+      disabled={isDisabled}
       className={cn(
-        "w-11 h-11 border-none rounded-xl text-[#ecf0f1] text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md hover:scale-105 active:scale-95",
-        isViewPresent
-          ? "bg-[#34495e] hover:bg-gray-400"
-          : "bg-[#34495e] hover:bg-[#0092DD]"
+        "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md relative",
+        isDisabled
+          ? "bg-gray-500 cursor-not-allowed opacity-60"
+          : "bg-[#34495e] hover:bg-[#0092DD] hover:scale-105 active:scale-95"
       )}
     >
-      <FontAwesomeIcon icon={icon} style={{ color }} />
+      <FontAwesomeIcon icon={icon} style={{ color: isDisabled ? "#999" : color }} />
+      {badge && (
+        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+          {badge}
+        </span>
+      )}
     </button>
   );
 
@@ -178,7 +189,7 @@ function SubMenuButton({
 }
 
 export function Toolbar({
-  onAddHouseTop,
+  onOpenHouseTypeSelector,
   onAddHouseFront,
   onAddHouseBack,
   onAddHouseSide1,
@@ -214,11 +225,11 @@ export function Toolbar({
   onToggleMenu,
   onRestartTutorial,
   isTutorialActive = false,
-  hasTopView = false,
-  hasFrontView = false,
-  hasBackView = false,
-  hasSide1View = false,
-  hasSide2View = false,
+  houseType,
+  frontViewCount = { current: 0, max: 0 },
+  backViewCount = { current: 0, max: 0 },
+  side1ViewCount = { current: 0, max: 0 },
+  side2ViewCount = { current: 0, max: 0 },
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -259,49 +270,68 @@ export function Toolbar({
               <FABButton
                 icon={faHome}
                 title="Casa TETO (Opções)"
-                onClick={() => handleAction(onToggleHouseMenu)}
+                onClick={() => houseType ? handleAction(onToggleHouseMenu) : handleAction(onOpenHouseTypeSelector)}
                 isActive={activeSubmenu === "house"}
                 isPulsing={tutorialHighlight === "house"}
                 hideTooltip={activeSubmenu === "house" || isTutorialActive}
               />
-              {/* House Submenu */}
-              {activeSubmenu === "house" && (
+              {/* House Submenu - only show if house type is selected */}
+              {activeSubmenu === "house" && houseType && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  <SubMenuButton
-                    icon={faLayerGroup}
-                    title="Visão Superior (Planta)"
-                    onClick={() => handleAction(onAddHouseTop)}
-                    hideTooltip={isTutorialActive}
-                    isViewPresent={hasTopView}
-                  />
-                  <SubMenuButton
-                    icon={faHouseChimney}
-                    title="Visão Frontal"
-                    onClick={() => handleAction(onAddHouseFront)}
-                    hideTooltip={isTutorialActive}
-                    isViewPresent={hasFrontView}
-                  />
-                  <SubMenuButton
-                    icon={faHouseChimneyWindow}
-                    title="Visão Traseira"
-                    onClick={() => handleAction(onAddHouseBack)}
-                    hideTooltip={isTutorialActive}
-                    isViewPresent={hasBackView}
-                  />
-                  <SubMenuButton
-                    icon={faSquareFull}
-                    title="Quadrado Fechado"
-                    onClick={() => handleAction(onAddHouseSide1)}
-                    hideTooltip={isTutorialActive}
-                    isViewPresent={hasSide1View}
-                  />
-                  <SubMenuButton
-                    icon={faDoorOpen}
-                    title="Quadrado Aberto"
-                    onClick={() => handleAction(onAddHouseSide2)}
-                    hideTooltip={isTutorialActive}
-                    isViewPresent={hasSide2View}
-                  />
+                  {/* Tipo 6: Frontal, Traseira, Quadrado Fechado (x2) */}
+                  {houseType === 'tipo6' && (
+                    <>
+                      <SubMenuButton
+                        icon={faHouseChimney}
+                        title="Visão Frontal"
+                        onClick={() => handleAction(onAddHouseFront)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={frontViewCount.current >= frontViewCount.max}
+                      />
+                      <SubMenuButton
+                        icon={faHouseChimneyWindow}
+                        title="Visão Traseira"
+                        onClick={() => handleAction(onAddHouseBack)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={backViewCount.current >= backViewCount.max}
+                      />
+                      <SubMenuButton
+                        icon={faSquareFull}
+                        title={`Quadrado Fechado (${side1ViewCount.current}/${side1ViewCount.max})`}
+                        onClick={() => handleAction(onAddHouseSide1)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={side1ViewCount.current >= side1ViewCount.max}
+                        badge={side1ViewCount.max > 1 ? `${side1ViewCount.current}/${side1ViewCount.max}` : undefined}
+                      />
+                    </>
+                  )}
+                  {/* Tipo 3: Lateral (x2), Quadrado Aberto, Quadrado Fechado */}
+                  {houseType === 'tipo3' && (
+                    <>
+                      <SubMenuButton
+                        icon={faHouseChimneyWindow}
+                        title={`Visão Lateral (${backViewCount.current}/${backViewCount.max})`}
+                        onClick={() => handleAction(onAddHouseBack)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={backViewCount.current >= backViewCount.max}
+                        badge={backViewCount.max > 1 ? `${backViewCount.current}/${backViewCount.max}` : undefined}
+                      />
+                      <SubMenuButton
+                        icon={faDoorOpen}
+                        title="Quadrado Aberto"
+                        onClick={() => handleAction(onAddHouseSide2)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={side2ViewCount.current >= side2ViewCount.max}
+                      />
+                      <SubMenuButton
+                        icon={faSquareFull}
+                        title="Quadrado Fechado"
+                        onClick={() => handleAction(onAddHouseSide1)}
+                        hideTooltip={isTutorialActive}
+                        isDisabled={side1ViewCount.current >= side1ViewCount.max}
+                      />
+                    </>
+                  )}
                 </div>
               )}
             </div>
