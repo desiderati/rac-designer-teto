@@ -331,10 +331,32 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvas.on('object:modified', saveHistory);
       canvas.on('object:removed', saveHistory);
 
+      // === Helper: Get piloti IDs that belong to a specific side ===
+      // Based on view-piloti-mapping-logic:
+      // - top (front position): A1-A4 (row 0) = piloti_0_0, piloti_1_0, piloti_2_0, piloti_3_0
+      // - bottom (back position): C1-C4 (row 2) = piloti_0_2, piloti_1_2, piloti_2_2, piloti_3_2
+      // - left: A1, B1, C1 (column 0) = piloti_0_0, piloti_0_1, piloti_0_2
+      // - right: A4, B4, C4 (column 3) = piloti_3_0, piloti_3_1, piloti_3_2
+      const getPilotiIdsForSide = (side: HouseSide): string[] => {
+        switch (side) {
+          case 'top':
+            return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
+          case 'bottom':
+            return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
+          case 'left':
+            return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
+          case 'right':
+            return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
+          default:
+            return [];
+        }
+      };
+
       // === Side Highlight Logic (isolated) ===
       // Changes the stroke of the border line on the Plant (top) view to indicate
       // which side corresponds to the currently selected elevation view.
       // Uses the 4 permanent border lines (isHouseBorderEdge) instead of adding/removing objects.
+      // Also highlights only the pilotis on that side in yellow on the Plant view.
       const syncPlantSideHighlight = (activeObject: FabricObject | null) => {
         // 1) Find the Plant (top view) group on the canvas
         const topGroup = canvas.getObjects().find(
@@ -392,7 +414,19 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           (targetBorder as any).dirty = true;
         }
 
-        // 7) Refresh group and render
+        // 7) Highlight only the pilotis on that side in the Plant view (yellow)
+        const pilotiIdsForSide = getPilotiIdsForSide(side);
+        topGroup.getObjects().forEach((child: any) => {
+          if (child.isPilotiCircle && pilotiIdsForSide.includes(child.pilotiId)) {
+            child.set({
+              stroke: '#facc15',
+              strokeWidth: 3,
+            });
+            (child as any).dirty = true;
+          }
+        });
+
+        // 8) Refresh group and render
         topGroup.setCoords();
         canvas.requestRenderAll();
       };
@@ -431,19 +465,37 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           }
         });
 
-        // If a house is selected, highlight all its pilotis in yellow (all views)
+        // If a house (elevation view) is selected, highlight its pilotis in yellow
         if (obj && obj.type === 'group' && (obj as any).myType === 'house') {
-          (obj as Group).getObjects().forEach((child: any) => {
-            if (child.isPilotiCircle || child.isPilotiRect) {
-              child.set({
-                stroke: '#facc15',
-                strokeWidth: child.isPilotiRect ? 4 : 3,
-              });
-            }
-          });
+          const viewType = (obj as any).houseViewType ?? (obj as any).houseView;
+          
+          // For elevation views (not plant), only highlight the pilotis in that elevation
+          if (viewType && viewType !== 'top') {
+            (obj as Group).getObjects().forEach((child: any) => {
+              if (child.isPilotiRect) {
+                child.set({
+                  stroke: '#facc15',
+                  strokeWidth: 4,
+                });
+              }
+            });
+          }
+          
+          // For plant view, highlight all pilotis in the selected plant group
+          if (viewType === 'top') {
+            (obj as Group).getObjects().forEach((child: any) => {
+              if (child.isPilotiCircle) {
+                child.set({
+                  stroke: '#facc15',
+                  strokeWidth: 3,
+                });
+              }
+            });
+          }
         }
 
         // Sync the side highlight on the Plant view (isolated logic)
+        // This also highlights only the pilotis on that side in the Plant view
         syncPlantSideHighlight(obj);
 
         canvas.renderAll();
