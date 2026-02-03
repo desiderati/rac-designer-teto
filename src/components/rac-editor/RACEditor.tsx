@@ -11,6 +11,7 @@ import { DistanceEditor } from './DistanceEditor';
 import { ObjectNameEditor } from './ObjectNameEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { SideSelector } from './SideSelector';
+import { HouseTypeSelector } from './HouseTypeSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
@@ -41,7 +42,7 @@ import {
   formatPilotiHeight,
   getPilotiFromGroup,
 } from '@/lib/canvas-utils';
-import { houseManager, ViewType, HouseSide } from '@/lib/house-manager';
+import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
 
@@ -65,8 +66,15 @@ export function RACEditor() {
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
+  const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
+  const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
+
+  // Subscribe to house manager changes
+  useEffect(() => {
+    return houseManager.subscribe(() => forceUpdate((v) => v + 1));
+  }, []);
 
   // Initialize house manager when canvas is ready
   useEffect(() => {
@@ -259,9 +267,10 @@ export function RACEditor() {
 
   // Helper to add a view with side selection logic
   const requestAddView = (viewType: ViewType) => {
-    // Check if view already exists
-    if (houseManager.hasView(viewType)) {
-      toast.error(`Vista ${getViewLabel(viewType)} já foi adicionada. Delete-a primeiro para adicionar novamente.`);
+    // Check if view is at limit
+    if (houseManager.isViewAtLimit(viewType)) {
+      const label = getViewLabel(viewType);
+      toast.error(`Limite de ${label} atingido para este tipo de casa.`);
       return;
     }
 
@@ -283,12 +292,13 @@ export function RACEditor() {
   };
 
   const getViewLabel = (type: ViewType): string => {
+    const houseType = houseManager.getHouseType();
     switch (type) {
       case 'top': return 'Planta';
       case 'front': return 'Frontal';
-      case 'back': return 'Traseira';
-      case 'side1': return 'Lateral Fechada';
-      case 'side2': return 'Lateral Aberta';
+      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
+      case 'side1': return 'Quadrado Fechado';
+      case 'side2': return 'Quadrado Aberto';
     }
   };
 
@@ -343,9 +353,26 @@ export function RACEditor() {
     setPendingViewType(null);
   };
 
-  const handleAddHouseTop = () => {
+  // House type selection
+  const handleOpenHouseTypeSelector = () => {
     closeAllMenus();
-    requestAddView('top');
+    setHouseTypeSelectorOpen(true);
+  };
+
+  const handleHouseTypeSelected = (type: HouseType) => {
+    if (!type) return;
+    
+    // Set the house type
+    houseManager.setHouseType(type);
+    
+    // Automatically add the plant view
+    addViewToCanvas('top');
+    
+    toast.success(`Casa ${type === 'tipo6' ? 'Tipo 6' : 'Tipo 3'} selecionada! Planta criada.`);
+  };
+
+  const handleHouseTypeSelectorClose = () => {
+    setHouseTypeSelectorOpen(false);
   };
 
   const handleAddHouseFront = () => {
@@ -693,29 +720,39 @@ export function RACEditor() {
     if (activeObjects.length) {
       canvas.discardActiveObject();
       
-      activeObjects.forEach((obj) => {
-        // If it's a house view, remove from house manager
+      for (const obj of activeObjects) {
+        // If it's a house view, check protection rules
         if ((obj as any).myType === 'house') {
           const rawView = (obj as any).houseViewType ?? (obj as any).houseView;
-          // houseViewType uses our internal ViewType; houseView comes from canvas-utils
           const viewType: ViewType | null =
             rawView === 'top' ? 'top' :
             rawView === 'front' ? 'front' :
             rawView === 'back' ? 'back' :
             rawView === 'side1' ? 'side1' :
             rawView === 'side2' ? 'side2' :
-            // canvas-utils uses "side" for both side1/side2; fallback to reference-based removal
             null;
 
+          // Check if trying to delete the plant (top view)
+          if (viewType === 'top') {
+            if (!houseManager.canDeletePlant()) {
+              toast.error('Remova todas as outras vistas antes de apagar a planta.');
+              // Re-select the object since we discarded
+              canvas.setActiveObject(obj);
+              return;
+            }
+            // Reset house type when deleting plant
+            houseManager.setHouseType(null);
+          }
+
           if (viewType) {
-            houseManager.removeViewByType(viewType);
+            houseManager.removeView(obj as Group);
           } else {
             houseManager.removeView(obj as Group);
           }
         }
 
         canvas.remove(obj);
-      });
+      }
       setInfoMessage('Objeto excluído.');
     }
   };
@@ -743,7 +780,13 @@ export function RACEditor() {
 
   const handleToggleHouseMenu = () => {
     disableDrawingMode();
-    setActiveSubmenu(prev => prev === 'house' ? null : 'house');
+    // Only show submenu if house type is already selected
+    if (houseManager.getHouseType()) {
+      setActiveSubmenu(prev => prev === 'house' ? null : 'house');
+    } else {
+      // Open type selector instead
+      handleOpenHouseTypeSelector();
+    }
     
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'house') {
@@ -933,10 +976,13 @@ export function RACEditor() {
     setInfoMessage(`Nome do objeto atualizado para: ${newValue || '(vazio)'}.`);
   };
 
+  // Get current house type and view counts
+  const currentHouseType = houseManager.getHouseType();
+
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
       <Toolbar
-        onAddHouseTop={handleAddHouseTop}
+        onOpenHouseTypeSelector={handleOpenHouseTypeSelector}
         onAddHouseFront={handleAddHouseFront}
         onAddHouseBack={handleAddHouseBack}
         onAddHouseSide1={handleAddHouseSide1}
@@ -972,11 +1018,11 @@ export function RACEditor() {
         onToggleMenu={handleToggleMenu}
         onRestartTutorial={handleRestartTutorial}
         isTutorialActive={tutorialStep !== null}
-        hasTopView={houseManager.hasView('top')}
-        hasFrontView={houseManager.hasView('front')}
-        hasBackView={houseManager.hasView('back')}
-        hasSide1View={houseManager.hasView('side1')}
-        hasSide2View={houseManager.hasView('side2')}
+        houseType={currentHouseType}
+        frontViewCount={{ current: houseManager.getViewCount('front'), max: houseManager.getMaxViewCount('front') }}
+        backViewCount={{ current: houseManager.getViewCount('back'), max: houseManager.getMaxViewCount('back') }}
+        side1ViewCount={{ current: houseManager.getViewCount('side1'), max: houseManager.getMaxViewCount('side1') }}
+        side2ViewCount={{ current: houseManager.getViewCount('side2'), max: houseManager.getMaxViewCount('side2') }}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -1056,6 +1102,12 @@ export function RACEditor() {
           onSelectSide={handleSideSelected}
         />
       )}
+
+      <HouseTypeSelector
+        isOpen={houseTypeSelectorOpen}
+        onClose={handleHouseTypeSelectorClose}
+        onSelectType={handleHouseTypeSelected}
+      />
 
       {tutorialStep && (
         <Tutorial 

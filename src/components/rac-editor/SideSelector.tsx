@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { HouseSide, ViewType, houseManager } from '@/lib/house-manager';
+import { HouseSide, ViewType, houseManager, HouseType } from '@/lib/house-manager';
 import {
   Sheet,
   SheetContent,
@@ -66,11 +66,12 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
   };
 
   const getViewLabel = (type: ViewType): string => {
+    const houseType = houseManager.getHouseType();
     switch (type) {
       case 'front': return 'Frontal';
-      case 'back': return 'Traseira';
-      case 'side1': return 'Lateral Fechada';
-      case 'side2': return 'Lateral Aberta';
+      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
+      case 'side1': return 'Quadrado Fechado';
+      case 'side2': return 'Quadrado Aberto';
       default: return '';
     }
   };
@@ -309,11 +310,12 @@ function SideButton({
   className,
 }: SideButtonProps) {
   const getAssignmentLabel = (type: ViewType): string => {
+    const houseType = houseManager.getHouseType();
     switch (type) {
       case 'front': return 'Frontal';
-      case 'back': return 'Traseira';
-      case 'side1': return 'Lat. Fechada';
-      case 'side2': return 'Lat. Aberta';
+      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
+      case 'side1': return 'Q. Fechado';
+      case 'side2': return 'Q. Aberto';
       default: return '';
     }
   };
