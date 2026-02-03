@@ -1,104 +1,190 @@
 
-Objetivo
-- Eliminar de vez o problema do “centro em (0,0)” do highlight na Planta, evitando cálculo de coordenadas e evitando adicionar/remover um novo objeto (a linha azul) a cada seleção.
-- Em vez disso, destacar o lado da Planta “mudando a borda daquele lado” (cor/espessura), como você sugeriu.
+# Plano: Sistema de Tipos de Casa com Vistas Personalizadas
 
-Por que isso é mais simples (e mais robusto)
-- O `Rect` do Fabric não permite “stroke por lado” (um único rect tem um stroke único para todas as bordas).
-- Então, para mudar “apenas um lado”, a forma confiável é desenhar as bordas como 4 segmentos (`fabric.Line`) fixos (top/bottom/left/right) dentro do grupo da Planta.
-- Esses 4 segmentos ficam ancorados ao próprio retângulo (mesmo referencial interno do grupo) e não dependem de viewport/pan/zoom nem de “onde está o centro no canvas”.
-- A lógica de highlight vira apenas “trocar estilo” (stroke/strokeWidth) do segmento correspondente, sem criar/remover objetos.
+## Resumo
 
-O que vamos mudar (arquivos e escopo)
-1) `src/lib/canvas-utils.ts` (createHouseTop)
-- Hoje a Planta é um único `Rect` com stroke preto.
-- Vamos:
-  - Manter esse `Rect` (principalmente para manter `isHouseBody` e facilitar outras lógicas existentes).
-  - Tornar o stroke do `Rect` transparente (ou strokeWidth 0) para ele não “duplicar” com as novas linhas de borda.
-  - Criar 4 `Line` que representam as bordas do retângulo:
-    - top:    [-w/2, -h/2] -> [ w/2, -h/2]
-    - bottom: [-w/2,  h/2] -> [ w/2,  h/2]
-    - left:   [-w/2, -h/2] -> [-w/2,  h/2]
-    - right:  [ w/2, -h/2] -> [ w/2,  h/2]
-  - Marcar cada linha com metadados:
-    - `isHouseBorderEdge = true`
-    - `edgeSide = 'top' | 'bottom' | 'left' | 'right'`
-    - `excludeFromExport = true` (se você não quiser isso no PDF) — ou manter exportável (decisão simples; abaixo eu proponho manter exportável por padrão, mas posso seguir seu desejo)
-  - Configurar as linhas para não interferirem em seleção:
-    - `selectable: false`, `evented: false`, `strokeUniform: true`
+Implementar um novo sistema onde o menu "Casa TETO" abre uma modal de seleção entre dois tipos de casa, cada um com suas próprias vistas permitidas. A Planta será adicionada automaticamente após a seleção e terá proteção contra exclusão.
 
-Observação importante sobre estilo:
-- Borda “normal”: stroke preto, strokeWidth igual ao que já existia no rect (`2*s`).
-- Borda “highlight”: stroke azul (#3b82f6), strokeWidth mais forte (ex.: `4` ou `4*s` dependendo do visual desejado; vamos manter coerente com o resto do app).
+---
 
-2) `src/lib/canvas-utils.ts` (customProps)
-- Se o projeto serializa/deserializa o canvas (undo/redo e loadFromJSON), precisamos garantir que as props customizadas das bordas sobrevivam.
-- Hoje `customProps` não inclui `isHouseBorderEdge` nem `edgeSide`.
-- Vamos adicionar:
-  - `"isHouseBorderEdge"`, `"edgeSide"`
-- Assim, após undo/redo/import, ainda conseguimos localizar as bordas e atualizar o estilo corretamente.
+## Comportamento Atual vs Novo
 
-3) `src/components/rac-editor/Canvas.tsx` (syncPlantSideHighlight)
-- Vamos substituir a estratégia atual (adicionar/remover `isSideHighlight`) por “pintar as bordas”:
-  - Encontrar `topGroup` como hoje.
-  - Dentro do `topGroup`, localizar as 4 linhas com `isHouseBorderEdge`.
-  - Resetar todas para estilo padrão (preto).
-  - Se o objeto selecionado for uma elevação (front/back/side1/side2) e tiver `side` no `houseManager`, então:
-    - pegar a linha cujo `edgeSide === side` e aplicar o estilo de highlight (azul/mais grossa).
-  - Se não houver seleção, ou a seleção for “top”, então apenas resetar para padrão.
-- Importante: aqui não existe mais o problema do “(0,0) vs centro real”, porque as bordas já estão desenhadas exatamente no contorno do retângulo, no mesmo sistema local do grupo.
-- Também reduz o risco de “stale cache” por add/remove de children:
-  - Mesmo assim, se necessário, manteremos `refreshHouseGroupRendering(topGroup)` ao mudar estilos (em geral, mudar stroke deveria renderizar; mas como vocês já tiveram casos de cache estranho em grupos, manter o refresh aqui é seguro, porém vamos fazê-lo de forma bem controlada para não reintroduzir bugs antigos).
+### Atual
+- Menu Casa TETO mostra submenu com 5 opções: Planta, Frontal, Traseira, Quadrado Fechado, Quadrado Aberto
+- Cada vista pode ser adicionada uma vez
+- Planta pode ser excluída a qualquer momento
 
-Compatibilidade / risco de regressão (e como vamos evitar)
-- Não mexeremos em HouseManager nem em regras de inserção/seleção.
-- A Planta continua sendo um `Group` com um `Rect` marcado como `isHouseBody` (isso é crítico para outras partes).
-- As bordas serão não-interativas (`evented:false`, `selectable:false`) para não alterar comportamento de seleção.
-- Undo/redo:
-  - Ao incluir `isHouseBorderEdge/edgeSide` em `customProps`, o estado é estável após Ctrl+Z / Ctrl+Y.
-- Export PDF:
-  - Decisão: se vocês querem que o highlight/bordas apareçam no PDF:
-    - Se sim: não marcar `excludeFromExport`.
-    - Se não: marcar `excludeFromExport` e/ou controlar no pipeline de export.
-  - Como hoje o rect já era exportável (stroke preto), o padrão mais “sem surpresa” é manter as bordas exportáveis também. Eu vou propor manter exportável, e deixar só o highlight (azul) também exportável (porque é só uma cor da borda). Se você preferir que highlight nunca exporte, a gente marca as linhas como `excludeFromExport` e o PDF fica sem borda (aí precisaríamos manter o rect com borda preta exportável). Eu vou confirmar isso com você se necessário.
+### Novo
+- Menu Casa TETO abre modal para escolher tipo de casa
+- Após escolha, Planta é criada automaticamente
+- Planta é igual para os dois tipos de casa
+- Vistas disponíveis mudam conforme o tipo de casa
+- Algumas vistas podem ter até 2 instâncias
+- Planta só pode ser excluída após remover todas as outras vistas
 
-Plano de implementação (sequência)
-1) Ajustar `createHouseTop`:
-   - Criar 4 `Line` de borda e adicioná-las no `houseObjects` (ordem: primeiro bordas, depois elementos; ou o inverso — idealmente borda acima do fill, mas como fill é transparente, tanto faz; eu vou colocar as bordas por último para garantir que apareçam por cima).
-   - Definir estilo padrão (preto).
-   - Desativar o stroke do `Rect` (para evitar borda dupla).
-2) Atualizar `customProps` com `isHouseBorderEdge` e `edgeSide`.
-3) Atualizar `syncPlantSideHighlight` para:
-   - Parar de criar/remover `Line` de highlight.
-   - Em vez disso, atualizar o estilo das bordas existentes.
-   - Remover a limpeza de `isSideHighlight` (deixa de existir), e manter uma limpeza defensiva apenas se você quiser remover highlights antigos de versões anteriores (opcional).
-4) Render/refresh:
-   - Depois de atualizar estilos, chamar `topGroup.setCoords()` e `canvas.requestRenderAll()`.
-   - Se ainda houver qualquer artefato de cache, chamar `refreshHouseGroupRendering(topGroup)` (somente no topGroup).
+---
 
-Critérios de teste (o que você valida)
-1) Inserir Planta.
-2) Inserir Frontal escolhendo “Superior” e selecionar a Frontal:
-   - Só a borda superior da Planta fica azul e mais grossa.
-3) Inserir Frontal/Traseira “Inferior” e selecionar:
-   - Só a borda inferior fica azul.
-4) Inserir Lateral “Esquerda” e selecionar:
-   - Só a borda esquerda fica azul.
-5) Inserir Lateral “Direita” e selecionar:
-   - Só a borda direita fica azul.
-6) Clicar no vazio / selecionar Planta:
-   - Volta tudo para preto (sem highlight).
-7) Mover/rotacionar/escalar a Planta:
-   - A borda destacada continua exatamente no contorno (sem “sumir”).
-8) Regressão:
-   - Inserção/seleção das vistas continua funcionando.
-   - Editor de pilotis continua funcionando.
+## Tipos de Casa
 
-Notas técnicas (para garantir que essa solução resolve o seu ponto)
-- O seu pedido “pegar onde está o centro da planta no momento atual” é exatamente o tipo de coisa que vira frágil com transformações/cache de group.
-- Ao transformar “um lado do rect” em “um objeto real (Line) que já está no lado certo”, a necessidade de buscar centro atual desaparece. O grupo carrega o desenho consigo.
+### Casa Tipo 6
+| Vista | Quantidade Máxima |
+|-------|-------------------|
+| Planta | 1 (automática) |
+| Frontal | 1 |
+| Traseira | 1 |
+| Quadrado Fechado | 2 |
 
-Pergunta rápida (única decisão que pode afetar o comportamento esperado)
-- As bordas da Planta (pretas) precisam continuar aparecendo no PDF/exportação como hoje?
-  - Se sim, manteremos as 4 linhas exportáveis e o rect sem stroke.
-  - Se não, podemos manter o rect com stroke preto exportável e usar as 4 linhas somente para highlight (e com excludeFromExport=true).
+### Casa Tipo 3
+| Vista | Quantidade Máxima |
+|-------|-------------------|
+| Planta | 1 (automática) |
+| Lateral | 2 (renomeação de "Traseira" para este tipo) |
+| Quadrado Aberto | 1 |
+| Quadrado Fechado | 1 |
+
+---
+
+## Detalhes Técnicos
+
+### 1. Novo Componente: HouseTypeSelector
+
+Criar modal para seleção do tipo de casa com duas opções visuais:
+
+```text
++----------------------------------+
+|    Escolha o Tipo de Casa        |
++----------------------------------+
+|  +------------+  +------------+  |
+|  | Casa       |  | Casa       |  |
+|  | Tipo 6     |  | Tipo 3     |  |
+|  |            |  |            |  |
+|  | [ícone]    |  | [ícone]    |  |
+|  +------------+  +------------+  |
++----------------------------------+
+```
+
+**Arquivo:** `src/components/rac-editor/HouseTypeSelector.tsx`
+
+### 2. Atualizar HouseManager
+
+Adicionar propriedade `houseType` ao estado e lógica de contagem de vistas:
+
+```typescript
+// Novo tipo
+export type HouseType = 'tipo6' | 'tipo3' | null;
+
+// Atualizar HouseState
+export interface HouseState {
+  id: string;
+  houseType: HouseType;  // NOVO
+  pilotis: Record<string, PilotiData>;
+  views: Record<ViewType, ViewInstance[]>;  // Alterado para array (múltiplas instâncias)
+  sideAssignments: Record<HouseSide, ViewType | null>;
+}
+
+// Nova interface para instâncias de vista
+interface ViewInstance {
+  group: Group;
+  side?: HouseSide;
+  instanceId: string;
+}
+```
+
+**Novos métodos:**
+- `setHouseType(type: HouseType)`: Define o tipo e cria a Planta automaticamente
+- `getAvailableViewsForType()`: Retorna vistas disponíveis conforme o tipo
+- `getViewCount(viewType)`: Conta instâncias de uma vista
+- `getMaxViewCount(viewType)`: Retorna limite máximo para o tipo atual
+- `canDeletePlant()`: Verifica se a Planta pode ser excluída
+
+**Arquivo:** `src/lib/house-manager.ts`
+
+### 3. Atualizar Toolbar
+
+Modificar comportamento do botão Casa TETO:
+- Se não há tipo definido: abrir HouseTypeSelector
+- Se tipo já definido: mostrar submenu com vistas disponíveis
+
+Submenu dinâmico baseado no tipo:
+- Casa Tipo 6: Frontal, Traseira, Quadrado Fechado (x2)
+- Casa Tipo 3: Lateral (x2), Quadrado Aberto, Quadrado Fechado
+
+Botões ficam cinza quando limite atingido.
+
+**Arquivo:** `src/components/rac-editor/Toolbar.tsx`
+
+### 4. Atualizar RACEditor
+
+- Adicionar estado para modal de seleção de tipo
+- Modificar lógica de adição de vistas para suportar múltiplas instâncias
+- Implementar proteção de exclusão da Planta
+- Atualizar handlers para novo fluxo
+
+**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
+
+### 5. Proteção de Exclusão da Planta
+
+Na função `handleDelete`:
+1. Verificar se o objeto a ser excluído é a Planta
+2. Se for, verificar se existem outras vistas
+3. Se existirem, mostrar toast de erro e impedir exclusão
+4. Se não existirem, permitir exclusão e resetar `houseType`
+
+### 6. Atualizar SideSelector
+
+Adaptar labels conforme o tipo de casa:
+- Casa Tipo 3: "Traseira" vira "Lateral"
+
+**Arquivo:** `src/components/rac-editor/SideSelector.tsx`
+
+---
+
+## Fluxo do Usuário
+
+```text
+1. Usuário clica em Casa TETO
+         |
+         v
+2. Modal abre: "Escolha o Tipo de Casa"
+         |
+    +----+----+
+    |         |
+    v         v
+ Tipo 6    Tipo 3
+    |         |
+    v         v
+3. Planta é criada automaticamente no canvas
+         |
+         v
+4. Submenu mostra vistas disponíveis para o tipo escolhido
+         |
+         v
+5. Usuário adiciona vistas (até o limite de cada uma)
+         |
+         v
+6. Para excluir Planta: remover todas as outras vistas primeiro
+         |
+         v
+7. Após excluir Planta: pode escolher novo tipo
+```
+
+---
+
+## Arquivos a Modificar/Criar
+
+| Arquivo | Ação | Descrição |
+|---------|------|-----------|
+| `src/components/rac-editor/HouseTypeSelector.tsx` | Criar | Modal de seleção de tipo |
+| `src/lib/house-manager.ts` | Modificar | Adicionar tipo de casa e contagem |
+| `src/components/rac-editor/Toolbar.tsx` | Modificar | Novo fluxo e submenu dinâmico |
+| `src/components/rac-editor/RACEditor.tsx` | Modificar | Estados e handlers |
+| `src/components/rac-editor/SideSelector.tsx` | Modificar | Labels dinâmicas |
+
+---
+
+## Observações Importantes
+
+1. **Compatibilidade**: Projetos salvos sem tipo de casa precisarão definir tipo na primeira edição
+2. **Múltiplas instâncias**: O sistema de lado (esquerda/direita) continuará funcionando, mas permitirá duas vistas do mesmo tipo em lados diferentes
+3. **Sincronização de pilotis**: O HouseManager já sincroniza pilotis entre vistas - isso continuará funcionando
+4. **Nomenclatura**: "Visão Traseira" só muda para "Lateral" no contexto da Casa Tipo 3
