@@ -282,21 +282,15 @@ class HouseManager {
   }
 
   // Check if user needs to select a side for this view
+  // ALWAYS ask user for side selection when there are available sides
   needsSideSelection(viewType: ViewType): boolean {
     if (viewType === 'top') return false; // Top view doesn't need side selection
     
     const availableSides = this.getAvailableSides(viewType);
     if (availableSides.length === 0) return false; // No sides available
-    if (availableSides.length === 1) return false; // Only one option, auto-select
     
-    // Check if the opposite view already has a side assigned
-    const oppositeView = OPPOSITE_VIEW[viewType];
-    if (oppositeView && this.house?.views[oppositeView]) {
-      // Opposite view exists, so we know which side this should go
-      return false;
-    }
-    
-    return true; // User needs to choose
+    // Always ask user to select a side if there are available sides
+    return true;
   }
 
   // Get the auto-selected side if only one is available or opposite is assigned

@@ -280,15 +280,16 @@ export function RACEditor() {
       return;
     }
 
-    // Check if side selection is needed
-    if (houseManager.needsSideSelection(viewType)) {
-      setPendingViewType(viewType);
-      setSideSelectorOpen(true);
-    } else {
-      // Auto-select side
-      const side = houseManager.getAutoSelectedSide(viewType);
-      addViewToCanvas(viewType, side || undefined);
+    // Check if there are available sides
+    const availableSides = houseManager.getAvailableSides(viewType);
+    if (availableSides.length === 0) {
+      toast.error('Nenhum lado disponível para esta vista.');
+      return;
     }
+
+    // ALWAYS open SideSelector for elevation views
+    setPendingViewType(viewType);
+    setSideSelectorOpen(true);
   };
 
   const getViewLabel = (type: ViewType): string => {
