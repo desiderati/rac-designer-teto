@@ -152,17 +152,19 @@ function SubMenuButton({
   tooltipSide?: "bottom" | "left";
   isAtLimit?: boolean;
 }) {
+  // Button always looks normal, but hover is gray when at limit
   const button = (
     <button
       onClick={onClick}
       className={cn(
         "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md",
+        "bg-[#34495e]", // Always normal background
         isAtLimit
-          ? "bg-gray-500 opacity-60 hover:bg-gray-500"
-          : "bg-[#34495e] hover:bg-[#0092DD] hover:scale-105 active:scale-95"
+          ? "hover:bg-gray-500 hover:opacity-60" // Gray hover when at limit
+          : "hover:bg-[#0092DD] hover:scale-105 active:scale-95" // Normal hover otherwise
       )}
     >
-      <FontAwesomeIcon icon={icon} style={{ color: isAtLimit ? "#999" : color }} />
+      <FontAwesomeIcon icon={icon} style={{ color }} />
     </button>
   );
 
