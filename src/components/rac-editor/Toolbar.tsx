@@ -142,8 +142,7 @@ function SubMenuButton({
   color = "#ecf0f1",
   hideTooltip = false,
   tooltipSide = "bottom" as "bottom" | "left",
-  isDisabled = false,
-  badge,
+  isAtLimit = false,
 }: {
   icon: IconDefinition;
   title: string;
@@ -151,26 +150,19 @@ function SubMenuButton({
   color?: string;
   hideTooltip?: boolean;
   tooltipSide?: "bottom" | "left";
-  isDisabled?: boolean;
-  badge?: string;
+  isAtLimit?: boolean;
 }) {
   const button = (
     <button
       onClick={onClick}
-      disabled={isDisabled}
       className={cn(
-        "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md relative",
-        isDisabled
-          ? "bg-gray-500 cursor-not-allowed opacity-60"
+        "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md",
+        isAtLimit
+          ? "bg-gray-500 opacity-60 hover:bg-gray-500"
           : "bg-[#34495e] hover:bg-[#0092DD] hover:scale-105 active:scale-95"
       )}
     >
-      <FontAwesomeIcon icon={icon} style={{ color: isDisabled ? "#999" : color }} />
-      {badge && (
-        <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-          {badge}
-        </span>
-      )}
+      <FontAwesomeIcon icon={icon} style={{ color: isAtLimit ? "#999" : color }} />
     </button>
   );
 
@@ -278,7 +270,7 @@ export function Toolbar({
               {/* House Submenu - only show if house type is selected */}
               {activeSubmenu === "house" && houseType && (
                 <div className="absolute left-14 top-0 flex flex-row gap-1 animate-in slide-in-from-left-2">
-                  {/* Tipo 6: Frontal, Traseira, Quadrado Fechado (x2) */}
+                {/* Tipo 6: Frontal, Traseira, Quadrado Fechado (x2) */}
                   {houseType === 'tipo6' && (
                     <>
                       <SubMenuButton
@@ -286,22 +278,21 @@ export function Toolbar({
                         title="Visão Frontal"
                         onClick={() => handleAction(onAddHouseFront)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={frontViewCount.current >= frontViewCount.max}
+                        isAtLimit={frontViewCount.current >= frontViewCount.max}
                       />
                       <SubMenuButton
                         icon={faHouseChimneyWindow}
                         title="Visão Traseira"
                         onClick={() => handleAction(onAddHouseBack)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={backViewCount.current >= backViewCount.max}
+                        isAtLimit={backViewCount.current >= backViewCount.max}
                       />
                       <SubMenuButton
                         icon={faSquareFull}
-                        title={`Quadrado Fechado (${side1ViewCount.current}/${side1ViewCount.max})`}
+                        title="Quadrado Fechado"
                         onClick={() => handleAction(onAddHouseSide1)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={side1ViewCount.current >= side1ViewCount.max}
-                        badge={side1ViewCount.max > 1 ? `${side1ViewCount.current}/${side1ViewCount.max}` : undefined}
+                        isAtLimit={side1ViewCount.current >= side1ViewCount.max}
                       />
                     </>
                   )}
@@ -310,25 +301,24 @@ export function Toolbar({
                     <>
                       <SubMenuButton
                         icon={faHouseChimneyWindow}
-                        title={`Visão Lateral (${backViewCount.current}/${backViewCount.max})`}
+                        title="Visão Lateral"
                         onClick={() => handleAction(onAddHouseBack)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={backViewCount.current >= backViewCount.max}
-                        badge={backViewCount.max > 1 ? `${backViewCount.current}/${backViewCount.max}` : undefined}
+                        isAtLimit={backViewCount.current >= backViewCount.max}
                       />
                       <SubMenuButton
                         icon={faDoorOpen}
                         title="Quadrado Aberto"
                         onClick={() => handleAction(onAddHouseSide2)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={side2ViewCount.current >= side2ViewCount.max}
+                        isAtLimit={side2ViewCount.current >= side2ViewCount.max}
                       />
                       <SubMenuButton
                         icon={faSquareFull}
                         title="Quadrado Fechado"
                         onClick={() => handleAction(onAddHouseSide1)}
                         hideTooltip={isTutorialActive}
-                        isDisabled={side1ViewCount.current >= side1ViewCount.max}
+                        isAtLimit={side1ViewCount.current >= side1ViewCount.max}
                       />
                     </>
                   )}
