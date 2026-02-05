@@ -36,6 +36,7 @@ import {
   createDoor,
   createTree,
   createText,
+  createFossa,
   customProps,
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -287,7 +288,13 @@ export function RACEditor() {
       return;
     }
 
-    // ALWAYS open SideSelector for elevation views
+    // If only one side is available, auto-select it (no need for popup)
+    if (availableSides.length === 1) {
+      addViewToCanvas(viewType, availableSides[0]);
+      return;
+    }
+
+    // Open SideSelector for user to choose
     setPendingViewType(viewType);
     setSideSelectorOpen(true);
   };
@@ -583,6 +590,15 @@ export function RACEditor() {
     if (canvas) {
       const water = createWater(canvas);
       addObjectToCanvas(water);
+    }
+  };
+
+  const handleAddFossa = () => {
+    closeAllMenus();
+    const canvas = getCanvas();
+    if (canvas) {
+      const fossa = createFossa(canvas);
+      addObjectToCanvas(fossa);
     }
   };
 
@@ -995,6 +1011,7 @@ export function RACEditor() {
         onAddStairs={handleAddStairs}
         onAddTree={handleAddTree}
         onAddWater={handleAddWater}
+        onAddFossa={handleAddFossa}
         onAddLine={handleAddLine}
         onAddArrow={handleAddArrow}
         onAddDimension={handleAddDimension}

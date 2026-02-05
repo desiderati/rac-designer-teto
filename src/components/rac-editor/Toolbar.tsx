@@ -30,6 +30,7 @@ import {
   faSquareFull,
   faTrowelBricks,
   faMagnifyingGlass,
+  faToilet,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -50,6 +51,7 @@ interface ToolbarProps {
   onAddStairs: () => void;
   onAddTree: () => void;
   onAddWater: () => void;
+  onAddFossa: () => void;
   onAddLine: () => void;
   onAddArrow: () => void;
   onAddDimension: () => void;
@@ -195,6 +197,7 @@ export function Toolbar({
   onAddStairs,
   onAddTree,
   onAddWater,
+  onAddFossa,
   onAddLine,
   onAddArrow,
   onAddDimension,
@@ -385,6 +388,12 @@ export function Toolbar({
                     icon={faWater}
                     title="Água / Rio"
                     onClick={() => handleAction(onAddWater)}
+                    hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faToilet}
+                    title="Fossa"
+                    onClick={() => handleAction(onAddFossa)}
                     hideTooltip={isTutorialActive}
                   />
                 </div>
