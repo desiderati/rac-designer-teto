@@ -365,6 +365,11 @@ export function RACEditor() {
   const handleOpenHouseTypeSelector = () => {
     closeAllMenus();
     setHouseTypeSelectorOpen(true);
+    
+    // Advance tutorial if this was the highlighted step
+    if (tutorialStep === 'house') {
+      advanceTutorial('house');
+    }
   };
 
   const handleHouseTypeSelected = (type: HouseType) => {
