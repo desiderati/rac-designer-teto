@@ -396,9 +396,29 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           return;
         }
 
-        // 5) Get the side from houseManager
+        // 5) Get the side from houseManager - now views is an array of ViewInstance
         const house = houseManager.getHouse();
-        const side: HouseSide | undefined = house?.views[rawView]?.side;
+        // Find the instance that matches this specific group by instanceId
+        const instanceId = (activeObject as any).houseInstanceId;
+        const viewInstances = house?.views[rawView];
+        let side: HouseSide | undefined;
+        
+        if (viewInstances && viewInstances.length > 0) {
+          if (instanceId) {
+            // Find by instanceId
+            const matchingInstance = viewInstances.find((inst: any) => inst.instanceId === instanceId);
+            side = matchingInstance?.side;
+          } else {
+            // Fallback: find by group reference
+            const matchingInstance = viewInstances.find((inst: any) => inst.group === activeObject);
+            side = matchingInstance?.side;
+          }
+          // Last fallback: use first instance's side
+          if (!side && viewInstances[0]?.side) {
+            side = viewInstances[0].side;
+          }
+        }
+        
         if (!side) {
           topGroup.setCoords();
           canvas.requestRenderAll();

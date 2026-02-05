@@ -1143,6 +1143,41 @@ export function createDoor(canvas: FabricCanvas): Group {
   return group;
 }
 
+export function createFossa(canvas: FabricCanvas): Group {
+  // Fossa séptica - oval shape with label
+  const oval = new Rect({
+    width: 120,
+    height: 80,
+    rx: 40,
+    ry: 40,
+    fill: "rgba(139, 90, 43, 0.3)",
+    stroke: "#5D4037",
+    strokeWidth: 2,
+    originX: "center",
+    originY: "center",
+  });
+
+  const text = new Text("Fossa", {
+    fontSize: 14,
+    fontFamily: "Arial",
+    fill: "#5D4037",
+    fontWeight: "bold",
+    originX: "center",
+    originY: "center",
+  });
+
+  const group = new Group([oval, text], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: "center",
+    originY: "center",
+  });
+  (group as any).myType = "fossa";
+  group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+
+  return group;
+}
+
 export function createTree(canvas: FabricCanvas): Group {
   const top = new Circle({
     radius: 35,
