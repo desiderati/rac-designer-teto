@@ -12,6 +12,7 @@ import { ObjectNameEditor } from './ObjectNameEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { SideSelector } from './SideSelector';
 import { HouseTypeSelector } from './HouseTypeSelector';
+import { House3DViewer } from './House3DViewer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   AlertDialog,
@@ -68,6 +69,7 @@ export function RACEditor() {
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
+  const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
@@ -1036,6 +1038,7 @@ export function RACEditor() {
         onToggleTips={handleToggleTips}
         showZoomControls={showZoomControls}
         onToggleZoomControls={() => setShowZoomControls(!showZoomControls)}
+        onOpen3DViewer={() => setIs3DViewerOpen(true)}
         tutorialHighlight={tutorialStep}
         isMenuOpen={isMenuOpen}
         onToggleMenu={handleToggleMenu}
@@ -1130,6 +1133,11 @@ export function RACEditor() {
         isOpen={houseTypeSelectorOpen}
         onClose={handleHouseTypeSelectorClose}
         onSelectType={handleHouseTypeSelected}
+      />
+
+      <House3DViewer
+        open={is3DViewerOpen}
+        onOpenChange={setIs3DViewerOpen}
       />
 
       {tutorialStep && (
