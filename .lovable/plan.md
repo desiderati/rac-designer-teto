@@ -1,85 +1,187 @@
 
-# Plano de Correções: Sistema de Tipos de Casa
+# Plano: Visualizador 3D Rotacionável da Casa
 
-## Resumo das Correções
+## Objetivo
 
-O usuário identificou vários problemas na última implementação que precisam ser corrigidos para restaurar funcionalidades existentes e simplificar a interface.
-
----
-
-## Problemas Identificados
-
-### 1. Seleção de Lado (SideSelector)
-**Problema**: A funcionalidade de seleção de lado da planta para anexar vistas pode ter sido afetada.
-
-**Correção**: Manter a funcionalidade de `SideSelector` exatamente como antes - sempre abrir a modal para escolher o lado da planta ao adicionar vistas de elevação, independentemente do tipo de casa.
-
-### 2. Badges de Numeração
-**Problema**: Foram adicionados badges `0/2`, `1/2`, `2/2` nos botões de vistas que podem ter múltiplas instâncias.
-
-**Correção**: Remover os badges e a lógica de exibição de contagem. Não é necessário mostrar essa informação visual.
-
-### 3. Comportamento dos Botões Desabilitados
-**Problema**: Os botões agora usam `disabled={true}` que bloqueia o clique completamente.
-
-**Correção**: Restaurar o comportamento anterior onde:
-- O botão fica cinza (visualmente desabilitado)
-- O clique ainda é possível
-- Ao clicar, exibe um toast de erro explicando o limite
-
-### 4. Modal de Seleção de Tipo de Casa
-**Problema**: A modal tem informações extras (descrição de pilotis, lista de vistas disponíveis).
-
-**Correção**: Simplificar para mostrar apenas:
-- Ícone da casa
-- Texto "Casa Tipo 6" ou "Casa Tipo 3"
-
-### 5. Funcionalidade de Seleção de Pilotis
-**Correção**: Garantir que toda a funcionalidade de seleção e edição de pilotis continue funcionando como antes.
+Criar um visualizador 3D interativo que renderiza o modelo da casa com base nos dados já existentes no `HouseManager`. O usuário poderá rotacionar, fazer zoom e pan para explorar a casa de todos os ângulos.
 
 ---
 
-## Detalhes Técnicos
+## Arquitetura da Solução
 
-### Arquivo: `src/components/rac-editor/HouseTypeSelector.tsx`
+### Dados Disponíveis (já existentes)
 
-Simplificar o componente `TypeCard`:
-- Remover prop `description`
-- Remover prop `views`
-- Manter apenas ícone e título
+O `HouseManager` já possui todos os dados necessários:
 
-### Arquivo: `src/components/rac-editor/Toolbar.tsx`
+| Dado | Fonte | Uso no 3D |
+|------|-------|-----------|
+| Dimensões da planta | `BASE_TOP_WIDTH=610`, `BASE_TOP_HEIGHT=300`, escala `s=0.6` | Base da casa (largura x profundidade) |
+| Grid de pilotis | 4 colunas × 3 linhas (`piloti_0_0` a `piloti_3_2`) | 12 cilindros posicionados |
+| Altura de cada piloti | `pilotiHeight` (1.0 a 3.0) | Altura individual de cada cilindro |
+| Piloti mestre | `pilotiIsMaster`, `pilotiNivel` | Destaque visual diferenciado |
+| Tipo de casa | `tipo6` ou `tipo3` | Variações na geometria do telhado |
 
-1. Remover a prop `badge` dos `SubMenuButton`
-2. Remover `isDisabled` dos `SubMenuButton` - os botões devem sempre permitir clique
-3. Manter o visual cinza quando no limite, mas permitir clique (o toast é exibido pelo `RACEditor`)
+### Stack Tecnológico
 
-**Ajuste no `SubMenuButton`**:
-- O botão não terá mais `disabled={true}`
-- O visual "desabilitado" será controlado por uma prop `isAtLimit` que apenas muda o estilo
-- O clique sempre é permitido
-
-### Arquivo: `src/components/rac-editor/RACEditor.tsx`
-
-1. Verificar que `requestAddView` ainda abre o `SideSelector` quando necessário
-2. O toast de erro para limite atingido já existe em `requestAddView` - manter funcionando
+- **@react-three/fiber@^8.18**: React renderer para Three.js (compatível com React 18)
+- **@react-three/drei@^9.122.0**: Helpers (OrbitControls, Box, Cylinder, etc.)
+- **three@>=0.133**: Engine 3D base
 
 ---
+
+## Componentes a Criar
+
+### 1. House3DViewer (Componente Principal)
+
+Botão na toolbar que abre um modal/dialog com o canvas 3D.
+
+```text
++------------------------------------------+
+|        Visualizador 3D          [X]      |
++------------------------------------------+
+|                                          |
+|              [Canvas 3D]                 |
+|                                          |
+|    Arraste para rotacionar               |
+|    Scroll para zoom                      |
++------------------------------------------+
+```
+
+### 2. House3DScene (Cena 3D)
+
+Composição da casa usando primitivas Three.js:
+
+```text
+     /\
+    /  \      <- Telhado (geometria triangular)
+   /    \
+  +------+    <- Corpo da casa (Box)
+  |      |
+  | Casa |
+  |      |
+  +------+
+  || || ||    <- Pilotis (Cylinders)
+```
+
+### 3. Geometrias Específicas
+
+| Elemento | Geometria Three.js | Dimensões Base |
+|----------|-------------------|----------------|
+| Base da casa | `Box` | 610×220×300 (W×H×D) escalado |
+| Telhado | `BufferGeometry` triangular | Largura da casa × 80 altura |
+| Pilotis | `Cylinder` | Raio 15, altura dinâmica |
+
+---
+
+## Mapeamento de Posições dos Pilotis
+
+Os pilotis seguem o mesmo grid 4×3 da vista planta:
+
+```text
+Visão de cima (planta):
+
+      Col0   Col1   Col2   Col3
+Row0   A1     A2     A3     A4
+Row1   B1     B2     B3     B4
+Row2   C1     C2     C3     C4
+
+Posições X: [-1.5×cD, -0.5×cD, 0.5×cD, 1.5×cD]
+Posições Z: [-rD, 0, rD]
+```
+
+Onde `cD = 155 * s` e `rD = 135 * s`.
+
+---
+
+## Sincronização com HouseManager
+
+O visualizador 3D será um **subscriber** do HouseManager:
+
+1. Ao abrir o modal, lê o estado atual dos pilotis
+2. Subscreve a mudanças via `houseManager.subscribe()`
+3. Re-renderiza automaticamente quando pilotis são editados no canvas 2D
+
+```text
++----------------+       subscribe        +------------------+
+|  Canvas 2D     |  --------------------> |  House3DViewer   |
+|  (Fabric.js)   |                        |  (Three.js)      |
++----------------+                        +------------------+
+       |                                          |
+       |  updatePiloti()                          |
+       v                                          v
++----------------+       notify           +------------------+
+| HouseManager   |  --------------------> | Re-render 3D     |
++----------------+                        +------------------+
+```
+
+---
+
+## Arquivos a Criar
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/rac-editor/House3DViewer.tsx` | Modal com canvas 3D e controles |
+| `src/components/rac-editor/House3DScene.tsx` | Cena Three.js com casa, telhado e pilotis |
 
 ## Arquivos a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/components/rac-editor/HouseTypeSelector.tsx` | Simplificar TypeCard (remover description e views) |
-| `src/components/rac-editor/Toolbar.tsx` | Remover badges, ajustar comportamento de botões |
+| `src/components/rac-editor/Toolbar.tsx` | Adicionar botão "3D" no submenu ou overflow |
+| `src/components/rac-editor/RACEditor.tsx` | Gerenciar estado de abertura do modal 3D |
+| `package.json` | Adicionar dependências Three.js |
+
+---
+
+## Detalhes Técnicos
+
+### Inicialização do Canvas 3D
+
+```
+<Canvas camera={{ position: [0, 300, 500], fov: 50 }}>
+  <ambientLight intensity={0.6} />
+  <directionalLight position={[10, 20, 10]} intensity={0.8} />
+  <House3DScene />
+  <OrbitControls enablePan enableZoom enableRotate />
+</Canvas>
+```
+
+### Estrutura do House3DScene
+
+1. **Grupo raiz** centrado na origem
+2. **Base da casa**: Box com dimensões da planta
+3. **Telhado**: Mesh triangular para tipo6, variação para tipo3
+4. **12 Pilotis**: Cylinders posicionados no grid, cor diferenciada para mestre
+5. **Chão semi-transparente** (opcional) para referência visual
+
+### Cores e Materiais
+
+| Elemento | Cor |
+|----------|-----|
+| Base da casa | #eeeeee (cinza claro) |
+| Telhado | #d4a574 (marrom claro) |
+| Piloti normal | #ffffff (branco) |
+| Piloti mestre | #d4a574 (marrom, igual ao 2D) |
+| Bordas/wireframe | #333333 |
+
+---
+
+## Interatividade
+
+| Controle | Ação |
+|----------|------|
+| Arrastar mouse | Rotacionar câmera (OrbitControls) |
+| Scroll | Zoom in/out |
+| Shift + arrastar | Pan (mover câmera) |
+| Botão reset | Voltar para posição inicial |
 
 ---
 
 ## Resultado Esperado
 
-1. ✅ Modal de tipo de casa mostra apenas ícone + nome
-2. ✅ Vistas sempre passam pelo SideSelector para escolher lado
-3. ✅ Botões de vista ficam cinzas quando no limite mas permitem clique
-4. ✅ Ao clicar em botão no limite, toast de erro é exibido
-5. ✅ Sem badges de contagem nos botões
-6. ✅ Funcionalidade de pilotis inalterada
+1. Botão "3D" na toolbar abre modal com visualização
+2. Casa renderizada com dimensões proporcionais à planta 2D
+3. 12 pilotis com alturas corretas e sincronizadas
+4. Piloti mestre destacado em marrom
+5. Rotação, zoom e pan suaves
+6. Atualizações em tempo real ao editar pilotis no 2D
