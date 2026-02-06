@@ -31,6 +31,7 @@ import {
   faTrowelBricks,
   faMagnifyingGlass,
   faToilet,
+  faCube,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -71,6 +72,7 @@ interface ToolbarProps {
   onToggleTips: () => void;
   showZoomControls: boolean;
   onToggleZoomControls: () => void;
+  onOpen3DViewer: () => void;
   tutorialHighlight?: "main-fab" | "house" | "elements" | "zoom-minimap" | "more-options" | null;
   isMenuOpen: boolean;
   onToggleMenu: () => void;
@@ -217,6 +219,7 @@ export function Toolbar({
   onToggleTips,
   showZoomControls,
   onToggleZoomControls,
+  onOpen3DViewer,
   tutorialHighlight,
   isMenuOpen,
   onToggleMenu,
@@ -510,6 +513,14 @@ export function Toolbar({
               title="Salvar PDF"
               onClick={() => handleAction(onSavePDF)}
               color="#aaffaa"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faCube}
+              title="Visualizar em 3D"
+              onClick={() => handleAction(onOpen3DViewer)}
+              color="#74b9ff"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
