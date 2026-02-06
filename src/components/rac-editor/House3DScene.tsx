@@ -19,12 +19,12 @@ const PILOTI_RADIUS = 15 * SCALE;
 // Scale factor to make the 3D model a reasonable size
 const MODEL_SCALE = 0.5;
 
-// Colors
+// Colors - unified house color
 const COLORS = {
-  houseBody: '#eeeeee',
-  roof: '#d4a574',
-  pilotiNormal: '#ffffff',
-  pilotiMaster: '#d4a574',
+  houseBody: '#d4d4d4',
+  roof: '#d4d4d4',
+  pilotiNormal: '#d4d4d4',
+  pilotiMaster: '#8B4513', // Brown for master piloti
   edge: '#333333',
   ground: '#e8e8e8',
 };
@@ -53,6 +53,9 @@ function getPiloti3DPosition(col: number, row: number): [number, number, number]
   return [x, 0, z];
 }
 
+// House body Y position (pilotis extend from ground to this point)
+const HOUSE_BASE_Y = 60 * MODEL_SCALE * 1.5; // Average piloti base height
+
 // Piloti component
 function Piloti3D({ 
   pilotiId, 
@@ -66,24 +69,23 @@ function Piloti3D({
 
   const [x, _, z] = getPiloti3DPosition(pos.col, pos.row);
   
-  // Height in 3D space (scaled from the 1.0-3.0 range)
-  const baseHeight = 60 * MODEL_SCALE; // Base piloti visual height
-  const height = baseHeight * data.height;
+  // Height = from ground (0) to house base, scaled by piloti height factor
+  const pilotiHeight = HOUSE_BASE_Y * data.height;
   
   const color = data.isMaster ? COLORS.pilotiMaster : COLORS.pilotiNormal;
   const radius = PILOTI_RADIUS * MODEL_SCALE;
 
   return (
-    <group position={[x, height / 2, z]}>
+    <group position={[x, pilotiHeight / 2, z]}>
       <Cylinder 
-        args={[radius, radius, height, 16]} 
+        args={[radius, radius, pilotiHeight, 16]} 
         castShadow 
         receiveShadow
       >
         <meshStandardMaterial color={color} />
       </Cylinder>
       {/* Edge outline */}
-      <Cylinder args={[radius * 1.02, radius * 1.02, height * 1.001, 16]}>
+      <Cylinder args={[radius * 1.02, radius * 1.02, pilotiHeight * 1.001, 16]}>
         <meshBasicMaterial color={COLORS.edge} wireframe />
       </Cylinder>
     </group>
@@ -95,12 +97,9 @@ function HouseBody() {
   const width = BASE_TOP_WIDTH * SCALE * MODEL_SCALE;
   const height = BODY_HEIGHT * SCALE * MODEL_SCALE;
   const depth = BASE_TOP_HEIGHT * SCALE * MODEL_SCALE;
-  
-  // Position: sitting on top of pilotis (average height)
-  const baseY = 60 * MODEL_SCALE * 1.5; // Average piloti height offset
 
   return (
-    <group position={[0, baseY + height / 2, 0]}>
+    <group position={[0, HOUSE_BASE_Y + height / 2, 0]}>
       <Box args={[width, height, depth]} castShadow receiveShadow>
         <meshStandardMaterial color={COLORS.houseBody} />
       </Box>
@@ -119,7 +118,7 @@ function Roof({ houseType }: { houseType: HouseType }) {
   const depth = BASE_TOP_HEIGHT * SCALE * MODEL_SCALE;
   
   const bodyHeight = BODY_HEIGHT * SCALE * MODEL_SCALE;
-  const baseY = 60 * MODEL_SCALE * 1.5 + bodyHeight; // On top of body
+  const roofBaseY = HOUSE_BASE_Y + bodyHeight; // On top of body
 
   // Create triangular roof geometry
   const geometry = useMemo(() => {
@@ -196,7 +195,7 @@ function Roof({ houseType }: { houseType: HouseType }) {
   }, [width, height, depth]);
 
   return (
-    <group position={[0, baseY, 0]}>
+    <group position={[0, roofBaseY, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial color={COLORS.roof} side={THREE.DoubleSide} />
       </mesh>

@@ -51,10 +51,15 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     setIsFullscreen((f) => !f);
   };
 
+  // Fixed dialog dimensions
+  const dialogClass = isFullscreen 
+    ? 'max-w-[95vw] w-[95vw] h-[90vh] max-h-[90vh]' 
+    : 'max-w-3xl w-full h-[70vh] max-h-[70vh]';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className={`p-0 gap-0 ${isFullscreen ? 'max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh]' : 'max-w-3xl w-full h-[70vh]'}`}
+        className={`p-0 gap-0 flex flex-col ${dialogClass}`}
       >
         <DialogHeader className="p-4 pb-2 border-b">
           <div className="flex items-center justify-between">
@@ -85,7 +90,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
           </p>
         </DialogHeader>
 
-        <div className="flex-1 bg-gradient-to-b from-sky-100 to-sky-200 relative" style={{ minHeight: '400px' }}>
+        <div className="flex-1 bg-gradient-to-b from-muted to-muted/50 relative" style={{ minHeight: '400px' }}>
           {!houseType ? (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <p>Nenhuma casa criada. Adicione uma planta primeiro.</p>
