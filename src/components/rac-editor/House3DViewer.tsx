@@ -64,7 +64,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent hideCloseButton 
         className={`p-0 gap-0 flex flex-col ${dialogClass}`}
       >
         <DialogHeader className="p-4 pb-2 border-b">
