@@ -4,9 +4,9 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateRight, faExpand, faCompress } from '@fortawesome/free-solid-svg-icons';
+import { faRotateRight, faExpand, faCompress, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { House3DScene } from './House3DScene';
-import { houseManager, HouseType, PilotiData } from '@/lib/house-manager';
+import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
 
 interface House3DViewerProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface House3DViewerProps {
 export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [pilotis, setPilotis] = useState<Record<string, PilotiData>>({});
+  const [elements, setElements] = useState<HouseElement[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -25,6 +26,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     if (house) {
       setHouseType(house.houseType);
       setPilotis({ ...house.pilotis });
+      setElements([...houseManager.getElements()]);
     }
   }, []);
 
@@ -49,6 +51,10 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
 
   const toggleFullscreen = () => {
     setIsFullscreen((f) => !f);
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
   };
 
   // Fixed dialog dimensions
@@ -82,6 +88,14 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                 title={isFullscreen ? 'Sair do Fullscreen' : 'Fullscreen'}
               >
                 <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleClose}
+                title="Fechar"
+              >
+                <FontAwesomeIcon icon={faXmark} />
               </Button>
             </div>
           </div>
@@ -122,7 +136,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                 />
                 
                 {/* Scene */}
-                <House3DScene houseType={houseType} pilotis={pilotis} />
+                <House3DScene houseType={houseType} pilotis={pilotis} elements={elements} />
                 
                 {/* Controls */}
                 <OrbitControls 

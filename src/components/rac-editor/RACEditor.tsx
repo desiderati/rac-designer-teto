@@ -380,6 +380,9 @@ export function RACEditor() {
     // Set the house type
     houseManager.setHouseType(type);
     
+    // Initialize default windows and doors
+    houseManager.initializeDefaultElements();
+    
     // Automatically add the plant view
     addViewToCanvas('top');
     
