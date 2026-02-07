@@ -48,6 +48,20 @@ export interface PilotiData {
   nivel: number;
 }
 
+// Window/Door element types
+export type ElementType = 'window' | 'door';
+
+// Element position on house face
+export interface HouseElement {
+  id: string;
+  type: ElementType;
+  face: 'front' | 'back' | 'left' | 'right'; // Which face of the house
+  x: number; // Relative X position (0-1 from left)
+  y: number; // Relative Y position (0-1 from top)
+  width: number; // Relative width (0-1)
+  height: number; // Relative height (0-1)
+}
+
 // View instance for tracking multiple views of the same type
 export interface ViewInstance {
   group: Group;
@@ -60,6 +74,7 @@ export interface HouseState {
   id: string;
   houseType: HouseType;
   pilotis: Record<string, PilotiData>; // pilotiId -> data
+  elements: HouseElement[]; // Windows and doors
   views: Record<ViewType, ViewInstance[]>; // Changed to array for multiple instances
   sideAssignments: Record<HouseSide, ViewType | null>;
 }
@@ -130,6 +145,7 @@ class HouseManager {
       id: `house_${Date.now()}`,
       houseType: null,
       pilotis,
+      elements: [], // Windows and doors
       views: {
         top: [],
         front: [],
@@ -571,6 +587,103 @@ class HouseManager {
       }
     }
     return groups;
+  }
+
+  // Get all house elements (windows/doors)
+  getElements(): HouseElement[] {
+    return this.house?.elements || [];
+  }
+
+  // Add an element (window/door)
+  addElement(element: Omit<HouseElement, 'id'>): void {
+    if (!this.house) return;
+    const newElement: HouseElement = {
+      ...element,
+      id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    };
+    this.house.elements.push(newElement);
+    this.notify();
+  }
+
+  // Remove an element by id
+  removeElement(elementId: string): void {
+    if (!this.house) return;
+    this.house.elements = this.house.elements.filter((e) => e.id !== elementId);
+    this.notify();
+  }
+
+  // Update an element
+  updateElement(elementId: string, updates: Partial<Omit<HouseElement, 'id'>>): void {
+    if (!this.house) return;
+    const element = this.house.elements.find((e) => e.id === elementId);
+    if (element) {
+      Object.assign(element, updates);
+      this.notify();
+    }
+  }
+
+  // Initialize default elements based on house type
+  initializeDefaultElements(): void {
+    if (!this.house?.houseType) return;
+    
+    // Clear existing elements
+    this.house.elements = [];
+    
+    // Add default elements based on house type
+    if (this.house.houseType === 'tipo6') {
+      // Front face: 1 door + 2 windows
+      this.addElement({
+        type: 'door',
+        face: 'front',
+        x: 0.65, // Position from left (relative 0-1)
+        y: 0.55, // Position from top
+        width: 0.15, // Relative width
+        height: 0.45, // Relative height
+      });
+      this.addElement({
+        type: 'window',
+        face: 'front',
+        x: 0.1,
+        y: 0.55,
+        width: 0.15,
+        height: 0.25,
+      });
+      this.addElement({
+        type: 'window',
+        face: 'front',
+        x: 0.4,
+        y: 0.55,
+        width: 0.15,
+        height: 0.25,
+      });
+      // Back face: 1 window
+      this.addElement({
+        type: 'window',
+        face: 'back',
+        x: 0.1,
+        y: 0.55,
+        width: 0.15,
+        height: 0.25,
+      });
+    } else if (this.house.houseType === 'tipo3') {
+      // Different layout for tipo3
+      this.addElement({
+        type: 'window',
+        face: 'front',
+        x: 0.4,
+        y: 0.55,
+        width: 0.2,
+        height: 0.3,
+      });
+      this.addElement({
+        type: 'window',
+        face: 'back',
+        x: 0.4,
+        y: 0.55,
+        width: 0.2,
+        height: 0.3,
+      });
+    }
   }
 }
 
