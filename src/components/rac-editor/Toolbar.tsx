@@ -493,14 +493,6 @@ export function Toolbar({
         {activeSubmenu === "overflow" && (
           <div className="flex flex-col gap-1 items-end animate-in slide-in-from-top-2 duration-200">
             <SubMenuButton
-              icon={faFileDownload}
-              title="Exportar Projeto (JSON)"
-              onClick={() => handleAction(onExportJSON)}
-              color="#ffeaa7"
-              hideTooltip={isTutorialActive}
-              tooltipSide="left"
-            />
-            <SubMenuButton
               icon={faFolderOpen}
               title="Abrir Projeto (JSON)"
               onClick={() => fileInputRef.current?.click()}
@@ -509,10 +501,18 @@ export function Toolbar({
               tooltipSide="left"
             />
             <SubMenuButton
+              icon={faFileDownload}
+              title="Exportar Projeto (JSON)"
+              onClick={() => handleAction(onExportJSON)}
+              color="#ffeaa7"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
               icon={faFilePdf}
               title="Salvar PDF"
               onClick={() => handleAction(onSavePDF)}
-              color="#aaffaa"
+              color="#ffeaa7"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
@@ -520,15 +520,7 @@ export function Toolbar({
               icon={faCube}
               title="Visualizar em 3D"
               onClick={() => handleAction(onOpen3DViewer)}
-              color="#74b9ff"
-              hideTooltip={isTutorialActive}
-              tooltipSide="left"
-            />
-            <SubMenuButton
-              icon={faLightbulb}
-              title="Dicas"
-              onClick={onToggleTips}
-              color="#f1c40f"
+              color="#aaffaa"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
@@ -537,6 +529,14 @@ export function Toolbar({
               title="Reiniciar Canvas"
               onClick={onRestartTutorial}
               color="#74b9ff"
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faLightbulb}
+              title={showTips ? "Dicas (Ativo)" : "Dicas"}
+              onClick={onToggleTips}
+              color={showTips ? "#f1c40f" : "#ecf0f1"}
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
