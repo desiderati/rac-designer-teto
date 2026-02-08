@@ -4,33 +4,62 @@ import { Box, Cylinder, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
 
-// Base dimensions from canvas-utils (matching the 2D house)
-const BASE_TOP_WIDTH = 610;
-const BASE_TOP_HEIGHT = 300;
-const SCALE = 0.6;
-const BODY_HEIGHT = 220;
-const ROOF_HEIGHT = 80;
+// ============================================
+// DIMENSÕES BASE - Alinhadas com canvas-utils
+// ============================================
 
-// Piloti grid spacing
-const COLUMN_DISTANCE = 155 * SCALE;
-const ROW_DISTANCE = 135 * SCALE;
-const PILOTI_RADIUS = 15 * SCALE;
+// Dimensões do canvas 2D (em pixels, sem escala)
+const BASE_TOP_WIDTH = 610;   // Largura da planta
+const BASE_TOP_HEIGHT = 300;  // Profundidade da planta
+const BODY_HEIGHT = 220;      // Altura do corpo (elevação)
+const ROOF_HEIGHT = 80;       // Altura do telhado
 
-// Scale factor to make the 3D model a reasonable size
+// Escala aplicada no canvas 2D
+const SCALE_2D = 0.6;
+
+// Escala adicional para o modelo 3D (para tamanho visual adequado)
 const MODEL_SCALE = 0.5;
 
-// Colors - unified house color
+// Dimensões finais 3D (já com ambas escalas aplicadas)
+const HOUSE_WIDTH = BASE_TOP_WIDTH * SCALE_2D * MODEL_SCALE;   // ~183
+const HOUSE_DEPTH = BASE_TOP_HEIGHT * SCALE_2D * MODEL_SCALE;  // ~90
+const HOUSE_HEIGHT = BODY_HEIGHT * SCALE_2D * MODEL_SCALE;     // ~66
+const ROOF_3D_HEIGHT = ROOF_HEIGHT * SCALE_2D * MODEL_SCALE;   // ~24
+
+// ============================================
+// PILOTIS
+// ============================================
+
+// Grid de pilotis (4 colunas × 3 linhas)
+const COLUMN_DISTANCE = 155 * SCALE_2D * MODEL_SCALE;  // Espaçamento horizontal
+const ROW_DISTANCE = 135 * SCALE_2D * MODEL_SCALE;     // Espaçamento vertical
+const PILOTI_RADIUS = 15 * SCALE_2D * MODEL_SCALE;     // Raio do cilindro
+
+// Altura base de um piloti com height=1.0
+const PILOTI_BASE_HEIGHT = 60 * MODEL_SCALE;
+
+// A base da casa fica apoiada nos pilotis
+const HOUSE_BASE_Y = PILOTI_BASE_HEIGHT;
+
+// ============================================
+// CORES
+// ============================================
+
 const COLORS = {
   houseBody: '#d4d4d4',
   roof: '#d4d4d4',
   pilotiNormal: '#d4d4d4',
-  pilotiMaster: '#8B4513', // Brown for master piloti
+  pilotiMaster: '#8B4513',     // Marrom para piloti mestre
   edge: '#333333',
   ground: '#e8e8e8',
-  window: '#87CEEB', // Light blue for windows
-  door: '#8B4513', // Brown for doors
+  window: '#87CEEB',          // Azul claro para janelas
+  door: '#8B4513',            // Marrom para portas
   windowFrame: '#555555',
 };
+
+// ============================================
+// INTERFACES
+// ============================================
 
 interface House3DSceneProps {
   houseType: HouseType;
@@ -38,94 +67,115 @@ interface House3DSceneProps {
   elements?: HouseElement[];
 }
 
-// Map piloti ID to grid position
+// ============================================
+// FUNÇÕES AUXILIARES PARA PILOTIS
+// ============================================
+
+// Extrai posição de grid do ID do piloti (ex: piloti_0_0 → col=0, row=0)
 function getPilotiGridPosition(pilotiId: string): { col: number; row: number } | null {
-  // Format: piloti_col_row (e.g., piloti_0_0 = A1)
   const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
   if (!match) return null;
   return { col: parseInt(match[1]), row: parseInt(match[2]) };
 }
 
-// Get 3D position for a piloti based on grid position
+// Calcula posição 3D a partir da posição de grid
 function getPiloti3DPosition(col: number, row: number): [number, number, number] {
-  // X positions: [-1.5, -0.5, 0.5, 1.5] * COLUMN_DISTANCE
-  const x = (col - 1.5) * COLUMN_DISTANCE * MODEL_SCALE;
-  
-  // Z positions: [-1, 0, 1] * ROW_DISTANCE
-  const z = (row - 1) * ROW_DISTANCE * MODEL_SCALE;
-  
+  // X: [-1.5, -0.5, 0.5, 1.5] * COLUMN_DISTANCE (4 colunas centradas)
+  const x = (col - 1.5) * COLUMN_DISTANCE;
+  // Z: [-1, 0, 1] * ROW_DISTANCE (3 linhas centradas)
+  const z = (row - 1) * ROW_DISTANCE;
   return [x, 0, z];
 }
 
-// House body Y position (pilotis extend from ground to this point)
-const HOUSE_BASE_Y = 60 * MODEL_SCALE * 1.5; // Average piloti base height
-const HOUSE_WIDTH = BASE_TOP_WIDTH * SCALE * MODEL_SCALE;
-const HOUSE_HEIGHT = BODY_HEIGHT * SCALE * MODEL_SCALE;
-const HOUSE_DEPTH = BASE_TOP_HEIGHT * SCALE * MODEL_SCALE;
+// ============================================
+// COMPONENTE: PILOTI 3D
+// ============================================
 
-// Piloti component
-function Piloti3D({ 
-  pilotiId, 
-  data 
-}: { 
-  pilotiId: string; 
-  data: PilotiData;
-}) {
+function Piloti3D({ pilotiId, data }: { pilotiId: string; data: PilotiData }) {
   const pos = getPilotiGridPosition(pilotiId);
   if (!pos) return null;
 
   const [x, _, z] = getPiloti3DPosition(pos.col, pos.row);
   
-  // Height = from ground (0) to house base, scaled by piloti height factor
-  const pilotiHeight = HOUSE_BASE_Y * data.height;
+  // Altura do piloti: base_height × height_multiplier
+  const pilotiHeight = PILOTI_BASE_HEIGHT * data.height;
   
   const color = data.isMaster ? COLORS.pilotiMaster : COLORS.pilotiNormal;
-  const radius = PILOTI_RADIUS * MODEL_SCALE;
 
   return (
     <group position={[x, pilotiHeight / 2, z]}>
       <Cylinder 
-        args={[radius, radius, pilotiHeight, 16]} 
+        args={[PILOTI_RADIUS, PILOTI_RADIUS, pilotiHeight, 16]} 
         castShadow 
         receiveShadow
       >
         <meshStandardMaterial color={color} />
       </Cylinder>
-      {/* Edge outline */}
-      <Cylinder args={[radius * 1.02, radius * 1.02, pilotiHeight * 1.001, 16]}>
+      {/* Contorno wireframe */}
+      <Cylinder args={[PILOTI_RADIUS * 1.02, PILOTI_RADIUS * 1.02, pilotiHeight * 1.001, 16]}>
         <meshBasicMaterial color={COLORS.edge} wireframe />
       </Cylinder>
     </group>
   );
 }
 
-// Window/Door element component
+// ============================================
+// COMPONENTE: ELEMENTO (JANELA/PORTA)
+// ============================================
+
 function HouseElement3D({ element }: { element: HouseElement }) {
-  const elementWidth = element.width * HOUSE_WIDTH;
-  const elementHeight = element.height * HOUSE_HEIGHT;
-  const depth = 2; // Small depth for the element
+  // Converter dimensões de pixels 2D para unidades 3D
+  const elementWidth = element.width * SCALE_2D * MODEL_SCALE;
+  const elementHeight = element.height * SCALE_2D * MODEL_SCALE;
+  const depth = 2; // Profundidade mínima para visualização
   
-  // Calculate position based on face and relative coordinates
+  // Converter posição de pixels 2D para 3D
+  // x: offset do canto esquerdo da face
+  // y: offset do topo do corpo da casa
+  const xOffset2D = element.x * SCALE_2D * MODEL_SCALE;
+  const yOffset2D = element.y * SCALE_2D * MODEL_SCALE;
+  
+  // Calcular posição 3D baseada na face
   let position: [number, number, number];
   let rotation: [number, number, number] = [0, 0, 0];
   
-  const xOffset = (element.x - 0.5) * HOUSE_WIDTH;
-  const yOffset = HOUSE_BASE_Y + HOUSE_HEIGHT - (element.y * HOUSE_HEIGHT) - elementHeight / 2;
+  // Posição Y: base da casa + altura do corpo - offset do topo - metade da altura do elemento
+  const yPos = HOUSE_BASE_Y + HOUSE_HEIGHT - yOffset2D - elementHeight / 2;
   
   switch (element.face) {
     case 'front':
-      position = [xOffset, yOffset, HOUSE_DEPTH / 2 + depth / 2];
+      // Face frontal: Z positivo
+      position = [
+        xOffset2D - HOUSE_WIDTH / 2 + elementWidth / 2,
+        yPos,
+        HOUSE_DEPTH / 2 + depth / 2
+      ];
       break;
     case 'back':
-      position = [-xOffset, yOffset, -HOUSE_DEPTH / 2 - depth / 2];
+      // Face traseira: Z negativo, invertido em X
+      position = [
+        -(xOffset2D - HOUSE_WIDTH / 2 + elementWidth / 2),
+        yPos,
+        -HOUSE_DEPTH / 2 - depth / 2
+      ];
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      position = [-HOUSE_WIDTH / 2 - depth / 2, yOffset, (element.x - 0.5) * HOUSE_DEPTH];
+      // Face esquerda: X negativo
+      position = [
+        -HOUSE_WIDTH / 2 - depth / 2,
+        yPos,
+        xOffset2D - HOUSE_DEPTH / 2 + elementWidth / 2
+      ];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      position = [HOUSE_WIDTH / 2 + depth / 2, yOffset, -(element.x - 0.5) * HOUSE_DEPTH];
+      // Face direita: X positivo
+      position = [
+        HOUSE_WIDTH / 2 + depth / 2,
+        yPos,
+        -(xOffset2D - HOUSE_DEPTH / 2 + elementWidth / 2)
+      ];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
@@ -137,11 +187,11 @@ function HouseElement3D({ element }: { element: HouseElement }) {
   
   return (
     <group position={position} rotation={rotation}>
-      {/* Main element */}
+      {/* Elemento principal */}
       <Box args={[elementWidth, elementHeight, depth]} castShadow>
         <meshStandardMaterial color={color} />
       </Box>
-      {/* Frame */}
+      {/* Moldura */}
       <Box args={[elementWidth + 2, elementHeight + 2, depth * 0.5]}>
         <meshStandardMaterial color={frameColor} />
       </Box>
@@ -149,14 +199,17 @@ function HouseElement3D({ element }: { element: HouseElement }) {
   );
 }
 
-// House body (the main box)
+// ============================================
+// COMPONENTE: CORPO DA CASA
+// ============================================
+
 function HouseBody() {
   return (
     <group position={[0, HOUSE_BASE_Y + HOUSE_HEIGHT / 2, 0]}>
       <Box args={[HOUSE_WIDTH, HOUSE_HEIGHT, HOUSE_DEPTH]} castShadow receiveShadow>
         <meshStandardMaterial color={COLORS.houseBody} />
       </Box>
-      {/* Edge lines */}
+      {/* Contorno wireframe */}
       <Box args={[HOUSE_WIDTH * 1.001, HOUSE_HEIGHT * 1.001, HOUSE_DEPTH * 1.001]}>
         <meshBasicMaterial color={COLORS.edge} wireframe />
       </Box>
@@ -164,34 +217,36 @@ function HouseBody() {
   );
 }
 
-// Roof component (triangular prism)
+// ============================================
+// COMPONENTE: TELHADO
+// ============================================
+
 function Roof({ houseType }: { houseType: HouseType }) {
   const width = HOUSE_WIDTH;
-  const height = ROOF_HEIGHT * SCALE * MODEL_SCALE;
-  const depth = HOUSE_DEPTH;
+  const height = ROOF_3D_HEIGHT;
+  const roofDepth = HOUSE_DEPTH;
   
-  const roofBaseY = HOUSE_BASE_Y + HOUSE_HEIGHT; // On top of body
+  const roofBaseY = HOUSE_BASE_Y + HOUSE_HEIGHT;
 
-  // Create triangular roof geometry
+  // Geometria de prisma triangular
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
     
     const halfWidth = width / 2;
-    const halfDepth = depth / 2;
+    const halfDepth = roofDepth / 2;
     
-    // Vertices for a triangular prism roof
     const vertices = new Float32Array([
-      // Front face (triangle)
+      // Face frontal (triângulo)
       -halfWidth, 0, halfDepth,
       halfWidth, 0, halfDepth,
       0, height, halfDepth,
       
-      // Back face (triangle)
+      // Face traseira (triângulo)
       -halfWidth, 0, -halfDepth,
       0, height, -halfDepth,
       halfWidth, 0, -halfDepth,
       
-      // Left slope
+      // Lateral esquerda
       -halfWidth, 0, halfDepth,
       0, height, halfDepth,
       0, height, -halfDepth,
@@ -200,7 +255,7 @@ function Roof({ houseType }: { houseType: HouseType }) {
       0, height, -halfDepth,
       -halfWidth, 0, -halfDepth,
       
-      // Right slope
+      // Lateral direita
       halfWidth, 0, halfDepth,
       0, height, -halfDepth,
       0, height, halfDepth,
@@ -209,7 +264,7 @@ function Roof({ houseType }: { houseType: HouseType }) {
       halfWidth, 0, -halfDepth,
       0, height, -halfDepth,
       
-      // Bottom (optional, usually hidden)
+      // Base (opcional)
       -halfWidth, 0, halfDepth,
       halfWidth, 0, -halfDepth,
       halfWidth, 0, halfDepth,
@@ -223,35 +278,34 @@ function Roof({ houseType }: { houseType: HouseType }) {
     geo.computeVertexNormals();
     
     return geo;
-  }, [width, height, depth]);
+  }, [width, height, roofDepth]);
 
-  // Wireframe edges for the roof
+  // Linhas de borda
   const edgePoints = useMemo(() => {
     const halfWidth = width / 2;
-    const halfDepth = depth / 2;
+    const halfDepth = roofDepth / 2;
     
     return [
-      // Front triangle
+      // Triângulo frontal
       [new THREE.Vector3(-halfWidth, 0, halfDepth), new THREE.Vector3(halfWidth, 0, halfDepth)],
       [new THREE.Vector3(halfWidth, 0, halfDepth), new THREE.Vector3(0, height, halfDepth)],
       [new THREE.Vector3(0, height, halfDepth), new THREE.Vector3(-halfWidth, 0, halfDepth)],
-      // Back triangle
+      // Triângulo traseiro
       [new THREE.Vector3(-halfWidth, 0, -halfDepth), new THREE.Vector3(halfWidth, 0, -halfDepth)],
       [new THREE.Vector3(halfWidth, 0, -halfDepth), new THREE.Vector3(0, height, -halfDepth)],
       [new THREE.Vector3(0, height, -halfDepth), new THREE.Vector3(-halfWidth, 0, -halfDepth)],
-      // Ridge and edges
+      // Cumeeira e bordas
       [new THREE.Vector3(0, height, halfDepth), new THREE.Vector3(0, height, -halfDepth)],
       [new THREE.Vector3(-halfWidth, 0, halfDepth), new THREE.Vector3(-halfWidth, 0, -halfDepth)],
       [new THREE.Vector3(halfWidth, 0, halfDepth), new THREE.Vector3(halfWidth, 0, -halfDepth)],
     ];
-  }, [width, height, depth]);
+  }, [width, height, roofDepth]);
 
   return (
     <group position={[0, roofBaseY, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
         <meshStandardMaterial color={COLORS.roof} side={THREE.DoubleSide} />
       </mesh>
-      {/* Edge lines */}
       {edgePoints.map((points, i) => (
         <Line key={i} points={points} color={COLORS.edge} lineWidth={1} />
       ))}
@@ -259,7 +313,10 @@ function Roof({ houseType }: { houseType: HouseType }) {
   );
 }
 
-// Ground plane for reference
+// ============================================
+// COMPONENTE: CHÃO
+// ============================================
+
 function Ground() {
   const size = 400 * MODEL_SCALE;
   
@@ -271,6 +328,10 @@ function Ground() {
   );
 }
 
+// ============================================
+// COMPONENTE PRINCIPAL: CENA 3D
+// ============================================
+
 export function House3DScene({ houseType, pilotis, elements = [] }: House3DSceneProps) {
   const groupRef = useRef<Group>(null);
 
@@ -278,23 +339,27 @@ export function House3DScene({ houseType, pilotis, elements = [] }: House3DScene
 
   return (
     <group ref={groupRef}>
-      {/* Ground plane */}
+      {/* Chão */}
       <Ground />
       
-      {/* Pilotis */}
+      {/* Pilotis - key dinâmico para forçar re-render */}
       {Object.entries(pilotis).map(([id, data]) => (
-        <Piloti3D key={id} pilotiId={id} data={data} />
+        <Piloti3D 
+          key={`${id}_${data.height}_${data.isMaster}`} 
+          pilotiId={id} 
+          data={data} 
+        />
       ))}
       
-      {/* House body */}
+      {/* Corpo da casa */}
       <HouseBody />
       
-      {/* Windows and Doors */}
+      {/* Janelas e Portas */}
       {elements.map((element) => (
         <HouseElement3D key={element.id} element={element} />
       ))}
       
-      {/* Roof */}
+      {/* Telhado */}
       <Roof houseType={houseType} />
     </group>
   );
