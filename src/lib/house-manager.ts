@@ -51,15 +51,15 @@ export interface PilotiData {
 // Window/Door element types
 export type ElementType = 'window' | 'door';
 
-// Element position on house face
+// Element position on house face (using absolute pixel dimensions matching 2D canvas)
 export interface HouseElement {
   id: string;
   type: ElementType;
   face: 'front' | 'back' | 'left' | 'right'; // Which face of the house
-  x: number; // Relative X position (0-1 from left)
-  y: number; // Relative Y position (0-1 from top)
-  width: number; // Relative width (0-1)
-  height: number; // Relative height (0-1)
+  x: number; // X position in pixels from left edge of house body
+  y: number; // Y position in pixels from top of house body
+  width: number; // Width in pixels (e.g., 90 for window, 100 for door)
+  height: number; // Height in pixels (e.g., 75 for window, 180 for door)
 }
 
 // View instance for tracking multiple views of the same type
@@ -623,6 +623,8 @@ class HouseManager {
   }
 
   // Initialize default elements based on house type
+  // Uses absolute pixel dimensions matching the 2D canvas scale
+  // House body dimensions at SCALE=0.6: width=366px, height=132px
   initializeDefaultElements(): void {
     if (!this.house?.houseType) return;
     
@@ -630,58 +632,70 @@ class HouseManager {
     this.house.elements = [];
     
     // Add default elements based on house type
+    // All positions/sizes in pixels (will be scaled in 3D viewer)
     if (this.house.houseType === 'tipo6') {
       // Front face: 1 door + 2 windows
+      // Door: 60×110 px, centered-right
       this.addElement({
         type: 'door',
         face: 'front',
-        x: 0.65, // Position from left (relative 0-1)
-        y: 0.55, // Position from top
-        width: 0.15, // Relative width
-        height: 0.45, // Relative height
+        x: 220, // X position in pixels from left
+        y: 22,  // Y position from top of body
+        width: 60,
+        height: 110,
       });
+      // Window 1: 55×45 px, left side
       this.addElement({
         type: 'window',
         face: 'front',
-        x: 0.1,
-        y: 0.55,
-        width: 0.15,
-        height: 0.25,
+        x: 40,
+        y: 30,
+        width: 55,
+        height: 45,
       });
+      // Window 2: 55×45 px, right side
       this.addElement({
         type: 'window',
         face: 'front',
-        x: 0.4,
-        y: 0.55,
-        width: 0.15,
-        height: 0.25,
+        x: 130,
+        y: 30,
+        width: 55,
+        height: 45,
       });
-      // Back face: 1 window
+      // Back face: 2 windows
       this.addElement({
         type: 'window',
         face: 'back',
-        x: 0.1,
-        y: 0.55,
-        width: 0.15,
-        height: 0.25,
+        x: 50,
+        y: 30,
+        width: 55,
+        height: 45,
+      });
+      this.addElement({
+        type: 'window',
+        face: 'back',
+        x: 200,
+        y: 30,
+        width: 55,
+        height: 45,
       });
     } else if (this.house.houseType === 'tipo3') {
       // Different layout for tipo3
       this.addElement({
         type: 'window',
         face: 'front',
-        x: 0.4,
-        y: 0.55,
-        width: 0.2,
-        height: 0.3,
+        x: 140,
+        y: 30,
+        width: 70,
+        height: 50,
       });
       this.addElement({
         type: 'window',
         face: 'back',
-        x: 0.4,
-        y: 0.55,
-        width: 0.2,
-        height: 0.3,
+        x: 140,
+        y: 30,
+        width: 70,
+        height: 50,
       });
     }
   }

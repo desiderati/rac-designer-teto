@@ -37,8 +37,11 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     // Initial sync
     syncFromManager();
     
-    // Subscribe to changes
-    const unsubscribe = houseManager.subscribe(syncFromManager);
+    // Subscribe to changes - sync é chamado automaticamente quando pilotis mudam
+    const unsubscribe = houseManager.subscribe(() => {
+      // Re-sync sempre que HouseManager notificar mudanças
+      syncFromManager();
+    });
     
     return () => {
       unsubscribe();
