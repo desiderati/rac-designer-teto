@@ -147,6 +147,7 @@ function SubMenuButton({
   hideTooltip = false,
   tooltipSide = "bottom" as "bottom" | "left",
   isAtLimit = false,
+  isActive = false,
 }: {
   icon: IconDefinition;
   title: string;
@@ -155,6 +156,7 @@ function SubMenuButton({
   hideTooltip?: boolean;
   tooltipSide?: "bottom" | "left";
   isAtLimit?: boolean;
+  isActive?: boolean;
 }) {
   // Button always looks normal, but hover is gray when at limit
   const button = (
@@ -162,10 +164,10 @@ function SubMenuButton({
       onClick={onClick}
       className={cn(
         "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md",
-        "bg-[#34495e]", // Always normal background
+        isActive ? "bg-[#e67e22] border-2 border-white" : "bg-[#34495e]",
         isAtLimit
-          ? "hover:bg-gray-500 hover:opacity-60" // Gray hover when at limit
-          : "hover:bg-[#0092DD] hover:scale-105 active:scale-95" // Normal hover otherwise
+          ? "hover:bg-gray-500 hover:opacity-60"
+          : "hover:bg-[#0092DD] hover:scale-105 active:scale-95"
       )}
     >
       <FontAwesomeIcon icon={icon} style={{ color }} />
@@ -534,9 +536,10 @@ export function Toolbar({
             />
             <SubMenuButton
               icon={faLightbulb}
-              title={showTips ? "Dicas (Ativo)" : "Dicas"}
+              title="Dicas"
               onClick={onToggleTips}
-              color={showTips ? "#f1c40f" : "#ecf0f1"}
+              color="#f1c40f"
+              isActive={showTips}
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
