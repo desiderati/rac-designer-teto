@@ -77,6 +77,7 @@ export interface HouseState {
   elements: HouseElement[]; // Windows and doors
   views: Record<ViewType, ViewInstance[]>; // Changed to array for multiple instances
   sideAssignments: Record<HouseSide, ViewType | null>;
+  preAssignedSlots: Record<string, HouseSide>;
 }
 
 // View limits per house type
@@ -159,6 +160,7 @@ class HouseManager {
         left: null,
         right: null,
       },
+      preAssignedSlots: {},
     };
 
     this.notify();
@@ -172,6 +174,9 @@ class HouseManager {
   setHouseType(type: HouseType): void {
     if (!this.house) return;
     this.house.houseType = type;
+    if (type === null) {
+      this.house.preAssignedSlots = {};
+    }
     this.notify();
   }
 
@@ -697,6 +702,69 @@ class HouseManager {
         width: 70,
         height: 50,
       });
+    }
+  }
+
+  // Auto-assign all sides based on initial view positioning
+  autoAssignAllSides(initialViewType: ViewType, initialSide: HouseSide): void {
+    if (!this.house?.houseType) return;
+
+    const slots: Record<string, HouseSide> = {};
+
+    if (this.house.houseType === 'tipo6') {
+      const oppositeSide = OPPOSITE_SIDE[initialSide];
+      slots['front'] = initialSide;
+      slots['back'] = oppositeSide;
+
+      if (initialSide === 'top') {
+        slots['side1_0'] = 'right';
+        slots['side1_1'] = 'left';
+      } else {
+        slots['side1_0'] = 'left';
+        slots['side1_1'] = 'right';
+      }
+    } else if (this.house.houseType === 'tipo3') {
+      const oppositeSide = OPPOSITE_SIDE[initialSide];
+      slots['side2'] = initialSide;
+      slots['side1'] = oppositeSide;
+
+      slots['back_0'] = 'top';
+      slots['back_1'] = 'bottom';
+    }
+
+    this.house.preAssignedSlots = slots;
+    console.log('[HouseManager] Auto-assigned slots:', slots);
+    this.notify();
+  }
+
+  // Get pre-assigned slots for a view type
+  getPreAssignedSlots(viewType: ViewType): { label: string; side: HouseSide; onCanvas: boolean }[] {
+    if (!this.house?.preAssignedSlots) return [];
+
+    const result: { label: string; side: HouseSide; onCanvas: boolean }[] = [];
+
+    for (const [key, side] of Object.entries(this.house.preAssignedSlots)) {
+      if (key === viewType || key.startsWith(`${viewType}_`)) {
+        const onCanvas = this.house.sideAssignments[side] === viewType;
+        result.push({ label: this.getSideLabel(side), side, onCanvas });
+      }
+    }
+
+    return result;
+  }
+
+  // Check if pre-assigned slots exist
+  hasPreAssignedSlots(): boolean {
+    return this.house ? Object.keys(this.house.preAssignedSlots).length > 0 : false;
+  }
+
+  // Get human-readable label for a side
+  private getSideLabel(side: HouseSide): string {
+    switch (side) {
+      case 'top': return 'Superior';
+      case 'bottom': return 'Inferior';
+      case 'left': return 'Esquerda';
+      case 'right': return 'Direita';
     }
   }
 }

@@ -68,6 +68,8 @@ export function RACEditor() {
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
+  const [sideSelectorMode, setSideSelectorMode] = useState<'position' | 'choose-instance'>('position');
+  const [instanceSlots, setInstanceSlots] = useState<{ label: string; side: HouseSide; onCanvas: boolean }[]>([]);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
@@ -283,21 +285,44 @@ export function RACEditor() {
       return;
     }
 
-    // Check if there are available sides
+    // Check pre-assigned slots
+    const slots = houseManager.getPreAssignedSlots(viewType);
+
+    if (slots.length > 0) {
+      const available = slots.filter(s => !s.onCanvas);
+
+      if (available.length === 0) {
+        toast.error(`Todas as instâncias de ${getViewLabel(viewType)} já estão no canvas.`);
+        return;
+      }
+
+      if (available.length === 1) {
+        addViewToCanvas(viewType, available[0].side);
+        return;
+      }
+
+      // Multiple available - open choose-instance modal
+      setPendingViewType(viewType);
+      setInstanceSlots(slots);
+      setSideSelectorMode('choose-instance');
+      setSideSelectorOpen(true);
+      return;
+    }
+
+    // Fallback: old behavior (no pre-assigned slots)
     const availableSides = houseManager.getAvailableSides(viewType);
     if (availableSides.length === 0) {
       toast.error('Nenhum lado disponível para esta vista.');
       return;
     }
 
-    // If only one side is available, auto-select it (no need for popup)
     if (availableSides.length === 1) {
       addViewToCanvas(viewType, availableSides[0]);
       return;
     }
 
-    // Open SideSelector for user to choose
     setPendingViewType(viewType);
+    setSideSelectorMode('position');
     setSideSelectorOpen(true);
   };
 
@@ -351,14 +376,30 @@ export function RACEditor() {
   };
 
   const handleSideSelected = (side: HouseSide) => {
-    if (pendingViewType) {
-      addViewToCanvas(pendingViewType, side);
-      setPendingViewType(null);
+    if (!pendingViewType) {
+      setSideSelectorOpen(false);
+      return;
     }
+
+    if (sideSelectorMode === 'position' && !houseManager.hasPreAssignedSlots()) {
+      // Initial positioning after house type selection
+      houseManager.autoAssignAllSides(pendingViewType, side);
+      addViewToCanvas('top'); // Plant
+      addViewToCanvas(pendingViewType, side); // Initial view
+    } else {
+      // Regular side selection or choose-instance
+      addViewToCanvas(pendingViewType, side);
+    }
+
+    setPendingViewType(null);
     setSideSelectorOpen(false);
   };
 
   const handleSideSelectorClose = () => {
+    // If this was initial positioning and user cancelled, reset house type
+    if (sideSelectorMode === 'position' && !houseManager.hasPreAssignedSlots()) {
+      houseManager.setHouseType(null);
+    }
     setSideSelectorOpen(false);
     setPendingViewType(null);
   };
@@ -383,10 +424,13 @@ export function RACEditor() {
     // Initialize default windows and doors
     houseManager.initializeDefaultElements();
     
-    // Automatically add the plant view
-    addViewToCanvas('top');
-    
-    toast.success(`Casa ${type === 'tipo6' ? 'Tipo 6' : 'Tipo 3'} selecionada! Planta criada.`);
+    // Open SideSelector to position the initial view
+    // tipo6: position the front view (top/bottom)
+    // tipo3: position the open square (left/right)
+    const initialViewType: ViewType = type === 'tipo6' ? 'front' : 'side2';
+    setPendingViewType(initialViewType);
+    setSideSelectorMode('position');
+    setSideSelectorOpen(true);
   };
 
   const handleHouseTypeSelectorClose = () => {
@@ -1129,6 +1173,8 @@ export function RACEditor() {
           onClose={handleSideSelectorClose}
           viewType={pendingViewType}
           onSelectSide={handleSideSelected}
+          mode={sideSelectorMode}
+          instanceSlots={instanceSlots}
         />
       )}
 

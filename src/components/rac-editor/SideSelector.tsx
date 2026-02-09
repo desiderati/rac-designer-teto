@@ -18,11 +18,19 @@ import {
 
 import { useIsMobile } from '@/hooks/use-mobile';
 
+export interface InstanceSlot {
+  label: string;
+  side: HouseSide;
+  onCanvas: boolean;
+}
+
 interface SideSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   viewType: ViewType;
   onSelectSide: (side: HouseSide) => void;
+  mode?: 'position' | 'choose-instance';
+  instanceSlots?: InstanceSlot[];
 }
 
 // Piloti grid layout (3 rows x 4 cols)
@@ -38,7 +46,7 @@ function getPilotiIdFromName(name: string): string {
   return `piloti_${col}_${row}`;
 }
 
-export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSelectorProps) {
+export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = 'position', instanceSlots }: SideSelectorProps) {
   const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
   const [, forceUpdate] = useState(0);
   const isMobile = useIsMobile();
@@ -116,6 +124,66 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide }: SideSe
 
   // Display grid is always in normal order - the flip happens when placing on canvas
   const displayGrid = PILOTI_GRID;
+
+  // Choose-instance mode: simple buttons instead of piloti grid
+  if (mode === 'choose-instance') {
+    const chooseTitle = `Qual ${getViewLabel(viewType)} deseja mostrar?`;
+    const chooseDesc = 'Selecione a instância que deseja adicionar ao canvas';
+
+    const chooseContent = (
+      <div className="flex flex-col gap-3 py-2">
+        {instanceSlots?.map((slot) => (
+          <button
+            key={slot.side}
+            disabled={slot.onCanvas}
+            onClick={() => {
+              onSelectSide(slot.side);
+              onClose();
+            }}
+            className={cn(
+              "px-4 py-3 rounded-lg border-2 text-left transition-all duration-200",
+              slot.onCanvas
+                ? "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed"
+                : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10 active:bg-primary active:text-primary-foreground"
+            )}
+          >
+            <span className="text-sm font-medium">{slot.label}</span>
+            {slot.onCanvas && <span className="text-xs opacity-70 ml-2">(já no canvas)</span>}
+          </button>
+        ))}
+      </div>
+    );
+
+    if (!isMobile) {
+      return (
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <DialogContent className="sm:max-w-sm">
+            <div className="mx-auto w-full max-w-xs">
+              <DialogHeader className="text-left">
+                <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
+                <DialogDescription className="text-sm">{chooseDesc}</DialogDescription>
+              </DialogHeader>
+              {chooseContent}
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+          <div className="mx-auto w-full max-w-xs">
+            <SheetHeader className="text-center pb-2">
+              <SheetTitle className="text-lg">{chooseTitle}</SheetTitle>
+              <SheetDescription className="text-sm text-left">{chooseDesc}</SheetDescription>
+            </SheetHeader>
+            {chooseContent}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   const content = (
     <div className="flex flex-col items-center gap-2 py-2">
