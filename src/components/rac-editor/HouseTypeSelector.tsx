@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faHouseChimney } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 
 interface HouseTypeSelectorProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ function TypeCard({
     >
       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
         <FontAwesomeIcon
-          icon={type === 'tipo6' ? faHome : faHouseChimney}
+          icon={type === 'tipo6' ? faHome : faDoorOpen}
           className="text-2xl text-primary"
         />
       </div>
