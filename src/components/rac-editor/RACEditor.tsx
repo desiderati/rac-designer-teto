@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect } from 'fabric';
+import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect, IText } from 'fabric';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
@@ -7,10 +7,9 @@ import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectNameSel
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
-import { DistanceEditor } from './DistanceEditor';
-import { ObjectNameEditor } from './ObjectNameEditor';
-import { LineArrowEditor, LineArrowSelection } from './LineArrowEditor';
+import { GenericEditor, GenericEditorType } from './GenericEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
+import { OnboardingBalloon } from './OnboardingBalloon';
 import { SideSelector } from './SideSelector';
 import { HouseTypeSelector } from './HouseTypeSelector';
 import { House3DViewer } from './House3DViewer';
@@ -66,8 +65,9 @@ export function RACEditor() {
   const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
   const [objectNameSelection, setObjectNameSelection] = useState<ObjectNameSelection | null>(null);
   const [isObjectNameEditorOpen, setIsObjectNameEditorOpen] = useState(false);
-  const [lineArrowSelection, setLineArrowSelection] = useState<LineArrowSelection | null>(null);
+  const [lineArrowSelection, setLineArrowSelection] = useState<LineArrowCanvasSelection | null>(null);
   const [isLineArrowEditorOpen, setIsLineArrowEditorOpen] = useState(false);
+  const [onboardingBalloon, setOnboardingBalloon] = useState<{ position: { x: number; y: number }; text: string } | null>(null);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
@@ -194,6 +194,7 @@ export function RACEditor() {
   const closeAllMenus = () => {
     setActiveSubmenu(null);
     dismissPilotiTutorial();
+    setOnboardingBalloon(null);
   };
 
   const disableDrawingMode = () => {
@@ -392,6 +393,30 @@ export function RACEditor() {
       houseManager.autoAssignAllSides(pendingViewType, side);
       addViewToCanvas('top'); // Plant
       addViewToCanvas(pendingViewType, side); // Initial view
+
+      // Reposition so plant is above and view is below, not overlapping
+      const canvas = getCanvas();
+      if (canvas) {
+        setTimeout(() => {
+          const house = houseManager.getHouse();
+          const plantInst = house?.views.top?.[0];
+          const viewInst = house?.views[pendingViewType!]?.find(v => v.side === side);
+          const plantGroup = plantInst?.group;
+          const viewGroup = viewInst?.group;
+          if (plantGroup && viewGroup) {
+            const center = getVisibleCenter();
+            const gap = 30;
+            const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
+            const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
+            const totalHeight = ph + gap + vh;
+            plantGroup.set({ left: center.x, top: center.y - totalHeight / 2 + ph / 2 });
+            viewGroup.set({ left: center.x, top: center.y + totalHeight / 2 - vh / 2 });
+            plantGroup.setCoords();
+            viewGroup.setCoords();
+            canvas.renderAll();
+          }
+        }, 50);
+      }
     } else {
       // Regular side selection or choose-instance
       addViewToCanvas(pendingViewType, side);
@@ -607,6 +632,26 @@ export function RACEditor() {
     setInfoMessage('Itens bloqueados (Agrupados). Redimensionamento proporcional ativado.');
   };
 
+  // Helper to show onboarding balloon at an object's position
+  const showOnboardingBalloon = (obj: FabricObject, text: string) => {
+    const canvas = canvasRef.current?.canvas;
+    if (!canvas) return;
+    const canvasPosition = canvasRef.current?.getCanvasPosition();
+    const container = canvas.getElement().parentElement?.parentElement;
+    if (!container || !canvasPosition) return;
+
+    const rect = container.getBoundingClientRect();
+    const { x: vpX, y: vpY, zoom } = canvasPosition;
+    const scaledWidth = CANVAS_WIDTH * zoom;
+    const scaledHeight = CANVAS_HEIGHT * zoom;
+    const canvasX = scaledWidth <= rect.width ? (rect.width - scaledWidth) / 2 : -vpX;
+    const canvasY = scaledHeight <= rect.height ? (rect.height - scaledHeight) / 2 : -vpY;
+    const center = obj.getCenterPoint();
+    const screenX = rect.left + center.x * zoom + canvasX;
+    const screenY = rect.top + center.y * zoom + canvasY;
+    setOnboardingBalloon({ position: { x: screenX, y: screenY }, text });
+  };
+
   // Element actions
   const handleAddWall = () => {
     closeAllMenus();
@@ -615,10 +660,10 @@ export function RACEditor() {
       const wall = createWall(canvas);
       addObjectToCanvas(wall);
       
-      // First-time tip
+      // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-wall-tip-shown')) {
-        toast.info('Clique duas vezes para definir ou alterar o nome do objeto.');
         localStorage.setItem('rac-wall-tip-shown', 'true');
+        setTimeout(() => showOnboardingBalloon(wall, 'Clique duas vezes para definir ou alterar o nome do objeto.'), 100);
       }
     }
   };
@@ -675,10 +720,10 @@ export function RACEditor() {
       const line = createLine(canvas);
       addObjectToCanvas(line);
       
-      // First-time tip
+      // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-line-tip-shown')) {
-        toast.info('Clique duas vezes para definir um texto ou a cor da linha reta.');
         localStorage.setItem('rac-line-tip-shown', 'true');
+        setTimeout(() => showOnboardingBalloon(line, 'Clique duas vezes para definir um texto ou a cor da linha reta.'), 100);
       }
     }
   };
@@ -690,10 +735,10 @@ export function RACEditor() {
       const arrow = createArrow(canvas);
       addObjectToCanvas(arrow);
       
-      // First-time tip
+      // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-arrow-tip-shown')) {
-        toast.info('Clique duas vezes para definir um texto ou a cor da seta simples.');
         localStorage.setItem('rac-arrow-tip-shown', 'true');
+        setTimeout(() => showOnboardingBalloon(arrow, 'Clique duas vezes para definir um texto ou a cor da seta simples.'), 100);
       }
     }
   };
@@ -1047,12 +1092,6 @@ export function RACEditor() {
     setDistanceSelection(null);
   };
 
-  const handleDistanceValueChange = (newValue: string) => {
-    canvasRef.current?.saveHistory();
-    canvasRef.current?.canvas?.renderAll();
-    setInfoMessage(`Distância atualizada para: ${newValue || '(vazio)'}.`);
-  };
-
   const handleObjectNameSelect = (selection: ObjectNameSelection | null) => {
     setObjectNameSelection(selection);
     if (selection) {
@@ -1063,12 +1102,6 @@ export function RACEditor() {
   const handleObjectNameEditorClose = () => {
     setIsObjectNameEditorOpen(false);
     setObjectNameSelection(null);
-  };
-
-  const handleObjectNameValueChange = (newValue: string) => {
-    canvasRef.current?.saveHistory();
-    canvasRef.current?.canvas?.renderAll();
-    setInfoMessage(`Nome do objeto atualizado para: ${newValue || '(vazio)'}.`);
   };
 
   const handleLineArrowSelect = (selection: LineArrowCanvasSelection | null) => {
@@ -1083,10 +1116,136 @@ export function RACEditor() {
     setLineArrowSelection(null);
   };
 
-  const handleLineArrowValueChange = (newLabel: string, newColor: string) => {
-    canvasRef.current?.saveHistory();
-    canvasRef.current?.canvas?.renderAll();
-    setInfoMessage(`Linha/seta atualizada.`);
+  // Unified apply handler for GenericEditor
+  const handleGenericApply = (editorType: GenericEditorType, newValue: string, newColor: string) => {
+    const canvas = canvasRef.current?.canvas;
+    if (!canvas) return;
+
+    if (editorType === 'wall' && objectNameSelection) {
+      const obj = objectNameSelection.object;
+      const name = newValue;
+
+      // Check if the object is already in a group with a label
+      const parentGroup = (obj as any)._group as Group | undefined;
+      const existingLabel = parentGroup?.getObjects().find(
+        (o: any) => o.myType === 'wallLabel'
+      ) as IText | undefined;
+
+      if (parentGroup && existingLabel) {
+        if (name) {
+          existingLabel.set({ text: name, fill: newColor });
+          // Update color of the wall itself
+          obj.set({ stroke: newColor });
+          parentGroup.setCoords();
+        } else {
+          const groupLeft = parentGroup.left || 0;
+          const groupTop = parentGroup.top || 0;
+          canvas.remove(parentGroup);
+          obj.set({ left: groupLeft, top: groupTop });
+          obj.setCoords();
+          canvas.add(obj);
+        }
+      } else if (name && !parentGroup) {
+        const label = new IText(name, {
+          fontSize: 14,
+          fontFamily: 'Arial',
+          fill: newColor,
+          originX: 'center',
+          originY: 'center',
+          textAlign: 'center',
+          selectable: false,
+          evented: false,
+        });
+        (label as any).myType = 'wallLabel';
+
+        canvas.remove(obj);
+        const objLeft = obj.left || 0;
+        const objTop = obj.top || 0;
+        obj.set({ left: 0, top: 0, originX: 'center', originY: 'center', stroke: newColor });
+        label.set({ left: 0, top: 0 });
+
+        const group = new Group([obj, label], {
+          left: objLeft, top: objTop, originX: 'center', originY: 'center',
+        });
+        (group as any).myType = (obj as any).myType;
+        (group as any).pilotiId = (obj as any).pilotiId;
+        (group as any).wallId = (obj as any).wallId;
+        canvas.add(group);
+        canvas.setActiveObject(group);
+      } else if (!name && !parentGroup) {
+        // Just apply color, no label
+        obj.set({ stroke: newColor });
+      }
+      canvas.renderAll();
+      canvasRef.current?.saveHistory();
+      setInfoMessage(`Objeto atualizado.`);
+
+    } else if ((editorType === 'line' || editorType === 'arrow') && lineArrowSelection) {
+      const obj = lineArrowSelection.object;
+      const color = newColor;
+      const label = newValue;
+
+      // Apply color
+      if (lineArrowSelection.myType === 'line') {
+        (obj as any).set({ stroke: color });
+      } else {
+        const group = obj as Group;
+        group.getObjects().forEach((child: any) => {
+          if (child.type === 'rect') child.set({ fill: color });
+          if (child.type === 'triangle') child.set({ fill: color });
+        });
+      }
+
+      // Handle label: group text with the line/arrow
+      const existingLabel = canvas.getObjects().find(
+        (o: any) => o.myType === 'lineArrowLabel' && o.labelFor === obj
+      ) as IText | undefined;
+
+      if (label) {
+        if (existingLabel) {
+          existingLabel.set({ text: label, fill: color });
+        } else {
+          const objCenter = obj.getCenterPoint();
+          const textLabel = new IText(label, {
+            fontSize: 14,
+            fontFamily: 'Arial',
+            fill: color,
+            left: objCenter.x,
+            top: objCenter.y - 20,
+            originX: 'center',
+            originY: 'center',
+            editable: false,
+            selectable: true,
+            backgroundColor: 'rgba(255,255,255,0.8)',
+          });
+          (textLabel as any).myType = 'lineArrowLabel';
+          (textLabel as any).labelFor = obj;
+          canvas.add(textLabel);
+        }
+      } else if (existingLabel) {
+        canvas.remove(existingLabel);
+      }
+
+      canvas.requestRenderAll();
+      canvasRef.current?.saveHistory();
+      setInfoMessage(`Linha/seta atualizada.`);
+
+    } else if (editorType === 'dimension' && distanceSelection) {
+      const group = distanceSelection.group;
+      const textObj = group.getObjects().find(obj => obj.type === 'i-text') as IText;
+      if (textObj) {
+        textObj.set({ text: newValue || ' ', fill: newColor });
+      }
+      // Apply color to lines and triangles in the dimension group
+      group.getObjects().forEach((child: any) => {
+        if (child.type === 'line') child.set({ stroke: newColor });
+        if (child.type === 'triangle') child.set({ fill: newColor });
+      });
+      group.dirty = true;
+      canvas.requestRenderAll();
+      canvasRef.current?.saveHistory();
+      setInfoMessage(`Distância atualizada para: ${newValue || '(vazio)'}.`);
+    }
   };
 
   // Get current house type and view counts
@@ -1126,7 +1285,10 @@ export function RACEditor() {
         showTips={showTips}
         onToggleTips={handleToggleTips}
         showZoomControls={showZoomControls}
-        onToggleZoomControls={() => setShowZoomControls(!showZoomControls)}
+        onToggleZoomControls={() => {
+          setShowZoomControls(!showZoomControls);
+          if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
+        }}
         onOpen3DViewer={() => setIs3DViewerOpen(true)}
         tutorialHighlight={tutorialStep}
         isMenuOpen={isMenuOpen}
@@ -1146,6 +1308,7 @@ export function RACEditor() {
           onSelectionChange={(msg) => {
             setInfoMessage(msg);
             dismissPilotiTutorial();
+            setOnboardingBalloon(null);
           }}
           onHistorySave={() => {}}
           onZoomInteraction={() => {
@@ -1189,35 +1352,52 @@ export function RACEditor() {
         onNavigate={handlePilotiNavigate}
       />
 
-      <DistanceEditor
+      <GenericEditor
         isOpen={isDistanceEditorOpen}
         onClose={handleDistanceEditorClose}
-        group={distanceSelection?.group ?? null}
+        editorType="dimension"
+        object={distanceSelection?.group ?? null}
+        canvas={canvasRef.current?.canvas ?? null}
         currentValue={distanceSelection?.currentValue ?? ''}
+        currentColor={(() => {
+          const g = distanceSelection?.group;
+          if (!g) return '#000000';
+          const t = g.getObjects().find(o => o.type === 'i-text') as any;
+          return t?.fill as string || '#000000';
+        })()}
         isMobile={isMobile}
         anchorPosition={distanceSelection?.screenPosition}
-        onValueChange={handleDistanceValueChange}
+        onApply={(v, c) => handleGenericApply('dimension', v, c)}
       />
 
-      <ObjectNameEditor
+      <GenericEditor
         isOpen={isObjectNameEditorOpen}
         onClose={handleObjectNameEditorClose}
+        editorType="wall"
         object={objectNameSelection?.object ?? null}
         canvas={canvasRef.current?.canvas ?? null}
         currentValue={objectNameSelection?.currentValue ?? ''}
+        currentColor={(() => {
+          const obj = objectNameSelection?.object;
+          if (!obj) return '#333333';
+          return (obj as any).stroke as string || '#333333';
+        })()}
         isMobile={isMobile}
         anchorPosition={objectNameSelection?.screenPosition}
-        onValueChange={handleObjectNameValueChange}
+        onApply={(v, c) => handleGenericApply('wall', v, c)}
       />
 
-      <LineArrowEditor
+      <GenericEditor
         isOpen={isLineArrowEditorOpen}
         onClose={handleLineArrowEditorClose}
-        selection={lineArrowSelection}
+        editorType={lineArrowSelection?.myType === 'arrow' ? 'arrow' : 'line'}
+        object={lineArrowSelection?.object ?? null}
         canvas={canvasRef.current?.canvas ?? null}
+        currentValue={lineArrowSelection?.currentLabel ?? ''}
+        currentColor={lineArrowSelection?.currentColor ?? '#000000'}
         isMobile={isMobile}
         anchorPosition={lineArrowSelection?.screenPosition}
-        onValueChange={handleLineArrowValueChange}
+        onApply={(v, c) => handleGenericApply(lineArrowSelection?.myType === 'arrow' ? 'arrow' : 'line', v, c)}
       />
 
       {pendingViewType && (
@@ -1253,6 +1433,14 @@ export function RACEditor() {
         <PilotiTutorialBalloon
           position={pilotiTutorialPosition}
           onClose={handleClosePilotiTutorial}
+        />
+      )}
+
+      {onboardingBalloon && (
+        <OnboardingBalloon
+          position={onboardingBalloon.position}
+          text={onboardingBalloon.text}
+          onClose={() => setOnboardingBalloon(null)}
         />
       )}
 

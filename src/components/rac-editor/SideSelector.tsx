@@ -127,7 +127,14 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
 
   // Choose-instance mode: simple buttons instead of piloti grid
   if (mode === 'choose-instance') {
-    const chooseTitle = `Qual '${getViewLabel(viewType)}' deseja mostrar?`;
+    let chooseTitle: string;
+    if (viewType === 'side1') {
+      chooseTitle = 'Qual dos quadrados fechados deseja mostrar?';
+    } else if (viewType === 'back' && houseManager.getHouseType() === 'tipo3') {
+      chooseTitle = 'Qual das laterais deseja mostrar?';
+    } else {
+      chooseTitle = `Qual '${getViewLabel(viewType)}' deseja mostrar?`;
+    }
 
     const chooseContent = (
       <div className="flex flex-col gap-3 py-2">
