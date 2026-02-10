@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { FabricObject, IText, Canvas as FabricCanvas, Group, Line, Rect, Triangle } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpDownLeftRight } from '@fortawesome/free-solid-svg-icons';
 import {
   Drawer,
   DrawerClose,
@@ -18,12 +16,12 @@ const COLOR_PALETTE = [
   { name: 'Vermelho', value: '#e74c3c' },
   { name: 'Azul', value: '#3498db' },
   { name: 'Verde', value: '#27ae60' },
-  { name: 'Laranja', value: '#e67e22' },
-  { name: 'Roxo', value: '#8e44ad' },
-  { name: 'Marrom', value: '#795548' },
-  { name: 'Rosa', value: '#e91e63' },
-  { name: 'Cinza', value: '#7f8c8d' },
   { name: 'Amarelo', value: '#f1c40f' },
+  { name: 'Cinza', value: '#7f8c8d' },
+  { name: 'Marrom', value: '#795548' },
+  { name: 'Roxo', value: '#8e44ad' },
+  { name: 'Rosa', value: '#e91e63' },
+  { name: 'Laranja', value: '#e67e22' },
 ];
 
 export type GenericEditorType = 'wall' | 'line' | 'arrow' | 'dimension';
@@ -112,12 +110,12 @@ export function GenericEditor({
     window.addEventListener('mouseup', handleMouseUp);
   }, [panelPos, anchorPosition]);
 
-  const getTitle = (): string | null => {
+  const getTitle = (): string => {
     switch (editorType) {
       case 'wall': return 'Editar Objeto';
       case 'dimension': return 'Editar Distância';
-      case 'line': return null;
-      case 'arrow': return null;
+      case 'line': return 'Editar Linha Reta';
+      case 'arrow': return 'Editar Seta Simples';
     }
   };
 
@@ -173,11 +171,9 @@ export function GenericEditor({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
-          {title && (
-            <DrawerHeader>
-              <DrawerTitle className="text-center">{title}</DrawerTitle>
-            </DrawerHeader>
-          )}
+          <DrawerHeader>
+            <DrawerTitle className="text-center">{title}</DrawerTitle>
+          </DrawerHeader>
           <div className="p-4">{editorContent}</div>
           <DrawerFooter />
         </DrawerContent>
@@ -198,17 +194,12 @@ export function GenericEditor({
     >
       {/* Draggable header */}
       <div
-        className="flex items-center gap-2 px-3 py-2 cursor-move border-b border-border select-none"
+        className="flex items-center gap-2 px-3 py-2 cursor-move select-none"
         onMouseDown={handleDragStart}
       >
-        <FontAwesomeIcon icon={faUpDownLeftRight} className="text-muted-foreground text-xs" />
-        {title ? (
-          <span className="font-bold text-sm">{title}</span>
-        ) : (
-          <span className="text-xs text-muted-foreground">Mover</span>
-        )}
+        <span className="font-bold text-sm">{title}</span>
       </div>
-      <div className="p-3">
+      <div className="p-3 pt-0">
         {editorContent}
       </div>
     </div>
