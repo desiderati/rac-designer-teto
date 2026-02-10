@@ -157,20 +157,20 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
   const TOP = BY + HOUSE_HEIGHT;
   const cy = BY + HOUSE_HEIGHT / 2;
 
-  const isOpenRight = houseType === 'tipo3';
+  const isOpenLeft = houseType === 'tipo3';
 
   // Individual wall faces
   const walls = useMemo(() => {
     const w: { pos: [number, number, number]; rot: [number, number, number]; width: number; height: number; key: string }[] = [
       { pos: [0, cy, hd], rot: [0, 0, 0], width: HOUSE_WIDTH, height: HOUSE_HEIGHT, key: 'front' },
       { pos: [0, cy, -hd], rot: [0, Math.PI, 0], width: HOUSE_WIDTH, height: HOUSE_HEIGHT, key: 'back' },
-      { pos: [-hw, cy, 0], rot: [0, -Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'left' },
+      { pos: [hw, cy, 0], rot: [0, Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'right' },
     ];
-    if (!isOpenRight) {
-      w.push({ pos: [hw, cy, 0], rot: [0, Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'right' });
+    if (!isOpenLeft) {
+      w.push({ pos: [-hw, cy, 0], rot: [0, -Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'left' });
     }
     return w;
-  }, [isOpenRight, cy, hw, hd]);
+  }, [isOpenLeft, cy, hw, hd]);
 
   // Edge lines
   const edges = useMemo(() => {
@@ -189,16 +189,16 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
     e.push([v(-hw, BY, -hd), v(-hw, TOP, -hd)]);   // left vert
     e.push([v(hw, BY, -hd), v(hw, TOP, -hd)]);     // right vert
 
-    // Left side bottom (6m - NO top edge)
-    e.push([v(-hw, BY, -hd), v(-hw, BY, hd)]);
+    // Right side bottom (6m - NO top edge)
+    e.push([v(hw, BY, -hd), v(hw, BY, hd)]);
 
-    // Right side bottom (6m - NO top edge, skip if open)
-    if (!isOpenRight) {
-      e.push([v(hw, BY, -hd), v(hw, BY, hd)]);
+    // Left side bottom (6m - NO top edge, skip if open)
+    if (!isOpenLeft) {
+      e.push([v(-hw, BY, -hd), v(-hw, BY, hd)]);
     }
 
     return e;
-  }, [isOpenRight, hw, hd, BY, TOP]);
+  }, [isOpenLeft, hw, hd, BY, TOP]);
 
   return (
     <group>
