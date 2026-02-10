@@ -13,7 +13,9 @@ import { OnboardingBalloon } from './OnboardingBalloon';
 import { SideSelector } from './SideSelector';
 import { HouseTypeSelector } from './HouseTypeSelector';
 import { House3DViewer } from './House3DViewer';
+import { SettingsModal } from './SettingsModal';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { getSettings } from '@/lib/settings';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,7 +55,8 @@ export function RACEditor() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'lines' | 'overflow' | null>(null);
   const [showTips, setShowTips] = useState(false);
-  const [showZoomControls, setShowZoomControls] = useState(true);
+  const [showZoomControls, setShowZoomControls] = useState(() => !getSettings().zoomDisabledByDefault);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
@@ -1357,6 +1360,7 @@ export function RACEditor() {
         backViewCount={{ current: houseManager.getViewCount('back'), max: houseManager.getMaxViewCount('back') }}
         side1ViewCount={{ current: houseManager.getViewCount('side1'), max: houseManager.getMaxViewCount('side1') }}
         side2ViewCount={{ current: houseManager.getViewCount('side2'), max: houseManager.getMaxViewCount('side2') }}
+        onOpenSettings={() => { setActiveSubmenu(null); setIsSettingsOpen(true); }}
       />
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -1477,6 +1481,11 @@ export function RACEditor() {
       <House3DViewer
         open={is3DViewerOpen}
         onOpenChange={setIs3DViewerOpen}
+      />
+
+      <SettingsModal
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
       />
 
       {tutorialStep && (

@@ -24,6 +24,7 @@ import {
   getPilotiIdsFromGroup,
 } from '@/lib/canvas-utils';
 import { houseManager } from '@/lib/house-manager';
+import { getSettings } from '@/lib/settings';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -288,30 +289,69 @@ export function PilotiEditor({
     </div>
   );
 
-  const HeightControls = ({ compact = false }: { compact?: boolean }) => (
-    <div className="space-y-2" data-no-drag>
-      <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
-      <div
-        className={
-          compact
-            ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
-            : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
+  const HeightControls = ({ compact = false }: { compact?: boolean }) => {
+    const handleHeightClick = (h: number) => {
+      setTempHeight(h);
+
+      const { autoNavigatePiloti } = getSettings();
+      if (autoNavigatePiloti && pilotiId) {
+        // Apply immediately
+        const parsed = parseNivelText(tempNivelInput);
+        const nivelToApply = parsed ?? DEFAULT_NIVEL;
+
+        houseManager.updatePiloti(pilotiId, {
+          height: h,
+          isMaster: tempIsMaster,
+          nivel: nivelToApply,
+        });
+        onHeightChange(h);
+        onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
+
+        // Navigate to next if available
+        const idx = allIds.indexOf(pilotiId);
+        const nextId = idx >= 0 && idx < allIds.length - 1 ? allIds[idx + 1] : null;
+
+        if (nextId && group) {
+          const pilotiData = getPilotiFromGroup(group, nextId);
+          if (pilotiData && onNavigate) {
+            onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
+            setTempHeight(pilotiData.height);
+            setTempIsMaster(pilotiData.isMaster);
+            setTempNivel(pilotiData.nivel);
+            setTempNivelInput(formatNivelForInput(pilotiData.nivel));
+          }
+        } else {
+          // No next piloti — close
+          onClose();
         }
-      >
-        {PILOTI_HEIGHTS.map((h) => (
-          <Button
-            key={h}
-            variant={tempHeight === h ? 'default' : 'outline'}
-            size={compact ? 'sm' : 'default'}
-            onClick={() => setTempHeight(h)}
-            className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
-          >
-            {formatPilotiHeight(h)}
-          </Button>
-        ))}
+      }
+    };
+
+    return (
+      <div className="space-y-2" data-no-drag>
+        <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
+        <div
+          className={
+            compact
+              ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
+              : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
+          }
+        >
+          {PILOTI_HEIGHTS.map((h) => (
+            <Button
+              key={h}
+              variant={tempHeight === h ? 'default' : 'outline'}
+              size={compact ? 'sm' : 'default'}
+              onClick={() => handleHeightClick(h)}
+              className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
+            >
+              {formatPilotiHeight(h)}
+            </Button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const MasterControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-3" data-no-drag>
