@@ -113,10 +113,12 @@ function HouseElement3D({ element }: { element: HouseElement }) {
 
   switch (element.face) {
     case 'front':
-      position = [xOffset - hw + elementWidth / 2, yPos, hd + depth / 2];
+      // Inverter X para corresponder a vista 2D
+      position = [hw - xOffset - elementWidth / 2, yPos, hd + depth / 2];
       break;
     case 'back':
-      position = [-(xOffset - hw + elementWidth / 2), yPos, -hd - depth / 2];
+      // Ajustar back para manter simetria com front corrigido
+      position = [xOffset - hw + elementWidth / 2, yPos, -hd - depth / 2];
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
