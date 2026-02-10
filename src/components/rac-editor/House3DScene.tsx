@@ -214,11 +214,7 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
         <planeGeometry args={[HOUSE_WIDTH, HOUSE_DEPTH]} />
         <meshStandardMaterial color={wallColor} side={THREE.DoubleSide} />
       </mesh>
-      {/* Top face */}
-      <mesh position={[0, TOP, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[HOUSE_WIDTH, HOUSE_DEPTH]} />
-        <meshStandardMaterial color={wallColor} side={THREE.DoubleSide} />
-      </mesh>
+      {/* Top face omitted – roof covers it and avoids z-fighting */}
       {/* Edge lines */}
       {edges.map((pts, i) => (
         <Line key={i} points={pts} color={COLORS.edge} lineWidth={1} />
