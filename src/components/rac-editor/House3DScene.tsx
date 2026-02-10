@@ -295,7 +295,7 @@ function Roof() {
   return (
     <group position={[0, roofBaseY, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
-        <meshStandardMaterial color={COLORS.roof} side={THREE.DoubleSide} roughness={0.9} metalness={0.1} />
+        <meshStandardMaterial color={COLORS.roof} side={THREE.DoubleSide} roughness={0.9} metalness={0.1} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
       </mesh>
       {edgePoints.map((points, i) => (
         <Line key={i} points={points} color={COLORS.edge} lineWidth={1} />
