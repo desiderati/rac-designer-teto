@@ -59,7 +59,7 @@ function getPilotiGridPosition(pilotiId: string): { col: number; row: number } |
 }
 
 function getPiloti3DPosition(col: number, row: number): [number, number, number] {
-  const x = (col - 1.5) * COLUMN_DISTANCE;
+  const x = -(col - 1.5) * COLUMN_DISTANCE;
   const z = (row - 1) * ROW_DISTANCE;
   return [x, 0, z];
 }
