@@ -750,6 +750,12 @@ class HouseManager {
       }
     }
 
+    // Sort: left before right, top before bottom
+    result.sort((a, b) => {
+      const order: Record<string, number> = { left: 0, right: 1, top: 0, bottom: 1 };
+      return (order[a.side] ?? 0) - (order[b.side] ?? 0);
+    });
+
     return result;
   }
 
