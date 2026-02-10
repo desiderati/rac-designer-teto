@@ -26,6 +26,12 @@ const PILOTI_RADIUS = 15 * SCALE_2D * MODEL_SCALE;
 const PILOTI_BASE_HEIGHT = 60 * MODEL_SCALE;
 const HOUSE_BASE_Y = PILOTI_BASE_HEIGHT;
 
+// Paredes com espessura
+const WALL_THICKNESS = 4;
+
+// Telhado com beiral
+const ROOF_OVERHANG = 12;
+
 // ============================================
 // CORES
 // ============================================
@@ -35,8 +41,8 @@ const COLORS = {
   pilotiMaster: '#8B4513',
   edge: '#333333',
   ground: '#e8e8e8',
-  elementWhite: '#ffffff',
-  elementFrame: '#666666',
+  openingInterior: '#1a1a1a',
+  openingFrame: '#555555',
 };
 
 // ============================================
@@ -47,6 +53,35 @@ interface House3DSceneProps {
   pilotis: Record<string, PilotiData>;
   elements?: HouseElement[];
   wallColor?: string;
+}
+
+// ============================================
+// TEXTURA PROCEDURAL - Telhado ondulado
+// ============================================
+function createCorrugatedTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  // Base color
+  ctx.fillStyle = '#8B9DA8';
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Horizontal corrugation stripes
+  for (let y = 0; y < 256; y += 6) {
+    const brightness = y % 12 < 6 ? 0 : 20;
+    ctx.fillStyle = `rgba(0,0,0,${brightness / 255})`;
+    ctx.fillRect(0, y, 256, 3);
+    ctx.fillStyle = `rgba(255,255,255,${brightness / 255})`;
+    ctx.fillRect(0, y + 3, 256, 3);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  return texture;
 }
 
 // ============================================
@@ -65,7 +100,7 @@ function getPiloti3DPosition(col: number, row: number): [number, number, number]
 }
 
 // ============================================
-// PILOTI 3D - grows DOWNWARD from house body
+// PILOTI 3D - seção circular, cresce para baixo
 // ============================================
 function Piloti3D({ pilotiId, data }: { pilotiId: string; data: PilotiData }) {
   const pos = getPilotiGridPosition(pilotiId);
@@ -75,7 +110,6 @@ function Piloti3D({ pilotiId, data }: { pilotiId: string; data: PilotiData }) {
   const pilotiHeight = PILOTI_BASE_HEIGHT * data.height;
   const color = data.isMaster ? COLORS.pilotiMaster : COLORS.pilotiNormal;
 
-  // Hangs from house body bottom downward
   const yCenter = HOUSE_BASE_Y - pilotiHeight / 2;
 
   return (
@@ -88,20 +122,15 @@ function Piloti3D({ pilotiId, data }: { pilotiId: string; data: PilotiData }) {
 }
 
 // ============================================
-// ELEMENTO (JANELA/PORTA) - always white
+// ELEMENTO (JANELA/PORTA) - abertura recortada
 // ============================================
 function HouseElement3D({ element }: { element: HouseElement }) {
-  // Element coords are already in SCALE_2D space, only apply MODEL_SCALE
   const elementWidth = element.width * MODEL_SCALE;
   const elementHeight = element.height * MODEL_SCALE;
-  const depth = 2;
+  const depthOffset = WALL_THICKNESS / 2 + 0.5;
 
   const xOffset = element.x * MODEL_SCALE;
   const yOffset = element.y * MODEL_SCALE;
-
-  // Determine face width for positioning
-  const isLongSide = element.face === 'front' || element.face === 'back';
-  const faceWidth = isLongSide ? HOUSE_WIDTH : HOUSE_DEPTH;
 
   const yPos = HOUSE_BASE_Y + HOUSE_HEIGHT - yOffset - elementHeight / 2;
 
@@ -113,42 +142,59 @@ function HouseElement3D({ element }: { element: HouseElement }) {
 
   switch (element.face) {
     case 'front':
-      // Inverter X para corresponder a vista 2D
-      position = [hw - xOffset - elementWidth / 2, yPos, hd + depth / 2];
+      position = [hw - xOffset - elementWidth / 2, yPos, hd + depthOffset];
       break;
     case 'back':
-      // Ajustar back para manter simetria com front corrigido
-      position = [xOffset - hw + elementWidth / 2, yPos, -hd - depth / 2];
+      position = [xOffset - hw + elementWidth / 2, yPos, -hd - depthOffset];
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      position = [-hw - depth / 2, yPos, xOffset - hd + elementWidth / 2];
+      position = [-hw - depthOffset, yPos, xOffset - hd + elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      position = [hw + depth / 2, yPos, -(xOffset - hd + elementWidth / 2)];
+      position = [hw + depthOffset, yPos, -(xOffset - hd + elementWidth / 2)];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
       position = [0, 0, 0];
   }
 
+  const frameThickness = 1.5;
+
   return (
     <group position={position} rotation={rotation}>
-      <mesh castShadow>
-        <boxGeometry args={[elementWidth, elementHeight, depth]} />
-        <meshStandardMaterial color={COLORS.elementWhite} />
-      </mesh>
+      {/* Dark interior - simulates hole/opening */}
       <mesh>
-        <boxGeometry args={[elementWidth + 1.5, elementHeight + 1.5, depth * 0.5]} />
-        <meshStandardMaterial color={COLORS.elementFrame} />
+        <boxGeometry args={[elementWidth, elementHeight, WALL_THICKNESS + 1]} />
+        <meshStandardMaterial color={COLORS.openingInterior} />
+      </mesh>
+      {/* Frame - top */}
+      <mesh position={[0, elementHeight / 2 + frameThickness / 2, 0]}>
+        <boxGeometry args={[elementWidth + frameThickness * 2, frameThickness, WALL_THICKNESS + 1.5]} />
+        <meshStandardMaterial color={COLORS.openingFrame} />
+      </mesh>
+      {/* Frame - bottom */}
+      <mesh position={[0, -elementHeight / 2 - frameThickness / 2, 0]}>
+        <boxGeometry args={[elementWidth + frameThickness * 2, frameThickness, WALL_THICKNESS + 1.5]} />
+        <meshStandardMaterial color={COLORS.openingFrame} />
+      </mesh>
+      {/* Frame - left */}
+      <mesh position={[-elementWidth / 2 - frameThickness / 2, 0, 0]}>
+        <boxGeometry args={[frameThickness, elementHeight, WALL_THICKNESS + 1.5]} />
+        <meshStandardMaterial color={COLORS.openingFrame} />
+      </mesh>
+      {/* Frame - right */}
+      <mesh position={[elementWidth / 2 + frameThickness / 2, 0, 0]}>
+        <boxGeometry args={[frameThickness, elementHeight, WALL_THICKNESS + 1.5]} />
+        <meshStandardMaterial color={COLORS.openingFrame} />
       </mesh>
     </group>
   );
 }
 
 // ============================================
-// CORPO DA CASA - paredes individuais + arestas
+// CORPO DA CASA - paredes com espessura + arestas
 // ============================================
 function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: string }) {
   const hw = HOUSE_WIDTH / 2;
@@ -156,57 +202,63 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
   const BY = HOUSE_BASE_Y;
   const TOP = BY + HOUSE_HEIGHT;
   const cy = BY + HOUSE_HEIGHT / 2;
+  const wt = WALL_THICKNESS;
+  const hwt = wt / 2;
 
   const isOpenLeft = houseType === 'tipo3';
 
-  // Individual wall faces
+  // Walls with thickness using boxGeometry
   const walls = useMemo(() => {
-    const w: { pos: [number, number, number]; rot: [number, number, number]; width: number; height: number; key: string }[] = [
-      { pos: [0, cy, hd], rot: [0, 0, 0], width: HOUSE_WIDTH, height: HOUSE_HEIGHT, key: 'front' },
-      { pos: [0, cy, -hd], rot: [0, Math.PI, 0], width: HOUSE_WIDTH, height: HOUSE_HEIGHT, key: 'back' },
-      { pos: [hw, cy, 0], rot: [0, Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'right' },
+    const w: { pos: [number, number, number]; size: [number, number, number]; key: string }[] = [
+      // Front wall (long side, Z = +hd)
+      { pos: [0, cy, hd + hwt], size: [HOUSE_WIDTH + wt, HOUSE_HEIGHT, wt], key: 'front' },
+      // Back wall (long side, Z = -hd)
+      { pos: [0, cy, -hd - hwt], size: [HOUSE_WIDTH + wt, HOUSE_HEIGHT, wt], key: 'back' },
+      // Right wall (short side, X = +hw)
+      { pos: [hw + hwt, cy, 0], size: [wt, HOUSE_HEIGHT, HOUSE_DEPTH], key: 'right' },
     ];
     if (!isOpenLeft) {
-      w.push({ pos: [-hw, cy, 0], rot: [0, -Math.PI / 2, 0], width: HOUSE_DEPTH, height: HOUSE_HEIGHT, key: 'left' });
+      // Left wall (short side, X = -hw)
+      w.push({ pos: [-hw - hwt, cy, 0], size: [wt, HOUSE_HEIGHT, HOUSE_DEPTH], key: 'left' });
     }
     return w;
-  }, [isOpenLeft, cy, hw, hd]);
+  }, [isOpenLeft, cy, hw, hd, hwt, wt]);
 
   // Edge lines
   const edges = useMemo(() => {
     const e: [THREE.Vector3, THREE.Vector3][] = [];
     const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+    const ohw = hw + wt;
+    const ohd = hd + wt;
 
-    // Front face (long side, Z = +hd)
-    e.push([v(-hw, BY, hd), v(hw, BY, hd)]);       // bottom
-    e.push([v(-hw, TOP, hd), v(hw, TOP, hd)]);     // top
-    e.push([v(-hw, BY, hd), v(-hw, TOP, hd)]);     // left vert
-    e.push([v(hw, BY, hd), v(hw, TOP, hd)]);       // right vert
+    // Front face outer edges
+    e.push([v(-ohw, BY, ohd), v(ohw, BY, ohd)]);
+    e.push([v(-ohw, TOP, ohd), v(ohw, TOP, ohd)]);
+    e.push([v(-ohw, BY, ohd), v(-ohw, TOP, ohd)]);
+    e.push([v(ohw, BY, ohd), v(ohw, TOP, ohd)]);
 
-    // Back face (long side, Z = -hd)
-    e.push([v(-hw, BY, -hd), v(hw, BY, -hd)]);     // bottom
-    e.push([v(-hw, TOP, -hd), v(hw, TOP, -hd)]);   // top
-    e.push([v(-hw, BY, -hd), v(-hw, TOP, -hd)]);   // left vert
-    e.push([v(hw, BY, -hd), v(hw, TOP, -hd)]);     // right vert
+    // Back face outer edges
+    e.push([v(-ohw, BY, -ohd), v(ohw, BY, -ohd)]);
+    e.push([v(-ohw, TOP, -ohd), v(ohw, TOP, -ohd)]);
+    e.push([v(-ohw, BY, -ohd), v(-ohw, TOP, -ohd)]);
+    e.push([v(ohw, BY, -ohd), v(ohw, TOP, -ohd)]);
 
-    // Right side bottom (6m - NO top edge)
-    e.push([v(hw, BY, -hd), v(hw, BY, hd)]);
-
-    // Left side bottom (6m - NO top edge, skip if open)
+    // Side bottom connections
+    e.push([v(ohw, BY, -ohd), v(ohw, BY, ohd)]);
     if (!isOpenLeft) {
-      e.push([v(-hw, BY, -hd), v(-hw, BY, hd)]);
+      e.push([v(-ohw, BY, -ohd), v(-ohw, BY, ohd)]);
     }
 
     return e;
-  }, [isOpenLeft, hw, hd, BY, TOP]);
+  }, [isOpenLeft, hw, hd, BY, TOP, wt]);
 
   return (
     <group>
-      {/* Wall faces */}
+      {/* Thick wall boxes */}
       {walls.map((w) => (
-        <mesh key={w.key} position={w.pos} rotation={w.rot}>
-          <planeGeometry args={[w.width, w.height]} />
-          <meshStandardMaterial color={wallColor} side={THREE.DoubleSide} />
+        <mesh key={w.key} position={w.pos} castShadow receiveShadow>
+          <boxGeometry args={w.size} />
+          <meshStandardMaterial color={wallColor} />
         </mesh>
       ))}
       {/* Bottom face */}
@@ -228,20 +280,22 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
 }
 
 // ============================================
-// TELHADO - cor de amianto, sem base diagonal
+// TELHADO - textura ondulada + beiral
 // ============================================
 function Roof() {
-  const width = HOUSE_WIDTH;
+  const overhang = ROOF_OVERHANG;
+  const width = HOUSE_WIDTH + overhang * 2;
   const height = ROOF_3D_HEIGHT;
-  const roofDepth = HOUSE_DEPTH;
+  const roofDepth = HOUSE_DEPTH + overhang * 2;
   const roofBaseY = HOUSE_BASE_Y + HOUSE_HEIGHT;
+
+  const corrugatedTexture = useMemo(() => createCorrugatedTexture(), []);
 
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
     const halfWidth = width / 2;
     const halfDepth = roofDepth / 2;
 
-    // Triangular prism WITHOUT base faces (no diagonal)
     const vertices = new Float32Array([
       // Front triangle
       -halfWidth, 0, halfDepth,
@@ -270,7 +324,22 @@ function Roof() {
       0, height, -halfDepth,
     ]);
 
+    // UVs for texture mapping
+    const uvs = new Float32Array([
+      // Front triangle
+      0, 0,  1, 0,  0.5, 1,
+      // Back triangle
+      0, 0,  0.5, 1,  1, 0,
+      // Left slope
+      0, 0,  0, 1,  1, 1,
+      0, 0,  1, 1,  1, 0,
+      // Right slope
+      1, 0,  1, 1,  0, 1,
+      1, 0,  0, 0,  1, 1,
+    ]);
+
     geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
     geo.computeVertexNormals();
     return geo;
   }, [width, height, roofDepth]);
@@ -281,15 +350,12 @@ function Roof() {
     const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
     return [
-      // Front triangle
       [v(-halfWidth, 0, halfDepth), v(halfWidth, 0, halfDepth)],
       [v(halfWidth, 0, halfDepth), v(0, height, halfDepth)],
       [v(0, height, halfDepth), v(-halfWidth, 0, halfDepth)],
-      // Back triangle
       [v(-halfWidth, 0, -halfDepth), v(halfWidth, 0, -halfDepth)],
       [v(halfWidth, 0, -halfDepth), v(0, height, -halfDepth)],
       [v(0, height, -halfDepth), v(-halfWidth, 0, -halfDepth)],
-      // Ridge and bottom edges
       [v(0, height, halfDepth), v(0, height, -halfDepth)],
       [v(-halfWidth, 0, halfDepth), v(-halfWidth, 0, -halfDepth)],
       [v(halfWidth, 0, halfDepth), v(halfWidth, 0, -halfDepth)],
@@ -299,7 +365,12 @@ function Roof() {
   return (
     <group position={[0, roofBaseY, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
-        <meshStandardMaterial color={COLORS.roof} side={THREE.DoubleSide} roughness={0.9} metalness={0.1} />
+        <meshStandardMaterial
+          map={corrugatedTexture}
+          side={THREE.DoubleSide}
+          roughness={0.9}
+          metalness={0.1}
+        />
       </mesh>
       {edgePoints.map((points, i) => (
         <Line key={i} points={points} color={COLORS.edge} lineWidth={1} />
