@@ -127,8 +127,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
 
   // Choose-instance mode: simple buttons instead of piloti grid
   if (mode === 'choose-instance') {
-    const chooseTitle = `Qual ${getViewLabel(viewType)} deseja mostrar?`;
-    const chooseDesc = 'Selecione a instância que deseja adicionar ao canvas';
+    const chooseTitle = `Qual '${getViewLabel(viewType)}' deseja mostrar?`;
 
     const chooseContent = (
       <div className="flex flex-col gap-3 py-2">
@@ -161,7 +160,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             <div className="mx-auto w-full max-w-xs">
               <DialogHeader className="text-left">
                 <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
-                <DialogDescription className="text-sm">{chooseDesc}</DialogDescription>
               </DialogHeader>
               {chooseContent}
             </div>
@@ -176,7 +174,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
           <div className="mx-auto w-full max-w-xs">
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">{chooseTitle}</SheetTitle>
-              <SheetDescription className="text-sm text-left">{chooseDesc}</SheetDescription>
             </SheetHeader>
             {chooseContent}
           </div>
