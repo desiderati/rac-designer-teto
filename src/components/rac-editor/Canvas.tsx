@@ -28,6 +28,14 @@ export interface ObjectNameSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface LineArrowCanvasSelection {
+  object: FabricObject;
+  myType: 'line' | 'arrow';
+  currentColor: string;
+  currentLabel: string;
+  screenPosition: { x: number; y: number };
+}
+
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
@@ -39,6 +47,7 @@ interface CanvasProps {
   onPilotiSelect?: (selection: PilotiSelection | null) => void;
   onDistanceSelect?: (selection: DistanceSelection | null) => void;
   onObjectNameSelect?: (selection: ObjectNameSelection | null) => void;
+  onLineArrowSelect?: (selection: LineArrowCanvasSelection | null) => void;
   isEditorOpen?: boolean;
   onDelete?: () => void;
   showZoomControls?: boolean;
@@ -56,7 +65,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, isEditorOpen = false, onDelete, showZoomControls = true }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -737,6 +746,55 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       };
 
+      // Helper function to handle line/arrow selection
+      const handleLineArrowSelection = (obj: FabricObject, myType: 'line' | 'arrow') => {
+        const currentZoom = zoomRef.current;
+        const currentViewportX = viewportXRef.current;
+        const currentViewportY = viewportYRef.current;
+        const currentContainerSize = containerSizeRef.current;
+        
+        const scaledWidth = CANVAS_WIDTH * currentZoom;
+        const scaledHeight = CANVAS_HEIGHT * currentZoom;
+        
+        const currentCanvasX = scaledWidth <= currentContainerSize.width 
+          ? (currentContainerSize.width - scaledWidth) / 2 
+          : -currentViewportX;
+        const currentCanvasY = scaledHeight <= currentContainerSize.height 
+          ? (currentContainerSize.height - scaledHeight) / 2 
+          : -currentViewportY;
+
+        // Get current color
+        let currentColor = '#000000';
+        if (myType === 'line') {
+          currentColor = (obj as Line).stroke as string || '#000000';
+        } else {
+          const group = obj as Group;
+          const firstChild = group.getObjects()[0] as any;
+          currentColor = firstChild?.fill as string || '#333';
+        }
+
+        // Get existing label
+        const existingLabel = canvas.getObjects().find(
+          (o: any) => o.myType === 'lineArrowLabel' && o.labelFor === obj
+        ) as any;
+        const currentLabel = existingLabel?.text?.trim() || '';
+
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          const center = obj.getCenterPoint();
+          const screenX = containerRect.left + (center.x * currentZoom) + currentCanvasX;
+          const screenY = containerRect.top + (center.y * currentZoom) + currentCanvasY;
+          
+          onLineArrowSelect?.({
+            object: obj,
+            myType,
+            currentColor,
+            currentLabel,
+            screenPosition: { x: screenX, y: screenY },
+          });
+        }
+      };
+
       // Desktop: double-click on piloti or dimension or wall
       canvas.on('mouse:dblclick', (e) => {
         // Skip on mobile (use same breakpoint as useIsMobile hook - 768px)
@@ -757,6 +815,18 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         // Check if target is a wall/object
         if (target.type === 'rect' && (target as any).myType === 'wall') {
           handleObjectNameSelection(target as Rect);
+          return;
+        }
+        
+        // Check if target is a line
+        if ((target as any).myType === 'line') {
+          handleLineArrowSelection(target, 'line');
+          return;
+        }
+        
+        // Check if target is an arrow group
+        if (target.type === 'group' && (target as any).myType === 'arrow') {
+          handleLineArrowSelection(target, 'arrow');
           return;
         }
         

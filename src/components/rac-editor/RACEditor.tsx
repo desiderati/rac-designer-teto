@@ -3,12 +3,13 @@ import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect } fr
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectNameSelection } from './Canvas';
+import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectNameSelection, LineArrowCanvasSelection } from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
 import { DistanceEditor } from './DistanceEditor';
 import { ObjectNameEditor } from './ObjectNameEditor';
+import { LineArrowEditor, LineArrowSelection } from './LineArrowEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { SideSelector } from './SideSelector';
 import { HouseTypeSelector } from './HouseTypeSelector';
@@ -65,6 +66,8 @@ export function RACEditor() {
   const [isDistanceEditorOpen, setIsDistanceEditorOpen] = useState(false);
   const [objectNameSelection, setObjectNameSelection] = useState<ObjectNameSelection | null>(null);
   const [isObjectNameEditorOpen, setIsObjectNameEditorOpen] = useState(false);
+  const [lineArrowSelection, setLineArrowSelection] = useState<LineArrowSelection | null>(null);
+  const [isLineArrowEditorOpen, setIsLineArrowEditorOpen] = useState(false);
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
@@ -145,6 +148,9 @@ export function RACEditor() {
     // Remove all tutorial completion flags
     localStorage.removeItem('rac-tutorial-completed');
     localStorage.removeItem('rac-piloti-tutorial-shown');
+    localStorage.removeItem('rac-wall-tip-shown');
+    localStorage.removeItem('rac-line-tip-shown');
+    localStorage.removeItem('rac-arrow-tip-shown');
     
     // Close piloti tutorial balloon if open
     setPilotiTutorialPosition(null);
@@ -608,6 +614,12 @@ export function RACEditor() {
     if (canvas) {
       const wall = createWall(canvas);
       addObjectToCanvas(wall);
+      
+      // First-time tip
+      if (!localStorage.getItem('rac-wall-tip-shown')) {
+        toast.info('Clique duas vezes para definir ou alterar o nome do objeto.');
+        localStorage.setItem('rac-wall-tip-shown', 'true');
+      }
     }
   };
 
@@ -662,6 +674,12 @@ export function RACEditor() {
     if (canvas) {
       const line = createLine(canvas);
       addObjectToCanvas(line);
+      
+      // First-time tip
+      if (!localStorage.getItem('rac-line-tip-shown')) {
+        toast.info('Clique duas vezes para definir um texto ou a cor da linha reta.');
+        localStorage.setItem('rac-line-tip-shown', 'true');
+      }
     }
   };
 
@@ -671,6 +689,12 @@ export function RACEditor() {
     if (canvas) {
       const arrow = createArrow(canvas);
       addObjectToCanvas(arrow);
+      
+      // First-time tip
+      if (!localStorage.getItem('rac-arrow-tip-shown')) {
+        toast.info('Clique duas vezes para definir um texto ou a cor da seta simples.');
+        localStorage.setItem('rac-arrow-tip-shown', 'true');
+      }
     }
   };
 
@@ -1047,6 +1071,24 @@ export function RACEditor() {
     setInfoMessage(`Nome do objeto atualizado para: ${newValue || '(vazio)'}.`);
   };
 
+  const handleLineArrowSelect = (selection: LineArrowCanvasSelection | null) => {
+    if (selection) {
+      setLineArrowSelection(selection);
+      setIsLineArrowEditorOpen(true);
+    }
+  };
+
+  const handleLineArrowEditorClose = () => {
+    setIsLineArrowEditorOpen(false);
+    setLineArrowSelection(null);
+  };
+
+  const handleLineArrowValueChange = (newLabel: string, newColor: string) => {
+    canvasRef.current?.saveHistory();
+    canvasRef.current?.canvas?.renderAll();
+    setInfoMessage(`Linha/seta atualizada.`);
+  };
+
   // Get current house type and view counts
   const currentHouseType = houseManager.getHouseType();
 
@@ -1117,7 +1159,8 @@ export function RACEditor() {
           onPilotiSelect={handlePilotiSelect}
           onDistanceSelect={handleDistanceSelect}
           onObjectNameSelect={handleObjectNameSelect}
-          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen}
+          onLineArrowSelect={handleLineArrowSelect}
+          isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen || isLineArrowEditorOpen}
           onDelete={handleDelete}
           showZoomControls={showZoomControls}
         >
@@ -1165,6 +1208,16 @@ export function RACEditor() {
         isMobile={isMobile}
         anchorPosition={objectNameSelection?.screenPosition}
         onValueChange={handleObjectNameValueChange}
+      />
+
+      <LineArrowEditor
+        isOpen={isLineArrowEditorOpen}
+        onClose={handleLineArrowEditorClose}
+        selection={lineArrowSelection}
+        canvas={canvasRef.current?.canvas ?? null}
+        isMobile={isMobile}
+        anchorPosition={lineArrowSelection?.screenPosition}
+        onValueChange={handleLineArrowValueChange}
       />
 
       {pendingViewType && (

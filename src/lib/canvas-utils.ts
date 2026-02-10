@@ -899,10 +899,21 @@ export function createArrow(canvas: FabricCanvas): Group {
   (group as any).myType = "arrow";
   group.setControlsVisibility({ mt: false, mb: false });
 
+  const originalHeadW = h;
+  const originalHeadH = h;
+
   group.on("scaling", function (this: Group) {
     const nw = this.width! * this.scaleX!;
-    (this._objects[0] as Rect).set({ width: nw });
-    (this._objects[1] as Triangle).set({ left: nw / 2 });
+    const lineRect = this._objects[0] as Rect;
+    const headTriangle = this._objects[1] as Triangle;
+    lineRect.set({ width: nw });
+    headTriangle.set({ 
+      left: nw / 2, 
+      width: originalHeadW, 
+      height: originalHeadH, 
+      scaleX: 1, 
+      scaleY: 1 
+    });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
   });
 
@@ -1144,12 +1155,24 @@ export function createDoor(canvas: FabricCanvas): Group {
 }
 
 export function createFossa(canvas: FabricCanvas): Group {
-  // Fossa séptica - oval shape with label
-  const oval = new Rect({
-    width: 120,
-    height: 80,
-    rx: 40,
-    ry: 40,
+  // Fossa séptica - irregular blob shape using Polygon
+  const numPoints = 10;
+  const baseRadiusX = 60;
+  const baseRadiusY = 40;
+  const points: { x: number; y: number }[] = [];
+  
+  for (let i = 0; i < numPoints; i++) {
+    const angle = (i / numPoints) * Math.PI * 2;
+    const variation = 0.75 + Math.random() * 0.5; // 0.75 to 1.25
+    const rx = baseRadiusX * variation;
+    const ry = baseRadiusY * variation;
+    points.push({
+      x: rx * Math.cos(angle),
+      y: ry * Math.sin(angle),
+    });
+  }
+
+  const blob = new Polygon(points, {
     fill: "rgba(139, 90, 43, 0.3)",
     stroke: "#5D4037",
     strokeWidth: 2,
@@ -1166,7 +1189,7 @@ export function createFossa(canvas: FabricCanvas): Group {
     originY: "center",
   });
 
-  const group = new Group([oval, text], {
+  const group = new Group([blob, text], {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: "center",

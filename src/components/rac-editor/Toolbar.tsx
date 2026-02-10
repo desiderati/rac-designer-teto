@@ -291,37 +291,37 @@ export function Toolbar({
                         isAtLimit={frontViewCount.current >= frontViewCount.max}
                       />
                       <SubMenuButton
-                        icon={faHouseChimneyWindow}
-                        title="Visão Traseira"
-                        onClick={() => handleAction(onAddHouseBack)}
-                        hideTooltip={isTutorialActive}
-                        isAtLimit={backViewCount.current >= backViewCount.max}
-                      />
-                      <SubMenuButton
                         icon={faSquareFull}
                         title="Quadrado Fechado"
                         onClick={() => handleAction(onAddHouseSide1)}
                         hideTooltip={isTutorialActive}
                         isAtLimit={side1ViewCount.current >= side1ViewCount.max}
                       />
-                    </>
-                  )}
-                  {/* Tipo 3: Lateral (x2), Quadrado Aberto, Quadrado Fechado */}
-                  {houseType === 'tipo3' && (
-                    <>
                       <SubMenuButton
                         icon={faHouseChimneyWindow}
-                        title="Visão Lateral"
+                        title="Visão Traseira"
                         onClick={() => handleAction(onAddHouseBack)}
                         hideTooltip={isTutorialActive}
                         isAtLimit={backViewCount.current >= backViewCount.max}
                       />
+                    </>
+                  )}
+                  {/* Tipo 3: Quadrado Aberto, Lateral (x2), Quadrado Fechado */}
+                  {houseType === 'tipo3' && (
+                    <>
                       <SubMenuButton
                         icon={faDoorOpen}
                         title="Quadrado Aberto"
                         onClick={() => handleAction(onAddHouseSide2)}
                         hideTooltip={isTutorialActive}
                         isAtLimit={side2ViewCount.current >= side2ViewCount.max}
+                      />
+                      <SubMenuButton
+                        icon={faHouseChimneyWindow}
+                        title="Visão Lateral"
+                        onClick={() => handleAction(onAddHouseBack)}
+                        hideTooltip={isTutorialActive}
+                        isAtLimit={backViewCount.current >= backViewCount.max}
                       />
                       <SubMenuButton
                         icon={faSquareFull}
