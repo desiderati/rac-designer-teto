@@ -1,130 +1,172 @@
 
 
-# Plano: Melhorias de UX, Fossa, Linhas/Setas e Dicas
+# Plano: Ajustes de UX, Painel Generico, Tutorial e Posicionamento
 
-## 8 itens a implementar
-
----
-
-### 1. Remover descricao da modal "choose-instance" e ajustar labels
-
-**Arquivo:** `src/components/rac-editor/SideSelector.tsx`
-
-- Remover o texto `SheetDescription` / `DialogDescription` ("Selecione a instancia que deseja adicionar ao canvas") no modo `choose-instance`
-- Garantir que os labels dos slots sigam a ordem correta (Esquerdo/Direito ou Superior/Inferior)
-
-**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
-
-- Ajustar a ordem dos slots passados ao SideSelector. Atualmente os slots vem do `houseManager.getPreAssignedSlots()`. Revisar se a ordem ja esta correta (Esquerdo antes de Direito).
+## 10 itens a implementar
 
 ---
 
-### 2. Reordenar botoes do submenu de casa
+### 1. Titulo da modal choose-instance
 
-**Arquivo:** `src/components/rac-editor/Toolbar.tsx`
+**Arquivo:** `src/components/rac-editor/SideSelector.tsx` (linha 130)
 
-**Tipo 6 (atual: Frontal, Traseira, Quadrado Fechado):**
-- Manter: Visao Frontal, Quadrado Fechado, Visao Traseira (mover Traseira para depois de Quadrado Fechado)
-
-**Tipo 3 (atual: Lateral, Quadrado Aberto, Quadrado Fechado):**
-- Reordenar para: Quadrado Aberto, Visao Lateral, Quadrado Fechado
-
----
-
-### 3. Forma irregular para Fossa
-
-**Arquivo:** `src/lib/canvas-utils.ts`
-
-- Substituir o `Rect` com cantos arredondados por um `Polygon` com pontos irregulares simulando uma circunferencia "desigual" (forma organica tipo blob)
-- Usar 8-10 pontos com variacao aleatoria de raio para criar o contorno irregular
-- Manter o label "Fossa" centralizado
+Substituir o titulo dinamico:
+- De: `` `Qual '${getViewLabel(viewType)}' deseja mostrar?` ``
+- Para logica condicional:
+  - Se `viewType === 'side1'` (Quadrado Fechado): `"Qual dos quadrados fechados deseja mostrar?"`
+  - Se `viewType === 'back'` e tipo3 (Lateral): `"Qual das laterais deseja mostrar?"`
+  - Fallback: manter formato atual
 
 ---
 
-### 4. Dica na primeira vez que adicionar Objeto/Muro
+### 2. Ordem dos slots na modal choose-instance (Esquerda antes de Direita)
 
-**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
+**Arquivo:** `src/lib/house-manager.ts` (metodo `getPreAssignedSlots`, linha 741)
 
-- Ao chamar `handleAddWall()`, verificar `localStorage.getItem('rac-wall-tip-shown')`
-- Se nao foi mostrada, exibir `toast.info("Clique duas vezes para definir ou alterar o nome do objeto")` e salvar no localStorage
+O metodo itera `Object.entries(preAssignedSlots)` que retorna na ordem de insercao. Para tipo6, `side1_0` = right, `side1_1` = left (quando front=top). Resultado: Direita aparece primeiro.
 
----
-
-### 5. Dica do Zoom associada ao botao
-
-**Arquivo:** `src/components/rac-editor/Tutorial.tsx`
-
-- Ajustar o passo `zoom-minimap` para que a seta aponte diretamente para o botao do Zoom no toolbar (nao para o controle de zoom em si)
-- Atualmente o tutorial aponta `bottom: "20px", left: "110px"` com `arrowDirection: "left"` -- precisa ajustar a posicao para ficar ao lado do botao faMagnifyingGlass no toolbar (que fica na posicao vertical do menu principal, acima da lixeira)
-
----
-
-### 6. Editor de texto/cor para Linhas Retas e Setas Simples (double-click)
-
-**Arquivos novos:** `src/components/rac-editor/LineArrowEditor.tsx`
-
-Criar um editor (Popover em desktop, Drawer em mobile) com:
-- Campo de texto para associar um label
-- Paleta de 10 cores para alterar a cor da linha/seta
-- Cores sugeridas: preto, vermelho, azul, verde, laranja, roxo, marrom, rosa, cinza, amarelo
-
-**Arquivo:** `src/components/rac-editor/Canvas.tsx`
-
-- No handler `mouse:dblclick`, adicionar verificacao para `myType === 'line'` e `myType === 'arrow'`
-- Para linhas: o target e diretamente a Line
-- Para setas: o target e um Group
-- Calcular posicao na tela e emitir callback `onLineArrowSelect`
-
-**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
-
-- Adicionar estado `lineArrowSelection` e `isLineArrowEditorOpen`
-- Renderizar o componente `LineArrowEditor`
-- Ao aplicar texto: criar um IText associado ao objeto (similar ao ObjectNameEditor)
-- Ao aplicar cor: alterar o `stroke` (ou `fill` para triangulo da seta) de todos os sub-objetos
-
----
-
-### 7. Dica na primeira vez que adicionar Linha Reta ou Seta Simples
-
-**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
-
-- Ao chamar `handleAddLine()`, verificar `localStorage.getItem('rac-line-tip-shown')`
-- Se nao foi mostrada, exibir `toast.info("Clique duas vezes para definir um texto ou a cor da linha reta")` e salvar
-- Ao chamar `handleAddArrow()`, verificar `localStorage.getItem('rac-arrow-tip-shown')`
-- Se nao foi mostrada, exibir `toast.info("Clique duas vezes para definir um texto ou a cor da seta simples")` e salvar
-
----
-
-### 8. Corrigir deformacao da ponta da seta ao redimensionar
-
-**Arquivo:** `src/lib/canvas-utils.ts`
-
-O handler `scaling` atual da seta:
-```typescript
-group.on("scaling", function (this: Group) {
-  const nw = this.width! * this.scaleX!;
-  (this._objects[0] as Rect).set({ width: nw });
-  (this._objects[1] as Triangle).set({ left: nw / 2 });
-  this.set({ width: nw, scaleX: 1, scaleY: 1 });
+Solucao: Ordenar o array `result` para que `left` apareca antes de `right` e `top` antes de `bottom`:
+```
+result.sort((a, b) => {
+  const order = { left: 0, right: 1, top: 0, bottom: 1 };
+  return (order[a.side] ?? 0) - (order[b.side] ?? 0);
 });
 ```
 
-O problema: `scaleY: 1` e definido mas o triangulo (ponta) herda a escala do grupo antes do reset, deformando-o. A correcao:
-- Apos o reset de `scaleX/scaleY`, forcar o triangulo a manter suas dimensoes originais (`width` e `height` fixos)
-- Apenas reposicionar o triangulo no final da linha (left = nw/2)
-- Resetar `scaleX` e `scaleY` do proprio triangulo para 1
+Tambem mudar os labels de "Esquerda"/"Direita" para "Esquerdo"/"Direito" quando for Quadrado Fechado:
+- Na verdade, o label vem de `getSideLabel()` que retorna "Esquerda"/"Direita". Melhor ajustar diretamente no SideSelector para usar labels contextuais ("Esquerdo"/"Direito" para side1 tipo6).
 
 ---
 
-## Arquivos a Modificar
+### 3. Dicas em balao amarelo (nao toast) para Muro, Linha e Seta
 
-| Arquivo | Alteracoes |
+**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
+
+Substituir os 3 `toast.info(...)` (linhas 620, 680, 696) por um sistema de balao amarelo similar ao `PilotiTutorialBalloon`.
+
+Criar um componente generico `OnboardingBalloon` (ou reutilizar PilotiTutorialBalloon com props de texto customizado):
+
+**Novo arquivo:** `src/components/rac-editor/OnboardingBalloon.tsx`
+
+- Props: `position: {x,y}`, `text: string`, `onClose: () => void`
+- Visual identico ao PilotiTutorialBalloon (fundo amber-100, seta, botao fechar)
+
+No RACEditor:
+- Novo estado: `onboardingBalloon: { position: {x,y}, text: string } | null`
+- Ao adicionar muro/linha/seta pela primeira vez, calcular posicao do objeto recem-inserido e mostrar balao
+- O balao fecha ao clicar no X ou ao interagir com o canvas
+
+---
+
+### 4. Painel generico unificado para Objeto, Linha, Seta e Distancia
+
+**Novo arquivo:** `src/components/rac-editor/GenericEditor.tsx`
+
+Painel unico com:
+- Campo de texto (input) 
+- Paleta de 10 cores (mesma do LineArrowEditor)
+- Titulo: depende do tipo ("Editar Objeto", "Editar Distancia", sem titulo para linha/seta)
+- Botoes Cancelar / Aplicar
+- **Movivel no canvas** (draggable): usar `onMouseDown` no header para arrastar o painel
+- Icone de "mover" (faGripVertical ou faUpDownLeftRight) no header indicando que pode ser arrastado
+- Popover em desktop (posicao fixa com drag), Drawer em mobile
+
+Este componente substitui:
+- `ObjectNameEditor.tsx` (atualmente so tem campo de texto, agora ganha paleta de cores)
+- `LineArrowEditor.tsx` (atualmente tem texto + cores + titulo que sera removido)
+- `DistanceEditor.tsx` (atualmente so tem campo de texto, agora ganha paleta de cores)
+
+Pode-se manter os 3 arquivos antigos mas refatora-los para usar GenericEditor internamente, ou substituir por chamadas diretas ao GenericEditor no RACEditor.
+
+**Detalhes do editor por tipo:**
+- **Objeto (wall):** Titulo "Editar Objeto" (antigo "Definir Nome do Objeto"), campo texto, paleta cores
+- **Linha Reta:** Sem titulo "Editar Linha Reta", apenas campo texto + paleta cores
+- **Seta Simples:** Sem titulo "Editar Seta Simples", apenas campo texto + paleta cores
+- **Distancia:** Titulo "Editar Distancia", campo texto, paleta cores
+
+---
+
+### 5. Texto agrupado a linha/seta
+
+**Arquivo:** `src/components/rac-editor/LineArrowEditor.tsx` ou novo GenericEditor
+
+Atualmente o texto da linha/seta e um IText separado no canvas (`lineArrowLabel`). Mudar para:
+- Ao aplicar texto, criar um Group contendo [linha/seta original + IText]
+- O IText deve ficar centralizado horizontalmente com o objeto
+- Similar ao padrao do ObjectNameEditor que agrupa objeto + label
+
+---
+
+### 6. Tutorial: avancar ao clicar no botao de zoom
+
+**Arquivo:** `src/components/rac-editor/RACEditor.tsx`
+
+Atualmente o tutorial avanca ao usar zoom/minimap (linhas 1151-1156). Precisa tambem avancar ao clicar no botao de toggle zoom:
+
+Na linha 1129, o `onToggleZoomControls` e `() => setShowZoomControls(!showZoomControls)`. Adicionar logica de avanco tutorial:
+```typescript
+onToggleZoomControls={() => {
+  setShowZoomControls(!showZoomControls);
+  if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
+}}
+```
+
+---
+
+### 7. Planta e vista nao sobrepostas
+
+**Arquivo:** `src/components/rac-editor/RACEditor.tsx` (metodo `handleSideSelected`, linha 384)
+
+Quando `sideSelectorMode === 'position'` e nao ha pre-assigned slots (primeira vez):
+- Atualmente ambas sao adicionadas via `addViewToCanvas` que usa `addObjectToCanvas` que posiciona no centro visivel
+- Resultado: ambas ficam sobrepostas
+
+Solucao: Apos adicionar planta e vista frontal, reposicionar:
+- Planta fica acima, vista fica abaixo
+- Calcular offset baseado nas alturas dos objetos
+- O centro visual deve ser o ponto medio entre os dois objetos
+
+```typescript
+// After adding both:
+const plantGroup = houseManager.getHouse()?.views.top[0]?.group;
+const viewGroup = /* the just-added view group */;
+if (plantGroup && viewGroup) {
+  const center = getVisibleCenter();
+  const gap = 30; // pixels between them
+  const totalHeight = (plantGroup.height || 0) + gap + (viewGroup.height || 0);
+  plantGroup.set({ left: center.x, top: center.y - totalHeight / 2 + (plantGroup.height || 0) / 2 });
+  viewGroup.set({ left: center.x, top: center.y + totalHeight / 2 - (viewGroup.height || 0) / 2 });
+  plantGroup.setCoords();
+  viewGroup.setCoords();
+  canvas.renderAll();
+}
+```
+
+---
+
+### 8. Cor na Distancia
+
+Ja coberto pelo item 4 (painel generico). O DistanceEditor passara a usar o GenericEditor com paleta de cores. Ao aplicar cor, alterar o `stroke`/`fill` dos elementos do grupo de dimensao (linhas, triangulos, texto).
+
+---
+
+### 9. (Numero 10 do usuario) Titulo "Editar Objeto" em vez de "Definir Nome do Objeto"
+
+Coberto pelo item 4. O titulo do editor de objetos muda de "Definir Nome do Objeto" para "Editar Objeto".
+
+---
+
+## Arquivos a Modificar/Criar
+
+| Arquivo | Alteracao |
 |---------|-----------|
-| `src/components/rac-editor/SideSelector.tsx` | Remover descricao no modo choose-instance |
-| `src/components/rac-editor/Toolbar.tsx` | Reordenar botoes dos submenus tipo 6 e tipo 3 |
-| `src/lib/canvas-utils.ts` | Fossa com forma irregular (Polygon), correcao seta scaling |
-| `src/components/rac-editor/RACEditor.tsx` | Dicas para wall/line/arrow, estado do LineArrowEditor |
-| `src/components/rac-editor/Tutorial.tsx` | Reposicionar dica zoom para apontar ao botao |
-| `src/components/rac-editor/Canvas.tsx` | Double-click handler para line/arrow |
-| `src/components/rac-editor/LineArrowEditor.tsx` | Novo componente editor de texto/cor |
+| `src/components/rac-editor/SideSelector.tsx` | Titulo condicional da modal choose-instance |
+| `src/lib/house-manager.ts` | Ordenar slots (Esquerdo antes de Direito) |
+| `src/components/rac-editor/OnboardingBalloon.tsx` | **Novo** - balao amarelo generico para dicas |
+| `src/components/rac-editor/GenericEditor.tsx` | **Novo** - painel unificado com texto + cores + drag |
+| `src/components/rac-editor/RACEditor.tsx` | Baloes de dica, tutorial zoom, posicionamento planta+vista, integrar GenericEditor |
+| `src/components/rac-editor/ObjectNameEditor.tsx` | Remover ou refatorar para usar GenericEditor |
+| `src/components/rac-editor/LineArrowEditor.tsx` | Remover ou refatorar para usar GenericEditor, agrupar texto |
+| `src/components/rac-editor/DistanceEditor.tsx` | Refatorar para usar GenericEditor com cores |
+| `src/components/rac-editor/Tutorial.tsx` | Sem alteracao (posicao zoom ja ajustada) |
 
