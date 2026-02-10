@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect, IText } from 'fabric';
+import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect, IText, Line } from 'fabric';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
@@ -1249,8 +1249,35 @@ export function RACEditor() {
 
           const newGroup = new Group([obj, textLabel], {
             left: objLeft, top: objTop, originX: 'center', originY: 'center',
+            lockScalingY: true,
           });
           (newGroup as any).myType = (obj as any).myType;
+          newGroup.setControlsVisibility({ mt: false, mb: false });
+
+          // Scaling handler: expand horizontally, keep text undeformed
+          newGroup.on('scaling', function (this: Group) {
+            const nw = this.width! * this.scaleX!;
+            this._objects.forEach((child: any) => {
+              if (child.myType === 'lineArrowLabel') {
+                // Reset text scale to prevent deformation
+                child.set({ scaleX: 1, scaleY: 1 });
+              } else if (child.type === 'line') {
+                // Standalone Line object - adjust endpoints
+                const lineObj = child as Line;
+                lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
+              } else if (child.type === 'group') {
+                // Nested arrow group (rect + triangle)
+                const arrowChildren = (child as Group).getObjects();
+                arrowChildren.forEach((ac: any) => {
+                  if (ac.type === 'rect') ac.set({ width: nw, scaleX: 1, scaleY: 1 });
+                  if (ac.type === 'triangle') ac.set({ left: nw / 2, scaleX: 1, scaleY: 1 });
+                });
+                child.set({ width: nw, scaleX: 1, scaleY: 1 });
+              }
+            });
+            this.set({ width: nw, scaleX: 1, scaleY: 1 });
+          });
+
           canvas.add(newGroup);
           canvas.setActiveObject(newGroup);
         }
