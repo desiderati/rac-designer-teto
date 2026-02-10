@@ -1,68 +1,63 @@
 
-# Melhorias Visuais do Modelo 3D Baseadas na Referencia
+# Configuracoes - Modal de Preferencias do Usuario
 
-## Mudancas Identificadas na Imagem de Referencia
+## Resumo
 
-1. **Telhado com textura ondulada (telha de amianto)**: O telhado mostra linhas horizontais paralelas simulando folhas de amianto/fibrocimento ondulado, e possui um beiral (overhang) que se estende alem das paredes.
+Adicionar um botao "Configuracoes" como ultima opcao no menu "Mais Opcoes" (overflow). Ao clicar, abre uma modal (Dialog) com duas opcoes on/off:
 
-2. **Janelas como recortes na parede**: Em vez de caixas brancas sobrepostas na superficie, as janelas sao aberturas/buracos nas paredes com profundidade visivel, mostrando o interior mais escuro.
+1. **Navegacao automatica para o proximo piloti** ao definir a altura na edicao de piloti
+2. **Zoom/Minimap desabilitado por padrao** (inverte o valor inicial de `showZoomControls`)
 
-3. **Portas como recortes na parede**: Similar as janelas, as portas sao aberturas recortadas na parede com profundidade, nao blocos brancos colados.
-
-4. **Paredes com espessura**: As paredes nao sao planos finos; possuem espessura visivel (como tijolos reais).
-
-5. Os pilotios continuam tendo seção circular
-
----
-
-## Plano de Implementacao
-
-### 1. Paredes com Espessura (Wall Thickness)
-
-Substituir os planos finos (`planeGeometry`) por caixas com espessura (`boxGeometry`). Definir uma constante `WALL_THICKNESS` (aproximadamente 4-5 unidades) para dar volume realista.
-
-### 2. Janelas e Portas como Recortes (CSG ou Abordagem Visual)
-
-Como CSG (Constructive Solid Geometry) e complexo no Three.js, usar a abordagem visual:
-- Renderizar cada parede como multiplos segmentos ao redor das aberturas
-- Ou: manter as paredes inteiras e renderizar as aberturas como buracos escuros com profundidade (caixa escura recuada para dentro da parede)
-- Na pratica: substituir o elemento branco atual por uma caixa com cor escura/interior que simula o recorte, e adicionar uma moldura (frame) ao redor
-
-A abordagem mais simples e eficaz: manter a parede solida e renderizar o elemento como um "buraco visual" -- uma caixa com a cor do interior (escuro) embutida na parede, com uma moldura fina ao redor.
-
-### 3. Telhado com Efeito de Ondulacao (Corrugated Roof)
-
-Criar uma textura procedural com linhas horizontais paralelas para simular as ondulacoes do amianto:
-- Usar um `CanvasTexture` gerado programaticamente com linhas alternadas claras/escuras
-- Aplicar como mapa de textura no material do telhado
-- Adicionar beiral (overhang) de ~10 unidades alem das paredes em todas as direcoes
-
-### 4. Beiral do Telhado (Roof Overhang)
-
-Estender as dimensoes do telhado alem das paredes (`HOUSE_WIDTH + overhang * 2` e `HOUSE_DEPTH + overhang * 2`).
+As preferencias serao persistidas no `localStorage`.
 
 ---
 
 ## Detalhes Tecnicos
 
-**Arquivo:** `src/components/rac-editor/House3DScene.tsx`
+### 1. Novo arquivo: `src/lib/settings.ts`
 
-### Novas Constantes
-```
-WALL_THICKNESS = 4
-ROOF_OVERHANG = 12
-PILOTI_SIZE = PILOTI_RADIUS * 1.6 (secao quadrada)
-```
+Modulo utilitario para gerenciar configuracoes persistidas no localStorage:
 
-### Telhado com Textura Procedural
-Criar funcao `createCorrugatedTexture()` que retorna um `THREE.CanvasTexture` com listras horizontais alternando tons de cinza, simulando as ondulacoes do fibrocimento. Aplicar como `map` no material do telhado.
+- `getSettings()`: retorna objeto com valores atuais (lendo do localStorage com defaults)
+- `updateSetting(key, value)`: atualiza uma configuracao e salva no localStorage
+- Chaves:
+  - `autoNavigatePiloti` (default: `false`)
+  - `zoomDisabledByDefault` (default: `false`)
 
-### Paredes com Espessura
-Cada parede usa `boxGeometry` com args `[width, height, WALL_THICKNESS]` em vez de `planeGeometry`.
+### 2. Novo arquivo: `src/components/rac-editor/SettingsModal.tsx`
 
-### Elementos como Aberturas
-- Fundo escuro (cor `#1a1a1a`) embutido na parede para simular profundidade
-- Moldura fina ao redor da abertura na cor da parede ou levemente mais escura
-- Remover o bloco branco atual
+Modal usando o componente `Dialog` existente:
+- Titulo: "Configuracoes"
+- Duas linhas, cada uma com label descritivo e um `Switch` (on/off)
+- Ao alternar, salva imediatamente no localStorage via `settings.ts`
 
-Apenas o arquivo `House3DScene.tsx` sera modificado.
+### 3. Alteracoes em `Toolbar.tsx`
+
+- Importar icone `faGear` do FontAwesome
+- Adicionar nova prop `onOpenSettings` no `ToolbarProps`
+- Adicionar botao "Configuracoes" no submenu overflow, entre "Dicas" e o final (ultima posicao, apos "Dicas")
+
+Correcao: "Dicas" deve continuar sendo o penultimo; "Configuracoes" sera o ultimo item.
+
+### 4. Alteracoes em `RACEditor.tsx`
+
+- Importar `SettingsModal` e `getSettings`
+- Adicionar estado `isSettingsOpen` para controlar a modal
+- Passar `onOpenSettings` para o Toolbar
+- Inicializar `showZoomControls` com base na configuracao `zoomDisabledByDefault` do localStorage (se `true`, inicia com `showZoomControls = false`)
+- Renderizar `<SettingsModal>` no JSX
+
+### 5. Alteracoes em `PilotiEditor.tsx`
+
+- Importar `getSettings` de `settings.ts`
+- No `HeightControls`, ao clicar em um botao de altura: se `autoNavigatePiloti` estiver ativo, apos definir a altura, aplicar automaticamente e navegar para o proximo piloti (chamar `handleApply` seguido de `handleNavigate('next')` internamente)
+- A logica sera: ao clicar no botao de altura, salvar a altura atual via houseManager, e se houver proximo piloti, navegar automaticamente para ele sem fechar o editor
+
+### Fluxo da navegacao automatica no PilotiEditor
+
+Quando a configuracao esta ativa:
+1. Usuario clica em um botao de altura (ex: "1.0m")
+2. A altura e aplicada imediatamente ao piloti atual via `houseManager.updatePiloti`
+3. Se existir um proximo piloti, navega automaticamente para ele
+4. O editor permanece aberto no proximo piloti
+5. Se nao houver proximo, o editor fecha normalmente (aplica e fecha)
