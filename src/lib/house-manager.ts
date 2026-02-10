@@ -769,8 +769,8 @@ class HouseManager {
     switch (side) {
       case 'top': return 'Superior';
       case 'bottom': return 'Inferior';
-      case 'left': return 'Esquerda';
-      case 'right': return 'Direita';
+      case 'left': return 'Esquerdo';
+      case 'right': return 'Direito';
     }
   }
 }
