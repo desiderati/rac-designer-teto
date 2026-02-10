@@ -685,7 +685,7 @@ class HouseManager {
         height: 45,
       });
     } else if (this.house.houseType === 'tipo3') {
-      // Different layout for tipo3
+      // Lateral views (long sides = front/back in 3D)
       this.addElement({
         type: 'window',
         face: 'front',
@@ -701,6 +701,23 @@ class HouseManager {
         y: 30,
         width: 70,
         height: 50,
+      });
+      // Quadrado Aberto (right side in 3D - has door + window)
+      this.addElement({
+        type: 'door',
+        face: 'right',
+        x: 96,
+        y: 24,
+        width: 60,
+        height: 108,
+      });
+      this.addElement({
+        type: 'window',
+        face: 'right',
+        x: 21,
+        y: 24,
+        width: 54,
+        height: 45,
       });
     }
   }
