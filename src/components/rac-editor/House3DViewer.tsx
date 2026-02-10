@@ -3,10 +3,22 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateRight, faExpand, faCompress, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faRotateRight, faExpand, faCompress, faXmark, faPalette } from '@fortawesome/free-solid-svg-icons';
 import { House3DScene } from './House3DScene';
 import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
+
+const WALL_COLORS = [
+  { name: 'Cinza', value: '#d4d4d4' },
+  { name: 'Branco', value: '#f0f0f0' },
+  { name: 'Bege', value: '#d4b896' },
+  { name: 'Amarelo', value: '#f5e6a3' },
+  { name: 'Azul', value: '#a8c4d8' },
+  { name: 'Verde', value: '#b8d4b8' },
+  { name: 'Rosa', value: '#e0b8b8' },
+  { name: 'Terracota', value: '#c4967a' },
+];
 
 interface House3DViewerProps {
   open: boolean;
@@ -19,6 +31,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [elements, setElements] = useState<HouseElement[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [wallColor, setWallColor] = useState('#d4d4d4');
 
   // Sync with HouseManager
   const syncFromManager = useCallback(() => {
@@ -76,6 +89,31 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
               Visualizador 3D
             </DialogTitle>
             <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Cor das Paredes"
+                  >
+                    <FontAwesomeIcon icon={faPalette} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" side="bottom" align="end">
+                  <p className="text-xs font-medium mb-2 text-muted-foreground">Cor das Paredes</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {WALL_COLORS.map((c) => (
+                      <button
+                        key={c.value}
+                        className={`w-7 h-7 rounded border-2 transition-all ${wallColor === c.value ? 'border-primary scale-110' : 'border-border hover:border-primary/50'}`}
+                        style={{ backgroundColor: c.value }}
+                        title={c.name}
+                        onClick={() => setWallColor(c.value)}
+                      />
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button
                 variant="outline"
                 size="icon"
@@ -139,7 +177,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                 />
                 
                 {/* Scene */}
-                <House3DScene houseType={houseType} pilotis={pilotis} elements={elements} />
+                <House3DScene houseType={houseType} pilotis={pilotis} elements={elements} wallColor={wallColor} />
                 
                 {/* Controls */}
                 <OrbitControls 
