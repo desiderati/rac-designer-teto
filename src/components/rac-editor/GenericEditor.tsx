@@ -18,9 +18,9 @@ const COLOR_PALETTE = [
   { name: 'Verde', value: '#27ae60' },
   { name: 'Amarelo', value: '#f1c40f' },
   { name: 'Cinza', value: '#7f8c8d' },
-  { name: 'Marrom', value: '#795548' },
-  { name: 'Roxo', value: '#8e44ad' },
   { name: 'Rosa', value: '#e91e63' },
+  { name: 'Roxo', value: '#8e44ad' },
+  { name: 'Marrom', value: '#795548' },
   { name: 'Laranja', value: '#e67e22' },
 ];
 
