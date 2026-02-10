@@ -32,6 +32,7 @@ import {
   faMagnifyingGlass,
   faToilet,
   faCube,
+  faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -85,6 +86,7 @@ interface ToolbarProps {
   backViewCount?: { current: number; max: number };
   side1ViewCount?: { current: number; max: number };
   side2ViewCount?: { current: number; max: number };
+  onOpenSettings?: () => void;
 }
 
 function FABButton({
@@ -232,6 +234,7 @@ export function Toolbar({
   backViewCount = { current: 0, max: 0 },
   side1ViewCount = { current: 0, max: 0 },
   side2ViewCount = { current: 0, max: 0 },
+  onOpenSettings,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -540,6 +543,14 @@ export function Toolbar({
               onClick={onToggleTips}
               color="#f1c40f"
               isActive={showTips}
+              hideTooltip={isTutorialActive}
+              tooltipSide="left"
+            />
+            <SubMenuButton
+              icon={faGear}
+              title="Configurações"
+              onClick={() => onOpenSettings?.()}
+              color="#dfe6e9"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
             />
