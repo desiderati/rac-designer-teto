@@ -1292,7 +1292,7 @@ export function RACEditor() {
           } else {
             obj.set({ left: 0, top: 0, originX: 'center', originY: 'center' });
           }
-          textLabel.set({ left: 0, top: -25 });
+          textLabel.set({ left: 0, top: -35 });
 
           const newGroup = new Group([obj, textLabel], {
             left: objLeft, top: objTop, originX: 'center', originY: 'center',
