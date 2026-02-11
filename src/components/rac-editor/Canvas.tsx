@@ -721,26 +721,17 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           ? (currentContainerSize.height - scaledHeight) / 2 
           : -currentViewportY;
         
-        // Check if there's already a label for this wall (pode estar no grupo pai)
-        const parentGroup = (wall as any)._group || (wall as any).group;
-        let currentValue = '';
-        if (parentGroup) {
-          const existingLabel = parentGroup.getObjects().find(
-            (o: any) => o.myType === 'wallLabel'
-          ) as IText | undefined;
-          currentValue = existingLabel?.text?.trim() || '';
-        } else {
-          const existingLabel = canvas.getObjects().find(
-            (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === wall
-          ) as IText | undefined;
-          currentValue = existingLabel?.text?.trim() || '';
-        }
+        // Check if there's already a label for this wall
+        const existingLabel = canvas.getObjects().find(
+          (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === wall
+        ) as IText | undefined;
+        const currentValue = existingLabel?.text?.trim() || '';
         
-        // Calculate screen position of the wall (usar coordenadas do grupo quando aplicável)
+        // Calculate screen position of the wall
         const containerRect = containerRef.current?.getBoundingClientRect();
         if (containerRect) {
-          const wallLeft = parentGroup ? (parentGroup.left || 0) : (wall.left || 0);
-          const wallTop = parentGroup ? (parentGroup.top || 0) : (wall.top || 0);
+          const wallLeft = wall.left || 0;
+          const wallTop = wall.top || 0;
           
           const screenX = containerRect.left + (wallLeft * currentZoom) + currentCanvasX;
           const screenY = containerRect.top + (wallTop * currentZoom) + currentCanvasY;
@@ -821,18 +812,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           return;
         }
         
-        // Check if target is a wall/object (pode ser Rect solo ou Group quando já tem label)
-        if ((target as any).myType === 'wall') {
-          if (target.type === 'rect') {
-            handleObjectNameSelection(target as Rect);
-          } else if (target.type === 'group') {
-            const wallRect = (target as Group).getObjects().find(
-              (o: any) => o.type === 'rect'
-            ) as Rect | undefined;
-            if (wallRect) {
-              handleObjectNameSelection(wallRect);
-            }
-          }
+        // Check if target is a wall/object
+        if (target.type === 'rect' && (target as any).myType === 'wall') {
+          handleObjectNameSelection(target as Rect);
           return;
         }
         
