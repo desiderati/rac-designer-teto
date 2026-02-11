@@ -13,7 +13,6 @@ import {
   FabricObject,
 } from "fabric";
 
-
 export const CANVAS_WIDTH = 1300;
 export const CANVAS_HEIGHT = 1300;
 export const BASE_TOP_WIDTH = 610;
@@ -65,14 +64,14 @@ export const MASTER_PILOTI_FILL = "#D4A574";
 export const MASTER_PILOTI_STROKE = "#8B4513";
 
 // Corner piloti IDs (A1, A4, C1, C4) - only these can be master and have nivel
-export const CORNER_PILOTI_IDS = ['piloti_0_0', 'piloti_3_0', 'piloti_0_2', 'piloti_3_2'];
+export const CORNER_PILOTI_IDS = ["piloti_0_0", "piloti_3_0", "piloti_0_2", "piloti_3_2"];
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
-  
+
   // Find the top view (plant view) group
   const topViewGroup = objs.find((o: any) => o.myType === "house" && o.houseView === "top") as any;
-  
+
   if (topViewGroup) {
     // Get the house body rect inside the group
     const houseBody = topViewGroup.getObjects?.().find((o: any) => o.isHouseBody === true) as any;
@@ -82,31 +81,31 @@ export function getHouseScaleFactors(canvas: FabricCanvas) {
       const groupScaleY = topViewGroup.scaleY || 1;
       const currentW = houseBody.width * (houseBody.scaleX || 1) * groupScaleX;
       const currentH = houseBody.height * (houseBody.scaleY || 1) * groupScaleY;
-      return { 
-        widthFactor: currentW / BASE_TOP_WIDTH, 
+      return {
+        widthFactor: currentW / BASE_TOP_WIDTH,
         depthFactor: currentH / BASE_TOP_HEIGHT,
         actualWidth: currentW,
         actualHeight: currentH,
       };
     }
   }
-  
+
   // Fallback: look for standalone house body (legacy support)
   const houseBody = objs.find((o: any) => o.isHouseBody === true) as any;
   if (houseBody) {
     const currentW = houseBody.width * (houseBody.scaleX || 1);
     const currentH = houseBody.height * (houseBody.scaleY || 1);
-    return { 
-      widthFactor: currentW / BASE_TOP_WIDTH, 
+    return {
+      widthFactor: currentW / BASE_TOP_WIDTH,
       depthFactor: currentH / BASE_TOP_HEIGHT,
       actualWidth: currentW,
       actualHeight: currentH,
     };
   }
-  
+
   const defaultS = 0.6;
-  return { 
-    widthFactor: defaultS, 
+  return {
+    widthFactor: defaultS,
     depthFactor: defaultS,
     actualWidth: BASE_TOP_WIDTH * defaultS,
     actualHeight: BASE_TOP_HEIGHT * defaultS,
@@ -292,7 +291,7 @@ export function getAllPilotiIds(): string[] {
 export function getPilotiIdsFromGroup(group: Group): string[] {
   const present = new Set<string>();
   group.getObjects().forEach((obj: any) => {
-    if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === 'string') {
+    if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === "string") {
       present.add(obj.pilotiId);
     }
   });
@@ -386,9 +385,9 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       if (sizeLabel) {
         const offset = 8 * s;
         const rectWidth = (obj.width ?? 0) as number;
-        sizeLabel.set('left', (obj.left ?? 0) + rectWidth / 2);
-        sizeLabel.set('top', (obj.top ?? 0) + newVisualHeight + offset);
-        sizeLabel.set('text', formatPilotiHeight(newHeight));
+        sizeLabel.set("left", (obj.left ?? 0) + rectWidth / 2);
+        sizeLabel.set("top", (obj.top ?? 0) + newVisualHeight + offset);
+        sizeLabel.set("text", formatPilotiHeight(newHeight));
         sizeLabel.setCoords();
         (sizeLabel as any).dirty = true;
       }
@@ -397,25 +396,24 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     }
 
     if (obj.isPilotiText) {
-      obj.set('text', formatPilotiHeight(newHeight));
+      obj.set("text", formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
 
     if (obj.isPilotiSizeLabel) {
-      obj.set('text', formatPilotiHeight(newHeight));
+      obj.set("text", formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
   });
 
   // Keep the house centered in the canvas when the piloti grows (avoid bottom cut by viewport).
   if (rectHeightDelta !== 0) {
-    group.set('top', (group.top || 0) - rectHeightDelta / 2);
+    group.set("top", (group.top || 0) - rectHeightDelta / 2);
   }
 
   refreshHouseGroupRendering(group);
   group.canvas?.requestRenderAll();
 }
-
 
 /**
  * Forces Fabric to rebuild caches/bounds for house groups so resized pilotis are actually redrawn.
@@ -536,12 +534,12 @@ export function getPilotiVisualHeight(pilotiHeight: number, scale: number): numb
 
 export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, flipHorizontal: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
-  
+
   // Front/Back views use the WIDTH of the plant view (horizontal side)
   // The body width should match the plant view's width exactly
   const plantWidth = factors.actualWidth;
   const s = factors.widthFactor;
-  
+
   const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 220 * s;
   const roofH = 80 * s;
@@ -557,11 +555,11 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const rowIndex = flipHorizontal ? 0 : 2;
 
   const pilotLabels: FabricObject[] = [];
-  
+
   for (let i = 0; i < 4; i++) {
     // Top position: reversed order (A4, A3, A2, A1)
     // Bottom position: normal order (C1, C2, C3, C4)
-    const colIndex = flipHorizontal ? (3 - i) : i;
+    const colIndex = flipHorizontal ? 3 - i : i;
     const pilotiId = `piloti_${colIndex}_${rowIndex}`;
     const defaultHeight = 1.0;
     const pilotH = getPilotiVisualHeight(defaultHeight, s);
@@ -587,7 +585,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
 
     pilots.push(rect);
-    
+
     // Create size label below piloti (font size 20 * scale for visibility)
     // Position at center of piloti rect (rect.left + pilotW/2)
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
@@ -602,7 +600,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     });
     (sizeLabel as any).isPilotiSizeLabel = true;
     (sizeLabel as any).pilotiId = pilotiId;
-    
+
     pilotLabels.push(sizeLabel);
   }
 
@@ -723,7 +721,16 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const rightCenterX = margin + 3 * step + pilotW / 2;
   const nivelY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
-  const groundElems = createGroundElements(leftCenterX, nivelY, rightCenterX, nivelY, s, groundSeed, nivelStr, nivelStr);
+  const groundElems = createGroundElements(
+    leftCenterX,
+    nivelY,
+    rightCenterX,
+    nivelY,
+    s,
+    groundSeed,
+    nivelStr,
+    nivelStr,
+  );
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
@@ -750,12 +757,12 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
 export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightSide: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
-  
+
   // Side views use the HEIGHT/DEPTH of the plant view (vertical side)
   // The side width should match the plant view's height exactly
   const plantHeight = factors.actualHeight;
   const s = factors.depthFactor;
-  
+
   const sideWidth = plantHeight; // Match the plant view height exactly
   const wallHeight = 220 * s;
   const pilotW = 30 * s;
@@ -765,7 +772,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const colIndex = isRightSide ? 3 : 0;
 
   const pilotLabels: FabricObject[] = [];
-  
+
   // Create pilotis with tracking
   const createPilotiRect = (rowIndex: number, left: number) => {
     const pilotiId = `piloti_${colIndex}_${rowIndex}`;
@@ -805,7 +812,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     });
     (sizeLabel as any).isPilotiSizeLabel = true;
     (sizeLabel as any).pilotiId = pilotiId;
-    
+
     pilotLabels.push(sizeLabel);
 
     return rect;
@@ -868,9 +875,18 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundSeed = isRightSide ? 314 : 217;
   const leftCenterX = pilotW / 2;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = wallHeight + defaultNivelVal * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
-  const groundElems = createGroundElements(leftCenterX, nivelY, rightCenterX, nivelY, s, groundSeed, nivelStr, nivelStr);
+  const groundElems = createGroundElements(
+    leftCenterX,
+    nivelY,
+    rightCenterX,
+    nivelY,
+    s,
+    groundSeed,
+    nivelStr,
+    nivelStr,
+  );
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
@@ -906,8 +922,10 @@ function seededRandom(seed: number): () => number {
 
 // Generate irregular ground line points between two endpoints
 function generateGroundLinePoints(
-  leftX: number, leftY: number,
-  rightX: number, rightY: number,
+  leftX: number,
+  leftY: number,
+  rightX: number,
+  rightY: number,
   seed: number,
   numSegments: number = 12,
 ): { x: number; y: number }[] {
@@ -939,7 +957,7 @@ function createGroundElements(
 ): FabricObject[] {
   const elements: FabricObject[] = [];
   const xSize = 5 * s;
-  const lineColor = '#8B6914';
+  const lineColor = "#8B6914";
   const markerWidth = 1.5;
 
   // X marker on left corner piloti
@@ -989,11 +1007,11 @@ function createGroundElements(
   const lLabel = new Text(leftNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    fontFamily: 'Arial',
+    fontFamily: "Arial",
     left: leftCenterX - xSize - 4 * s,
     top: leftNivelY,
-    originX: 'right',
-    originY: 'center',
+    originX: "right",
+    originY: "center",
     selectable: false,
     evented: false,
   });
@@ -1003,11 +1021,11 @@ function createGroundElements(
   const rLabel = new Text(rightNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    fontFamily: 'Arial',
+    fontFamily: "Arial",
     left: rightCenterX + xSize + 4 * s,
     top: rightNivelY,
-    originX: 'left',
-    originY: 'center',
+    originX: "left",
+    originY: "center",
     selectable: false,
     evented: false,
   });
@@ -1025,7 +1043,7 @@ function createGroundElements(
   const groundLine = new Polyline(groundPtsAbs, {
     left: gMinX,
     top: gMinY,
-    fill: 'transparent',
+    fill: "transparent",
     stroke: lineColor,
     strokeWidth: 2.5,
     strokeUniform: true,
@@ -1051,8 +1069,8 @@ function createGroundElements(
   const groundFill = new Polygon(fillPtsAbs, {
     left: fMinX,
     top: fMinY,
-    fill: 'rgba(139, 105, 20, 0.10)',
-    stroke: 'transparent',
+    fill: "rgba(139, 105, 20, 0.10)",
+    stroke: "transparent",
     strokeWidth: 0,
     selectable: false,
     evented: false,
@@ -1069,20 +1087,20 @@ function createGroundElements(
 function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string } | null {
   const houseView = (group as any).houseView;
 
-  if (houseView === 'front' || houseView === 'back') {
+  if (houseView === "front" || houseView === "back") {
     const isFlipped = (group as any).isFlippedHorizontally;
     if (isFlipped) {
-      return { leftId: 'piloti_3_0', rightId: 'piloti_0_0' };
+      return { leftId: "piloti_3_0", rightId: "piloti_0_0" };
     }
-    return { leftId: 'piloti_0_2', rightId: 'piloti_3_2' };
+    return { leftId: "piloti_0_2", rightId: "piloti_3_2" };
   }
 
-  if (houseView === 'side') {
+  if (houseView === "side") {
     const isRight = (group as any).isRightSide;
     if (isRight) {
-      return { leftId: 'piloti_3_2', rightId: 'piloti_3_0' };
+      return { leftId: "piloti_3_2", rightId: "piloti_3_0" };
     }
-    return { leftId: 'piloti_0_0', rightId: 'piloti_0_2' };
+    return { leftId: "piloti_0_0", rightId: "piloti_0_2" };
   }
 
   return null;
@@ -1202,17 +1220,17 @@ export function createArrow(canvas: FabricCanvas): Group {
   group.on("scaling", function (this: Group) {
     const nw = this.width! * this.scaleX!;
     this._objects.forEach((child: any) => {
-      if (child.type === 'rect') {
+      if (child.type === "rect") {
         child.set({ width: nw });
-      } else if (child.type === 'triangle') {
-        child.set({ 
-          left: nw / 2, 
-          width: originalHeadW, 
-          height: originalHeadH, 
-          scaleX: 1, 
-          scaleY: 1 
+      } else if (child.type === "triangle") {
+        child.set({
+          left: nw / 2,
+          width: originalHeadW,
+          height: originalHeadH,
+          scaleX: 1,
+          scaleY: 1,
         });
-      } else if (child.myType === 'lineArrowLabel') {
+      } else if (child.myType === "lineArrowLabel") {
         child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
       }
     });
@@ -1467,7 +1485,7 @@ export function createFossa(canvas: FabricCanvas): Group {
   const baseRadiusX = 60;
   const baseRadiusY = 40;
   const points: { x: number; y: number }[] = [];
-  
+
   for (let i = 0; i < numPoints; i++) {
     const angle = (i / numPoints) * Math.PI * 2;
     const variation = 0.75 + Math.random() * 0.5; // 0.75 to 1.25
