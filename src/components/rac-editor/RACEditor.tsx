@@ -1294,7 +1294,7 @@ export function RACEditor() {
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
                 // Reset text scale only - position will be recalculated by triggerLayout
-                child.set({ scaleX: 1, scaleY: 1 });
+                child.set({ scaleX: 1, scaleY: 1, top: -20 });
               } else if (child.type === 'line') {
                 // Standalone Line object - adjust endpoints
                 const lineObj = child as Line;
