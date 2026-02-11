@@ -1310,6 +1310,8 @@ export function RACEditor() {
               } else if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
+              } else if ((child as any).myType === 'lineArrowLabel') {
+                child.set({ left: 0, top: -35, scaleX: 1, scaleY: 1 });
               } else if (child.type === 'group') {
                 const arrowChildren = (child as Group).getObjects();
                 arrowChildren.forEach((ac: any) => {
