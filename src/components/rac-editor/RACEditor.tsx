@@ -1398,7 +1398,6 @@ export function RACEditor() {
       </div>
 
       <PilotiEditor
-        key={pilotiSelection?.pilotiId ?? 'closed'}
         isOpen={isPilotiEditorOpen}
         onClose={handlePilotiEditorClose}
         pilotiId={pilotiSelection?.pilotiId ?? null}
