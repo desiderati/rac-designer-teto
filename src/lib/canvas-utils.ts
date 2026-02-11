@@ -41,7 +41,10 @@ export const customProps = [
   "isPilotiSizeLabel",
   "isHouseBorderEdge",
   "edgeSide",
-  "isGroundLine",
+  "isGroundElement",
+  "isGroundSegment",
+  "isNivelMarker",
+  "isNivelLabel",
   "isGroundFill",
   "groundSeed",
   "isRightSide",
@@ -709,40 +712,15 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     elements.push(doorObj, w2);
   }
 
-  // Add ground line and fill for terrain visualization
+  // Add ground line with X markers and nivel labels
   const defaultNivelVal = 0.3;
   const groundSeed = flipHorizontal ? 42 : 137;
-  const groundBaseY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
-  const deltaGroundY = 0; // same nivel on both sides initially
-  const groundPoints = generateGroundLinePoints(0, 0, bodyW, deltaGroundY, groundSeed);
-  const fillDepth = 80 * s;
-  const fillPoints = [...groundPoints, { x: bodyW, y: deltaGroundY + fillDepth }, { x: 0, y: fillDepth }];
-
-  const groundFillObj = new Polygon(fillPoints, {
-    fill: 'rgba(139, 105, 20, 0.15)',
-    stroke: 'transparent',
-    strokeWidth: 0,
-    selectable: false,
-    evented: false,
-    left: 0,
-    top: groundBaseY,
-  });
-  (groundFillObj as any).isGroundFill = true;
-
-  const groundLineObj = new Polyline(groundPoints, {
-    fill: 'transparent',
-    stroke: '#8B6914',
-    strokeWidth: 2.5,
-    strokeUniform: true,
-    selectable: false,
-    evented: false,
-    left: 0,
-    top: groundBaseY,
-  });
-  (groundLineObj as any).isGroundLine = true;
-  (groundLineObj as any).groundSeed = groundSeed;
-
-  elements.push(groundFillObj, groundLineObj);
+  const leftCenterX = margin + pilotW / 2;
+  const rightCenterX = margin + 3 * step + pilotW / 2;
+  const nivelY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const groundElems = createGroundElements(leftCenterX, nivelY, rightCenterX, nivelY, s, groundSeed, nivelStr, nivelStr);
+  elements.push(...groundElems);
 
   // Add pilotLabels last so they render on top of everything
   elements.push(...pilotLabels);
@@ -878,40 +856,17 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     elements.push(windowObj, doorObj);
   }
 
-  // Add ground line and fill for terrain visualization
+  // Add ground line with X markers and nivel labels
   const defaultNivelVal = 0.3;
   const groundSeed = isRightSide ? 314 : 217;
-  const groundBaseY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
-  const deltaGroundY = 0;
-  const groundPoints = generateGroundLinePoints(0, 0, sideWidth, deltaGroundY, groundSeed);
-  const fillDepth = 80 * s;
-  const fillPoints = [...groundPoints, { x: sideWidth, y: deltaGroundY + fillDepth }, { x: 0, y: fillDepth }];
+  const leftCenterX = pilotW / 2;
+  const rightCenterX = sideWidth - pilotW / 2;
+  const nivelY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const groundElems = createGroundElements(leftCenterX, nivelY, rightCenterX, nivelY, s, groundSeed, nivelStr, nivelStr);
+  elements.push(...groundElems);
 
-  const groundFillObj = new Polygon(fillPoints, {
-    fill: 'rgba(139, 105, 20, 0.15)',
-    stroke: 'transparent',
-    strokeWidth: 0,
-    selectable: false,
-    evented: false,
-    left: 0,
-    top: groundBaseY,
-  });
-  (groundFillObj as any).isGroundFill = true;
-
-  const groundLineObj = new Polyline(groundPoints, {
-    fill: 'transparent',
-    stroke: '#8B6914',
-    strokeWidth: 2.5,
-    strokeUniform: true,
-    selectable: false,
-    evented: false,
-    left: 0,
-    top: groundBaseY,
-  });
-  (groundLineObj as any).isGroundLine = true;
-  (groundLineObj as any).groundSeed = groundSeed;
-
-  elements.push(groundFillObj, groundLineObj);
+  
 
   // Add pilotLabels last so they render on top of everything
   elements.push(...pilotLabels);
@@ -963,6 +918,110 @@ function generateGroundLinePoints(
   return points;
 }
 
+// Create all ground visualization elements: X markers, nivel labels, ground line segments, fill
+function createGroundElements(
+  leftCenterX: number, leftNivelY: number,
+  rightCenterX: number, rightNivelY: number,
+  s: number, seed: number,
+  leftNivelStr: string, rightNivelStr: string,
+): FabricObject[] {
+  const elements: FabricObject[] = [];
+  const xSize = 5 * s;
+  const lineColor = '#8B6914';
+  const markerWidth = 1.5;
+
+  // X marker on left corner piloti
+  const xL1 = new Line([leftCenterX - xSize, leftNivelY - xSize, leftCenterX + xSize, leftNivelY + xSize], {
+    stroke: lineColor, strokeWidth: markerWidth, strokeUniform: true,
+    selectable: false, evented: false,
+  });
+  (xL1 as any).isGroundElement = true;
+  (xL1 as any).isNivelMarker = true;
+
+  const xL2 = new Line([leftCenterX - xSize, leftNivelY + xSize, leftCenterX + xSize, leftNivelY - xSize], {
+    stroke: lineColor, strokeWidth: markerWidth, strokeUniform: true,
+    selectable: false, evented: false,
+  });
+  (xL2 as any).isGroundElement = true;
+  (xL2 as any).isNivelMarker = true;
+
+  elements.push(xL1, xL2);
+
+  // X marker on right corner piloti
+  const xR1 = new Line([rightCenterX - xSize, rightNivelY - xSize, rightCenterX + xSize, rightNivelY + xSize], {
+    stroke: lineColor, strokeWidth: markerWidth, strokeUniform: true,
+    selectable: false, evented: false,
+  });
+  (xR1 as any).isGroundElement = true;
+  (xR1 as any).isNivelMarker = true;
+
+  const xR2 = new Line([rightCenterX - xSize, rightNivelY + xSize, rightCenterX + xSize, rightNivelY - xSize], {
+    stroke: lineColor, strokeWidth: markerWidth, strokeUniform: true,
+    selectable: false, evented: false,
+  });
+  (xR2 as any).isGroundElement = true;
+  (xR2 as any).isNivelMarker = true;
+
+  elements.push(xR1, xR2);
+
+  // Nivel labels next to the X markers
+  const labelFontSize = 10 * s;
+  const lLabel = new Text(leftNivelStr, {
+    fontSize: labelFontSize, fill: lineColor, fontFamily: 'Arial',
+    left: leftCenterX - xSize - 4 * s, top: leftNivelY,
+    originX: 'right', originY: 'center',
+    selectable: false, evented: false,
+  });
+  (lLabel as any).isGroundElement = true;
+  (lLabel as any).isNivelLabel = true;
+
+  const rLabel = new Text(rightNivelStr, {
+    fontSize: labelFontSize, fill: lineColor, fontFamily: 'Arial',
+    left: rightCenterX + xSize + 4 * s, top: rightNivelY,
+    originX: 'left', originY: 'center',
+    selectable: false, evented: false,
+  });
+  (rLabel as any).isGroundElement = true;
+  (rLabel as any).isNivelLabel = true;
+
+  elements.push(lLabel, rLabel);
+
+  // Ground line segments (irregular terrain between the two anchors)
+  const points = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
+  for (let i = 0; i < points.length - 1; i++) {
+    const seg = new Line(
+      [points[i].x, points[i].y, points[i + 1].x, points[i + 1].y],
+      {
+        stroke: lineColor, strokeWidth: 2.5, strokeUniform: true,
+        selectable: false, evented: false,
+      }
+    );
+    (seg as any).isGroundElement = true;
+    (seg as any).isGroundSegment = true;
+    if (i === 0) (seg as any).groundSeed = seed;
+    elements.push(seg);
+  }
+
+  // Ground fill - simple rect below ground line
+  const fillTop = Math.min(leftNivelY, rightNivelY) + 3;
+  const fillHeight = 50 * s;
+  const fillLeft = leftCenterX - 5 * s;
+  const fillWidth = (rightCenterX - leftCenterX) + 10 * s;
+  const fillRect = new Rect({
+    left: fillLeft, top: fillTop,
+    width: fillWidth, height: fillHeight,
+    fill: 'rgba(139, 105, 20, 0.10)',
+    stroke: 'transparent', strokeWidth: 0,
+    selectable: false, evented: false,
+  });
+  (fillRect as any).isGroundElement = true;
+  (fillRect as any).isGroundFill = true;
+
+  elements.push(fillRect);
+
+  return elements;
+}
+
 // Get corner piloti IDs for a given elevation view
 function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string } | null {
   const houseView = (group as any).houseView;
@@ -986,7 +1045,7 @@ function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string
   return null;
 }
 
-// Update ground line/fill in an elevation view group based on corner piloti nivel values
+// Update ground elements in an elevation view group based on corner piloti nivel values
 export function updateGroundInGroup(group: Group): void {
   const corners = getViewCornerPilotiIds(group);
   if (!corners) return;
@@ -1001,56 +1060,28 @@ export function updateGroundInGroup(group: Group): void {
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 
-  // Ground Y = piloti top + nivel distance from top
-  const leftGroundY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
-  const rightGroundY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
-  const minGroundY = Math.min(leftGroundY, rightGroundY);
+  // Find seed from existing ground
+  const oldSeed = (objects.find((o: any) => o.groundSeed) as any)?.groundSeed ?? 42;
 
-  const leftX = (leftRect.left ?? 0) - 10;
-  const rightX = (rightRect.left ?? 0) + (rightRect.width ?? 30) + 10;
-  const spanWidth = rightX - leftX;
+  // Remove all existing ground elements
+  const groundElements = objects.filter((o: any) => o.isGroundElement);
+  groundElements.forEach(obj => group.remove(obj));
 
-  // Remove existing ground objects
-  const oldGroundLine = objects.find((o: any) => o.isGroundLine);
-  const oldGroundFill = objects.find((o: any) => o.isGroundFill);
-  const seed = (oldGroundLine as any)?.groundSeed ?? 42;
+  // Calculate anchor positions (center of each corner piloti rect)
+  const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
+  const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
+  const leftNivelY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const rightNivelY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
 
-  if (oldGroundLine) group.remove(oldGroundLine);
-  if (oldGroundFill) group.remove(oldGroundFill);
+  // Create new ground elements
+  const newElements = createGroundElements(
+    leftCenterX, leftNivelY,
+    rightCenterX, rightNivelY,
+    scale, oldSeed,
+    formatPilotiHeight(leftNivel), formatPilotiHeight(rightNivel),
+  );
 
-  // Generate relative points (y near 0) and position with left/top
-  const deltaY = rightGroundY - leftGroundY;
-  const newPoints = generateGroundLinePoints(0, 0, spanWidth, deltaY, seed);
-  const fillDepth = 80 * scale;
-  const maxDeltaY = Math.max(0, deltaY);
-  const fillPts = [...newPoints, { x: spanWidth, y: maxDeltaY + fillDepth }, { x: 0, y: fillDepth }];
-
-  // Create new ground objects
-  const newFill = new Polygon(fillPts, {
-    fill: 'rgba(139, 105, 20, 0.15)',
-    stroke: 'transparent',
-    strokeWidth: 0,
-    selectable: false,
-    evented: false,
-    left: leftX,
-    top: minGroundY,
-  });
-  (newFill as any).isGroundFill = true;
-
-  const newLine = new Polyline(newPoints, {
-    fill: 'transparent',
-    stroke: '#8B6914',
-    strokeWidth: 2.5,
-    strokeUniform: true,
-    selectable: false,
-    evented: false,
-    left: leftX,
-    top: minGroundY,
-  });
-  (newLine as any).isGroundLine = true;
-  (newLine as any).groundSeed = seed;
-
-  group.add(newFill, newLine);
+  newElements.forEach(obj => group.add(obj));
   refreshHouseGroupRendering(group);
 }
 
