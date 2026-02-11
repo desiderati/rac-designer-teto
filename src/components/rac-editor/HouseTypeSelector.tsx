@@ -78,7 +78,7 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md" hideCloseButton>
+        <DialogContent className="sm:max-w-sm" hideCloseButton>
           <DialogHeader className="text-center">
             <DialogTitle className="text-center">Escolha o Tipo de Casa</DialogTitle>
           </DialogHeader>

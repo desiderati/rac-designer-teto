@@ -189,17 +189,17 @@ export function GenericEditor({
 
   return (
     <div
-      className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl min-w-[220px]"
+      className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl min-w-[260px]"
       style={{ left: pos.x, top: pos.y }}
     >
       {/* Draggable header */}
       <div
-        className="flex items-center gap-2 px-3 py-2 cursor-move select-none"
+        className="flex items-center gap-2 px-4 py-3 cursor-move select-none"
         onMouseDown={handleDragStart}
       >
         <span className="font-bold text-sm">{title}</span>
       </div>
-      <div className="p-3 pt-0">
+      <div className="p-4 pt-0">
         {editorContent}
       </div>
     </div>
