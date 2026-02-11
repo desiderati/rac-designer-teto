@@ -1119,8 +1119,8 @@ export function updateGroundInGroup(group: Group): void {
   const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
   if (!leftRect || !rightRect) return;
 
-  const leftNivel = leftRect.pilotiNivel * 100 ?? 30;
-  const rightNivel = rightRect.pilotiNivel * 100 ?? 30;
+  const leftNivel = (leftRect.pilotiNivel ?? 0.3) * 100;
+  const rightNivel = (rightRect.pilotiNivel ?? 0.3) * 100;
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 
