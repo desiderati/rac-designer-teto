@@ -332,7 +332,7 @@ export function PilotiEditor({
             // No next piloti — close
             onClose();
           }
-        }, 300);
+        }, 180);
       }
     };
 
