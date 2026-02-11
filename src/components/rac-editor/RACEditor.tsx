@@ -1261,8 +1261,8 @@ export function RACEditor() {
             const nw = this.width! * this.scaleX!;
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
-                // Reset text scale to prevent deformation
-                child.set({ scaleX: 1, scaleY: 1 });
+                // Reset text scale and re-center above the line
+                child.set({ scaleX: 1, scaleY: 1, left: 0, top: -20 });
               } else if (child.type === 'line') {
                 // Standalone Line object - adjust endpoints
                 const lineObj = child as Line;
