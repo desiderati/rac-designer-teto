@@ -41,6 +41,11 @@ export const customProps = [
   "isPilotiSizeLabel",
   "isHouseBorderEdge",
   "edgeSide",
+  "isGroundLine",
+  "isGroundFill",
+  "groundSeed",
+  "isRightSide",
+  "isFlippedHorizontally",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -54,6 +59,9 @@ export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
 // Colors for master piloti (same as door - light brown)
 export const MASTER_PILOTI_FILL = "#D4A574";
 export const MASTER_PILOTI_STROKE = "#8B4513";
+
+// Corner piloti IDs (A1, A4, C1, C4) - only these can be master and have nivel
+export const CORNER_PILOTI_IDS = ['piloti_0_0', 'piloti_3_0', 'piloti_0_2', 'piloti_3_2'];
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
@@ -205,8 +213,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (text as any).pilotiId = pilotiId;
       (text as any).isPilotiText = true;
 
-      // Text for nivel (only visible when isMaster = true)
-      const nivelText = new IText("", {
+      // Text for nivel (always visible for corner pilotis)
+      const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+      const nivelText = new IText(isCorner ? `Nível = ${formatPilotiHeight(defaultNivel)}` : "", {
         fontSize: 11 * s,
         fontFamily: "Arial",
         fill: "#8B4513",
@@ -216,7 +225,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         top: y + rad + 12 * s,
         editable: false,
         selectable: false,
-        visible: false,
+        visible: isCorner,
       });
       (nivelText as any).myType = "pilotiNivelText";
       (nivelText as any).pilotiId = pilotiId;
@@ -456,7 +465,8 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
           obj.set("stroke", obj.isPilotiRect ? "#333" : "black");
           obj.set("strokeWidth", obj.isPilotiRect ? 2 : 1.5 * 0.6);
         }
-        if (obj.isPilotiNivelText) {
+        // Keep nivel text visible for corner pilotis even when losing master status
+        if (obj.isPilotiNivelText && !CORNER_PILOTI_IDS.includes(obj.pilotiId)) {
           obj.set("text", "");
           obj.set("visible", false);
         }
@@ -483,7 +493,8 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
         }
       }
       if (obj.isPilotiNivelText) {
-        if (isMaster) {
+        const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+        if (isCorner) {
           obj.set("text", `Nível = ${formatPilotiHeight(nivel)}`);
           obj.set("visible", true);
         } else {
@@ -698,6 +709,37 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     elements.push(doorObj, w2);
   }
 
+  // Add ground line and fill for terrain visualization
+  const defaultNivelVal = 0.3;
+  const groundSeed = flipHorizontal ? 42 : 137;
+  const groundLeftY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const groundRightY = groundLeftY;
+  const groundPoints = generateGroundLinePoints(0, groundLeftY, bodyW, groundRightY, groundSeed);
+  const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
+  const fillPoints = [...groundPoints, { x: bodyW, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
+
+  const groundFillObj = new Polygon(fillPoints, {
+    fill: 'rgba(139, 105, 20, 0.15)',
+    stroke: 'transparent',
+    strokeWidth: 0,
+    selectable: false,
+    evented: false,
+  });
+  (groundFillObj as any).isGroundFill = true;
+
+  const groundLineObj = new Polyline(groundPoints, {
+    fill: 'transparent',
+    stroke: '#8B6914',
+    strokeWidth: 2.5,
+    strokeUniform: true,
+    selectable: false,
+    evented: false,
+  });
+  (groundLineObj as any).isGroundLine = true;
+  (groundLineObj as any).groundSeed = groundSeed;
+
+  elements.push(groundFillObj, groundLineObj);
+
   // Add pilotLabels last so they render on top of everything
   elements.push(...pilotLabels);
   
@@ -832,6 +874,37 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     elements.push(windowObj, doorObj);
   }
 
+  // Add ground line and fill for terrain visualization
+  const defaultNivelVal = 0.3;
+  const groundSeed = isRightSide ? 314 : 217;
+  const groundLeftY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const groundRightY = groundLeftY;
+  const groundPoints = generateGroundLinePoints(0, groundLeftY, sideWidth, groundRightY, groundSeed);
+  const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
+  const fillPoints = [...groundPoints, { x: sideWidth, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
+
+  const groundFillObj = new Polygon(fillPoints, {
+    fill: 'rgba(139, 105, 20, 0.15)',
+    stroke: 'transparent',
+    strokeWidth: 0,
+    selectable: false,
+    evented: false,
+  });
+  (groundFillObj as any).isGroundFill = true;
+
+  const groundLineObj = new Polyline(groundPoints, {
+    fill: 'transparent',
+    stroke: '#8B6914',
+    strokeWidth: 2.5,
+    strokeUniform: true,
+    selectable: false,
+    evented: false,
+  });
+  (groundLineObj as any).isGroundLine = true;
+  (groundLineObj as any).groundSeed = groundSeed;
+
+  elements.push(groundFillObj, groundLineObj);
+
   // Add pilotLabels last so they render on top of everything
   elements.push(...pilotLabels);
   
@@ -845,9 +918,123 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   });
   (group as any).myType = "house";
   (group as any).houseView = "side";
+  (group as any).isRightSide = isRightSide;
   group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
 
   return group;
+}
+
+// Seeded random number generator for deterministic ground line variation
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+// Generate irregular ground line points between two endpoints
+function generateGroundLinePoints(
+  leftX: number, leftY: number,
+  rightX: number, rightY: number,
+  seed: number,
+  numSegments: number = 12,
+): { x: number; y: number }[] {
+  const rng = seededRandom(seed);
+  const points: { x: number; y: number }[] = [{ x: leftX, y: leftY }];
+
+  for (let i = 1; i < numSegments; i++) {
+    const t = i / numSegments;
+    const baseX = leftX + (rightX - leftX) * t;
+    const baseY = leftY + (rightY - leftY) * t;
+    const variation = (rng() - 0.5) * 6;
+    points.push({ x: baseX, y: baseY + variation });
+  }
+
+  points.push({ x: rightX, y: rightY });
+  return points;
+}
+
+// Get corner piloti IDs for a given elevation view
+function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string } | null {
+  const houseView = (group as any).houseView;
+
+  if (houseView === 'front' || houseView === 'back') {
+    const isFlipped = (group as any).isFlippedHorizontally;
+    if (isFlipped) {
+      return { leftId: 'piloti_3_0', rightId: 'piloti_0_0' };
+    }
+    return { leftId: 'piloti_0_2', rightId: 'piloti_3_2' };
+  }
+
+  if (houseView === 'side') {
+    const isRight = (group as any).isRightSide;
+    if (isRight) {
+      return { leftId: 'piloti_3_2', rightId: 'piloti_3_0' };
+    }
+    return { leftId: 'piloti_0_0', rightId: 'piloti_0_2' };
+  }
+
+  return null;
+}
+
+// Update ground line/fill in an elevation view group based on corner piloti nivel values
+export function updateGroundInGroup(group: Group): void {
+  const corners = getViewCornerPilotiIds(group);
+  if (!corners) return;
+
+  const objects = group.getObjects();
+  const leftRect = objects.find((o: any) => o.pilotiId === corners.leftId && o.isPilotiRect) as any;
+  const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
+  if (!leftRect || !rightRect) return;
+
+  const leftNivel = leftRect.pilotiNivel ?? 0.3;
+  const rightNivel = rightRect.pilotiNivel ?? 0.3;
+  const baseHeight = leftRect.pilotiBaseHeight || 60;
+  const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
+
+  const leftGroundY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const rightGroundY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
+
+  const leftX = (leftRect.left ?? 0) - 10;
+  const rightX = (rightRect.left ?? 0) + (rightRect.width ?? 30) + 10;
+
+  // Remove existing ground objects
+  const oldGroundLine = objects.find((o: any) => o.isGroundLine);
+  const oldGroundFill = objects.find((o: any) => o.isGroundFill);
+  const seed = (oldGroundLine as any)?.groundSeed ?? 42;
+
+  if (oldGroundLine) group.remove(oldGroundLine);
+  if (oldGroundFill) group.remove(oldGroundFill);
+
+  // Generate new points
+  const newPoints = generateGroundLinePoints(leftX, leftGroundY, rightX, rightGroundY, seed);
+  const bottomY = Math.max(leftGroundY, rightGroundY) + 80 * scale;
+  const fillPts = [...newPoints, { x: rightX, y: bottomY }, { x: leftX, y: bottomY }];
+
+  // Create new ground objects
+  const newFill = new Polygon(fillPts, {
+    fill: 'rgba(139, 105, 20, 0.15)',
+    stroke: 'transparent',
+    strokeWidth: 0,
+    selectable: false,
+    evented: false,
+  });
+  (newFill as any).isGroundFill = true;
+
+  const newLine = new Polyline(newPoints, {
+    fill: 'transparent',
+    stroke: '#8B6914',
+    strokeWidth: 2.5,
+    strokeUniform: true,
+    selectable: false,
+    evented: false,
+  });
+  (newLine as any).isGroundLine = true;
+  (newLine as any).groundSeed = seed;
+
+  group.add(newFill, newLine);
+  refreshHouseGroupRendering(group);
 }
 
 export function createLine(canvas: FabricCanvas): Line {
