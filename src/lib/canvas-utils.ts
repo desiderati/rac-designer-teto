@@ -904,15 +904,20 @@ export function createArrow(canvas: FabricCanvas): Group {
 
   group.on("scaling", function (this: Group) {
     const nw = this.width! * this.scaleX!;
-    const lineRect = this._objects[0] as Rect;
-    const headTriangle = this._objects[1] as Triangle;
-    lineRect.set({ width: nw });
-    headTriangle.set({ 
-      left: nw / 2, 
-      width: originalHeadW, 
-      height: originalHeadH, 
-      scaleX: 1, 
-      scaleY: 1 
+    this._objects.forEach((child: any) => {
+      if (child.type === 'rect') {
+        child.set({ width: nw });
+      } else if (child.type === 'triangle') {
+        child.set({ 
+          left: nw / 2, 
+          width: originalHeadW, 
+          height: originalHeadH, 
+          scaleX: 1, 
+          scaleY: 1 
+        });
+      } else if (child.myType === 'lineArrowLabel') {
+        child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
+      }
     });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
   });
@@ -956,7 +961,7 @@ export function createDimension(canvas: FabricCanvas, position?: { x: number; y:
     fontFamily: "Arial",
     fill: color,
     backgroundColor: "rgba(255,255,255,0.8)",
-    top: -15,
+    top: -20,
     originX: "center",
     originY: "center",
     editable: false,
@@ -983,6 +988,11 @@ export function createDimension(canvas: FabricCanvas, position?: { x: number; y:
     (this._objects[0] as Line).set({ x1: -nw / 2, x2: nw / 2 });
     (this._objects[1] as Line).set({ left: -nw / 2 });
     (this._objects[2] as Line).set({ left: nw / 2 });
+    // Keep text label undeformed and at fixed offset
+    const textObj = this._objects[3];
+    if (textObj) {
+      textObj.set({ top: -20, scaleX: 1, scaleY: 1 });
+    }
     this.set({ width: nw, scaleX: 1, scaleY: 1 });
   });
 
