@@ -1023,8 +1023,8 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
-    left: leftCenterX - xSize - 4 * s,
-    top: leftNivelY,
+    left: leftCenterX,
+    top: leftNivelY + xSize + 4 * s,
     originX: "right",
     originY: "center",
     selectable: false,
@@ -1037,8 +1037,8 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
-    left: rightCenterX + xSize + 4 * s,
-    top: rightNivelY,
+    left: rightCenterX,
+    top: rightNivelY + xSize + 4 * s,
     originX: "left",
     originY: "center",
     selectable: false,
@@ -1048,7 +1048,7 @@ function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
-  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed);
+  const groundPtsAbs = generateGroundLinePoints(leftX - 20, leftNivelY, rightX - 20, rightNivelY, seed);
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
@@ -1070,11 +1070,7 @@ function createGroundElements(
 
   const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
   const fillBottomY = maxPilotiBottomY != null ? maxPilotiBottomY + 50 * s : maxY + 500 * s;
-  const fillPtsAbs = [
-    ...groundPtsAbs,
-    { x: rightCenterX, y: fillBottomY },
-    { x: leftCenterX, y: fillBottomY },
-  ];
+  const fillPtsAbs = [...groundPtsAbs, { x: rightCenterX, y: fillBottomY }, { x: leftCenterX, y: fillBottomY }];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
   const fMinY = Math.min(...fillPtsAbs.map((p) => p.y));
@@ -1144,9 +1140,9 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   // Calculate anchor positions (center of each corner piloti rect)
-  const leftX = (leftRect.left ?? 0);
+  const leftX = leftRect.left ?? 0;
   const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
-  const rightX = (rightRect.left ?? 0);
+  const rightX = rightRect.left ?? 0;
   const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
   const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
