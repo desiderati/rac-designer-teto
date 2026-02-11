@@ -1307,9 +1307,14 @@ export function RACEditor() {
           // Scaling handler: expand horizontally, keep text undeformed
           newGroup.on('scaling', function (this: Group) {
             const nw = this.width! * this.scaleX!;
+            const isArrowGroup = this._objects.some((c: any) => c.type === 'group' && c.myType !== 'lineArrowLabel');
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
-                child.set({ scaleX: 1, scaleY: 1 });
+                if (isArrowGroup) {
+                  child.set({ scaleX: 1, scaleY: 1 });
+                } else {
+                  child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
+                }
               } else if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
