@@ -77,7 +77,7 @@ export function PilotiMinimap({ pilotiData, hoveredSide }: PilotiMinimapProps) {
               }}
             >
               <span className="text-[8px] font-medium text-foreground/70 leading-none">
-                {data.height.toFixed(1)}
+                {name}
               </span>
             </div>
           );
