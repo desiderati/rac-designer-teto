@@ -1526,7 +1526,7 @@ export function RACEditor() {
 
       <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <DialogHeader>
+          <DialogHeader className="space-y-4">
             <DialogTitle className="text-center">Reiniciar Canvas</DialogTitle>
             <DialogDescription>
               Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
