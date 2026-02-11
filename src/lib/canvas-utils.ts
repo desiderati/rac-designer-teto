@@ -719,8 +719,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundSeed = flipHorizontal ? 42 : 137;
   const leftCenterX = margin;
   const rightCenterX = margin + 3 * step;
-  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
-  const nivelY = roofH + bodyH + defaultNivelVal;
+  const nivelY = roofH + bodyH + defaultNivelVal * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
@@ -1119,8 +1118,8 @@ export function updateGroundInGroup(group: Group): void {
   const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
   if (!leftRect || !rightRect) return;
 
-  const leftNivel = (leftRect.pilotiNivel ?? 0.3) * 100;
-  const rightNivel = (rightRect.pilotiNivel ?? 0.3) * 100;
+  const leftNivel = leftRect.pilotiNivel ?? 0.3;
+  const rightNivel = rightRect.pilotiNivel ?? 0.3;
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 
@@ -1134,12 +1133,13 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   // Calculate anchor positions (center of each corner piloti rect)
-  const leftCenterX = leftRect.left ?? 0;
-  const rightCenterX = rightRect.left ?? 0;
+  const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
+  const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
+  // Place ground below pilotis (no overlap) - add full piloti height first
   const leftPilotH = leftRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
   const rightPilotH = rightRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
-  const leftNivelY = (leftRect.top ?? 0) + leftPilotH + leftNivel;
-  const rightNivelY = (rightRect.top ?? 0) + rightPilotH + rightNivel;
+  const leftNivelY = (leftRect.top ?? 0) + leftPilotH + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const rightNivelY = (rightRect.top ?? 0) + rightPilotH + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
 
   // Create new ground elements (Polyline/Polygon + markers/labels)
   const newElements = createGroundElements(
