@@ -1,41 +1,50 @@
 
 
-# Padronizar padding interno das modais
+# Corrigir comportamento e consistencia das modais
 
-## Objetivo
+## Problemas identificados
 
-Usar o padding da modal "Posicionar Vista Lateral" (SideSelector) como referencia para todas as demais modais, exceto o editor de Pilotis.
+1. **Reiniciar Canvas (AlertDialog)**: Nao fecha ao clicar fora - por padrao, AlertDialog do Radix bloqueia interacao externa.
+2. **GenericEditor (Editar Objeto / Linha Reta / Distancia)**: Sao paineis `div` flutuantes sem overlay, portanto nao tem ESC nem clique-fora. Titulos nao estao centralizados.
+3. **Editar Objeto so aparece uma vez**: Apos fechar o editor, `objectNameSelection` e limpo em `handleObjectNameEditorClose`, mas o proximo duplo-clique pode nao estar reabrindo porque o estado `isObjectNameEditorOpen` nao reseta corretamente quando o painel e fechado por meios externos.
+4. **Tamanho dos titulos inconsistente**: DialogTitle usa `text-lg` (padrao do componente), GenericEditor usa `text-sm`.
 
-## Modais afetadas
+## Alteracoes
 
-1. **HouseTypeSelector** (Escolha o Tipo de Casa)
-2. **SettingsModal** (Configuracoes)
-3. **GenericEditor** (Editar Linha Reta / Editar Seta Simples / Editar Objeto / Editar Distancia) - apenas o painel desktop
-4. **AlertDialog de Reiniciar Canvas** (em RACEditor.tsx)
-5. **SideSelector modo choose-instance** (Qual dos quadrados fechados...)
+### 1. `src/components/ui/alert-dialog.tsx`
+- Adicionar handler `onPointerDownOutside` no `AlertDialogPrimitive.Content` que chama o `onOpenChange(false)` via evento. Como o AlertDialog nao suporta isso nativamente, a solucao e adicionar um click handler no `AlertDialogOverlay` que dispara o fechamento.
+- Alternativa mais simples: trocar de AlertDialog para Dialog nos dois casos (Reiniciar Canvas e Desagrupar Casa) em `RACEditor.tsx`, ja que Dialog fecha ao clicar fora por padrao.
 
-## Referencia: SideSelector (modo position)
+### 2. `src/components/rac-editor/RACEditor.tsx`
+- Substituir os dois AlertDialog (Reiniciar Canvas e Desagrupar Casa) por Dialog padrao, mantendo os botoes Cancelar/Confirmar. Dialog fecha ao clicar fora automaticamente.
 
-- `DialogContent className="sm:max-w-sm" hideCloseButton` com padding padrao `p-6`
-- Conteudo envolvido em `mx-auto w-full max-w-xs`
-- Titulo centralizado
+### 3. `src/components/rac-editor/GenericEditor.tsx`
+- **ESC para fechar**: Adicionar `useEffect` com listener de `keydown` para a tecla Escape que chama `handleCancel()`.
+- **Clique fora para fechar**: Adicionar um overlay transparente (`fixed inset-0 z-40`) atras do painel flutuante (`z-50`). Clicar no overlay chama `handleCancel()`.
+- **Centralizar titulos**: Alterar o titulo de `text-left` implicito para `text-center` e usar `font-semibold text-base` (ou `text-lg`) para alinhar com o tamanho dos DialogTitle.
+- **Bug "so aparece uma vez"**: Verificar se o overlay/clique-fora esta chamando `handleCancel` corretamente, garantindo que os estados `isOpen` e `selection` sejam limpos para permitir reabrir.
 
-## Alteracoes por arquivo
+### 4. Consistencia de tamanho de titulo
+- GenericEditor: trocar de `font-bold text-sm` para `font-semibold text-lg` no titulo, igualando ao `DialogTitle` padrao.
 
-### 1. `src/components/rac-editor/HouseTypeSelector.tsx`
-- Alterar `sm:max-w-md` para `sm:max-w-sm` no DialogContent (alinhar largura maxima)
+## Detalhes tecnicos
 
-### 2. `src/components/rac-editor/SettingsModal.tsx`
-- Alterar `max-w-md` para `sm:max-w-sm` no DialogContent (alinhar largura e usar breakpoint consistente)
+### GenericEditor - overlay + ESC (desktop)
+```text
++---------------------------+
+| Overlay (fixed inset-0    |
+|   z-40, transparent)      |
+|   onClick = handleCancel  |
+|                           |
+|   +--Painel z-50-------+  |
+|   | Titulo (centrado)   |  |
+|   | Input + Cores       |  |
+|   | Cancelar / Aplicar  |  |
+|   +--------------------+  |
++---------------------------+
+```
 
-### 3. `src/components/rac-editor/GenericEditor.tsx` (painel desktop)
-- Ajustar o header draggable de `px-3 py-2` para `px-4 py-3`
-- Ajustar o body de `p-3 pt-0` para `p-4 pt-0`
-- Ajustar `min-w-[220px]` para `min-w-[260px]` para melhor proporcao
-
-### 4. `src/components/rac-editor/RACEditor.tsx` (AlertDialog Reiniciar)
-- Alterar `max-w-md` para `sm:max-w-sm` no AlertDialogContent
-
-### 5. `src/components/rac-editor/SideSelector.tsx` (modo choose-instance)
-- Ja usa `sm:max-w-sm`, mas falta `hideCloseButton` no DialogContent (linha 164) - adicionar para consistencia
+### RACEditor - Dialog em vez de AlertDialog
+- Substituir `AlertDialog` + `AlertDialogContent` por `Dialog` + `DialogContent` para Reiniciar Canvas e Desagrupar Casa
+- Manter botoes Cancelar e Confirmar/Desagrupar manualmente (sem depender de AlertDialogAction/Cancel)
 
