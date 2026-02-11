@@ -328,7 +328,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             <DialogHeader className="text-center">
               <DialogTitle className="text-lg text-center">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             </DialogHeader>
-            {content}
+            <div className="pt-2">{content}</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -343,7 +343,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
             </SheetHeader>
-            {content}
+            <div className="pt-2">{content}</div>
           </div>
         </SheetContent>
       </Sheet>
