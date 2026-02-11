@@ -1,70 +1,52 @@
 
 
-## Mudanca no Sistema de Nivel e Representacao do Solo
+## Correcao do leftX e rightX no updateGroundInGroup
 
-### Resumo das Mudancas
+### Problema
 
-Tres areas principais serao modificadas:
+Na funcao `updateGroundInGroup` (linha 1142-1144 de `canvas-utils.ts`), as variaveis `leftX` e `rightX` estao recebendo o `left` dos retangulos dos pilotis de canto, mas deveriam receber os limites extremos da vista (como e feito na criacao inicial).
 
-1. **Restricao de Mestre e Nivel**: Apenas os pilotis de canto (A1, A4, C1, C4) podem ser mestre e terao o campo "Nivel do piloti (m)" sempre visivel
-2. **Desvinculacao do Nivel do status de Mestre**: O campo de nivel passa a ser independente do switch de mestre
-3. **Linha do solo nas vistas de elevacao**: Desenhar uma linha irregular representando o terreno, conectando os niveis dos pilotis de canto
+Na criacao inicial:
+- Front/Back: `leftX = 0`, `rightX = 2 * margin + 3 * step` (largura total)
+- Side: `leftX = 0`, `rightX = sideWidth` (largura total)
 
----
+No update: `leftX = leftRect.left` e `rightX = rightRect.left` (posicao do piloti, nao a borda da vista)
 
-### 1. PilotiEditor - Interface do Editor
+### Solucao
 
-**Arquivo: `src/components/rac-editor/PilotiEditor.tsx`**
+**Arquivo: `src/lib/canvas-utils.ts`** - funcao `updateGroundInGroup`
 
-- Definir constante `CORNER_PILOTI_IDS` com `['piloti_0_0', 'piloti_3_0', 'piloti_0_2', 'piloti_3_2']` (A1, A4, C1, C4)
-- Computar `isCornerPiloti` baseado no `pilotiId` atual
-- O switch "Definir piloti como mestre?" so aparece se `isCornerPiloti === true`
-- O campo "Nivel do piloti (m)" (renomeado de "Nivel do mestre") aparece sempre para pilotis de canto, independente do status de mestre
-- Remover a condicao `tempIsMaster &&` que atualmente esconde o campo de nivel
-- Atualizar o label de "Nivel do mestre (m)" para "Nivel do piloti (m)"
-- Atualizar a descricao para algo como "Distancia do solo ao topo do piloti"
+Substituir o calculo de `leftX` e `rightX` (linhas 1142-1145) para derivar os limites da vista a partir dos objetos estruturais do grupo:
 
-### 2. canvas-utils - Logica de Dados
+1. Encontrar o objeto da parede (`isHouseBody` ou `isHouseRoof`) ou, alternativamente, o retangulo que define a largura da vista
+2. Usar `left = 0` como `leftX` (o grupo sempre comeca em 0 internamente) e `left + width` do objeto mais largo como `rightX`
+3. Como fallback, varrer todos os objetos nao-ground do grupo e pegar `min(left)` e `max(left + width)` para determinar os extremos
 
-**Arquivo: `src/lib/canvas-utils.ts`**
+Codigo aproximado:
+```typescript
+// Encontrar limites da vista (parede ou telhado definem a largura)
+const structuralObjs = objects.filter((o: any) => !o.isGroundElement && !o.isPilotiRect && !o.isPilotiLabel);
+let viewLeftX = Infinity;
+let viewRightX = -Infinity;
+for (const o of structuralObjs) {
+  const oLeft = (o as any).left ?? 0;
+  const oWidth = (o as any).width ?? 0;
+  if (oLeft < viewLeftX) viewLeftX = oLeft;
+  if (oLeft + oWidth > viewRightX) viewRightX = oLeft + oWidth;
+}
+if (!isFinite(viewLeftX)) viewLeftX = 0;
+if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRect.width ?? 30) / 2;
 
-- Na funcao `createHouseTop`: os pilotis de canto (A1, A4, C1, C4) sempre iniciam com nivel 0.3 e o texto de nivel sempre visivel
-- Na funcao `updatePilotiMaster`: desacoplar a visibilidade do nivel do status de mestre. O texto "Nivel = X,X" deve ser visivel para os 4 pilotis de canto sempre, nao apenas quando sao mestres
-- Na funcao `createHouseFrontBack` e `createHouseSide`: apos criar os pilotis, adicionar uma linha irregular (Polyline) representando o solo, conectando as posicoes de nivel dos dois pilotis de canto da vista
-- A linha do solo sera um `Polyline` com pontos intermediarios gerados proceduralmente (ondulacoes suaves entre os dois extremos) para simular terreno irregular
-- Adicionar custom property `isGroundLine = true` nos objetos de solo para identificacao
+const leftX = viewLeftX;
+const rightX = viewRightX;
+```
 
-### 3. house-manager - Sincronizacao
+As variaveis `leftCenterX` e `rightCenterX` permanecem como estao (centro dos pilotis de canto).
 
-**Arquivo: `src/lib/house-manager.ts`**
+### Secao tecnica
 
-- Atualizar `updatePiloti` para que, ao alterar o nivel de um piloti de canto, recalcule e reposicione a linha do solo nas vistas de elevacao afetadas
-- Atualizar `applyPilotiDataToGroup` para aplicar nivel a pilotis de canto independente de isMaster
-- O nivel dos pilotis de canto agora e um campo obrigatorio (sempre 0.3 por padrao, e o menor valor possível é 0.2)
-
-### 4. Linha do Solo - Detalhes Tecnicos
-
-A linha do solo em cada vista de elevacao:
-
-- **Front/Back** (4 pilotis): A linha conecta o nivel do piloti da esquerda ao da direita. O nivel define a posicao Y do solo em relacao ao topo do piloti (nivel = distancia do solo ao topo). Logo, solo_Y = topo_piloti + (altura_piloti - nivel_em_pixels)
-- **Laterais** (3 pilotis): Mesma logica, conectando os dois pilotis de canto (primeiro e ultimo)
-- A linha tera pontos intermediarios com pequenas variacoes aleatorias (mas deterministicas, baseadas em seed do pilotiId) para parecer terreno irregular
-- A area abaixo da linha do solo sera preenchida com cor escura semi-transparente (simulando terra)
-- Os pilotis continuam visiveis na totalidade (parte acima e parte abaixo do solo)
-
-Mapeamento de quais pilotis de canto estao em cada vista:
-- Front (bottom/normal): C1 (esquerda) e C4 (direita)
-- Front (top/flipped): A4 (esquerda) e A1 (direita)
-- Side left: A1 (esquerda) e C1 (direita)
-- Side right: C4 (esquerda) e A4 (direita)
-
-### 5. Propriedades Customizadas
-
-Adicionar ao array `customProps`:
-- `isGroundLine` - para identificar a polyline do solo
-- `isGroundFill` - para identificar o preenchimento de terra
-
-### 6. Impacto no 3D Viewer
-
-O componente `House3DScene.tsx` tambem precisara ser atualizado futuramente para representar o solo, mas esta fora do escopo imediato desta tarefa (foco no canvas 2D).
+- Linhas afetadas: 1142-1145 em `src/lib/canvas-utils.ts`
+- Apenas a funcao `updateGroundInGroup` precisa ser alterada
+- A criacao inicial ja esta correta
+- O `generateGroundLinePoints` recebe `leftX` e `rightX` como extremos da polyline, entao a correcao garante que o terreno cobre toda a largura da vista
 
