@@ -1011,22 +1011,13 @@ function createGroundElements(
   (rLabel as any).isGroundElement = true;
   (rLabel as any).isNivelLabel = true;
 
-  // --- Polyline + Polygon (deterministic positioning inside groups)
+  // --- Polyline + Polygon using ABSOLUTE coordinates (no left/top override).
+  // Inside Fabric groups, setting both points AND left/top causes double-offset.
+  // By using absolute points only, the group recalculates positions consistently
+  // with all other objects (Rect, Line, Text, etc.).
   const groundPtsAbs = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
 
-  // Compute bounds to convert to relative points and position with left/top.
-  const minX = Math.min(...groundPtsAbs.map((p) => p.x));
-  const minY = Math.min(...groundPtsAbs.map((p) => p.y));
-  const maxX = Math.max(...groundPtsAbs.map((p) => p.x));
-  const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
-
-  const groundPtsRel = groundPtsAbs.map((p) => ({ x: p.x - minX, y: p.y - minY }));
-
-  const groundLine = new Polyline(groundPtsRel, {
-    left: minX,
-    top: minY,
-    originX: 'left',
-    originY: 'top',
+  const groundLine = new Polyline(groundPtsAbs, {
     fill: 'transparent',
     stroke: lineColor,
     strokeWidth: 2.5,
@@ -1039,22 +1030,15 @@ function createGroundElements(
   (groundLine as any).isGroundLine = true;
   (groundLine as any).groundSeed = seed;
 
+  const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
   const fillDepth = 50 * s;
   const fillPtsAbs = [
     ...groundPtsAbs,
-    { x: maxX, y: maxY + fillDepth },
-    { x: minX, y: maxY + fillDepth },
+    { x: rightCenterX, y: maxY + fillDepth },
+    { x: leftCenterX, y: maxY + fillDepth },
   ];
 
-  const fillMinX = Math.min(...fillPtsAbs.map((p) => p.x));
-  const fillMinY = Math.min(...fillPtsAbs.map((p) => p.y));
-  const fillPtsRel = fillPtsAbs.map((p) => ({ x: p.x - fillMinX, y: p.y - fillMinY }));
-
-  const groundFill = new Polygon(fillPtsRel, {
-    left: fillMinX,
-    top: fillMinY,
-    originX: 'left',
-    originY: 'top',
+  const groundFill = new Polygon(fillPtsAbs, {
     fill: 'rgba(139, 105, 20, 0.10)',
     stroke: 'transparent',
     strokeWidth: 0,
