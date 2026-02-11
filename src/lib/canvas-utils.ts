@@ -1014,19 +1014,8 @@ function createGroundElements(
   (rLabel as any).isGroundElement = true;
   (rLabel as any).isNivelLabel = true;
 
-  // --- Polyline + Polygon: follow the same pattern as roofFill/bodyStroke.
-  // Use absolute points in the local coordinate system + set left/top to
-  // the top-left corner of the point bounding box. Do NOT set originX/originY.
-  // This is exactly how Fabric.js groups handle Polyline/Polygon correctly.
-  const groundPtsAbs = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
-
-  const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
-  const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
-
-  const groundLine = new Polyline(groundPtsAbs, {
-    left: gMinX,
-    top: gMinY,
-    fill: 'transparent',
+  // --- Simple straight Line between the two corner pilotis (test) ---
+  const groundLine = new Line([leftCenterX, leftNivelY, rightCenterX, rightNivelY], {
     stroke: lineColor,
     strokeWidth: 2.5,
     strokeUniform: true,
@@ -1038,31 +1027,25 @@ function createGroundElements(
   (groundLine as any).isGroundLine = true;
   (groundLine as any).groundSeed = seed;
 
-  const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
-  const fillDepth = 50 * s;
-  const fillPtsAbs = [
-    ...groundPtsAbs,
-    { x: rightCenterX, y: maxY + fillDepth },
-    { x: leftCenterX, y: maxY + fillDepth },
-  ];
+  // --- Polyline + Polygon DORMANT (kept for future use) ---
+  // const groundPtsAbs = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
+  // const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
+  // const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
+  // const groundLine_poly = new Polyline(groundPtsAbs, {
+  //   left: gMinX, top: gMinY, fill: 'transparent', stroke: lineColor,
+  //   strokeWidth: 2.5, strokeUniform: true, selectable: false, evented: false, objectCaching: false,
+  // });
+  // const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
+  // const fillDepth = 50 * s;
+  // const fillPtsAbs = [...groundPtsAbs, { x: rightCenterX, y: maxY + fillDepth }, { x: leftCenterX, y: maxY + fillDepth }];
+  // const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
+  // const fMinY = Math.min(...fillPtsAbs.map((p) => p.y));
+  // const groundFill_poly = new Polygon(fillPtsAbs, {
+  //   left: fMinX, top: fMinY, fill: 'rgba(139, 105, 20, 0.10)', stroke: 'transparent',
+  //   strokeWidth: 0, selectable: false, evented: false, objectCaching: false,
+  // });
 
-  const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
-  const fMinY = Math.min(...fillPtsAbs.map((p) => p.y));
-
-  const groundFill = new Polygon(fillPtsAbs, {
-    left: fMinX,
-    top: fMinY,
-    fill: 'rgba(139, 105, 20, 0.10)',
-    stroke: 'transparent',
-    strokeWidth: 0,
-    selectable: false,
-    evented: false,
-    objectCaching: false,
-  });
-  (groundFill as any).isGroundElement = true;
-  (groundFill as any).isGroundFill = true;
-
-  elements.push(groundFill, groundLine, xL1, xL2, xR1, xR2, lLabel, rLabel);
+  elements.push(groundLine, xL1, xL2, xR1, xR2, lLabel, rLabel);
   return elements;
 }
 
@@ -1131,7 +1114,7 @@ export function updateGroundInGroup(group: Group): void {
     formatPilotiHeight(rightNivel),
   );
 
-  const groundBack = newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
+  const groundBack = newElements.filter((o: any) => o.isGroundLine);
   const groundFront = newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
   // Re-stack so the house/pilotis stay above the terrain fill/line,
