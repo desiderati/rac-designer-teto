@@ -1,50 +1,91 @@
 
 
-# Corrigir comportamento e consistencia das modais
+# Corrigir bug: Editar Objeto so abre uma vez
 
-## Problemas identificados
+## Problema raiz
 
-1. **Reiniciar Canvas (AlertDialog)**: Nao fecha ao clicar fora - por padrao, AlertDialog do Radix bloqueia interacao externa.
-2. **GenericEditor (Editar Objeto / Linha Reta / Distancia)**: Sao paineis `div` flutuantes sem overlay, portanto nao tem ESC nem clique-fora. Titulos nao estao centralizados.
-3. **Editar Objeto so aparece uma vez**: Apos fechar o editor, `objectNameSelection` e limpo em `handleObjectNameEditorClose`, mas o proximo duplo-clique pode nao estar reabrindo porque o estado `isObjectNameEditorOpen` nao reseta corretamente quando o painel e fechado por meios externos.
-4. **Tamanho dos titulos inconsistente**: DialogTitle usa `text-lg` (padrao do componente), GenericEditor usa `text-sm`.
+Quando o usuario edita um objeto (wall) pela primeira vez e aplica um nome, o objeto `Rect` e envolvido em um `Group` com `myType === 'wall'`. No proximo duplo-clique, o alvo e um `Group`, nao mais um `Rect`. A condicao na linha 816 do `Canvas.tsx` exige `target.type === 'rect'`, entao o grupo nunca e reconhecido como wall.
 
-## Alteracoes
+## Correcao
 
-### 1. `src/components/ui/alert-dialog.tsx`
-- Adicionar handler `onPointerDownOutside` no `AlertDialogPrimitive.Content` que chama o `onOpenChange(false)` via evento. Como o AlertDialog nao suporta isso nativamente, a solucao e adicionar um click handler no `AlertDialogOverlay` que dispara o fechamento.
-- Alternativa mais simples: trocar de AlertDialog para Dialog nos dois casos (Reiniciar Canvas e Desagrupar Casa) em `RACEditor.tsx`, ja que Dialog fecha ao clicar fora por padrao.
+### `src/components/rac-editor/Canvas.tsx`
 
-### 2. `src/components/rac-editor/RACEditor.tsx`
-- Substituir os dois AlertDialog (Reiniciar Canvas e Desagrupar Casa) por Dialog padrao, mantendo os botoes Cancelar/Confirmar. Dialog fecha ao clicar fora automaticamente.
+No handler `mouse:dblclick` (linha ~815), expandir a condicao para aceitar tambem grupos com `myType === 'wall'`:
 
-### 3. `src/components/rac-editor/GenericEditor.tsx`
-- **ESC para fechar**: Adicionar `useEffect` com listener de `keydown` para a tecla Escape que chama `handleCancel()`.
-- **Clique fora para fechar**: Adicionar um overlay transparente (`fixed inset-0 z-40`) atras do painel flutuante (`z-50`). Clicar no overlay chama `handleCancel()`.
-- **Centralizar titulos**: Alterar o titulo de `text-left` implicito para `text-center` e usar `font-semibold text-base` (ou `text-lg`) para alinhar com o tamanho dos DialogTitle.
-- **Bug "so aparece uma vez"**: Verificar se o overlay/clique-fora esta chamando `handleCancel` corretamente, garantindo que os estados `isOpen` e `selection` sejam limpos para permitir reabrir.
-
-### 4. Consistencia de tamanho de titulo
-- GenericEditor: trocar de `font-bold text-sm` para `font-semibold text-lg` no titulo, igualando ao `DialogTitle` padrao.
-
-## Detalhes tecnicos
-
-### GenericEditor - overlay + ESC (desktop)
+**Antes:**
 ```text
-+---------------------------+
-| Overlay (fixed inset-0    |
-|   z-40, transparent)      |
-|   onClick = handleCancel  |
-|                           |
-|   +--Painel z-50-------+  |
-|   | Titulo (centrado)   |  |
-|   | Input + Cores       |  |
-|   | Cancelar / Aplicar  |  |
-|   +--------------------+  |
-+---------------------------+
+if (target.type === 'rect' && (target as any).myType === 'wall') {
+  handleObjectNameSelection(target as Rect);
+  return;
+}
 ```
 
-### RACEditor - Dialog em vez de AlertDialog
-- Substituir `AlertDialog` + `AlertDialogContent` por `Dialog` + `DialogContent` para Reiniciar Canvas e Desagrupar Casa
-- Manter botoes Cancelar e Confirmar/Desagrupar manualmente (sem depender de AlertDialogAction/Cancel)
+**Depois:**
+```text
+// Wall pode ser um Rect solo ou um Group (quando ja tem label)
+if ((target as any).myType === 'wall') {
+  if (target.type === 'rect') {
+    handleObjectNameSelection(target as Rect);
+  } else if (target.type === 'group') {
+    // Encontrar o Rect dentro do grupo
+    const wallRect = (target as Group).getObjects().find(
+      (o: any) => o.type === 'rect'
+    ) as Rect | undefined;
+    if (wallRect) {
+      handleObjectNameSelection(wallRect);
+    }
+  }
+  return;
+}
+```
+
+Isso garante que, independente de o wall estar solo ou agrupado com label, o duplo-clique abre o editor corretamente.
+
+### `src/components/rac-editor/Canvas.tsx` - `handleObjectNameSelection`
+
+Na funcao `handleObjectNameSelection` (linha ~724), a busca pelo label existente precisa tambem verificar dentro do grupo pai:
+
+**Antes (linha 725-728):**
+```text
+const existingLabel = canvas.getObjects().find(
+  (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === wall
+) as IText | undefined;
+const currentValue = existingLabel?.text?.trim() || '';
+```
+
+**Depois:**
+```text
+// Verificar label no grupo pai (se o wall ja foi agrupado)
+const parentGroup = (wall as any)._group || (wall as any).group;
+let currentValue = '';
+if (parentGroup) {
+  const existingLabel = parentGroup.getObjects().find(
+    (o: any) => o.myType === 'wallLabel'
+  ) as IText | undefined;
+  currentValue = existingLabel?.text?.trim() || '';
+} else {
+  const existingLabel = canvas.getObjects().find(
+    (obj: any) => obj.myType === 'wallLabel' && obj.labelFor === wall
+  ) as IText | undefined;
+  currentValue = existingLabel?.text?.trim() || '';
+}
+```
+
+Tambem ajustar o calculo de posicao na tela para usar as coordenadas do grupo quando aplicavel (left/top do grupo, nao do rect interno que agora tem coordenadas relativas).
+
+### Posicao do popup
+
+Quando o wall esta dentro de um grupo, suas coordenadas `left`/`top` sao relativas ao grupo. O `screenX`/`screenY` deve usar as coordenadas do grupo pai:
+
+```text
+const wallLeft = parentGroup ? (parentGroup.left || 0) : (wall.left || 0);
+const wallTop = parentGroup ? (parentGroup.top || 0) : (wall.top || 0);
+```
+
+## Resumo das alteracoes
+
+- **1 arquivo**: `src/components/rac-editor/Canvas.tsx`
+  - Expandir condicao de duplo-clique para aceitar groups com `myType === 'wall'`
+  - Ajustar busca de label existente para verificar dentro do grupo
+  - Ajustar calculo de posicao para usar coordenadas do grupo quando aplicavel
 
