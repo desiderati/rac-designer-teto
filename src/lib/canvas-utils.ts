@@ -1139,10 +1139,24 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   // Calculate anchor positions (center of each corner piloti rect)
-  const leftX = leftRect.left ?? 0;
   const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
-  const rightX = rightRect.left ?? 0;
   const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
+
+  // Derive view limits from structural objects (walls, roof) instead of piloti positions
+  const structuralObjs = objects.filter((o: any) => !o.isGroundElement && !o.isPilotiRect && !o.isPilotiLabel);
+  let viewLeftX = Infinity;
+  let viewRightX = -Infinity;
+  for (const o of structuralObjs) {
+    const oLeft = (o as any).left ?? 0;
+    const oWidth = (o as any).width ?? 0;
+    if (oLeft < viewLeftX) viewLeftX = oLeft;
+    if (oLeft + oWidth > viewRightX) viewRightX = oLeft + oWidth;
+  }
+  if (!isFinite(viewLeftX)) viewLeftX = 0;
+  if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRect.width ?? 30) / 2;
+
+  const leftX = viewLeftX;
+  const rightX = viewRightX;
   const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
 
