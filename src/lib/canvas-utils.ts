@@ -719,7 +719,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundSeed = flipHorizontal ? 42 : 137;
   const leftCenterX = margin + pilotW / 2;
   const rightCenterX = margin + 3 * step + pilotW / 2;
-  const nivelY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  // Temporarily place ground below pilotis (no overlap) for debugging
+  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = roofH + bodyH + defaultPilotH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
@@ -875,7 +877,9 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundSeed = isRightSide ? 314 : 217;
   const leftCenterX = pilotW / 2;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  // Temporarily place ground below pilotis (no overlap) for debugging
+  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = wallHeight + defaultPilotH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
@@ -1133,8 +1137,11 @@ export function updateGroundInGroup(group: Group): void {
   // Calculate anchor positions (center of each corner piloti rect)
   const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
   const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
-  const leftNivelY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
-  const rightNivelY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  // Place ground below pilotis (no overlap) - add full piloti height first
+  const leftPilotH = leftRect.height ?? (BASE_PILOTI_HEIGHT_PX * scale);
+  const rightPilotH = rightRect.height ?? (BASE_PILOTI_HEIGHT_PX * scale);
+  const leftNivelY = (leftRect.top ?? 0) + leftPilotH + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const rightNivelY = (rightRect.top ?? 0) + rightPilotH + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
 
   // Create new ground elements (Polyline/Polygon + markers/labels)
   const newElements = createGroundElements(
