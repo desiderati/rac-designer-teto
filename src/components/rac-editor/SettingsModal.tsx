@@ -26,7 +26,7 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" hideCloseButton>
+      <DialogContent className="sm:max-w-sm" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-center">Configurações</DialogTitle>
         </DialogHeader>

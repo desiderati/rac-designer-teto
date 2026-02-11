@@ -1511,7 +1511,7 @@ export function RACEditor() {
       )}
 
       <AlertDialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Reiniciar Canvas</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1528,7 +1528,7 @@ export function RACEditor() {
       </AlertDialog>
 
       <AlertDialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Desagrupar Casa</AlertDialogTitle>
             <AlertDialogDescription>

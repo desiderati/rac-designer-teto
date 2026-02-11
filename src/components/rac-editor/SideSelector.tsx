@@ -161,7 +161,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
     if (!isMobile) {
       return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-          <DialogContent className="sm:max-w-sm">
+          <DialogContent className="sm:max-w-sm" hideCloseButton>
             <div className="mx-auto w-full max-w-xs">
               <DialogHeader className="text-left">
                 <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
