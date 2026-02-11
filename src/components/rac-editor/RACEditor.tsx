@@ -1261,8 +1261,8 @@ export function RACEditor() {
             const nw = this.width! * this.scaleX!;
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
-                // Reset text scale and re-center above the line
-                child.set({ scaleX: 1, scaleY: 1, left: 0, top: -20 });
+                // Reset text scale only - position will be recalculated by triggerLayout
+                child.set({ scaleX: 1, scaleY: 1 });
               } else if (child.type === 'line') {
                 // Standalone Line object - adjust endpoints
                 const lineObj = child as Line;
@@ -1277,7 +1277,8 @@ export function RACEditor() {
                 child.set({ width: nw, scaleX: 1, scaleY: 1 });
               }
             });
-            this.set({ width: nw, scaleX: 1, scaleY: 1 });
+            this.set({ scaleX: 1, scaleY: 1 });
+            this.triggerLayout();
           });
 
           canvas.add(newGroup);
