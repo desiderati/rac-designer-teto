@@ -61,7 +61,7 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
   };
 
   const content = (
-    <div className="flex flex-row gap-4 justify-center">
+    <div className="flex flex-row gap-4 justify-center pt-2">
       <TypeCard
         type="tipo6"
         title="Casa Tipo 6"
