@@ -6,14 +6,12 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -325,13 +323,10 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm" hideCloseButton>
           <div className="mx-auto w-full max-w-xs">
-            <DialogHeader className="text-left">
-              <DialogTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
-              <DialogDescription className="text-sm">
-                Clique no lado da casa onde deseja posicionar esta vista
-              </DialogDescription>
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-lg text-center">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             </DialogHeader>
             {content}
           </div>
@@ -347,9 +342,6 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
           <div className="mx-auto w-full max-w-xs">
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
-              <SheetDescription className="text-sm text-left">
-                Toque no lado da casa onde deseja posicionar esta vista
-              </SheetDescription>
             </SheetHeader>
             {content}
           </div>
