@@ -1,20 +1,20 @@
 
-# Manter posicao do painel de piloti ao navegar
+
+# Corrigir replicacao de altura no canvas ao selecionar piloti
 
 ## Problema
 
-O `PilotiEditor` usa `key={pilotiSelection?.pilotiId ?? 'closed'}` no `RACEditor.tsx` (linha 1401). Isso forca o React a destruir e recriar o componente inteiro toda vez que o piloti selecionado muda (navegacao com setas ou auto-navegacao). Como consequencia, o estado `popoverPos` eh resetado e o painel volta para a posicao inicial, mesmo que o usuario tenha arrastado o painel para outra posicao.
+Ao remover o `key` dinamico do `PilotiEditor`, o componente nao remonta mais quando o piloti muda. Isso causa um problema de sincronizacao: o `useEffect` que sincroniza os valores temporarios a partir das props pode sobrescrever a altura selecionada pelo usuario antes dela ser aplicada ao canvas, pois o efeito roda apos cada mudanca de props (incluindo `currentHeight`).
 
 ## Solucao
 
-1. **Remover o `key` dinamico** em `RACEditor.tsx` (linha 1401) - o `key` baseado no `pilotiId` nao eh mais necessario porque o `PilotiEditor` ja sincroniza o estado interno via `useEffect` quando `pilotiId` muda.
+Adicionar sincronizacao de estado durante o render (render-time state update) no `PilotiEditor.tsx`, garantindo que os valores sincronizem imediatamente quando `pilotiId` muda, sem depender do `useEffect` assincrono. E tambem garantir que cliques de altura sempre atualizem o canvas imediatamente via `houseManager.updatePiloti`, mesmo quando auto-navigate esta desligado.
 
-2. **Ajustar logica de posicao no `PilotiEditor.tsx`** - garantir que `popoverPos` so eh resetado quando o editor fecha e reabre (primeira abertura), nunca durante navegacao entre pilotis. A logica atual com `isFirstOpen` ja faz isso corretamente, entao basta remover o `key` para funcionar.
-
-## Detalhe tecnico
-
-### `src/components/rac-editor/RACEditor.tsx`
-- Linha 1401: remover `key={pilotiSelection?.pilotiId ?? 'closed'}` do componente `PilotiEditor`
+## Detalhes tecnicos
 
 ### `src/components/rac-editor/PilotiEditor.tsx`
-- Nenhuma alteracao necessaria - a logica de `isFirstOpen` + `userDraggedRef` ja preserva a posicao corretamente quando o componente nao eh remontado
+
+1. **Sincronizacao durante render**: No bloco que ja detecta mudanca de `pilotiId` durante render (linhas ~101-104), adicionar chamadas `setTempHeight(currentHeight)` etc. para que React reinicie o render com valores corretos imediatamente (padrao oficial do React para "derived state").
+
+2. **Atualizar canvas ao clicar altura (sem auto-navigate)**: No `handleHeightClick`, quando `autoNavigatePiloti` esta OFF, alem de `setTempHeight(h)`, chamar tambem `houseManager.updatePiloti(pilotiId, { height: h, isMaster: tempIsMaster, nivel: ... })` e `onHeightChange(h)` para que a mudanca reflita no canvas em tempo real, sem precisar esperar o "Aplicar".
+
