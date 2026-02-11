@@ -63,6 +63,19 @@ export function GenericEditor({
     setPanelPos(null);
   }, [currentValue, currentColor, isOpen]);
 
+  // ESC to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCancel();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen]);
+
   const handleApply = () => {
     onApply(tempValue.trim(), tempColor);
     onClose();
@@ -188,20 +201,24 @@ export function GenericEditor({
   };
 
   return (
-    <div
-      className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl min-w-[260px]"
-      style={{ left: pos.x, top: pos.y }}
-    >
-      {/* Draggable header */}
+    <>
+      {/* Overlay for click-outside-to-close */}
+      <div className="fixed inset-0 z-40" onClick={handleCancel} />
       <div
-        className="flex items-center gap-2 px-6 py-4 cursor-move select-none"
-        onMouseDown={handleDragStart}
+        className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl min-w-[260px]"
+        style={{ left: pos.x, top: pos.y }}
       >
-        <span className="font-bold text-sm">{title}</span>
+        {/* Draggable header */}
+        <div
+          className="flex items-center justify-center px-6 py-4 cursor-move select-none"
+          onMouseDown={handleDragStart}
+        >
+          <span className="font-semibold text-lg">{title}</span>
+        </div>
+        <div className="px-6 pb-6">
+          {editorContent}
+        </div>
       </div>
-      <div className="px-6 pb-6">
-        {editorContent}
-      </div>
-    </div>
+    </>
   );
 }

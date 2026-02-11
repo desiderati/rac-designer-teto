@@ -17,15 +17,14 @@ import { SettingsModal } from './SettingsModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings } from '@/lib/settings';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
   createHouseTop,
   createHouseFrontBack,
@@ -1510,39 +1509,39 @@ export function RACEditor() {
         />
       )}
 
-      <AlertDialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
-        <AlertDialogContent className="sm:max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reiniciar Canvas</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
+        <DialogContent className="sm:max-w-sm" hideCloseButton>
+          <DialogHeader>
+            <DialogTitle className="text-center">Reiniciar Canvas</DialogTitle>
+            <DialogDescription>
               Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRestartTutorial}>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
+            <Button onClick={() => { confirmRestartTutorial(); }}>
               Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <AlertDialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
-        <AlertDialogContent className="sm:max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Desagrupar Casa</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
+        <DialogContent className="sm:max-w-sm" hideCloseButton>
+          <DialogHeader>
+            <DialogTitle className="text-center">Desagrupar Casa</DialogTitle>
+            <DialogDescription>
               Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setGroupToUngroup(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmUngroup}>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+            <Button onClick={confirmUngroup}>
               Desagrupar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
