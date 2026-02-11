@@ -166,7 +166,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
               <DialogHeader className="text-left">
                 <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
               </DialogHeader>
-              {chooseContent}
+              <div className="pt-2">{chooseContent}</div>
             </div>
           </DialogContent>
         </Dialog>
@@ -180,7 +180,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">{chooseTitle}</SheetTitle>
             </SheetHeader>
-            {chooseContent}
+            <div className="pt-2">{chooseContent}</div>
           </div>
         </SheetContent>
       </Sheet>
