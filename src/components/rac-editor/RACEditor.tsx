@@ -1532,7 +1532,7 @@ export function RACEditor() {
               Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="pt-2">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
             <Button onClick={() => { confirmRestartTutorial(); }}>
               Confirmar
