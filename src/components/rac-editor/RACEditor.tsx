@@ -1219,37 +1219,43 @@ export function RACEditor() {
       const color = newColor;
       const label = newValue;
 
-      // Check if the object is already in a group with a label
-      const parentGroup = (obj as any)._group as Group | undefined;
-      const isAlreadyGrouped = parentGroup && parentGroup.getObjects().some((o: any) => o.myType === 'lineArrowLabel');
+      // Check if obj IS the group containing a lineArrowLabel (not looking for parent group)
+      const isGroupWithLabel = obj.type === 'group' && (obj as Group).getObjects().some((o: any) => o.myType === 'lineArrowLabel');
 
-      if (isAlreadyGrouped && parentGroup) {
-        // Update existing label and color in the group
-        const existingLabel = parentGroup.getObjects().find((o: any) => o.myType === 'lineArrowLabel') as IText | undefined;
+      if (isGroupWithLabel) {
+        const group = obj as Group;
+        const existingLabel = group.getObjects().find((o: any) => o.myType === 'lineArrowLabel') as IText | undefined;
 
-        // Apply color to the line/arrow children
-        parentGroup.getObjects().forEach((child: any) => {
+        // Apply color to the line/arrow children (handle nested arrow group)
+        group.getObjects().forEach((child: any) => {
           if (child.myType === 'lineArrowLabel') return;
           if (child.type === 'line') child.set({ stroke: color });
+          if (child.type === 'group') {
+            // Nested arrow group (rect + triangle)
+            child.getObjects().forEach((ac: any) => {
+              if (ac.type === 'rect') ac.set({ fill: color });
+              if (ac.type === 'triangle') ac.set({ fill: color });
+            });
+          }
           if (child.type === 'rect') child.set({ fill: color });
           if (child.type === 'triangle') child.set({ fill: color });
         });
 
         if (label && existingLabel) {
           existingLabel.set({ text: label, fill: color });
-          parentGroup.setCoords();
+          group.setCoords();
         } else if (!label && existingLabel) {
           // Remove label: ungroup
-          const groupLeft = parentGroup.left || 0;
-          const groupTop = parentGroup.top || 0;
-          const origObj = parentGroup.getObjects().find((o: any) => o.myType !== 'lineArrowLabel')!;
-          canvas.remove(parentGroup);
+          const groupLeft = group.left || 0;
+          const groupTop = group.top || 0;
+          const origObj = group.getObjects().find((o: any) => o.myType !== 'lineArrowLabel')!;
+          canvas.remove(group);
           origObj.set({ left: groupLeft, top: groupTop });
           origObj.setCoords();
           canvas.add(origObj);
         }
       } else {
-        // Apply color directly to the object
+        // Apply color directly to the object (no label group yet)
         if (lineArrowSelection.myType === 'line') {
           (obj as any).set({ stroke: color });
         } else {

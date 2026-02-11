@@ -763,21 +763,33 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           ? (currentContainerSize.height - scaledHeight) / 2 
           : -currentViewportY;
 
-        // Get current color
+        // Get current color and label - handle both standalone and grouped objects
         let currentColor = '#000000';
-        if (myType === 'line') {
-          currentColor = (obj as Line).stroke as string || '#000000';
-        } else {
-          const group = obj as Group;
-          const firstChild = group.getObjects()[0] as any;
-          currentColor = firstChild?.fill as string || '#333';
-        }
+        let currentLabel = '';
 
-        // Get existing label
-        const existingLabel = canvas.getObjects().find(
-          (o: any) => o.myType === 'lineArrowLabel' && o.labelFor === obj
-        ) as any;
-        const currentLabel = existingLabel?.text?.trim() || '';
+        // Check if the object is itself a group containing a lineArrowLabel
+        if (obj.type === 'group') {
+          const groupChildren = (obj as Group).getObjects();
+          const labelChild = groupChildren.find((o: any) => o.myType === 'lineArrowLabel') as any;
+          const lineChild = groupChildren.find((o: any) => o.type === 'line') as any;
+          const arrowChild = groupChildren.find((o: any) => o.type === 'group') as any;
+
+          if (labelChild) {
+            currentLabel = labelChild.text?.trim() || '';
+          }
+          if (myType === 'line' && lineChild) {
+            currentColor = lineChild.stroke as string || '#000000';
+          } else if (myType === 'arrow' && arrowChild) {
+            const firstChild = arrowChild.getObjects()[0] as any;
+            currentColor = firstChild?.fill as string || '#333';
+          } else if (myType === 'arrow') {
+            // Arrow without nested label - direct group
+            const firstChild = groupChildren[0] as any;
+            currentColor = firstChild?.fill as string || '#333';
+          }
+        } else if (myType === 'line') {
+          currentColor = (obj as Line).stroke as string || '#000000';
+        }
 
         const containerRect = containerRef.current?.getBoundingClientRect();
         if (containerRect) {
