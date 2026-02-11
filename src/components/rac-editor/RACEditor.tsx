@@ -1309,8 +1309,7 @@ export function RACEditor() {
                 child.set({ width: nw, scaleX: 1, scaleY: 1 });
               }
             });
-            this.set({ scaleX: 1, scaleY: 1 });
-            this.triggerLayout();
+            this.set({ width: nw, scaleX: 1, scaleY: 1 });
           });
 
           canvas.add(newGroup);
