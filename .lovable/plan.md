@@ -1,27 +1,18 @@
 
 
-# Ajustes no Modal de Configuracoes
+# Correcao: Navegacao automatica ao clicar na altura (Desktop)
 
-## Mudancas
+## Problema
 
-### 1. `src/components/rac-editor/SettingsModal.tsx`
-- Remover `DialogDescription` ("Preferencias do editor")
-- Centralizar o titulo "Configuracoes" (`text-center`)
-- Usar `hideCloseButton` no `DialogContent` para remover o botao X
-- Alterar texto da opcao de piloti para: "Navegar automaticamente para o proximo piloti ao definir a altura do piloti selecionado"
-- Alterar texto da opcao de zoom para: "Habilitar funcionalidade de Zoom/Minimap por padrao"
-- Inverter a chave de settings: renomear `zoomDisabledByDefault` para `zoomEnabledByDefault`
+O popover desktop do PilotiEditor tem dois conjuntos de botoes de altura:
+1. O componente `HeightControls` (usado no mobile/drawer) -- contem a logica de auto-navegacao
+2. Botoes inline duplicados no popover desktop (linhas 457-471) -- fazem apenas `setTempHeight(h)`, sem auto-navegacao
 
-### 2. `src/lib/settings.ts`
-- Renomear `zoomDisabledByDefault` para `zoomEnabledByDefault` (default: `false`, desmarcada por padrao)
-- Alterar `autoNavigatePiloti` default para `true` (marcada por padrao)
+## Solucao
 
-### 3. `src/components/rac-editor/RACEditor.tsx`
-- Ajustar a inicializacao de `showZoomControls`: agora usa `getSettings().zoomEnabledByDefault` diretamente (sem inversao)
-- Ao alterar configuracoes (callback `onSettingsChange`), atualizar `showZoomControls` de acordo
+Substituir os botoes inline do popover desktop pelo componente `HeightControls` (com `compact`), que ja possui toda a logica de auto-navegacao implementada.
 
-### 4. Logica invertida
-- Antes: `zoomDisabledByDefault = false` significava zoom visivel; `true` significava oculto
-- Agora: `zoomEnabledByDefault = false` (desmarcada) significa zoom oculto; `true` (marcada) significa zoom visivel
-- Na inicializacao: `showZoomControls = getSettings().zoomEnabledByDefault`
+## Detalhe tecnico
+
+No arquivo `src/components/rac-editor/PilotiEditor.tsx`, substituir o bloco de botoes inline (linhas 457-472) por `<HeightControls compact />`, exatamente como ja e feito no drawer mobile.
 
