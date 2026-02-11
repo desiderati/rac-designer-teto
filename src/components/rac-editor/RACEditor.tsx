@@ -1304,19 +1304,26 @@ export function RACEditor() {
           // Scaling handler: expand horizontally, keep text undeformed
           newGroup.on('scaling', function (this: Group) {
             const nw = this.width! * this.scaleX!;
+            let arrowGroupHeight = 0;
             this._objects.forEach((child: any) => {
-              if (child.myType === 'lineArrowLabel') {
-                child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
-              } else if (child.type === 'line') {
+              if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
-              } else if (child.type === 'group') {
+              } else if (child.type === 'group' && child.myType !== 'lineArrowLabel') {
                 const arrowChildren = (child as Group).getObjects();
                 arrowChildren.forEach((ac: any) => {
                   if (ac.type === 'rect') ac.set({ width: nw, scaleX: 1, scaleY: 1 });
                   if (ac.type === 'triangle') ac.set({ left: nw / 2, scaleX: 1, scaleY: 1 });
                 });
                 child.set({ width: nw, scaleX: 1, scaleY: 1 });
+                arrowGroupHeight = (child as Group).height || 0;
+              }
+            });
+            // Second pass: position label correctly
+            this._objects.forEach((child: any) => {
+              if (child.myType === 'lineArrowLabel') {
+                const offsetTop = arrowGroupHeight > 0 ? -(arrowGroupHeight / 2 + 12) : -20;
+                child.set({ left: 0, top: offsetTop, scaleX: 1, scaleY: 1 });
               }
             });
             this.set({ width: nw, scaleX: 1, scaleY: 1 });
