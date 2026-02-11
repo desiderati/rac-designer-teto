@@ -426,10 +426,8 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
 export function refreshHouseGroupRendering(group: Group): void {
   (group as any).objectCaching = false;
 
-  // Get all objects and their current state
   const objects = group.getObjects();
 
-  // Mark all children as dirty and disable their caching
   objects.forEach((obj: any) => {
     obj.objectCaching = false;
     (obj as any).dirty = true;
@@ -437,11 +435,16 @@ export function refreshHouseGroupRendering(group: Group): void {
   });
 
   // Remove and re-add all objects to force bounds recalculation
-  // This is the most reliable way to update the group's bounding box in Fabric v6
   group.remove(...objects);
   group.add(...objects);
 
-  // Now recalculate bounds
+  // Polyline/Polygon need pathOffset recalculation after re-add
+  objects.forEach((obj: any) => {
+    if (obj instanceof Polyline || obj instanceof Polygon) {
+      obj.setDimensions?.();
+    }
+  });
+
   (group as any)._clearCache?.();
   (group as any)._calcBounds?.();
   (group as any)._updateObjectsCoords?.();
@@ -1011,13 +1014,18 @@ function createGroundElements(
   (rLabel as any).isGroundElement = true;
   (rLabel as any).isNivelLabel = true;
 
-  // --- Polyline + Polygon using ABSOLUTE coordinates (no left/top override).
-  // Inside Fabric groups, setting both points AND left/top causes double-offset.
-  // By using absolute points only, the group recalculates positions consistently
-  // with all other objects (Rect, Line, Text, etc.).
+  // --- Polyline + Polygon: follow the same pattern as roofFill/bodyStroke.
+  // Use absolute points in the local coordinate system + set left/top to
+  // the top-left corner of the point bounding box. Do NOT set originX/originY.
+  // This is exactly how Fabric.js groups handle Polyline/Polygon correctly.
   const groundPtsAbs = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
 
+  const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
+  const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
+
   const groundLine = new Polyline(groundPtsAbs, {
+    left: gMinX,
+    top: gMinY,
     fill: 'transparent',
     stroke: lineColor,
     strokeWidth: 2.5,
@@ -1038,7 +1046,12 @@ function createGroundElements(
     { x: leftCenterX, y: maxY + fillDepth },
   ];
 
+  const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
+  const fMinY = Math.min(...fillPtsAbs.map((p) => p.y));
+
   const groundFill = new Polygon(fillPtsAbs, {
+    left: fMinX,
+    top: fMinY,
     fill: 'rgba(139, 105, 20, 0.10)',
     stroke: 'transparent',
     strokeWidth: 0,
