@@ -718,12 +718,15 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
   const fillPoints = [...groundPoints, { x: bodyW, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
 
+  const minGroundY = Math.min(groundLeftY, groundRightY) - 6;
   const groundFillObj = new Polygon(fillPoints, {
     fill: 'rgba(139, 105, 20, 0.15)',
     stroke: 'transparent',
     strokeWidth: 0,
     selectable: false,
     evented: false,
+    left: 0,
+    top: minGroundY,
   });
   (groundFillObj as any).isGroundFill = true;
 
@@ -734,6 +737,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     strokeUniform: true,
     selectable: false,
     evented: false,
+    left: 0,
+    top: minGroundY,
   });
   (groundLineObj as any).isGroundLine = true;
   (groundLineObj as any).groundSeed = groundSeed;
@@ -883,12 +888,15 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
   const fillPoints = [...groundPoints, { x: sideWidth, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
 
+  const minGroundY = Math.min(groundLeftY, groundRightY) - 6;
   const groundFillObj = new Polygon(fillPoints, {
     fill: 'rgba(139, 105, 20, 0.15)',
     stroke: 'transparent',
     strokeWidth: 0,
     selectable: false,
     evented: false,
+    left: 0,
+    top: minGroundY,
   });
   (groundFillObj as any).isGroundFill = true;
 
@@ -899,6 +907,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     strokeUniform: true,
     selectable: false,
     evented: false,
+    left: 0,
+    top: minGroundY,
   });
   (groundLineObj as any).isGroundLine = true;
   (groundLineObj as any).groundSeed = groundSeed;
