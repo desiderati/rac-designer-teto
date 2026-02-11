@@ -887,7 +887,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     leftX,
     leftCenterX,
     nivelY,
-    rightX
+    rightX,
     rightCenterX,
     nivelY,
     s,
