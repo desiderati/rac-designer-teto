@@ -916,9 +916,7 @@ export function createArrow(canvas: FabricCanvas): Group {
           scaleY: 1 
         });
       } else if (child.myType === 'lineArrowLabel') {
-        console.log('[ARROW SCALING] group.height=', this.height, 'group.scaleY=', this.scaleY, 'child.top before=', child.top, 'child.scaleY=', child.scaleY);
         child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
-        console.log('[ARROW SCALING] child.top after=', child.top);
       }
     });
     this.set({ width: nw, scaleX: 1, scaleY: 1 });

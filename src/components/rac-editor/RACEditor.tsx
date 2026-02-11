@@ -1306,7 +1306,9 @@ export function RACEditor() {
             const nw = this.width! * this.scaleX!;
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
+                console.log('[WRAPPER SCALING] groupH=', this.height, 'scaleX=', this.scaleX, 'scaleY=', this.scaleY, 'child.top before=', child.top);
                 child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
+                console.log('[WRAPPER SCALING] child.top after=', child.top);
               } else if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
