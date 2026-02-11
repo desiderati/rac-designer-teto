@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/drawer';
 import {
   PILOTI_HEIGHTS,
+  CORNER_PILOTI_IDS,
   formatPilotiHeight,
   getPilotiName,
   getPilotiFromGroup,
@@ -100,6 +101,7 @@ export function PilotiEditor({
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
+  const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
 
   // Synchronize temp state with props immediately when pilotiId changes (avoids flash of old values)
   const lastPilotiIdRef = useRef<string | null>(null);
@@ -370,14 +372,16 @@ export function PilotiEditor({
 
   const MasterControls = ({ compact = false }: { compact?: boolean }) => (
     <div className="space-y-3" data-no-drag>
-      <div className="flex items-center justify-between">
-        <Label htmlFor="is-master" className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>
-          Definir piloti como mestre?
-        </Label>
-        <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
-      </div>
+      {isCornerPiloti && (
+        <div className="flex items-center justify-between">
+          <Label htmlFor="is-master" className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>
+            Definir piloti como mestre?
+          </Label>
+          <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
+        </div>
+      )}
 
-      {tempIsMaster && (
+      {isCornerPiloti && (
         <div className="pl-2 border-l-2 border-primary/30">
           <div className="flex items-center gap-2">
             <Input
@@ -392,10 +396,10 @@ export function PilotiEditor({
             />
             <div className="flex flex-col">
               <Label htmlFor="nivel" className={compact ? 'text-sm font-medium whitespace-nowrap' : 'text-base font-medium whitespace-nowrap'}>
-                Nível do mestre (m)
+                Nível do piloti (m)
               </Label>
               <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
-                Parte visível acima do terreno
+                Distância do solo ao topo do piloti
               </p>
             </div>
           </div>

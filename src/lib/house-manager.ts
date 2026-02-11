@@ -2,11 +2,13 @@ import { Group, FabricObject, Canvas as FabricCanvas } from 'fabric';
 import {
   updatePilotiHeight,
   updatePilotiMaster,
+  updateGroundInGroup,
   refreshHouseGroupRendering,
   formatPilotiHeight,
   MASTER_PILOTI_FILL,
   MASTER_PILOTI_STROKE,
   BASE_PILOTI_HEIGHT_PX,
+  CORNER_PILOTI_IDS,
 } from './canvas-utils';
 
 // Types for house sides
@@ -479,10 +481,12 @@ class HouseManager {
       }
 
       if ((obj as any).isPilotiNivelText) {
-        if (data.isMaster) {
+        const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+        if (isCorner) {
           (obj as any).set('text', `Nível = ${formatPilotiHeight(data.nivel)}`);
           (obj as any).set('visible', true);
         } else {
+          (obj as any).set('text', '');
           (obj as any).set('visible', false);
         }
       }
@@ -517,6 +521,8 @@ class HouseManager {
       (obj as any).dirty = true;
     });
 
+    // Update ground line in elevation views
+    updateGroundInGroup(group);
     refreshHouseGroupRendering(group);
   }
 
@@ -561,6 +567,10 @@ class HouseManager {
         }
         if (data.isMaster !== undefined || data.nivel !== undefined) {
           updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
+        }
+        // Update ground line when nivel changes for a corner piloti
+        if (data.nivel !== undefined && CORNER_PILOTI_IDS.includes(pilotiId)) {
+          updateGroundInGroup(group);
         }
       }
     });
