@@ -194,12 +194,12 @@ export function GenericEditor({
     >
       {/* Draggable header */}
       <div
-        className="flex items-center gap-2 px-4 py-3 cursor-move select-none"
+        className="flex items-center gap-2 px-6 py-4 cursor-move select-none"
         onMouseDown={handleDragStart}
       >
         <span className="font-bold text-sm">{title}</span>
       </div>
-      <div className="p-4 pt-0">
+      <div className="px-6 pb-6">
         {editorContent}
       </div>
     </div>
