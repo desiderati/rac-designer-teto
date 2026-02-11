@@ -1,25 +1,41 @@
 
 
-# Corrigir useEffect que sobrescreve altura selecionada
+# Padronizar padding interno das modais
 
-## Problema
+## Objetivo
 
-O `useEffect` (linhas 118-144) sincroniza os valores temporarios **toda vez** que qualquer prop muda, incluindo `currentHeight`. Quando o usuario clica uma altura:
+Usar o padding da modal "Posicionar Vista Lateral" (SideSelector) como referencia para todas as demais modais, exceto o editor de Pilotis.
 
-1. `handleHeightClick` chama `onHeightChange(h)` e `houseManager.updatePiloti`
-2. O componente pai atualiza e passa `currentHeight` com o novo valor
-3. O `useEffect` dispara por causa de `currentHeight` nas dependencias
-4. `setTempHeight(currentHeight)` sobrescreve o valor — criando um ciclo que pode impedir a atualizacao visual
+## Modais afetadas
 
-A sincronizacao render-time (linhas 108-116) ja cuida da troca de `pilotiId`. O `useEffect` so precisa lidar com a posicao inicial do popover.
+1. **HouseTypeSelector** (Escolha o Tipo de Casa)
+2. **SettingsModal** (Configuracoes)
+3. **GenericEditor** (Editar Linha Reta / Editar Seta Simples / Editar Objeto / Editar Distancia) - apenas o painel desktop
+4. **AlertDialog de Reiniciar Canvas** (em RACEditor.tsx)
+5. **SideSelector modo choose-instance** (Qual dos quadrados fechados...)
 
-## Solucao
+## Referencia: SideSelector (modo position)
 
-### `src/components/rac-editor/PilotiEditor.tsx`
+- `DialogContent className="sm:max-w-sm" hideCloseButton` com padding padrao `p-6`
+- Conteudo envolvido em `mx-auto w-full max-w-xs`
+- Titulo centralizado
 
-1. **Remover a sincronizacao de valores do useEffect** (linhas 129-133): apagar as linhas `setTempHeight`, `setTempIsMaster`, `setTempNivel` e `setTempNivelInput` de dentro do useEffect.
+## Alteracoes por arquivo
 
-2. **Simplificar dependencias do useEffect**: manter apenas `isOpen` e `anchorPosition` como dependencias, ja que o efeito so precisa controlar a posicao inicial do popover na primeira abertura.
+### 1. `src/components/rac-editor/HouseTypeSelector.tsx`
+- Alterar `sm:max-w-md` para `sm:max-w-sm` no DialogContent (alinhar largura maxima)
 
-O bloco render-time (linhas 108-116) ja garante que os valores sincronizam imediatamente ao trocar de piloti, sem competir com o useEffect.
+### 2. `src/components/rac-editor/SettingsModal.tsx`
+- Alterar `max-w-md` para `sm:max-w-sm` no DialogContent (alinhar largura e usar breakpoint consistente)
+
+### 3. `src/components/rac-editor/GenericEditor.tsx` (painel desktop)
+- Ajustar o header draggable de `px-3 py-2` para `px-4 py-3`
+- Ajustar o body de `p-3 pt-0` para `p-4 pt-0`
+- Ajustar `min-w-[220px]` para `min-w-[260px]` para melhor proporcao
+
+### 4. `src/components/rac-editor/RACEditor.tsx` (AlertDialog Reiniciar)
+- Alterar `max-w-md` para `sm:max-w-sm` no AlertDialogContent
+
+### 5. `src/components/rac-editor/SideSelector.tsx` (modo choose-instance)
+- Ja usa `sm:max-w-sm`, mas falta `hideCloseButton` no DialogContent (linha 164) - adicionar para consistencia
 
