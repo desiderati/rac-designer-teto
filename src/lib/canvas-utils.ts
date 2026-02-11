@@ -875,7 +875,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundSeed = isRightSide ? 314 : 217;
   const leftCenterX = pilotW / 2;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + defaultNivelVal * s;
+  const nivelY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
