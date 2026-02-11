@@ -1,40 +1,28 @@
 
 
-## Corrigir espacamento abaixo do titulo no modal "Posicionar Vista"
+## Corrigir posicao do texto ao redimensionar linha/seta
 
 ### Problema
-Mesmo problema do modal "Escolha o Tipo de Casa": o espaco acima do titulo (padding-top do DialogContent = 24px) e maior que o espaco abaixo dele (gap entre header e conteudo = 16px).
+Ao redimensionar uma linha ou seta que possui texto (label), o texto se distancia do objeto. Isso acontece porque o handler de `scaling` reseta a escala do texto mas nao reposiciona ele de volta ao offset correto (`top: -20`) antes de chamar `triggerLayout()`.
 
 ### Solucao
-Adicionar `pt-2` (8px) ao container do conteudo (`content`) dentro do `SideSelector`, igualando o espacamento visual abaixo do titulo ao de cima: 16px (gap) + 8px (pt-2) = 24px.
+No handler de `scaling` do grupo (linha ~1294), ao resetar a escala do texto, tambem forcar `top: -20` para manter o label sempre proximo ao objeto.
 
 ### Detalhes tecnicos
 
-**Arquivo**: `src/components/rac-editor/SideSelector.tsx`
+**Arquivo**: `src/components/rac-editor/RACEditor.tsx`
 
-Na div que envolve o conteudo do modal (linha ~331), o `{content}` e renderizado logo apos o `DialogHeader`. O content em si e uma div que comeca com os botoes de posicionamento. Precisa envolver ou adicionar `pt-2` ao bloco de conteudo.
+**Linha ~1297** - Dentro do handler `scaling`, onde o texto tem sua escala resetada:
 
-Duas opcoes de implementacao (ambas equivalentes):
-
-**Opcao escolhida**: Adicionar uma div wrapper com `pt-2` ao redor de `{content}` tanto na versao desktop (Dialog) quanto na versao mobile (Sheet):
-
-Desktop (linha ~331):
+De:
+```typescript
+child.set({ scaleX: 1, scaleY: 1 });
 ```
-{content}
-```
+
 Para:
-```
-<div className="pt-2">{content}</div>
-```
-
-Mobile (linha ~346):
-```
-{content}
-```
-Para:
-```
-<div className="pt-2">{content}</div>
+```typescript
+child.set({ scaleX: 1, scaleY: 1, top: -20 });
 ```
 
-Isso garante consistencia com a correcao ja aplicada no `HouseTypeSelector`.
+Isso garante que, a cada evento de redimensionamento, o texto volta a ficar 20px acima do centro do objeto antes do `triggerLayout()` recalcular os limites do grupo.
 
