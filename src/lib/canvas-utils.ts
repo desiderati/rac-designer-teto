@@ -1155,8 +1155,8 @@ export function updateGroundInGroup(group: Group): void {
   if (!isFinite(viewLeftX)) viewLeftX = 0;
   if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRect.width ?? 30) / 2;
 
-  const leftX = viewLeftX;
-  const rightX = viewRightX;
+  const leftX = viewLeftX - 50;
+  const rightX = viewRightX + 50;
   const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
 
