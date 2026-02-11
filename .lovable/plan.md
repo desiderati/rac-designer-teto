@@ -1,28 +1,29 @@
 
 
-## Corrigir posicao do texto ao redimensionar linha/seta
+## Corrigir texto se distanciando ao redimensionar linha/seta
 
 ### Problema
-Ao redimensionar uma linha ou seta que possui texto (label), o texto se distancia do objeto. Isso acontece porque o handler de `scaling` reseta a escala do texto mas nao reposiciona ele de volta ao offset correto (`top: -20`) antes de chamar `triggerLayout()`.
+O `triggerLayout()` na linha 1313 recalcula os limites do grupo a cada evento de scaling, o que desloca o texto progressivamente. O handler original da seta em `canvas-utils.ts` (linha 905-918) NAO usa `triggerLayout()` - ele simplesmente define a largura manualmente com `this.set({ width: nw, scaleX: 1, scaleY: 1 })`, e funciona perfeitamente.
 
 ### Solucao
-No handler de `scaling` do grupo (linha ~1294), ao resetar a escala do texto, tambem forcar `top: -20` para manter o label sempre proximo ao objeto.
+Substituir `this.triggerLayout()` por `this.set({ width: nw, scaleX: 1, scaleY: 1 })`, seguindo exatamente o padrao que ja funciona na seta simples.
 
 ### Detalhes tecnicos
 
 **Arquivo**: `src/components/rac-editor/RACEditor.tsx`
 
-**Linha ~1297** - Dentro do handler `scaling`, onde o texto tem sua escala resetada:
+**Linhas 1312-1313** - Trocar:
 
-De:
 ```typescript
-child.set({ scaleX: 1, scaleY: 1 });
+this.set({ scaleX: 1, scaleY: 1 });
+this.triggerLayout();
 ```
 
-Para:
+Por:
+
 ```typescript
-child.set({ scaleX: 1, scaleY: 1, top: -20 });
+this.set({ width: nw, scaleX: 1, scaleY: 1 });
 ```
 
-Isso garante que, a cada evento de redimensionamento, o texto volta a ficar 20px acima do centro do objeto antes do `triggerLayout()` recalcular os limites do grupo.
+Isso elimina o recalculo de bounds que causa o deslocamento progressivo do texto, mantendo o mesmo comportamento que ja funciona corretamente na seta simples sem texto.
 
