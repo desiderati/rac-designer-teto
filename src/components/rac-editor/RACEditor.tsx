@@ -823,6 +823,24 @@ export function RACEditor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDrawing]);
 
+  // Atalho de teclado "Z" para alternar Zoom/Minimap
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key !== 'z' && e.key !== 'Z') return;
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) return;
+      e.preventDefault();
+      setShowZoomControls(prev => {
+        const next = !prev;
+        if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
+        return next;
+      });
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [tutorialStep]);
+
   const handleAddText = () => {
     disableDrawingMode();
     const canvas = getCanvas();
