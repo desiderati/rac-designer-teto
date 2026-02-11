@@ -723,6 +723,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const rightCenterX = margin + 3 * step;
   const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const maxPilotiBottom = roofH + bodyH + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
     leftX,
     leftCenterX,
@@ -734,6 +735,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     groundSeed,
     nivelStr,
     nivelStr,
+    maxPilotiBottom,
   );
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
@@ -883,6 +885,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const rightCenterX = sideWidth - pilotW / 2;
   const nivelY = wallHeight + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const maxPilotiBottom = wallHeight + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
     leftX,
     leftCenterX,
@@ -894,6 +897,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     groundSeed,
     nivelStr,
     nivelStr,
+    maxPilotiBottom,
   );
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
@@ -964,6 +968,7 @@ function createGroundElements(
   seed: number,
   leftNivelStr: string,
   rightNivelStr: string,
+  maxPilotiBottomY?: number,
 ): FabricObject[] {
   const elements: FabricObject[] = [];
   const xSize = 5 * s;
@@ -1064,11 +1069,11 @@ function createGroundElements(
   (groundLine as any).groundSeed = seed;
 
   const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
-  const fillDepth = 500 * s;
+  const fillBottomY = maxPilotiBottomY != null ? maxPilotiBottomY + 50 * s : maxY + 500 * s;
   const fillPtsAbs = [
     ...groundPtsAbs,
-    { x: rightCenterX, y: maxY + fillDepth },
-    { x: leftCenterX, y: maxY + fillDepth },
+    { x: rightCenterX, y: fillBottomY },
+    { x: leftCenterX, y: fillBottomY },
   ];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
@@ -1146,6 +1151,16 @@ export function updateGroundInGroup(group: Group): void {
   const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
 
+  // Find the max bottom Y of all pilotis in this view
+  const allPilotis = objects.filter((o: any) => o.isPilotiRect);
+  let maxPilotiBottomY = 0;
+  for (const p of allPilotis) {
+    const pTop = (p as any).top ?? 0;
+    const pH = (p as any).height ?? 0;
+    const bottom = pTop + pH;
+    if (bottom > maxPilotiBottomY) maxPilotiBottomY = bottom;
+  }
+
   // Create new ground elements (Polyline/Polygon + markers/labels)
   const newElements = createGroundElements(
     leftX,
@@ -1158,6 +1173,7 @@ export function updateGroundInGroup(group: Group): void {
     oldSeed,
     formatPilotiHeight(leftNivel),
     formatPilotiHeight(rightNivel),
+    maxPilotiBottomY,
   );
 
   const groundBack = newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
