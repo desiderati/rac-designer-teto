@@ -712,13 +712,12 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Add ground line and fill for terrain visualization
   const defaultNivelVal = 0.3;
   const groundSeed = flipHorizontal ? 42 : 137;
-  const groundLeftY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
-  const groundRightY = groundLeftY;
-  const groundPoints = generateGroundLinePoints(0, groundLeftY, bodyW, groundRightY, groundSeed);
-  const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
-  const fillPoints = [...groundPoints, { x: bodyW, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
+  const groundBaseY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const deltaGroundY = 0; // same nivel on both sides initially
+  const groundPoints = generateGroundLinePoints(0, 0, bodyW, deltaGroundY, groundSeed);
+  const fillDepth = 80 * s;
+  const fillPoints = [...groundPoints, { x: bodyW, y: deltaGroundY + fillDepth }, { x: 0, y: fillDepth }];
 
-  const minGroundY = Math.min(groundLeftY, groundRightY) - 6;
   const groundFillObj = new Polygon(fillPoints, {
     fill: 'rgba(139, 105, 20, 0.15)',
     stroke: 'transparent',
@@ -726,7 +725,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     selectable: false,
     evented: false,
     left: 0,
-    top: minGroundY,
+    top: groundBaseY,
   });
   (groundFillObj as any).isGroundFill = true;
 
@@ -738,7 +737,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     selectable: false,
     evented: false,
     left: 0,
-    top: minGroundY,
+    top: groundBaseY,
   });
   (groundLineObj as any).isGroundLine = true;
   (groundLineObj as any).groundSeed = groundSeed;
@@ -882,13 +881,12 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   // Add ground line and fill for terrain visualization
   const defaultNivelVal = 0.3;
   const groundSeed = isRightSide ? 314 : 217;
-  const groundLeftY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
-  const groundRightY = groundLeftY;
-  const groundPoints = generateGroundLinePoints(0, groundLeftY, sideWidth, groundRightY, groundSeed);
-  const groundFillBottomY = Math.max(groundLeftY, groundRightY) + 80 * s;
-  const fillPoints = [...groundPoints, { x: sideWidth, y: groundFillBottomY }, { x: 0, y: groundFillBottomY }];
+  const groundBaseY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const deltaGroundY = 0;
+  const groundPoints = generateGroundLinePoints(0, 0, sideWidth, deltaGroundY, groundSeed);
+  const fillDepth = 80 * s;
+  const fillPoints = [...groundPoints, { x: sideWidth, y: deltaGroundY + fillDepth }, { x: 0, y: fillDepth }];
 
-  const minGroundY = Math.min(groundLeftY, groundRightY) - 6;
   const groundFillObj = new Polygon(fillPoints, {
     fill: 'rgba(139, 105, 20, 0.15)',
     stroke: 'transparent',
@@ -896,7 +894,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     selectable: false,
     evented: false,
     left: 0,
-    top: minGroundY,
+    top: groundBaseY,
   });
   (groundFillObj as any).isGroundFill = true;
 
@@ -908,7 +906,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     selectable: false,
     evented: false,
     left: 0,
-    top: minGroundY,
+    top: groundBaseY,
   });
   (groundLineObj as any).isGroundLine = true;
   (groundLineObj as any).groundSeed = groundSeed;
@@ -1003,11 +1001,14 @@ export function updateGroundInGroup(group: Group): void {
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 
+  // Ground Y = piloti top + nivel distance from top
   const leftGroundY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
   const rightGroundY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const minGroundY = Math.min(leftGroundY, rightGroundY);
 
   const leftX = (leftRect.left ?? 0) - 10;
   const rightX = (rightRect.left ?? 0) + (rightRect.width ?? 30) + 10;
+  const spanWidth = rightX - leftX;
 
   // Remove existing ground objects
   const oldGroundLine = objects.find((o: any) => o.isGroundLine);
@@ -1017,10 +1018,12 @@ export function updateGroundInGroup(group: Group): void {
   if (oldGroundLine) group.remove(oldGroundLine);
   if (oldGroundFill) group.remove(oldGroundFill);
 
-  // Generate new points
-  const newPoints = generateGroundLinePoints(leftX, leftGroundY, rightX, rightGroundY, seed);
-  const bottomY = Math.max(leftGroundY, rightGroundY) + 80 * scale;
-  const fillPts = [...newPoints, { x: rightX, y: bottomY }, { x: leftX, y: bottomY }];
+  // Generate relative points (y near 0) and position with left/top
+  const deltaY = rightGroundY - leftGroundY;
+  const newPoints = generateGroundLinePoints(0, 0, spanWidth, deltaY, seed);
+  const fillDepth = 80 * scale;
+  const maxDeltaY = Math.max(0, deltaY);
+  const fillPts = [...newPoints, { x: spanWidth, y: maxDeltaY + fillDepth }, { x: 0, y: fillDepth }];
 
   // Create new ground objects
   const newFill = new Polygon(fillPts, {
@@ -1029,6 +1032,8 @@ export function updateGroundInGroup(group: Group): void {
     strokeWidth: 0,
     selectable: false,
     evented: false,
+    left: leftX,
+    top: minGroundY,
   });
   (newFill as any).isGroundFill = true;
 
@@ -1039,6 +1044,8 @@ export function updateGroundInGroup(group: Group): void {
     strokeUniform: true,
     selectable: false,
     evented: false,
+    left: leftX,
+    top: minGroundY,
   });
   (newLine as any).isGroundLine = true;
   (newLine as any).groundSeed = seed;
