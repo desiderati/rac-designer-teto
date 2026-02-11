@@ -1,20 +1,25 @@
 
 
-# Corrigir replicacao de altura no canvas ao selecionar piloti
+# Corrigir useEffect que sobrescreve altura selecionada
 
 ## Problema
 
-Ao remover o `key` dinamico do `PilotiEditor`, o componente nao remonta mais quando o piloti muda. Isso causa um problema de sincronizacao: o `useEffect` que sincroniza os valores temporarios a partir das props pode sobrescrever a altura selecionada pelo usuario antes dela ser aplicada ao canvas, pois o efeito roda apos cada mudanca de props (incluindo `currentHeight`).
+O `useEffect` (linhas 118-144) sincroniza os valores temporarios **toda vez** que qualquer prop muda, incluindo `currentHeight`. Quando o usuario clica uma altura:
+
+1. `handleHeightClick` chama `onHeightChange(h)` e `houseManager.updatePiloti`
+2. O componente pai atualiza e passa `currentHeight` com o novo valor
+3. O `useEffect` dispara por causa de `currentHeight` nas dependencias
+4. `setTempHeight(currentHeight)` sobrescreve o valor — criando um ciclo que pode impedir a atualizacao visual
+
+A sincronizacao render-time (linhas 108-116) ja cuida da troca de `pilotiId`. O `useEffect` so precisa lidar com a posicao inicial do popover.
 
 ## Solucao
 
-Adicionar sincronizacao de estado durante o render (render-time state update) no `PilotiEditor.tsx`, garantindo que os valores sincronizem imediatamente quando `pilotiId` muda, sem depender do `useEffect` assincrono. E tambem garantir que cliques de altura sempre atualizem o canvas imediatamente via `houseManager.updatePiloti`, mesmo quando auto-navigate esta desligado.
-
-## Detalhes tecnicos
-
 ### `src/components/rac-editor/PilotiEditor.tsx`
 
-1. **Sincronizacao durante render**: No bloco que ja detecta mudanca de `pilotiId` durante render (linhas ~101-104), adicionar chamadas `setTempHeight(currentHeight)` etc. para que React reinicie o render com valores corretos imediatamente (padrao oficial do React para "derived state").
+1. **Remover a sincronizacao de valores do useEffect** (linhas 129-133): apagar as linhas `setTempHeight`, `setTempIsMaster`, `setTempNivel` e `setTempNivelInput` de dentro do useEffect.
 
-2. **Atualizar canvas ao clicar altura (sem auto-navigate)**: No `handleHeightClick`, quando `autoNavigatePiloti` esta OFF, alem de `setTempHeight(h)`, chamar tambem `houseManager.updatePiloti(pilotiId, { height: h, isMaster: tempIsMaster, nivel: ... })` e `onHeightChange(h)` para que a mudanca reflita no canvas em tempo real, sem precisar esperar o "Aplicar".
+2. **Simplificar dependencias do useEffect**: manter apenas `isOpen` e `anchorPosition` como dependencias, ja que o efeito so precisa controlar a posicao inicial do popover na primeira abertura.
+
+O bloco render-time (linhas 108-116) ja garante que os valores sincronizam imediatamente ao trocar de piloti, sem competir com o useEffect.
 
