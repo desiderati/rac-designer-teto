@@ -1306,7 +1306,7 @@ export function RACEditor() {
             const nw = this.width! * this.scaleX!;
             this._objects.forEach((child: any) => {
               if (child.myType === 'lineArrowLabel') {
-                child.set({ left: 0, top: -35, scaleX: 1, scaleY: 1 });
+                child.set({ left: 0, top: -20, scaleX: 1, scaleY: 1 });
               } else if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
