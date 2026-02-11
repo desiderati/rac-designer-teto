@@ -717,9 +717,10 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Add ground line (behind house/pilotis) + markers/labels (in front)
   const defaultNivelVal = 0.3;
   const groundSeed = flipHorizontal ? 42 : 137;
-  const leftCenterX = margin + pilotW / 2;
-  const rightCenterX = margin + 3 * step + pilotW / 2;
-  const nivelY = roofH + bodyH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const leftCenterX = margin;
+  const rightCenterX = margin + 3 * step;
+  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = roofH + bodyH + defaultNivelVal;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
@@ -875,7 +876,9 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundSeed = isRightSide ? 314 : 217;
   const leftCenterX = pilotW / 2;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  // Temporarily place ground below pilotis (no overlap) for debugging
+  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = wallHeight + defaultPilotH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
     leftCenterX,
@@ -1116,8 +1119,8 @@ export function updateGroundInGroup(group: Group): void {
   const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
   if (!leftRect || !rightRect) return;
 
-  const leftNivel = leftRect.pilotiNivel ?? 0.3;
-  const rightNivel = rightRect.pilotiNivel ?? 0.3;
+  const leftNivel = leftRect.pilotiNivel * 100 ?? 30;
+  const rightNivel = rightRect.pilotiNivel * 100 ?? 30;
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 
@@ -1131,10 +1134,12 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   // Calculate anchor positions (center of each corner piloti rect)
-  const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
-  const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
-  const leftNivelY = (leftRect.top ?? 0) + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
-  const rightNivelY = (rightRect.top ?? 0) + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const leftCenterX = leftRect.left ?? 0;
+  const rightCenterX = rightRect.left ?? 0;
+  const leftPilotH = leftRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
+  const rightPilotH = rightRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
+  const leftNivelY = (leftRect.top ?? 0) + leftPilotH + leftNivel;
+  const rightNivelY = (rightRect.top ?? 0) + rightPilotH + rightNivel;
 
   // Create new ground elements (Polyline/Polygon + markers/labels)
   const newElements = createGroundElements(
