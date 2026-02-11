@@ -5,14 +5,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -80,12 +78,9 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Escolha o Tipo de Casa</DialogTitle>
-            <DialogDescription>
-              Selecione o tipo de casa para definir as vistas disponíveis
-            </DialogDescription>
+        <DialogContent className="sm:max-w-md" hideCloseButton>
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-center">Escolha o Tipo de Casa</DialogTitle>
           </DialogHeader>
           {content}
         </DialogContent>
@@ -97,10 +92,7 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
         <SheetHeader className="text-center pb-2">
-          <SheetTitle>Escolha o Tipo de Casa</SheetTitle>
-          <SheetDescription>
-            Selecione o tipo de casa para definir as vistas disponíveis
-          </SheetDescription>
+          <SheetTitle className="text-center">Escolha o Tipo de Casa</SheetTitle>
         </SheetHeader>
         {content}
       </SheetContent>
