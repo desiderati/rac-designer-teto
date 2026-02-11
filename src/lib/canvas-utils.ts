@@ -1048,7 +1048,7 @@ function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
-  const groundPtsAbs = generateGroundLinePoints(leftX - 20, leftNivelY, rightX - 20, rightNivelY, seed);
+  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed);
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
@@ -1070,7 +1070,7 @@ function createGroundElements(
 
   const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
   const fillBottomY = maxPilotiBottomY != null ? maxPilotiBottomY + 50 * s : maxY + 500 * s;
-  const fillPtsAbs = [...groundPtsAbs, { x: rightCenterX, y: fillBottomY }, { x: leftCenterX, y: fillBottomY }];
+  const fillPtsAbs = [...groundPtsAbs, { x: rightX, y: fillBottomY }, { x: leftX, y: fillBottomY }];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
   const fMinY = Math.min(...fillPtsAbs.map((p) => p.y));
