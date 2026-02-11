@@ -117,7 +117,6 @@ export function PilotiEditor({
 
   useEffect(() => {
     if (!isOpen) {
-      // Reset refs when closing
       wasOpenRef.current = false;
       lastPilotiIdRef.current = null;
       return;
@@ -125,12 +124,6 @@ export function PilotiEditor({
 
     const isFirstOpen = !wasOpenRef.current;
     wasOpenRef.current = true;
-
-    // Always sync form values when pilotiId or props change
-    setTempHeight(currentHeight);
-    setTempIsMaster(currentIsMaster);
-    setTempNivel(currentNivel);
-    setTempNivelInput(formatNivelForInput(currentNivel));
 
     // Init draggable position only on first open
     if (isFirstOpen) {
@@ -141,7 +134,7 @@ export function PilotiEditor({
         setPopoverPos({ x: 24, y: 24 });
       }
     }
-  }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel, anchorPosition]);
+  }, [isOpen, anchorPosition]);
 
   // Drag listeners (desktop)
   useEffect(() => {
