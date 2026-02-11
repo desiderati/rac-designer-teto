@@ -1291,16 +1291,16 @@ export function RACEditor() {
           // Scaling handler: expand horizontally, keep text undeformed
           newGroup.on('scaling', function (this: Group) {
             const nw = this.width! * this.scaleX!;
+            console.log('[SCALING] nw:', nw, 'groupW:', this.width, 'scaleX:', this.scaleX);
             this._objects.forEach((child: any) => {
+              console.log('[SCALING] child type:', child.type, 'myType:', child.myType, 'left:', child.left, 'top:', child.top, 'scaleX:', child.scaleX, 'scaleY:', child.scaleY);
               if (child.myType === 'lineArrowLabel') {
-                // Reset text scale only - don't touch position (same pattern as dimension)
                 child.set({ scaleX: 1, scaleY: 1 });
+                console.log('[SCALING] text AFTER reset - left:', child.left, 'top:', child.top);
               } else if (child.type === 'line') {
-                // Standalone Line object - adjust endpoints
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
               } else if (child.type === 'group') {
-                // Nested arrow group (rect + triangle)
                 const arrowChildren = (child as Group).getObjects();
                 arrowChildren.forEach((ac: any) => {
                   if (ac.type === 'rect') ac.set({ width: nw, scaleX: 1, scaleY: 1 });
@@ -1309,7 +1309,9 @@ export function RACEditor() {
                 child.set({ width: nw, scaleX: 1, scaleY: 1 });
               }
             });
+            console.log('[SCALING] BEFORE group set - group left:', this.left, 'top:', this.top, 'width:', this.width, 'height:', this.height);
             this.set({ width: nw, scaleX: 1, scaleY: 1 });
+            console.log('[SCALING] AFTER group set - group left:', this.left, 'top:', this.top, 'width:', this.width, 'height:', this.height);
           });
 
           canvas.add(newGroup);
