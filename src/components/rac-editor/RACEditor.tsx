@@ -55,7 +55,7 @@ export function RACEditor() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState<'house' | 'elements' | 'lines' | 'overflow' | null>(null);
   const [showTips, setShowTips] = useState(false);
-  const [showZoomControls, setShowZoomControls] = useState(() => !getSettings().zoomDisabledByDefault);
+  const [showZoomControls, setShowZoomControls] = useState(() => getSettings().zoomEnabledByDefault);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
@@ -1486,6 +1486,7 @@ export function RACEditor() {
       <SettingsModal
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
+        onSettingsChange={() => setShowZoomControls(getSettings().zoomEnabledByDefault)}
       />
 
       {tutorialStep && (
