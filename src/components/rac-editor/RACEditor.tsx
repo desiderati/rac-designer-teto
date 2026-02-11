@@ -809,6 +809,20 @@ export function RACEditor() {
     );
   };
 
+  // Atalho de teclado "L" para alternar modo Lápis
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key !== 'l' && e.key !== 'L') return;
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) return;
+      e.preventDefault();
+      handleToggleDrawMode();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawing]);
+
   const handleAddText = () => {
     disableDrawingMode();
     const canvas = getCanvas();
