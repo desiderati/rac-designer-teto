@@ -968,7 +968,7 @@ function createGroundElements(
   seed: number,
   leftNivelStr: string,
   rightNivelStr: string,
-  maxPilotiBottomY?: number,
+  maxPilotiBottomY: number,
 ): FabricObject[] {
   const elements: FabricObject[] = [];
   const xSize = 5 * s;
@@ -1068,8 +1068,7 @@ function createGroundElements(
   (groundLine as any).isGroundLine = true;
   (groundLine as any).groundSeed = seed;
 
-  const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
-  const fillBottomY = maxPilotiBottomY != null ? maxPilotiBottomY + 50 * s : maxY + 500 * s;
+  const fillBottomY = maxPilotiBottomY + 50 * s;
   const fillPtsAbs = [...groundPtsAbs, { x: rightX, y: fillBottomY }, { x: leftX, y: fillBottomY }];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
