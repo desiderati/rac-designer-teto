@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PilotiMinimap } from './PilotiMinimap';
 
 export interface InstanceSlot {
   label: string;
@@ -207,38 +208,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
       {isLongSide ? (
         <div className="flex items-stretch gap-2 w-full max-w-xs justify-center">
           {/* Piloti Grid */}
-          <div className="w-full max-w-xs">
-            <div
-              className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
-              style={{ aspectRatio: '4/3' }}
-            >
-              <div className="grid grid-rows-3 gap-2 h-full">
-                {displayGrid.map((row, rowIdx) => (
-                  <div key={rowIdx} className="grid grid-cols-4 gap-2">
-                    {row.map((name) => {
-                      const pilotiId = getPilotiIdFromName(name);
-                      const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
-                      const isHighlighted = getPilotiHighlight(name);
-
-                      return (
-                        <div
-                          key={name}
-                          className={cn(
-                            'flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200',
-                            'border-2',
-                            isHighlighted ? 'bg-primary/20 border-primary scale-110' : 'bg-background border-foreground/20',
-                            data.isMaster && 'bg-amber-100 border-amber-500',
-                          )}
-                        >
-                          <span className="text-sm font-medium text-foreground/70">{name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
         </div>
       ) : (
         // Side views: Left button + Grid + Right button in a row
@@ -255,38 +225,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             className="self-stretch"
           />
 
-          <div className="w-full max-w-xs">
-            <div
-              className="border-2 border-foreground/30 rounded-lg p-3 bg-muted/30 relative"
-              style={{ aspectRatio: '4/3' }}
-            >
-              <div className="grid grid-rows-3 gap-2 h-full">
-                {displayGrid.map((row, rowIdx) => (
-                  <div key={rowIdx} className="grid grid-cols-4 gap-2">
-                    {row.map((name) => {
-                      const pilotiId = getPilotiIdFromName(name);
-                      const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
-                      const isHighlighted = getPilotiHighlight(name);
-
-                      return (
-                        <div
-                          key={name}
-                          className={cn(
-                            'flex flex-col items-center justify-center rounded-full aspect-square transition-all duration-200',
-                            'border-2',
-                            isHighlighted ? 'bg-primary/20 border-primary scale-110' : 'bg-background border-foreground/20',
-                            data.isMaster && 'bg-amber-100 border-amber-500',
-                          )}
-                        >
-                          <span className="text-sm font-medium text-foreground/70">{name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
 
           <SideButton
             side="right"
