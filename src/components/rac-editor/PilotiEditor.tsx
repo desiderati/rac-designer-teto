@@ -454,22 +454,7 @@ export function PilotiEditor({
 
           <MasterControls compact />
 
-          <div className="space-y-2" data-no-drag>
-            <Label className="text-sm font-medium">Altura do piloti</Label>
-            <div className="flex flex-nowrap gap-1 overflow-x-auto justify-start">
-              {PILOTI_HEIGHTS.map((h) => (
-                <Button
-                  key={h}
-                  variant={tempHeight === h ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setTempHeight(h)}
-                  className="flex-none min-w-[40px] h-8 text-xs"
-                >
-                  {formatPilotiHeight(h)}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <HeightControls compact />
 
           <div className="flex gap-2 pt-2" data-no-drag>
             <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
