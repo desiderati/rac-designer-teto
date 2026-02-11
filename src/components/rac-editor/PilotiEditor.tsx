@@ -108,7 +108,11 @@ export function PilotiEditor({
   // Use useLayoutEffect-like pattern: update state synchronously when pilotiId changes
   if (isOpen && pilotiId !== lastPilotiIdRef.current) {
     lastPilotiIdRef.current = pilotiId;
-    // This will trigger a re-render with the correct values before painting
+    // Render-time state sync: React will restart render with correct values immediately
+    setTempHeight(currentHeight);
+    setTempIsMaster(currentIsMaster);
+    setTempNivel(currentNivel);
+    setTempNivelInput(formatNivelForInput(currentNivel));
   }
 
   useEffect(() => {
@@ -296,14 +300,11 @@ export function PilotiEditor({
       setTempHeight(h);
 
       const { autoNavigatePiloti } = getSettings();
-      if (autoNavigatePiloti && pilotiId) {
-        // Show visual feedback immediately
-        setClickedHeight(h);
 
-        // Apply changes to current piloti
+      // Always update canvas immediately for real-time feedback
+      if (pilotiId) {
         const parsed = parseNivelText(tempNivelInput);
         const nivelToApply = parsed ?? DEFAULT_NIVEL;
-
         houseManager.updatePiloti(pilotiId, {
           height: h,
           isMaster: tempIsMaster,
@@ -311,6 +312,11 @@ export function PilotiEditor({
         });
         onHeightChange(h);
         onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
+      }
+
+      if (autoNavigatePiloti && pilotiId) {
+        // Show visual feedback immediately
+        setClickedHeight(h);
 
         // Navigate to next after a short delay for visual feedback
         const idx = allIds.indexOf(pilotiId);
