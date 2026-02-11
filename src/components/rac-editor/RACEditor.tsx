@@ -1278,7 +1278,14 @@ export function RACEditor() {
           const objLeft = obj.left || 0;
           const objTop = obj.top || 0;
           canvas.remove(obj);
-          obj.set({ left: 0, top: 0, originX: 'center', originY: 'center' });
+          // Normalize line coordinates to center at origin (like dimension does)
+          if (obj.type === 'line') {
+            const lineObj = obj as Line;
+            const lw = Math.abs((lineObj.x2 || 0) - (lineObj.x1 || 0));
+            lineObj.set({ x1: -lw / 2, y1: 0, x2: lw / 2, y2: 0, left: 0, top: 0, originX: 'center', originY: 'center' });
+          } else {
+            obj.set({ left: 0, top: 0, originX: 'center', originY: 'center' });
+          }
           textLabel.set({ left: 0, top: -20 });
 
           const newGroup = new Group([obj, textLabel], {
@@ -1291,12 +1298,9 @@ export function RACEditor() {
           // Scaling handler: expand horizontally, keep text undeformed
           newGroup.on('scaling', function (this: Group) {
             const nw = this.width! * this.scaleX!;
-            console.log('[SCALING] nw:', nw, 'groupW:', this.width, 'scaleX:', this.scaleX);
             this._objects.forEach((child: any) => {
-              console.log('[SCALING] child type:', child.type, 'myType:', child.myType, 'left:', child.left, 'top:', child.top, 'scaleX:', child.scaleX, 'scaleY:', child.scaleY);
               if (child.myType === 'lineArrowLabel') {
                 child.set({ scaleX: 1, scaleY: 1 });
-                console.log('[SCALING] text AFTER reset - left:', child.left, 'top:', child.top);
               } else if (child.type === 'line') {
                 const lineObj = child as Line;
                 lineObj.set({ x1: -nw / 2, x2: nw / 2, scaleX: 1, scaleY: 1 });
@@ -1309,9 +1313,7 @@ export function RACEditor() {
                 child.set({ width: nw, scaleX: 1, scaleY: 1 });
               }
             });
-            console.log('[SCALING] BEFORE group set - group left:', this.left, 'top:', this.top, 'width:', this.width, 'height:', this.height);
             this.set({ width: nw, scaleX: 1, scaleY: 1 });
-            console.log('[SCALING] AFTER group set - group left:', this.left, 'top:', this.top, 'width:', this.width, 'height:', this.height);
           });
 
           canvas.add(newGroup);
