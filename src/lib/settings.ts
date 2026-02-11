@@ -2,12 +2,12 @@ const STORAGE_KEY = 'rac-settings';
 
 export interface AppSettings {
   autoNavigatePiloti: boolean;
-  zoomDisabledByDefault: boolean;
+  zoomEnabledByDefault: boolean;
 }
 
 const defaults: AppSettings = {
-  autoNavigatePiloti: false,
-  zoomDisabledByDefault: false,
+  autoNavigatePiloti: true,
+  zoomEnabledByDefault: false,
 };
 
 export function getSettings(): AppSettings {

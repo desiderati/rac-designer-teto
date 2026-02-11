@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import { getSettings, updateSetting } from '@/lib/settings';
 
@@ -19,7 +18,7 @@ interface SettingsModalProps {
 export function SettingsModal({ open, onOpenChange, onSettingsChange }: SettingsModalProps) {
   const [settings, setSettings] = useState(getSettings);
 
-  const handleToggle = (key: 'autoNavigatePiloti' | 'zoomDisabledByDefault', value: boolean) => {
+  const handleToggle = (key: 'autoNavigatePiloti' | 'zoomEnabledByDefault', value: boolean) => {
     updateSetting(key, value);
     setSettings(prev => ({ ...prev, [key]: value }));
     onSettingsChange?.();
@@ -27,18 +26,15 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" hideCloseButton>
         <DialogHeader>
-          <DialogTitle>Configurações</DialogTitle>
-          <DialogDescription>
-            Preferências do editor
-          </DialogDescription>
+          <DialogTitle className="text-center">Configurações</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-2">
           <div className="flex items-start justify-between gap-4">
             <Label htmlFor="auto-navigate" className="text-sm leading-snug cursor-pointer flex-1">
-              Navegar automaticamente para o próximo piloti ao definir a altura na edição de piloti
+              Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
             </Label>
             <Switch
               id="auto-navigate"
@@ -48,13 +44,13 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           </div>
 
           <div className="flex items-start justify-between gap-4">
-            <Label htmlFor="zoom-disabled" className="text-sm leading-snug cursor-pointer flex-1">
-              Funcionalidade de Zoom/Minimap desabilitada por padrão
+            <Label htmlFor="zoom-enabled" className="text-sm leading-snug cursor-pointer flex-1">
+              Habilitar funcionalidade de Zoom/Minimap por padrão
             </Label>
             <Switch
-              id="zoom-disabled"
-              checked={settings.zoomDisabledByDefault}
-              onCheckedChange={(v) => handleToggle('zoomDisabledByDefault', v)}
+              id="zoom-enabled"
+              checked={settings.zoomEnabledByDefault}
+              onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}
             />
           </div>
         </div>
