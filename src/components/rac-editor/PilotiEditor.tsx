@@ -290,12 +290,17 @@ export function PilotiEditor({
   );
 
   const HeightControls = ({ compact = false }: { compact?: boolean }) => {
+    const [clickedHeight, setClickedHeight] = useState<number | null>(null);
+
     const handleHeightClick = (h: number) => {
       setTempHeight(h);
 
       const { autoNavigatePiloti } = getSettings();
       if (autoNavigatePiloti && pilotiId) {
-        // Apply immediately
+        // Show visual feedback immediately
+        setClickedHeight(h);
+
+        // Apply changes to current piloti
         const parsed = parseNivelText(tempNivelInput);
         const nivelToApply = parsed ?? DEFAULT_NIVEL;
 
@@ -307,24 +312,34 @@ export function PilotiEditor({
         onHeightChange(h);
         onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
 
-        // Navigate to next if available
+        // Navigate to next after a short delay for visual feedback
         const idx = allIds.indexOf(pilotiId);
         const nextId = idx >= 0 && idx < allIds.length - 1 ? allIds[idx + 1] : null;
 
-        if (nextId && group) {
-          const pilotiData = getPilotiFromGroup(group, nextId);
-          if (pilotiData && onNavigate) {
-            onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
-            setTempHeight(pilotiData.height);
-            setTempIsMaster(pilotiData.isMaster);
-            setTempNivel(pilotiData.nivel);
-            setTempNivelInput(formatNivelForInput(pilotiData.nivel));
+        setTimeout(() => {
+          setClickedHeight(null);
+
+          if (nextId && group) {
+            const pilotiData = getPilotiFromGroup(group, nextId);
+            if (pilotiData && onNavigate) {
+              onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
+              setTempHeight(pilotiData.height);
+              setTempIsMaster(pilotiData.isMaster);
+              setTempNivel(pilotiData.nivel);
+              setTempNivelInput(formatNivelForInput(pilotiData.nivel));
+            }
+          } else {
+            // No next piloti — close
+            onClose();
           }
-        } else {
-          // No next piloti — close
-          onClose();
-        }
+        }, 300);
       }
+    };
+
+    const getButtonVariant = (h: number): 'default' | 'outline' => {
+      if (clickedHeight === h) return 'default';
+      if (clickedHeight !== null) return 'outline';
+      return tempHeight === h ? 'default' : 'outline';
     };
 
     return (
@@ -340,9 +355,10 @@ export function PilotiEditor({
           {PILOTI_HEIGHTS.map((h) => (
             <Button
               key={h}
-              variant={tempHeight === h ? 'default' : 'outline'}
+              variant={getButtonVariant(h)}
               size={compact ? 'sm' : 'default'}
               onClick={() => handleHeightClick(h)}
+              disabled={clickedHeight !== null}
               className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
             >
               {formatPilotiHeight(h)}
