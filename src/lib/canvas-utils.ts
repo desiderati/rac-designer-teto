@@ -717,13 +717,17 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Add ground line (behind house/pilotis) + markers/labels (in front)
   const defaultNivelVal = 0.3;
   const groundSeed = flipHorizontal ? 42 : 137;
+  const leftX = 0;
   const leftCenterX = margin;
+  const rightX = 2 * margin + 3 * step;
   const rightCenterX = margin + 3 * step;
-  const nivelY = roofH + bodyH + defaultNivelVal * s;
+  const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
+    leftX,
     leftCenterX,
     nivelY,
+    rightX,
     rightCenterX,
     nivelY,
     s,
@@ -873,15 +877,17 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   // Add ground line (behind) + markers/labels (in front)
   const defaultNivelVal = 0.3;
   const groundSeed = isRightSide ? 314 : 217;
+  const leftX = 0;
   const leftCenterX = pilotW / 2;
+  const rightX = sideWidth;
   const rightCenterX = sideWidth - pilotW / 2;
-  // Temporarily place ground below pilotis (no overlap) for debugging
-  const defaultPilotH = BASE_PILOTI_HEIGHT_PX * s;
-  const nivelY = wallHeight + defaultPilotH + defaultNivelVal * BASE_PILOTI_HEIGHT_PX * s;
+  const nivelY = wallHeight + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
   const groundElems = createGroundElements(
+    leftX,
     leftCenterX,
     nivelY,
+    rightX
     rightCenterX,
     nivelY,
     s,
@@ -948,8 +954,10 @@ function generateGroundLinePoints(
 
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 function createGroundElements(
+  leftX: number,
   leftCenterX: number,
   leftNivelY: number,
+  rightX: number,
   rightCenterX: number,
   rightNivelY: number,
   s: number,
@@ -1035,9 +1043,7 @@ function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
-  // Use absolute points in the local coordinate system + set left/top to
-  // the top-left corner of the point bounding box. Do NOT set originX/originY.
-  const groundPtsAbs = generateGroundLinePoints(leftCenterX, leftNivelY, rightCenterX, rightNivelY, seed);
+  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed);
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
@@ -1058,7 +1064,7 @@ function createGroundElements(
   (groundLine as any).groundSeed = seed;
 
   const maxY = Math.max(...groundPtsAbs.map((p) => p.y));
-  const fillDepth = 50 * s;
+  const fillDepth = 500 * s;
   const fillPtsAbs = [
     ...groundPtsAbs,
     { x: rightCenterX, y: maxY + fillDepth },
@@ -1133,18 +1139,19 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   // Calculate anchor positions (center of each corner piloti rect)
+  const leftX = (leftRect.left ?? 0);
   const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
+  const rightX = (rightRect.left ?? 0);
   const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
-  // Place ground below pilotis (no overlap) - add full piloti height first
-  const leftPilotH = leftRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
-  const rightPilotH = rightRect.height ?? BASE_PILOTI_HEIGHT_PX * scale;
-  const leftNivelY = (leftRect.top ?? 0) + leftPilotH + leftNivel * BASE_PILOTI_HEIGHT_PX * scale;
-  const rightNivelY = (rightRect.top ?? 0) + rightPilotH + rightNivel * BASE_PILOTI_HEIGHT_PX * scale;
+  const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
+  const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
 
   // Create new ground elements (Polyline/Polygon + markers/labels)
   const newElements = createGroundElements(
+    leftX,
     leftCenterX,
     leftNivelY,
+    rightX,
     rightCenterX,
     rightNivelY,
     scale,
