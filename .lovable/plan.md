@@ -1,18 +1,21 @@
 
+# Feedback visual ao clicar na altura do piloti
 
-# Correcao: Navegacao automatica ao clicar na altura (Desktop)
+## O que muda
 
-## Problema
-
-O popover desktop do PilotiEditor tem dois conjuntos de botoes de altura:
-1. O componente `HeightControls` (usado no mobile/drawer) -- contem a logica de auto-navegacao
-2. Botoes inline duplicados no popover desktop (linhas 457-471) -- fazem apenas `setTempHeight(h)`, sem auto-navegacao
-
-## Solucao
-
-Substituir os botoes inline do popover desktop pelo componente `HeightControls` (com `compact`), que ja possui toda a logica de auto-navegacao implementada.
+Ao clicar em um botao de altura com auto-navegacao ativa, o botao ficara visualmente "pressionado" (destacado) por ~300ms antes de navegar para o proximo piloti. Isso da ao usuario a confirmacao visual de que o clique foi registrado.
 
 ## Detalhe tecnico
 
-No arquivo `src/components/rac-editor/PilotiEditor.tsx`, substituir o bloco de botoes inline (linhas 457-472) por `<HeightControls compact />`, exatamente como ja e feito no drawer mobile.
+No componente `HeightControls` dentro de `PilotiEditor.tsx`:
 
+1. Adicionar um estado `clickedHeight` que armazena temporariamente qual altura foi clicada
+2. Ao clicar num botao de altura (com auto-navegacao ativa):
+   - Setar `clickedHeight` para o valor clicado (botao fica destacado imediatamente)
+   - Aplicar as mudancas no piloti atual (houseManager, onHeightChange, onNavigate)
+   - Apos ~300ms via `setTimeout`, navegar para o proximo piloti e limpar `clickedHeight`
+3. O botao clicado usa `variant="default"` durante o delay, dando feedback visual claro
+4. Quando auto-navegacao esta desativada, o comportamento permanece instantaneo (sem delay)
+
+### Arquivo editado
+- `src/components/rac-editor/PilotiEditor.tsx` - funcao `handleHeightClick` dentro de `HeightControls`
