@@ -188,19 +188,21 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
   }
 
   const content = (
-    <div className="flex flex-col items-center gap-6 py-2">
+    <div className="flex flex-col items-center gap-2 py-2">
       {/* Top side button (for front/back views) */}
       {isLongSide && (
-        <SideButton
-          side="top"
-          label={getSideLabel('top')}
-          isAvailable={isSideAvailable('top')}
-          isHovered={hoveredSide === 'top'}
-          assignment={getSideAssignment('top')}
-          onHover={setHoveredSide}
-          onClick={handleSideClick}
-          className="w-full max-w-xs"
-        />
+        <div className="mt-2">
+          <SideButton
+            side="top"
+            label={getSideLabel('top')}
+            isAvailable={isSideAvailable('top')}
+            isHovered={hoveredSide === 'top'}
+            assignment={getSideAssignment('top')}
+            onHover={setHoveredSide}
+            onClick={handleSideClick}
+            className="w-full max-w-xs"
+          />
+        </div>
       )}
 
       {/* Middle row: Left + Grid + Right */}
