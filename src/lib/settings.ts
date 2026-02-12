@@ -7,7 +7,7 @@ export interface AppSettings {
 
 const defaults: AppSettings = {
   autoNavigatePiloti: false,
-  zoomEnabledByDefault: false,
+  zoomEnabledByDefault: true,
 };
 
 export function getSettings(): AppSettings {
