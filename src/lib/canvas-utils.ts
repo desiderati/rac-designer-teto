@@ -741,7 +741,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
   elements.push(...groundBack);
-  //elements.push(...pilots);
+  elements.push(...pilots);
   elements.push(...pilotLabels);
   elements.push(...groundFront);
 
