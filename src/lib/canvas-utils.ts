@@ -218,7 +218,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
       // Text for nivel (always visible for corner pilotis)
       const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
-      const nivelText = new IText(isCorner ? `Nível = ${formatPilotiHeight(defaultNivel)}` : "", {
+      const nivelText = new IText(isCorner ? `Nível = ${formatNivel(defaultNivel)}` : "", {
         fontSize: 11 * s,
         fontFamily: "Arial",
         fill: "#8B4513",
@@ -259,6 +259,10 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
 export function formatPilotiHeight(height: number): string {
   return height.toFixed(1).replace(".", ",");
+}
+
+export function formatNivel(nivel: number): string {
+  return nivel.toFixed(2).replace(".", ",");
 }
 
 // Get piloti name from ID (e.g., "piloti_0_0" -> "A1")
@@ -509,7 +513,7 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
       if (obj.isPilotiNivelText) {
         const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
         if (isCorner) {
-          obj.set("text", `Nível = ${formatPilotiHeight(nivel)}`);
+          obj.set("text", `Nível = ${formatNivel(nivel)}`);
           obj.set("visible", true);
         } else {
           obj.set("text", "");
@@ -731,7 +735,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const rightX = bodyW + 50;
   const rightCenterX = margin + 3 * step + pilotW / 2;
   const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
-  const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const nivelStr = formatNivel(defaultNivelVal);
   const maxPilotiBottom = roofH + bodyH + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
     leftX,
@@ -893,7 +897,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const rightX = sideWidth + 50;
   const rightCenterX = sideWidth - pilotW / 2;
   const nivelY = wallHeight + defaultNivelVal * 100 * s;
-  const nivelStr = formatPilotiHeight(defaultNivelVal);
+  const nivelStr = formatNivel(defaultNivelVal);
   const maxPilotiBottom = wallHeight + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
     leftX,
@@ -1242,8 +1246,8 @@ export function updateGroundInGroup(group: Group): void {
     rightNivelY,
     scale,
     oldSeed,
-    formatPilotiHeight(leftNivel),
-    formatPilotiHeight(rightNivel),
+    formatNivel(leftNivel),
+    formatNivel(rightNivel),
     maxPilotiBottomY,
   );
 
