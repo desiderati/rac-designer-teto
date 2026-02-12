@@ -740,7 +740,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
-  elements.push(...groundBack);
+  //elements.push(...groundBack);
   elements.push(...pilots);
   elements.push(...pilotLabels);
   elements.push(...groundFront);
@@ -951,7 +951,12 @@ function generateGroundLinePoints(
 
   const addSegment = (
     pts: { x: number; y: number }[],
-    x0: number, y0: number, x1: number, y1: number, segs: number, includeEnd: boolean,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    segs: number,
+    includeEnd: boolean,
   ) => {
     for (let i = 1; i < segs; i++) {
       const t = i / segs;
@@ -1075,7 +1080,15 @@ function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
-  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed, leftCenterX, rightCenterX);
+  const groundPtsAbs = generateGroundLinePoints(
+    leftX,
+    leftNivelY,
+    rightX,
+    rightNivelY,
+    seed,
+    leftCenterX,
+    rightCenterX,
+  );
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
