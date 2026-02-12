@@ -194,7 +194,7 @@ export function PilotiEditor({
         nivelInputRef.current.focus();
       }
     });
-  }, [isOpen, tempIsMaster, tempNivelInput]);
+  }, [isOpen, tempIsMaster]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
