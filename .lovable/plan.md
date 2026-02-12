@@ -1,117 +1,95 @@
 
 
-# Diagnostico: updateGroundInGroup nao capta coordenadas corretas dos pilotis
+# Correção: updateGroundInGroup corrompe coordenadas ao reordenar Z
 
-## O que esta acontecendo
+## Diagnóstico
 
-O problema esta na cadeia de chamadas dentro de `updatePiloti` no `house-manager.ts` (linhas 563-572):
+Mesmo após remover as chamadas intermediárias de `refreshHouseGroupRendering`, o problema persiste porque o próprio `updateGroundInGroup` faz um ciclo de `remove/add` para reorganizar a ordem Z (linhas 1232-1239 de canvas-utils.ts):
 
 ```text
-1. updatePilotiHeight(group, pilotiId, height)
-   |-> Modifica o rect do piloti (height, top do label, etc.)
-   |-> Chama refreshHouseGroupRendering(group)    <-- COORDENADAS MUDAM AQUI
-       |-> group.remove(...objects)
-       |-> group.add(...objects)
-       |-> _calcBounds / _updateObjectsCoords
-   
-2. updatePilotiMaster(group, pilotiId, isMaster, nivel)
-   |-> Atualiza pilotiNivel e visual do piloti
-
-3. updateGroundInGroup(group)                     <-- LE COORDENADAS JA ALTERADAS
-   |-> leftRect.left, leftRect.top  <-- VALORES ERRADOS
-   |-> Cria novos elementos de terreno com posicoes erradas
-   |-> Chama refreshHouseGroupRendering(group)    <-- COORDENADAS MUDAM DE NOVO
+updateGroundInGroup:
+  1. Remove ground antigos (ok)
+  2. Lê coordenadas dos pilotis (ok, ainda corretas)
+  3. Cria novos elementos de terreno (ok)
+  4. group.remove(...normal)       <-- CORROMPE coordenadas
+  5. group.add(groundBack, normal, groundFront)  <-- Coordenadas já erradas
+  
+Depois:
+  refreshHouseGroupRendering:
+  6. group.remove(...tudo)         <-- Corrompe de novo
+  7. group.add(...tudo)            <-- Dupla transformação
 ```
 
-### Causa raiz: `refreshHouseGroupRendering`
+O `group.remove()` + `group.add()` no Fabric.js v6 transforma coordenadas entre espaço local e global. Quando os objetos já estão em coordenadas locais, o `add()` aplica a transformação novamente, deslocando tudo.
 
-A funcao `refreshHouseGroupRendering` (linha 424-451 de canvas-utils.ts) faz:
+## Solução
 
-1. `group.remove(...objects)` -- remove todos os filhos do grupo
-2. `group.add(...objects)` -- re-adiciona ao grupo
+Eliminar o ciclo de remove/add de objetos normais dentro de `updateGroundInGroup`. Em vez disso, apenas adicionar os novos elementos de terreno ao grupo e delegar a reorganização Z para `refreshHouseGroupRendering`, que já faz um remove/add completo.
 
-No Fabric.js v6, quando voce faz `group.add()`, o Fabric transforma as coordenadas dos objetos do espaco global para o espaco local do grupo. Porem, os objetos que foram removidos ja estavam em coordenadas locais. Isso faz com que o Fabric aplique a transformacao duas vezes, deslocando as coordenadas internas dos filhos.
+Para garantir a ordem Z correta, modificar `refreshHouseGroupRendering` para ordenar os objetos antes de re-adicioná-los: ground fill/line no fundo, objetos normais no meio, markers/labels no topo.
 
-Alem disso, `_calcBounds()` e `_updateObjectsCoords()` recalculam o centro do grupo e ajustam todas as coordenadas dos filhos. Se o piloti cresceu (mudou de altura), o bounding box do grupo muda, o centro desloca, e TODOS os filhos recebem coordenadas ajustadas.
-
-Resultado: quando `updateGroundInGroup` le `leftRect.left` e `leftRect.top`, esses valores ja foram transformados/deslocados pelo `refreshHouseGroupRendering` chamado dentro de `updatePilotiHeight`.
-
-### Problema adicional: altura nao atualiza o terreno
-
-Olhando as linhas 569-572 do house-manager.ts:
-
-```typescript
-if (data.nivel !== undefined && CORNER_PILOTI_IDS.includes(pilotiId)) {
-  updateGroundInGroup(group);
-}
-```
-
-O terreno so e atualizado quando o **nivel** muda. Mas a mudanca de **altura** tambem afeta o terreno, pois a posicao Y do terreno depende de `leftRect.top + nivel * 100 * scale`, e o `top` do piloti muda quando a altura muda. Ou seja, mudar a altura do piloti sem atualizar o terreno deixa o solo desalinhado.
-
-## Solucao proposta
-
-### 1. Evitar multiplos `refreshHouseGroupRendering` na mesma operacao
-
-Modificar `updatePilotiHeight` para **nao** chamar `refreshHouseGroupRendering` no final (linha 414). Modificar `updateGroundInGroup` para **nao** chamar `refreshHouseGroupRendering` no final (linha 1242).
-
-O `updatePiloti` no house-manager.ts ficara responsavel por chamar `refreshHouseGroupRendering` uma unica vez no final, depois de todas as sub-operacoes.
-
-### 2. Atualizar o terreno tambem quando a altura muda
-
-No `updatePiloti`, chamar `updateGroundInGroup` para qualquer piloti de canto quando a altura OU o nivel mudar.
-
-### 3. Chamar `refreshHouseGroupRendering` uma unica vez ao final
-
-Remover as chamadas intermediarias e adicionar uma unica chamada ao final do loop de views em `updatePiloti`.
-
-## Detalhes tecnicos
+## Detalhes técnicos
 
 ### Arquivo: `src/lib/canvas-utils.ts`
 
-**`updatePilotiHeight` (linha 414):** Remover a chamada `refreshHouseGroupRendering(group)`. Manter apenas `group.canvas?.requestRenderAll()`.
-
-**`updateGroundInGroup` (linha 1242):** Remover a chamada `refreshHouseGroupRendering(group)`.
-
-### Arquivo: `src/lib/house-manager.ts`
-
-**`updatePiloti` (linhas 547-574):** Reestruturar o loop de views para:
+**`updateGroundInGroup` (linhas 1227-1241):** Substituir toda a lógica de reempilhamento por um simples `group.add(...)` dos novos elementos:
 
 ```typescript
-for (const instance of instances) {
-  const group = instance.group;
+// Antes (problemático):
+const normal = group.getObjects().filter(...);
+if (normal.length) group.remove(...normal);
+if (groundBack.length) group.add(...groundBack);
+if (normal.length) group.add(...normal);
+if (groundFront.length) group.add(...groundFront);
 
-  // 1. Atualizar masters anteriores (se necessario)
-  if (clearedMasters.length) {
-    clearedMasters.forEach((id) => {
-      const p = this.house!.pilotis[id];
-      updatePilotiMaster(group, id, p.isMaster, p.nivel);
-    });
-  }
+// Depois (corrigido):
+if (groundBack.length) group.add(...(groundBack as any));
+if (groundFront.length) group.add(...(groundFront as any));
+```
 
-  // 2. Atualizar altura do piloti alvo
-  const newData = this.house!.pilotis[pilotiId];
-  if (data.height !== undefined) {
-    updatePilotiHeight(group, pilotiId, newData.height);
-  }
+Os elementos serão adicionados ao final da lista. A ordem Z será corrigida pelo `refreshHouseGroupRendering` na sequência.
 
-  // 3. Atualizar master/nivel do piloti alvo
-  if (data.isMaster !== undefined || data.nivel !== undefined) {
-    updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
-  }
+**`refreshHouseGroupRendering` (linhas 423-450):** Adicionar ordenação Z antes de re-adicionar os objetos:
 
-  // 4. Atualizar terreno se altura OU nivel mudou em piloti de canto
-  if ((data.height !== undefined || data.nivel !== undefined) 
-      && CORNER_PILOTI_IDS.includes(pilotiId)) {
-    updateGroundInGroup(group);
-  }
+```typescript
+export function refreshHouseGroupRendering(group: Group): void {
+  (group as any).objectCaching = false;
+  const objects = group.getObjects();
 
-  // 5. Refresh UNICO ao final de todas as operacoes
-  refreshHouseGroupRendering(group);
+  objects.forEach((obj: any) => {
+    obj.objectCaching = false;
+    obj.dirty = true;
+    obj.setCoords?.();
+  });
+
+  group.remove(...objects);
+
+  // Ordenar: ground fill/line -> normais -> markers/labels
+  const groundBack = objects.filter((o: any) => o.isGroundFill || o.isGroundLine);
+  const groundFront = objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
+  const normal = objects.filter((o: any) => !o.isGroundElement);
+  const sorted = [...groundBack, ...normal, ...groundFront];
+
+  group.add(...sorted);
+
+  // ... resto da função (Polyline/Polygon, cache, bounds)
 }
 ```
 
-Isso garante que:
-- As coordenadas internas dos pilotis estao estaveis quando `updateGroundInGroup` as le
-- O terreno e recriado com base nas coordenadas corretas
-- Um unico `refreshHouseGroupRendering` ao final consolida todas as mudancas
+### Arquivo: `src/lib/house-manager.ts`
+
+Nenhuma alteração necessária — a estrutura do `updatePiloti` com refresh único ao final permanece como está.
+
+## Resumo do fluxo corrigido
+
+```text
+updatePiloti:
+  1. updatePilotiHeight  -> modifica rect (sem remove/add)
+  2. updatePilotiMaster  -> modifica visual (sem remove/add)
+  3. updateGroundInGroup -> remove ground antigo, lê coords (corretas!),
+                           cria ground novo, adiciona ao grupo (sem tocar nos normais)
+  4. refreshHouseGroupRendering -> remove tudo, ordena por Z, re-adiciona uma única vez
+```
+
+Coordenadas só são transformadas uma vez, no passo 4, garantindo estabilidade.
 
