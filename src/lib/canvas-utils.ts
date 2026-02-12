@@ -432,8 +432,15 @@ export function refreshHouseGroupRendering(group: Group): void {
   });
 
   // Remove and re-add all objects to force bounds recalculation
+  // Sort by Z-order: ground fill/line -> normal objects -> markers/labels
   group.remove(...objects);
-  group.add(...objects);
+
+  const groundBack = objects.filter((o: any) => o.isGroundFill || o.isGroundLine);
+  const groundFront = objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
+  const normal = objects.filter((o: any) => !o.isGroundElement);
+  const sorted = [...groundBack, ...normal, ...groundFront];
+
+  group.add(...sorted);
 
   // Polyline/Polygon need pathOffset recalculation after re-add
   objects.forEach((obj: any) => {
@@ -1227,15 +1234,8 @@ export function updateGroundInGroup(group: Group): void {
   const groundBack = newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
-  // Re-stack so the house/pilotis stay above the terrain fill/line,
-  // but markers/labels remain on top (anchors visible).
-  const normal = group.getObjects().filter((o: any) => !o.isGroundElement);
-  if (normal.length) {
-    group.remove(...(normal as any));
-  }
-
+  // Just add new ground elements; Z-ordering is handled by refreshHouseGroupRendering
   if (groundBack.length) group.add(...(groundBack as any));
-  if (normal.length) group.add(...(normal as any));
   if (groundFront.length) group.add(...(groundFront as any));
 
 }
