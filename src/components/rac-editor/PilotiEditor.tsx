@@ -309,7 +309,7 @@ export function PilotiEditor({
     return tempHeight === h ? 'default' : 'outline';
   };
 
-  const maxNivel = formatNivelForInput(tempHeight * 3 / 4);
+  const maxNivel = formatNivelForInput(Math.round(tempHeight * 75) / 100);
 
   if (!isOpen) return null;
 
