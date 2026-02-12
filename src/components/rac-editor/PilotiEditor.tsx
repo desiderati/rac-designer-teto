@@ -96,17 +96,16 @@ export function PilotiEditor({
   onHeightChange,
   onNavigate,
 }: PilotiEditorProps) {
-  // Initialize with a function to avoid stale closure issues - values sync immediately when props change
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
   const [tempNivelInput, setTempNivelInput] = useState(() => formatNivelForInput(currentNivel));
+  const [clickedHeight, setClickedHeight] = useState<number | null>(null);
 
   // Popover draggable position (desktop)
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
   const nivelInputRef = useRef<HTMLInputElement | null>(null);
-  // Track if user manually dragged the popover - if so, keep position on navigation
   const userDraggedRef = useRef(false);
 
   const allIds = useMemo(() => {
@@ -119,14 +118,12 @@ export function PilotiEditor({
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
   const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
 
-  // Synchronize temp state with props immediately when pilotiId changes (avoids flash of old values)
+  // Synchronize temp state with props immediately when pilotiId changes
   const lastPilotiIdRef = useRef<string | null>(null);
   const wasOpenRef = useRef(false);
-  
-  // Use useLayoutEffect-like pattern: update state synchronously when pilotiId changes
+
   if (isOpen && pilotiId !== lastPilotiIdRef.current) {
     lastPilotiIdRef.current = pilotiId;
-    // Render-time state sync: React will restart render with correct values immediately
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
@@ -143,7 +140,6 @@ export function PilotiEditor({
     const isFirstOpen = !wasOpenRef.current;
     wasOpenRef.current = true;
 
-    // Init draggable position only on first open
     if (isFirstOpen) {
       userDraggedRef.current = false;
       if (anchorPosition) {
@@ -158,7 +154,7 @@ export function PilotiEditor({
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (!dragStateRef.current) return;
-      userDraggedRef.current = true; // Mark that user manually dragged
+      userDraggedRef.current = true;
       setPopoverPos({
         x: e.clientX - dragStateRef.current.offsetX,
         y: e.clientY - dragStateRef.current.offsetY,
@@ -177,25 +173,6 @@ export function PilotiEditor({
     };
   }, []);
 
-  // Mantém o foco no campo de nível enquanto o usuário digita (evita “perder foco” em re-renders)
-  useEffect(() => {
-    if (!isOpen || !tempIsMaster) return;
-    const el = nivelInputRef.current;
-    if (!el) return;
-
-    // Se o input já está focado, não faz nada.
-    if (document.activeElement === el) return;
-
-    // Se o usuário estava interagindo com o nível (campo existe na tela), re-foca.
-    // requestAnimationFrame evita competir com o React na mesma pintura.
-    requestAnimationFrame(() => {
-      // Checagem dupla (pode ter fechado)
-      if (nivelInputRef.current && isOpen && tempIsMaster) {
-        nivelInputRef.current.focus();
-      }
-    });
-  }, [isOpen, tempIsMaster]);
-
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
 
@@ -206,7 +183,6 @@ export function PilotiEditor({
     const newId = allIds[newIndex];
     if (!newId) return;
 
-    // Apply current changes before navigating using house manager (syncs all views)
     if (pilotiId && (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel)) {
       houseManager.updatePiloti(pilotiId, {
         height: tempHeight,
@@ -214,14 +190,11 @@ export function PilotiEditor({
         nivel: tempNivel,
       });
       onHeightChange(tempHeight);
-
-      // Keep external selection in sync
       onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
     }
 
     if (!group) return;
 
-    // Get new piloti data
     const pilotiData = getPilotiFromGroup(group, newId);
     if (pilotiData && onNavigate) {
       onNavigate(newId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
@@ -233,14 +206,12 @@ export function PilotiEditor({
   };
 
   const handleApply = () => {
-    // Converte o texto do nível apenas na hora de aplicar
     const parsed = parseNivelText(tempNivelInput);
     const nivelToApply = parsed ? clampNivel(parsed, tempHeight) : DEFAULT_NIVEL;
 
     setTempNivel(nivelToApply);
     setTempNivelInput(formatNivelForInput(nivelToApply));
 
-    // Use house manager to update and sync across all views
     if (pilotiId) {
       houseManager.updatePiloti(pilotiId, {
         height: tempHeight,
@@ -248,8 +219,6 @@ export function PilotiEditor({
         nivel: nivelToApply,
       });
       onHeightChange(tempHeight);
-
-      // Critical: keep selection/highlight + displayed values in sync while popover is open
       onNavigate?.(pilotiId, tempHeight, tempIsMaster, nivelToApply);
     }
 
@@ -265,7 +234,6 @@ export function PilotiEditor({
   };
 
   const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Apenas filtra caracteres; não faz parse aqui (para não quebrar backspace/cursor)
     const next = filterNivelText(e.target.value);
     setTempNivelInput(next);
   };
@@ -274,6 +242,7 @@ export function PilotiEditor({
     const parsed = parseNivelText(tempNivelInput);
     if (parsed == null || tempNivelInput.trim() === '') {
       setTempNivelInput(DEFAULT_NIVEL_INPUT);
+      setTempNivel(DEFAULT_NIVEL);
     } else {
       const clamped = clampNivel(parsed, tempHeight);
       setTempNivelInput(formatNivelForInput(clamped));
@@ -282,8 +251,6 @@ export function PilotiEditor({
   };
 
   const handlePopoverPointerDown = (e: React.PointerEvent) => {
-    // Arrastar quando clicar em qualquer área NÃO interativa dentro do popover.
-    // (não bloquear arrasto em containers, só em controles interativos)
     const target = e.target as HTMLElement;
     const isInteractive = target.closest('button, input, textarea, select, [role="switch"], a');
     if (isInteractive) return;
@@ -294,103 +261,99 @@ export function PilotiEditor({
     e.preventDefault();
   };
 
-  const NavigationHeader = () => (
+  const handleHeightClick = (h: number) => {
+    setTempHeight(h);
+
+    const { autoNavigatePiloti } = getSettings();
+
+    if (pilotiId) {
+      const parsed = parseNivelText(tempNivelInput);
+      const nivelToApply = parsed ? clampNivel(parsed, h) : DEFAULT_NIVEL;
+      houseManager.updatePiloti(pilotiId, {
+        height: h,
+        isMaster: tempIsMaster,
+        nivel: nivelToApply,
+      });
+      onHeightChange(h);
+      onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
+    }
+
+    if (autoNavigatePiloti && pilotiId) {
+      setClickedHeight(h);
+
+      const idx = allIds.indexOf(pilotiId);
+      const nextId = idx >= 0 && idx < allIds.length - 1 ? allIds[idx + 1] : null;
+
+      setTimeout(() => {
+        setClickedHeight(null);
+
+        if (nextId && group) {
+          const pilotiData = getPilotiFromGroup(group, nextId);
+          if (pilotiData && onNavigate) {
+            onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
+            setTempHeight(pilotiData.height);
+            setTempIsMaster(pilotiData.isMaster);
+            setTempNivel(pilotiData.nivel);
+            setTempNivelInput(formatNivelForInput(pilotiData.nivel));
+          }
+        } else {
+          onClose();
+        }
+      }, 180);
+    }
+  };
+
+  const getHeightButtonVariant = (h: number): 'default' | 'outline' => {
+    if (clickedHeight === h) return 'default';
+    if (clickedHeight !== null) return 'outline';
+    return tempHeight === h ? 'default' : 'outline';
+  };
+
+  const maxNivel = formatNivelForInput(Math.round((tempHeight * 3 / 4) * 100) / 100);
+
+  if (!isOpen) return null;
+
+  // ---- Shared inline JSX renderers (NOT components, to avoid remount/focus-loss) ----
+
+  const navigationHeader = (
     <div className="flex items-center justify-center gap-2" data-no-drag>
       <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
         <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
       </Button>
-
       <span className="font-bold text-2xl min-w-[80px] text-center">Piloti {pilotiName}</span>
-
       <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
         <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
       </Button>
     </div>
   );
 
-  const HeightControls = ({ compact = false }: { compact?: boolean }) => {
-    const [clickedHeight, setClickedHeight] = useState<number | null>(null);
-
-    const handleHeightClick = (h: number) => {
-      setTempHeight(h);
-
-      const { autoNavigatePiloti } = getSettings();
-
-      // Always update canvas immediately for real-time feedback
-      if (pilotiId) {
-        const parsed = parseNivelText(tempNivelInput);
-        const nivelToApply = parsed ? clampNivel(parsed, h) : DEFAULT_NIVEL;
-        houseManager.updatePiloti(pilotiId, {
-          height: h,
-          isMaster: tempIsMaster,
-          nivel: nivelToApply,
-        });
-        onHeightChange(h);
-        onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
-      }
-
-      if (autoNavigatePiloti && pilotiId) {
-        // Show visual feedback immediately
-        setClickedHeight(h);
-
-        // Navigate to next after a short delay for visual feedback
-        const idx = allIds.indexOf(pilotiId);
-        const nextId = idx >= 0 && idx < allIds.length - 1 ? allIds[idx + 1] : null;
-
-        setTimeout(() => {
-          setClickedHeight(null);
-
-          if (nextId && group) {
-            const pilotiData = getPilotiFromGroup(group, nextId);
-            if (pilotiData && onNavigate) {
-              onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
-              setTempHeight(pilotiData.height);
-              setTempIsMaster(pilotiData.isMaster);
-              setTempNivel(pilotiData.nivel);
-              setTempNivelInput(formatNivelForInput(pilotiData.nivel));
-            }
-          } else {
-            // No next piloti — close
-            onClose();
-          }
-        }, 180);
-      }
-    };
-
-    const getButtonVariant = (h: number): 'default' | 'outline' => {
-      if (clickedHeight === h) return 'default';
-      if (clickedHeight !== null) return 'outline';
-      return tempHeight === h ? 'default' : 'outline';
-    };
-
-    return (
-      <div className="space-y-2" data-no-drag>
-        <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
-        <div
-          className={
-            compact
-              ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
-              : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
-          }
-        >
-          {PILOTI_HEIGHTS.map((h) => (
-            <Button
-              key={h}
-              variant={getButtonVariant(h)}
-              size={compact ? 'sm' : 'default'}
-              onClick={() => handleHeightClick(h)}
-              disabled={clickedHeight !== null}
-              className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
-            >
-              {formatPilotiHeight(h)}
-            </Button>
-          ))}
-        </div>
+  const renderHeightControls = (compact: boolean) => (
+    <div className="space-y-2" data-no-drag>
+      <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
+      <div
+        className={
+          compact
+            ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
+            : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
+        }
+      >
+        {PILOTI_HEIGHTS.map((h) => (
+          <Button
+            key={h}
+            variant={getHeightButtonVariant(h)}
+            size={compact ? 'sm' : 'default'}
+            onClick={() => handleHeightClick(h)}
+            disabled={clickedHeight !== null}
+            className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
+          >
+            {formatPilotiHeight(h)}
+          </Button>
+        ))}
       </div>
-    );
-  };
+    </div>
+  );
 
-  const MasterControls = ({ compact = false }: { compact?: boolean }) => (
+  const renderMasterControls = (compact: boolean) => (
     <div className="space-y-3" data-no-drag>
       {isCornerPiloti && (
         <div className="flex items-center justify-between">
@@ -419,7 +382,7 @@ export function PilotiEditor({
                 Nível do piloti (m)
               </Label>
               <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
-                0,20 a {formatNivelForInput(Math.round((tempHeight * 3 / 4) * 100) / 100)} m
+                0,20 a {maxNivel} m
               </p>
             </div>
           </div>
@@ -428,20 +391,18 @@ export function PilotiEditor({
     </div>
   );
 
-  if (!isOpen) return null;
-
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>
-              <NavigationHeader />
+              {navigationHeader}
             </DrawerTitle>
           </DrawerHeader>
           <div className="p-4 space-y-6">
-            <MasterControls />
-            <HeightControls />
+            {renderMasterControls(false)}
+            {renderHeightControls(false)}
           </div>
           <DrawerFooter className="flex-row gap-2">
             <DrawerClose asChild>
@@ -460,12 +421,11 @@ export function PilotiEditor({
     );
   }
 
-  // Desktop: painel flutuante (sem Radix Popover) para termos posição/drag 100% determinísticos
+  // Desktop: painel flutuante
   return createPortal(
     <div
       className="fixed inset-0 z-50"
       onPointerDown={(e) => {
-        // Clique fora do painel fecha sem aplicar
         if (e.target === e.currentTarget) handleCancel();
       }}
       onKeyDown={(e) => {
@@ -483,17 +443,16 @@ export function PilotiEditor({
               : { position: 'fixed', left: 24, top: 24 }
         }
         onPointerDown={(e) => {
-          // impedir que o clique dentro feche
           e.stopPropagation();
           handlePopoverPointerDown(e);
         }}
       >
         <div className="space-y-4">
-          <NavigationHeader />
+          {navigationHeader}
 
-          <MasterControls compact />
+          {renderMasterControls(true)}
 
-          <HeightControls compact />
+          {renderHeightControls(true)}
 
           <div className="flex gap-2 pt-2" data-no-drag>
             <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
