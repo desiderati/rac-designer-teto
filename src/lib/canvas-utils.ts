@@ -742,7 +742,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   elements.push(...groundBack);
   //elements.push(...pilots);
-  //elements.push(...pilotLabels);
+  elements.push(...pilotLabels);
   elements.push(...groundFront);
 
   const group = new Group(elements, {
