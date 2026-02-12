@@ -74,12 +74,12 @@ function parseNivelText(value: string): number | null {
   const parsed = Number.parseFloat(normalized);
   if (Number.isNaN(parsed) || parsed < 0) return null;
   // Round to 2 decimal places
-  return parsed;
+  return Math.round(parsed * 100) / 100;
 }
 
 function clampNivel(nivel: number, pilotiHeight: number): number {
-  const maxNivel = pilotiHeight * 3 / 4;
-  return Math.max(0.2, Math.min(nivel, maxNivel));
+  const maxNivel = Math.round(pilotiHeight * 75) / 100;
+  return Math.round(Math.max(0.2, Math.min(nivel, maxNivel)) * 100) / 100;
 }
 
 export function PilotiEditor({
