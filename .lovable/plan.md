@@ -1,26 +1,58 @@
 
-# Correcao: Terreno do lado direito menor na insercao inicial
 
-## Problema
+# Preencher 2/3 do piloti com listras diagonais nas vistas de elevacao
 
-Na funcao `createHouseFrontBack`, o `rightX` do terreno e calculado como `2 * margin + 3 * step + 50`, que matematicamente equivale a `bodyW - pilotW + 50`. Isso faz o terreno ficar `pilotW` (30 pixels escalados) mais curto que deveria no lado direito.
+## Resumo
 
-Na funcao de atualizacao (`updateGroundInGroup`), o calculo usa os limites dos objetos estruturais (paredes e telhado), que cobrem toda a largura `bodyW`, resultando em `rightX = bodyW + 50`. Por isso, apos editar um piloti, o terreno fica correto.
+Adicionar um preenchimento visual de listras diagonais nos 2/3 inferiores de cada piloti retangular nas vistas de elevacao (frontal, traseira e laterais). O terco superior permanece branco (ou com a cor de fundo atual).
 
-## Solucao
+## Abordagem
 
-Usar `bodyW` como referencia direta em vez da formula baseada em margin/step/pilotW:
+Para cada piloti retangular nas vistas de elevacao, criar um objeto adicional (Rect) sobreposto que cobre apenas os 2/3 inferiores do piloti e utiliza um `Pattern` com linhas diagonais como preenchimento. Esse objeto acompanhara o piloti e sera atualizado junto quando a altura mudar.
 
-### Arquivo: `src/lib/canvas-utils.ts`
+## Detalhes tecnicos
 
-**`createHouseFrontBack` (linha 731):**
-- Trocar `rightX = 2 * margin + 3 * step + 50` por `rightX = bodyW + 50`
+### 1. Funcao auxiliar para criar o pattern de listras diagonais
 
-**`createHouseSide` (linha 893):** Verificar se ha problema similar. Atualmente usa `rightX = sideWidth + 50`, que parece correto se `sideWidth` ja representa a largura total da vista.
+Criar uma funcao `createDiagonalStripePattern(scale)` que gera um `Pattern` do Fabric.js usando um canvas auxiliar (HTML Canvas) com linhas diagonais desenhadas. O pattern sera repetido (repeat) para preencher a area.
 
-## Detalhe tecnico
+### 2. Criacao do overlay listrado na insercao inicial
 
-- `margin = 55 * s`, `pilotW = 30 * s`, `step = (bodyW - 2*margin - pilotW) / 3`
-- `2*margin + 3*step = 2*margin + bodyW - 2*margin - pilotW = bodyW - pilotW`
-- Portanto `2*margin + 3*step + 50 = bodyW - pilotW + 50` (faltam ~30px escalados)
-- Correcao: `bodyW + 50` alinha com o comportamento do `updateGroundInGroup`
+Nos pontos onde os pilotis retangulares sao criados (`createHouseFrontBack` e `createHouseSide`):
+
+- Apos criar cada `Rect` do piloti, criar um segundo `Rect` com:
+  - Mesma largura (`pilotW`)
+  - Altura = 2/3 da altura visual do piloti
+  - Posicionado no terco inferior (top = piloti.top + 1/3 da altura)
+  - Fill = pattern de listras diagonais
+  - Sem borda (strokeWidth: 0)
+  - Propriedades customizadas: `isPilotiStripe = true`, `pilotiId` correspondente
+  - `selectable: false`, `evented: false`
+
+### 3. Atualizacao do overlay ao mudar a altura
+
+Na funcao `updatePilotiHeight`, ao redimensionar o piloti:
+
+- Localizar o objeto com `isPilotiStripe` e mesmo `pilotiId`
+- Atualizar sua altura para 2/3 da nova altura visual
+- Atualizar seu `top` para `piloti.top + 1/3 da nova altura`
+- Marcar como dirty
+
+### 4. Compatibilidade com destaque de cores
+
+Na funcao `updatePilotiMaster` e nos trechos de destaque (amarelo/azul):
+
+- O overlay listrado deve ter opacidade parcial ou ser renderizado de forma que o destaque de cor no piloti base ainda seja visivel por baixo
+- Alternativa: aplicar o pattern diretamente no Rect do piloti e usar um overlay branco no terco superior
+
+### 5. Registro de propriedade customizada
+
+Adicionar `isPilotiStripe` ao array `customProps` para garantir persistencia na serializacao.
+
+### 6. Ordem Z
+
+O overlay listrado deve ficar logo acima do Rect do piloti na ordem Z, mas abaixo dos labels e marcadores de nivel.
+
+### Arquivos a editar
+
+- `src/lib/canvas-utils.ts`: Funcao auxiliar de pattern, criacao dos overlays em `createHouseFrontBack` e `createHouseSide`, atualizacao em `updatePilotiHeight`, `updatePilotiMaster`, e `refreshHouseGroupRendering`
