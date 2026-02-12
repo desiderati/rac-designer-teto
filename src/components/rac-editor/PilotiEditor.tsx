@@ -46,11 +46,7 @@ const DEFAULT_NIVEL = 0.3;
 const DEFAULT_NIVEL_INPUT = '0,3';
 
 function formatNivelForInput(n: number): string {
-  const raw = String(n).replace('.', ',');
-  if (!raw.includes(',')) return raw;
-  const [intPart, decPart = ''] = raw.split(',');
-  const trimmedDec = decPart.replace(/0+$/, '');
-  return trimmedDec ? `${intPart},${trimmedDec}` : intPart;
+  return n.toFixed(2).replace('.', ',');
 }
 
 function filterNivelText(value: string): string {
