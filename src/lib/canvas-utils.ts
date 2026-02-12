@@ -728,7 +728,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const groundSeed = flipHorizontal ? 42 : 137;
   const leftX = -50;
   const leftCenterX = margin;
-  const rightX = 2 * margin + 3 * step + 50;
+  const rightX = bodyW + 50;
   const rightCenterX = margin + 3 * step;
   const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
