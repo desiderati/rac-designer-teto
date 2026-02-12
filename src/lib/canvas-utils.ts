@@ -411,7 +411,6 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     group.set("top", (group.top || 0) - rectHeightDelta / 2);
   }
 
-  refreshHouseGroupRendering(group);
   group.canvas?.requestRenderAll();
 }
 
@@ -1239,7 +1238,6 @@ export function updateGroundInGroup(group: Group): void {
   if (normal.length) group.add(...(normal as any));
   if (groundFront.length) group.add(...(groundFront as any));
 
-  refreshHouseGroupRendering(group);
 }
 
 export function createLine(canvas: FabricCanvas): Line {
