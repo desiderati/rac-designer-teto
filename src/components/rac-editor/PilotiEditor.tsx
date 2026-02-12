@@ -74,7 +74,7 @@ function parseNivelText(value: string): number | null {
 }
 
 function clampNivel(nivel: number, pilotiHeight: number): number {
-  const maxNivel = Math.round(pilotiHeight * 75) / 100;
+  const maxNivel = Math.round(pilotiHeight * 200 / 3) / 100;
   return Math.round(Math.max(0.2, Math.min(nivel, maxNivel)) * 100) / 100;
 }
 
@@ -305,7 +305,7 @@ export function PilotiEditor({
     return tempHeight === h ? 'default' : 'outline';
   };
 
-  const maxNivel = formatNivelForInput(Math.round(tempHeight * 75) / 100);
+  const maxNivel = formatNivelForInput(Math.round(tempHeight * 200 / 3) / 100);
 
   if (!isOpen) return null;
 
