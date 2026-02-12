@@ -566,10 +566,13 @@ class HouseManager {
         if (data.isMaster !== undefined || data.nivel !== undefined) {
           updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
         }
-        // Update ground line when nivel changes for a corner piloti
-        if (data.nivel !== undefined && CORNER_PILOTI_IDS.includes(pilotiId)) {
+        // Update ground line when height OR nivel changes for a corner piloti
+        if ((data.height !== undefined || data.nivel !== undefined) && CORNER_PILOTI_IDS.includes(pilotiId)) {
           updateGroundInGroup(group);
         }
+
+        // Single refresh at the end of all operations
+        refreshHouseGroupRendering(group);
       }
     });
 
