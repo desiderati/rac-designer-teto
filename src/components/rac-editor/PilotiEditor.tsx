@@ -54,7 +54,17 @@ function formatNivelForInput(n: number): string {
 }
 
 function filterNivelText(value: string): string {
-  return value.replace(/[^0-9.,]/g, '');
+  // Allow only digits, one comma or period as decimal separator
+  let filtered = value.replace(/[^0-9.,]/g, '');
+  // Keep only the first decimal separator
+  const firstSep = filtered.search(/[.,]/);
+  if (firstSep !== -1) {
+    const before = filtered.slice(0, firstSep + 1);
+    const after = filtered.slice(firstSep + 1).replace(/[.,]/g, '');
+    // Limit to 2 decimal places
+    filtered = before + after.slice(0, 2);
+  }
+  return filtered;
 }
 
 function parseNivelText(value: string): number | null {
@@ -63,7 +73,13 @@ function parseNivelText(value: string): number | null {
   const normalized = trimmed.replace(',', '.');
   const parsed = Number.parseFloat(normalized);
   if (Number.isNaN(parsed) || parsed < 0) return null;
-  return parsed;
+  // Round to 2 decimal places
+  return Math.round(parsed * 100) / 100;
+}
+
+function clampNivel(nivel: number, pilotiHeight: number): number {
+  const maxNivel = Math.round((pilotiHeight * 3 / 4) * 100) / 100;
+  return Math.max(0.2, Math.min(nivel, maxNivel));
 }
 
 export function PilotiEditor({
@@ -219,10 +235,10 @@ export function PilotiEditor({
   const handleApply = () => {
     // Converte o texto do nível apenas na hora de aplicar
     const parsed = parseNivelText(tempNivelInput);
-    const nivelToApply = parsed ?? DEFAULT_NIVEL;
+    const nivelToApply = parsed ? clampNivel(parsed, tempHeight) : DEFAULT_NIVEL;
 
     setTempNivel(nivelToApply);
-    setTempNivelInput(parsed ? tempNivelInput : DEFAULT_NIVEL_INPUT);
+    setTempNivelInput(formatNivelForInput(nivelToApply));
 
     // Use house manager to update and sync across all views
     if (pilotiId) {
@@ -255,9 +271,13 @@ export function PilotiEditor({
   };
 
   const handleNivelBlur = () => {
-    // Se campo vazio, volta ao valor padrão (default value), sem placeholder
-    if (tempNivelInput.trim() === '') {
+    const parsed = parseNivelText(tempNivelInput);
+    if (parsed == null || tempNivelInput.trim() === '') {
       setTempNivelInput(DEFAULT_NIVEL_INPUT);
+    } else {
+      const clamped = clampNivel(parsed, tempHeight);
+      setTempNivelInput(formatNivelForInput(clamped));
+      setTempNivel(clamped);
     }
   };
 
@@ -299,7 +319,7 @@ export function PilotiEditor({
       // Always update canvas immediately for real-time feedback
       if (pilotiId) {
         const parsed = parseNivelText(tempNivelInput);
-        const nivelToApply = parsed ?? DEFAULT_NIVEL;
+        const nivelToApply = parsed ? clampNivel(parsed, h) : DEFAULT_NIVEL;
         houseManager.updatePiloti(pilotiId, {
           height: h,
           isMaster: tempIsMaster,
@@ -399,7 +419,7 @@ export function PilotiEditor({
                 Nível do piloti (m)
               </Label>
               <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
-                Distância do solo ao topo do piloti
+                0,20 a {formatNivelForInput(Math.round((tempHeight * 3 / 4) * 100) / 100)} m
               </p>
             </div>
           </div>
