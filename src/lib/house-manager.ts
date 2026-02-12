@@ -521,8 +521,6 @@ class HouseManager {
       (obj as any).dirty = true;
     });
 
-    // Update ground line in elevation views
-    updateGroundInGroup(group);
     refreshHouseGroupRendering(group);
   }
 
