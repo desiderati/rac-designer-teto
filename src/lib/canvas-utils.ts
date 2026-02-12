@@ -431,27 +431,30 @@ export function refreshHouseGroupRendering(group: Group): void {
     obj.setCoords?.();
   });
 
-  // Remove and re-add all objects to force bounds recalculation
-  // Sort by Z-order: ground fill/line -> normal objects -> markers/labels
-  group.remove(...objects);
-
+  // Z-order sort: ground fill/line -> normal objects -> markers/labels
+  // Directly reorder the internal _objects array to avoid coordinate transformations
   const groundBack = objects.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
   const normal = objects.filter((o: any) => !o.isGroundElement);
   const sorted = [...groundBack, ...normal, ...groundFront];
 
-  group.add(...sorted);
+  // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
+  const internalObjects = (group as any)._objects;
+  if (internalObjects && Array.isArray(internalObjects)) {
+    internalObjects.length = 0;
+    internalObjects.push(...sorted);
+  }
 
-  // Polyline/Polygon need pathOffset recalculation after re-add
+  // Polyline/Polygon need pathOffset recalculation
   objects.forEach((obj: any) => {
     if (obj instanceof Polyline || obj instanceof Polygon) {
       obj.setDimensions?.();
     }
   });
 
+  // Recalculate bounds without triggering object coordinate transforms
   (group as any)._clearCache?.();
   (group as any)._calcBounds?.();
-  (group as any)._updateObjectsCoords?.();
   group.setCoords();
   (group as any).dirty = true;
 }
@@ -1178,18 +1181,31 @@ export function updateGroundInGroup(group: Group): void {
   // Find seed from existing ground
   const oldSeed = (objects.find((o: any) => o.groundSeed) as any)?.groundSeed ?? 42;
 
-  // Remove all existing ground elements
+  // Remove all existing ground elements directly from _objects to avoid coordinate transforms
   const groundElements = objects.filter((o: any) => o.isGroundElement);
   if (groundElements.length) {
-    group.remove(...(groundElements as any));
+    const internalObjects = (group as any)._objects as any[];
+    if (internalObjects && Array.isArray(internalObjects)) {
+      (group as any)._objects = internalObjects.filter((o: any) => !o.isGroundElement);
+      groundElements.forEach((o: any) => { o.group = undefined; });
+    } else {
+      group.remove(...(groundElements as any));
+    }
   }
 
+  // Re-read objects after removal
+  const remainingObjects = group.getObjects();
+
   // Calculate anchor positions (center of each corner piloti rect)
-  const leftCenterX = (leftRect.left ?? 0) + (leftRect.width ?? 30) / 2;
-  const rightCenterX = (rightRect.left ?? 0) + (rightRect.width ?? 30) / 2;
+  const leftRectAfter = remainingObjects.find((o: any) => o.pilotiId === corners.leftId && o.isPilotiRect) as any;
+  const rightRectAfter = remainingObjects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
+  if (!leftRectAfter || !rightRectAfter) return;
+
+  const leftCenterX = (leftRectAfter.left ?? 0) + (leftRectAfter.width ?? 30) / 2;
+  const rightCenterX = (rightRectAfter.left ?? 0) + (rightRectAfter.width ?? 30) / 2;
 
   // Derive view limits from structural objects (walls, roof) instead of piloti positions
-  const structuralObjs = objects.filter((o: any) => !o.isGroundElement && !o.isPilotiRect && !o.isPilotiLabel);
+  const structuralObjs = remainingObjects.filter((o: any) => !o.isGroundElement && !o.isPilotiRect && !o.isPilotiLabel);
   let viewLeftX = Infinity;
   let viewRightX = -Infinity;
   for (const o of structuralObjs) {
@@ -1199,15 +1215,15 @@ export function updateGroundInGroup(group: Group): void {
     if (oLeft + oWidth > viewRightX) viewRightX = oLeft + oWidth;
   }
   if (!isFinite(viewLeftX)) viewLeftX = 0;
-  if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRect.width ?? 30) / 2;
+  if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRectAfter.width ?? 30) / 2;
 
   const leftX = viewLeftX - 50;
   const rightX = viewRightX + 50;
-  const leftNivelY = (leftRect.top ?? 0) + leftNivel * 100 * scale;
-  const rightNivelY = (rightRect.top ?? 0) + rightNivel * 100 * scale;
+  const leftNivelY = (leftRectAfter.top ?? 0) + leftNivel * 100 * scale;
+  const rightNivelY = (rightRectAfter.top ?? 0) + rightNivel * 100 * scale;
 
   // Find the max bottom Y of all pilotis in this view
-  const allPilotis = objects.filter((o: any) => o.isPilotiRect);
+  const allPilotis = remainingObjects.filter((o: any) => o.isPilotiRect);
   let maxPilotiBottomY = 0;
   for (const p of allPilotis) {
     const pTop = (p as any).top ?? 0;
@@ -1234,9 +1250,18 @@ export function updateGroundInGroup(group: Group): void {
   const groundBack = newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
-  // Just add new ground elements; Z-ordering is handled by refreshHouseGroupRendering
-  if (groundBack.length) group.add(...(groundBack as any));
-  if (groundFront.length) group.add(...(groundFront as any));
+  // Add new ground elements directly to _objects to avoid coordinate transforms
+  const currentObjects = (group as any)._objects as any[];
+  if (currentObjects && Array.isArray(currentObjects)) {
+    const allNew = [...groundBack, ...groundFront];
+    allNew.forEach((o: any) => {
+      o.group = group;
+      currentObjects.push(o);
+    });
+  } else {
+    if (groundBack.length) group.add(...(groundBack as any));
+    if (groundFront.length) group.add(...(groundFront as any));
+  }
 
 }
 
