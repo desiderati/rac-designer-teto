@@ -431,12 +431,12 @@ export function refreshHouseGroupRendering(group: Group): void {
     obj.setCoords?.();
   });
 
-  // Z-order sort: ground fill/line -> normal objects -> markers/labels
-  // Directly reorder the internal _objects array to avoid coordinate transformations
+  // Z-order sort: normal objects (pilotis, walls, roof) -> ground fill/line -> markers/labels
+  // Ground elements render IN FRONT of pilotis
   const groundBack = objects.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
   const normal = objects.filter((o: any) => !o.isGroundElement);
-  const sorted = [...groundBack, ...normal, ...groundFront];
+  const sorted = [...normal, ...groundBack, ...groundFront];
 
   // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
   const internalObjects = (group as any)._objects;
