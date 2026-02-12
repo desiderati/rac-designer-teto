@@ -1068,7 +1068,7 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
-    left: leftCenterX + xSize + 3,
+    left: leftCenterX + xSize + 5,
     top: leftNivelY + xSize + 10 * s,
     originX: "right",
     originY: "center",
