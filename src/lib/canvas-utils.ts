@@ -1068,7 +1068,7 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
-    left: leftCenterX + xSize + 2,
+    left: leftCenterX + xSize + 3,
     top: leftNivelY + xSize + 10 * s,
     originX: "right",
     originY: "center",
@@ -1082,7 +1082,7 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
-    left: rightCenterX - xSize - 2,
+    left: rightCenterX - xSize - 3,
     top: rightNivelY + xSize + 10 * s,
     originX: "left",
     originY: "center",
@@ -1191,7 +1191,9 @@ export function updateGroundInGroup(group: Group): void {
     const internalObjects = (group as any)._objects as any[];
     if (internalObjects && Array.isArray(internalObjects)) {
       (group as any)._objects = internalObjects.filter((o: any) => !o.isGroundElement);
-      groundElements.forEach((o: any) => { o.group = undefined; });
+      groundElements.forEach((o: any) => {
+        o.group = undefined;
+      });
     } else {
       group.remove(...(groundElements as any));
     }
@@ -1266,7 +1268,6 @@ export function updateGroundInGroup(group: Group): void {
     if (groundBack.length) group.add(...(groundBack as any));
     if (groundFront.length) group.add(...(groundFront as any));
   }
-
 }
 
 export function createLine(canvas: FabricCanvas): Line {
