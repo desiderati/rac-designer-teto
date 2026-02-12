@@ -221,6 +221,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       const nivelText = new IText(isCorner ? `Nível = ${formatNivel(defaultNivel)}` : "", {
         fontSize: 11 * s,
         fontFamily: "Arial",
+        fontWeight: "bold",
         fill: "#8B4513",
         originX: "center",
         originY: "center",
@@ -1068,6 +1069,7 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
+    fontWeight: "bold",
     left: leftCenterX + xSize + 5,
     top: leftNivelY + xSize + 10 * s,
     originX: "right",
@@ -1082,6 +1084,7 @@ function createGroundElements(
     fontSize: labelFontSize,
     fill: lineColor,
     fontFamily: "Arial",
+    fontWeight: "bold",
     left: rightCenterX - xSize - 3,
     top: rightNivelY + xSize + 10 * s,
     originX: "left",
