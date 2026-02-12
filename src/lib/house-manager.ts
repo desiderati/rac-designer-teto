@@ -5,6 +5,7 @@ import {
   updateGroundInGroup,
   refreshHouseGroupRendering,
   formatPilotiHeight,
+  formatNivel,
   MASTER_PILOTI_FILL,
   MASTER_PILOTI_STROKE,
   BASE_PILOTI_HEIGHT_PX,
@@ -483,7 +484,7 @@ class HouseManager {
       if ((obj as any).isPilotiNivelText) {
         const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
         if (isCorner) {
-          (obj as any).set('text', `Nível = ${formatPilotiHeight(data.nivel)}`);
+          (obj as any).set('text', `Nível = ${formatNivel(data.nivel)}`);
           (obj as any).set('visible', true);
         } else {
           (obj as any).set('text', '');
