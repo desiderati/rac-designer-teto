@@ -932,25 +932,52 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-// Generate irregular ground line points between two endpoints
+// Generate irregular ground line points with 3 segments:
+// 1. leftX → leftCenterX: flat at leftY
+// 2. leftCenterX → rightCenterX: slope from leftY to rightY
+// 3. rightCenterX → rightX: flat at rightY
 function generateGroundLinePoints(
   leftX: number,
   leftY: number,
   rightX: number,
   rightY: number,
   seed: number,
-  numSegments: number = 12,
+  leftCenterX?: number,
+  rightCenterX?: number,
 ): { x: number; y: number }[] {
   const rng = seededRandom(seed);
+  const lcx = leftCenterX ?? leftX;
+  const rcx = rightCenterX ?? rightX;
+
+  const addSegment = (
+    pts: { x: number; y: number }[],
+    x0: number, y0: number, x1: number, y1: number, segs: number, includeEnd: boolean,
+  ) => {
+    for (let i = 1; i < segs; i++) {
+      const t = i / segs;
+      const bx = x0 + (x1 - x0) * t;
+      const by = y0 + (y1 - y0) * t;
+      pts.push({ x: bx, y: by + (rng() - 0.5) * 6 });
+    }
+    if (includeEnd) pts.push({ x: x1, y: y1 });
+  };
+
   const points: { x: number; y: number }[] = [{ x: leftX, y: leftY }];
 
-  for (let i = 1; i < numSegments; i++) {
-    const t = i / numSegments;
-    const baseX = leftX + (rightX - leftX) * t;
-    const baseY = leftY + (rightY - leftY) * t;
-    const variation = (rng() - 0.5) * 6;
-    points.push({ x: baseX, y: baseY + variation });
-  }
+  // Segment 1: flat left (leftX → leftCenterX)
+  const leftLen = lcx - leftX;
+  const centerLen = rcx - lcx;
+  const rightLen = rightX - rcx;
+  const totalLen = rightX - leftX;
+
+  const totalSegs = 12;
+  const seg1 = Math.max(1, Math.round(totalSegs * (leftLen / totalLen)));
+  const seg3 = Math.max(1, Math.round(totalSegs * (rightLen / totalLen)));
+  const seg2 = Math.max(2, totalSegs - seg1 - seg3);
+
+  addSegment(points, leftX, leftY, lcx, leftY, seg1, true);
+  addSegment(points, lcx, leftY, rcx, rightY, seg2, true);
+  addSegment(points, rcx, rightY, rightX, rightY, seg3, false);
 
   points.push({ x: rightX, y: rightY });
   return points;
@@ -1048,7 +1075,7 @@ function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
-  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed);
+  const groundPtsAbs = generateGroundLinePoints(leftX, leftNivelY, rightX, rightNivelY, seed, leftCenterX, rightCenterX);
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
