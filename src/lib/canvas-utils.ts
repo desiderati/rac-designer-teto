@@ -970,10 +970,10 @@ function generateGroundLinePoints(
   const rightLen = rightX - rcx;
   const totalLen = rightX - leftX;
 
-  const totalSegs = 12;
-  const seg1 = Math.max(1, Math.round(totalSegs * (leftLen / totalLen)));
-  const seg3 = Math.max(1, Math.round(totalSegs * (rightLen / totalLen)));
-  const seg2 = Math.max(2, totalSegs - seg1 - seg3);
+  const totalSegs = 16;
+  const seg1 = Math.max(3, Math.round(totalSegs * (leftLen / totalLen)));
+  const seg3 = Math.max(3, Math.round(totalSegs * (rightLen / totalLen)));
+  const seg2 = Math.max(3, totalSegs - seg1 - seg3);
 
   addSegment(points, leftX, leftY, lcx, leftY, seg1, true);
   addSegment(points, lcx, leftY, rcx, rightY, seg2, true);
