@@ -379,11 +379,8 @@ export function PilotiEditor({
             />
             <div className="flex flex-col">
               <Label htmlFor="nivel" className={compact ? 'text-sm font-medium whitespace-nowrap' : 'text-base font-medium whitespace-nowrap'}>
-                Nível do piloti (m)
+                Nível do piloti (0,20 a {maxNivel})
               </Label>
-              <p className={compact ? 'text-xs text-muted-foreground' : 'text-sm text-muted-foreground'}>
-                0,20 a {maxNivel} m
-              </p>
             </div>
           </div>
         </div>
