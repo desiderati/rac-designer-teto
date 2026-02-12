@@ -49,6 +49,7 @@ export const customProps = [
   "groundSeed",
   "isRightSide",
   "isFlippedHorizontally",
+  "isPilotiStripe",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -400,6 +401,21 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       return;
     }
 
+    if (obj.isPilotiStripe) {
+      // Update stripe overlay to cover bottom 2/3 of the new piloti height
+      const pilotiRect = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiRect) as any;
+      if (pilotiRect) {
+        const newVisualHeight = (pilotiRect.height ?? 0) as number;
+        const stripeHeight = (newVisualHeight * 2) / 3;
+        obj.set({ height: stripeHeight, top: (pilotiRect.top ?? 0) + newVisualHeight / 3 });
+        obj.set("fill", createDiagonalStripePattern());
+        obj.objectCaching = false;
+        obj.setCoords();
+        (obj as any).dirty = true;
+      }
+      return;
+    }
+
     if (obj.isPilotiText) {
       obj.set("text", formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
@@ -541,6 +557,66 @@ export function updatePilotiAll(
 // Base piloti height in pixels for height=1.0
 export const BASE_PILOTI_HEIGHT_PX = 100;
 
+// Create a diagonal stripe pattern for piloti fill (bottom 2/3)
+function createDiagonalStripePattern(): Pattern {
+  const size = 10; // pattern tile size
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1.2;
+  // Draw diagonal line across the tile
+  ctx.beginPath();
+  ctx.moveTo(0, size);
+  ctx.lineTo(size, 0);
+  ctx.stroke();
+  // Extra line for seamless tiling
+  ctx.beginPath();
+  ctx.moveTo(-size, size);
+  ctx.lineTo(size, -size);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, 2 * size);
+  ctx.lineTo(2 * size, 0);
+  ctx.stroke();
+
+  return new Pattern({
+    source: canvas,
+    repeat: "repeat",
+  });
+}
+
+// Create a stripe overlay rect for the bottom 2/3 of a piloti rect
+function createPilotiStripeOverlay(
+  pilotiId: string,
+  left: number,
+  top: number,
+  width: number,
+  fullHeight: number,
+): Rect {
+  const stripeHeight = (fullHeight * 2) / 3;
+  const stripeTop = top + fullHeight / 3;
+
+  const stripe = new Rect({
+    width,
+    height: stripeHeight,
+    fill: createDiagonalStripePattern(),
+    left,
+    top: stripeTop,
+    originY: "top",
+    strokeWidth: 0,
+    selectable: false,
+    evented: false,
+    objectCaching: false,
+    opacity: 0.5,
+  });
+  (stripe as any).isPilotiStripe = true;
+  (stripe as any).pilotiId = pilotiId;
+  return stripe;
+}
+
 // Calculate piloti visual height based on pilotiHeight value
 export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
   return BASE_PILOTI_HEIGHT_PX * pilotiHeight * scale;
@@ -599,6 +675,10 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
 
     pilots.push(rect);
+
+    // Add diagonal stripe overlay for bottom 2/3
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, roofH + bodyH, pilotW, pilotH);
+    pilots.push(stripeOverlay);
 
     // Create size label below piloti (font size 20 * scale for visibility)
     // Position at center of piloti rect (rect.left + pilotW/2)
@@ -917,6 +997,20 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
   elements.push(p1, p2, p3);
+
+  // Add diagonal stripe overlays for each piloti
+  const pilotiRects = [p1, p2, p3];
+  for (const pr of pilotiRects) {
+    const prAny = pr as any;
+    const stripeOverlay = createPilotiStripeOverlay(
+      prAny.pilotiId,
+      pr.left ?? 0,
+      pr.top ?? 0,
+      pilotW,
+      pr.height ?? 0,
+    );
+    elements.push(stripeOverlay);
+  }
   elements.push(...pilotLabels);
   elements.push(...groundBack);
   elements.push(...groundFront);
