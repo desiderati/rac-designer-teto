@@ -726,9 +726,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Add ground line (behind house/pilotis) + markers/labels (in front)
   const defaultNivelVal = 0.3;
   const groundSeed = flipHorizontal ? 42 : 137;
-  const leftX = 0;
+  const leftX = -50 * s;
   const leftCenterX = margin;
-  const rightX = 2 * margin + 3 * step;
+  const rightX = 2 * margin + 3 * step + 50 * s;
   const rightCenterX = margin + 3 * step;
   const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
@@ -888,9 +888,9 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   // Add ground line (behind) + markers/labels (in front)
   const defaultNivelVal = 0.3;
   const groundSeed = isRightSide ? 314 : 217;
-  const leftX = 0;
+  const leftX = -50 * s;
   const leftCenterX = pilotW / 2;
-  const rightX = sideWidth;
+  const rightX = sideWidth + 50 * s;
   const rightCenterX = sideWidth - pilotW / 2;
   const nivelY = wallHeight + defaultNivelVal * 100 * s;
   const nivelStr = formatPilotiHeight(defaultNivelVal);
