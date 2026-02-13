@@ -410,17 +410,23 @@ export function RACEditor() {
   };
 
   const handleNiveisApplied = (niveis: Record<string, NivelEntry>) => {
+    // Capture pending values before any state clearing
+    const viewType = pendingViewType;
+    const side = pendingNivelSide;
+
+    // Clear modal state first to prevent onClose from interfering
+    setPendingViewType(null);
+    setPendingNivelSide(null);
+    setNivelDefinitionOpen(false);
+
     // Update pilotis in HouseManager with the defined levels
     for (const [pilotiId, entry] of Object.entries(niveis)) {
       houseManager.updatePiloti(pilotiId, {
-        height: 1.0, // default height
+        height: 1.0,
         isMaster: entry.isMaster,
         nivel: entry.nivel,
       });
     }
-
-    const viewType = pendingViewType;
-    const side = pendingNivelSide;
 
     // Add plant + initial view
     if (viewType) {
@@ -451,19 +457,17 @@ export function RACEditor() {
         }, 50);
       }
     }
-
-    setPendingViewType(null);
-    setPendingNivelSide(null);
-    setNivelDefinitionOpen(false);
   };
 
   const handleNivelDefinitionClose = () => {
-    // User cancelled — reset house type since we already auto-assigned
-    if (!houseManager.hasPreAssignedSlots() || pendingNivelSide) {
-      // Undo the auto-assignment by resetting
-      houseManager.setHouseType(null);
-      houseManager.reset();
+    // If already cleared by handleNiveisApplied, just close
+    if (!pendingViewType && !pendingNivelSide) {
+      setNivelDefinitionOpen(false);
+      return;
     }
+    // User cancelled — reset house type since we already auto-assigned
+    houseManager.setHouseType(null);
+    houseManager.reset();
     setPendingViewType(null);
     setPendingNivelSide(null);
     setNivelDefinitionOpen(false);
