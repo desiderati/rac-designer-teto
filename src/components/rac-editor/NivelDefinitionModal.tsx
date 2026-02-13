@@ -246,7 +246,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Button variant="outline" className="flex-1" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster || !allVisited}>
+        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster}>
           Inserir
         </Button>
       </div>
