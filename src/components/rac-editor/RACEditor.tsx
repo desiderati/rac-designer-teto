@@ -80,6 +80,8 @@ export function RACEditor() {
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
   const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
+  const niveisAppliedRef = useRef(false);
+  const transitionToNivelRef = useRef(false);
   const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
@@ -397,6 +399,9 @@ export function RACEditor() {
       // Initial positioning — open NivelDefinitionModal instead of adding immediately
       houseManager.autoAssignAllSides(pendingViewType, side);
       setPendingNivelSide(side);
+      niveisAppliedRef.current = false;
+      // Use a flag to prevent handleSideSelectorClose from clearing pendingViewType
+      transitionToNivelRef.current = true;
       setSideSelectorOpen(false);
       setNivelDefinitionOpen(true);
       return;
@@ -413,11 +418,10 @@ export function RACEditor() {
     // Capture pending values before any state clearing
     const viewType = pendingViewType;
     const side = pendingNivelSide;
+    
 
-    // Mark as applied so onClose won't reset
-    setPendingViewType(null);
-    setPendingNivelSide(null);
-    // Don't call setNivelDefinitionOpen(false) here - let onApply in modal handle it via its own close
+    // Mark as applied so onClose won't reset the house manager
+    niveisAppliedRef.current = true;
 
     // Update pilotis in HouseManager with the defined levels
     for (const [pilotiId, entry] of Object.entries(niveis)) {
@@ -429,6 +433,7 @@ export function RACEditor() {
     }
 
     // Add plant + initial view
+    
     if (viewType) {
       addViewToCanvas('top'); // Plant
       addViewToCanvas(viewType, side ?? undefined); // Initial view
@@ -458,13 +463,16 @@ export function RACEditor() {
       }
     }
 
-    // Close modal after views are added
+    // Clear state and close modal
+    setPendingViewType(null);
+    setPendingNivelSide(null);
     setNivelDefinitionOpen(false);
   };
 
   const handleNivelDefinitionClose = () => {
-    // If already cleared by handleNiveisApplied, just close
-    if (!pendingViewType && !pendingNivelSide) {
+    // If apply was just done, don't reset anything
+    if (niveisAppliedRef.current) {
+      niveisAppliedRef.current = false;
       setNivelDefinitionOpen(false);
       return;
     }
@@ -477,6 +485,12 @@ export function RACEditor() {
   };
 
   const handleSideSelectorClose = () => {
+    // If transitioning to nivel definition modal, don't clear pendingViewType
+    if (transitionToNivelRef.current) {
+      transitionToNivelRef.current = false;
+      setSideSelectorOpen(false);
+      return;
+    }
     // If this was initial positioning and user cancelled, reset house type
     if (sideSelectorMode === 'position' && !houseManager.hasPreAssignedSlots()) {
       houseManager.setHouseType(null);
