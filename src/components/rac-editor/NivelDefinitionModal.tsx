@@ -186,7 +186,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       </div>
 
       {/* Central card */}
-      <div className="bg-muted/30 rounded-xl p-4 space-y-4">
+      <div className="bg-white rounded-xl p-4 space-y-4">
         {/* Master toggle */}
         <div className="flex items-center justify-between">
           <Label htmlFor="nivel-master" className="text-sm font-medium">
