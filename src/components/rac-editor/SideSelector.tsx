@@ -200,19 +200,19 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
           assignment={getSideAssignment('top')}
           onHover={setHoveredSide}
           onClick={handleSideClick}
-          className="w-full max-w-xs"
+          className="w-full"
         />
       )}
 
       {/* Middle row: Left + Grid + Right */}
       {isLongSide ? (
-        <div className="flex items-stretch gap-2 w-full max-w-xs justify-center">
+        <div className="flex items-stretch gap-2 w-full justify-center">
           {/* Piloti Grid */}
           <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
         </div>
       ) : (
         // Side views: Left button + Grid + Right button in a row
-        <div className="flex items-stretch gap-2 w-full max-w-xs justify-start"> 
+        <div className="flex items-stretch gap-2 w-full justify-start"> 
           <SideButton
             side="left"
             label={getSideLabel('left')}
@@ -225,7 +225,9 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
             className="self-stretch"
           />
 
-          <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
+          <div className="flex-1 min-w-0">
+            <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
+          </div>
 
           <SideButton
             side="right"
@@ -251,7 +253,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
           assignment={getSideAssignment('bottom')}
           onHover={setHoveredSide}
           onClick={handleSideClick}
-          className="w-full max-w-xs"
+          className="w-full"
         />
       )}
 
