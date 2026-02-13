@@ -70,21 +70,23 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const isMobile = useIsMobile();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [entries, setEntries] = useState<Record<CornerName, NivelEntry & { visited: boolean }>>(() => ({
-    A1: { nivel: 0.30, isMaster: false, visited: false },
-    A4: { nivel: 0.30, isMaster: false, visited: false },
-    C1: { nivel: 0.30, isMaster: false, visited: false },
-    C4: { nivel: 0.30, isMaster: false, visited: false },
+    A1: { nivel: 0.20, isMaster: false, visited: false },
+    A4: { nivel: 0.20, isMaster: false, visited: false },
+    C1: { nivel: 0.20, isMaster: false, visited: false },
+    C4: { nivel: 0.20, isMaster: false, visited: false },
   }));
-  const [nivelInput, setNivelInput] = useState('0,30');
+  const [nivelInput, setNivelInput] = useState('0,20');
   const nivelInputRef = useRef<HTMLInputElement>(null);
+  const appliedRef = useRef(false);
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
+  const allVisited = CORNER_ORDER.every((c) => entries[c].visited);
 
   const commitCurrentNivel = () => {
     const parsed = parseNivelText(nivelInput);
-    const clamped = parsed != null ? clampNivel(parsed) : 0.30;
+    const clamped = parsed != null ? clampNivel(parsed) : 0.20;
     const updated = {
       ...entries,
       [currentCorner]: { ...entries[currentCorner], nivel: clamped, visited: true },
@@ -125,8 +127,8 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const handleNivelBlur = () => {
     const parsed = parseNivelText(nivelInput);
     if (parsed == null) {
-      setNivelInput('0,30');
-      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: 0.30 } }));
+      setNivelInput('0,20');
+      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: 0.20 } }));
     } else {
       const clamped = clampNivel(parsed);
       setNivelInput(formatNivelForInput(clamped));
@@ -142,23 +144,27 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       const e = finalEntries[name];
       result[id] = { nivel: e.nivel, isMaster: e.isMaster };
     }
+    appliedRef.current = true;
     onApply(result);
-    // Reset for next open
     resetState();
   };
 
   const resetState = () => {
     setCurrentIdx(0);
     setEntries({
-      A1: { nivel: 0.30, isMaster: false, visited: false },
-      A4: { nivel: 0.30, isMaster: false, visited: false },
-      C1: { nivel: 0.30, isMaster: false, visited: false },
-      C4: { nivel: 0.30, isMaster: false, visited: false },
+      A1: { nivel: 0.20, isMaster: false, visited: false },
+      A4: { nivel: 0.20, isMaster: false, visited: false },
+      C1: { nivel: 0.20, isMaster: false, visited: false },
+      C4: { nivel: 0.20, isMaster: false, visited: false },
     });
-    setNivelInput('0,30');
+    setNivelInput('0,20');
   };
 
   const handleClose = () => {
+    if (appliedRef.current) {
+      appliedRef.current = false;
+      return;
+    }
     resetState();
     onClose();
   };
@@ -176,13 +182,13 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   }
 
   const content = (
-    <div className="flex flex-col items-center gap-4 py-2">
+    <div className="flex flex-col items-center gap-4">
       {/* Navigation header */}
       <div className="flex items-center justify-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
           <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
         </Button>
-        <span className="font-bold text-xl min-w-[80px] text-center">Piloti {currentCorner}</span>
+        <span className="font-bold min-w-[100px] text-center" style={{ fontSize: '1.5rem' }}>Piloti {currentCorner}</span>
         <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
           <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
         </Button>
@@ -236,11 +242,11 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-2 w-full pt-2">
+      <div className="flex gap-2 w-full">
         <Button variant="outline" className="flex-1" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster}>
+        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster || !allVisited}>
           Inserir
         </Button>
       </div>
@@ -253,7 +259,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <DialogContent className="sm:max-w-sm" hideCloseButton>
           <div className="mx-auto w-full max-w-xs">
             <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
-            <div className="pt-2">{content}</div>
+            <div className="py-4">{content}</div>
           </div>
         </DialogContent>
       </Dialog>
@@ -264,7 +270,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
         <div className="mx-auto w-full max-w-xs">
-          <div className="pt-2">{content}</div>
+          <div className="py-4">{content}</div>
         </div>
       </SheetContent>
     </Sheet>
