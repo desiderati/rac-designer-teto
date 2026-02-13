@@ -298,7 +298,7 @@ export function PilotiEditor({
             size="icon"
             onClick={() => handleNavigate('prev')}
             disabled={!hasPrev}
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full bg-white"
           >
             <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
           </Button>
@@ -307,7 +307,7 @@ export function PilotiEditor({
             size="icon"
             onClick={() => handleNavigate('next')}
             disabled={!hasNext}
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full bg-white"
           >
             <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
           </Button>
@@ -332,7 +332,7 @@ export function PilotiEditor({
         {/* Nivel section - only for corners */}
         {isCornerPiloti && (
           <>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
@@ -346,7 +346,7 @@ export function PilotiEditor({
                   <FontAwesomeIcon icon={faMinus} className="h-3 w-3" />
                 </Button>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">{formatNivel(tempNivel)}</span>
+                  <span className="text-4xl font-bold text-primary">{formatNivel(tempNivel)}</span>
                   <span className="text-lg text-muted-foreground">m</span>
                 </div>
                 <Button
@@ -360,7 +360,7 @@ export function PilotiEditor({
                 </Button>
               </div>
 
-              <div className="space-y-2 px-1">
+              <div className="space-y-3 px-2">
                 <Slider
                   value={[tempNivel]}
                   onValueChange={([v]) => handleNivelChange(v)}
@@ -399,7 +399,7 @@ export function PilotiEditor({
 
       {/* Footer buttons */}
       <div className="flex gap-2 w-full" data-no-drag>
-        <Button variant="outline" className="flex-1" onClick={handleCancel}>
+        <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
           Cancelar
         </Button>
         <Button className="flex-1" onClick={handleApply}>
@@ -437,7 +437,7 @@ export function PilotiEditor({
       tabIndex={-1}
     >
       <div
-        className="rounded-xl border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
+        className="rounded-xl border bg-white p-4 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
         style={
           popoverPos
             ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }

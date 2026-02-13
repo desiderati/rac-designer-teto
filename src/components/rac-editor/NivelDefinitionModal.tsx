@@ -37,8 +37,8 @@ function formatNivel(n: number): string {
   return n.toFixed(2).replace('.', ',');
 }
 
-function clampNivel(nivel: number): number {
-  return Math.round(Math.max(0.2, Math.min(nivel, 1.50)) * 100) / 100;
+function clampNivel(nivel: number, minNivel: number = 0.2): number {
+  return Math.round(Math.max(minNivel, Math.min(nivel, 1.50)) * 100) / 100;
 }
 
 const STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
@@ -70,11 +70,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
 
   const masterCorner = CORNER_ORDER.find((c) => entries[c].isMaster);
-  const masterNivel = masterCorner ? entries[masterCorner].nivel : Infinity;
-  const hasInvalidNivel = hasMaster && CORNER_ORDER.some(
-    (c) => !entries[c].isMaster && entries[c].nivel < masterNivel
-  );
-  const canApply = hasMaster && !hasInvalidNivel;
+  const canApply = hasMaster;
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
@@ -98,7 +94,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   };
 
   const handleNivelChange = (value: number) => {
-    const clamped = clampNivel(value);
+    const clamped = clampNivel(value, entry.isMaster ? 0.2 : (masterCorner ? entries[masterCorner].nivel : 0.2));
     setEntries((prev) => {
       const updated = { ...prev };
       updated[currentCorner] = { ...updated[currentCorner], nivel: clamped, visited: true };
@@ -155,6 +151,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
   const maxNivel = 1.50;
+  const minNivel = (!entry.isMaster && masterCorner) ? Math.max(entries[masterCorner].nivel, 0.20) : 0.20;
 
   const content = (
     <div className="flex flex-col gap-4">
@@ -172,7 +169,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
             size="icon"
             onClick={() => handleNavigate('prev')}
             disabled={!hasPrev}
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full bg-white"
           >
             <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
           </Button>
@@ -181,7 +178,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
             size="icon"
             onClick={() => handleNavigate('next')}
             disabled={!hasNext}
-            className="h-8 w-8 rounded-full"
+            className="h-8 w-8 rounded-full bg-white"
           >
             <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
           </Button>
@@ -201,7 +198,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Separator />
 
         {/* Nivel section */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}
@@ -211,12 +208,12 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
               size="icon"
               className="h-9 w-9 rounded-full"
               onClick={() => handleNivelIncrement(-0.01)}
-              disabled={entry.nivel <= 0.20}
+              disabled={entry.nivel <= minNivel}
             >
               <FontAwesomeIcon icon={faMinus} className="h-3 w-3" />
             </Button>
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold">{formatNivel(entry.nivel)}</span>
+              <span className="text-4xl font-bold text-primary">{formatNivel(entry.nivel)}</span>
               <span className="text-lg text-muted-foreground">m</span>
             </div>
             <Button
@@ -231,17 +228,17 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           </div>
 
           {/* Slider */}
-          <div className="space-y-2 px-1">
+          <div className="space-y-3 px-2">
             <Slider
               value={[entry.nivel]}
               onValueChange={([v]) => handleNivelChange(v)}
-              min={0.20}
+              min={minNivel}
               max={maxNivel}
               step={0.01}
               className="w-full"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>0,20m</span>
+              <span>{formatNivel(minNivel)}m</span>
               <span>{formatNivel(maxNivel)}m</span>
             </div>
           </div>
@@ -268,16 +265,10 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         ))}
       </div>
 
-      {/* Validation warning */}
-      {hasInvalidNivel && (
-        <p className="text-xs text-destructive text-center">
-          O piloti mestre deve ter o menor nível (terreno mais alto). Ajuste os valores.
-        </p>
-      )}
 
       {/* Footer buttons */}
       <div className="flex gap-2 w-full">
-        <Button variant="outline" className="flex-1" onClick={handleClose}>
+        <Button variant="outline" className="flex-1 bg-white" onClick={handleClose}>
           Cancelar
         </Button>
         <Button className="flex-1" onClick={handleApply} disabled={!canApply}>
