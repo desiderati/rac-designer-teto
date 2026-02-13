@@ -8,15 +8,11 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PilotiMinimap } from './PilotiMinimap';
@@ -64,6 +60,12 @@ function clampNivel(nivel: number): number {
   return Math.round(Math.max(0.2, Math.min(nivel, 1.50)) * 100) / 100;
 }
 
+function cornerToId(name: string): string {
+  const row = name.charCodeAt(0) - 65;
+  const col = parseInt(name[1]) - 1;
+  return `piloti_${col}_${row}`;
+}
+
 export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: NivelDefinitionModalProps) {
   const isMobile = useIsMobile();
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -78,24 +80,17 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
-  const allVisited = CORNER_ORDER.every((c) => entries[c].visited);
-
-  // Mark current as visited when navigating away or applying
-  const markVisited = () => {
-    setEntries((prev) => ({
-      ...prev,
-      [currentCorner]: { ...prev[currentCorner], visited: true },
-    }));
-  };
+  const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
 
   const commitCurrentNivel = () => {
     const parsed = parseNivelText(nivelInput);
     const clamped = parsed != null ? clampNivel(parsed) : 0.30;
-    setEntries((prev) => ({
-      ...prev,
-      [currentCorner]: { ...prev[currentCorner], nivel: clamped, visited: true },
-    }));
-    return clamped;
+    const updated = {
+      ...entries,
+      [currentCorner]: { ...entries[currentCorner], nivel: clamped, visited: true },
+    };
+    setEntries(updated);
+    return updated;
   };
 
   const handleNavigate = (direction: 'prev' | 'next') => {
@@ -108,10 +103,19 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   };
 
   const handleMasterChange = (checked: boolean) => {
-    setEntries((prev) => ({
-      ...prev,
-      [currentCorner]: { ...prev[currentCorner], isMaster: checked },
-    }));
+    if (checked) {
+      // Only one master allowed — deselect all others
+      const updated = { ...entries };
+      for (const c of CORNER_ORDER) {
+        updated[c] = { ...updated[c], isMaster: c === currentCorner };
+      }
+      setEntries(updated);
+    } else {
+      setEntries((prev) => ({
+        ...prev,
+        [currentCorner]: { ...prev[currentCorner], isMaster: false },
+      }));
+    }
   };
 
   const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,21 +135,19 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   };
 
   const handleApply = () => {
-    commitCurrentNivel();
-    // Build result using piloti_col_row IDs
+    const finalEntries = commitCurrentNivel();
     const result: Record<string, NivelEntry> = {};
     for (const name of CORNER_ORDER) {
-      const row = name.charCodeAt(0) - 65;
-      const col = parseInt(name[1]) - 1;
-      const id = `piloti_${col}_${row}`;
-      const e = entries[name];
+      const id = cornerToId(name);
+      const e = finalEntries[name];
       result[id] = { nivel: e.nivel, isMaster: e.isMaster };
     }
     onApply(result);
+    // Reset for next open
+    resetState();
   };
 
-  const handleClose = () => {
-    // Reset state for next open
+  const resetState = () => {
     setCurrentIdx(0);
     setEntries({
       A1: { nivel: 0.30, isMaster: false, visited: false },
@@ -154,11 +156,24 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       C4: { nivel: 0.30, isMaster: false, visited: false },
     });
     setNivelInput('0,30');
+  };
+
+  const handleClose = () => {
+    resetState();
     onClose();
   };
 
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
+
+  // Build pilotiData with master highlights for minimap
+  const minimapData = { ...pilotiData };
+  for (const name of CORNER_ORDER) {
+    const id = cornerToId(name);
+    if (minimapData[id]) {
+      minimapData[id] = { ...minimapData[id], isMaster: entries[name].isMaster };
+    }
+  }
 
   const content = (
     <div className="flex flex-col items-center gap-4 py-2">
@@ -172,25 +187,6 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
         </Button>
       </div>
-
-      {/* Progress indicators */}
-      <div className="flex gap-2">
-        {CORNER_ORDER.map((c, i) => (
-          <div
-            key={c}
-            className={`w-2 h-2 rounded-full transition-colors ${
-              i === currentIdx
-                ? 'bg-primary'
-                : entries[c].visited
-                  ? 'bg-primary/40'
-                  : 'bg-muted-foreground/30'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Minimap */}
-      <PilotiMinimap pilotiData={pilotiData} hoveredSide={null} selectedPiloti={currentCorner} />
 
       {/* Master switch */}
       <div className="w-full space-y-3">
@@ -220,13 +216,32 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         </div>
       </div>
 
+      {/* Minimap */}
+      <PilotiMinimap pilotiData={minimapData} hoveredSide={null} selectedPiloti={currentCorner} />
+
+      {/* Progress indicators */}
+      <div className="flex gap-2">
+        {CORNER_ORDER.map((c, i) => (
+          <div
+            key={c}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              i === currentIdx
+                ? 'bg-primary'
+                : entries[c].visited
+                  ? 'bg-primary/40'
+                  : 'bg-muted-foreground/30'
+            }`}
+          />
+        ))}
+      </div>
+
       {/* Buttons */}
       <div className="flex gap-2 w-full pt-2">
         <Button variant="outline" className="flex-1" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={handleApply} disabled={!allVisited && currentIdx < CORNER_ORDER.length - 1}>
-          Aplicar
+        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster}>
+          Inserir
         </Button>
       </div>
     </div>
@@ -237,10 +252,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
           <div className="mx-auto w-full max-w-xs">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-lg text-center">Definir Níveis</DialogTitle>
-              <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
-            </DialogHeader>
+            <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
             <div className="pt-2">{content}</div>
           </div>
         </DialogContent>
@@ -252,9 +264,6 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
         <div className="mx-auto w-full max-w-xs">
-          <SheetHeader className="text-center pb-2">
-            <SheetTitle className="text-lg">Definir Níveis</SheetTitle>
-          </SheetHeader>
           <div className="pt-2">{content}</div>
         </div>
       </SheetContent>
