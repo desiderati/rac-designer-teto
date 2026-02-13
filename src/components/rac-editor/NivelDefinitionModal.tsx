@@ -99,10 +99,21 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
 
   const handleNivelChange = (value: number) => {
     const clamped = clampNivel(value);
-    setEntries((prev) => ({
-      ...prev,
-      [currentCorner]: { ...prev[currentCorner], nivel: clamped, visited: true },
-    }));
+    setEntries((prev) => {
+      const updated = { ...prev };
+      updated[currentCorner] = { ...updated[currentCorner], nivel: clamped, visited: true };
+
+      // If this is the master piloti and its nivel increased, raise other corners that are lower
+      if (updated[currentCorner].isMaster) {
+        for (const c of CORNER_ORDER) {
+          if (c !== currentCorner && updated[c].nivel < clamped) {
+            updated[c] = { ...updated[c], nivel: clamped };
+          }
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleNivelIncrement = (delta: number) => {
@@ -154,7 +165,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           masterPiloti={masterCorner}
           className="w-16 h-12 flex-shrink-0"
         />
-        <span className="font-bold text-lg flex-1">Piloti {currentCorner}</span>
+        <span className="font-bold text-2xl flex-1">Piloti {currentCorner}</span>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -190,7 +201,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Separator />
 
         {/* Nivel section */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}
@@ -220,7 +231,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           </div>
 
           {/* Slider */}
-          <div className="space-y-1">
+          <div className="space-y-2 px-1">
             <Slider
               value={[entry.nivel]}
               onValueChange={([v]) => handleNivelChange(v)}

@@ -291,7 +291,7 @@ export function PilotiEditor({
           masterPiloti={masterPilotiName}
           className="w-16 h-12 flex-shrink-0"
         />
-        <span className="font-bold text-lg flex-1">Piloti {pilotiName}</span>
+        <span className="font-bold text-2xl flex-1">Piloti {pilotiName}</span>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -332,7 +332,7 @@ export function PilotiEditor({
         {/* Nivel section - only for corners */}
         {isCornerPiloti && (
           <>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
@@ -360,7 +360,7 @@ export function PilotiEditor({
                 </Button>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-2 px-1">
                 <Slider
                   value={[tempNivel]}
                   onValueChange={([v]) => handleNivelChange(v)}
