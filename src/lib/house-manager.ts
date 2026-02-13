@@ -105,7 +105,7 @@ export const VIEW_LIMITS: Record<Exclude<HouseType, null>, Record<ViewType, numb
 const DEFAULT_PILOTI: PilotiData = {
   height: 1.0,
   isMaster: false,
-  nivel: 0.3,
+  nivel: 0.2,
 };
 
 // Generate all piloti IDs (A1-C4)
@@ -521,6 +521,9 @@ class HouseManager {
       (obj as any).setCoords?.();
       (obj as any).dirty = true;
     });
+
+    // Update ground line based on the applied nivel values
+    updateGroundInGroup(group);
 
     refreshHouseGroupRendering(group);
   }

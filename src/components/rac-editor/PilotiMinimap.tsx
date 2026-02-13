@@ -59,7 +59,7 @@ export function PilotiMinimap({ pilotiData, hoveredSide, selectedPiloti }: Pilot
       >
         {PILOTI_POSITIONS.map(({ name, top, left }) => {
           const pilotiId = getPilotiIdFromName(name);
-          const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
+          const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.2 };
           const highlighted = isHighlighted(name, hoveredSide);
           const isSelected = selectedPiloti === name;
 

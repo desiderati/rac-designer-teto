@@ -42,8 +42,8 @@ interface PilotiEditorProps {
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 }
 
-const DEFAULT_NIVEL = 0.3;
-const DEFAULT_NIVEL_INPUT = '0,3';
+const DEFAULT_NIVEL = 0.2;
+const DEFAULT_NIVEL_INPUT = '0,20';
 
 function formatNivelForInput(n: number): string {
   return n.toFixed(2).replace('.', ',');
