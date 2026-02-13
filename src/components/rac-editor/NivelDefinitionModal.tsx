@@ -60,6 +60,13 @@ function clampNivel(nivel: number): number {
   return Math.round(Math.max(0.2, Math.min(nivel, 1.50)) * 100) / 100;
 }
 
+const STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+
+function getRecommendedHeight(nivel: number): number {
+  const minHeight = nivel * 3;
+  return STANDARD_HEIGHTS.find(h => h >= minHeight) ?? 3.0;
+}
+
 function cornerToId(name: string): string {
   const row = name.charCodeAt(0) - 65;
   const col = parseInt(name[1]) - 1;
@@ -227,6 +234,9 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
               Nível do piloti <span className="text-xs font-normal text-muted-foreground">(0,20 a 1,50 m)</span>
             </Label>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Altura recomendada: <span className="font-semibold text-foreground">{getRecommendedHeight(entry.nivel).toFixed(1).replace('.', ',')} m</span>
+          </p>
         </div>
       </div>
 
