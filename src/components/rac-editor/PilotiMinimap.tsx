@@ -52,7 +52,7 @@ function isHighlighted(name: string, hoveredSide: HouseSide | null): boolean {
 
 export function PilotiMinimap({ pilotiData, hoveredSide, selectedPiloti }: PilotiMinimapProps) {
   return (
-    <div className="w-full max-w-xs">
+    <div className="w-full">
       <div
         className="border-2 border-foreground/30 rounded-lg bg-muted/30 relative"
         style={{ aspectRatio: '2/1' }}
