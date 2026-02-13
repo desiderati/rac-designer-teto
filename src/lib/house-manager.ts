@@ -589,6 +589,52 @@ class HouseManager {
     return this.house?.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
   }
 
+  /**
+   * Calculate recommended heights for all 12 pilotis using bilinear interpolation
+   * of the 4 corner levels and the 2/3 rule.
+   *
+   * - The nivel at each grid point is interpolated from corners A1, A4, C1, C4.
+   * - Each piloti height = nivel * 3/2 (so 2/3 of the piloti is buried).
+   * - Exception: if the calculated height would be >= 3.0m, it stays at 3.0m
+   *   (out-of-level is acceptable for 3.0m pilotis).
+   * - Heights are rounded to 2 decimal places.
+   */
+  calculateAndApplyRecommendedHeights(): void {
+    if (!this.house) return;
+
+    const a1 = this.house.pilotis['piloti_0_0']?.nivel ?? 0.2;
+    const a4 = this.house.pilotis['piloti_3_0']?.nivel ?? 0.2;
+    const c1 = this.house.pilotis['piloti_0_2']?.nivel ?? 0.2;
+    const c4 = this.house.pilotis['piloti_3_2']?.nivel ?? 0.2;
+
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 4; col++) {
+        const id = `piloti_${col}_${row}`;
+        const u = col / 3; // 0..1 across columns
+        const v = row / 2; // 0..1 across rows
+
+        const nivel = (1 - u) * (1 - v) * a1
+                    + u * (1 - v) * a4
+                    + (1 - u) * v * c1
+                    + u * v * c4;
+
+        let height = Math.round(nivel * 1.5 * 100) / 100; // nivel * 3/2
+        if (height >= 3.0) height = 3.0;
+        if (height < 0.2) height = 0.2; // safety floor
+
+        const current = this.house.pilotis[id];
+        this.house.pilotis[id] = {
+          ...current,
+          nivel: Math.round(nivel * 100) / 100,
+          height,
+        };
+      }
+    }
+
+    console.log('[HouseManager] Calculated recommended heights:', 
+      Object.entries(this.house.pilotis).map(([id, d]) => `${id}: nivel=${d.nivel} h=${d.height}`).join(', '));
+  }
+
   // Check if any views exist
   hasAnyView(): boolean {
     if (!this.house) return false;

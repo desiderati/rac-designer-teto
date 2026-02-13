@@ -84,6 +84,14 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
   const allVisited = CORNER_ORDER.every((c) => entries[c].visited);
 
+  // Validate: master must have the lowest nivel (highest terrain)
+  const masterCorner = CORNER_ORDER.find((c) => entries[c].isMaster);
+  const masterNivel = masterCorner ? entries[masterCorner].nivel : Infinity;
+  const hasInvalidNivel = hasMaster && CORNER_ORDER.some(
+    (c) => !entries[c].isMaster && entries[c].nivel < masterNivel
+  );
+  const canApply = hasMaster && !hasInvalidNivel;
+
   const commitCurrentNivel = () => {
     const parsed = parseNivelText(nivelInput);
     const clamped = parsed != null ? clampNivel(parsed) : 0.20;
@@ -241,12 +249,19 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         ))}
       </div>
 
+      {/* Validation warning */}
+      {hasInvalidNivel && (
+        <p className="text-xs text-destructive text-center">
+          O piloti mestre deve ter o menor nível (terreno mais alto). Ajuste os valores.
+        </p>
+      )}
+
       {/* Buttons */}
       <div className="flex gap-2 w-full">
         <Button variant="outline" className="flex-1" onClick={handleClose}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={handleApply} disabled={!hasMaster}>
+        <Button className="flex-1" onClick={handleApply} disabled={!canApply}>
           Inserir
         </Button>
       </div>
