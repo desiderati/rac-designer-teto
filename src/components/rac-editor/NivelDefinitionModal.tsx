@@ -163,7 +163,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           className="w-16 h-12 flex-shrink-0"
         />
         <span className="font-bold text-2xl flex-1">Piloti {currentCorner}</span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 select-none">
           <Button
             variant="outline"
             size="icon"
@@ -189,8 +189,8 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       <div className="bg-white rounded-xl p-4 space-y-4">
         {/* Master toggle */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="nivel-master" className="text-sm font-medium">
-            Definir piloti como mestre?
+          <Label htmlFor="nivel-master" className="text-sm font-medium select-none">
+            Definir Piloti como Mestre?
           </Label>
           <Switch id="nivel-master" checked={entry.isMaster} onCheckedChange={handleMasterChange} />
         </div>
@@ -199,7 +199,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
 
         {/* Nivel section */}
         <div className="space-y-6 pt-2">
-          <p className="text-sm font-bold text-center">Nível do Piloti</p>
+          <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}
           <div className="flex items-center justify-center gap-3">
