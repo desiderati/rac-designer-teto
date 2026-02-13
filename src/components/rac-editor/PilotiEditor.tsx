@@ -292,7 +292,7 @@ export function PilotiEditor({
           className="w-16 h-12 flex-shrink-0"
         />
         <span className="font-bold text-2xl flex-1">Piloti {pilotiName}</span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 select-none">
           <Button
             variant="outline"
             size="icon"
@@ -320,8 +320,8 @@ export function PilotiEditor({
         {isCornerPiloti && (
           <>
             <div className="flex items-center justify-between">
-              <Label htmlFor="is-master" className="text-sm font-medium">
-                Definir piloti como mestre?
+              <Label htmlFor="is-master" className="text-sm font-medium select-none">
+                Definir Piloti como Mestre?
               </Label>
               <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
             </div>
@@ -333,7 +333,7 @@ export function PilotiEditor({
         {isCornerPiloti && (
           <>
             <div className="space-y-6 pt-2">
-              <p className="text-sm font-bold text-center">Nível do Piloti</p>
+              <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
                 <Button
@@ -381,7 +381,7 @@ export function PilotiEditor({
 
         {/* Height grid 3x2 */}
         <div className="space-y-2">
-          <p className="text-sm font-bold text-center">Tamanho dos Pilotis</p>
+          <p className="text-sm font-medium text-center">Tamanho dos Pilotis</p>
           <div className="grid grid-cols-3 gap-2">
             {PILOTI_HEIGHTS.map((h) => (
               <button
