@@ -22,16 +22,17 @@ export function PilotiGridIcon({ highlight, className }: PilotiGridIconProps) {
   const circles: JSX.Element[] = [];
   for (let row = 0; row < GRID_ROWS; row++) {
     for (let col = 0; col < GRID_COLS; col++) {
-      const cx = 12 + col * 20;
-      const cy = 12 + row * 20;
+      const cx = 14 + col * 24;
+      const cy = 14 + row * 24;
       const highlighted = isHighlighted(row, col);
       circles.push(
         <circle
           key={`${row}-${col}`}
           cx={cx}
           cy={cy}
-          r={5}
-          fill={highlighted ? 'hsl(var(--primary))' : '#d1d5db'}
+          r={9}
+          fill={highlighted ? 'hsl(var(--primary))' : '#dfe3e8'}
+          filter="url(#pilotiShadow)"
         />
       );
     }
@@ -39,10 +40,15 @@ export function PilotiGridIcon({ highlight, className }: PilotiGridIconProps) {
 
   return (
     <svg
-      viewBox="0 0 84 64"
-      className={cn('w-16 h-12', className)}
+      viewBox="0 0 100 76"
+      className={cn('w-20 h-14', className)}
       aria-hidden="true"
     >
+      <defs>
+        <filter id="pilotiShadow" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000" floodOpacity="0.18" />
+        </filter>
+      </defs>
       {circles}
     </svg>
   );
