@@ -423,14 +423,16 @@ export function RACEditor() {
     // Mark as applied so onClose won't reset the house manager
     niveisAppliedRef.current = true;
 
-    // Update pilotis in HouseManager with the defined levels
+    // Update corner pilotis in HouseManager with the defined levels
     for (const [pilotiId, entry] of Object.entries(niveis)) {
       houseManager.updatePiloti(pilotiId, {
-        height: 1.0,
         isMaster: entry.isMaster,
         nivel: entry.nivel,
       });
     }
+
+    // Calculate recommended heights for all 12 pilotis using bilinear interpolation
+    houseManager.calculateAndApplyRecommendedHeights();
 
     // Add plant + initial view
     
