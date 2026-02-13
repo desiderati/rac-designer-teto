@@ -1,22 +1,40 @@
 import { cn } from '@/lib/utils';
 
 interface PilotiGridIconProps {
-  highlight: 'top' | 'bottom' | 'left' | 'right';
+  highlight?: 'top' | 'bottom' | 'left' | 'right';
+  selectedPiloti?: string;
+  masterPiloti?: string;
   className?: string;
 }
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;
 
-export function PilotiGridIcon({ highlight, className }: PilotiGridIconProps) {
-  const isHighlighted = (row: number, col: number): boolean => {
-    switch (highlight) {
-      case 'top': return row === 0;
-      case 'bottom': return row === 2;
-      case 'left': return col === 0;
-      case 'right': return col === 3;
-      default: return false;
+const ROW_LETTERS = ['A', 'B', 'C'];
+
+function getPilotiNameAt(row: number, col: number): string {
+  return `${ROW_LETTERS[row]}${col + 1}`;
+}
+
+export function PilotiGridIcon({ highlight, selectedPiloti, masterPiloti, className }: PilotiGridIconProps) {
+  const getColor = (row: number, col: number): string => {
+    const name = getPilotiNameAt(row, col);
+
+    // Individual mode takes precedence
+    if (selectedPiloti && name === selectedPiloti) return 'hsl(var(--primary))';
+    if (masterPiloti && name === masterPiloti) return '#D4A574';
+
+    // Side highlight mode
+    if (highlight) {
+      const isHighlighted =
+        (highlight === 'top' && row === 0) ||
+        (highlight === 'bottom' && row === 2) ||
+        (highlight === 'left' && col === 0) ||
+        (highlight === 'right' && col === 3);
+      if (isHighlighted) return 'hsl(var(--primary))';
     }
+
+    return '#dfe3e8';
   };
 
   const circles: JSX.Element[] = [];
@@ -24,14 +42,13 @@ export function PilotiGridIcon({ highlight, className }: PilotiGridIconProps) {
     for (let col = 0; col < GRID_COLS; col++) {
       const cx = 14 + col * 24;
       const cy = 14 + row * 24;
-      const highlighted = isHighlighted(row, col);
       circles.push(
         <circle
           key={`${row}-${col}`}
           cx={cx}
           cy={cy}
           r={9}
-          fill={highlighted ? 'hsl(var(--primary))' : '#dfe3e8'}
+          fill={getColor(row, col)}
           filter="url(#pilotiShadow)"
         />
       );

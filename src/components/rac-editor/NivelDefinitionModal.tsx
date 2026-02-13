@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
   SheetContent,
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { PilotiMinimap } from './PilotiMinimap';
+import { PilotiGridIcon } from './PilotiGridIcon';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 type CornerName = typeof CORNER_ORDER[number];
@@ -32,28 +33,8 @@ interface NivelDefinitionModalProps {
   pilotiData: Record<string, { height: number; isMaster: boolean; nivel: number }>;
 }
 
-function formatNivelForInput(n: number): string {
+function formatNivel(n: number): string {
   return n.toFixed(2).replace('.', ',');
-}
-
-function filterNivelText(value: string): string {
-  let filtered = value.replace(/[^0-9.,]/g, '');
-  const firstSep = filtered.search(/[.,]/);
-  if (firstSep !== -1) {
-    const before = filtered.slice(0, firstSep + 1);
-    const after = filtered.slice(firstSep + 1).replace(/[.,]/g, '');
-    filtered = before + after.slice(0, 2);
-  }
-  return filtered;
-}
-
-function parseNivelText(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const normalized = trimmed.replace(',', '.');
-  const parsed = Number.parseFloat(normalized);
-  if (Number.isNaN(parsed) || parsed < 0) return null;
-  return Math.round(parsed * 100) / 100;
 }
 
 function clampNivel(nivel: number): number {
@@ -82,16 +63,12 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
     C1: { nivel: 0.20, isMaster: false, visited: false },
     C4: { nivel: 0.20, isMaster: false, visited: false },
   }));
-  const [nivelInput, setNivelInput] = useState('0,20');
-  const nivelInputRef = useRef<HTMLInputElement>(null);
   const appliedRef = useRef(false);
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
-  const allVisited = CORNER_ORDER.every((c) => entries[c].visited);
 
-  // Validate: master must have the lowest nivel (highest terrain)
   const masterCorner = CORNER_ORDER.find((c) => entries[c].isMaster);
   const masterNivel = masterCorner ? entries[masterCorner].nivel : Infinity;
   const hasInvalidNivel = hasMaster && CORNER_ORDER.some(
@@ -99,29 +76,14 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   );
   const canApply = hasMaster && !hasInvalidNivel;
 
-  const commitCurrentNivel = () => {
-    const parsed = parseNivelText(nivelInput);
-    const clamped = parsed != null ? clampNivel(parsed) : 0.20;
-    const updated = {
-      ...entries,
-      [currentCorner]: { ...entries[currentCorner], nivel: clamped, visited: true },
-    };
-    setEntries(updated);
-    return updated;
-  };
-
   const handleNavigate = (direction: 'prev' | 'next') => {
-    commitCurrentNivel();
     const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
     if (newIdx < 0 || newIdx >= CORNER_ORDER.length) return;
     setCurrentIdx(newIdx);
-    const nextCorner = CORNER_ORDER[newIdx];
-    setNivelInput(formatNivelForInput(entries[nextCorner].nivel));
   };
 
   const handleMasterChange = (checked: boolean) => {
     if (checked) {
-      // Only one master allowed — deselect all others
       const updated = { ...entries };
       for (const c of CORNER_ORDER) {
         updated[c] = { ...updated[c], isMaster: c === currentCorner };
@@ -135,28 +97,24 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
     }
   };
 
-  const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNivelInput(filterNivelText(e.target.value));
+  const handleNivelChange = (value: number) => {
+    const clamped = clampNivel(value);
+    setEntries((prev) => ({
+      ...prev,
+      [currentCorner]: { ...prev[currentCorner], nivel: clamped, visited: true },
+    }));
   };
 
-  const handleNivelBlur = () => {
-    const parsed = parseNivelText(nivelInput);
-    if (parsed == null) {
-      setNivelInput('0,20');
-      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: 0.20 } }));
-    } else {
-      const clamped = clampNivel(parsed);
-      setNivelInput(formatNivelForInput(clamped));
-      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: clamped } }));
-    }
+  const handleNivelIncrement = (delta: number) => {
+    const newVal = Math.round((entry.nivel + delta) * 100) / 100;
+    handleNivelChange(newVal);
   };
 
   const handleApply = () => {
-    const finalEntries = commitCurrentNivel();
     const result: Record<string, NivelEntry> = {};
     for (const name of CORNER_ORDER) {
       const id = cornerToId(name);
-      const e = finalEntries[name];
+      const e = entries[name];
       result[id] = { nivel: e.nivel, isMaster: e.isMaster };
     }
     appliedRef.current = true;
@@ -172,7 +130,6 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
       C1: { nivel: 0.20, isMaster: false, visited: false },
       C4: { nivel: 0.20, isMaster: false, visited: false },
     });
-    setNivelInput('0,20');
   };
 
   const handleClose = () => {
@@ -186,31 +143,43 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
 
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
-
-  // Build pilotiData with master highlights for minimap
-  const minimapData = { ...pilotiData };
-  for (const name of CORNER_ORDER) {
-    const id = cornerToId(name);
-    if (minimapData[id]) {
-      minimapData[id] = { ...minimapData[id], isMaster: entries[name].isMaster };
-    }
-  }
+  const maxNivel = 1.50;
 
   const content = (
-    <div className="flex flex-col items-center gap-4">
-      {/* Navigation header */}
-      <div className="flex items-center justify-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
-          <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
-        </Button>
-        <span className="font-bold min-w-[100px] text-center" style={{ fontSize: '1.5rem' }}>Piloti {currentCorner}</span>
-        <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
-          <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
-        </Button>
+    <div className="flex flex-col gap-4">
+      {/* Header: grid icon + title + arrows */}
+      <div className="flex items-center gap-3">
+        <PilotiGridIcon
+          selectedPiloti={currentCorner}
+          masterPiloti={masterCorner}
+          className="w-16 h-12 flex-shrink-0"
+        />
+        <span className="font-bold text-lg flex-1">Piloti {currentCorner}</span>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleNavigate('prev')}
+            disabled={!hasPrev}
+            className="h-8 w-8 rounded-full"
+          >
+            <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleNavigate('next')}
+            disabled={!hasNext}
+            className="h-8 w-8 rounded-full"
+          >
+            <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
 
-      {/* Master switch */}
-      <div className="w-full space-y-3">
+      {/* Central card */}
+      <div className="bg-muted/30 rounded-xl p-4 space-y-4">
+        {/* Master toggle */}
         <div className="flex items-center justify-between">
           <Label htmlFor="nivel-master" className="text-sm font-medium">
             Definir piloti como mestre?
@@ -218,33 +187,62 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
           <Switch id="nivel-master" checked={entry.isMaster} onCheckedChange={handleMasterChange} />
         </div>
 
-        {/* Nivel input */}
-        <div className="pl-2 border-l-2 border-primary/30">
-          <div className="flex items-center gap-2">
-            <Input
-              ref={nivelInputRef}
-              type="text"
-              inputMode="decimal"
-              value={nivelInput}
-              onChange={handleNivelChange}
-              onBlur={handleNivelBlur}
-              className="w-20 text-center cursor-text"
-            />
-            <Label className="text-sm font-medium whitespace-nowrap">
-              Nível do piloti <span className="text-xs font-normal text-muted-foreground">(0,20 a 1,50 m)</span>
-            </Label>
+        <Separator />
+
+        {/* Nivel section */}
+        <div className="space-y-3">
+          <p className="text-sm font-bold text-center">Nível do Piloti</p>
+
+          {/* Value display with +/- buttons */}
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full"
+              onClick={() => handleNivelIncrement(-0.01)}
+              disabled={entry.nivel <= 0.20}
+            >
+              <FontAwesomeIcon icon={faMinus} className="h-3 w-3" />
+            </Button>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold">{formatNivel(entry.nivel)}</span>
+              <span className="text-lg text-muted-foreground">m</span>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full"
+              onClick={() => handleNivelIncrement(0.01)}
+              disabled={entry.nivel >= maxNivel}
+            >
+              <FontAwesomeIcon icon={faPlus} className="h-3 w-3" />
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
+
+          {/* Slider */}
+          <div className="space-y-1">
+            <Slider
+              value={[entry.nivel]}
+              onValueChange={([v]) => handleNivelChange(v)}
+              min={0.20}
+              max={maxNivel}
+              step={0.01}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>0,20m</span>
+              <span>{formatNivel(maxNivel)}m</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground text-center">
             Altura recomendada: <span className="font-semibold text-foreground">{getRecommendedHeight(entry.nivel).toFixed(1).replace('.', ',')} m</span>
           </p>
         </div>
       </div>
 
-      {/* Minimap */}
-      <PilotiMinimap pilotiData={minimapData} hoveredSide={null} selectedPiloti={currentCorner} />
-
       {/* Progress indicators */}
-      <div className="flex gap-2">
+      <div className="flex justify-center gap-2">
         {CORNER_ORDER.map((c, i) => (
           <div
             key={c}
@@ -266,7 +264,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         </p>
       )}
 
-      {/* Buttons */}
+      {/* Footer buttons */}
       <div className="flex gap-2 w-full">
         <Button variant="outline" className="flex-1" onClick={handleClose}>
           Cancelar
