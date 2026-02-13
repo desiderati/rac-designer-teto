@@ -36,7 +36,7 @@ function TypeCard({
       onClick={onClick}
       className={cn(
         'flex flex-col items-center gap-4 p-6 rounded-xl border-2 transition-all duration-200',
-        'bg-background hover:bg-accent hover:border-primary',
+        'bg-white hover:bg-accent hover:border-primary',
         'border-border hover:scale-105 active:scale-95',
         'min-w-[140px] flex-1'
       )}
@@ -47,7 +47,7 @@ function TypeCard({
           className="text-2xl text-primary"
         />
       </div>
-      <h3 className="font-semibold text-foreground text-center">{title}</h3>
+      <h3 className="font-semibold text-foreground text-center text-base">{title}</h3>
     </button>
   );
 }
@@ -80,7 +80,7 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
           <DialogHeader className="text-center">
-            <DialogTitle className="text-center">Escolha o Tipo de Casa</DialogTitle>
+            <DialogTitle className="text-center text-2xl">Escolha o Tipo de Casa</DialogTitle>
           </DialogHeader>
           {content}
         </DialogContent>
@@ -92,7 +92,7 @@ export function HouseTypeSelector({ isOpen, onClose, onSelectType }: HouseTypeSe
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
         <SheetHeader className="text-center pb-2">
-          <SheetTitle className="text-center">Escolha o Tipo de Casa</SheetTitle>
+          <SheetTitle className="text-center text-2xl">Escolha o Tipo de Casa</SheetTitle>
         </SheetHeader>
         {content}
       </SheetContent>
