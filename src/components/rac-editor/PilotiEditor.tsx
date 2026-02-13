@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Group } from 'fabric';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
 import {
   Drawer,
   DrawerClose,
@@ -26,6 +27,7 @@ import {
 } from '@/lib/canvas-utils';
 import { houseManager } from '@/lib/house-manager';
 import { getSettings } from '@/lib/settings';
+import { PilotiGridIcon } from './PilotiGridIcon';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -43,34 +45,9 @@ interface PilotiEditorProps {
 }
 
 const DEFAULT_NIVEL = 0.2;
-const DEFAULT_NIVEL_INPUT = '0,20';
 
-function formatNivelForInput(n: number): string {
+function formatNivel(n: number): string {
   return n.toFixed(2).replace('.', ',');
-}
-
-function filterNivelText(value: string): string {
-  // Allow only digits, one comma or period as decimal separator
-  let filtered = value.replace(/[^0-9.,]/g, '');
-  // Keep only the first decimal separator
-  const firstSep = filtered.search(/[.,]/);
-  if (firstSep !== -1) {
-    const before = filtered.slice(0, firstSep + 1);
-    const after = filtered.slice(firstSep + 1).replace(/[.,]/g, '');
-    // Limit to 2 decimal places
-    filtered = before + after.slice(0, 2);
-  }
-  return filtered;
-}
-
-function parseNivelText(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const normalized = trimmed.replace(',', '.');
-  const parsed = Number.parseFloat(normalized);
-  if (Number.isNaN(parsed) || parsed < 0) return null;
-  // Round to 2 decimal places
-  return Math.round(parsed * 100) / 100;
 }
 
 function clampNivel(nivel: number, pilotiHeight: number): number {
@@ -95,13 +72,11 @@ export function PilotiEditor({
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
-  const [tempNivelInput, setTempNivelInput] = useState(() => formatNivelForInput(currentNivel));
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
 
   // Popover draggable position (desktop)
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
   const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
-  const nivelInputRef = useRef<HTMLInputElement | null>(null);
   const userDraggedRef = useRef(false);
 
   const allIds = useMemo(() => {
@@ -114,6 +89,18 @@ export function PilotiEditor({
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
   const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
 
+  // Find master piloti name for grid icon
+  const masterPilotiName = useMemo(() => {
+    if (!group) return undefined;
+    for (const id of allIds) {
+      const data = getPilotiFromGroup(group, id);
+      if (data?.isMaster) return getPilotiName(id);
+    }
+    // Check current if it's being set as master
+    if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
+    return undefined;
+  }, [group, allIds, tempIsMaster, pilotiId]);
+
   // Synchronize temp state with props immediately when pilotiId changes
   const lastPilotiIdRef = useRef<string | null>(null);
   const wasOpenRef = useRef(false);
@@ -123,7 +110,6 @@ export function PilotiEditor({
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
-    setTempNivelInput(formatNivelForInput(currentNivel));
   }
 
   useEffect(() => {
@@ -197,16 +183,11 @@ export function PilotiEditor({
       setTempHeight(pilotiData.height);
       setTempIsMaster(pilotiData.isMaster);
       setTempNivel(pilotiData.nivel);
-      setTempNivelInput(formatNivelForInput(pilotiData.nivel));
     }
   };
 
   const handleApply = () => {
-    const parsed = parseNivelText(tempNivelInput);
-    const nivelToApply = parsed ? clampNivel(parsed, tempHeight) : DEFAULT_NIVEL;
-
-    setTempNivel(nivelToApply);
-    setTempNivelInput(formatNivelForInput(nivelToApply));
+    const nivelToApply = clampNivel(tempNivel, tempHeight);
 
     if (pilotiId) {
       houseManager.updatePiloti(pilotiId, {
@@ -225,30 +206,21 @@ export function PilotiEditor({
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
-    setTempNivelInput(formatNivelForInput(currentNivel));
     onClose();
   };
 
-  const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = filterNivelText(e.target.value);
-    setTempNivelInput(next);
+  const handleNivelChange = (value: number) => {
+    setTempNivel(clampNivel(value, tempHeight));
   };
 
-  const handleNivelBlur = () => {
-    const parsed = parseNivelText(tempNivelInput);
-    if (parsed == null || tempNivelInput.trim() === '') {
-      setTempNivelInput(DEFAULT_NIVEL_INPUT);
-      setTempNivel(DEFAULT_NIVEL);
-    } else {
-      const clamped = clampNivel(parsed, tempHeight);
-      setTempNivelInput(formatNivelForInput(clamped));
-      setTempNivel(clamped);
-    }
+  const handleNivelIncrement = (delta: number) => {
+    const newVal = Math.round((tempNivel + delta) * 100) / 100;
+    handleNivelChange(newVal);
   };
 
   const handlePopoverPointerDown = (e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
-    const isInteractive = target.closest('button, input, textarea, select, [role="switch"], a');
+    const isInteractive = target.closest('button, input, textarea, select, [role="switch"], [role="slider"], a');
     if (isInteractive) return;
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -263,8 +235,7 @@ export function PilotiEditor({
     const { autoNavigatePiloti } = getSettings();
 
     if (pilotiId) {
-      const parsed = parseNivelText(tempNivelInput);
-      const nivelToApply = parsed ? clampNivel(parsed, h) : DEFAULT_NIVEL;
+      const nivelToApply = clampNivel(tempNivel, h);
       houseManager.updatePiloti(pilotiId, {
         height: h,
         isMaster: tempIsMaster,
@@ -290,7 +261,6 @@ export function PilotiEditor({
             setTempHeight(pilotiData.height);
             setTempIsMaster(pilotiData.isMaster);
             setTempNivel(pilotiData.nivel);
-            setTempNivelInput(formatNivelForInput(pilotiData.nivel));
           }
         } else {
           onClose();
@@ -299,88 +269,143 @@ export function PilotiEditor({
     }
   };
 
-  const getHeightButtonVariant = (h: number): 'default' | 'outline' => {
-    if (clickedHeight === h) return 'default';
-    if (clickedHeight !== null) return 'outline';
-    return tempHeight === h ? 'default' : 'outline';
+  const getHeightButtonClasses = (h: number): string => {
+    const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
+    return isSelected
+      ? 'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3'
+      : 'bg-muted/50 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-muted';
   };
 
-  const maxNivel = formatNivelForInput(Math.round(tempHeight * 200 / 3) / 100);
+  const maxNivel = Math.round(tempHeight * 200 / 3) / 100;
 
   if (!isOpen) return null;
 
-  // ---- Shared inline JSX renderers (NOT components, to avoid remount/focus-loss) ----
+  // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
 
-  const navigationHeader = (
-    <div className="flex items-center justify-center gap-2" data-no-drag>
-      <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
-        <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
-      </Button>
-      <span className="font-bold text-2xl min-w-[80px] text-center">Piloti {pilotiName}</span>
-      <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
-        <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-
-  const renderHeightControls = (compact: boolean) => (
-    <div className="space-y-2" data-no-drag>
-      <Label className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>Altura do piloti</Label>
-      <div
-        className={
-          compact
-            ? 'flex flex-nowrap gap-1 overflow-x-auto justify-start'
-            : 'flex flex-nowrap gap-1.5 overflow-x-auto justify-start'
-        }
-      >
-        {PILOTI_HEIGHTS.map((h) => (
+  const editorContent = (
+    <div className="flex flex-col gap-4">
+      {/* Header: grid icon + title + arrows */}
+      <div className="flex items-center gap-3" data-no-drag>
+        <PilotiGridIcon
+          selectedPiloti={pilotiName}
+          masterPiloti={masterPilotiName}
+          className="w-16 h-12 flex-shrink-0"
+        />
+        <span className="font-bold text-lg flex-1">Piloti {pilotiName}</span>
+        <div className="flex items-center gap-1">
           <Button
-            key={h}
-            variant={getHeightButtonVariant(h)}
-            size={compact ? 'sm' : 'default'}
-            onClick={() => handleHeightClick(h)}
-            disabled={clickedHeight !== null}
-            className={compact ? 'flex-none min-w-[40px] h-8 text-xs' : 'flex-none px-3 text-base'}
+            variant="outline"
+            size="icon"
+            onClick={() => handleNavigate('prev')}
+            disabled={!hasPrev}
+            className="h-8 w-8 rounded-full"
           >
-            {formatPilotiHeight(h)}
+            <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
           </Button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderMasterControls = (compact: boolean) => (
-    <div className="space-y-3" data-no-drag>
-      {isCornerPiloti && (
-        <div className="flex items-center justify-between">
-          <Label htmlFor="is-master" className={compact ? 'text-sm font-medium' : 'text-base font-medium'}>
-            Definir piloti como mestre?
-          </Label>
-          <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleNavigate('next')}
+            disabled={!hasNext}
+            className="h-8 w-8 rounded-full"
+          >
+            <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
+          </Button>
         </div>
-      )}
+      </div>
 
-      {isCornerPiloti && (
-        <div className="pl-2 border-l-2 border-primary/30">
-          <div className="flex items-center gap-2">
-            <Input
-              ref={nivelInputRef}
-              id="nivel"
-              type="text"
-              inputMode="decimal"
-              value={tempNivelInput}
-              onChange={handleNivelChange}
-              onBlur={handleNivelBlur}
-              className={compact ? 'w-20 text-center cursor-text' : 'w-24 text-center text-base cursor-text'}
-            />
-            <div className="flex flex-col">
-              <Label htmlFor="nivel" className={compact ? 'text-sm font-medium whitespace-nowrap' : 'text-base font-medium whitespace-nowrap'}>
-                Nível do piloti <span className={compact ? 'text-xs font-normal text-muted-foreground' : 'text-sm font-normal text-muted-foreground'}>(0,2 a {maxNivel} m)</span>
+      {/* Central card */}
+      <div className="bg-muted/30 rounded-xl p-4 space-y-4" data-no-drag>
+        {/* Master toggle - only for corners */}
+        {isCornerPiloti && (
+          <>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="is-master" className="text-sm font-medium">
+                Definir piloti como mestre?
               </Label>
+              <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
             </div>
+            <Separator />
+          </>
+        )}
+
+        {/* Nivel section - only for corners */}
+        {isCornerPiloti && (
+          <>
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-center">Nível do Piloti</p>
+
+              <div className="flex items-center justify-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => handleNivelIncrement(-0.01)}
+                  disabled={tempNivel <= 0.20}
+                >
+                  <FontAwesomeIcon icon={faMinus} className="h-3 w-3" />
+                </Button>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold">{formatNivel(tempNivel)}</span>
+                  <span className="text-lg text-muted-foreground">m</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => handleNivelIncrement(0.01)}
+                  disabled={tempNivel >= maxNivel}
+                >
+                  <FontAwesomeIcon icon={faPlus} className="h-3 w-3" />
+                </Button>
+              </div>
+
+              <div className="space-y-1">
+                <Slider
+                  value={[tempNivel]}
+                  onValueChange={([v]) => handleNivelChange(v)}
+                  min={0.20}
+                  max={maxNivel}
+                  step={0.01}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>0,20m</span>
+                  <span>{formatNivel(maxNivel)}m</span>
+                </div>
+              </div>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {/* Height grid 3x2 */}
+        <div className="space-y-2">
+          <p className="text-sm font-bold text-center">Tamanho dos Pilotis</p>
+          <div className="grid grid-cols-3 gap-2">
+            {PILOTI_HEIGHTS.map((h) => (
+              <button
+                key={h}
+                onClick={() => handleHeightClick(h)}
+                disabled={clickedHeight !== null}
+                className={getHeightButtonClasses(h)}
+              >
+                {formatPilotiHeight(h)}
+              </button>
+            ))}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Footer buttons */}
+      <div className="flex gap-2 w-full" data-no-drag>
+        <Button variant="outline" className="flex-1" onClick={handleCancel}>
+          Cancelar
+        </Button>
+        <Button className="flex-1" onClick={handleApply}>
+          Aplicar
+        </Button>
+      </div>
     </div>
   );
 
@@ -389,32 +414,17 @@ export function PilotiEditor({
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>
-              {navigationHeader}
-            </DrawerTitle>
+            <DrawerTitle className="sr-only">Editor de Piloti</DrawerTitle>
           </DrawerHeader>
-          <div className="p-4 space-y-6">
-            {renderMasterControls(false)}
-            {renderHeightControls(false)}
+          <div className="px-4 pb-4">
+            {editorContent}
           </div>
-          <DrawerFooter className="flex-row gap-2">
-            <DrawerClose asChild>
-              <Button variant="outline" className="flex-1" onClick={handleCancel}>
-                Cancelar
-              </Button>
-            </DrawerClose>
-            <DrawerClose asChild>
-              <Button className="flex-1" onClick={handleApply}>
-                Aplicar
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );
   }
 
-  // Desktop: painel flutuante
+  // Desktop: floating draggable panel
   return createPortal(
     <div
       className="fixed inset-0 z-50"
@@ -427,7 +437,7 @@ export function PilotiEditor({
       tabIndex={-1}
     >
       <div
-        className="rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[280px]"
+        className="rounded-xl border bg-popover p-4 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
         style={
           popoverPos
             ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
@@ -440,22 +450,7 @@ export function PilotiEditor({
           handlePopoverPointerDown(e);
         }}
       >
-        <div className="space-y-4">
-          {navigationHeader}
-
-          {renderMasterControls(true)}
-
-          {renderHeightControls(true)}
-
-          <div className="flex gap-2 pt-2" data-no-drag>
-            <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
-              Cancelar
-            </Button>
-            <Button size="sm" className="flex-1" onClick={handleApply}>
-              Aplicar
-            </Button>
-          </div>
-        </div>
+        {editorContent}
       </div>
     </div>,
     document.body,
