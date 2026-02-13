@@ -414,10 +414,10 @@ export function RACEditor() {
     const viewType = pendingViewType;
     const side = pendingNivelSide;
 
-    // Clear modal state first to prevent onClose from interfering
+    // Mark as applied so onClose won't reset
     setPendingViewType(null);
     setPendingNivelSide(null);
-    setNivelDefinitionOpen(false);
+    // Don't call setNivelDefinitionOpen(false) here - let onApply in modal handle it via its own close
 
     // Update pilotis in HouseManager with the defined levels
     for (const [pilotiId, entry] of Object.entries(niveis)) {
@@ -457,6 +457,9 @@ export function RACEditor() {
         }, 50);
       }
     }
+
+    // Close modal after views are added
+    setNivelDefinitionOpen(false);
   };
 
   const handleNivelDefinitionClose = () => {
