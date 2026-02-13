@@ -1,21 +1,7 @@
 import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
-import { HouseSide, ViewType, houseManager, HouseType } from '@/lib/house-manager';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
-import { useIsMobile } from '@/hooks/use-mobile';
-import { PilotiMinimap } from './PilotiMinimap';
+import { HouseSide, ViewType, houseManager } from '@/lib/house-manager';
+import { TwoCardSelector } from './TwoCardSelector';
+import { PilotiGridIcon } from './PilotiGridIcon';
 
 export interface InstanceSlot {
   label: string;
@@ -32,333 +18,122 @@ interface SideSelectorProps {
   instanceSlots?: InstanceSlot[];
 }
 
-// Piloti grid layout (3 rows x 4 cols)
-const PILOTI_GRID = [
-  ['A1', 'A2', 'A3', 'A4'],
-  ['B1', 'B2', 'B3', 'B4'],
-  ['C1', 'C2', 'C3', 'C4'],
-];
-
-function getPilotiIdFromName(name: string): string {
-  const row = name.charCodeAt(0) - 65; // A=0, B=1, C=2
-  const col = parseInt(name[1]) - 1; // 1=0, 2=1, 3=2, 4=3
-  return `piloti_${col}_${row}`;
-}
-
 export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = 'position', instanceSlots }: SideSelectorProps) {
-  const [hoveredSide, setHoveredSide] = useState<HouseSide | null>(null);
   const [, forceUpdate] = useState(0);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isOpen) return;
     return houseManager.subscribe(() => forceUpdate((v) => v + 1));
   }, [isOpen]);
 
-  // Re-read of houseManager data; forceUpdate exists only to rerender on updates
-  const house = isOpen ? houseManager.getHouse() : null;
-  const pilotiData = house?.pilotis || {};
-
-  const availableSides = houseManager.getAvailableSides(viewType);
-
-  // Determine which sides can be selected based on view type
+  const houseType = houseManager.getHouseType();
   const isLongSide = viewType === 'front' || viewType === 'back';
-  const selectableSides: HouseSide[] = isLongSide ? ['top', 'bottom'] : ['left', 'right'];
 
-  const handleSideClick = (side: HouseSide) => {
-    if (availableSides.includes(side)) {
-      onSelectSide(side);
-      onClose();
-    }
+  const handleSelect = (side: HouseSide) => {
+    onSelectSide(side);
+    onClose();
   };
 
-  const getViewLabel = (type: ViewType): string => {
-    const houseType = houseManager.getHouseType();
-    switch (type) {
-      case 'front': return 'Frontal';
-      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
-      case 'side1': return 'Quadrado Fechado';
-      case 'side2': return 'Quadrado Aberto';
-      default: return '';
-    }
-  };
-
-  const getSideLabel = (side: HouseSide): string => {
-    switch (side) {
-      case 'top': return 'Superior';
-      case 'bottom': return 'Inferior';
-      case 'left': return 'Esquerda';
-      case 'right': return 'Direita';
-      default: return '';
-    }
-  };
-
-  const isSideAvailable = (side: HouseSide): boolean => {
-    return availableSides.includes(side) && selectableSides.includes(side);
-  };
-
-  const getSideAssignment = (side: HouseSide): ViewType | null => {
-    return house?.sideAssignments[side] || null;
-  };
-
-  // Get highlight color for pilotis based on hovered side
-  const getPilotiHighlight = (name: string): boolean => {
-    if (!hoveredSide) return false;
-    
-    const row = name.charCodeAt(0) - 65; // A=0, B=1, C=2
-    const col = parseInt(name[1]) - 1; // 0-3
-    
-    // Top side = row A (row 0)
-    // Bottom side = row C (row 2)
-    // Left side = col 1 (col 0)
-    // Right side = col 4 (col 3)
-    switch (hoveredSide) {
-      case 'top': return row === 0;
-      case 'bottom': return row === 2;
-      case 'left': return col === 0;
-      case 'right': return col === 3;
-      default: return false;
-    }
-  };
-
-  // Display grid is always in normal order - the flip happens when placing on canvas
-  const displayGrid = PILOTI_GRID;
-
-  // Choose-instance mode: simple buttons instead of piloti grid
-  if (mode === 'choose-instance') {
-    let chooseTitle: string;
-    if (viewType === 'side1') {
-      chooseTitle = 'Qual dos quadrados fechados deseja mostrar?';
-    } else if (viewType === 'back' && houseManager.getHouseType() === 'tipo3') {
-      chooseTitle = 'Qual das laterais deseja mostrar?';
-    } else {
-      chooseTitle = `Qual '${getViewLabel(viewType)}' deseja mostrar?`;
-    }
-
-    const chooseContent = (
-      <div className="flex flex-col gap-3 py-2">
-        {instanceSlots?.map((slot) => (
-          <button
-            key={slot.side}
-            disabled={slot.onCanvas}
-            onClick={() => {
-              onSelectSide(slot.side);
-              onClose();
-            }}
-            className={cn(
-              "px-4 py-3 rounded-lg border-2 text-left transition-all duration-200",
-              slot.onCanvas
-                ? "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed"
-                : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10 active:bg-primary active:text-primary-foreground"
-            )}
-          >
-            <span className="text-sm font-medium">{slot.label}</span>
-            {slot.onCanvas && <span className="text-xs opacity-70 ml-2">(já no canvas)</span>}
-          </button>
-        ))}
-      </div>
-    );
-
-    if (!isMobile) {
+  // --- Position mode ---
+  if (mode === 'position') {
+    if (isLongSide) {
+      // Casa Tipo 6: front view → Superior / Inferior
       return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-          <DialogContent className="sm:max-w-sm" hideCloseButton>
-            <div className="mx-auto w-full max-w-sm">
-              <DialogHeader className="text-left">
-                <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
-              </DialogHeader>
-              <div className="pt-2">{chooseContent}</div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <TwoCardSelector
+          isOpen={isOpen}
+          onClose={onClose}
+          title="Lado Porta Casa Tipo 6"
+          left={{
+            label: 'Superior',
+            icon: <PilotiGridIcon highlight="top" />,
+            onClick: () => handleSelect('top'),
+          }}
+          right={{
+            label: 'Inferior',
+            icon: <PilotiGridIcon highlight="bottom" />,
+            onClick: () => handleSelect('bottom'),
+          }}
+        />
+      );
+    } else {
+      // Casa Tipo 3: side2 view → Esquerdo / Direito
+      return (
+        <TwoCardSelector
+          isOpen={isOpen}
+          onClose={onClose}
+          title="Lado Porta Casa Tipo 3"
+          left={{
+            label: 'Esquerdo',
+            icon: <PilotiGridIcon highlight="left" />,
+            onClick: () => handleSelect('left'),
+          }}
+          right={{
+            label: 'Direito',
+            icon: <PilotiGridIcon highlight="right" />,
+            onClick: () => handleSelect('right'),
+          }}
+        />
       );
     }
+  }
 
+  // --- Choose-instance mode ---
+  const slots = instanceSlots || [];
+
+  if (viewType === 'back' && houseType === 'tipo3') {
+    // Laterais: Superior / Inferior
+    const topSlot = slots.find(s => s.side === 'top');
+    const bottomSlot = slots.find(s => s.side === 'bottom');
     return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-            <div className="mx-auto w-full max-w-sm">
-            <SheetHeader className="text-center pb-2">
-              <SheetTitle className="text-lg">{chooseTitle}</SheetTitle>
-            </SheetHeader>
-            <div className="pt-2">{chooseContent}</div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <TwoCardSelector
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Qual das laterais deseja mostrar?"
+        left={{
+          label: 'Superior',
+          icon: <PilotiGridIcon highlight="top" />,
+          onClick: () => handleSelect('top'),
+          disabled: topSlot?.onCanvas,
+          subtext: topSlot?.onCanvas ? '(já no canvas)' : undefined,
+        }}
+        right={{
+          label: 'Inferior',
+          icon: <PilotiGridIcon highlight="bottom" />,
+          onClick: () => handleSelect('bottom'),
+          disabled: bottomSlot?.onCanvas,
+          subtext: bottomSlot?.onCanvas ? '(já no canvas)' : undefined,
+        }}
+      />
     );
   }
 
-  const content = (
-    <div className="flex flex-col items-center gap-2 py-2">
-      {/* Top side button (for front/back views) */}
-      {isLongSide && (
-        <SideButton
-          side="top"
-          label={getSideLabel('top')}
-          isAvailable={isSideAvailable('top')}
-          isHovered={hoveredSide === 'top'}
-          assignment={getSideAssignment('top')}
-          onHover={setHoveredSide}
-          onClick={handleSideClick}
-          className="w-full"
-        />
-      )}
-
-      {/* Middle row: Left + Grid + Right */}
-      {isLongSide ? (
-        <div className="flex items-stretch gap-2 w-full justify-center">
-          {/* Piloti Grid */}
-          <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
-        </div>
-      ) : (
-        // Side views: Left button + Grid + Right button in a row
-        <div className="flex items-stretch gap-2 w-full justify-start"> 
-          <SideButton
-            side="left"
-            label={getSideLabel('left')}
-            isAvailable={isSideAvailable('left')}
-            isHovered={hoveredSide === 'left'}
-            assignment={getSideAssignment('left')}
-            onHover={setHoveredSide}
-            onClick={handleSideClick}
-            vertical
-            className="self-stretch"
-          />
-
-          <div className="flex-1 min-w-0">
-            <PilotiMinimap pilotiData={pilotiData} hoveredSide={hoveredSide} />
-          </div>
-
-          <SideButton
-            side="right"
-            label={getSideLabel('right')}
-            isAvailable={isSideAvailable('right')}
-            isHovered={hoveredSide === 'right'}
-            assignment={getSideAssignment('right')}
-            onHover={setHoveredSide}
-            onClick={handleSideClick}
-            vertical
-            className="self-stretch"
-          />
-        </div>
-      )}
-
-      {/* Bottom side button (for front/back views) */}
-      {isLongSide && (
-        <SideButton
-          side="bottom"
-          label={getSideLabel('bottom')}
-          isAvailable={isSideAvailable('bottom')}
-          isHovered={hoveredSide === 'bottom'}
-          assignment={getSideAssignment('bottom')}
-          onHover={setHoveredSide}
-          onClick={handleSideClick}
-          className="w-full"
-        />
-      )}
-
-    </div>
-  );
-
-  // Desktop: use Dialog (modal)
-  if (!isMobile) {
+  if (viewType === 'side1') {
+    // Quadrados: Esquerdo / Direito
+    const leftSlot = slots.find(s => s.side === 'left');
+    const rightSlot = slots.find(s => s.side === 'right');
     return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-sm" hideCloseButton>
-            <div className="mx-auto w-full max-w-sm">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-lg text-center">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
-            </DialogHeader>
-            <div className="pt-2">{content}</div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TwoCardSelector
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Qual dos quadrados deseja mostrar?"
+        left={{
+          label: 'Esquerdo',
+          icon: <PilotiGridIcon highlight="left" />,
+          onClick: () => handleSelect('left'),
+          disabled: leftSlot?.onCanvas,
+          subtext: leftSlot?.onCanvas ? '(já no canvas)' : undefined,
+        }}
+        right={{
+          label: 'Direito',
+          icon: <PilotiGridIcon highlight="right" />,
+          onClick: () => handleSelect('right'),
+          disabled: rightSlot?.onCanvas,
+          subtext: rightSlot?.onCanvas ? '(já no canvas)' : undefined,
+        }}
+      />
     );
   }
 
-  // Mobile: use Sheet (bottom drawer)
-  return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-          <div className="mx-auto w-full max-w-sm">
-            <SheetHeader className="text-center pb-2">
-              <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
-            </SheetHeader>
-            <div className="pt-2">{content}</div>
-          </div>
-        </SheetContent>
-      </Sheet>
-  );
-}
-
-interface SideButtonProps {
-  side: HouseSide;
-  label: string;
-  isAvailable: boolean;
-  isHovered: boolean;
-  assignment: ViewType | null;
-  onHover: (side: HouseSide | null) => void;
-  onClick: (side: HouseSide) => void;
-  vertical?: boolean;
-  className?: string;
-}
-
-function SideButton({
-  side,
-  label,
-  isAvailable,
-  isHovered,
-  assignment,
-  onHover,
-  onClick,
-  vertical,
-  className,
-}: SideButtonProps) {
-  const getAssignmentLabel = (type: ViewType): string => {
-    const houseType = houseManager.getHouseType();
-    switch (type) {
-      case 'front': return 'Frontal';
-      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
-      case 'side1': return 'Q. Fechado';
-      case 'side2': return 'Q. Aberto';
-      default: return '';
-    }
-  };
-
-  // When a view is already assigned to THIS side (meaning it's occupied), use gray hover instead of blue
-  // This happens when the user already placed a view here and is hovering over it
-  const isOccupied = assignment !== null;
-  
-  return (
-    <button
-      disabled={!isAvailable}
-      onMouseEnter={() => isAvailable && onHover(side)}
-      onMouseLeave={() => onHover(null)}
-      onTouchStart={() => isAvailable && onHover(side)}
-      onTouchEnd={() => onHover(null)}
-      onClick={() => onClick(side)}
-      className={cn(
-        "px-3 py-1.5 rounded-md border-2 transition-all duration-200",
-        "flex items-center justify-center gap-1",
-        vertical && "writing-mode-vertical flex-col min-w-[32px] px-1.5 py-3",
-        isAvailable
-          ? isHovered
-            ? isOccupied
-              ? "bg-gray-200 text-gray-600 border-gray-400"
-              : "bg-primary text-primary-foreground border-primary"
-            : isOccupied
-              ? "bg-background border-foreground/30 hover:bg-gray-200 hover:border-gray-400"
-              : "bg-background border-foreground/30 hover:border-primary hover:bg-primary/10"
-          : "bg-muted/50 border-muted-foreground/20 text-muted-foreground cursor-not-allowed",
-        className
-      )}
-      style={vertical ? { writingMode: 'vertical-rl', textOrientation: 'mixed' } : undefined}
-    >
-      {assignment ? (
-        <span className="text-xs opacity-70">{getAssignmentLabel(assignment)}</span>
-      ) : (
-        <span className="text-sm font-medium">{label}</span>
-      )}
-    </button>
-  );
+  // Fallback (shouldn't happen)
+  return null;
 }
