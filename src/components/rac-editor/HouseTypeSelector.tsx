@@ -41,12 +41,10 @@ function TypeCard({
         'min-w-[140px] flex-1'
       )}
     >
-      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-        <FontAwesomeIcon
-          icon={type === 'tipo6' ? faHome : faDoorOpen}
-          className="text-2xl text-primary"
-        />
-      </div>
+      <FontAwesomeIcon
+        icon={type === 'tipo6' ? faHome : faDoorOpen}
+        className="text-4xl text-primary"
+      />
       <h3 className="font-semibold text-foreground text-center text-base">{title}</h3>
     </button>
   );
