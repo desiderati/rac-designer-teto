@@ -332,7 +332,7 @@ export function PilotiEditor({
         {/* Nivel section - only for corners */}
         {isCornerPiloti && (
           <>
-            <div className="space-y-6">
+            <div className="space-y-6 pt-2">
               <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
