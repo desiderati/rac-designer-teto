@@ -69,14 +69,25 @@ export function PilotiMinimap({ pilotiData, hoveredSide, selectedPiloti }: Pilot
               className={cn(
                 'absolute flex items-center justify-center rounded-full border-2 transition-all duration-200',
                 'w-6 h-6',
-                isSelected ? 'bg-primary/30 border-primary scale-125' :
-                highlighted ? 'bg-primary/20 border-primary scale-125' : 'bg-background border-foreground/20',
-                data.isMaster && 'bg-amber-100 border-amber-500',
+                isSelected ? 'scale-125' :
+                highlighted ? 'scale-125' : '',
               )}
               style={{
                 top,
                 left,
                 transform: 'translate(-50%, -50%)',
+                backgroundColor: data.isMaster
+                  ? '#D4A574'
+                  : isSelected
+                    ? 'hsl(var(--primary) / 0.3)'
+                    : highlighted
+                      ? 'hsl(var(--primary) / 0.2)'
+                      : 'hsl(var(--background))',
+                borderColor: data.isMaster
+                  ? '#8B4513'
+                  : isSelected || highlighted
+                    ? 'hsl(var(--primary))'
+                    : 'hsl(var(--foreground) / 0.2)',
               }}
             >
               <span className="text-[8px] font-medium text-foreground/70 leading-none">
