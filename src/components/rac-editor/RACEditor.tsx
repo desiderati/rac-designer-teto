@@ -1514,7 +1514,7 @@ export function RACEditor() {
         pilotiId={pilotiSelection?.pilotiId ?? null}
         currentHeight={pilotiSelection?.currentHeight ?? 1.0}
         currentIsMaster={pilotiSelection?.currentIsMaster ?? false}
-        currentNivel={pilotiSelection?.currentNivel ?? 0.3}
+        currentNivel={pilotiSelection?.currentNivel ?? 0.2}
         group={pilotiSelection?.group ?? null}
         isMobile={isMobile}
         anchorPosition={pilotiSelection?.screenPosition}

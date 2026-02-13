@@ -168,7 +168,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       const pilotiId = `piloti_${colIdx}_${rowIdx}`;
       const defaultHeight = 1.0;
       const defaultIsMaster = false;
-      const defaultNivel = 0.3;
+      const defaultNivel = 0.2;
 
       // Invisible hit area for mobile (larger touch target)
       const hitArea = new Circle({
@@ -340,7 +340,7 @@ export function getPilotiFromGroup(
         circle: obj,
         height: (obj as any).pilotiHeight || 1.0,
         isMaster: (obj as any).pilotiIsMaster || false,
-        nivel: (obj as any).pilotiNivel ?? 0.3,
+        nivel: (obj as any).pilotiNivel ?? 0.2,
       };
     }
   }
@@ -670,7 +670,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     (rect as any).pilotiId = pilotiId;
     (rect as any).pilotiHeight = defaultHeight;
     (rect as any).pilotiIsMaster = false;
-    (rect as any).pilotiNivel = 0.3;
+    (rect as any).pilotiNivel = 0.2;
     (rect as any).isPilotiRect = true;
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
 
@@ -809,7 +809,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   }
 
   // Add ground line (behind house/pilotis) + markers/labels (in front)
-  const defaultNivelVal = 0.3;
+  const defaultNivelVal = 0.2;
   const groundSeed = flipHorizontal ? 42 : 137;
   const leftX = -50;
   const leftCenterX = margin + pilotW / 2;
@@ -895,7 +895,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     (rect as any).pilotiId = pilotiId;
     (rect as any).pilotiHeight = defaultHeight;
     (rect as any).pilotiIsMaster = false;
-    (rect as any).pilotiNivel = 0.3;
+    (rect as any).pilotiNivel = 0.2;
     (rect as any).isPilotiRect = true;
     (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
 
@@ -971,7 +971,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   }
 
   // Add ground line (behind) + markers/labels (in front)
-  const defaultNivelVal = 0.3;
+  const defaultNivelVal = 0.2;
   const groundSeed = isRightSide ? 314 : 217;
   const leftX = -50;
   const leftCenterX = pilotW / 2;
@@ -1274,8 +1274,8 @@ export function updateGroundInGroup(group: Group): void {
   const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
   if (!leftRect || !rightRect) return;
 
-  const leftNivel = leftRect.pilotiNivel ?? 0.3;
-  const rightNivel = rightRect.pilotiNivel ?? 0.3;
+  const leftNivel = leftRect.pilotiNivel ?? 0.2;
+  const rightNivel = rightRect.pilotiNivel ?? 0.2;
   const baseHeight = leftRect.pilotiBaseHeight || 60;
   const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
 

@@ -541,7 +541,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         let piloti: FabricObject | null = null;
         let pilotiHeight = 1.0;
         let pilotiIsMaster = false;
-        let pilotiNivel = 0.3;
+        let pilotiNivel = 0.2;
         
         // If clicked on hit area, find the actual piloti circle/rect
         if ((subTarget as any).isPilotiHitArea) {
@@ -556,7 +556,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           piloti = subTarget;
           pilotiHeight = (subTarget as any).pilotiHeight || 1.0;
           pilotiIsMaster = (subTarget as any).pilotiIsMaster || false;
-          pilotiNivel = (subTarget as any).pilotiNivel ?? 0.3;
+          pilotiNivel = (subTarget as any).pilotiNivel ?? 0.2;
         }
         
         if (!piloti) return;
