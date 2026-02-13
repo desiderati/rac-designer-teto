@@ -198,7 +198,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Separator />
 
         {/* Nivel section */}
-        <div className="space-y-6">
+        <div className="space-y-6 pt-2">
           <p className="text-sm font-bold text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}
