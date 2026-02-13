@@ -589,15 +589,17 @@ class HouseManager {
     return this.house?.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
   }
 
+  /** Standard available piloti heights */
+  static readonly STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+
   /**
    * Calculate recommended heights for all 12 pilotis using bilinear interpolation
    * of the 4 corner levels and the 2/3 rule.
    *
    * - The nivel at each grid point is interpolated from corners A1, A4, C1, C4.
-   * - Each piloti height = nivel * 3/2 (so 2/3 of the piloti is buried).
-   * - Exception: if the calculated height would be >= 3.0m, it stays at 3.0m
-   *   (out-of-level is acceptable for 3.0m pilotis).
-   * - Heights are rounded to 2 decimal places.
+   * - Minimum required height = nivel × 3 (so 1/3 above ground, 2/3 buried).
+   * - Select the smallest standard height (1.0, 1.2, 1.5, 2.0, 2.5, 3.0) >= minimum.
+   * - If minimum exceeds 3.0m, cap at 3.0m (out-of-level acceptable).
    */
   calculateAndApplyRecommendedHeights(): void {
     if (!this.house) return;
@@ -610,17 +612,16 @@ class HouseManager {
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 4; col++) {
         const id = `piloti_${col}_${row}`;
-        const u = col / 3; // 0..1 across columns
-        const v = row / 2; // 0..1 across rows
+        const u = col / 3;
+        const v = row / 2;
 
         const nivel = (1 - u) * (1 - v) * a1
                     + u * (1 - v) * a4
                     + (1 - u) * v * c1
                     + u * v * c4;
 
-        let height = Math.round(nivel * 1.5 * 100) / 100; // nivel * 3/2
-        if (height >= 3.0) height = 3.0;
-        if (height < 0.2) height = 0.2; // safety floor
+        const minHeight = nivel * 3;
+        const height = HouseManager.STANDARD_HEIGHTS.find(h => h >= minHeight) ?? 3.0;
 
         const current = this.house.pilotis[id];
         this.house.pilotis[id] = {
