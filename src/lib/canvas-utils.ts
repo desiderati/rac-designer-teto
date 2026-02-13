@@ -558,7 +558,7 @@ export function updatePilotiAll(
 export const BASE_PILOTI_HEIGHT_PX = 100;
 
 // Create a diagonal stripe pattern for piloti fill (bottom 2/3)
-function createDiagonalStripePattern(): Pattern {
+export function createDiagonalStripePattern(): Pattern {
   const size = 10; // pattern tile size
   const canvas = document.createElement("canvas");
   canvas.width = size;

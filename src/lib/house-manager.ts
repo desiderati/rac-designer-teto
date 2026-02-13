@@ -6,6 +6,7 @@ import {
   refreshHouseGroupRendering,
   formatPilotiHeight,
   formatNivel,
+  createDiagonalStripePattern,
   MASTER_PILOTI_FILL,
   MASTER_PILOTI_STROKE,
   BASE_PILOTI_HEIGHT_PX,
@@ -519,6 +520,27 @@ class HouseManager {
       (obj as any).set('left', (rect.left ?? 0) + rectWidth / 2);
       (obj as any).set('top', (rect.top ?? 0) + rectHeight + offset);
       (obj as any).setCoords?.();
+      (obj as any).dirty = true;
+    });
+
+    // Third pass: update stripe overlays to match resized rects
+    objects.forEach((obj: FabricObject) => {
+      if (!(obj as any).isPilotiStripe) return;
+
+      const pilotiId = (obj as any).pilotiId;
+      if (!pilotiId) return;
+
+      const rect = objects.find(
+        (o: any) => o.pilotiId === pilotiId && o.isPilotiRect,
+      ) as any;
+      if (!rect) return;
+
+      const newVisualHeight = (rect.height ?? 0) as number;
+      const stripeHeight = (newVisualHeight * 2) / 3;
+      obj.set({ height: stripeHeight, top: (rect.top ?? 0) + newVisualHeight / 3 });
+      obj.set('fill', createDiagonalStripePattern());
+      obj.objectCaching = false;
+      obj.setCoords();
       (obj as any).dirty = true;
     });
 
