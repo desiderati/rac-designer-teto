@@ -10,6 +10,7 @@ interface PilotiData {
 interface PilotiMinimapProps {
   pilotiData: Record<string, PilotiData>;
   hoveredSide: HouseSide | null;
+  selectedPiloti?: string;
 }
 
 const PILOTI_POSITIONS: { name: string; top: string; left: string }[] = [
@@ -49,7 +50,7 @@ function isHighlighted(name: string, hoveredSide: HouseSide | null): boolean {
   }
 }
 
-export function PilotiMinimap({ pilotiData, hoveredSide }: PilotiMinimapProps) {
+export function PilotiMinimap({ pilotiData, hoveredSide, selectedPiloti }: PilotiMinimapProps) {
   return (
     <div className="w-full max-w-xs">
       <div
@@ -60,6 +61,7 @@ export function PilotiMinimap({ pilotiData, hoveredSide }: PilotiMinimapProps) {
           const pilotiId = getPilotiIdFromName(name);
           const data = pilotiData[pilotiId] || { height: 1.0, isMaster: false, nivel: 0.3 };
           const highlighted = isHighlighted(name, hoveredSide);
+          const isSelected = selectedPiloti === name;
 
           return (
             <div
@@ -67,6 +69,7 @@ export function PilotiMinimap({ pilotiData, hoveredSide }: PilotiMinimapProps) {
               className={cn(
                 'absolute flex items-center justify-center rounded-full border-2 transition-all duration-200',
                 'w-6 h-6',
+                isSelected ? 'bg-primary/30 border-primary scale-125' :
                 highlighted ? 'bg-primary/20 border-primary scale-125' : 'bg-background border-foreground/20',
                 data.isMaster && 'bg-amber-100 border-amber-500',
               )}
