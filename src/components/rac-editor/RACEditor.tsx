@@ -11,6 +11,7 @@ import { GenericEditor, GenericEditorType } from './GenericEditor';
 import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
 import { OnboardingBalloon } from './OnboardingBalloon';
 import { SideSelector } from './SideSelector';
+import { NivelDefinitionModal, NivelEntry } from './NivelDefinitionModal';
 import { HouseTypeSelector } from './HouseTypeSelector';
 import { House3DViewer } from './House3DViewer';
 import { SettingsModal } from './SettingsModal';
@@ -77,6 +78,8 @@ export function RACEditor() {
   const [instanceSlots, setInstanceSlots] = useState<{ label: string; side: HouseSide; onCanvas: boolean }[]>([]);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
+  const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
+  const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
   const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
@@ -391,18 +394,46 @@ export function RACEditor() {
     }
 
     if (sideSelectorMode === 'position' && !houseManager.hasPreAssignedSlots()) {
-      // Initial positioning after house type selection
+      // Initial positioning — open NivelDefinitionModal instead of adding immediately
       houseManager.autoAssignAllSides(pendingViewType, side);
-      addViewToCanvas('top'); // Plant
-      addViewToCanvas(pendingViewType, side); // Initial view
+      setPendingNivelSide(side);
+      setSideSelectorOpen(false);
+      setNivelDefinitionOpen(true);
+      return;
+    } else {
+      // Regular side selection or choose-instance
+      addViewToCanvas(pendingViewType, side);
+    }
 
-      // Reposition so plant is above and view is below, not overlapping
+    setPendingViewType(null);
+    setSideSelectorOpen(false);
+  };
+
+  const handleNiveisApplied = (niveis: Record<string, NivelEntry>) => {
+    // Update pilotis in HouseManager with the defined levels
+    for (const [pilotiId, entry] of Object.entries(niveis)) {
+      houseManager.updatePiloti(pilotiId, {
+        height: 1.0, // default height
+        isMaster: entry.isMaster,
+        nivel: entry.nivel,
+      });
+    }
+
+    const viewType = pendingViewType;
+    const side = pendingNivelSide;
+
+    // Add plant + initial view
+    if (viewType) {
+      addViewToCanvas('top'); // Plant
+      addViewToCanvas(viewType, side ?? undefined); // Initial view
+
+      // Reposition so plant is above and view is below
       const canvas = getCanvas();
       if (canvas) {
         setTimeout(() => {
           const house = houseManager.getHouse();
           const plantInst = house?.views.top?.[0];
-          const viewInst = house?.views[pendingViewType!]?.find(v => v.side === side);
+          const viewInst = house?.views[viewType]?.find(v => v.side === side);
           const plantGroup = plantInst?.group;
           const viewGroup = viewInst?.group;
           if (plantGroup && viewGroup) {
@@ -419,13 +450,23 @@ export function RACEditor() {
           }
         }, 50);
       }
-    } else {
-      // Regular side selection or choose-instance
-      addViewToCanvas(pendingViewType, side);
     }
 
     setPendingViewType(null);
-    setSideSelectorOpen(false);
+    setPendingNivelSide(null);
+    setNivelDefinitionOpen(false);
+  };
+
+  const handleNivelDefinitionClose = () => {
+    // User cancelled — reset house type since we already auto-assigned
+    if (!houseManager.hasPreAssignedSlots() || pendingNivelSide) {
+      // Undo the auto-assignment by resetting
+      houseManager.setHouseType(null);
+      houseManager.reset();
+    }
+    setPendingViewType(null);
+    setPendingNivelSide(null);
+    setNivelDefinitionOpen(false);
   };
 
   const handleSideSelectorClose = () => {
@@ -1592,6 +1633,13 @@ export function RACEditor() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NivelDefinitionModal
+        isOpen={nivelDefinitionOpen}
+        onClose={handleNivelDefinitionClose}
+        onApply={handleNiveisApplied}
+        pilotiData={houseManager.getHouse()?.pilotis || {}}
+      />
     </div>
   );
 }

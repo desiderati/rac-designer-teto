@@ -1,0 +1,263 @@
+import { useState, useRef } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { PilotiMinimap } from './PilotiMinimap';
+
+const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
+type CornerName = typeof CORNER_ORDER[number];
+
+export interface NivelEntry {
+  nivel: number;
+  isMaster: boolean;
+}
+
+interface NivelDefinitionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onApply: (niveis: Record<string, NivelEntry>) => void;
+  pilotiData: Record<string, { height: number; isMaster: boolean; nivel: number }>;
+}
+
+function formatNivelForInput(n: number): string {
+  return n.toFixed(2).replace('.', ',');
+}
+
+function filterNivelText(value: string): string {
+  let filtered = value.replace(/[^0-9.,]/g, '');
+  const firstSep = filtered.search(/[.,]/);
+  if (firstSep !== -1) {
+    const before = filtered.slice(0, firstSep + 1);
+    const after = filtered.slice(firstSep + 1).replace(/[.,]/g, '');
+    filtered = before + after.slice(0, 2);
+  }
+  return filtered;
+}
+
+function parseNivelText(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.replace(',', '.');
+  const parsed = Number.parseFloat(normalized);
+  if (Number.isNaN(parsed) || parsed < 0) return null;
+  return Math.round(parsed * 100) / 100;
+}
+
+function clampNivel(nivel: number): number {
+  return Math.round(Math.max(0.2, Math.min(nivel, 1.50)) * 100) / 100;
+}
+
+export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: NivelDefinitionModalProps) {
+  const isMobile = useIsMobile();
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [entries, setEntries] = useState<Record<CornerName, NivelEntry & { visited: boolean }>>(() => ({
+    A1: { nivel: 0.30, isMaster: false, visited: false },
+    A4: { nivel: 0.30, isMaster: false, visited: false },
+    C1: { nivel: 0.30, isMaster: false, visited: false },
+    C4: { nivel: 0.30, isMaster: false, visited: false },
+  }));
+  const [nivelInput, setNivelInput] = useState('0,30');
+  const nivelInputRef = useRef<HTMLInputElement>(null);
+
+  const currentCorner = CORNER_ORDER[currentIdx];
+  const entry = entries[currentCorner];
+  const allVisited = CORNER_ORDER.every((c) => entries[c].visited);
+
+  // Mark current as visited when navigating away or applying
+  const markVisited = () => {
+    setEntries((prev) => ({
+      ...prev,
+      [currentCorner]: { ...prev[currentCorner], visited: true },
+    }));
+  };
+
+  const commitCurrentNivel = () => {
+    const parsed = parseNivelText(nivelInput);
+    const clamped = parsed != null ? clampNivel(parsed) : 0.30;
+    setEntries((prev) => ({
+      ...prev,
+      [currentCorner]: { ...prev[currentCorner], nivel: clamped, visited: true },
+    }));
+    return clamped;
+  };
+
+  const handleNavigate = (direction: 'prev' | 'next') => {
+    commitCurrentNivel();
+    const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
+    if (newIdx < 0 || newIdx >= CORNER_ORDER.length) return;
+    setCurrentIdx(newIdx);
+    const nextCorner = CORNER_ORDER[newIdx];
+    setNivelInput(formatNivelForInput(entries[nextCorner].nivel));
+  };
+
+  const handleMasterChange = (checked: boolean) => {
+    setEntries((prev) => ({
+      ...prev,
+      [currentCorner]: { ...prev[currentCorner], isMaster: checked },
+    }));
+  };
+
+  const handleNivelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNivelInput(filterNivelText(e.target.value));
+  };
+
+  const handleNivelBlur = () => {
+    const parsed = parseNivelText(nivelInput);
+    if (parsed == null) {
+      setNivelInput('0,30');
+      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: 0.30 } }));
+    } else {
+      const clamped = clampNivel(parsed);
+      setNivelInput(formatNivelForInput(clamped));
+      setEntries((prev) => ({ ...prev, [currentCorner]: { ...prev[currentCorner], nivel: clamped } }));
+    }
+  };
+
+  const handleApply = () => {
+    commitCurrentNivel();
+    // Build result using piloti_col_row IDs
+    const result: Record<string, NivelEntry> = {};
+    for (const name of CORNER_ORDER) {
+      const row = name.charCodeAt(0) - 65;
+      const col = parseInt(name[1]) - 1;
+      const id = `piloti_${col}_${row}`;
+      const e = entries[name];
+      result[id] = { nivel: e.nivel, isMaster: e.isMaster };
+    }
+    onApply(result);
+  };
+
+  const handleClose = () => {
+    // Reset state for next open
+    setCurrentIdx(0);
+    setEntries({
+      A1: { nivel: 0.30, isMaster: false, visited: false },
+      A4: { nivel: 0.30, isMaster: false, visited: false },
+      C1: { nivel: 0.30, isMaster: false, visited: false },
+      C4: { nivel: 0.30, isMaster: false, visited: false },
+    });
+    setNivelInput('0,30');
+    onClose();
+  };
+
+  const hasPrev = currentIdx > 0;
+  const hasNext = currentIdx < CORNER_ORDER.length - 1;
+
+  const content = (
+    <div className="flex flex-col items-center gap-4 py-2">
+      {/* Navigation header */}
+      <div className="flex items-center justify-center gap-2">
+        <Button variant="ghost" size="icon" onClick={() => handleNavigate('prev')} disabled={!hasPrev} className="h-8 w-8">
+          <FontAwesomeIcon icon={faChevronLeft} className="h-4 w-4" />
+        </Button>
+        <span className="font-bold text-xl min-w-[80px] text-center">Piloti {currentCorner}</span>
+        <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')} disabled={!hasNext} className="h-8 w-8">
+          <FontAwesomeIcon icon={faChevronRight} className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Progress indicators */}
+      <div className="flex gap-2">
+        {CORNER_ORDER.map((c, i) => (
+          <div
+            key={c}
+            className={`w-2 h-2 rounded-full transition-colors ${
+              i === currentIdx
+                ? 'bg-primary'
+                : entries[c].visited
+                  ? 'bg-primary/40'
+                  : 'bg-muted-foreground/30'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Minimap */}
+      <PilotiMinimap pilotiData={pilotiData} hoveredSide={null} selectedPiloti={currentCorner} />
+
+      {/* Master switch */}
+      <div className="w-full space-y-3">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="nivel-master" className="text-sm font-medium">
+            Definir piloti como mestre?
+          </Label>
+          <Switch id="nivel-master" checked={entry.isMaster} onCheckedChange={handleMasterChange} />
+        </div>
+
+        {/* Nivel input */}
+        <div className="pl-2 border-l-2 border-primary/30">
+          <div className="flex items-center gap-2">
+            <Input
+              ref={nivelInputRef}
+              type="text"
+              inputMode="decimal"
+              value={nivelInput}
+              onChange={handleNivelChange}
+              onBlur={handleNivelBlur}
+              className="w-20 text-center cursor-text"
+            />
+            <Label className="text-sm font-medium whitespace-nowrap">
+              Nível do piloti <span className="text-xs font-normal text-muted-foreground">(0,20 a 1,50 m)</span>
+            </Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-2 w-full pt-2">
+        <Button variant="outline" className="flex-1" onClick={handleClose}>
+          Cancelar
+        </Button>
+        <Button className="flex-1" onClick={handleApply} disabled={!allVisited && currentIdx < CORNER_ORDER.length - 1}>
+          Aplicar
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (!isMobile) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-sm" hideCloseButton>
+          <div className="mx-auto w-full max-w-xs">
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-lg text-center">Definir Níveis</DialogTitle>
+              <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
+            </DialogHeader>
+            <div className="pt-2">{content}</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+        <div className="mx-auto w-full max-w-xs">
+          <SheetHeader className="text-center pb-2">
+            <SheetTitle className="text-lg">Definir Níveis</SheetTitle>
+          </SheetHeader>
+          <div className="pt-2">{content}</div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
