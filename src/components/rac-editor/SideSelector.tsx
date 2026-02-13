@@ -163,7 +163,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
       return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
           <DialogContent className="sm:max-w-sm" hideCloseButton>
-            <div className="mx-auto w-full max-w-xs">
+            <div className="mx-auto w-full max-w-sm">
               <DialogHeader className="text-left">
                 <DialogTitle className="text-lg">{chooseTitle}</DialogTitle>
               </DialogHeader>
@@ -177,7 +177,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
     return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-          <div className="mx-auto w-full max-w-xs">
+            <div className="mx-auto w-full max-w-sm">
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">{chooseTitle}</SheetTitle>
             </SheetHeader>
@@ -263,7 +263,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <div className="mx-auto w-full max-w-xs">
+            <div className="mx-auto w-full max-w-sm">
             <DialogHeader className="text-center">
               <DialogTitle className="text-lg text-center">Posicionar Vista {getViewLabel(viewType)}</DialogTitle>
             </DialogHeader>
@@ -278,7 +278,7 @@ export function SideSelector({ isOpen, onClose, viewType, onSelectSide, mode = '
   return (
       <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-          <div className="mx-auto w-full max-w-xs">
+          <div className="mx-auto w-full max-w-sm">
             <SheetHeader className="text-center pb-2">
               <SheetTitle className="text-lg">Posicionar Vista {getViewLabel(viewType)}</SheetTitle>
             </SheetHeader>

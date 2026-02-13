@@ -272,7 +272,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <div className="mx-auto w-full max-w-xs">
+          <div className="mx-auto w-full max-w-sm">
             <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
             <div className="py-4">{content}</div>
           </div>
@@ -284,7 +284,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-        <div className="mx-auto w-full max-w-xs">
+        <div className="mx-auto w-full max-w-sm">
           <div className="py-4">{content}</div>
         </div>
       </SheetContent>
