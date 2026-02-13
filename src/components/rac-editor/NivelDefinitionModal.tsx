@@ -219,7 +219,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         </div>
 
         {/* Nivel input */}
-        <div className="pl-2 border-l-2 border-primary/30">
+        <div className="pl-2 border-l-2 border-primary/30 space-y-1">
           <div className="flex items-center gap-2">
             <Input
               ref={nivelInputRef}
@@ -234,9 +234,12 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
               Nível do piloti <span className="text-xs font-normal text-muted-foreground">(0,20 a 1,50 m)</span>
             </Label>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Altura recomendada: <span className="font-semibold text-foreground">{getRecommendedHeight(entry.nivel).toFixed(1).replace('.', ',')} m</span>
-          </p>
+          <div className="flex items-center gap-2">
+            <div className="w-20 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Altura recomendada: <span className="font-semibold text-foreground">{getRecommendedHeight(entry.nivel).toFixed(1).replace('.', ',')} m</span>
+            </p>
+          </div>
         </div>
       </div>
 
