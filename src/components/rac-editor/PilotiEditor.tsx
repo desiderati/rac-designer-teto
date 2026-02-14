@@ -273,7 +273,7 @@ export function PilotiEditor({
     const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
     return isSelected
       ? 'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3'
-      : 'bg-muted/50 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-muted';
+      : 'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
   };
 
   const maxNivel = Math.round(tempHeight * 200 / 3) / 100;
