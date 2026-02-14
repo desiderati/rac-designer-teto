@@ -43,7 +43,9 @@ function CardButton({ label, icon, onClick, disabled, subtext }: CardConfig) {
           : 'bg-white hover:bg-accent hover:border-primary border-border hover:scale-105 active:scale-95'
       )}
     >
-      {icon}
+      <div className="flex items-center justify-center h-14">
+        {icon}
+      </div>
       <div className="flex flex-col items-center gap-0.5">
         <h3 className="font-semibold text-foreground text-center text-base">{label}</h3>
         {subtext && <span className="text-xs opacity-70">{subtext}</span>}
