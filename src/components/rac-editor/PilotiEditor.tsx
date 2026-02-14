@@ -332,7 +332,7 @@ export function PilotiEditor({
         {/* Nivel section - only for corners */}
         {isCornerPiloti && (
           <>
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4">
               <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
@@ -380,7 +380,7 @@ export function PilotiEditor({
         )}
 
         {/* Height grid 3x2 */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           <p className="text-sm font-medium text-center">Tamanho dos Pilotis</p>
           <div className="grid grid-cols-3 gap-2">
             {PILOTI_HEIGHTS.map((h) => (
@@ -437,7 +437,7 @@ export function PilotiEditor({
       tabIndex={-1}
     >
       <div
-        className="rounded-xl border bg-white p-4 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
+        className="rounded-xl border bg-background p-6 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
         style={
           popoverPos
             ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
