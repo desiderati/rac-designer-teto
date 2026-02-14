@@ -150,6 +150,7 @@ function SubMenuButton({
   tooltipSide = "bottom" as "bottom" | "left",
   isAtLimit = false,
   isActive = false,
+  isDisabled = false,
 }: {
   icon: IconDefinition;
   title: string;
@@ -159,17 +160,19 @@ function SubMenuButton({
   tooltipSide?: "bottom" | "left";
   isAtLimit?: boolean;
   isActive?: boolean;
+  isDisabled?: boolean;
 }) {
-  // Button always looks normal, but hover is gray when at limit
   const button = (
     <button
-      onClick={onClick}
+      onClick={isDisabled ? undefined : onClick}
       className={cn(
-        "w-11 h-11 border-none rounded-xl text-lg cursor-pointer transition-all duration-200 flex justify-center items-center shadow-md",
-        isActive ? "bg-[#e67e22] border-2 border-white" : "bg-[#34495e]",
-        isAtLimit
+        "w-11 h-11 border-none rounded-xl text-lg transition-all duration-200 flex justify-center items-center shadow-md",
+        isDisabled
+          ? "opacity-40 cursor-not-allowed bg-[#2c3e50]"
+          : isActive ? "bg-[#e67e22] border-2 border-white cursor-pointer" : "bg-[#34495e] cursor-pointer",
+        !isDisabled && (isAtLimit
           ? "hover:bg-gray-500 hover:opacity-60"
-          : "hover:bg-[#0092DD] hover:scale-105 active:scale-95"
+          : "hover:bg-[#0092DD] hover:scale-105 active:scale-95")
       )}
     >
       <FontAwesomeIcon icon={icon} style={{ color }} />
@@ -527,10 +530,10 @@ export function Toolbar({
               icon={faCube}
               title="Visualizar em 3D - Em breve"
               onClick={() => {}}
-              color="#aaffaa"
+              color="#ecf0f1"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
-              isAtLimit={true}
+              isDisabled
             />
             <SubMenuButton
               icon={faRotateLeft}
