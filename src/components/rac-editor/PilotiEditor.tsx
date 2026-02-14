@@ -321,7 +321,7 @@ export function PilotiEditor({
           <>
             <div className="flex items-center justify-between">
               <Label htmlFor="is-master" className="text-sm font-medium select-none">
-                Definir Piloti como Mestre?
+                Definir como Mestre?
               </Label>
               <Switch id="is-master" checked={tempIsMaster} onCheckedChange={setTempIsMaster} />
             </div>
