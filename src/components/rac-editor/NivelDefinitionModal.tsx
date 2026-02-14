@@ -293,7 +293,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <DialogContent className="sm:max-w-sm" hideCloseButton>
           <div className="mx-auto w-full max-w-sm">
             <DialogDescription className="sr-only">Defina os níveis dos pilotis de canto</DialogDescription>
-            <div className="py-4">{content}</div>
+            {content}
           </div>
         </DialogContent>
       </Dialog>
