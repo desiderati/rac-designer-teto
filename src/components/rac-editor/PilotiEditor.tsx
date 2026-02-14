@@ -315,7 +315,7 @@ export function PilotiEditor({
       </div>
 
       {/* Central card */}
-      <div className="bg-muted/30 rounded-xl p-4 space-y-4" data-no-drag>
+      <div className="bg-white rounded-xl p-4 space-y-4" data-no-drag>
         {/* Master toggle - only for corners */}
         {isCornerPiloti && (
           <>
@@ -332,7 +332,7 @@ export function PilotiEditor({
         {/* Nivel section - only for corners */}
         {isCornerPiloti && (
           <>
-            <div className="space-y-6 pt-2">
+            <div className="space-y-4 pt-2">
               <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">

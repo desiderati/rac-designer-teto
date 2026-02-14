@@ -81,8 +81,17 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const handleMasterChange = (checked: boolean) => {
     if (checked) {
       const updated = { ...entries };
+      const masterNivel = updated[currentCorner].nivel;
       for (const c of CORNER_ORDER) {
-        updated[c] = { ...updated[c], isMaster: c === currentCorner };
+        if (c === currentCorner) {
+          updated[c] = { ...updated[c], isMaster: true };
+        } else {
+          updated[c] = {
+            ...updated[c],
+            isMaster: false,
+            nivel: Math.max(updated[c].nivel, masterNivel),
+          };
+        }
       }
       setEntries(updated);
     } else {
@@ -198,7 +207,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Separator />
 
         {/* Nivel section */}
-        <div className="space-y-6 pt-2">
+        <div className="space-y-4 pt-2">
           <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}
