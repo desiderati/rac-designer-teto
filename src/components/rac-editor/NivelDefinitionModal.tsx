@@ -199,7 +199,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         {/* Master toggle */}
         <div className="flex items-center justify-between">
           <Label htmlFor="nivel-master" className="text-sm font-medium select-none">
-            Definir Piloti como Mestre?
+            Definir como Mestre?
           </Label>
           <Switch id="nivel-master" checked={entry.isMaster} onCheckedChange={handleMasterChange} />
         </div>
