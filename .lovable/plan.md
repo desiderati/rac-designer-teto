@@ -1,36 +1,25 @@
 
-## Plano: Ajustes visuais e lógica de nível mestre
 
-### Alterações em ambos os arquivos (`PilotiEditor.tsx` e `NivelDefinitionModal.tsx`)
+## Ajustes visuais no PilotiEditor (editor no canvas)
 
-**Visuais:**
+### Problema
+O painel flutuante do PilotiEditor no canvas usa fundo branco (`bg-white`) tanto no painel externo quanto no cartao interno, sem contraste. O modal de insercao (NivelDefinitionModal) usa o fundo azul claro do tema (`bg-background`, que e `hsl(209, 40%, 96%)`) com o cartao branco dentro, criando contraste visual.
 
-1. **Fundo branco nos botões de navegação** (< >) - adicionar `bg-white` na classe dos botões circulares
-2. **Fundo branco no botão Cancelar** - adicionar `bg-white` na classe
-3. **Painel desktop com fundo branco** (PilotiEditor) - trocar `bg-popover` por `bg-white` no container flutuante
-4. **Cor do valor do nível = cor primária** - trocar `text-3xl font-bold` por `text-4xl font-bold text-primary` (aumento de 20% + cor da barra)
-5. **Sufixo "m" permanece inalterado** (`text-lg text-muted-foreground`)
-6. **Duplicar espaçamento entre valor e slider** - trocar `space-y-4` por `space-y-6` na seção de nível
-7. **Aumentar espaçamento do slider** - trocar `space-y-2 px-1` por `space-y-3 px-2` no container do slider
+### Alteracoes
 
-**Lógica (NivelDefinitionModal - inserção):**
+**1. Fundo do painel flutuante (PilotiEditor.tsx, linha 440)**
+- Trocar `bg-white` por `bg-background` no container externo do desktop
+- Isso cria o mesmo contraste azul-claro/branco do modal de insercao
 
-8. **Nível do mestre como piso para os demais** - Na função `handleNivelChange`, quando o piloti atual é mestre e o nível sobe, elevar todos os demais cantos que estiverem abaixo. Além disso, ajustar a validação: o nível mínimo de qualquer canto não-mestre será o nível do mestre (não apenas 0,20m). Ou seja, o clamp do nível de cantos não-mestre usa `Math.max(masterNivel, 0.20)` como mínimo.
+**2. Padding do painel (PilotiEditor.tsx, linha 440)**
+- Trocar `p-4` por `p-6` para igualar ao padding do DialogContent
 
-9. **Impedir redução abaixo do mestre** - Ao navegar para outro canto que não é mestre, o botão (-) e o slider devem respeitar o nível do mestre como mínimo. Isso é feito ajustando o `clampNivel` para receber o nível mínimo do mestre quando aplicável, e desabilitando o botão (-) quando `entry.nivel <= masterNivel`.
+**3. Espacamento acima de "Nivel do Piloti" (PilotiEditor.tsx, linha 335)**
+- Remover `pt-2` da div `space-y-4 pt-2`, ficando apenas `space-y-4`
 
-### Detalhes técnicos
-
-**`NivelDefinitionModal.tsx`:**
-- `clampNivel` passa a aceitar um parâmetro `minNivel` opcional (default 0.20)
-- Ao renderizar, se o canto atual não é mestre e existe um mestre, o min do slider e do clamp é `masterNivel`
-- Botão (-) disabled quando `entry.nivel <= minNivel` (onde minNivel = masterNivel se não é mestre, senão 0.20)
-- Label mínimo do slider muda para mostrar o valor mínimo atual
-
-**`PilotiEditor.tsx`:**
-- Mesmas mudanças visuais (fundo branco, cor do nível, espaçamento)
-- A lógica de mestre no PilotiEditor já é aplicada ao salvar; não precisa de mudança de lógica aqui
+**4. Espacamento abaixo de "Tamanho dos Pilotis" (PilotiEditor.tsx, linha 383)**
+- Trocar `space-y-2` por `space-y-4` para duplicar o gap entre o titulo e a grade de botoes
 
 ### Arquivos modificados
-1. `src/components/rac-editor/PilotiEditor.tsx` - ajustes visuais
-2. `src/components/rac-editor/NivelDefinitionModal.tsx` - ajustes visuais + lógica de piso do mestre
+- `src/components/rac-editor/PilotiEditor.tsx` (4 alteracoes pontuais)
+
