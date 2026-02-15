@@ -1,25 +1,52 @@
+## Redesign do GenericEditor com identidade visual do PilotiEditor
 
+### Objetivo
 
-## Ajustes visuais no PilotiEditor (editor no canvas)
+Refazer o visual do painel de edicao de objetos (muro, linha reta, seta simples e distancia) para seguir a mesma identidade visual do PilotiEditor: fundo azul claro (`bg-background`), cabecalho com icone + titulo + botao fechar, corpo em cartao branco, e botoes de acao embaixo.
 
-### Problema
-O painel flutuante do PilotiEditor no canvas usa fundo branco (`bg-white`) tanto no painel externo quanto no cartao interno, sem contraste. O modal de insercao (NivelDefinitionModal) usa o fundo azul claro do tema (`bg-background`, que e `hsl(209, 40%, 96%)`) com o cartao branco dentro, criando contraste visual.
+### Alteracoes visuais baseadas no screenshot
 
-### Alteracoes
+**Estrutura do layout (desktop):**
 
-**1. Fundo do painel flutuante (PilotiEditor.tsx, linha 440)**
-- Trocar `bg-white` por `bg-background` no container externo do desktop
-- Isso cria o mesmo contraste azul-claro/branco do modal de insercao
+1. **Cabecalho**: Icone a esquerda + titulo centralizado + botao X a direita (mesmo padrao do PilotiEditor com grid icon + titulo + setas)
+2. **Corpo**: Cartao branco (`bg-white rounded-xl p-4`) contendo input de texto, separador e paleta de cores (quadrados arredondados 4x2 em vez dos circulos 5x2 atuais, conforme screenshot)
+3. **Rodape**: Dois botoes "Cancelar" e "Confirmar" (renomeado de "Aplicar")
 
-**2. Padding do painel (PilotiEditor.tsx, linha 440)**
-- Trocar `p-4` por `p-6` para igualar ao padding do DialogContent
+**Paleta de cores redesenhada:**
 
-**3. Espacamento acima de "Nivel do Piloti" (PilotiEditor.tsx, linha 335)**
-- Remover `pt-2` da div `space-y-4 pt-2`, ficando apenas `space-y-4`
+- Atualmente: circulos pequenos (w-8 h-8) em grid 5x2
+- Novo: quadrados arredondados maiores (~w-14 h-14 rounded-xl) em grid 4x2, com borda azul e checkmark quando selecionado (conforme screenshot)
+- Reduzir para 8 cores: Vermelho, Azul, Verde, Amarelo, Preto, Cinza, Marrom, Laranja
 
-**4. Espacamento abaixo de "Tamanho dos Pilotis" (PilotiEditor.tsx, linha 383)**
-- Trocar `space-y-2` por `space-y-4` para duplicar o gap entre o titulo e a grade de botoes
+### Componente de Icone reutilizavel: `EditorTypeIcon`
 
-### Arquivos modificados
-- `src/components/rac-editor/PilotiEditor.tsx` (4 alteracoes pontuais)
+Novo componente SVG reutilizavel com o mesmo tamanho do PilotiGridIcon (`w-16 h-12`):
 
+- **Muro/Objeto**: Icone formando um retângulo traçejado com a inferior azul
+- **Linha Reta**: Mesmo icone de 3 linhas horizontais (conforme screenshot de referencia, a última linha em ajuzl)
+- **Seta Simples**: Duas setas apontando para a direita, com a última linha em azul
+- **Distancia**: Linha tracejada com valor em cima, linha cinnza e valor azul.  
+Todos possuem a mesma largura do minimap mantendo um padrão visual.
+
+### Detalhes tecnicos
+
+**Arquivo novo:**
+
+- `src/components/rac-editor/EditorTypeIcon.tsx` - Componente SVG reutilizavel que aceita `type: 'wall' | 'line' | 'arrow' | 'dimension'`
+
+**Arquivo modificado:**
+
+- `src/components/rac-editor/GenericEditor.tsx` - Redesign completo:
+  - Container externo: `bg-background rounded-xl border shadow-md p-6` (igual ao PilotiEditor)
+  - Cabecalho: `EditorTypeIcon` + titulo + botao X circular
+  - Corpo: cartao `bg-white rounded-xl p-4` com input + separador + paleta 4x2
+  - Rodape: botoes "Cancelar" (outline bg-white) e "Confirmar" (primary)
+  - Paleta de cores: quadrados arredondados com checkmark SVG branco quando selecionado
+  - Mobile (Drawer): mesma estrutura visual adaptada
+
+### Mapeamento de titulos
+
+- `wall` -> "Editar Objeto"
+- `line` -> "Linha Reta"
+- `arrow` -> "Seta Simples"
+- `dimension` -> "Distancia"
