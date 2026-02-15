@@ -8,9 +8,11 @@ interface EditorTypeIconProps {
 }
 
 function WallIcon() {
-  // Dashed rectangle with bottom line in primary blue
+  // Dashed rectangle with gray fill, all sides dashed, bottom in blue
   return (
     <>
+      {/* Gray background fill */}
+      <rect x="10" y="12" width="80" height="52" rx="2" fill="#eef1f5" stroke="none" />
       {/* Top dashed line */}
       <line x1="10" y1="12" x2="90" y2="12" stroke="#dfe3e8" strokeWidth="3" strokeDasharray="6 4" />
       {/* Left dashed line */}

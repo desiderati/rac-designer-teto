@@ -174,7 +174,7 @@ export function GenericEditor({
       {/* Header: icon + title + close */}
       <div className="flex items-center gap-3">
         <EditorTypeIcon type={editorType} className="w-16 h-12 flex-shrink-0" />
-        <span className="font-bold text-3xl flex-1 text-center">{title}</span>
+        <span className="font-bold text-2xl flex-1 text-center">{title}</span>
         <Button
           variant="outline"
           size="icon"
