@@ -27,9 +27,9 @@ function LineIcon() {
   // 3 horizontal lines, last one in blue
   return (
     <>
-      <line x1="10" y1="18" x2="90" y2="18" stroke="#dfe3e8" strokeWidth="4" strokeLinecap="round" />
-      <line x1="10" y1="38" x2="90" y2="38" stroke="#dfe3e8" strokeWidth="4" strokeLinecap="round" />
-      <line x1="10" y1="58" x2="90" y2="58" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round" />
+      <line x1="10" y1="18" x2="90" y2="18" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
+      <line x1="10" y1="38" x2="90" y2="38" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
+      <line x1="10" y1="58" x2="90" y2="58" stroke="hsl(var(--primary))" strokeWidth="6" strokeLinecap="round" />
     </>
   );
 }
