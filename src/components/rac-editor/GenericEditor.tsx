@@ -2,24 +2,24 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { FabricObject, IText, Canvas as FabricCanvas, Group, Line, Rect, Triangle } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { X } from 'lucide-react';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { EditorTypeIcon } from './EditorTypeIcon';
 
 const COLOR_PALETTE = [
-  { name: 'Preto', value: '#000000' },
   { name: 'Vermelho', value: '#e74c3c' },
   { name: 'Azul', value: '#3498db' },
   { name: 'Verde', value: '#27ae60' },
   { name: 'Amarelo', value: '#f1c40f' },
+  { name: 'Preto', value: '#000000' },
   { name: 'Cinza', value: '#7f8c8d' },
-  { name: 'Rosa', value: '#e91e63' },
-  { name: 'Roxo', value: '#8e44ad' },
   { name: 'Marrom', value: '#795548' },
   { name: 'Laranja', value: '#e67e22' },
 ];
@@ -63,7 +63,6 @@ export function GenericEditor({
     setPanelPos(null);
   }, [currentValue, currentColor, isOpen]);
 
-  // ESC to close
   useEffect(() => {
     if (!isOpen) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -94,8 +93,11 @@ export function GenericEditor({
     }
   };
 
-  // Dragging logic for desktop panel
   const handleDragStart = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, input, textarea, select, a');
+    if (isInteractive) return;
+
     isDragging.current = true;
     const currentPos = panelPos || {
       x: (anchorPosition?.x ?? 200) + 10,
@@ -126,9 +128,9 @@ export function GenericEditor({
   const getTitle = (): string => {
     switch (editorType) {
       case 'wall': return 'Editar Objeto';
-      case 'dimension': return 'Editar Distância';
-      case 'line': return 'Editar Linha Reta';
-      case 'arrow': return 'Editar Seta Simples';
+      case 'dimension': return 'Distância';
+      case 'line': return 'Linha Reta';
+      case 'arrow': return 'Seta Simples';
     }
   };
 
@@ -145,36 +147,66 @@ export function GenericEditor({
 
   const title = getTitle();
 
-  const editorContent = (
-    <div className="flex flex-col gap-3">
-      <Input
-        type="text"
-        value={tempValue}
-        onChange={(e) => setTempValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="text-center placeholder:text-muted-foreground/50"
-        placeholder={getPlaceholder()}
-        autoFocus
-      />
-      <div className="grid grid-cols-5 gap-2">
-        {COLOR_PALETTE.map((c) => (
-          <button
-            key={c.value}
-            onClick={() => setTempColor(c.value)}
-            className={`w-8 h-8 rounded-full border-2 transition-all ${
-              tempColor === c.value ? 'border-foreground scale-110' : 'border-transparent'
-            }`}
-            style={{ backgroundColor: c.value }}
-            title={c.name}
-          />
-        ))}
+  const colorPalette = (
+    <div className="grid grid-cols-4 gap-2">
+      {COLOR_PALETTE.map((c) => (
+        <button
+          key={c.value}
+          onClick={() => setTempColor(c.value)}
+          className={`w-14 h-14 rounded-xl border-2 transition-all flex items-center justify-center ${
+            tempColor === c.value ? 'border-primary scale-105' : 'border-transparent'
+          }`}
+          style={{ backgroundColor: c.value }}
+          title={c.name}
+        >
+          {tempColor === c.value && (
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10.5L8 14.5L16 6.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  const editorBody = (
+    <div className="flex flex-col gap-4">
+      {/* Header: icon + title + close */}
+      <div className="flex items-center gap-3">
+        <EditorTypeIcon type={editorType} className="w-16 h-12 flex-shrink-0" />
+        <span className="font-bold text-2xl flex-1">{title}</span>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleCancel}
+          className="h-8 w-8 rounded-full bg-white flex-shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
-      <div className="flex gap-2 pt-1">
-        <Button variant="outline" size="sm" className="flex-1" onClick={handleCancel}>
+
+      {/* White card body */}
+      <div className="bg-white rounded-xl p-4 space-y-4">
+        <Input
+          type="text"
+          value={tempValue}
+          onChange={(e) => setTempValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="text-center placeholder:text-muted-foreground/50"
+          placeholder={getPlaceholder()}
+          autoFocus
+        />
+        <Separator />
+        {colorPalette}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex gap-3">
+        <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
           Cancelar
         </Button>
-        <Button size="sm" className="flex-1" onClick={handleApply}>
-          Aplicar
+        <Button className="flex-1" onClick={handleApply}>
+          Confirmar
         </Button>
       </div>
     </div>
@@ -184,11 +216,9 @@ export function GenericEditor({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle className="text-center">{title}</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-4">{editorContent}</div>
-          <DrawerFooter />
+          <div className="p-6">
+            {editorBody}
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -202,22 +232,13 @@ export function GenericEditor({
 
   return (
     <>
-      {/* Overlay for click-outside-to-close */}
       <div className="fixed inset-0 z-40" onClick={handleCancel} />
       <div
-        className="fixed z-50 bg-popover border border-border rounded-lg shadow-xl min-w-[260px]"
+        className="fixed z-50 bg-background rounded-xl border shadow-md p-6 min-w-[280px] cursor-move select-none"
         style={{ left: pos.x, top: pos.y }}
+        onMouseDown={handleDragStart}
       >
-        {/* Draggable header */}
-        <div
-          className="flex items-center justify-center px-6 py-4 cursor-move select-none"
-          onMouseDown={handleDragStart}
-        >
-          <span className="font-semibold text-lg">{title}</span>
-        </div>
-        <div className="px-6 pb-6">
-          {editorContent}
-        </div>
+        {editorBody}
       </div>
     </>
   );
