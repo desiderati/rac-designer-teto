@@ -291,7 +291,7 @@ export function PilotiEditor({
           masterPiloti={masterPilotiName}
           className="w-16 h-12 flex-shrink-0"
         />
-        <span className="font-bold text-2xl flex-1">Piloti {pilotiName}</span>
+        <span className="font-bold text-2xl flex-1 text-center">Piloti {pilotiName}</span>
         <div className="flex items-center gap-1 select-none">
           <Button
             variant="outline"
@@ -437,7 +437,7 @@ export function PilotiEditor({
       tabIndex={-1}
     >
       <div
-        className="rounded-xl border bg-background p-6 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px]"
+        className={`rounded-xl border bg-background p-6 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px] ${dragStateRef.current ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={
           popoverPos
             ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
