@@ -171,7 +171,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         masterPiloti={masterCorner}
         className="w-16 h-12 flex-shrink-0" />
 
-        <span className="font-bold text-2xl flex-1">Piloti {currentCorner}</span>
+        <span className="font-bold text-2xl flex-1 text-center">Piloti {currentCorner}</span>
         <div className="flex items-center gap-1 select-none">
           <Button
           variant="outline"
@@ -207,7 +207,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
         <Separator />
 
         {/* Nivel section */}
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4">
           <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
           {/* Value display with +/- buttons */}

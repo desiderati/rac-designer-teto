@@ -186,7 +186,7 @@ export function GenericEditor({
       </div>
 
       {/* White card body */}
-      <div className="bg-white rounded-xl p-4 space-y-4">
+      <div className="bg-white rounded-xl p-4 space-y-5">
         <Input
           type="text"
           value={tempValue}

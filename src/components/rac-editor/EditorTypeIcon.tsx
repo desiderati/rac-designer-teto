@@ -8,54 +8,40 @@ interface EditorTypeIconProps {
 }
 
 function WallIcon() {
-  // Dashed rectangle on all four sides with gray fill
   return (
     <>
-      {/* Gray background fill */}
-      <rect x="10" y="12" width="80" height="52" rx="2" fill="#eef1f5" stroke="none" />
-      {/* All four sides dashed in gray */}
-      <rect x="10" y="12" width="80" height="52" rx="2" fill="none" stroke="#dfe3e8" strokeWidth="3" strokeDasharray="6 4" />
+      <rect x="5" y="12" width="90" height="52" rx="2" fill="#eef1f5" stroke="none" />
+      <rect x="5" y="12" width="90" height="52" rx="2" fill="none" stroke="hsl(var(--primary))" strokeWidth="3" strokeDasharray="6 4" />
     </>
   );
 }
 
 function LineIcon() {
-  // 3 horizontal lines, last one in blue
   return (
     <>
-      <line x1="10" y1="18" x2="90" y2="18" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
-      <line x1="10" y1="38" x2="90" y2="38" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
-      <line x1="10" y1="58" x2="90" y2="58" stroke="hsl(var(--primary))" strokeWidth="6" strokeLinecap="round" />
+      <line x1="5" y1="18" x2="95" y2="18" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
+      <line x1="5" y1="38" x2="95" y2="38" stroke="#dfe3e8" strokeWidth="6" strokeLinecap="round" />
+      <line x1="5" y1="58" x2="95" y2="58" stroke="hsl(var(--primary))" strokeWidth="6" strokeLinecap="round" />
     </>
   );
 }
 
 function ArrowIcon() {
-  // Two arrows pointing right, last one in blue
-  const arrowPath = (y: number, color: string) => (
-    <g>
-      <line x1="12" y1={y} x2="72" y2={y} stroke={color} strokeWidth="4" strokeLinecap="round" />
-      <polyline points={`62,${y - 10} 78,${y} 62,${y + 10}`} fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-    </g>
-  );
+  const y = 38;
   return (
-    <>
-      {arrowPath(26, '#dfe3e8')}
-      {arrowPath(50, 'hsl(var(--primary))')}
-    </>
+    <g>
+      <line x1="5" y1={y} x2="78" y2={y} stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round" />
+      <polyline points={`68,${y - 10} 84,${y} 68,${y + 10}`} fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
   );
 }
 
 function DimensionIcon() {
-  // Dashed line with value label on top
   return (
     <>
-      {/* Gray dashed line */}
-      <line x1="10" y1="50" x2="90" y2="50" stroke="#dfe3e8" strokeWidth="3" strokeDasharray="6 4" />
-      {/* End markers */}
-      <line x1="10" y1="42" x2="10" y2="58" stroke="#dfe3e8" strokeWidth="2.5" />
-      <line x1="90" y1="42" x2="90" y2="58" stroke="#dfe3e8" strokeWidth="2.5" />
-      {/* Blue value text */}
+      <line x1="5" y1="50" x2="95" y2="50" stroke="hsl(var(--primary))" strokeWidth="3" strokeDasharray="6 4" />
+      <line x1="5" y1="42" x2="5" y2="58" stroke="hsl(var(--primary))" strokeWidth="2.5" />
+      <line x1="95" y1="42" x2="95" y2="58" stroke="hsl(var(--primary))" strokeWidth="2.5" />
       <text x="50" y="36" textAnchor="middle" fill="hsl(var(--primary))" fontSize="18" fontWeight="600" fontFamily="Arial">
         1,0 m
       </text>
