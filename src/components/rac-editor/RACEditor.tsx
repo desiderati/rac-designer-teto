@@ -17,15 +17,14 @@ import { House3DViewer } from './House3DViewer';
 import { SettingsModal } from './SettingsModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings } from '@/lib/settings';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRotateLeft, faObjectUngroup } from '@fortawesome/free-solid-svg-icons';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 import {
   createHouseTop,
   createHouseFrontBack,
@@ -1625,35 +1624,65 @@ export function RACEditor() {
 
       <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <DialogHeader className="space-y-4">
-            <DialogTitle className="text-center">Reiniciar Canvas</DialogTitle>
-            <DialogDescription>
-              Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
-            <Button onClick={() => { confirmRestartTutorial(); }}>
-              Confirmar
-            </Button>
-          </DialogFooter>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-12 flex items-center justify-center flex-shrink-0">
+                <FontAwesomeIcon icon={faRotateLeft} className="text-2xl text-muted-foreground" />
+              </div>
+              <span className="font-bold text-2xl flex-1 text-center">Reiniciar Canvas</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowRestartConfirm(false)}
+                className="h-8 w-8 rounded-full bg-white flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="bg-white rounded-xl p-4">
+              <p className="text-sm text-muted-foreground">
+                Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
+              <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>
+                Confirmar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
         <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <DialogHeader>
-            <DialogTitle className="text-center">Desagrupar Casa</DialogTitle>
-            <DialogDescription>
-              Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
-            <Button onClick={confirmUngroup}>
-              Desagrupar
-            </Button>
-          </DialogFooter>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-12 flex items-center justify-center flex-shrink-0">
+                <FontAwesomeIcon icon={faObjectUngroup} className="text-2xl text-muted-foreground" />
+              </div>
+              <span className="font-bold text-2xl flex-1 text-center">Desagrupar Casa</span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}
+                className="h-8 w-8 rounded-full bg-white flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="bg-white rounded-xl p-4">
+              <p className="text-sm text-muted-foreground">
+                Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+              <Button className="flex-1" onClick={confirmUngroup}>
+                Desagrupar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
