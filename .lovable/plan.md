@@ -1,40 +1,64 @@
 
 
-## Ajustes visuais em multiplos componentes
+## Unificar identidade visual dos modais
 
-### 1. EditorTypeIcon - Correcoes nos icones
+Aplicar a mesma estrutura visual dos editores (PilotiEditor, GenericEditor) aos modais de Configuracoes, Reiniciar Canvas e Desagrupar Casa.
 
-**Muro/Objeto:** Trocar a cor do tracejado de cinza (`#dfe3e8`) para azul (`hsl(var(--primary))`), mantendo fundo cinza e tracejado nos 4 lados.
+### Estrutura padrao para todos
 
-**Linha Reta:** Aumentar comprimento das linhas em 10% (x1 de 10 para 5, x2 de 90 para 95).
+1. **Cabecalho**: Icone a esquerda + titulo centralizado (text-2xl font-bold) + botao X circular a direita
+2. **Corpo**: Cartao branco (`bg-white rounded-xl p-4`) com o conteudo
+3. **Rodape**: Botoes "Cancelar" (outline bg-white) e "Confirmar" (primary) lado a lado
 
-**Seta Simples:** Reduzir para uma unica seta em azul (remover a seta cinza). Ajustar posicao para centralizar verticalmente. Estender a largura para ocupar o mesmo espaco que a Linha Reta (x1=5, x2 proporcional).
+### 1. SettingsModal.tsx
 
-**Distancia:** Trocar cor do tracejado e marcadores de cinza para azul (`hsl(var(--primary))`). Estender largura para igualar (x1=5, x2=95).
+**Antes:** DialogHeader com titulo simples, conteudo direto, sem botoes de acao.
 
-Todos os icones terao a mesma largura horizontal (5 a 95 no viewBox).
+**Depois:**
+- Cabecalho: Icone `faGear` (FontAwesome) a esquerda + "Configuracoes" centralizado + botao X circular
+- Corpo: Cartao branco contendo os dois toggles com suas labels
+- Rodape: Botoes "Cancelar" e "Confirmar"
+- Ao clicar "Confirmar", aplica as alteracoes e fecha. "Cancelar" reverte ao estado anterior e fecha.
+- O estado dos switches so sera persistido ao clicar "Confirmar" (comportamento atual salva imediatamente; sera ajustado para salvar apenas na confirmacao)
 
-### 2. GenericEditor - Separador e titulo
+### 2. Reiniciar Canvas (em RACEditor.tsx)
 
-- Trocar `space-y-4` do cartao branco para `space-y-5` para aumentar espacamento do separador (topo e inferior).
-- Centralizar titulo do editor de piloti (PilotiEditor): adicionar `text-center` ao titulo "Piloti X".
+**Antes:** DialogHeader com titulo e descricao, DialogFooter com botoes.
 
-### 3. PilotiEditor - Titulo centralizado
+**Depois:**
+- Cabecalho: Icone `faRotateLeft` (FontAwesome) a esquerda + "Reiniciar Canvas" centralizado + botao X circular
+- Corpo: Cartao branco contendo o texto de confirmacao
+- Rodape: Botoes "Cancelar" e "Confirmar" no padrao estabelecido
 
-- Adicionar `text-center` ao `<span>` do titulo "Piloti {pilotiName}" (linha 294).
+### 3. Desagrupar Casa (em RACEditor.tsx)
 
-### 4. NivelDefinitionModal - Remover espaco extra
+**Antes:** Mesmo formato antigo do Reiniciar Canvas.
 
-- Remover `pt-2` da div do nivel (linha 210: `space-y-4 pt-2` -> `space-y-4`).
-
-### 5. PilotiEditor - Cursor de mover
-
-- Adicionar `cursor-grab` ao container do painel desktop quando arrastavel e `cursor-grabbing` durante o arraste. Aplicar `cursor-grab` ao div principal do painel no desktop (linha 440).
+**Depois:**
+- Cabecalho: Icone `faObjectUngroup` (FontAwesome) a esquerda + "Desagrupar Casa" centralizado + botao X circular
+- Corpo: Cartao branco contendo o texto de confirmacao
+- Rodape: Botoes "Cancelar" e "Desagrupar" no padrao estabelecido
 
 ### Detalhes tecnicos
 
 **Arquivos modificados:**
-- `src/components/rac-editor/EditorTypeIcon.tsx` - Icones com largura uniforme, cores corrigidas
-- `src/components/rac-editor/GenericEditor.tsx` - Espacamento do separador
-- `src/components/rac-editor/PilotiEditor.tsx` - Titulo centralizado + cursor grab
-- `src/components/rac-editor/NivelDefinitionModal.tsx` - Remover pt-2 do nivel
+- `src/components/rac-editor/SettingsModal.tsx` - Redesign completo com cabecalho, cartao branco e botoes
+- `src/components/rac-editor/RACEditor.tsx` - Redesign dos dialogos de Reiniciar Canvas e Desagrupar Casa
+
+**Padrao de referencia (GenericEditor):**
+```text
++-------------------------------------+
+| [icone]    Titulo        [X]        |  <- cabecalho
++-------------------------------------+
+| +------ bg-white rounded-xl ------+ |
+| |                                 | |  <- corpo
+| |    conteudo do modal            | |
+| |                                 | |
+| +---------------------------------+ |
+|                                     |
+|  [ Cancelar ]    [ Confirmar ]      |  <- rodape
++-------------------------------------+
+```
+
+**Dependencias FontAwesome ja instaladas:** `faGear`, `faRotateLeft`, `faObjectUngroup` do `@fortawesome/free-solid-svg-icons`.
+
