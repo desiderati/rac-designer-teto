@@ -17,14 +17,19 @@ import { House3DViewer } from './House3DViewer';
 import { SettingsModal } from './SettingsModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings } from '@/lib/settings';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateLeft, faObjectUngroup } from '@fortawesome/free-solid-svg-icons';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 import {
   createHouseTop,
   createHouseFrontBack,
@@ -1622,69 +1627,79 @@ export function RACEditor() {
         />
       )}
 
-      <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
-        <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-12 flex items-center justify-center flex-shrink-0">
-                <FontAwesomeIcon icon={faRotateLeft} className="text-2xl text-muted-foreground" />
+      {isMobile ? (
+        <>
+          <Sheet open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
+            <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+              <SheetHeader className="text-center pb-2">
+                <SheetTitle className="text-center text-2xl">Reiniciar Canvas</SheetTitle>
+              </SheetHeader>
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-muted-foreground">
+                  Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
+                </p>
               </div>
-              <span className="font-bold text-2xl flex-1 text-center">Reiniciar Canvas</span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowRestartConfirm(false)}
-                className="h-8 w-8 rounded-full bg-white flex-shrink-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="bg-white rounded-xl p-4">
-              <p className="text-sm text-muted-foreground">
-                Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
-              <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>
-                Confirmar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
+                <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
+              </div>
+            </SheetContent>
+          </Sheet>
 
-      <Dialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
-        <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-12 flex items-center justify-center flex-shrink-0">
-                <FontAwesomeIcon icon={faObjectUngroup} className="text-2xl text-muted-foreground" />
+          <Sheet open={showUngroupConfirm} onOpenChange={(open) => { if (!open) { setShowUngroupConfirm(false); setGroupToUngroup(null); } }}>
+            <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
+              <SheetHeader className="text-center pb-2">
+                <SheetTitle className="text-center text-2xl">Desagrupar Casa</SheetTitle>
+              </SheetHeader>
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-muted-foreground">
+                  Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
+                </p>
               </div>
-              <span className="font-bold text-2xl flex-1 text-center">Desagrupar Casa</span>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}
-                className="h-8 w-8 rounded-full bg-white flex-shrink-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="bg-white rounded-xl p-4">
-              <p className="text-sm text-muted-foreground">
-                Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
-              <Button className="flex-1" onClick={confirmUngroup}>
-                Desagrupar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+              <div className="flex gap-3 pt-2">
+                <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+                <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : (
+        <>
+          <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
+            <DialogContent className="sm:max-w-sm" hideCloseButton>
+              <DialogHeader className="text-center">
+                <DialogTitle className="text-center text-2xl">Reiniciar Canvas</DialogTitle>
+              </DialogHeader>
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-muted-foreground">
+                  Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
+                <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={showUngroupConfirm} onOpenChange={setShowUngroupConfirm}>
+            <DialogContent className="sm:max-w-sm" hideCloseButton>
+              <DialogHeader className="text-center">
+                <DialogTitle className="text-center text-2xl">Desagrupar Casa</DialogTitle>
+              </DialogHeader>
+              <div className="bg-white rounded-xl p-4">
+                <p className="text-sm text-muted-foreground">
+                  Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+                <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
       <NivelDefinitionModal
         isOpen={nivelDefinitionOpen}
