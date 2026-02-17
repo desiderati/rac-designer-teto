@@ -911,12 +911,46 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
       });
 
-      // Mobile: single tap on dimension (only if tap is near center)
+      // Mobile: single tap on dimension, wall, line, arrow
       canvas.on('mouse:down', (e) => {
+        const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
         const target = e.target;
         
+        if (!isMobileDevice || !target) return;
+        if (isEditorOpenRef.current) return;
+
+        // Handle wall on mobile
+        if (target.type === 'rect' && (target as any).myType === 'wall') {
+          setTimeout(() => {
+            if (canvas.getActiveObject() === target) {
+              handleObjectNameSelection(target as Rect);
+            }
+          }, 300);
+          return;
+        }
+
+        // Handle line on mobile
+        if ((target as any).myType === 'line') {
+          setTimeout(() => {
+            if (canvas.getActiveObject() === target) {
+              handleLineArrowSelection(target, 'line');
+            }
+          }, 300);
+          return;
+        }
+
+        // Handle arrow on mobile
+        if (target.type === 'group' && (target as any).myType === 'arrow') {
+          setTimeout(() => {
+            if (canvas.getActiveObject() === target) {
+              handleLineArrowSelection(target, 'arrow');
+            }
+          }, 300);
+          return;
+        }
+
         // Handle dimension on mobile - only open editor if tap is near center
-        if (target && target.type === 'group' && (target as any).myType === 'dimension' && window.matchMedia('(max-width: 640px)').matches) {
+        if (target.type === 'group' && (target as any).myType === 'dimension') {
           const pointer = canvas.getPointer(e.e);
           const group = target as Group;
           
