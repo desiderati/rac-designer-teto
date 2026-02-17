@@ -1,36 +1,40 @@
 
 
-## Simplificar modais e usar Sheet no mobile
+## Corrigir modais mobile e editor de objetos
 
-Remover icone e botao de fechar dos cabecalhos dos tres modais (Configuracoes, Reiniciar Canvas, Desagrupar Casa), e no mobile usar Sheet inferior igual ao "Escolha o Tipo de Casa". Tambem remover o X do SheetContent para que nenhum modal mobile tenha o botao de fechar no canto.
+### Problema 1: Traço (drag handle) faltando nos modais mobile
 
-### Mudancas
+Os modais de Configuracoes, Reiniciar Canvas e Desagrupar Casa usam `Sheet` (radix-dialog) no mobile, que nao tem o traco indicador de arraste. Os editores (Piloti, GenericEditor) usam `Drawer` (vaul) que tem o traco automaticamente. A solucao e trocar `Sheet` por `Drawer` nesses tres modais mobile.
 
-#### 1. SheetContent - Remover X padrao (sheet.tsx)
+### Problema 2: Espacamento abaixo do card branco no mobile
 
-Remover o `SheetPrimitive.Close` com o icone X que aparece automaticamente em todo SheetContent. O fechamento no mobile sera feito pelo overlay (clique fora) ou pelos botoes de acao.
+Nos Sheets mobile, os botoes tem apenas `pt-2` de espacamento acima. Ao migrar para `Drawer`, o padding sera padronizado com `p-4` ou `px-4 pb-4` no container, igual aos outros editores.
 
-#### 2. SettingsModal.tsx - Dialog/Sheet com cabecalho simples
+### Problema 3: Editor de objeto (nome/cor) nao abre no mobile
 
-- Desktop: `Dialog` com `DialogHeader` + `DialogTitle` centralizado (sem icone, sem X), igual ao TwoCardSelector
-- Mobile: `Sheet` bottom com `SheetHeader` + `SheetTitle` centralizado
-- Manter o cartao branco e os botoes Cancelar/Confirmar
-- Usar `useIsMobile()` para alternar entre Dialog e Sheet
+No `Canvas.tsx`, a edicao de wall/objeto so dispara no evento `mouse:dblclick` (linha 827), que e filtrado para ignorar mobile (linha 813: `if (window.matchMedia('(max-width: 767px)').matches) return`). Nao existe um handler mobile equivalente para walls. A solucao e adicionar um handler no `mouse:down` para mobile que detecta taps em objetos wall e abre o editor. O mesmo se aplica para linhas e setas.
 
-#### 3. RACEditor.tsx - Reiniciar Canvas e Desagrupar Casa
+### Mudancas tecnicas
 
-Mesmo padrao: Dialog no desktop, Sheet no mobile. Cabecalho apenas com titulo centralizado (sem icone, sem X). Corpo em cartao branco. Botoes de acao no rodape.
+**Arquivo: `src/components/rac-editor/RACEditor.tsx`**
+- Substituir os `Sheet` mobile dos dialogos de Reiniciar Canvas e Desagrupar Casa por `Drawer`/`DrawerContent`
+- Manter a mesma estrutura visual: titulo centralizado, card branco, botoes
+- Importar componentes do Drawer
 
-### Detalhes tecnicos
+**Arquivo: `src/components/rac-editor/SettingsModal.tsx`**
+- Substituir `Sheet` mobile por `Drawer`/`DrawerContent`
+- Manter titulo centralizado, card branco com toggles, botoes Cancelar/Confirmar
 
-**Arquivos modificados:**
-- `src/components/ui/sheet.tsx` - Remover o bloco `SheetPrimitive.Close` do SheetContent
-- `src/components/rac-editor/SettingsModal.tsx` - Redesign com Dialog/Sheet, cabecalho simplificado
-- `src/components/rac-editor/RACEditor.tsx` - Redesign dos dois dialogos de confirmacao com Dialog/Sheet
+**Arquivo: `src/components/rac-editor/Canvas.tsx`**
+- Adicionar handler mobile no `mouse:down` para objetos `wall`, `line` e `arrow`
+- Usar o mesmo padrao do handler de piloti (verificar `isMobileDevice`, `isEditorOpenRef`, e usar `setTimeout`)
+- Para walls: chamar `handleObjectNameSelection(target as Rect)`
+- Para lines: chamar `handleLineArrowSelection(target, 'line')`
+- Para arrows: chamar `handleLineArrowSelection(target, 'arrow')`
 
-**Padrao de referencia (TwoCardSelector):**
-- Desktop: `Dialog` > `DialogContent hideCloseButton` > `DialogHeader` > `DialogTitle`
-- Mobile: `Sheet` > `SheetContent side="bottom"` > `SheetHeader` > `SheetTitle`
-- Titulo centralizado `text-2xl`
-- Sem icone, sem botao X
+### Resultado esperado
 
+- Todos os modais mobile terao o traco cinza (drag handle) no topo, igual ao PilotiEditor
+- Espacamento consistente abaixo do card branco
+- Clicar em um muro/objeto no mobile abrira o editor de nome e cor
+- Clicar em linhas e setas no mobile abrira o editor correspondente
