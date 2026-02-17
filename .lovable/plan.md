@@ -1,64 +1,36 @@
 
 
-## Unificar identidade visual dos modais
+## Simplificar modais e usar Sheet no mobile
 
-Aplicar a mesma estrutura visual dos editores (PilotiEditor, GenericEditor) aos modais de Configuracoes, Reiniciar Canvas e Desagrupar Casa.
+Remover icone e botao de fechar dos cabecalhos dos tres modais (Configuracoes, Reiniciar Canvas, Desagrupar Casa), e no mobile usar Sheet inferior igual ao "Escolha o Tipo de Casa". Tambem remover o X do SheetContent para que nenhum modal mobile tenha o botao de fechar no canto.
 
-### Estrutura padrao para todos
+### Mudancas
 
-1. **Cabecalho**: Icone a esquerda + titulo centralizado (text-2xl font-bold) + botao X circular a direita
-2. **Corpo**: Cartao branco (`bg-white rounded-xl p-4`) com o conteudo
-3. **Rodape**: Botoes "Cancelar" (outline bg-white) e "Confirmar" (primary) lado a lado
+#### 1. SheetContent - Remover X padrao (sheet.tsx)
 
-### 1. SettingsModal.tsx
+Remover o `SheetPrimitive.Close` com o icone X que aparece automaticamente em todo SheetContent. O fechamento no mobile sera feito pelo overlay (clique fora) ou pelos botoes de acao.
 
-**Antes:** DialogHeader com titulo simples, conteudo direto, sem botoes de acao.
+#### 2. SettingsModal.tsx - Dialog/Sheet com cabecalho simples
 
-**Depois:**
-- Cabecalho: Icone `faGear` (FontAwesome) a esquerda + "Configuracoes" centralizado + botao X circular
-- Corpo: Cartao branco contendo os dois toggles com suas labels
-- Rodape: Botoes "Cancelar" e "Confirmar"
-- Ao clicar "Confirmar", aplica as alteracoes e fecha. "Cancelar" reverte ao estado anterior e fecha.
-- O estado dos switches so sera persistido ao clicar "Confirmar" (comportamento atual salva imediatamente; sera ajustado para salvar apenas na confirmacao)
+- Desktop: `Dialog` com `DialogHeader` + `DialogTitle` centralizado (sem icone, sem X), igual ao TwoCardSelector
+- Mobile: `Sheet` bottom com `SheetHeader` + `SheetTitle` centralizado
+- Manter o cartao branco e os botoes Cancelar/Confirmar
+- Usar `useIsMobile()` para alternar entre Dialog e Sheet
 
-### 2. Reiniciar Canvas (em RACEditor.tsx)
+#### 3. RACEditor.tsx - Reiniciar Canvas e Desagrupar Casa
 
-**Antes:** DialogHeader com titulo e descricao, DialogFooter com botoes.
-
-**Depois:**
-- Cabecalho: Icone `faRotateLeft` (FontAwesome) a esquerda + "Reiniciar Canvas" centralizado + botao X circular
-- Corpo: Cartao branco contendo o texto de confirmacao
-- Rodape: Botoes "Cancelar" e "Confirmar" no padrao estabelecido
-
-### 3. Desagrupar Casa (em RACEditor.tsx)
-
-**Antes:** Mesmo formato antigo do Reiniciar Canvas.
-
-**Depois:**
-- Cabecalho: Icone `faObjectUngroup` (FontAwesome) a esquerda + "Desagrupar Casa" centralizado + botao X circular
-- Corpo: Cartao branco contendo o texto de confirmacao
-- Rodape: Botoes "Cancelar" e "Desagrupar" no padrao estabelecido
+Mesmo padrao: Dialog no desktop, Sheet no mobile. Cabecalho apenas com titulo centralizado (sem icone, sem X). Corpo em cartao branco. Botoes de acao no rodape.
 
 ### Detalhes tecnicos
 
 **Arquivos modificados:**
-- `src/components/rac-editor/SettingsModal.tsx` - Redesign completo com cabecalho, cartao branco e botoes
-- `src/components/rac-editor/RACEditor.tsx` - Redesign dos dialogos de Reiniciar Canvas e Desagrupar Casa
+- `src/components/ui/sheet.tsx` - Remover o bloco `SheetPrimitive.Close` do SheetContent
+- `src/components/rac-editor/SettingsModal.tsx` - Redesign com Dialog/Sheet, cabecalho simplificado
+- `src/components/rac-editor/RACEditor.tsx` - Redesign dos dois dialogos de confirmacao com Dialog/Sheet
 
-**Padrao de referencia (GenericEditor):**
-```text
-+-------------------------------------+
-| [icone]    Titulo        [X]        |  <- cabecalho
-+-------------------------------------+
-| +------ bg-white rounded-xl ------+ |
-| |                                 | |  <- corpo
-| |    conteudo do modal            | |
-| |                                 | |
-| +---------------------------------+ |
-|                                     |
-|  [ Cancelar ]    [ Confirmar ]      |  <- rodape
-+-------------------------------------+
-```
-
-**Dependencias FontAwesome ja instaladas:** `faGear`, `faRotateLeft`, `faObjectUngroup` do `@fortawesome/free-solid-svg-icons`.
+**Padrao de referencia (TwoCardSelector):**
+- Desktop: `Dialog` > `DialogContent hideCloseButton` > `DialogHeader` > `DialogTitle`
+- Mobile: `Sheet` > `SheetContent side="bottom"` > `SheetHeader` > `SheetTitle`
+- Titulo centralizado `text-2xl`
+- Sem icone, sem botao X
 
