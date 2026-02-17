@@ -24,11 +24,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import {
   createHouseTop,
@@ -1629,39 +1629,43 @@ export function RACEditor() {
 
       {isMobile ? (
         <>
-          <Sheet open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
-            <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-              <SheetHeader className="text-center pb-2">
-                <SheetTitle className="text-center text-2xl">Reiniciar Canvas</SheetTitle>
-              </SheetHeader>
-              <div className="bg-white rounded-xl p-4">
-                <p className="text-sm text-muted-foreground">
-                  Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
-                </p>
+          <Drawer open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
+            <DrawerContent>
+              <DrawerHeader className="text-center pb-2">
+                <DrawerTitle className="text-center text-2xl">Reiniciar Canvas</DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4 pb-4">
+                <div className="bg-white rounded-xl p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
+                  </p>
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
+                  <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
+                </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
-                <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+            </DrawerContent>
+          </Drawer>
 
-          <Sheet open={showUngroupConfirm} onOpenChange={(open) => { if (!open) { setShowUngroupConfirm(false); setGroupToUngroup(null); } }}>
-            <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-              <SheetHeader className="text-center pb-2">
-                <SheetTitle className="text-center text-2xl">Desagrupar Casa</SheetTitle>
-              </SheetHeader>
-              <div className="bg-white rounded-xl p-4">
-                <p className="text-sm text-muted-foreground">
-                  Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
-                </p>
+          <Drawer open={showUngroupConfirm} onOpenChange={(open) => { if (!open) { setShowUngroupConfirm(false); setGroupToUngroup(null); } }}>
+            <DrawerContent>
+              <DrawerHeader className="text-center pb-2">
+                <DrawerTitle className="text-center text-2xl">Desagrupar Casa</DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4 pb-4">
+                <div className="bg-white rounded-xl p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?
+                  </p>
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+                  <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
+                </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
-                <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+            </DrawerContent>
+          </Drawer>
         </>
       ) : (
         <>

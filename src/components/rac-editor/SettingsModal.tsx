@@ -9,11 +9,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings, updateSetting } from '@/lib/settings';
 
@@ -104,13 +104,15 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-xl">
-        <SheetHeader className="text-center pb-2">
-          <SheetTitle className="text-center text-2xl">Configurações</SheetTitle>
-        </SheetHeader>
-        {body}
-      </SheetContent>
-    </Sheet>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent>
+        <DrawerHeader className="text-center pb-2">
+          <DrawerTitle className="text-center text-2xl">Configurações</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-4">
+          {body}
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
