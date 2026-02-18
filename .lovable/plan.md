@@ -1,132 +1,82 @@
 
-## Reformular a Vista Frontal (e Traseira) da Casa
+# Plano de Melhorias — Code Review
 
-### Contexto Atual
+## Análise do Estado Atual
 
-A função `createHouseFrontBack` em `src/lib/canvas-utils.ts` (linhas 625–856) gera a vista frontal/traseira como um **retângulo + triângulo simétrico no topo**. O objetivo é substituir essa representação por três seções arquitetônicas:
+Após explorar o código, confirmei o seguinte:
 
-1. **Diagonal Esquerda** — painel com telhado inclinado (alto à esquerda, baixo à direita onde encontra a Capela)
-2. **Capela** — painel central com topo arqueado (curva convexa simulada com Bezier)
-3. **Diagonal Direita** — painel com telhado inclinado (baixo à esquerda onde encontra a Capela, alto à direita)
+**P0.1 — Âncora do popover (JÁ RESOLVIDO):**
+O código em `Canvas.tsx` (linha 583) já usa `piloti.getCenterPoint()`, que é a solução recomendada pelo reviewer. A memória de arquitetura também registra isso. Esse item está correto — nenhuma ação necessária.
 
-A **Vista Frontal** terá: janela na Diagonal Esquerda + porta e janela na Diagonal Direita.
-A **Vista Traseira** terá: sem elementos (apenas a estrutura).
+**P0.2 — Sincronização cross-view (JÁ IMPLEMENTADA):**
+O `house-manager.ts` (linha 554–594) já itera sobre `Object.values(this.house.views)` e chama `updatePilotiHeight` e `updatePilotiMaster` para cada grupo de cada vista. Esse item também está resolvido.
 
----
+**P1 — Reset de destaque não simétrico para retângulos:**
+Em `Canvas.tsx`, linhas 114–144, o reset ao fechar o editor trata corretamente tanto `isPilotiCircle` quanto `isPilotiRect`. Porém, em `updateHint` (linha 476–494), o reset também trata ambos. Esse fluxo está simétrico.
 
-### Análise das Proporções (baseada nas imagens de referência)
+**P1 — Página 404 com `<a href="/">` (REAL — SIMPLES DE CORRIGIR):**
+Confirmado: `NotFound.tsx` usa `<a href="/">` causando reload completo em vez de navegação SPA.
 
-A largura total atual é `plantWidth` (≈ 366px para s=0.6). As três seções dividem essa largura da seguinte forma, mantendo as proporções dos diagramas:
-
-- **Diagonal Esquerda**: ~40% da largura total → `diagonalW = plantWidth * 0.40`
-- **Capela**: ~20% da largura total → `chapelaW = plantWidth * 0.20`
-- **Diagonal Direita**: ~40% da largura total → `diagonalW = plantWidth * 0.40`
-
-As alturas (conforme diagramas):
-- Altura do corpo da parede: `bodyH = 220 * s` (mantida)
-- Lado alto das diagonais: `bodyH + roofExtraH` onde `roofExtraH ≈ 40 * s`
-- Lado baixo das diagonais (encontro com a Capela): `bodyH` (sem acréscimo)
-- Altura total da Capela: `bodyH + capH` onde `capH ≈ 50 * s` (ponto máximo do arco)
+**P1 — `require` no `tailwind.config.ts`:**
+Confirmado: linha 134 usa `plugins: [require("tailwindcss-animate")]`.
 
 ---
 
-### Geometria de Cada Seção
+## O Que Será Implementado
+
+Com base na análise, os únicos itens com problemas reais e soluções diretas são:
+
+### 1. Corrigir navegação SPA na página 404
+**Arquivo:** `src/pages/NotFound.tsx`
+- Substituir `<a href="/">` por `<Link to="/">` do `react-router-dom`
+- O import de `Link` já pode ser adicionado no topo do arquivo
+
+### 2. Migrar `require` para import ESM no Tailwind
+**Arquivo:** `tailwind.config.ts`
+- Adicionar `import tailwindcssAnimate from 'tailwindcss-animate';` no topo
+- Substituir `plugins: [require("tailwindcss-animate")]` por `plugins: [tailwindcssAnimate]`
+
+---
+
+## O Que NÃO Será Alterado (e Por Quê)
+
+| Item do Review | Status Real | Decisão |
+|---|---|---|
+| P0.1 — Âncora do popover deslocada | Já usa `getCenterPoint()` corretamente | Nenhuma ação |
+| P0.2 — Sincronização cross-view | HouseManager já sincroniza todas as vistas | Nenhuma ação |
+| P1 — Reset highlight assimétrico | Reset trata `isPilotiCircle` e `isPilotiRect` em todos os caminhos | Nenhuma ação |
+| P1/P2 — Tipagem `any` e lint | Refatoração grande com risco de regressão em editor complexo | Escopo separado futuro |
+| P2 — Bundle size e code splitting | Otimização de performance sem impacto funcional | Escopo separado futuro |
+| P2 — Testes automatizados | Requer infraestrutura nova (Vitest/Playwright) | Escopo separado futuro |
+
+---
+
+## Detalhes Técnicos
+
+### `NotFound.tsx` — Antes vs. Depois
 
 ```text
-Vista Frontal (de frente para a casa):
+ANTES:
+import { useLocation } from "react-router-dom";
+...
+<a href="/">Return to Home</a>
 
-    *                               *
-   /|                               |\
-  / |          (arco)               | \
- /  |        /        \             |  \
-*   |       /          \            |   *
-|   |      *            *           |   |
-|   |      |            |           |   |
-|   |[jan] |   CAPELA   |  [porta]  |   |
-|   |      |            | [janela]  |   |
-*___*______*____________*___________*___*
-    |      |            |           |
-  pilotis                         pilotis
-
-Diagonal Esq  | Capela | Diagonal Dir
+DEPOIS:
+import { useLocation, Link } from "react-router-dom";
+...
+<Link to="/">Return to Home</Link>
 ```
 
-**Diagonal Esquerda** — Polyline de 4 pontos:
-- Bottom-left: `(0, bodyH)`
-- Top-left: `(0, 0)` ← ponto mais alto
-- Top-right: `(diagonalW, roofExtraH)` ← mais baixo que o left
-- Bottom-right: `(diagonalW, bodyH)`
+### `tailwind.config.ts` — Antes vs. Depois
 
-Preenchimento retangular + linha diagonal no topo.
+```text
+ANTES (linha 134):
+plugins: [require("tailwindcss-animate")],
 
-**Capela** — Forma com topo em arco (ogiva):
-- Laterais retas: de `bodyH` até `capH_base`
-- Topo: Path bezier ou Polyline com pontos aproximando o arco
-- A curva do topo da vila pode ser aproximada com 5–7 pontos de uma curva quadrática
+DEPOIS:
+import tailwindcssAnimate from 'tailwindcss-animate';
+...
+plugins: [tailwindcssAnimate],
+```
 
-**Diagonal Direita** — Espelho da Diagonal Esquerda:
-- Bottom-left: `(0, bodyH)`  
-- Top-left: `(0, roofExtraH)` ← mais baixo (encontra a Capela)
-- Top-right: `(diagonalW, 0)` ← ponto mais alto
-- Bottom-right: `(diagonalW, bodyH)`
-
----
-
-### Posicionamento dos Pilotis
-
-Os 4 pilotis da vista frontal ficam abaixo do corpo da casa, na mesma lógica atual. A margem entre pilotis será mantida (`margin = 55 * s`, `step`). Não muda a lógica de pilotis — apenas a geometria do corpo/telhado acima deles.
-
----
-
-### Janela e Porta
-
-**Vista Frontal:**
-- **Diagonal Esquerda**: 1 janela centralizada verticalmente no painel
-- **Diagonal Direita**: 1 porta (mais à esquerda do painel) + 1 janela (mais à direita)
-
-**Vista Traseira:**
-- Sem janelas ou portas (apenas a estrutura das três seções)
-
-Os elementos (janela/porta) serão posicionados com as mesmas dimensões atuais (`windowW = 90 * s`, `windowH = 75 * s`, `doorW = 100 * s`, `doorH = 180 * s`), centralizando verticalmente no corpo retangular de cada painel (abaixo da linha do telhado diagonal).
-
----
-
-### Detalhes Técnicos
-
-**Arquivo modificado:** `src/lib/canvas-utils.ts`
-
-**Função modificada:** `createHouseFrontBack` (linhas 625–856)
-
-A lógica atual que cria:
-- `roofFill` (Polygon triangular simétrico)
-- `bodyFill` (Rect retangular)
-- `roofLines` (2 linhas diagonais simétricas)
-- `bodyStroke` (Polyline do contorno do corpo)
-
-Será substituída por:
-
-**Para cada seção (Diagonal Esq, Capela, Diagonal Dir):**
-- `sectionFill`: Polygon/Polyline com preenchimento `#eeeeee`
-- `sectionStroke`: Polyline de contorno com `stroke: "#333"`, `strokeWidth: 2`
-
-**Arco da Capela:**
-Como Fabric não tem Path Bezier direto de forma simples, o arco será aproximado com um `Polyline` de ~9 pontos calculados matematicamente seguindo uma curva senoidal ou quadrática entre os dois lados do teto da Chapel.
-
-**Coordenadas do sistema:**
-Todos os pontos são relativos ao canto superior-esquerdo do grupo (X=0, Y=0 = topo-esquerdo da seção mais alta). O `bodyH` continua sendo a altura do corpo das paredes, e `roofH` passa a ser a altura extra das diagonais acima do `bodyH`.
-
-**Compatibilidade:**
-- Os pilotis continuam exatamente como antes (linhas 638–699)
-- O terreno (`createGroundElements`) continua como antes
-- O `houseView`, `isFlippedHorizontally` e outros metadados do grupo são mantidos
-- Nenhuma outra função precisa ser alterada
-
----
-
-### Resumo das Alterações
-
-| O que muda | Onde | Impacto |
-|---|---|---|
-| Geometria do telhado e corpo da vista frontal/traseira | `createHouseFrontBack` em `canvas-utils.ts` | Visual da vista 2D |
-| Posição das janelas e porta | Dentro de `createHouseFrontBack` | Visual dos elementos |
-| Nenhuma outra lógica é afetada | — | Pilotis, terreno, 3D, export funcionam normalmente |
+Ambas as mudanças são cirúrgicas, sem risco de regressão, e resolvem os únicos problemas confirmados do code review que não estavam já corrigidos.
