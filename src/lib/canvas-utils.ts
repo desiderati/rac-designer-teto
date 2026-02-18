@@ -766,10 +766,17 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Back view: only right window (w1), no door, no left window
   const windowW = 80 * s;
   const windowH = 70 * s;
+  const windowShiftX = 30 * s;
 
   const doorW = 80 * s;
   const doorH = 191 * s;
+  const doorShiftX = windowShiftX * 2;
+
+  const doorX = bodyW - windowW - doorW - 60 * s;
   const doorY = bodyH - doorH;
+
+  const window1X = bodyW - windowW - windowShiftX;
+  const window1Y = bodyH - doorH;
 
   if (isFront) {
     // Front view: right window next to door
@@ -780,8 +787,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - windowW - 30 * s,
-      top: doorY,
+      left: window1X,
+      top: window1Y,
     });
     elements.push(w1);
   } else {
