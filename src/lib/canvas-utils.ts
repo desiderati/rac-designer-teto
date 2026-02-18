@@ -631,8 +631,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const s = factors.widthFactor;
 
   const bodyW = plantWidth; // Match the plant view width exactly
-  const bodyH = 213 * s;
-  const roofH = 60 * s;
+  const bodyH = 273 * s;
   const pilotW = 30 * s;
 
   const pilots: FabricObject[] = [];
@@ -662,7 +661,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
-      top: roofH + bodyH,
+      top: roofH,
       originY: "top",
       objectCaching: false,
     });
@@ -677,7 +676,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilots.push(rect);
 
     // Add diagonal stripe overlay for bottom 2/3
-    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, roofH + bodyH, pilotW, pilotH);
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, roofH, pilotW, pilotH);
     pilots.push(stripeOverlay);
 
     // Create size label below piloti (font size 20 * scale for visibility)
@@ -686,7 +685,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: roofH + bodyH + pilotH + 8 * s,
+      top: roofH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -698,13 +697,13 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilotLabels.push(sizeLabel);
   }
 
-  const roofFill = new Polygon(
+  const leftDiagFill = new Polygon(
     [
-      { x: 0, y: roofH },
+      { x: 0, y: chapelH - leftDiagH },
       { x: bodyW / 2, y: 0 },
       { x: bodyW, y: roofH },
     ],
-    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0 },
+    { fill: "#000000", strokeWidth: 0, left: 0, top: 0 },
   );
 
   const bodyFill = new Rect({
