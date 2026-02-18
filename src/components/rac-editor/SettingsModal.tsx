@@ -6,14 +6,14 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle } from
+'@/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+  DrawerTitle } from
+'@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings, updateSetting } from '@/lib/settings';
 
@@ -38,7 +38,7 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
   };
 
   const handleToggle = (key: 'autoNavigatePiloti' | 'zoomEnabledByDefault', value: boolean) => {
-    setTempSettings(prev => ({ ...prev, [key]: value }));
+    setTempSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleConfirm = () => {
@@ -53,18 +53,18 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
     onOpenChange(false);
   };
 
-  const body = (
-    <>
+  const body =
+  <>
       <div className="bg-white rounded-xl p-4 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <Label htmlFor="auto-navigate" className="text-sm leading-snug cursor-pointer flex-1">
             Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
           </Label>
           <Switch
-            id="auto-navigate"
-            checked={tempSettings.autoNavigatePiloti}
-            onCheckedChange={(v) => handleToggle('autoNavigatePiloti', v)}
-          />
+          id="auto-navigate"
+          checked={tempSettings.autoNavigatePiloti}
+          onCheckedChange={(v) => handleToggle('autoNavigatePiloti', v)} />
+
         </div>
 
         <div className="flex items-start justify-between gap-4">
@@ -72,14 +72,14 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
             Habilitar funcionalidade de Zoom/Minimap por padrão
           </Label>
           <Switch
-            id="zoom-enabled"
-            checked={tempSettings.zoomEnabledByDefault}
-            onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}
-          />
+          id="zoom-enabled"
+          checked={tempSettings.zoomEnabledByDefault}
+          onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)} />
+
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex pt-4 gap-[16px] ">
         <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
           Cancelar
         </Button>
@@ -87,8 +87,8 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           Confirmar
         </Button>
       </div>
-    </>
-  );
+    </>;
+
 
   if (!isMobile) {
     return (
@@ -99,8 +99,8 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           </DialogHeader>
           {body}
         </DialogContent>
-      </Dialog>
-    );
+      </Dialog>);
+
   }
 
   return (
@@ -113,6 +113,6 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           {body}
         </div>
       </DrawerContent>
-    </Drawer>
-  );
+    </Drawer>);
+
 }
