@@ -42,8 +42,13 @@ const DIAG_W = 244 * U;
 const DIAG_H2 = 261 * U;
 const CHAPEL_W = 122 * U;
 const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
+const ROOF_SHORT_SIDE_OVERHANG = 10 * U; // 10 cm on the 3 m side
+const ROOF_WAVE_AMPLITUDE = 1.8 * U;
+const ROOF_WAVE_PITCH = 28 * U;
+const ROOF_WAVE_SEGMENTS_X = 10;
+const ROOF_WAVE_SEGMENTS_Z = 28;
 
-const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2 + FLOOR_HEIGHT;
+const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT;
 const ROOF_BASE_Y = WALL_BASE_Y + WALL_HEIGHT;
 const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
 
@@ -64,7 +69,11 @@ const ALL_PILOTI_IDS = Array.from({ length: 3 * 4 }, (_, index) => {
   return `piloti_${col}_${row}`;
 });
 
-const FLOOR_BEAM_ROWS_Z = [PILOTI_STEP_Z, 0, -PILOTI_STEP_Z];
+const FLOOR_BEAM_ROWS_Z = [
+  HOUSE_DEPTH / 2 - FLOOR_BEAM_STRIP_DEPTH / 2, // A: flush with floor edge
+  0, // B: centered
+  -HOUSE_DEPTH / 2 + FLOOR_BEAM_STRIP_DEPTH / 2, // C: flush with floor edge
+];
 
 const COLORS = {
   roof: '#a8b8c4',
@@ -72,8 +81,6 @@ const COLORS = {
   terrain: '#7da86d',
   floor: '#f7f7f7',
   beam: '#ececec',
-  door: '#b88a5a',
-  window: '#8fc7f3',
   frame: '#4f4f4f',
 };
 
@@ -310,49 +317,49 @@ function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<s
 function RoofMesh() {
   const geometry = useMemo(() => {
     const hw = HOUSE_WIDTH / 2;
-    const hd = HOUSE_DEPTH / 2;
+    const hdRoof = HOUSE_DEPTH / 2 + ROOF_SHORT_SIDE_OVERHANG;
+    const rise = ROOF_TOP_Y - ROOF_BASE_Y;
 
-    const vertices = new Float32Array([
-      -hw,
-      ROOF_BASE_Y,
-      hd, // 0 left eave front
-      -hw,
-      ROOF_BASE_Y,
-      -hd, // 1 left eave back
-      0,
-      ROOF_TOP_Y,
-      -hd, // 2 ridge back
-      0,
-      ROOF_TOP_Y,
-      hd, // 3 ridge front
-      hw,
-      ROOF_BASE_Y,
-      hd, // 4 right eave front
-      hw,
-      ROOF_BASE_Y,
-      -hd, // 5 right eave back
-    ]);
+    const positions: number[] = [];
+    const indices: number[] = [];
+    const rowStride = ROOF_WAVE_SEGMENTS_Z + 1;
 
-    const indices = [
-      0,
-      1,
-      2,
-      0,
-      2,
-      3, // left roof sheet
-      4,
-      5,
-      2,
-      4,
-      2,
-      3, // right roof sheet
-    ];
+    const appendSheet = (side: -1 | 1) => {
+      const baseIndex = positions.length / 3;
 
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
-    return geo;
+      for (let ix = 0; ix <= ROOF_WAVE_SEGMENTS_X; ix++) {
+        const t = ix / ROOF_WAVE_SEGMENTS_X;
+        const x = side === -1 ? -hw + hw * t : hw - hw * t;
+        const yBase = ROOF_BASE_Y + rise * t;
+
+        for (let iz = 0; iz <= ROOF_WAVE_SEGMENTS_Z; iz++) {
+          const s = iz / ROOF_WAVE_SEGMENTS_Z;
+          const z = -hdRoof + 2 * hdRoof * s;
+          const wave = Math.sin((z / ROOF_WAVE_PITCH) * Math.PI * 2) * ROOF_WAVE_AMPLITUDE;
+
+          positions.push(x, yBase + wave, z);
+        }
+      }
+
+      for (let ix = 0; ix < ROOF_WAVE_SEGMENTS_X; ix++) {
+        for (let iz = 0; iz < ROOF_WAVE_SEGMENTS_Z; iz++) {
+          const a = baseIndex + ix * rowStride + iz;
+          const b = a + 1;
+          const c = a + rowStride;
+          const d = c + 1;
+          indices.push(a, b, c, b, d, c);
+        }
+      }
+    };
+
+    appendSheet(-1);
+    appendSheet(1);
+
+    const roofGeometry = new THREE.BufferGeometry();
+    roofGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    roofGeometry.setIndex(indices);
+    roofGeometry.computeVertexNormals();
+    return roofGeometry;
   }, []);
 
   return (
@@ -435,13 +442,13 @@ function HouseShell({ wallColor }: { wallColor: string }) {
   return (
     <group>
       {FLOOR_BEAM_ROWS_Z.map((z) => (
-        <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y, z]} castShadow receiveShadow>
+        <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, z]} castShadow receiveShadow>
           <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]} />
           <meshStandardMaterial color={COLORS.beam} />
         </mesh>
       ))}
 
-      <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2 + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
+      <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[HOUSE_WIDTH, FLOOR_HEIGHT, HOUSE_DEPTH]} />
         <meshStandardMaterial color={COLORS.floor} />
       </mesh>
@@ -499,8 +506,7 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       return null;
   }
 
-  const fillColor = element.type === 'door' ? COLORS.door : COLORS.window;
-  const isWindow = element.type === 'window';
+  const fillColor = COLORS.piloti;
 
   return (
     <group position={position} rotation={rotation}>
@@ -512,12 +518,8 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
         <boxGeometry args={[elementWidth, elementHeight, elementDepth * 0.35]} />
         <meshStandardMaterial
           color={fillColor}
-          roughness={isWindow ? 0.15 : 0.8}
-          metalness={isWindow ? 0.1 : 0.02}
-          emissive={isWindow ? '#1b3652' : '#000000'}
-          emissiveIntensity={isWindow ? 0.08 : 0}
-          transparent={isWindow}
-          opacity={isWindow ? 0.78 : 1}
+          roughness={0.72}
+          metalness={0.02}
         />
       </mesh>
     </group>
