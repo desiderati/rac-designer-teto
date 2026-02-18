@@ -708,7 +708,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#cdcdcd", strokeWidth: , left: 0, top: bodyH - diagH2 },
+    { fill: "#cdcdcd", strokeWidth: 5, left: 0, top: bodyH - diagH2 },
   );
 
   const chapelW = 122 * s;
