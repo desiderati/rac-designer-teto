@@ -148,7 +148,7 @@ export function GenericEditor({
   const title = getTitle();
 
   const colorPalette =
-  <div className="grid grid-cols-4 gap-2">
+  <div className="grid grid-cols-4 gap-2 justify-items-center">
       {COLOR_PALETTE.map((c) =>
     <button
       key={c.value}
