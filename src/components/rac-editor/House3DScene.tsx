@@ -43,6 +43,7 @@ const DIAG_H2 = 261 * U;
 const CHAPEL_W = 122 * U;
 const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
 const ROOF_SHORT_SIDE_OVERHANG = 10 * U; // 10 cm on the 3 m side
+const ROOF_LONG_SIDE_OVERHANG = 10 * U; // 10 cm on the square-panel side
 const ROOF_WAVE_AMPLITUDE = 1.8 * U;
 const ROOF_WAVE_PITCH = 28 * U;
 const ROOF_WAVE_SEGMENTS_X = 10;
@@ -317,6 +318,7 @@ function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<s
 function RoofMesh() {
   const geometry = useMemo(() => {
     const hw = HOUSE_WIDTH / 2;
+    const hwRoof = hw + ROOF_LONG_SIDE_OVERHANG;
     const hdRoof = HOUSE_DEPTH / 2 + ROOF_SHORT_SIDE_OVERHANG;
     const rise = ROOF_TOP_Y - ROOF_BASE_Y;
 
@@ -329,7 +331,7 @@ function RoofMesh() {
 
       for (let ix = 0; ix <= ROOF_WAVE_SEGMENTS_X; ix++) {
         const t = ix / ROOF_WAVE_SEGMENTS_X;
-        const x = side === -1 ? -hw + hw * t : hw - hw * t;
+        const x = side === -1 ? -hwRoof + hwRoof * t : hwRoof - hwRoof * t;
         const yBase = ROOF_BASE_Y + rise * t;
 
         for (let iz = 0; iz <= ROOF_WAVE_SEGMENTS_Z; iz++) {

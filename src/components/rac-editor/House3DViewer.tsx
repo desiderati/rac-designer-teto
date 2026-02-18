@@ -10,14 +10,14 @@ import { House3DScene } from './House3DScene';
 import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
 
 const WALL_COLORS = [
+  { name: 'Terracota', value: '#c4967a' },
+  { name: 'Bege', value: '#d4b896' },
   { name: 'Cinza', value: '#d4d4d4' },
   { name: 'Branco', value: '#f0f0f0' },
-  { name: 'Bege', value: '#d4b896' },
-  { name: 'Amarelo', value: '#f5e6a3' },
   { name: 'Azul', value: '#a8c4d8' },
   { name: 'Verde', value: '#b8d4b8' },
   { name: 'Rosa', value: '#e0b8b8' },
-  { name: 'Terracota', value: '#c4967a' },
+  { name: 'Amarelo', value: '#f5e6a3' },
 ];
 
 interface House3DViewerProps {
