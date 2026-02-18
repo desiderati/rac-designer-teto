@@ -148,17 +148,18 @@ function Terrain({ pilotis }: { pilotis: Record<string, PilotiData> }) {
 
 // Porta/janela aplicada na face correta da casa
 function HouseElement3D({ element }: { element: HouseElement }) {
-  const elementWidth = element.width * S;
-  const elementHeight = element.height * S;
+  const elementWidth = element.width * MODEL_SCALE;
+  const elementHeight = element.height * MODEL_SCALE;
   const depth = 2;
 
-  const xOffset = element.x * S;
-  const yOffset = element.y * S;
+  const xOffset = element.x * MODEL_SCALE;
+  const yOffset = element.y * MODEL_SCALE;
 
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
 
-  const yPos = HOUSE_BASE_Y + BODY_HEIGHT - yOffset - elementHeight / 2;
+  //const yPos = HOUSE_BASE_Y + BODY_HEIGHT - yOffset - elementHeight / 2;
+  const yPos = HOUSE_BASE_Y;
 
   let position: [number, number, number];
   let rotation: [number, number, number] = [0, 0, 0];
