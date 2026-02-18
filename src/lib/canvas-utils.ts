@@ -723,7 +723,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: chapelW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: diagW, top: 0 },
+    { fill: "#eeeeee", strokeWidth: 1, left: diagW, top: 0 },
   );
 
   const rightDiagFill = new Polygon(

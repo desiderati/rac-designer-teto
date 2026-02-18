@@ -170,6 +170,14 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                   intensity={0.8} 
                   castShadow
                   shadow-mapSize={[1024, 1024]}
+                  shadow-bias={-0.0005}
+                  shadow-normalBias={0.03}
+                  shadow-camera-near={20}
+                  shadow-camera-far={500}
+                  shadow-camera-left={-260}
+                  shadow-camera-right={260}
+                  shadow-camera-top={260}
+                  shadow-camera-bottom={-260}
                 />
                 <directionalLight 
                   position={[-50, 50, -50]} 

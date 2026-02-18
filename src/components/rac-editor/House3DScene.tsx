@@ -34,6 +34,7 @@ const BASE_PILOTI_HEIGHT = BASE_PILOTI_HEIGHT_PX * U;
 const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
 
 const FLOOR_BEAM_HEIGHT = 20 * U;
+const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
 const BODY_PROFILE_HEIGHT = 273 * U;
 const WALL_HEIGHT = 213 * U;
 const DIAG_W = 244 * U;
@@ -46,6 +47,7 @@ const ROOF_BASE_Y = WALL_BASE_Y + WALL_HEIGHT;
 const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
 
 const WALL_THICKNESS = 2 * U;
+const FRONT_BACK_PANEL_OFFSET = WALL_THICKNESS * 0.65;
 const TERRAIN_MARGIN = 90 * U;
 const TERRAIN_SEGMENTS = 28;
 
@@ -61,15 +63,16 @@ const ALL_PILOTI_IDS = Array.from({ length: 3 * 4 }, (_, index) => {
   return `piloti_${col}_${row}`;
 });
 
+const FLOOR_BEAM_ROWS_Z = [PILOTI_STEP_Z, 0, -PILOTI_STEP_Z];
+
 const COLORS = {
   roof: '#a8b8c4',
-  piloti: '#f4f4f4',
+  piloti: '#d8d8d8',
   terrain: '#7da86d',
-  beam: '#f2f2f2',
-  chapelPanel: '#b8b8b8',
-  door: '#f5efe2',
-  window: '#eef6ff',
-  frame: '#666666',
+  beam: '#ececec',
+  door: '#b88a5a',
+  window: '#8fc7f3',
+  frame: '#4f4f4f',
 };
 
 function offsetLightness(hex: string, lightnessOffset: number): string {
@@ -358,7 +361,7 @@ function RoofMesh() {
 }
 
 function FrontBackPanels({ wallColor }: { wallColor: string }) {
-  const panelOffset = WALL_THICKNESS * 0.65;
+  const panelOffset = FRONT_BACK_PANEL_OFFSET;
   const sidePanelColor = offsetLightness(wallColor, 0.04);
 
   const leftDiagGeo = useMemo(
@@ -402,7 +405,7 @@ function FrontBackPanels({ wallColor }: { wallColor: string }) {
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={COLORS.chapelPanel} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
@@ -414,7 +417,7 @@ function FrontBackPanels({ wallColor }: { wallColor: string }) {
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={COLORS.chapelPanel} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
@@ -429,10 +432,12 @@ function HouseShell({ wallColor }: { wallColor: string }) {
 
   return (
     <group>
-      <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, HOUSE_DEPTH]} />
-        <meshStandardMaterial color={COLORS.beam} />
-      </mesh>
+      {FLOOR_BEAM_ROWS_Z.map((z) => (
+        <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, z]} castShadow receiveShadow>
+          <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]} />
+          <meshStandardMaterial color={COLORS.beam} />
+        </mesh>
+      ))}
 
       <mesh position={[-HOUSE_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
         <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]} />
@@ -455,6 +460,7 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   const elementWidth = Math.max(element.width * VIEWER_MODEL_SCALE, 1);
   const elementHeight = Math.max(element.height * VIEWER_MODEL_SCALE, 1);
   const elementDepth = 2;
+  const frontBackGap = 0.08;
 
   const xOffset = element.x * VIEWER_MODEL_SCALE;
   const yOffset = element.y * VIEWER_MODEL_SCALE;
@@ -468,10 +474,10 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
 
   switch (element.face) {
     case 'front':
-      position = [xOffset - hw + elementWidth / 2, y, hd + elementDepth / 2];
+      position = [xOffset - hw + elementWidth / 2, y, hd + FRONT_BACK_PANEL_OFFSET + elementDepth / 2 + frontBackGap];
       break;
     case 'back':
-      position = [hw - xOffset - elementWidth / 2, y, -hd - elementDepth / 2];
+      position = [hw - xOffset - elementWidth / 2, y, -hd - FRONT_BACK_PANEL_OFFSET - elementDepth / 2 - frontBackGap];
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
@@ -487,16 +493,25 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   }
 
   const fillColor = element.type === 'door' ? COLORS.door : COLORS.window;
+  const isWindow = element.type === 'window';
 
   return (
     <group position={position} rotation={rotation}>
-      <mesh castShadow>
+      <mesh>
         <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, elementDepth * 0.6]} />
         <meshStandardMaterial color={COLORS.frame} />
       </mesh>
-      <mesh position={[0, 0, elementDepth * 0.18]} castShadow>
+      <mesh position={[0, 0, elementDepth * 0.18]}>
         <boxGeometry args={[elementWidth, elementHeight, elementDepth * 0.35]} />
-        <meshStandardMaterial color={fillColor} />
+        <meshStandardMaterial
+          color={fillColor}
+          roughness={isWindow ? 0.15 : 0.8}
+          metalness={isWindow ? 0.1 : 0.02}
+          emissive={isWindow ? '#1b3652' : '#000000'}
+          emissiveIntensity={isWindow ? 0.08 : 0}
+          transparent={isWindow}
+          opacity={isWindow ? 0.78 : 1}
+        />
       </mesh>
     </group>
   );
