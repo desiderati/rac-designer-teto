@@ -731,17 +731,17 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#d1e3f0", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
+    { fill: "#cdcdcd", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
   const bodyStroke = new Polyline(
     [
       { x: 0, y: 0 },
-      { x: 0, y: bodyH },
-      { x: bodyW, y: bodyH },
+      { x: 0, y: diagH1 },
+      { x: bodyW, y: diagH1 },
       { x: bodyW, y: 0 },
     ],
-    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH },
+    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH - diagH1 },
   );
 
   const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
