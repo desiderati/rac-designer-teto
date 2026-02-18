@@ -21,14 +21,14 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle } from
+'@/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+  DrawerTitle } from
+'@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import {
   createHouseTop,
@@ -48,8 +48,8 @@ import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   formatPilotiHeight,
-  getPilotiFromGroup,
-} from '@/lib/canvas-utils';
+  getPilotiFromGroup } from
+'@/lib/canvas-utils';
 import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
@@ -74,12 +74,12 @@ export function RACEditor() {
   const [isObjectNameEditorOpen, setIsObjectNameEditorOpen] = useState(false);
   const [lineArrowSelection, setLineArrowSelection] = useState<LineArrowCanvasSelection | null>(null);
   const [isLineArrowEditorOpen, setIsLineArrowEditorOpen] = useState(false);
-  const [onboardingBalloon, setOnboardingBalloon] = useState<{ position: { x: number; y: number }; text: string } | null>(null);
-  const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number } | null>(null);
+  const [onboardingBalloon, setOnboardingBalloon] = useState<{position: {x: number;y: number;};text: string;} | null>(null);
+  const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{x: number;y: number;} | null>(null);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [pendingViewType, setPendingViewType] = useState<ViewType | null>(null);
   const [sideSelectorMode, setSideSelectorMode] = useState<'position' | 'choose-instance'>('position');
-  const [instanceSlots, setInstanceSlots] = useState<{ label: string; side: HouseSide; onCanvas: boolean }[]>([]);
+  const [instanceSlots, setInstanceSlots] = useState<{label: string;side: HouseSide;onCanvas: boolean;}[]>([]);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
@@ -147,28 +147,28 @@ export function RACEditor() {
       canvasRef.current?.clearHistory();
       canvasRef.current?.saveHistory();
     }
-    
+
     // Reset house manager
     houseManager.reset();
-    
+
     // Close all menus
     setActiveSubmenu(null);
     setIsMenuOpen(false);
     setShowRestartConfirm(false);
-    
+
     // Remove all tutorial completion flags
     localStorage.removeItem('rac-tutorial-completed');
     localStorage.removeItem('rac-piloti-tutorial-shown');
     localStorage.removeItem('rac-wall-tip-shown');
     localStorage.removeItem('rac-line-tip-shown');
     localStorage.removeItem('rac-arrow-tip-shown');
-    
+
     // Close piloti tutorial balloon if open
     setPilotiTutorialPosition(null);
-    
+
     // Start tutorial from beginning
     setTutorialStep('main-fab');
-    
+
     toast.success('Canvas reiniciado!');
   };
 
@@ -187,7 +187,7 @@ export function RACEditor() {
   const addObjectToCanvas = useCallback((obj: FabricObject) => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const center = getVisibleCenter();
     obj.set({ left: center.x, top: center.y });
     canvas.add(obj);
@@ -222,12 +222,12 @@ export function RACEditor() {
     dismissPilotiTutorial();
     const newIsOpen = !isMenuOpen;
     setIsMenuOpen(newIsOpen);
-    
+
     if (!newIsOpen) {
       // Closing menu - reset submenus
       setActiveSubmenu(null);
     }
-    
+
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'main-fab' && newIsOpen) {
       advanceTutorial('main-fab');
@@ -243,40 +243,40 @@ export function RACEditor() {
   const showPilotiTutorialIfNeeded = (house: Group) => {
     // Only show on desktop
     if (isMobile) return;
-    
+
     const pilotiTutorialShown = localStorage.getItem('rac-piloti-tutorial-shown');
     if (pilotiTutorialShown) return;
-    
+
     // Find piloti A1 (piloti_0_0) in the house group
     const canvas = canvasRef.current?.canvas;
     if (!canvas) return;
-    
+
     // Small delay to ensure the house is rendered
     setTimeout(() => {
       const objects = house.getObjects();
       const pilotiA1 = objects.find((obj: any) => obj.pilotiId === 'piloti_0_0' && obj.isPilotiCircle);
-      
+
       if (pilotiA1) {
         // Get the screen position of piloti A1
         const groupMatrix = house.calcTransformMatrix();
         const pilotiLeft = (pilotiA1 as any).left || 0;
         const pilotiTop = (pilotiA1 as any).top || 0;
-        
+
         // Transform from local to canvas coordinates
         const canvasPoint = {
           x: groupMatrix[4] + pilotiLeft * groupMatrix[0],
-          y: groupMatrix[5] + pilotiTop * groupMatrix[3],
+          y: groupMatrix[5] + pilotiTop * groupMatrix[3]
         };
-        
+
         // Get container bounds
         const container = canvas.getElement().parentElement;
         if (container) {
           const rect = container.getBoundingClientRect();
           const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
-          
+
           const screenX = rect.left + canvasPoint.x * vpt[0] + vpt[4];
           const screenY = rect.top + canvasPoint.y * vpt[3] + vpt[5];
-          
+
           setPilotiTutorialPosition({ x: screenX, y: screenY });
         }
       }
@@ -307,7 +307,7 @@ export function RACEditor() {
     const slots = houseManager.getPreAssignedSlots(viewType);
 
     if (slots.length > 0) {
-      const available = slots.filter(s => !s.onCanvas);
+      const available = slots.filter((s) => !s.onCanvas);
 
       if (available.length === 0) {
         toast.error(`Todas as instâncias de ${getViewLabel(viewType)} já estão no canvas.`);
@@ -347,11 +347,11 @@ export function RACEditor() {
   const getViewLabel = (type: ViewType): string => {
     const houseType = houseManager.getHouseType();
     switch (type) {
-      case 'top': return 'Planta';
-      case 'front': return 'Frontal';
-      case 'back': return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
-      case 'side1': return 'Quadrado Fechado';
-      case 'side2': return 'Quadrado Aberto';
+      case 'top':return 'Planta';
+      case 'front':return 'Frontal';
+      case 'back':return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
+      case 'side1':return 'Quadrado Fechado';
+      case 'side2':return 'Quadrado Aberto';
     }
   };
 
@@ -385,7 +385,7 @@ export function RACEditor() {
     houseManager.registerView(viewType, house, side);
 
     addObjectToCanvas(house);
-    
+
     if (viewType === 'top') {
       showPilotiTutorialIfNeeded(house);
     }
@@ -422,7 +422,7 @@ export function RACEditor() {
     // Capture pending values before any state clearing
     const viewType = pendingViewType;
     const side = pendingNivelSide;
-    
+
 
     // Mark as applied so onClose won't reset the house manager
     niveisAppliedRef.current = true;
@@ -431,7 +431,7 @@ export function RACEditor() {
     for (const [pilotiId, entry] of Object.entries(niveis)) {
       houseManager.updatePiloti(pilotiId, {
         isMaster: entry.isMaster,
-        nivel: entry.nivel,
+        nivel: entry.nivel
       });
     }
 
@@ -439,7 +439,7 @@ export function RACEditor() {
     houseManager.calculateAndApplyRecommendedHeights();
 
     // Add plant + initial view
-    
+
     if (viewType) {
       addViewToCanvas('top'); // Plant
       addViewToCanvas(viewType, side ?? undefined); // Initial view
@@ -450,7 +450,7 @@ export function RACEditor() {
         setTimeout(() => {
           const house = houseManager.getHouse();
           const plantInst = house?.views.top?.[0];
-          const viewInst = house?.views[viewType]?.find(v => v.side === side);
+          const viewInst = house?.views[viewType]?.find((v) => v.side === side);
           const plantGroup = plantInst?.group;
           const viewGroup = viewInst?.group;
           if (plantGroup && viewGroup) {
@@ -509,7 +509,7 @@ export function RACEditor() {
   const handleOpenHouseTypeSelector = () => {
     closeAllMenus();
     setHouseTypeSelectorOpen(true);
-    
+
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'house') {
       advanceTutorial('house');
@@ -518,13 +518,13 @@ export function RACEditor() {
 
   const handleHouseTypeSelected = (type: HouseType) => {
     if (!type) return;
-    
+
     // Set the house type
     houseManager.setHouseType(type);
-    
+
     // Initialize default windows and doors
     houseManager.initializeDefaultElements();
-    
+
     // Open SideSelector to position the initial view
     // tipo6: position the front view (top/bottom)
     // tipo3: position the open square (left/right)
@@ -562,18 +562,18 @@ export function RACEditor() {
   const handleUngroup = () => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const activeObj = canvas.getActiveObject();
     if (!activeObj || activeObj.type !== 'group') {
       setInfoMessage('Selecione um grupo para desbloquear.');
       return;
     }
-    
+
     const group = activeObj as Group;
-    
+
     // Check if this is a house (has pilotis)
     const hasPilotis = group.getObjects().some((obj: any) => obj.isPilotiCircle);
-    
+
     if (hasPilotis) {
       // Show confirmation dialog for houses
       setGroupToUngroup(group);
@@ -587,14 +587,14 @@ export function RACEditor() {
   const performUngroup = (group: Group) => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     // In Fabric.js v6, removeAll() properly extracts objects with correct coordinates
     const items = group.removeAll();
-    
+
     // Group piloti objects together (circle + text + hitArea with same pilotiId)
     const pilotiMap = new Map<string, FabricObject[]>();
     const nonPilotiItems: FabricObject[] = [];
-    
+
     items.forEach((item: FabricObject) => {
       const pilotiId = (item as any).pilotiId;
       if (pilotiId && ((item as any).isPilotiCircle || (item as any).isPilotiText || (item as any).isPilotiHitArea || (item as any).isPilotiNivelText)) {
@@ -606,15 +606,15 @@ export function RACEditor() {
         nonPilotiItems.push(item);
       }
     });
-    
+
     // Create piloti groups and add to canvas
     const resultItems: FabricObject[] = [...nonPilotiItems];
-    
+
     pilotiMap.forEach((pilotiItems, pilotiId) => {
       if (pilotiItems.length > 1) {
         // Create a group for this piloti
         const pilotiGroup = new Group(pilotiItems, {
-          subTargetCheck: true,
+          subTargetCheck: true
         });
         (pilotiGroup as any).myType = 'pilotiGroup';
         (pilotiGroup as any).pilotiId = pilotiId;
@@ -624,13 +624,13 @@ export function RACEditor() {
         resultItems.push(pilotiItems[0]);
       }
     });
-    
+
     // Add all items to canvas
     canvas.add(...resultItems);
-    
+
     // Remove the now-empty group
     canvas.remove(group);
-    
+
     // Create selection with ungrouped objects
     const selection = new ActiveSelection(resultItems, { canvas });
     canvas.setActiveObject(selection);
@@ -649,53 +649,53 @@ export function RACEditor() {
   const handleGroup = () => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const activeObj = canvas.getActiveObject();
     console.log('Active object:', activeObj);
     console.log('Active object type:', activeObj?.type);
-    
+
     if (!activeObj) {
       setInfoMessage('Selecione vários itens para bloquear (agrupar).');
       return;
     }
-    
+
     // In Fabric.js v6, check for ActiveSelection using isType or constructor
     const isActiveSelection = activeObj.type === 'activeSelection' || activeObj.type === 'activeselection';
     console.log('Is ActiveSelection:', isActiveSelection);
-    
+
     if (!isActiveSelection) {
       setInfoMessage('Selecione vários itens para bloquear (agrupar).');
       return;
     }
-    
+
     const activeSelection = activeObj as ActiveSelection;
     const objects = activeSelection.getObjects();
     console.log('Objects to group:', objects.length);
-    
+
     if (objects.length < 2) {
       setInfoMessage('Selecione pelo menos 2 itens para agrupar.');
       return;
     }
-    
+
     // Save selection position
     const selLeft = activeSelection.left;
     const selTop = activeSelection.top;
-    
+
     // Discard selection first
     canvas.discardActiveObject();
-    
+
     // Remove objects from canvas
     objects.forEach((obj: FabricObject) => {
       canvas.remove(obj);
     });
-    
+
     // Create group with the objects
     const group = new Group(objects, {
       left: selLeft,
-      top: selTop,
+      top: selTop
     });
     group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
-    
+
     canvas.add(group);
     canvas.setActiveObject(group);
     canvas.requestRenderAll();
@@ -729,7 +729,7 @@ export function RACEditor() {
     if (canvas) {
       const wall = createWall(canvas);
       addObjectToCanvas(wall);
-      
+
       // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-wall-tip-shown')) {
         localStorage.setItem('rac-wall-tip-shown', 'true');
@@ -789,7 +789,7 @@ export function RACEditor() {
     if (canvas) {
       const line = createLine(canvas);
       addObjectToCanvas(line);
-      
+
       // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-line-tip-shown')) {
         localStorage.setItem('rac-line-tip-shown', 'true');
@@ -804,7 +804,7 @@ export function RACEditor() {
     if (canvas) {
       const arrow = createArrow(canvas);
       addObjectToCanvas(arrow);
-      
+
       // First-time tip as yellow balloon
       if (!localStorage.getItem('rac-arrow-tip-shown')) {
         localStorage.setItem('rac-arrow-tip-shown', 'true');
@@ -821,39 +821,39 @@ export function RACEditor() {
       const dimension = createDimension(canvas, center);
       canvas.add(dimension);
       canvas.setActiveObject(dimension);
-      
+
       // Automatically open editor for the new dimension
-      const textObj = dimension.getObjects().find(obj => obj.type === 'i-text') as any;
+      const textObj = dimension.getObjects().find((obj) => obj.type === 'i-text') as any;
       const currentValue = textObj?.text?.trim() || '';
-      
+
       // Calculate screen position for the editor
       const canvasPosition = canvasRef.current?.getCanvasPosition();
       const container = canvas.getElement().parentElement?.parentElement;
-      
+
       if (container && canvasPosition) {
         const rect = container.getBoundingClientRect();
         const { x: viewportX, y: viewportY, zoom } = canvasPosition;
-        
+
         const scaledWidth = CANVAS_WIDTH * zoom;
         const scaledHeight = CANVAS_HEIGHT * zoom;
-        
-        const canvasX = scaledWidth <= rect.width 
-          ? (rect.width - scaledWidth) / 2 
-          : -viewportX;
-        const canvasY = scaledHeight <= rect.height 
-          ? (rect.height - scaledHeight) / 2 
-          : -viewportY;
-        
+
+        const canvasX = scaledWidth <= rect.width ?
+        (rect.width - scaledWidth) / 2 :
+        -viewportX;
+        const canvasY = scaledHeight <= rect.height ?
+        (rect.height - scaledHeight) / 2 :
+        -viewportY;
+
         const groupLeft = dimension.left || 0;
         const groupTop = dimension.top || 0;
-        
-        const screenX = rect.left + (groupLeft * zoom) + canvasX;
-        const screenY = rect.top + (groupTop * zoom) + canvasY;
-        
+
+        const screenX = rect.left + groupLeft * zoom + canvasX;
+        const screenY = rect.top + groupTop * zoom + canvasY;
+
         setDistanceSelection({
           group: dimension,
           currentValue,
-          screenPosition: { x: screenX, y: screenY },
+          screenPosition: { x: screenX, y: screenY }
         });
         setIsDistanceEditorOpen(true);
       }
@@ -864,16 +864,16 @@ export function RACEditor() {
     closeAllMenus();
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const newIsDrawing = !isDrawing;
     setIsDrawing(newIsDrawing);
     canvas.isDrawingMode = newIsDrawing;
     canvas.selection = !newIsDrawing;
-    
+
     setInfoMessage(
-      newIsDrawing 
-        ? '<b>Modo Desenho:</b> Risque na tela livremente.' 
-        : '<b>Dica:</b> Modo desenho desativado.'
+      newIsDrawing ?
+      '<b>Modo Desenho:</b> Risque na tela livremente.' :
+      '<b>Dica:</b> Modo desenho desativado.'
     );
   };
 
@@ -899,7 +899,7 @@ export function RACEditor() {
       const el = document.activeElement;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || (el as HTMLElement).isContentEditable)) return;
       e.preventDefault();
-      setShowZoomControls(prev => {
+      setShowZoomControls((prev) => {
         const next = !prev;
         if (tutorialStep === 'zoom-minimap') advanceTutorial('zoom-minimap');
         return next;
@@ -922,7 +922,7 @@ export function RACEditor() {
   const handleExportJSON = () => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     // Custom properties are now included via prototype extension
     const json = canvas.toJSON();
     const blob = new Blob([JSON.stringify(json)], { type: 'application/json' });
@@ -932,7 +932,7 @@ export function RACEditor() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     setInfoMessage('Projeto salvo como JSON!');
     toast.success('Projeto exportado com sucesso!');
   };
@@ -940,7 +940,7 @@ export function RACEditor() {
   const handleImportJSON = (file: File) => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       canvas.clear();
@@ -961,18 +961,18 @@ export function RACEditor() {
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length) {
       canvas.discardActiveObject();
-      
+
       for (const obj of activeObjects) {
         // If it's a house view, check protection rules
         if ((obj as any).myType === 'house') {
           const rawView = (obj as any).houseViewType ?? (obj as any).houseView;
           const viewType: ViewType | null =
-            rawView === 'top' ? 'top' :
-            rawView === 'front' ? 'front' :
-            rawView === 'back' ? 'back' :
-            rawView === 'side1' ? 'side1' :
-            rawView === 'side2' ? 'side2' :
-            null;
+          rawView === 'top' ? 'top' :
+          rawView === 'front' ? 'front' :
+          rawView === 'back' ? 'back' :
+          rawView === 'side1' ? 'side1' :
+          rawView === 'side2' ? 'side2' :
+          null;
 
           // Check if trying to delete the plant (top view)
           if (viewType === 'top') {
@@ -1002,21 +1002,21 @@ export function RACEditor() {
   const handleSavePDF = async () => {
     const canvas = getCanvas();
     if (!canvas) return;
-    
+
     canvas.discardActiveObject();
     canvas.renderAll();
-    
+
     const imgData = canvas.toDataURL();
-    
+
     const pdf = new jsPDF({
       orientation: 'p',
       unit: 'px',
-      format: [CANVAS_WIDTH, CANVAS_HEIGHT],
+      format: [CANVAS_WIDTH, CANVAS_HEIGHT]
     });
-    
+
     pdf.addImage(imgData, 'PNG', 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     pdf.save('RAC-TETO.pdf');
-    
+
     toast.success('PDF salvo com sucesso!');
   };
 
@@ -1024,12 +1024,12 @@ export function RACEditor() {
     disableDrawingMode();
     // Only show submenu if house type is already selected
     if (houseManager.getHouseType()) {
-      setActiveSubmenu(prev => prev === 'house' ? null : 'house');
+      setActiveSubmenu((prev) => prev === 'house' ? null : 'house');
     } else {
       // Open type selector instead
       handleOpenHouseTypeSelector();
     }
-    
+
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'house') {
       advanceTutorial('house');
@@ -1038,8 +1038,8 @@ export function RACEditor() {
 
   const handleToggleElementsMenu = () => {
     disableDrawingMode();
-    setActiveSubmenu(prev => prev === 'elements' ? null : 'elements');
-    
+    setActiveSubmenu((prev) => prev === 'elements' ? null : 'elements');
+
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'elements') {
       advanceTutorial('elements');
@@ -1048,13 +1048,13 @@ export function RACEditor() {
 
   const handleToggleLinesMenu = () => {
     disableDrawingMode();
-    setActiveSubmenu(prev => prev === 'lines' ? null : 'lines');
+    setActiveSubmenu((prev) => prev === 'lines' ? null : 'lines');
   };
 
   const handleToggleOverflowMenu = () => {
     disableDrawingMode();
-    setActiveSubmenu(prev => prev === 'overflow' ? null : 'overflow');
-    
+    setActiveSubmenu((prev) => prev === 'overflow' ? null : 'overflow');
+
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'more-options') {
       advanceTutorial('more-options');
@@ -1104,19 +1104,19 @@ export function RACEditor() {
           if (houseStillSelected) {
             obj.set({
               stroke: '#facc15',
-              strokeWidth: obj.isPilotiRect ? 4 : 3,
+              strokeWidth: obj.isPilotiRect ? 4 : 3
             });
           } else {
             // Reset para cores “normais”
             if (obj.pilotiIsMaster) {
               obj.set({
                 stroke: '#8B4513',
-                strokeWidth: obj.isPilotiRect ? 3 : 2,
+                strokeWidth: obj.isPilotiRect ? 3 : 2
               });
             } else {
               obj.set({
                 stroke: obj.isPilotiRect ? '#333' : 'black',
-                strokeWidth: obj.isPilotiRect ? 2 : 1.5 * 0.6,
+                strokeWidth: obj.isPilotiRect ? 2 : 1.5 * 0.6
               });
             }
           }
@@ -1135,10 +1135,10 @@ export function RACEditor() {
 
   const handlePilotiNavigate = (pilotiId: string, height: number, isMaster: boolean, nivel: number) => {
     if (!pilotiSelection?.group) return;
-    
+
     const canvas = canvasRef.current?.canvas;
     if (!canvas) return;
-    
+
     // Update highlights across ALL house groups (cross-view sync)
     // First, set all pilotis in all house groups to yellow
     canvas.getObjects().forEach((obj: any) => {
@@ -1147,7 +1147,7 @@ export function RACEditor() {
           if (child.isPilotiCircle || child.isPilotiRect) {
             child.set({
               stroke: '#facc15',
-              strokeWidth: child.isPilotiRect ? 4 : 3,
+              strokeWidth: child.isPilotiRect ? 4 : 3
             });
           }
         });
@@ -1161,24 +1161,24 @@ export function RACEditor() {
           if ((child.isPilotiCircle || child.isPilotiRect) && child.pilotiId === pilotiId) {
             child.set({
               stroke: '#3b82f6',
-              strokeWidth: child.isPilotiRect ? 5 : 4,
+              strokeWidth: child.isPilotiRect ? 5 : 4
             });
           }
         });
       }
     });
-    
+
     canvas.renderAll();
-    
+
     // Update selection state
-    setPilotiSelection(prev => prev ? {
+    setPilotiSelection((prev) => prev ? {
       ...prev,
       pilotiId,
       currentHeight: height,
       currentIsMaster: isMaster,
-      currentNivel: nivel,
+      currentNivel: nivel
     } : null);
-    
+
     setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
   };
 
@@ -1256,7 +1256,7 @@ export function RACEditor() {
           originY: 'center',
           textAlign: 'center',
           selectable: false,
-          evented: false,
+          evented: false
         });
         (label as any).myType = 'wallLabel';
 
@@ -1267,7 +1267,7 @@ export function RACEditor() {
         label.set({ left: 0, top: 0 });
 
         const group = new Group([obj, label], {
-          left: objLeft, top: objTop, originX: 'center', originY: 'center',
+          left: objLeft, top: objTop, originX: 'center', originY: 'center'
         });
         (group as any).myType = (obj as any).myType;
         (group as any).pilotiId = (obj as any).pilotiId;
@@ -1345,7 +1345,7 @@ export function RACEditor() {
             textAlign: 'center',
             selectable: false,
             evented: false,
-            backgroundColor: 'rgba(255,255,255,0.8)',
+            backgroundColor: 'rgba(255,255,255,0.8)'
           });
           (textLabel as any).myType = 'lineArrowLabel';
 
@@ -1364,7 +1364,7 @@ export function RACEditor() {
 
           const newGroup = new Group([obj, textLabel], {
             left: objLeft, top: objTop, originX: 'center', originY: 'center',
-            lockScalingY: true,
+            lockScalingY: true
           });
           (newGroup as any).myType = (obj as any).myType;
           newGroup.setControlsVisibility({ mt: false, mb: false });
@@ -1409,7 +1409,7 @@ export function RACEditor() {
 
     } else if (editorType === 'dimension' && distanceSelection) {
       const group = distanceSelection.group;
-      const textObj = group.getObjects().find(obj => obj.type === 'i-text') as IText;
+      const textObj = group.getObjects().find((obj) => obj.type === 'i-text') as IText;
       if (textObj) {
         textObj.set({ text: newValue || ' ', fill: newColor });
       }
@@ -1477,8 +1477,8 @@ export function RACEditor() {
         backViewCount={{ current: houseManager.getViewCount('back'), max: houseManager.getMaxViewCount('back') }}
         side1ViewCount={{ current: houseManager.getViewCount('side1'), max: houseManager.getMaxViewCount('side1') }}
         side2ViewCount={{ current: houseManager.getViewCount('side2'), max: houseManager.getMaxViewCount('side2') }}
-        onOpenSettings={() => { setActiveSubmenu(null); setIsSettingsOpen(true); }}
-      />
+        onOpenSettings={() => {setActiveSubmenu(null);setIsSettingsOpen(true);}} />
+
       
       <div className="h-full p-2.5 overflow-hidden relative">
         <Canvas
@@ -1503,14 +1503,14 @@ export function RACEditor() {
           onLineArrowSelect={handleLineArrowSelect}
           isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen || isLineArrowEditorOpen}
           onDelete={handleDelete}
-          showZoomControls={showZoomControls}
-        >
+          showZoomControls={showZoomControls}>
+
           {/* InfoBar - positioned differently on mobile vs desktop */}
-          {showTips && (
-            <div className="sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto">
+          {showTips &&
+          <div className="sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto">
               <InfoBar message={infoMessage} />
             </div>
-          )}
+          }
         </Canvas>
       </div>
 
@@ -1526,8 +1526,8 @@ export function RACEditor() {
         anchorPosition={pilotiSelection?.screenPosition}
         houseView={pilotiSelection?.houseView ?? 'top'}
         onHeightChange={handlePilotiHeightChange}
-        onNavigate={handlePilotiNavigate}
-      />
+        onNavigate={handlePilotiNavigate} />
+
 
       <GenericEditor
         isOpen={isDistanceEditorOpen}
@@ -1539,13 +1539,13 @@ export function RACEditor() {
         currentColor={(() => {
           const g = distanceSelection?.group;
           if (!g) return '#000000';
-          const t = g.getObjects().find(o => o.type === 'i-text') as any;
+          const t = g.getObjects().find((o) => o.type === 'i-text') as any;
           return t?.fill as string || '#000000';
         })()}
         isMobile={isMobile}
         anchorPosition={distanceSelection?.screenPosition}
-        onApply={(v, c) => handleGenericApply('dimension', v, c)}
-      />
+        onApply={(v, c) => handleGenericApply('dimension', v, c)} />
+
 
       <GenericEditor
         isOpen={isObjectNameEditorOpen}
@@ -1561,8 +1561,8 @@ export function RACEditor() {
         })()}
         isMobile={isMobile}
         anchorPosition={objectNameSelection?.screenPosition}
-        onApply={(v, c) => handleGenericApply('wall', v, c)}
-      />
+        onApply={(v, c) => handleGenericApply('wall', v, c)} />
+
 
       <GenericEditor
         isOpen={isLineArrowEditorOpen}
@@ -1574,61 +1574,61 @@ export function RACEditor() {
         currentColor={lineArrowSelection?.currentColor ?? '#000000'}
         isMobile={isMobile}
         anchorPosition={lineArrowSelection?.screenPosition}
-        onApply={(v, c) => handleGenericApply(lineArrowSelection?.myType === 'arrow' ? 'arrow' : 'line', v, c)}
-      />
+        onApply={(v, c) => handleGenericApply(lineArrowSelection?.myType === 'arrow' ? 'arrow' : 'line', v, c)} />
 
-      {pendingViewType && (
-        <SideSelector
-          isOpen={sideSelectorOpen}
-          onClose={handleSideSelectorClose}
-          viewType={pendingViewType}
-          onSelectSide={handleSideSelected}
-          mode={sideSelectorMode}
-          instanceSlots={instanceSlots}
-        />
-      )}
+
+      {pendingViewType &&
+      <SideSelector
+        isOpen={sideSelectorOpen}
+        onClose={handleSideSelectorClose}
+        viewType={pendingViewType}
+        onSelectSide={handleSideSelected}
+        mode={sideSelectorMode}
+        instanceSlots={instanceSlots} />
+
+      }
 
       <HouseTypeSelector
         isOpen={houseTypeSelectorOpen}
         onClose={handleHouseTypeSelectorClose}
-        onSelectType={handleHouseTypeSelected}
-      />
+        onSelectType={handleHouseTypeSelected} />
+
 
       <House3DViewer
         open={is3DViewerOpen}
-        onOpenChange={setIs3DViewerOpen}
-      />
+        onOpenChange={setIs3DViewerOpen} />
+
 
       <SettingsModal
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
-        onSettingsChange={() => setShowZoomControls(getSettings().zoomEnabledByDefault)}
-      />
+        onSettingsChange={() => setShowZoomControls(getSettings().zoomEnabledByDefault)} />
 
-      {tutorialStep && (
-        <Tutorial 
-          onComplete={handleTutorialComplete} 
-          currentStepId={tutorialStep}
-        />
-      )}
 
-      {pilotiTutorialPosition && (
-        <PilotiTutorialBalloon
-          position={pilotiTutorialPosition}
-          onClose={handleClosePilotiTutorial}
-        />
-      )}
+      {tutorialStep &&
+      <Tutorial
+        onComplete={handleTutorialComplete}
+        currentStepId={tutorialStep} />
 
-      {onboardingBalloon && (
-        <OnboardingBalloon
-          position={onboardingBalloon.position}
-          text={onboardingBalloon.text}
-          onClose={() => setOnboardingBalloon(null)}
-        />
-      )}
+      }
 
-      {isMobile ? (
-        <>
+      {pilotiTutorialPosition &&
+      <PilotiTutorialBalloon
+        position={pilotiTutorialPosition}
+        onClose={handleClosePilotiTutorial} />
+
+      }
+
+      {onboardingBalloon &&
+      <OnboardingBalloon
+        position={onboardingBalloon.position}
+        text={onboardingBalloon.text}
+        onClose={() => setOnboardingBalloon(null)} />
+
+      }
+
+      {isMobile ?
+      <>
           <Drawer open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
             <DrawerContent>
               <DrawerHeader className="text-center pb-2">
@@ -1640,15 +1640,15 @@ export function RACEditor() {
                     Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?
                   </p>
                 </div>
-                <div className="flex gap-3 pt-3">
+                <div className="flex pt-4 gap-[16px]">
                   <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
-                  <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
+                  <Button className="flex-1" onClick={() => {confirmRestartTutorial();}}>Confirmar</Button>
                 </div>
               </div>
             </DrawerContent>
           </Drawer>
 
-          <Drawer open={showUngroupConfirm} onOpenChange={(open) => { if (!open) { setShowUngroupConfirm(false); setGroupToUngroup(null); } }}>
+          <Drawer open={showUngroupConfirm} onOpenChange={(open) => {if (!open) {setShowUngroupConfirm(false);setGroupToUngroup(null);}}}>
             <DrawerContent>
               <DrawerHeader className="text-center pb-2">
                 <DrawerTitle className="text-center text-2xl">Desagrupar Casa</DrawerTitle>
@@ -1660,15 +1660,15 @@ export function RACEditor() {
                   </p>
                 </div>
                 <div className="flex gap-3 pt-3">
-                  <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+                  <Button variant="outline" className="flex-1 bg-white" onClick={() => {setShowUngroupConfirm(false);setGroupToUngroup(null);}}>Cancelar</Button>
                   <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
                 </div>
               </div>
             </DrawerContent>
           </Drawer>
-        </>
-      ) : (
-        <>
+        </> :
+
+      <>
           <Dialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
             <DialogContent className="sm:max-w-sm" hideCloseButton>
               <DialogHeader className="text-center">
@@ -1681,7 +1681,7 @@ export function RACEditor() {
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1 bg-white" onClick={() => setShowRestartConfirm(false)}>Cancelar</Button>
-                <Button className="flex-1" onClick={() => { confirmRestartTutorial(); }}>Confirmar</Button>
+                <Button className="flex-1" onClick={() => {confirmRestartTutorial();}}>Confirmar</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -1697,20 +1697,20 @@ export function RACEditor() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1 bg-white" onClick={() => { setShowUngroupConfirm(false); setGroupToUngroup(null); }}>Cancelar</Button>
+                <Button variant="outline" className="flex-1 bg-white" onClick={() => {setShowUngroupConfirm(false);setGroupToUngroup(null);}}>Cancelar</Button>
                 <Button className="flex-1" onClick={confirmUngroup}>Desagrupar</Button>
               </div>
             </DialogContent>
           </Dialog>
         </>
-      )}
+      }
 
       <NivelDefinitionModal
         isOpen={nivelDefinitionOpen}
         onClose={handleNivelDefinitionClose}
         onApply={handleNiveisApplied}
-        pilotiData={houseManager.getHouse()?.pilotis || {}}
-      />
-    </div>
-  );
+        pilotiData={houseManager.getHouse()?.pilotis || {}} />
+
+    </div>);
+
 }
