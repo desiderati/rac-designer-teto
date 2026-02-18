@@ -721,7 +721,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: chapelW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
+    { fill: "#bababa", strokeWidth: 1, left: diagW, top: 0 },
   );
 
   const rightDiagFill = new Polygon(
@@ -731,7 +731,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
+    { fill: "#d1d1d1", strokeWidth: 1, left: diagW + chapelW, top: 0 },
   );
 
   const roofLines = [
