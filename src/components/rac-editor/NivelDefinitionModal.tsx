@@ -276,7 +276,7 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
 
 
       {/* Footer buttons */}
-      <div className="flex gap-2 w-full">
+      <div className="flex w-full gap-[16px]">
         <Button variant="outline" className="flex-1 bg-white" onClick={handleClose}>
           Cancelar
         </Button>
