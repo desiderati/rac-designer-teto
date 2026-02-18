@@ -736,34 +736,19 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "#cdcdcd", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
-  const roofLines = [
-    new Line([0, bodyH - diagH1, bodyW / 2, 0], {
-      stroke: "#333",
-      strokeWidth: 2,
-      strokeUniform: true,
-      left: 0,
-      top: 0,
-    }),
-    new Line([bodyW / 2, 0, bodyW, bodyH - diagH1], {
-      stroke: "#333",
-      strokeWidth: 2,
-      strokeUniform: true,
-      left: bodyW / 2,
-      top: 0,
-    }),
-  ];
-
   const bodyStroke = new Polyline(
     [
-      { x: 0, y: 0 },
-      { x: 0, y: diagH1 },
-      { x: bodyW, y: diagH1 },
-      { x: bodyW, y: 0 },
+      { x: 0, y: bodyH - diagH1 },
+      { x: bodyW / 2, y: 0 },
+      { x: bodyW, y: bodyH - diagH1 },
+      { x: bodyW, y: bodyH },
+      { x: 0, y: bodyH },
+      { x: 0, y: bodyH - diagH1 },
     ],
-    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH - diagH1 },
+    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: 0 },
   );
 
-  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
 
   const floorBean = new Rect({
     width: floorBeanW,
