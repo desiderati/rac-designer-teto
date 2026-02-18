@@ -17,6 +17,8 @@ const BODY_HEIGHT = 273 * S;
 // Medidas usadas no perfil do telhado
 const DIAG_H1 = 213 * S;
 const DIAG_W = 244 * S;
+const WALL_HEIGHT = DIAG_H1;
+const ROOF_RISE = BODY_HEIGHT - DIAG_H1;
 
 // Grade dos pilotis
 const COLUMN_DISTANCE = 155 * S;
@@ -200,8 +202,8 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
   const BY = HOUSE_BASE_Y;
-  const TOP = BY + BODY_HEIGHT;
-  const cy = BY + BODY_HEIGHT / 2;
+  const TOP = BY + WALL_HEIGHT;
+  const cy = BY + WALL_HEIGHT / 2;
 
   const isOpenLeft = houseType === "tipo3";
 
@@ -213,12 +215,12 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
       height: number;
       key: string;
     }[] = [
-      { pos: [0, cy, hd], rot: [0, 0, 0], width: HOUSE_WIDTH, height: BODY_HEIGHT, key: "front" },
-      { pos: [0, cy, -hd], rot: [0, Math.PI, 0], width: HOUSE_WIDTH, height: BODY_HEIGHT, key: "back" },
-      { pos: [hw, cy, 0], rot: [0, Math.PI / 2, 0], width: HOUSE_DEPTH, height: BODY_HEIGHT, key: "right" },
+      { pos: [0, cy, hd], rot: [0, 0, 0], width: HOUSE_WIDTH, height: WALL_HEIGHT, key: "front" },
+      { pos: [0, cy, -hd], rot: [0, Math.PI, 0], width: HOUSE_WIDTH, height: WALL_HEIGHT, key: "back" },
+      { pos: [hw, cy, 0], rot: [0, Math.PI / 2, 0], width: HOUSE_DEPTH, height: WALL_HEIGHT, key: "right" },
     ];
     if (!isOpenLeft) {
-      w.push({ pos: [-hw, cy, 0], rot: [0, -Math.PI / 2, 0], width: HOUSE_DEPTH, height: BODY_HEIGHT, key: "left" });
+      w.push({ pos: [-hw, cy, 0], rot: [0, -Math.PI / 2, 0], width: HOUSE_DEPTH, height: WALL_HEIGHT, key: "left" });
     }
     return w;
   }, [isOpenLeft, cy, hw, hd]);
@@ -267,13 +269,13 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
 function Roof() {
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
-  const roofBaseY = HOUSE_BASE_Y + BODY_HEIGHT;
+  const roofBaseY = HOUSE_BASE_Y + WALL_HEIGHT;
 
   // Perfil do telhado:
   // - laterais começam no topo da parede
-  // - pico sobe BODY_HEIGHT - DIAG_H1
+  // - pico sobe somente o trecho final do front profile (ROOF_RISE)
   const wallEdgeH = 0;
-  const peakH = Math.max(BODY_HEIGHT - DIAG_H1, 1);
+  const peakH = Math.max(ROOF_RISE, 1);
 
   const geometry = useMemo(() => {
     const verts: number[] = [];
