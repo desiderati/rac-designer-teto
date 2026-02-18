@@ -528,12 +528,11 @@ export function Toolbar({
             />
             <SubMenuButton
               icon={faCube}
-              title="Visualizar em 3D - Em breve"
-              onClick={() => {}}
-              color="#ecf0f1"
+              title="Visualizar em 3D"
+              onClick={() => handleAction(onOpen3DViewer)}
+              color="#74b9ff"
               hideTooltip={isTutorialActive}
               tooltipSide="left"
-              isDisabled
             />
             <SubMenuButton
               icon={faRotateLeft}
