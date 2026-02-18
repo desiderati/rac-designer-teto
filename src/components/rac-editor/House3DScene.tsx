@@ -10,6 +10,16 @@ interface House3DSceneProps {
   wallColor?: string;
 }
 
+interface SceneOpening {
+  id: string;
+  type: 'window' | 'door';
+  face: 'front' | 'back' | 'left' | 'right';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 const TOP_VIEW_SCALE = 0.6; // Same scale used by createHouseTop
 const VIEWER_MODEL_SCALE = 0.5;
 const U = TOP_VIEW_SCALE * VIEWER_MODEL_SCALE;
@@ -58,6 +68,128 @@ const COLORS = {
   window: '#eef6ff',
   frame: '#666666',
 };
+
+function buildOpeningsFromCanvasModel(houseType: HouseType, rawElements: HouseElement[]): SceneOpening[] {
+  if (!houseType) return [];
+
+  const s = TOP_VIEW_SCALE;
+  const bodyW = BASE_TOP_WIDTH * s;
+  const bodyH = 273 * s;
+  const sideW = BASE_TOP_HEIGHT * s;
+  const sideWallH = 213 * s;
+
+  const fbDoorW = 80 * s;
+  const fbDoorH = 191 * s;
+  const fbWindowW = 80 * s;
+  const fbWindowH = 70 * s;
+  const fbDoorShiftX = 30 * s;
+  const fbWindowShiftX = 30 * s;
+  const fbWindowY = bodyH - fbDoorH;
+  const fbBackWindowX = 95 * s;
+
+  const fbFrontDoorX = bodyW - fbWindowW - fbWindowShiftX - fbDoorW - fbDoorShiftX;
+  const fbFrontWindowRightX = bodyW - fbWindowW - fbWindowShiftX;
+  const fbFrontWindowLeftX = 95 * s;
+
+  const sideDoorW = 80 * s;
+  const sideDoorH = 191 * s;
+  const sideWindowW = 80 * s;
+  const sideWindowH = 70 * s;
+  const sideDoorShiftX = 45 * s;
+  const sideWindowShiftX = 45 * s;
+  const sideDoorX = sideW - sideDoorW - sideDoorShiftX;
+  const sideWindowX = sideW - sideDoorW - sideDoorShiftX - sideWindowW - sideWindowShiftX;
+  const sideOpeningY = sideWallH - sideDoorH;
+
+  const openings: SceneOpening[] = [];
+
+  if (houseType === 'tipo6') {
+    openings.push(
+      {
+        id: 'canvas-front-window-left',
+        type: 'window',
+        face: 'front',
+        x: fbFrontWindowLeftX,
+        y: fbWindowY,
+        width: fbWindowW,
+        height: fbWindowH,
+      },
+      {
+        id: 'canvas-front-window-right',
+        type: 'window',
+        face: 'front',
+        x: fbFrontWindowRightX,
+        y: fbWindowY,
+        width: fbWindowW,
+        height: fbWindowH,
+      },
+      {
+        id: 'canvas-front-door',
+        type: 'door',
+        face: 'front',
+        x: fbFrontDoorX,
+        y: fbWindowY,
+        width: fbDoorW,
+        height: fbDoorH,
+      },
+      {
+        id: 'canvas-back-window',
+        type: 'window',
+        face: 'back',
+        x: fbBackWindowX,
+        y: fbWindowY,
+        width: fbWindowW,
+        height: fbWindowH,
+      },
+    );
+    return openings;
+  }
+
+  const hasLeftDoor = rawElements.some((e) => e.type === 'door' && e.face === 'left');
+  const hasRightDoor = rawElements.some((e) => e.type === 'door' && e.face === 'right');
+  const openSide: 'left' | 'right' = hasLeftDoor ? 'left' : hasRightDoor ? 'right' : 'right';
+
+  openings.push(
+    {
+      id: 'canvas-tipo3-front-window',
+      type: 'window',
+      face: 'front',
+      x: fbBackWindowX,
+      y: fbWindowY,
+      width: fbWindowW,
+      height: fbWindowH,
+    },
+    {
+      id: 'canvas-tipo3-back-window',
+      type: 'window',
+      face: 'back',
+      x: fbBackWindowX,
+      y: fbWindowY,
+      width: fbWindowW,
+      height: fbWindowH,
+    },
+    {
+      id: `canvas-tipo3-${openSide}-window`,
+      type: 'window',
+      face: openSide,
+      x: sideWindowX,
+      y: sideOpeningY,
+      width: sideWindowW,
+      height: sideWindowH,
+    },
+    {
+      id: `canvas-tipo3-${openSide}-door`,
+      type: 'door',
+      face: openSide,
+      x: sideDoorX,
+      y: sideOpeningY,
+      width: sideDoorW,
+      height: sideDoorH,
+    },
+  );
+
+  return openings;
+}
 
 function parsePilotiId(pilotiId: string): { col: number; row: number } | null {
   const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
@@ -289,10 +421,10 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
 
   switch (element.face) {
     case 'front':
-      position = [hw - xOffset - elementWidth / 2, y, hd + elementDepth / 2];
+      position = [xOffset - hw + elementWidth / 2, y, hd + elementDepth / 2];
       break;
     case 'back':
-      position = [xOffset - hw + elementWidth / 2, y, -hd - elementDepth / 2];
+      position = [hw - xOffset - elementWidth / 2, y, -hd - elementDepth / 2];
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
@@ -324,6 +456,7 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
 }
 
 export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#d4d4d4' }: House3DSceneProps) {
+  const sceneOpenings = useMemo(() => buildOpeningsFromCanvasModel(houseType, elements), [houseType, elements]);
   if (!houseType) return null;
 
   return (
@@ -336,7 +469,7 @@ export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#
 
       <HouseShell wallColor={wallColor} />
 
-      {elements.map((element) => (
+      {sceneOpenings.map((element) => (
         <HouseElementMesh key={element.id} element={element} />
       ))}
     </group>
