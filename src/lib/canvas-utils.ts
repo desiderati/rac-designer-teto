@@ -971,7 +971,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   };
 
   createFloorBeanRect(0);
-  createFloorBeanRect((sideWidth + floorBeanW) / 2);
+  createFloorBeanRect((sideWidth - floorBeanW) / 2);
   createFloorBeanRect(sideWidth - floorBeanW);
 
   if (hasDoor) {
