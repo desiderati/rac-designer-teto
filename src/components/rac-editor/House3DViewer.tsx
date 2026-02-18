@@ -1,13 +1,14 @@
-import { Suspense, useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateRight, faExpand, faCompress, faXmark, faPalette } from '@fortawesome/free-solid-svg-icons';
+import { faRotateRight, faExpand, faCompress, faXmark, faPalette, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { House3DScene } from './House3DScene';
 import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
+import { toast } from 'sonner';
 
 const WALL_COLORS = [
   { name: 'Terracota', value: '#c4967a' },
@@ -32,6 +33,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState('#a8c4d8');
+  const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Sync with HouseManager
   const syncFromManager = useCallback(() => {
@@ -72,6 +74,32 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const handleClose = () => {
     onOpenChange(false);
   };
+
+  const handleInsertOnCanvas = useCallback(async () => {
+    if (!houseType) {
+      toast.error('Nenhuma casa 3D para inserir.');
+      return;
+    }
+
+    const webglCanvas = webglCanvasRef.current;
+    if (!webglCanvas) {
+      toast.error('Canvas 3D não disponível.');
+      return;
+    }
+
+    try {
+      const dataUrl = webglCanvas.toDataURL('image/png');
+      const inserted = await houseManager.insert3DSnapshotOnCanvas(dataUrl);
+      if (inserted) {
+        toast.success('Visão 3D inserida no canvas.');
+      } else {
+        toast.error('Não foi possível inserir no canvas.');
+      }
+    } catch (error) {
+      console.error('[House3DViewer] Failed to capture 3D screenshot:', error);
+      toast.error('Falha ao capturar a imagem 3D.');
+    }
+  }, [houseType]);
 
   // Fixed dialog dimensions
   const dialogClass = isFullscreen 
@@ -116,10 +144,12 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
               </Popover>
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 title="Inserir no Canvas"
+                onClick={handleInsertOnCanvas}
+                disabled={!houseType}
               >
-                Inserir no Canvas
+                <FontAwesomeIcon icon={faCamera} />
               </Button>
               <Button
                 variant="outline"
@@ -163,7 +193,14 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
               </div>
             }>
-              <Canvas key={resetKey} shadows>
+              <Canvas
+                key={resetKey}
+                shadows
+                gl={{ preserveDrawingBuffer: true }}
+                onCreated={({ gl }) => {
+                  webglCanvasRef.current = gl.domElement;
+                }}
+              >
                 <PerspectiveCamera 
                   makeDefault 
                   position={[200, 180, 280]} 

@@ -82,7 +82,7 @@ const COLORS = {
   terrain: '#7da86d',
   floor: '#f7f7f7',
   beam: '#ececec',
-  frame: '#4f4f4f',
+  frame: '#bdbdbd',
 };
 
 function offsetLightness(hex: string, lightnessOffset: number): string {
@@ -476,6 +476,9 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   const elementWidth = Math.max(element.width * VIEWER_MODEL_SCALE, 1);
   const elementHeight = Math.max(element.height * VIEWER_MODEL_SCALE, 1);
   const elementDepth = 2;
+  const frameDepth = elementDepth * 0.2;
+  const fillDepth = elementDepth * 0.26;
+  const fillOffset = frameDepth / 2 + fillDepth / 2 + 0.03;
   const frontBackGap = 0.08;
 
   const xOffset = element.x * VIEWER_MODEL_SCALE;
@@ -497,11 +500,13 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      position = [-hw - elementDepth / 2, y, xOffset - hd + elementWidth / 2];
+      // Left side view (A1 -> C1): x grows from front to back
+      position = [-hw - elementDepth / 2, y, hd - xOffset - elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      position = [hw + elementDepth / 2, y, -(xOffset - hd + elementWidth / 2)];
+      // Right side view (C4 -> A4): x grows from back to front
+      position = [hw + elementDepth / 2, y, -hd + xOffset + elementWidth / 2];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
@@ -513,11 +518,11 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   return (
     <group position={position} rotation={rotation}>
       <mesh>
-        <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, elementDepth * 0.6]} />
+        <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, frameDepth]} />
         <meshStandardMaterial color={COLORS.frame} />
       </mesh>
-      <mesh position={[0, 0, elementDepth * 0.18]}>
-        <boxGeometry args={[elementWidth, elementHeight, elementDepth * 0.35]} />
+      <mesh position={[0, 0, fillOffset]}>
+        <boxGeometry args={[elementWidth, elementHeight, fillDepth]} />
         <meshStandardMaterial
           color={fillColor}
           roughness={0.72}

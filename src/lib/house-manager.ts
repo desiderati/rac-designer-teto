@@ -1,4 +1,4 @@
-import { Group, FabricObject, Canvas as FabricCanvas } from 'fabric';
+import { Group, FabricObject, Canvas as FabricCanvas, FabricImage } from 'fabric';
 import {
   updatePilotiHeight,
   updatePilotiMaster,
@@ -681,6 +681,48 @@ class HouseManager {
   // Get all house elements (windows/doors)
   getElements(): HouseElement[] {
     return this.house?.elements || [];
+  }
+
+  // Insert a 3D viewer snapshot as a locked, non-editable image on the current canvas
+  async insert3DSnapshotOnCanvas(dataUrl: string): Promise<boolean> {
+    if (!this.canvas) return false;
+    if (!dataUrl) return false;
+
+    try {
+      const image = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+      const canvas = this.canvas;
+      const center = canvas.getVpCenter();
+
+      const imgWidth = image.width ?? 1;
+      const imgHeight = image.height ?? 1;
+      const maxWidth = (canvas.getWidth() || 1300) * 0.45;
+      const maxHeight = (canvas.getHeight() || 1300) * 0.45;
+      const scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight, 1);
+
+      image.set({
+        left: center.x,
+        top: center.y,
+        originX: 'center',
+        originY: 'center',
+        scaleX: scale,
+        scaleY: scale,
+        selectable: false,
+        evented: false,
+        hasControls: false,
+        hasBorders: false,
+        lockMovementX: true,
+        lockMovementY: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: true,
+      });
+      canvas.add(image);
+      canvas.requestRenderAll();
+      return true;
+    } catch (error) {
+      console.error('[HouseManager] Failed to insert 3D snapshot on canvas:', error);
+      return false;
+    }
   }
 
   // Add an element (window/door)
