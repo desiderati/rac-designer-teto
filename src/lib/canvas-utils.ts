@@ -50,6 +50,8 @@ export const customProps = [
   "isRightSide",
   "isFlippedHorizontally",
   "isPilotiStripe",
+  "isTopDoorMarker",
+  "markerSide",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -161,6 +163,66 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   (borderRight as any).edgeSide = "right";
 
   houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
+
+  // Door markers on top view (hidden by default, positioned by HouseManager based on side assignments)
+  const markerLong = 60 * s;
+  const markerShort = 20 * s;
+  const markerGap = 8 * s;
+  const markerFill = "#d4b080";
+  const markerStroke = "#8B4513";
+
+  const createDoorMarker = (side: "top" | "bottom" | "left" | "right"): Group => {
+    const vertical = side === "left" || side === "right";
+    const rect = new Rect({
+      width: vertical ? markerShort : markerLong,
+      height: vertical ? markerLong : markerShort,
+      fill: markerFill,
+      stroke: markerStroke,
+      strokeWidth: 1.5 * s,
+      strokeUniform: true,
+      originX: "center",
+      originY: "center",
+      selectable: false,
+      evented: false,
+    });
+
+    const label = new Text("Porta", {
+      fontSize: 13 * s,
+      fill: "#555",
+      originX: "center",
+      originY: "center",
+      selectable: false,
+      evented: false,
+      angle: vertical ? 90 : 0,
+    });
+
+    const basePos: Record<typeof side, { left: number; top: number }> = {
+      top: { left: 0, top: -h / 2 - markerShort / 2 - markerGap },
+      bottom: { left: 0, top: h / 2 + markerShort / 2 + markerGap },
+      left: { left: -w / 2 - markerShort / 2 - markerGap, top: 0 },
+      right: { left: w / 2 + markerShort / 2 + markerGap, top: 0 },
+    };
+
+    const marker = new Group([rect, label], {
+      ...basePos[side],
+      originX: "center",
+      originY: "center",
+      selectable: false,
+      evented: false,
+      visible: false,
+      objectCaching: false,
+    });
+    (marker as any).isTopDoorMarker = true;
+    (marker as any).markerSide = side;
+    return marker;
+  };
+
+  houseObjects.push(
+    createDoorMarker("top"),
+    createDoorMarker("bottom"),
+    createDoorMarker("left"),
+    createDoorMarker("right"),
+  );
 
   let pilotiIndex = 0;
   [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach((x, colIdx) => {

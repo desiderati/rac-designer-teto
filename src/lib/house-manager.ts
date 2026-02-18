@@ -126,7 +126,89 @@ class HouseManager {
   private listeners = new Set<() => void>();
 
   private notify(): void {
+    this.refreshTopDoorMarkers();
     this.listeners.forEach((l) => l());
+  }
+
+  private refreshTopDoorMarkers(): void {
+    if (!this.house) return;
+    const topViews = this.house.views.top;
+    if (!topViews || topViews.length === 0) return;
+
+    const door = this.house.elements.find((e) => e.type === 'door');
+    const sideAssignments = this.house.sideAssignments;
+
+    if (!door) {
+      for (const topInstance of topViews) {
+        const markers = topInstance.group.getObjects().filter((o: any) => o?.isTopDoorMarker) as any[];
+        for (const marker of markers) {
+          marker.set({ visible: false });
+          marker.setCoords?.();
+          marker.dirty = true;
+        }
+      }
+      this.canvas?.requestRenderAll();
+      return;
+    }
+
+    let sourceViewType: ViewType | null = null;
+    if (door.face === 'front') {
+      sourceViewType = 'front';
+    } else if (door.face === 'back') {
+      sourceViewType = 'back';
+    } else if (door.face === 'left' || door.face === 'right') {
+      // In current layouts, side2 is the "quadrado aberto" that carries the door.
+      sourceViewType = this.house.houseType === 'tipo3' ? 'side2' : 'side1';
+    }
+
+    const markerSide = sourceViewType
+      ? (Object.keys(sideAssignments) as HouseSide[]).find((s) => sideAssignments[s] === sourceViewType) ?? null
+      : null;
+
+    for (const topInstance of topViews) {
+      const group = topInstance.group;
+      const markers = group.getObjects().filter((o: any) => o?.isTopDoorMarker) as any[];
+      if (markers.length === 0) continue;
+
+      const houseBody = group.getObjects().find((o: any) => o?.isHouseBody) as any;
+      const bodyWidth = Math.max((houseBody?.width ?? 0) * (houseBody?.scaleX ?? 1), 1);
+      const bodyHeight = Math.max((houseBody?.height ?? 0) * (houseBody?.scaleY ?? 1), 1);
+
+      const axisLength = markerSide === 'top' || markerSide === 'bottom' ? bodyWidth : bodyHeight;
+      const rawDoorCenter = door.x + door.width / 2;
+      const doorCenter = Math.max(0, Math.min(axisLength, rawDoorCenter));
+
+      let targetLeft: number | undefined;
+      let targetTop: number | undefined;
+      if (markerSide === 'top') {
+        targetLeft = bodyWidth / 2 - doorCenter;
+      } else if (markerSide === 'bottom') {
+        targetLeft = -bodyWidth / 2 + doorCenter;
+      } else if (markerSide === 'left') {
+        targetTop = -bodyHeight / 2 + doorCenter;
+      } else if (markerSide === 'right') {
+        targetTop = bodyHeight / 2 - doorCenter;
+      }
+
+      for (const marker of markers) {
+        const side = marker.markerSide as HouseSide | undefined;
+        if (!side) continue;
+
+        const isActive = markerSide !== null && side === markerSide;
+        marker.set({
+          visible: isActive,
+          ...(isActive && targetLeft !== undefined ? { left: targetLeft } : {}),
+          ...(isActive && targetTop !== undefined ? { top: targetTop } : {}),
+        });
+        marker.setCoords?.();
+        marker.dirty = true;
+      }
+
+      group.setCoords();
+      group.dirty = true;
+    }
+
+    this.canvas?.requestRenderAll();
   }
 
   subscribe(listener: () => void): () => void {
