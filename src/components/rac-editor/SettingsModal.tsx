@@ -53,41 +53,40 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
     onOpenChange(false);
   };
 
-  const body =
-  <>
-      <div className="bg-white rounded-xl p-4 space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <Label htmlFor="auto-navigate" className="text-sm leading-snug cursor-pointer flex-1">
-            Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
-          </Label>
-          <Switch
-          id="auto-navigate"
-          checked={tempSettings.autoNavigatePiloti}
-          onCheckedChange={(v) => handleToggle('autoNavigatePiloti', v)} />
+  const settingsCard =
+  <div className="bg-white rounded-xl p-4 space-y-5">
+      <div className="flex items-start justify-between gap-4">
+        <Label htmlFor="auto-navigate" className="text-sm leading-snug cursor-pointer flex-1">
+          Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
+        </Label>
+        <Switch
+        id="auto-navigate"
+        checked={tempSettings.autoNavigatePiloti}
+        onCheckedChange={(v) => handleToggle('autoNavigatePiloti', v)} />
 
-        </div>
-
-        <div className="flex items-start justify-between gap-4">
-          <Label htmlFor="zoom-enabled" className="text-sm leading-snug cursor-pointer flex-1">
-            Habilitar funcionalidade de Zoom/Minimap por padrão
-          </Label>
-          <Switch
-          id="zoom-enabled"
-          checked={tempSettings.zoomEnabledByDefault}
-          onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)} />
-
-        </div>
       </div>
 
-      <div className="flex gap-[16px] mt-4">
-        <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
-          Cancelar
-        </Button>
-        <Button className="flex-1" onClick={handleConfirm}>
-          Confirmar
-        </Button>
+      <div className="flex items-start justify-between gap-4">
+        <Label htmlFor="zoom-enabled" className="text-sm leading-snug cursor-pointer flex-1">
+          Habilitar funcionalidade de Zoom/Minimap por padrão
+        </Label>
+        <Switch
+        id="zoom-enabled"
+        checked={tempSettings.zoomEnabledByDefault}
+        onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)} />
+
       </div>
-    </>;
+    </div>;
+
+  const actionButtons = (extraClass = '') =>
+  <div className={`flex gap-[16px] ${extraClass}`}>
+      <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
+        Cancelar
+      </Button>
+      <Button className="flex-1" onClick={handleConfirm}>
+        Confirmar
+      </Button>
+    </div>;
 
 
   if (!isMobile) {
@@ -97,10 +96,10 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           <DialogHeader className="text-center">
             <DialogTitle className="text-center text-2xl">Configurações</DialogTitle>
           </DialogHeader>
-          {body}
+          {settingsCard}
+          {actionButtons()}
         </DialogContent>
       </Dialog>);
-
   }
 
   return (
@@ -110,9 +109,9 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
           <DrawerTitle className="text-center text-2xl">Configurações</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-4">
-          {body}
+          {settingsCard}
+          {actionButtons('mt-4')}
         </div>
       </DrawerContent>
     </Drawer>);
-
 }
