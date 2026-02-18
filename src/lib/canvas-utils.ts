@@ -734,6 +734,23 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "#cdcdcd", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
+  const roofLines = [
+    new Line([0, diagH1, bodyW / 2, 0], {
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: 0,
+      top: 0,
+    }),
+    new Line([bodyW / 2, 0, bodyW, diagH1], {
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: bodyW / 2,
+      top: 0,
+    }),
+  ];
+
   const bodyStroke = new Polyline(
     [
       { x: 0, y: 0 },
@@ -744,7 +761,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH - diagH1 },
   );
 
-  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
+  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
