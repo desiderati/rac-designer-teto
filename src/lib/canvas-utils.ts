@@ -708,7 +708,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: diagH2 },
       { x: 0, y: diagH2 },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: bodyH - diagH2 - 50 },
+    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: bodyH - diagH2 },
   );
 
   const chapelW = 122 * s;
@@ -763,6 +763,21 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
 
+  const floorBeanW = bodyW;
+  const floorBeanH = 10 * s;
+
+  const floorBean = new Rect({
+    width: floorBeanW,
+    height: floorBeanH,
+    fill: "#fff",
+    stroke: "#333",
+    strokeWidth: 1.5,
+    strokeUniform: true,
+    left: 0,
+    top: bodyH,
+  });
+  elements.push(w1);
+
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
   const windowW = 80 * s;
@@ -808,7 +823,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - windowW - 30 - doorW - 30 * s,
+      left: bodyW - windowW - doorW - 60 * s,
       top: doorY,
     });
 
