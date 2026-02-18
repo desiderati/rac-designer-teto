@@ -882,6 +882,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
 
   const sideWidth = plantHeight; // Match the plant view height exactly
   const wallHeight = 213 * s;
+  const floorBeanW = 5 * s;
+  const floorBeanH = 10 * s;
   const pilotW = 30 * s;
 
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
@@ -904,7 +906,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       strokeWidth: 2,
       strokeUniform: true,
       left,
-      top: wallHeight,
+      top: wallHeight + floorBeanH,
       originY: "top",
       objectCaching: false,
     });
@@ -921,7 +923,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       fontSize: 20 * s,
       fill: "#666",
       left: left + pilotW / 2,
-      top: wallHeight + pilotH + 8 * s,
+      top: wallHeight + floorBeanH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -934,6 +936,24 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
 
     return rect;
   };
+
+  const createFloorBeanRect = (left: number) => {
+    const floorBean = new Rect({
+      width: floorBeanW,
+      height: floorBeanH,
+      fill: "#fff",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: left,
+      top: bodyH,
+    });
+    elements.push(floorBean);
+  };
+
+  creatcreateFloorBeanRect(0);
+  creatcreateFloorBeanRect((sideWidth + floorBeanW) / 2);
+  creatcreateFloorBeanRect(sideWidth - floorBeanW);
 
   // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
   // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
@@ -994,7 +1014,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const leftCenterX = pilotW / 2;
   const rightX = sideWidth + 50;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + defaultNivelVal * 100 * s;
+  const nivelY = wallHeight + floorBeanH + defaultNivelVal * 100 * s;
   const nivelStr = formatNivel(defaultNivelVal);
   const maxPilotiBottom = wallHeight + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
