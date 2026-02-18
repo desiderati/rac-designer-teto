@@ -79,7 +79,7 @@ export function SettingsModal({ open, onOpenChange, onSettingsChange }: Settings
         </div>
       </div>
 
-      <div className="flex pt-4 gap-[16px] ">
+      <div className="flex gap-[16px] ">
         <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
           Cancelar
         </Button>
