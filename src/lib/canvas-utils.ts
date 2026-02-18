@@ -631,14 +631,16 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const s = factors.widthFactor;
 
   const bodyW = plantWidth; // Match the plant view width exactly
-  const bodyH = 220 * s;
-  // New roof geometry constants for the three-section design
-  const roofExtraH = 40 * s;   // Extra height for diagonal outer edges
-  const capH = 50 * s;         // Height of chapel arch peak above bodyH
-  const totalH = bodyH + roofExtraH; // Total height including roof peak
+  // Based on real measurements: wall height = 213cm, roof peak rises ~52px above body
+  // All three peaks (left outer corner, chapel peak, right outer corner) are at Y=0
+  // The inner junctions (where diagonals meet chapel walls) are at Y = roofExtraH
+  const bodyH = 220 * s;      // Wall height
+  const roofExtraH = 52 * s;  // How much the roof peaks above the inner junction height
+  const totalH = bodyH + roofExtraH; // Total height from apex to floor
   const pilotW = 30 * s;
 
   // Section widths: 40% diagonal + 20% chapel + 40% diagonal
+  // Based on diagram: 244 : 122 : 244 = 40% : 20% : 40%
   const diagonalW = bodyW * 0.40;
   const chapelaW = bodyW * 0.20;
   const chapelaX = diagonalW; // X start of chapel
@@ -704,62 +706,28 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // THREE-SECTION GEOMETRY
-  // Y=0 is the top of the outer diagonal peaks
-  // Body bottom = totalH = bodyH + roofExtraH
+  // THREE-SECTION GEOMETRY (based on real measurements: 244 : 122 : 244)
+  //
+  // Y=0  → apex line: outer diagonal corners + chapel peak (all at same height)
+  // Y=roofExtraH → inner junctions (where diagonal slope meets chapel walls)
+  // Y=totalH → floor (bottom of walls)
+  //
+  //      *           *           *
+  //     / \         / \         / \
+  //    /   \       /   \       /   \
+  //   /     \_____/     \_____/     \
+  //  |  Diag |  Chapel  | Diag     |
+  //  |  Esq  |          | Dir      |
+  //  |_______|__________|__________|
+  //
   // ─────────────────────────────────────────────────────────────────────────
 
-  // ── Chapel arch (quadratic bezier approximation via polyline) ─────────────
-  const archPoints: { x: number; y: number }[] = [];
-  const archSteps = 14;
-  for (let i = 0; i <= archSteps; i++) {
-    const t = i / archSteps;
-    // P0 = left connection, P1 = peak control, P2 = right connection
-    const p0x = chapelaX;
-    const p0y = roofExtraH;
-    const p1x = chapelaX + chapelaW / 2;
-    const p1y = roofExtraH - capH;
-    const p2x = chapelaX + chapelaW;
-    const p2y = roofExtraH;
-    archPoints.push({
-      x: (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x,
-      y: (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y,
-    });
-  }
-
-  // ── Chapel fill ───────────────────────────────────────────────────────────
-  const chapelaFill = new Polygon(
-    [
-      { x: chapelaX, y: totalH },
-      { x: chapelaX, y: roofExtraH },
-      ...archPoints,
-      { x: chapelaX + chapelaW, y: roofExtraH },
-      { x: chapelaX + chapelaW, y: totalH },
-    ],
-    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
-  );
-
-  // ── Chapel stroke (outline) ───────────────────────────────────────────────
-  const chapelaStroke = new Polyline(
-    [
-      { x: chapelaX, y: totalH },
-      { x: chapelaX, y: roofExtraH },
-      ...archPoints,
-      { x: chapelaX + chapelaW, y: roofExtraH },
-      { x: chapelaX + chapelaW, y: totalH },
-    ],
-    {
-      fill: "transparent",
-      stroke: "#333",
-      strokeWidth: 2,
-      strokeUniform: true,
-      left: 0,
-      top: 0,
-      objectCaching: false,
-    },
-  );
+  const diagDirX = chapelaX + chapelaW;
+  // Chapel peak is at the horizontal center of the chapel, Y=0
+  const chapelaMiddleX = chapelaX + chapelaW / 2;
 
   // ── Diagonal Esquerda fill ────────────────────────────────────────────────
+  // Outer corner (0, 0) → inner junction (diagonalW, roofExtraH) → floor corners
   const diagEsqFill = new Polygon(
     [
       { x: 0, y: 0 },
@@ -770,7 +738,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
   );
 
-  // ── Diagonal Esquerda stroke ──────────────────────────────────────────────
+  // ── Diagonal Esquerda stroke (open polyline, no bottom) ──────────────────
   const diagEsqStroke = new Polyline(
     [
       { x: 0, y: totalH },
@@ -789,8 +757,42 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     },
   );
 
+  // ── Chapel fill ───────────────────────────────────────────────────────────
+  // Chapel has a TRIANGULAR PEAK at center (not an arch):
+  // left junction → peak center → right junction → floor
+  const chapelaFill = new Polygon(
+    [
+      { x: chapelaX, y: totalH },
+      { x: chapelaX, y: roofExtraH },
+      { x: chapelaMiddleX, y: 0 },          // ← triangular peak at center
+      { x: chapelaX + chapelaW, y: roofExtraH },
+      { x: chapelaX + chapelaW, y: totalH },
+    ],
+    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
+  );
+
+  // ── Chapel stroke ─────────────────────────────────────────────────────────
+  const chapelaStroke = new Polyline(
+    [
+      { x: chapelaX, y: totalH },
+      { x: chapelaX, y: roofExtraH },
+      { x: chapelaMiddleX, y: 0 },          // ← triangular peak
+      { x: chapelaX + chapelaW, y: roofExtraH },
+      { x: chapelaX + chapelaW, y: totalH },
+    ],
+    {
+      fill: "transparent",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: 0,
+      top: 0,
+      objectCaching: false,
+    },
+  );
+
   // ── Diagonal Direita fill ─────────────────────────────────────────────────
-  const diagDirX = chapelaX + chapelaW;
+  // Mirror of Diagonal Esquerda: inner junction (low) → outer corner (high)
   const diagDirFill = new Polygon(
     [
       { x: diagDirX, y: roofExtraH },
@@ -843,14 +845,23 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // WINDOWS AND DOOR (front view only)
   // Body usable height runs from roofExtraH to totalH (= bodyH tall)
   // ─────────────────────────────────────────────────────────────────────────
-  const windowW = 90 * s;
-  const windowH = 75 * s;
-  const doorW = 100 * s;
-  const doorH = 180 * s;
+  // Window and door sizes based on diagram measurements (scaled):
+  // Diagram real measurements: window = 80×70cm, door = 80×200cm
+  // We use the diagonal section width (40% of bodyW) to scale proportionally
+  // Diagram diagonal width = 244cm → scale factor = diagonalW / 244
+  const diagScale = diagonalW / 244;
+  const windowW = 80 * diagScale;
+  const windowH = 70 * diagScale;
+  const doorW = 80 * diagScale;
+  const doorH = 200 * diagScale;
 
   if (isFront) {
-    // ── Diagonal Esquerda: 1 window centred in the panel ──────────────────
-    const esqMidY = roofExtraH + bodyH / 2;
+    // ── Diagonal Esquerda: 1 window ───────────────────────────────────────
+    // Diagram: window left edge at 94cm from section left, top at 72cm below roof slope
+    // Roof at this x position: slope from Y=0 (x=0) to Y=roofExtraH (x=diagonalW)
+    const winEsqLeft = 94 * diagScale;
+    const roofYAtWinLeft = (winEsqLeft / diagonalW) * roofExtraH; // Y of slope at window left
+    const winEsqTop = roofYAtWinLeft + 72 * diagScale;
     const winEsq = new Rect({
       width: windowW,
       height: windowH,
@@ -858,16 +869,17 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: diagonalW / 2 - windowW / 2,
-      top: esqMidY - windowH / 2,
+      left: winEsqLeft,
+      top: winEsqTop,
       objectCaching: false,
     });
     elements.push(winEsq);
 
-    // ── Diagonal Direita: door (left area) + window (right area) ──────────
-    const dirSectionW = bodyW - diagDirX;
-    const doorTop = totalH - doorH;
-
+    // ── Diagonal Direita: door (left side) + window (right side) ──────────
+    // Diagram: door starts 31cm from section left, width 80cm, height 200cm (floor-touching)
+    // Window starts 30cm after door right edge, width 80cm, top at 30cm below roof
+    const doorLeft = diagDirX + 31 * diagScale;
+    const doorTop = totalH - doorH; // door touches the floor
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
@@ -875,13 +887,17 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: diagDirX + dirSectionW * 0.18,
+      left: doorLeft,
       top: doorTop,
       objectCaching: false,
     });
     elements.push(doorObj);
 
-    const dirMidY = roofExtraH + bodyH / 2;
+    // Window: 30cm to the right of the door right edge
+    const winDirLeft = doorLeft + doorW + 30 * diagScale;
+    // Roof Y at window position (slope from Y=roofExtraH at diagDirX to Y=0 at bodyW)
+    const roofYAtWinDir = roofExtraH - ((winDirLeft - diagDirX) / diagonalW) * roofExtraH;
+    const winDirTop = roofYAtWinDir + 30 * diagScale;
     const winDir = new Rect({
       width: windowW,
       height: windowH,
@@ -889,8 +905,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: diagDirX + dirSectionW * 0.60,
-      top: dirMidY - windowH / 2,
+      left: winDirLeft,
+      top: winDirTop,
       objectCaching: false,
     });
     elements.push(winDir);
