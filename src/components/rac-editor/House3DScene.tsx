@@ -501,13 +501,11 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      // Left side follows A1 -> C1 (front -> back)
-      position = [-hw - elementDepth / 2, y, hd - xOffset - elementWidth / 2];
+      position = [-hw - elementDepth / 2, y, xOffset - hd + elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      // Right side follows C4 -> A4 (back -> front)
-      position = [hw + elementDepth / 2, y, -hd + xOffset + elementWidth / 2];
+      position = [hw + elementDepth / 2, y, -(xOffset - hd + elementWidth / 2)];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
@@ -520,15 +518,11 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
     <group position={position} rotation={rotation}>
       <mesh>
         <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, frameDepth]} />
-        <meshStandardMaterial color={COLORS.frame} />
+        <meshBasicMaterial color={COLORS.frame} />
       </mesh>
       <mesh position={[0, 0, fillOffset]}>
         <boxGeometry args={[elementWidth, elementHeight, fillDepth]} />
-        <meshStandardMaterial
-          color={fillColor}
-          roughness={0.72}
-          metalness={0.02}
-        />
+        <meshBasicMaterial color={fillColor} />
       </mesh>
     </group>
   );
