@@ -159,8 +159,8 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
               <Canvas key={resetKey} shadows>
                 <PerspectiveCamera 
                   makeDefault 
-                  position={[150, 120, 200]} 
-                  fov={50} 
+                  position={[200, 180, 280]} 
+                  fov={45} 
                 />
                 
                 {/* Lighting */}
@@ -184,9 +184,9 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                   enablePan 
                   enableZoom 
                   enableRotate
-                  minDistance={50}
-                  maxDistance={500}
-                  target={[0, 40, 0]}
+                  minDistance={80}
+                  maxDistance={700}
+                  target={[0, 60, 0]}
                 />
               </Canvas>
             </Suspense>
