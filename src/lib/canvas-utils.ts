@@ -768,7 +768,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const windowH = 70 * s;
 
   const doorW = 80 * s;
-  const doorH = 200 * s;
+  const doorH = 191 * s;
   const doorY = bodyH - doorH;
 
   if (isFront) {
@@ -881,7 +881,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const s = factors.depthFactor;
 
   const sideWidth = plantHeight; // Match the plant view height exactly
-  const wallHeight = 220 * s;
+  const wallHeight = 213 * s;
   const pilotW = 30 * s;
 
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
@@ -955,11 +955,11 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const elements: FabricObject[] = [wall];
 
   if (hasDoor) {
-    const doorW = 100 * s;
-    const doorH = 180 * s;
-    const windowW = 90 * s;
-    const windowH = 75 * s;
-    const doorLeft = (sideWidth / 2 + (sideWidth - pilotW)) / 2 - doorW / 2;
+    const doorW = 80 * s;
+    const doorH = 191 * s;
+    const windowW = 80 * s;
+    const windowH = 70 * s;
+    const doorLeft = sideWidth - doorW - 50 * s;
 
     const doorObj = new Rect({
       width: doorW,
@@ -972,7 +972,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       top: wallHeight - doorH,
     });
 
-    const windowLeft = (doorLeft - windowW) / 2;
+    const windowLeft = sideWidth - doorW - windowW - 90 * s;
     const windowObj = new Rect({
       width: windowW,
       height: windowH,
