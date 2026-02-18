@@ -381,8 +381,9 @@ export function Toolbar({
                   />
                   <SubMenuButton
                     icon={faDoorOpen}
-                    title="Porta"
-                    onClick={() => handleAction(onAddDoor)}
+                    title="Porta - Em breve"
+                    onClick={() => {}}
+                    isDisabled
                     hideTooltip={isTutorialActive}
                   />
                   <SubMenuButton
