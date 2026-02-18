@@ -632,6 +632,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 273 * s;
+  const floorBeanW = bodyW;
+  const floorBeanH = 10 * s;
   const pilotW = 30 * s;
 
   const pilots: FabricObject[] = [];
@@ -661,7 +663,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
-      top: bodyH,
+      top: bodyH + floorBeanH,
       originY: "top",
       objectCaching: false,
     });
@@ -676,7 +678,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilots.push(rect);
 
     // Add diagonal stripe overlay for bottom 2/3
-    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH, pilotW, pilotH);
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH + floorBeanH, pilotW, pilotH);
     pilots.push(stripeOverlay);
 
     // Create size label below piloti (font size 20 * scale for visibility)
@@ -685,7 +687,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: bodyH + pilotH + 8 * s,
+      top: bodyH + floorBeanH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -763,9 +765,6 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
 
-  const floorBeanW = bodyW;
-  const floorBeanH = 10 * s;
-
   const floorBean = new Rect({
     width: floorBeanW,
     height: floorBeanH,
@@ -776,7 +775,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     left: 0,
     top: bodyH,
   });
-  elements.push(w1);
+  elements.push(floorBean);
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
