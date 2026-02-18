@@ -808,7 +808,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - windowW - doorW - 30 * s,
+      left: bodyW - windowW - 30 - doorW - 30 * s,
       top: doorY,
     });
 
