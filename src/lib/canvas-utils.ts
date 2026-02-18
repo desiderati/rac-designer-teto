@@ -708,7 +708,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
+    { fill: "#cdcdcd", strokeWidth: , left: 0, top: bodyH - diagH2 },
   );
 
   const chapelW = 122 * s;
@@ -731,7 +731,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#d1e3f0", strokeWidth: 1, left: diagW + chapelW, top: 0 },
+    { fill: "#d1e3f0", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
   const roofLines = [
@@ -761,7 +761,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH },
   );
 
-  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
