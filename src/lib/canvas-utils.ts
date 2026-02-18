@@ -633,7 +633,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 273 * s;
   const floorBeanW = bodyW;
-  const floorBeanH = 10 * s;
+  const floorBeanH = 20 * s;
   const pilotW = 30 * s;
 
   const pilots: FabricObject[] = [];
@@ -882,8 +882,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
 
   const sideWidth = plantHeight; // Match the plant view height exactly
   const wallHeight = 213 * s;
-  const floorBeanW = 5 * s;
-  const floorBeanH = 10 * s;
+  const floorBeanW = 10 * s;
+  const floorBeanH = 20 * s;
   const pilotW = 30 * s;
 
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
