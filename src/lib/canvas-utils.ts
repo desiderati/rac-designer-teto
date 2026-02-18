@@ -726,8 +726,14 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // Chapel peak is at the horizontal center of the chapel, Y=0
   const chapelaMiddleX = chapelaX + chapelaW / 2;
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMPORTANT: In Fabric.js v6, Polygon/Polyline internally normalizes points
+  // by subtracting the bounding box minX/minY. Therefore ALL point coordinates
+  // MUST start from (0,0) and `left`/`top` is used to position each section.
+  // ─────────────────────────────────────────────────────────────────────────
+
   // ── Diagonal Esquerda fill ────────────────────────────────────────────────
-  // Outer corner (0, 0) → inner junction (diagonalW, roofExtraH) → floor corners
+  // Points local to section: x ∈ [0, diagonalW], y ∈ [0, totalH]
   const diagEsqFill = new Polygon(
     [
       { x: 0, y: 0 },
@@ -738,7 +744,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
   );
 
-  // ── Diagonal Esquerda stroke (open polyline, no bottom) ──────────────────
+  // ── Diagonal Esquerda stroke ──────────────────────────────────────────────
   const diagEsqStroke = new Polyline(
     [
       { x: 0, y: totalH },
@@ -758,65 +764,66 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   );
 
   // ── Chapel fill ───────────────────────────────────────────────────────────
-  // Chapel has a TRIANGULAR PEAK at center (not an arch):
-  // left junction → peak center → right junction → floor
+  // Points local to chapel section: x ∈ [0, chapelaW], y ∈ [0, totalH]
+  // Peak is at (chapelaW/2, 0), junctions at (0, roofExtraH) and (chapelaW, roofExtraH)
   const chapelaFill = new Polygon(
     [
-      { x: chapelaX, y: totalH },
-      { x: chapelaX, y: roofExtraH },
-      { x: chapelaMiddleX, y: 0 },          // ← triangular peak at center
-      { x: chapelaX + chapelaW, y: roofExtraH },
-      { x: chapelaX + chapelaW, y: totalH },
+      { x: 0, y: totalH },
+      { x: 0, y: roofExtraH },
+      { x: chapelaW / 2, y: 0 },          // ← triangular peak at center
+      { x: chapelaW, y: roofExtraH },
+      { x: chapelaW, y: totalH },
     ],
-    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
+    { fill: "#eeeeee", strokeWidth: 0, left: chapelaX, top: 0, objectCaching: false },
   );
 
   // ── Chapel stroke ─────────────────────────────────────────────────────────
   const chapelaStroke = new Polyline(
     [
-      { x: chapelaX, y: totalH },
-      { x: chapelaX, y: roofExtraH },
-      { x: chapelaMiddleX, y: 0 },          // ← triangular peak
-      { x: chapelaX + chapelaW, y: roofExtraH },
-      { x: chapelaX + chapelaW, y: totalH },
+      { x: 0, y: totalH },
+      { x: 0, y: roofExtraH },
+      { x: chapelaW / 2, y: 0 },          // ← triangular peak
+      { x: chapelaW, y: roofExtraH },
+      { x: chapelaW, y: totalH },
     ],
     {
       fill: "transparent",
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
-      left: 0,
+      left: chapelaX,
       top: 0,
       objectCaching: false,
     },
   );
 
   // ── Diagonal Direita fill ─────────────────────────────────────────────────
-  // Mirror of Diagonal Esquerda: inner junction (low) → outer corner (high)
+  // Points local to section: x ∈ [0, diagonalW], y ∈ [0, totalH]
+  // Mirror of Diagonal Esquerda: inner junction at (0, roofExtraH), outer corner at (diagonalW, 0)
   const diagDirFill = new Polygon(
     [
-      { x: diagDirX, y: roofExtraH },
-      { x: bodyW, y: 0 },
-      { x: bodyW, y: totalH },
-      { x: diagDirX, y: totalH },
+      { x: 0, y: roofExtraH },
+      { x: diagonalW, y: 0 },
+      { x: diagonalW, y: totalH },
+      { x: 0, y: totalH },
     ],
-    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
+    { fill: "#eeeeee", strokeWidth: 0, left: diagDirX, top: 0, objectCaching: false },
   );
 
   // ── Diagonal Direita stroke ───────────────────────────────────────────────
   const diagDirStroke = new Polyline(
     [
-      { x: diagDirX, y: totalH },
-      { x: diagDirX, y: roofExtraH },
-      { x: bodyW, y: 0 },
-      { x: bodyW, y: totalH },
+      { x: 0, y: totalH },
+      { x: 0, y: roofExtraH },
+      { x: diagonalW, y: 0 },
+      { x: diagonalW, y: totalH },
     ],
     {
       fill: "transparent",
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
-      left: 0,
+      left: diagDirX,
       top: 0,
       objectCaching: false,
     },
@@ -825,8 +832,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   // ── Bottom baseline ───────────────────────────────────────────────────────
   const baseLine = new Polyline(
     [
-      { x: 0, y: totalH },
-      { x: bodyW, y: totalH },
+      { x: 0, y: 0 },
+      { x: bodyW, y: 0 },
     ],
     {
       fill: "transparent",
@@ -834,7 +841,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: 0,
-      top: 0,
+      top: totalH,
       objectCaching: false,
     },
   );
