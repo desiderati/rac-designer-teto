@@ -683,7 +683,7 @@ class HouseManager {
     return this.house?.elements || [];
   }
 
-  // Insert a 3D viewer snapshot as a locked, non-editable image on the current canvas
+  // Insert a 3D viewer snapshot on the current canvas
   async insert3DSnapshotOnCanvas(dataUrl: string): Promise<boolean> {
     if (!this.canvas) return false;
     if (!dataUrl) return false;
@@ -706,17 +706,19 @@ class HouseManager {
         originY: 'center',
         scaleX: scale,
         scaleY: scale,
-        selectable: false,
-        evented: false,
-        hasControls: false,
-        hasBorders: false,
-        lockMovementX: true,
-        lockMovementY: true,
-        lockScalingX: true,
-        lockScalingY: true,
+        selectable: true,
+        evented: true,
+        hasControls: true,
+        hasBorders: true,
+        lockMovementX: false,
+        lockMovementY: false,
+        lockScalingX: false,
+        lockScalingY: false,
         lockRotation: true,
       });
+      image.setControlsVisibility?.({ mtr: false });
       canvas.add(image);
+      canvas.setActiveObject(image);
       canvas.requestRenderAll();
       return true;
     } catch (error) {

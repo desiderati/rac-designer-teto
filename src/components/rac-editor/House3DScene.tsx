@@ -486,7 +486,8 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
 
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
-  const y = WALL_BASE_Y + BODY_PROFILE_HEIGHT - yOffset - elementHeight / 2;
+  const faceProfileHeight = element.face === 'left' || element.face === 'right' ? WALL_HEIGHT : BODY_PROFILE_HEIGHT;
+  const y = WALL_BASE_Y + faceProfileHeight - yOffset - elementHeight / 2;
 
   let position: [number, number, number] = [0, 0, 0];
   let rotation: [number, number, number] = [0, 0, 0];
@@ -500,13 +501,11 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      // Left side view (A1 -> C1): x grows from front to back
-      position = [-hw - elementDepth / 2, y, hd - xOffset - elementWidth / 2];
+      position = [-hw - elementDepth / 2, y, xOffset - hd + elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      // Right side view (C4 -> A4): x grows from back to front
-      position = [hw + elementDepth / 2, y, -hd + xOffset + elementWidth / 2];
+      position = [hw + elementDepth / 2, y, -(xOffset - hd + elementWidth / 2)];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
