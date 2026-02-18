@@ -31,7 +31,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [elements, setElements] = useState<HouseElement[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [wallColor, setWallColor] = useState('#d4d4d4');
+  const [wallColor, setWallColor] = useState('#a8c4d8');
 
   // Sync with HouseManager
   const syncFromManager = useCallback(() => {
@@ -114,6 +114,13 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                   </div>
                 </PopoverContent>
               </Popover>
+              <Button
+                variant="outline"
+                size="sm"
+                title="Inserir no Canvas"
+              >
+                Inserir no Canvas
+              </Button>
               <Button
                 variant="outline"
                 size="icon"
