@@ -75,6 +75,11 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const handleNavigate = (direction: 'prev' | 'next') => {
     const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
     if (newIdx < 0 || newIdx >= CORNER_ORDER.length) return;
+    const fromCorner = CORNER_ORDER[currentIdx];
+    setEntries((prev) => ({
+      ...prev,
+      [fromCorner]: { ...prev[fromCorner], visited: true },
+    }));
     setCurrentIdx(newIdx);
   };
 
