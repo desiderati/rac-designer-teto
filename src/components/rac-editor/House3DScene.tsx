@@ -42,7 +42,7 @@ const DIAG_H2 = 261 * U;
 const CHAPEL_W = 122 * U;
 const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
 
-const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT;
+const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2;
 const ROOF_BASE_Y = WALL_BASE_Y + WALL_HEIGHT;
 const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
 
@@ -433,7 +433,7 @@ function HouseShell({ wallColor }: { wallColor: string }) {
   return (
     <group>
       {FLOOR_BEAM_ROWS_Z.map((z) => (
-        <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, z]} castShadow receiveShadow>
+        <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y, z]} castShadow receiveShadow>
           <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]} />
           <meshStandardMaterial color={COLORS.beam} />
         </mesh>
