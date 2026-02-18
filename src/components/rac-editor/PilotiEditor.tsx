@@ -14,8 +14,8 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+  DrawerTitle } from
+'@/components/ui/drawer';
 import {
   PILOTI_HEIGHTS,
   CORNER_PILOTI_IDS,
@@ -23,8 +23,8 @@ import {
   getPilotiName,
   getPilotiFromGroup,
   getAllPilotiIds,
-  getPilotiIdsFromGroup,
-} from '@/lib/canvas-utils';
+  getPilotiIdsFromGroup } from
+'@/lib/canvas-utils';
 import { houseManager } from '@/lib/house-manager';
 import { getSettings } from '@/lib/settings';
 import { PilotiGridIcon } from './PilotiGridIcon';
@@ -38,7 +38,7 @@ interface PilotiEditorProps {
   currentNivel?: number;
   group: Group | null;
   isMobile: boolean;
-  anchorPosition?: { x: number; y: number };
+  anchorPosition?: {x: number;y: number;};
   houseView?: 'top' | 'front' | 'back' | 'side';
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
@@ -67,7 +67,7 @@ export function PilotiEditor({
   anchorPosition,
   houseView = 'top',
   onHeightChange,
-  onNavigate,
+  onNavigate
 }: PilotiEditorProps) {
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
@@ -75,8 +75,8 @@ export function PilotiEditor({
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
 
   // Popover draggable position (desktop)
-  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
-  const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
+  const [popoverPos, setPopoverPos] = useState<{x: number;y: number;} | null>(null);
+  const dragStateRef = useRef<null | {offsetX: number;offsetY: number;}>(null);
   const userDraggedRef = useRef(false);
 
   const allIds = useMemo(() => {
@@ -139,7 +139,7 @@ export function PilotiEditor({
       userDraggedRef.current = true;
       setPopoverPos({
         x: e.clientX - dragStateRef.current.offsetX,
-        y: e.clientY - dragStateRef.current.offsetY,
+        y: e.clientY - dragStateRef.current.offsetY
       });
     };
 
@@ -169,7 +169,7 @@ export function PilotiEditor({
       houseManager.updatePiloti(pilotiId, {
         height: tempHeight,
         isMaster: tempIsMaster,
-        nivel: tempNivel,
+        nivel: tempNivel
       });
       onHeightChange(tempHeight);
       onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
@@ -193,7 +193,7 @@ export function PilotiEditor({
       houseManager.updatePiloti(pilotiId, {
         height: tempHeight,
         isMaster: tempIsMaster,
-        nivel: nivelToApply,
+        nivel: nivelToApply
       });
       onHeightChange(tempHeight);
       onNavigate?.(pilotiId, tempHeight, tempIsMaster, nivelToApply);
@@ -239,7 +239,7 @@ export function PilotiEditor({
       houseManager.updatePiloti(pilotiId, {
         height: h,
         isMaster: tempIsMaster,
-        nivel: nivelToApply,
+        nivel: nivelToApply
       });
       onHeightChange(h);
       onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
@@ -270,10 +270,10 @@ export function PilotiEditor({
   };
 
   const getHeightButtonClasses = (h: number): string => {
-    const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
-    return isSelected
-      ? 'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3'
-      : 'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
+    const isSelected = clickedHeight === h || clickedHeight === null && tempHeight === h;
+    return isSelected ?
+    'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3' :
+    'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
   };
 
   const maxNivel = Math.round(tempHeight * 200 / 3) / 100;
@@ -282,33 +282,33 @@ export function PilotiEditor({
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
 
-  const editorContent = (
-    <div className="flex flex-col gap-4">
+  const editorContent =
+  <div className="flex flex-col gap-4">
       {/* Header: grid icon + title + arrows */}
       <div className="flex items-center gap-3" data-no-drag>
         <PilotiGridIcon
-          selectedPiloti={pilotiName}
-          masterPiloti={masterPilotiName}
-          className="w-16 h-12 flex-shrink-0"
-        />
+        selectedPiloti={pilotiName}
+        masterPiloti={masterPilotiName}
+        className="w-16 h-12 flex-shrink-0" />
+
         <span className="font-bold text-2xl flex-1 text-center">Piloti {pilotiName}</span>
         <div className="flex items-center gap-1 select-none">
           <Button
-            variant="outline"
-            size="icon"
-            onClick={() => handleNavigate('prev')}
-            disabled={!hasPrev}
-            className="h-8 w-8 rounded-full bg-white"
-          >
+          variant="outline"
+          size="icon"
+          onClick={() => handleNavigate('prev')}
+          disabled={!hasPrev}
+          className="h-8 w-8 rounded-full bg-white">
+
             <FontAwesomeIcon icon={faChevronLeft} className="h-3 w-3" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
-            onClick={() => handleNavigate('next')}
-            disabled={!hasNext}
-            className="h-8 w-8 rounded-full bg-white"
-          >
+          variant="outline"
+          size="icon"
+          onClick={() => handleNavigate('next')}
+          disabled={!hasNext}
+          className="h-8 w-8 rounded-full bg-white">
+
             <FontAwesomeIcon icon={faChevronRight} className="h-3 w-3" />
           </Button>
         </div>
@@ -317,8 +317,8 @@ export function PilotiEditor({
       {/* Central card */}
       <div className="bg-white rounded-xl p-4 space-y-4" data-no-drag>
         {/* Master toggle - only for corners */}
-        {isCornerPiloti && (
-          <>
+        {isCornerPiloti &&
+      <>
             <div className="flex items-center justify-between">
               <Label htmlFor="is-master" className="text-sm font-medium select-none">
                 Definir como Mestre?
@@ -327,22 +327,22 @@ export function PilotiEditor({
             </div>
             <Separator />
           </>
-        )}
+      }
 
         {/* Nivel section - only for corners */}
-        {isCornerPiloti && (
-          <>
+        {isCornerPiloti &&
+      <>
             <div className="space-y-4">
               <p className="text-sm font-medium text-center">Nível do Piloti</p>
 
               <div className="flex items-center justify-center gap-3">
                 <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
-                  onClick={() => handleNivelIncrement(-0.01)}
-                  disabled={tempNivel <= 0.20}
-                >
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full"
+              onClick={() => handleNivelIncrement(-0.01)}
+              disabled={tempNivel <= 0.20}>
+
                   <FontAwesomeIcon icon={faMinus} className="h-3 w-3" />
                 </Button>
                 <div className="flex items-baseline gap-1">
@@ -350,25 +350,25 @@ export function PilotiEditor({
                   <span className="text-lg text-muted-foreground">m</span>
                 </div>
                 <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
-                  onClick={() => handleNivelIncrement(0.01)}
-                  disabled={tempNivel >= maxNivel}
-                >
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full"
+              onClick={() => handleNivelIncrement(0.01)}
+              disabled={tempNivel >= maxNivel}>
+
                   <FontAwesomeIcon icon={faPlus} className="h-3 w-3" />
                 </Button>
               </div>
 
               <div className="space-y-3 px-2">
                 <Slider
-                  value={[tempNivel]}
-                  onValueChange={([v]) => handleNivelChange(v)}
-                  min={0.20}
-                  max={maxNivel}
-                  step={0.01}
-                  className="w-full"
-                />
+              value={[tempNivel]}
+              onValueChange={([v]) => handleNivelChange(v)}
+              min={0.20}
+              max={maxNivel}
+              step={0.01}
+              className="w-full" />
+
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0,20m</span>
                   <span>{formatNivel(maxNivel)}m</span>
@@ -377,28 +377,28 @@ export function PilotiEditor({
             </div>
             <Separator />
           </>
-        )}
+      }
 
         {/* Height grid 3x2 */}
         <div className="space-y-4">
           <p className="text-sm font-medium text-center">Tamanho dos Pilotis</p>
           <div className="grid grid-cols-3 gap-2">
-            {PILOTI_HEIGHTS.map((h) => (
-              <button
-                key={h}
-                onClick={() => handleHeightClick(h)}
-                disabled={clickedHeight !== null}
-                className={getHeightButtonClasses(h)}
-              >
+            {PILOTI_HEIGHTS.map((h) =>
+          <button
+            key={h}
+            onClick={() => handleHeightClick(h)}
+            disabled={clickedHeight !== null}
+            className={getHeightButtonClasses(h)}>
+
                 {formatPilotiHeight(h)}
               </button>
-            ))}
+          )}
           </div>
         </div>
       </div>
 
       {/* Footer buttons */}
-      <div className="flex gap-2 w-full" data-no-drag>
+      <div className="flex w-full gap-[16px]" data-no-drag>
         <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
           Cancelar
         </Button>
@@ -406,8 +406,8 @@ export function PilotiEditor({
           Aplicar
         </Button>
       </div>
-    </div>
-  );
+    </div>;
+
 
   if (isMobile) {
     return (
@@ -420,8 +420,8 @@ export function PilotiEditor({
             {editorContent}
           </div>
         </DrawerContent>
-      </Drawer>
-    );
+      </Drawer>);
+
   }
 
   // Desktop: floating draggable panel
@@ -434,25 +434,25 @@ export function PilotiEditor({
       onKeyDown={(e) => {
         if (e.key === 'Escape') handleCancel();
       }}
-      tabIndex={-1}
-    >
+      tabIndex={-1}>
+
       <div
         className={`rounded-xl border bg-background p-6 text-popover-foreground shadow-md outline-none min-w-[300px] max-w-[340px] ${dragStateRef.current ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={
-          popoverPos
-            ? { position: 'fixed', left: popoverPos.x, top: popoverPos.y }
-            : anchorPosition
-              ? { position: 'fixed', left: anchorPosition.x + 12, top: anchorPosition.y + 12 }
-              : { position: 'fixed', left: 24, top: 24 }
+        popoverPos ?
+        { position: 'fixed', left: popoverPos.x, top: popoverPos.y } :
+        anchorPosition ?
+        { position: 'fixed', left: anchorPosition.x + 12, top: anchorPosition.y + 12 } :
+        { position: 'fixed', left: 24, top: 24 }
         }
         onPointerDown={(e) => {
           e.stopPropagation();
           handlePopoverPointerDown(e);
-        }}
-      >
+        }}>
+
         {editorContent}
       </div>
     </div>,
-    document.body,
+    document.body
   );
 }
