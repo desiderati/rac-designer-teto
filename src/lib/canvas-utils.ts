@@ -755,7 +755,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     height: floorBeanH,
     fill: "#fff",
     stroke: "#333",
-    strokeWidth: 1.5,
+    strokeWidth: 2,
     strokeUniform: true,
     left: 0,
     top: bodyH,
