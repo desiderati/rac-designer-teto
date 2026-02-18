@@ -501,11 +501,13 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       rotation = [0, Math.PI, 0];
       break;
     case 'left':
-      position = [-hw - elementDepth / 2, y, xOffset - hd + elementWidth / 2];
+      // Left side follows A1 -> C1 (front -> back)
+      position = [-hw - elementDepth / 2, y, hd - xOffset - elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
     case 'right':
-      position = [hw + elementDepth / 2, y, -(xOffset - hd + elementWidth / 2)];
+      // Right side follows C4 -> A4 (back -> front)
+      position = [hw + elementDepth / 2, y, -hd + xOffset + elementWidth / 2];
       rotation = [0, -Math.PI / 2, 0];
       break;
     default:
