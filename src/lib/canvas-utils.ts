@@ -731,7 +731,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#d1d1d1", strokeWidth: 1, left: diagW + chapelW, top: 0 },
+    { fill: "#d1e3f0", strokeWidth: 1, left: diagW + chapelW, top: 0 },
   );
 
   const roofLines = [
