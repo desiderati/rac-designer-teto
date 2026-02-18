@@ -710,7 +710,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: diagH2 },
       { x: 0, y: diagH2 },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: bodyH - diagH2 },
+    { fill: "#eeeeee", strokeWidth: 1, left: 0, top: bodyH - diagH2 },
   );
 
   const chapelW = 122 * s;
@@ -723,7 +723,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: chapelW, y: bodyH },
       { x: 0, y: bodyH },
     ],
-    { fill: "#bababa", strokeWidth: 1, left: diagW, top: 0 },
+    { fill: "#cdcdcd", strokeWidth: 1, left: diagW, top: 0 },
   );
 
   const rightDiagFill = new Polygon(
@@ -733,7 +733,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       { x: diagW, y: diagH2 },
       { x: 0, y: diagH2 },
     ],
-    { fill: "#cdcdcd", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
+    { fill: "#eeeeee", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
   const bodyStroke = new Polyline(
