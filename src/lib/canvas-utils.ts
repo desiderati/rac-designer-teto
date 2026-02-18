@@ -775,8 +775,11 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const doorX = bodyW - windowW - doorW - 60 * s;
   const doorY = bodyH - doorH;
 
-  const window1X = bodyW - windowW - windowShiftX;
-  const window1Y = bodyH - doorH;
+  const window1FrontX = bodyW - windowW - windowShiftX;
+  const window1FrontY = bodyH - doorH;
+
+  const window1BackX = 95 * s;
+  const window1BackY = bodyH - doorH;
 
   if (isFront) {
     // Front view: right window next to door
@@ -787,8 +790,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: window1X,
-      top: window1Y,
+      left: window1FrontX,
+      top: window1FrontY,
     });
     elements.push(w1);
   } else {
@@ -800,8 +803,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: 95 * s,
-      top: doorY,
+      left: window1BackX,
+      top: window1BackY,
     });
     elements.push(w1);
   }
@@ -814,7 +817,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - windowW - doorW - 60 * s,
+      left: doorX,
       top: doorY,
     });
 
