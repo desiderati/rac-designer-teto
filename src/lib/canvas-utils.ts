@@ -632,8 +632,16 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 220 * s;
-  const roofH = 80 * s;
+  // New roof geometry constants for the three-section design
+  const roofExtraH = 40 * s;   // Extra height for diagonal outer edges
+  const capH = 50 * s;         // Height of chapel arch peak above bodyH
+  const totalH = bodyH + roofExtraH; // Total height including roof peak
   const pilotW = 30 * s;
+
+  // Section widths: 40% diagonal + 20% chapel + 40% diagonal
+  const diagonalW = bodyW * 0.40;
+  const chapelaW = bodyW * 0.20;
+  const chapelaX = diagonalW; // X start of chapel
 
   const pilots: FabricObject[] = [];
   const margin = 55 * s;
@@ -646,9 +654,10 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const pilotLabels: FabricObject[] = [];
 
+  // Pilotis sit below the body at Y = totalH
+  const pilotiTopY = totalH;
+
   for (let i = 0; i < 4; i++) {
-    // Top position: reversed order (A4, A3, A2, A1)
-    // Bottom position: normal order (C1, C2, C3, C4)
     const colIndex = flipHorizontal ? 3 - i : i;
     const pilotiId = `piloti_${colIndex}_${rowIndex}`;
     const defaultHeight = 1.0;
@@ -662,7 +671,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
-      top: roofH + bodyH,
+      top: pilotiTopY,
       originY: "top",
       objectCaching: false,
     });
@@ -676,17 +685,14 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
     pilots.push(rect);
 
-    // Add diagonal stripe overlay for bottom 2/3
-    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, roofH + bodyH, pilotW, pilotH);
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, pilotiTopY, pilotW, pilotH);
     pilots.push(stripeOverlay);
 
-    // Create size label below piloti (font size 20 * scale for visibility)
-    // Position at center of piloti rect (rect.left + pilotW/2)
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: roofH + bodyH + pilotH + 8 * s,
+      top: pilotiTopY + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -694,94 +700,173 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     });
     (sizeLabel as any).isPilotiSizeLabel = true;
     (sizeLabel as any).pilotiId = pilotiId;
-
     pilotLabels.push(sizeLabel);
   }
 
-  const roofFill = new Polygon(
+  // ─────────────────────────────────────────────────────────────────────────
+  // THREE-SECTION GEOMETRY
+  // Y=0 is the top of the outer diagonal peaks
+  // Body bottom = totalH = bodyH + roofExtraH
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Chapel arch (quadratic bezier approximation via polyline) ─────────────
+  const archPoints: { x: number; y: number }[] = [];
+  const archSteps = 14;
+  for (let i = 0; i <= archSteps; i++) {
+    const t = i / archSteps;
+    // P0 = left connection, P1 = peak control, P2 = right connection
+    const p0x = chapelaX;
+    const p0y = roofExtraH;
+    const p1x = chapelaX + chapelaW / 2;
+    const p1y = roofExtraH - capH;
+    const p2x = chapelaX + chapelaW;
+    const p2y = roofExtraH;
+    archPoints.push({
+      x: (1 - t) * (1 - t) * p0x + 2 * (1 - t) * t * p1x + t * t * p2x,
+      y: (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y,
+    });
+  }
+
+  // ── Chapel fill ───────────────────────────────────────────────────────────
+  const chapelaFill = new Polygon(
     [
-      { x: 0, y: roofH },
-      { x: bodyW / 2, y: 0 },
-      { x: bodyW, y: roofH },
+      { x: chapelaX, y: totalH },
+      { x: chapelaX, y: roofExtraH },
+      ...archPoints,
+      { x: chapelaX + chapelaW, y: roofExtraH },
+      { x: chapelaX + chapelaW, y: totalH },
     ],
-    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0 },
+    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
   );
 
-  const bodyFill = new Rect({
-    width: bodyW,
-    height: bodyH,
-    fill: "#eeeeee",
-    strokeWidth: 0,
-    left: 0,
-    top: roofH,
-  });
-
-  const roofLines = [
-    new Line([0, roofH, bodyW / 2, 0], {
+  // ── Chapel stroke (outline) ───────────────────────────────────────────────
+  const chapelaStroke = new Polyline(
+    [
+      { x: chapelaX, y: totalH },
+      { x: chapelaX, y: roofExtraH },
+      ...archPoints,
+      { x: chapelaX + chapelaW, y: roofExtraH },
+      { x: chapelaX + chapelaW, y: totalH },
+    ],
+    {
+      fill: "transparent",
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
       left: 0,
       top: 0,
-    }),
-    new Line([bodyW / 2, 0, bodyW, roofH], {
+      objectCaching: false,
+    },
+  );
+
+  // ── Diagonal Esquerda fill ────────────────────────────────────────────────
+  const diagEsqFill = new Polygon(
+    [
+      { x: 0, y: 0 },
+      { x: diagonalW, y: roofExtraH },
+      { x: diagonalW, y: totalH },
+      { x: 0, y: totalH },
+    ],
+    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
+  );
+
+  // ── Diagonal Esquerda stroke ──────────────────────────────────────────────
+  const diagEsqStroke = new Polyline(
+    [
+      { x: 0, y: totalH },
+      { x: 0, y: 0 },
+      { x: diagonalW, y: roofExtraH },
+      { x: diagonalW, y: totalH },
+    ],
+    {
+      fill: "transparent",
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
-      left: bodyW / 2,
+      left: 0,
       top: 0,
-    }),
-  ];
-
-  const bodyStroke = new Polyline(
-    [
-      { x: 0, y: roofH },
-      { x: 0, y: roofH + bodyH },
-      { x: bodyW, y: roofH + bodyH },
-      { x: bodyW, y: roofH },
-    ],
-    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: roofH },
+      objectCaching: false,
+    },
   );
 
-  const elements: FabricObject[] = [roofFill, bodyFill, ...roofLines, bodyStroke];
+  // ── Diagonal Direita fill ─────────────────────────────────────────────────
+  const diagDirX = chapelaX + chapelaW;
+  const diagDirFill = new Polygon(
+    [
+      { x: diagDirX, y: roofExtraH },
+      { x: bodyW, y: 0 },
+      { x: bodyW, y: totalH },
+      { x: diagDirX, y: totalH },
+    ],
+    { fill: "#eeeeee", strokeWidth: 0, left: 0, top: 0, objectCaching: false },
+  );
 
-  // Front view: door + 2 windows
-  // Back view: only right window (w1), no door, no left window
+  // ── Diagonal Direita stroke ───────────────────────────────────────────────
+  const diagDirStroke = new Polyline(
+    [
+      { x: diagDirX, y: totalH },
+      { x: diagDirX, y: roofExtraH },
+      { x: bodyW, y: 0 },
+      { x: bodyW, y: totalH },
+    ],
+    {
+      fill: "transparent",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: 0,
+      top: 0,
+      objectCaching: false,
+    },
+  );
+
+  // ── Bottom baseline ───────────────────────────────────────────────────────
+  const baseLine = new Polyline(
+    [
+      { x: 0, y: totalH },
+      { x: bodyW, y: totalH },
+    ],
+    {
+      fill: "transparent",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: 0,
+      top: 0,
+      objectCaching: false,
+    },
+  );
+
+  const elements: FabricObject[] = [diagEsqFill, chapelaFill, diagDirFill, diagEsqStroke, chapelaStroke, diagDirStroke, baseLine];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WINDOWS AND DOOR (front view only)
+  // Body usable height runs from roofExtraH to totalH (= bodyH tall)
+  // ─────────────────────────────────────────────────────────────────────────
   const windowW = 90 * s;
   const windowH = 75 * s;
-  const doorY = roofH + (bodyH - 180 * s);
+  const doorW = 100 * s;
+  const doorH = 180 * s;
 
   if (isFront) {
-    // Front view: right window next to door
-    const w1 = new Rect({
+    // ── Diagonal Esquerda: 1 window centred in the panel ──────────────────
+    const esqMidY = roofExtraH + bodyH / 2;
+    const winEsq = new Rect({
       width: windowW,
       height: windowH,
       fill: "#fff",
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - 130 * s,
-      top: doorY,
+      left: diagonalW / 2 - windowW / 2,
+      top: esqMidY - windowH / 2,
+      objectCaching: false,
     });
-    elements.push(w1);
-  } else {
-    // Back view: window on the left side (mirrored from front)
-    const w1 = new Rect({
-      width: windowW,
-      height: windowH,
-      fill: "#fff",
-      stroke: "#333",
-      strokeWidth: 1.5,
-      strokeUniform: true,
-      left: 40 * s,
-      top: doorY,
-    });
-    elements.push(w1);
-  }
+    elements.push(winEsq);
 
-  if (isFront) {
-    const doorW = 100 * s;
-    const doorH = 180 * s;
+    // ── Diagonal Direita: door (left area) + window (right area) ──────────
+    const dirSectionW = bodyW - diagDirX;
+    const doorTop = totalH - doorH;
 
     const doorObj = new Rect({
       width: doorW,
@@ -790,46 +875,44 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: bodyW - 250 * s,
-      top: doorY,
+      left: diagDirX + dirSectionW * 0.18,
+      top: doorTop,
+      objectCaching: false,
     });
+    elements.push(doorObj);
 
-    const w2 = new Rect({
+    const dirMidY = roofExtraH + bodyH / 2;
+    const winDir = new Rect({
       width: windowW,
       height: windowH,
       fill: "#fff",
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: 40 * s,
-      top: doorY,
+      left: diagDirX + dirSectionW * 0.60,
+      top: dirMidY - windowH / 2,
+      objectCaching: false,
     });
-
-    elements.push(doorObj, w2);
+    elements.push(winDir);
   }
+  // Back view: no openings (structure only)
 
-  // Add ground line (behind house/pilotis) + markers/labels (in front)
+  // ─────────────────────────────────────────────────────────────────────────
+  // GROUND ELEMENTS
+  // ─────────────────────────────────────────────────────────────────────────
   const defaultNivelVal = 0.2;
   const groundSeed = flipHorizontal ? 42 : 137;
   const leftX = -50;
   const leftCenterX = margin + pilotW / 2;
   const rightX = bodyW + 50;
   const rightCenterX = margin + 3 * step + pilotW / 2;
-  const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
+  const nivelY = totalH + defaultNivelVal * 100 * s;
   const nivelStr = formatNivel(defaultNivelVal);
-  const maxPilotiBottom = roofH + bodyH + getPilotiVisualHeight(1.0, s);
+  const maxPilotiBottom = totalH + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
-    leftX,
-    leftCenterX,
-    nivelY,
-    rightX,
-    rightCenterX,
-    nivelY,
-    s,
-    groundSeed,
-    nivelStr,
-    nivelStr,
-    maxPilotiBottom,
+    leftX, leftCenterX, nivelY,
+    rightX, rightCenterX, nivelY,
+    s, groundSeed, nivelStr, nivelStr, maxPilotiBottom,
   );
   const groundBack = groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
   const groundFront = groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
@@ -854,6 +937,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   return group;
 }
+
+
+
 
 export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightSide: boolean = false): Group {
   const factors = getHouseScaleFactors(canvas);
