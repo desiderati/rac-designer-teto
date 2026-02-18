@@ -26,6 +26,10 @@ const PILOTI_RADIUS = 15 * SCALE_2D * MODEL_SCALE;
 const PILOTI_BASE_HEIGHT = 60 * MODEL_SCALE;
 const HOUSE_BASE_Y = PILOTI_BASE_HEIGHT;
 
+// Terrain extension beyond house bounds
+const TERRAIN_EXT = 50;
+const TERRAIN_SUBDIVISIONS = 20;
+
 // ============================================
 // CORES
 // ============================================
@@ -34,7 +38,7 @@ const COLORS = {
   pilotiNormal: '#d4d4d4',
   pilotiMaster: '#8B4513',
   edge: '#333333',
-  ground: '#e8e8e8',
+  terrain: '#8aad7a',
   elementWhite: '#ffffff',
   elementFrame: '#666666',
 };
@@ -47,6 +51,48 @@ interface House3DSceneProps {
   pilotis: Record<string, PilotiData>;
   elements?: HouseElement[];
   wallColor?: string;
+}
+
+// ============================================
+// TERRAIN HELPERS
+// ============================================
+
+/**
+ * Returns the Y position of the terrain at a given corner piloti.
+ * terrainY = HOUSE_BASE_Y - pilotiHeight + nivel * PILOTI_BASE_HEIGHT
+ */
+function getCornerTerrainY(pilotis: Record<string, PilotiData>, col: number, row: number): number {
+  const id = `piloti_${col}_${row}`;
+  const data = pilotis[id] ?? { height: 1.0, nivel: 0.2, isMaster: false };
+  const pilotiHeight = PILOTI_BASE_HEIGHT * data.height;
+  const terrainOffset = data.nivel * PILOTI_BASE_HEIGHT;
+  return HOUSE_BASE_Y - pilotiHeight + terrainOffset;
+}
+
+/**
+ * Bilinear interpolation of terrain Y for any (col, row) in [0,3] x [0,2] grid.
+ * u = col / 3  (0 = left, 1 = right)
+ * v = row / 2  (0 = front, 1 = back)
+ */
+function interpolateTerrainY(
+  pilotis: Record<string, PilotiData>,
+  col: number,
+  row: number
+): number {
+  const yA1 = getCornerTerrainY(pilotis, 0, 0); // front-left
+  const yA4 = getCornerTerrainY(pilotis, 3, 0); // front-right
+  const yC1 = getCornerTerrainY(pilotis, 0, 2); // back-left
+  const yC4 = getCornerTerrainY(pilotis, 3, 2); // back-right
+
+  const u = col / 3;
+  const v = row / 2;
+
+  return (
+    (1 - u) * (1 - v) * yA1 +
+    u * (1 - v) * yA4 +
+    (1 - u) * v * yC1 +
+    u * v * yC4
+  );
 }
 
 // ============================================
@@ -65,25 +111,95 @@ function getPiloti3DPosition(col: number, row: number): [number, number, number]
 }
 
 // ============================================
-// PILOTI 3D - grows DOWNWARD from house body
+// PILOTI 3D - base touches terrain, top at HOUSE_BASE_Y
 // ============================================
-function Piloti3D({ pilotiId, data }: { pilotiId: string; data: PilotiData }) {
+function Piloti3D({
+  pilotiId,
+  data,
+  terrainY,
+}: {
+  pilotiId: string;
+  data: PilotiData;
+  terrainY: number;
+}) {
   const pos = getPilotiGridPosition(pilotiId);
   if (!pos) return null;
 
-  const [x, _, z] = getPiloti3DPosition(pos.col, pos.row);
-  const pilotiHeight = PILOTI_BASE_HEIGHT * data.height;
+  const [x, , z] = getPiloti3DPosition(pos.col, pos.row);
   const color = data.isMaster ? COLORS.pilotiMaster : COLORS.pilotiNormal;
 
-  // Hangs from house body bottom downward
-  const yCenter = HOUSE_BASE_Y - pilotiHeight / 2;
+  // Top is always at HOUSE_BASE_Y; bottom sits on the interpolated terrain
+  const visualHeight = Math.max(HOUSE_BASE_Y - terrainY, 0.5);
+  const yCenter = terrainY + visualHeight / 2;
 
   return (
     <group position={[x, yCenter, z]}>
-      <Cylinder args={[PILOTI_RADIUS, PILOTI_RADIUS, pilotiHeight, 16]} castShadow receiveShadow>
+      <Cylinder args={[PILOTI_RADIUS, PILOTI_RADIUS, visualHeight, 16]} castShadow receiveShadow>
         <meshStandardMaterial color={color} />
       </Cylinder>
     </group>
+  );
+}
+
+// ============================================
+// TERRAIN — bilinear interpolation of 4 corners
+// ============================================
+function Terrain({ pilotis }: { pilotis: Record<string, PilotiData> }) {
+  const yA1 = getCornerTerrainY(pilotis, 0, 0); // front-left
+  const yA4 = getCornerTerrainY(pilotis, 3, 0); // front-right
+  const yC1 = getCornerTerrainY(pilotis, 0, 2); // back-left
+  const yC4 = getCornerTerrainY(pilotis, 3, 2); // back-right
+
+  const geometry = useMemo(() => {
+    const N = TERRAIN_SUBDIVISIONS;
+    const totalWidth = HOUSE_WIDTH + 2 * TERRAIN_EXT;
+    const totalDepth = HOUSE_DEPTH + 2 * TERRAIN_EXT;
+
+    const geo = new THREE.PlaneGeometry(totalWidth, totalDepth, N - 1, N - 1);
+    // PlaneGeometry is in XY plane; we'll rotate it, but manipulate Y (height) before rotation
+    // After -Math.PI/2 rotation around X, Y becomes Z and Z becomes Y in world space.
+    // So we must set the Z attribute of the PlaneGeometry to be the terrain height.
+    const positions = geo.attributes.position as THREE.BufferAttribute;
+
+    for (let j = 0; j < N; j++) {
+      for (let i = 0; i < N; i++) {
+        const idx = j * N + i;
+        // u: 0 (left) → 1 (right), v: 0 (front/+Z) → 1 (back/-Z)
+        // PlaneGeometry: i=0 is left (x=-totalWidth/2), j=0 is top (y=+totalDepth/2 before rotation)
+        const u = i / (N - 1);
+        const v = j / (N - 1); // j=0 → front (+hd direction), j=N-1 → back
+
+        const terrainHeight =
+          (1 - u) * (1 - v) * yA1 +
+          u * (1 - v) * yA4 +
+          (1 - u) * v * yC1 +
+          u * v * yC4;
+
+        // In PlaneGeometry (before rotation), Z is the normal axis (height after rotation)
+        positions.setZ(idx, terrainHeight);
+      }
+    }
+
+    positions.needsUpdate = true;
+    geo.computeVertexNormals();
+    return geo;
+  }, [yA1, yA4, yC1, yC4]);
+
+  return (
+    <mesh
+      geometry={geometry}
+      rotation={[-Math.PI / 2, 0, 0]}
+      receiveShadow
+    >
+      <meshStandardMaterial
+        color={COLORS.terrain}
+        roughness={0.95}
+        metalness={0}
+        transparent
+        opacity={0.85}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
   );
 }
 
@@ -99,25 +215,19 @@ function HouseElement3D({ element }: { element: HouseElement }) {
   const xOffset = element.x * MODEL_SCALE;
   const yOffset = element.y * MODEL_SCALE;
 
-  // Determine face width for positioning
-  const isLongSide = element.face === 'front' || element.face === 'back';
-  const faceWidth = isLongSide ? HOUSE_WIDTH : HOUSE_DEPTH;
-
-  const yPos = HOUSE_BASE_Y + HOUSE_HEIGHT - yOffset - elementHeight / 2;
-
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
+
+  const yPos = HOUSE_BASE_Y + HOUSE_HEIGHT - yOffset - elementHeight / 2;
 
   let position: [number, number, number];
   let rotation: [number, number, number] = [0, 0, 0];
 
   switch (element.face) {
     case 'front':
-      // Inverter X para corresponder a vista 2D
       position = [hw - xOffset - elementWidth / 2, yPos, hd + depth / 2];
       break;
     case 'back':
-      // Ajustar back para manter simetria com front corrigido
       position = [xOffset - hw + elementWidth / 2, yPos, -hd - depth / 2];
       rotation = [0, Math.PI, 0];
       break;
@@ -159,7 +269,6 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
 
   const isOpenLeft = houseType === 'tipo3';
 
-  // Individual wall faces
   const walls = useMemo(() => {
     const w: { pos: [number, number, number]; rot: [number, number, number]; width: number; height: number; key: string }[] = [
       { pos: [0, cy, hd], rot: [0, 0, 0], width: HOUSE_WIDTH, height: HOUSE_HEIGHT, key: 'front' },
@@ -172,27 +281,22 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
     return w;
   }, [isOpenLeft, cy, hw, hd]);
 
-  // Edge lines
   const edges = useMemo(() => {
     const e: [THREE.Vector3, THREE.Vector3][] = [];
     const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
-    // Front face (long side, Z = +hd)
-    e.push([v(-hw, BY, hd), v(hw, BY, hd)]);       // bottom
-    e.push([v(-hw, TOP, hd), v(hw, TOP, hd)]);     // top
-    e.push([v(-hw, BY, hd), v(-hw, TOP, hd)]);     // left vert
-    e.push([v(hw, BY, hd), v(hw, TOP, hd)]);       // right vert
+    e.push([v(-hw, BY, hd), v(hw, BY, hd)]);
+    e.push([v(-hw, TOP, hd), v(hw, TOP, hd)]);
+    e.push([v(-hw, BY, hd), v(-hw, TOP, hd)]);
+    e.push([v(hw, BY, hd), v(hw, TOP, hd)]);
 
-    // Back face (long side, Z = -hd)
-    e.push([v(-hw, BY, -hd), v(hw, BY, -hd)]);     // bottom
-    e.push([v(-hw, TOP, -hd), v(hw, TOP, -hd)]);   // top
-    e.push([v(-hw, BY, -hd), v(-hw, TOP, -hd)]);   // left vert
-    e.push([v(hw, BY, -hd), v(hw, TOP, -hd)]);     // right vert
+    e.push([v(-hw, BY, -hd), v(hw, BY, -hd)]);
+    e.push([v(-hw, TOP, -hd), v(hw, TOP, -hd)]);
+    e.push([v(-hw, BY, -hd), v(-hw, TOP, -hd)]);
+    e.push([v(hw, BY, -hd), v(hw, TOP, -hd)]);
 
-    // Right side bottom (6m - NO top edge)
     e.push([v(hw, BY, -hd), v(hw, BY, hd)]);
 
-    // Left side bottom (6m - NO top edge, skip if open)
     if (!isOpenLeft) {
       e.push([v(-hw, BY, -hd), v(-hw, BY, hd)]);
     }
@@ -202,20 +306,16 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
 
   return (
     <group>
-      {/* Wall faces */}
       {walls.map((w) => (
         <mesh key={w.key} position={w.pos} rotation={w.rot}>
           <planeGeometry args={[w.width, w.height]} />
           <meshStandardMaterial color={wallColor} side={THREE.DoubleSide} />
         </mesh>
       ))}
-      {/* Bottom face */}
       <mesh position={[0, BY, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[HOUSE_WIDTH, HOUSE_DEPTH]} />
         <meshStandardMaterial color={wallColor} side={THREE.DoubleSide} />
       </mesh>
-      {/* Top face omitted – roof covers it and avoids z-fighting */}
-      {/* Edge lines */}
       {edges.map((pts, i) => (
         <Line key={i} points={pts} color={COLORS.edge} lineWidth={1} />
       ))}
@@ -224,7 +324,7 @@ function HouseBody({ houseType, wallColor }: { houseType: HouseType; wallColor: 
 }
 
 // ============================================
-// TELHADO - cor de amianto, sem base diagonal
+// TELHADO
 // ============================================
 function Roof() {
   const width = HOUSE_WIDTH;
@@ -237,19 +337,15 @@ function Roof() {
     const halfWidth = width / 2;
     const halfDepth = roofDepth / 2;
 
-    // Triangular prism WITHOUT base faces (no diagonal)
     const vertices = new Float32Array([
-      // Front triangle
       -halfWidth, 0, halfDepth,
       halfWidth, 0, halfDepth,
       0, height, halfDepth,
 
-      // Back triangle
       -halfWidth, 0, -halfDepth,
       0, height, -halfDepth,
       halfWidth, 0, -halfDepth,
 
-      // Left slope
       -halfWidth, 0, halfDepth,
       0, height, halfDepth,
       0, height, -halfDepth,
@@ -257,7 +353,6 @@ function Roof() {
       0, height, -halfDepth,
       -halfWidth, 0, -halfDepth,
 
-      // Right slope
       halfWidth, 0, halfDepth,
       0, height, -halfDepth,
       0, height, halfDepth,
@@ -277,15 +372,12 @@ function Roof() {
     const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
     return [
-      // Front triangle
       [v(-halfWidth, 0, halfDepth), v(halfWidth, 0, halfDepth)],
       [v(halfWidth, 0, halfDepth), v(0, height, halfDepth)],
       [v(0, height, halfDepth), v(-halfWidth, 0, halfDepth)],
-      // Back triangle
       [v(-halfWidth, 0, -halfDepth), v(halfWidth, 0, -halfDepth)],
       [v(halfWidth, 0, -halfDepth), v(0, height, -halfDepth)],
       [v(0, height, -halfDepth), v(-halfWidth, 0, -halfDepth)],
-      // Ridge and bottom edges
       [v(0, height, halfDepth), v(0, height, -halfDepth)],
       [v(-halfWidth, 0, halfDepth), v(-halfWidth, 0, -halfDepth)],
       [v(halfWidth, 0, halfDepth), v(halfWidth, 0, -halfDepth)],
@@ -305,19 +397,6 @@ function Roof() {
 }
 
 // ============================================
-// CHÃO
-// ============================================
-function Ground() {
-  const size = 400 * MODEL_SCALE;
-  return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-      <planeGeometry args={[size, size]} />
-      <meshStandardMaterial color={COLORS.ground} transparent opacity={0.5} />
-    </mesh>
-  );
-}
-
-// ============================================
 // COMPONENTE PRINCIPAL
 // ============================================
 export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#d4d4d4' }: House3DSceneProps) {
@@ -327,15 +406,23 @@ export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#
 
   return (
     <group ref={groupRef}>
-      <Ground />
+      <Terrain pilotis={pilotis} />
 
-      {Object.entries(pilotis).map(([id, data]) => (
-        <Piloti3D
-          key={`${id}_${data.height}_${data.isMaster}`}
-          pilotiId={id}
-          data={data}
-        />
-      ))}
+      {Object.entries(pilotis).map(([id, data]) => {
+        const pos = id.match(/piloti_(\d+)_(\d+)/);
+        const terrainY = pos
+          ? interpolateTerrainY(pilotis, parseInt(pos[1]), parseInt(pos[2]))
+          : HOUSE_BASE_Y - PILOTI_BASE_HEIGHT;
+
+        return (
+          <Piloti3D
+            key={`${id}_${data.height}_${data.isMaster}_${data.nivel}`}
+            pilotiId={id}
+            data={data}
+            terrainY={terrainY}
+          />
+        );
+      })}
 
       <HouseBody houseType={houseType} wallColor={wallColor} />
 
