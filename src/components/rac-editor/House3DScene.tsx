@@ -24,7 +24,7 @@ const ROOF_RISE = BODY_HEIGHT - DIAG_H1;
 const COLUMN_DISTANCE = 155 * S;
 const ROW_DISTANCE = 135 * S;
 const PILOTI_RADIUS = 15 * S;
-const PILOTI_BASE_HEIGHT = 60 * MODEL_SCALE;
+const PILOTI_BASE_HEIGHT = 100 * S;
 const HOUSE_BASE_Y = PILOTI_BASE_HEIGHT;
 
 // Terreno ao redor da casa
