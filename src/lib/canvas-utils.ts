@@ -946,7 +946,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       strokeWidth: 2,
       strokeUniform: true,
       left: left,
-      top: bodyH,
+      top: wallHeight,
     });
     elements.push(floorBean);
   };
