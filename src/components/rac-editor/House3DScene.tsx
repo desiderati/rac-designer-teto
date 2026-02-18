@@ -60,7 +60,6 @@ const ALL_PILOTI_IDS = Array.from({ length: 3 * 4 }, (_, index) => {
 
 const COLORS = {
   roof: '#a8b8c4',
-  roofAccent: '#8a9ea8',
   piloti: '#f4f4f4',
   terrain: '#7da86d',
   beam: '#f2f2f2',
@@ -221,7 +220,7 @@ function getTerrainYByUV(pilotis: Record<string, PilotiData>, u: number, v: numb
 }
 
 function getPilotiTopXZ(col: number, row: number): [number, number] {
-  const x = (col - 1.5) * PILOTI_STEP_X;
+  const x = (1.5 - col) * PILOTI_STEP_X;
   const z = (1 - row) * PILOTI_STEP_Z;
   return [x, z];
 }
@@ -236,7 +235,7 @@ function TerrainMesh({ pilotis }: { pilotis: Record<string, PilotiData> }) {
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
       const y = positions.getY(i);
-      const u = (x + HOUSE_WIDTH / 2) / HOUSE_WIDTH;
+      const u = 1 - (x + HOUSE_WIDTH / 2) / HOUSE_WIDTH;
       const v = (y + HOUSE_DEPTH / 2) / HOUSE_DEPTH;
       positions.setZ(i, getTerrainYByUV(pilotis, u, v));
     }
@@ -259,7 +258,7 @@ function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<s
 
   const data = pilotis[pilotiId] ?? DEFAULT_PILOTI;
   const [x, z] = getPilotiTopXZ(grid.col, grid.row);
-  const terrainY = getTerrainYByUV(pilotis, grid.col / 3, grid.row / 2);
+  const terrainY = getTerrainYByUV(pilotis, 1 - grid.col / 3, grid.row / 2);
 
   const nominalHeight = (data.height ?? DEFAULT_PILOTI.height) * BASE_PILOTI_HEIGHT;
   const minHeightToTouchTerrain = Math.max(PILOTI_TOP_Y - terrainY, 0);
@@ -284,43 +283,37 @@ function RoofMesh() {
     const vertices = new Float32Array([
       -hw,
       ROOF_BASE_Y,
-      hd, // 0 front-left eave
-      0,
-      ROOF_TOP_Y,
-      hd, // 1 front ridge
-      hw,
-      ROOF_BASE_Y,
-      hd, // 2 front-right eave
+      hd, // 0 left eave front
       -hw,
       ROOF_BASE_Y,
-      -hd, // 3 back-left eave
+      -hd, // 1 left eave back
       0,
       ROOF_TOP_Y,
-      -hd, // 4 back ridge
+      -hd, // 2 ridge back
+      0,
+      ROOF_TOP_Y,
+      hd, // 3 ridge front
       hw,
       ROOF_BASE_Y,
-      -hd, // 5 back-right eave
+      hd, // 4 right eave front
+      hw,
+      ROOF_BASE_Y,
+      -hd, // 5 right eave back
     ]);
 
     const indices = [
       0,
       1,
-      2, // front gable
+      2,
+      0,
+      2,
+      3, // left roof sheet
+      4,
       5,
-      4,
-      3, // back gable
-      0,
-      3,
-      4,
+      2,
       0,
       4,
-      1, // left slope
-      2,
-      1,
-      4,
-      2,
-      4,
-      5, // right slope
+      2, // right roof sheet
     ];
 
     const geo = new THREE.BufferGeometry();
@@ -330,42 +323,10 @@ function RoofMesh() {
     return geo;
   }, []);
 
-  const accentGeometry = useMemo(() => {
-    const hw = HOUSE_WIDTH / 2;
-    const hd = HOUSE_DEPTH / 2;
-    const accentHalfWidth = Math.min(122 * U * 0.5, hw * 0.65);
-
-    const points = [
-      new THREE.Vector3(-accentHalfWidth, ROOF_BASE_Y + 0.02, hd + 0.01),
-      new THREE.Vector3(0, ROOF_TOP_Y + 0.02, hd + 0.01),
-      new THREE.Vector3(accentHalfWidth, ROOF_BASE_Y + 0.02, hd + 0.01),
-      new THREE.Vector3(-accentHalfWidth, ROOF_BASE_Y + 0.02, -hd - 0.01),
-      new THREE.Vector3(0, ROOF_TOP_Y + 0.02, -hd - 0.01),
-      new THREE.Vector3(accentHalfWidth, ROOF_BASE_Y + 0.02, -hd - 0.01),
-    ];
-
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    geo.setIndex([
-      0,
-      1,
-      2,
-      5,
-      4,
-      3,
-    ]);
-    geo.computeVertexNormals();
-    return geo;
-  }, []);
-
   return (
-    <group>
-      <mesh geometry={geometry} castShadow receiveShadow>
-        <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh geometry={accentGeometry}>
-        <meshStandardMaterial color={COLORS.roofAccent} roughness={0.9} metalness={0.04} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
+    <mesh geometry={geometry} castShadow receiveShadow>
+      <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={THREE.DoubleSide} />
+    </mesh>
   );
 }
 
