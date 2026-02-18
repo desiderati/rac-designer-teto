@@ -661,7 +661,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
-      top: roofH,
+      top: bodyH,
       originY: "top",
       objectCaching: false,
     });
@@ -676,7 +676,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilots.push(rect);
 
     // Add diagonal stripe overlay for bottom 2/3
-    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, roofH, pilotW, pilotH);
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH, pilotW, pilotH);
     pilots.push(stripeOverlay);
 
     // Create size label below piloti (font size 20 * scale for visibility)
@@ -685,7 +685,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: roofH + pilotH + 8 * s,
+      top: bodyH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -697,13 +697,18 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilotLabels.push(sizeLabel);
   }
 
+  const leftDiagH1 = 213 * s;
+  const leftDiagH2 = 261 * s;
+  const leftDiagW = 244 * s;
+
   const leftDiagFill = new Polygon(
     [
-      { x: 0, y: chapelH - leftDiagH },
-      { x: bodyW / 2, y: 0 },
-      { x: bodyW, y: roofH },
+      { x: 0, y: bodyH - leftDiagH1 },
+      { x: leftDiagW, y: bodyH - leftDiagH2 },
+      { x: leftDiagW, y: bodyH },
+      { x: 0, y: bodyH },
     ],
-    { fill: "#000000", strokeWidth: 0, left: 0, top: 0 },
+    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
   );
 
   const bodyFill = new Rect({
