@@ -937,24 +937,6 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     return rect;
   };
 
-  const createFloorBeanRect = (left: number) => {
-    const floorBean = new Rect({
-      width: floorBeanW,
-      height: floorBeanH,
-      fill: "#fff",
-      stroke: "#333",
-      strokeWidth: 2,
-      strokeUniform: true,
-      left: left,
-      top: wallHeight,
-    });
-    elements.push(floorBean);
-  };
-
-  createFloorBeanRect(0);
-  createFloorBeanRect((sideWidth + floorBeanW) / 2);
-  createFloorBeanRect(sideWidth - floorBeanW);
-
   // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
   // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
   const p1 = createPilotiRect(isRightSide ? 2 : 0, 0);
@@ -973,6 +955,24 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   });
 
   const elements: FabricObject[] = [wall];
+
+  const createFloorBeanRect = (left: number) => {
+    const floorBean = new Rect({
+      width: floorBeanW,
+      height: floorBeanH,
+      fill: "#fff",
+      stroke: "#333",
+      strokeWidth: 2,
+      strokeUniform: true,
+      left: left,
+      top: wallHeight,
+    });
+    elements.push(floorBean);
+  };
+
+  createFloorBeanRect(0);
+  createFloorBeanRect((sideWidth + floorBeanW) / 2);
+  createFloorBeanRect(sideWidth - floorBeanW);
 
   if (hasDoor) {
     const doorW = 80 * s;
