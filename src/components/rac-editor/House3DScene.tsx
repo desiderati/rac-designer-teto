@@ -36,6 +36,9 @@ const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
 const FLOOR_BEAM_HEIGHT = 20 * U;
 const BODY_PROFILE_HEIGHT = 273 * U;
 const WALL_HEIGHT = 213 * U;
+const DIAG_W = 244 * U;
+const DIAG_H2 = 261 * U;
+const CHAPEL_W = 122 * U;
 const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
 
 const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT;
@@ -63,10 +66,34 @@ const COLORS = {
   piloti: '#f4f4f4',
   terrain: '#7da86d',
   beam: '#f2f2f2',
+  chapelPanel: '#b8b8b8',
   door: '#f5efe2',
   window: '#eef6ff',
   frame: '#666666',
 };
+
+function offsetLightness(hex: string, lightnessOffset: number): string {
+  const c = new THREE.Color(hex);
+  c.offsetHSL(0, 0, lightnessOffset);
+  return `#${c.getHexString()}`;
+}
+
+function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.BufferGeometry {
+  const vertices: number[] = [];
+  const normalized = points.map(([x, y]) => [x - HOUSE_WIDTH / 2, BODY_PROFILE_HEIGHT - y] as const);
+
+  for (let i = 1; i < normalized.length - 1; i++) {
+    const [x0, y0] = normalized[0];
+    const [x1, y1] = normalized[i];
+    const [x2, y2] = normalized[i + 1];
+    vertices.push(x0, y0, 0, x1, y1, 0, x2, y2, 0);
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+  geo.computeVertexNormals();
+  return geo;
+}
 
 function buildOpeningsFromCanvasModel(houseType: HouseType, rawElements: HouseElement[]): SceneOpening[] {
   if (!houseType) return [];
@@ -311,9 +338,9 @@ function RoofMesh() {
       4,
       5,
       2,
-      0,
       4,
-      2, // right roof sheet
+      2,
+      3, // right roof sheet
     ];
 
     const geo = new THREE.BufferGeometry();
@@ -330,6 +357,73 @@ function RoofMesh() {
   );
 }
 
+function FrontBackPanels({ wallColor }: { wallColor: string }) {
+  const panelOffset = WALL_THICKNESS * 0.65;
+  const sidePanelColor = offsetLightness(wallColor, 0.04);
+
+  const leftDiagGeo = useMemo(
+    () =>
+      createFrontBackPanelGeometry([
+        [0, BODY_PROFILE_HEIGHT - WALL_HEIGHT],
+        [DIAG_W, BODY_PROFILE_HEIGHT - DIAG_H2],
+        [DIAG_W, BODY_PROFILE_HEIGHT],
+        [0, BODY_PROFILE_HEIGHT],
+      ]),
+    [],
+  );
+
+  const chapelGeo = useMemo(
+    () =>
+      createFrontBackPanelGeometry([
+        [DIAG_W, BODY_PROFILE_HEIGHT - DIAG_H2],
+        [DIAG_W + CHAPEL_W / 2, 0],
+        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT - DIAG_H2],
+        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT],
+        [DIAG_W, BODY_PROFILE_HEIGHT],
+      ]),
+    [],
+  );
+
+  const rightDiagGeo = useMemo(
+    () =>
+      createFrontBackPanelGeometry([
+        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT - DIAG_H2],
+        [HOUSE_WIDTH, BODY_PROFILE_HEIGHT - WALL_HEIGHT],
+        [HOUSE_WIDTH, BODY_PROFILE_HEIGHT],
+        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT],
+      ]),
+    [],
+  );
+
+  return (
+    <>
+      <group position={[0, WALL_BASE_Y, HOUSE_DEPTH / 2 + panelOffset]}>
+        <mesh geometry={leftDiagGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh geometry={chapelGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={COLORS.chapelPanel} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh geometry={rightDiagGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+
+      <group position={[0, WALL_BASE_Y, -HOUSE_DEPTH / 2 - panelOffset]} rotation={[0, Math.PI, 0]}>
+        <mesh geometry={leftDiagGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh geometry={chapelGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={COLORS.chapelPanel} side={THREE.DoubleSide} />
+        </mesh>
+        <mesh geometry={rightDiagGeo} castShadow receiveShadow>
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+    </>
+  );
+}
+
 function HouseShell({ wallColor }: { wallColor: string }) {
   const wallCenterY = WALL_BASE_Y + WALL_HEIGHT / 2;
 
@@ -338,16 +432,6 @@ function HouseShell({ wallColor }: { wallColor: string }) {
       <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, HOUSE_DEPTH]} />
         <meshStandardMaterial color={COLORS.beam} />
-      </mesh>
-
-      <mesh position={[0, wallCenterY, HOUSE_DEPTH / 2 - WALL_THICKNESS / 2]} castShadow receiveShadow>
-        <boxGeometry args={[HOUSE_WIDTH, WALL_HEIGHT, WALL_THICKNESS]} />
-        <meshStandardMaterial color={wallColor} />
-      </mesh>
-
-      <mesh position={[0, wallCenterY, -HOUSE_DEPTH / 2 + WALL_THICKNESS / 2]} castShadow receiveShadow>
-        <boxGeometry args={[HOUSE_WIDTH, WALL_HEIGHT, WALL_THICKNESS]} />
-        <meshStandardMaterial color={wallColor} />
       </mesh>
 
       <mesh position={[-HOUSE_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
@@ -359,6 +443,8 @@ function HouseShell({ wallColor }: { wallColor: string }) {
         <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]} />
         <meshStandardMaterial color={wallColor} />
       </mesh>
+
+      <FrontBackPanels wallColor={wallColor} />
 
       <RoofMesh />
     </group>
