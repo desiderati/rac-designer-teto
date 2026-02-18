@@ -182,11 +182,15 @@ class HouseManager {
       let targetTop: number | undefined;
       if (markerSide === 'top') {
         targetLeft = bodyWidth / 2 - doorCenter;
+        targetTop = -bodyHeight / 2;
       } else if (markerSide === 'bottom') {
         targetLeft = -bodyWidth / 2 + doorCenter;
+        targetTop = bodyHeight / 2;
       } else if (markerSide === 'left') {
+        targetLeft = -bodyWidth / 2;
         targetTop = -bodyHeight / 2 + doorCenter;
       } else if (markerSide === 'right') {
+        targetLeft = bodyWidth / 2;
         targetTop = bodyHeight / 2 - doorCenter;
       }
 

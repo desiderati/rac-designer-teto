@@ -165,9 +165,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
 
   // Door markers on top view (hidden by default, positioned by HouseManager based on side assignments)
-  const markerLong = 60 * s;
+  const markerLong = 80 * s;
   const markerShort = 20 * s;
-  const markerGap = 8 * s;
   const markerFill = "#d4b080";
   const markerStroke = "#8B4513";
 
@@ -187,8 +186,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     });
 
     const label = new Text("Porta", {
-      fontSize: 13 * s,
-      fill: "#555",
+      fontSize: 15 * s,
+      fontFamily: "Arial",
+      fill: "#333",
       originX: "center",
       originY: "center",
       selectable: false,
@@ -197,10 +197,10 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     });
 
     const basePos: Record<typeof side, { left: number; top: number }> = {
-      top: { left: 0, top: -h / 2 - markerShort / 2 - markerGap },
-      bottom: { left: 0, top: h / 2 + markerShort / 2 + markerGap },
-      left: { left: -w / 2 - markerShort / 2 - markerGap, top: 0 },
-      right: { left: w / 2 + markerShort / 2 + markerGap, top: 0 },
+      top: { left: 0, top: -h / 2 },
+      bottom: { left: 0, top: h / 2 },
+      left: { left: -w / 2, top: 0 },
+      right: { left: w / 2, top: 0 },
     };
 
     const marker = new Group([rect, label], {
