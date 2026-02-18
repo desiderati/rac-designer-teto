@@ -158,8 +158,7 @@ function HouseElement3D({ element }: { element: HouseElement }) {
   const hw = HOUSE_WIDTH / 2;
   const hd = HOUSE_DEPTH / 2;
 
-  //const yPos = HOUSE_BASE_Y + BODY_HEIGHT - yOffset - elementHeight / 2;
-  const yPos = HOUSE_BASE_Y + BODY_HEIGHT;
+  const yPos = HOUSE_BASE_Y + BODY_HEIGHT - yOffset - elementHeight / 2;
 
   let position: [number, number, number];
   let rotation: [number, number, number] = [0, 0, 0];
