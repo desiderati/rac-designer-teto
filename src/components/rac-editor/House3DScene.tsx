@@ -35,6 +35,7 @@ const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
 
 const FLOOR_BEAM_HEIGHT = 20 * U;
 const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
+const FLOOR_HEIGHT = 10 * U;
 const BODY_PROFILE_HEIGHT = 273 * U;
 const WALL_HEIGHT = 213 * U;
 const DIAG_W = 244 * U;
@@ -42,7 +43,7 @@ const DIAG_H2 = 261 * U;
 const CHAPEL_W = 122 * U;
 const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
 
-const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2;
+const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2 + FLOOR_HEIGHT;
 const ROOF_BASE_Y = WALL_BASE_Y + WALL_HEIGHT;
 const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
 
@@ -69,6 +70,7 @@ const COLORS = {
   roof: '#a8b8c4',
   piloti: '#d8d8d8',
   terrain: '#7da86d',
+  floor: '#f7f7f7',
   beam: '#ececec',
   door: '#b88a5a',
   window: '#8fc7f3',
@@ -438,6 +440,11 @@ function HouseShell({ wallColor }: { wallColor: string }) {
           <meshStandardMaterial color={COLORS.beam} />
         </mesh>
       ))}
+
+      <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2 + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[HOUSE_WIDTH, FLOOR_HEIGHT, HOUSE_DEPTH]} />
+        <meshStandardMaterial color={COLORS.floor} />
+      </mesh>
 
       <mesh position={[-HOUSE_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
         <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]} />

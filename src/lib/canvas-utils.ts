@@ -632,8 +632,13 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const bodyW = plantWidth; // Match the plant view width exactly
   const bodyH = 273 * s;
+
+  const floorW = bodyW;
+  const floorH = 10 * s;
+
   const floorBeanW = bodyW;
   const floorBeanH = 20 * s;
+
   const pilotW = 30 * s;
 
   const pilots: FabricObject[] = [];
@@ -663,7 +668,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
-      top: bodyH + floorBeanH,
+      top: bodyH + floorH + floorBeanH,
       originY: "top",
       objectCaching: false,
     });
@@ -678,7 +683,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilots.push(rect);
 
     // Add diagonal stripe overlay for bottom 2/3
-    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH + floorBeanH, pilotW, pilotH);
+    const stripeOverlay = createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH + floorH + floorBeanH, pilotW, pilotH);
     pilots.push(stripeOverlay);
 
     // Create size label below piloti (font size 20 * scale for visibility)
@@ -687,7 +692,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       fontSize: 20 * s,
       fill: "#666",
       left: margin + i * step + pilotW / 2,
-      top: bodyH + floorBeanH + pilotH + 8 * s,
+      top: bodyH + floorH + floorBeanH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -750,6 +755,18 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
 
+  const floor = new Rect({
+    width: floorW,
+    height: floorH,
+    fill: "#fff",
+    stroke: "#333",
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: 0,
+    top: bodyH,
+  });
+  elements.push(floor);
+
   const floorBean = new Rect({
     width: floorBeanW,
     height: floorBeanH,
@@ -758,7 +775,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     strokeWidth: 2,
     strokeUniform: true,
     left: 0,
-    top: bodyH,
+    top: bodyH + floorH,
   });
   elements.push(floorBean);
 
@@ -895,8 +912,13 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
 
   const sideWidth = plantHeight; // Match the plant view height exactly
   const wallHeight = 213 * s;
+
+  const floorW = sideWidth;
+  const floorH = 10 * s;
+
   const floorBeanW = 10 * s;
   const floorBeanH = 20 * s;
+
   const pilotW = 30 * s;
 
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
@@ -919,7 +941,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       strokeWidth: 2,
       strokeUniform: true,
       left,
-      top: wallHeight + floorBeanH,
+      top: wallHeight + floorH + floorBeanH,
       originY: "top",
       objectCaching: false,
     });
@@ -936,7 +958,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       fontSize: 20 * s,
       fill: "#666",
       left: left + pilotW / 2,
-      top: wallHeight + floorBeanH + pilotH + 8 * s,
+      top: wallHeight + floorH + floorBeanH + pilotH + 8 * s,
       originX: "center",
       originY: "top",
       selectable: false,
@@ -969,6 +991,18 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
 
   const elements: FabricObject[] = [wall];
 
+  const floor = new Rect({
+    width: floorW,
+    height: floorH,
+    fill: "#fff",
+    stroke: "#333",
+    strokeWidth: 2,
+    strokeUniform: true,
+    left: 0,
+    top: wallHeight,
+  });
+  elements.push(floor);
+
   const createFloorBeanRect = (left: number) => {
     const floorBean = new Rect({
       width: floorBeanW,
@@ -978,7 +1012,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       strokeWidth: 2,
       strokeUniform: true,
       left: left,
-      top: wallHeight,
+      top: wallHeight + floorH,
     });
     elements.push(floorBean);
   };
@@ -1034,7 +1068,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   const leftCenterX = pilotW / 2;
   const rightX = sideWidth + 50;
   const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + floorBeanH + defaultNivelVal * 100 * s;
+  const nivelY = wallHeight + floorH + floorBeanH + defaultNivelVal * 100 * s;
   const nivelStr = formatNivel(defaultNivelVal);
   const maxPilotiBottom = wallHeight + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
