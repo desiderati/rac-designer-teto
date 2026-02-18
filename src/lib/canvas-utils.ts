@@ -761,7 +761,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH },
   );
 
-  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, ...roofLines, bodyStroke];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
