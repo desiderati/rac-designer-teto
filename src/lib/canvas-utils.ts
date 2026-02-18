@@ -703,10 +703,10 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const leftDiagFill = new Polygon(
     [
-      { x: 0, y: bodyH - diagH1 },
-      { x: diagW, y: bodyH - diagH2 },
-      { x: diagW, y: bodyH },
-      { x: 0, y: bodyH },
+      { x: 0, y: diagH2 - diagH1 },
+      { x: diagW, y: 0 },
+      { x: diagW, y: diagH2 },
+      { x: 0, y: diagH2 },
     ],
     { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: bodyH - diagH2 },
   );
@@ -726,23 +726,23 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const rightDiagFill = new Polygon(
     [
-      { x: 0, y: bodyH - diagH2 },
-      { x: diagW, y: bodyH - diagH1 },
-      { x: diagW, y: bodyH },
-      { x: 0, y: bodyH },
+      { x: 0, y: 0 },
+      { x: diagW, y: diagH2 - diagH1 },
+      { x: diagW, y: diagH2 },
+      { x: 0, y: diagH2 },
     ],
     { fill: "#cdcdcd", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2 },
   );
 
   const roofLines = [
-    new Line([0, diagH1, bodyW / 2, 0], {
+    new Line([0, bodyH - diagH1, bodyW / 2, 0], {
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
       left: 0,
       top: 0,
     }),
-    new Line([bodyW / 2, 0, bodyW, diagH1], {
+    new Line([bodyW / 2, 0, bodyW, bodyH - diagH1], {
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
