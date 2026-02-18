@@ -764,15 +764,15 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
+  const doorW = 80 * s;
+  const doorH = 191 * s;
+  const doorShiftX = 30 * s;
+
   const windowW = 80 * s;
   const windowH = 70 * s;
   const windowShiftX = 30 * s;
 
-  const doorW = 80 * s;
-  const doorH = 191 * s;
-  const doorShiftX = windowShiftX * 2;
-
-  const doorX = bodyW - windowW - doorW - 60 * s;
+  const doorX = bodyW - windowW - windowShiftX - doorW - doorShiftX;
   const doorY = bodyH - doorH;
 
   const window1FrontX = bodyW - windowW - windowShiftX;
@@ -780,6 +780,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const window1BackX = 95 * s;
   const window1BackY = bodyH - doorH;
+
+  const window2X = 95 * s;
+  const window2Y = bodyH - doorH;
 
   if (isFront) {
     // Front view: right window next to door
@@ -828,8 +831,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: 95 * s,
-      top: doorY,
+      left: window2X,
+      top: window2Y,
     });
 
     elements.push(doorObj, w2);
@@ -987,9 +990,17 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
   if (hasDoor) {
     const doorW = 80 * s;
     const doorH = 191 * s;
+    const doorShiftX = 45 * s;
+
     const windowW = 80 * s;
     const windowH = 70 * s;
-    const doorLeft = sideWidth - doorW - 50 * s;
+    const windowShiftX = 45 * s;
+
+    const doorX = sideWidth - doorW - doorShiftX;
+    const doorY = wallHeight - doorH;
+
+    const windowX = sideWidth - doorW - doorShiftX - windowW - windowShiftX;
+    const windowY = wallHeight - doorH;
 
     const doorObj = new Rect({
       width: doorW,
@@ -998,11 +1009,10 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: doorLeft,
-      top: wallHeight - doorH,
+      left: doorX,
+      top: doorY,
     });
 
-    const windowLeft = sideWidth - doorW - windowW - 90 * s;
     const windowObj = new Rect({
       width: windowW,
       height: windowH,
@@ -1010,8 +1020,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
       stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
-      left: windowLeft,
-      top: wallHeight - doorH,
+      left: windowX,
+      top: windowY,
     });
 
     elements.push(windowObj, doorObj);
