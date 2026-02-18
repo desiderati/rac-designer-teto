@@ -697,38 +697,52 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     pilotLabels.push(sizeLabel);
   }
 
-  const leftDiagH1 = 213 * s;
-  const leftDiagH2 = 261 * s;
-  const leftDiagW = 244 * s;
+  const diagH1 = 213 * s;
+  const diagH2 = 261 * s;
+  const diagW = 244 * s;
 
   const leftDiagFill = new Polygon(
     [
-      { x: 0, y: bodyH - leftDiagH1 },
-      { x: leftDiagW, y: bodyH - leftDiagH2 },
-      { x: leftDiagW, y: bodyH },
+      { x: 0, y: bodyH - diagH1 },
+      { x: diagW, y: bodyH - diagH2 },
+      { x: diagW, y: bodyH },
       { x: 0, y: bodyH },
     ],
     { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
   );
 
-  const bodyFill = new Rect({
-    width: bodyW,
-    height: bodyH,
-    fill: "#eeeeee",
-    strokeWidth: 0,
-    left: 0,
-    top: roofH,
-  });
+  const chapelW = 122 * s;
+
+  const chapelFill = new Polygon(
+    [
+      { x: 0, y: bodyH - diagH2 },
+      { x: chapelW / 2, y: 0 },
+      { x: chapelW, y: bodyH - diagH2 },
+      { x: chapelW, y: bodyH },
+      { x: 0, y: bodyH },
+    ],
+    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
+  );
+
+  const rightDiagFill = new Polygon(
+    [
+      { x: 0, y: bodyH - diagH2 },
+      { x: diagW, y: bodyH - diagH1 },
+      { x: diagW, y: bodyH },
+      { x: 0, y: bodyH },
+    ],
+    { fill: "#cdcdcd", strokeWidth: 1, left: 0, top: 0 },
+  );
 
   const roofLines = [
-    new Line([0, roofH, bodyW / 2, 0], {
+    new Line([0, bodyH, bodyW / 2, 0], {
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
       left: 0,
       top: 0,
     }),
-    new Line([bodyW / 2, 0, bodyW, roofH], {
+    new Line([bodyW / 2, 0, bodyW, bodyH], {
       stroke: "#333",
       strokeWidth: 2,
       strokeUniform: true,
@@ -739,21 +753,21 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
 
   const bodyStroke = new Polyline(
     [
-      { x: 0, y: roofH },
-      { x: 0, y: roofH + bodyH },
-      { x: bodyW, y: roofH + bodyH },
-      { x: bodyW, y: roofH },
+      { x: 0, y: 0 },
+      { x: 0, y: bodyH },
+      { x: bodyW, y: bodyH },
+      { x: bodyW, y: 0 },
     ],
-    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: roofH },
+    { fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: bodyH },
   );
 
-  const elements: FabricObject[] = [roofFill, bodyFill, ...roofLines, bodyStroke];
+  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyFill, ...roofLines, bodyStroke];
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
   const windowW = 80 * s;
   const windowH = 70 * s;
-  const doorY = roofH + (bodyH - 200 * s);
+  const doorY = bodyH - 200 * s;
 
   if (isFront) {
     // Front view: right window next to door
@@ -819,9 +833,9 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   const leftCenterX = margin + pilotW / 2;
   const rightX = bodyW + 50;
   const rightCenterX = margin + 3 * step + pilotW / 2;
-  const nivelY = roofH + bodyH + defaultNivelVal * 100 * s;
+  const nivelY = bodyH + defaultNivelVal * 100 * s;
   const nivelStr = formatNivel(defaultNivelVal);
-  const maxPilotiBottom = roofH + bodyH + getPilotiVisualHeight(1.0, s);
+  const maxPilotiBottom = bodyH + getPilotiVisualHeight(1.0, s);
   const groundElems = createGroundElements(
     leftX,
     leftCenterX,
