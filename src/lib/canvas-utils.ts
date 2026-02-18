@@ -951,9 +951,9 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     elements.push(floorBean);
   };
 
-  creatcreateFloorBeanRect(0);
-  creatcreateFloorBeanRect((sideWidth + floorBeanW) / 2);
-  creatcreateFloorBeanRect(sideWidth - floorBeanW);
+  createFloorBeanRect(0);
+  createFloorBeanRect((sideWidth + floorBeanW) / 2);
+  createFloorBeanRect(sideWidth - floorBeanW);
 
   // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
   // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
