@@ -781,6 +781,7 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
       fontSize: 20 * s,
       fill: "#666",
+      backgroundColor: "#ffffff",
       left: margin + i * step + pilotW / 2,
       top: bodyH + floorH + floorBeanH + pilotH + 8 * s,
       originX: "center",
@@ -1047,6 +1048,7 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
       fontSize: 20 * s,
       fill: "#666",
+      backgroundColor: "#ffffff",
       left: left + pilotW / 2,
       top: wallHeight + floorH + floorBeanH + pilotH + 8 * s,
       originX: "center",
@@ -1759,7 +1761,7 @@ export function createStairsPatternSource(s = 1): HTMLCanvasElement {
   const ctx = patternCanvas.getContext("2d")!;
   ctx.fillStyle = "#C89B6D";
   ctx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
-  ctx.lineWidth = Math.max(1, 1.5 * s);
+  ctx.lineWidth = 3;
   ctx.strokeStyle = "#8B4513";
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -1782,7 +1784,7 @@ export function createStairs(canvas: FabricCanvas): Rect {
       repeat: "repeat",
     }),
     stroke: "#8B4513",
-    strokeWidth: 5,
+    strokeWidth: 3,
     transparentCorners: false,
     left: canvas.width! / 2,
     top: canvas.height! / 2,

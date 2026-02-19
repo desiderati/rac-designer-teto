@@ -738,6 +738,7 @@ class HouseManager {
 
       if ((obj as any).isPilotiSizeLabel) {
         (obj as any).set('text', formatPilotiHeight(data.height));
+        (obj as any).set('backgroundColor', '#ffffff');
       }
     });
 
