@@ -30,6 +30,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [pilotis, setPilotis] = useState<Record<string, PilotiData>>({});
   const [elements, setElements] = useState<HouseElement[]>([]);
+  const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -43,6 +44,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
       setHouseType(null);
       setPilotis({});
       setElements([]);
+      setTipo3OpenSide(null);
       setContraventamentos([]);
       return;
     }
@@ -50,6 +52,15 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     setHouseType(house.houseType);
     setPilotis({ ...house.pilotis });
     setElements([...houseManager.getElements()]);
+    if (house.houseType === 'tipo3') {
+      const openSide: 'left' | 'right' | null =
+        house.sideAssignments.left === 'side2' ? 'left' :
+          house.sideAssignments.right === 'side2' ? 'right' :
+            null;
+      setTipo3OpenSide(openSide);
+    } else {
+      setTipo3OpenSide(null);
+    }
 
     const topGroup = house.views.top[0]?.group;
     const parsedContraventamentos: Contraventamento3DData[] = [];
@@ -270,6 +281,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                   elements={elements}
                   contraventamentos={contraventamentos}
                   wallColor={wallColor}
+                  tipo3OpenSide={tipo3OpenSide}
                 />
                 
                 {/* Controls */}

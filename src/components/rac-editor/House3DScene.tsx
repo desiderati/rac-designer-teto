@@ -14,6 +14,7 @@ interface House3DSceneProps {
   elements?: HouseElement[];
   contraventamentos?: Contraventamento3DData[];
   wallColor?: string;
+  tipo3OpenSide?: 'left' | 'right' | null;
 }
 
 export type Contraventamento3DSide = 'left' | 'right';
@@ -128,7 +129,11 @@ function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.Bu
   return geo;
 }
 
-function buildOpeningsFromCanvasModel(houseType: HouseType, rawElements: HouseElement[]): SceneOpening[] {
+function buildOpeningsFromCanvasModel(
+  houseType: HouseType,
+  rawElements: HouseElement[],
+  tipo3OpenSide?: 'left' | 'right' | null,
+): SceneOpening[] {
   if (!houseType) return [];
 
   const s = TOP_VIEW_SCALE;
@@ -206,9 +211,10 @@ function buildOpeningsFromCanvasModel(houseType: HouseType, rawElements: HouseEl
 
   const hasLeftDoor = rawElements.some((e) => e.type === 'door' && e.face === 'left');
   const hasRightDoor = rawElements.some((e) => e.type === 'door' && e.face === 'right');
-  // Tipo3 side faces are mirrored between 2D assignment semantics and 3D scene coordinates.
-  // Invert only here so "quadrado aberto/fechado" appear on the expected sides in 3D.
-  const openSide: 'left' | 'right' = hasLeftDoor ? 'right' : hasRightDoor ? 'left' : 'right';
+  const inferredOpenSide: 'left' | 'right' = hasLeftDoor ? 'left' : hasRightDoor ? 'right' : 'right';
+  const openSide: 'left' | 'right' = tipo3OpenSide === 'left' || tipo3OpenSide === 'right'
+    ? tipo3OpenSide
+    : inferredOpenSide;
 
   openings.push(
     {
@@ -617,8 +623,12 @@ export function House3DScene({
   elements = [],
   contraventamentos = [],
   wallColor = '#d4d4d4',
+  tipo3OpenSide = null,
 }: House3DSceneProps) {
-  const sceneOpenings = useMemo(() => buildOpeningsFromCanvasModel(houseType, elements), [houseType, elements]);
+  const sceneOpenings = useMemo(
+    () => buildOpeningsFromCanvasModel(houseType, elements, tipo3OpenSide),
+    [houseType, elements, tipo3OpenSide],
+  );
   if (!houseType) return null;
 
   return (

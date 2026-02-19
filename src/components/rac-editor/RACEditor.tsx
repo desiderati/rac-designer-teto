@@ -96,6 +96,7 @@ export function RACEditor() {
   const [sideSelectorMode, setSideSelectorMode] = useState<'position' | 'choose-instance'>('position');
   const [instanceSlots, setInstanceSlots] = useState<{label: string;side: HouseSide;onCanvas: boolean;}[]>([]);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
+  const [tutorialHouseSelectorPreview, setTutorialHouseSelectorPreview] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
   const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
@@ -155,6 +156,8 @@ export function RACEditor() {
     } else {
       // Tutorial complete
       setTutorialStep(null);
+      setHouseTypeSelectorOpen(false);
+      setTutorialHouseSelectorPreview(false);
       localStorage.setItem('rac-tutorial-completed', 'true');
     }
   };
@@ -181,6 +184,8 @@ export function RACEditor() {
     // Close all menus
     setActiveSubmenu(null);
     setIsMenuOpen(false);
+    setHouseTypeSelectorOpen(false);
+    setTutorialHouseSelectorPreview(false);
     setShowRestartConfirm(false);
 
     // Remove all tutorial completion flags
@@ -539,6 +544,7 @@ export function RACEditor() {
 
     // Advance tutorial if this was the highlighted step
     if (tutorialStep === 'house') {
+      setTutorialHouseSelectorPreview(true);
       advanceTutorial('house');
     }
   };
@@ -563,6 +569,7 @@ export function RACEditor() {
 
   const handleHouseTypeSelectorClose = () => {
     setHouseTypeSelectorOpen(false);
+    setTutorialHouseSelectorPreview(false);
   };
 
   const handleAddHouseFront = () => {
@@ -1049,9 +1056,12 @@ export function RACEditor() {
 
   const handleToggleHouseMenu = () => {
     disableDrawingMode();
-    // During the tutorial "Casa TETO" step, do not open house type selector.
-    // The click should only advance the tutorial flow.
+    // During the tutorial "Casa TETO" step, open selector preview in the background
+    // and keep it locked, then advance tutorial flow.
     if (tutorialStep === 'house') {
+      closeAllMenus();
+      setHouseTypeSelectorOpen(true);
+      setTutorialHouseSelectorPreview(true);
       advanceTutorial('house');
       return;
     }
@@ -1104,6 +1114,8 @@ export function RACEditor() {
 
   const handleTutorialComplete = () => {
     setTutorialStep(null);
+    setHouseTypeSelectorOpen(false);
+    setTutorialHouseSelectorPreview(false);
     localStorage.setItem('rac-tutorial-completed', 'true');
   };
 
@@ -1996,10 +2008,10 @@ export function RACEditor() {
       }
 
       <HouseTypeSelector
-        isOpen={houseTypeSelectorOpen || tutorialStep === 'house'}
+        isOpen={houseTypeSelectorOpen}
         onClose={handleHouseTypeSelectorClose}
         onSelectType={handleHouseTypeSelected}
-        tutorialLocked={tutorialStep === 'house'} />
+        tutorialLocked={tutorialHouseSelectorPreview} />
 
 
       <House3DViewer
