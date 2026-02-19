@@ -1,16 +1,16 @@
-import { Group, FabricObject, Canvas as FabricCanvas, FabricImage } from 'fabric';
+import {Canvas as FabricCanvas, FabricImage, FabricObject, Group} from 'fabric';
 import {
-  updatePilotiHeight,
-  updatePilotiMaster,
-  updateGroundInGroup,
-  refreshHouseGroupRendering,
-  formatPilotiHeight,
-  formatNivel,
-  createDiagonalStripePattern,
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE,
   BASE_PILOTI_HEIGHT_PX,
   CORNER_PILOTI_IDS,
+  createDiagonalStripePattern,
+  formatNivel,
+  formatPilotiHeight,
+  MASTER_PILOTI_FILL,
+  MASTER_PILOTI_STROKE,
+  refreshHouseGroupRendering,
+  updateGroundInGroup,
+  updatePilotiHeight,
+  updatePilotiMaster,
 } from './canvas-utils';
 
 // Types for house sides

@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import {cn} from '@/lib/utils';
 
 type EditorIconType = 'wall' | 'line' | 'arrow' | 'dimension';
 

@@ -1,8 +1,7 @@
-import { cn } from '@/lib/utils';
-import { HouseType } from '@/lib/house-manager';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
-import { TwoCardSelector } from './TwoCardSelector';
+import {HouseType} from '@/lib/house-manager';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faDoorOpen, faHome} from '@fortawesome/free-solid-svg-icons';
+import {TwoCardSelector} from './TwoCardSelector';
 
 interface HouseTypeSelectorProps {
   isOpen: boolean;

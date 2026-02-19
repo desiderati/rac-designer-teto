@@ -1,4 +1,4 @@
-import { ContraventamentoSide } from '@/lib/canvas-utils';
+import {ContraventamentoSide} from '@/lib/canvas-utils';
 
 interface ContraventamentoSideIconProps {
   side: ContraventamentoSide;

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { HouseSide, ViewType, houseManager } from '@/lib/house-manager';
-import { TwoCardSelector } from './TwoCardSelector';
-import { PilotiGridIcon } from './PilotiGridIcon';
+import {useEffect, useState} from 'react';
+import {houseManager, HouseSide, ViewType} from '@/lib/house-manager';
+import {TwoCardSelector} from './TwoCardSelector';
+import {PilotiGridIcon} from './PilotiGridIcon';
 
 export interface InstanceSlot {
   label: string;

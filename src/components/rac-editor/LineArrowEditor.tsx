@@ -1,16 +1,9 @@
-import { useState, useEffect } from 'react';
-import { FabricObject, IText, Canvas as FabricCanvas, Group, Line, Rect, Triangle } from 'fabric';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+import {useEffect, useState} from 'react';
+import {Canvas as FabricCanvas, FabricObject, Group, IText, Line} from 'fabric';
+import {Button} from '@/components/ui/button';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Input} from '@/components/ui/input';
+import {Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle,} from '@/components/ui/drawer';
 
 const COLOR_PALETTE = [
   { name: 'Preto', value: '#000000' },

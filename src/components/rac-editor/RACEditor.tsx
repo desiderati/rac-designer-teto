@@ -1,71 +1,60 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect, IText, Line } from 'fabric';
-import { jsPDF } from 'jspdf';
-import { toast } from 'sonner';
-import { Toolbar } from './Toolbar';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {ActiveSelection, Canvas as FabricCanvas, FabricObject, Group, IText, Line} from 'fabric';
+import {jsPDF} from 'jspdf';
+import {toast} from 'sonner';
+import {Toolbar} from './Toolbar';
 import {
   Canvas,
   CanvasHandle,
-  PilotiSelection,
-  DistanceSelection,
-  ObjectNameSelection,
-  LineArrowCanvasSelection,
   ContraventamentoCanvasSelection,
+  DistanceSelection,
+  LineArrowCanvasSelection,
+  ObjectNameSelection,
+  PilotiSelection,
 } from './Canvas';
-import { InfoBar } from './InfoBar';
-import { Tutorial, getTutorialStepIds } from './Tutorial';
-import { PilotiEditor } from './PilotiEditor';
-import { GenericEditor, GenericEditorType } from './GenericEditor';
-import { PilotiTutorialBalloon } from './PilotiTutorialBalloon';
-import { OnboardingBalloon } from './OnboardingBalloon';
-import { SideSelector } from './SideSelector';
-import { NivelDefinitionModal, NivelEntry } from './NivelDefinitionModal';
-import { HouseTypeSelector } from './HouseTypeSelector';
-import { House3DViewer } from './House3DViewer';
-import { SettingsModal } from './SettingsModal';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { getSettings } from '@/lib/settings';
+import {InfoBar} from './InfoBar';
+import {getTutorialStepIds, Tutorial} from './Tutorial';
+import {PilotiEditor} from './PilotiEditor';
+import {GenericEditor, GenericEditorType} from './GenericEditor';
+import {PilotiTutorialBalloon} from './PilotiTutorialBalloon';
+import {OnboardingBalloon} from './OnboardingBalloon';
+import {SideSelector} from './SideSelector';
+import {NivelDefinitionModal, NivelEntry} from './NivelDefinitionModal';
+import {HouseTypeSelector} from './HouseTypeSelector';
+import {House3DViewer} from './House3DViewer';
+import {SettingsModal} from './SettingsModal';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {getSettings} from '@/lib/settings';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer';
+import {Button} from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle } from
-'@/components/ui/dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle } from
-'@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import {
-  createHouseTop,
-  createHouseFrontBack,
-  createHouseSide,
-  createLine,
+  addContraventamentoBeam,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  ContraventamentoSide,
   createArrow,
   createDimension,
-  createWater,
-  createStairs,
-  createWall,
   createDoor,
-  createTree,
-  createText,
   createFossa,
-  customProps,
-  CANVAS_WIDTH,
-  CANVAS_HEIGHT,
+  createHouseFrontBack,
+  createHouseSide,
+  createHouseTop,
+  createLine,
+  createStairs,
+  createText,
+  createTree,
+  createWall,
+  createWater,
   formatPilotiHeight,
-  getPilotiFromGroup,
-  addContraventamentoBeam,
   highlightContraventamentoPilotis,
-  resetContraventamentoPilotis,
+  refreshHouseGroupsOnCanvas,
   removeContraventamentosFromGroup,
+  resetContraventamentoPilotis,
   setContraventamentoSelection,
   syncContraventamentoElevationsFromTop,
-  ContraventamentoSide,
 } from '@/lib/canvas-utils';
-import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
+import {houseManager, HouseSide, HouseType, ViewType} from '@/lib/house-manager';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
 

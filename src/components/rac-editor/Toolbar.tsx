@@ -1,45 +1,44 @@
-import { useState, useRef } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {useRef} from "react";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
-  faPlus,
-  faTimes,
-  faHome,
-  faHouseChimneyWindow,
-  faHouseChimney,
-  faLockOpen,
-  faLock,
-  faShapes,
-  faPenNib,
-  faFont,
-  faFileDownload,
-  faFolderOpen,
-  faTrash,
-  faFilePdf,
-  faLayerGroup,
-  faBars,
-  faTree,
-  faWater,
-  faSlash,
-  faArrowRightLong,
-  faArrowsLeftRight,
-  faDoorOpen,
-  faStairs,
-  faLightbulb,
-  faEllipsisVertical,
-  faRotateLeft,
-  faSquareFull,
-  faTrowelBricks,
-  faMagnifyingGlass,
-  faToilet,
-  faCube,
-  faGear,
+    faArrowRightLong,
+    faArrowsLeftRight,
+    faBars,
+    faCube,
+    faDoorOpen,
+    faEllipsisVertical,
+    faFileDownload,
+    faFilePdf,
+    faFolderOpen,
+    faFont,
+    faGear,
+    faHome,
+    faHouseChimney,
+    faHouseChimneyWindow,
+    faLightbulb,
+    faLock,
+    faLockOpen,
+    faMagnifyingGlass,
+    faPenNib,
+    faPlus,
+    faRotateLeft,
+    faShapes,
+    faSlash,
+    faSquareFull,
+    faStairs,
+    faTimes,
+    faToilet,
+    faTrash,
+    faTree,
+    faTrowelBricks,
+    faWater,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import {IconDefinition} from "@fortawesome/fontawesome-svg-core";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {cn} from "@/lib/utils";
 
-import { HouseType } from '@/lib/house-manager';
+import {HouseType} from '@/lib/house-manager';
 
 interface ToolbarProps {
   onOpenHouseTypeSelector: () => void;

@@ -1,22 +1,15 @@
-import { useState, useRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Separator } from '@/components/ui/separator';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription } from
-'@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent } from
-'@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { PilotiGridIcon } from './PilotiGridIcon';
+import {useRef, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faChevronLeft, faChevronRight, faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {Button} from '@/components/ui/button';
+import {Switch} from '@/components/ui/switch';
+import {Label} from '@/components/ui/label';
+import {Slider} from '@/components/ui/slider';
+import {Separator} from '@/components/ui/separator';
+import {Dialog, DialogContent, DialogDescription} from '@/components/ui/dialog';
+import {Sheet, SheetContent} from '@/components/ui/sheet';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {PilotiGridIcon} from './PilotiGridIcon';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 type CornerName = typeof CORNER_ORDER[number];

@@ -1,16 +1,9 @@
-import { useState, useEffect } from 'react';
-import { FabricObject, IText, Canvas as FabricCanvas, Group } from 'fabric';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer';
+import {useEffect, useState} from 'react';
+import {Canvas as FabricCanvas, FabricObject, Group, IText} from 'fabric';
+import {Button} from '@/components/ui/button';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Input} from '@/components/ui/input';
+import {Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle,} from '@/components/ui/drawer';
 
 interface ObjectNameEditorProps {
   isOpen: boolean;

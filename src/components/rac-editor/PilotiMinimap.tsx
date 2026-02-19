@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import { HouseSide } from '@/lib/house-manager';
+import {cn} from '@/lib/utils';
+import {HouseSide} from '@/lib/house-manager';
 
 interface PilotiData {
   height: number;

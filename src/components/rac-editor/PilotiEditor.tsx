@@ -1,35 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { Group } from 'fabric';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
-import { Separator } from '@/components/ui/separator';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
+import {Group} from 'fabric';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faChevronLeft, faChevronRight, faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {Button} from '@/components/ui/button';
+import {Switch} from '@/components/ui/switch';
+import {Label} from '@/components/ui/label';
+import {Slider} from '@/components/ui/slider';
+import {Separator} from '@/components/ui/separator';
+import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer';
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle } from
-'@/components/ui/drawer';
-import {
-  PILOTI_HEIGHTS,
+  ContraventamentoSide,
   CORNER_PILOTI_IDS,
   formatPilotiHeight,
-  getPilotiName,
-  getPilotiFromGroup,
   getAllPilotiIds,
+  getPilotiFromGroup,
   getPilotiIdsFromGroup,
-  ContraventamentoSide } from
-'@/lib/canvas-utils';
-import { houseManager } from '@/lib/house-manager';
-import { getSettings } from '@/lib/settings';
-import { PilotiGridIcon } from './PilotiGridIcon';
-import { ContraventamentoSideIcon } from './ContraventamentoSideIcon';
+  getPilotiName,
+  PILOTI_HEIGHTS
+} from '@/lib/canvas-utils';
+import {houseManager} from '@/lib/house-manager';
+import {getSettings} from '@/lib/settings';
+import {PilotiGridIcon} from './PilotiGridIcon';
+import {ContraventamentoSideIcon} from './ContraventamentoSideIcon';
 
 interface PilotiEditorProps {
   isOpen: boolean;

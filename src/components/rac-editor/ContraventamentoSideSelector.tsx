@@ -1,6 +1,6 @@
-import { TwoCardSelector } from './TwoCardSelector';
-import { ContraventamentoSide } from '@/lib/canvas-utils';
-import { ContraventamentoSideIcon } from './ContraventamentoSideIcon';
+import {TwoCardSelector} from './TwoCardSelector';
+import {ContraventamentoSide} from '@/lib/canvas-utils';
+import {ContraventamentoSideIcon} from './ContraventamentoSideIcon';
 
 interface ContraventamentoSideSelectorProps {
   isOpen: boolean;

@@ -1,14 +1,14 @@
-import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateRight, faExpand, faCompress, faXmark, faPalette, faCamera } from '@fortawesome/free-solid-svg-icons';
-import { House3DScene, Contraventamento3DData } from './House3DScene';
-import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
-import { toast } from 'sonner';
+import {Suspense, useCallback, useEffect, useRef, useState} from 'react';
+import {Canvas} from '@react-three/fiber';
+import {OrbitControls, PerspectiveCamera} from '@react-three/drei';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Button} from '@/components/ui/button';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faCamera, faCompress, faExpand, faPalette, faRotateRight, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {Contraventamento3DData, House3DScene} from './House3DScene';
+import {HouseElement, houseManager, HouseType, PilotiData} from '@/lib/house-manager';
+import {toast} from 'sonner';
 
 const WALL_COLORS = [
   { name: 'Terracota', value: '#c4967a' },
@@ -30,6 +30,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [pilotis, setPilotis] = useState<Record<string, PilotiData>>({});
   const [elements, setElements] = useState<HouseElement[]>([]);
+  const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
   const [resetKey, setResetKey] = useState(0);
@@ -44,6 +45,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
       setHouseType(null);
       setPilotis({});
       setElements([]);
+      setTipo6FrontSide(null);
       setTipo3OpenSide(null);
       setContraventamentos([]);
       return;
@@ -52,6 +54,15 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     setHouseType(house.houseType);
     setPilotis({ ...house.pilotis });
     setElements([...houseManager.getElements()]);
+    if (house.houseType === 'tipo6') {
+      const frontSide: 'top' | 'bottom' | null =
+        house.sideAssignments.top === 'front' ? 'top' :
+          house.sideAssignments.bottom === 'front' ? 'bottom' :
+            null;
+      setTipo6FrontSide(frontSide);
+    } else {
+      setTipo6FrontSide(null);
+    }
     if (house.houseType === 'tipo3') {
       // 3D scene lateral axis is mirrored relative to 2D side assignments.
       // Keep "quadrado aberto" (side2) on the same semantic side selected in canvas.
@@ -283,6 +294,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                   elements={elements}
                   contraventamentos={contraventamentos}
                   wallColor={wallColor}
+                  tipo6FrontSide={tipo6FrontSide}
                   tipo3OpenSide={tipo3OpenSide}
                 />
                 

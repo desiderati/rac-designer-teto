@@ -1,17 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { FabricObject, IText, Canvas as FabricCanvas, Group, Line, Rect, Triangle } from 'fabric';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { X } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle } from
-'@/components/ui/drawer';
-import { EditorTypeIcon } from './EditorTypeIcon';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Separator} from '@/components/ui/separator';
+import {X} from 'lucide-react';
+import {Drawer, DrawerContent} from '@/components/ui/drawer';
+import {EditorTypeIcon} from './EditorTypeIcon';
 
 const COLOR_PALETTE = [
 { name: 'Vermelho', value: '#e74c3c' },

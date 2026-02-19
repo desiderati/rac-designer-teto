@@ -1,10 +1,27 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle, useCallback, useState, ReactNode } from 'react';
-import { Canvas as FabricCanvas, PencilBrush, IText, ActiveSelection, Group, FabricObject, util as fabricUtil, Rect, Line } from 'fabric';
-import { houseManager, HouseSide } from '@/lib/house-manager';
-import { customProps, getHintForObject, CANVAS_WIDTH, CANVAS_HEIGHT, formatPilotiHeight, getPilotiFromGroup, getAllPilotiIds, refreshHouseGroupsOnCanvas, refreshHouseGroupRendering } from '@/lib/canvas-utils';
+import {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {
+  ActiveSelection,
+  Canvas as FabricCanvas,
+  FabricObject,
+  Group,
+  IText,
+  Line,
+  PencilBrush,
+  Rect,
+  util as fabricUtil
+} from 'fabric';
+import {houseManager, HouseSide} from '@/lib/house-manager';
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  formatPilotiHeight,
+  getHintForObject,
+  getPilotiFromGroup,
+  refreshHouseGroupsOnCanvas
+} from '@/lib/canvas-utils';
 
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Minimap, ZoomSlider } from './Minimap';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {Minimap, ZoomSlider} from './Minimap';
 
 export interface PilotiSelection {
   pilotiId: string;

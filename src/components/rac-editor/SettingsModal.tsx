@@ -1,21 +1,11 @@
-import { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle } from
-'@/components/ui/dialog';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle } from
-'@/components/ui/drawer';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { getSettings, updateSetting } from '@/lib/settings';
+import {useState} from 'react';
+import {Switch} from '@/components/ui/switch';
+import {Label} from '@/components/ui/label';
+import {Button} from '@/components/ui/button';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {getSettings, updateSetting} from '@/lib/settings';
 
 interface SettingsModalProps {
   open: boolean;

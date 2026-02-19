@@ -1,12 +1,7 @@
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 import * as THREE from 'three';
-import { HouseElement, HouseType, PilotiData } from '@/lib/house-manager';
-import {
-  BASE_PILOTI_HEIGHT_PX,
-  BASE_TOP_HEIGHT,
-  BASE_TOP_WIDTH,
-  MASTER_PILOTI_FILL,
-} from '@/lib/canvas-utils';
+import {HouseElement, HouseType, PilotiData} from '@/lib/house-manager';
+import {BASE_PILOTI_HEIGHT_PX, BASE_TOP_HEIGHT, BASE_TOP_WIDTH, MASTER_PILOTI_FILL,} from '@/lib/canvas-utils';
 
 interface House3DSceneProps {
   houseType: HouseType;
@@ -14,6 +9,7 @@ interface House3DSceneProps {
   elements?: HouseElement[];
   contraventamentos?: Contraventamento3DData[];
   wallColor?: string;
+  tipo6FrontSide?: 'top' | 'bottom' | null;
   tipo3OpenSide?: 'left' | 'right' | null;
 }
 
@@ -132,6 +128,7 @@ function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.Bu
 function buildOpeningsFromCanvasModel(
   houseType: HouseType,
   rawElements: HouseElement[],
+  tipo6FrontSide?: 'top' | 'bottom' | null,
   tipo3OpenSide?: 'left' | 'right' | null,
 ): SceneOpening[] {
   if (!houseType) return [];
@@ -168,11 +165,14 @@ function buildOpeningsFromCanvasModel(
   const openings: SceneOpening[] = [];
 
   if (houseType === 'tipo6') {
+    // When "frontal" is placed at the bottom side in 2D, swap front/back faces in 3D.
+    const frontFace: SceneOpening['face'] = tipo6FrontSide === 'bottom' ? 'back' : 'front';
+    const backFace: SceneOpening['face'] = frontFace === 'front' ? 'back' : 'front';
     openings.push(
       {
         id: 'canvas-front-window-left',
         type: 'window',
-        face: 'front',
+        face: frontFace,
         x: fbFrontWindowLeftX,
         y: fbWindowY,
         width: fbWindowW,
@@ -181,7 +181,7 @@ function buildOpeningsFromCanvasModel(
       {
         id: 'canvas-front-window-right',
         type: 'window',
-        face: 'front',
+        face: frontFace,
         x: fbFrontWindowRightX,
         y: fbWindowY,
         width: fbWindowW,
@@ -190,7 +190,7 @@ function buildOpeningsFromCanvasModel(
       {
         id: 'canvas-front-door',
         type: 'door',
-        face: 'front',
+        face: frontFace,
         x: fbFrontDoorX,
         y: fbWindowY,
         width: fbDoorW,
@@ -199,7 +199,7 @@ function buildOpeningsFromCanvasModel(
       {
         id: 'canvas-back-window',
         type: 'window',
-        face: 'back',
+        face: backFace,
         x: fbBackWindowX,
         y: fbWindowY,
         width: fbWindowW,
@@ -623,11 +623,12 @@ export function House3DScene({
   elements = [],
   contraventamentos = [],
   wallColor = '#d4d4d4',
+  tipo6FrontSide = null,
   tipo3OpenSide = null,
 }: House3DSceneProps) {
   const sceneOpenings = useMemo(
-    () => buildOpeningsFromCanvasModel(houseType, elements, tipo3OpenSide),
-    [houseType, elements, tipo3OpenSide],
+    () => buildOpeningsFromCanvasModel(houseType, elements, tipo6FrontSide, tipo3OpenSide),
+    [houseType, elements, tipo6FrontSide, tipo3OpenSide],
   );
   if (!houseType) return null;
 
