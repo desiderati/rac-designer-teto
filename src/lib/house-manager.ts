@@ -571,7 +571,18 @@ class HouseManager {
       if ((obj as any).isPilotiNivelText) {
         const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
         if (isCorner) {
+          const pilotiCircle = objects.find(
+            (o: any) => o.pilotiId === pilotiId && o.isPilotiCircle,
+          ) as any;
+          const centerX = Number(pilotiCircle?.left ?? (obj as any).left ?? 0);
+          const centerY = Number(pilotiCircle?.top ?? (obj as any).top ?? 0);
+          const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
+          const offset = 12 * 0.6;
+          const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
+
           (obj as any).set('text', `Nível = ${formatNivel(data.nivel)}`);
+          (obj as any).set('left', centerX);
+          (obj as any).set('top', isTopCorner ? centerY - radius - offset : centerY + radius + offset);
           (obj as any).set('visible', true);
         } else {
           (obj as any).set('text', '');

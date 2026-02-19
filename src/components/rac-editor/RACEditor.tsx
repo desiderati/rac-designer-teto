@@ -1155,13 +1155,7 @@ export function RACEditor() {
     return (obj as Group) ?? null;
   }, [getCanvas]);
 
-  /** Check whether a piloti has nivel > 0.40 */
-  const isPilotiEligible = useCallback((pilotiId: string): boolean => {
-    const data = houseManager.getPilotiData(pilotiId);
-    return (data?.nivel ?? 0) > 0.40;
-  }, []);
-
-  const getContraventamentoColumnSides = useCallback((group: Group, col: number) => {
+  const getContraventamentoPilotiSides = useCallback((group: Group, pilotiId: string, col: number, row: number) => {
     const s = 0.6;
     const cD = 155 * s;
     const colCenterX = [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD][col] ?? 0;
@@ -1169,7 +1163,15 @@ export function RACEditor() {
 
     group.getObjects().forEach((obj: any) => {
       if (!obj.isContraventamento) return;
-      if (Number(obj.contraventamentoCol) !== col) return;
+
+      const anchorPilotiId = String(obj.contraventamentoAnchorPilotiId ?? '');
+      if (anchorPilotiId) {
+        if (anchorPilotiId !== pilotiId) return;
+      } else {
+        if (Number(obj.contraventamentoCol) !== col) return;
+        const startRow = Number(obj.contraventamentoStartRow);
+        if (Number.isFinite(startRow) && startRow !== row) return;
+      }
 
       let side: ContraventamentoSide | null = null;
       if (obj.contraventamentoSide === 'left' || obj.contraventamentoSide === 'right') {
@@ -1187,6 +1189,47 @@ export function RACEditor() {
     return occupied;
   }, []);
 
+  /** Check whether a piloti can be used as origin (step 1). */
+  const isPilotiEligibleAsOrigin = useCallback((pilotiId: string): boolean => {
+    const data = houseManager.getPilotiData(pilotiId);
+    if ((data?.nivel ?? 0) <= 0.40) return false;
+
+    const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
+    if (!match) return false;
+    const col = parseInt(match[1], 10);
+    const row = parseInt(match[2], 10);
+
+    const topGroup = getTopViewGroup();
+    if (!topGroup) return false;
+
+    const occupiedSides = getContraventamentoPilotiSides(topGroup, pilotiId, col, row);
+    return !(occupiedSides.left && occupiedSides.right);
+  }, [getContraventamentoPilotiSides, getTopViewGroup]);
+
+  /** Check whether a piloti can be used as destination (step 2). */
+  const isPilotiEligibleAsDestination = useCallback((
+    pilotiId: string,
+    first: { col: number; row: number } | null
+  ): boolean => {
+    if (!first) return false;
+    const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
+    if (!match) return false;
+    const col = parseInt(match[1], 10);
+    const row = parseInt(match[2], 10);
+    return col === first.col && row !== first.row;
+  }, []);
+
+  /** Eligibility callback consumed by Canvas (single-click interception). */
+  const isPilotiEligible = useCallback((pilotiId: string): boolean => {
+    if (contraventamentoStep === 'select-second') {
+      return isPilotiEligibleAsDestination(pilotiId, contraventamentoFirst ? {
+        col: contraventamentoFirst.col,
+        row: contraventamentoFirst.row,
+      } : null);
+    }
+    return isPilotiEligibleAsOrigin(pilotiId);
+  }, [contraventamentoStep, contraventamentoFirst, isPilotiEligibleAsDestination, isPilotiEligibleAsOrigin]);
+
   const enterContraventamentoSecondStep = useCallback((
     first: { pilotiId: string; col: number; row: number; group: Group },
     side: ContraventamentoSide
@@ -1195,9 +1238,14 @@ export function RACEditor() {
     setContraventamentoFirst(first);
     setContraventamentoSide(side);
     setContraventamentoStep('select-second');
-    highlightContraventamentoPilotis(first.group, isPilotiEligible, first.col, first.pilotiId);
+    highlightContraventamentoPilotis(
+      first.group,
+      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, first),
+      first.col,
+      first.pilotiId
+    );
     toast.info(`Lado ${side === 'left' ? 'esquerdo' : 'direito'} selecionado. Selecione o piloti final na mesma coluna.`);
-  }, [isPilotiEligible]);
+  }, [isPilotiEligibleAsDestination]);
 
   const syncContraventamentoElevations = useCallback(() => {
     const topGroup = getTopViewGroup();
@@ -1226,9 +1274,9 @@ export function RACEditor() {
     setContraventamentoSide(null);
     setContraventamentoSideSelectorOpen(false);
 
-    highlightContraventamentoPilotis(topGroup, isPilotiEligible);
-    toast.info('Selecione o primeiro piloti (nível > 40cm). ESC para cancelar.');
-  }, [getTopViewGroup, isPilotiEligible]);
+    highlightContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
+    toast.info('Selecione o primeiro piloti (nível > 40cm e com lado disponível). ESC para cancelar.');
+  }, [getTopViewGroup, isPilotiEligibleAsOrigin]);
 
   /** Cancel contraventamento mode and reset visuals */
   const handleCancelContraventamento = useCallback(() => {
@@ -1247,12 +1295,12 @@ export function RACEditor() {
 
     const topGroup = getTopViewGroup();
     if (topGroup) {
-      highlightContraventamentoPilotis(topGroup, isPilotiEligible);
+      highlightContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
     }
     setContraventamentoStep('select-first');
     setContraventamentoFirst(null);
     setContraventamentoSide(null);
-  }, [getTopViewGroup, isContraventamentoMode, isPilotiEligible]);
+  }, [getTopViewGroup, isContraventamentoMode, isPilotiEligibleAsOrigin]);
 
   const handleContraventamentoSideSelected = useCallback((side: ContraventamentoSide) => {
     if (!contraventamentoFirst) return;
@@ -1264,9 +1312,9 @@ export function RACEditor() {
     pilotiId: string, col: number, row: number, group: Group
   ) => {
     if (contraventamentoStep === 'select-first') {
-      const occupiedSides = getContraventamentoColumnSides(group, col);
+      const occupiedSides = getContraventamentoPilotiSides(group, pilotiId, col, row);
       if (occupiedSides.left && occupiedSides.right) {
-        toast.warning('Esta coluna já possui contraventamentos nos lados esquerdo e direito.');
+        toast.warning('Este piloti já possui contraventamentos nos lados esquerdo e direito.');
         return;
       }
 
@@ -1289,7 +1337,7 @@ export function RACEditor() {
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
-      highlightContraventamentoPilotis(group, isPilotiEligible);
+      highlightContraventamentoPilotis(group, isPilotiEligibleAsOrigin);
       return;
     }
 
@@ -1302,13 +1350,18 @@ export function RACEditor() {
       return;
     }
 
-    const occupiedSides = getContraventamentoColumnSides(contraventamentoFirst.group, col);
+    const occupiedSides = getContraventamentoPilotiSides(
+      contraventamentoFirst.group,
+      contraventamentoFirst.pilotiId,
+      contraventamentoFirst.col,
+      contraventamentoFirst.row
+    );
     if (occupiedSides[contraventamentoSide]) {
-      toast.warning(`O lado ${contraventamentoSide === 'left' ? 'esquerdo' : 'direito'} desta coluna já possui contraventamento.`);
+      toast.warning(`O piloti de origem já possui contraventamento no lado ${contraventamentoSide === 'left' ? 'esquerdo' : 'direito'}.`);
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
-      highlightContraventamentoPilotis(contraventamentoFirst.group, isPilotiEligible);
+      highlightContraventamentoPilotis(contraventamentoFirst.group, isPilotiEligibleAsOrigin);
       return;
     }
 
@@ -1338,8 +1391,8 @@ export function RACEditor() {
     contraventamentoStep,
     contraventamentoFirst,
     contraventamentoSide,
-    getContraventamentoColumnSides,
-    isPilotiEligible,
+    getContraventamentoPilotiSides,
+    isPilotiEligibleAsOrigin,
     enterContraventamentoSecondStep,
     syncContraventamentoElevations,
   ]);

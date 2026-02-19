@@ -290,6 +290,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
       // Text for nivel (always visible for corner pilotis)
       const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+      const isTopCorner = pilotiId === "piloti_0_0" || pilotiId === "piloti_3_0";
       const nivelText = new IText(isCorner ? `Nível = ${formatNivel(defaultNivel)}` : "", {
         fontSize: 11 * s,
         fontFamily: "Arial",
@@ -298,7 +299,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         originX: "center",
         originY: "center",
         left: x,
-        top: y + rad + 12 * s,
+        top: isTopCorner ? y - rad - 12 * s : y + rad + 12 * s,
         editable: false,
         selectable: false,
         visible: isCorner,
@@ -601,7 +602,16 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
       if (obj.isPilotiNivelText) {
         const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
         if (isCorner) {
+          const pilotiCircle = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiCircle) as any;
+          const centerX = Number(pilotiCircle?.left ?? obj.left ?? 0);
+          const centerY = Number(pilotiCircle?.top ?? obj.top ?? 0);
+          const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
+          const offset = 12 * 0.6;
+          const isTopCorner = pilotiId === "piloti_0_0" || pilotiId === "piloti_3_0";
+
           obj.set("text", `Nível = ${formatNivel(nivel)}`);
+          obj.set("left", centerX);
+          obj.set("top", isTopCorner ? centerY - radius - offset : centerY + radius + offset);
           obj.set("visible", true);
         } else {
           obj.set("text", "");
@@ -2331,7 +2341,8 @@ export function syncContraventamentoElevationsFromTop(
 }
 
 /**
- * Highlight eligible pilotis (nivel > 0.40) in the top-view group.
+ * Highlight eligible pilotis in the top-view group based on the provided
+ * eligibility callback.
  * Optionally restrict to a single column when firstCol is provided.
  * Optionally skip a specific pilotiId (already selected).
  */
@@ -2355,10 +2366,10 @@ export function highlightContraventamentoPilotis(
 
     if (eligible && inColumn && !isSkipped) {
       // Available — brown highlight
-      obj.set({ stroke: "#8B4513", strokeWidth: 3, fill: "#D4A574" });
+      obj.set({ stroke: "#8B4513", strokeWidth: 3, fill: "#D4A574", hoverCursor: "pointer" });
     } else {
       // Dimmed — grey out
-      obj.set({ stroke: "#aaa", strokeWidth: 1, fill: "#eee" });
+      obj.set({ stroke: "#aaa", strokeWidth: 1, fill: "#eee", hoverCursor: "default" });
     }
     (obj as any).dirty = true;
   });
@@ -2374,9 +2385,9 @@ export function resetContraventamentoPilotis(group: Group): void {
   group.getObjects().forEach((obj: any) => {
     if (!obj.isPilotiCircle) return;
     if (obj.pilotiIsMaster) {
-      obj.set({ stroke: "#8B4513", strokeWidth: 2, fill: "#D4A574" });
+      obj.set({ stroke: "#8B4513", strokeWidth: 2, fill: "#D4A574", hoverCursor: "default" });
     } else {
-      obj.set({ stroke: "black", strokeWidth: 1.5 * 0.6, fill: "white" });
+      obj.set({ stroke: "black", strokeWidth: 1.5 * 0.6, fill: "white", hoverCursor: "default" });
     }
     (obj as any).dirty = true;
   });

@@ -129,6 +129,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => { isPilotiEligibleForContraventamentoRef.current = isPilotiEligibleForContraventamento; }, [isPilotiEligibleForContraventamento]);
     useEffect(() => { onContraventamentoPilotiClickRef.current = onContraventamentoPilotiClick; }, [onContraventamentoPilotiClick]);
     useEffect(() => { onContraventamentoSelectRef.current = onContraventamentoSelect; }, [onContraventamentoSelect]);
+    useEffect(() => {
+      if (isContraventamentoMode) return;
+      const canvas = fabricCanvasRef.current;
+      if (!canvas?.upperCanvasEl) return;
+      canvas.upperCanvasEl.style.cursor = 'default';
+    }, [isContraventamentoMode]);
     
     // Reset all piloti highlights when editor closes
     const prevEditorOpenRef = useRef(isEditorOpen);
@@ -704,7 +710,43 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         onContraventamentoSelectRef.current?.(null);
       };
 
+      const setCanvasCursor = (cursor: string) => {
+        if (!canvas.upperCanvasEl) return;
+        if (canvas.upperCanvasEl.style.cursor !== cursor) {
+          canvas.upperCanvasEl.style.cursor = cursor;
+        }
+      };
+
+      // Show pointer cursor only for currently eligible pilotis in contraventamento mode.
+      const handleContraventamentoCursor = (e: any) => {
+        if (!isContraventamentoModeRef.current) {
+          setCanvasCursor('default');
+          return;
+        }
+
+        const target = e.target;
+        const subTargets = (e as any).subTargets || [];
+        if (!target || target.type !== 'group' || (target as any).houseView !== 'top') {
+          setCanvasCursor('default');
+          return;
+        }
+
+        const pilotiTarget = subTargets.find((st: any) =>
+          (st?.isPilotiCircle || st?.isPilotiHitArea) && typeof st?.pilotiId === 'string'
+        ) as any;
+        if (!pilotiTarget) {
+          setCanvasCursor('default');
+          return;
+        }
+
+        const pilotiId = String(pilotiTarget.pilotiId ?? '');
+        const eligible = !!pilotiId && (isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false);
+        setCanvasCursor(eligible ? 'pointer' : 'default');
+      };
+
       canvas.on('mouse:down', handleContraventamentoSelection);
+      canvas.on('mouse:move', handleContraventamentoCursor);
+      canvas.on('mouse:out', () => setCanvasCursor('default'));
 
       // Mobile: single tap on piloti or hit area
       // Use both mouse:down and touch:gesture events for better mobile compatibility
