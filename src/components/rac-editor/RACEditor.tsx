@@ -23,6 +23,7 @@ import { NivelDefinitionModal, NivelEntry } from './NivelDefinitionModal';
 import { HouseTypeSelector } from './HouseTypeSelector';
 import { House3DViewer } from './House3DViewer';
 import { SettingsModal } from './SettingsModal';
+import { ContraventamentoSideSelector } from './ContraventamentoSideSelector';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSettings } from '@/lib/settings';
 import {
@@ -63,6 +64,7 @@ import {
   removeContraventamentosFromGroup,
   setContraventamentoSelection,
   syncContraventamentoElevationsFromTop,
+  ContraventamentoSide,
 } from '@/lib/canvas-utils';
 import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
 
@@ -107,6 +109,15 @@ export function RACEditor() {
   // ── Contraventamento state ─────────────────────────────────────────────────
   const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
   const [selectedContraventamento, setSelectedContraventamento] = useState<ContraventamentoCanvasSelection | null>(null);
+  const [contraventamentoStep, setContraventamentoStep] = useState<'select-first' | 'select-second'>('select-first');
+  const [contraventamentoFirst, setContraventamentoFirst] = useState<{
+    pilotiId: string;
+    col: number;
+    row: number;
+    group: Group;
+  } | null>(null);
+  const [contraventamentoSideSelectorOpen, setContraventamentoSideSelectorOpen] = useState(false);
+  const [contraventamentoSide, setContraventamentoSide] = useState<ContraventamentoSide | null>(null);
 
   // Subscribe to house manager changes
   useEffect(() => {
@@ -965,6 +976,10 @@ export function RACEditor() {
       canvas.loadFromJSON(evt.target?.result as string).then(() => {
         setIsContraventamentoMode(false);
         setSelectedContraventamento(null);
+        setContraventamentoStep('select-first');
+        setContraventamentoFirst(null);
+        setContraventamentoSide(null);
+        setContraventamentoSideSelectorOpen(false);
         canvas.renderAll();
         syncContraventamentoElevationsFromTop(
           getTopViewGroup(),
@@ -1146,6 +1161,44 @@ export function RACEditor() {
     return (data?.nivel ?? 0) > 0.40;
   }, []);
 
+  const getContraventamentoColumnSides = useCallback((group: Group, col: number) => {
+    const s = 0.6;
+    const cD = 155 * s;
+    const colCenterX = [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD][col] ?? 0;
+    const occupied = { left: false, right: false };
+
+    group.getObjects().forEach((obj: any) => {
+      if (!obj.isContraventamento) return;
+      if (Number(obj.contraventamentoCol) !== col) return;
+
+      let side: ContraventamentoSide | null = null;
+      if (obj.contraventamentoSide === 'left' || obj.contraventamentoSide === 'right') {
+        side = obj.contraventamentoSide;
+      } else {
+        const width = Number(obj.width ?? 0) * Number(obj.scaleX ?? 1);
+        const centerX = Number(obj.left ?? 0) + width / 2;
+        side = centerX < colCenterX ? 'left' : 'right';
+        obj.contraventamentoSide = side;
+      }
+
+      occupied[side] = true;
+    });
+
+    return occupied;
+  }, []);
+
+  const enterContraventamentoSecondStep = useCallback((
+    first: { pilotiId: string; col: number; row: number; group: Group },
+    side: ContraventamentoSide
+  ) => {
+    setContraventamentoSideSelectorOpen(false);
+    setContraventamentoFirst(first);
+    setContraventamentoSide(side);
+    setContraventamentoStep('select-second');
+    highlightContraventamentoPilotis(first.group, isPilotiEligible, first.col, first.pilotiId);
+    toast.info(`Lado ${side === 'left' ? 'esquerdo' : 'direito'} selecionado. Selecione o piloti final na mesma coluna.`);
+  }, [isPilotiEligible]);
+
   const syncContraventamentoElevations = useCallback(() => {
     const topGroup = getTopViewGroup();
     const targets = houseManager.getAllGroups().filter((g) => (g as any).houseView !== 'top');
@@ -1168,9 +1221,13 @@ export function RACEditor() {
     setSelectedContraventamento(null);
     setActiveSubmenu(null);
     setIsContraventamentoMode(true);
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+    setContraventamentoSideSelectorOpen(false);
 
     highlightContraventamentoPilotis(topGroup, isPilotiEligible);
-    toast.info('Selecione um piloti elegível para inserir o contraventamento. ESC para cancelar.');
+    toast.info('Selecione o primeiro piloti (nível > 40cm). ESC para cancelar.');
   }, [getTopViewGroup, isPilotiEligible]);
 
   /** Cancel contraventamento mode and reset visuals */
@@ -1178,44 +1235,114 @@ export function RACEditor() {
     const topGroup = getTopViewGroup();
     if (topGroup) resetContraventamentoPilotis(topGroup);
     setIsContraventamentoMode(false);
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+    setContraventamentoSideSelectorOpen(false);
   }, [getTopViewGroup]);
+
+  const handleContraventamentoSideSelectorClose = useCallback(() => {
+    setContraventamentoSideSelectorOpen(false);
+    if (!isContraventamentoMode) return;
+
+    const topGroup = getTopViewGroup();
+    if (topGroup) {
+      highlightContraventamentoPilotis(topGroup, isPilotiEligible);
+    }
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+  }, [getTopViewGroup, isContraventamentoMode, isPilotiEligible]);
+
+  const handleContraventamentoSideSelected = useCallback((side: ContraventamentoSide) => {
+    if (!contraventamentoFirst) return;
+    enterContraventamentoSecondStep(contraventamentoFirst, side);
+  }, [contraventamentoFirst, enterContraventamentoSecondStep]);
 
   /** Called by Canvas when a piloti circle is clicked in contraventamento mode */
   const handleContraventamentoPilotiClick = useCallback((
-    pilotiId: string, col: number, _row: number, group: Group
+    pilotiId: string, col: number, row: number, group: Group
   ) => {
-    const eligibleRows = [0, 1, 2].filter((candidateRow) =>
-      isPilotiEligible(`piloti_${col}_${candidateRow}`)
-    );
-    if (eligibleRows.length < 2) {
-      toast.warning('Esta coluna precisa de ao menos 2 pilotis elegíveis (nível > 40cm).');
+    if (contraventamentoStep === 'select-first') {
+      const occupiedSides = getContraventamentoColumnSides(group, col);
+      if (occupiedSides.left && occupiedSides.right) {
+        toast.warning('Esta coluna já possui contraventamentos nos lados esquerdo e direito.');
+        return;
+      }
+
+      const first = { pilotiId, col, row, group };
+      setContraventamentoFirst(first);
+
+      if (occupiedSides.left !== occupiedSides.right) {
+        const autoSide: ContraventamentoSide = occupiedSides.left ? 'right' : 'left';
+        enterContraventamentoSecondStep(first, autoSide);
+        return;
+      }
+
+      setContraventamentoSideSelectorOpen(true);
+      toast.info('Escolha o lado do contraventamento.');
       return;
     }
 
-    const startRow = eligibleRows[0];
-    const endRow = eligibleRows[eligibleRows.length - 1];
+    if (!contraventamentoFirst || !contraventamentoSide) {
+      toast.warning('Selecione o primeiro piloti para iniciar o contraventamento.');
+      setContraventamentoStep('select-first');
+      setContraventamentoFirst(null);
+      setContraventamentoSide(null);
+      highlightContraventamentoPilotis(group, isPilotiEligible);
+      return;
+    }
 
-    removeContraventamentosFromGroup(group, (obj) => (obj as any).contraventamentoCol === col);
+    if (col !== contraventamentoFirst.col) {
+      toast.warning('Selecione o piloti final na mesma coluna do primeiro.');
+      return;
+    }
+    if (row === contraventamentoFirst.row) {
+      toast.warning('Selecione um piloti final diferente do primeiro.');
+      return;
+    }
+
+    const occupiedSides = getContraventamentoColumnSides(contraventamentoFirst.group, col);
+    if (occupiedSides[contraventamentoSide]) {
+      toast.warning(`O lado ${contraventamentoSide === 'left' ? 'esquerdo' : 'direito'} desta coluna já possui contraventamento.`);
+      setContraventamentoStep('select-first');
+      setContraventamentoFirst(null);
+      setContraventamentoSide(null);
+      highlightContraventamentoPilotis(contraventamentoFirst.group, isPilotiEligible);
+      return;
+    }
 
     const createdId = addContraventamentoBeam(
-      group,
-      { col, row: startRow },
-      { col, row: endRow },
-      { anchorPilotiId: pilotiId }
+      contraventamentoFirst.group,
+      { col, row: contraventamentoFirst.row },
+      { col, row },
+      { anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide }
     );
     if (!createdId) {
       toast.error('Não foi possível criar o contraventamento.');
       return;
     }
 
-    resetContraventamentoPilotis(group);
-    setContraventamentoSelection(group, null);
+    resetContraventamentoPilotis(contraventamentoFirst.group);
+    setContraventamentoSelection(contraventamentoFirst.group, null);
     setSelectedContraventamento(null);
     setIsContraventamentoMode(false);
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+    setContraventamentoSideSelectorOpen(false);
     syncContraventamentoElevations();
     canvasRef.current?.saveHistory();
     toast.success('Contraventamento adicionado!');
-  }, [isPilotiEligible, syncContraventamentoElevations]);
+  }, [
+    contraventamentoStep,
+    contraventamentoFirst,
+    contraventamentoSide,
+    getContraventamentoColumnSides,
+    isPilotiEligible,
+    enterContraventamentoSecondStep,
+    syncContraventamentoElevations,
+  ]);
 
   const handleContraventamentoSelect = useCallback((selection: ContraventamentoCanvasSelection | null) => {
     const topGroup = getTopViewGroup();
@@ -1766,6 +1893,12 @@ export function RACEditor() {
         instanceSlots={instanceSlots} />
 
       }
+
+      <ContraventamentoSideSelector
+        isOpen={contraventamentoSideSelectorOpen}
+        onClose={handleContraventamentoSideSelectorClose}
+        onSelectSide={handleContraventamentoSideSelected}
+      />
 
       <HouseTypeSelector
         isOpen={houseTypeSelectorOpen}

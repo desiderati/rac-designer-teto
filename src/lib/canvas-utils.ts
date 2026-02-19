@@ -58,6 +58,7 @@ export const customProps = [
   "contraventamentoCol",
   "contraventamentoStartRow",
   "contraventamentoEndRow",
+  "contraventamentoSide",
   "contraventamentoAnchorPilotiId",
   "contraventamentoSourcePilotiId",
 ];
@@ -2009,6 +2010,8 @@ export interface ContraventamentoSelection {
   contraventamentoId: string;
 }
 
+export type ContraventamentoSide = "left" | "right";
+
 function getOrCreateContraventamentoId(obj: any): string {
   if (obj.contraventamentoId) return String(obj.contraventamentoId);
   const id = `contrav_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -2020,7 +2023,7 @@ function getNearestContraventamentoCol(x: number): number {
   let idx = 0;
   let minDist = Number.POSITIVE_INFINITY;
   for (let i = 0; i < CONTRAV_COL_X.length; i += 1) {
-    const centerX = CONTRAV_COL_X[i] + CONTRAV_RAD;
+    const centerX = CONTRAV_COL_X[i];
     const dist = Math.abs(x - centerX);
     if (dist < minDist) {
       minDist = dist;
@@ -2048,6 +2051,7 @@ function getContraventamentoMeta(obj: any): {
   col: number;
   startRow: number;
   endRow: number;
+  side: ContraventamentoSide;
   anchorPilotiId: string;
 } {
   const id = getOrCreateContraventamentoId(obj);
@@ -2068,15 +2072,20 @@ function getContraventamentoMeta(obj: any): {
   const endRowRaw = Number.isFinite(obj.contraventamentoEndRow) ? Number(obj.contraventamentoEndRow) : inferredEndRow;
   const startRow = Math.min(startRowRaw, endRowRaw);
   const endRow = Math.max(startRowRaw, endRowRaw);
+  const side: ContraventamentoSide =
+    obj.contraventamentoSide === "left" || obj.contraventamentoSide === "right" ?
+      obj.contraventamentoSide :
+      centerX < CONTRAV_COL_X[col] ? "left" : "right";
   const anchorPilotiId = String(obj.contraventamentoAnchorPilotiId ?? `piloti_${col}_${startRow}`);
 
   obj.contraventamentoId = id;
   obj.contraventamentoCol = col;
   obj.contraventamentoStartRow = startRow;
   obj.contraventamentoEndRow = endRow;
+  obj.contraventamentoSide = side;
   obj.contraventamentoAnchorPilotiId = anchorPilotiId;
 
-  return { id, col, startRow, endRow, anchorPilotiId };
+  return { id, col, startRow, endRow, side, anchorPilotiId };
 }
 
 /**
@@ -2088,7 +2097,7 @@ export function addContraventamentoBeam(
   group: Group,
   piloti1: { col: number; row: number },
   piloti2: { col: number; row: number },
-  options?: { anchorPilotiId?: string },
+  options?: { anchorPilotiId?: string; side?: ContraventamentoSide },
 ): string | null {
   const col = piloti1.col;
   const colX = CONTRAV_COL_X[col];
@@ -2104,11 +2113,14 @@ export function addContraventamentoBeam(
 
   if (beamHeight <= 0) return null; // pilotis too close / same row
 
+  const side: ContraventamentoSide = options?.side === "left" ? "left" : "right";
+  const tangentX = side === "right" ? colX + CONTRAV_RAD : colX - CONTRAV_RAD;
+
   const beam = new Rect({
     width: CONTRAV_BEAM_WIDTH,
     height: beamHeight,
-    // Right-side tangent of piloti circles, from center to center.
-    left: colX + CONTRAV_RAD - CONTRAV_BEAM_WIDTH / 2,
+    // Side tangent of piloti circles, from center to center.
+    left: tangentX - CONTRAV_BEAM_WIDTH / 2,
     top: topY,
     fill: CONTRAV_FILL,
     stroke: CONTRAV_STROKE,
@@ -2125,6 +2137,7 @@ export function addContraventamentoBeam(
   beamAny.contraventamentoCol = col;
   beamAny.contraventamentoStartRow = Math.min(piloti1.row, piloti2.row);
   beamAny.contraventamentoEndRow = Math.max(piloti1.row, piloti2.row);
+  beamAny.contraventamentoSide = side;
   beamAny.contraventamentoAnchorPilotiId =
     options?.anchorPilotiId ?? `piloti_${col}_${Math.min(piloti1.row, piloti2.row)}`;
 
