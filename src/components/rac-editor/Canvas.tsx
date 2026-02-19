@@ -497,6 +497,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         const obj = canvas.getActiveObject();
         onSelectionChange(getHintForObject(obj));
 
+        // In contraventamento mode, piloti styles are controlled by
+        // contraventamento highlight logic (eligible vs non-eligible).
+        if (isContraventamentoModeRef.current) {
+          return;
+        }
+
         // Clear piloti selection only when no editor is open.
         // When the editor is open, selection events (object:modified / selection:updated)
         // can fire and would otherwise wipe the editor's "group" reference,

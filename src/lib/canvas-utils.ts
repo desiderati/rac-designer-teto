@@ -2351,7 +2351,7 @@ export function syncContraventamentoElevationsFromTop(
       const borderLine = new Line([x1, y1, x2, y2], {
         stroke: CONTRAV_STROKE,
         strokeWidth: CONTRAV_ELEVATION_WIDTH + 2,
-        strokeUniform: true,
+        strokeUniform: false,
         selectable: false,
         evented: false,
         objectCaching: false,
@@ -2364,7 +2364,7 @@ export function syncContraventamentoElevationsFromTop(
       const line = new Line([x1, y1, x2, y2], {
         stroke: CONTRAV_FILL,
         strokeWidth: CONTRAV_ELEVATION_WIDTH,
-        strokeUniform: true,
+        strokeUniform: false,
         selectable: false,
         evented: false,
         objectCaching: false,
