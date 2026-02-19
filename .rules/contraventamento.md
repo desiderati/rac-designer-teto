@@ -104,6 +104,12 @@ No modo de contraventamento:
     - cursor padrão.
 3. piloti mestre não elegível também fica cinza para não confundir.
 
+### 9.1 Relação com piloti mestre
+
+1. ser mestre não altera, por si só, a elegibilidade para criar contraventamento;
+2. a elegibilidade continua dependendo das regras de coluna, lado e seleção;
+3. o destaque visual usa a paleta marrom associada ao mestre como padrão de contraste do modo.
+
 ## 10. Geometria na planta (top)
 
 ### 10.1 Constantes

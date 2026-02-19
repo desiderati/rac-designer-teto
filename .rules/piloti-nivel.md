@@ -2,6 +2,8 @@
 
 Este documento consolida as regras de nível (`nível`) dos pilotis no estado atual do projeto.
 
+Complemento: regras específicas de `piloti mestre` estão detalhadas em `.rules/piloti-mestre.md`.
+
 ## 1. Conceitos e dados
 
 Cada piloti possui:
@@ -66,6 +68,15 @@ Ao aumentar o nível do mestre:
 Para cantos não mestre:
 
 1. o mínimo permitido passa a ser o nível do mestre atual.
+
+## 6.1 Regras do piloti mestre no PilotiEditor
+
+No `PilotiEditor`:
+
+1. o toggle de mestre aparece apenas nos 4 cantos;
+2. a troca de mestre é enviada para o `HouseManager`;
+3. a exclusividade de mestre (um único mestre global) é garantida pelo `HouseManager`;
+4. neste fluxo não há elevação automática dos níveis dos outros cantos.
 
 ## 7. Alturas recomendadas
 
