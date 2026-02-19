@@ -343,20 +343,22 @@ export function Toolbar({
               )}
             </div>
 
-            {/* Unlock */}
+            {/* Unlock - temporarily disabled */}
             <FABButton
               icon={faLockOpen}
-              title="Desbloquear (Desagrupar)"
-              onClick={() => handleAction(onUngroup)}
+              title="Desbloquear (Desagrupar) - Em breve"
+              onClick={() => {}}
               hideTooltip={isTutorialActive}
+              className="opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]"
             />
 
-            {/* Lock */}
+            {/* Lock - temporarily disabled */}
             <FABButton
               icon={faLock}
-              title="Bloquear (Agrupar)"
-              onClick={() => handleAction(onGroup)}
+              title="Bloquear (Agrupar) - Em breve"
+              onClick={() => {}}
               hideTooltip={isTutorialActive}
+              className="opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]"
             />
 
             {/* Elements */}

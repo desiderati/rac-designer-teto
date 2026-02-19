@@ -206,7 +206,9 @@ function buildOpeningsFromCanvasModel(houseType: HouseType, rawElements: HouseEl
 
   const hasLeftDoor = rawElements.some((e) => e.type === 'door' && e.face === 'left');
   const hasRightDoor = rawElements.some((e) => e.type === 'door' && e.face === 'right');
-  const openSide: 'left' | 'right' = hasLeftDoor ? 'left' : hasRightDoor ? 'right' : 'right';
+  // Tipo3 side faces are mirrored between 2D assignment semantics and 3D scene coordinates.
+  // Invert only here so "quadrado aberto/fechado" appear on the expected sides in 3D.
+  const openSide: 'left' | 'right' = hasLeftDoor ? 'right' : hasRightDoor ? 'left' : 'right';
 
   openings.push(
     {
