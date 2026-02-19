@@ -42,6 +42,8 @@ interface PilotiEditorProps {
   houseView?: 'top' | 'front' | 'back' | 'side';
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
+  showContraventamentoButton?: boolean;
+  onStartContraventamento?: () => void;
 }
 
 const DEFAULT_NIVEL = 0.2;
@@ -67,7 +69,9 @@ export function PilotiEditor({
   anchorPosition,
   houseView = 'top',
   onHeightChange,
-  onNavigate
+  onNavigate,
+  showContraventamentoButton = false,
+  onStartContraventamento
 }: PilotiEditorProps) {
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
@@ -398,13 +402,24 @@ export function PilotiEditor({
       </div>
 
       {/* Footer buttons */}
-      <div className="flex w-full gap-[16px]" data-no-drag>
-        <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
-          Cancelar
-        </Button>
-        <Button className="flex-1" onClick={handleApply}>
-          Aplicar
-        </Button>
+      <div className="flex w-full flex-col gap-3" data-no-drag>
+        {showContraventamentoButton &&
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => onStartContraventamento?.()}>
+
+            Contraventar
+          </Button>
+        }
+        <div className="flex w-full gap-[16px]">
+          <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
+            Cancelar
+          </Button>
+          <Button className="flex-1" onClick={handleApply}>
+            Aplicar
+          </Button>
+        </div>
       </div>
     </div>;
 
