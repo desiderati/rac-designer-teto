@@ -2410,10 +2410,10 @@ export function highlightContraventamentoPilotis(
     const isSkipped = id === skipPilotiId;
 
     if (eligible && inColumn && !isSkipped) {
-      // Available — brown highlight
-      obj.set({ stroke: "#8B4513", strokeWidth: 3, fill: "#D4A574", hoverCursor: "pointer" });
+      // Available — yellow border highlight (same visual language as top-view selection).
+      obj.set({ stroke: "#facc15", strokeWidth: 4, fill: "#ffffff", hoverCursor: "pointer" });
     } else {
-      // Dimmed — grey out
+      // Dimmed — grey out, including master pilotis while not eligible.
       obj.set({ stroke: "#aaa", strokeWidth: 1, fill: "#eee", hoverCursor: "default" });
     }
     (obj as any).dirty = true;
