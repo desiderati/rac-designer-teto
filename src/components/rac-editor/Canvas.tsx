@@ -58,9 +58,11 @@ interface CanvasProps {
   showZoomControls?: boolean;
   // Contraventamento
   isContraventamentoMode?: boolean;
+  isSelectingContraventamentoDestination?: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
   onContraventamentoSelect?: (selection: ContraventamentoCanvasSelection | null) => void;
+  onContraventamentoCancel?: () => void;
 }
 
 export interface CanvasHandle {
@@ -75,7 +77,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true, isContraventamentoMode = false, isPilotiEligibleForContraventamento, onContraventamentoPilotiClick, onContraventamentoSelect }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true, isContraventamentoMode = false, isSelectingContraventamentoDestination = false, isPilotiEligibleForContraventamento, onContraventamentoPilotiClick, onContraventamentoSelect, onContraventamentoCancel }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,9 +117,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const isEditorOpenRef = useRef(isEditorOpen);
     // Refs for contraventamento mode (props that change but are accessed inside static event handlers)
     const isContraventamentoModeRef = useRef(isContraventamentoMode);
+    const isSelectingContraventamentoDestinationRef = useRef(isSelectingContraventamentoDestination);
     const isPilotiEligibleForContraventamentoRef = useRef(isPilotiEligibleForContraventamento);
     const onContraventamentoPilotiClickRef = useRef(onContraventamentoPilotiClick);
     const onContraventamentoSelectRef = useRef(onContraventamentoSelect);
+    const onContraventamentoCancelRef = useRef(onContraventamentoCancel);
     
     // Keep refs in sync with state
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
@@ -126,9 +130,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => { containerSizeRef.current = containerSize; }, [containerSize]);
     useEffect(() => { isEditorOpenRef.current = isEditorOpen; }, [isEditorOpen]);
     useEffect(() => { isContraventamentoModeRef.current = isContraventamentoMode; }, [isContraventamentoMode]);
+    useEffect(() => { isSelectingContraventamentoDestinationRef.current = isSelectingContraventamentoDestination; }, [isSelectingContraventamentoDestination]);
     useEffect(() => { isPilotiEligibleForContraventamentoRef.current = isPilotiEligibleForContraventamento; }, [isPilotiEligibleForContraventamento]);
     useEffect(() => { onContraventamentoPilotiClickRef.current = onContraventamentoPilotiClick; }, [onContraventamentoPilotiClick]);
     useEffect(() => { onContraventamentoSelectRef.current = onContraventamentoSelect; }, [onContraventamentoSelect]);
+    useEffect(() => { onContraventamentoCancelRef.current = onContraventamentoCancel; }, [onContraventamentoCancel]);
     useEffect(() => {
       if (isContraventamentoMode) return;
       const canvas = fabricCanvasRef.current;
@@ -597,7 +603,12 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           ((subTarget as any).isPilotiCircle || (subTarget as any).isPilotiHitArea)
         ) {
           const eligible = isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
-          if (!eligible) return; // ignore ineligible pilotis
+          if (!eligible) {
+            if (isSelectingContraventamentoDestinationRef.current) {
+              onContraventamentoCancelRef.current?.();
+            }
+            return; // ignore ineligible pilotis
+          }
 
           const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
           if (!match) return;
@@ -713,12 +724,23 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       // In contraventamento mode, capture piloti clicks on first tap/click.
       const handleContraventamentoPilotiClick = (e: any) => {
         if (!isContraventamentoModeRef.current) return;
+        const cancelIfSelectingDestination = () => {
+          if (isSelectingContraventamentoDestinationRef.current) {
+            onContraventamentoCancelRef.current?.();
+          }
+        };
 
         const target = e.target;
-        if (!target || target.type !== 'group') return;
+        if (!target || target.type !== 'group') {
+          cancelIfSelectingDestination();
+          return;
+        }
 
         const group = target as Group;
-        if ((group as any).houseView !== 'top') return;
+        if ((group as any).houseView !== 'top') {
+          cancelIfSelectingDestination();
+          return;
+        }
 
         const subTargets = (e as any).subTargets || [];
         const directPilotiTarget = subTargets.find((st: any) =>
@@ -756,6 +778,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             return;
           }
         }
+
+        cancelIfSelectingDestination();
       };
 
       const setCanvasCursor = (cursor: string) => {

@@ -1884,9 +1884,11 @@ export function RACEditor() {
           onDelete={handleDelete}
           showZoomControls={showZoomControls}
           isContraventamentoMode={isContraventamentoMode}
+          isSelectingContraventamentoDestination={isContraventamentoMode && contraventamentoStep === 'select-second'}
           isPilotiEligibleForContraventamento={isPilotiEligible}
           onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
-          onContraventamentoSelect={handleContraventamentoSelect}>
+          onContraventamentoSelect={handleContraventamentoSelect}
+          onContraventamentoCancel={handleCancelContraventamento}>
 
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips &&

@@ -1993,12 +1993,12 @@ const CONTRAV_S = 0.6;
 const CONTRAV_CD = 155 * CONTRAV_S; // 93  — column distance
 const CONTRAV_RD = 135 * CONTRAV_S; // 81  — row distance
 const CONTRAV_RAD = 15 * CONTRAV_S; // 9   — piloti radius
-const CONTRAV_BEAM_WIDTH = 5;
+const CONTRAV_BEAM_WIDTH = 10;
 const CONTRAV_FILL = "#8B4513";
 const CONTRAV_STROKE = "#5C2D0A";
 const CONTRAV_SELECTED_FILL = "#A0522D";
 const CONTRAV_SELECTED_STROKE = "#4A2508";
-const CONTRAV_ELEVATION_WIDTH = 3;
+const CONTRAV_ELEVATION_WIDTH = 20;
 
 /** Local-space X of each column (0-3) in the top-view group */
 const CONTRAV_COL_X = [
@@ -2271,6 +2271,10 @@ export function syncContraventamentoElevationsFromTop(
   }
 
   for (const group of targetGroups) {
+    const houseView = String((group as any).houseView ?? "");
+    // Only project contraventamento on square views (side elevations).
+    if (houseView !== "side") continue;
+
     const pilotiRects = group.getObjects().filter((obj: any) => obj.isPilotiRect && obj.pilotiId) as any[];
     if (pilotiRects.length === 0) continue;
 
@@ -2306,7 +2310,15 @@ export function syncContraventamentoElevationsFromTop(
       return top + CONTRAV_OFFSET_M * base;
     };
 
+    const isRightSideView = (group as any).isRightSide === true;
+    const visibleCol = isRightSideView ? 3 : 0;
+    const externalSide: ContraventamentoSide = isRightSideView ? "right" : "left";
+
     for (const contrav of contravs) {
+      // Show only the external contraventamento for the square view.
+      if (contrav.col !== visibleCol) continue;
+      if (contrav.side !== externalSide) continue;
+
       const originPilotiId = String(contrav.anchorPilotiId);
       const originRow = getPilotiRow(originPilotiId);
       const normalizedOriginRow =
@@ -2316,32 +2328,12 @@ export function syncContraventamentoElevationsFromTop(
 
       const originRect = rectByPilotiId.get(originPilotiId);
       const targetRect = rectByPilotiId.get(targetPilotiId);
-      if (!originRect && !targetRect) continue;
+      if (!originRect || !targetRect) continue;
 
-      let x1 = 0;
-      let y1 = 0;
-      let x2 = 0;
-      let y2 = 0;
-
-      if (originRect && targetRect) {
-        x1 = getRectCenterX(originRect);
-        y1 = getOriginY(originRect, originPilotiId);
-        x2 = getRectCenterX(targetRect);
-        y2 = getDestinationY(targetRect);
-      } else {
-        // Views where only one projected piloti is visible (e.g. front/back): draw a
-        // short diagonal slash using the same projected piloti as reference.
-        const refRect = originRect ?? targetRect;
-        const centerX = getRectCenterX(refRect);
-        const width = getRectWidth(refRect);
-        const span = Math.max(8, width * 0.8);
-        const dir = contrav.side === "left" ? -1 : 1;
-
-        x1 = centerX - (span / 2) * dir;
-        y1 = getOriginY(refRect, originPilotiId);
-        x2 = centerX + (span / 2) * dir;
-        y2 = getDestinationY(refRect);
-      }
+      const x1 = getRectCenterX(originRect);
+      const y1 = getOriginY(originRect, originPilotiId);
+      const x2 = getRectCenterX(targetRect);
+      const y2 = getDestinationY(targetRect);
 
       if (
         !Number.isFinite(x1) ||
