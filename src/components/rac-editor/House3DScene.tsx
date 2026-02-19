@@ -351,6 +351,7 @@ function ContraventamentoMesh({
   const anchorRow = anchorGrid?.row;
   const originCol = Number.isInteger(anchorCol) ? anchorCol : col;
   const originRow = Number.isInteger(anchorRow) ? anchorRow : startRow;
+  const originPilotiId = anchorGrid ? anchorPilotiId : `piloti_${originCol}_${originRow}`;
   const targetRow = originRow === startRow ? endRow : startRow;
   if (originCol < 0 || originCol > 3) return null;
   if (originRow < 0 || originRow > 2 || targetRow < 0 || targetRow > 2 || originRow === targetRow) return null;
@@ -366,8 +367,8 @@ function ContraventamentoMesh({
   // Same 2D rule: opposite beam edge touches piloti tangent.
   const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
 
-  const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - originCol / 3, originRow / 2);
-  const originY = terrainYAtOrigin + CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
+  const originNivel = Number(pilotis[originPilotiId]?.nivel ?? DEFAULT_PILOTI.nivel);
+  const originY = PILOTI_TOP_Y - (originNivel - CONTRAV_OFFSET_M) * BASE_PILOTI_HEIGHT;
   const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
   if (originY > destinationY) return null;
 

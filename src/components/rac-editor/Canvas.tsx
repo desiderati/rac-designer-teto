@@ -141,6 +141,28 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       if (!canvas?.upperCanvasEl) return;
       canvas.upperCanvasEl.style.cursor = 'default';
     }, [isContraventamentoMode]);
+
+    // During second piloti selection for contraventamento, keep highlights only on plant view.
+    useEffect(() => {
+      if (!isSelectingContraventamentoDestination) return;
+      const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+
+      canvas.getObjects().forEach((item: any) => {
+        if (item.type !== 'group' || item.myType !== 'house' || item.houseView === 'top') return;
+        item.getObjects().forEach((child: any) => {
+          if (!child.isPilotiRect) return;
+          if (child.pilotiIsMaster) {
+            child.set({ stroke: '#8B4513', strokeWidth: 3 });
+          } else {
+            child.set({ stroke: '#333', strokeWidth: 2 });
+          }
+          (child as any).dirty = true;
+        });
+      });
+
+      canvas.requestRenderAll();
+    }, [isSelectingContraventamentoDestination]);
     
     // Reset all piloti highlights when editor closes
     const prevEditorOpenRef = useRef(isEditorOpen);

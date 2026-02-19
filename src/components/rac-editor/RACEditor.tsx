@@ -2033,9 +2033,10 @@ export function RACEditor() {
       }
 
       <HouseTypeSelector
-        isOpen={houseTypeSelectorOpen}
+        isOpen={houseTypeSelectorOpen || tutorialStep === 'house'}
         onClose={handleHouseTypeSelectorClose}
-        onSelectType={handleHouseTypeSelected} />
+        onSelectType={handleHouseTypeSelected}
+        tutorialLocked={tutorialStep === 'house'} />
 
 
       <House3DViewer

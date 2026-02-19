@@ -1751,32 +1751,38 @@ export function createWater(canvas: FabricCanvas): Group {
   return group;
 }
 
-export function createStairsPatternSource(): HTMLCanvasElement {
+export function createStairsPatternSource(s = 1): HTMLCanvasElement {
+  const stepSpacing = Math.max(2, Math.round(18 * s));
   const patternCanvas = document.createElement("canvas");
-  patternCanvas.width = 20;
-  patternCanvas.height = 20;
+  patternCanvas.width = stepSpacing;
+  patternCanvas.height = stepSpacing;
   const ctx = patternCanvas.getContext("2d")!;
-  ctx.lineWidth = 1.5;
+  ctx.fillStyle = "#C89B6D";
+  ctx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+  ctx.lineWidth = Math.max(1, 1.5 * s);
   ctx.strokeStyle = "#8B4513";
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.lineTo(20, 0);
+  ctx.lineTo(stepSpacing, 0);
   ctx.stroke();
   return patternCanvas;
 }
 
 export function createStairs(canvas: FabricCanvas): Rect {
+  const factors = getHouseScaleFactors(canvas);
+  const s = factors.widthFactor;
+
   const rect = new Rect({
-    width: 100,
-    height: 75,
+    width: 80 * s,
+    height: 75 * s,
     originX: "center",
     originY: "center",
     fill: new Pattern({
-      source: createStairsPatternSource(),
+      source: createStairsPatternSource(s),
       repeat: "repeat",
     }),
     stroke: "#8B4513",
-    strokeWidth: 2,
+    strokeWidth: 5,
     transparentCorners: false,
     left: canvas.width! / 2,
     top: canvas.height! / 2,
