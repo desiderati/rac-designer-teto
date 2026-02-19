@@ -1359,6 +1359,35 @@ export function RACEditor() {
     return () => window.removeEventListener('keydown', handler);
   }, [isContraventamentoMode, handleCancelContraventamento]);
 
+  // Keep contraventamento highlights stable across any re-render/style reset.
+  useEffect(() => {
+    if (!isContraventamentoMode) return;
+    const topGroup = getTopViewGroup();
+    if (!topGroup) return;
+
+    if (contraventamentoStep === 'select-second' && contraventamentoFirst) {
+      highlightContraventamentoPilotis(
+        topGroup,
+        (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, {
+          col: contraventamentoFirst.col,
+          row: contraventamentoFirst.row,
+        }),
+        contraventamentoFirst.col,
+        contraventamentoFirst.pilotiId
+      );
+      return;
+    }
+
+    highlightContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
+  }, [
+    isContraventamentoMode,
+    contraventamentoStep,
+    contraventamentoFirst,
+    getTopViewGroup,
+    isPilotiEligibleAsDestination,
+    isPilotiEligibleAsOrigin,
+  ]);
+
   const handlePilotiSelect = (selection: PilotiSelection | null) => {
     // In contraventamento mode, piloti clicks are handled by handleContraventamentoPilotiClick
     if (isContraventamentoMode) return;

@@ -29,8 +29,8 @@ Ao editar um piloti de canto:
 
 1. mínimo absoluto: `0,20 m`;
 2. máximo dependente da altura do piloti:
-   - `maxNivel = round((height * 2 / 3), 2)`
-   - equivalente no código: `Math.round(height * 200 / 3) / 100`.
+    - `maxNivel = round((height * 2 / 3), 2)`
+    - equivalente no código: `Math.round(height * 200 / 3) / 100`.
 
 O valor sempre é arredondado para 2 casas decimais.
 
@@ -90,9 +90,9 @@ Após definição dos cantos, o `HouseManager` calcula nível para toda a malha 
 
 1. cantos base: `A1`, `A4`, `C1`, `C4`;
 2. para cada `piloti_<col>_<row>`:
-   - `u = col / 3`
-   - `v = row / 2`
-   - `nivel = (1-u)(1-v)A1 + u(1-v)A4 + (1-u)vC1 + uvC4`
+    - `u = col / 3`
+    - `v = row / 2`
+    - `nivel = (1-u)(1-v)A1 + u(1-v)A4 + (1-u)vC1 + uvC4`
 3. o nível interpolado é arredondado para 2 casas;
 4. a altura do piloti também é definida pela regra recomendada (`nivel * 3` + tabela padrão).
 
@@ -117,7 +117,7 @@ Nas elevações:
 
 1. linha de terreno e marcadores de nível usam os níveis dos cantos visíveis da vista;
 2. posição vertical do marcador:
-   - `nivelY = topDoPiloti + nivel * 100 * escalaLocal`.
+    - `nivelY = topDoPiloti + nivel * 100 * escalaLocal`.
 
 ## 11. Relação com contraventamento
 

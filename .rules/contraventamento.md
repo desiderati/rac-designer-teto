@@ -32,12 +32,12 @@ A seção sempre aparece, com dois botões:
 Para o piloti selecionado:
 
 1. Se o lado já possui contraventamento na coluna:
-   - botão fica habilitado;
-   - botão aparece como ativo;
-   - clique remove o contraventamento desse lado na coluna.
+    - botão fica habilitado;
+    - botão aparece como ativo;
+    - clique remove o contraventamento desse lado na coluna.
 2. Se o lado ainda não possui contraventamento:
-   - botão só habilita se `nível > 0,40 m`;
-   - com `nível <= 0,40 m`, fica desabilitado.
+    - botão só habilita se `nível > 0,40 m`;
+    - com `nível <= 0,40 m`, fica desabilitado.
 
 Resumo prático:
 
@@ -70,11 +70,11 @@ No passo de destino:
 2. a linha da origem não pode ser escolhida como destino;
 3. seleção é por clique único;
 4. ao selecionar destino válido:
-   - cria o contraventamento na planta;
-   - sai do modo de contraventamento;
-   - limpa highlights;
-   - sincroniza projeções nas demais vistas;
-   - salva histórico.
+    - cria o contraventamento na planta;
+    - sai do modo de contraventamento;
+    - limpa highlights;
+    - sincroniza projeções nas demais vistas;
+    - salva histórico.
 
 ## 8. Cancelamento do modo
 
@@ -96,12 +96,12 @@ No cancelamento:
 No modo de contraventamento:
 
 1. piloti elegível:
-   - `fill` marrom de mestre;
-   - borda amarela;
-   - cursor `pointer`.
+    - `fill` marrom de mestre;
+    - borda amarela;
+    - cursor `pointer`.
 2. piloti não elegível:
-   - cinza (`fill`/`stroke`);
-   - cursor padrão.
+    - cinza (`fill`/`stroke`);
+    - cursor padrão.
 3. piloti mestre não elegível também fica cinza para não confundir.
 
 ## 10. Geometria na planta (top)
@@ -120,12 +120,12 @@ No modo de contraventamento:
 2. `topY = min(y1, y2)`;
 3. `height = abs(y2 - y1)`;
 4. tangência lateral:
-   - `right`: `tangentX = colX + rad`;
-   - `left`: `tangentX = colX - rad`;
+    - `right`: `tangentX = colX + rad`;
+    - `left`: `tangentX = colX - rad`;
 5. encosto:
-   - a borda oposta ao lado selecionado encosta na tangente;
-   - `right`: `left = tangentX`;
-   - `left`: `left = tangentX - beamWidth`.
+    - a borda oposta ao lado selecionado encosta na tangente;
+    - `right`: `left = tangentX`;
+    - `left`: `left = tangentX - beamWidth`.
 
 ## 11. Metadados persistidos por contraventamento
 
@@ -144,38 +144,39 @@ No modo de contraventamento:
 1. só em grupos com `houseView = side`;
 2. não aparece em `front` e `back`;
 3. em cada quadrado, mostra apenas o contraventamento externo:
-   - quadrado esquerdo (`isRightSide = false`): coluna `0`, lado `left`;
-   - quadrado direito (`isRightSide = true`): coluna `3`, lado `right`.
+    - quadrado esquerdo (`isRightSide = false`): coluna `0`, lado `left`;
+    - quadrado direito (`isRightSide = true`): coluna `3`, lado `right`.
 
 ### 12.2 Geometria da projeção
 
 Representação sempre diagonal.
 
 1. origem: `20 cm acima` do terreno local:
-   - `yOrigem = topRectOrigem + (nívelOrigem - 0,2) * baseHeight`
+    - `yOrigem = topRectOrigem + (nívelOrigem - 0,2) * baseHeight`
 2. destino: `20 cm abaixo` da viga de piso:
-   - `yDestino = topRectDestino + 0,2 * baseHeight`
+    - `yDestino = topRectDestino + 0,2 * baseHeight`
 3. espessura visual na vista quadrado:
-   - preenchimento: `10`
-   - borda: `10 + 2`
+    - preenchimento: `10`
+    - borda: `10 + 2`
 
 ## 13. Exibição no modelo 3D
 
 1. usa os contraventamentos da planta (`top`) como fonte;
 2. seção do elemento no 3D:
-   - largura correspondente à planta: `5` (escalado);
-   - profundidade correspondente ao quadrado: `10` (escalado);
+    - largura correspondente à planta: `5` (escalado);
+    - profundidade correspondente ao quadrado: `10` (escalado);
 3. cor: mesma dos pilotis não mestre;
 4. orientação: sempre diagonal entre origem e destino;
 5. cotas verticais seguem a mesma regra de `20 cm` da projeção:
-   - origem acima do terreno local;
-   - destino abaixo da viga de piso.
+    - origem acima do terreno local;
+    - destino abaixo da viga de piso.
 
 ## 14. Seleção e remoção
 
 1. clique em contraventamento na planta seleciona o elemento;
 2. `Excluir` remove o selecionado;
-3. no editor de piloti, clicar no botão de um lado já ocupado remove o contraventamento daquele lado na coluna do piloti selecionado.
+3. no editor de piloti, clicar no botão de um lado já ocupado remove o contraventamento daquele lado na coluna do piloti
+   selecionado.
 
 ## 15. Sincronização
 

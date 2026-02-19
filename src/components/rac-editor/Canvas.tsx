@@ -149,6 +149,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       prevEditorOpenRef.current = isEditorOpen;
       
       // Only reset when editor transitions from open to closed
+      // In contraventamento mode, highlights are controlled by contraventamento logic.
+      if (isContraventamentoMode) return;
       if (wasOpen && !isEditorOpen && fabricCanvasRef.current) {
         const canvas = fabricCanvasRef.current;
         canvas.getObjects().forEach((item: any) => {
@@ -173,7 +175,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         });
         canvas.requestRenderAll();
       }
-    }, [isEditorOpen]);
+    }, [isEditorOpen, isContraventamentoMode]);
 
     // Check if minimap should be visible
     const canvasFitsInViewport = 

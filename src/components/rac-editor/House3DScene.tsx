@@ -25,6 +25,8 @@ export interface Contraventamento3DData {
   endRow: number;
   side: Contraventamento3DSide;
   anchorPilotiId: string;
+  topCenterX?: number;
+  topWidth?: number;
 }
 
 interface SceneOpening {
@@ -49,9 +51,8 @@ const PILOTI_STEP_Z = 135 * U;
 const PILOTI_RADIUS = 15 * U;
 const BASE_PILOTI_HEIGHT = BASE_PILOTI_HEIGHT_PX * U;
 const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
-const CONTRAV_TOP_WIDTH = 5 * U;
-const CONTRAV_SQUARE_WIDTH = 10 * U;
 const CONTRAV_OFFSET_M = 0.2;
+const TOP_TO_3D_SCALE = VIEWER_MODEL_SCALE;
 
 const FLOOR_BEAM_HEIGHT = 20 * U;
 const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
@@ -342,7 +343,7 @@ function ContraventamentoMesh({
   contraventamento: Contraventamento3DData;
   pilotis: Record<string, PilotiData>;
 }) {
-  const { col, startRow, endRow, side, anchorPilotiId } = contraventamento;
+  const { col, startRow, endRow, side, anchorPilotiId, topCenterX, topWidth } = contraventamento;
   if (!Number.isInteger(col) || col < 0 || col > 3) return null;
   if (!Number.isInteger(startRow) || !Number.isInteger(endRow)) return null;
 
@@ -356,13 +357,20 @@ function ContraventamentoMesh({
   const [, originZ] = getPilotiTopXZ(col, originRow);
   const [, targetZ] = getPilotiTopXZ(col, targetRow);
 
-  // 3D scene X axis is mirrored relative to top-view local X used in 2D.
-  // Keep the same tangent rule (opposite edge touches piloti) while mirroring side mapping.
-  const mirroredSide = side === 'right' ? 'left' : 'right';
-  const tangentX = mirroredSide === 'right' ? colCenterX + PILOTI_RADIUS : colCenterX - PILOTI_RADIUS;
-  const beamCenterX = mirroredSide === 'right'
-    ? tangentX + CONTRAV_TOP_WIDTH / 2
-    : tangentX - CONTRAV_TOP_WIDTH / 2;
+  const beamTopWidth = Number.isFinite(topWidth) && (topWidth as number) > 0 ? (topWidth as number) : 5;
+  const beamWidthX = beamTopWidth * TOP_TO_3D_SCALE;
+  const beamDepthZ = beamWidthX * 2;
+
+  // Prefer exact X from top-view geometry (source of truth), mirrored to 3D axis.
+  // Fallback keeps the current side metadata behavior.
+  const beamCenterXFromTop = Number.isFinite(topCenterX as number)
+    ? -(topCenterX as number) * TOP_TO_3D_SCALE
+    : null;
+  const fallbackTangentX = side === 'right' ? colCenterX - PILOTI_RADIUS : colCenterX + PILOTI_RADIUS;
+  const fallbackCenterX = side === 'right'
+    ? fallbackTangentX - beamWidthX / 2
+    : fallbackTangentX + beamWidthX / 2;
+  const beamCenterX = beamCenterXFromTop ?? fallbackCenterX;
 
   const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - col / 3, originRow / 2);
   const originY = terrainYAtOrigin + CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
@@ -386,7 +394,7 @@ function ContraventamentoMesh({
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]} />
+      <boxGeometry args={[beamWidthX, length, beamDepthZ]} />
       <meshStandardMaterial color={beamColor} roughness={0.65} />
     </mesh>
   );
