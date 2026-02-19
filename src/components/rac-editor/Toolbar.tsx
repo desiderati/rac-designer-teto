@@ -33,7 +33,9 @@ import {
   faToilet,
   faCube,
   faGear,
+  faGripLines,
 } from "@fortawesome/free-solid-svg-icons";
+
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -87,6 +89,10 @@ interface ToolbarProps {
   side1ViewCount?: { current: number; max: number };
   side2ViewCount?: { current: number; max: number };
   onOpenSettings?: () => void;
+  // Contraventamento
+  onAddContraventamento: () => void;
+  isContraventamentoMode: boolean;
+  hasTopView: boolean;
 }
 
 function FABButton({
@@ -238,6 +244,9 @@ export function Toolbar({
   side1ViewCount = { current: 0, max: 0 },
   side2ViewCount = { current: 0, max: 0 },
   onOpenSettings,
+  onAddContraventamento,
+  isContraventamentoMode,
+  hasTopView,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -409,6 +418,15 @@ export function Toolbar({
                     title="Fossa"
                     onClick={() => handleAction(onAddFossa)}
                     hideTooltip={isTutorialActive}
+                  />
+                  <SubMenuButton
+                    icon={faGripLines}
+                    title={hasTopView ? "Contraventamento" : "Contraventamento (requer vista planta)"}
+                    onClick={() => handleAction(onAddContraventamento)}
+                    hideTooltip={isTutorialActive}
+                    isDisabled={!hasTopView}
+                    isActive={isContraventamentoMode}
+                    color="#D4A574"
                   />
                 </div>
               )}

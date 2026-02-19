@@ -51,6 +51,10 @@ interface CanvasProps {
   isEditorOpen?: boolean;
   onDelete?: () => void;
   showZoomControls?: boolean;
+  // Contraventamento
+  isContraventamentoMode?: boolean;
+  isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
+  onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
 }
 
 export interface CanvasHandle {
@@ -65,7 +69,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true, isContraventamentoMode = false, isPilotiEligibleForContraventamento, onContraventamentoPilotiClick }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,6 +107,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const viewportYRef = useRef(viewportY);
     const containerSizeRef = useRef(containerSize);
     const isEditorOpenRef = useRef(isEditorOpen);
+    // Refs for contraventamento mode (props that change but are accessed inside static event handlers)
+    const isContraventamentoModeRef = useRef(isContraventamentoMode);
+    const isPilotiEligibleForContraventamentoRef = useRef(isPilotiEligibleForContraventamento);
+    const onContraventamentoPilotiClickRef = useRef(onContraventamentoPilotiClick);
     
     // Keep refs in sync with state
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
@@ -110,6 +118,9 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => { viewportYRef.current = viewportY; }, [viewportY]);
     useEffect(() => { containerSizeRef.current = containerSize; }, [containerSize]);
     useEffect(() => { isEditorOpenRef.current = isEditorOpen; }, [isEditorOpen]);
+    useEffect(() => { isContraventamentoModeRef.current = isContraventamentoMode; }, [isContraventamentoMode]);
+    useEffect(() => { isPilotiEligibleForContraventamentoRef.current = isPilotiEligibleForContraventamento; }, [isPilotiEligibleForContraventamento]);
+    useEffect(() => { onContraventamentoPilotiClickRef.current = onContraventamentoPilotiClick; }, [onContraventamentoPilotiClick]);
     
     // Reset all piloti highlights when editor closes
     const prevEditorOpenRef = useRef(isEditorOpen);
@@ -560,6 +571,21 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }
         
         if (!piloti) return;
+
+        // ── Contraventamento mode intercept ────────────────────────────────
+        // Only intercept top-view piloti circles (top view has houseView === 'top')
+        if (isContraventamentoModeRef.current && (group as any).houseView === 'top' && (subTarget as any).isPilotiCircle) {
+          const eligible = isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
+          if (!eligible) return; // ignore ineligible pilotis
+
+          const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
+          if (!match) return;
+          const col = parseInt(match[1], 10);
+          const row = parseInt(match[2], 10);
+          onContraventamentoPilotiClickRef.current?.(pilotiId, col, row, group);
+          return; // don't open piloti editor
+        }
+        // ──────────────────────────────────────────────────────────────────
         
         // Calculate screen position of piloti using refs
         const currentZoom = zoomRef.current;
@@ -577,9 +603,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           ? (currentContainerSize.height - scaledHeight) / 2 
           : -currentViewportY;
         
-        // Calculate screen position of piloti using its fully transformed center
-        // getCenterPoint() returns canvas coordinates with all transformations applied
-        // (group scale, rotation, piloti's own scale, etc.)
         const pilotiCenter = piloti.getCenterPoint();
         const canvasPoint = {
           x: pilotiCenter.x,
@@ -593,7 +616,6 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           const screenY = containerRect.top + (canvasPoint.y * currentZoom) + currentCanvasY;
           
            // Highlight pilotis across ALL house views (cross-view sync)
-           // First, reset all pilotis in all house groups to yellow
            canvas.getObjects().forEach((obj: any) => {
              if (obj.type === 'group' && obj.myType === 'house') {
                obj.getObjects().forEach((child: any) => {
