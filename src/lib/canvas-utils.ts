@@ -64,6 +64,7 @@ export const customProps = [
   "contraventamentoSide",
   "contraventamentoAnchorPilotiId",
   "contraventamentoSourcePilotiId",
+  "isMacroGroup",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -1339,6 +1340,7 @@ function createGroundElements(
   const lLabel = new Text(leftNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
+    backgroundColor: "#ffffff",
     fontFamily: "Arial",
     fontWeight: "bold",
     left: leftCenterX + xSize + 5,
@@ -1354,6 +1356,7 @@ function createGroundElements(
   const rLabel = new Text(rightNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
+    backgroundColor: "#ffffff",
     fontFamily: "Arial",
     fontWeight: "bold",
     left: rightCenterX - xSize - 3,

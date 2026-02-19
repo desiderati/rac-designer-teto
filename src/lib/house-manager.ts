@@ -742,6 +742,13 @@ class HouseManager {
       }
     });
 
+    // Elevation nivel labels ("Nível = ...") must stay readable over lines/contraventamentos.
+    objects.forEach((obj: FabricObject) => {
+      if ((obj as any).isNivelLabel) {
+        (obj as any).set('backgroundColor', '#ffffff');
+      }
+    });
+
     // Second pass: AFTER rects are resized, position size labels using the final rect height.
     objects.forEach((obj: FabricObject) => {
       if (!(obj as any).isPilotiSizeLabel) return;

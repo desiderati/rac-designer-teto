@@ -597,72 +597,32 @@ export function RACEditor() {
     }
 
     const group = activeObj as Group;
-
-    // Check if this is a house (has pilotis)
-    const hasPilotis = group.getObjects().some((obj: any) => obj.isPilotiCircle);
-
-    if (hasPilotis) {
-      // Show confirmation dialog for houses
-      setGroupToUngroup(group);
-      setShowUngroupConfirm(true);
-    } else {
-      // Direct ungroup for non-house groups
-      performUngroup(group);
+    if (!(group as any).isMacroGroup) {
+      setInfoMessage('Desagrupar só é permitido para grupos macro (objetos inteiros).');
+      return;
     }
+
+    performUngroup(group);
   };
 
   const performUngroup = (group: Group) => {
     const canvas = getCanvas();
     if (!canvas) return;
 
-    // In Fabric.js v6, removeAll() properly extracts objects with correct coordinates
     const items = group.removeAll();
-
-    // Group piloti objects together (circle + text + hitArea with same pilotiId)
-    const pilotiMap = new Map<string, FabricObject[]>();
-    const nonPilotiItems: FabricObject[] = [];
-
-    items.forEach((item: FabricObject) => {
-      const pilotiId = (item as any).pilotiId;
-      if (pilotiId && ((item as any).isPilotiCircle || (item as any).isPilotiText || (item as any).isPilotiHitArea || (item as any).isPilotiNivelText)) {
-        if (!pilotiMap.has(pilotiId)) {
-          pilotiMap.set(pilotiId, []);
-        }
-        pilotiMap.get(pilotiId)!.push(item);
-      } else {
-        nonPilotiItems.push(item);
-      }
-    });
-
-    // Create piloti groups and add to canvas
-    const resultItems: FabricObject[] = [...nonPilotiItems];
-
-    pilotiMap.forEach((pilotiItems, pilotiId) => {
-      if (pilotiItems.length > 1) {
-        // Create a group for this piloti
-        const pilotiGroup = new Group(pilotiItems, {
-          subTargetCheck: true
-        });
-        (pilotiGroup as any).myType = 'pilotiGroup';
-        (pilotiGroup as any).pilotiId = pilotiId;
-        pilotiGroup.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
-        resultItems.push(pilotiGroup);
-      } else if (pilotiItems.length === 1) {
-        resultItems.push(pilotiItems[0]);
-      }
-    });
-
-    // Add all items to canvas
-    canvas.add(...resultItems);
-
-    // Remove the now-empty group
     canvas.remove(group);
+    if (items.length === 0) {
+      canvas.requestRenderAll();
+      return;
+    }
+    canvas.add(...items);
 
-    // Create selection with ungrouped objects
-    const selection = new ActiveSelection(resultItems, { canvas });
+    // Keep both macro objects selected after ungroup for quick reposition/edit.
+    const selection = new ActiveSelection(items, { canvas });
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
-    setInfoMessage('Itens desbloqueados (Desagrupados). Pilotis mantidos agrupados.');
+    canvasRef.current?.saveHistory();
+    setInfoMessage('Grupo macro desagrupado.');
   };
 
   const confirmUngroup = () => {
@@ -678,18 +638,12 @@ export function RACEditor() {
     if (!canvas) return;
 
     const activeObj = canvas.getActiveObject();
-    console.log('Active object:', activeObj);
-    console.log('Active object type:', activeObj?.type);
-
     if (!activeObj) {
       setInfoMessage('Selecione vários itens para bloquear (agrupar).');
       return;
     }
 
-    // In Fabric.js v6, check for ActiveSelection using isType or constructor
     const isActiveSelection = activeObj.type === 'activeSelection' || activeObj.type === 'activeselection';
-    console.log('Is ActiveSelection:', isActiveSelection);
-
     if (!isActiveSelection) {
       setInfoMessage('Selecione vários itens para bloquear (agrupar).');
       return;
@@ -697,10 +651,16 @@ export function RACEditor() {
 
     const activeSelection = activeObj as ActiveSelection;
     const objects = activeSelection.getObjects();
-    console.log('Objects to group:', objects.length);
 
     if (objects.length < 2) {
       setInfoMessage('Selecione pelo menos 2 itens para agrupar.');
+      return;
+    }
+
+    const canvasObjects = canvas.getObjects();
+    const hasNonTopLevelObject = objects.some((obj) => !canvasObjects.includes(obj));
+    if (hasNonTopLevelObject) {
+      setInfoMessage('Agrupamento permitido apenas para objetos inteiros (macro), não para elementos internos.');
       return;
     }
 
@@ -716,17 +676,20 @@ export function RACEditor() {
       canvas.remove(obj);
     });
 
-    // Create group with the objects
+    // Create macro group only from top-level canvas objects.
     const group = new Group(objects, {
-      left: selLeft,
-      top: selTop
+      left: selLeft ?? 0,
+      top: selTop ?? 0,
     });
+    (group as any).isMacroGroup = true;
+    (group as any).myType = 'macroGroup';
     group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
 
     canvas.add(group);
     canvas.setActiveObject(group);
     canvas.requestRenderAll();
-    setInfoMessage('Itens bloqueados (Agrupados). Redimensionamento proporcional ativado.');
+    canvasRef.current?.saveHistory();
+    setInfoMessage('Objetos macro agrupados.');
   };
 
   // Helper to show onboarding balloon at an object's position
