@@ -23,11 +23,13 @@ import {
   getPilotiName,
   getPilotiFromGroup,
   getAllPilotiIds,
-  getPilotiIdsFromGroup } from
+  getPilotiIdsFromGroup,
+  ContraventamentoSide } from
 '@/lib/canvas-utils';
 import { houseManager } from '@/lib/house-manager';
 import { getSettings } from '@/lib/settings';
 import { PilotiGridIcon } from './PilotiGridIcon';
+import { ContraventamentoSideIcon } from './ContraventamentoSideIcon';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -42,8 +44,11 @@ interface PilotiEditorProps {
   houseView?: 'top' | 'front' | 'back' | 'side';
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
-  showContraventamentoButton?: boolean;
-  onStartContraventamento?: () => void;
+  contraventamentoLeftDisabled?: boolean;
+  contraventamentoRightDisabled?: boolean;
+  contraventamentoLeftActive?: boolean;
+  contraventamentoRightActive?: boolean;
+  onContraventamentoSideAction?: (side: ContraventamentoSide) => void;
 }
 
 const DEFAULT_NIVEL = 0.2;
@@ -70,8 +75,11 @@ export function PilotiEditor({
   houseView = 'top',
   onHeightChange,
   onNavigate,
-  showContraventamentoButton = false,
-  onStartContraventamento
+  contraventamentoLeftDisabled = true,
+  contraventamentoRightDisabled = true,
+  contraventamentoLeftActive = false,
+  contraventamentoRightActive = false,
+  onContraventamentoSideAction
 }: PilotiEditorProps) {
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
@@ -280,6 +288,15 @@ export function PilotiEditor({
     'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
   };
 
+  const getContraventamentoButtonClasses = (isActive: boolean, isDisabled: boolean): string => {
+    if (isDisabled) {
+      return 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed';
+    }
+    return isActive ?
+    'h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90' :
+    'h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20';
+  };
+
   const maxNivel = Math.round(tempHeight * 200 / 3) / 100;
 
   if (!isOpen) return null;
@@ -399,19 +416,40 @@ export function PilotiEditor({
           )}
           </div>
         </div>
+
+        <Separator />
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-center">Contraventamento</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={contraventamentoLeftDisabled}
+              onClick={() => onContraventamentoSideAction?.('left')}
+              className={getContraventamentoButtonClasses(contraventamentoLeftActive, contraventamentoLeftDisabled)}
+            >
+              <span className="flex flex-col items-center gap-1.5">
+                <ContraventamentoSideIcon side="left" size={40} />
+                <span className="text-xs font-semibold">Esquerdo</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              disabled={contraventamentoRightDisabled}
+              onClick={() => onContraventamentoSideAction?.('right')}
+              className={getContraventamentoButtonClasses(contraventamentoRightActive, contraventamentoRightDisabled)}
+            >
+              <span className="flex flex-col items-center gap-1.5">
+                <ContraventamentoSideIcon side="right" size={40} />
+                <span className="text-xs font-semibold">Direito</span>
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Footer buttons */}
       <div className="flex w-full flex-col gap-3" data-no-drag>
-        {showContraventamentoButton &&
-        <Button
-          type="button"
-          className="w-full"
-          onClick={() => onStartContraventamento?.()}>
-
-            Contraventar
-          </Button>
-        }
         <div className="flex w-full gap-[16px]">
           <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
             Cancelar
