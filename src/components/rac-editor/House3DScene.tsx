@@ -6,7 +6,6 @@ import {
   BASE_TOP_HEIGHT,
   BASE_TOP_WIDTH,
   MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE,
 } from '@/lib/canvas-utils';
 
 interface House3DSceneProps {
@@ -358,11 +357,12 @@ function ContraventamentoMesh({
   const [, targetZ] = getPilotiTopXZ(col, targetRow);
 
   // 3D scene X axis is mirrored relative to top-view local X used in 2D.
-  // Invert sign so "right" in planta appears on the correct side in 3D.
-  const sideSign = side === 'right' ? -1 : 1;
-  const tangentX = colCenterX + sideSign * PILOTI_RADIUS;
-  // Match 2D rule: the edge opposite to the selected side touches piloti tangent.
-  const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
+  // Keep the same tangent rule (opposite edge touches piloti) while mirroring side mapping.
+  const mirroredSide = side === 'right' ? 'left' : 'right';
+  const tangentX = mirroredSide === 'right' ? colCenterX + PILOTI_RADIUS : colCenterX - PILOTI_RADIUS;
+  const beamCenterX = mirroredSide === 'right'
+    ? tangentX + CONTRAV_TOP_WIDTH / 2
+    : tangentX - CONTRAV_TOP_WIDTH / 2;
 
   const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - col / 3, originRow / 2);
   const originY = terrainYAtOrigin + CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
@@ -377,7 +377,7 @@ function ContraventamentoMesh({
   direction.normalize();
   const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
   const midpoint = startPoint.add(endPoint).multiplyScalar(0.5);
-  const beamColor = MASTER_PILOTI_FILL;
+  const beamColor = COLORS.piloti;
 
   return (
     <mesh
@@ -589,14 +589,13 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
       return null;
   }
 
-  const fillColor = element.type === 'door' ? MASTER_PILOTI_FILL : COLORS.piloti;
-  const frameColor = element.type === 'door' ? MASTER_PILOTI_STROKE : COLORS.frame;
+  const fillColor = COLORS.piloti;
 
   return (
     <group position={position} rotation={rotation}>
       <mesh>
         <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, frameDepth]} />
-        <meshBasicMaterial color={frameColor} />
+        <meshBasicMaterial color={COLORS.frame} />
       </mesh>
       <mesh position={[0, 0, fillOffset]}>
         <boxGeometry args={[elementWidth, elementHeight, fillDepth]} />

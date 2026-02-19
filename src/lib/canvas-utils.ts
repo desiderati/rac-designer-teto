@@ -914,8 +914,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: MASTER_PILOTI_FILL,
-      stroke: MASTER_PILOTI_STROKE,
+      fill: "#fff",
+      stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -1120,8 +1120,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: MASTER_PILOTI_FILL,
-      stroke: MASTER_PILOTI_STROKE,
+      fill: "#fff",
+      stroke: "#333",
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -2345,6 +2345,20 @@ export function syncContraventamentoElevationsFromTop(
         continue;
       }
 
+      // Border (behind) + fill (front) to keep visible outline on square views.
+      const borderLine = new Line([x1, y1, x2, y2], {
+        stroke: CONTRAV_STROKE,
+        strokeWidth: CONTRAV_ELEVATION_WIDTH + 2,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+      });
+      const borderAny = borderLine as any;
+      borderAny.isContraventamentoElevation = true;
+      borderAny.contraventamentoId = contrav.id;
+      borderAny.contraventamentoSourcePilotiId = originPilotiId;
+
       const line = new Line([x1, y1, x2, y2], {
         stroke: CONTRAV_FILL,
         strokeWidth: CONTRAV_ELEVATION_WIDTH,
@@ -2358,6 +2372,8 @@ export function syncContraventamentoElevationsFromTop(
       lineAny.contraventamentoId = contrav.id;
       lineAny.contraventamentoSourcePilotiId = originPilotiId;
 
+      internalObjects.push(borderLine);
+      borderAny.group = group;
       internalObjects.push(line);
       lineAny.group = group;
     }
