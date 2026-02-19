@@ -977,6 +977,8 @@ export function RACEditor() {
         setContraventamentoStep('select-first');
         setContraventamentoFirst(null);
         setContraventamentoSide(null);
+        refreshHouseGroupsOnCanvas(canvas);
+        houseManager.rebuildFromCanvas();
         canvas.renderAll();
         syncContraventamentoElevationsFromTop(
           getTopViewGroup(),
@@ -1084,17 +1086,19 @@ export function RACEditor() {
 
   const handleToggleHouseMenu = () => {
     disableDrawingMode();
+    // During the tutorial "Casa TETO" step, do not open house type selector.
+    // The click should only advance the tutorial flow.
+    if (tutorialStep === 'house') {
+      advanceTutorial('house');
+      return;
+    }
+
     // Only show submenu if house type is already selected
     if (houseManager.getHouseType()) {
       setActiveSubmenu((prev) => prev === 'house' ? null : 'house');
     } else {
       // Open type selector instead
       handleOpenHouseTypeSelector();
-    }
-
-    // Advance tutorial if this was the highlighted step
-    if (tutorialStep === 'house') {
-      advanceTutorial('house');
     }
   };
 
@@ -1200,6 +1204,8 @@ export function RACEditor() {
     first: { col: number; row: number } | null
   ): boolean => {
     if (!first) return false;
+    const data = houseManager.getPilotiData(pilotiId);
+    if ((data?.nivel ?? 0) <= 0.40) return false;
     const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
     if (!match) return false;
     const col = parseInt(match[1], 10);
@@ -1459,11 +1465,20 @@ export function RACEditor() {
     const col = parseInt(match[1], 10);
     const occupiedSides = getContraventamentoColumnSides(topGroup, col);
     const data = houseManager.getPilotiData(pilotiSelection.pilotiId);
-    const canCreate = (data?.nivel ?? 0) > 0.40;
+    const canReceiveContraventamento = (data?.nivel ?? 0) > 0.40;
+
+    if (!canReceiveContraventamento) {
+      return {
+        leftDisabled: true,
+        rightDisabled: true,
+        leftActive: false,
+        rightActive: false,
+      };
+    }
 
     return {
-      leftDisabled: occupiedSides.left ? false : !canCreate,
-      rightDisabled: occupiedSides.right ? false : !canCreate,
+      leftDisabled: false,
+      rightDisabled: false,
       leftActive: occupiedSides.left,
       rightActive: occupiedSides.right,
     };
@@ -1483,8 +1498,13 @@ export function RACEditor() {
 
     const col = parseInt(match[1], 10);
     const row = parseInt(match[2], 10);
-    const occupiedSides = getContraventamentoColumnSides(topGroup, col);
+    const data = houseManager.getPilotiData(pilotiSelection.pilotiId);
+    if ((data?.nivel ?? 0) <= 0.40) {
+      toast.warning('O piloti precisa ter nível maior que 40cm para contraventar.');
+      return;
+    }
 
+    const occupiedSides = getContraventamentoColumnSides(topGroup, col);
     // Side already exists on this column: treat click as remove action.
     if (occupiedSides[side]) {
       const s = 0.6;
@@ -1514,12 +1534,6 @@ export function RACEditor() {
         forceUpdate((v) => v + 1);
         toast.success(`Contraventamento do lado ${side === 'left' ? 'esquerdo' : 'direito'} removido.`);
       }
-      return;
-    }
-
-    const data = houseManager.getPilotiData(pilotiSelection.pilotiId);
-    if ((data?.nivel ?? 0) <= 0.40) {
-      toast.warning('O piloti precisa ter nível maior que 40cm para contraventar.');
       return;
     }
 

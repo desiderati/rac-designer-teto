@@ -439,6 +439,7 @@ class HouseManager {
     // Mark the group with its view type and instance ID for later identification
     (group as any).houseViewType = viewType;
     (group as any).houseInstanceId = instanceId;
+    (group as any).houseSide = side;
 
     // Apply current piloti data to the new group
     this.applyPilotiDataToGroup(group);
@@ -451,6 +452,151 @@ class HouseManager {
     }
 
     console.log(`[HouseManager] Registered view ${viewType}, instance: ${instanceId}, side: ${side}`);
+    this.notify();
+  }
+
+  private inferViewTypeFromGroup(group: Group, currentCounts: Record<ViewType, number>): ViewType | null {
+    const explicit = (group as any).houseViewType;
+    if (explicit === 'top' || explicit === 'front' || explicit === 'back' || explicit === 'side1' || explicit === 'side2') {
+      return explicit;
+    }
+
+    const rawView = (group as any).houseView;
+    if (rawView === 'top' || rawView === 'front' || rawView === 'back') {
+      return rawView;
+    }
+
+    if (rawView === 'side') {
+      // Fallback for legacy JSONs that don't persist houseViewType.
+      if (this.house?.houseType === 'tipo6') return 'side1';
+      if (this.house?.houseType === 'tipo3') return currentCounts.side1 === 0 ? 'side1' : 'side2';
+      return currentCounts.side1 <= currentCounts.side2 ? 'side1' : 'side2';
+    }
+
+    return null;
+  }
+
+  private inferSideFromGroup(group: Group, viewType: ViewType): HouseSide | undefined {
+    const explicit = (group as any).houseSide;
+    if (explicit === 'top' || explicit === 'bottom' || explicit === 'left' || explicit === 'right') {
+      return explicit;
+    }
+
+    if (viewType === 'front' || viewType === 'back') {
+      return (group as any).isFlippedHorizontally ? 'top' : 'bottom';
+    }
+
+    if (viewType === 'side1' || viewType === 'side2') {
+      return (group as any).isRightSide ? 'right' : 'left';
+    }
+
+    return undefined;
+  }
+
+  private readPilotiDataFromCanvas(): Record<string, PilotiData> {
+    const nextPilotis: Record<string, PilotiData> = {};
+    getAllPilotiIds().forEach((id) => {
+      const current = this.house?.pilotis[id] ?? DEFAULT_PILOTI;
+      nextPilotis[id] = { ...current };
+    });
+
+    if (!this.canvas) return nextPilotis;
+
+    const groups = this.canvas.getObjects().filter(
+      (o: any) => o.type === 'group' && o.myType === 'house'
+    ) as Group[];
+
+    for (const group of groups) {
+      const objects = group.getObjects() as any[];
+      for (const id of getAllPilotiIds()) {
+        const obj = objects.find((o: any) => o?.pilotiId === id && (o?.isPilotiCircle || o?.isPilotiRect));
+        if (!obj) continue;
+        nextPilotis[id] = {
+          height: Number(obj.pilotiHeight ?? nextPilotis[id].height ?? DEFAULT_PILOTI.height),
+          isMaster: Boolean(obj.pilotiIsMaster ?? nextPilotis[id].isMaster ?? DEFAULT_PILOTI.isMaster),
+          nivel: Number(obj.pilotiNivel ?? nextPilotis[id].nivel ?? DEFAULT_PILOTI.nivel),
+        };
+      }
+    }
+
+    return nextPilotis;
+  }
+
+  // Rebuild house view registry from current canvas groups (used after undo/import).
+  rebuildFromCanvas(): void {
+    if (!this.canvas || !this.house) return;
+
+    const groups = this.canvas.getObjects().filter(
+      (o: any) => o.type === 'group' && o.myType === 'house'
+    ) as Group[];
+
+    const rebuiltViews: Record<ViewType, ViewInstance[]> = {
+      top: [],
+      front: [],
+      back: [],
+      side1: [],
+      side2: [],
+    };
+
+    const counts: Record<ViewType, number> = { top: 0, front: 0, back: 0, side1: 0, side2: 0 };
+    const usedIds = new Set<string>();
+
+    for (const group of groups) {
+      const viewType = this.inferViewTypeFromGroup(group, counts);
+      if (!viewType) continue;
+
+      const inferredSide = this.inferSideFromGroup(group, viewType);
+      const rawId = String((group as any).houseInstanceId ?? '').trim();
+      const instanceIdBase = rawId || `${viewType}_restored_${counts[viewType]}`;
+      let instanceId = instanceIdBase;
+      let suffix = 1;
+      while (usedIds.has(instanceId)) {
+        instanceId = `${instanceIdBase}_${suffix++}`;
+      }
+      usedIds.add(instanceId);
+
+      (group as any).houseViewType = viewType;
+      (group as any).houseInstanceId = instanceId;
+      (group as any).houseSide = inferredSide;
+      group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+
+      rebuiltViews[viewType].push({
+        group,
+        side: inferredSide,
+        instanceId,
+      });
+      counts[viewType] += 1;
+    }
+
+    const rebuiltAssignments: Record<HouseSide, ViewType | null> = {
+      top: null,
+      bottom: null,
+      left: null,
+      right: null,
+    };
+
+    (Object.keys(rebuiltViews) as ViewType[]).forEach((vt) => {
+      rebuiltViews[vt].forEach((instance) => {
+        if (!instance.side) return;
+        if (!rebuiltAssignments[instance.side]) {
+          rebuiltAssignments[instance.side] = vt;
+        }
+      });
+    });
+
+    this.house.views = rebuiltViews;
+    this.house.sideAssignments = rebuiltAssignments;
+    this.house.pilotis = this.readPilotiDataFromCanvas();
+
+    // If no house views remain on canvas, clear type to keep add-view rules coherent.
+    if (!Object.values(rebuiltViews).some((instances) => instances.length > 0)) {
+      this.house.houseType = null;
+      this.house.preAssignedSlots = {};
+    }
+
+    // Re-apply current piloti data to normalized groups after restore.
+    this.getAllGroups().forEach((group) => this.applyPilotiDataToGroup(group));
+
     this.notify();
   }
 

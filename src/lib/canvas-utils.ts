@@ -26,6 +26,9 @@ export const customProps = [
   "selectable",
   "lockScalingY",
   "houseView",
+  "houseViewType",
+  "houseInstanceId",
+  "houseSide",
   "isHouseBody",
   "pilotiId",
   "pilotiHeight",
@@ -516,6 +519,11 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
  */
 export function refreshHouseGroupRendering(group: Group): void {
   (group as any).objectCaching = false;
+
+  // Keep house interaction constraints stable after JSON restore/undo.
+  if ((group as any).myType === "house") {
+    group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+  }
 
   const objects = group.getObjects();
 

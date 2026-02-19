@@ -221,6 +221,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           // IMPORTANT: after loadFromJSON, Fabric groups may keep a stale cache and clip resized pilotis.
           // Force-refresh all house groups before rendering.
           refreshHouseGroupsOnCanvas(fabricCanvasRef.current!);
+          // Rebuild HouseManager's view registry/rules from restored canvas state.
+          houseManager.rebuildFromCanvas();
 
           fabricCanvasRef.current?.renderAll();
           updateMinimapObjects();
