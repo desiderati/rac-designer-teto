@@ -2323,11 +2323,16 @@ export function syncContraventamentoElevationsFromTop(
     const isRightSideView = (group as any).isRightSide === true;
     const visibleCol = isRightSideView ? 3 : 0;
     const externalSide: ContraventamentoSide = isRightSideView ? "right" : "left";
+    const oppositeSide: ContraventamentoSide = isRightSideView ? "left" : "right";
 
     for (const contrav of contravs) {
-      // Show only the external contraventamento for the square view.
+      // For square views:
+      // - external side is rendered normally
+      // - opposite side is also rendered when present, but behind everything (lower z-index)
       if (contrav.col !== visibleCol) continue;
-      if (contrav.side !== externalSide) continue;
+      const isExternal = contrav.side === externalSide;
+      const isOpposite = contrav.side === oppositeSide;
+      if (!isExternal && !isOpposite) continue;
 
       const originPilotiId = String(contrav.anchorPilotiId);
       const originRow = getPilotiRow(originPilotiId);
@@ -2382,10 +2387,18 @@ export function syncContraventamentoElevationsFromTop(
       lineAny.contraventamentoId = contrav.id;
       lineAny.contraventamentoSourcePilotiId = originPilotiId;
 
-      internalObjects.push(borderLine);
-      borderAny.group = group;
-      internalObjects.push(line);
-      lineAny.group = group;
+      if (isOpposite) {
+        // Lowest z-index for opposite-side contraventamento in this square view.
+        internalObjects.unshift(line);
+        lineAny.group = group;
+        internalObjects.unshift(borderLine);
+        borderAny.group = group;
+      } else {
+        internalObjects.push(borderLine);
+        borderAny.group = group;
+        internalObjects.push(line);
+        lineAny.group = group;
+      }
     }
 
     (group as any).dirty = true;

@@ -68,9 +68,10 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
+  const hasNavigatedAllCorners = CORNER_ORDER.every((corner, idx) => entries[corner].visited || idx === currentIdx);
 
   const masterCorner = CORNER_ORDER.find((c) => entries[c].isMaster);
-  const canApply = hasMaster;
+  const canApply = hasMaster && hasNavigatedAllCorners;
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
@@ -132,6 +133,8 @@ export function NivelDefinitionModal({ isOpen, onClose, onApply, pilotiData }: N
   };
 
   const handleApply = () => {
+    if (!canApply) return;
+
     const result: Record<string, NivelEntry> = {};
     for (const name of CORNER_ORDER) {
       const id = cornerToId(name);

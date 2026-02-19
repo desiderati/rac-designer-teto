@@ -74,20 +74,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
         ? obj.contraventamentoAnchorPilotiId
         : `piloti_${col}_${startRow}`;
       const id = String(obj.contraventamentoId ?? `contrav_3d_${index}`);
-      const topLeft = Number(obj.left ?? 0);
-      const topWidth = Number(obj.width ?? 5);
-      const topCenterX = topLeft + topWidth / 2;
-
-      parsedContraventamentos.push({
-        id,
-        col,
-        startRow,
-        endRow,
-        side,
-        anchorPilotiId,
-        topCenterX,
-        topWidth,
-      });
+      parsedContraventamentos.push({ id, col, startRow, endRow, side, anchorPilotiId });
     });
 
     setContraventamentos(parsedContraventamentos);

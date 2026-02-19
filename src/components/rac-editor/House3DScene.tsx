@@ -25,8 +25,6 @@ export interface Contraventamento3DData {
   endRow: number;
   side: Contraventamento3DSide;
   anchorPilotiId: string;
-  topCenterX?: number;
-  topWidth?: number;
 }
 
 interface SceneOpening {
@@ -51,8 +49,9 @@ const PILOTI_STEP_Z = 135 * U;
 const PILOTI_RADIUS = 15 * U;
 const BASE_PILOTI_HEIGHT = BASE_PILOTI_HEIGHT_PX * U;
 const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
+const CONTRAV_TOP_WIDTH = 5 * U;
+const CONTRAV_SQUARE_WIDTH = 10 * U;
 const CONTRAV_OFFSET_M = 0.2;
-const TOP_TO_3D_SCALE = VIEWER_MODEL_SCALE;
 
 const FLOOR_BEAM_HEIGHT = 20 * U;
 const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
@@ -343,38 +342,34 @@ function ContraventamentoMesh({
   contraventamento: Contraventamento3DData;
   pilotis: Record<string, PilotiData>;
 }) {
-  const { col, startRow, endRow, side, anchorPilotiId, topCenterX, topWidth } = contraventamento;
+  const { col, startRow, endRow, side, anchorPilotiId } = contraventamento;
   if (!Number.isInteger(col) || col < 0 || col > 3) return null;
   if (!Number.isInteger(startRow) || !Number.isInteger(endRow)) return null;
 
   const anchorGrid = parsePilotiId(anchorPilotiId);
+  const anchorCol = anchorGrid?.col;
   const anchorRow = anchorGrid?.row;
+  const originCol = Number.isInteger(anchorCol) ? anchorCol : col;
   const originRow = Number.isInteger(anchorRow) ? anchorRow : startRow;
   const targetRow = originRow === startRow ? endRow : startRow;
+  if (originCol < 0 || originCol > 3) return null;
   if (originRow < 0 || originRow > 2 || targetRow < 0 || targetRow > 2 || originRow === targetRow) return null;
 
-  const [colCenterX] = getPilotiTopXZ(col, originRow);
-  const [, originZ] = getPilotiTopXZ(col, originRow);
-  const [, targetZ] = getPilotiTopXZ(col, targetRow);
+  const [colCenterX] = getPilotiTopXZ(originCol, originRow);
+  const [, originZ] = getPilotiTopXZ(originCol, originRow);
+  const [, targetZ] = getPilotiTopXZ(originCol, targetRow);
 
-  const beamTopWidth = Number.isFinite(topWidth) && (topWidth as number) > 0 ? (topWidth as number) : 5;
-  const beamWidthX = beamTopWidth * TOP_TO_3D_SCALE;
-  const beamDepthZ = beamWidthX * 2;
+  // 3D scene X axis is mirrored relative to top-view local X used in 2D.
+  // Keep right/left matching the 2D side semantics.
+  const sideSign = side === 'right' ? -1 : 1;
+  const tangentX = colCenterX + sideSign * PILOTI_RADIUS;
+  // Same 2D rule: opposite beam edge touches piloti tangent.
+  const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
 
-  // Prefer exact X from top-view geometry (source of truth), mirrored to 3D axis.
-  // Fallback keeps the current side metadata behavior.
-  const beamCenterXFromTop = Number.isFinite(topCenterX as number)
-    ? -(topCenterX as number) * TOP_TO_3D_SCALE
-    : null;
-  const fallbackTangentX = side === 'right' ? colCenterX - PILOTI_RADIUS : colCenterX + PILOTI_RADIUS;
-  const fallbackCenterX = side === 'right'
-    ? fallbackTangentX - beamWidthX / 2
-    : fallbackTangentX + beamWidthX / 2;
-  const beamCenterX = beamCenterXFromTop ?? fallbackCenterX;
-
-  const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - col / 3, originRow / 2);
+  const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - originCol / 3, originRow / 2);
   const originY = terrainYAtOrigin + CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
   const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
+  if (originY > destinationY) return null;
 
   const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);
   const endPoint = new THREE.Vector3(beamCenterX, destinationY, targetZ);
@@ -394,7 +389,7 @@ function ContraventamentoMesh({
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[beamWidthX, length, beamDepthZ]} />
+      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]} />
       <meshStandardMaterial color={beamColor} roughness={0.65} />
     </mesh>
   );
