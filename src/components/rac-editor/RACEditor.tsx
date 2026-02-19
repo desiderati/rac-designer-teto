@@ -48,8 +48,11 @@ import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   formatPilotiHeight,
-  getPilotiFromGroup } from
-'@/lib/canvas-utils';
+  getPilotiFromGroup,
+  addContraventamentoBeam,
+  highlightContraventamentoPilotis,
+  resetContraventamentoPilotis,
+} from '@/lib/canvas-utils';
 import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
 
 type TutorialStepId = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options';
@@ -86,9 +89,16 @@ export function RACEditor() {
   const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
   const niveisAppliedRef = useRef(false);
   const transitionToNivelRef = useRef(false);
-  const [, forceUpdate] = useState(0); // For re-rendering when houseManager changes
+  const [, forceUpdate] = useState(0);
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
+
+  // ── Contraventamento state ─────────────────────────────────────────────────
+  const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
+  const [contraventamentoStep, setContraventamentoStep] = useState<'select-first' | 'select-second'>('select-first');
+  const [contraventamentoFirst, setContraventamentoFirst] = useState<{
+    pilotiId: string; col: number; row: number; group: Group;
+  } | null>(null);
 
   // Subscribe to house manager changes
   useEffect(() => {
@@ -1078,7 +1088,104 @@ export function RACEditor() {
     localStorage.setItem('rac-tutorial-completed', 'true');
   };
 
+  // ── Contraventamento handlers ──────────────────────────────────────────────
+
+  /** Returns the top-view group from the canvas (if it exists). */
+  const getTopViewGroup = useCallback((): Group | null => {
+    const canvas = getCanvas();
+    if (!canvas) return null;
+    const obj = canvas.getObjects().find(
+      (o: any) => o.type === 'group' && o.myType === 'house' && o.houseView === 'top'
+    );
+    return (obj as Group) ?? null;
+  }, [getCanvas]);
+
+  /** Check whether a piloti has nivel > 0.40 */
+  const isPilotiEligible = useCallback((pilotiId: string): boolean => {
+    const data = houseManager.getPilotiData(pilotiId);
+    return (data?.nivel ?? 0) > 0.40;
+  }, []);
+
+  /** Start contraventamento mode */
+  const handleStartContraventamento = useCallback(() => {
+    const topGroup = getTopViewGroup();
+    if (!topGroup) {
+      toast.error('Adicione uma vista planta primeiro.');
+      return;
+    }
+
+    setActiveSubmenu(null);
+    setIsContraventamentoMode(true);
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+
+    highlightContraventamentoPilotis(topGroup, isPilotiEligible);
+    toast.info('Selecione o 1º piloti (nível > 40cm). ESC para cancelar.');
+  }, [getTopViewGroup, isPilotiEligible]);
+
+  /** Cancel contraventamento mode and reset visuals */
+  const handleCancelContraventamento = useCallback(() => {
+    const topGroup = getTopViewGroup();
+    if (topGroup) resetContraventamentoPilotis(topGroup);
+    setIsContraventamentoMode(false);
+    setContraventamentoStep('select-first');
+    setContraventamentoFirst(null);
+  }, [getTopViewGroup]);
+
+  /** Called by Canvas when a piloti circle is clicked in contraventamento mode */
+  const handleContraventamentoPilotiClick = useCallback((
+    pilotiId: string, col: number, row: number, group: Group
+  ) => {
+    if (contraventamentoStep === 'select-first') {
+      // Save first piloti
+      setContraventamentoFirst({ pilotiId, col, row, group });
+      setContraventamentoStep('select-second');
+
+      // Highlight only same-column pilotis (excluding selected one)
+      highlightContraventamentoPilotis(group, isPilotiEligible, col, pilotiId);
+      toast.info('Selecione o 2º piloti na mesma coluna.');
+
+    } else if (contraventamentoStep === 'select-second' && contraventamentoFirst) {
+      // Validate same column
+      if (col !== contraventamentoFirst.col) {
+        toast.warning('Selecione um piloti da mesma coluna que o primeiro.');
+        return;
+      }
+      if (row === contraventamentoFirst.row) {
+        toast.warning('Selecione um piloti diferente do primeiro.');
+        return;
+      }
+
+      // Add the beam
+      addContraventamentoBeam(
+        contraventamentoFirst.group,
+        { col: contraventamentoFirst.col, row: contraventamentoFirst.row },
+        { col, row }
+      );
+
+      // Reset visuals and state
+      resetContraventamentoPilotis(contraventamentoFirst.group);
+      setIsContraventamentoMode(false);
+      setContraventamentoStep('select-first');
+      setContraventamentoFirst(null);
+      canvasRef.current?.saveHistory();
+      toast.success('Contraventamento adicionado!');
+    }
+  }, [contraventamentoStep, contraventamentoFirst, isPilotiEligible]);
+
+  // ESC cancels contraventamento mode
+  useEffect(() => {
+    if (!isContraventamentoMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleCancelContraventamento();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isContraventamentoMode, handleCancelContraventamento]);
+
   const handlePilotiSelect = (selection: PilotiSelection | null) => {
+    // In contraventamento mode, piloti clicks are handled by handleContraventamentoPilotiClick
+    if (isContraventamentoMode) return;
     setPilotiSelection(selection);
     if (selection) {
       setIsPilotiEditorOpen(true);
@@ -1477,7 +1584,11 @@ export function RACEditor() {
         backViewCount={{ current: houseManager.getViewCount('back'), max: houseManager.getMaxViewCount('back') }}
         side1ViewCount={{ current: houseManager.getViewCount('side1'), max: houseManager.getMaxViewCount('side1') }}
         side2ViewCount={{ current: houseManager.getViewCount('side2'), max: houseManager.getMaxViewCount('side2') }}
-        onOpenSettings={() => {setActiveSubmenu(null);setIsSettingsOpen(true);}} />
+        onOpenSettings={() => {setActiveSubmenu(null);setIsSettingsOpen(true);}}
+        onAddContraventamento={handleStartContraventamento}
+        isContraventamentoMode={isContraventamentoMode}
+        hasTopView={houseManager.getViewCount('top') > 0}
+      />
 
       
       <div className="h-full p-2.5 overflow-hidden relative">
@@ -1503,7 +1614,10 @@ export function RACEditor() {
           onLineArrowSelect={handleLineArrowSelect}
           isEditorOpen={isPilotiEditorOpen || isDistanceEditorOpen || isObjectNameEditorOpen || isLineArrowEditorOpen}
           onDelete={handleDelete}
-          showZoomControls={showZoomControls}>
+          showZoomControls={showZoomControls}
+          isContraventamentoMode={isContraventamentoMode}
+          isPilotiEligibleForContraventamento={isPilotiEligible}
+          onContraventamentoPilotiClick={handleContraventamentoPilotiClick}>
 
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips &&

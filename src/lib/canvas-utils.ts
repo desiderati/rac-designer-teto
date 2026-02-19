@@ -52,6 +52,7 @@ export const customProps = [
   "isPilotiStripe",
   "isTopDoorMarker",
   "markerSide",
+  "isContraventamento",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -1965,4 +1966,131 @@ export function getHintForObject(obj: FabricObject | null): string {
       }
       return "Objeto selecionado.";
   }
+}
+
+// ─── Contraventamento ──────────────────────────────────────────────────────
+
+/** Constants matching createHouseTop (s = 0.6) */
+const CONTRAV_S = 0.6;
+const CONTRAV_CD = 155 * CONTRAV_S; // 93  — column distance
+const CONTRAV_RD = 135 * CONTRAV_S; // 81  — row distance
+const CONTRAV_RAD = 15 * CONTRAV_S; // 9   — piloti radius
+
+/** Local-space X of each column (0-3) in the top-view group */
+const CONTRAV_COL_X = [
+  -1.5 * CONTRAV_CD, // col 0: -139.5
+  -0.5 * CONTRAV_CD, // col 1:  -46.5
+   0.5 * CONTRAV_CD, // col 2:   46.5
+   1.5 * CONTRAV_CD, // col 3:  139.5
+];
+
+/** Local-space Y of each row (0-2) in the top-view group */
+const CONTRAV_ROW_Y = [
+  -CONTRAV_RD, // row 0 (A): -81
+   0,          // row 1 (B):   0
+   CONTRAV_RD, // row 2 (C):  81
+];
+
+/**
+ * Add a bracing beam (contraventamento) to a top-view house group.
+ * The beam is a thin rectangle connecting the tangent points of two piloti circles
+ * that belong to the same column.
+ */
+export function addContraventamentoBeam(
+  group: Group,
+  piloti1: { col: number; row: number },
+  piloti2: { col: number; row: number },
+): void {
+  const colX = CONTRAV_COL_X[piloti1.col];
+
+  const y1 = CONTRAV_ROW_Y[piloti1.row];
+  const y2 = CONTRAV_ROW_Y[piloti2.row];
+
+  const topY = Math.min(y1, y2);
+  const botY = Math.max(y1, y2);
+
+  const beamWidth = 5;
+  const beamHeight = botY - topY - 2 * CONTRAV_RAD; // tangent to tangent
+
+  if (beamHeight <= 0) return; // pilotis too close / same row
+
+  const beam = new Rect({
+    width: beamWidth,
+    height: beamHeight,
+    left: colX - beamWidth / 2,
+    top: topY + CONTRAV_RAD,
+    fill: "#8B4513",
+    stroke: "#5C2D0A",
+    strokeWidth: 1,
+    originX: "left",
+    originY: "top",
+    selectable: false,
+    evented: false,
+    objectCaching: false,
+  });
+  (beam as any).isContraventamento = true;
+
+  // Insert into the group's internal object list
+  const internalObjects = (group as any)._objects as FabricObject[];
+  internalObjects.push(beam);
+  (beam as any).group = group;
+
+  (group as any).dirty = true;
+  group.setCoords();
+  group.canvas?.requestRenderAll();
+}
+
+/**
+ * Highlight eligible pilotis (nivel > 0.40) in the top-view group.
+ * Optionally restrict to a single column when firstCol is provided.
+ * Optionally skip a specific pilotiId (already selected).
+ */
+export function highlightContraventamentoPilotis(
+  group: Group,
+  getIsEligible: (pilotiId: string) => boolean,
+  firstCol?: number,
+  skipPilotiId?: string,
+): void {
+  group.getObjects().forEach((obj: any) => {
+    if (!obj.isPilotiCircle) return;
+
+    const id: string = obj.pilotiId ?? "";
+    const match = id.match(/piloti_(\d+)_(\d+)/);
+    if (!match) return;
+    const col = parseInt(match[1], 10);
+
+    const eligible = getIsEligible(id);
+    const inColumn = firstCol === undefined || col === firstCol;
+    const isSkipped = id === skipPilotiId;
+
+    if (eligible && inColumn && !isSkipped) {
+      // Available — brown highlight
+      obj.set({ stroke: "#8B4513", strokeWidth: 3, fill: "#D4A574" });
+    } else {
+      // Dimmed — grey out
+      obj.set({ stroke: "#aaa", strokeWidth: 1, fill: "#eee" });
+    }
+    (obj as any).dirty = true;
+  });
+
+  (group as any).dirty = true;
+  group.canvas?.requestRenderAll();
+}
+
+/**
+ * Reset all piloti visuals in the top-view group back to normal.
+ */
+export function resetContraventamentoPilotis(group: Group): void {
+  group.getObjects().forEach((obj: any) => {
+    if (!obj.isPilotiCircle) return;
+    if (obj.pilotiIsMaster) {
+      obj.set({ stroke: "#8B4513", strokeWidth: 2, fill: "#D4A574" });
+    } else {
+      obj.set({ stroke: "black", strokeWidth: 1.5 * 0.6, fill: "white" });
+    }
+    (obj as any).dirty = true;
+  });
+
+  (group as any).dirty = true;
+  group.canvas?.requestRenderAll();
 }
