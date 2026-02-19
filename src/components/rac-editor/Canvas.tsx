@@ -36,6 +36,11 @@ export interface LineArrowCanvasSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface ContraventamentoCanvasSelection {
+  group: Group;
+  contraventamentoId: string;
+}
+
 interface CanvasProps {
   onSelectionChange: (hint: string) => void;
   onHistorySave: () => void;
@@ -55,6 +60,7 @@ interface CanvasProps {
   isContraventamentoMode?: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoSelect?: (selection: ContraventamentoCanvasSelection | null) => void;
 }
 
 export interface CanvasHandle {
@@ -69,7 +75,7 @@ export interface CanvasHandle {
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true, isContraventamentoMode = false, isPilotiEligibleForContraventamento, onContraventamentoPilotiClick }, ref) => {
+  ({ onSelectionChange, onHistorySave, children, onZoomInteraction, onMinimapInteraction, tutorialHighlight, showTips = false, onPilotiSelect, onDistanceSelect, onObjectNameSelect, onLineArrowSelect, isEditorOpen = false, onDelete, showZoomControls = true, isContraventamentoMode = false, isPilotiEligibleForContraventamento, onContraventamentoPilotiClick, onContraventamentoSelect }, ref) => {
     const isMobile = useIsMobile();
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -111,6 +117,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     const isContraventamentoModeRef = useRef(isContraventamentoMode);
     const isPilotiEligibleForContraventamentoRef = useRef(isPilotiEligibleForContraventamento);
     const onContraventamentoPilotiClickRef = useRef(onContraventamentoPilotiClick);
+    const onContraventamentoSelectRef = useRef(onContraventamentoSelect);
     
     // Keep refs in sync with state
     useEffect(() => { zoomRef.current = zoom; }, [zoom]);
@@ -121,6 +128,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     useEffect(() => { isContraventamentoModeRef.current = isContraventamentoMode; }, [isContraventamentoMode]);
     useEffect(() => { isPilotiEligibleForContraventamentoRef.current = isPilotiEligibleForContraventamento; }, [isPilotiEligibleForContraventamento]);
     useEffect(() => { onContraventamentoPilotiClickRef.current = onContraventamentoPilotiClick; }, [onContraventamentoPilotiClick]);
+    useEffect(() => { onContraventamentoSelectRef.current = onContraventamentoSelect; }, [onContraventamentoSelect]);
     
     // Reset all piloti highlights when editor closes
     const prevEditorOpenRef = useRef(isEditorOpen);
@@ -572,9 +580,16 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         
         if (!piloti) return;
 
+        // Selecting a piloti clears any selected contraventamento beam.
+        onContraventamentoSelectRef.current?.(null);
+
         // ── Contraventamento mode intercept ────────────────────────────────
-        // Only intercept top-view piloti circles (top view has houseView === 'top')
-        if (isContraventamentoModeRef.current && (group as any).houseView === 'top' && (subTarget as any).isPilotiCircle) {
+        // Only intercept top-view piloti circles/hit areas (top view has houseView === 'top')
+        if (
+          isContraventamentoModeRef.current &&
+          (group as any).houseView === 'top' &&
+          ((subTarget as any).isPilotiCircle || (subTarget as any).isPilotiHitArea)
+        ) {
           const eligible = isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
           if (!eligible) return; // ignore ineligible pilotis
 
@@ -657,6 +672,39 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
           onSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
         }
       };
+
+      // Desktop/mobile: single-click selection of contraventamento beams in top view
+      const handleContraventamentoSelection = (e: any) => {
+        if (isContraventamentoModeRef.current) return;
+
+        const target = e.target;
+        const subTargets = (e as any).subTargets || [];
+
+        if (!target || target.type !== 'group') {
+          onContraventamentoSelectRef.current?.(null);
+          return;
+        }
+
+        const group = target as Group;
+        if ((group as any).houseView !== 'top') {
+          onContraventamentoSelectRef.current?.(null);
+          return;
+        }
+
+        const contravObj = subTargets.find((st: any) => st?.isContraventamento === true) as any;
+        if (contravObj) {
+          const contraventamentoId = String(contravObj.contraventamentoId ?? '');
+          if (contraventamentoId) {
+            onContraventamentoSelectRef.current?.({ group, contraventamentoId });
+            onSelectionChange('Contraventamento selecionado. Use Excluir para remover.');
+            return;
+          }
+        }
+
+        onContraventamentoSelectRef.current?.(null);
+      };
+
+      canvas.on('mouse:down', handleContraventamentoSelection);
 
       // Mobile: single tap on piloti or hit area
       // Use both mouse:down and touch:gesture events for better mobile compatibility

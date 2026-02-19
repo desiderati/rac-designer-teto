@@ -53,6 +53,13 @@ export const customProps = [
   "isTopDoorMarker",
   "markerSide",
   "isContraventamento",
+  "isContraventamentoElevation",
+  "contraventamentoId",
+  "contraventamentoCol",
+  "contraventamentoStartRow",
+  "contraventamentoEndRow",
+  "contraventamentoAnchorPilotiId",
+  "contraventamentoSourcePilotiId",
 ];
 
 // Extend FabricObject prototype to include custom properties in serialization
@@ -1975,6 +1982,12 @@ const CONTRAV_S = 0.6;
 const CONTRAV_CD = 155 * CONTRAV_S; // 93  — column distance
 const CONTRAV_RD = 135 * CONTRAV_S; // 81  — row distance
 const CONTRAV_RAD = 15 * CONTRAV_S; // 9   — piloti radius
+const CONTRAV_BEAM_WIDTH = 5;
+const CONTRAV_FILL = "#8B4513";
+const CONTRAV_STROKE = "#5C2D0A";
+const CONTRAV_SELECTED_FILL = "#A0522D";
+const CONTRAV_SELECTED_STROKE = "#4A2508";
+const CONTRAV_ELEVATION_WIDTH = 3;
 
 /** Local-space X of each column (0-3) in the top-view group */
 const CONTRAV_COL_X = [
@@ -1991,6 +2004,81 @@ const CONTRAV_ROW_Y = [
    CONTRAV_RD, // row 2 (C):  81
 ];
 
+export interface ContraventamentoSelection {
+  group: Group;
+  contraventamentoId: string;
+}
+
+function getOrCreateContraventamentoId(obj: any): string {
+  if (obj.contraventamentoId) return String(obj.contraventamentoId);
+  const id = `contrav_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  obj.contraventamentoId = id;
+  return id;
+}
+
+function getNearestContraventamentoCol(x: number): number {
+  let idx = 0;
+  let minDist = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < CONTRAV_COL_X.length; i += 1) {
+    const centerX = CONTRAV_COL_X[i] + CONTRAV_RAD;
+    const dist = Math.abs(x - centerX);
+    if (dist < minDist) {
+      minDist = dist;
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+function getNearestContraventamentoRow(y: number): number {
+  let idx = 0;
+  let minDist = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < CONTRAV_ROW_Y.length; i += 1) {
+    const dist = Math.abs(y - CONTRAV_ROW_Y[i]);
+    if (dist < minDist) {
+      minDist = dist;
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+function getContraventamentoMeta(obj: any): {
+  id: string;
+  col: number;
+  startRow: number;
+  endRow: number;
+  anchorPilotiId: string;
+} {
+  const id = getOrCreateContraventamentoId(obj);
+
+  const left = Number(obj.left ?? 0);
+  const top = Number(obj.top ?? 0);
+  const width = Number(obj.width ?? CONTRAV_BEAM_WIDTH);
+  const height = Number(obj.height ?? 0);
+  const centerX = left + width / 2;
+  const bottom = top + height;
+
+  const inferredCol = getNearestContraventamentoCol(centerX);
+  const inferredStartRow = getNearestContraventamentoRow(top);
+  const inferredEndRow = getNearestContraventamentoRow(bottom);
+
+  const col = Number.isFinite(obj.contraventamentoCol) ? Number(obj.contraventamentoCol) : inferredCol;
+  const startRowRaw = Number.isFinite(obj.contraventamentoStartRow) ? Number(obj.contraventamentoStartRow) : inferredStartRow;
+  const endRowRaw = Number.isFinite(obj.contraventamentoEndRow) ? Number(obj.contraventamentoEndRow) : inferredEndRow;
+  const startRow = Math.min(startRowRaw, endRowRaw);
+  const endRow = Math.max(startRowRaw, endRowRaw);
+  const anchorPilotiId = String(obj.contraventamentoAnchorPilotiId ?? `piloti_${col}_${startRow}`);
+
+  obj.contraventamentoId = id;
+  obj.contraventamentoCol = col;
+  obj.contraventamentoStartRow = startRow;
+  obj.contraventamentoEndRow = endRow;
+  obj.contraventamentoAnchorPilotiId = anchorPilotiId;
+
+  return { id, col, startRow, endRow, anchorPilotiId };
+}
+
 /**
  * Add a bracing beam (contraventamento) to a top-view house group.
  * The beam is a thin rectangle connecting the tangent points of two piloti circles
@@ -2000,35 +2088,45 @@ export function addContraventamentoBeam(
   group: Group,
   piloti1: { col: number; row: number },
   piloti2: { col: number; row: number },
-): void {
-  const colX = CONTRAV_COL_X[piloti1.col];
+  options?: { anchorPilotiId?: string },
+): string | null {
+  const col = piloti1.col;
+  const colX = CONTRAV_COL_X[col];
+  if (!Number.isFinite(colX)) return null;
 
   const y1 = CONTRAV_ROW_Y[piloti1.row];
   const y2 = CONTRAV_ROW_Y[piloti2.row];
+  if (!Number.isFinite(y1) || !Number.isFinite(y2)) return null;
 
   const topY = Math.min(y1, y2);
   const botY = Math.max(y1, y2);
+  const beamHeight = botY - topY;
 
-  const beamWidth = 5;
-  const beamHeight = botY - topY - 2 * CONTRAV_RAD; // tangent to tangent
-
-  if (beamHeight <= 0) return; // pilotis too close / same row
+  if (beamHeight <= 0) return null; // pilotis too close / same row
 
   const beam = new Rect({
-    width: beamWidth,
+    width: CONTRAV_BEAM_WIDTH,
     height: beamHeight,
-    left: colX - beamWidth / 2,
-    top: topY + CONTRAV_RAD,
-    fill: "#8B4513",
-    stroke: "#5C2D0A",
+    // Right-side tangent of piloti circles, from center to center.
+    left: colX + CONTRAV_RAD - CONTRAV_BEAM_WIDTH / 2,
+    top: topY,
+    fill: CONTRAV_FILL,
+    stroke: CONTRAV_STROKE,
     strokeWidth: 1,
     originX: "left",
     originY: "top",
     selectable: false,
-    evented: false,
+    evented: true,
     objectCaching: false,
   });
-  (beam as any).isContraventamento = true;
+  const beamAny = beam as any;
+  beamAny.isContraventamento = true;
+  beamAny.contraventamentoId = `contrav_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  beamAny.contraventamentoCol = col;
+  beamAny.contraventamentoStartRow = Math.min(piloti1.row, piloti2.row);
+  beamAny.contraventamentoEndRow = Math.max(piloti1.row, piloti2.row);
+  beamAny.contraventamentoAnchorPilotiId =
+    options?.anchorPilotiId ?? `piloti_${col}_${Math.min(piloti1.row, piloti2.row)}`;
 
   // Insert into the group's internal object list
   const internalObjects = (group as any)._objects as FabricObject[];
@@ -2038,6 +2136,185 @@ export function addContraventamentoBeam(
   (group as any).dirty = true;
   group.setCoords();
   group.canvas?.requestRenderAll();
+  return beamAny.contraventamentoId as string;
+}
+
+export function removeContraventamentosFromGroup(
+  group: Group,
+  predicate?: (obj: FabricObject) => boolean,
+): number {
+  const internalObjects = (group as any)._objects as FabricObject[];
+  if (!Array.isArray(internalObjects)) return 0;
+
+  const nextObjects: FabricObject[] = [];
+  let removed = 0;
+
+  for (const obj of internalObjects) {
+    const objAny = obj as any;
+    const isContrav = objAny?.isContraventamento === true;
+    const shouldRemove = isContrav && (!predicate || predicate(obj));
+    if (shouldRemove) {
+      removed += 1;
+    } else {
+      nextObjects.push(obj);
+    }
+  }
+
+  if (removed > 0) {
+    (group as any)._objects = nextObjects;
+    (group as any).dirty = true;
+    group.setCoords();
+    group.canvas?.requestRenderAll();
+  }
+
+  return removed;
+}
+
+export function removeContraventamentoElevationsFromGroup(
+  group: Group,
+  contraventamentoId?: string,
+): number {
+  const internalObjects = (group as any)._objects as FabricObject[];
+  if (!Array.isArray(internalObjects)) return 0;
+
+  const nextObjects: FabricObject[] = [];
+  let removed = 0;
+
+  for (const obj of internalObjects) {
+    const objAny = obj as any;
+    const isElevation = objAny?.isContraventamentoElevation === true;
+    const matches = !contraventamentoId || String(objAny.contraventamentoId) === contraventamentoId;
+    if (isElevation && matches) {
+      removed += 1;
+    } else {
+      nextObjects.push(obj);
+    }
+  }
+
+  if (removed > 0) {
+    (group as any)._objects = nextObjects;
+    (group as any).dirty = true;
+    group.setCoords();
+  }
+
+  return removed;
+}
+
+export function setContraventamentoSelection(
+  group: Group,
+  contraventamentoId: string | null,
+): void {
+  group.getObjects().forEach((obj: any) => {
+    if (!obj.isContraventamento) return;
+    const id = getOrCreateContraventamentoId(obj);
+    const isSelected = !!contraventamentoId && id === contraventamentoId;
+    obj.set({
+      fill: isSelected ? CONTRAV_SELECTED_FILL : CONTRAV_FILL,
+      stroke: isSelected ? CONTRAV_SELECTED_STROKE : CONTRAV_STROKE,
+      strokeWidth: isSelected ? 2 : 1,
+    });
+    obj.dirty = true;
+  });
+
+  (group as any).dirty = true;
+  group.canvas?.requestRenderAll();
+}
+
+export function syncContraventamentoElevationsFromTop(
+  topGroup: Group | null,
+  targetGroups: Group[],
+  getPilotiNivel: (pilotiId: string) => number,
+): void {
+  targetGroups.forEach((group) => {
+    removeContraventamentoElevationsFromGroup(group);
+  });
+
+  if (!topGroup) {
+    targetGroups[0]?.canvas?.requestRenderAll();
+    return;
+  }
+
+  const contravs = topGroup
+    .getObjects()
+    .filter((obj: any) => obj.isContraventamento)
+    .map((obj: any) => ({ obj, ...getContraventamentoMeta(obj) }));
+
+  if (contravs.length === 0) {
+    targetGroups[0]?.canvas?.requestRenderAll();
+    return;
+  }
+
+  for (const group of targetGroups) {
+    const pilotiRects = group.getObjects().filter((obj: any) => obj.isPilotiRect && obj.pilotiId) as any[];
+    if (pilotiRects.length === 0) continue;
+
+    const rectByPilotiId = new Map<string, any>();
+    pilotiRects.forEach((rect) => rectByPilotiId.set(String(rect.pilotiId), rect));
+
+    const internalObjects = (group as any)._objects as FabricObject[];
+
+    for (const contrav of contravs) {
+      const visibleRows: Array<{ row: number; pilotiId: string; rect: any }> = [];
+      for (let row = contrav.startRow; row <= contrav.endRow; row += 1) {
+        const pilotiId = `piloti_${contrav.col}_${row}`;
+        const rect = rectByPilotiId.get(pilotiId);
+        if (rect) visibleRows.push({ row, pilotiId, rect });
+      }
+      if (visibleRows.length === 0) continue;
+
+      const anchorVisible = visibleRows.find((item) => item.pilotiId === contrav.anchorPilotiId);
+      const ref = anchorVisible ?? visibleRows[0];
+      const refRect = ref.rect;
+      const refTop = Number(refRect.top ?? 0);
+      const refBaseHeight = Number(refRect.pilotiBaseHeight ?? BASE_PILOTI_HEIGHT_PX * CONTRAV_S);
+      const nivel = Number(getPilotiNivel(ref.pilotiId) ?? 0);
+      const y = refTop + nivel * refBaseHeight;
+
+      let x1 = 0;
+      let x2 = 0;
+      if (visibleRows.length === 1) {
+        const rect = visibleRows[0].rect;
+        const left = Number(rect.left ?? 0);
+        const width = Number(rect.width ?? 0) * Number(rect.scaleX ?? 1);
+        x1 = left - 4;
+        x2 = left + width + 4;
+      } else {
+        const centers = visibleRows
+          .map((item) => {
+            const rect = item.rect;
+            const left = Number(rect.left ?? 0);
+            const width = Number(rect.width ?? 0) * Number(rect.scaleX ?? 1);
+            return left + width / 2;
+          })
+          .sort((a, b) => a - b);
+        x1 = centers[0];
+        x2 = centers[centers.length - 1];
+      }
+
+      if (!Number.isFinite(x1) || !Number.isFinite(x2) || Math.abs(x2 - x1) < 1) continue;
+
+      const line = new Line([x1, y, x2, y], {
+        stroke: CONTRAV_FILL,
+        strokeWidth: CONTRAV_ELEVATION_WIDTH,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+      });
+      const lineAny = line as any;
+      lineAny.isContraventamentoElevation = true;
+      lineAny.contraventamentoId = contrav.id;
+      lineAny.contraventamentoSourcePilotiId = ref.pilotiId;
+
+      internalObjects.push(line);
+      lineAny.group = group;
+    }
+
+    (group as any).dirty = true;
+    group.setCoords();
+  }
+
+  topGroup.canvas?.requestRenderAll();
 }
 
 /**

@@ -3,7 +3,15 @@ import { Canvas as FabricCanvas, Group, ActiveSelection, FabricObject, Rect, ITe
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 import { Toolbar } from './Toolbar';
-import { Canvas, CanvasHandle, PilotiSelection, DistanceSelection, ObjectNameSelection, LineArrowCanvasSelection } from './Canvas';
+import {
+  Canvas,
+  CanvasHandle,
+  PilotiSelection,
+  DistanceSelection,
+  ObjectNameSelection,
+  LineArrowCanvasSelection,
+  ContraventamentoCanvasSelection,
+} from './Canvas';
 import { InfoBar } from './InfoBar';
 import { Tutorial, getTutorialStepIds } from './Tutorial';
 import { PilotiEditor } from './PilotiEditor';
@@ -52,6 +60,9 @@ import {
   addContraventamentoBeam,
   highlightContraventamentoPilotis,
   resetContraventamentoPilotis,
+  removeContraventamentosFromGroup,
+  setContraventamentoSelection,
+  syncContraventamentoElevationsFromTop,
 } from '@/lib/canvas-utils';
 import { houseManager, ViewType, HouseSide, HouseType } from '@/lib/house-manager';
 
@@ -89,16 +100,13 @@ export function RACEditor() {
   const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
   const niveisAppliedRef = useRef(false);
   const transitionToNivelRef = useRef(false);
-  const [, forceUpdate] = useState(0);
+  const [houseVersion, forceUpdate] = useState(0);
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
 
   // ── Contraventamento state ─────────────────────────────────────────────────
   const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
-  const [contraventamentoStep, setContraventamentoStep] = useState<'select-first' | 'select-second'>('select-first');
-  const [contraventamentoFirst, setContraventamentoFirst] = useState<{
-    pilotiId: string; col: number; row: number; group: Group;
-  } | null>(null);
+  const [selectedContraventamento, setSelectedContraventamento] = useState<ContraventamentoCanvasSelection | null>(null);
 
   // Subscribe to house manager changes
   useEffect(() => {
@@ -955,7 +963,14 @@ export function RACEditor() {
     reader.onload = (evt) => {
       canvas.clear();
       canvas.loadFromJSON(evt.target?.result as string).then(() => {
+        setIsContraventamentoMode(false);
+        setSelectedContraventamento(null);
         canvas.renderAll();
+        syncContraventamentoElevationsFromTop(
+          getTopViewGroup(),
+          houseManager.getAllGroups().filter((g) => (g as any).houseView !== 'top'),
+          (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
+        );
         canvasRef.current?.saveHistory();
         setInfoMessage('Projeto carregado!');
         toast.success('Projeto carregado com sucesso!');
@@ -968,8 +983,33 @@ export function RACEditor() {
     const canvas = getCanvas();
     if (!canvas) return;
 
+    if (selectedContraventamento) {
+      const removed = removeContraventamentosFromGroup(
+        selectedContraventamento.group,
+        (obj) => (obj as any).contraventamentoId === selectedContraventamento.contraventamentoId
+      );
+      if (removed > 0) {
+        setContraventamentoSelection(selectedContraventamento.group, null);
+        setSelectedContraventamento(null);
+        syncContraventamentoElevationsFromTop(
+          getTopViewGroup(),
+          houseManager.getAllGroups().filter((g) => (g as any).houseView !== 'top'),
+          (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
+        );
+        canvas.requestRenderAll();
+        canvasRef.current?.saveHistory();
+        setInfoMessage('Contraventamento removido.');
+        toast.success('Contraventamento removido!');
+        return;
+      }
+      setSelectedContraventamento(null);
+    }
+
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length) {
+      const topGroup = getTopViewGroup();
+      if (topGroup) setContraventamentoSelection(topGroup, null);
+      setSelectedContraventamento(null);
       canvas.discardActiveObject();
 
       for (const obj of activeObjects) {
@@ -1106,6 +1146,16 @@ export function RACEditor() {
     return (data?.nivel ?? 0) > 0.40;
   }, []);
 
+  const syncContraventamentoElevations = useCallback(() => {
+    const topGroup = getTopViewGroup();
+    const targets = houseManager.getAllGroups().filter((g) => (g as any).houseView !== 'top');
+    syncContraventamentoElevationsFromTop(
+      topGroup,
+      targets,
+      (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
+    );
+  }, [getTopViewGroup]);
+
   /** Start contraventamento mode */
   const handleStartContraventamento = useCallback(() => {
     const topGroup = getTopViewGroup();
@@ -1114,13 +1164,13 @@ export function RACEditor() {
       return;
     }
 
+    setContraventamentoSelection(topGroup, null);
+    setSelectedContraventamento(null);
     setActiveSubmenu(null);
     setIsContraventamentoMode(true);
-    setContraventamentoStep('select-first');
-    setContraventamentoFirst(null);
 
     highlightContraventamentoPilotis(topGroup, isPilotiEligible);
-    toast.info('Selecione o 1º piloti (nível > 40cm). ESC para cancelar.');
+    toast.info('Selecione um piloti elegível para inserir o contraventamento. ESC para cancelar.');
   }, [getTopViewGroup, isPilotiEligible]);
 
   /** Cancel contraventamento mode and reset visuals */
@@ -1128,50 +1178,61 @@ export function RACEditor() {
     const topGroup = getTopViewGroup();
     if (topGroup) resetContraventamentoPilotis(topGroup);
     setIsContraventamentoMode(false);
-    setContraventamentoStep('select-first');
-    setContraventamentoFirst(null);
   }, [getTopViewGroup]);
 
   /** Called by Canvas when a piloti circle is clicked in contraventamento mode */
   const handleContraventamentoPilotiClick = useCallback((
-    pilotiId: string, col: number, row: number, group: Group
+    pilotiId: string, col: number, _row: number, group: Group
   ) => {
-    if (contraventamentoStep === 'select-first') {
-      // Save first piloti
-      setContraventamentoFirst({ pilotiId, col, row, group });
-      setContraventamentoStep('select-second');
-
-      // Highlight only same-column pilotis (excluding selected one)
-      highlightContraventamentoPilotis(group, isPilotiEligible, col, pilotiId);
-      toast.info('Selecione o 2º piloti na mesma coluna.');
-
-    } else if (contraventamentoStep === 'select-second' && contraventamentoFirst) {
-      // Validate same column
-      if (col !== contraventamentoFirst.col) {
-        toast.warning('Selecione um piloti da mesma coluna que o primeiro.');
-        return;
-      }
-      if (row === contraventamentoFirst.row) {
-        toast.warning('Selecione um piloti diferente do primeiro.');
-        return;
-      }
-
-      // Add the beam
-      addContraventamentoBeam(
-        contraventamentoFirst.group,
-        { col: contraventamentoFirst.col, row: contraventamentoFirst.row },
-        { col, row }
-      );
-
-      // Reset visuals and state
-      resetContraventamentoPilotis(contraventamentoFirst.group);
-      setIsContraventamentoMode(false);
-      setContraventamentoStep('select-first');
-      setContraventamentoFirst(null);
-      canvasRef.current?.saveHistory();
-      toast.success('Contraventamento adicionado!');
+    const eligibleRows = [0, 1, 2].filter((candidateRow) =>
+      isPilotiEligible(`piloti_${col}_${candidateRow}`)
+    );
+    if (eligibleRows.length < 2) {
+      toast.warning('Esta coluna precisa de ao menos 2 pilotis elegíveis (nível > 40cm).');
+      return;
     }
-  }, [contraventamentoStep, contraventamentoFirst, isPilotiEligible]);
+
+    const startRow = eligibleRows[0];
+    const endRow = eligibleRows[eligibleRows.length - 1];
+
+    removeContraventamentosFromGroup(group, (obj) => (obj as any).contraventamentoCol === col);
+
+    const createdId = addContraventamentoBeam(
+      group,
+      { col, row: startRow },
+      { col, row: endRow },
+      { anchorPilotiId: pilotiId }
+    );
+    if (!createdId) {
+      toast.error('Não foi possível criar o contraventamento.');
+      return;
+    }
+
+    resetContraventamentoPilotis(group);
+    setContraventamentoSelection(group, null);
+    setSelectedContraventamento(null);
+    setIsContraventamentoMode(false);
+    syncContraventamentoElevations();
+    canvasRef.current?.saveHistory();
+    toast.success('Contraventamento adicionado!');
+  }, [isPilotiEligible, syncContraventamentoElevations]);
+
+  const handleContraventamentoSelect = useCallback((selection: ContraventamentoCanvasSelection | null) => {
+    const topGroup = getTopViewGroup();
+    if (!topGroup) {
+      setSelectedContraventamento(null);
+      return;
+    }
+    setContraventamentoSelection(topGroup, selection?.contraventamentoId ?? null);
+    setSelectedContraventamento(selection);
+    if (selection) {
+      setInfoMessage('Contraventamento selecionado. Use Excluir para remover.');
+    }
+  }, [getTopViewGroup]);
+
+  useEffect(() => {
+    syncContraventamentoElevations();
+  }, [houseVersion, syncContraventamentoElevations]);
 
   // ESC cancels contraventamento mode
   useEffect(() => {
@@ -1186,6 +1247,7 @@ export function RACEditor() {
   const handlePilotiSelect = (selection: PilotiSelection | null) => {
     // In contraventamento mode, piloti clicks are handled by handleContraventamentoPilotiClick
     if (isContraventamentoMode) return;
+    if (selection) handleContraventamentoSelect(null);
     setPilotiSelection(selection);
     if (selection) {
       setIsPilotiEditorOpen(true);
@@ -1235,6 +1297,7 @@ export function RACEditor() {
   };
 
   const handlePilotiHeightChange = (newHeight: number) => {
+    syncContraventamentoElevations();
     canvasRef.current?.saveHistory();
     canvasRef.current?.canvas?.renderAll();
     setInfoMessage(`Altura do piloti atualizada para ${formatPilotiHeight(newHeight)} m.`);
@@ -1286,6 +1349,7 @@ export function RACEditor() {
       currentNivel: nivel
     } : null);
 
+    syncContraventamentoElevations();
     setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
   };
 
@@ -1617,7 +1681,8 @@ export function RACEditor() {
           showZoomControls={showZoomControls}
           isContraventamentoMode={isContraventamentoMode}
           isPilotiEligibleForContraventamento={isPilotiEligible}
-          onContraventamentoPilotiClick={handleContraventamentoPilotiClick}>
+          onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
+          onContraventamentoSelect={handleContraventamentoSelect}>
 
           {/* InfoBar - positioned differently on mobile vs desktop */}
           {showTips &&
