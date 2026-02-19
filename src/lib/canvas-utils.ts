@@ -176,8 +176,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   // Door markers on top view (hidden by default, positioned by HouseManager based on side assignments)
   const markerLong = 80 * s;
   const markerShort = 20 * s;
-  const markerFill = "#d4b080";
-  const markerStroke = "#8B4513";
+  const markerFill = MASTER_PILOTI_FILL;
+  const markerStroke = MASTER_PILOTI_STROKE;
 
   const createDoorMarker = (side: "top" | "bottom" | "left" | "right"): Group => {
     const vertical = side === "left" || side === "right";
@@ -914,8 +914,8 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: MASTER_PILOTI_FILL,
+      stroke: MASTER_PILOTI_STROKE,
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -1120,8 +1120,8 @@ export function createHouseSide(canvas: FabricCanvas, hasDoor: boolean, isRightS
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: MASTER_PILOTI_FILL,
+      stroke: MASTER_PILOTI_STROKE,
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -1818,8 +1818,8 @@ export function createDoor(canvas: FabricCanvas): Group {
   const rect = new Rect({
     width: 100,
     height: 20,
-    fill: "#D2A679",
-    stroke: "black",
+    fill: MASTER_PILOTI_FILL,
+    stroke: MASTER_PILOTI_STROKE,
     strokeWidth: 1,
     originX: "center",
     originY: "center",
@@ -1994,10 +1994,10 @@ const CONTRAV_CD = 155 * CONTRAV_S; // 93  — column distance
 const CONTRAV_RD = 135 * CONTRAV_S; // 81  — row distance
 const CONTRAV_RAD = 15 * CONTRAV_S; // 9   — piloti radius
 const CONTRAV_BEAM_WIDTH = 5;
-const CONTRAV_FILL = "#8B4513";
-const CONTRAV_STROKE = "#5C2D0A";
-const CONTRAV_SELECTED_FILL = "#A0522D";
-const CONTRAV_SELECTED_STROKE = "#4A2508";
+const CONTRAV_FILL = MASTER_PILOTI_FILL;
+const CONTRAV_STROKE = MASTER_PILOTI_STROKE;
+const CONTRAV_SELECTED_FILL = MASTER_PILOTI_FILL;
+const CONTRAV_SELECTED_STROKE = MASTER_PILOTI_STROKE;
 const CONTRAV_ELEVATION_WIDTH = 10;
 
 /** Local-space X of each column (0-3) in the top-view group */
