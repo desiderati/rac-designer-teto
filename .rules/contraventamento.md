@@ -1,127 +1,133 @@
 # Regras de Contraventamento
 
-Este documento descreve as regras funcionais e geométricas do contraventamento no editor.
-Ele reflete o comportamento atual implementado no código.
+Este documento descreve as regras funcionais, visuais e geométricas de contraventamento no estado atual do projeto.
 
 ## 1. Objetivo
 
-Permitir inserir um contraventamento entre dois pilotis da mesma coluna na vista planta e projetar esse contraventamento nas vistas quadrado (laterais), com representação diagonal.
+Permitir criar e remover contraventamentos por coluna de pilotis, com:
+
+1. criação na planta (`top`);
+2. projeção diagonal nas vistas quadrado (`houseView = side`);
+3. exibição no modelo 3D.
 
 ## 2. Conceitos
 
-- `Piloti de origem`: piloti selecionado no editor para iniciar o contraventamento.
-- `Piloti de destino`: piloti selecionado depois, na mesma coluna, para finalizar.
-- `Lado do contraventamento`: `left` ou `right`, em relação à coluna na planta.
-- `Coluna`: índice `col` do piloti (`piloti_<col>_<row>`).
-- `Linha de terreno local`: cota visual do terreno no piloti (derivada do `nível`).
+- `Piloti de origem`: piloti selecionado primeiro para iniciar o contraventamento.
+- `Piloti de destino`: piloti selecionado na sequência para completar o contraventamento.
+- `Lado`: `left` (esquerdo) ou `right` (direito), relativo à coluna na planta.
+- `Coluna`: índice `col` no id `piloti_<col>_<row>`.
+- `Ocupação de coluna`: controle por lado; uma coluna pode ter no máximo 2 contraventamentos (`left` e `right`).
 
-## 3. Ponto de entrada da UX
+## 3. Ponto de entrada (UX)
 
-O fluxo começa no `PilotiEditor` (não pela toolbar).
+O fluxo começa no `PilotiEditor`, na seção fixa `Contraventamento` (abaixo de `Tamanho dos Pilotis`).
 
-Ordem:
+A seção sempre aparece, com dois botões:
 
-1. Usuário abre um piloti.
-2. Se elegível, aparece o botão `Contraventar` acima de `Cancelar` e `Aplicar`.
-3. Ao clicar `Contraventar`, o editor fecha e o modo de contraventamento é ativado.
+1. `Esquerdo`.
+2. `Direito`.
 
-## 4. Regras para exibir o botão `Contraventar`
+## 4. Estados dos botões no editor
 
-O botão só aparece quando:
+Para o piloti selecionado:
 
-1. Existe piloti selecionado.
-2. Existe vista planta no canvas.
-3. O `nível` do piloti selecionado é `> 0,40 m`.
-4. A coluna do piloti não está totalmente ocupada (`left` e `right` ao mesmo tempo).
+1. Se o lado já possui contraventamento na coluna:
+   - botão fica habilitado;
+   - botão aparece como ativo;
+   - clique remove o contraventamento desse lado na coluna.
+2. Se o lado ainda não possui contraventamento:
+   - botão só habilita se `nível > 0,40 m`;
+   - com `nível <= 0,40 m`, fica desabilitado.
 
-## 5. Regras de ocupação
+Resumo prático:
 
-Ocupação é controlada por coluna e lado:
+- `nível > 0,40 m` habilita criação no lado livre.
+- lado já ocupado permite remoção mesmo com nível baixo.
 
-- Não pode criar dois contraventamentos no mesmo lado da mesma coluna.
-- Pode haver até dois por coluna: um `left` e um `right`.
+## 5. Regras de ocupação por coluna
 
-## 6. Escolha de lado
+1. Não pode existir mais de um contraventamento no mesmo lado da mesma coluna.
+2. Pode existir até 1 no `left` e 1 no `right` na mesma coluna.
+3. Se os dois lados já existem, a coluna está totalmente ocupada para criação.
 
-Ao iniciar pelo piloti de origem:
+## 6. Fluxo de criação
 
-1. Se a coluna tem somente um lado livre:
-   - lado é definido automaticamente (o oposto do já ocupado);
-   - o fluxo vai direto para seleção de destino.
-2. Se a coluna tem os dois lados livres:
-   - abre modal para escolher `Esquerdo` ou `Direito`.
-3. Se a coluna não tem lado livre:
-   - o fluxo é bloqueado.
+Ao clicar em um lado livre no `PilotiEditor`:
 
-## 7. Seleção do piloti de destino
+1. o editor fecha;
+2. entra no modo de contraventamento;
+3. o piloti atual vira origem;
+4. o lado escolhido fica fixo;
+5. o sistema vai direto para seleção de destino (`select-second`).
 
-Depois de definir o lado:
+Não há modal de escolha de lado nesse fluxo atual.
 
-1. Somente pilotis da mesma coluna ficam ativos para destino.
-2. O piloti de origem fica excluído.
-3. A seleção do destino é com clique único.
-4. Clique em piloti fora da coluna é inválido.
-5. Clique no mesmo piloti (mesma linha) é inválido.
+## 7. Regras de seleção de destino
 
-Quando o destino é válido:
+No passo de destino:
 
-1. O contraventamento é criado na planta.
-2. O modo de contraventamento é encerrado.
-3. Os highlights são resetados.
-4. As elevações são sincronizadas.
-5. O histórico é salvo.
+1. só pilotis da mesma coluna da origem são elegíveis;
+2. a linha da origem não pode ser escolhida como destino;
+3. seleção é por clique único;
+4. ao selecionar destino válido:
+   - cria o contraventamento na planta;
+   - sai do modo de contraventamento;
+   - limpa highlights;
+   - sincroniza projeções nas demais vistas;
+   - salva histórico.
 
-## 8. Cancelamento do fluxo
+## 8. Cancelamento do modo
 
-O modo de contraventamento é cancelado quando:
+Durante `select-second`, o fluxo cancela se:
 
-1. Usuário pressiona `Esc`.
-2. No passo de seleção do segundo piloti (`select-second`), o usuário clica em qualquer coisa que não seja um piloti elegível de destino:
-   - clique fora da casa;
-   - clique em outro objeto;
-   - clique em piloti não elegível.
-3. O modal de lado é fechado sem concluir.
+1. usuário pressiona `Esc`;
+2. usuário clica fora da casa;
+3. usuário clica em objeto que não seja piloti elegível;
+4. usuário clica em piloti não elegível.
 
 No cancelamento:
 
-1. Os pilotis voltam ao visual normal.
-2. O estado retorna para `select-first`.
-3. Origem/lado selecionados são limpos.
+1. estilos dos pilotis são restaurados;
+2. estado volta para `select-first`;
+3. origem e lado são limpos.
 
 ## 9. Feedback visual e cursor
 
-Durante o modo de contraventamento:
+No modo de contraventamento:
 
-1. Piloti elegível: destaque marrom (`stroke/fill`) e cursor de ponteiro.
-2. Piloti não elegível: cinza e cursor padrão.
-3. O canvas também força `pointer` apenas sobre piloti clicável.
+1. piloti elegível:
+   - `fill` marrom de mestre;
+   - borda amarela;
+   - cursor `pointer`.
+2. piloti não elegível:
+   - cinza (`fill`/`stroke`);
+   - cursor padrão.
+3. piloti mestre não elegível também fica cinza para não confundir.
 
-## 10. Geometria na planta (vista top)
+## 10. Geometria na planta (top)
 
-### 10.1 Constantes base
+### 10.1 Constantes
 
-- `s = 0.6`
-- `rad = 15 * s = 9`
-- `beamWidth = 10`
-- `colX = [-1.5*cD, -0.5*cD, 0.5*cD, 1.5*cD]` com `cD = 155*s = 93`
-- `rowY = [-rD, 0, rD]` com `rD = 135*s = 81`
+- escala base: `s = 0.6`
+- raio do piloti: `rad = 15 * s = 9`
+- largura do contraventamento na planta: `5`
+- centros de coluna: `[-1.5*cD, -0.5*cD, 0.5*cD, 1.5*cD]`, com `cD = 155*s = 93`
+- linhas: `[-rD, 0, rD]`, com `rD = 135*s = 81`
 
-### 10.2 Regras de criação
+### 10.2 Regras
 
-1. Origem e destino precisam estar na mesma coluna e em linhas diferentes.
-2. `topY = min(yOrigem, yDestino)`.
-3. `height = abs(yDestino - yOrigem)`.
-4. Tangência lateral:
-   - lado `right`: `tangentX = colX + rad`;
-   - lado `left`: `tangentX = colX - rad`.
-5. Encosto da peça:
+1. origem e destino devem estar na mesma coluna e em linhas diferentes;
+2. `topY = min(y1, y2)`;
+3. `height = abs(y2 - y1)`;
+4. tangência lateral:
+   - `right`: `tangentX = colX + rad`;
+   - `left`: `tangentX = colX - rad`;
+5. encosto:
    - a borda oposta ao lado selecionado encosta na tangente;
-   - `left = tangentX` quando lado `right`;
-   - `left = tangentX - beamWidth` quando lado `left`.
+   - `right`: `left = tangentX`;
+   - `left`: `left = tangentX - beamWidth`.
 
-### 10.3 Metadados persistidos
-
-Cada contraventamento salva:
+## 11. Metadados persistidos por contraventamento
 
 - `isContraventamento`
 - `contraventamentoId`
@@ -131,89 +137,60 @@ Cada contraventamento salva:
 - `contraventamentoSide`
 - `contraventamentoAnchorPilotiId`
 
-## 11. Projeção nas vistas não-planta
+## 12. Projeção em vistas quadrado (não-planta)
 
-### 11.1 Regras de exibição
+### 12.1 Onde aparece
 
-A projeção de contraventamento é mostrada somente nas vistas quadrado (`houseView = side`).
+1. só em grupos com `houseView = side`;
+2. não aparece em `front` e `back`;
+3. em cada quadrado, mostra apenas o contraventamento externo:
+   - quadrado esquerdo (`isRightSide = false`): coluna `0`, lado `left`;
+   - quadrado direito (`isRightSide = true`): coluna `3`, lado `right`.
 
-Não exibe nas vistas:
-
-- frontal (`front`);
-- traseira/lateral longa (`back`);
-- planta (`top`) já exibe o elemento real.
-
-Além disso, nas vistas quadrado mostra somente o contraventamento mais externo:
-
-1. Quadrado esquerdo (`isRightSide = false`):
-   - coluna visível: `col = 0`;
-   - lado exibido: `left`.
-2. Quadrado direito (`isRightSide = true`):
-   - coluna visível: `col = 3`;
-   - lado exibido: `right`.
-
-Contraventamentos “internos” não são desenhados nessas projeções.
-
-### 11.2 Geometria e espessura na projeção
+### 12.2 Geometria da projeção
 
 Representação sempre diagonal.
 
-- Espessura da linha projetada: `20`.
+1. origem: `20 cm acima` do terreno local:
+   - `yOrigem = topRectOrigem + (nívelOrigem - 0,2) * baseHeight`
+2. destino: `20 cm abaixo` da viga de piso:
+   - `yDestino = topRectDestino + 0,2 * baseHeight`
+3. espessura visual na vista quadrado:
+   - preenchimento: `10`
+   - borda: `10 + 2`
 
-Cotas verticais:
+## 13. Exibição no modelo 3D
 
-1. Origem:
-   - `20 cm acima` do terreno local do piloti de origem.
-   - `yOrigem = topRectOrigem + (nívelOrigem - 0.2) * baseHeight`.
-2. Destino:
-   - `20 cm abaixo` da viga de piso.
-   - `yDestino = topRectDestino + 0.2 * baseHeight`.
+1. usa os contraventamentos da planta (`top`) como fonte;
+2. seção do elemento no 3D:
+   - largura correspondente à planta: `5` (escalado);
+   - profundidade correspondente ao quadrado: `10` (escalado);
+3. cor: mesma dos pilotis não mestre;
+4. orientação: sempre diagonal entre origem e destino;
+5. cotas verticais seguem a mesma regra de `20 cm` da projeção:
+   - origem acima do terreno local;
+   - destino abaixo da viga de piso.
 
-Onde:
+## 14. Seleção e remoção
 
-- `topRect` = topo do piloti na elevação;
-- `baseHeight` = `pilotiBaseHeight` da vista (escala local);
-- `nívelOrigem` vem de `getPilotiNivel(pilotiId)`.
+1. clique em contraventamento na planta seleciona o elemento;
+2. `Excluir` remove o selecionado;
+3. no editor de piloti, clicar no botão de um lado já ocupado remove o contraventamento daquele lado na coluna do piloti selecionado.
 
-Coordenadas horizontais:
+## 15. Sincronização
 
-1. `xOrigem` = centro X do piloti de origem na vista.
-2. `xDestino` = centro X do piloti de destino na vista.
-3. Linha: `(xOrigem, yOrigem) -> (xDestino, yDestino)`.
+Ao criar/remover/editar dados relevantes:
 
-## 12. Sincronização das elevações
+1. remove projeções antigas de contraventamento nas vistas alvo;
+2. recria projeções com base na planta;
+3. renderiza novamente;
+4. atualiza o modelo 3D via estado do `HouseManager`.
 
-A cada atualização relevante:
-
-1. remove todas as projeções antigas de contraventamento nas vistas alvo;
-2. reconstrói as projeções a partir da planta;
-3. renderiza novamente.
-
-## 13. Regras de integridade
-
-1. Não criar contraventamento com origem e destino iguais.
-2. Não criar contraventamento fora da mesma coluna.
-3. Não criar no lado já ocupado da coluna.
-4. Não iniciar com `nível <= 0,40 m`.
-5. Não iniciar sem planta.
-
-## 14. Estruturas de estado (alto nível)
-
-- `isContraventamentoMode`
-- `contraventamentoStep: select-first | select-second`
-- `contraventamentoFirst`
-- `contraventamentoSide`
-- `contraventamentoSideSelectorOpen`
-- `selectedContraventamento`
-
-## 15. Locais principais no código
+## 16. Arquivos principais
 
 - `src/components/rac-editor/PilotiEditor.tsx`
 - `src/components/rac-editor/RACEditor.tsx`
 - `src/components/rac-editor/Canvas.tsx`
 - `src/lib/canvas-utils.ts`
-
-## 16. Observações
-
-1. Este documento descreve o comportamento atual.
-2. Se mudar regra de negócio (ex.: critério de nível, lógica de lado, geometria, visibilidade por vista), este arquivo deve ser atualizado junto com o código.
+- `src/components/rac-editor/House3DViewer.tsx`
+- `src/components/rac-editor/House3DScene.tsx`

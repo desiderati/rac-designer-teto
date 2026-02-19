@@ -74,6 +74,7 @@ export const PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
 // Colors for master piloti (same as door - light brown)
 export const MASTER_PILOTI_FILL = "#D4A574";
 export const MASTER_PILOTI_STROKE = "#8B4513";
+const MASTER_SHARED_STROKE_WIDTH = 2;
 
 // Corner piloti IDs (A1, A4, C1, C4) - only these can be master and have nivel
 export const CORNER_PILOTI_IDS = ["piloti_0_0", "piloti_3_0", "piloti_0_2", "piloti_3_2"];
@@ -186,7 +187,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       height: vertical ? markerLong : markerShort,
       fill: markerFill,
       stroke: markerStroke,
-      strokeWidth: 1.5 * s,
+      strokeWidth: MASTER_SHARED_STROKE_WIDTH,
       strokeUniform: true,
       originX: "center",
       originY: "center",
@@ -1820,7 +1821,7 @@ export function createDoor(canvas: FabricCanvas): Group {
     height: 20,
     fill: MASTER_PILOTI_FILL,
     stroke: MASTER_PILOTI_STROKE,
-    strokeWidth: 1,
+    strokeWidth: MASTER_SHARED_STROKE_WIDTH,
     originX: "center",
     originY: "center",
     top: -10,
@@ -1998,6 +1999,7 @@ const CONTRAV_FILL = MASTER_PILOTI_FILL;
 const CONTRAV_STROKE = MASTER_PILOTI_STROKE;
 const CONTRAV_SELECTED_FILL = MASTER_PILOTI_FILL;
 const CONTRAV_SELECTED_STROKE = MASTER_PILOTI_STROKE;
+const CONTRAV_STROKE_WIDTH = MASTER_SHARED_STROKE_WIDTH;
 const CONTRAV_ELEVATION_WIDTH = 10;
 
 /** Local-space X of each column (0-3) in the top-view group */
@@ -2137,7 +2139,7 @@ export function addContraventamentoBeam(
     top: topY,
     fill: CONTRAV_FILL,
     stroke: CONTRAV_STROKE,
-    strokeWidth: 1,
+    strokeWidth: CONTRAV_STROKE_WIDTH,
     originX: "left",
     originY: "top",
     selectable: false,
@@ -2237,7 +2239,7 @@ export function setContraventamentoSelection(
     obj.set({
       fill: isSelected ? CONTRAV_SELECTED_FILL : CONTRAV_FILL,
       stroke: isSelected ? CONTRAV_SELECTED_STROKE : CONTRAV_STROKE,
-      strokeWidth: isSelected ? 2 : 1,
+      strokeWidth: CONTRAV_STROKE_WIDTH,
     });
     obj.dirty = true;
   });
@@ -2411,7 +2413,7 @@ export function highlightContraventamentoPilotis(
 
     if (eligible && inColumn && !isSkipped) {
       // Available — yellow border highlight (same visual language as top-view selection).
-      obj.set({ stroke: "#facc15", strokeWidth: 4, fill: "#ffffff", hoverCursor: "pointer" });
+      obj.set({ stroke: "#facc15", strokeWidth: 4, fill: MASTER_PILOTI_FILL, hoverCursor: "pointer" });
     } else {
       // Dimmed — grey out, including master pilotis while not eligible.
       obj.set({ stroke: "#aaa", strokeWidth: 1, fill: "#eee", hoverCursor: "default" });
