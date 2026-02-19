@@ -7,7 +7,19 @@ interface House3DSceneProps {
   houseType: HouseType;
   pilotis: Record<string, PilotiData>;
   elements?: HouseElement[];
+  contraventamentos?: Contraventamento3DData[];
   wallColor?: string;
+}
+
+export type Contraventamento3DSide = 'left' | 'right';
+
+export interface Contraventamento3DData {
+  id: string;
+  col: number;
+  startRow: number;
+  endRow: number;
+  side: Contraventamento3DSide;
+  anchorPilotiId: string;
 }
 
 interface SceneOpening {
@@ -32,6 +44,9 @@ const PILOTI_STEP_Z = 135 * U;
 const PILOTI_RADIUS = 15 * U;
 const BASE_PILOTI_HEIGHT = BASE_PILOTI_HEIGHT_PX * U;
 const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
+const CONTRAV_TOP_WIDTH = 5 * U;
+const CONTRAV_SQUARE_WIDTH = 10 * U;
+const CONTRAV_OFFSET_M = 0.2;
 
 const FLOOR_BEAM_HEIGHT = 20 * U;
 const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
@@ -315,6 +330,60 @@ function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<s
   );
 }
 
+function ContraventamentoMesh({
+  contraventamento,
+  pilotis,
+}: {
+  contraventamento: Contraventamento3DData;
+  pilotis: Record<string, PilotiData>;
+}) {
+  const { col, startRow, endRow, side, anchorPilotiId } = contraventamento;
+  if (!Number.isInteger(col) || col < 0 || col > 3) return null;
+  if (!Number.isInteger(startRow) || !Number.isInteger(endRow)) return null;
+
+  const anchorGrid = parsePilotiId(anchorPilotiId);
+  const anchorRow = anchorGrid?.row;
+  const originRow = Number.isInteger(anchorRow) ? anchorRow : startRow;
+  const targetRow = originRow === startRow ? endRow : startRow;
+  if (originRow < 0 || originRow > 2 || targetRow < 0 || targetRow > 2 || originRow === targetRow) return null;
+
+  const [colCenterX] = getPilotiTopXZ(col, originRow);
+  const [, originZ] = getPilotiTopXZ(col, originRow);
+  const [, targetZ] = getPilotiTopXZ(col, targetRow);
+
+  const sideSign = side === 'right' ? 1 : -1;
+  const tangentX = colCenterX + sideSign * PILOTI_RADIUS;
+  // Match 2D rule: the edge opposite to the selected side touches piloti tangent.
+  const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
+
+  const terrainYAtOrigin = getTerrainYByUV(pilotis, 1 - col / 3, originRow / 2);
+  const originY = terrainYAtOrigin + CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
+  const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
+
+  const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);
+  const endPoint = new THREE.Vector3(beamCenterX, destinationY, targetZ);
+  const direction = endPoint.clone().sub(startPoint);
+  const length = direction.length();
+  if (!Number.isFinite(length) || length <= 0.01) return null;
+
+  direction.normalize();
+  const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+  const midpoint = startPoint.add(endPoint).multiplyScalar(0.5);
+  const beamColor = pilotis[anchorPilotiId]?.isMaster ? MASTER_PILOTI_FILL : COLORS.piloti;
+
+  return (
+    <mesh
+      position={[midpoint.x, midpoint.y, midpoint.z]}
+      quaternion={[orientation.x, orientation.y, orientation.z, orientation.w]}
+      castShadow
+      receiveShadow
+    >
+      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]} />
+      <meshStandardMaterial color={beamColor} roughness={0.65} />
+    </mesh>
+  );
+}
+
 function RoofMesh() {
   const geometry = useMemo(() => {
     const hw = HOUSE_WIDTH / 2;
@@ -528,7 +597,13 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   );
 }
 
-export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#d4d4d4' }: House3DSceneProps) {
+export function House3DScene({
+  houseType,
+  pilotis,
+  elements = [],
+  contraventamentos = [],
+  wallColor = '#d4d4d4',
+}: House3DSceneProps) {
   const sceneOpenings = useMemo(() => buildOpeningsFromCanvasModel(houseType, elements), [houseType, elements]);
   if (!houseType) return null;
 
@@ -538,6 +613,10 @@ export function House3DScene({ houseType, pilotis, elements = [], wallColor = '#
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
         <PilotiMesh key={pilotiId} pilotiId={pilotiId} pilotis={pilotis} />
+      ))}
+
+      {contraventamentos.map((contraventamento) => (
+        <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis} />
       ))}
 
       <HouseShell wallColor={wallColor} />

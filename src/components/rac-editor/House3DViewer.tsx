@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRotateRight, faExpand, faCompress, faXmark, faPalette, faCamera } from '@fortawesome/free-solid-svg-icons';
-import { House3DScene } from './House3DScene';
+import { House3DScene, Contraventamento3DData } from './House3DScene';
 import { houseManager, HouseType, PilotiData, HouseElement } from '@/lib/house-manager';
 import { toast } from 'sonner';
 
@@ -30,6 +30,7 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [pilotis, setPilotis] = useState<Record<string, PilotiData>>({});
   const [elements, setElements] = useState<HouseElement[]>([]);
+  const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState('#a8c4d8');
@@ -38,11 +39,46 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
   // Sync with HouseManager
   const syncFromManager = useCallback(() => {
     const house = houseManager.getHouse();
-    if (house) {
-      setHouseType(house.houseType);
-      setPilotis({ ...house.pilotis });
-      setElements([...houseManager.getElements()]);
+    if (!house) {
+      setHouseType(null);
+      setPilotis({});
+      setElements([]);
+      setContraventamentos([]);
+      return;
     }
+
+    setHouseType(house.houseType);
+    setPilotis({ ...house.pilotis });
+    setElements([...houseManager.getElements()]);
+
+    const topGroup = house.views.top[0]?.group;
+    const parsedContraventamentos: Contraventamento3DData[] = [];
+
+    topGroup?.getObjects().forEach((obj: any, index: number) => {
+      if (!obj?.isContraventamento) return;
+
+      const col = Number(obj.contraventamentoCol);
+      const startRowRaw = Number(obj.contraventamentoStartRow);
+      const endRowRaw = Number(obj.contraventamentoEndRow);
+      if (!Number.isInteger(col) || col < 0 || col > 3) return;
+      if (!Number.isInteger(startRowRaw) || !Number.isInteger(endRowRaw)) return;
+
+      const startRow = Math.min(startRowRaw, endRowRaw);
+      const endRow = Math.max(startRowRaw, endRowRaw);
+      if (startRow === endRow || startRow < 0 || endRow > 2) return;
+
+      const side = obj.contraventamentoSide === 'left' || obj.contraventamentoSide === 'right'
+        ? obj.contraventamentoSide
+        : 'right';
+      const anchorPilotiId = typeof obj.contraventamentoAnchorPilotiId === 'string' && obj.contraventamentoAnchorPilotiId
+        ? obj.contraventamentoAnchorPilotiId
+        : `piloti_${col}_${startRow}`;
+      const id = String(obj.contraventamentoId ?? `contrav_3d_${index}`);
+
+      parsedContraventamentos.push({ id, col, startRow, endRow, side, anchorPilotiId });
+    });
+
+    setContraventamentos(parsedContraventamentos);
   }, []);
 
   // Subscribe to HouseManager changes
@@ -229,7 +265,13 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
                 />
                 
                 {/* Scene */}
-                <House3DScene houseType={houseType} pilotis={pilotis} elements={elements} wallColor={wallColor} />
+                <House3DScene
+                  houseType={houseType}
+                  pilotis={pilotis}
+                  elements={elements}
+                  contraventamentos={contraventamentos}
+                  wallColor={wallColor}
+                />
                 
                 {/* Controls */}
                 <OrbitControls 
