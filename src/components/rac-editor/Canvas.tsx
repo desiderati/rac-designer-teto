@@ -710,6 +710,54 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         onContraventamentoSelectRef.current?.(null);
       };
 
+      // In contraventamento mode, capture piloti clicks on first tap/click.
+      const handleContraventamentoPilotiClick = (e: any) => {
+        if (!isContraventamentoModeRef.current) return;
+
+        const target = e.target;
+        if (!target || target.type !== 'group') return;
+
+        const group = target as Group;
+        if ((group as any).houseView !== 'top') return;
+
+        const subTargets = (e as any).subTargets || [];
+        const directPilotiTarget = subTargets.find((st: any) =>
+          st?.isPilotiCircle || st?.isPilotiHitArea
+        );
+        if (directPilotiTarget) {
+          handlePilotiSelection(directPilotiTarget, target);
+          return;
+        }
+
+        // Fallback hit-test: on first click Fabric may only select the group and not
+        // provide piloti subTargets yet.
+        const pointer = canvas.getPointer(e.e);
+        const groupMatrix = group.calcTransformMatrix();
+        const invertedMatrix = fabricUtil.invertTransform(groupMatrix);
+        const localPoint = fabricUtil.transformPoint(
+          { x: pointer.x, y: pointer.y },
+          invertedMatrix
+        );
+
+        const objects = group.getObjects();
+        for (let i = objects.length - 1; i >= 0; i--) {
+          const obj = objects[i] as any;
+          if (!(obj.isPilotiCircle || obj.isPilotiHitArea)) continue;
+
+          const objLeft = obj.left || 0;
+          const objTop = obj.top || 0;
+          const radius = obj.radius || (obj.width / 2) || 10;
+          const dist = Math.sqrt(
+            Math.pow(localPoint.x - objLeft, 2) + Math.pow(localPoint.y - objTop, 2),
+          );
+
+          if (dist <= radius) {
+            handlePilotiSelection(obj, target);
+            return;
+          }
+        }
+      };
+
       const setCanvasCursor = (cursor: string) => {
         if (!canvas.upperCanvasEl) return;
         if (canvas.upperCanvasEl.style.cursor !== cursor) {
@@ -745,6 +793,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       };
 
       canvas.on('mouse:down', handleContraventamentoSelection);
+      canvas.on('mouse:down', handleContraventamentoPilotiClick);
       canvas.on('mouse:move', handleContraventamentoCursor);
       canvas.on('mouse:out', () => setCanvasCursor('default'));
 

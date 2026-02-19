@@ -2125,12 +2125,15 @@ export function addContraventamentoBeam(
 
   const side: ContraventamentoSide = options?.side === "left" ? "left" : "right";
   const tangentX = side === "right" ? colX + CONTRAV_RAD : colX - CONTRAV_RAD;
+  const beamLeft = side === "right"
+    ? tangentX
+    : tangentX - CONTRAV_BEAM_WIDTH;
 
   const beam = new Rect({
     width: CONTRAV_BEAM_WIDTH,
     height: beamHeight,
-    // Side tangent of piloti circles, from center to center.
-    left: tangentX - CONTRAV_BEAM_WIDTH / 2,
+    // Beam edge opposite to the selected side touches the piloti tangent.
+    left: beamLeft,
     top: topY,
     fill: CONTRAV_FILL,
     stroke: CONTRAV_STROKE,
@@ -2275,48 +2278,82 @@ export function syncContraventamentoElevationsFromTop(
     pilotiRects.forEach((rect) => rectByPilotiId.set(String(rect.pilotiId), rect));
 
     const internalObjects = (group as any)._objects as FabricObject[];
+    const CONTRAV_OFFSET_M = 0.2;
+
+    const getPilotiRow = (pilotiId: string): number | null => {
+      const match = pilotiId.match(/^piloti_\d+_(\d+)$/);
+      return match ? parseInt(match[1], 10) : null;
+    };
+
+    const getRectTop = (rect: any): number => Number(rect?.top ?? 0);
+    const getRectWidth = (rect: any): number => Number(rect?.width ?? 0) * Number(rect?.scaleX ?? 1);
+    const getRectCenterX = (rect: any): number => Number(rect?.left ?? 0) + getRectWidth(rect) / 2;
+    const getRectBaseHeight = (rect: any): number =>
+      Number(rect?.pilotiBaseHeight ?? BASE_PILOTI_HEIGHT_PX * CONTRAV_S);
+
+    // Origem: 20cm acima do terreno local do piloti de origem.
+    const getOriginY = (rect: any, originPilotiId: string): number => {
+      const top = getRectTop(rect);
+      const base = getRectBaseHeight(rect);
+      const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
+      return top + (originNivel - CONTRAV_OFFSET_M) * base;
+    };
+
+    // Destino: 20cm abaixo da viga de piso (na projeção, referência = topo do piloti).
+    const getDestinationY = (rect: any): number => {
+      const top = getRectTop(rect);
+      const base = getRectBaseHeight(rect);
+      return top + CONTRAV_OFFSET_M * base;
+    };
 
     for (const contrav of contravs) {
-      const visibleRows: Array<{ row: number; pilotiId: string; rect: any }> = [];
-      for (let row = contrav.startRow; row <= contrav.endRow; row += 1) {
-        const pilotiId = `piloti_${contrav.col}_${row}`;
-        const rect = rectByPilotiId.get(pilotiId);
-        if (rect) visibleRows.push({ row, pilotiId, rect });
-      }
-      if (visibleRows.length === 0) continue;
+      const originPilotiId = String(contrav.anchorPilotiId);
+      const originRow = getPilotiRow(originPilotiId);
+      const normalizedOriginRow =
+        originRow !== null && Number.isFinite(originRow) ? originRow : contrav.startRow;
+      const targetRow = normalizedOriginRow === contrav.startRow ? contrav.endRow : contrav.startRow;
+      const targetPilotiId = `piloti_${contrav.col}_${targetRow}`;
 
-      const anchorVisible = visibleRows.find((item) => item.pilotiId === contrav.anchorPilotiId);
-      const ref = anchorVisible ?? visibleRows[0];
-      const refRect = ref.rect;
-      const refTop = Number(refRect.top ?? 0);
-      const refBaseHeight = Number(refRect.pilotiBaseHeight ?? BASE_PILOTI_HEIGHT_PX * CONTRAV_S);
-      const nivel = Number(getPilotiNivel(ref.pilotiId) ?? 0);
-      const y = refTop + nivel * refBaseHeight;
+      const originRect = rectByPilotiId.get(originPilotiId);
+      const targetRect = rectByPilotiId.get(targetPilotiId);
+      if (!originRect && !targetRect) continue;
 
       let x1 = 0;
+      let y1 = 0;
       let x2 = 0;
-      if (visibleRows.length === 1) {
-        const rect = visibleRows[0].rect;
-        const left = Number(rect.left ?? 0);
-        const width = Number(rect.width ?? 0) * Number(rect.scaleX ?? 1);
-        x1 = left - 4;
-        x2 = left + width + 4;
+      let y2 = 0;
+
+      if (originRect && targetRect) {
+        x1 = getRectCenterX(originRect);
+        y1 = getOriginY(originRect, originPilotiId);
+        x2 = getRectCenterX(targetRect);
+        y2 = getDestinationY(targetRect);
       } else {
-        const centers = visibleRows
-          .map((item) => {
-            const rect = item.rect;
-            const left = Number(rect.left ?? 0);
-            const width = Number(rect.width ?? 0) * Number(rect.scaleX ?? 1);
-            return left + width / 2;
-          })
-          .sort((a, b) => a - b);
-        x1 = centers[0];
-        x2 = centers[centers.length - 1];
+        // Views where only one projected piloti is visible (e.g. front/back): draw a
+        // short diagonal slash using the same projected piloti as reference.
+        const refRect = originRect ?? targetRect;
+        const centerX = getRectCenterX(refRect);
+        const width = getRectWidth(refRect);
+        const span = Math.max(8, width * 0.8);
+        const dir = contrav.side === "left" ? -1 : 1;
+
+        x1 = centerX - (span / 2) * dir;
+        y1 = getOriginY(refRect, originPilotiId);
+        x2 = centerX + (span / 2) * dir;
+        y2 = getDestinationY(refRect);
       }
 
-      if (!Number.isFinite(x1) || !Number.isFinite(x2) || Math.abs(x2 - x1) < 1) continue;
+      if (
+        !Number.isFinite(x1) ||
+        !Number.isFinite(y1) ||
+        !Number.isFinite(x2) ||
+        !Number.isFinite(y2) ||
+        (Math.abs(x2 - x1) < 1 && Math.abs(y2 - y1) < 1)
+      ) {
+        continue;
+      }
 
-      const line = new Line([x1, y, x2, y], {
+      const line = new Line([x1, y1, x2, y2], {
         stroke: CONTRAV_FILL,
         strokeWidth: CONTRAV_ELEVATION_WIDTH,
         strokeUniform: true,
@@ -2327,7 +2364,7 @@ export function syncContraventamentoElevationsFromTop(
       const lineAny = line as any;
       lineAny.isContraventamentoElevation = true;
       lineAny.contraventamentoId = contrav.id;
-      lineAny.contraventamentoSourcePilotiId = ref.pilotiId;
+      lineAny.contraventamentoSourcePilotiId = originPilotiId;
 
       internalObjects.push(line);
       lineAny.group = group;
