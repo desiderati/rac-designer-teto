@@ -1993,12 +1993,12 @@ const CONTRAV_S = 0.6;
 const CONTRAV_CD = 155 * CONTRAV_S; // 93  — column distance
 const CONTRAV_RD = 135 * CONTRAV_S; // 81  — row distance
 const CONTRAV_RAD = 15 * CONTRAV_S; // 9   — piloti radius
-const CONTRAV_BEAM_WIDTH = 10;
+const CONTRAV_BEAM_WIDTH = 5;
 const CONTRAV_FILL = "#8B4513";
 const CONTRAV_STROKE = "#5C2D0A";
 const CONTRAV_SELECTED_FILL = "#A0522D";
 const CONTRAV_SELECTED_STROKE = "#4A2508";
-const CONTRAV_ELEVATION_WIDTH = 20;
+const CONTRAV_ELEVATION_WIDTH = 10;
 
 /** Local-space X of each column (0-3) in the top-view group */
 const CONTRAV_COL_X = [
