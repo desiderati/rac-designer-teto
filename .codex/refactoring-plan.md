@@ -14,10 +14,10 @@ Code.
 
 #### 1. **Componentes Monolíticos**
 
-- **RACEditor.tsx**: 1.697 linhas (39 hooks)
-- **Canvas.tsx**: 1.366 linhas (37 hooks)
-- **canvas-utils.ts**: 1.821 linhas (funções utilitárias sem estrutura)
-- **house-manager.ts**: 880 linhas (gerenciamento de estado)
+- **RACEditor.tsx** 
+- **Canvas.tsx**
+- **canvas-utils.ts**: (funções utilitárias sem estrutura)
+- **house-manager.ts**: (gerenciamento de estado)
 
 **Impacto:** Difícil de testar, manter e evoluir. Responsabilidades misturadas.
 
@@ -52,29 +52,29 @@ Code.
 
 ```
 src/
-├── domain/                    # Lógica de negócio pura (sem dependências externas)
+├── domain/                   # Lógica de negócio pura (sem dependências externas)
 │   ├── entities/             # Entidades de domínio
 │   ├── value-objects/        # Objetos de valor
 │   ├── services/             # Serviços de domínio
 │   └── repositories/         # Interfaces de repositório
 │
-├── application/              # Casos de uso e orquestração
+├── application/             # Casos de uso e orquestração
 │   ├── use-cases/           # Casos de uso específicos
 │   ├── dto/                 # Data Transfer Objects
 │   └── services/            # Serviços de aplicação
 │
-├── infrastructure/           # Implementações técnicas
+├── infrastructure/          # Implementações técnicas
 │   ├── fabric/              # Adaptadores Fabric.js
 │   ├── storage/             # Persistência (localStorage, etc)
 │   └── repositories/        # Implementações de repositório
 │
-├── presentation/             # Componentes React
+├── presentation/            # Componentes React
 │   ├── pages/               # Páginas
 │   ├── containers/          # Containers (conectam com aplicação)
 │   ├── components/          # Componentes puros
 │   └── hooks/               # Custom hooks
 │
-└── shared/                   # Código compartilhado
+└── shared/                  # Código compartilhado
     ├── types/               # Tipos globais
     ├── constants/           # Constantes
     └── utils/               # Utilitários puros
@@ -343,8 +343,6 @@ export class CreateHouseUseCase {
 
 **Problema Atual:**
 
-- 1.366 linhas
-- 37 hooks
 - Mistura: gerenciamento de canvas, seleção, história, zoom
 
 **Solução:**
@@ -419,13 +417,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
         }));
 
         return (
-            <div ref = {containerRef}
-        className = "canvas-container" >
-        <canvas ref = {canvasRef}
-        />
-        < /div>
-    )
-        ;
+            <div ref={containerRef} className="canvas-container">
+                <canvas ref={canvasRef}/>
+            </div>
+        );
     }
 );
 ```
@@ -461,18 +456,13 @@ export function RACEditorContainer() {
         houseService.createHouse('tipo6').then(setHouse);
     }, []);
 
-    if (!house) return <LoadingSpinner / >;
+    if (!house) return <LoadingSpinner/>;
 
     return (
-        <RACEditorPresentation
-            house = {house}
-    onPilotiUpdate = {(pilotiId, height)
-=>
-    houseService.updatePilotiHeight(house.getId(), pilotiId, height)
-}
-    />
-)
-    ;
+        <RACEditorPresentation house={house}
+            onPilotiUpdate={(pilotiId, height) => houseService.updatePilotiHeight(house.getId(), pilotiId, height)} 
+        />
+    );
 }
 
 // src/presentation/pages/RACEditor.tsx (Apresentação pura)
@@ -482,34 +472,17 @@ export function RACEditorPresentation({house, onPilotiUpdate}: Props) {
     const canvasRef = useRef<CanvasHandle>(null);
 
     return (
-        <div className = "rac-editor" >
-        <Toolbar
-            onMenuChange = {setActiveSubmenu}
-    onSettingsClick = {()
-=>
-    setShowSettings(true)
-}
-    />
-
-    < Canvas
-    ref = {canvasRef}
-    />
-
-    {
-        showSettings && (
-            <SettingsModal onClose = {()
-    =>
-        setShowSettings(false)
-    }
-        />
-    )
-    }
-
-    {/* Outros modais */
-    }
-    </div>
-)
-    ;
+        <div className="rac-editor">
+            <Toolbar onMenuChange={setActiveSubmenu} onSettingsClick={() => setShowSettings(true)}/>
+            <Canvas ref={canvasRef}/>
+            {
+                showSettings && (<SettingsModal onClose={() => setShowSettings(false)}/>)
+            }
+            {
+                /* Outros modais */
+            }
+        </div>
+    );
 }
 ```
 
