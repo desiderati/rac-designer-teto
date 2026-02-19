@@ -55,6 +55,7 @@ export const customProps = [
   "isPilotiStripe",
   "isTopDoorMarker",
   "markerSide",
+  "isTransposedViewLabel",
   "isContraventamento",
   "isContraventamentoElevation",
   "contraventamentoId",
@@ -989,6 +990,26 @@ export function createHouseFrontBack(canvas: FabricCanvas, isFront: boolean, fli
   (group as any).myType = "house";
   (group as any).houseView = isFront ? "front" : "back";
   (group as any).isFlippedHorizontally = flipHorizontal;
+
+  // Top-side (superior) front/back views are shown transposed.
+  // Keep an explicit label with fixed 20px gap below the selected view.
+  if (flipHorizontal) {
+    const transposedLabel = new Text("Vista Transposta", {
+      fontSize: 14,
+      fontFamily: "Arial",
+      fill: "#8B4513",
+      backgroundColor: "#ffffff",
+      left: 0,
+      top: (group.height ?? 0) / 2 + 20,
+      originX: "center",
+      originY: "top",
+      selectable: false,
+      evented: false,
+    });
+    (transposedLabel as any).isTransposedViewLabel = true;
+    group.add(transposedLabel);
+  }
+
   group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
 
   return group;

@@ -53,9 +53,11 @@ export function House3DViewer({ open, onOpenChange }: House3DViewerProps) {
     setPilotis({ ...house.pilotis });
     setElements([...houseManager.getElements()]);
     if (house.houseType === 'tipo3') {
+      // 3D scene lateral axis is mirrored relative to 2D side assignments.
+      // Keep "quadrado aberto" (side2) on the same semantic side selected in canvas.
       const openSide: 'left' | 'right' | null =
-        house.sideAssignments.left === 'side2' ? 'left' :
-          house.sideAssignments.right === 'side2' ? 'right' :
+        house.sideAssignments.left === 'side2' ? 'right' :
+          house.sideAssignments.right === 'side2' ? 'left' :
             null;
       setTipo3OpenSide(openSide);
     } else {
