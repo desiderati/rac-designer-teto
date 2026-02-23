@@ -106,7 +106,7 @@ avançadas de desenho 2D e visualização 3D interativa.
 src/
 ├── components/
 │   ├── rac-editor/           # Componentes principais do editor
-│   │   ├── RACEditor.tsx     # Componente raiz do editor
+│   │   ├── RacEditor.tsx     # Componente raiz do editor
 │   │   ├── Canvas.tsx        # Editor 2D
 │   │   ├── House3DViewer.tsx # Visualizador 3D
 │   │   ├── Toolbar.tsx       # Barra de ferramentas
@@ -127,7 +127,7 @@ src/
 
 #### Components
 
-- PascalCase para nomes de componentes: `RACEditor`, `Canvas`, `Toolbar`
+- PascalCase para nomes de componentes: `RacEditor`, `Canvas`, `Toolbar`
 - Sufixo `Modal` para componentes de modal: `SettingsModal`, `ConfirmModal`
 - Sufixo `Editor` para componentes de edição: `PilotiEditor`, `DistanceEditor`
 
@@ -438,3 +438,4 @@ Closes #123
 **Last Updated:** 2026-02-17  
 **Maintained By:** Felipe Desiderati  
 **Questions?** Consulte a documentação do projeto ou abra uma issue no GitHub
+

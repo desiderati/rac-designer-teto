@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 /rac-designer-teto.iml
+playwright-report
+test-results
+.playwright

@@ -1,0 +1,288 @@
+import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState} from "react";
+import {Group} from "fabric";
+import {
+  CORNER_PILOTI_IDS,
+  getAllPilotiIds,
+  getPilotiFromGroup,
+  getPilotiIdsFromGroup,
+  getPilotiName,
+} from "@/lib/canvas-utils";
+import {houseManager} from "@/lib/house-manager";
+import {getSettings} from "@/lib/settings";
+
+const DEFAULT_NIVEL = 0.2;
+
+function clampNivel(nivel: number, pilotiHeight: number): number {
+  const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
+  return Math.round(Math.max(0.2, Math.min(nivel, maxNivel)) * 100) / 100;
+}
+
+interface UsePilotiEditorLogicArgs {
+  isOpen: boolean;
+  onClose: () => void;
+  pilotiId: string | null;
+  currentHeight: number;
+  currentIsMaster: boolean;
+  currentNivel: number;
+  group: Group | null;
+  anchorPosition?: { x: number; y: number };
+  onHeightChange: (newHeight: number) => void;
+  onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
+}
+
+export function usePilotiEditorLogic({
+  isOpen,
+  onClose,
+  pilotiId,
+  currentHeight,
+  currentIsMaster,
+  currentNivel,
+  group,
+  anchorPosition,
+  onHeightChange,
+  onNavigate,
+}: UsePilotiEditorLogicArgs) {
+  const [tempHeight, setTempHeight] = useState(() => currentHeight);
+  const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
+  const [tempNivel, setTempNivel] = useState(() => currentNivel);
+  const [clickedHeight, setClickedHeight] = useState<number | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
+
+  const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
+  const userDraggedRef = useRef(false);
+  const lastPilotiIdRef = useRef<string | null>(null);
+  const wasOpenRef = useRef(false);
+
+  const allIds = useMemo(() => {
+    if (group) return getPilotiIdsFromGroup(group);
+    return getAllPilotiIds();
+  }, [group]);
+
+  const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
+  const pilotiName = pilotiId ? getPilotiName(pilotiId) : "";
+  const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
+
+  const masterPilotiName = useMemo(() => {
+    if (!group) return undefined;
+    for (const id of allIds) {
+      const data = getPilotiFromGroup(group, id);
+      if (data?.isMaster) return getPilotiName(id);
+    }
+    if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
+    return undefined;
+  }, [group, allIds, tempIsMaster, pilotiId]);
+
+  useEffect(() => {
+    if (!isOpen || pilotiId === lastPilotiIdRef.current) return;
+    lastPilotiIdRef.current = pilotiId;
+    setTempHeight(currentHeight);
+    setTempIsMaster(currentIsMaster);
+    setTempNivel(currentNivel);
+  }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      wasOpenRef.current = false;
+      lastPilotiIdRef.current = null;
+      return;
+    }
+
+    const isFirstOpen = !wasOpenRef.current;
+    wasOpenRef.current = true;
+
+    if (isFirstOpen) {
+      userDraggedRef.current = false;
+      if (anchorPosition) {
+        setPopoverPos({x: anchorPosition.x + 12, y: anchorPosition.y + 12});
+      } else {
+        setPopoverPos({x: 24, y: 24});
+      }
+    }
+  }, [isOpen, anchorPosition]);
+
+  useEffect(() => {
+    const onMove = (e: globalThis.PointerEvent) => {
+      if (!dragStateRef.current) return;
+      userDraggedRef.current = true;
+      setPopoverPos({
+        x: e.clientX - dragStateRef.current.offsetX,
+        y: e.clientY - dragStateRef.current.offsetY,
+      });
+    };
+
+    const onUp = () => {
+      dragStateRef.current = null;
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, []);
+
+  const handleNavigate = (direction: "prev" | "next") => {
+    if (!pilotiId) return;
+
+    const idx = allIds.indexOf(pilotiId);
+    if (idx === -1) return;
+
+    const newIndex = direction === "next" ? idx + 1 : idx - 1;
+    const newId = allIds[newIndex];
+    if (!newId) return;
+
+    if (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel) {
+      houseManager.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: tempIsMaster,
+        nivel: tempNivel,
+      });
+      onHeightChange(tempHeight);
+      onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
+    }
+
+    if (!group) return;
+
+    const pilotiData = getPilotiFromGroup(group, newId);
+    if (pilotiData && onNavigate) {
+      onNavigate(newId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
+      setTempHeight(pilotiData.height);
+      setTempIsMaster(pilotiData.isMaster);
+      setTempNivel(pilotiData.nivel);
+    }
+  };
+
+  const handleApply = () => {
+    const nivelToApply = clampNivel(tempNivel, tempHeight);
+
+    if (pilotiId) {
+      houseManager.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: tempIsMaster,
+        nivel: nivelToApply,
+      });
+      onHeightChange(tempHeight);
+      onNavigate?.(pilotiId, tempHeight, tempIsMaster, nivelToApply);
+    }
+
+    onClose();
+  };
+
+  const handleCancel = () => {
+    setTempHeight(currentHeight);
+    setTempIsMaster(currentIsMaster);
+    setTempNivel(currentNivel);
+    onClose();
+  };
+
+  const handleNivelChange = (value: number) => {
+    setTempNivel(clampNivel(value, tempHeight));
+  };
+
+  const handleNivelIncrement = (delta: number) => {
+    const newVal = Math.round((tempNivel + delta) * 100) / 100;
+    handleNivelChange(newVal);
+  };
+
+  const handlePopoverPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest("button, input, textarea, select, [role=\"switch\"], [role=\"slider\"], a");
+    if (isInteractive) return;
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    dragStateRef.current = {offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top};
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    e.preventDefault();
+  };
+
+  const handleHeightClick = (h: number) => {
+    setTempHeight(h);
+
+    const {autoNavigatePiloti} = getSettings();
+    const nivelToApply = clampNivel(tempNivel, h);
+
+    if (pilotiId) {
+      houseManager.updatePiloti(pilotiId, {
+        height: h,
+        isMaster: tempIsMaster,
+        nivel: nivelToApply,
+      });
+      onHeightChange(h);
+      onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
+    }
+
+    if (autoNavigatePiloti && pilotiId) {
+      setClickedHeight(h);
+
+      const idx = allIds.indexOf(pilotiId);
+      const nextId = idx >= 0 && idx < allIds.length - 1 ? allIds[idx + 1] : null;
+
+      setTimeout(() => {
+        setClickedHeight(null);
+
+        if (nextId && group) {
+          const pilotiData = getPilotiFromGroup(group, nextId);
+          if (pilotiData && onNavigate) {
+            onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
+            setTempHeight(pilotiData.height);
+            setTempIsMaster(pilotiData.isMaster);
+            setTempNivel(pilotiData.nivel);
+          }
+          return;
+        }
+
+        onClose();
+      }, 180);
+    }
+  };
+
+  const getHeightButtonClasses = (h: number): string => {
+    const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
+    return isSelected
+      ? "bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3"
+      : "bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20";
+  };
+
+  const getContraventamentoButtonClasses = (isActive: boolean, isDisabled: boolean): string => {
+    if (isDisabled) {
+      return "h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed";
+    }
+    return isActive
+      ? "h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
+      : "h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20";
+  };
+
+  const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
+
+  return {
+    tempHeight,
+    setTempHeight,
+    tempIsMaster,
+    setTempIsMaster,
+    tempNivel,
+    clickedHeight,
+    popoverPos,
+    allIds,
+    currentIndex,
+    hasPrev,
+    hasNext,
+    pilotiName,
+    isCornerPiloti,
+    masterPilotiName,
+    maxNivel,
+    handleNavigate,
+    handleApply,
+    handleCancel,
+    handleNivelChange,
+    handleNivelIncrement,
+    handlePopoverPointerDown,
+    handleHeightClick,
+    getHeightButtonClasses,
+    getContraventamentoButtonClasses,
+  };
+}
+
+export {DEFAULT_NIVEL};

@@ -1,5 +1,6 @@
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faXmark} from "@fortawesome/free-solid-svg-icons";
+import {markTutorialCompleted} from "@/lib/persistence/tutorial-storage";
 
 interface TutorialStep {
   id: "main-fab" | "house" | "elements" | "zoom-minimap" | "more-options";
@@ -21,7 +22,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "main-fab",
     title: "Menu Principal",
     description: "Clique aqui para abrir o menu principal com todas as ferramentas.",
-    position: { top: "20px", left: "80px" },
+    position: {top: "20px", left: "80px"},
     arrowDirection: "left",
     arrowOffset: "25px",
   },
@@ -29,7 +30,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "house",
     title: "Casa TETO",
     description: "Use este botão para adicionar uma ou mais vistas da casa.",
-    position: { top: "65px", left: "80px" },
+    position: {top: "65px", left: "80px"},
     arrowDirection: "left",
     arrowOffset: "30px",
   },
@@ -37,7 +38,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "elements",
     title: "Elementos",
     description: "Abre um submenu com as opções extras para diagramação.",
-    position: { top: "225px", left: "80px" },
+    position: {top: "225px", left: "80px"},
     arrowDirection: "left",
     arrowOffset: "30x",
   },
@@ -45,7 +46,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "zoom-minimap",
     title: "Zoom e Navegação",
     description: "Use este botão para mostrar/esconder o controle de zoom e o minimapa.",
-    position: { top: "435px", left: "80px" },
+    position: {top: "435px", left: "80px"},
     arrowDirection: "left",
     arrowOffset: "25px",
   },
@@ -53,7 +54,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "more-options",
     title: "Mais Opções",
     description: "Clique aqui para abrir o menu com mais opções, ex.: importar/exportar em JSON.",
-    position: { top: "20px", right: "80px" },
+    position: {top: "20px", right: "80px"},
     arrowDirection: "right",
     arrowOffset: "25px",
     closeButtonPosition: "left",
@@ -65,7 +66,7 @@ interface TutorialProps {
   currentStepId: string;
 }
 
-export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
+export function Tutorial({onComplete, currentStepId}: TutorialProps) {
   const currentStepIndex = tutorialSteps.findIndex((s) => s.id === currentStepId);
 
   if (currentStepIndex === -1) return null;
@@ -73,7 +74,7 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
   const step = tutorialSteps[currentStepIndex];
 
   const handleComplete = () => {
-    localStorage.setItem("rac-tutorial-completed", "true");
+    markTutorialCompleted();
     onComplete();
   };
 
@@ -85,22 +86,25 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
       case "left":
         return {
           className: `${base} border-r-amber-100`,
-          style: { left: "-15px", top: offset, transform: "translateY(-50%)" },
+          style: {left: "-15px", top: offset, transform: "translateY(-50%)"},
         };
+
       case "right":
         return {
           className: `${base} border-l-amber-100`,
-          style: { right: "-15px", top: offset, transform: "translateY(-50%)" },
+          style: {right: "-15px", top: offset, transform: "translateY(-50%)"},
         };
+
       case "top":
         return {
           className: `${base} border-b-amber-100`,
-          style: { top: "-15px", left: offset, transform: "translateX(-50%)" },
+          style: {top: "-15px", left: offset, transform: "translateX(-50%)"},
         };
+
       case "bottom":
         return {
           className: `${base} border-t-amber-100`,
-          style: { bottom: "-15px", left: offset, transform: "translateX(-50%)" },
+          style: {bottom: "-15px", left: offset, transform: "translateX(-50%)"},
         };
     }
   };
@@ -129,7 +133,7 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
       >
         <div className="relative bg-amber-100 text-amber-900 rounded-xl shadow-lg p-4 max-w-[240px]">
           {/* Arrow */}
-          <div className={arrowStyles.className} style={arrowStyles.style} />
+          <div className={arrowStyles.className} style={arrowStyles.style}/>
 
           {/* Close button */}
           <button
@@ -138,7 +142,7 @@ export function Tutorial({ onComplete, currentStepId }: TutorialProps) {
               step.closeButtonPosition === "left" ? "-left-2" : "-right-2"
             }`}
           >
-            <FontAwesomeIcon icon={faXmark} className="text-amber-800 text-xs" />
+            <FontAwesomeIcon icon={faXmark} className="text-amber-800 text-xs"/>
           </button>
 
           {/* Content */}

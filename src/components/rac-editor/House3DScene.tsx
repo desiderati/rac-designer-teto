@@ -1,7 +1,46 @@
 import {useMemo} from 'react';
 import * as THREE from 'three';
 import {HouseElement, HouseType, PilotiData} from '@/lib/house-manager';
-import {BASE_PILOTI_HEIGHT_PX, BASE_TOP_HEIGHT, BASE_TOP_WIDTH, MASTER_PILOTI_FILL,} from '@/lib/canvas-utils';
+import {MASTER_PILOTI_FILL} from '@/lib/canvas-utils';
+import {
+  ALL_PILOTI_IDS,
+  BASE_PILOTI_HEIGHT,
+  BODY_PROFILE_HEIGHT,
+  CHAPEL_W,
+  COLORS,
+  CONTRAV_OFFSET_M,
+  CONTRAV_SQUARE_WIDTH,
+  CONTRAV_TOP_WIDTH,
+  DIAG_H2,
+  DIAG_W,
+  FLOOR_BEAM_HEIGHT,
+  FLOOR_BEAM_ROWS_Z,
+  FLOOR_BEAM_STRIP_DEPTH,
+  FLOOR_HEIGHT,
+  FRONT_BACK_PANEL_OFFSET,
+  HOUSE_DEPTH,
+  HOUSE_WIDTH,
+  PILOTI_RADIUS,
+  PILOTI_STEP_X,
+  PILOTI_STEP_Z,
+  PILOTI_TOP_Y,
+  ROOF_BASE_Y,
+  ROOF_LONG_SIDE_OVERHANG,
+  ROOF_SHORT_SIDE_OVERHANG,
+  ROOF_TOP_Y,
+  ROOF_WAVE_AMPLITUDE,
+  ROOF_WAVE_PITCH,
+  ROOF_WAVE_SEGMENTS_X,
+  ROOF_WAVE_SEGMENTS_Z,
+  TERRAIN_MARGIN,
+  TERRAIN_SEGMENTS,
+  VIEWER_MODEL_SCALE,
+  WALL_BASE_Y,
+  WALL_HEIGHT,
+  WALL_THICKNESS,
+} from '@/lib/3d/geometry-constants';
+import {buildOpeningsFromCanvasModel} from '@/lib/3d/openings-mapper';
+import {Contraventamento3DData} from '@/lib/3d/contraventamento-parser';
 
 interface House3DSceneProps {
   houseType: HouseType;
@@ -13,93 +52,12 @@ interface House3DSceneProps {
   tipo3OpenSide?: 'left' | 'right' | null;
 }
 
-export type Contraventamento3DSide = 'left' | 'right';
-
-export interface Contraventamento3DData {
-  id: string;
-  col: number;
-  startRow: number;
-  endRow: number;
-  side: Contraventamento3DSide;
-  anchorPilotiId: string;
-}
-
-interface SceneOpening {
-  id: string;
-  type: 'window' | 'door';
-  face: 'front' | 'back' | 'left' | 'right';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-const TOP_VIEW_SCALE = 0.6; // Same scale used by createHouseTop
-const VIEWER_MODEL_SCALE = 0.5;
-const U = TOP_VIEW_SCALE * VIEWER_MODEL_SCALE;
-
-const HOUSE_WIDTH = BASE_TOP_WIDTH * U;
-const HOUSE_DEPTH = BASE_TOP_HEIGHT * U;
-
-const PILOTI_STEP_X = 155 * U;
-const PILOTI_STEP_Z = 135 * U;
-const PILOTI_RADIUS = 15 * U;
-const BASE_PILOTI_HEIGHT = BASE_PILOTI_HEIGHT_PX * U;
-const PILOTI_TOP_Y = BASE_PILOTI_HEIGHT;
-const CONTRAV_TOP_WIDTH = 5 * U;
-const CONTRAV_SQUARE_WIDTH = 10 * U;
-const CONTRAV_OFFSET_M = 0.2;
-
-const FLOOR_BEAM_HEIGHT = 20 * U;
-const FLOOR_BEAM_STRIP_DEPTH = 10 * U;
-const FLOOR_HEIGHT = 10 * U;
-const BODY_PROFILE_HEIGHT = 273 * U;
-const WALL_HEIGHT = 213 * U;
-const DIAG_W = 244 * U;
-const DIAG_H2 = 261 * U;
-const CHAPEL_W = 122 * U;
-const ROOF_RISE = BODY_PROFILE_HEIGHT - WALL_HEIGHT;
-const ROOF_SHORT_SIDE_OVERHANG = 10 * U; // 10 cm on the 3 m side
-const ROOF_LONG_SIDE_OVERHANG = 10 * U; // 10 cm on the square-panel side
-const ROOF_WAVE_AMPLITUDE = 1.8 * U;
-const ROOF_WAVE_PITCH = 28 * U;
-const ROOF_WAVE_SEGMENTS_X = 10;
-const ROOF_WAVE_SEGMENTS_Z = 28;
-
-const WALL_BASE_Y = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT;
-const ROOF_BASE_Y = WALL_BASE_Y + WALL_HEIGHT;
-const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
-
-const WALL_THICKNESS = 2 * U;
-const FRONT_BACK_PANEL_OFFSET = WALL_THICKNESS * 0.65;
-const TERRAIN_MARGIN = 90 * U;
-const TERRAIN_SEGMENTS = 28;
+export type {Contraventamento3DData};
 
 const DEFAULT_PILOTI: PilotiData = {
   height: 1.0,
   isMaster: false,
   nivel: 0.2,
-};
-
-const ALL_PILOTI_IDS = Array.from({ length: 3 * 4 }, (_, index) => {
-  const col = index % 4;
-  const row = Math.floor(index / 4);
-  return `piloti_${col}_${row}`;
-});
-
-const FLOOR_BEAM_ROWS_Z = [
-  HOUSE_DEPTH / 2 - FLOOR_BEAM_STRIP_DEPTH / 2, // A: flush with floor edge
-  0, // B: centered
-  -HOUSE_DEPTH / 2 + FLOOR_BEAM_STRIP_DEPTH / 2, // C: flush with floor edge
-];
-
-const COLORS = {
-  roof: '#a8b8c4',
-  piloti: '#d8d8d8',
-  terrain: '#7da86d',
-  floor: '#f7f7f7',
-  beam: '#ececec',
-  frame: '#bdbdbd',
 };
 
 function offsetLightness(hex: string, lightnessOffset: number): string {
@@ -125,139 +83,6 @@ function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.Bu
   return geo;
 }
 
-function buildOpeningsFromCanvasModel(
-  houseType: HouseType,
-  rawElements: HouseElement[],
-  tipo6FrontSide?: 'top' | 'bottom' | null,
-  tipo3OpenSide?: 'left' | 'right' | null,
-): SceneOpening[] {
-  if (!houseType) return [];
-
-  const s = TOP_VIEW_SCALE;
-  const bodyW = BASE_TOP_WIDTH * s;
-  const bodyH = 273 * s;
-  const sideW = BASE_TOP_HEIGHT * s;
-  const sideWallH = 213 * s;
-
-  const fbDoorW = 80 * s;
-  const fbDoorH = 191 * s;
-  const fbWindowW = 80 * s;
-  const fbWindowH = 70 * s;
-  const fbDoorShiftX = 30 * s;
-  const fbWindowShiftX = 30 * s;
-  const fbWindowY = bodyH - fbDoorH;
-  const fbBackWindowX = 95 * s;
-
-  const fbFrontDoorX = bodyW - fbWindowW - fbWindowShiftX - fbDoorW - fbDoorShiftX;
-  const fbFrontWindowRightX = bodyW - fbWindowW - fbWindowShiftX;
-  const fbFrontWindowLeftX = 95 * s;
-
-  const sideDoorW = 80 * s;
-  const sideDoorH = 191 * s;
-  const sideWindowW = 80 * s;
-  const sideWindowH = 70 * s;
-  const sideDoorShiftX = 45 * s;
-  const sideWindowShiftX = 45 * s;
-  const sideDoorX = sideW - sideDoorW - sideDoorShiftX;
-  const sideWindowX = sideW - sideDoorW - sideDoorShiftX - sideWindowW - sideWindowShiftX;
-  const sideOpeningY = sideWallH - sideDoorH;
-
-  const openings: SceneOpening[] = [];
-
-  if (houseType === 'tipo6') {
-    // When "frontal" is placed at the bottom side in 2D, swap front/back faces in 3D.
-    const frontFace: SceneOpening['face'] = tipo6FrontSide === 'bottom' ? 'back' : 'front';
-    const backFace: SceneOpening['face'] = frontFace === 'front' ? 'back' : 'front';
-    openings.push(
-      {
-        id: 'canvas-front-window-left',
-        type: 'window',
-        face: frontFace,
-        x: fbFrontWindowLeftX,
-        y: fbWindowY,
-        width: fbWindowW,
-        height: fbWindowH,
-      },
-      {
-        id: 'canvas-front-window-right',
-        type: 'window',
-        face: frontFace,
-        x: fbFrontWindowRightX,
-        y: fbWindowY,
-        width: fbWindowW,
-        height: fbWindowH,
-      },
-      {
-        id: 'canvas-front-door',
-        type: 'door',
-        face: frontFace,
-        x: fbFrontDoorX,
-        y: fbWindowY,
-        width: fbDoorW,
-        height: fbDoorH,
-      },
-      {
-        id: 'canvas-back-window',
-        type: 'window',
-        face: backFace,
-        x: fbBackWindowX,
-        y: fbWindowY,
-        width: fbWindowW,
-        height: fbWindowH,
-      },
-    );
-    return openings;
-  }
-
-  const hasLeftDoor = rawElements.some((e) => e.type === 'door' && e.face === 'left');
-  const hasRightDoor = rawElements.some((e) => e.type === 'door' && e.face === 'right');
-  const inferredOpenSide: 'left' | 'right' = hasLeftDoor ? 'left' : hasRightDoor ? 'right' : 'right';
-  const openSide: 'left' | 'right' = tipo3OpenSide === 'left' || tipo3OpenSide === 'right'
-    ? tipo3OpenSide
-    : inferredOpenSide;
-
-  openings.push(
-    {
-      id: 'canvas-tipo3-front-window',
-      type: 'window',
-      face: 'front',
-      x: fbBackWindowX,
-      y: fbWindowY,
-      width: fbWindowW,
-      height: fbWindowH,
-    },
-    {
-      id: 'canvas-tipo3-back-window',
-      type: 'window',
-      face: 'back',
-      x: fbBackWindowX,
-      y: fbWindowY,
-      width: fbWindowW,
-      height: fbWindowH,
-    },
-    {
-      id: `canvas-tipo3-${openSide}-window`,
-      type: 'window',
-      face: openSide,
-      x: sideWindowX,
-      y: sideOpeningY,
-      width: sideWindowW,
-      height: sideWindowH,
-    },
-    {
-      id: `canvas-tipo3-${openSide}-door`,
-      type: 'door',
-      face: openSide,
-      x: sideDoorX,
-      y: sideOpeningY,
-      width: sideDoorW,
-      height: sideDoorH,
-    },
-  );
-
-  return openings;
-}
-
 function parsePilotiId(pilotiId: string): { col: number; row: number } | null {
   const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
   if (!match) return null;
@@ -276,13 +101,13 @@ function getCornerNiveis(pilotis: Record<string, PilotiData>) {
   const a4 = pilotis.piloti_3_0?.nivel ?? DEFAULT_PILOTI.nivel;
   const c1 = pilotis.piloti_0_2?.nivel ?? DEFAULT_PILOTI.nivel;
   const c4 = pilotis.piloti_3_2?.nivel ?? DEFAULT_PILOTI.nivel;
-  return { a1, a4, c1, c4 };
+  return {a1, a4, c1, c4};
 }
 
 function getTerrainYByUV(pilotis: Record<string, PilotiData>, u: number, v: number): number {
   const clampedU = THREE.MathUtils.clamp(u, 0, 1);
   const clampedV = THREE.MathUtils.clamp(v, 0, 1);
-  const { a1, a4, c1, c4 } = getCornerNiveis(pilotis);
+  const {a1, a4, c1, c4} = getCornerNiveis(pilotis);
   const nivel = bilinear(a1, a4, c1, c4, clampedU, clampedV);
   return PILOTI_TOP_Y - nivel * BASE_PILOTI_HEIGHT;
 }
@@ -293,7 +118,7 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   return [x, z];
 }
 
-function TerrainMesh({ pilotis }: { pilotis: Record<string, PilotiData> }) {
+function TerrainMesh({pilotis}: { pilotis: Record<string, PilotiData> }) {
   const geometry = useMemo(() => {
     const width = HOUSE_WIDTH + TERRAIN_MARGIN * 2;
     const depth = HOUSE_DEPTH + TERRAIN_MARGIN * 2;
@@ -315,12 +140,12 @@ function TerrainMesh({ pilotis }: { pilotis: Record<string, PilotiData> }) {
 
   return (
     <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={THREE.DoubleSide} />
+      <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={THREE.DoubleSide}/>
     </mesh>
   );
 }
 
-function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<string, PilotiData> }) {
+function PilotiMesh({pilotiId, pilotis}: { pilotiId: string; pilotis: Record<string, PilotiData> }) {
   const grid = parsePilotiId(pilotiId);
   if (!grid) return null;
 
@@ -336,8 +161,8 @@ function PilotiMesh({ pilotiId, pilotis }: { pilotiId: string; pilotis: Record<s
   return (
     <group position={[x, centerY, z]}>
       <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, finalHeight, 16]} />
-        <meshStandardMaterial color={data.isMaster ? MASTER_PILOTI_FILL : COLORS.piloti} roughness={0.65} />
+        <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, finalHeight, 16]}/>
+        <meshStandardMaterial color={data.isMaster ? MASTER_PILOTI_FILL : COLORS.piloti} roughness={0.65}/>
       </mesh>
     </group>
   );
@@ -350,15 +175,13 @@ function ContraventamentoMesh({
   contraventamento: Contraventamento3DData;
   pilotis: Record<string, PilotiData>;
 }) {
-  const { col, startRow, endRow, side, anchorPilotiId } = contraventamento;
+  const {col, startRow, endRow, side, anchorPilotiId} = contraventamento;
   if (!Number.isInteger(col) || col < 0 || col > 3) return null;
   if (!Number.isInteger(startRow) || !Number.isInteger(endRow)) return null;
 
   const anchorGrid = parsePilotiId(anchorPilotiId);
-  const anchorCol = anchorGrid?.col;
-  const anchorRow = anchorGrid?.row;
-  const originCol = Number.isInteger(anchorCol) ? anchorCol : col;
-  const originRow = Number.isInteger(anchorRow) ? anchorRow : startRow;
+  const originCol = anchorGrid?.col ?? col;
+  const originRow = anchorGrid?.row ?? startRow;
   const originPilotiId = anchorGrid ? anchorPilotiId : `piloti_${originCol}_${originRow}`;
   const targetRow = originRow === startRow ? endRow : startRow;
   if (originCol < 0 || originCol > 3) return null;
@@ -372,6 +195,7 @@ function ContraventamentoMesh({
   // Keep right/left matching the 2D side semantics.
   const sideSign = side === 'right' ? -1 : 1;
   const tangentX = colCenterX + sideSign * PILOTI_RADIUS;
+
   // Same 2D rule: opposite beam edge touches piloti tangent.
   const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
 
@@ -398,8 +222,8 @@ function ContraventamentoMesh({
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]} />
-      <meshStandardMaterial color={beamColor} roughness={0.65} />
+      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]}/>
+      <meshStandardMaterial color={beamColor} roughness={0.65}/>
     </mesh>
   );
 }
@@ -455,12 +279,12 @@ function RoofMesh() {
 
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
-      <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={THREE.DoubleSide} />
+      <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={THREE.DoubleSide}/>
     </mesh>
   );
 }
 
-function FrontBackPanels({ wallColor }: { wallColor: string }) {
+function FrontBackPanels({wallColor}: { wallColor: string }) {
   const panelOffset = FRONT_BACK_PANEL_OFFSET;
   const sidePanelColor = offsetLightness(wallColor, 0.04);
 
@@ -502,66 +326,66 @@ function FrontBackPanels({ wallColor }: { wallColor: string }) {
     <>
       <group position={[0, WALL_BASE_Y, HOUSE_DEPTH / 2 + panelOffset]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
       </group>
 
       <group position={[0, WALL_BASE_Y, -HOUSE_DEPTH / 2 - panelOffset]} rotation={[0, Math.PI, 0]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
       </group>
     </>
   );
 }
 
-function HouseShell({ wallColor }: { wallColor: string }) {
+function HouseShell({wallColor}: { wallColor: string }) {
   const wallCenterY = WALL_BASE_Y + WALL_HEIGHT / 2;
 
   return (
     <group>
       {FLOOR_BEAM_ROWS_Z.map((z) => (
         <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, z]} castShadow receiveShadow>
-          <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]} />
-          <meshStandardMaterial color={COLORS.beam} />
+          <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]}/>
+          <meshStandardMaterial color={COLORS.beam}/>
         </mesh>
       ))}
 
       <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[HOUSE_WIDTH, FLOOR_HEIGHT, HOUSE_DEPTH]} />
-        <meshStandardMaterial color={COLORS.floor} />
+        <boxGeometry args={[HOUSE_WIDTH, FLOOR_HEIGHT, HOUSE_DEPTH]}/>
+        <meshStandardMaterial color={COLORS.floor}/>
       </mesh>
 
       <mesh position={[-HOUSE_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]} />
-        <meshStandardMaterial color={wallColor} />
+        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]}/>
+        <meshStandardMaterial color={wallColor}/>
       </mesh>
 
       <mesh position={[HOUSE_WIDTH / 2 - WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]} />
-        <meshStandardMaterial color={wallColor} />
+        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]}/>
+        <meshStandardMaterial color={wallColor}/>
       </mesh>
 
-      <FrontBackPanels wallColor={wallColor} />
+      <FrontBackPanels wallColor={wallColor}/>
 
-      <RoofMesh />
+      <RoofMesh/>
     </group>
   );
 }
 
-function HouseElementMesh({ element }: { element: HouseElement }) {
+function HouseElementMesh({element}: { element: HouseElement }) {
   const elementWidth = Math.max(element.width * VIEWER_MODEL_SCALE, 1);
   const elementHeight = Math.max(element.height * VIEWER_MODEL_SCALE, 1);
   const elementDepth = 2;
@@ -585,18 +409,22 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
     case 'front':
       position = [xOffset - hw + elementWidth / 2, y, hd + FRONT_BACK_PANEL_OFFSET + elementDepth / 2 + frontBackGap];
       break;
+
     case 'back':
       position = [hw - xOffset - elementWidth / 2, y, -hd - FRONT_BACK_PANEL_OFFSET - elementDepth / 2 - frontBackGap];
       rotation = [0, Math.PI, 0];
       break;
+
     case 'left':
       position = [-hw - elementDepth / 2, y, xOffset - hd + elementWidth / 2];
       rotation = [0, Math.PI / 2, 0];
       break;
+
     case 'right':
       position = [hw + elementDepth / 2, y, -(xOffset - hd + elementWidth / 2)];
       rotation = [0, -Math.PI / 2, 0];
       break;
+
     default:
       return null;
   }
@@ -606,12 +434,12 @@ function HouseElementMesh({ element }: { element: HouseElement }) {
   return (
     <group position={position} rotation={rotation}>
       <mesh>
-        <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, frameDepth]} />
-        <meshBasicMaterial color={COLORS.frame} />
+        <boxGeometry args={[elementWidth + 1.4, elementHeight + 1.4, frameDepth]}/>
+        <meshBasicMaterial color={COLORS.frame}/>
       </mesh>
       <mesh position={[0, 0, fillOffset]}>
-        <boxGeometry args={[elementWidth, elementHeight, fillDepth]} />
-        <meshBasicMaterial color={fillColor} />
+        <boxGeometry args={[elementWidth, elementHeight, fillDepth]}/>
+        <meshBasicMaterial color={fillColor}/>
       </mesh>
     </group>
   );
@@ -634,20 +462,20 @@ export function House3DScene({
 
   return (
     <group>
-      <TerrainMesh pilotis={pilotis} />
+      <TerrainMesh pilotis={pilotis}/>
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
-        <PilotiMesh key={pilotiId} pilotiId={pilotiId} pilotis={pilotis} />
+        <PilotiMesh key={pilotiId} pilotiId={pilotiId} pilotis={pilotis}/>
       ))}
 
       {contraventamentos.map((contraventamento) => (
-        <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis} />
+        <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis}/>
       ))}
 
-      <HouseShell wallColor={wallColor} />
+      <HouseShell wallColor={wallColor}/>
 
       {sceneOpenings.map((element) => (
-        <HouseElementMesh key={element.id} element={element} />
+        <HouseElementMesh key={element.id} element={element}/>
       ))}
     </group>
   );

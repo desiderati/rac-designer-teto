@@ -11,7 +11,79 @@ import {
   updateGroundInGroup,
   updatePilotiHeight,
   updatePilotiMaster,
-} from './canvas-utils';
+} from '@/lib/canvas';
+import {
+  ALL_VIEW_TYPES,
+  getAvailableViewsByCounts,
+  HOUSE_VIEW_LIMITS,
+  isViewAtLimitForType,
+  STANDARD_PILOTI_HEIGHTS,
+} from './domain/house-use-cases';
+import type {HouseElementsRepository} from './domain/house-elements-repository';
+import {
+  addElement as addElementInRepository,
+  removeElement as removeElementInRepository,
+  resetDefaultElements,
+  updateElement as updateElementInRepository,
+} from './domain/house-elements-application';
+import {createElementId, createHouseId, createViewInstanceId,} from './domain/house-identity-use-cases';
+import {collectHouseGroupPilotiSources, collectHouseGroupRebuildSources,} from './domain/house-canvas-source-use-cases';
+import {
+  buildAutoAssignedSlots,
+  canDeletePlant as canDeletePlantInViews,
+  getAutoSelectedSide as getAutoSelectedSideInViews,
+  getAvailableSides as getAvailableSidesInViews,
+  getAvailableViewsForType as getAvailableViewsForHouseType,
+  getPreAssignedSlots as getPreAssignedSlotsForView,
+  hasOtherViews as hasOtherViewsInViews,
+  hasPreAssignedSlots as hasAnyPreAssignedSlots,
+  needsSideSelection as needsSideSelectionInViews,
+  OPPOSITE_SIDE as DOMAIN_OPPOSITE_SIDE,
+  OPPOSITE_VIEW as DOMAIN_OPPOSITE_VIEW,
+  SIDE_VIEW_MAPPING as DOMAIN_SIDE_VIEW_MAPPING,
+} from './domain/house-view-layout-use-cases';
+import {
+  createViewGroupControlsVisibilityPatch,
+  createViewGroupMetadataPatch,
+  extractViewGroupRemovalHints,
+} from './domain/house-view-metadata-use-cases';
+import type {HousePilotiRepository} from './domain/house-repository';
+import {
+  applyPilotiUpdate,
+  canAddView,
+  getMaxViewCount,
+  recalculateRecommendedPilotiData,
+} from './domain/house-application';
+import {getAllPilotiIds, rebuildPilotiDataFromSources,} from './domain/house-piloti-rebuild-use-cases';
+import {
+  calculatePilotiSizeLabelPosition,
+  calculatePilotiStripeGeometry,
+  createPilotiNivelTextPatch,
+} from './domain/house-piloti-render-use-cases';
+import {buildPilotiObjectIndex} from './domain/house-piloti-object-index-use-cases';
+import {
+  createNivelLabelBackgroundPatch,
+  createPilotiHeightTextPatch,
+  createPilotiSizeLabelPatch,
+  createPilotiVisualDataPatch,
+} from './domain/house-piloti-visual-use-cases';
+import {createInitialHouseState,} from './domain/house-state-factory-use-cases';
+import {
+  calculateTopDoorMarkerBodySize,
+  calculateTopDoorPlacement,
+  createTopDoorMarkerVisualPatch,
+  resolveTopDoorMarkerSide,
+} from './domain/house-top-door-marker-use-cases';
+import {create3DSnapshotImagePatch} from './domain/house-snapshot-use-cases';
+import type {HouseViewsRepository} from './domain/house-views-repository';
+import {
+  cleanupStaleViews as cleanupStaleViewsInRepository,
+  rebuildViewsFromCanvasSources,
+  registerView as registerViewInRepository,
+  removeAllViewsByType as removeAllViewsByTypeInRepository,
+  removeView as removeViewInRepository,
+} from './domain/house-views-application';
+import {collectAllViewGroups, countViewInstances, hasAnyViewInstances,} from './domain/house-views-use-cases';
 
 // Types for house sides
 export type HouseSide = 'top' | 'bottom' | 'left' | 'right';
@@ -21,29 +93,13 @@ export type HouseType = 'tipo6' | 'tipo3' | null;
 // Mapping between sides and view types
 // Front/Back can only be on top/bottom (longer sides)
 // Side1/Side2 can only be on left/right (shorter sides)
-export const SIDE_VIEW_MAPPING: Record<HouseSide, ViewType[]> = {
-  top: ['front', 'back'],
-  bottom: ['front', 'back'],
-  left: ['side1', 'side2'],
-  right: ['side1', 'side2'],
-};
+export const SIDE_VIEW_MAPPING: Record<HouseSide, ViewType[]> = DOMAIN_SIDE_VIEW_MAPPING;
 
 // Opposite sides
-export const OPPOSITE_SIDE: Record<HouseSide, HouseSide> = {
-  top: 'bottom',
-  bottom: 'top',
-  left: 'right',
-  right: 'left',
-};
+export const OPPOSITE_SIDE: Record<HouseSide, HouseSide> = DOMAIN_OPPOSITE_SIDE;
 
 // Opposite views
-export const OPPOSITE_VIEW: Record<ViewType, ViewType | null> = {
-  top: null,
-  front: 'back',
-  back: 'front',
-  side1: 'side2',
-  side2: 'side1',
-};
+export const OPPOSITE_VIEW: Record<ViewType, ViewType | null> = DOMAIN_OPPOSITE_VIEW;
 
 // Piloti data structure
 export interface PilotiData {
@@ -85,22 +141,7 @@ export interface HouseState {
 }
 
 // View limits per house type
-export const VIEW_LIMITS: Record<Exclude<HouseType, null>, Record<ViewType, number>> = {
-  tipo6: {
-    top: 1,
-    front: 1,
-    back: 1,
-    side1: 2, // Quadrado Fechado
-    side2: 0, // Not available for tipo6
-  },
-  tipo3: {
-    top: 1,
-    front: 0, // Not available for tipo3
-    back: 2, // "Lateral" (renamed for tipo3)
-    side1: 1, // Quadrado Fechado
-    side2: 1, // Quadrado Aberto
-  },
-};
+export const VIEW_LIMITS: Record<Exclude<HouseType, null>, Record<ViewType, number>> = HOUSE_VIEW_LIMITS;
 
 // Default piloti data
 const DEFAULT_PILOTI: PilotiData = {
@@ -108,17 +149,6 @@ const DEFAULT_PILOTI: PilotiData = {
   isMaster: false,
   nivel: 0.2,
 };
-
-// Generate all piloti IDs (A1-C4)
-function getAllPilotiIds(): string[] {
-  const ids: string[] = [];
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 4; col++) {
-      ids.push(`piloti_${col}_${row}`);
-    }
-  }
-  return ids;
-}
 
 class HouseManager {
   private house: HouseState | null = null;
@@ -142,7 +172,7 @@ class HouseManager {
       for (const topInstance of topViews) {
         const markers = topInstance.group.getObjects().filter((o: any) => o?.isTopDoorMarker) as any[];
         for (const marker of markers) {
-          marker.set({ visible: false });
+          marker.set({visible: false});
           marker.setCoords?.();
           marker.dirty = true;
         }
@@ -151,19 +181,11 @@ class HouseManager {
       return;
     }
 
-    let sourceViewType: ViewType | null = null;
-    if (door.face === 'front') {
-      sourceViewType = 'front';
-    } else if (door.face === 'back') {
-      sourceViewType = 'back';
-    } else if (door.face === 'left' || door.face === 'right') {
-      // In current layouts, side2 is the "quadrado aberto" that carries the door.
-      sourceViewType = this.house.houseType === 'tipo3' ? 'side2' : 'side1';
-    }
-
-    const markerSide = sourceViewType
-      ? (Object.keys(sideAssignments) as HouseSide[]).find((s) => sideAssignments[s] === sourceViewType) ?? null
-      : null;
+    const markerSide = resolveTopDoorMarkerSide({
+      houseType: this.house.houseType,
+      doorFace: door.face,
+      sideAssignments,
+    });
 
     for (const topInstance of topViews) {
       const group = topInstance.group;
@@ -171,39 +193,33 @@ class HouseManager {
       if (markers.length === 0) continue;
 
       const houseBody = group.getObjects().find((o: any) => o?.isHouseBody) as any;
-      const bodyWidth = Math.max((houseBody?.width ?? 0) * (houseBody?.scaleX ?? 1), 1);
-      const bodyHeight = Math.max((houseBody?.height ?? 0) * (houseBody?.scaleY ?? 1), 1);
+      const {bodyWidth, bodyHeight} = calculateTopDoorMarkerBodySize({
+        width: houseBody?.width ?? 0,
+        height: houseBody?.height ?? 0,
+        scaleX: houseBody?.scaleX ?? 1,
+        scaleY: houseBody?.scaleY ?? 1,
+      });
 
-      const axisLength = markerSide === 'top' || markerSide === 'bottom' ? bodyWidth : bodyHeight;
-      const rawDoorCenter = door.x + door.width / 2;
-      const doorCenter = Math.max(0, Math.min(axisLength, rawDoorCenter));
-
-      let targetLeft: number | undefined;
-      let targetTop: number | undefined;
-      if (markerSide === 'top') {
-        targetLeft = bodyWidth / 2 - doorCenter;
-        targetTop = -bodyHeight / 2;
-      } else if (markerSide === 'bottom') {
-        targetLeft = -bodyWidth / 2 + doorCenter;
-        targetTop = bodyHeight / 2;
-      } else if (markerSide === 'left') {
-        targetLeft = -bodyWidth / 2;
-        targetTop = -bodyHeight / 2 + doorCenter;
-      } else if (markerSide === 'right') {
-        targetLeft = bodyWidth / 2;
-        targetTop = bodyHeight / 2 - doorCenter;
-      }
+      const placement = calculateTopDoorPlacement({
+        markerSide,
+        doorX: door.x,
+        doorWidth: door.width,
+        bodyWidth,
+        bodyHeight,
+      });
 
       for (const marker of markers) {
         const side = marker.markerSide as HouseSide | undefined;
         if (!side) continue;
 
-        const isActive = markerSide !== null && side === markerSide;
-        marker.set({
-          visible: isActive,
-          ...(isActive && targetLeft !== undefined ? { left: targetLeft } : {}),
-          ...(isActive && targetTop !== undefined ? { top: targetTop } : {}),
-        });
+        marker.set(
+          createTopDoorMarkerVisualPatch({
+            markerSide: placement.markerSide,
+            markerCandidateSide: side,
+            targetLeft: placement.targetLeft,
+            targetTop: placement.targetTop,
+          }),
+        );
         marker.setCoords?.();
         marker.dirty = true;
       }
@@ -226,32 +242,11 @@ class HouseManager {
   }
 
   reset(): void {
-    // Initialize with default piloti data
-    const pilotis: Record<string, PilotiData> = {};
-    getAllPilotiIds().forEach((id) => {
-      pilotis[id] = { ...DEFAULT_PILOTI };
+    this.house = createInitialHouseState<HouseElement, ViewInstance>({
+      id: createHouseId(),
+      pilotiIds: getAllPilotiIds(),
+      defaultPiloti: DEFAULT_PILOTI,
     });
-
-    this.house = {
-      id: `house_${Date.now()}`,
-      houseType: null,
-      pilotis,
-      elements: [], // Windows and doors
-      views: {
-        top: [],
-        front: [],
-        back: [],
-        side1: [],
-        side2: [],
-      },
-      sideAssignments: {
-        top: null,
-        bottom: null,
-        left: null,
-        right: null,
-      },
-      preAssignedSlots: {},
-    };
 
     this.notify();
   }
@@ -272,8 +267,9 @@ class HouseManager {
 
   // Get max count for a view type based on current house type
   getMaxViewCount(viewType: ViewType): number {
-    if (!this.house?.houseType) return 0;
-    return VIEW_LIMITS[this.house.houseType][viewType];
+    const repository = this.getHousePilotiRepository();
+    if (!repository) return 0;
+    return getMaxViewCount(repository, viewType);
   }
 
   // Get current count of a view type
@@ -284,50 +280,79 @@ class HouseManager {
 
   // Check if can add more of this view type
   canAddView(viewType: ViewType): boolean {
-    if (!this.house?.houseType) return false;
-    const max = this.getMaxViewCount(viewType);
-    const current = this.getViewCount(viewType);
-    return current < max;
+    const repository = this.getHousePilotiRepository();
+    if (!repository) return false;
+    return canAddView(repository, viewType);
   }
 
   // Get available views for current house type (views that can still be added)
   getAvailableViewsForType(): ViewType[] {
-    if (!this.house?.houseType) return [];
-    
-    const views: ViewType[] = [];
-    const limits = VIEW_LIMITS[this.house.houseType];
-    
-    for (const [viewType, maxCount] of Object.entries(limits)) {
-      if (maxCount > 0 && this.canAddView(viewType as ViewType)) {
-        views.push(viewType as ViewType);
-      }
-    }
-    
-    return views;
+    if (!this.house) return [];
+
+    return getAvailableViewsForHouseType({
+      houseType: this.house.houseType,
+      views: this.house.views,
+    });
   }
 
   // Check if plant (top view) can be deleted
   canDeletePlant(): boolean {
     if (!this.house) return false;
-    
-    // Check if any other views exist
-    const otherViews = (['front', 'back', 'side1', 'side2'] as ViewType[]).some(
-      (vt) => this.house!.views[vt].length > 0
-    );
-    
-    return !otherViews;
+    return canDeletePlantInViews(this.house.views);
   }
 
   // Check if any non-plant views exist
   hasOtherViews(): boolean {
     if (!this.house) return false;
-    return (['front', 'back', 'side1', 'side2'] as ViewType[]).some(
-      (vt) => this.house!.views[vt].length > 0
-    );
+    return hasOtherViewsInViews(this.house.views);
   }
 
   getHouse(): HouseState | null {
     return this.house;
+  }
+
+  private getHousePilotiRepository(): HousePilotiRepository | null {
+    if (!this.house) return null;
+
+    return {
+      getHouseType: () => this.house?.houseType ?? null,
+      getViewCount: (viewType) => this.house?.views[viewType].length ?? 0,
+      getPilotis: () => this.house?.pilotis ?? {},
+      setPilotis: (pilotis) => {
+        if (!this.house) return;
+        this.house.pilotis = pilotis;
+      },
+    };
+  }
+
+  private getHouseViewsRepository(): HouseViewsRepository<ViewType, HouseSide, Group> | null {
+    if (!this.house) return null;
+
+    return {
+      getViews: () => this.house?.views ?? {top: [], front: [], back: [], side1: [], side2: []},
+      setViews: (views) => {
+        if (!this.house) return;
+        this.house.views = views;
+      },
+      getSideAssignments: () =>
+        this.house?.sideAssignments ?? {top: null, bottom: null, left: null, right: null},
+      setSideAssignments: (sideAssignments) => {
+        if (!this.house) return;
+        this.house.sideAssignments = sideAssignments;
+      },
+    };
+  }
+
+  private getHouseElementsRepository(): HouseElementsRepository<HouseElement> | null {
+    if (!this.house) return null;
+
+    return {
+      getElements: () => this.house?.elements ?? [],
+      setElements: (elements) => {
+        if (!this.house) return;
+        this.house.elements = elements;
+      },
+    };
   }
 
   private isGroupOnCanvas(group: Group): boolean {
@@ -336,23 +361,10 @@ class HouseManager {
   }
 
   private cleanupStaleViews(viewType: ViewType): void {
-    if (!this.house) return;
-    const instances = this.house.views[viewType];
-    if (!instances || instances.length === 0) return;
+    const repository = this.getHouseViewsRepository();
+    if (!repository) return;
 
-    // Filter out instances whose groups are no longer on canvas
-    const validInstances: ViewInstance[] = [];
-    for (const instance of instances) {
-      if (this.isGroupOnCanvas(instance.group)) {
-        validInstances.push(instance);
-      } else {
-        // Clear side assignment if this instance had one
-        if (instance.side) {
-          this.house.sideAssignments[instance.side] = null;
-        }
-      }
-    }
-    this.house.views[viewType] = validInstances;
+    cleanupStaleViewsInRepository(repository, viewType, (group) => this.isGroupOnCanvas(group));
   }
 
   hasView(viewType: ViewType): boolean {
@@ -365,231 +377,127 @@ class HouseManager {
 
   // Check if this specific view type has reached its maximum
   isViewAtLimit(viewType: ViewType): boolean {
-    if (!this.house?.houseType) return true;
+    if (!this.house) return true;
     this.cleanupStaleViews(viewType);
-    return this.house.views[viewType].length >= this.getMaxViewCount(viewType);
+    return isViewAtLimitForType(this.house.houseType, viewType, this.house.views[viewType].length);
   }
 
   getAvailableViews(): ViewType[] {
     if (!this.house) return [];
-    return (['top', 'front', 'back', 'side1', 'side2'] as ViewType[]).filter(
-      (v) => !this.isViewAtLimit(v)
-    );
+
+    ALL_VIEW_TYPES.forEach((viewType) => {
+      this.cleanupStaleViews(viewType);
+    });
+
+    return getAvailableViewsByCounts({
+      houseType: this.house.houseType,
+      counts: countViewInstances(this.house.views),
+    });
   }
 
   // Get which sides are available for a given view type
   getAvailableSides(viewType: ViewType): HouseSide[] {
     if (!this.house) return [];
 
-    const possibleSides = Object.entries(SIDE_VIEW_MAPPING)
-      .filter(([_, views]) => views.includes(viewType))
-      .map(([side]) => side as HouseSide);
-
-    return possibleSides.filter((side) => {
-      const assignment = this.house!.sideAssignments[side];
-      // Side is available if not assigned
-      return assignment === null;
+    return getAvailableSidesInViews({
+      viewType,
+      sideAssignments: this.house.sideAssignments,
     });
   }
 
   // Check if user needs to select a side for this view
   // ALWAYS ask user for side selection when there are available sides
   needsSideSelection(viewType: ViewType): boolean {
-    if (viewType === 'top') return false; // Top view doesn't need side selection
-    
-    const availableSides = this.getAvailableSides(viewType);
-    if (availableSides.length === 0) return false; // No sides available
-    
-    // Always ask user to select a side if there are available sides
-    return true;
+    if (!this.house) return false;
+    return needsSideSelectionInViews({
+      viewType,
+      sideAssignments: this.house.sideAssignments,
+    });
   }
 
   // Get the auto-selected side if only one is available or opposite is assigned
   getAutoSelectedSide(viewType: ViewType): HouseSide | null {
-    if (viewType === 'top') return null;
-    
-    const availableSides = this.getAvailableSides(viewType);
-    if (availableSides.length === 1) return availableSides[0];
-    if (availableSides.length === 0) return null;
-    
-    // Check if any instance of the opposite view has a side, then use the opposite side
-    const oppositeView = OPPOSITE_VIEW[viewType];
-    if (oppositeView && this.house?.views[oppositeView]?.length) {
-      const oppositeInstances = this.house.views[oppositeView];
-      // Find an instance that has a side assigned
-      for (const instance of oppositeInstances) {
-        if (instance.side) {
-          const oppositeSide = OPPOSITE_SIDE[instance.side];
-          if (availableSides.includes(oppositeSide)) {
-            return oppositeSide;
-          }
-        }
-      }
-    }
-    
-    return null;
+    if (!this.house) return null;
+    return getAutoSelectedSideInViews({
+      viewType,
+      views: this.house.views,
+      sideAssignments: this.house.sideAssignments,
+    });
   }
 
   // Register a view with its group and side
   registerView(viewType: ViewType, group: Group, side?: HouseSide): void {
     if (!this.house) return;
+    const repository = this.getHouseViewsRepository();
+    if (!repository) return;
 
-    const instanceId = `${viewType}_${Date.now()}`;
-    
-    // Mark the group with its view type and instance ID for later identification
-    (group as any).houseViewType = viewType;
-    (group as any).houseInstanceId = instanceId;
-    (group as any).houseSide = side;
+    const instanceId = createViewInstanceId(viewType);
+
+    // Mark the group with its view type and instance ID for later identification.
+    Object.assign(
+      group as any,
+      createViewGroupMetadataPatch<ViewType, HouseSide>({
+        viewType,
+        instanceId,
+        side,
+      }),
+    );
 
     // Apply current piloti data to the new group
     this.applyPilotiDataToGroup(group);
 
-    // Add to the array of instances for this view type
-    this.house.views[viewType].push({ group, side, instanceId });
-
-    if (side) {
-      this.house.sideAssignments[side] = viewType;
-    }
+    registerViewInRepository(repository, {
+      viewType,
+      group,
+      instanceId,
+      side,
+    });
 
     console.log(`[HouseManager] Registered view ${viewType}, instance: ${instanceId}, side: ${side}`);
     this.notify();
   }
 
-  private inferViewTypeFromGroup(group: Group, currentCounts: Record<ViewType, number>): ViewType | null {
-    const explicit = (group as any).houseViewType;
-    if (explicit === 'top' || explicit === 'front' || explicit === 'back' || explicit === 'side1' || explicit === 'side2') {
-      return explicit;
-    }
-
-    const rawView = (group as any).houseView;
-    if (rawView === 'top' || rawView === 'front' || rawView === 'back') {
-      return rawView;
-    }
-
-    if (rawView === 'side') {
-      // Fallback for legacy JSONs that don't persist houseViewType.
-      if (this.house?.houseType === 'tipo6') return 'side1';
-      if (this.house?.houseType === 'tipo3') return currentCounts.side1 === 0 ? 'side1' : 'side2';
-      return currentCounts.side1 <= currentCounts.side2 ? 'side1' : 'side2';
-    }
-
-    return null;
-  }
-
-  private inferSideFromGroup(group: Group, viewType: ViewType): HouseSide | undefined {
-    const explicit = (group as any).houseSide;
-    if (explicit === 'top' || explicit === 'bottom' || explicit === 'left' || explicit === 'right') {
-      return explicit;
-    }
-
-    if (viewType === 'front' || viewType === 'back') {
-      return (group as any).isFlippedHorizontally ? 'top' : 'bottom';
-    }
-
-    if (viewType === 'side1' || viewType === 'side2') {
-      return (group as any).isRightSide ? 'right' : 'left';
-    }
-
-    return undefined;
-  }
-
   private readPilotiDataFromCanvas(): Record<string, PilotiData> {
-    const nextPilotis: Record<string, PilotiData> = {};
-    getAllPilotiIds().forEach((id) => {
-      const current = this.house?.pilotis[id] ?? DEFAULT_PILOTI;
-      nextPilotis[id] = { ...current };
+    const sources = this.canvas
+      ? collectHouseGroupPilotiSources(this.canvas.getObjects() as any[])
+      : [];
+
+    return rebuildPilotiDataFromSources({
+      pilotiIds: getAllPilotiIds(),
+      currentPilotis: this.house?.pilotis ?? {},
+      defaultPiloti: DEFAULT_PILOTI,
+      sources: sources as Array<{ objects: any[] }>,
     });
-
-    if (!this.canvas) return nextPilotis;
-
-    const groups = this.canvas.getObjects().filter(
-      (o: any) => o.type === 'group' && o.myType === 'house'
-    ) as Group[];
-
-    for (const group of groups) {
-      const objects = group.getObjects() as any[];
-      for (const id of getAllPilotiIds()) {
-        const obj = objects.find((o: any) => o?.pilotiId === id && (o?.isPilotiCircle || o?.isPilotiRect));
-        if (!obj) continue;
-        nextPilotis[id] = {
-          height: Number(obj.pilotiHeight ?? nextPilotis[id].height ?? DEFAULT_PILOTI.height),
-          isMaster: Boolean(obj.pilotiIsMaster ?? nextPilotis[id].isMaster ?? DEFAULT_PILOTI.isMaster),
-          nivel: Number(obj.pilotiNivel ?? nextPilotis[id].nivel ?? DEFAULT_PILOTI.nivel),
-        };
-      }
-    }
-
-    return nextPilotis;
   }
 
   // Rebuild house view registry from current canvas groups (used after undo/import).
   rebuildFromCanvas(): void {
     if (!this.canvas || !this.house) return;
+    const viewsRepository = this.getHouseViewsRepository();
+    if (!viewsRepository) return;
 
-    const groups = this.canvas.getObjects().filter(
-      (o: any) => o.type === 'group' && o.myType === 'house'
-    ) as Group[];
-
-    const rebuiltViews: Record<ViewType, ViewInstance[]> = {
-      top: [],
-      front: [],
-      back: [],
-      side1: [],
-      side2: [],
-    };
-
-    const counts: Record<ViewType, number> = { top: 0, front: 0, back: 0, side1: 0, side2: 0 };
-    const usedIds = new Set<string>();
-
-    for (const group of groups) {
-      const viewType = this.inferViewTypeFromGroup(group, counts);
-      if (!viewType) continue;
-
-      const inferredSide = this.inferSideFromGroup(group, viewType);
-      const rawId = String((group as any).houseInstanceId ?? '').trim();
-      const instanceIdBase = rawId || `${viewType}_restored_${counts[viewType]}`;
-      let instanceId = instanceIdBase;
-      let suffix = 1;
-      while (usedIds.has(instanceId)) {
-        instanceId = `${instanceIdBase}_${suffix++}`;
-      }
-      usedIds.add(instanceId);
-
-      (group as any).houseViewType = viewType;
-      (group as any).houseInstanceId = instanceId;
-      (group as any).houseSide = inferredSide;
-      group.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
-
-      rebuiltViews[viewType].push({
-        group,
-        side: inferredSide,
-        instanceId,
-      });
-      counts[viewType] += 1;
-    }
-
-    const rebuiltAssignments: Record<HouseSide, ViewType | null> = {
-      top: null,
-      bottom: null,
-      left: null,
-      right: null,
-    };
-
-    (Object.keys(rebuiltViews) as ViewType[]).forEach((vt) => {
-      rebuiltViews[vt].forEach((instance) => {
-        if (!instance.side) return;
-        if (!rebuiltAssignments[instance.side]) {
-          rebuiltAssignments[instance.side] = vt;
-        }
-      });
+    const rebuilt = rebuildViewsFromCanvasSources(viewsRepository, {
+      houseType: this.house.houseType,
+      sources: collectHouseGroupRebuildSources(this.canvas.getObjects() as any[]) as any,
     });
 
-    this.house.views = rebuiltViews;
-    this.house.sideAssignments = rebuiltAssignments;
+    rebuilt.normalizedItems.forEach((item) => {
+      Object.assign(
+        item.group as any,
+        createViewGroupMetadataPatch<ViewType, HouseSide>({
+          viewType: item.viewType as ViewType,
+          instanceId: item.instanceId,
+          side: item.side as HouseSide | undefined,
+        }),
+      );
+      const controlsVisibility = createViewGroupControlsVisibilityPatch() as unknown as Record<string, boolean>;
+      item.group.setControlsVisibility(controlsVisibility);
+    });
+
     this.house.pilotis = this.readPilotiDataFromCanvas();
 
     // If no house views remain on canvas, clear type to keep add-view rules coherent.
-    if (!Object.values(rebuiltViews).some((instances) => instances.length > 0)) {
+    if (!hasAnyViewInstances(rebuilt.views)) {
       this.house.houseType = null;
       this.house.preAssignedSlots = {};
     }
@@ -602,85 +510,55 @@ class HouseManager {
 
   // Remove a view (when deleted from canvas)
   removeView(group: Group): void {
-    if (!this.house) return;
+    const repository = this.getHouseViewsRepository();
+    if (!repository) return;
 
-    // First try to identify by the houseViewType and instanceId properties
-    const viewType = (group as any).houseViewType as ViewType | undefined;
-    const instanceId = (group as any).houseInstanceId as string | undefined;
+    const hints = extractViewGroupRemovalHints<ViewType>({
+      houseViewType: (group as any).houseViewType,
+      houseInstanceId: (group as any).houseInstanceId,
+    });
 
-    if (viewType && this.house.views[viewType]) {
-      const instances = this.house.views[viewType];
-      
-      // Find and remove the specific instance
-      const instanceIndex = instanceId 
-        ? instances.findIndex((i) => i.instanceId === instanceId)
-        : instances.findIndex((i) => i.group === group);
-      
-      if (instanceIndex !== -1) {
-        const instance = instances[instanceIndex];
-        console.log(`[HouseManager] Removing view instance: ${viewType}, instanceId: ${instance.instanceId}, side: ${instance.side}`);
+    const removedWithHint = removeViewInRepository(repository, {
+      viewType: hints.viewType,
+      instanceId: hints.instanceId,
+      group,
+    });
 
-        // Clear side assignment
-        if (instance.side) {
-          this.house.sideAssignments[instance.side] = null;
-          console.log(`[HouseManager] Cleared side assignment for ${instance.side}`);
-        }
-        
-        // Remove from array
-        instances.splice(instanceIndex, 1);
-        console.log(`[HouseManager] View ${viewType} instance removed, remaining: ${instances.length}`);
-        this.notify();
-        return;
+    if (removedWithHint.removedCount > 0) {
+      if (removedWithHint.removedViewType) {
+        console.log(`[HouseManager] View ${removedWithHint.removedViewType} instance removed`);
       }
+      this.notify();
+      return;
     }
 
-    // Fallback: search by group reference across all view types
-    for (const vt of Object.keys(this.house.views) as ViewType[]) {
-      const instances = this.house.views[vt];
-      const instanceIndex = instances.findIndex((i) => i.group === group);
-      
-      if (instanceIndex !== -1) {
-        const instance = instances[instanceIndex];
-        console.log(`[HouseManager] Removing view by reference: ${vt}, side: ${instance.side}`);
-        if (instance.side) {
-          this.house.sideAssignments[instance.side] = null;
-        }
-        instances.splice(instanceIndex, 1);
-        console.log(`[HouseManager] View ${vt} removed, remaining: ${instances.length}`);
-        this.notify();
-        break;
+    const removedFallback = removeViewInRepository(repository, {group});
+    if (removedFallback.removedCount > 0) {
+      if (removedFallback.removedViewType) {
+        console.log(`[HouseManager] View ${removedFallback.removedViewType} removed by reference`);
       }
+      this.notify();
     }
   }
 
   // Remove all instances of a view type (alternative method)
   removeViewByType(viewType: ViewType): void {
-    if (!this.house) return;
+    const repository = this.getHouseViewsRepository();
+    if (!repository) return;
 
-    const instances = this.house.views[viewType];
-    if (instances && instances.length > 0) {
-      console.log(`[HouseManager] Removing all ${instances.length} instances of view type: ${viewType}`);
-      
-      // Clear all side assignments for these instances
-      for (const instance of instances) {
-        if (instance.side) {
-          this.house.sideAssignments[instance.side] = null;
-        }
-      }
-      
-      // Clear the array
-      this.house.views[viewType] = [];
+    const removedCount = removeAllViewsByTypeInRepository(repository, viewType);
+    if (removedCount > 0) {
+      console.log(`[HouseManager] Removing all ${removedCount} instances of view type: ${viewType}`);
       this.notify();
     }
   }
 
-  // Apply current piloti data to a group (when creating a new view)
-  private applyPilotiDataToGroup(group: Group): void {
+  private applyPilotiDataFirstPass(
+    objects: FabricObject[],
+    pilotiObjectIndex: Record<string, { circle?: FabricObject; rect?: FabricObject }>,
+  ): void {
     if (!this.house) return;
 
-    const objects = group.getObjects();
-
-    // First pass: set data properties (height/master/nivel) and resize rects
     objects.forEach((obj: FabricObject) => {
       const pilotiId = (obj as any).pilotiId;
       if (!pilotiId) return;
@@ -689,111 +567,176 @@ class HouseManager {
       if (!data) return;
 
       if ((obj as any).isPilotiCircle || (obj as any).isPilotiRect) {
-        (obj as any).pilotiHeight = data.height;
-        (obj as any).pilotiIsMaster = data.isMaster;
-        (obj as any).pilotiNivel = data.nivel;
+        const isRect = Boolean((obj as any).isPilotiRect);
+        obj.set(
+          createPilotiVisualDataPatch({
+            height: data.height,
+            isMaster: data.isMaster,
+            nivel: data.nivel,
+            isRect,
+            baseHeight: (obj as any).pilotiBaseHeight || 60,
+            masterFill: MASTER_PILOTI_FILL,
+            masterStroke: MASTER_PILOTI_STROKE,
+          }),
+        );
 
-        // Update visual style for master
-        if (data.isMaster) {
-          obj.set('fill', MASTER_PILOTI_FILL);
-          obj.set('stroke', MASTER_PILOTI_STROKE);
-          obj.set('strokeWidth', (obj as any).isPilotiRect ? 3 : 2);
-        }
-
-        // For rect pilotis in front/back/side views, update the visual height
-        if ((obj as any).isPilotiRect) {
-          const baseHeight = (obj as any).pilotiBaseHeight || 60;
-          const newVisualHeight = baseHeight * data.height;
-          obj.set({ height: newVisualHeight, scaleY: 1 });
+        if (isRect) {
           obj.setCoords();
           (obj as any).dirty = true;
         }
       }
 
       if ((obj as any).isPilotiText) {
-        (obj as any).set('text', formatPilotiHeight(data.height));
+        (obj as any).set(createPilotiHeightTextPatch(formatPilotiHeight(data.height)));
       }
 
       if ((obj as any).isPilotiNivelText) {
         const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
-        if (isCorner) {
-          const pilotiCircle = objects.find(
-            (o: any) => o.pilotiId === pilotiId && o.isPilotiCircle,
-          ) as any;
-          const centerX = Number(pilotiCircle?.left ?? (obj as any).left ?? 0);
-          const centerY = Number(pilotiCircle?.top ?? (obj as any).top ?? 0);
-          const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
-          const offset = 12 * 0.6;
-          const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
+        const pilotiCircle = pilotiObjectIndex[pilotiId]?.circle as any;
+        const centerX = Number(pilotiCircle?.left ?? (obj as any).left ?? 0);
+        const centerY = Number(pilotiCircle?.top ?? (obj as any).top ?? 0);
+        const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
+        const offset = 12 * 0.6;
+        const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
 
-          (obj as any).set('text', `Nível = ${formatNivel(data.nivel)}`);
-          (obj as any).set('left', centerX);
-          (obj as any).set('top', isTopCorner ? centerY - radius - offset : centerY + radius + offset);
-          (obj as any).set('visible', true);
-        } else {
-          (obj as any).set('text', '');
-          (obj as any).set('visible', false);
-        }
+        (obj as any).set(
+          createPilotiNivelTextPatch({
+            isCorner,
+            formattedNivel: formatNivel(data.nivel),
+            centerX,
+            centerY,
+            radius,
+            offset,
+            isTopCorner,
+          }),
+        );
       }
 
       if ((obj as any).isPilotiSizeLabel) {
-        (obj as any).set('text', formatPilotiHeight(data.height));
-        (obj as any).set('backgroundColor', '#ffffff');
+        (obj as any).set(createPilotiSizeLabelPatch(formatPilotiHeight(data.height)));
       }
     });
+  }
 
-    // Elevation nivel labels ("Nível = ...") must stay readable over lines/contraventamentos.
+  private applyNivelLabelsBackground(objects: FabricObject[]): void {
     objects.forEach((obj: FabricObject) => {
       if ((obj as any).isNivelLabel) {
-        (obj as any).set('backgroundColor', '#ffffff');
+        (obj as any).set(createNivelLabelBackgroundPatch());
       }
     });
+  }
 
-    // Second pass: AFTER rects are resized, position size labels using the final rect height.
+  private applyPilotiSizeLabelPositions(
+    objects: FabricObject[],
+    pilotiObjectIndex: Record<string, { circle?: FabricObject; rect?: FabricObject }>,
+  ): void {
     objects.forEach((obj: FabricObject) => {
       if (!(obj as any).isPilotiSizeLabel) return;
 
       const pilotiId = (obj as any).pilotiId;
       if (!pilotiId) return;
 
-      const rect = objects.find(
-        (o: any) => o.pilotiId === pilotiId && o.isPilotiRect,
-      ) as any;
+      const rect = pilotiObjectIndex[pilotiId]?.rect as any;
       if (!rect) return;
 
       const baseHeight = (rect as any).pilotiBaseHeight || 60;
-      const s = baseHeight / BASE_PILOTI_HEIGHT_PX;
-      const offset = 8 * s;
-
       const rectWidth = (rect.width ?? 0) as number;
       const rectHeight = (rect.height ?? 0) as number;
+      const position = calculatePilotiSizeLabelPosition({
+        rectLeft: (rect.left ?? 0) as number,
+        rectTop: (rect.top ?? 0) as number,
+        rectWidth,
+        rectHeight,
+        baseHeight,
+        basePilotiHeightPx: BASE_PILOTI_HEIGHT_PX,
+      });
 
-      (obj as any).set('left', (rect.left ?? 0) + rectWidth / 2);
-      (obj as any).set('top', (rect.top ?? 0) + rectHeight + offset);
+      (obj as any).set('left', position.left);
+      (obj as any).set('top', position.top);
       (obj as any).setCoords?.();
       (obj as any).dirty = true;
     });
+  }
 
-    // Third pass: update stripe overlays to match resized rects
+  private applyPilotiStripeOverlays(
+    objects: FabricObject[],
+    pilotiObjectIndex: Record<string, { circle?: FabricObject; rect?: FabricObject }>,
+  ): void {
     objects.forEach((obj: FabricObject) => {
       if (!(obj as any).isPilotiStripe) return;
 
       const pilotiId = (obj as any).pilotiId;
       if (!pilotiId) return;
 
-      const rect = objects.find(
-        (o: any) => o.pilotiId === pilotiId && o.isPilotiRect,
-      ) as any;
+      const rect = pilotiObjectIndex[pilotiId]?.rect as any;
       if (!rect) return;
 
-      const newVisualHeight = (rect.height ?? 0) as number;
-      const stripeHeight = (newVisualHeight * 2) / 3;
-      obj.set({ height: stripeHeight, top: (rect.top ?? 0) + newVisualHeight / 3 });
+      const geometry = calculatePilotiStripeGeometry({
+        rectTop: (rect.top ?? 0) as number,
+        rectHeight: (rect.height ?? 0) as number,
+      });
+      obj.set({height: geometry.height, top: geometry.top});
       obj.set('fill', createDiagonalStripePattern());
       obj.objectCaching = false;
       obj.setCoords();
       (obj as any).dirty = true;
     });
+  }
+
+  private syncPilotiUpdateOnGroup(
+    group: Group,
+    pilotiId: string,
+    data: Partial<PilotiData>,
+    clearedMasters: string[],
+  ): void {
+    if (!this.house) return;
+
+    if (clearedMasters.length) {
+      clearedMasters.forEach((id) => {
+        const p = this.house!.pilotis[id];
+        updatePilotiMaster(group, id, p.isMaster, p.nivel);
+      });
+    }
+
+    const newData = this.house.pilotis[pilotiId];
+    if (data.height !== undefined) {
+      updatePilotiHeight(group, pilotiId, newData.height);
+    }
+    if (data.isMaster !== undefined || data.nivel !== undefined) {
+      updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
+    }
+    if ((data.height !== undefined || data.nivel !== undefined) && CORNER_PILOTI_IDS.includes(pilotiId)) {
+      updateGroundInGroup(group);
+    }
+
+    refreshHouseGroupRendering(group);
+  }
+
+  private syncPilotiUpdateAcrossViews(
+    pilotiId: string,
+    data: Partial<PilotiData>,
+    clearedMasters: string[],
+  ): void {
+    if (!this.house) return;
+
+    Object.values(this.house.views).forEach((instances) => {
+      if (!instances || instances.length === 0) return;
+      for (const instance of instances) {
+        this.syncPilotiUpdateOnGroup(instance.group, pilotiId, data, clearedMasters);
+      }
+    });
+  }
+
+  // Apply current piloti data to a group (when creating a new view)
+  private applyPilotiDataToGroup(group: Group): void {
+    if (!this.house) return;
+
+    const objects = group.getObjects();
+    const pilotiObjectIndex = buildPilotiObjectIndex(objects as any[]);
+    this.applyPilotiDataFirstPass(objects, pilotiObjectIndex);
+    this.applyNivelLabelsBackground(objects);
+    this.applyPilotiSizeLabelPositions(objects, pilotiObjectIndex);
+    this.applyPilotiStripeOverlays(objects, pilotiObjectIndex);
 
     // Update ground line based on the applied nivel values
     updateGroundInGroup(group);
@@ -803,55 +746,11 @@ class HouseManager {
 
   // Update piloti data and sync across all views
   updatePiloti(pilotiId: string, data: Partial<PilotiData>): void {
-    if (!this.house) return;
+    const repository = this.getHousePilotiRepository();
+    if (!this.house || !repository) return;
 
-    // Enforce "single master" globally: when setting a master, clear previous masters
-    const clearedMasters: string[] = [];
-    if (data.isMaster === true) {
-      Object.entries(this.house.pilotis).forEach(([id, p]) => {
-        if (id !== pilotiId && p.isMaster) {
-          this.house!.pilotis[id] = { ...p, isMaster: false };
-          clearedMasters.push(id);
-        }
-      });
-    }
-
-    // Update central store
-    const current = this.house.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
-    this.house.pilotis[pilotiId] = { ...current, ...data };
-
-    // Sync to all views (now iterating over arrays of instances)
-    Object.values(this.house.views).forEach((instances) => {
-      if (!instances || instances.length === 0) return;
-
-      for (const instance of instances) {
-        const group = instance.group;
-
-        // First: if we cleared any previous masters, update them in this group
-        if (clearedMasters.length) {
-          clearedMasters.forEach((id) => {
-            const p = this.house!.pilotis[id];
-            updatePilotiMaster(group, id, p.isMaster, p.nivel);
-          });
-        }
-
-        // Then update the target piloti
-        const newData = this.house!.pilotis[pilotiId];
-        if (data.height !== undefined) {
-          updatePilotiHeight(group, pilotiId, newData.height);
-        }
-        if (data.isMaster !== undefined || data.nivel !== undefined) {
-          updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
-        }
-        // Update ground line when height OR nivel changes for a corner piloti
-        if ((data.height !== undefined || data.nivel !== undefined) && CORNER_PILOTI_IDS.includes(pilotiId)) {
-          updateGroundInGroup(group);
-        }
-
-        // Single refresh at the end of all operations
-        refreshHouseGroupRendering(group);
-      }
-    });
+    const {clearedMasters} = applyPilotiUpdate(repository, pilotiId, data, DEFAULT_PILOTI);
+    this.syncPilotiUpdateAcrossViews(pilotiId, data, clearedMasters);
 
     this.canvas?.requestRenderAll();
     this.notify();
@@ -859,11 +758,11 @@ class HouseManager {
 
   // Get piloti data
   getPilotiData(pilotiId: string): PilotiData {
-    return this.house?.pilotis[pilotiId] || { ...DEFAULT_PILOTI };
+    return this.house?.pilotis[pilotiId] || {...DEFAULT_PILOTI};
   }
 
   /** Standard available piloti heights */
-  static readonly STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
+  static readonly STANDARD_HEIGHTS = STANDARD_PILOTI_HEIGHTS;
 
   /**
    * Calculate recommended heights for all 12 pilotis using bilinear interpolation
@@ -875,58 +774,25 @@ class HouseManager {
    * - If minimum exceeds 3.0m, cap at 3.0m (out-of-level acceptable).
    */
   calculateAndApplyRecommendedHeights(): void {
-    if (!this.house) return;
+    const repository = this.getHousePilotiRepository();
+    if (!this.house || !repository) return;
 
-    const a1 = this.house.pilotis['piloti_0_0']?.nivel ?? 0.2;
-    const a4 = this.house.pilotis['piloti_3_0']?.nivel ?? 0.2;
-    const c1 = this.house.pilotis['piloti_0_2']?.nivel ?? 0.2;
-    const c4 = this.house.pilotis['piloti_3_2']?.nivel ?? 0.2;
+    recalculateRecommendedPilotiData(repository, DEFAULT_PILOTI);
 
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 4; col++) {
-        const id = `piloti_${col}_${row}`;
-        const u = col / 3;
-        const v = row / 2;
-
-        const nivel = (1 - u) * (1 - v) * a1
-                    + u * (1 - v) * a4
-                    + (1 - u) * v * c1
-                    + u * v * c4;
-
-        const minHeight = nivel * 3;
-        const height = HouseManager.STANDARD_HEIGHTS.find(h => h >= minHeight) ?? 3.0;
-
-        const current = this.house.pilotis[id];
-        this.house.pilotis[id] = {
-          ...current,
-          nivel: Math.round(nivel * 100) / 100,
-          height,
-        };
-      }
-    }
-
-    console.log('[HouseManager] Calculated recommended heights:', 
+    console.log('[HouseManager] Calculated recommended heights:',
       Object.entries(this.house.pilotis).map(([id, d]) => `${id}: nivel=${d.nivel} h=${d.height}`).join(', '));
   }
 
   // Check if any views exist
   hasAnyView(): boolean {
     if (!this.house) return false;
-    return Object.values(this.house.views).some((instances) => instances && instances.length > 0);
+    return hasAnyViewInstances(this.house.views);
   }
 
   // Get all registered groups
   getAllGroups(): Group[] {
     if (!this.house) return [];
-    const groups: Group[] = [];
-    for (const instances of Object.values(this.house.views)) {
-      if (instances) {
-        for (const instance of instances) {
-          groups.push(instance.group);
-        }
-      }
-    }
-    return groups;
+    return collectAllViewGroups(this.house.views);
   }
 
   // Get all house elements (windows/doors)
@@ -940,34 +806,21 @@ class HouseManager {
     if (!dataUrl) return false;
 
     try {
-      const image = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+      const image = await FabricImage.fromURL(dataUrl, {crossOrigin: 'anonymous'});
       const canvas = this.canvas;
       const center = canvas.getVpCenter();
 
-      const imgWidth = image.width ?? 1;
-      const imgHeight = image.height ?? 1;
-      const maxWidth = (canvas.getWidth() || 1300) * 0.45;
-      const maxHeight = (canvas.getHeight() || 1300) * 0.45;
-      const scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight, 1);
-
-      image.set({
-        left: center.x,
-        top: center.y,
-        originX: 'center',
-        originY: 'center',
-        scaleX: scale,
-        scaleY: scale,
-        selectable: true,
-        evented: true,
-        hasControls: true,
-        hasBorders: true,
-        lockMovementX: false,
-        lockMovementY: false,
-        lockScalingX: false,
-        lockScalingY: false,
-        lockRotation: true,
-      });
-      image.setControlsVisibility?.({ mtr: false });
+      image.set(
+        create3DSnapshotImagePatch({
+          centerX: center.x,
+          centerY: center.y,
+          imageWidth: image.width ?? 1,
+          imageHeight: image.height ?? 1,
+          canvasWidth: canvas.getWidth() || 1300,
+          canvasHeight: canvas.getHeight() || 1300,
+        }),
+      );
+      image.setControlsVisibility?.({mtr: false});
       canvas.add(image);
       canvas.setActiveObject(image);
       canvas.requestRenderAll();
@@ -980,28 +833,28 @@ class HouseManager {
 
   // Add an element (window/door)
   addElement(element: Omit<HouseElement, 'id'>): void {
-    if (!this.house) return;
-    const newElement: HouseElement = {
-      ...element,
-      id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    };
-    this.house.elements.push(newElement);
+    const repository = this.getHouseElementsRepository();
+    if (!repository) return;
+
+    addElementInRepository(repository, element, () => createElementId());
     this.notify();
   }
 
   // Remove an element by id
   removeElement(elementId: string): void {
-    if (!this.house) return;
-    this.house.elements = this.house.elements.filter((e) => e.id !== elementId);
+    const repository = this.getHouseElementsRepository();
+    if (!repository) return;
+
+    removeElementInRepository(repository, elementId);
     this.notify();
   }
 
   // Update an element
   updateElement(elementId: string, updates: Partial<Omit<HouseElement, 'id'>>): void {
-    if (!this.house) return;
-    const element = this.house.elements.find((e) => e.id === elementId);
-    if (element) {
-      Object.assign(element, updates);
+    const repository = this.getHouseElementsRepository();
+    if (!repository) return;
+
+    if (updateElementInRepository(repository, elementId, updates)) {
       this.notify();
     }
   }
@@ -1011,163 +864,40 @@ class HouseManager {
   // House body dimensions at SCALE=0.6: width=366px, height=132px
   initializeDefaultElements(): void {
     if (!this.house?.houseType) return;
-    
-    // Clear existing elements
-    this.house.elements = [];
-    
-    // Add default elements based on house type
-    // All positions/sizes in pixels (will be scaled in 3D viewer)
-    if (this.house.houseType === 'tipo6') {
-      // Front face: 1 door + 2 windows
-      // Door: 60×110 px, centered-right
-      this.addElement({
-        type: 'door',
-        face: 'front',
-        x: 220, // X position in pixels from left
-        y: 22,  // Y position from top of body
-        width: 60,
-        height: 110,
-      });
-      // Window 1: 55×45 px, left side
-      this.addElement({
-        type: 'window',
-        face: 'front',
-        x: 40,
-        y: 30,
-        width: 55,
-        height: 45,
-      });
-      // Window 2: 55×45 px, right side
-      this.addElement({
-        type: 'window',
-        face: 'front',
-        x: 130,
-        y: 30,
-        width: 55,
-        height: 45,
-      });
-      // Back face: 2 windows
-      this.addElement({
-        type: 'window',
-        face: 'back',
-        x: 50,
-        y: 30,
-        width: 55,
-        height: 45,
-      });
-      this.addElement({
-        type: 'window',
-        face: 'back',
-        x: 200,
-        y: 30,
-        width: 55,
-        height: 45,
-      });
-    } else if (this.house.houseType === 'tipo3') {
-      // Lateral views (long sides = front/back in 3D)
-      this.addElement({
-        type: 'window',
-        face: 'front',
-        x: 140,
-        y: 30,
-        width: 70,
-        height: 50,
-      });
-      this.addElement({
-        type: 'window',
-        face: 'back',
-        x: 140,
-        y: 30,
-        width: 70,
-        height: 50,
-      });
-      // Quadrado Aberto (right side in 3D - has door + window)
-      this.addElement({
-        type: 'door',
-        face: 'right',
-        x: 96,
-        y: 24,
-        width: 60,
-        height: 108,
-      });
-      this.addElement({
-        type: 'window',
-        face: 'right',
-        x: 21,
-        y: 24,
-        width: 54,
-        height: 45,
-      });
-    }
+    const repository = this.getHouseElementsRepository();
+    if (!repository) return;
+
+    resetDefaultElements(repository, this.house.houseType, () => createElementId());
+    this.notify();
   }
 
   // Auto-assign all sides based on initial view positioning
-  autoAssignAllSides(initialViewType: ViewType, initialSide: HouseSide): void {
+  autoAssignAllSides(_initialViewType: ViewType, initialSide: HouseSide): void {
     if (!this.house?.houseType) return;
 
-    const slots: Record<string, HouseSide> = {};
-
-    if (this.house.houseType === 'tipo6') {
-      const oppositeSide = OPPOSITE_SIDE[initialSide];
-      slots['front'] = initialSide;
-      slots['back'] = oppositeSide;
-
-      if (initialSide === 'top') {
-        slots['side1_0'] = 'right';
-        slots['side1_1'] = 'left';
-      } else {
-        slots['side1_0'] = 'left';
-        slots['side1_1'] = 'right';
-      }
-    } else if (this.house.houseType === 'tipo3') {
-      const oppositeSide = OPPOSITE_SIDE[initialSide];
-      slots['side2'] = initialSide;
-      slots['side1'] = oppositeSide;
-
-      slots['back_0'] = 'top';
-      slots['back_1'] = 'bottom';
-    }
-
+    const slots = buildAutoAssignedSlots({
+      houseType: this.house.houseType,
+      initialSide,
+    });
     this.house.preAssignedSlots = slots;
-    console.log('[HouseManager] Auto-assigned slots:', slots);
+    console.log('[HouseManager] Auto-assigned slots:', this.house.preAssignedSlots);
     this.notify();
   }
 
   // Get pre-assigned slots for a view type
   getPreAssignedSlots(viewType: ViewType): { label: string; side: HouseSide; onCanvas: boolean }[] {
-    if (!this.house?.preAssignedSlots) return [];
+    if (!this.house) return [];
 
-    const result: { label: string; side: HouseSide; onCanvas: boolean }[] = [];
-
-    for (const [key, side] of Object.entries(this.house.preAssignedSlots)) {
-      if (key === viewType || key.startsWith(`${viewType}_`)) {
-        const onCanvas = this.house.sideAssignments[side] === viewType;
-        result.push({ label: this.getSideLabel(side), side, onCanvas });
-      }
-    }
-
-    // Sort: left before right, top before bottom
-    result.sort((a, b) => {
-      const order: Record<string, number> = { left: 0, right: 1, top: 0, bottom: 1 };
-      return (order[a.side] ?? 0) - (order[b.side] ?? 0);
+    return getPreAssignedSlotsForView({
+      viewType,
+      preAssignedSlots: this.house.preAssignedSlots,
+      sideAssignments: this.house.sideAssignments,
     });
-
-    return result;
   }
 
   // Check if pre-assigned slots exist
   hasPreAssignedSlots(): boolean {
-    return this.house ? Object.keys(this.house.preAssignedSlots).length > 0 : false;
-  }
-
-  // Get human-readable label for a side
-  private getSideLabel(side: HouseSide): string {
-    switch (side) {
-      case 'top': return 'Superior';
-      case 'bottom': return 'Inferior';
-      case 'left': return 'Esquerdo';
-      case 'right': return 'Direito';
-    }
+    return this.house ? hasAnyPreAssignedSlots(this.house.preAssignedSlots) : false;
   }
 }
 

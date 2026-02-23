@@ -75,6 +75,8 @@ No passo de destino:
     - limpa highlights;
     - sincroniza projeções nas demais vistas;
     - salva histórico.
+5. os bindings de interação desse fluxo no canvas (seleção de beam, clique de piloti, cursor e tap mobile) ficam
+   centralizados em `useCanvasContraventamentoEvents`.
 
 ## 8. Cancelamento do modo
 
@@ -90,6 +92,8 @@ No cancelamento:
 1. estilos dos pilotis são restaurados;
 2. estado volta para `select-first`;
 3. origem e lado são limpos.
+4. reset do fluxo é centralizado em `resetContraventamentoFlow` (hook `useContraventamentoFlow`) e reutilizado em
+   cancelamento/limpeza de importação de projeto.
 
 ## 9. Feedback visual e cursor
 
@@ -193,11 +197,49 @@ Ao criar/remover/editar dados relevantes:
 3. renderiza novamente;
 4. atualiza o modelo 3D via estado do `HouseManager`.
 
+## 15.1 Regras puras extraídas para domínio
+
+1. parse de `pilotiId` em coluna/linha;
+2. elegibilidade por nível (`> 0,40 m`);
+3. validação de destino (mesma coluna e linha diferente);
+4. inferência de lado (`left/right`) por geometria do beam;
+5. agregação de ocupação por lado em uma coluna;
+6. projeção de estado do editor (`left/right active/disabled`);
+7. label semântico de lado para mensagens de UI.
+
+No `RacEditor`, os fluxos de editor lateral e estado do editor consomem esse parse centralizado
+(`parsePilotiGridPosition`) em vez de regex local duplicada.
+No `RacEditor`, a limpeza de seleção visual/estado de contraventamento foi centralizada em helper
+`clearContraventamentoSelection` para criação/remoção.
+No `RacEditor`, a sincronização de elevações pós-importação/remoção reutiliza `syncContraventamentoElevations`.
+No `RacEditor`, a orquestração do fluxo (elegibilidade, criação/remoção, seleção e sincronização) foi extraída para
+`useRacContraventamento`, mantendo as mesmas regras de negócio do fluxo anterior.
+No `RacEditor`, as consultas de contraventamento (grupo planta, ocupação de lados, elegibilidade e estado do editor)
+foram separadas para `useRacContraventamentoQueries`, mantendo `useRacContraventamento` focado na orquestração.
+No `RacEditor`, os comandos do fluxo (criar/remover/selecionar/cancelar/sincronizar) foram separados para
+`useRacContraventamentoCommands`.
+No `RacEditor`, os efeitos reativos do fluxo (ESC, sync por versão e highlight persistente) foram separados para
+`useRacContraventamentoEffects`.
+No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam contraventamento foram extraídas para
+`useRacProjectActions`, preservando a limpeza de seleção e a sincronização de elevações após remoção/importação.
+
 ## 16. Arquivos principais
 
-- `src/components/rac-editor/PilotiEditor.tsx`
-- `src/components/rac-editor/RACEditor.tsx`
+- `src/components/rac-editor/modals/editors/PilotiEditor.tsx`
+- `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
+- `src/components/rac-editor/hooks/useContraventamentoFlow.ts`
+- `src/components/rac-editor/hooks/useRacContraventamento.ts`
+- `src/components/rac-editor/hooks/useRacContraventamentoQueries.ts`
+- `src/components/rac-editor/hooks/useRacContraventamentoCommands.ts`
+- `src/components/rac-editor/hooks/useRacContraventamentoEffects.ts`
+- `src/components/rac-editor/hooks/useRacProjectActions.ts`
+- `src/components/rac-editor/RacEditor.tsx`
 - `src/components/rac-editor/Canvas.tsx`
-- `src/lib/canvas-utils.ts`
+- `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
+- `src/lib/domain/house-contraventamento-use-cases.ts`
+- `src/lib/canvas/contraventamento.ts`
+- `src/lib/canvas/piloti-ops.ts`
 - `src/components/rac-editor/House3DViewer.tsx`
 - `src/components/rac-editor/House3DScene.tsx`
+
+

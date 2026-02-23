@@ -1,7 +1,7 @@
-import {RACEditor} from "@/components/rac-editor/RACEditor";
+import {RacEditor} from "@/components/rac-editor/RacEditor";
 
 const Index = () => {
-  return <RACEditor />;
+  return <RacEditor/>;
 };
 
 export default Index;

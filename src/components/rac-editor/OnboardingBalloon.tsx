@@ -7,7 +7,7 @@ interface OnboardingBalloonProps {
   onClose: () => void;
 }
 
-export function OnboardingBalloon({ position, text, onClose }: OnboardingBalloonProps) {
+export function OnboardingBalloon({position, text, onClose}: OnboardingBalloonProps) {
   return (
     <div
       className="fixed z-50 animate-scale-in pointer-events-auto"
@@ -18,9 +18,9 @@ export function OnboardingBalloon({ position, text, onClose }: OnboardingBalloon
     >
       <div className="relative bg-amber-100 text-amber-900 rounded-xl shadow-lg p-3 max-w-[220px]">
         {/* Arrow pointing left */}
-        <div 
+        <div
           className="absolute w-0 h-0 border-8 border-transparent border-r-amber-100"
-          style={{ left: "-15px", top: "20px", transform: "translateY(-50%)" }}
+          style={{left: "-15px", top: "20px", transform: "translateY(-50%)"}}
         />
 
         {/* Close button */}
@@ -28,7 +28,7 @@ export function OnboardingBalloon({ position, text, onClose }: OnboardingBalloon
           onClick={onClose}
           className="absolute -top-2 -right-2 w-6 h-6 bg-amber-200 hover:bg-amber-300 rounded-full flex items-center justify-center transition-colors z-50"
         >
-          <FontAwesomeIcon icon={faXmark} className="text-amber-800 text-xs" />
+          <FontAwesomeIcon icon={faXmark} className="text-amber-800 text-xs"/>
         </button>
 
         {/* Content */}

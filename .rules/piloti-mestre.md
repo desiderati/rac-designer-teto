@@ -25,7 +25,7 @@ Na interface, o toggle de mestre aparece somente nos 4 cantos:
 3. `piloti_0_2` (C1)
 4. `piloti_3_2` (C4)
 
-## 4. Regras no fluxo inicial (`NivelDefinitionModal`)
+## 4. Regras no fluxo inicial (`NivelDefinitionEditor`)
 
 ### 4.1 Pré-condições para aplicar
 
@@ -58,6 +58,14 @@ No `HouseManager.updatePiloti`:
 1. se um piloti é atualizado com `isMaster = true`, qualquer mestre anterior é limpo;
 2. a limpeza ocorre no estado central e é propagada para todas as vistas registradas.
 
+Implementação de domínio extraída:
+
+1. a regra de mestre único está centralizada no caso de uso `applyPilotiUpdateWithSingleMasterRule`;
+2. a camada de aplicação usa a interface `HousePilotiRepository`;
+3. `HouseManager` atua como adaptador/orquestrador e sincronizador de canvas/3D.
+4. sincronização visual entre vistas foi decomposta em passes privados no `HouseManager` para reduzir complexidade
+   local sem mudar regra.
+
 ## 7. Regras visuais do mestre
 
 Quando `isMaster = true`:
@@ -87,8 +95,12 @@ Mudanças de mestre são sincronizadas para:
 
 ## 10. Referências de código
 
-- `src/components/rac-editor/NivelDefinitionModal.tsx`
-- `src/components/rac-editor/PilotiEditor.tsx`
+- `src/components/rac-editor/modals/editors/NivelDefinitionEditor.tsx`
+- `src/components/rac-editor/modals/editors/PilotiEditor.tsx`
+- `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
 - `src/lib/house-manager.ts`
-- `src/lib/canvas-utils.ts`
+- `src/lib/domain/house-use-cases.ts`
+- `src/lib/domain/house-application.ts`
+- `src/lib/domain/house-repository.ts`
+- `src/lib/canvas/piloti.ts`
 - `src/components/rac-editor/House3DScene.tsx`

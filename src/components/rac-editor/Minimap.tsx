@@ -35,21 +35,21 @@ const THUMB_SIZE = 12;
 const MIN_ZOOM = 25;
 const MAX_ZOOM = 200;
 
-export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSliderProps) {
+export function ZoomSlider({zoom, onZoomChange, highlight = false}: ZoomSliderProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const [isSliderDragging, setIsSliderDragging] = useState(false);
-  
+
   const zoomPercent = Math.round(zoom * 100);
   const normalizedZoom = (zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM);
   const thumbX = (THUMB_SIZE / 2) + normalizedZoom * (SLIDER_WIDTH - THUMB_SIZE);
 
   const updateZoomFromPosition = useCallback((clientX: number) => {
     if (!sliderRef.current) return;
-    
+
     const rect = sliderRef.current.getBoundingClientRect();
     const relativeX = clientX - rect.left;
     const normalizedX = Math.max(0, Math.min(SLIDER_WIDTH, relativeX));
-    
+
     const zoomValue = MIN_ZOOM + (normalizedX / SLIDER_WIDTH) * (MAX_ZOOM - MIN_ZOOM);
     onZoomChange(zoomValue / 100);
   }, [onZoomChange]);
@@ -91,7 +91,7 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
     if (isSliderDragging) {
       window.addEventListener('mousemove', handleSliderMove);
       window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleSliderTouchMove, { passive: false });
+      window.addEventListener('touchmove', handleSliderTouchMove, {passive: false});
       window.addEventListener('touchend', handleMouseUp);
       return () => {
         window.removeEventListener('mousemove', handleSliderMove);
@@ -103,19 +103,25 @@ export function ZoomSlider({ zoom, onZoomChange, highlight = false }: ZoomSlider
   }, [isSliderDragging, handleSliderMove, handleSliderTouchMove, handleMouseUp]);
 
   return (
-    <div className={`flex flex-col items-center gap-0.5 ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1' : ''}`}>
+    <div
+      className={
+        `flex flex-col items-center gap-0.5 ${highlight
+          ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1'
+          : ''
+        }`}>
       <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
-      <div 
+      <div
         ref={sliderRef}
+        data-testid="rac-zoom-slider"
         className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
-        style={{ width: SLIDER_WIDTH, height: 16 }}
+        style={{width: SLIDER_WIDTH, height: 16}}
         onMouseDown={handleSliderMouseDown}
         onTouchStart={handleTouchStart}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded" />
-        <div 
+        <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded"/>
+        <div
           className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
-          style={{ left: thumbX - THUMB_SIZE / 2 }}
+          style={{left: thumbX - THUMB_SIZE / 2}}
         />
       </div>
     </div>
@@ -210,7 +216,7 @@ export function Minimap({
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchmove', handleTouchMove, {passive: false});
       window.addEventListener('touchend', handleTouchEnd);
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
@@ -224,7 +230,14 @@ export function Minimap({
   return (
     <div
       ref={minimapRef}
-      className={`bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none ${highlight ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75' : ''}`}
+      data-testid="rac-minimap"
+      className={
+        `bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none
+          ${highlight
+          ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75'
+          : ''
+        }`
+      }
       style={{
         width: MINIMAP_SIZE,
         height: MINIMAP_SIZE,
@@ -254,7 +267,7 @@ export function Minimap({
             }}
           />
         ))}
-        
+
         <div
           className="absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75"
           style={{

@@ -1,0 +1,31 @@
+root = true
+
+[*.{ts,tsx,js,jsx,mjs,cjs}]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+max_line_length = 120
+
+[*.{ts,tsx}]
+ij_continuation_indent_size = 2
+ij_typescript_align_multiline_parameters = false
+ij_typescript_align_multiline_chained_methods = false
+ij_javascript_align_multiline_parameters = false
+ij_javascript_align_multiline_chained_methods = false
+
+[*.{json,jsonc,yml,yaml}]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.md]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = false

@@ -1,28 +1,27 @@
-const STORAGE_KEY = 'rac-settings';
+import {readSettingsStorage, writeSettingsStorage} from '@/lib/persistence/settings-storage';
 
 export interface AppSettings {
   autoNavigatePiloti: boolean;
   zoomEnabledByDefault: boolean;
 }
 
-const defaults: AppSettings = {
+const DEFAULT_SETTINGS: AppSettings = {
   autoNavigatePiloti: false,
   zoomEnabledByDefault: true,
 };
 
 export function getSettings(): AppSettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...defaults };
-    const parsed = JSON.parse(raw);
-    return { ...defaults, ...parsed };
-  } catch {
-    return { ...defaults };
-  }
+  return readSettingsStorage(DEFAULT_SETTINGS);
 }
 
 export function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
-  const current = getSettings();
-  current[key] = value;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+  const nextSettings: AppSettings = {
+    ...getSettings(),
+    [key]: value,
+  };
+  try {
+    writeSettingsStorage(nextSettings);
+  } catch {
+    // Keep UI usable when storage writes fail (quota/private mode/etc).
+  }
 }
