@@ -852,7 +852,7 @@
     - operação: `toCanvasScreenPoint`
 - `RacEditor` atualizado:
     - `showOnboardingBalloon` passa a delegar cálculo de posição de tela para `toCanvasScreenPoint`
-    - `handleAddDimension` passa a delegar ancoragem do editor de distância para `toCanvasScreenPoint`
+    - `handleAddDistance` passa a delegar ancoragem do editor de distância para `toCanvasScreenPoint`
 - Cobertura automática adicionada:
     - `src/components/rac-editor/utils/canvas-screen-position.smoke.test.ts` (2 testes)
 - Regras/documentação sincronizadas:
@@ -900,10 +900,10 @@
 ### Fase 7 - passo incremental 43 (Estado de editor de linha/seta extraído do Canvas)
 
 - Novo utilitário puro para leitura de estado de linha/seta:
-    - `src/lib/canvas/line-arrow-editor.ts`
-    - operação: `readLineArrowEditorState`
+    - `src/lib/canvas/line-arrow-distance-editor-state.ts`
+    - operação: `readLineArrowDistanceEditorState`
 - `Canvas` atualizado:
-    - `handleLineArrowSelection` passa a delegar leitura de `currentColor/currentLabel` para util dedicado
+    - `handleLineArrowDistanceSelection` passa a delegar leitura de `currentColor/currentLabel` para util dedicado
     - remove parsing ad-hoc de estrutura interna de grupos na camada de componente
 - Cobertura automática adicionada:
     - `src/lib/canvas/line-arrow-editor.smoke.test.ts` (3 testes)
@@ -952,10 +952,10 @@
 
 - Novo utilitário de aplicação de edição:
     - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - operação: `applyLineArrowEditorChange`
+    - operação: `applyLineArrowInlineEditorChange`
 - `RacEditor` atualizado:
     - bloco de atualização de cor/rótulo e reagrupamento de linha/seta foi movido para util dedicado
-    - `handleGenericApply` passa a atuar como orquestrador (seleção + persistência + feedback)
+    - `handleObjectApply` passa a atuar como orquestrador (seleção + persistência + feedback)
 - Regras/documentação sincronizadas:
     - `.rules/canvas.md` atualizado com referência ao util de aplicação de edição de linha/seta
 - Validação pós-extração:
@@ -970,7 +970,7 @@
     - operação: `applyWallEditorChange`
 - `RacEditor` atualizado:
     - bloco de edição de parede (nome/cor + criação/remoção de label com agrupamento) foi movido para util dedicado
-    - `handleGenericApply` mantém orquestração de persistência, histórico e mensagem
+    - `handleObjectApply` mantém orquestração de persistência, histórico e mensagem
 - Regras/documentação sincronizadas:
     - `.rules/canvas.md` atualizado com referência ao util de edição de parede
 - Validação pós-extração:
@@ -1016,7 +1016,7 @@
     - `src/lib/canvas/dimension-editor.ts`
     - operação: `applyDimensionEditorPatch`
 - `RacEditor` atualizado:
-    - branch de `dimension` em `handleGenericApply` passa a delegar atualização de texto/cores para o util
+    - branch de `dimension` em `handleObjectApply` passa a delegar atualização de texto/cores para o util
 - Cobertura automática adicionada:
     - `src/lib/canvas/dimension-editor.smoke.test.ts` (2 testes)
 - Regras/documentação sincronizadas:
@@ -1287,7 +1287,7 @@
 ### Fase 7 - passo incremental 68 (JSX de editores inline simplificado no RacEditor)
 
 - `RacEditor` atualizado:
-    - cálculos inline de cor dos `GenericEditor` (dimensão e parede) foram extraídos para helpers nomeados:
+    - cálculos inline de cor dos `GenericInlineEditor` (dimensão e parede) foram extraídos para helpers nomeados:
       `resolveDimensionEditorColor` e `resolveWallEditorColor`
     - tipo do editor de linha/seta foi centralizado em `lineArrowEditorType`, reutilizado em `editorType` e `onApply`
 - Ganho:
@@ -1304,8 +1304,8 @@
 - Ajuste de estabilidade (estado atual do branch):
     - import de confirmação ajustado para arquivo existente:
       `src/components/rac-editor/modals/ConfirmDialogModal.tsx`
-    - import de ícone do `GenericEditor` ajustado para arquivo existente:
-      `src/components/rac-editor/icons/GenericEditorTypeIcon.tsx`
+    - import de ícone do `GenericInlineEditor` ajustado para arquivo existente:
+      `src/components/rac-editor/icons/GenericInlineEditorIcon.tsx`
 - Regras/documentação sincronizadas:
     - `.rules/toolbar.md` atualizado com helper de contadores e path atual do modal de confirmação
 - Validação:
@@ -1690,9 +1690,9 @@
 ### Fase 7 - passo incremental 90 (Apply de editores genéricos extraído do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useRacGenericEditorActions.ts`
+  - `src/components/rac-editor/hooks/useObjectEditorActions.ts`
   - centraliza:
-    - `handleGenericApply` para `wall`, `line/arrow` e `dimension`;
+    - `handleObjectApply` para `wall`, `line/arrow` e `dimension`;
     - resolução de cor inicial dos editores (`resolveDimensionEditorColor`, `resolveWallEditorColor`);
     - inferência de tipo para editor de linha/seta (`lineArrowEditorType`).
 - `RacEditor` atualizado:
@@ -1701,7 +1701,7 @@
 - Ganho:
   - redução de `src/components/rac-editor/RacEditor.tsx` para **618** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useRacGenericEditorActions.ts src/components/rac-editor/hooks/useRacTutorialUiActions.ts src/components/rac-editor/hooks/useRacHouseInitialization.ts` -> PASS
+  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useObjectEditorActions.ts src/components/rac-editor/hooks/useRacTutorialUiActions.ts src/components/rac-editor/hooks/useRacHouseInitialization.ts` -> PASS
   - `npm run test -- --run` -> PASS (121/121)
   - `npm run build` -> PASS
   - `npm run test:e2e -- --workers=1` -> PASS (16/16)
@@ -1817,17 +1817,17 @@
 ### Fase 7 - passo incremental 96 (Seção Canvas do RacEditor extraída)
 
 - Novo componente:
-  - `src/components/rac-editor/RacEditorCanvasSection.tsx`
+  - `src/components/rac-editor/RacEditorCanvas.tsx`
   - centraliza:
     - composição de `Canvas` no `RacEditor`;
     - wiring dos callbacks de seleção/zoom/contraventamento;
     - renderização da `InfoBar` dentro do slot `children` do canvas.
 - `RacEditor` atualizado:
-  - remove bloco inline da seção de canvas e delega para `RacEditorCanvasSection`.
+  - remove bloco inline da seção de canvas e delega para `RacEditorCanvas`.
 - Ganho:
   - redução de `src/components/rac-editor/RacEditor.tsx` para **493** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvasSection.tsx src/components/rac-editor/hooks/useRacToolbarActions.ts` -> PASS
+  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvas.tsx src/components/rac-editor/hooks/useRacToolbarActions.ts` -> PASS
   - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
   - `npm run test -- --run` -> PASS (121/121)
   - `npm run build` -> PASS
@@ -1927,7 +1927,7 @@
     - cálculo de `isEditorOpen` (piloti + editores inline);
     - wiring de callbacks de seleção inline para o `Canvas`.
 - `RacEditor` atualizado:
-  - remove cálculo inline de `isEditorOpen` e delega bindings de `onDistanceSelect/onObjectNameSelect/onLineArrowSelect`.
+  - remove cálculo inline de `isEditorOpen` e delega bindings de `onDistanceSelect/onObjectSelect/onLineArrowDistanceSelect`.
 - Validação pós-extração:
   - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useRacInlineEditorBindings.ts` -> PASS
   - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
@@ -2015,29 +2015,29 @@
   - `npm run build` -> PASS
   - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
-### Fase 7 - passo incremental 107 (Bugfix GenericEditor + regressão automática)
+### Fase 7 - passo incremental 107 (Bugfix GenericInlineEditor + regressão automática)
 
 - Problema corrigido:
-  - ao abrir `GenericEditor` (muro/linha/seta/distância), alterações de nome/cor eram perdidas durante digitação;
-  - causa raiz: `useEditorDraft` ressincronizava `draft` em toda renderização por depender de objeto inicial.
+  - ao abrir `GenericInlineEditor` (muro/linha/seta/distância), alterações de nome/cor eram perdidas durante digitação;
+  - causa raiz: `useGenericInlineEditorDraft` ressincronizava `draft` em toda renderização por depender de objeto inicial.
 - Correção:
-  - `src/components/rac-editor/hooks/useEditorDraft.ts`
+  - `src/components/rac-editor/hooks/useGenericInlineEditorDraft.ts`
   - sincronização de `draft` passou a ocorrer na transição de abertura (`closed -> open`) e em `reset`, preservando
     edição em andamento.
 - Regressão automática adicionada:
-  - `src/components/rac-editor/modals/editors/GenericEditor.smoke.test.tsx`
+  - `src/components/rac-editor/modals/editors/GenericInlineEditor.smoke.test.tsx`
   - valida que o editor mantém valor digitado, troca cor e chama `onApply` com os valores atualizados.
 - Validação pós-correção:
-  - `npx eslint src/components/rac-editor/hooks/useEditorDraft.ts src/components/rac-editor/modals/editors/GenericEditor.smoke.test.tsx` -> PASS
+  - `npx eslint src/components/rac-editor/hooks/useGenericInlineEditorDraft.ts src/components/rac-editor/modals/editors/GenericInlineEditor.smoke.test.tsx` -> PASS
   - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
   - `npm run test -- --run` -> PASS (122/122)
   - `npm run build` -> PASS
   - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
-### Fase 7 - passo incremental 108 (Bugfix GenericEditor: limpar nome sem remover objeto + reedição de muro agrupado)
+### Fase 7 - passo incremental 108 (Bugfix GenericInlineEditor: limpar nome sem remover objeto + reedição de muro agrupado)
 
 - Problemas corrigidos:
-  - em `line/arrow`, limpar o nome no `GenericEditor` removia o objeto do canvas;
+  - em `line/arrow`, limpar o nome no `GenericInlineEditor` removia o objeto do canvas;
   - em `wall` (`Vizinho/Muro/etc.`), após primeira configuração de nome/cor, reabrir o editor falhava quando o alvo virava grupo.
 - Correções aplicadas:
   - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
@@ -2072,7 +2072,7 @@
   - `src/lib/canvas/factory/elements-factory.ts`
     - `createLine` passa a criar grupo com label placeholder `" "` (`lineArrowLabel`) já na inserção;
     - `createArrow` passa a incluir label placeholder `" "` e normalização de `arrowBody/arrowHead` no `scaling` (sem deformar head);
-    - `createDimension` reforça normalização geométrica no `scaling` (`dimensionMainLine`, `dimensionTickStart`, `dimensionTickEnd`, `dimensionLabel`);
+    - `createDistance` reforça normalização geométrica no `scaling` (`dimensionMainLine`, `dimensionTickStart`, `dimensionTickEnd`, `dimensionLabel`);
     - `line/arrow/dimension` com controles diagonais ocultos (`tl/tr/bl/br`) + `lockScalingY`.
   - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
     - `lineArrowLabel` vazio passa a ser `" "` visível (placeholder), preservando área de seleção;
@@ -2107,7 +2107,7 @@
     - `createLine` com escala longitudinal baseada no comprimento atual da linha (sem drift de posição);
     - `createArrow` com geometria `shaft + head` para manter triângulo totalmente dentro do comprimento (sem corte);
     - reforço de `setCoords` para consistência de posição de label logo na inserção;
-    - `createDimension` mantém normalização de ticks/label no `scaling`.
+    - `createDistance` mantém normalização de ticks/label no `scaling`.
   - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
     - normalização de escala do wrapper de edição alinhada ao factory:
       - linha escala por comprimento atual;
@@ -2131,7 +2131,7 @@
 - Problemas reportados/corrigidos:
   - `line` continuava deslocando no canvas durante resize longitudinal;
   - `line` não estava com snap ortogonal de rotação como `arrow/dimension`;
-  - label inicial de `line/arrow` podia nascer fora da posição esperada após aplicar o `GenericEditor`.
+  - label inicial de `line/arrow` podia nascer fora da posição esperada após aplicar o `GenericInlineEditor`.
 - Correções aplicadas:
   - `src/lib/canvas/factory/elements-factory.ts`
     - `createLine` passa a normalizar `scaling` com `totalLength = group.width * group.scaleX` e atualizar `group.width`,
@@ -2156,3 +2156,156 @@
   - `npm run test -- --run` -> PASS (130/130)
   - `npm run build` -> PASS
   - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 112 (Label de Linha/Seta: ancoragem imediata igual Distância)
+
+- Problema reportado/corrigido:
+  - em `line/arrow`, ao trocar label inicial `" "` para texto real (`Felipe`), a distância visual entre objeto e label
+    ficava incorreta até ocorrer resize; após redimensionar, a posição voltava ao normal.
+- Causa raiz:
+  - no apply de edição de `line/arrow`, o fluxo de label existente disparava recomputação estrutural do grupo
+    (`addWithUpdate`) ao trocar texto, alterando o centro interno do grupo e deslocando visualmente a label.
+- Correção aplicada:
+  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+    - apply de label existente passa a seguir lógica equivalente ao fluxo de `dimension`:
+      - atualiza `text/fill/left/top/scale`;
+      - atualiza somente coords/render (`setCoords`);
+      - não faz recomputação estrutural (`addWithUpdate`) nessa etapa.
+    - chamada de `setCoords` no label tornou-se defensiva para compatibilidade com mocks de teste.
+- Regressão automática adicionada:
+  - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
+    - novo cenário validando troca de placeholder para texto sem recomputação estrutural do grupo.
+- Validação pós-correção:
+  - `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
+  - `npm run test -- --run` -> PASS (131/131)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 113 (Linha/Seta: preservar top normalizado da label no apply)
+
+- Problema reportado/corrigido:
+  - label de `line/arrow` ainda ficava visualmente alta após confirmar texto no `GenericInlineEditor`,
+    apesar de nascer correta no placeholder inicial.
+- Causa raiz:
+  - o apply de `line/arrow` ainda impunha `top` absoluto na label após edição;
+  - no `scaling`, havia recálculo de `top` que podia divergir do `top` normalizado original do grupo.
+- Correção aplicada:
+  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+    - atualização de label existente agora preserva `top` corrente normalizado (`existingLabel.top`);
+    - no wrapper de grupos legados, `labelNormalizedTop` é capturado após o `Group` e reaplicado no `scaling`.
+  - `src/lib/canvas/factory/elements-factory.ts`
+    - `createLine` e `createArrow` passam a capturar `objLabelTop/objLabelTop` normalizados pós-criação e
+      reaplicar esse mesmo `top` no `scaling`, evitando drift vertical.
+  - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
+    - asserts atualizados para garantir ancoragem da label no `top` inicial normalizado durante resize.
+- Validação pós-correção:
+  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
+  - `npm run test -- --run` -> PASS (131/131)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 114 (Compatibilidade com objetos antigos: normalização de top da label)
+
+- Ajuste adicional aplicado:
+  - alguns objetos de `line/arrow` já existentes podiam carregar `top` legado muito alto para a label;
+  - no apply de edição, foi adicionada normalização defensiva:
+    - quando `existingLabel.top < -8`, aplica fallback para `-3` antes de salvar;
+    - mantém objetos novos/corretos inalterados (preserva top normalizado atual).
+- Arquivos:
+  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+- Validação pós-ajuste:
+  - `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts src/lib/canvas/factory/elements-factory.smoke.test.ts` -> PASS
+  - `npm run test -- --run` -> PASS (131/131)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 115 (Split do hook combinado de linha/seta)
+
+- Refatoração aplicada:
+  - `src/components/rac-editor/hooks/useLineArrowInlineEditorActions.ts` removido.
+  - Novos hooks dedicados:
+    - `src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts`
+    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+  - Nova util compartilhada para aplicar edição de linha/seta:
+    - `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`
+  - `src/components/rac-editor/RacEditor.tsx` atualizado para orquestrar os dois hooks e manter o contrato do inline editor.
+- Objetivo:
+  - reduzir acoplamento e duplicação entre fluxos de linha e seta, mantendo regra de negócio/UX já existente.
+- Validação pós-refatoração:
+  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts` -> PASS
+  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (erro pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`, fora do escopo deste passo)
+  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 116 (Split definitivo do apply de Linha/Seta nos hooks)
+
+- Ajuste solicitado aplicado:
+  - removido o util compartilhado `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`.
+  - lógica de `apply` foi separada e movida para os hooks específicos:
+    - `src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts`
+    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+- Estrutura nova:
+  - `useLineArrowDistanceEditorActions` contém `applyLineEditorChange` (sem branch por tipo de objeto).
+  - `useArrowEditorActions` contém `applyArrowEditorChange` (sem branch por tipo de objeto).
+- Objetivo atingido:
+  - redução de acoplamento entre fluxos de linha/seta e queda de complexidade ciclomática do apply combinado.
+- Regras/documentação sincronizadas:
+  - `.rules/canvas.md` atualizado para registrar que os applies ficam nos hooks específicos.
+- Validação pós-ajuste:
+  - `npx eslint src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/RacEditor.tsx` -> PASS
+  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
+  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 117 (Remoção de duplicação da escala de Linha entre factory e apply)
+
+- Problema atacado:
+  - duplicação de comportamento entre `createLine` (factory) e `applyLineEditorChange` (hook),
+    principalmente no handler `group.on("scaling")`.
+- Refatoração aplicada:
+  - `src/lib/canvas/factory/elements-factory.ts`
+    - extraídos helpers reutilizáveis:
+      - `normalizeLineGroupScaling(group, labelTop?)`
+      - `bindLineGroupScaling(group, labelTop?)`
+    - `createLine` passa a usar `bindLineGroupScaling`.
+  - `src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts`
+    - `applyLineEditorChange` passa a reutilizar `bindLineGroupScaling` no reagrupamento,
+      removendo lógica duplicada de normalização de escala.
+- Resultado:
+  - criação e edição inline de linha usam a mesma regra de escala longitudinal (fonte única).
+- Regras/documentação sincronizadas:
+  - `.rules/canvas.md` atualizado com a regra de centralização da escala de `line`.
+- Validação pós-refatoração:
+  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useLineArrowDistanceEditorActions.ts` -> PASS
+  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
+  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+
+### Fase 7 - passo incremental 118 (Remoção de duplicação da escala de Seta entre factory e apply)
+
+- Problema atacado:
+  - duplicação de comportamento entre `createArrow` (factory) e `applyArrowEditorChange` (hook),
+    principalmente no handler `group.on("scaling")`.
+- Refatoração aplicada:
+  - `src/lib/canvas/factory/elements-factory.ts`
+    - extraídos helpers reutilizáveis da seta:
+      - `normalizeArrowGroupToLength(group, totalLength, labelTop?)`
+      - `normalizeArrowGroupScaling(group, labelTop?)`
+      - `bindArrowGroupScaling(group, labelTop?)`
+    - `createArrow` passa a usar `bindArrowGroupScaling`.
+  - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+    - `applyArrowEditorChange` passa a reutilizar `normalizeArrowGroupToLength` no fluxo de scaling do wrapper,
+      removendo duplicação dos cálculos de head/shaft.
+- Resultado:
+  - criação e edição inline de seta usam a mesma regra geométrica longitudinal (fonte única).
+- Regras/documentação sincronizadas:
+  - `.rules/canvas.md` atualizado com a regra de centralização da escala de `arrow`.
+- Validação pós-refatoração:
+  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useArrowEditorActions.ts` -> PASS
+  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+  - `npm run build` -> PASS
+  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)

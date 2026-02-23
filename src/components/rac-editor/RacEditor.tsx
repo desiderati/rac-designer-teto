@@ -1,14 +1,15 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {FabricObject} from 'fabric';
 import {Toolbar} from './Toolbar';
-import {CanvasHandle, PilotiSelection,} from './Canvas';
+import {CanvasHandle, PilotiCanvasSelection,} from './Canvas';
 import {RacEditorInlineEditors} from './RacEditorInlineEditors.tsx';
 import {RacEditorOverlays} from './RacEditorOverlays.tsx';
-import {RacEditorCanvasSection} from './RacEditorCanvasSection.tsx';
+import {RacEditorCanvas} from './RacEditorCanvas.tsx';
 import {useContraventamentoFlow} from './hooks/useContraventamentoFlow';
 import {useHouseTypeFlow} from './hooks/useHouseTypeFlow';
 import {useRacHotkeys} from './hooks/useRacHotkeys';
-import {useRacInlineEditorBindings} from './hooks/useRacInlineEditorBindings';
+import {
+  useRacInlineEditorBindings
+} from '@/components/rac-editor/modals/editors/generic/hooks/useRacInlineEditorBindings.ts';
 import {useRacTutorialFlow} from './hooks/useRacTutorialFlow';
 import {useRacModalState} from './hooks/useRacModalState';
 import {useRacDebugBridge} from './hooks/useRacDebugBridge';
@@ -21,7 +22,7 @@ import {useRacMenuTutorialActions} from './hooks/useRacMenuTutorialActions';
 import {useRacPilotiActions} from './hooks/useRacPilotiActions';
 import {useRacTutorialUiActions} from './hooks/useRacTutorialUiActions';
 import {useRacHouseInitialization} from './hooks/useRacHouseInitialization';
-import {useRacGenericEditorActions} from './hooks/useRacGenericEditorActions';
+import {useObjectEditorActions} from '@/components/rac-editor/modals/editors/generic/hooks/useObjectEditorActions.ts';
 import {useRacPdfExportAction} from './hooks/useRacPdfExportAction';
 import {useRacToolbarViewCounts} from './hooks/useRacToolbarViewCounts';
 import {useRacCanvasInteractionActions} from './hooks/useRacCanvasInteractionActions';
@@ -30,6 +31,9 @@ import {useIsMobile} from '@/shared/hooks/use-mobile';
 import {getSettings} from '@/lib/settings';
 import {useHouseStoreVersion} from '@/lib/state/house-store';
 import {houseManager, HouseType} from '@/lib/house-manager';
+import {
+  useLineArrowDistanceEditorActions
+} from "@/components/rac-editor/modals/editors/generic/hooks/useLineArrowDistanceEditorActions.ts";
 
 export function RacEditor() {
   const [infoMessage, setInfoMessage] =
@@ -38,22 +42,51 @@ export function RacEditor() {
   const [isDrawing, setIsDrawing] = useState(false);
 
   const {
-    activeSubmenu, setActiveSubmenu, showTips, setShowTips, showZoomControls, setShowZoomControls,
-    isSettingsOpen, setIsSettingsOpen, isMenuOpen, setIsMenuOpen, showRestartConfirm, setShowRestartConfirm,
-    showUngroupConfirm, setShowUngroupConfirm, sideSelectorOpen, setSideSelectorOpen, houseTypeSelectorOpen,
-    setHouseTypeSelectorOpen, is3DViewerOpen, setIs3DViewerOpen, nivelDefinitionOpen, setNivelDefinitionOpen,
+    isMenuOpen,
+    setIsMenuOpen,
+    activeSubmenu,
+    setActiveSubmenu,
+    showTips,
+    setShowTips,
+    showZoomControls,
+    setShowZoomControls,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    showRestartConfirm,
+    setShowRestartConfirm,
+    showUngroupConfirm,
+    setShowUngroupConfirm,
+    sideSelectorOpen,
+    setSideSelectorOpen,
+    houseTypeSelectorOpen,
+    setHouseTypeSelectorOpen,
+    is3DViewerOpen,
+    setIs3DViewerOpen,
+    nivelDefinitionOpen,
+    setNivelDefinitionOpen,
   } = useRacModalState();
 
-  const {tutorialStep, tutorialHouseSelectorPreview, setTutorialHouseSelectorPreview, advanceTutorial, completeTutorial, restartTutorialProgress,}
-    = useRacTutorialFlow();
+  const {
+    tutorialStep,
+    tutorialHouseSelectorPreview,
+    setTutorialHouseSelectorPreview,
+    advanceTutorial,
+    completeTutorial,
+    restartTutorialProgress
+  } = useRacTutorialFlow();
 
-  const [pilotiSelection, setPilotiSelection] = useState<PilotiSelection | null>(null);
+  const [pilotiSelection, setPilotiSelection] = useState<PilotiCanvasSelection | null>(null);
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
 
   const {
-    distanceSelection, isDistanceEditorOpen, objectNameSelection, isObjectNameEditorOpen, lineArrowSelection,
-    isLineArrowEditorOpen, isEditorOpen, canvasSelectionBindings, openDistanceEditor, closeDistanceEditor,
-    closeObjectNameEditor, closeLineArrowEditor,
+    objectSelection,
+    isObjectEditorOpen,
+    closeObjectEditor,
+    lineArrowDistanceSelection,
+    isLineArrowDistanceEditorOpen,
+    closeLineArrowDistanceEditor,
+    isEditorOpen,
+    canvasSelectionBindings,
   } = useRacInlineEditorBindings({isPilotiEditorOpen});
 
   const [onboardingBalloon, setOnboardingBalloon] = useState<{
@@ -64,9 +97,18 @@ export function RacEditor() {
   const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number; } | null>(null);
 
   const {
-    pendingViewType, setPendingViewType, sideSelectorMode, setSideSelectorMode, instanceSlots, setInstanceSlots,
-    pendingNivelSide, setPendingNivelSide, niveisAppliedRef, transitionToNivelRef,
+    pendingViewType,
+    setPendingViewType,
+    sideSelectorMode,
+    setSideSelectorMode,
+    instanceSlots,
+    setInstanceSlots,
+    pendingNivelSide,
+    setPendingNivelSide,
+    niveisAppliedRef,
+    transitionToNivelRef,
   } = useHouseTypeFlow();
+
   const houseVersion = useHouseStoreVersion();
   const canvasRef = useRef<CanvasHandle>(null);
   const isMobile = useIsMobile();
@@ -91,9 +133,17 @@ export function RacEditor() {
 
   // ── Contraventamento state ─────────────────────────────────────────────────
   const {
-    isContraventamentoMode, setIsContraventamentoMode, selectedContraventamento, setSelectedContraventamento,
-    contraventamentoStep, setContraventamentoStep, contraventamentoFirst, setContraventamentoFirst,
-    contraventamentoSide, setContraventamentoSide, resetContraventamentoFlow,
+    isContraventamentoMode,
+    setIsContraventamentoMode,
+    selectedContraventamento,
+    setSelectedContraventamento,
+    contraventamentoStep,
+    setContraventamentoStep,
+    contraventamentoFirst,
+    setContraventamentoFirst,
+    contraventamentoSide,
+    setContraventamentoSide,
+    resetContraventamentoFlow,
   } = useContraventamentoFlow();
 
   useRacHouseInitialization({canvasRef});
@@ -193,7 +243,7 @@ export function RacEditor() {
     handleAddFossa,
     handleAddLine,
     handleAddArrow,
-    handleAddDimension,
+    handleAddDistance,
     handleToggleDrawMode,
     handleAddText,
   } = useRacCanvasTools({
@@ -207,7 +257,6 @@ export function RacEditor() {
     setIsDrawing,
     setInfoMessage,
     setOnboardingBalloon,
-    openDistanceEditor,
   });
 
   const {
@@ -316,17 +365,26 @@ export function RacEditor() {
   });
 
   const {
-    handleGenericApply,
-    resolveDimensionEditorColor,
+    handleObjectApply,
     resolveWallEditorColor,
-    lineArrowEditorType,
-  } = useRacGenericEditorActions({
+  } = useObjectEditorActions({
     canvasRef,
-    distanceSelection,
-    objectNameSelection,
-    lineArrowSelection,
+    objectSelection,
     setInfoMessage,
   });
+
+  const {handleLineArrowDistanceApply} = useLineArrowDistanceEditorActions({
+    canvasRef,
+    lineArrowDistanceSelection,
+    setInfoMessage,
+  });
+
+  const onLineArrowDistanceApply = useCallback(
+    (newValue: string, newColor: string) => {
+      handleLineArrowDistanceApply(newValue, newColor);
+    }, [handleLineArrowDistanceApply]
+  );
+
   const {
     currentHouseType,
     frontViewCount,
@@ -334,6 +392,7 @@ export function RacEditor() {
     side1ViewCount,
     side2ViewCount,
   } = useRacToolbarViewCounts();
+
   const toolbarActions = useRacToolbarActions({
     handleOpenHouseTypeSelector,
     handleAddHouseView,
@@ -347,7 +406,7 @@ export function RacEditor() {
     handleAddFossa,
     handleAddLine,
     handleAddArrow,
-    handleAddDimension,
+    handleAddDistance,
     handleToggleDrawMode,
     handleAddText,
     handleExportJSON,
@@ -366,6 +425,7 @@ export function RacEditor() {
     setActiveSubmenu,
     setIsSettingsOpen,
   });
+
   const contraventamentoEditorState = getContraventamentoEditorState();
   return (
     <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
@@ -385,7 +445,7 @@ export function RacEditor() {
         side2ViewCount={side2ViewCount}
       />
 
-      <RacEditorCanvasSection
+      <RacEditorCanvas
         canvasRef={canvasRef}
         tutorialStep={tutorialStep}
         showTips={showTips}
@@ -402,9 +462,8 @@ export function RacEditor() {
         }}
         onZoomInteraction={handleZoomTutorialInteraction}
         onPilotiSelect={handlePilotiSelect}
-        onDistanceSelect={canvasSelectionBindings.onDistanceSelect}
-        onObjectNameSelect={canvasSelectionBindings.onObjectNameSelect}
-        onLineArrowSelect={canvasSelectionBindings.onLineArrowSelect}
+        onObjectSelect={canvasSelectionBindings.onObjectSelect}
+        onLineArrowDistanceSelect={canvasSelectionBindings.onLineArrowDistanceSelect}
         onDelete={handleDelete}
         onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
         onContraventamentoSelect={handleContraventamentoSelect}
@@ -413,7 +472,6 @@ export function RacEditor() {
 
       <RacEditorInlineEditors
         isMobile={isMobile}
-        canvas={canvasRef.current?.canvas ?? null}
         isPilotiEditorOpen={isPilotiEditorOpen}
         pilotiSelection={pilotiSelection}
         onPilotiEditorClose={handlePilotiEditorClose}
@@ -421,23 +479,23 @@ export function RacEditor() {
         onPilotiNavigate={handlePilotiNavigate}
         contraventamentoEditorState={contraventamentoEditorState}
         onContraventamentoSideAction={handleContraventamentoFromPilotiSide}
-        isDistanceEditorOpen={isDistanceEditorOpen}
-        distanceSelection={distanceSelection}
-        onDistanceEditorClose={closeDistanceEditor}
-        distanceEditorColor={resolveDimensionEditorColor()}
-        isObjectNameEditorOpen={isObjectNameEditorOpen}
-        objectNameSelection={objectNameSelection}
-        onObjectNameEditorClose={closeObjectNameEditor}
-        objectNameEditorColor={resolveWallEditorColor()}
-        isLineArrowEditorOpen={isLineArrowEditorOpen}
-        lineArrowSelection={lineArrowSelection}
-        onLineArrowEditorClose={closeLineArrowEditor}
-        lineArrowEditorType={lineArrowEditorType}
-        onGenericApply={handleGenericApply}
+
+        onObjectApply={handleObjectApply}
+        objectSelection={objectSelection}
+        objectEditorColor={resolveWallEditorColor()}
+        isObjectEditorOpen={isObjectEditorOpen}
+        onObjectEditorClose={closeObjectEditor}
+
+        lineArrowDistanceSelection={lineArrowDistanceSelection}
+        lineArrowDistanceEditorType={lineArrowDistanceSelection?.myType}
+        isLineArrowDistanceEditorOpen={isLineArrowDistanceEditorOpen}
+        onLineArrowDistanceEditorClose={closeLineArrowDistanceEditor}
+        onLineArrowDistanceApply={onLineArrowDistanceApply}
+
         pendingViewType={pendingViewType}
         sideSelectorOpen={sideSelectorOpen}
         sideSelectorMode={sideSelectorMode}
-        instanceSlots={instanceSlots}
+        houseSideSlots={instanceSlots}
         onSideSelectorClose={handleSideSelectorClose}
         onSideSelected={handleSideSelected}
       />
@@ -473,4 +531,3 @@ export function RacEditor() {
 
     </div>);
 }
-

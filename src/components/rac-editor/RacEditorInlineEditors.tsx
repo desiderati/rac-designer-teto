@@ -1,7 +1,6 @@
-import type {Canvas as FabricCanvas} from 'fabric';
-import type {DistanceSelection, LineArrowCanvasSelection, ObjectNameSelection, PilotiSelection,} from './Canvas';
-import {PilotiEditor} from './modals/editors/PilotiEditor.tsx';
-import {GenericEditor, GenericEditorType} from './modals/editors/GenericEditor.tsx';
+import type {LineArrowDistanceCanvasSelection, ObjectCanvasSelection, PilotiCanvasSelection,} from './Canvas';
+import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/PilotiEditor.tsx';
+import {GenericInlineEditor} from '@/components/rac-editor/modals/editors/generic/GenericInlineEditor.tsx';
 import {HouseSideSelector} from './modals/selectors/HouseSideSelector.tsx';
 import type {ContraventamentoSide} from '@/lib/canvas-utils';
 import type {HouseSide, ViewType} from '@/lib/house-manager';
@@ -21,38 +20,48 @@ interface HouseSideSlot {
 
 interface RacEditorInlineEditorsProps {
   isMobile: boolean;
-  canvas: FabricCanvas | null;
+
+  // House Type Selector
+  pendingViewType: ViewType | null;
+  houseSideSlots: HouseSideSlot[];
+  sideSelectorOpen: boolean;
+  sideSelectorMode: 'position' | 'choose-instance';
+  onSideSelected: (side: HouseSide) => void;
+  onSideSelectorClose: () => void;
+
   isPilotiEditorOpen: boolean;
-  pilotiSelection: PilotiSelection | null;
+  pilotiSelection: PilotiCanvasSelection | null;
   onPilotiEditorClose: () => void;
   onPilotiHeightChange: (newHeight: number) => void;
   onPilotiNavigate: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
   contraventamentoEditorState: ContraventamentoEditorState;
   onContraventamentoSideAction: (side: ContraventamentoSide) => void;
-  isDistanceEditorOpen: boolean;
-  distanceSelection: DistanceSelection | null;
-  onDistanceEditorClose: () => void;
-  distanceEditorColor: string;
-  isObjectNameEditorOpen: boolean;
-  objectNameSelection: ObjectNameSelection | null;
-  onObjectNameEditorClose: () => void;
-  objectNameEditorColor: string;
-  isLineArrowEditorOpen: boolean;
-  lineArrowSelection: LineArrowCanvasSelection | null;
-  onLineArrowEditorClose: () => void;
-  lineArrowEditorType: GenericEditorType;
-  onGenericApply: (editorType: GenericEditorType, newValue: string, newColor: string) => void;
-  pendingViewType: ViewType | null;
-  sideSelectorOpen: boolean;
-  sideSelectorMode: 'position' | 'choose-instance';
-  instanceSlots: HouseSideSlot[];
-  onSideSelectorClose: () => void;
-  onSideSelected: (side: HouseSide) => void;
+
+  // Wall Object
+  onObjectApply: (newValue: string, newColor: string) => void;
+  objectSelection: ObjectCanvasSelection | null;
+  objectEditorColor: string;
+  isObjectEditorOpen: boolean;
+  onObjectEditorClose: () => void;
+
+  // Line/Arrow Object
+  onLineArrowDistanceApply: (newValue: string, newColor: string) => void;
+  lineArrowDistanceSelection: LineArrowDistanceCanvasSelection | null;
+  lineArrowDistanceEditorType: 'line' | 'arrow' | 'distance';
+  isLineArrowDistanceEditorOpen: boolean;
+  onLineArrowDistanceEditorClose: () => void;
 }
 
 export function RacEditorInlineEditors({
   isMobile,
-  canvas,
+
+  pendingViewType,
+  houseSideSlots,
+  sideSelectorOpen,
+  sideSelectorMode,
+  onSideSelected,
+  onSideSelectorClose,
+
   isPilotiEditorOpen,
   pilotiSelection,
   onPilotiEditorClose,
@@ -60,28 +69,32 @@ export function RacEditorInlineEditors({
   onPilotiNavigate,
   contraventamentoEditorState,
   onContraventamentoSideAction,
-  isDistanceEditorOpen,
-  distanceSelection,
-  onDistanceEditorClose,
-  distanceEditorColor,
-  isObjectNameEditorOpen,
-  objectNameSelection,
-  onObjectNameEditorClose,
-  objectNameEditorColor,
-  isLineArrowEditorOpen,
-  lineArrowSelection,
-  onLineArrowEditorClose,
-  lineArrowEditorType,
-  onGenericApply,
-  pendingViewType,
-  sideSelectorOpen,
-  sideSelectorMode,
-  instanceSlots,
-  onSideSelectorClose,
-  onSideSelected,
+
+  onObjectApply,
+  objectSelection,
+  objectEditorColor,
+  isObjectEditorOpen,
+  onObjectEditorClose,
+
+  onLineArrowDistanceApply,
+  lineArrowDistanceSelection,
+  lineArrowDistanceEditorType,
+  isLineArrowDistanceEditorOpen,
+  onLineArrowDistanceEditorClose,
 }: RacEditorInlineEditorsProps) {
   return (
     <>
+      {pendingViewType && (
+        <HouseSideSelector
+          viewType={pendingViewType}
+          houseSideSlots={houseSideSlots}
+          isOpen={sideSelectorOpen}
+          mode={sideSelectorMode}
+          onSelectSide={onSideSelected}
+          onClose={onSideSelectorClose}
+        />
+      )}
+
       <PilotiEditor
         isOpen={isPilotiEditorOpen}
         onClose={onPilotiEditorClose}
@@ -102,55 +115,27 @@ export function RacEditorInlineEditors({
         onContraventamentoSideAction={onContraventamentoSideAction}
       />
 
-      <GenericEditor
-        isOpen={isDistanceEditorOpen}
-        onClose={onDistanceEditorClose}
-        editorType="dimension"
-        object={distanceSelection?.group ?? null}
-        canvas={canvas}
-        currentValue={distanceSelection?.currentValue ?? ''}
-        currentColor={distanceEditorColor}
-        isMobile={isMobile}
-        anchorPosition={distanceSelection?.screenPosition}
-        onApply={(value, color) => onGenericApply('dimension', value, color)}
-      />
-
-      <GenericEditor
-        isOpen={isObjectNameEditorOpen}
-        onClose={onObjectNameEditorClose}
+      <GenericInlineEditor
         editorType="wall"
-        object={objectNameSelection?.object ?? null}
-        canvas={canvas}
-        currentValue={objectNameSelection?.currentValue ?? ''}
-        currentColor={objectNameEditorColor}
+        currentValue={objectSelection?.currentValue ?? ''}
+        currentColor={objectEditorColor ?? '#000000'}
+        isOpen={isObjectEditorOpen}
         isMobile={isMobile}
-        anchorPosition={objectNameSelection?.screenPosition}
-        onApply={(value, color) => onGenericApply('wall', value, color)}
+        onApply={(value, color) => onObjectApply(value, color)}
+        onClose={onObjectEditorClose}
+        anchorPosition={objectSelection?.screenPosition}
       />
 
-      <GenericEditor
-        isOpen={isLineArrowEditorOpen}
-        onClose={onLineArrowEditorClose}
-        editorType={lineArrowEditorType}
-        object={lineArrowSelection?.object ?? null}
-        canvas={canvas}
-        currentValue={lineArrowSelection?.currentLabel ?? ''}
-        currentColor={lineArrowSelection?.currentColor ?? '#000000'}
+      <GenericInlineEditor
+        editorType={lineArrowDistanceEditorType}
+        currentValue={lineArrowDistanceSelection?.currentLabel ?? ''}
+        currentColor={lineArrowDistanceSelection?.currentColor ?? '#000000'}
+        isOpen={isLineArrowDistanceEditorOpen}
         isMobile={isMobile}
-        anchorPosition={lineArrowSelection?.screenPosition}
-        onApply={(value, color) => onGenericApply(lineArrowEditorType, value, color)}
+        onApply={(value, color) => onLineArrowDistanceApply(value, color)}
+        onClose={onLineArrowDistanceEditorClose}
+        anchorPosition={lineArrowDistanceSelection?.screenPosition}
       />
-
-      {pendingViewType && (
-        <HouseSideSelector
-          isOpen={sideSelectorOpen}
-          onClose={onSideSelectorClose}
-          viewType={pendingViewType}
-          onSelectSide={onSideSelected}
-          mode={sideSelectorMode}
-          houseSideSlots={instanceSlots}
-        />
-      )}
     </>
   );
 }

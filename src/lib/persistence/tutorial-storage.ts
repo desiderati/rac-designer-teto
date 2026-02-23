@@ -4,14 +4,16 @@ const KEYS = {
   wallTipShown: "rac-wall-tip-shown",
   lineTipShown: "rac-line-tip-shown",
   arrowTipShown: "rac-arrow-tip-shown",
+  distanceTipShown: "rac-distance-tip-shown",
 } as const;
 
-type TipKey = "wall" | "line" | "arrow";
+type TipKey = "wall" | "line" | "arrow" | "distance";
 
 const TIP_TO_KEY: Record<TipKey, string> = {
   wall: KEYS.wallTipShown,
   line: KEYS.lineTipShown,
   arrow: KEYS.arrowTipShown,
+  distance: KEYS.distanceTipShown,
 };
 
 function getFlag(key: string): boolean {

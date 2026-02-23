@@ -9,7 +9,7 @@ import {Separator} from '@/components/ui/separator.tsx';
 import {Dialog, DialogContent, DialogDescription} from '@/components/ui/dialog.tsx';
 import {Sheet, SheetContent} from '@/components/ui/sheet.tsx';
 import {useIsMobile} from '@/shared/hooks/use-mobile.tsx';
-import {PilotiGridIcon} from '../../icons/PilotiGridIcon.tsx';
+import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 type CornerName = typeof CORNER_ORDER[number];

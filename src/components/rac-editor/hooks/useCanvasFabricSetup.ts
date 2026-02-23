@@ -1,51 +1,17 @@
 import {MutableRefObject, useEffect, useRef} from 'react';
-import {
-  Canvas as FabricCanvas,
-  FabricObject,
-  Group,
-  PencilBrush,
-  Rect,
-} from 'fabric';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-} from '@/lib/canvas-utils';
+import {Canvas as FabricCanvas, FabricObject, Group, PencilBrush,} from 'fabric';
+import {CANVAS_HEIGHT, CANVAS_WIDTH,} from '@/lib/canvas-utils';
 import {buildPilotiSelectionHandler} from './canvas-piloti-selection';
 import {CanvasPointerPayload, CanvasRuntimeObject} from './canvas-fabric-runtime-types';
 import {useCanvasSelectionEvents} from './useCanvasSelectionEvents';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts';
 import {useCanvasInlineEditorEvents} from './useCanvasInlineEditorEvents';
-
-interface PilotiSelectionPayload {
-  pilotiId: string;
-  currentHeight: number;
-  currentIsMaster: boolean;
-  currentNivel: number;
-  group: Group;
-  screenPosition: { x: number; y: number };
-  houseView: 'top' | 'front' | 'back' | 'side';
-}
-
-interface DistanceSelectionPayload {
-  group: Group;
-  currentValue: string;
-  screenPosition: { x: number; y: number };
-}
-
-interface ObjectNameSelectionPayload {
-  object: Rect;
-  currentValue: string;
-  screenPosition: { x: number; y: number };
-}
-
-interface LineArrowSelectionPayload {
-  object: FabricObject;
-  myType: 'line' | 'arrow';
-  currentColor: string;
-  currentLabel: string;
-  screenPosition: { x: number; y: number };
-}
+import {
+  LineArrowDistanceCanvasSelection,
+  ObjectCanvasSelection,
+  PilotiCanvasSelection
+} from "@/components/rac-editor/Canvas.tsx";
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -53,10 +19,9 @@ interface UseCanvasFabricSetupArgs {
   fabricCanvasRef: MutableRefObject<FabricCanvas | null>;
   saveHistory: () => void;
   onSelectionChange: (hint: string) => void;
-  onPilotiSelect?: (selection: PilotiSelectionPayload | null) => void;
-  onDistanceSelect?: (selection: DistanceSelectionPayload | null) => void;
-  onObjectNameSelect?: (selection: ObjectNameSelectionPayload | null) => void;
-  onLineArrowSelect?: (selection: LineArrowSelectionPayload | null) => void;
+  onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
+  onObjectSelect?: (selection: ObjectCanvasSelection | null) => void;
+  onLineArrowDistanceSelect?: (selection: LineArrowDistanceCanvasSelection | null) => void;
   isEditorOpenRef: MutableRefObject<boolean>;
   onDelete?: () => void;
   copy: () => void;
@@ -78,9 +43,8 @@ export function useCanvasFabricSetup({
   saveHistory,
   onSelectionChange,
   onPilotiSelect,
-  onDistanceSelect,
-  onObjectNameSelect,
-  onLineArrowSelect,
+  onObjectSelect,
+  onLineArrowDistanceSelect,
   isEditorOpenRef,
   onDelete,
   copy,
@@ -101,9 +65,8 @@ export function useCanvasFabricSetup({
     saveHistory,
     onSelectionChange,
     onPilotiSelect,
-    onDistanceSelect,
-    onObjectNameSelect,
-    onLineArrowSelect,
+    onObjectSelect,
+    onLineArrowDistanceSelect,
     isEditorOpenRef,
     onDelete,
     copy,
@@ -125,9 +88,8 @@ export function useCanvasFabricSetup({
     saveHistory,
     onSelectionChange,
     onPilotiSelect,
-    onDistanceSelect,
-    onObjectNameSelect,
-    onLineArrowSelect,
+    onObjectSelect,
+    onLineArrowDistanceSelect,
     isEditorOpenRef,
     onDelete,
     copy,
@@ -182,10 +144,9 @@ export function useCanvasFabricSetup({
 
     const runSaveHistory = () => latestArgsRef.current.saveHistory();
     const emitSelectionChange = (hint: string) => latestArgsRef.current.onSelectionChange(hint);
-    const emitPilotiSelection = (selection: PilotiSelectionPayload | null) => latestArgsRef.current.onPilotiSelect?.(selection);
-    const emitDistanceSelection = (selection: DistanceSelectionPayload | null) => latestArgsRef.current.onDistanceSelect?.(selection);
-    const emitObjectNameSelection = (selection: ObjectNameSelectionPayload | null) => latestArgsRef.current.onObjectNameSelect?.(selection);
-    const emitLineArrowSelection = (selection: LineArrowSelectionPayload | null) => latestArgsRef.current.onLineArrowSelect?.(selection);
+    const emitPilotiSelection = (selection: PilotiCanvasSelection | null) => latestArgsRef.current.onPilotiSelect?.(selection);
+    const emitObjectSelection = (selection: ObjectCanvasSelection | null) => latestArgsRef.current.onObjectSelect?.(selection);
+    const emitLineArrowDistanceSelection = (selection: LineArrowDistanceCanvasSelection | null) => latestArgsRef.current.onLineArrowDistanceSelect?.(selection);
 
     // Initialize drawing brush
     canvas.freeDrawingBrush = new PencilBrush(canvas);
@@ -276,9 +237,8 @@ export function useCanvasFabricSetup({
       toRuntimeObject,
       getEventPayload,
       handlePilotiSelection,
-      onDistanceSelect: (selection) => emitDistanceSelection(selection),
-      onObjectNameSelect: (selection) => emitObjectNameSelection(selection),
-      onLineArrowSelect: (selection) => emitLineArrowSelection(selection),
+      onObjectSelect: (selection) => emitObjectSelection(selection),
+      onLineArrowDistanceSelect: (selection) => emitLineArrowDistanceSelection(selection),
       onSelectionChange: emitSelectionChange,
       getCurrentScreenPoint: (canvasPoint) => latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
       isEditorOpen: () => latestArgsRef.current.isEditorOpenRef.current,

@@ -1,7 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas, Group} from 'fabric';
 import {toast} from 'sonner';
-import {CanvasHandle, ContraventamentoCanvasSelection, PilotiSelection} from '@/components/rac-editor/Canvas';
+import {CanvasHandle, ContraventamentoCanvasSelection, PilotiCanvasSelection} from '@/components/rac-editor/Canvas';
 import {RacSubmenu} from '@/components/rac-editor/hooks/useRacModalState';
 import {
   canCreateContraventamentoForNivel,
@@ -42,8 +42,8 @@ interface UseRacContraventamentoCommandsArgs {
   contraventamentoSide: ContraventamentoSide | null;
   setContraventamentoSide: Dispatch<SetStateAction<ContraventamentoSide | null>>;
   resetContraventamentoFlow: () => void;
-  pilotiSelection: PilotiSelection | null;
-  setPilotiSelection: Dispatch<SetStateAction<PilotiSelection | null>>;
+  pilotiSelection: PilotiCanvasSelection | null;
+  setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
   setActiveSubmenu: Dispatch<SetStateAction<RacSubmenu>>;
   isContraventamentoMode: boolean;

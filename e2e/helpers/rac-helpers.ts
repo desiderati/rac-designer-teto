@@ -55,6 +55,7 @@ export async function setupRacPage(page: Page) {
     localStorage.setItem("rac-wall-tip-shown", "true");
     localStorage.setItem("rac-line-tip-shown", "true");
     localStorage.setItem("rac-arrow-tip-shown", "true");
+    localStorage.setItem("rac-distance-tip-shown", "true");
   });
 
   const menuToggleButton = page.getByRole("button", { name: /Abrir Menu|Fechar Menu/ });

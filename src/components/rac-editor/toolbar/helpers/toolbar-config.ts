@@ -32,7 +32,7 @@ import {
   faWater,
 } from '@fortawesome/free-solid-svg-icons';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
-import type {ToolbarActionMap} from './toolbar-types';
+import type {ToolbarActionMap} from './toolbar-types.ts';
 
 export type HouseMenuLimitKey = 'front' | 'back' | 'side1' | 'side2';
 export type ToolbarActionKey = keyof ToolbarActionMap;
@@ -110,7 +110,7 @@ export const ELEMENTS_MENU_CONFIG: ToolbarCommandConfig[] = [
 export const LINES_MENU_CONFIG: ToolbarCommandConfig[] = [
   {action: 'addLine', icon: faSlash, title: 'Linha Reta'},
   {action: 'addArrow', icon: faArrowRightLong, title: 'Seta Simples'},
-  {action: 'addDimension', icon: faArrowsLeftRight, title: 'Distância'},
+  {action: 'addDistance', icon: faArrowsLeftRight, title: 'Distância'},
 ];
 
 export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [

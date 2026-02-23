@@ -208,9 +208,9 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 
 **Arquivos alvo**
 
-- `src/components/rac-editor/GenericEditor.tsx`
+- `src/components/rac-editor/GenericInlineEditor.tsx`
 - `src/components/rac-editor/DistanceEditor.tsx`
-- `src/components/rac-editor/ObjectNameEditor.tsx`
+- `src/components/rac-editor/ObjectEditor.tsx`
 - `src/components/rac-editor/LineArrowEditor.tsx`
 - `src/components/rac-editor/PilotiEditor.tsx`
 
@@ -452,7 +452,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passo 90)
 
 - `RacEditor.tsx`:
-    - extração dos utilitários de edição genérica para `useRacGenericEditorActions`.
+    - extração dos utilitários de edição genérica para `useObjectEditorActions`.
 
 Estado atual dos arquivos críticos:
 
@@ -506,7 +506,7 @@ Próximos recortes planejados:
 
 - `RacEditor.tsx`:
     - extração da composição de ações da toolbar para `useRacToolbarActions`;
-    - extração da seção de canvas + infobar para `RacEditorCanvasSection`.
+    - extração da seção de canvas + infobar para `RacEditorCanvas`.
 
 - Estado atual dos arquivos críticos:
     - `src/components/rac-editor/RacEditor.tsx`: 493 linhas
@@ -546,10 +546,10 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (bugfix - passo 107)
 
 - Correção de regressão funcional:
-    - `GenericEditor` voltou a persistir alterações de nome/cor durante edição aberta;
-    - ajuste aplicado em `useEditorDraft` para evitar ressincronização de draft a cada render.
+    - `GenericInlineEditor` voltou a persistir alterações de nome/cor durante edição aberta;
+    - ajuste aplicado em `useGenericInlineEditorDraft` para evitar ressincronização de draft a cada render.
 - Cobertura automática nova:
-    - `GenericEditor.smoke.test.tsx` garante que o fluxo de editar + confirmar mantém valor e cor aplicados.
+    - `GenericInlineEditor.smoke.test.tsx` garante que o fluxo de editar + confirmar mantém valor e cor aplicados.
 
 Estado atual dos arquivos críticos:
 

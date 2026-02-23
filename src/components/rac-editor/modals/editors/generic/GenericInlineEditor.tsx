@@ -1,15 +1,13 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
-import {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Input} from '@/components/ui/input.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {X} from 'lucide-react';
 import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
-import {GenericEditorTypeIcon} from '../../icons/GenericEditorTypeIcon.tsx';
-import {EditorPanelProps} from '../../utils/editor-contract.ts';
-import {useEditorDraft} from '../../hooks/useEditorDraft.ts';
+import {GenericInlineEditorIcon} from './GenericInlineEditorIcon.tsx';
+import {useGenericInlineEditorDraft} from './hooks/useGenericInlineEditorDraft.ts';
 
-const COLOR_PALETTE = [
+const GENERIC_INLINE_EDITOR_COLOR_PALETTE = [
   {name: 'Vermelho', value: '#e74c3c'},
   {name: 'Azul', value: '#3498db'},
   {name: 'Verde', value: '#27ae60'},
@@ -19,34 +17,42 @@ const COLOR_PALETTE = [
   {name: 'Marrom', value: '#795548'},
   {name: 'Laranja', value: '#e67e22'}];
 
-export type GenericEditorType = 'wall' | 'line' | 'arrow' | 'dimension';
+export type GenericInlineEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
-interface GenericEditorProps {
-  isOpen: EditorPanelProps['isOpen'];
-  onClose: EditorPanelProps['onClose'];
-  editorType: GenericEditorType;
-  object: FabricObject | null;
-  canvas: FabricCanvas | null;
-  currentValue: string;
-  currentColor: string;
-  isMobile: EditorPanelProps['isMobile'];
-  anchorPosition?: EditorPanelProps['anchorPosition'];
-  onApply: (newValue: string, newColor: string) => void;
+export interface GenericInlineEditorAnchorPosition {
+  x: number;
+  y: number;
 }
 
-export function GenericEditor({
-  isOpen,
-  onClose,
+export interface GenericInlineEditorPanelProps {
+  isOpen: boolean;
+  isMobile: boolean;
+  onClose: () => void;
+  anchorPosition?: GenericInlineEditorAnchorPosition;
+}
+
+interface GenericInlineEditorProps {
+  editorType: GenericInlineEditorType;
+  currentValue: string;
+  currentColor: string;
+  isOpen: GenericInlineEditorPanelProps['isOpen'];
+  isMobile: GenericInlineEditorPanelProps['isMobile'];
+  onApply: (newValue: string, newColor: string) => void;
+  onClose: GenericInlineEditorPanelProps['onClose'];
+  anchorPosition?: GenericInlineEditorPanelProps['anchorPosition'];
+}
+
+export function GenericInlineEditor({
   editorType,
-  object,
-  canvas,
   currentValue,
   currentColor,
+  isOpen,
   isMobile,
-  anchorPosition,
-  onApply
-}: GenericEditorProps) {
-  const {draft, setDraft, resetDraft} = useEditorDraft(
+  onApply,
+  onClose,
+  anchorPosition
+}: GenericInlineEditorProps) {
+  const {draft, setDraft, resetDraft} = useGenericInlineEditorDraft(
     {value: currentValue, color: currentColor},
     isOpen
   );
@@ -63,6 +69,7 @@ export function GenericEditor({
 
   useEffect(() => {
     if (!isOpen) return;
+
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -129,7 +136,7 @@ export function GenericEditor({
       case 'wall':
         return 'Editar Objeto';
 
-      case 'dimension':
+      case 'distance':
         return 'Distância';
 
       case 'line':
@@ -145,7 +152,7 @@ export function GenericEditor({
       case 'wall':
         return 'Ex.: Vizinho, Muro, etc.';
 
-      case 'dimension':
+      case 'distance':
         return 'Ex.: 1,0 m';
 
       case 'line':
@@ -162,10 +169,12 @@ export function GenericEditor({
 
   const colorPalette =
     <div className="grid grid-cols-4 gap-2 justify-items-center">
-      {COLOR_PALETTE.map((c) =>
+      {GENERIC_INLINE_EDITOR_COLOR_PALETTE.map((c) =>
         <button
           key={c.value}
-          onClick={() => setDraft((prev) => ({...prev, color: c.value}))}
+          onClick={
+            () => setDraft((prev) => ({...prev, color: c.value}))
+          }
           className={`w-14 h-14 rounded-xl border-[3px] transition-all flex items-center justify-center ${
             tempColor === c.value ? 'border-primary scale-105' : 'border-border'}`
           }
@@ -182,12 +191,11 @@ export function GenericEditor({
       )}
     </div>;
 
-
   const editorBody =
     <div className="flex flex-col gap-4">
       {/* Header: icon + title + close */}
       <div className="flex items-center gap-3">
-        <GenericEditorTypeIcon type={editorType} className="w-16 h-12 flex-shrink-0"/>
+        <GenericInlineEditorIcon type={editorType} className="w-16 h-12 flex-shrink-0"/>
         <span className="font-bold text-2xl flex-1 text-center">{title}</span>
         <Button
           variant="outline"
@@ -204,13 +212,17 @@ export function GenericEditor({
         <Input
           type="text"
           value={tempValue}
-          onChange={(e) => setDraft((prev) => ({...prev, value: e.target.value}))}
+          onChange={
+            (e) =>
+              setDraft((prev) => ({...prev, value: e.target.value}))
+          }
           onKeyDown={handleKeyDown}
           className="text-center placeholder:text-muted-foreground/50"
           placeholder={getPlaceholder()}
           autoFocus/>
 
         <Separator/>
+
         {colorPalette}
       </div>
 
@@ -252,5 +264,6 @@ export function GenericEditor({
 
         {editorBody}
       </div>
-    </>);
+    </>
+  );
 }

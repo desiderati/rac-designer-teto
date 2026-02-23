@@ -13,9 +13,9 @@ import {
   formatPilotiHeight,
   PILOTI_HEIGHTS
 } from '@/lib/canvas-utils.ts';
-import {PilotiGridIcon} from '../../icons/PilotiGridIcon.tsx';
-import {ContraventamentoSideIcon} from '../../icons/ContraventamentoSideIcon.tsx';
-import {DEFAULT_NIVEL, usePilotiEditorLogic} from '../../hooks/usePilotiEditorLogic.ts';
+import {PilotiGridIcon} from './PilotiGridIcon.tsx';
+import {ContraventamentoSideIcon} from '@/components/rac-editor/modals/editors/piloti/ContraventamentoSideIcon.tsx';
+import {DEFAULT_NIVEL, usePilotiEditorLogic} from '../../../hooks/usePilotiEditorLogic.ts';
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -51,7 +51,6 @@ export function PilotiEditor({
   group,
   isMobile,
   anchorPosition,
-  houseView = 'top',
   onHeightChange,
   onNavigate,
   contraventamentoLeftDisabled = true,
@@ -61,7 +60,6 @@ export function PilotiEditor({
   onContraventamentoSideAction
 }: PilotiEditorProps) {
   const {
-    tempHeight,
     tempIsMaster,
     setTempIsMaster,
     tempNivel,

@@ -21,56 +21,55 @@ import {useCanvasScreenProjection} from './hooks/useCanvasScreenProjection.ts';
 import {useCanvasSelection} from './hooks/useCanvasSelection.ts';
 import {useCanvasViewport} from './hooks/useCanvasViewport.ts';
 
-export interface PilotiSelection {
+export interface PilotiCanvasSelection {
   pilotiId: string;
-  currentHeight: number;
   currentIsMaster: boolean;
+  currentHeight: number;
   currentNivel: number;
   group: Group;
   screenPosition: { x: number; y: number };
   houseView: 'top' | 'front' | 'back' | 'side';
 }
 
-export interface DistanceSelection {
+export interface ContraventamentoCanvasSelection {
+  contraventamentoId: string;
   group: Group;
-  currentValue: string;
-  screenPosition: { x: number; y: number };
 }
 
-export interface ObjectNameSelection {
+export interface ObjectCanvasSelection {
   object: Rect;
   currentValue: string;
   screenPosition: { x: number; y: number };
 }
 
-export interface LineArrowCanvasSelection {
+export type LineArrowDistanceCanvasSelectionType = "line" | "arrow" | "distance";
+
+export interface LineArrowDistanceCanvasSelection {
   object: FabricObject;
-  myType: 'line' | 'arrow';
-  currentColor: string;
+  myType: LineArrowDistanceCanvasSelectionType;
   currentLabel: string;
+  currentColor: string;
   screenPosition: { x: number; y: number };
 }
 
-export interface ContraventamentoCanvasSelection {
-  group: Group;
-  contraventamentoId: string;
-}
-
 interface CanvasProps {
-  onSelectionChange: (hint: string) => void;
-  onHistorySave: () => void;
   children?: ReactNode;
+  isEditorOpen?: boolean;
+
+  onSelectionChange: (hint: string) => void;
+  onDelete?: () => void;
+  onHistorySave: () => void;
   onZoomInteraction?: () => void;
   onMinimapInteraction?: () => void;
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
-  showTips?: boolean;
-  onPilotiSelect?: (selection: PilotiSelection | null) => void;
-  onDistanceSelect?: (selection: DistanceSelection | null) => void;
-  onObjectNameSelect?: (selection: ObjectNameSelection | null) => void;
-  onLineArrowSelect?: (selection: LineArrowCanvasSelection | null) => void;
-  isEditorOpen?: boolean;
-  onDelete?: () => void;
+
+  onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
+  onObjectSelect?: (selection: ObjectCanvasSelection | null) => void;
+  onLineArrowDistanceSelect?: (selection: LineArrowDistanceCanvasSelection | null) => void;
+
   showZoomControls?: boolean;
+  showTips?: boolean;
+
+  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
 
   // Contraventamento
   isContraventamentoMode?: boolean;
@@ -88,27 +87,30 @@ export interface CanvasHandle {
   undo: () => void;
   copy: () => void;
   paste: () => void;
+  getVisibleCenter: () => { x: number; y: number };
   getCanvasPosition: () => { x: number; y: number; zoom: number };
   setCanvasPosition: (x: number, y: number) => void;
-  getVisibleCenter: () => { x: number; y: number };
 }
 
 export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
   ({
-    onSelectionChange,
-    onHistorySave,
     children,
+    isEditorOpen = false,
+
+    onSelectionChange,
+    onDelete,
+    onHistorySave,
     onZoomInteraction,
     onMinimapInteraction,
-    tutorialHighlight,
-    showTips = false,
+
     onPilotiSelect,
-    onDistanceSelect,
-    onObjectNameSelect,
-    onLineArrowSelect,
-    isEditorOpen = false,
-    onDelete,
+    onObjectSelect,
+    onLineArrowDistanceSelect,
+
     showZoomControls = true,
+    showTips = false,
+    tutorialHighlight,
+
     isContraventamentoMode = false,
     isSelectingContraventamentoDestination = false,
     isPilotiEligibleForContraventamento,
@@ -116,9 +118,11 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     onContraventamentoSelect,
     onContraventamentoCancel
   }, ref) => {
+
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricCanvasRef = useRef<FabricCanvas | null>(null);
+
     const {
       zoom,
       viewportX,
@@ -145,9 +149,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       handleViewportChange,
       handleZoomChange,
     } = useCanvasViewport({onMinimapInteraction, onZoomInteraction});
-    const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
 
+    const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
     const isEditorOpenRef = useRef(isEditorOpen);
+
     const {
       isContraventamentoModeRef,
       isSelectingContraventamentoDestinationRef,
@@ -203,10 +208,10 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       getVisibleCenter,
     } = useCanvasScreenProjection({
       containerRef,
+      containerSizeRef,
       zoomRef,
       viewportXRef,
       viewportYRef,
-      containerSizeRef,
     });
 
     useImperativeHandle(ref, () => ({
@@ -227,18 +232,20 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       canvasRef,
       containerRef,
       fabricCanvasRef,
-      saveHistory,
-      onSelectionChange,
-      onPilotiSelect,
-      onDistanceSelect,
-      onObjectNameSelect,
-      onLineArrowSelect,
+
       isEditorOpenRef,
+      onSelectionChange,
       onDelete,
+      onPilotiSelect,
+      onObjectSelect,
+      onLineArrowDistanceSelect,
+
       copy,
       paste,
       undo,
+      saveHistory,
       getCurrentScreenPoint,
+
       isContraventamentoModeRef,
       isSelectingContraventamentoDestinationRef,
       isPilotiEligibleForContraventamentoRef,
@@ -249,8 +256,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
 
     useCanvasContainerLifecycle({
       containerRef,
-      setContainerSize,
       containerSize,
+      setContainerSize,
       zoom,
       setViewportX,
       setViewportY,
@@ -265,23 +272,26 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       handleTouchMove,
       handleTouchEnd,
     } = useCanvasPointerInteractions({
-      containerRef,
       fabricCanvasRef,
-      zoom,
       containerSize,
+      containerRef,
+
       isPanning,
       setIsPanning,
-      setIsPinching,
       setIsSingleFingerPanning,
       lastPanPoint,
+
+      setIsPinching,
       lastPinchDistance,
       lastPinchCenter,
-      pinchTimeoutRef,
       singleFingerStartPoint,
       singleFingerMoved,
+      pinchTimeoutRef,
+
+      zoom,
+      handleZoomChange,
       setViewportX,
       setViewportY,
-      handleZoomChange,
     });
 
     // Calculate canvas position - center it when it fits, otherwise use viewport offset
@@ -317,23 +327,27 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             height: CANVAS_HEIGHT,
           }}
         >
-          <canvas ref={canvasRef} data-testid="rac-canvas-element"/>
+          <canvas ref={canvasRef} data-testid="rac-editor-canvas-element"/>
         </div>
 
         <CanvasOverlays
-          showZoomControls={showZoomControls}
-          tutorialHighlight={tutorialHighlight}
           isPinching={isPinching}
+
+          containerHeight={containerSize.height}
+          containerWidth={containerSize.width}
+
           zoom={zoom}
           onZoomChange={handleZoomChange}
-          containerWidth={containerSize.width}
-          containerHeight={containerSize.height}
+          showZoomControls={showZoomControls}
+          minimapObjects={minimapObjects}
+
           viewportX={viewportX}
           viewportY={viewportY}
           onViewportChange={handleViewportChange}
           canvasFitsInViewport={canvasFitsInViewport}
-          minimapObjects={minimapObjects}
+
           showTips={showTips}
+          tutorialHighlight={tutorialHighlight}
         >
           {children}
         </CanvasOverlays>

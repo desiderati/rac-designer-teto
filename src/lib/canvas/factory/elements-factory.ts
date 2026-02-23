@@ -1,6 +1,7 @@
 import {
   Canvas as FabricCanvas,
   Circle,
+  FabricObject,
   Group,
   IText,
   Line,
@@ -10,282 +11,369 @@ import {
   Text,
   Triangle,
 } from "fabric";
-import {
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE,
-  MASTER_SHARED_STROKE_WIDTH,
-} from "../constants.ts";
+import {MASTER_PILOTI_FILL, MASTER_PILOTI_STROKE, MASTER_SHARED_STROKE_WIDTH,} from "../constants.ts";
 
-type RuntimeTypedObject = {
+export type CanvasRuntimeObject = FabricObject & {
   myType?: string;
   type?: string;
-  left?: number;
-  top?: number;
+  text?: string;
+
   width?: number;
   height?: number;
+  left?: number;
+  top?: number;
+  angle?: number;
+
   x1?: number;
   y1?: number;
   x2?: number;
   y2?: number;
-  angle?: number;
-  text?: string;
+
   scaleX?: number;
   scaleY?: number;
   visible?: boolean;
-  set: (patch: Record<string, unknown>) => void;
+  baseWidth?: number;
+  baseHeight?: number;
+
+  fill?: string;
+  stroke?: string;
+
+  getObjects?: () => CanvasRuntimeObject[];
 };
 
-const LINE_ARROW_LABEL_TOP = -20;
+export const LINE_ARROW_LABEL_TOP = -20;
 
-type UpdatableGroup = Group & {
-  addWithUpdate?: () => void;
-};
-
-function setRuntimeMyType(object: object, myType: string): void {
+export function setCanvasRuntimeObjectMyType(object: object, myType: string): void {
   (object as {myType?: string}).myType = myType;
 }
 
-function updateGroupBounds(group: Group, recompute = false): void {
-  const runtimeGroup = group as UpdatableGroup;
-  if (recompute && typeof runtimeGroup.addWithUpdate === "function") {
-    runtimeGroup.addWithUpdate();
+export function normalizeLineGroupToLength(
+  group: Group,
+  totalLength: number,
+  labelTop: number = LINE_ARROW_LABEL_TOP
+): void {
+  const newWidth = Math.max(totalLength, 1);
+
+  group.getObjects().forEach((childObject) => {
+    const child = childObject as CanvasRuntimeObject;
+    if (child.myType === "lineBody") {
+      child.set({
+        x1: -newWidth / 2,
+        y1: 0,
+        x2: newWidth / 2,
+        y2: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+    } else if (child.myType === "objLabel") {
+      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1, visible: true});
+    }
+  });
+
+  group.set({width: newWidth, scaleX: 1, scaleY: 1});
+}
+
+export function normalizeLineGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
+  if (runtimeGroup.__normalizingScale) return;
+  runtimeGroup.__normalizingScale = true;
+
+  try {
+    normalizeLineGroupToLength(group, (group.width || 1) * (group.scaleX || 1), labelTop);
+  } finally {
+    runtimeGroup.__normalizingScale = false;
   }
-  group.setCoords();
+}
+
+export function bindLineGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  group.on("scaling", function (this: Group) {
+    normalizeLineGroupScaling(this, labelTop);
+  });
+}
+
+export function normalizeArrowGroupToLength(
+  group: Group,
+  totalLength: number,
+  labelTop: number = LINE_ARROW_LABEL_TOP
+): void {
+  const newWidth = Math.max(totalLength, 1);
+
+  const children =
+    group.getObjects().map(
+      (childObject) =>
+        childObject as CanvasRuntimeObject
+    );
+
+  const arrowHead =
+    children.find((child) => child.myType === "arrowHead");
+
+  let headWidth = 15;
+  let headHeight = 15;
+  if (arrowHead) {
+    if (!arrowHead.baseWidth) arrowHead.baseWidth = arrowHead.width || headWidth;
+    if (!arrowHead.baseHeight) arrowHead.baseHeight = arrowHead.height || headHeight;
+    headWidth = arrowHead.baseWidth;
+    headHeight = arrowHead.baseHeight;
+  }
+
+  const shaftWidth = Math.max(newWidth - headWidth, 1);
+  const shaftCenterX = -headWidth / 2;
+  const headCenterX = newWidth / 2 - headWidth / 2;
+
+  children.forEach((child) => {
+    if (child.myType === "arrowBody") {
+      child.set({
+        width: shaftWidth,
+        height: 2,
+        left: shaftCenterX,
+        top: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+    } else if (child.myType === "arrowHead") {
+      child.set({
+        left: headCenterX,
+        top: 0,
+        width: headWidth,
+        height: headHeight,
+        angle: 90,
+        scaleX: 1,
+        scaleY: 1,
+      });
+    } else if (child.myType === "objLabel") {
+      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1, visible: true});
+    }
+  });
+
+  group.set({width: newWidth, scaleX: 1, scaleY: 1});
+}
+
+export function normalizeArrowGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
+  if (runtimeGroup.__normalizingScale) return;
+  runtimeGroup.__normalizingScale = true;
+
+  try {
+    normalizeArrowGroupToLength(group, (group.width || 1) * (group.scaleX || 1), labelTop);
+  } finally {
+    runtimeGroup.__normalizingScale = false;
+  }
+}
+
+export function bindArrowGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  group.on("scaling", function (this: Group) {
+    normalizeArrowGroupScaling(this, labelTop);
+  });
+}
+
+export function normalizeDistanceGroupToLength(
+  group: Group,
+  newWidth: number,
+  labelTop: number = LINE_ARROW_LABEL_TOP
+): void {
+  const tickHeight = 10;
+
+  group.getObjects().forEach((childObject) => {
+    const child = childObject as CanvasRuntimeObject;
+    if (child.myType === "distanceMainLine") {
+      child.set({x1: -newWidth / 2, y1: 0, x2: newWidth / 2, y2: 0, scaleX: 1, scaleY: 1});
+
+    } else if (child.myType === "distanceTickStart") {
+      child.set({
+        x1: 0,
+        y1: -tickHeight / 2,
+        x2: 0,
+        y2: tickHeight / 2,
+        left: -newWidth / 2,
+        top: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+
+    } else if (child.myType === "distanceTickEnd") {
+      child.set({
+        x1: 0,
+        y1: -tickHeight / 2,
+        x2: 0,
+        y2: tickHeight / 2,
+        left: newWidth / 2,
+        top: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+
+    } else if (child.myType === "objLabel") {
+      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1});
+    }
+  });
+
+  group.set({width: newWidth, scaleX: 1, scaleY: 1});
+}
+
+export function normalizeDistanceGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
+  if (runtimeGroup.__normalizingScale) return;
+  runtimeGroup.__normalizingScale = true;
+
+  try {
+    normalizeDistanceGroupToLength(group, group.width! * group.scaleX!, labelTop);
+  } finally {
+    runtimeGroup.__normalizingScale = false;
+  }
+}
+
+export function bindDistanceGroupScaling(group: Group, labelTop: number = LINE_ARROW_LABEL_TOP): void {
+  group.on("scaling", function (this: Group) {
+    normalizeDistanceGroupScaling(this, labelTop);
+  });
 }
 
 export function createLine(canvas: FabricCanvas): Group {
+  const lineColor = "#000000";
+  const objLabel = "";
   const w = 200;
   const line = new Line([-w / 2, 0, w / 2, 0], {
-    stroke: "black",
+    stroke: lineColor,
     strokeWidth: 2,
     strokeLineCap: "round",
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(line, "lineBody");
+  setCanvasRuntimeObjectMyType(line, "lineBody");
 
-  const label = new IText(" ", {
+  const textLabel = new IText(objLabel, {
     fontSize: 14,
-    fontFamily: "Arial",
-    fill: "#333",
-    originX: "center",
-    originY: "center",
-    textAlign: "center",
+    fontFamily: 'Arial',
+    fill: lineColor,
+    originX: 'center',
+    originY: 'center',
+    textAlign: 'center',
     selectable: false,
-    evented: false,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    left: 0,
-    top: LINE_ARROW_LABEL_TOP,
+    evented: false
   });
-  setRuntimeMyType(label, "lineArrowLabel");
+  setCanvasRuntimeObjectMyType(textLabel, "objLabel");
+  textLabel.set({left: 0, top: LINE_ARROW_LABEL_TOP});
 
-  const group = new Group([line, label], {
+  const group = new Group([line, textLabel], {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: "center",
     originY: "center",
     lockScalingY: true,
   });
-  setRuntimeMyType(group, "line");
+  setCanvasRuntimeObjectMyType(group, "line");
   group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
-
-  group.on("scaling", function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
-
-    const totalLength = Math.max((this.width || 1) * (this.scaleX || 1), 1);
-    try {
-      this.getObjects().forEach((childObject) => {
-        const child = childObject as unknown as RuntimeTypedObject;
-        if (child.myType === "lineBody" && child.type === "line") {
-          child.set({
-            x1: -totalLength / 2,
-            y1: 0,
-            x2: totalLength / 2,
-            y2: 0,
-            scaleX: 1,
-            scaleY: 1,
-          });
-          return;
-        }
-
-        if (child.myType === "lineArrowLabel") {
-          child.set({left: 0, top: LINE_ARROW_LABEL_TOP, scaleX: 1, scaleY: 1, visible: true});
-        }
-      });
-
-      this.set({width: totalLength, scaleX: 1, scaleY: 1});
-      updateGroupBounds(this);
-    } finally {
-      runtimeGroup.__normalizingScale = false;
-    }
-  });
-
-  line.setCoords();
-  label.setCoords();
-  updateGroupBounds(group);
+  bindLineGroupScaling(group, LINE_ARROW_LABEL_TOP);
   return group;
 }
 
 export function createArrow(canvas: FabricCanvas): Group {
-  const w = 150;
-  const h = 15;
-
-  const headSize = h;
+  const arrowColor = "#000000";
+  const objLabel = "";
+  const w = 200;
+  const headSize = 15;
   const initialShaftWidth = Math.max(w - headSize, 1);
 
   const line = new Rect({
     width: initialShaftWidth,
     height: 2,
-    fill: "#333",
+    fill: arrowColor,
     originX: "center",
     originY: "center",
     left: -headSize / 2,
   });
-  setRuntimeMyType(line, "arrowBody");
+  setCanvasRuntimeObjectMyType(line, "arrowBody");
 
   const head = new Triangle({
     width: headSize,
     height: headSize,
-    fill: "#333",
+    fill: arrowColor,
     angle: 90,
     left: w / 2 - headSize / 2,
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(head, "arrowHead");
+  setCanvasRuntimeObjectMyType(head, "arrowHead");
 
-  const label = new IText(" ", {
+  const textLabel = new IText(objLabel, {
     fontSize: 14,
-    fontFamily: "Arial",
-    fill: "#333",
-    originX: "center",
-    originY: "center",
-    textAlign: "center",
+    fontFamily: 'Arial',
+    fill: arrowColor,
+    originX: 'center',
+    originY: 'center',
+    textAlign: 'center',
     selectable: false,
     evented: false,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    left: 0,
-    top: LINE_ARROW_LABEL_TOP,
   });
-  setRuntimeMyType(label, "lineArrowLabel");
+  setCanvasRuntimeObjectMyType(textLabel, "objLabel");
+  textLabel.set({left: 0, top: LINE_ARROW_LABEL_TOP});
 
-  const group = new Group([line, head, label], {
+  const group = new Group([line, head, textLabel], {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: "center",
     originY: "center",
     lockScalingY: true,
   });
-  setRuntimeMyType(group, "arrow");
+  setCanvasRuntimeObjectMyType(group, "arrow");
   group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
-
-  const originalHeadW = headSize;
-  const originalHeadH = headSize;
-
-  group.on("scaling", function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
-
-    const totalLength = this.width! * this.scaleX!;
-    const shaftWidth = Math.max(totalLength - originalHeadW, 1);
-    const shaftCenterX = -originalHeadW / 2;
-    const headCenterX = totalLength / 2 - originalHeadW / 2;
-
-    try {
-      this.getObjects().forEach((childObject) => {
-        const child = childObject as unknown as RuntimeTypedObject;
-        if (child.myType === "arrowBody" && child.type === "rect") {
-          child.set({
-            width: shaftWidth,
-            height: 2,
-            left: shaftCenterX,
-            top: 0,
-            scaleX: 1,
-            scaleY: 1,
-          });
-        } else if (child.myType === "arrowHead" && child.type === "triangle") {
-          child.set({
-            left: headCenterX,
-            top: 0,
-            width: originalHeadW,
-            height: originalHeadH,
-            angle: 90,
-            scaleX: 1,
-            scaleY: 1,
-          });
-        } else if (child.myType === "lineArrowLabel") {
-          child.set({left: 0, top: LINE_ARROW_LABEL_TOP, scaleX: 1, scaleY: 1, visible: true});
-        }
-      });
-      this.set({width: totalLength, scaleX: 1, scaleY: 1});
-      updateGroupBounds(this);
-    } finally {
-      runtimeGroup.__normalizingScale = false;
-    }
-  });
-
-  line.setCoords();
-  head.setCoords();
-  label.setCoords();
-  updateGroupBounds(group);
+  bindArrowGroupScaling(group, LINE_ARROW_LABEL_TOP);
   return group;
 }
 
-export function createDimension(canvas: FabricCanvas, position?: { x: number; y: number }): Group {
+export function createDistance(canvas: FabricCanvas, position?: { x: number; y: number }): Group {
+  const distanceColor = "#000000";
+  const objLabel = "";
   const w = 200;
   const tickHeight = 10;
-  const color = "#C94C4C"; // Softer red
 
   const line = new Line([-w / 2, 0, w / 2, 0], {
-    stroke: color,
+    stroke: distanceColor,
     strokeWidth: 2,
     strokeDashArray: [6, 4],
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(line, "dimensionMainLine");
+  setCanvasRuntimeObjectMyType(line, "distanceMainLine");
 
   // Left transversal tick
   const tick1 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
-    stroke: color,
+    stroke: distanceColor,
     strokeWidth: 2,
     left: -w / 2,
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(tick1, "dimensionTickStart");
+  setCanvasRuntimeObjectMyType(tick1, "distanceTickStart");
 
   // Right transversal tick
   const tick2 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
-    stroke: color,
+    stroke: distanceColor,
     strokeWidth: 2,
     left: w / 2,
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(tick2, "dimensionTickEnd");
+  setCanvasRuntimeObjectMyType(tick2, "distanceTickEnd");
 
-  const text = new IText(" ", {
-    fontSize: 16,
-    fontFamily: "Arial",
-    fill: color,
-    backgroundColor: "rgba(255,255,255,0.8)",
-    top: -20,
-    originX: "center",
-    originY: "center",
-    editable: false,
+  const textLabel = new IText(objLabel, {
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: distanceColor,
+    originX: 'center',
+    originY: 'center',
+    textAlign: 'center',
     selectable: false,
+    evented: false,
   });
-  setRuntimeMyType(text, "dimensionLabel");
+  setCanvasRuntimeObjectMyType(textLabel, "objLabel");
+  textLabel.set({left: 0, top: LINE_ARROW_LABEL_TOP});
 
-  // Use provided position or default to canvas center
+  // Use provided position or default to canvas center.
   const posX = position?.x ?? canvas.width! / 2;
   const posY = position?.y ?? canvas.height! / 2;
 
-  const group = new Group([line, tick1, tick2, text], {
+  const group = new Group([line, tick1, tick2, textLabel], {
     left: posX,
     top: posY,
     originX: "center",
@@ -293,68 +381,9 @@ export function createDimension(canvas: FabricCanvas, position?: { x: number; y:
     subTargetCheck: true,
     lockScalingY: true,
   });
-  setRuntimeMyType(group, "dimension");
+  setCanvasRuntimeObjectMyType(group, "distance");
   group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
-
-  group.on("scaling", function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
-
-    const nw = this.width! * this.scaleX!;
-    try {
-      this.getObjects().forEach((childObject) => {
-        const child = childObject as unknown as RuntimeTypedObject;
-        if (child.myType === "dimensionMainLine" && child.type === "line") {
-          child.set({x1: -nw / 2, y1: 0, x2: nw / 2, y2: 0, scaleX: 1, scaleY: 1});
-          return;
-        }
-
-        if (child.myType === "dimensionTickStart" && child.type === "line") {
-          child.set({
-            x1: 0,
-            y1: -tickHeight / 2,
-            x2: 0,
-            y2: tickHeight / 2,
-            left: -nw / 2,
-            top: 0,
-            scaleX: 1,
-            scaleY: 1,
-          });
-          return;
-        }
-
-        if (child.myType === "dimensionTickEnd" && child.type === "line") {
-          child.set({
-            x1: 0,
-            y1: -tickHeight / 2,
-            x2: 0,
-            y2: tickHeight / 2,
-            left: nw / 2,
-            top: 0,
-            scaleX: 1,
-            scaleY: 1,
-          });
-          return;
-        }
-
-        if (child.myType === "dimensionLabel") {
-          child.set({left: 0, top: LINE_ARROW_LABEL_TOP, scaleX: 1, scaleY: 1});
-        }
-      });
-
-      this.set({width: nw, scaleX: 1, scaleY: 1});
-      updateGroupBounds(this);
-    } finally {
-      runtimeGroup.__normalizingScale = false;
-    }
-  });
-
-  line.setCoords();
-  tick1.setCoords();
-  tick2.setCoords();
-  text.setCoords();
-  updateGroupBounds(group);
+  bindDistanceGroupScaling(group, LINE_ARROW_LABEL_TOP);
   return group;
 }
 
@@ -412,7 +441,7 @@ export function createWater(canvas: FabricCanvas): Group {
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(group, "water");
+  setCanvasRuntimeObjectMyType(group, "water");
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;
@@ -449,7 +478,7 @@ export function createWall(canvas: FabricCanvas): Rect {
     originY: "center",
     lockScalingFlip: true,
   });
-  setRuntimeMyType(wall, "wall");
+  setCanvasRuntimeObjectMyType(wall, "wall");
 
   wall.on("scaling", function (this: Rect) {
     this.set({
@@ -490,7 +519,7 @@ export function createDoor(canvas: FabricCanvas): Group {
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(group, "gate");
+  setCanvasRuntimeObjectMyType(group, "gate");
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;
@@ -537,7 +566,7 @@ export function createFossa(canvas: FabricCanvas): Group {
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(group, "fossa");
+  setCanvasRuntimeObjectMyType(group, "fossa");
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;
@@ -577,7 +606,7 @@ export function createTree(canvas: FabricCanvas): Group {
     originX: "center",
     originY: "center",
   });
-  setRuntimeMyType(group, "tree");
+  setCanvasRuntimeObjectMyType(group, "tree");
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;

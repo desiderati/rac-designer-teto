@@ -1,7 +1,7 @@
 import {ChangeEvent, useRef} from 'react';
 import {ToolbarMainMenu} from './toolbar/ToolbarMainMenu';
 import {ToolbarOverflowMenu} from './toolbar/ToolbarOverflowMenu';
-import type {ToolbarActionMap, ToolbarProps} from './toolbar/toolbar-types';
+import type {ToolbarActionMap, ToolbarProps} from './toolbar/helpers/toolbar-types.ts';
 
 export type {ToolbarActionMap};
 

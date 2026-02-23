@@ -243,13 +243,13 @@
 ### Escopo
 
 - [x] extração do bloco de edição genérica de `RacEditor` para hook dedicado:
-  - `src/components/rac-editor/hooks/useRacGenericEditorActions.ts`
+  - `src/components/rac-editor/hooks/useObjectEditorActions.ts`
 - [x] delegação de apply/cores/tipo dos editores inline para o hook.
 - [x] preservação da integração com `RacEditorInlineEditors`.
 
 ### Validação obrigatória da rodada
 
-- [x] `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useRacGenericEditorActions.ts src/components/rac-editor/hooks/useRacTutorialUiActions.ts src/components/rac-editor/hooks/useRacHouseInitialization.ts`
+- [x] `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useObjectEditorActions.ts src/components/rac-editor/hooks/useRacTutorialUiActions.ts src/components/rac-editor/hooks/useRacHouseInitialization.ts`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
 - [x] `npm run test:e2e -- --workers=1` (16/16)
@@ -348,12 +348,12 @@
 ### Escopo
 
 - [x] extração da seção de canvas + infobar do `RacEditor` para componente dedicado:
-  - `src/components/rac-editor/RacEditorCanvasSection.tsx`
+  - `src/components/rac-editor/RacEditorCanvas.tsx`
 - [x] delegação de wiring de callbacks de seleção/zoom/contraventamento no `RacEditor`.
 
 ### Validação obrigatória da rodada
 
-- [x] `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvasSection.tsx src/components/rac-editor/hooks/useRacToolbarActions.ts`
+- [x] `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvas.tsx src/components/rac-editor/hooks/useRacToolbarActions.ts`
 - [x] `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
@@ -522,14 +522,14 @@
 
 ### Escopo
 
-- [x] correção de perda de draft no `GenericEditor` durante digitação/troca de cor:
-  - `src/components/rac-editor/hooks/useEditorDraft.ts`
+- [x] correção de perda de draft no `GenericInlineEditor` durante digitação/troca de cor:
+  - `src/components/rac-editor/hooks/useGenericInlineEditorDraft.ts`
 - [x] teste de regressão automático para não reaparecer:
-  - `src/components/rac-editor/modals/editors/GenericEditor.smoke.test.tsx`
+  - `src/components/rac-editor/modals/editors/GenericInlineEditor.smoke.test.tsx`
 
 ### Validação obrigatória da rodada
 
-- [x] `npx eslint src/components/rac-editor/hooks/useEditorDraft.ts src/components/rac-editor/modals/editors/GenericEditor.smoke.test.tsx`
+- [x] `npx eslint src/components/rac-editor/hooks/useGenericInlineEditorDraft.ts src/components/rac-editor/modals/editors/GenericInlineEditor.smoke.test.tsx`
 - [x] `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`
 - [x] `npm run test -- --run` (122/122)
 - [x] `npm run build`

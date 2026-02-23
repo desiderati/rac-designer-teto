@@ -1,4 +1,4 @@
-import type {HouseType} from '@/lib/house-manager';
+import type {HouseType} from '@/lib/house-manager.ts';
 
 export interface ToolbarActionMap {
   openHouseTypeSelector: () => void;
@@ -16,7 +16,7 @@ export interface ToolbarActionMap {
   addFossa: () => void;
   addLine: () => void;
   addArrow: () => void;
-  addDimension: () => void;
+  addDistance: () => void;
   toggleDrawMode: () => void;
   addText: () => void;
   exportJSON: () => void;

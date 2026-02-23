@@ -1,12 +1,12 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject} from 'fabric';
-import type {CanvasHandle, DistanceSelection} from '@/components/rac-editor/Canvas';
+import type {CanvasHandle} from '@/components/rac-editor/Canvas';
 import {toCanvasScreenPoint} from '@/components/rac-editor/utils/canvas-screen-position';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   createArrow,
-  createDimension,
+  createDistance,
   createDoor,
   createFossa,
   createLine,
@@ -34,18 +34,16 @@ interface UseRacCanvasToolsArgs {
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
   setOnboardingBalloon: Dispatch<SetStateAction<OnboardingBalloonState | null>>;
-  openDistanceEditor: (selection: DistanceSelection) => void;
 }
 
 interface OnboardingConfig {
-  key: 'wall' | 'line' | 'arrow';
+  key: 'wall' | 'line' | 'arrow' | 'distance';
   message: string;
 }
 
 export function useRacCanvasTools({
   canvasRef,
   getCanvas,
-  getVisibleCenter,
   addObjectToCanvas,
   closeAllMenus,
   disableDrawingMode,
@@ -53,7 +51,6 @@ export function useRacCanvasTools({
   setIsDrawing,
   setInfoMessage,
   setOnboardingBalloon,
-  openDistanceEditor,
 }: UseRacCanvasToolsArgs) {
 
   const showOnboardingBalloon =
@@ -132,44 +129,12 @@ export function useRacCanvasTools({
     });
   }, [addCanvasObject]);
 
-  const handleAddDimension = useCallback(() => {
-    closeAllMenus();
-    const canvas = getCanvas();
-    if (!canvas) return;
-
-    const center = getVisibleCenter();
-    const dimension = createDimension(canvas, center);
-    canvas.add(dimension);
-    canvas.setActiveObject(dimension);
-
-    const textObject = dimension.getObjects().find((object) =>
-      object.type === 'i-text'
-    ) as (FabricObject & {
-      text?: string;
-    }) | undefined;
-    const currentValue = textObject?.text?.trim() || '';
-
-    const canvasPosition = canvasRef.current?.getCanvasPosition();
-    const container = canvas.getElement().parentElement?.parentElement;
-    if (!container || !canvasPosition) return;
-
-    const point = toCanvasScreenPoint({
-      canvasPosition,
-      containerRect: container.getBoundingClientRect(),
-      canvasWidth: CANVAS_WIDTH,
-      canvasHeight: CANVAS_HEIGHT,
-      point: {
-        x: dimension.left || 0,
-        y: dimension.top || 0,
-      },
+  const handleAddDistance = useCallback(() => {
+    addCanvasObject(createDistance, {
+      key: 'distance',
+      message: 'Clique duas vezes para definir um texto ou a cor da distância.',
     });
-
-    openDistanceEditor({
-      group: dimension,
-      currentValue,
-      screenPosition: point,
-    });
-  }, [canvasRef, closeAllMenus, getCanvas, getVisibleCenter, openDistanceEditor]);
+  }, [addCanvasObject]);
 
   const handleToggleDrawMode = useCallback(() => {
     closeAllMenus();
@@ -205,7 +170,7 @@ export function useRacCanvasTools({
     handleAddFossa,
     handleAddLine,
     handleAddArrow,
-    handleAddDimension,
+    handleAddDistance,
     handleToggleDrawMode,
     handleAddText,
   };

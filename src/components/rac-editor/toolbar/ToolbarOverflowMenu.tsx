@@ -1,6 +1,6 @@
 import {FABButton, SubMenuButton} from './ToolbarButtons';
-import {MAIN_MENU_ICONS, OverflowActionKey, OVERFLOW_MENU_CONFIG} from './toolbar-config';
-import type {ToolbarActionMap, ToolbarSubmenu, TutorialHighlight} from './toolbar-types';
+import {MAIN_MENU_ICONS, OverflowActionKey, OVERFLOW_MENU_CONFIG} from './helpers/toolbar-config.ts';
+import type {ToolbarActionMap, ToolbarSubmenu, TutorialHighlight} from './helpers/toolbar-types.ts';
 
 interface ToolbarOverflowMenuProps {
   actions: ToolbarActionMap;

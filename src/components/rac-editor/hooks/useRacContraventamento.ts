@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas} from 'fabric';
 import type {
   CanvasHandle,
   ContraventamentoCanvasSelection,
-  PilotiSelection,
+  PilotiCanvasSelection,
 } from '@/components/rac-editor/Canvas';
 import type {RacSubmenu} from '@/components/rac-editor/hooks/useRacModalState';
 import {ContraventamentoSide} from '@/lib/canvas-utils';
@@ -28,8 +28,8 @@ interface UseRacContraventamentoArgs {
   contraventamentoSide: ContraventamentoSide | null;
   setContraventamentoSide: Dispatch<SetStateAction<ContraventamentoSide | null>>;
   resetContraventamentoFlow: () => void;
-  pilotiSelection: PilotiSelection | null;
-  setPilotiSelection: Dispatch<SetStateAction<PilotiSelection | null>>;
+  pilotiSelection: PilotiCanvasSelection | null;
+  setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
   setActiveSubmenu: Dispatch<SetStateAction<RacSubmenu>>;
 }

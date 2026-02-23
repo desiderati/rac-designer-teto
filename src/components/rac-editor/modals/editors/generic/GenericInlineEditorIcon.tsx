@@ -1,9 +1,8 @@
 import {cn} from '@/lib/utils.ts';
+import {GenericInlineEditorType} from "@/components/rac-editor/modals/editors/generic/GenericInlineEditor.tsx";
 
-type GenericEditorIconType = 'wall' | 'line' | 'arrow' | 'dimension';
-
-interface GenericEditorTypeIconProps {
-  type: GenericEditorIconType;
+interface GenericInlineEditorIconProps {
+  type: GenericInlineEditorType;
   className?: string;
 }
 
@@ -38,7 +37,7 @@ function ArrowIcon() {
   );
 }
 
-function DimensionIcon() {
+function DistanceIcon() {
   return (
     <>
       <line x1="5" y1="50" x2="95" y2="50" stroke="hsl(var(--primary))" strokeWidth="3" strokeDasharray="6 4"/>
@@ -52,7 +51,7 @@ function DimensionIcon() {
   );
 }
 
-export function GenericEditorTypeIcon({type, className}: GenericEditorTypeIconProps) {
+export function GenericInlineEditorIcon({type, className}: GenericInlineEditorIconProps) {
   return (
     <svg
       viewBox="0 0 100 76"
@@ -62,7 +61,7 @@ export function GenericEditorTypeIcon({type, className}: GenericEditorTypeIconPr
       {type === 'wall' && <WallIcon/>}
       {type === 'line' && <LineIcon/>}
       {type === 'arrow' && <ArrowIcon/>}
-      {type === 'dimension' && <DimensionIcon/>}
+      {type === 'distance' && <DistanceIcon/>}
     </svg>
   );
 }

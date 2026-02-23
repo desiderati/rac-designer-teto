@@ -1,13 +1,13 @@
 import {Dispatch, MutableRefObject, SetStateAction, useEffect} from "react";
 import {houseManager, HouseSide, ViewType} from "@/lib/house-manager";
 import {projectGroupLocalPointToScreen} from "@/lib/canvas/piloti-screen-position";
-import type {CanvasHandle, PilotiSelection} from "@/components/rac-editor/Canvas";
+import type {CanvasHandle, PilotiCanvasSelection} from "@/components/rac-editor/Canvas";
 
 interface UseRacDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;
   showTipsRef: MutableRefObject<boolean>;
   showZoomControlsRef: MutableRefObject<boolean>;
-  setPilotiSelection: Dispatch<SetStateAction<PilotiSelection | null>>;
+  setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
 }
 

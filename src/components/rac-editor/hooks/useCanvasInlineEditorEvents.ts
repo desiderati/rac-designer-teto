@@ -1,70 +1,46 @@
 import {useCallback} from 'react';
-import {
-  Canvas as FabricCanvas,
-  FabricObject,
-  Group,
-  Rect,
-  util as fabricUtil,
-} from 'fabric';
-import {readLineArrowEditorState} from '@/lib/canvas/line-arrow-editor';
+import {Canvas as FabricCanvas, FabricObject, Group, Rect, util as fabricUtil,} from 'fabric';
+import {readLineArrowDistanceEditorState} from '@/components/rac-editor/modals/editors/generic/helpers/line-arrow-distance-editor-state.ts';
 import type {
-  CanvasMouseEvent,
   CanvasPointerPayload,
   CanvasRuntimeObject,
 } from '@/components/rac-editor/hooks/canvas-fabric-runtime-types';
-
-interface DistanceSelectionPayload {
-  group: Group;
-  currentValue: string;
-  screenPosition: { x: number; y: number };
-}
-
-interface ObjectNameSelectionPayload {
-  object: Rect;
-  currentValue: string;
-  screenPosition: { x: number; y: number };
-}
-
-interface LineArrowSelectionPayload {
-  object: FabricObject;
-  myType: 'line' | 'arrow';
-  currentColor: string;
-  currentLabel: string;
-  screenPosition: { x: number; y: number };
-}
-
-type LineArrowReadableObject = Parameters<typeof readLineArrowEditorState>[0];
+import {
+  LineArrowDistanceCanvasSelection,
+  LineArrowDistanceCanvasSelectionType,
+  ObjectCanvasSelection
+} from "@/components/rac-editor/Canvas.tsx";
+import {CanvasRuntimeObject} from "@/lib/canvas";
 
 interface BindInlineEditorEventsArgs {
   canvas: FabricCanvas;
   toRuntimeObject: (object: FabricObject | null | undefined) => CanvasRuntimeObject | null;
-  getEventPayload: (event: unknown) => CanvasPointerPayload;
-  handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
-  onDistanceSelect: (selection: DistanceSelectionPayload) => void;
-  onObjectNameSelect: (selection: ObjectNameSelectionPayload) => void;
-  onLineArrowSelect: (selection: LineArrowSelectionPayload) => void;
-  onSelectionChange: (message: string) => void;
-  getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
   isEditorOpen: () => boolean;
+  getEventPayload: (event: unknown) => CanvasPointerPayload;
+  getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
+  handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
+  onObjectSelect: (selection: ObjectCanvasSelection) => void;
+  onLineArrowDistanceSelect: (selection: LineArrowDistanceCanvasSelection) => void;
+  onSelectionChange: (message: string) => void;
 }
 
 export function useCanvasInlineEditorEvents() {
   const bindInlineEditorEvents = useCallback(({
     canvas,
     toRuntimeObject,
-    getEventPayload,
-    handlePilotiSelection,
-    onDistanceSelect,
-    onObjectNameSelect,
-    onLineArrowSelect,
-    onSelectionChange,
-    getCurrentScreenPoint,
     isEditorOpen,
+    getEventPayload,
+    getCurrentScreenPoint,
+    handlePilotiSelection,
+    onObjectSelect,
+    onLineArrowDistanceSelect,
+    onSelectionChange,
   }: BindInlineEditorEventsArgs) => {
+
     const getWallParentGroup = (wall: Rect): Group | null => {
       const runtimeWall = toRuntimeObject(wall);
       const runtimeGroup = runtimeWall?.group as Group | undefined;
-      const internalGroup = (wall as unknown as {_group?: Group})._group;
+      const internalGroup = (wall as unknown as { _group?: Group })._group;
       return runtimeGroup || internalGroup || null;
     };
 
@@ -122,34 +98,15 @@ export function useCanvasInlineEditorEvents() {
       return null;
     };
 
-    const handleDistanceSelection = (group: Group) => {
-      const textObj = group.getObjects().find((object) => object.type === 'i-text');
-      const runtimeText = toRuntimeObject(textObj);
-      const currentValue = runtimeText?.text?.trim() || '';
-
-      const screenPoint = getCurrentScreenPoint({
-        x: group.left || 0,
-        y: group.top || 0,
-      });
-      if (!screenPoint) return;
-
-      onDistanceSelect({
-        group,
-        currentValue,
-        screenPosition: screenPoint,
-      });
-      onSelectionChange('Editando distância.');
-    };
-
-    const handleObjectNameSelection = (selection: {
+    const handleObjectSelection = (selection: {
       wall: Rect;
       currentValue: string;
-      anchorPoint: {x: number; y: number};
+      anchorPoint: { x: number; y: number };
     }) => {
       const screenPoint = getCurrentScreenPoint(selection.anchorPoint);
       if (!screenPoint) return;
 
-      onObjectNameSelect({
+      onObjectSelect({
         object: selection.wall,
         currentValue: selection.currentValue,
         screenPosition: screenPoint,
@@ -157,15 +114,17 @@ export function useCanvasInlineEditorEvents() {
       onSelectionChange('Editando nome do objeto.');
     };
 
-    const handleLineArrowSelection = (object: FabricObject, myType: 'line' | 'arrow') => {
-      const readableObject = object as LineArrowReadableObject;
-      const {currentColor, currentLabel} = readLineArrowEditorState(readableObject, myType);
+    const handleLineArrowDistanceSelection = (
+      object: FabricObject,
+      myType: LineArrowDistanceCanvasSelectionType
+    ) => {
 
+      const {currentColor, currentLabel} = readLineArrowDistanceEditorState(object as CanvasRuntimeObject);
       const center = object.getCenterPoint();
       const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
 
-      onLineArrowSelect({
+      onLineArrowDistanceSelect({
         object,
         myType,
         currentColor,
@@ -182,39 +141,25 @@ export function useCanvasInlineEditorEvents() {
       if (!target) return;
       const targetRuntime = toRuntimeObject(target);
 
-      if (target.type === 'group' && targetRuntime?.myType === 'dimension') {
-        payload.e?.preventDefault();
-        payload.e?.stopPropagation();
-        handleDistanceSelection(target as Group);
-        return;
-      }
-
       const wallSelection = resolveWallSelectionTarget(target);
       if (wallSelection) {
-        handleObjectNameSelection(wallSelection);
+        handleObjectSelection(wallSelection);
         return;
       }
 
       if (targetRuntime?.myType === 'line') {
-        handleLineArrowSelection(target, 'line');
+        handleLineArrowDistanceSelection(target, 'line');
         return;
       }
 
-      if (target.type === 'group' && targetRuntime?.myType === 'arrow') {
-        handleLineArrowSelection(target, 'arrow');
+      if (targetRuntime?.myType === 'arrow') {
+        handleLineArrowDistanceSelection(target, 'arrow');
         return;
       }
 
-      const subTargets = (payload.subTargets as CanvasRuntimeObject[] | undefined) ?? [];
-      for (const subTarget of subTargets) {
-        if (subTarget.type !== 'i-text') continue;
-        const parent = subTarget.group;
-        if (parent && toRuntimeObject(parent)?.myType === 'dimension') {
-          payload.e?.preventDefault();
-          payload.e?.stopPropagation();
-          handleDistanceSelection(parent as Group);
-          return;
-        }
+      if (targetRuntime?.myType === 'distance') {
+        handleLineArrowDistanceSelection(target, 'distance');
+        return;
       }
 
       if (target.type !== 'group' || !payload.e) return;
@@ -273,7 +218,7 @@ export function useCanvasInlineEditorEvents() {
       if (wallSelection) {
         setTimeout(() => {
           if (canvas.getActiveObject() === target) {
-            handleObjectNameSelection(wallSelection);
+            handleObjectSelection(wallSelection);
           }
         }, 300);
         return;
@@ -282,38 +227,28 @@ export function useCanvasInlineEditorEvents() {
       if (runtimeTarget?.myType === 'line') {
         setTimeout(() => {
           if (canvas.getActiveObject() === target) {
-            handleLineArrowSelection(target, 'line');
+            handleLineArrowDistanceSelection(target, 'line');
           }
         }, 300);
         return;
       }
 
-      if (target.type === 'group' && runtimeTarget?.myType === 'arrow') {
+      if (runtimeTarget?.myType === 'arrow') {
         setTimeout(() => {
           if (canvas.getActiveObject() === target) {
-            handleLineArrowSelection(target, 'arrow');
+            handleLineArrowDistanceSelection(target, 'arrow');
           }
         }, 300);
         return;
       }
 
-      if (target.type === 'group' && runtimeTarget?.myType === 'dimension') {
-        if (!payload.e) return;
-        const pointer = canvas.getPointer(payload.e);
-        const group = target as Group;
-        const groupCenterX = group.left || 0;
-        const groupCenterY = group.top || 0;
-        const distanceFromCenter = Math.sqrt(
-          Math.pow(pointer.x - groupCenterX, 2) + Math.pow(pointer.y - groupCenterY, 2)
-        );
-        const centerThreshold = 30;
-        if (distanceFromCenter <= centerThreshold) {
-          setTimeout(() => {
-            if (canvas.getActiveObject() === target) {
-              handleDistanceSelection(group);
-            }
-          }, 300);
-        }
+      if (runtimeTarget?.myType === 'distance') {
+        setTimeout(() => {
+          if (canvas.getActiveObject() === target) {
+            handleLineArrowDistanceSelection(target, 'distance');
+          }
+        }, 300);
+        return;
       }
     };
 

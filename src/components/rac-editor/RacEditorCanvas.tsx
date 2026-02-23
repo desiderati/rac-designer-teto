@@ -2,16 +2,15 @@ import React from 'react';
 import {
   Canvas,
   CanvasHandle,
+  PilotiCanvasSelection,
   ContraventamentoCanvasSelection,
-  DistanceSelection,
-  ObjectNameSelection,
-  PilotiSelection,
-  LineArrowCanvasSelection,
+  ObjectCanvasSelection,
+  LineArrowDistanceCanvasSelection,
 } from './Canvas';
 import {InfoBar} from './InfoBar';
 import {TutorialStepId} from './hooks/useRacTutorialFlow';
 
-interface RacEditorCanvasSectionProps {
+interface RacEditorCanvasProps {
   canvasRef: React.Ref<CanvasHandle>;
   tutorialStep: TutorialStepId | null;
   showTips: boolean;
@@ -24,17 +23,16 @@ interface RacEditorCanvasSectionProps {
   onSelectionMessage: (message: string) => void;
   onSelectionAuxCleanup: () => void;
   onZoomInteraction: () => void;
-  onPilotiSelect: (selection: PilotiSelection | null) => void;
-  onDistanceSelect: (selection: DistanceSelection | null) => void;
-  onObjectNameSelect: (selection: ObjectNameSelection | null) => void;
-  onLineArrowSelect: (selection: LineArrowCanvasSelection | null) => void;
+  onPilotiSelect: (selection: PilotiCanvasSelection | null) => void;
+  onObjectSelect: (selection: ObjectCanvasSelection | null) => void;
+  onLineArrowDistanceSelect: (selection: LineArrowDistanceCanvasSelection | null) => void;
   onDelete: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
   onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;
   onContraventamentoCancel: () => void;
 }
 
-export function RacEditorCanvasSection({
+export function RacEditorCanvas({
   canvasRef,
   tutorialStep,
   showTips,
@@ -48,14 +46,13 @@ export function RacEditorCanvasSection({
   onSelectionAuxCleanup,
   onZoomInteraction,
   onPilotiSelect,
-  onDistanceSelect,
-  onObjectNameSelect,
-  onLineArrowSelect,
+  onObjectSelect,
+  onLineArrowDistanceSelect,
   onDelete,
   onContraventamentoPilotiClick,
   onContraventamentoSelect,
   onContraventamentoCancel,
-}: RacEditorCanvasSectionProps) {
+}: RacEditorCanvasProps) {
   return (
     <div className="h-full p-2.5 overflow-hidden relative">
       <Canvas
@@ -71,9 +68,8 @@ export function RacEditorCanvasSection({
         tutorialHighlight={tutorialStep}
         showTips={showTips}
         onPilotiSelect={onPilotiSelect}
-        onDistanceSelect={onDistanceSelect}
-        onObjectNameSelect={onObjectNameSelect}
-        onLineArrowSelect={onLineArrowSelect}
+        onObjectSelect={onObjectSelect}
+        onLineArrowDistanceSelect={onLineArrowDistanceSelect}
         isEditorOpen={isEditorOpen}
         onDelete={onDelete}
         showZoomControls={showZoomControls}

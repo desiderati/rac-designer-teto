@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {Line, Rect, Triangle} from 'fabric';
-import {createArrow, createDimension, createLine} from './elements-factory';
+import {createArrow, createDistance, createLine} from './elements-factory';
 
 const canvasMock = {
   width: 1200,
@@ -15,6 +15,7 @@ describe('elements-factory geometry regression', () => {
     const label = children.find((child) => child.myType === 'lineArrowLabel') as
       ({left?: number; top?: number; text?: string} | undefined);
     const initialGroupWidth = lineGroup.width || 0;
+    const initialLabelTop = label?.top;
     const expectedLength = initialGroupWidth * 1.8;
 
     expect((lineGroup as {myType?: string}).myType).toBe('line');
@@ -27,7 +28,7 @@ describe('elements-factory geometry regression', () => {
     expect(line?.y1).toBe(0);
     expect(line?.y2).toBe(0);
     expect(label?.left).toBe(0);
-    expect(label?.top).toBe(-20);
+    expect(label?.top).toBe(initialLabelTop);
     expect(lineGroup.width).toBeCloseTo(expectedLength, 2);
     expect(lineGroup.scaleX).toBe(1);
     expect(lineGroup.scaleY).toBe(1);
@@ -42,6 +43,7 @@ describe('elements-factory geometry regression', () => {
     const head = children.find((child) => child.myType === 'arrowHead') as Triangle | undefined;
     const label = children.find((child) => child.myType === 'lineArrowLabel') as
       ({left?: number; top?: number; text?: string} | undefined);
+    const initialLabelTop = label?.top;
 
     expect(label?.text).toBe(' ');
 
@@ -53,13 +55,13 @@ describe('elements-factory geometry regression', () => {
     expect(head?.height).toBe(15);
     expect(head?.left).toBeCloseTo(expectedWidth / 2 - 7.5, 5);
     expect(label?.left).toBe(0);
-    expect(label?.top).toBe(-20);
+    expect(label?.top).toBe(initialLabelTop);
     expect(arrowGroup.scaleX).toBe(1);
     expect(arrowGroup.scaleY).toBe(1);
   });
 
   it('keeps dimension ticks aligned to line endpoints while resizing', () => {
-    const dimensionGroup = createDimension(canvasMock, {x: 100, y: 100});
+    const dimensionGroup = createDistance(canvasMock, {x: 100, y: 100});
     const initialWidth = dimensionGroup.width || 0;
     const expectedWidth = initialWidth * 1.5;
     const children = dimensionGroup.getObjects() as Array<(Line | Rect | Triangle) & {myType?: string; text?: string}>;

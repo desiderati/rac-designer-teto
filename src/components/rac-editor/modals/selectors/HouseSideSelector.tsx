@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import {HouseSide, ViewType} from '@/lib/house-manager.ts';
 import {useHouseSnapshot, useHouseStoreVersion} from '@/lib/state/house-store.ts';
 import {TwoCardSelector} from './TwoCardSelector.tsx';
-import {PilotiGridIcon} from '../../icons/PilotiGridIcon.tsx';
+import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 
 export interface HouseSideSlot {
   label: string;

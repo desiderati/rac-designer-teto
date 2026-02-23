@@ -15,7 +15,7 @@ interface UseRacToolbarActionsArgs {
   handleAddFossa: () => void;
   handleAddLine: () => void;
   handleAddArrow: () => void;
-  handleAddDimension: () => void;
+  handleAddDistance: () => void;
   handleToggleDrawMode: () => void;
   handleAddText: () => void;
   handleExportJSON: () => void;
@@ -48,7 +48,7 @@ export function useRacToolbarActions({
   handleAddFossa,
   handleAddLine,
   handleAddArrow,
-  handleAddDimension,
+  handleAddDistance,
   handleToggleDrawMode,
   handleAddText,
   handleExportJSON,
@@ -83,7 +83,7 @@ export function useRacToolbarActions({
     addFossa: handleAddFossa,
     addLine: handleAddLine,
     addArrow: handleAddArrow,
-    addDimension: handleAddDimension,
+    addDistance: handleAddDistance,
     toggleDrawMode: handleToggleDrawMode,
     addText: handleAddText,
     exportJSON: handleExportJSON,
@@ -105,7 +105,7 @@ export function useRacToolbarActions({
     },
   }), [
     handleAddArrow,
-    handleAddDimension,
+    handleAddDistance,
     handleAddDoor,
     handleAddFossa,
     handleAddHouseView,

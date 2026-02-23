@@ -5,8 +5,8 @@ import {
   HouseMenuLimitKey,
   LINES_MENU_CONFIG,
   MAIN_MENU_ICONS,
-} from './toolbar-config';
-import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount, TutorialHighlight} from './toolbar-types';
+} from './helpers/toolbar-config.ts';
+import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount, TutorialHighlight} from './helpers/toolbar-types.ts';
 import type {HouseType} from '@/lib/house-manager';
 
 interface ToolbarMainMenuProps {
