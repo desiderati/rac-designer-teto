@@ -1,15 +1,42 @@
-import {FabricObject, Group, Rect} from 'fabric';
+import {FabricObject, Group} from 'fabric';
 import type {HouseSide} from '@/lib/house-manager';
 
 export type CanvasRuntimeObject = FabricObject & {
-  [key: string]: unknown;
+  //[key: string]: unknown;
+
+  myType?: string;
+  type?: string;
+  text?: string;
+
+  width?: number;
+  height?: number;
+  left?: number;
+  top?: number;
+  angle?: number;
+
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
+
+  scaleX?: number;
+  scaleY?: number;
+  visible?: boolean;
+  baseWidth?: number;
+  baseHeight?: number;
+
+  radius?: number;
+  fill?: string;
+  stroke?: string;
+
+  getObjects?: () => CanvasRuntimeObject[];
+
   houseViewType?: string;
   houseView?: string;
-  myType?: string;
   houseInstanceId?: string;
   isHouseBorderEdge?: boolean;
   edgeSide?: HouseSide;
-  dirty?: boolean;
+
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;
   isPilotiHitArea?: boolean;
@@ -17,24 +44,15 @@ export type CanvasRuntimeObject = FabricObject & {
   pilotiHeight?: number;
   pilotiIsMaster?: boolean;
   pilotiNivel?: number;
+
   isContraventamento?: boolean;
   contraventamentoId?: string;
-  labelFor?: Rect;
-  stroke?: string;
-  fill?: string;
-  text?: string;
-  radius?: number;
-  width?: number;
-  height?: number;
-  scaleX?: number;
-  scaleY?: number;
-  left?: number;
-  top?: number;
-  angle?: number;
+
   group?: Group;
-  subTargets?: CanvasRuntimeObject[];
   target?: FabricObject | null;
   e?: Event;
+
+  dirty?: boolean;
   isContentEditable?: boolean;
 };
 

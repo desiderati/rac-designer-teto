@@ -366,7 +366,7 @@ export function RacEditor() {
 
   const {
     handleObjectApply,
-    resolveWallEditorColor,
+    resolveObjectEditorColor,
   } = useObjectEditorActions({
     canvasRef,
     objectSelection,
@@ -481,16 +481,16 @@ export function RacEditor() {
         onContraventamentoSideAction={handleContraventamentoFromPilotiSide}
 
         onObjectApply={handleObjectApply}
-        objectSelection={objectSelection}
-        objectEditorColor={resolveWallEditorColor()}
-        isObjectEditorOpen={isObjectEditorOpen}
         onObjectEditorClose={closeObjectEditor}
+        objectSelection={objectSelection}
+        objectEditorColor={resolveObjectEditorColor()}
+        isObjectEditorOpen={isObjectEditorOpen}
 
+        onLineArrowDistanceApply={onLineArrowDistanceApply}
+        onLineArrowDistanceEditorClose={closeLineArrowDistanceEditor}
         lineArrowDistanceSelection={lineArrowDistanceSelection}
         lineArrowDistanceEditorType={lineArrowDistanceSelection?.myType}
         isLineArrowDistanceEditorOpen={isLineArrowDistanceEditorOpen}
-        onLineArrowDistanceEditorClose={closeLineArrowDistanceEditor}
-        onLineArrowDistanceApply={onLineArrowDistanceApply}
 
         pendingViewType={pendingViewType}
         sideSelectorOpen={sideSelectorOpen}

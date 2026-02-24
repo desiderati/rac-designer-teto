@@ -1,14 +1,6 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
-import {
-  Canvas as FabricCanvas,
-  FabricObject,
-  Group,
-  Rect,
-} from 'fabric';
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-} from '@/lib/canvas-utils';
+import {Canvas as FabricCanvas, FabricObject, Group,} from 'fabric';
+import {CANVAS_HEIGHT, CANVAS_WIDTH,} from '@/lib/canvas-utils';
 import {CanvasOverlays} from './CanvasOverlays';
 import {useCanvasClipboard} from './hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from './hooks/useCanvasContainerLifecycle.ts';
@@ -37,8 +29,8 @@ export interface ContraventamentoCanvasSelection {
 }
 
 export interface ObjectCanvasSelection {
-  object: Rect;
-  currentValue: string;
+  object: FabricObject;
+  currentLabel: string;
   screenPosition: { x: number; y: number };
 }
 

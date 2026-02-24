@@ -3,6 +3,7 @@ import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
 import {getHintForObject} from '@/lib/canvas-utils';
 import {findTopViewGroupCandidate} from '@/lib/domain/house-canvas-source-use-cases';
 import {houseManager, type HouseSide, type ViewInstance, type ViewType} from '@/lib/house-manager';
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 type SelectionRuntimeObject = FabricObject & {
   houseViewType?: string;
@@ -20,17 +21,19 @@ type SelectionRuntimeObject = FabricObject & {
 
 interface BindSelectionEventsArgs {
   canvas: FabricCanvas;
-  toRuntimeObject: (object: FabricObject | null | undefined) => SelectionRuntimeObject | null;
   onSelectionChange: (hint: string) => void;
   clearPilotiSelection: () => void;
   isEditorOpen: () => boolean;
   isContraventamentoMode: () => boolean;
 }
 
+function toRuntimeObject(object: FabricObject): CanvasRuntimeObject {
+  return object as CanvasRuntimeObject;
+}
+
 export function useCanvasSelectionEvents() {
   const bindSelectionEvents = useCallback(({
     canvas,
-    toRuntimeObject,
     onSelectionChange,
     clearPilotiSelection,
     isEditorOpen,
@@ -40,12 +43,16 @@ export function useCanvasSelectionEvents() {
       switch (side) {
         case 'top':
           return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
+
         case 'bottom':
           return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
+
         case 'left':
           return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
+
         case 'right':
           return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
+
         default:
           return [];
       }

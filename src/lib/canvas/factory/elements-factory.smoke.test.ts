@@ -61,7 +61,7 @@ describe('elements-factory geometry regression', () => {
   });
 
   it('keeps dimension ticks aligned to line endpoints while resizing', () => {
-    const dimensionGroup = createDistance(canvasMock, {x: 100, y: 100});
+    const dimensionGroup = createDistance(canvasMock);
     const initialWidth = dimensionGroup.width || 0;
     const expectedWidth = initialWidth * 1.5;
     const children = dimensionGroup.getObjects() as Array<(Line | Rect | Triangle) & {myType?: string; text?: string}>;

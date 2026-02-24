@@ -1288,7 +1288,7 @@
 
 - `RacEditor` atualizado:
     - cálculos inline de cor dos `GenericInlineEditor` (dimensão e parede) foram extraídos para helpers nomeados:
-      `resolveDimensionEditorColor` e `resolveWallEditorColor`
+      `resolveDimensionEditorColor` e `resolveObjectEditorColor`
     - tipo do editor de linha/seta foi centralizado em `lineArrowEditorType`, reutilizado em `editorType` e `onApply`
 - Ganho:
     - reduz ruído no JSX e melhora legibilidade sem alterar fluxo de edição
@@ -1693,7 +1693,7 @@
   - `src/components/rac-editor/hooks/useObjectEditorActions.ts`
   - centraliza:
     - `handleObjectApply` para `wall`, `line/arrow` e `dimension`;
-    - resolução de cor inicial dos editores (`resolveDimensionEditorColor`, `resolveWallEditorColor`);
+    - resolução de cor inicial dos editores (`resolveDimensionEditorColor`, `resolveObjectEditorColor`);
     - inferência de tipo para editor de linha/seta (`lineArrowEditorType`).
 - `RacEditor` atualizado:
   - remove bloco inline de apply/cores/tipo dos editores genéricos e delega ao hook;

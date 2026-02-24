@@ -131,13 +131,8 @@ export function useCanvasFabricSetup({
       return (event as CanvasPointerPayload | undefined) ?? {};
     };
 
-    const toRuntimeObject = (object: FabricObject | null | undefined): CanvasRuntimeObject | null => {
-      if (!object) return null;
-      return object as CanvasRuntimeObject;
-    };
-
     const isPilotiVisualTarget = (object: FabricObject | null | undefined): object is CanvasRuntimeObject => {
-      const runtime = toRuntimeObject(object);
+      const runtime = object as CanvasRuntimeObject
       if (!runtime) return false;
       return runtime.isPilotiCircle === true || runtime.isPilotiRect === true;
     };
@@ -165,7 +160,6 @@ export function useCanvasFabricSetup({
 
     const handlePilotiSelection = buildPilotiSelectionHandler({
       canvas,
-      toRuntimeObject,
       isPilotiVisualTarget,
       emitPilotiSelection,
       emitSelectionChange,
@@ -188,7 +182,6 @@ export function useCanvasFabricSetup({
 
     const unbindSelectionEvents = bindSelectionEvents({
       canvas,
-      toRuntimeObject,
       onSelectionChange: emitSelectionChange,
       clearPilotiSelection: () => emitPilotiSelection(null),
       isEditorOpen: () => latestArgsRef.current.isEditorOpenRef.current,
@@ -197,16 +190,12 @@ export function useCanvasFabricSetup({
 
     const unbindContraventamentoEvents = bindContraventamentoEvents({
       canvas,
-      toRuntimeObject,
       getEventPayload,
       handlePilotiSelection,
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
       isSelectingContraventamentoDestination: () => latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
-      },
-      onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => {
-        latestArgsRef.current.onContraventamentoPilotiClickRef.current?.(pilotiId, col, row, group);
       },
       onContraventamentoSelect: (selection: {group: Group; contraventamentoId: string} | null) => {
         latestArgsRef.current.onContraventamentoSelectRef.current?.(selection);
@@ -234,7 +223,6 @@ export function useCanvasFabricSetup({
 
     const unbindInlineEditorEvents = bindInlineEditorEvents({
       canvas,
-      toRuntimeObject,
       getEventPayload,
       handlePilotiSelection,
       onObjectSelect: (selection) => emitObjectSelection(selection),

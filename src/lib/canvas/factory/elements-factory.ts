@@ -1,45 +1,6 @@
-import {
-  Canvas as FabricCanvas,
-  Circle,
-  FabricObject,
-  Group,
-  IText,
-  Line,
-  Pattern,
-  Polygon,
-  Rect,
-  Text,
-  Triangle,
-} from "fabric";
+import {Canvas as FabricCanvas, Circle, Group, IText, Line, Pattern, Polygon, Rect, Text, Triangle,} from "fabric";
 import {MASTER_PILOTI_FILL, MASTER_PILOTI_STROKE, MASTER_SHARED_STROKE_WIDTH,} from "../constants.ts";
-
-export type CanvasRuntimeObject = FabricObject & {
-  myType?: string;
-  type?: string;
-  text?: string;
-
-  width?: number;
-  height?: number;
-  left?: number;
-  top?: number;
-  angle?: number;
-
-  x1?: number;
-  y1?: number;
-  x2?: number;
-  y2?: number;
-
-  scaleX?: number;
-  scaleY?: number;
-  visible?: boolean;
-  baseWidth?: number;
-  baseHeight?: number;
-
-  fill?: string;
-  stroke?: string;
-
-  getObjects?: () => CanvasRuntimeObject[];
-};
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 export const LINE_ARROW_LABEL_TOP = -20;
 
@@ -66,7 +27,7 @@ export function normalizeLineGroupToLength(
         scaleY: 1,
       });
     } else if (child.myType === "objLabel") {
-      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1, visible: true});
+      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1});
     }
   });
 
@@ -141,7 +102,7 @@ export function normalizeArrowGroupToLength(
         scaleY: 1,
       });
     } else if (child.myType === "objLabel") {
-      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1, visible: true});
+      child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1});
     }
   });
 
@@ -177,7 +138,6 @@ export function normalizeDistanceGroupToLength(
     const child = childObject as CanvasRuntimeObject;
     if (child.myType === "distanceMainLine") {
       child.set({x1: -newWidth / 2, y1: 0, x2: newWidth / 2, y2: 0, scaleX: 1, scaleY: 1});
-
     } else if (child.myType === "distanceTickStart") {
       child.set({
         x1: 0,
@@ -189,7 +149,6 @@ export function normalizeDistanceGroupToLength(
         scaleX: 1,
         scaleY: 1,
       });
-
     } else if (child.myType === "distanceTickEnd") {
       child.set({
         x1: 0,
@@ -201,7 +160,6 @@ export function normalizeDistanceGroupToLength(
         scaleX: 1,
         scaleY: 1,
       });
-
     } else if (child.myType === "objLabel") {
       child.set({left: 0, top: labelTop, scaleX: 1, scaleY: 1});
     }
@@ -228,10 +186,66 @@ export function bindDistanceGroupScaling(group: Group, labelTop: number = LINE_A
   });
 }
 
+export function normalizeWallGroupToLength(
+  group: Group,
+  newWidth: number,
+  newHeight: number
+): void {
+
+  const body = group.getObjects().find((o: any) => o.myType === "wallBody") as Rect | undefined;
+  const oldWidth = body?.width || newWidth;
+  const oldHeight = body?.height || newHeight;
+  const factor = Math.min(newWidth / oldWidth, newHeight / oldHeight);
+
+  group.getObjects().forEach((childObject) => {
+    const child = childObject as CanvasRuntimeObject;
+    if (child.myType === "wallBody") {
+      child.set({
+        width: newWidth,
+        height: newHeight,
+        left: 0,
+        top: 0,
+        scaleX: 1,
+        scaleY: 1,
+      });
+    } else if (child.myType === "wallLabel") {
+      const label = child as IText;
+      label.set({
+        left: 0,
+        top: 0,
+        scaleX: 1,
+        scaleY: 1,
+        fontSize: Math.max(8, (label.fontSize || 14) * factor),
+      });
+    }
+  });
+
+  group.set({width: newWidth, height: newHeight, scaleX: 1, scaleY: 1});
+}
+
+export function normalizeWallGroupScaling(group: Group): void {
+  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
+  if (runtimeGroup.__normalizingScale) return;
+  runtimeGroup.__normalizingScale = true;
+
+  try {
+    normalizeWallGroupToLength(group, group.width! * group.scaleX!, group.height! * group.scaleY!);
+  } finally {
+    runtimeGroup.__normalizingScale = false;
+  }
+}
+
+export function bindWallGroupScaling(group: Group): void {
+  group.on("scaling", function (this: Group) {
+    normalizeWallGroupScaling(this);
+  });
+}
+
 export function createLine(canvas: FabricCanvas): Group {
   const lineColor = "#000000";
   const objLabel = "";
   const w = 200;
+
   const line = new Line([-w / 2, 0, w / 2, 0], {
     stroke: lineColor,
     strokeWidth: 2,
@@ -321,7 +335,7 @@ export function createArrow(canvas: FabricCanvas): Group {
   return group;
 }
 
-export function createDistance(canvas: FabricCanvas, position?: { x: number; y: number }): Group {
+export function createDistance(canvas: FabricCanvas): Group {
   const distanceColor = "#000000";
   const objLabel = "";
   const w = 200;
@@ -369,13 +383,9 @@ export function createDistance(canvas: FabricCanvas, position?: { x: number; y: 
   setCanvasRuntimeObjectMyType(textLabel, "objLabel");
   textLabel.set({left: 0, top: LINE_ARROW_LABEL_TOP});
 
-  // Use provided position or default to canvas center.
-  const posX = position?.x ?? canvas.width! / 2;
-  const posY = position?.y ?? canvas.height! / 2;
-
   const group = new Group([line, tick1, tick2, textLabel], {
-    left: posX,
-    top: posY,
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
     originX: "center",
     originY: "center",
     subTargetCheck: true,
@@ -384,6 +394,50 @@ export function createDistance(canvas: FabricCanvas, position?: { x: number; y: 
   setCanvasRuntimeObjectMyType(group, "distance");
   group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
   bindDistanceGroupScaling(group, LINE_ARROW_LABEL_TOP);
+  return group;
+}
+
+export function createWall(canvas: FabricCanvas): Group {
+  const wallColor = "rgba(128, 128, 128, 0.3)";
+  const wallBorderColor = "#666666";
+  const wallLabel = "";
+  const w = 200;
+  const h = 50;
+
+  const wall = new Rect({
+    width: w,
+    height: h,
+    fill: wallColor,
+    stroke: wallBorderColor,
+    strokeWidth: 2,
+    strokeDashArray: [10, 5],
+    originX: "center",
+    originY: "center",
+    lockScalingFlip: true,
+  });
+  setCanvasRuntimeObjectMyType(wall, "wallBody");
+
+  const textLabel = new IText(wallLabel, {
+    fontSize: 14,
+    fontFamily: 'Arial',
+    fill: wallBorderColor,
+    originX: 'center',
+    originY: 'center',
+    textAlign: 'center',
+    selectable: false,
+    evented: false,
+  });
+  setCanvasRuntimeObjectMyType(textLabel, "wallLabel");
+  textLabel.set({left: 0, top: 0});
+
+  const group = new Group([wall, textLabel], {
+    left: canvas.width! / 2,
+    top: canvas.height! / 2,
+    originX: "center",
+    originY: "center",
+  });
+  setCanvasRuntimeObjectMyType(group, "wall");
+  bindWallGroupScaling(group);
   return group;
 }
 
@@ -462,34 +516,6 @@ export function createStairsPatternSource(s = 1): HTMLCanvasElement {
   ctx.lineTo(stepSpacing, 0);
   ctx.stroke();
   return patternCanvas;
-}
-
-export function createWall(canvas: FabricCanvas): Rect {
-  const wall = new Rect({
-    left: canvas.width! / 2,
-    top: canvas.height! / 2,
-    width: 200,
-    height: 50,
-    fill: "rgba(128, 128, 128, 0.3)",
-    stroke: "#666666",
-    strokeWidth: 2,
-    strokeDashArray: [10, 5],
-    originX: "center",
-    originY: "center",
-    lockScalingFlip: true,
-  });
-  setCanvasRuntimeObjectMyType(wall, "wall");
-
-  wall.on("scaling", function (this: Rect) {
-    this.set({
-      width: this.width! * this.scaleX!,
-      height: this.height! * this.scaleY!,
-      scaleX: 1,
-      scaleY: 1,
-    });
-  });
-
-  return wall;
 }
 
 export function createDoor(canvas: FabricCanvas): Group {

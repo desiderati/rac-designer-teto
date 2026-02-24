@@ -1,6 +1,7 @@
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {formatPilotiHeight, getPilotiFromGroup} from '@/lib/canvas-utils';
 import {applyPilotiSelectionVisuals} from '@/lib/canvas/piloti-visual-feedback';
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 interface PilotiRuntimeObject extends FabricObject {
   houseView?: string;
@@ -25,7 +26,6 @@ interface PilotiSelectionPayload {
 
 interface BuildPilotiSelectionHandlerArgs {
   canvas: FabricCanvas;
-  toRuntimeObject: (object: FabricObject | null | undefined) => PilotiRuntimeObject | null;
   isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is PilotiRuntimeObject;
   emitPilotiSelection: (selection: PilotiSelectionPayload | null) => void;
   emitSelectionChange: (hint: string) => void;
@@ -47,7 +47,6 @@ function normalizeHouseView(value: string | undefined): PilotiSelectionPayload['
 
 export function buildPilotiSelectionHandler({
   canvas,
-  toRuntimeObject,
   isPilotiVisualTarget,
   emitPilotiSelection,
   emitSelectionChange,
@@ -61,7 +60,7 @@ export function buildPilotiSelectionHandler({
 }: BuildPilotiSelectionHandlerArgs) {
   return (subTarget: FabricObject, target: FabricObject) => {
     const group = target as Group;
-    const runtimeSubTarget = toRuntimeObject(subTarget);
+    const runtimeSubTarget = subTarget as CanvasRuntimeObject
     const pilotiId = typeof runtimeSubTarget?.pilotiId === 'string' ? runtimeSubTarget.pilotiId : '';
     if (!pilotiId) return;
 
@@ -89,7 +88,7 @@ export function buildPilotiSelectionHandler({
 
     clearContraventamentoSelection();
 
-    const groupRuntime = toRuntimeObject(group);
+    const groupRuntime = group as CanvasRuntimeObject;
     if (
       isContraventamentoMode() &&
       groupRuntime?.houseView === 'top' &&

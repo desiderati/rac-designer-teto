@@ -1,4 +1,4 @@
-import {CanvasRuntimeObject} from "@/lib/canvas/factory/elements-factory.ts";
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 export interface LineArrowDistanceEditorState {
   currentColor: string;

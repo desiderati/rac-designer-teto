@@ -1,6 +1,8 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group, Rect, util as fabricUtil,} from 'fabric';
-import {readLineArrowDistanceEditorState} from '@/components/rac-editor/modals/editors/generic/helpers/line-arrow-distance-editor-state.ts';
+import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil,} from 'fabric';
+import {
+  readLineArrowDistanceEditorState
+} from '@/components/rac-editor/modals/editors/generic/helpers/line-arrow-distance-editor-state.ts';
 import type {
   CanvasPointerPayload,
   CanvasRuntimeObject,
@@ -10,11 +12,9 @@ import {
   LineArrowDistanceCanvasSelectionType,
   ObjectCanvasSelection
 } from "@/components/rac-editor/Canvas.tsx";
-import {CanvasRuntimeObject} from "@/lib/canvas";
 
 interface BindInlineEditorEventsArgs {
   canvas: FabricCanvas;
-  toRuntimeObject: (object: FabricObject | null | undefined) => CanvasRuntimeObject | null;
   isEditorOpen: () => boolean;
   getEventPayload: (event: unknown) => CanvasPointerPayload;
   getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
@@ -24,10 +24,13 @@ interface BindInlineEditorEventsArgs {
   onSelectionChange: (message: string) => void;
 }
 
+function toRuntimeObject(object: FabricObject): CanvasRuntimeObject {
+  return object as CanvasRuntimeObject;
+}
+
 export function useCanvasInlineEditorEvents() {
   const bindInlineEditorEvents = useCallback(({
     canvas,
-    toRuntimeObject,
     isEditorOpen,
     getEventPayload,
     getCurrentScreenPoint,
@@ -37,78 +40,20 @@ export function useCanvasInlineEditorEvents() {
     onSelectionChange,
   }: BindInlineEditorEventsArgs) => {
 
-    const getWallParentGroup = (wall: Rect): Group | null => {
-      const runtimeWall = toRuntimeObject(wall);
-      const runtimeGroup = runtimeWall?.group as Group | undefined;
-      const internalGroup = (wall as unknown as { _group?: Group })._group;
-      return runtimeGroup || internalGroup || null;
-    };
+    const handleObjectSelection = (
+      wall: FabricObject,
+    ) => {
 
-    const resolveWallSelectionTarget = (target: FabricObject) => {
-      const runtimeTarget = toRuntimeObject(target);
-
-      if (target.type === 'rect' && runtimeTarget?.myType === 'wall') {
-        const wall = target as Rect;
-        const parentGroup = getWallParentGroup(wall);
-        const groupedLabel = parentGroup
-          ?.getObjects()
-          .find((object) => toRuntimeObject(object)?.myType === 'wallLabel');
-        const groupedLabelRuntime = toRuntimeObject(groupedLabel);
-
-        const fallbackLabel = canvas.getObjects().find((object) => {
-          const runtimeObject = toRuntimeObject(object);
-          return runtimeObject?.myType === 'wallLabel' && runtimeObject.labelFor === wall;
-        });
-        const fallbackLabelRuntime = toRuntimeObject(fallbackLabel);
-
-        const currentValue =
-          groupedLabelRuntime?.text?.trim() ||
-          fallbackLabelRuntime?.text?.trim() ||
-          '';
-        const center = target.getCenterPoint();
-
-        return {
-          wall,
-          currentValue,
-          anchorPoint: {x: center.x, y: center.y},
-        };
-      }
-
-      if (target.type === 'group' && runtimeTarget?.myType === 'wall') {
-        const group = target as Group;
-        const wall = group.getObjects().find((object) => {
-          const runtimeObject = toRuntimeObject(object);
-          return object.type === 'rect' && runtimeObject?.myType === 'wall';
-        }) as Rect | undefined;
-        if (!wall) return null;
-
-        const label = group
-          .getObjects()
-          .find((object) => toRuntimeObject(object)?.myType === 'wallLabel');
-        const runtimeLabel = toRuntimeObject(label);
-        const center = group.getCenterPoint();
-
-        return {
-          wall,
-          currentValue: runtimeLabel?.text?.trim() || '',
-          anchorPoint: {x: center.x, y: center.y},
-        };
-      }
-
-      return null;
-    };
-
-    const handleObjectSelection = (selection: {
-      wall: Rect;
-      currentValue: string;
-      anchorPoint: { x: number; y: number };
-    }) => {
-      const screenPoint = getCurrentScreenPoint(selection.anchorPoint);
+      const center = wall.getCenterPoint();
+      const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
 
+      const wallLabel = (wall as CanvasRuntimeObject).getObjects()
+        .find((child) => child.myType === 'wallLabel');
+
       onObjectSelect({
-        object: selection.wall,
-        currentValue: selection.currentValue,
+        object: wall,
+        currentLabel: wallLabel?.text?.trim() || '',
         screenPosition: screenPoint,
       });
       onSelectionChange('Editando nome do objeto.');
@@ -134,16 +79,15 @@ export function useCanvasInlineEditorEvents() {
     };
 
     const handleDesktopDoubleClick = (event: unknown) => {
-      if (window.matchMedia('(max-width: 767px)').matches) return;
-
+      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      if (!target) return;
-      const targetRuntime = toRuntimeObject(target);
+      if (isMobileDevice && !target) return;
+      if (isEditorOpen()) return;
 
-      const wallSelection = resolveWallSelectionTarget(target);
-      if (wallSelection) {
-        handleObjectSelection(wallSelection);
+      const targetRuntime = toRuntimeObject(target);
+      if (targetRuntime?.myType === 'wall') {
+        handleObjectSelection(target);
         return;
       }
 
@@ -214,11 +158,10 @@ export function useCanvasInlineEditorEvents() {
       if (isEditorOpen()) return;
 
       const runtimeTarget = toRuntimeObject(target);
-      const wallSelection = resolveWallSelectionTarget(target);
-      if (wallSelection) {
+      if (runtimeTarget?.myType === 'wall') {
         setTimeout(() => {
           if (canvas.getActiveObject() === target) {
-            handleObjectSelection(wallSelection);
+            handleObjectSelection(target);
           }
         }, 300);
         return;

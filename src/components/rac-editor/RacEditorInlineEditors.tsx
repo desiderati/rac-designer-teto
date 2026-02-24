@@ -117,7 +117,7 @@ export function RacEditorInlineEditors({
 
       <GenericInlineEditor
         editorType="wall"
-        currentValue={objectSelection?.currentValue ?? ''}
+        currentValue={objectSelection?.currentLabel ?? ''}
         currentColor={objectEditorColor ?? '#000000'}
         isOpen={isObjectEditorOpen}
         isMobile={isMobile}

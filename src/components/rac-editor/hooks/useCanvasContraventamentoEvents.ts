@@ -5,6 +5,7 @@ import {
   Group,
   util as fabricUtil,
 } from 'fabric';
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 type ContraventamentoRuntimeObject = FabricObject & {
   houseView?: string;
@@ -30,29 +31,29 @@ interface CanvasPointerPayload {
 
 interface BindContraventamentoEventsArgs {
   canvas: FabricCanvas;
-  toRuntimeObject: (object: FabricObject | null | undefined) => ContraventamentoRuntimeObject | null;
   getEventPayload: (event: unknown) => CanvasPointerPayload;
   handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
   isContraventamentoMode: () => boolean;
   isSelectingContraventamentoDestination: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
-  onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => void;
   onContraventamentoSelect: (selection: { group: Group; contraventamentoId: string } | null) => void;
   onContraventamentoCancel: () => void;
   onSelectionChange: (message: string) => void;
   isEditorOpen: () => boolean;
 }
 
+function toRuntimeObject(object: FabricObject): CanvasRuntimeObject {
+  return object as CanvasRuntimeObject;
+}
+
 export function useCanvasContraventamentoEvents() {
   const bindContraventamentoEvents = useCallback(({
     canvas,
-    toRuntimeObject,
     getEventPayload,
     handlePilotiSelection,
     isContraventamentoMode,
     isSelectingContraventamentoDestination,
     isPilotiEligibleForContraventamento,
-    onContraventamentoPilotiClick,
     onContraventamentoSelect,
     onContraventamentoCancel,
     onSelectionChange,

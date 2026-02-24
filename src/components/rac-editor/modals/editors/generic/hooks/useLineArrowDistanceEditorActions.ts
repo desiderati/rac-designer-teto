@@ -1,7 +1,8 @@
 import {RefObject, useCallback} from 'react';
-import {FabricObject, Group, IText} from 'fabric';
+import {Canvas as FabricCanvas, FabricObject, Group, IText} from 'fabric';
 import type {CanvasHandle, LineArrowDistanceCanvasSelection} from '@/components/rac-editor/Canvas.tsx';
-import {CanvasRuntimeObject, LINE_ARROW_LABEL_TOP} from '@/lib/canvas';
+import {LINE_ARROW_LABEL_TOP} from '@/lib/canvas';
+import {CanvasRuntimeObject} from "@/components/rac-editor/hooks/canvas-fabric-runtime-types.ts";
 
 interface useLineArrowDistanceEditorActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -18,10 +19,12 @@ export function useLineArrowDistanceEditorActions({
   const handleLineArrowDistanceApply =
     useCallback((newValue: string, newColor: string) => {
       const canvas = canvasRef.current?.canvas;
-      if (!canvas) return;
+      const object = lineArrowDistanceSelection?.object;
+      if (!canvas || !object) return;
 
       applyLineArrowDistanceEditorChange({
-        object: lineArrowDistanceSelection.object,
+        canvas,
+        object: object,
         color: newColor,
         label: newValue,
       });
@@ -36,11 +39,13 @@ export function useLineArrowDistanceEditorActions({
 }
 
 function applyLineArrowDistanceEditorChange(params: {
+  canvas: FabricCanvas;
   object: FabricObject;
   color: string;
   label: string;
 }): void {
-  const {object, color, label} = params;
+
+  const {canvas, object, color, label} = params;
   const group = object as Group;
   const groupChildren =
     group.getObjects().map(
@@ -68,6 +73,8 @@ function applyLineArrowDistanceEditorChange(params: {
       scaleY: 1,
     });
   }
+
+  canvas.requestRenderAll();
 }
 
 const getInfoMessage = (myType: string): string => {
