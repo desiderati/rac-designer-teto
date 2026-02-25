@@ -1,5 +1,4 @@
-import type {HouseSide} from "./house-view-layout-use-cases.ts";
-import {HousePiloti, HouseViewType} from "@/shared/types/house.ts";
+import {HousePiloti, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 
 export function createDefaultPilotis(params: {
   pilotiIds: string[];

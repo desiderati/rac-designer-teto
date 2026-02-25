@@ -5,7 +5,7 @@ import {
   Group,
   util as fabricUtil,
 } from 'fabric';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 type ContraventamentoRuntimeObject = FabricObject & {
   houseView?: string;

@@ -1,6 +1,6 @@
-import {Dispatch, SetStateAction, useEffect, useState} from "react";
-import {getTutorialStepIds, TutorialStepId} from "@/components/rac-editor/tutorial/Tutorial.tsx";
-import {isTutorialCompleted, markTutorialCompleted, resetTutorialProgress} from "@/infra/storage/tutorial.storage.ts";
+import {Dispatch, SetStateAction, useEffect, useState} from 'react';
+import {getTutorialStepIds, TutorialStepId} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {isTutorialCompleted, markTutorialCompleted, resetTutorialProgress} from '@/infra/storage/tutorial.storage.ts';
 
 interface UseTutorialFlowResult {
   tutorialStep: TutorialStepId | null;
@@ -18,7 +18,7 @@ export function useTutorialFlow(onComplete?: () => void): UseTutorialFlowResult 
 
   useEffect(() => {
     if (!isTutorialCompleted()) {
-      setTutorialStep("main-fab");
+      setTutorialStep('main-fab');
     }
   }, []);
 
@@ -42,7 +42,7 @@ export function useTutorialFlow(onComplete?: () => void): UseTutorialFlowResult 
 
   const restartTutorialProgress = () => {
     resetTutorialProgress();
-    setTutorialStep("main-fab");
+    setTutorialStep('main-fab');
     setTutorialHouseSelectorPreview(false);
   };
 

@@ -1,16 +1,16 @@
-import {describe, expect, it} from "vitest";
-import {createInitialHouseState} from "./house-state-factory-use-cases.ts";
+import {describe, expect, it} from 'vitest';
+import {createInitialHouseState} from './house-state-factory-use-cases.ts';
 
-describe("house-state-factory use cases", () => {
-  it("creates the initial house state snapshot with empty collections", () => {
+describe('house-state-factory use cases', () => {
+  it('creates the initial house state snapshot with empty collections', () => {
     const state = createInitialHouseState<unknown>({
-      id: "house_1",
-      pilotiIds: ["piloti_0_0", "piloti_0_1"],
+      id: 'house_1',
+      pilotiIds: ['piloti_0_0', 'piloti_0_1'],
       defaultPiloti: {height: 1, isMaster: false, nivel: 0.2},
     });
 
     expect(state).toMatchObject({
-      id: "house_1",
+      id: 'house_1',
       houseType: null,
       preAssignedSides: {},
       sideAssignments: {top: null, bottom: null, left: null, right: null},
@@ -22,7 +22,7 @@ describe("house-state-factory use cases", () => {
       side1: [],
       side2: [],
     });
-    expect(Object.keys(state.pilotis)).toEqual(["piloti_0_0", "piloti_0_1"]);
+    expect(Object.keys(state.pilotis)).toEqual(['piloti_0_0', 'piloti_0_1']);
     expect(state.elements).toEqual([]);
   });
 });

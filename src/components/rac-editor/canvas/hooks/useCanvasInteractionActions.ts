@@ -1,6 +1,6 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 import {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 
 interface UseCanvasInteractionActionsArgs {

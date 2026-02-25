@@ -1,6 +1,6 @@
-import {Dispatch, SetStateAction, useState} from "react";
-import {getSettings} from "@/infra/settings.ts";
-import {ToolbarSubmenu} from "@/components/rac-editor/toolbar/helpers/toolbar-types.ts";
+import {Dispatch, SetStateAction, useState} from 'react';
+import {getSettings} from '@/infra/settings.ts';
+import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 
 interface UseRacEditorModalStateResult {
   activeSubmenu: ToolbarSubmenu;

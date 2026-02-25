@@ -52,7 +52,7 @@ export function FABButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={tooltipSide} className="bg-[#333] text-white">
+      <TooltipContent side={tooltipSide} className='bg-[#333] text-white'>
         {title}
       </TooltipContent>
     </Tooltip>
@@ -110,7 +110,7 @@ export function SubMenuButton({
       <TooltipContent
         side={tooltipSide}
         align={tooltipSide === 'left' ? 'center' : 'start'}
-        className="bg-[#333] text-white"
+        className='bg-[#333] text-white'
       >
         {title}
       </TooltipContent>

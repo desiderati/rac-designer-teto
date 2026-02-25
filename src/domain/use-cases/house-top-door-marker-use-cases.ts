@@ -1,18 +1,18 @@
-import type {HouseSide} from "./house-view-layout-use-cases.ts";
 import {
   HouseElementFace,
+  HouseSide,
   HouseTypeExcludeNull,
   HouseViewType,
-} from "@/shared/types/house.ts";
-import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from "@/shared/types/house-door.ts";
+} from '@/shared/types/house.ts';
+import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 
 export function resolveTopDoorSourceViewType(params: {
   houseType: HouseTypeExcludeNull | null;
   doorFace: HouseElementFace;
 }): HouseViewType {
-  if (params.doorFace === "front") return "front";
-  if (params.doorFace === "back") return "back";
-  return params.houseType === "tipo3" ? "side2" : "side1";
+  if (params.doorFace === 'front') return 'front';
+  if (params.doorFace === 'back') return 'back';
+  return params.houseType === 'tipo3' ? 'side2' : 'side1';
 }
 
 export function resolveTopDoorMarkerSide(params: {
@@ -46,34 +46,34 @@ export function calculateTopDoorPlacement(params: {
   }
 
   const axisLength =
-    params.markerSide === "top" || params.markerSide === "bottom" ? params.bodyWidth : params.bodyHeight;
+    params.markerSide === 'top' || params.markerSide === 'bottom' ? params.bodyWidth : params.bodyHeight;
   const rawDoorCenter = params.doorX + params.doorWidth / 2;
   const doorCenter = Math.max(0, Math.min(axisLength, rawDoorCenter));
 
-  if (params.markerSide === "top") {
+  if (params.markerSide === 'top') {
     return {
-      markerSide: "top",
+      markerSide: 'top',
       targetLeft: params.bodyWidth / 2 - doorCenter,
       targetTop: -params.bodyHeight / 2,
     };
   }
-  if (params.markerSide === "bottom") {
+  if (params.markerSide === 'bottom') {
     return {
-      markerSide: "bottom",
+      markerSide: 'bottom',
       targetLeft: -params.bodyWidth / 2 + doorCenter,
       targetTop: params.bodyHeight / 2,
     };
   }
-  if (params.markerSide === "left") {
+  if (params.markerSide === 'left') {
     return {
-      markerSide: "left",
+      markerSide: 'left',
       targetLeft: -params.bodyWidth / 2,
       targetTop: -params.bodyHeight / 2 + doorCenter,
     };
   }
 
   return {
-    markerSide: "right",
+    markerSide: 'right',
     targetLeft: params.bodyWidth / 2,
     targetTop: params.bodyHeight / 2 - doorCenter,
   };

@@ -3,8 +3,8 @@ import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/Piloti
 import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generic/GenericObjectEditor.tsx';
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
-import {LinearEditorType} from "@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts";
-import {ContraventamentoEditorState, ContraventamentoSide} from "@/shared/types/contraventamento.ts";
+import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
+import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;
@@ -110,7 +110,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
-        editorType="wall"
+        editorType='wall'
         currentValue={wallSelection?.currentLabel ?? ''}
         currentColor={wallEditorColor ?? '#000000'}
         isOpen={isWallEditorOpen}

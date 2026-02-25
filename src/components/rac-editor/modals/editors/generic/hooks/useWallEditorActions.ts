@@ -1,7 +1,7 @@
 import {RefObject, useCallback} from 'react';
 import type {CanvasHandle, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {Group} from 'fabric';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 import {
   getGenericObjectEditorStrategy
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';

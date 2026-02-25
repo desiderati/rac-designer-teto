@@ -1,8 +1,8 @@
-import {describe, expect, it} from "vitest";
-import {projectGroupLocalPointToScreen} from "./piloti-screen-position.ts";
+import {describe, expect, it} from 'vitest';
+import {projectGroupLocalPointToScreen} from './piloti-screen-position.ts';
 
-describe("piloti-screen-position utils", () => {
-  it("projects local point with explicit viewport transform", () => {
+describe('piloti-screen-position utils', () => {
+  it('projects local point with explicit viewport transform', () => {
     expect(
       projectGroupLocalPointToScreen({
         groupMatrix: [2, 0, 0, 3, 100, 50],
@@ -16,7 +16,7 @@ describe("piloti-screen-position utils", () => {
     });
   });
 
-  it("uses identity viewport when transform is omitted", () => {
+  it('uses identity viewport when transform is omitted', () => {
     expect(
       projectGroupLocalPointToScreen({
         groupMatrix: [1, 0, 0, 1, 200, 120],

@@ -1,7 +1,7 @@
-import {RefObject, useRef} from "react";
-import {Canvas as FabricCanvas} from "fabric";
-import {houseManager} from "@/components/lib/house-manager.ts";
-import {refreshHouseGroupsOnCanvas} from "@/components/lib/canvas";
+import {RefObject, useRef} from 'react';
+import {Canvas as FabricCanvas} from 'fabric';
+import {houseManager} from '@/components/lib/house-manager.ts';
+import {refreshHouseGroupsOnCanvas} from '@/components/lib/canvas';
 
 interface UseCanvasHistoryArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -47,7 +47,7 @@ export function useCanvasHistory({
         fabricCanvasRef.current?.renderAll();
         updateMinimapObjects();
         historyProcessingRef.current = false;
-        onSelectionChange("Desfazer realizado.");
+        onSelectionChange('Desfazer realizado.');
       });
     }
   };

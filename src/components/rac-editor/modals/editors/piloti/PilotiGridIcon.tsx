@@ -1,5 +1,5 @@
 import {cn} from '@/components/lib/utils.ts';
-import {MASTER_PILOTI_FILL} from "@/components/lib/canvas";
+import {MASTER_PILOTI_FILL} from '@/components/lib/canvas';
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;
@@ -46,7 +46,7 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
           cy={cy}
           r={9}
           fill={getColor(row, col)}
-          filter="url(#pilotiShadow)"
+          filter='url(#pilotiShadow)'
         />
       );
     }
@@ -54,13 +54,13 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
 
   return (
     <svg
-      viewBox="0 0 100 76"
+      viewBox='0 0 100 76'
       className={cn('w-20 h-14', className)}
-      aria-hidden="true"
+      aria-hidden='true'
     >
       <defs>
-        <filter id="pilotiShadow" x="-20%" y="-20%" width="140%" height="160%">
-          <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" floodColor="#000" floodOpacity="0.18"/>
+        <filter id='pilotiShadow' x='-20%' y='-20%' width='140%' height='160%'>
+          <feDropShadow dx='0' dy='1.5' stdDeviation='1.5' floodColor='#000' floodOpacity='0.18'/>
         </filter>
       </defs>
       {circles}

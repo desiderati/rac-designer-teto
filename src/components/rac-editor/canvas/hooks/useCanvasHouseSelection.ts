@@ -1,6 +1,6 @@
-import {RefObject, useEffect, useRef} from "react";
-import {Canvas as FabricCanvas} from "fabric";
-import {MASTER_PILOTI_STROKE_COLOR, PILOTI_STROKE_COLOR} from "@/components/lib/canvas";
+import {RefObject, useEffect, useRef} from 'react';
+import {Canvas as FabricCanvas} from 'fabric';
+import {MASTER_PILOTI_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/components/lib/canvas';
 
 interface UseCanvasHouseSelectionArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -24,7 +24,7 @@ export function useCanvasHouseSelection({
     if (wasOpen && !isAnyEditorOpen && fabricCanvasRef.current) {
       const canvas = fabricCanvasRef.current;
       canvas.getObjects().forEach((item: any) => {
-        if (item.myType === "house") {
+        if (item.myType === 'house') {
           item.getObjects().forEach((child: any) => {
             if (child.isPilotiCircle) {
               if (child.pilotiIsMaster) {

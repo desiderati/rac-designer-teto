@@ -1,18 +1,18 @@
-import {describe, expect, it} from "vitest";
-import {parseContraventamentosFromTopGroup} from "@/components/lib/3d/contraventamento-parser.ts";
+import {describe, expect, it} from 'vitest';
+import {parseContraventamentosFromTopGroup} from '@/components/lib/3d/contraventamento-parser.ts';
 
-describe("parseContraventamentosFromTopGroup", () => {
-  it("parses and normalizes valid contraventamento objects", () => {
+describe('parseContraventamentosFromTopGroup', () => {
+  it('parses and normalizes valid contraventamento objects', () => {
     const topGroup = {
       getObjects: () => [
         {
           isContraventamento: true,
-          contraventamentoId: "c-1",
+          contraventamentoId: 'c-1',
           contraventamentoCol: 2,
           contraventamentoStartRow: 2,
           contraventamentoEndRow: 0,
-          contraventamentoSide: "left",
-          contraventamentoAnchorPilotiId: "piloti_2_2",
+          contraventamentoSide: 'left',
+          contraventamentoAnchorPilotiId: 'piloti_2_2',
         },
       ],
     };
@@ -20,17 +20,17 @@ describe("parseContraventamentosFromTopGroup", () => {
     const parsed = parseContraventamentosFromTopGroup(topGroup);
     expect(parsed).toEqual([
       {
-        id: "c-1",
+        id: 'c-1',
         col: 2,
         startRow: 0,
         endRow: 2,
-        side: "left",
-        anchorPilotiId: "piloti_2_2",
+        side: 'left',
+        anchorPilotiId: 'piloti_2_2',
       },
     ]);
   });
 
-  it("ignores invalid objects and applies fallbacks", () => {
+  it('ignores invalid objects and applies fallbacks', () => {
     const topGroup = {
       getObjects: () => [
         {
@@ -50,7 +50,7 @@ describe("parseContraventamentosFromTopGroup", () => {
           contraventamentoCol: 0,
           contraventamentoStartRow: 0,
           contraventamentoEndRow: 2,
-          contraventamentoSide: "unknown",
+          contraventamentoSide: 'unknown',
         },
       ],
     };
@@ -58,12 +58,12 @@ describe("parseContraventamentosFromTopGroup", () => {
     const parsed = parseContraventamentosFromTopGroup(topGroup);
     expect(parsed).toEqual([
       {
-        id: "contrav_3d_2",
+        id: 'contrav_3d_2',
         col: 0,
         startRow: 0,
         endRow: 2,
-        side: "right",
-        anchorPilotiId: "piloti_0_0",
+        side: 'right',
+        anchorPilotiId: 'piloti_0_0',
       },
     ]);
   });

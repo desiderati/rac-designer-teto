@@ -11,8 +11,8 @@ import {
   linearSelection,
   linearSelectionType,
   wallSelection
-} from "@/components/rac-editor/canvas/Canvas.tsx";
-import {readWallObjectState} from "@/components/rac-editor/modals/editors/generic/helpers/wall-object-state.ts";
+} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {readWallObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/wall-object-state.ts';
 
 interface UseCanvasEditorEventsArgs {
   canvas: FabricCanvas;

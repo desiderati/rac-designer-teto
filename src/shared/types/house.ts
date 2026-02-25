@@ -25,25 +25,25 @@ export interface HousePreAssignedSideDisplay {
 }
 
 export const HOUSE_OPPOSITE_SIDE: Record<HouseSide, HouseSide> = {
-  top: "bottom",
-  bottom: "top",
-  left: "right",
-  right: "left",
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
 };
 
 export function getHouseSideLabel(side: HouseSide): string {
   switch (side) {
-    case "top":
-      return "Superior";
+    case 'top':
+      return 'Superior';
 
-    case "bottom":
-      return "Inferior";
+    case 'bottom':
+      return 'Inferior';
 
-    case "left":
-      return "Esquerdo";
+    case 'left':
+      return 'Esquerdo';
 
-    case "right":
-      return "Direito";
+    case 'right':
+      return 'Direito';
   }
 }
 
@@ -67,21 +67,21 @@ export const HOUSE_VIEW_LIMITS: Record<HouseTypeExcludeNull, Record<HouseViewTyp
 };
 
 export const HOUSE_SIDE_VIEW_MAPPING: Record<HouseSide, HouseViewType[]> = {
-  top: ["front", "back"],
-  bottom: ["front", "back"],
-  left: ["side1", "side2"],
-  right: ["side1", "side2"],
+  top: ['front', 'back'],
+  bottom: ['front', 'back'],
+  left: ['side1', 'side2'],
+  right: ['side1', 'side2'],
 };
 
 export const HOUSE_OPPOSITE_VIEW: Record<HouseViewType, HouseViewType | null> = {
   top: null,
-  front: "back",
-  back: "front",
-  side1: "side2",
-  side2: "side1",
+  front: 'back',
+  back: 'front',
+  side1: 'side2',
+  side2: 'side1',
 };
 
-export const ALL_HOUSE_VIEW_TYPES: HouseViewType[] = ["top", "front", "back", "side1", "side2"];
+export const ALL_HOUSE_VIEW_TYPES: HouseViewType[] = ['top', 'front', 'back', 'side1', 'side2'];
 
 export interface HouseViewInstance<TGroup = unknown> {
   instanceId: string;

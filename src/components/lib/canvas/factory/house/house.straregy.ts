@@ -1,6 +1,6 @@
-import {Group} from "fabric";
-import type {ElementStrategy} from "../elements/element.strategy.ts";
-import type {HouseSide, HouseViewType} from "@/shared/types/house.ts";
+import {Group} from 'fabric';
+import type {ElementStrategy} from '../elements/element.strategy.ts';
+import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 
 export type HouseViewStrategyKey = HouseViewType;
 

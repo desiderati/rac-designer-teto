@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, Group, IText, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 export const WALL_DEFAULT_COLOR = '#666666';
 

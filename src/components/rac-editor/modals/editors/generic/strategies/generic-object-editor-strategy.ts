@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, FabricObject, Group, IText} from 'fabric';
 import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
-import {LINEAR_LABEL_TOP} from "@/components/lib/canvas/factory/elements/shared.ts";
-import {WALL_DEFAULT_COLOR} from "@/components/lib/canvas/factory/elements/wall.strategy.ts";
+import {LINEAR_LABEL_TOP} from '@/components/lib/canvas/factory/elements/shared.ts';
+import {WALL_DEFAULT_COLOR} from '@/components/lib/canvas/factory/elements/wall.strategy.ts';
 
 export type GenericObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
@@ -76,7 +76,7 @@ function createLinearStrategy(kind: 'line' | 'arrow' | 'distance'): GenericObjec
     getInfoMessage: () => {
       if (kind === 'line') return 'Linha atualizada.';
       if (kind === 'arrow') return 'Seta atualizada.';
-      if (kind === 'distance') return 'Distância atualizada.';
+      return 'Distância atualizada.';
     },
   };
 }

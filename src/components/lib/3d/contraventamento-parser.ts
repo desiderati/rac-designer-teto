@@ -1,4 +1,4 @@
-import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
+import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
 export interface Contraventamento3DData {
   id: string;
@@ -32,11 +32,11 @@ export function parseContraventamentosFromTopGroup(topGroup: GroupLike | null | 
     const endRow = Math.max(startRowRaw, endRowRaw);
     if (startRow === endRow || startRow < 0 || endRow > 2) return;
 
-    const side = obj.contraventamentoSide === "left" || obj.contraventamentoSide === "right"
+    const side = obj.contraventamentoSide === 'left' || obj.contraventamentoSide === 'right'
       ? obj.contraventamentoSide
-      : "right";
+      : 'right';
 
-    const anchorPilotiId = typeof obj.contraventamentoAnchorPilotiId === "string" && obj.contraventamentoAnchorPilotiId
+    const anchorPilotiId = typeof obj.contraventamentoAnchorPilotiId === 'string' && obj.contraventamentoAnchorPilotiId
       ? obj.contraventamentoAnchorPilotiId
       : `piloti_${col}_${startRow}`;
 

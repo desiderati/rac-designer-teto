@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
@@ -8,20 +8,20 @@ import {
   inferContraventamentoSideFromBeamGeometry,
   isContraventamentoDestinationEligible,
   parsePilotiGridPosition,
-} from "./house-contraventamento-use-cases.ts";
+} from './house-contraventamento-use-cases.ts';
 
-describe("house-contraventamento use cases", () => {
-  it("parses piloti grid position from id", () => {
-    expect(parsePilotiGridPosition("piloti_3_2")).toEqual({col: 3, row: 2});
-    expect(parsePilotiGridPosition("invalid")).toBeNull();
+describe('house-contraventamento use cases', () => {
+  it('parses piloti grid position from id', () => {
+    expect(parsePilotiGridPosition('piloti_3_2')).toEqual({col: 3, row: 2});
+    expect(parsePilotiGridPosition('invalid')).toBeNull();
   });
 
-  it("checks contraventamento eligibility by nivel threshold", () => {
+  it('checks contraventamento eligibility by nivel threshold', () => {
     expect(canCreateContraventamentoForNivel(0.41)).toBe(true);
     expect(canCreateContraventamentoForNivel(0.4)).toBe(false);
   });
 
-  it("infers beam side by geometry relative to column center", () => {
+  it('infers beam side by geometry relative to column center', () => {
     const col = 0;
     const center = getContraventamentoColumnCenterX(col);
 
@@ -31,7 +31,7 @@ describe("house-contraventamento use cases", () => {
         left: center - 20,
         width: 10,
       }),
-    ).toBe("left");
+    ).toBe('left');
 
     expect(
       inferContraventamentoSideFromBeamGeometry({
@@ -39,10 +39,10 @@ describe("house-contraventamento use cases", () => {
         left: center + 2,
         width: 10,
       }),
-    ).toBe("right");
+    ).toBe('right');
   });
 
-  it("validates destination against first piloti, row difference and nivel", () => {
+  it('validates destination against first piloti, row difference and nivel', () => {
     expect(
       isContraventamentoDestinationEligible({
         first: {col: 1, row: 0},
@@ -76,12 +76,12 @@ describe("house-contraventamento use cases", () => {
     ).toBe(false);
   });
 
-  it("returns localized side label", () => {
-    expect(getContraventamentoSideLabel("left")).toBe("esquerdo");
-    expect(getContraventamentoSideLabel("right")).toBe("direito");
+  it('returns localized side label', () => {
+    expect(getContraventamentoSideLabel('left')).toBe('esquerdo');
+    expect(getContraventamentoSideLabel('right')).toBe('direito');
   });
 
-  it("collects occupied sides for a column and resolves missing side", () => {
+  it('collects occupied sides for a column and resolves missing side', () => {
     const unresolved: any = {
       isContraventamento: true,
       contraventamentoCol: 2,
@@ -92,7 +92,7 @@ describe("house-contraventamento use cases", () => {
     const right: any = {
       isContraventamento: true,
       contraventamentoCol: 2,
-      contraventamentoSide: "right",
+      contraventamentoSide: 'right',
       left: 100,
       width: 10,
       scaleX: 1,
@@ -110,10 +110,10 @@ describe("house-contraventamento use cases", () => {
 
     expect(occupied).toEqual({left: true, right: true});
     expect(resolved).toHaveLength(1);
-    expect((unresolved as any).contraventamentoSide).toBe("left");
+    expect((unresolved as any).contraventamentoSide).toBe('left');
   });
 
-  it("creates editor state from eligibility and occupied sides", () => {
+  it('creates editor state from eligibility and occupied sides', () => {
     expect(
       createContraventamentoEditorState({
         canReceiveContraventamento: false,

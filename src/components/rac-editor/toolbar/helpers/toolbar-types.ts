@@ -1,5 +1,5 @@
-import {HouseType} from "@/shared/types/house.ts";
-import {TutorialHighlight} from "@/components/rac-editor/tutorial/Tutorial.tsx";
+import {HouseType} from '@/shared/types/house.ts';
+import {TutorialHighlight} from '@/components/rac-editor/tutorial/Tutorial.tsx';
 
 export interface ToolbarActionMap {
   openHouseTypeSelector: () => void;

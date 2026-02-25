@@ -2,7 +2,7 @@ import type {
   SideAssignmentsRecord,
   ViewInstanceRecord,
   ViewsRecord,
-} from "@/domain/repository/house-views-repository.ts";
+} from '@/domain/repository/house-views-repository.ts';
 
 function cloneViews<TView extends string, TGroup, TSide extends string>(
   views: ViewsRecord<TView, TGroup, TSide>,

@@ -128,7 +128,7 @@ export function Minimap({
   return (
     <div
       ref={minimapRef}
-      data-testid="rac-minimap"
+      data-testid='rac-minimap'
       className={
         `bg-background/90 border border-border rounded shadow-lg cursor-crosshair overflow-hidden touch-none
           ${highlight
@@ -145,7 +145,7 @@ export function Minimap({
       onTouchStart={handleTouchStart}
     >
       <div
-        className="bg-card relative"
+        className='bg-card relative'
         style={{
           width: canvasWidth * scale,
           height: canvasHeight * scale,
@@ -154,7 +154,7 @@ export function Minimap({
         {objects.map((obj, index) => (
           <div
             key={index}
-            className="absolute bg-muted-foreground/40 border border-muted-foreground/60"
+            className='absolute bg-muted-foreground/40 border border-muted-foreground/60'
             style={{
               left: obj.left * scale,
               top: obj.top * scale,
@@ -167,7 +167,7 @@ export function Minimap({
         ))}
 
         <div
-          className="absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75"
+          className='absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75'
           style={{
             width: Math.max(4, viewRectWidth),
             height: Math.max(4, viewRectHeight),

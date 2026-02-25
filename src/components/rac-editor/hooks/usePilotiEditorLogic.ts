@@ -1,5 +1,5 @@
-import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState} from "react";
-import {Group} from "fabric";
+import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState} from 'react';
+import {Group} from 'fabric';
 import {
   clampNivelByHeight,
   CORNER_PILOTI_IDS,
@@ -7,9 +7,9 @@ import {
   getPilotiFromGroup,
   getPilotiIdsFromGroup,
   getPilotiName,
-} from "@/components/lib/canvas";
-import {houseManager} from "@/components/lib/house-manager.ts";
-import {getSettings} from "@/infra/settings.ts";
+} from '@/components/lib/canvas';
+import {houseManager} from '@/components/lib/house-manager.ts';
+import {getSettings} from '@/infra/settings.ts';
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;
@@ -58,7 +58,7 @@ export function usePilotiEditorLogic({
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
-  const pilotiName = pilotiId ? getPilotiName(pilotiId) : "";
+  const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
   const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
 
   const masterPilotiName = useMemo(() => {
@@ -113,21 +113,21 @@ export function usePilotiEditorLogic({
       dragStateRef.current = null;
     };
 
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
     return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
     };
   }, []);
 
-  const handleNavigate = (direction: "prev" | "next") => {
+  const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
 
     const idx = allIds.indexOf(pilotiId);
     if (idx === -1) return;
 
-    const newIndex = direction === "next" ? idx + 1 : idx - 1;
+    const newIndex = direction === 'next' ? idx + 1 : idx - 1;
     const newId = allIds[newIndex];
     if (!newId) return;
 
@@ -188,7 +188,7 @@ export function usePilotiEditorLogic({
     (e: ReactPointerEvent<HTMLElement>) => {
       const target = e.target as HTMLElement;
       const isInteractive =
-        target.closest("button, input, textarea, select, [role=\"switch\"], [role=\"slider\"], a");
+        target.closest('button, input, textarea, select, [role="switch"], [role="slider"], a');
       if (isInteractive) return;
 
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -241,18 +241,18 @@ export function usePilotiEditorLogic({
   const getHeightButtonClasses = (h: number): string => {
     const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
     return isSelected
-      ? "bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3"
-      : "bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20";
+      ? 'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3'
+      : 'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
   };
 
   const getContraventamentoButtonClasses =
     (isActive: boolean, isDisabled: boolean): string => {
       if (isDisabled) {
-        return "h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed";
+        return 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed';
       }
       return isActive
-        ? "h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
-        : "h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20";
+        ? 'h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90'
+        : 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20';
     };
 
   const maxNivel = Math.round((tempHeight / 2) * 100) / 100;

@@ -44,24 +44,24 @@ export function SettingsModal({open, onOpenChange, onSettingsChange}: SettingsMo
   };
 
   const settingsCard =
-    <div className="bg-white rounded-xl p-4 space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <Label htmlFor="auto-navigate" className="text-sm leading-snug cursor-pointer flex-1">
+    <div className='bg-white rounded-xl p-4 space-y-5'>
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='auto-navigate' className='text-sm leading-snug cursor-pointer flex-1'>
           Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
         </Label>
         <Switch
-          id="auto-navigate"
+          id='auto-navigate'
           checked={tempSettings.autoNavigatePiloti}
           onCheckedChange={(v) => handleToggle('autoNavigatePiloti', v)}/>
 
       </div>
 
-      <div className="flex items-start justify-between gap-4">
-        <Label htmlFor="zoom-enabled" className="text-sm leading-snug cursor-pointer flex-1">
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='zoom-enabled' className='text-sm leading-snug cursor-pointer flex-1'>
           Habilitar funcionalidade de Zoom/Minimap por padrão
         </Label>
         <Switch
-          id="zoom-enabled"
+          id='zoom-enabled'
           checked={tempSettings.zoomEnabledByDefault}
           onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}/>
 
@@ -70,10 +70,10 @@ export function SettingsModal({open, onOpenChange, onSettingsChange}: SettingsMo
 
   const actionButtons = (extraClass = '') =>
     <div className={`flex gap-[16px] ${extraClass}`}>
-      <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
+      <Button variant='outline' className='flex-1 bg-white' onClick={handleCancel}>
         Cancelar
       </Button>
-      <Button className="flex-1" onClick={handleConfirm}>
+      <Button className='flex-1' onClick={handleConfirm}>
         Confirmar
       </Button>
     </div>;
@@ -82,9 +82,9 @@ export function SettingsModal({open, onOpenChange, onSettingsChange}: SettingsMo
   if (!isMobile) {
     return (
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm" hideCloseButton>
-          <DialogHeader className="text-center">
-            <DialogTitle className="text-center text-2xl">Configurações</DialogTitle>
+        <DialogContent className='sm:max-w-sm' hideCloseButton>
+          <DialogHeader className='text-center'>
+            <DialogTitle className='text-center text-2xl'>Configurações</DialogTitle>
           </DialogHeader>
           {settingsCard}
           {actionButtons()}
@@ -95,10 +95,10 @@ export function SettingsModal({open, onOpenChange, onSettingsChange}: SettingsMo
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
-        <DrawerHeader className="text-center pb-2">
-          <DrawerTitle className="text-center text-2xl">Configurações</DrawerTitle>
+        <DrawerHeader className='text-center pb-2'>
+          <DrawerTitle className='text-center text-2xl'>Configurações</DrawerTitle>
         </DrawerHeader>
-        <div className="px-4 pb-4">
+        <div className='px-4 pb-4'>
           {settingsCard}
           {actionButtons('mt-4')}
         </div>

@@ -1,4 +1,4 @@
-import {HouseSide} from "@/shared/types/house.ts";
+import {HouseSide} from '@/shared/types/house.ts';
 
 export interface TopDoorPlacement {
   markerSide: HouseSide | null;

@@ -1,6 +1,6 @@
-import type {Canvas as FabricCanvas, Group} from "fabric";
-import {HouseSide, HouseViewType} from "@/shared/types/house.ts";
-import {getHouseViewStrategy} from "@/components/lib/canvas";
+import type {Canvas as FabricCanvas, Group} from 'fabric';
+import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import {getHouseViewStrategy} from '@/components/lib/canvas';
 
 export function createHouseGroupForView(params: {
   canvas: FabricCanvas;

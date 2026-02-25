@@ -1,7 +1,7 @@
-import {Dispatch, SetStateAction, useState} from "react";
-import type {ContraventamentoCanvasSelection} from "@/components/rac-editor/canvas/Canvas.tsx";
-import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
-import {ContraventamentoOrigin, ContraventamentoStep} from "@/components/lib/canvas";
+import {Dispatch, SetStateAction, useState} from 'react';
+import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {ContraventamentoOrigin, ContraventamentoStep} from '@/components/lib/canvas';
 
 interface UseContraventamentoFlowResult {
   isContraventamentoMode: boolean;
@@ -22,13 +22,13 @@ export function useContraventamentoFlow(): UseContraventamentoFlowResult {
   const [selectedContraventamento, setSelectedContraventamento] =
     useState<ContraventamentoCanvasSelection | null>(null);
 
-  const [contraventamentoStep, setContraventamentoStep] = useState<ContraventamentoStep>("select-first");
+  const [contraventamentoStep, setContraventamentoStep] = useState<ContraventamentoStep>('select-first');
   const [contraventamentoFirst, setContraventamentoFirst] = useState<ContraventamentoOrigin | null>(null);
   const [contraventamentoSide, setContraventamentoSide] = useState<ContraventamentoSide | null>(null);
 
   const resetContraventamentoFlow = () => {
     setIsContraventamentoMode(false);
-    setContraventamentoStep("select-first");
+    setContraventamentoStep('select-first');
     setContraventamentoFirst(null);
     setContraventamentoSide(null);
     setSelectedContraventamento(null);

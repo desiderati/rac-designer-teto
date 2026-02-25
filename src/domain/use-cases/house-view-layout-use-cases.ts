@@ -1,4 +1,4 @@
-import {canAddViewForType} from "./house-use-cases.ts";
+import {canAddViewForType} from './house-use-cases.ts';
 import {
   getHouseSideLabel,
   HOUSE_OPPOSITE_SIDE, HOUSE_OPPOSITE_VIEW,
@@ -7,7 +7,9 @@ import {
   HouseTypeExcludeNull,
   HouseViewSide,
   HouseViewType
-} from "@/shared/types/house.ts";
+} from '@/shared/types/house.ts';
+
+export type {HouseSideAssignments, HouseViewSide};
 
 export function getAvailableViewsForType(params: {
   houseType: HouseTypeExcludeNull | null;
@@ -28,7 +30,7 @@ export function getAvailableViewsForType(params: {
 }
 
 export function hasOtherViews(views: HouseViewSide): boolean {
-  return (["front", "back", "side1", "side2"] as const).some((viewType) => views[viewType].length > 0);
+  return (['front', 'back', 'side1', 'side2'] as const).some((viewType) => views[viewType].length > 0);
 }
 
 export function canDeletePlant(views: HouseViewSide): boolean {
@@ -50,17 +52,17 @@ export function needsSideSelection(params: {
   viewType: HouseViewType;
   sideAssignments: HouseSideAssignments;
 }): boolean {
-  if (params.viewType === "top") return false;
+  if (params.viewType === 'top') return false;
   return getAvailableSides(params).length > 0;
 }
 
 export type DomainViewInsertionDecision =
-  | { type: "blocked_limit" }
-  | { type: "add_direct"; side?: HouseSide }
-  | { type: "blocked_no_instance_slots" }
-  | { type: "open_instance_selector"; slots: HousePreAssignedSideDisplay[] }
-  | { type: "blocked_no_sides" }
-  | { type: "open_side_selector" };
+  | { type: 'blocked_limit' }
+  | { type: 'add_direct'; side?: HouseSide }
+  | { type: 'blocked_no_instance_slots' }
+  | { type: 'open_instance_selector'; slots: HousePreAssignedSideDisplay[] }
+  | { type: 'blocked_no_sides' }
+  | { type: 'open_side_selector' };
 
 export function resolveViewInsertionRequest(params: {
   viewType: HouseViewType;
@@ -69,35 +71,35 @@ export function resolveViewInsertionRequest(params: {
   availableSides: HouseSide[];
 }): DomainViewInsertionDecision {
   if (params.isAtLimit) {
-    return {type: "blocked_limit"};
+    return {type: 'blocked_limit'};
   }
 
-  if (params.viewType === "top") {
-    return {type: "add_direct"};
+  if (params.viewType === 'top') {
+    return {type: 'add_direct'};
   }
 
   if (params.preAssignedSides.length > 0) {
     const availableSlots = params.preAssignedSides.filter((slot) => !slot.onCanvas);
     if (!availableSlots.length) {
-      return {type: "blocked_no_instance_slots"};
+      return {type: 'blocked_no_instance_slots'};
     }
 
     if (availableSlots.length === 1) {
-      return {type: "add_direct", side: availableSlots[0].side};
+      return {type: 'add_direct', side: availableSlots[0].side};
     }
 
-    return {type: "open_instance_selector", slots: params.preAssignedSides};
+    return {type: 'open_instance_selector', slots: params.preAssignedSides};
   }
 
   if (!params.availableSides.length) {
-    return {type: "blocked_no_sides"};
+    return {type: 'blocked_no_sides'};
   }
 
   if (params.availableSides.length === 1) {
-    return {type: "add_direct", side: params.availableSides[0]};
+    return {type: 'add_direct', side: params.availableSides[0]};
   }
 
-  return {type: "open_side_selector"};
+  return {type: 'open_side_selector'};
 }
 
 export function getAutoSelectedSide(params: {
@@ -105,7 +107,7 @@ export function getAutoSelectedSide(params: {
   views: HouseViewSide;
   sideAssignments: HouseSideAssignments;
 }): HouseSide | null {
-  if (params.viewType === "top") return null;
+  if (params.viewType === 'top') return null;
 
   const availableSides = getAvailableSides({
     viewType: params.viewType,
@@ -135,22 +137,22 @@ export function buildAutoAssignedSlots(params: {
   const {houseType, initialSide} = params;
   const slots: HousePreAssignedSides = {};
 
-  if (houseType === "tipo6") {
-    slots["front"] = initialSide;
-    slots["back"] = HOUSE_OPPOSITE_SIDE[initialSide];
+  if (houseType === 'tipo6') {
+    slots['front'] = initialSide;
+    slots['back'] = HOUSE_OPPOSITE_SIDE[initialSide];
 
-    if (initialSide === "top") {
-      slots["side1_0"] = "right";
-      slots["side1_1"] = "left";
+    if (initialSide === 'top') {
+      slots['side1_0'] = 'right';
+      slots['side1_1'] = 'left';
     } else {
-      slots["side1_0"] = "left";
-      slots["side1_1"] = "right";
+      slots['side1_0'] = 'left';
+      slots['side1_1'] = 'right';
     }
   } else {
-    slots["side2"] = initialSide;
-    slots["side1"] = HOUSE_OPPOSITE_SIDE[initialSide];
-    slots["back_0"] = "top";
-    slots["back_1"] = "bottom";
+    slots['side2'] = initialSide;
+    slots['side1'] = HOUSE_OPPOSITE_SIDE[initialSide];
+    slots['back_0'] = 'top';
+    slots['back_1'] = 'bottom';
   }
 
   return slots;

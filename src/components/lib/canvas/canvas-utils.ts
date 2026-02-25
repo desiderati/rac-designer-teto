@@ -1,5 +1,5 @@
-import {FabricObject} from "fabric";
-import {canvasObjectProps} from "@/components/lib/canvas";
+import {FabricObject} from 'fabric';
+import {canvasObjectProps} from '@/components/lib/canvas';
 
 // Extend FabricObject prototype to include custom properties in serialization
 const originalToObject = FabricObject.prototype.toObject;

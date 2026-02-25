@@ -1,7 +1,7 @@
 import {ReactNode} from 'react';
 import {Minimap} from '../Minimap.tsx';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
-import {ZoomSlider} from "@/components/rac-editor/ZoomSlider.tsx";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+import {ZoomSlider} from '@/components/rac-editor/ZoomSlider.tsx';
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;
@@ -46,9 +46,9 @@ export function CanvasOverlays({
     <>
       {/* Pinch-zoom feedback indicator */}
       {isPinching && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+        <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none'>
           <div
-            className="bg-foreground/80 text-background px-4 py-2 rounded-full text-lg font-medium shadow-lg animate-scale-in">
+            className='bg-foreground/80 text-background px-4 py-2 rounded-full text-lg font-medium shadow-lg animate-scale-in'>
             {Math.round(zoom * 100)}%
           </div>
         </div>
@@ -113,7 +113,7 @@ export function CanvasOverlays({
       </div>
 
       {/* Desktop: Children (InfoBar) - centered at bottom */}
-      <div className="hidden sm:block">
+      <div className='hidden sm:block'>
         {children}
       </div>
     </>

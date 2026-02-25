@@ -1,5 +1,9 @@
-import {ContraventamentoEditorState, ContraventamentoSide} from "@/components/lib/canvas";
-import {CONTRAVENTAMENTO_COLUMN_CENTERS, ContraventamentoSidesOccupation} from "@/shared/types/contraventamento.ts";
+import {
+  CONTRAVENTAMENTO_COLUMN_CENTERS,
+  ContraventamentoEditorState,
+  ContraventamentoSide,
+  ContraventamentoSidesOccupation,
+} from '@/shared/types/contraventamento.ts';
 
 
 export function parsePilotiGridPosition(pilotiId: string): { col: number; row: number } | null {
@@ -26,7 +30,7 @@ export function inferContraventamentoSideFromBeamGeometry(params: {
   scaleX?: number;
 }): ContraventamentoSide {
   const centerX = params.left + params.width * (params.scaleX ?? 1) / 2;
-  return centerX < getContraventamentoColumnCenterX(params.col) ? "left" : "right";
+  return centerX < getContraventamentoColumnCenterX(params.col) ? 'left' : 'right';
 }
 
 export function isContraventamentoDestinationEligible(params: {
@@ -40,7 +44,7 @@ export function isContraventamentoDestinationEligible(params: {
 }
 
 export function getContraventamentoSideLabel(side: ContraventamentoSide): string {
-  return side === "left" ? "esquerdo" : "direito";
+  return side === 'left' ? 'esquerdo' : 'direito';
 }
 
 export interface ContraventamentoObjectCandidate {
@@ -64,7 +68,7 @@ export function collectOccupiedContraventamentoSides(params: {
     if (Number(object.contraventamentoCol) !== params.col) return;
 
     let side: ContraventamentoSide;
-    if (object.contraventamentoSide === "left" || object.contraventamentoSide === "right") {
+    if (object.contraventamentoSide === 'left' || object.contraventamentoSide === 'right') {
       side = object.contraventamentoSide;
     } else {
       side = inferContraventamentoSideFromBeamGeometry({

@@ -25,7 +25,7 @@ export function createPilotiNivelTextPatch(params: {
 }): PilotiNivelTextPatch {
   if (!params.isCorner) {
     return {
-      text: "",
+      text: '',
       visible: false,
     };
   }

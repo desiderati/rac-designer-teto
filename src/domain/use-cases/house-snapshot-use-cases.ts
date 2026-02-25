@@ -15,8 +15,8 @@ export interface SnapshotPlacementParams extends SnapshotScaleParams {
 export interface SnapshotImagePatch {
   left: number;
   top: number;
-  originX: "center";
-  originY: "center";
+  originX: 'center';
+  originY: 'center';
   scaleX: number;
   scaleY: number;
   selectable: true;
@@ -46,8 +46,8 @@ export function create3DSnapshotImagePatch(params: SnapshotPlacementParams): Sna
   return {
     left: params.centerX,
     top: params.centerY,
-    originX: "center",
-    originY: "center",
+    originX: 'center',
+    originY: 'center',
     scaleX: scale,
     scaleY: scale,
     selectable: true,

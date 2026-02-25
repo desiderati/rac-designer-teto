@@ -1,5 +1,5 @@
-import {describe, expect, it} from "vitest";
-import {getAllPilotiIds, rebuildPilotiDataFromSources} from "./house-piloti-rebuild-use-cases.ts";
+import {describe, expect, it} from 'vitest';
+import {getAllPilotiIds, rebuildPilotiDataFromSources} from './house-piloti-rebuild-use-cases.ts';
 
 const defaultPiloti = {
   height: 1.0,
@@ -7,12 +7,12 @@ const defaultPiloti = {
   nivel: 0.2,
 };
 
-describe("house-piloti rebuild use cases", () => {
-  it("returns all 12 piloti ids and initializes with current/default values", () => {
+describe('house-piloti rebuild use cases', () => {
+  it('returns all 12 piloti ids and initializes with current/default values', () => {
     const ids = getAllPilotiIds();
     expect(ids).toHaveLength(12);
-    expect(ids).toContain("piloti_0_0");
-    expect(ids).toContain("piloti_3_2");
+    expect(ids).toContain('piloti_0_0');
+    expect(ids).toContain('piloti_3_2');
 
     const rebuilt = rebuildPilotiDataFromSources({
       pilotiIds: ids,
@@ -27,7 +27,7 @@ describe("house-piloti rebuild use cases", () => {
     expect(rebuilt.piloti_3_2).toEqual(defaultPiloti);
   });
 
-  it("rebuilds piloti data from source objects using circle/rect markers", () => {
+  it('rebuilds piloti data from source objects using circle/rect markers', () => {
     const rebuilt = rebuildPilotiDataFromSources({
       pilotiIds: getAllPilotiIds(),
       currentPilotis: {},
@@ -36,21 +36,21 @@ describe("house-piloti rebuild use cases", () => {
         {
           objects: [
             {
-              pilotiId: "piloti_1_1",
+              pilotiId: 'piloti_1_1',
               isPilotiCircle: true,
               pilotiHeight: 2.5,
               pilotiIsMaster: true,
               pilotiNivel: 0.9,
             },
             {
-              pilotiId: "piloti_2_1",
+              pilotiId: 'piloti_2_1',
               isPilotiRect: true,
               pilotiHeight: 1.5,
               pilotiIsMaster: false,
               pilotiNivel: 0.4,
             },
             {
-              pilotiId: "piloti_0_0",
+              pilotiId: 'piloti_0_0',
               pilotiHeight: 3.0,
             },
           ],

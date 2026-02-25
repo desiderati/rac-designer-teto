@@ -8,7 +8,7 @@ import {GenericObjectEditorIcon} from './GenericObjectEditorIcon.tsx';
 import {useGenericObjectEditorDraft} from './hooks/useGenericObjectEditorDraft.ts';
 import {
   GenericObjectEditorType
-} from "@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts";
+} from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
 
 const GENERIC_OBJECT_EDITOR_COLOR_PALETTE = [
   {name: 'Vermelho', value: '#e74c3c'},
@@ -169,7 +169,7 @@ export function GenericObjectEditor({
   const title = getTitle();
 
   const colorPalette =
-    <div className="grid grid-cols-4 gap-2 justify-items-center">
+    <div className='grid grid-cols-4 gap-2 justify-items-center'>
       {GENERIC_OBJECT_EDITOR_COLOR_PALETTE.map((c) =>
         <button
           key={c.value}
@@ -183,9 +183,9 @@ export function GenericObjectEditor({
           title={c.name}>
 
           {tempColor === c.value &&
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M4 10.5L8 14.5L16 6.5" stroke="white" strokeWidth="2.5" strokeLinecap="round"
-                    strokeLinejoin="round"/>
+            <svg width='20' height='20' viewBox='0 0 20 20' fill='none'>
+              <path d='M4 10.5L8 14.5L16 6.5' stroke='white' strokeWidth='2.5' strokeLinecap='round'
+                    strokeLinejoin='round'/>
             </svg>
           }
         </button>
@@ -193,32 +193,32 @@ export function GenericObjectEditor({
     </div>;
 
   const editorBody =
-    <div className="flex flex-col gap-4">
+    <div className='flex flex-col gap-4'>
       {/* Header: icon + title + close */}
-      <div className="flex items-center gap-3">
-        <GenericObjectEditorIcon type={editorType} className="w-16 h-12 flex-shrink-0"/>
-        <span className="font-bold text-2xl flex-1 text-center">{title}</span>
+      <div className='flex items-center gap-3'>
+        <GenericObjectEditorIcon type={editorType} className='w-16 h-12 flex-shrink-0'/>
+        <span className='font-bold text-2xl flex-1 text-center'>{title}</span>
         <Button
-          variant="outline"
-          size="icon"
+          variant='outline'
+          size='icon'
           onClick={handleCancel}
-          className="h-8 w-8 rounded-full bg-white flex-shrink-0">
+          className='h-8 w-8 rounded-full bg-white flex-shrink-0'>
 
-          <X className="h-4 w-4"/>
+          <X className='h-4 w-4'/>
         </Button>
       </div>
 
       {/* White card body */}
-      <div className="bg-white rounded-xl p-4 space-y-5">
+      <div className='bg-white rounded-xl p-4 space-y-5'>
         <Input
-          type="text"
+          type='text'
           value={tempValue}
           onChange={
             (e) =>
               setDraft((prev) => ({...prev, value: e.target.value}))
           }
           onKeyDown={handleKeyDown}
-          className="text-center placeholder:text-muted-foreground/50"
+          className='text-center placeholder:text-muted-foreground/50'
           placeholder={getPlaceholder()}
           autoFocus/>
 
@@ -228,11 +228,11 @@ export function GenericObjectEditor({
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-[16px]">
-        <Button variant="outline" className="flex-1 bg-white" onClick={handleCancel}>
+      <div className='flex gap-[16px]'>
+        <Button variant='outline' className='flex-1 bg-white' onClick={handleCancel}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={handleApply}>
+        <Button className='flex-1' onClick={handleApply}>
           Confirmar
         </Button>
       </div>
@@ -242,7 +242,7 @@ export function GenericObjectEditor({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DrawerContent>
-          <div className="p-6">
+          <div className='p-6'>
             {editorBody}
           </div>
         </DrawerContent>
@@ -257,9 +257,9 @@ export function GenericObjectEditor({
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={handleCancel}/>
+      <div className='fixed inset-0 z-40' onClick={handleCancel}/>
       <div
-        className="fixed z-50 bg-background rounded-xl border shadow-md p-6 min-w-[280px] cursor-move select-none"
+        className='fixed z-50 bg-background rounded-xl border shadow-md p-6 min-w-[280px] cursor-move select-none'
         style={{left: pos.x, top: pos.y}}
         onMouseDown={handleDragStart}>
 

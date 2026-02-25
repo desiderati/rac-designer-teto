@@ -1,5 +1,5 @@
-import {RefObject, useEffect, useRef} from "react";
-import {Canvas as FabricCanvas, Group} from "fabric";
+import {RefObject, useEffect, useRef} from 'react';
+import {Canvas as FabricCanvas, Group} from 'fabric';
 
 interface UseCanvasContraventamentoArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -56,7 +56,7 @@ export function useCanvasContraventamento({
     if (isContraventamentoMode) return;
     const canvas = fabricCanvasRef.current;
     if (!canvas?.upperCanvasEl) return;
-    canvas.upperCanvasEl.style.cursor = "default";
+    canvas.upperCanvasEl.style.cursor = 'default';
   }, [fabricCanvasRef, isContraventamentoMode]);
 
   useEffect(() => {
@@ -65,13 +65,13 @@ export function useCanvasContraventamento({
     if (!canvas) return;
 
     canvas.getObjects().forEach((item: any) => {
-      if (item.type !== "group" || item.myType !== "house" || item.houseView === "top") return;
+      if (item.type !== 'group' || item.myType !== 'house' || item.houseView === 'top') return;
       item.getObjects().forEach((child: any) => {
         if (!child.isPilotiRect) return;
         if (child.pilotiIsMaster) {
-          child.set({stroke: "#8B4513", strokeWidth: 3});
+          child.set({stroke: '#8B4513', strokeWidth: 3});
         } else {
-          child.set({stroke: "#333", strokeWidth: 2});
+          child.set({stroke: '#333', strokeWidth: 2});
         }
         (child as any).dirty = true;
       });

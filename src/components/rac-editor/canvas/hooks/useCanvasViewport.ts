@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useRef, useState} from "react";
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 
 interface UseCanvasViewportArgs {
   onMinimapInteraction?: () => void;

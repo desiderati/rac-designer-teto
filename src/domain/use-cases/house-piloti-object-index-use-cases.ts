@@ -15,7 +15,7 @@ export function buildPilotiObjectIndex<TObject extends PilotiObjectLike>(
   objects: TObject[],
 ): PilotiObjectIndex<TObject> {
   return objects.reduce((acc, object) => {
-    const pilotiId = typeof object.pilotiId === "string" ? object.pilotiId : "";
+    const pilotiId = typeof object.pilotiId === 'string' ? object.pilotiId : '';
     if (!pilotiId) return acc;
 
     const entry = acc[pilotiId] ?? {};

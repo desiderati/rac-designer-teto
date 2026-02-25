@@ -1,4 +1,4 @@
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 export interface LinearObjectState {
   currentColor: string;
@@ -9,13 +9,13 @@ export function readLinearObjectState(
   object: CanvasObject
 ): LinearObjectState {
 
-  let currentColor = "#000000";
-  let currentLabel = "";
+  let currentColor = '#000000';
+  let currentLabel = '';
 
   const groupChildren = object.getObjects?.() ?? [];
   const labelChild =
     groupChildren.find(
-      (child) => child?.myType === "objLabel"
+      (child) => child?.myType === 'objLabel'
     );
 
   if (labelChild?.fill) {

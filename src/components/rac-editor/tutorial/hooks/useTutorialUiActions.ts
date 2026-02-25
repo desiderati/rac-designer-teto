@@ -5,8 +5,8 @@ import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
-import {TutorialBalloonPosition} from "@/components/rac-editor/tutorial/Tutorial.tsx";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {TutorialBalloonPosition} from '@/components/rac-editor/tutorial/Tutorial.tsx';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;

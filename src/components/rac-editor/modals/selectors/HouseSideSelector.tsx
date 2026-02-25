@@ -2,9 +2,9 @@ import {useMemo} from 'react';
 import {useHouseSnapshot, useHouseStoreVersion} from '@/components/lib/house-store.ts';
 import {TwoCardSelector} from './TwoCardSelector.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
-import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from "@/shared/types/house.ts";
+import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 
-export type HouseSideSelectorMode = "position" | "choose-instance";
+export type HouseSideSelectorMode = 'position' | 'choose-instance';
 
 interface HouseSideSelectorProps {
   houseViewType: HouseViewType;
@@ -44,15 +44,15 @@ export function HouseSideSelector({
         <TwoCardSelector
           isOpen={isOpen}
           onClose={onClose}
-          title="Lado Porta Casa Tipo 6"
+          title='Lado Porta Casa Tipo 6'
           left={{
             label: 'Superior',
-            icon: <PilotiGridIcon highlight="top"/>,
+            icon: <PilotiGridIcon highlight='top'/>,
             onClick: () => handleSelect('top'),
           }}
           right={{
             label: 'Inferior',
-            icon: <PilotiGridIcon highlight="bottom"/>,
+            icon: <PilotiGridIcon highlight='bottom'/>,
             onClick: () => handleSelect('bottom'),
           }}
         />
@@ -63,15 +63,15 @@ export function HouseSideSelector({
         <TwoCardSelector
           isOpen={isOpen}
           onClose={onClose}
-          title="Lado Porta Casa Tipo 3"
+          title='Lado Porta Casa Tipo 3'
           left={{
             label: 'Esquerdo',
-            icon: <PilotiGridIcon highlight="left"/>,
+            icon: <PilotiGridIcon highlight='left'/>,
             onClick: () => handleSelect('left'),
           }}
           right={{
             label: 'Direito',
-            icon: <PilotiGridIcon highlight="right"/>,
+            icon: <PilotiGridIcon highlight='right'/>,
             onClick: () => handleSelect('right'),
           }}
         />
@@ -88,17 +88,17 @@ export function HouseSideSelector({
       <TwoCardSelector
         isOpen={isOpen}
         onClose={onClose}
-        title="Qual das laterais deseja mostrar?"
+        title='Qual das laterais deseja mostrar?'
         left={{
           label: 'Superior',
-          icon: <PilotiGridIcon highlight="top"/>,
+          icon: <PilotiGridIcon highlight='top'/>,
           onClick: () => handleSelect('top'),
           disabled: topSlot?.onCanvas,
           subtext: topSlot?.onCanvas ? '(já no canvas)' : undefined,
         }}
         right={{
           label: 'Inferior',
-          icon: <PilotiGridIcon highlight="bottom"/>,
+          icon: <PilotiGridIcon highlight='bottom'/>,
           onClick: () => handleSelect('bottom'),
           disabled: bottomSlot?.onCanvas,
           subtext: bottomSlot?.onCanvas ? '(já no canvas)' : undefined,
@@ -115,17 +115,17 @@ export function HouseSideSelector({
       <TwoCardSelector
         isOpen={isOpen}
         onClose={onClose}
-        title="Qual dos quadrados deseja mostrar?"
+        title='Qual dos quadrados deseja mostrar?'
         left={{
           label: 'Esquerdo',
-          icon: <PilotiGridIcon highlight="left"/>,
+          icon: <PilotiGridIcon highlight='left'/>,
           onClick: () => handleSelect('left'),
           disabled: leftSlot?.onCanvas,
           subtext: leftSlot?.onCanvas ? '(já no canvas)' : undefined,
         }}
         right={{
           label: 'Direito',
-          icon: <PilotiGridIcon highlight="right"/>,
+          icon: <PilotiGridIcon highlight='right'/>,
           onClick: () => handleSelect('right'),
           disabled: rightSlot?.onCanvas,
           subtext: rightSlot?.onCanvas ? '(já no canvas)' : undefined,

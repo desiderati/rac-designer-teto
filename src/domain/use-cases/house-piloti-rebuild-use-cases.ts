@@ -1,4 +1,4 @@
-import {HousePiloti} from "@/shared/types/house.ts";
+import {HousePiloti} from '@/shared/types/house.ts';
 
 export interface RebuildPilotiSourceObject {
   pilotiId?: unknown;

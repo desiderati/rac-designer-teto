@@ -40,12 +40,12 @@ export function createPilotiHeightTextPatch(formattedHeight: string): { text: st
 export function createPilotiSizeLabelPatch(formattedHeight: string): { text: string; backgroundColor: string } {
   return {
     text: formattedHeight,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
   };
 }
 
 export function createNivelLabelBackgroundPatch(): { backgroundColor: string } {
   return {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
   };
 }

@@ -1,7 +1,7 @@
 import {FABButton, SubMenuButton} from './ToolbarButtons.tsx';
 import {MAIN_MENU_ICONS, OverflowActionKey, OVERFLOW_MENU_CONFIG} from './helpers/toolbar-config.ts';
 import type {ToolbarActionMap, ToolbarSubmenu} from './helpers/toolbar-types.ts';
-import {TutorialHighlight} from "@/components/rac-editor/tutorial/Tutorial.tsx";
+import {TutorialHighlight} from '@/components/rac-editor/tutorial/Tutorial.tsx';
 
 interface ToolbarOverflowMenuProps {
   actions: ToolbarActionMap;
@@ -21,20 +21,20 @@ export function ToolbarOverflowMenu({
   onImportClick,
 }: ToolbarOverflowMenuProps) {
   return (
-    <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 items-end">
+    <div className='fixed top-5 right-5 z-50 flex flex-col gap-2 items-end'>
       <FABButton
         icon={MAIN_MENU_ICONS.overflow}
-        title="Mais Opções"
+        title='Mais Opções'
         onClick={actions.toggleOverflowMenu}
         isMain
         isActive={activeSubmenu === 'overflow'}
         isPulsing={tutorialHighlight === 'more-options'}
         hideTooltip={activeSubmenu === 'overflow' || isTutorialActive}
-        tooltipSide="left"
+        tooltipSide='left'
       />
 
       {activeSubmenu === 'overflow' && (
-        <div className="flex flex-col gap-1 items-end animate-in slide-in-from-top-2 duration-200">
+        <div className='flex flex-col gap-1 items-end animate-in slide-in-from-top-2 duration-200'>
           {OVERFLOW_MENU_CONFIG.map((item) => {
             if (item.kind === 'import') {
               return (
@@ -45,7 +45,7 @@ export function ToolbarOverflowMenu({
                   onClick={onImportClick}
                   color={item.color}
                   hideTooltip={isTutorialActive}
-                  tooltipSide="left"
+                  tooltipSide='left'
                 />
               );
             }
@@ -59,7 +59,7 @@ export function ToolbarOverflowMenu({
                 color={item.color}
                 isActive={item.action === 'toggleTips' && showTips}
                 hideTooltip={isTutorialActive}
-                tooltipSide="left"
+                tooltipSide='left'
               />
             );
           })}

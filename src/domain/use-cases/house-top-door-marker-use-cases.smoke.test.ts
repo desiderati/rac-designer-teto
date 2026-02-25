@@ -1,81 +1,81 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   calculateTopDoorMarkerBodySize,
   calculateTopDoorPlacement,
   createTopDoorMarkerVisualPatch,
   resolveTopDoorMarkerSide,
   resolveTopDoorSourceViewType,
-} from "./house-top-door-marker-use-cases.ts";
+} from './house-top-door-marker-use-cases.ts';
 
-describe("house-top-door-marker use cases", () => {
-  it("resolves source view type from door face and house type", () => {
-    expect(resolveTopDoorSourceViewType({houseType: "tipo6", doorFace: "front"})).toBe("front");
-    expect(resolveTopDoorSourceViewType({houseType: "tipo6", doorFace: "back"})).toBe("back");
-    expect(resolveTopDoorSourceViewType({houseType: "tipo6", doorFace: "left"})).toBe("side1");
-    expect(resolveTopDoorSourceViewType({houseType: "tipo3", doorFace: "right"})).toBe("side2");
+describe('house-top-door-marker use cases', () => {
+  it('resolves source view type from door face and house type', () => {
+    expect(resolveTopDoorSourceViewType({houseType: 'tipo6', doorFace: 'front'})).toBe('front');
+    expect(resolveTopDoorSourceViewType({houseType: 'tipo6', doorFace: 'back'})).toBe('back');
+    expect(resolveTopDoorSourceViewType({houseType: 'tipo6', doorFace: 'left'})).toBe('side1');
+    expect(resolveTopDoorSourceViewType({houseType: 'tipo3', doorFace: 'right'})).toBe('side2');
   });
 
-  it("resolves marker side using current side assignments", () => {
+  it('resolves marker side using current side assignments', () => {
     expect(
       resolveTopDoorMarkerSide({
-        houseType: "tipo6",
-        doorFace: "front",
-        sideAssignments: {top: "front", bottom: null, left: null, right: null},
+        houseType: 'tipo6',
+        doorFace: 'front',
+        sideAssignments: {top: 'front', bottom: null, left: null, right: null},
       }),
-    ).toBe("top");
+    ).toBe('top');
 
     expect(
       resolveTopDoorMarkerSide({
-        houseType: "tipo3",
-        doorFace: "right",
-        sideAssignments: {top: null, bottom: null, left: null, right: "side2"},
+        houseType: 'tipo3',
+        doorFace: 'right',
+        sideAssignments: {top: null, bottom: null, left: null, right: 'side2'},
       }),
-    ).toBe("right");
+    ).toBe('right');
   });
 
-  it("calculates marker coordinates for all sides and clamps door center", () => {
+  it('calculates marker coordinates for all sides and clamps door center', () => {
     expect(
       calculateTopDoorPlacement({
-        markerSide: "top",
+        markerSide: 'top',
         doorX: 30,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: "top", targetLeft: 60, targetTop: -50});
+    ).toEqual({markerSide: 'top', targetLeft: 60, targetTop: -50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: "bottom",
+        markerSide: 'bottom',
         doorX: 30,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: "bottom", targetLeft: -60, targetTop: 50});
+    ).toEqual({markerSide: 'bottom', targetLeft: -60, targetTop: 50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: "left",
+        markerSide: 'left',
         doorX: -999,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: "left", targetLeft: -100, targetTop: -50});
+    ).toEqual({markerSide: 'left', targetLeft: -100, targetTop: -50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: "right",
+        markerSide: 'right',
         doorX: 999,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: "right", targetLeft: 100, targetTop: -50});
+    ).toEqual({markerSide: 'right', targetLeft: 100, targetTop: -50});
   });
 
-  it("returns null placement when marker side is unknown", () => {
+  it('returns null placement when marker side is unknown', () => {
     expect(
       calculateTopDoorPlacement({
         markerSide: null,
@@ -87,11 +87,11 @@ describe("house-top-door-marker use cases", () => {
     ).toEqual({markerSide: null});
   });
 
-  it("creates visual patch for active and inactive marker sides", () => {
+  it('creates visual patch for active and inactive marker sides', () => {
     expect(
       createTopDoorMarkerVisualPatch({
-        markerSide: "top",
-        markerCandidateSide: "top",
+        markerSide: 'top',
+        markerCandidateSide: 'top',
         targetLeft: 10,
         targetTop: 20,
       }),
@@ -103,8 +103,8 @@ describe("house-top-door-marker use cases", () => {
 
     expect(
       createTopDoorMarkerVisualPatch({
-        markerSide: "top",
-        markerCandidateSide: "bottom",
+        markerSide: 'top',
+        markerCandidateSide: 'bottom',
         targetLeft: 10,
         targetTop: 20,
       }),
@@ -113,7 +113,7 @@ describe("house-top-door-marker use cases", () => {
     });
   });
 
-  it("calculates effective body size using scale and clamps to minimum", () => {
+  it('calculates effective body size using scale and clamps to minimum', () => {
     expect(
       calculateTopDoorMarkerBodySize({
         width: 366,

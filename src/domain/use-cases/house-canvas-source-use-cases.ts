@@ -10,11 +10,11 @@ export interface CanvasObjectCandidate {
 }
 
 export function isHouseGroupCandidate(value: CanvasObjectCandidate): boolean {
-  return value?.type === "group" && value?.myType === "house";
+  return value?.type === 'group' && value?.myType === 'house';
 }
 
 export function isTopViewGroupCandidate(value: CanvasObjectCandidate): boolean {
-  return isHouseGroupCandidate(value) && value?.houseView === "top";
+  return isHouseGroupCandidate(value) && value?.houseView === 'top';
 }
 
 export function collectHouseGroupCandidates<T extends CanvasObjectCandidate>(objects: T[]): T[] {

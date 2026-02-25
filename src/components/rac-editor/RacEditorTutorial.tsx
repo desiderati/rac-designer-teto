@@ -32,7 +32,7 @@ export function RacEditorTutorial({
       {tutorialPilotiPosition &&
         <TutorialBalloon
           position={tutorialPilotiPosition}
-          text={"Clique duas vezes para alterar a altura do Piloti."}
+          text={'Clique duas vezes para alterar a altura do Piloti.'}
           onClose={onCloseTutorialPiloti}/>
       }
 

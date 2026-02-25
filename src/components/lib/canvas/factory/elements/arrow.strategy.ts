@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, Group, IText, Rect, Triangle} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 export const arrowStrategy: ElementStrategy<Group> = {
   create(canvas: FabricCanvas): Group {

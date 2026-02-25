@@ -7,7 +7,7 @@ export const CONTRAVENTAMENTO_COLUMN_CENTERS = [
   1.5 * CONTRAVENTAMENTO_COLUMN_SPACING,
 ];
 
-export type ContraventamentoSide = "left" | "right";
+export type ContraventamentoSide = 'left' | 'right';
 
 export interface ContraventamentoSidesOccupation {
   left: boolean;

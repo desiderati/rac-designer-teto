@@ -1,6 +1,6 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {useCanvasClipboard} from './hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from './hooks/useCanvasContainerLifecycle.ts';
@@ -34,7 +34,7 @@ export interface wallSelection {
   screenPosition: { x: number; y: number };
 }
 
-export type linearSelectionType = "line" | "arrow" | "distance";
+export type linearSelectionType = 'line' | 'arrow' | 'distance';
 
 export interface linearSelection {
   object: FabricObject;
@@ -293,8 +293,8 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
     return (
       <div
         ref={containerRef}
-        data-testid="rac-canvas-container"
-        className="w-full h-full overflow-hidden relative bg-muted touch-none"
+        data-testid='rac-canvas-container'
+        className='w-full h-full overflow-hidden relative bg-muted touch-none'
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -306,7 +306,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
       >
         {/* Canvas */}
         <div
-          className="absolute shadow-xl bg-card"
+          className='absolute shadow-xl bg-card'
           style={{
             transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
             transformOrigin: '0 0',
@@ -314,7 +314,7 @@ export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
             height: CANVAS_HEIGHT,
           }}
         >
-          <canvas ref={canvasRef} data-testid="rac-editor-canvas-element"/>
+          <canvas ref={canvasRef} data-testid='rac-editor-canvas-element'/>
         </div>
 
         <CanvasOverlays

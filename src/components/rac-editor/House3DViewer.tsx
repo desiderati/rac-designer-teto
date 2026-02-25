@@ -138,25 +138,25 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
         hideCloseButton
         className={`p-0 gap-0 flex flex-col ${dialogClass}`}
       >
-        <DialogHeader className="p-4 pb-2 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">
+        <DialogHeader className='p-4 pb-2 border-b'>
+          <div className='flex items-center justify-between'>
+            <DialogTitle className='text-lg font-semibold'>
               Visualizador 3D
             </DialogTitle>
-            <div className="flex gap-2">
+            <div className='flex gap-2'>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
-                    size="icon"
-                    title="Cor das Paredes"
+                    variant='outline'
+                    size='icon'
+                    title='Cor das Paredes'
                   >
                     <FontAwesomeIcon icon={faPalette}/>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-3" side="bottom" align="end">
-                  <p className="text-xs font-medium mb-2 text-muted-foreground">Cor das Paredes</p>
-                  <div className="grid grid-cols-4 gap-1.5">
+                <PopoverContent className='w-auto p-3' side='bottom' align='end'>
+                  <p className='text-xs font-medium mb-2 text-muted-foreground'>Cor das Paredes</p>
+                  <div className='grid grid-cols-4 gap-1.5'>
                     {WALL_COLORS.map((c) => (
                       <button
                         key={c.value}
@@ -170,54 +170,54 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 </PopoverContent>
               </Popover>
               <Button
-                variant="outline"
-                size="icon"
-                title="Inserir no Canvas"
+                variant='outline'
+                size='icon'
+                title='Inserir no Canvas'
                 onClick={handleInsertOnCanvas}
                 disabled={!houseType}
               >
                 <FontAwesomeIcon icon={faCamera}/>
               </Button>
               <Button
-                variant="outline"
-                size="icon"
+                variant='outline'
+                size='icon'
                 onClick={handleReset}
-                title="Resetar Câmera"
+                title='Resetar Câmera'
               >
                 <FontAwesomeIcon icon={faRotateRight}/>
               </Button>
               <Button
-                variant="outline"
-                size="icon"
+                variant='outline'
+                size='icon'
                 onClick={toggleFullscreen}
                 title={isFullscreen ? 'Sair do Fullscreen' : 'Fullscreen'}
               >
                 <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand}/>
               </Button>
               <Button
-                variant="outline"
-                size="icon"
+                variant='outline'
+                size='icon'
                 onClick={handleClose}
-                title="Fechar"
+                title='Fechar'
               >
                 <FontAwesomeIcon icon={faXmark}/>
               </Button>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className='text-sm text-muted-foreground'>
             Arraste para rotacionar • Scroll para zoom • Shift+Arraste para mover
           </p>
         </DialogHeader>
 
-        <div className="flex-1 bg-gradient-to-b from-muted to-muted/50 relative" style={{minHeight: '400px'}}>
+        <div className='flex-1 bg-gradient-to-b from-muted to-muted/50 relative' style={{minHeight: '400px'}}>
           {!houseType ? (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            <div className='absolute inset-0 flex items-center justify-center text-muted-foreground'>
               <p>Nenhuma casa criada. Adicione uma planta primeiro.</p>
             </div>
           ) : (
             <Suspense fallback={
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"/>
+              <div className='absolute inset-0 flex items-center justify-center'>
+                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'/>
               </div>
             }>
               <Canvas

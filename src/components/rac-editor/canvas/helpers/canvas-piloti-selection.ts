@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {formatPilotiHeight, getPilotiFromGroup} from "@/components/lib/canvas";
+import {formatPilotiHeight, getPilotiFromGroup} from '@/components/lib/canvas';
 import {applyPilotiSelectionVisuals} from '@/components/lib/canvas/piloti-visual-feedback.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 interface PilotiRuntimeObject extends FabricObject {
   houseView?: string;

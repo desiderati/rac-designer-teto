@@ -1,5 +1,5 @@
-import type {ViewInstanceRecord, ViewsRecord} from "@/domain/repository/house-views-repository.ts";
-import {ALL_HOUSE_VIEW_TYPES, HouseSide, HouseTypeExcludeNull, HouseViewType} from "@/shared/types/house.ts";
+import type {ViewInstanceRecord, ViewsRecord} from '@/domain/repository/house-views-repository.ts';
+import {ALL_HOUSE_VIEW_TYPES, HouseSide, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
 
 export interface RebuildGroupMeta {
   houseViewType?: string;
@@ -38,11 +38,11 @@ function createEmptyViews<TGroup>(): RebuildViewsRecord<TGroup> {
 }
 
 function isHouseViewType(value: unknown): value is HouseViewType {
-  return typeof value === "string" && ALL_HOUSE_VIEW_TYPES.includes(value as HouseViewType);
+  return typeof value === 'string' && ALL_HOUSE_VIEW_TYPES.includes(value as HouseViewType);
 }
 
 function isHouseSide(value: unknown): value is HouseSide {
-  return value === "top" || value === "bottom" || value === "left" || value === "right";
+  return value === 'top' || value === 'bottom' || value === 'left' || value === 'right';
 }
 
 function inferViewTypeForRebuild(
@@ -55,14 +55,14 @@ function inferViewTypeForRebuild(
     return meta.houseViewType;
   }
 
-  if (meta.houseView === "top" || meta.houseView === "front" || meta.houseView === "back") {
+  if (meta.houseView === 'top' || meta.houseView === 'front' || meta.houseView === 'back') {
     return meta.houseView;
   }
 
-  if (meta.houseView === "side") {
-    if (houseType === "tipo6") return "side1";
-    if (houseType === "tipo3") return currentCounts.side1 === 0 ? "side1" : "side2";
-    return currentCounts.side1 <= currentCounts.side2 ? "side1" : "side2";
+  if (meta.houseView === 'side') {
+    if (houseType === 'tipo6') return 'side1';
+    if (houseType === 'tipo3') return currentCounts.side1 === 0 ? 'side1' : 'side2';
+    return currentCounts.side1 <= currentCounts.side2 ? 'side1' : 'side2';
   }
 
   return null;
@@ -73,12 +73,12 @@ function inferSideForRebuild(meta: RebuildGroupMeta, viewType: HouseViewType): H
     return meta.houseSide;
   }
 
-  if (viewType === "front" || viewType === "back") {
-    return meta.isFlippedHorizontally ? "top" : "bottom";
+  if (viewType === 'front' || viewType === 'back') {
+    return meta.isFlippedHorizontally ? 'top' : 'bottom';
   }
 
-  if (viewType === "side1" || viewType === "side2") {
-    return meta.isRightSide ? "right" : "left";
+  if (viewType === 'side1' || viewType === 'side2') {
+    return meta.isRightSide ? 'right' : 'left';
   }
 
   return undefined;
@@ -91,7 +91,7 @@ function normalizeInstanceId(
   usedIds: Set<string>,
 ): string {
 
-  const trimmed = String(rawInstanceId ?? "").trim();
+  const trimmed = String(rawInstanceId ?? '').trim();
   const instanceIdBase = trimmed || `${viewType}_restored_${countForViewType}`;
 
   let instanceId = instanceIdBase;

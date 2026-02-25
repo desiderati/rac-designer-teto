@@ -1,8 +1,8 @@
-import {useState} from "react";
+import {useState} from 'react';
 import type {
   wallSelection,
   linearSelection,
-} from "@/components/rac-editor/canvas/Canvas.tsx";
+} from '@/components/rac-editor/canvas/Canvas.tsx';
 
 export function useGenericObjectEditors() {
 

@@ -1,4 +1,4 @@
-import {HouseViewType} from "@/shared/types/house.ts";
+import {HouseViewType} from '@/shared/types/house.ts';
 
 export function createHouseId(now: () => number = Date.now): string {
   return `house_${now()}`;

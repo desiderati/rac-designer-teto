@@ -40,7 +40,7 @@ import {
 } from '@/components/lib/3d/constants.ts';
 import {buildOpeningsFromCanvasModel} from '@/components/lib/3d/openings-mapper.ts';
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
-import {MASTER_PILOTI_FILL} from "@/components/lib/canvas";
+import {MASTER_PILOTI_FILL} from '@/components/lib/canvas';
 
 const DEFAULT_HOUSE_PILOTI: HousePiloti = {
   height: 1.0,

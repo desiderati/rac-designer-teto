@@ -8,9 +8,9 @@ import type {
 import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useContraventamentoEffects.ts';
-import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
-import {ContraventamentoOrigin, ContraventamentoStep} from "@/components/lib/canvas";
-import {ToolbarSubmenu} from "@/components/rac-editor/toolbar/helpers/toolbar-types.ts";
+import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {ContraventamentoOrigin, ContraventamentoStep} from '@/components/lib/canvas';
+import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 
 interface UseContraventamentoArgs {
   canvasRef: RefObject<CanvasHandle | null>;

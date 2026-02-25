@@ -1,15 +1,15 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Polyline, Text} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Polyline, Text} from 'fabric';
 import {
   BASE_PILOTI_HEIGHT_PX,
   CORNER_PILOTI_IDS,
   MASTER_PILOTI_FILL,
   MASTER_PILOTI_STROKE_COLOR,
-} from "./constants.ts";
-import {HOUSE_PILOTI_STANDARD_HEIGHTS} from "@/shared/types/house.ts";
+} from './constants.ts';
+import {HOUSE_PILOTI_STANDARD_HEIGHTS} from '@/shared/types/house.ts';
 
 export const PILOTI_DEFAULT_NIVEL = 0.2;
 
-export const PILOTI_STROKE_COLOR = "#222";
+export const PILOTI_STROKE_COLOR = '#222';
 
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
   const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
@@ -21,11 +21,11 @@ export function clampNivel(nivel: number, minNivel: number = 0.2, maxNivel: numb
 }
 
 export function formatPilotiHeight(height: number): string {
-  return height.toFixed(1).replace(".", ",");
+  return height.toFixed(1).replace('.', ',');
 }
 
 export function formatNivel(nivel: number): string {
-  return nivel.toFixed(2).replace(".", ",");
+  return nivel.toFixed(2).replace('.', ',');
 }
 
 export function getRecommendedHeight(nivel: number): number {
@@ -64,7 +64,7 @@ export function getAllPilotiIds(): string[] {
 export function getPilotiIdsFromGroup(group: Group): string[] {
   const present = new Set<string>();
   group.getObjects().forEach((obj: any) => {
-    if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === "string") {
+    if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === 'string') {
       present.add(obj.pilotiId);
     }
   });
@@ -73,16 +73,16 @@ export function getPilotiIdsFromGroup(group: Group): string[] {
 }
 
 // Get next/previous piloti ID
-export function getAdjacentPilotiId(currentId: string, direction: "next" | "prev"): string | null {
+export function getAdjacentPilotiId(currentId: string, direction: 'next' | 'prev'): string | null {
   const allIds = getAllPilotiIds();
   const currentIndex = allIds.indexOf(currentId);
   if (currentIndex === -1) return null;
 
-  if (direction === "next" && currentIndex < allIds.length - 1) {
+  if (direction === 'next' && currentIndex < allIds.length - 1) {
     return allIds[currentIndex + 1];
   }
 
-  if (direction === "prev" && currentIndex > 0) {
+  if (direction === 'prev' && currentIndex > 0) {
     return allIds[currentIndex - 1];
   }
 
@@ -158,9 +158,9 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       if (sizeLabel) {
         const offset = 8 * s;
         const rectWidth = (obj.width ?? 0) as number;
-        sizeLabel.set("left", (obj.left ?? 0) + rectWidth / 2);
-        sizeLabel.set("top", (obj.top ?? 0) + newVisualHeight + offset);
-        sizeLabel.set("text", formatPilotiHeight(newHeight));
+        sizeLabel.set('left', (obj.left ?? 0) + rectWidth / 2);
+        sizeLabel.set('top', (obj.top ?? 0) + newVisualHeight + offset);
+        sizeLabel.set('text', formatPilotiHeight(newHeight));
         sizeLabel.setCoords();
         (sizeLabel as any).dirty = true;
       }
@@ -175,7 +175,7 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
         const newVisualHeight = (pilotiRect.height ?? 0) as number;
         const stripeHeight = (newVisualHeight * 2) / 3;
         obj.set({height: stripeHeight, top: (pilotiRect.top ?? 0) + newVisualHeight / 3});
-        obj.set("fill", createDiagonalStripePattern());
+        obj.set('fill', createDiagonalStripePattern());
         obj.objectCaching = false;
         obj.setCoords();
         (obj as any).dirty = true;
@@ -184,19 +184,19 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
     }
 
     if (obj.isPilotiText) {
-      obj.set("text", formatPilotiHeight(newHeight));
+      obj.set('text', formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
 
     if (obj.isPilotiSizeLabel) {
-      obj.set("text", formatPilotiHeight(newHeight));
+      obj.set('text', formatPilotiHeight(newHeight));
       (obj as any).dirty = true;
     }
   });
 
   // Keep the house centered in the canvas when the piloti grows (avoid bottom cut by viewport).
   if (rectHeightDelta !== 0) {
-    group.set("top", (group.top || 0) - rectHeightDelta / 2);
+    group.set('top', (group.top || 0) - rectHeightDelta / 2);
   }
 
   group.canvas?.requestRenderAll();
@@ -212,7 +212,7 @@ export function refreshHouseGroupRendering(group: Group): void {
   (group as any).objectCaching = false;
 
   // Keep house interaction constraints stable after JSON restore/undo.
-  if ((group as any).myType === "house") {
+  if ((group as any).myType === 'house') {
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
   }
 
@@ -257,7 +257,7 @@ export function refreshHouseGroupRendering(group: Group): void {
 
 export function refreshHouseGroupsOnCanvas(canvas: FabricCanvas): void {
   canvas.getObjects().forEach((obj: any) => {
-    if (obj?.type === "group" && obj?.myType === "house") {
+    if (obj?.type === 'group' && obj?.myType === 'house') {
       refreshHouseGroupRendering(obj as Group);
     }
   });
@@ -271,14 +271,14 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
       if (obj.pilotiId !== pilotiId) {
         if ((obj.isPilotiCircle || obj.isPilotiRect) && obj.pilotiIsMaster) {
           obj.pilotiIsMaster = false;
-          obj.set("fill", obj.isPilotiRect ? "#fff" : "white");
-          obj.set("stroke", obj.isPilotiRect ? "#333" : "black");
-          obj.set("strokeWidth", obj.isPilotiRect ? 2 : 1.5 * 0.6);
+          obj.set('fill', obj.isPilotiRect ? '#fff' : 'white');
+          obj.set('stroke', obj.isPilotiRect ? '#333' : 'black');
+          obj.set('strokeWidth', obj.isPilotiRect ? 2 : 1.5 * 0.6);
         }
         // Keep nivel text visible for corner pilotis even when losing master status
         if (obj.isPilotiNivelText && !CORNER_PILOTI_IDS.includes(obj.pilotiId)) {
-          obj.set("text", "");
-          obj.set("visible", false);
+          obj.set('text', '');
+          obj.set('visible', false);
         }
       }
     });
@@ -293,13 +293,13 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
 
         // Update visual style based on isMaster
         if (isMaster) {
-          obj.set("fill", MASTER_PILOTI_FILL);
-          obj.set("stroke", MASTER_PILOTI_STROKE_COLOR);
-          obj.set("strokeWidth", obj.isPilotiRect ? 3 : 2);
+          obj.set('fill', MASTER_PILOTI_FILL);
+          obj.set('stroke', MASTER_PILOTI_STROKE_COLOR);
+          obj.set('strokeWidth', obj.isPilotiRect ? 3 : 2);
         } else {
-          obj.set("fill", obj.isPilotiRect ? "#fff" : "white");
-          obj.set("stroke", obj.isPilotiRect ? "#333" : "black");
-          obj.set("strokeWidth", obj.isPilotiRect ? 2 : 1.5 * 0.6);
+          obj.set('fill', obj.isPilotiRect ? '#fff' : 'white');
+          obj.set('stroke', obj.isPilotiRect ? '#333' : 'black');
+          obj.set('strokeWidth', obj.isPilotiRect ? 2 : 1.5 * 0.6);
         }
       }
       if (obj.isPilotiNivelText) {
@@ -310,15 +310,15 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
           const centerY = Number(pilotiCircle?.top ?? obj.top ?? 0);
           const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
           const offset = 12 * 0.6;
-          const isTopCorner = pilotiId === "piloti_0_0" || pilotiId === "piloti_3_0";
+          const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
 
-          obj.set("text", `Nível = ${formatNivel(nivel)}`);
-          obj.set("left", centerX);
-          obj.set("top", isTopCorner ? centerY - radius - offset : centerY + radius + offset);
-          obj.set("visible", true);
+          obj.set('text', `Nível = ${formatNivel(nivel)}`);
+          obj.set('left', centerX);
+          obj.set('top', isTopCorner ? centerY - radius - offset : centerY + radius + offset);
+          obj.set('visible', true);
         } else {
-          obj.set("text", "");
-          obj.set("visible", false);
+          obj.set('text', '');
+          obj.set('visible', false);
         }
       }
     }
@@ -330,13 +330,13 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
 // Create a diagonal stripe pattern for piloti fill (bottom 2/3)
 export function createDiagonalStripePattern(): Pattern {
   const size = 10; // pattern tile size
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
 
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, size, size);
-  ctx.strokeStyle = "#333";
+  ctx.strokeStyle = '#333';
   ctx.lineWidth = 1.2;
 
   // Draw diagonal line across the tile
@@ -357,7 +357,7 @@ export function createDiagonalStripePattern(): Pattern {
 
   return new Pattern({
     source: canvas,
-    repeat: "repeat",
+    repeat: 'repeat',
   });
 }
 
@@ -447,7 +447,7 @@ export function createGroundElements(
 ): FabricObject[] {
   const elements: FabricObject[] = [];
   const xSize = 5 * s;
-  const lineColor = "#8B6914";
+  const lineColor = '#8B6914';
   const markerWidth = 1.5;
 
   // X marker on left corner piloti
@@ -497,13 +497,13 @@ export function createGroundElements(
   const lLabel = new Text(leftNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    backgroundColor: "#ffffff",
-    fontFamily: "Arial",
-    fontWeight: "bold",
+    backgroundColor: '#ffffff',
+    fontFamily: 'Arial',
+    fontWeight: 'bold',
     left: leftCenterX + xSize + 5,
     top: leftNivelY + xSize + 10 * s,
-    originX: "right",
-    originY: "center",
+    originX: 'right',
+    originY: 'center',
     selectable: false,
     evented: false,
   });
@@ -513,13 +513,13 @@ export function createGroundElements(
   const rLabel = new Text(rightNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    backgroundColor: "#ffffff",
-    fontFamily: "Arial",
-    fontWeight: "bold",
+    backgroundColor: '#ffffff',
+    fontFamily: 'Arial',
+    fontWeight: 'bold',
     left: rightCenterX - xSize - 3,
     top: rightNivelY + xSize + 10 * s,
-    originX: "left",
-    originY: "center",
+    originX: 'left',
+    originY: 'center',
     selectable: false,
     evented: false,
   });
@@ -543,7 +543,7 @@ export function createGroundElements(
   const groundLine = new Polyline(groundPtsAbs, {
     left: gMinX,
     top: gMinY,
-    fill: "transparent",
+    fill: 'transparent',
     stroke: lineColor,
     strokeWidth: 2.5,
     strokeUniform: true,
@@ -564,8 +564,8 @@ export function createGroundElements(
   const groundFill = new Polygon(fillPtsAbs, {
     left: fMinX,
     top: fMinY,
-    fill: "rgba(139, 105, 20, 0.10)",
-    stroke: "transparent",
+    fill: 'rgba(139, 105, 20, 0.10)',
+    stroke: 'transparent',
     strokeWidth: 0,
     selectable: false,
     evented: false,
@@ -582,20 +582,20 @@ export function createGroundElements(
 function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string } | null {
   const houseView = (group as any).houseView;
 
-  if (houseView === "front" || houseView === "back") {
+  if (houseView === 'front' || houseView === 'back') {
     const isFlipped = (group as any).isFlippedHorizontally;
     if (isFlipped) {
-      return {leftId: "piloti_3_0", rightId: "piloti_0_0"};
+      return {leftId: 'piloti_3_0', rightId: 'piloti_0_0'};
     }
-    return {leftId: "piloti_0_2", rightId: "piloti_3_2"};
+    return {leftId: 'piloti_0_2', rightId: 'piloti_3_2'};
   }
 
-  if (houseView === "side") {
+  if (houseView === 'side') {
     const isRight = (group as any).isRightSide;
     if (isRight) {
-      return {leftId: "piloti_3_2", rightId: "piloti_3_0"};
+      return {leftId: 'piloti_3_2', rightId: 'piloti_3_0'};
     }
-    return {leftId: "piloti_0_0", rightId: "piloti_0_2"};
+    return {leftId: 'piloti_0_0', rightId: 'piloti_0_2'};
   }
 
   return null;

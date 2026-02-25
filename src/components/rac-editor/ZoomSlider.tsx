@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {MINIMAP_SIZE} from "@/components/rac-editor/Minimap.tsx";
+import {MINIMAP_SIZE} from '@/components/rac-editor/Minimap.tsx';
 
 const ZOOM_SLIDER_WIDTH = MINIMAP_SIZE;
 const ZOOM_THUMB_SIZE = 12;
@@ -87,18 +87,18 @@ export function ZoomSlider({zoom, onZoomChange, highlight = false}: ZoomSliderPr
           ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1'
           : ''
         }`}>
-      <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
+      <span className='text-[9px] text-muted-foreground font-medium'>{zoomPercent}%</span>
       <div
         ref={sliderRef}
-        data-testid="rac-zoom-slider"
-        className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
+        data-testid='rac-zoom-slider'
+        className='relative bg-background/90 border border-border rounded cursor-pointer touch-none'
         style={{width: ZOOM_SLIDER_WIDTH, height: 16}}
         onMouseDown={handleSliderMouseDown}
         onTouchStart={handleTouchStart}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded"/>
+        <div className='absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded'/>
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
+          className='absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75'
           style={{left: thumbX - ZOOM_THUMB_SIZE / 2}}
         />
       </div>

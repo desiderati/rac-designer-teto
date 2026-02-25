@@ -10,7 +10,7 @@ function HotkeysHarness({
   onToggleZoomControls: () => void;
 }) {
   useHotkeys({onToggleDrawMode, onToggleZoomControls});
-  return <input data-testid="hotkeys-input"/>;
+  return <input data-testid='hotkeys-input'/>;
 }
 
 describe('useHotkeys smoke', () => {

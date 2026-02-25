@@ -37,7 +37,7 @@ export function extractViewGroupRemovalHints<TView extends string>(params: {
   houseInstanceId?: unknown;
 }): ViewGroupRemovalHints<TView> {
   return {
-    viewType: typeof params.houseViewType === "string" ? (params.houseViewType as TView) : undefined,
-    instanceId: typeof params.houseInstanceId === "string" ? params.houseInstanceId : undefined,
+    viewType: typeof params.houseViewType === 'string' ? (params.houseViewType as TView) : undefined,
+    instanceId: typeof params.houseInstanceId === 'string' ? params.houseInstanceId : undefined,
   };
 }

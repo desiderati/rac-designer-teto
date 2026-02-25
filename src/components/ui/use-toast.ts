@@ -1,3 +1,3 @@
-import {toast, useToast} from "@/components/lib/use-toast.ts";
+import {toast, useToast} from '@/components/lib/use-toast.ts';
 
 export {useToast, toast};

@@ -23,14 +23,14 @@ export function ConfirmDialogModal({
 }: ConfirmDialogModalProps) {
   const body = (
     <>
-      <div className="bg-white rounded-xl p-4">
-        <p className="text-sm text-muted-foreground">{description}</p>
+      <div className='bg-white rounded-xl p-4'>
+        <p className='text-sm text-muted-foreground'>{description}</p>
       </div>
-      <div className="flex gap-[16px] pt-4">
-        <Button variant="outline" className="flex-1 bg-white" onClick={onRequestClose}>
+      <div className='flex gap-[16px] pt-4'>
+        <Button variant='outline' className='flex-1 bg-white' onClick={onRequestClose}>
           Cancelar
         </Button>
-        <Button className="flex-1" onClick={onConfirm}>
+        <Button className='flex-1' onClick={onConfirm}>
           {confirmLabel}
         </Button>
       </div>
@@ -41,10 +41,10 @@ export function ConfirmDialogModal({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && onRequestClose()}>
         <DrawerContent>
-          <DrawerHeader className="text-center pb-2">
-            <DrawerTitle className="text-center text-2xl">{title}</DrawerTitle>
+          <DrawerHeader className='text-center pb-2'>
+            <DrawerTitle className='text-center text-2xl'>{title}</DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4">{body}</div>
+          <div className='px-4 pb-4'>{body}</div>
         </DrawerContent>
       </Drawer>
     );
@@ -52,9 +52,9 @@ export function ConfirmDialogModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onRequestClose()}>
-      <DialogContent className="sm:max-w-sm" hideCloseButton>
-        <DialogHeader className="text-center">
-          <DialogTitle className="text-center text-2xl">{title}</DialogTitle>
+      <DialogContent className='sm:max-w-sm' hideCloseButton>
+        <DialogHeader className='text-center'>
+          <DialogTitle className='text-center text-2xl'>{title}</DialogTitle>
         </DialogHeader>
         {body}
       </DialogContent>

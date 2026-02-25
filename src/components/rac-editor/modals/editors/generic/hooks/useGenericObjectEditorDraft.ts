@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from 'react';
 
 /**
  * Controla um "rascunho" (draft) para formulários de edição.

@@ -1,16 +1,16 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   SNAPSHOT_MAX_CANVAS_RATIO,
   calculateSnapshotScale,
   create3DSnapshotImagePatch,
-} from "./house-snapshot-use-cases.ts";
+} from './house-snapshot-use-cases.ts';
 
-describe("house-snapshot use cases", () => {
-  it("exports canonical max ratio for snapshot insertion", () => {
+describe('house-snapshot use cases', () => {
+  it('exports canonical max ratio for snapshot insertion', () => {
     expect(SNAPSHOT_MAX_CANVAS_RATIO).toBe(0.45);
   });
 
-  it("calculates scale capped at 1 for small images", () => {
+  it('calculates scale capped at 1 for small images', () => {
     expect(
       calculateSnapshotScale({
         imageWidth: 200,
@@ -21,7 +21,7 @@ describe("house-snapshot use cases", () => {
     ).toBe(1);
   });
 
-  it("calculates scale constrained by canvas bounds", () => {
+  it('calculates scale constrained by canvas bounds', () => {
     expect(
       calculateSnapshotScale({
         imageWidth: 3000,
@@ -32,7 +32,7 @@ describe("house-snapshot use cases", () => {
     ).toBeCloseTo(0.18, 4);
   });
 
-  it("creates image patch for centered insertion on canvas", () => {
+  it('creates image patch for centered insertion on canvas', () => {
     expect(
       create3DSnapshotImagePatch({
         centerX: 150,
@@ -45,8 +45,8 @@ describe("house-snapshot use cases", () => {
     ).toMatchObject({
       left: 150,
       top: 90,
-      originX: "center",
-      originY: "center",
+      originX: 'center',
+      originY: 'center',
       scaleX: 0.45,
       scaleY: 0.45,
       lockRotation: true,

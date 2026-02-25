@@ -14,7 +14,7 @@ import {
 } from '@/domain/use-cases/house-view-layout-use-cases.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
-import {HouseSideSelectorMode} from "@/components/rac-editor/modals/selectors/HouseSideSelector.tsx";
+import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;

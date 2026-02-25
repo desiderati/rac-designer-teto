@@ -1,5 +1,5 @@
 import {Dispatch, SetStateAction, useMemo} from 'react';
-import {ToolbarActionMap, ToolbarSubmenu} from "@/components/rac-editor/toolbar/helpers/toolbar-types.ts";
+import {ToolbarActionMap, ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 
 interface UseToolbarActionsArgs {
   handleOpenHouseTypeSelector: () => void;

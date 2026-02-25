@@ -1,11 +1,11 @@
-import type {HouseRepository} from "@/domain/repository/house-repository.ts";
+import type {HouseRepository} from '@/domain/repository/house-repository.ts';
 import {
   applyPilotiUpdateWithSingleMasterRule,
   calculateRecommendedPilotiData,
   canAddViewForType,
   getMaxViewCountForType,
-} from "../use-cases/house-use-cases.ts";
-import {HousePiloti, HouseViewType} from "@/shared/types/house.ts";
+} from '../use-cases/house-use-cases.ts';
+import {HousePiloti, HouseViewType} from '@/shared/types/house.ts';
 
 export function getMaxViewCount(repository: HouseRepository, viewType: HouseViewType): number {
   return getMaxViewCountForType(repository.getHouseType(), viewType);

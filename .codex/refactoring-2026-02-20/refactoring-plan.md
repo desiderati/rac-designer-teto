@@ -614,9 +614,9 @@ Próximos recortes planejados:
     - extração do cálculo de `isAnyEditorOpen` e wiring de seleção inline para `useGenericObjectEditorBindings`.
 - `Toolbar.tsx`:
     - decomposição em componentes dedicados:
-      - `ToolbarButtons`
-      - `ToolbarMainMenu`
-      - `ToolbarOverflowMenu`
+        - `ToolbarButtons`
+        - `ToolbarMainMenu`
+        - `ToolbarOverflowMenu`
     - extração de ícones/comandos para `toolbar-config`;
     - extração de tipos compartilhados para `toolbar-types`.
 
@@ -630,9 +630,9 @@ Estado atual dos arquivos críticos:
 Próximos recortes planejados:
 
 1. quebrar `useContraventamento.ts` em:
-   - `useContraventamentoQueries`
-   - `useContraventamentoCommands`
-   - `useContraventamentoEffects`
+    - `useContraventamentoQueries`
+    - `useContraventamentoCommands`
+    - `useContraventamentoEffects`
 2. mover tipos runtime de `useCanvasFabricSetup.ts` para `canvas.ts`;
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.

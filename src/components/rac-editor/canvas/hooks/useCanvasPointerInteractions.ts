@@ -1,6 +1,6 @@
 import React, {MutableRefObject, RefObject, useCallback, useEffect} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 
 interface UseCanvasPointerInteractionsArgs {
   containerRef: RefObject<HTMLDivElement | null>;

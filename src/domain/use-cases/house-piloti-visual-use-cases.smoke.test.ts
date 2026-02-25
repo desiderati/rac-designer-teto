@@ -1,13 +1,13 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   createNivelLabelBackgroundPatch,
   createPilotiHeightTextPatch,
   createPilotiSizeLabelPatch,
   createPilotiVisualDataPatch,
-} from "./house-piloti-visual-use-cases.ts";
+} from './house-piloti-visual-use-cases.ts';
 
-describe("house-piloti-visual use cases", () => {
-  it("creates visual data patch for master rect piloti", () => {
+describe('house-piloti-visual use cases', () => {
+  it('creates visual data patch for master rect piloti', () => {
     expect(
       createPilotiVisualDataPatch({
         height: 2,
@@ -15,8 +15,8 @@ describe("house-piloti-visual use cases", () => {
         nivel: 0.8,
         isRect: true,
         baseHeight: 60,
-        masterFill: "#fef08a",
-        masterStroke: "#ca8a04",
+        masterFill: '#fef08a',
+        masterStroke: '#ca8a04',
       }),
     ).toEqual({
       pilotiHeight: 2,
@@ -24,13 +24,13 @@ describe("house-piloti-visual use cases", () => {
       pilotiNivel: 0.8,
       height: 120,
       scaleY: 1,
-      fill: "#fef08a",
-      stroke: "#ca8a04",
+      fill: '#fef08a',
+      stroke: '#ca8a04',
       strokeWidth: 3,
     });
   });
 
-  it("creates visual data patch for non-master circle piloti", () => {
+  it('creates visual data patch for non-master circle piloti', () => {
     expect(
       createPilotiVisualDataPatch({
         height: 1.2,
@@ -38,8 +38,8 @@ describe("house-piloti-visual use cases", () => {
         nivel: 0.3,
         isRect: false,
         baseHeight: 60,
-        masterFill: "#fef08a",
-        masterStroke: "#ca8a04",
+        masterFill: '#fef08a',
+        masterStroke: '#ca8a04',
       }),
     ).toEqual({
       pilotiHeight: 1.2,
@@ -48,9 +48,9 @@ describe("house-piloti-visual use cases", () => {
     });
   });
 
-  it("creates patches for piloti height text, size label and nivel label background", () => {
-    expect(createPilotiHeightTextPatch("2,00")).toEqual({text: "2,00"});
-    expect(createPilotiSizeLabelPatch("2,00")).toEqual({text: "2,00", backgroundColor: "#ffffff"});
-    expect(createNivelLabelBackgroundPatch()).toEqual({backgroundColor: "#ffffff"});
+  it('creates patches for piloti height text, size label and nivel label background', () => {
+    expect(createPilotiHeightTextPatch('2,00')).toEqual({text: '2,00'});
+    expect(createPilotiSizeLabelPatch('2,00')).toEqual({text: '2,00', backgroundColor: '#ffffff'});
+    expect(createNivelLabelBackgroundPatch()).toEqual({backgroundColor: '#ffffff'});
   });
 });

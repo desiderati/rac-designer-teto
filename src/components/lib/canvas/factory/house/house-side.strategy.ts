@@ -1,8 +1,8 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Rect, Text} from "fabric";
-import {BASE_PILOTI_HEIGHT_PX} from "../../constants.ts";
+import {Canvas as FabricCanvas, FabricObject, Group, Rect, Text} from 'fabric';
+import {BASE_PILOTI_HEIGHT_PX} from '../../constants.ts';
 
-import {createGroundElements, formatNivel, formatPilotiHeight, getPilotiVisualHeight} from "../../piloti.ts";
-import {createPilotiStripeOverlay, getHouseScaleFactors} from "@/components/lib/canvas/factory/house/shared.ts";
+import {createGroundElements, formatNivel, formatPilotiHeight, getPilotiVisualHeight} from '../../piloti.ts';
+import {createPilotiStripeOverlay, getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 
 export function createHouseSide(
   canvas: FabricCanvas,
@@ -44,16 +44,16 @@ export function createHouseSide(
       const rect = new Rect({
         width: pilotW,
         height: pilotH,
-        fill: "#fff",
-        stroke: "#333",
+        fill: '#fff',
+        stroke: '#333',
         strokeWidth: 2,
         strokeUniform: true,
         left,
         top: wallHeight + floorH + floorBeanH,
-        originY: "top",
+        originY: 'top',
         objectCaching: false,
       });
-      (rect as any).myType = "piloti";
+      (rect as any).myType = 'piloti';
       (rect as any).pilotiId = pilotiId;
       (rect as any).pilotiHeight = defaultHeight;
       (rect as any).pilotiIsMaster = false;
@@ -64,12 +64,12 @@ export function createHouseSide(
       // Create size label below piloti
       const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
         fontSize: 20 * s,
-        fill: "#666",
-        backgroundColor: "#ffffff",
+        fill: '#666',
+        backgroundColor: '#ffffff',
         left: left + pilotW / 2,
         top: wallHeight + floorH + floorBeanH + pilotH + 8 * s,
-        originX: "center",
-        originY: "top",
+        originX: 'center',
+        originY: 'top',
         selectable: false,
         evented: false,
       });
@@ -90,8 +90,8 @@ export function createHouseSide(
   const wall = new Rect({
     width: sideWidth,
     height: wallHeight,
-    fill: "#eeeeee",
-    stroke: "#333",
+    fill: '#eeeeee',
+    stroke: '#333',
     strokeWidth: 2,
     strokeUniform: true,
     left: 0,
@@ -103,8 +103,8 @@ export function createHouseSide(
   const floor = new Rect({
     width: floorW,
     height: floorH,
-    fill: "#fff",
-    stroke: "#333",
+    fill: '#fff',
+    stroke: '#333',
     strokeWidth: 2,
     strokeUniform: true,
     left: 0,
@@ -116,8 +116,8 @@ export function createHouseSide(
     const floorBean = new Rect({
       width: floorBeanW,
       height: floorBeanH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 2,
       strokeUniform: true,
       left: left,
@@ -148,8 +148,8 @@ export function createHouseSide(
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -159,8 +159,8 @@ export function createHouseSide(
     const windowObj = new Rect({
       width: windowW,
       height: windowH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: windowX,
@@ -216,13 +216,13 @@ export function createHouseSide(
   const group = new Group(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
-    originX: "center",
-    originY: "center",
+    originX: 'center',
+    originY: 'center',
     subTargetCheck: true,
     objectCaching: false,
   });
-  (group as any).myType = "house";
-  (group as any).houseView = "side";
+  (group as any).myType = 'house';
+  (group as any).houseView = 'side';
   (group as any).isRightSide = isRightSide;
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 

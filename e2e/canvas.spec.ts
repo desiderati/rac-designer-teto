@@ -1,7 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 import {
   closePilotiEditorByDebug,
   createHouse,
+  expectNoConsoleErrors,
   getCanvasObjectsSummary,
   getCanvasPosition,
   getHouseSnapshot,
@@ -9,18 +10,24 @@ import {
   selectCanvasObjectByMyTypeByDebug,
   setCanvasPositionByDebug,
   setupRacEditorPage,
+  startConsoleErrorCapture,
   triggerElementsAction,
-} from "./helpers/rac-helpers";
+} from './helpers/rac-helpers';
 
-test.describe("RAC canvas interactions", () => {
-  test.describe.configure({ mode: "serial" });
+test.describe('RAC canvas interactions', () => {
+  test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
+    startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test("canvas: zoom slider altera o nivel de zoom", async ({ page }) => {
-    await createHouse(page, "tipo6");
+  test.afterEach(async ({ page }) => {
+    expectNoConsoleErrors(page);
+  });
+
+  test('canvas: zoom slider altera o nivel de zoom', async ({ page }) => {
+    await createHouse(page, 'tipo6');
 
     const zoomSlider = page.locator('[data-testid="rac-zoom-slider"]:visible').first();
     const minimap = page.locator('[data-testid="rac-minimap"]:visible').first();
@@ -33,7 +40,7 @@ test.describe("RAC canvas interactions", () => {
     const zoomSliderBox = await zoomSlider.boundingBox();
     expect(zoomSliderBox).not.toBeNull();
     if (!zoomSliderBox || !initial) {
-      throw new Error("Zoom slider não disponível para teste.");
+      throw new Error('Zoom slider não disponível para teste.');
     }
 
     await page.mouse.move(zoomSliderBox.x + 2, zoomSliderBox.y + zoomSliderBox.height / 2);
@@ -46,7 +53,7 @@ test.describe("RAC canvas interactions", () => {
     const minimapBox = await minimap.boundingBox();
     expect(minimapBox).not.toBeNull();
     if (!minimapBox) {
-      throw new Error("Minimap não disponível para teste.");
+      throw new Error('Minimap não disponível para teste.');
     }
 
     await page.mouse.click(minimapBox.x + minimapBox.width / 2, minimapBox.y + minimapBox.height / 2);
@@ -54,15 +61,15 @@ test.describe("RAC canvas interactions", () => {
     expect(snapshotAfterMinimapClick).not.toBeNull();
   });
 
-  test("canvas: pan por wheel e minimap atualizam viewport", async ({ page }) => {
-    await createHouse(page, "tipo6");
+  test('canvas: pan por wheel e minimap atualizam viewport', async ({ page }) => {
+    await createHouse(page, 'tipo6');
 
     const zoomSlider = page.locator('[data-testid="rac-zoom-slider"]:visible').first();
     await expect(zoomSlider).toBeVisible();
     const zoomSliderBox = await zoomSlider.boundingBox();
     expect(zoomSliderBox).not.toBeNull();
     if (!zoomSliderBox) {
-      throw new Error("Zoom slider não disponível para teste.");
+      throw new Error('Zoom slider não disponível para teste.');
     }
 
     await page.mouse.move(zoomSliderBox.x + zoomSliderBox.width - 3, zoomSliderBox.y + zoomSliderBox.height / 2);
@@ -74,8 +81,8 @@ test.describe("RAC canvas interactions", () => {
     expect(resetViewport).toBe(true);
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? -1).toBe(0);
 
-    const canvasContainer = page.getByTestId("rac-canvas-container");
-    await canvasContainer.dispatchEvent("wheel", { deltaX: 0, deltaY: 280 });
+    const canvasContainer = page.getByTestId('rac-canvas-container');
+    await canvasContainer.dispatchEvent('wheel', { deltaX: 0, deltaY: 280 });
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? 0).toBeGreaterThan(0);
 
     const minimap = page.locator('[data-testid="rac-minimap"]:visible').first();
@@ -83,7 +90,7 @@ test.describe("RAC canvas interactions", () => {
     const minimapBox = await minimap.boundingBox();
     expect(minimapBox).not.toBeNull();
     if (!minimapBox) {
-      throw new Error("Minimap não disponível para teste.");
+      throw new Error('Minimap não disponível para teste.');
     }
 
     await setCanvasPositionByDebug(page, 0, 0);
@@ -95,46 +102,46 @@ test.describe("RAC canvas interactions", () => {
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? 0).toBeGreaterThan(0);
   });
 
-  test("canvas: atalhos copy/paste/undo e delete com e sem editor aberto", async ({ page }) => {
-    await createHouse(page, "tipo6");
-    await triggerElementsAction(page, "Objeto / Muro");
+  test('canvas: atalhos copy/paste/undo e delete com e sem editor aberto', async ({ page }) => {
+    await createHouse(page, 'tipo6');
+    await triggerElementsAction(page, 'Objeto / Muro');
 
     const countByType = async (myType: string) =>
       (await getCanvasObjectsSummary(page)).filter((obj) => obj.myType === myType).length;
 
-    const wallCountAfterAdd = await countByType("wall");
+    const wallCountAfterAdd = await countByType('wall');
     expect(wallCountAfterAdd).toBeGreaterThan(0);
 
-    await page.keyboard.press("ControlOrMeta+z");
-    await expect.poll(async () => countByType("wall")).toBe(wallCountAfterAdd - 1);
+    await page.keyboard.press('ControlOrMeta+z');
+    await expect.poll(async () => countByType('wall')).toBe(wallCountAfterAdd - 1);
 
-    await triggerElementsAction(page, "Objeto / Muro");
-    const wallCountBeforePaste = await countByType("wall");
-    const selected = await selectCanvasObjectByMyTypeByDebug(page, "wall", true);
+    await triggerElementsAction(page, 'Objeto / Muro');
+    const wallCountBeforePaste = await countByType('wall');
+    const selected = await selectCanvasObjectByMyTypeByDebug(page, 'wall', true);
     expect(selected).toBe(true);
 
-    await page.keyboard.press("ControlOrMeta+c");
-    await page.keyboard.press("ControlOrMeta+v");
-    await expect.poll(async () => countByType("wall")).toBe(wallCountBeforePaste + 1);
+    await page.keyboard.press('ControlOrMeta+c');
+    await page.keyboard.press('ControlOrMeta+v');
+    await expect.poll(async () => countByType('wall')).toBe(wallCountBeforePaste + 1);
 
-    const selectedForDelete = await selectCanvasObjectByMyTypeByDebug(page, "wall", true);
+    const selectedForDelete = await selectCanvasObjectByMyTypeByDebug(page, 'wall', true);
     expect(selectedForDelete).toBe(true);
 
-    const openedEditor = await openPilotiEditorByDebug(page, "piloti_0_0");
+    const openedEditor = await openPilotiEditorByDebug(page, 'piloti_0_0');
     expect(openedEditor).toBe(true);
-    await expect(page.getByText("Definir como Mestre?")).toBeVisible();
+    await expect(page.getByText('Definir como Mestre?')).toBeVisible();
 
-    const wallCountBeforeBlockedDelete = await countByType("wall");
-    await page.keyboard.press("Delete");
-    await expect.poll(async () => countByType("wall")).toBe(wallCountBeforeBlockedDelete);
+    const wallCountBeforeBlockedDelete = await countByType('wall');
+    await page.keyboard.press('Delete');
+    await expect.poll(async () => countByType('wall')).toBe(wallCountBeforeBlockedDelete);
 
     await closePilotiEditorByDebug(page);
-    await expect(page.getByText("Definir como Mestre?")).toBeHidden();
+    await expect(page.getByText('Definir como Mestre?')).toBeHidden();
 
-    const selectedAfterEditorClose = await selectCanvasObjectByMyTypeByDebug(page, "wall", true);
+    const selectedAfterEditorClose = await selectCanvasObjectByMyTypeByDebug(page, 'wall', true);
     expect(selectedAfterEditorClose).toBe(true);
-    const wallCountBeforeDelete = await countByType("wall");
-    await page.keyboard.press("Delete");
-    await expect.poll(async () => countByType("wall")).toBe(wallCountBeforeDelete - 1);
+    const wallCountBeforeDelete = await countByType('wall');
+    await page.keyboard.press('Delete');
+    await expect.poll(async () => countByType('wall')).toBe(wallCountBeforeDelete - 1);
   });
 });

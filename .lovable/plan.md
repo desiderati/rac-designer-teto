@@ -55,7 +55,7 @@ A viga conecta dois pilotis em y₁ e y₂, pela tangente (tocando o lado do cí
 ```
 vigarLeft  = pilotiX - virgaWidth/2   (centrado na coluna X)
 vigarTop   = y₁ + rad                 (tangente inferior do piloti 1)
-vigarBottom = y₂ - rad               (tangente superior do piloti 2)
+vigarBottom = y₂ - rad                (tangente superior do piloti 2)
 vigarHeight = vigarBottom - vigarTop  (distância entre tangentes)
 ```
 

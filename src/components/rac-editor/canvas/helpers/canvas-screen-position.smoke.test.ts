@@ -1,8 +1,8 @@
-import {describe, expect, it} from "vitest";
-import {getCanvasViewportOffset, toCanvasScreenPoint} from "./canvas-screen-position.ts";
+import {describe, expect, it} from 'vitest';
+import {getCanvasViewportOffset, toCanvasScreenPoint} from './canvas-screen-position.ts';
 
-describe("canvas-screen-position utils", () => {
-  it("projects point with centered canvas when scaled canvas fits container", () => {
+describe('canvas-screen-position utils', () => {
+  it('projects point with centered canvas when scaled canvas fits container', () => {
     expect(
       toCanvasScreenPoint({
         canvasPosition: {x: 0, y: 0, zoom: 0.5},
@@ -17,7 +17,7 @@ describe("canvas-screen-position utils", () => {
     });
   });
 
-  it("projects point with scrolled canvas when scaled canvas exceeds container", () => {
+  it('projects point with scrolled canvas when scaled canvas exceeds container', () => {
     expect(
       toCanvasScreenPoint({
         canvasPosition: {x: 120, y: 80, zoom: 1.5},
@@ -32,7 +32,7 @@ describe("canvas-screen-position utils", () => {
     });
   });
 
-  it("returns centered offsets when scaled canvas fits container", () => {
+  it('returns centered offsets when scaled canvas fits container', () => {
     expect(
       getCanvasViewportOffset({
         canvasPosition: {x: 30, y: 40, zoom: 0.5},
@@ -47,7 +47,7 @@ describe("canvas-screen-position utils", () => {
     });
   });
 
-  it("returns viewport-based offsets when scaled canvas exceeds container", () => {
+  it('returns viewport-based offsets when scaled canvas exceeds container', () => {
     expect(
       getCanvasViewportOffset({
         canvasPosition: {x: 120, y: 80, zoom: 1.5},

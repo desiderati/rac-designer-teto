@@ -1,7 +1,7 @@
-const SETTINGS_STORAGE_KEY = "rac-settings";
+const SETTINGS_STORAGE_KEY = 'rac-settings';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export function readSettingsStorage<T extends object>(defaults: T): T {

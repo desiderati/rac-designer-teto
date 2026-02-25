@@ -36,9 +36,9 @@ export function RacEditorModals({
       <ConfirmDialogModal
         isMobile={isMobile}
         isOpen={showRestartConfirm}
-        title="Reiniciar Canvas"
-        description="Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?"
-        confirmLabel="Confirmar"
+        title='Reiniciar Canvas'
+        description='Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?'
+        confirmLabel='Confirmar'
         onConfirm={onConfirmRestartTutorial}
         onRequestClose={onCloseRestartConfirm}
       />
@@ -46,9 +46,9 @@ export function RacEditorModals({
       <ConfirmDialogModal
         isMobile={isMobile}
         isOpen={showUngroupConfirm}
-        title="Desagrupar Casa"
-        description="Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?"
-        confirmLabel="Desagrupar"
+        title='Desagrupar Casa'
+        description='Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?'
+        confirmLabel='Desagrupar'
         onConfirm={onConfirmUngroup}
         onRequestClose={onCloseUngroupConfirm}
       />

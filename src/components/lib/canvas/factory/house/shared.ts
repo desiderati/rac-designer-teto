@@ -1,13 +1,13 @@
-import {Canvas as FabricCanvas, Rect} from "fabric";
-import {BASE_TOP_HEIGHT, BASE_TOP_WIDTH} from "../../constants.ts";
+import {Canvas as FabricCanvas, Rect} from 'fabric';
+import {BASE_TOP_HEIGHT, BASE_TOP_WIDTH} from '../../constants.ts';
 
-import {createDiagonalStripePattern} from "../../piloti.ts";
+import {createDiagonalStripePattern} from '../../piloti.ts';
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();
 
   // Find the top view (plant view) group
-  const topViewGroup = objs.find((o: any) => o.myType === "house" && o.houseView === "top") as any;
+  const topViewGroup = objs.find((o: any) => o.myType === 'house' && o.houseView === 'top') as any;
 
   if (topViewGroup) {
     // Get the house body rect inside the group
@@ -66,7 +66,7 @@ export function createPilotiStripeOverlay(
     fill: createDiagonalStripePattern(),
     left,
     top: stripeTop,
-    originY: "top",
+    originY: 'top',
     strokeWidth: 0,
     selectable: false,
     evented: false,

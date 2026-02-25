@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   buildAutoAssignedSlots,
   calculateStackedViewPositions,
@@ -13,7 +13,7 @@ import {
   resolveViewInsertionRequest,
   type HouseSideAssignments,
   type HouseViewSide,
-} from "./house-view-layout-use-cases.ts";
+} from './house-view-layout-use-cases.ts';
 
 function createViews(): HouseViewSide {
   return {
@@ -34,176 +34,176 @@ function createAssignments(): HouseSideAssignments {
   };
 }
 
-describe("house-view-layout use cases", () => {
-  it("returns available views based on house type limits", () => {
+describe('house-view-layout use cases', () => {
+  it('returns available views based on house type limits', () => {
     const views = createViews();
     views.top.push({side: undefined});
-    views.side1.push({side: "left"});
+    views.side1.push({side: 'left'});
 
     expect(
       getAvailableViewsForType({
-        houseType: "tipo6",
+        houseType: 'tipo6',
         views,
       }),
-    ).toEqual(["front", "back", "side1"]);
+    ).toEqual(['front', 'back', 'side1']);
   });
 
-  it("detects when plant can or cannot be deleted", () => {
+  it('detects when plant can or cannot be deleted', () => {
     const views = createViews();
 
     expect(hasOtherViews(views)).toBe(false);
     expect(canDeletePlant(views)).toBe(true);
 
-    views.back.push({side: "top"});
+    views.back.push({side: 'top'});
     expect(hasOtherViews(views)).toBe(true);
     expect(canDeletePlant(views)).toBe(false);
   });
 
-  it("returns available sides and side selection requirement", () => {
+  it('returns available sides and side selection requirement', () => {
     const assignments = createAssignments();
-    assignments.top = "front";
+    assignments.top = 'front';
 
-    expect(getAvailableSides({viewType: "back", sideAssignments: assignments})).toEqual(["bottom"]);
-    expect(needsSideSelection({viewType: "back", sideAssignments: assignments})).toBe(true);
-    expect(needsSideSelection({viewType: "top", sideAssignments: assignments})).toBe(false);
+    expect(getAvailableSides({viewType: 'back', sideAssignments: assignments})).toEqual(['bottom']);
+    expect(needsSideSelection({viewType: 'back', sideAssignments: assignments})).toBe(true);
+    expect(needsSideSelection({viewType: 'top', sideAssignments: assignments})).toBe(false);
   });
 
-  it("auto-selects opposite side when opposite view exists", () => {
+  it('auto-selects opposite side when opposite view exists', () => {
     const views = createViews();
     const assignments = createAssignments();
-    views.front.push({side: "top"});
+    views.front.push({side: 'top'});
 
     expect(
       getAutoSelectedSide({
-        viewType: "back",
+        viewType: 'back',
         views,
         sideAssignments: assignments,
       }),
-    ).toBe("bottom");
+    ).toBe('bottom');
   });
 
-  it("builds expected pre-assigned slots per house type", () => {
-    expect(buildAutoAssignedSlots({houseType: "tipo6", initialSide: "top"})).toEqual({
-      front: "top",
-      back: "bottom",
-      side1_0: "right",
-      side1_1: "left",
+  it('builds expected pre-assigned slots per house type', () => {
+    expect(buildAutoAssignedSlots({houseType: 'tipo6', initialSide: 'top'})).toEqual({
+      front: 'top',
+      back: 'bottom',
+      side1_0: 'right',
+      side1_1: 'left',
     });
 
-    expect(buildAutoAssignedSlots({houseType: "tipo3", initialSide: "left"})).toEqual({
-      side2: "left",
-      side1: "right",
-      back_0: "top",
-      back_1: "bottom",
+    expect(buildAutoAssignedSlots({houseType: 'tipo3', initialSide: 'left'})).toEqual({
+      side2: 'left',
+      side1: 'right',
+      back_0: 'top',
+      back_1: 'bottom',
     });
   });
 
-  it("returns pre-assigned slot labels sorted and with onCanvas marker", () => {
+  it('returns pre-assigned slot labels sorted and with onCanvas marker', () => {
     const slots = {
-      side1_0: "right",
-      side1_1: "left",
-      front: "top",
+      side1_0: 'right',
+      side1_1: 'left',
+      front: 'top',
     } as const;
     const assignments = createAssignments();
-    assignments.right = "side1";
+    assignments.right = 'side1';
 
     expect(
       getPreAssignedSlots({
-        viewType: "side1",
+        viewType: 'side1',
         preAssignedSides: {...slots},
         sideAssignments: assignments,
       }),
     ).toEqual([
-      {label: "Esquerdo", side: "left", onCanvas: false},
-      {label: "Direito", side: "right", onCanvas: true},
+      {label: 'Esquerdo', side: 'left', onCanvas: false},
+      {label: 'Direito', side: 'right', onCanvas: true},
     ]);
   });
 
-  it("checks if there are any pre-assigned slots", () => {
+  it('checks if there are any pre-assigned slots', () => {
     expect(hasPreAssignedSlots({})).toBe(false);
-    expect(hasPreAssignedSlots({front: "top"})).toBe(true);
+    expect(hasPreAssignedSlots({front: 'top'})).toBe(true);
   });
 
-  it("resolves insertion for direct add and blocking states", () => {
+  it('resolves insertion for direct add and blocking states', () => {
     expect(
       resolveViewInsertionRequest({
-        viewType: "top",
+        viewType: 'top',
         isAtLimit: true,
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: "blocked_limit"});
+    ).toEqual({type: 'blocked_limit'});
 
     expect(
       resolveViewInsertionRequest({
-        viewType: "top",
+        viewType: 'top',
         isAtLimit: false,
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: "add_direct"});
+    ).toEqual({type: 'add_direct'});
 
     expect(
       resolveViewInsertionRequest({
-        viewType: "front",
+        viewType: 'front',
         isAtLimit: false,
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: "blocked_no_sides"});
+    ).toEqual({type: 'blocked_no_sides'});
 
     expect(
       resolveViewInsertionRequest({
-        viewType: "back",
+        viewType: 'back',
         isAtLimit: false,
         preAssignedSides: [],
-        availableSides: ["bottom"],
+        availableSides: ['bottom'],
       }),
-    ).toEqual({type: "add_direct", side: "bottom"});
+    ).toEqual({type: 'add_direct', side: 'bottom'});
   });
 
-  it("resolves insertion with pre-assigned slots", () => {
+  it('resolves insertion with pre-assigned slots', () => {
     expect(
       resolveViewInsertionRequest({
-        viewType: "side1",
+        viewType: 'side1',
         isAtLimit: false,
-        preAssignedSides: [{label: "Direito", side: "right", onCanvas: true}],
-        availableSides: ["left", "right"],
+        preAssignedSides: [{label: 'Direito', side: 'right', onCanvas: true}],
+        availableSides: ['left', 'right'],
       }),
-    ).toEqual({type: "blocked_no_instance_slots"});
+    ).toEqual({type: 'blocked_no_instance_slots'});
 
     expect(
       resolveViewInsertionRequest({
-        viewType: "side1",
+        viewType: 'side1',
         isAtLimit: false,
         preAssignedSides: [
-          {label: "Esquerdo", side: "left", onCanvas: false},
-          {label: "Direito", side: "right", onCanvas: true},
+          {label: 'Esquerdo', side: 'left', onCanvas: false},
+          {label: 'Direito', side: 'right', onCanvas: true},
         ],
-        availableSides: ["left", "right"],
+        availableSides: ['left', 'right'],
       }),
-    ).toEqual({type: "add_direct", side: "left"});
+    ).toEqual({type: 'add_direct', side: 'left'});
 
     expect(
       resolveViewInsertionRequest({
-        viewType: "back",
+        viewType: 'back',
         isAtLimit: false,
         preAssignedSides: [
-          {label: "Superior", side: "top", onCanvas: false},
-          {label: "Inferior", side: "bottom", onCanvas: false},
+          {label: 'Superior', side: 'top', onCanvas: false},
+          {label: 'Inferior', side: 'bottom', onCanvas: false},
         ],
-        availableSides: ["top", "bottom"],
+        availableSides: ['top', 'bottom'],
       }),
     ).toEqual({
-      type: "open_instance_selector",
+      type: 'open_instance_selector',
       slots: [
-        {label: "Superior", side: "top", onCanvas: false},
-        {label: "Inferior", side: "bottom", onCanvas: false},
+        {label: 'Superior', side: 'top', onCanvas: false},
+        {label: 'Inferior', side: 'bottom', onCanvas: false},
       ],
     });
   });
 
-  it("calculates stacked positions for top and bottom views", () => {
+  it('calculates stacked positions for top and bottom views', () => {
     expect(
       calculateStackedViewPositions({
         centerY: 500,

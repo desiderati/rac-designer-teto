@@ -27,17 +27,17 @@ import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {
   useLinearEditorActions
-} from "@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts";
-import {useTutorialFlow} from "@/components/rac-editor/tutorial/hooks/useTutorialFlow.ts";
-import {useCanvasHouseInitialization} from "@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts";
-import {useTutorialUiActions} from "@/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts";
-import {useCanvasHouseViewActions} from "@/components/rac-editor/canvas/hooks/useCanvasHouseViewActions.ts";
-import {useCanvasGroupingActions} from "@/components/rac-editor/canvas/hooks/useCanvasGroupingActions.ts";
-import {useTutorialMenuActions} from "@/components/rac-editor/tutorial/hooks/useTutorialMenuActions.ts";
-import {useRacEditorJsonActions} from "@/components/rac-editor/hooks/useRacEditorJsonActions.ts";
-import {RacEditorHouseTypeSelector} from "@/components/rac-editor/RacEditorHouseTypeSelector.tsx";
-import {RacEditorTutorial} from "@/components/rac-editor/RacEditorTutorial.tsx";
-import {House3DViewer} from "@/components/rac-editor/House3DViewer.tsx";
+} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
+import {useTutorialFlow} from '@/components/rac-editor/tutorial/hooks/useTutorialFlow.ts';
+import {useCanvasHouseInitialization} from '@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts';
+import {useTutorialUiActions} from '@/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts';
+import {useCanvasHouseViewActions} from '@/components/rac-editor/canvas/hooks/useCanvasHouseViewActions.ts';
+import {useCanvasGroupingActions} from '@/components/rac-editor/canvas/hooks/useCanvasGroupingActions.ts';
+import {useTutorialMenuActions} from '@/components/rac-editor/tutorial/hooks/useTutorialMenuActions.ts';
+import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
+import {RacEditorHouseTypeSelector} from '@/components/rac-editor/RacEditorHouseTypeSelector.tsx';
+import {RacEditorTutorial} from '@/components/rac-editor/RacEditorTutorial.tsx';
+import {House3DViewer} from '@/components/rac-editor/House3DViewer.tsx';
 
 export function RacEditor() {
   const [infoMessage, setInfoMessage] =
@@ -458,7 +458,7 @@ export function RacEditor() {
 
   const contraventamentoEditorState = getContraventamentoEditorState();
   return (
-    <div className="relative h-full overflow-hidden bg-muted" onClick={handleContainerClick}>
+    <div className='relative h-full overflow-hidden bg-muted' onClick={handleContainerClick}>
       <Toolbar
         actions={toolbarActions}
         isDrawing={isDrawing}

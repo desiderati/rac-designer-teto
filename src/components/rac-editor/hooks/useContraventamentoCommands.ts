@@ -17,12 +17,12 @@ import {
   resetContraventamentoPilotis,
   setContraventamentoSelection,
   syncContraventamentoElevationsFromTop,
-} from "@/components/lib/canvas";
+} from '@/components/lib/canvas';
 import {emitHouseStoreChange} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
-import {ToolbarSubmenu} from "@/components/rac-editor/toolbar/helpers/toolbar-types.ts";
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -78,6 +78,11 @@ export function useContraventamentoCommands({
     first: ContraventamentoOrigin,
     side: ContraventamentoSide
   ) => {
+    if (!first.group) {
+      toast.error('Não foi possível identificar a vista planta para contraventamento.');
+      return;
+    }
+
     setContraventamentoFirst(first);
     setContraventamentoSide(side);
     setContraventamentoStep('select-second');
@@ -95,6 +100,7 @@ export function useContraventamentoCommands({
 
   const syncContraventamentoElevations = useCallback(() => {
     const topGroup = getTopViewGroup();
+    if (!topGroup) return;
     const targets = getNonTopViewGroups();
     syncContraventamentoElevationsFromTop(
       topGroup,
@@ -152,7 +158,13 @@ export function useContraventamentoCommands({
       return;
     }
 
-    const occupiedSides = getContraventamentoColumnSides(contraventamentoFirst.group, col);
+    const originGroup = contraventamentoFirst.group;
+    if (!originGroup) {
+      toast.error('Não foi possível identificar a vista planta para contraventamento.');
+      return;
+    }
+
+    const occupiedSides = getContraventamentoColumnSides(originGroup, col);
     if (occupiedSides[contraventamentoSide]) {
       toast.warning(
         `A coluna já possui contraventamento no lado ${contraventamentoSide === 'left' ? 'esquerdo' : 'direito'}.`
@@ -160,12 +172,12 @@ export function useContraventamentoCommands({
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
-      highlightContraventamentoPilotis(contraventamentoFirst.group, isPilotiEligibleAsOrigin);
+      highlightContraventamentoPilotis(originGroup, isPilotiEligibleAsOrigin);
       return;
     }
 
     const createdId = addContraventamentoBeam(
-      contraventamentoFirst.group,
+      originGroup,
       {col, row: contraventamentoFirst.row},
       {col, row},
       {anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide}
@@ -175,8 +187,8 @@ export function useContraventamentoCommands({
       return;
     }
 
-    resetContraventamentoPilotis(contraventamentoFirst.group);
-    clearContraventamentoSelection(contraventamentoFirst.group);
+    resetContraventamentoPilotis(originGroup);
+    clearContraventamentoSelection(originGroup);
     setIsContraventamentoMode(false);
     setContraventamentoStep('select-first');
     setContraventamentoFirst(null);

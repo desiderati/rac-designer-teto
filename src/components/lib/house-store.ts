@@ -1,5 +1,5 @@
-import {useSyncExternalStore} from "react";
-import {houseManager} from "@/components/lib/house-manager.ts";
+import {useSyncExternalStore} from 'react';
+import {houseManager} from '@/components/lib/house-manager.ts';
 
 type Listener = () => void;
 

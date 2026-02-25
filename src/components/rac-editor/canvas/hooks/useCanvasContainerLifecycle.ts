@@ -1,5 +1,5 @@
 import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/components/lib/canvas";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 
 interface UseCanvasContainerLifecycleArgs {
   containerRef: MutableRefObject<HTMLDivElement | null>;

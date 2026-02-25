@@ -1,13 +1,13 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it} from 'vitest';
 import {
   calculateCornerNivelLabelTop,
   calculatePilotiSizeLabelPosition,
   calculatePilotiStripeGeometry,
   createPilotiNivelTextPatch,
-} from "./house-piloti-render-use-cases.ts";
+} from './house-piloti-render-use-cases.ts';
 
-describe("house-piloti-render use cases", () => {
-  it("calculates corner nivel label top for top and bottom rows", () => {
+describe('house-piloti-render use cases', () => {
+  it('calculates corner nivel label top for top and bottom rows', () => {
     expect(
       calculateCornerNivelLabelTop({
         centerY: 100,
@@ -27,7 +27,7 @@ describe("house-piloti-render use cases", () => {
     ).toBeCloseTo(116.2, 4);
   });
 
-  it("calculates size label position from rect geometry", () => {
+  it('calculates size label position from rect geometry', () => {
     expect(
       calculatePilotiSizeLabelPosition({
         rectLeft: 10,
@@ -40,7 +40,7 @@ describe("house-piloti-render use cases", () => {
     ).toEqual({left: 25, top: 68});
   });
 
-  it("calculates stripe geometry using 2/3 and 1/3 rule", () => {
+  it('calculates stripe geometry using 2/3 and 1/3 rule', () => {
     expect(
       calculatePilotiStripeGeometry({
         rectTop: 12,
@@ -52,11 +52,11 @@ describe("house-piloti-render use cases", () => {
     });
   });
 
-  it("creates nivel text patch for corner and non-corner pilotis", () => {
+  it('creates nivel text patch for corner and non-corner pilotis', () => {
     expect(
       createPilotiNivelTextPatch({
         isCorner: true,
-        formattedNivel: "0,80",
+        formattedNivel: '0,80',
         centerX: 10,
         centerY: 20,
         radius: 9,
@@ -64,7 +64,7 @@ describe("house-piloti-render use cases", () => {
         isTopCorner: true,
       }),
     ).toEqual({
-      text: "Nível = 0,80",
+      text: 'Nível = 0,80',
       left: 10,
       top: 3.8,
       visible: true,
@@ -73,7 +73,7 @@ describe("house-piloti-render use cases", () => {
     expect(
       createPilotiNivelTextPatch({
         isCorner: false,
-        formattedNivel: "0,50",
+        formattedNivel: '0,50',
         centerX: 0,
         centerY: 0,
         radius: 0,
@@ -81,7 +81,7 @@ describe("house-piloti-render use cases", () => {
         isTopCorner: false,
       }),
     ).toEqual({
-      text: "",
+      text: '',
       visible: false,
     });
   });

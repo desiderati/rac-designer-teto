@@ -1,7 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useState} from 'react';
 import {ActiveSelection, Canvas as FabricCanvas, Group} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 interface UseCanvasGroupingActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

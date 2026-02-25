@@ -9,26 +9,37 @@ dedicados de orquestração.
 
 No `RacEditor`, ações de inserção de elementos/linhas/desenho foram extraídas para `useCanvasTools`, que centraliza
 o fluxo comum de add (`addCanvasObject`: fechamento de menu + add + onboarding) e os handlers de desenho/texto.
+
 As ações de projeto do overflow (`exportar JSON`, `importar JSON` e `excluir seleção`) foram extraídas para
 `useRacProjectActions`, mantendo as mesmas regras de negócio de remoção e sincronização.
+
 Os contadores de limite por vista enviados para `Toolbar` também usam helper único (`getToolbarViewCount`) para
 manter o mesmo contrato com menor repetição.
+
 O fluxo de ações de vistas/tipo de casa (seleção de lado, níveis e inserção inicial) é delegado para
 `useRacViewActions`, mantendo o `RacEditor` como orquestrador.
+
 Ações de `Agrupar`/`Desagrupar` (incluindo confirmação de desagrupamento) são delegadas para
 `useRacGroupingActions`, mantendo o mesmo contrato da toolbar.
+
 Interações de menu/tutorial (toggle de submenus, selector de tipo de casa e gates de tutorial) são delegadas para
 `useRacMenuTutorialActions`, mantendo o `RacEditor` como composição de fluxos.
+
 Fluxo de reinício do tutorial/canvas (confirmação, reset de estado e limpeza de overlays de onboarding) é delegado para
 `useRacTutorialUiActions`.
+
 Overlays/modais do editor (seletor de tipo de casa, settings, tutorial/balões, confirmações e editor de níveis) foram
 extraídos para `RacEditorModals`, mantendo `RacEditor` como orquestrador de estado.
+
 Helpers locais de interação canvas/menu no `RacEditor` (canvas ativo, centro visível, add no centro, fechamento de
 menus e desligamento do modo desenho) foram consolidados em `useCanvasInteractionActions`.
+
 Composição do `ToolbarActionMap` no `RacEditor` foi extraída para `useRacToolbarActions`, mantendo o contrato da
 `Toolbar` e reduzindo objeto inline no componente raiz.
+
 No `RacEditor`, o cálculo de `isAnyEditorOpen` e o wiring de seleções inline (`distance/objectName/line-arrow`) para o
 `Canvas` foram extraídos para `useGenericObjectEditorBindings`.
+
 No componente de toolbar, a estrutura visual foi quebrada em composição:
 
 1. `ToolbarButtons` (botões base FAB/submenu)

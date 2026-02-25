@@ -9,8 +9,8 @@ import {
 } from '@/domain/use-cases/house-contraventamento-use-cases.ts';
 import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
-import {ContraventamentoOrigin} from "@/components/lib/canvas";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {ContraventamentoOrigin} from '@/components/lib/canvas';
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;

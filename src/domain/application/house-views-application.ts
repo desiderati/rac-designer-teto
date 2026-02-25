@@ -1,4 +1,4 @@
-import type {HouseViewsRepository} from "@/domain/repository/house-views-repository.ts";
+import type {HouseViewsRepository} from '@/domain/repository/house-views-repository.ts';
 import {
   cleanupStaleViewInstances,
   rebuildSideAssignmentsFromViews,
@@ -6,10 +6,10 @@ import {
   removeAllViewInstancesByType,
   removeViewInstance,
   removeViewInstanceByGroup,
-} from "../use-cases/house-views-use-cases.ts";
-import type {RebuildViewSource, RebuildViewsResult} from "../use-cases/house-views-rebuild-use-cases.ts";
-import {rebuildViewsFromSources} from "../use-cases/house-views-rebuild-use-cases.ts";
-import {HouseSide, HouseTypeExcludeNull, HouseViewType} from "@/shared/types/house.ts";
+} from '../use-cases/house-views-use-cases.ts';
+import type {RebuildViewSource, RebuildViewsResult} from '../use-cases/house-views-rebuild-use-cases.ts';
+import {rebuildViewsFromSources} from '../use-cases/house-views-rebuild-use-cases.ts';
+import {HouseSide, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
 
 export function registerView<TView extends string, TSide extends string, TGroup>(
   repository: HouseViewsRepository<TView, TSide, TGroup>,

@@ -1,7 +1,9 @@
-import type {HouseElementsRepository} from "@/domain/repository/house-elements-repository.ts";
-import {getDefaultElementsForHouseType} from "../use-cases/house-elements-use-cases.ts";
-import {createElementId as createElementDomainId} from "../use-cases/house-identity-use-cases.ts";
-import {HouseElement, HouseElementDraft, HouseTypeExcludeNull} from "@/shared/types/house.ts";
+import type {HouseElementsRepository} from '@/domain/repository/house-elements-repository.ts';
+import {getDefaultElementsForHouseType} from '../use-cases/house-elements-use-cases.ts';
+import {createElementId as createElementDomainId} from '../use-cases/house-identity-use-cases.ts';
+import {HouseElement, HouseElementDraft, HouseTypeExcludeNull} from '@/shared/types/house.ts';
+
+export type {HouseElement};
 
 export function createElementId(
   now: () => number = Date.now,

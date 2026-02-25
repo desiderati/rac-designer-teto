@@ -1,4 +1,4 @@
-import {HousePiloti, HouseTypeExcludeNull, HouseViewType} from "@/shared/types/house.ts";
+import {HousePiloti, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
 
 export interface HouseRepository {
 

@@ -1,4 +1,4 @@
-import {BASE_PILOTI_HEIGHT_PX, BASE_TOP_HEIGHT, BASE_TOP_WIDTH} from "@/components/lib/canvas";
+import {BASE_PILOTI_HEIGHT_PX, BASE_TOP_HEIGHT, BASE_TOP_WIDTH} from '@/components/lib/canvas';
 
 export const TOP_VIEW_SCALE = 0.6; // Same scale used by createHouseTop
 export const VIEWER_MODEL_SCALE = 0.5;
@@ -48,12 +48,12 @@ export const FLOOR_BEAM_ROWS_Z = [
 ];
 
 export const COLORS = {
-  roof: "#a8b8c4",
-  piloti: "#d8d8d8",
-  terrain: "#7da86d",
-  floor: "#f7f7f7",
-  beam: "#ececec",
-  frame: "#bdbdbd",
+  roof: '#a8b8c4',
+  piloti: '#d8d8d8',
+  terrain: '#7da86d',
+  floor: '#f7f7f7',
+  beam: '#ececec',
+  frame: '#bdbdbd',
 } as const;
 
 export const ALL_PILOTI_IDS = Array.from({length: 3 * 4}, (_, index) => {

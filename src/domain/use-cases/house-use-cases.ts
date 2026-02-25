@@ -88,10 +88,10 @@ export function calculateRecommendedPilotiData({
 }: CalculateRecommendedPilotiDataParams): Record<string, HousePiloti> {
   const nextPilotis: Record<string, HousePiloti> = {...pilotis};
 
-  const a1 = pilotis["piloti_0_0"]?.nivel ?? defaultPiloti.nivel;
-  const a4 = pilotis["piloti_3_0"]?.nivel ?? defaultPiloti.nivel;
-  const c1 = pilotis["piloti_0_2"]?.nivel ?? defaultPiloti.nivel;
-  const c4 = pilotis["piloti_3_2"]?.nivel ?? defaultPiloti.nivel;
+  const a1 = pilotis['piloti_0_0']?.nivel ?? defaultPiloti.nivel;
+  const a4 = pilotis['piloti_3_0']?.nivel ?? defaultPiloti.nivel;
+  const c1 = pilotis['piloti_0_2']?.nivel ?? defaultPiloti.nivel;
+  const c4 = pilotis['piloti_3_2']?.nivel ?? defaultPiloti.nivel;
 
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 4; col++) {

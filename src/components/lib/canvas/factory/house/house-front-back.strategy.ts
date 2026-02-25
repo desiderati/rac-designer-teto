@@ -1,8 +1,8 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Polygon, Polyline, Rect, Text} from "fabric";
-import {BASE_PILOTI_HEIGHT_PX} from "../../constants.ts";
+import {Canvas as FabricCanvas, FabricObject, Group, Polygon, Polyline, Rect, Text} from 'fabric';
+import {BASE_PILOTI_HEIGHT_PX} from '../../constants.ts';
 
-import {createGroundElements, formatNivel, formatPilotiHeight, getPilotiVisualHeight} from "../../piloti.ts";
-import {createPilotiStripeOverlay, getHouseScaleFactors} from "@/components/lib/canvas/factory/house/shared.ts";
+import {createGroundElements, formatNivel, formatPilotiHeight, getPilotiVisualHeight} from '../../piloti.ts';
+import {createPilotiStripeOverlay, getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 
 export function createHouseFrontBack(
   canvas: FabricCanvas,
@@ -49,16 +49,16 @@ export function createHouseFrontBack(
     const rect = new Rect({
       width: pilotW,
       height: pilotH,
-      fill: "#ffffff",
-      stroke: "#333",
+      fill: '#ffffff',
+      stroke: '#333',
       strokeWidth: 2,
       strokeUniform: true,
       left: margin + i * step,
       top: bodyH + floorH + floorBeanH,
-      originY: "top",
+      originY: 'top',
       objectCaching: false,
     });
-    (rect as any).myType = "piloti";
+    (rect as any).myType = 'piloti';
     (rect as any).pilotiId = pilotiId;
     (rect as any).pilotiHeight = defaultHeight;
     (rect as any).pilotiIsMaster = false;
@@ -77,12 +77,12 @@ export function createHouseFrontBack(
     // Position at center of piloti rect (rect.left + pilotW/2)
     const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
       fontSize: 20 * s,
-      fill: "#666",
-      backgroundColor: "#ffffff",
+      fill: '#666',
+      backgroundColor: '#ffffff',
       left: margin + i * step + pilotW / 2,
       top: bodyH + floorH + floorBeanH + pilotH + 8 * s,
-      originX: "center",
-      originY: "top",
+      originX: 'center',
+      originY: 'top',
       selectable: false,
       evented: false,
     });
@@ -103,7 +103,7 @@ export function createHouseFrontBack(
       {x: diagW, y: diagH2},
       {x: 0, y: diagH2},
     ],
-    {fill: "#eeeeee", strokeWidth: 1, left: 0, top: bodyH - diagH2},
+    {fill: '#eeeeee', strokeWidth: 1, left: 0, top: bodyH - diagH2},
   );
 
   const chapelW = 122 * s;
@@ -116,7 +116,7 @@ export function createHouseFrontBack(
       {x: chapelW, y: bodyH},
       {x: 0, y: bodyH},
     ],
-    {fill: "#eeeeee", strokeWidth: 1, left: diagW, top: 0},
+    {fill: '#eeeeee', strokeWidth: 1, left: diagW, top: 0},
   );
 
   const rightDiagFill = new Polygon(
@@ -126,7 +126,7 @@ export function createHouseFrontBack(
       {x: diagW, y: diagH2},
       {x: 0, y: diagH2},
     ],
-    {fill: "#eeeeee", strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2},
+    {fill: '#eeeeee', strokeWidth: 1, left: diagW + chapelW, top: bodyH - diagH2},
   );
 
   const bodyStroke = new Polyline(
@@ -138,7 +138,7 @@ export function createHouseFrontBack(
       {x: 0, y: bodyH},
       {x: 0, y: bodyH - diagH1},
     ],
-    {fill: "transparent", stroke: "#333", strokeWidth: 2, strokeUniform: true, left: 0, top: 0},
+    {fill: 'transparent', stroke: '#333', strokeWidth: 2, strokeUniform: true, left: 0, top: 0},
   );
 
   const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
@@ -146,8 +146,8 @@ export function createHouseFrontBack(
   const floor = new Rect({
     width: floorW,
     height: floorH,
-    fill: "#fff",
-    stroke: "#333",
+    fill: '#fff',
+    stroke: '#333',
     strokeWidth: 2,
     strokeUniform: true,
     left: 0,
@@ -158,8 +158,8 @@ export function createHouseFrontBack(
   const floorBean = new Rect({
     width: floorBeanW,
     height: floorBeanH,
-    fill: "#fff",
-    stroke: "#333",
+    fill: '#fff',
+    stroke: '#333',
     strokeWidth: 2,
     strokeUniform: true,
     left: 0,
@@ -194,8 +194,8 @@ export function createHouseFrontBack(
     const w1 = new Rect({
       width: windowW,
       height: windowH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: window1FrontX,
@@ -207,8 +207,8 @@ export function createHouseFrontBack(
     const w1 = new Rect({
       width: windowW,
       height: windowH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: window1BackX,
@@ -221,8 +221,8 @@ export function createHouseFrontBack(
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: doorX,
@@ -232,8 +232,8 @@ export function createHouseFrontBack(
     const w2 = new Rect({
       width: windowW,
       height: windowH,
-      fill: "#fff",
-      stroke: "#333",
+      fill: '#fff',
+      stroke: '#333',
       strokeWidth: 1.5,
       strokeUniform: true,
       left: window2X,
@@ -280,13 +280,13 @@ export function createHouseFrontBack(
   const group = new Group(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
-    originX: "center",
-    originY: "center",
+    originX: 'center',
+    originY: 'center',
     subTargetCheck: true,
     objectCaching: false,
   });
-  (group as any).myType = "house";
-  (group as any).houseView = isFront ? "front" : "back";
+  (group as any).myType = 'house';
+  (group as any).houseView = isFront ? 'front' : 'back';
   (group as any).isFlippedHorizontally = flipHorizontal;
 
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});

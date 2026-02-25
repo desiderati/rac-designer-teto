@@ -8,7 +8,7 @@ import {
   wallSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {InfoBar} from './InfoBar.tsx';
-import {TutorialStepId} from "@/components/rac-editor/tutorial/Tutorial.tsx";
+import {TutorialStepId} from '@/components/rac-editor/tutorial/Tutorial.tsx';
 
 interface RacEditorCanvasProps {
   canvasRef: React.Ref<CanvasHandle>;
@@ -54,7 +54,7 @@ export function RacEditorCanvas({
   onContraventamentoCancel,
 }: RacEditorCanvasProps) {
   return (
-    <div className="h-full p-2.5 overflow-hidden relative">
+    <div className='h-full p-2.5 overflow-hidden relative'>
       <Canvas
         ref={canvasRef}
         onSelectionChange={(msg) => {
@@ -82,7 +82,7 @@ export function RacEditorCanvas({
       >
         {showTips &&
           <div
-            className="sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto">
+            className='sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto'>
             <InfoBar message={infoMessage}/>
           </div>
         }

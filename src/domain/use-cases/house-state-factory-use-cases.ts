@@ -1,5 +1,5 @@
-import {createDefaultPilotis, createEmptySideAssignments, createEmptyViews} from "./house-state-use-cases.ts";
-import {HousePiloti, HouseState} from "@/shared/types/house.ts";
+import {createDefaultPilotis, createEmptySideAssignments, createEmptyViews} from './house-state-use-cases.ts';
+import {HousePiloti, HouseState} from '@/shared/types/house.ts';
 
 export function createInitialHouseState<TGroup = unknown>(params: {
   id: string;

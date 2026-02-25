@@ -1,15 +1,15 @@
-import {describe, expect, it} from "vitest";
-import {createDefaultPilotis, createEmptySideAssignments, createEmptyViews} from "./house-state-use-cases.ts";
+import {describe, expect, it} from 'vitest';
+import {createDefaultPilotis, createEmptySideAssignments, createEmptyViews} from './house-state-use-cases.ts';
 
-describe("house-state use cases", () => {
-  it("creates default pilotis cloning default values for each id", () => {
+describe('house-state use cases', () => {
+  it('creates default pilotis cloning default values for each id', () => {
     const defaultPiloti = {height: 1, isMaster: false, nivel: 0.2};
     const pilotis = createDefaultPilotis({
-      pilotiIds: ["piloti_0_0", "piloti_0_1"],
+      pilotiIds: ['piloti_0_0', 'piloti_0_1'],
       defaultPiloti,
     });
 
-    expect(Object.keys(pilotis)).toEqual(["piloti_0_0", "piloti_0_1"]);
+    expect(Object.keys(pilotis)).toEqual(['piloti_0_0', 'piloti_0_1']);
     expect(pilotis.piloti_0_0).toEqual(defaultPiloti);
     expect(pilotis.piloti_0_1).toEqual(defaultPiloti);
 
@@ -17,7 +17,7 @@ describe("house-state use cases", () => {
     expect(pilotis.piloti_0_1.height).toBe(1);
   });
 
-  it("creates empty view and side-assignment structures", () => {
+  it('creates empty view and side-assignment structures', () => {
     const views = createEmptyViews<unknown>();
     const sides = createEmptySideAssignments();
 

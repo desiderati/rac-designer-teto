@@ -97,9 +97,9 @@
     - `e2e/piloti.spec.ts`
     - `e2e/helpers/rac-helpers.ts`
 - validação após quebra:
-    -
-    `npm run test:e2e -- e2e/views-limits.spec.ts e2e/canvas.spec.ts e2e/toolbar-overflow.spec.ts e2e/viewer-3d.spec.ts e2e/piloti.spec.ts` ->
-    PASS (14/14)
+  -
+  `npm run test:e2e -- e2e/views-limits.spec.ts e2e/canvas.spec.ts e2e/toolbar-overflow.spec.ts e2e/viewer-3d.spec.ts e2e/piloti.spec.ts` ->
+  PASS (14/14)
     - `npm test` -> PASS (12/12)
     - `npm run build` -> PASS
 
@@ -1246,7 +1246,8 @@
 ### Fase 7 - passo incremental 65 (Simplificação do fluxo de exclusão de vistas no RacEditor)
 
 - `RacEditor` atualizado:
-    - `handleDelete` remove mapeamento redundante de `rawView -> HouseViewType` que era usado apenas para detectar planta
+    - `handleDelete` remove mapeamento redundante de `rawView -> HouseViewType` que era usado apenas para detectar
+      planta
     - regra de proteção da planta permanece igual (`rawView === 'top'` + `canDeletePlant`)
 - Ganho:
     - reduz complexidade acidental no bloco de exclusão sem alterar regra de negócio
@@ -1300,7 +1301,8 @@
 ### Fase 7 - passo incremental 69 (Contadores da Toolbar unificados + alinhamento de imports após rename)
 
 - `RacEditor` atualizado:
-    - contadores `front/back/side1/side2` enviados à `Toolbar` passam a usar helper único `getToolbarViewCount(houseViewType)`
+    - contadores `front/back/side1/side2` enviados à `Toolbar` passam a usar helper único
+      `getToolbarViewCount(houseViewType)`
 - Ajuste de estabilidade (estado atual do branch):
     - import de confirmação ajustado para arquivo existente:
       `src/components/rac-editor/modals/ConfirmDialogModal.tsx`
@@ -1362,7 +1364,8 @@
 ### Fase 7 - passo incremental 73 (Resolução de lado da vista extraída no Canvas)
 
 - `Canvas` atualizado:
-    - extraído helper local `resolveHouseSideForSelection(houseViewType, selectedObject)` para encontrar o lado (`houseSide`)
+    - extraído helper local `resolveHouseSideForSelection(houseViewType, selectedObject)` para encontrar o lado (
+      `houseSide`)
       da vista selecionada no highlight da planta
     - `syncPlantSideHighlight` passa a usar o helper e remove lógica duplicada de busca por `instanceId`/`group`
 - Regras/documentação sincronizadas:
@@ -1444,868 +1447,954 @@
   visual de contraventamento, render/snapshot 3D, seleção de lado por modal.
 - `lint` não está verde no baseline atual (muitos `no-explicit-any`), mas `test` e `build` estão verdes.
 
-
-
 ### Fase 7 - passo incremental 78 (Rename para RacEditor + validações e sincronização de regras)
 
 - Código atualizado:
-  - rename de componente e arquivos para a convenção atual:
-    - `RacEditor`
-    - `RacEditorModalEditors`
-  - arquivos principais:
-    - `src/components/rac-editor/RacEditor.tsx`
-    - `src/components/rac-editor/RacEditorModalEditors.tsx`
-    - `src/pages/Index.tsx`
+    - rename de componente e arquivos para a convenção atual:
+        - `RacEditor`
+        - `RacEditorModalEditors`
+    - arquivos principais:
+        - `src/components/rac-editor/RacEditor.tsx`
+        - `src/components/rac-editor/RacEditorModalEditors.tsx`
+        - `src/pages/Index.tsx`
 - Refatoração estrutural mantida:
-  - `Canvas` delega setup/bindings para `useCanvasFabricSetup`
-  - fluxo de contraventamento orquestrado por `useContraventamento`
-  - fluxo de vistas/tipo de casa orquestrado por `useRacViewActions`
+    - `Canvas` delega setup/bindings para `useCanvasFabricSetup`
+    - fluxo de contraventamento orquestrado por `useContraventamento`
+    - fluxo de vistas/tipo de casa orquestrado por `useRacViewActions`
 - Qualidade/Lint nos arquivos tocados:
-  - ajuste de deps de hooks em `Canvas.tsx`
-  - supressão explícita e localizada de `no-explicit-any` em pontos Fabric dinâmicos
-  - `npx eslint` executado nos arquivos tocados -> PASS (sem erros/warnings)
+    - ajuste de deps de hooks em `Canvas.tsx`
+    - supressão explícita e localizada de `no-explicit-any` em pontos Fabric dinâmicos
+    - `npx eslint` executado nos arquivos tocados -> PASS (sem erros/warnings)
 - Regras/documentação sincronizadas:
-  - `.rules/canvas.md`
-  - `.rules/contraventamento.md`
-  - `.rules/toolbar.md`
-  - `.rules/vistas-por-tipo.md`
-  - `.codex/refactoring-2026-02-20/refactoring-plan.md`
-  - `.codex/refactoring-2026-02-20/regression-checklist.md`
+    - `.rules/canvas.md`
+    - `.rules/contraventamento.md`
+    - `.rules/toolbar.md`
+    - `.rules/vistas-por-tipo.md`
+    - `.codex/refactoring-2026-02-20/refactoring-plan.md`
+    - `.codex/refactoring-2026-02-20/regression-checklist.md`
 - Validação pós-rodada:
-  - `npm run test` -> PASS (35 arquivos de teste, 120 testes)
-  - `npm run build` -> PASS
-  - observação de build: permanecem avisos não-funcionais de chunk size/browserslist (sem regressão de regra de negócio)
+    - `npm run test` -> PASS (35 arquivos de teste, 120 testes)
+    - `npm run build` -> PASS
+    - observação de build: permanecem avisos não-funcionais de chunk size/browserslist (sem regressão de regra de
+      negócio)
 - Revalidação final pós `git mv` (case-sensitive) de arquivos `RacEditor*`:
-  - `npm run test` -> PASS (35 arquivos de teste, 120 testes)
-  - `npm run build` -> PASS
-  - `npx eslint` (arquivos tocados) -> PASS
+    - `npm run test` -> PASS (35 arquivos de teste, 120 testes)
+    - `npm run build` -> PASS
+    - `npx eslint` (arquivos tocados) -> PASS
 
 ### Fase 7 - passo incremental 79 (Lint real no setup do Canvas: tipagem Fabric + deps estáveis)
 
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` atualizado:
-  - removidos `any` explícitos com tipagem local (`CanvasObject`, payloads de evento e helpers de cast);
-  - fluxo de leitura de callbacks/refs atualizado para `latestArgsRef`, preservando listeners estáveis;
-  - warning de `react-hooks/exhaustive-deps` eliminado sem `eslint-disable`.
+    - removidos `any` explícitos com tipagem local (`CanvasObject`, payloads de evento e helpers de cast);
+    - fluxo de leitura de callbacks/refs atualizado para `latestArgsRef`, preservando listeners estáveis;
+    - warning de `react-hooks/exhaustive-deps` eliminado sem `eslint-disable`.
 - Ganho:
-  - lint corrigido de forma estrutural (sem supressão) no principal setup de eventos do canvas.
+    - lint corrigido de forma estrutural (sem supressão) no principal setup de eventos do canvas.
 - Validação do passo:
-  - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> PASS
+    - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> PASS
 
 ### Fase 7 - passo incremental 80 (Ações de elementos/linhas/desenho extraídas para hook dedicado)
 
 - `RacEditor` atualizado:
-  - extraído novo hook `src/components/rac-editor/hooks/useCanvasTools.ts` para centralizar:
-    - inserção de muro/porta/escada/árvore/água/fossa;
-    - inserção de linha/seta com onboarding;
-    - inserção de dimensão com abertura automática de editor;
-    - toggle de modo desenho e adição de texto.
-  - `src/components/rac-editor/RacEditor.tsx` reduzido de **1211** para **1073** linhas.
+    - extraído novo hook `src/components/rac-editor/hooks/useCanvasTools.ts` para centralizar:
+        - inserção de muro/porta/escada/árvore/água/fossa;
+        - inserção de linha/seta com onboarding;
+        - inserção de dimensão com abertura automática de editor;
+        - toggle de modo desenho e adição de texto.
+    - `src/components/rac-editor/RacEditor.tsx` reduzido de **1211** para **1073** linhas.
 - Regras/documentação sincronizadas:
-  - `.rules/canvas.md`
-  - `.rules/toolbar.md`
-  - `.codex/refactoring-2026-02-20/refactoring-plan.md`
-  - `.codex/refactoring-2026-02-20/regression-checklist.md`
+    - `.rules/canvas.md`
+    - `.rules/toolbar.md`
+    - `.codex/refactoring-2026-02-20/refactoring-plan.md`
+    - `.codex/refactoring-2026-02-20/regression-checklist.md`
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasTools.ts src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useCanvasHouseViewActions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (120/120)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasTools.ts src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useCanvasHouseViewActions.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (120/120)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 81 (Correção dirigida: settings.ts + validação de useCanvasFabricSetup.ts)
 
 - `src/lib/settings.ts` atualizado:
-  - `updateSetting` agora trata falha de escrita em storage com `try/catch`, evitando quebra de fluxo em cenários de
-    quota/indisponibilidade de `localStorage`.
+    - `updateSetting` agora trata falha de escrita em storage com `try/catch`, evitando quebra de fluxo em cenários de
+      quota/indisponibilidade de `localStorage`.
 - `src/lib/settings.smoke.test.ts` atualizado:
-  - novo teste cobre cenário de `Storage.setItem` lançando erro, garantindo que `updateSetting` não propaga exceção.
+    - novo teste cobre cenário de `Storage.setItem` lançando erro, garantindo que `updateSetting` não propaga exceção.
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`:
-  - revalidação de lint/tipos sem erros no estado atual do branch.
+    - revalidação de lint/tipos sem erros no estado atual do branch.
 - Regras/documentação sincronizadas:
-  - `.rules/toolbar.md` (robustez do fluxo de configurações no overflow).
+    - `.rules/toolbar.md` (robustez do fluxo de configurações no overflow).
 - Validação pós-correção:
-  - `npx eslint src/lib/settings.ts src/lib/settings.smoke.test.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/lib/settings.ts src/lib/settings.smoke.test.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 82 (Ações de projeto extraídas do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
-  - centraliza:
-    - `handleExportJSON`
-    - `handleImportJSON`
-    - `handleDelete`
+    - `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
+    - centraliza:
+        - `handleExportJSON`
+        - `handleImportJSON`
+        - `handleDelete`
 - `RacEditor` atualizado:
-  - remove implementação inline desses handlers e delega ao hook;
-  - mantém contrato da `Toolbar` e callback `onDelete` do `Canvas` sem mudanças de comportamento.
+    - remove implementação inline desses handlers e delega ao hook;
+    - mantém contrato da `Toolbar` e callback `onDelete` do `Canvas` sem mudanças de comportamento.
 - Regras/documentação sincronizadas:
-  - `.rules/toolbar.md`
-  - `.rules/contraventamento.md`
+    - `.rules/toolbar.md`
+    - `.rules/contraventamento.md`
 - Ganho:
-  - redução de tamanho no arquivo principal do editor (`RacEditor.tsx`: **1073 -> 994** linhas).
+    - redução de tamanho no arquivo principal do editor (`RacEditor.tsx`: **1073 -> 994** linhas).
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useRacEditorJsonActions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useRacEditorJsonActions.ts` ->
+      PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 83 (Agrupar/Desagrupar extraídos para hook dedicado)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
-  - centraliza:
-    - `handleGroup`
-    - `handleUngroup`
-    - confirmação de desagrupar (`confirmUngroup` / `closeUngroupConfirm`)
+    - `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
+    - centraliza:
+        - `handleGroup`
+        - `handleUngroup`
+        - confirmação de desagrupar (`confirmUngroup` / `closeUngroupConfirm`)
 - `RacEditor` atualizado:
-  - remove bloco inline de agrupar/desagrupar e delega para o hook;
-  - preserva contrato dos comandos da toolbar e modal de confirmação.
+    - remove bloco inline de agrupar/desagrupar e delega para o hook;
+    - preserva contrato dos comandos da toolbar e modal de confirmação.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 84 (useCanvasFabricSetup dividido em hooks de eventos)
 
 - Novos hooks:
-  - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
-  - `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
-  - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
+    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
 - `useCanvasFabricSetup` atualizado:
-  - remove handlers inline de `selection`, contraventamento (`mouse`) e atalhos/rotação (`keyboard` + `object:rotating`);
-  - passa a bindar/desbindar os três hooks especializados, mantendo `handlePilotiSelection` local para fluxos de clique e
-    double-click;
-  - `useEffect` com dependências explícitas dos binders (sem `eslint-disable`).
+    - remove handlers inline de `selection`, contraventamento (`mouse`) e atalhos/rotação (`keyboard` +
+      `object:rotating`);
+    - passa a bindar/desbindar os três hooks especializados, mantendo `handlePilotiSelection` local para fluxos de
+      clique e
+      double-click;
+    - `useEffect` com dependências explícitas dos binders (sem `eslint-disable`).
 - Ganho:
-  - redução de tamanho de `useCanvasFabricSetup.ts` para **635** linhas;
-  - manutenção de lint limpo sem desativação de regras.
+    - redução de tamanho de `useCanvasFabricSetup.ts` para **635** linhas;
+    - manutenção de lint limpo sem desativação de regras.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 85 (Canvas: pan/wheel/touch extraídos para hook dedicado)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasPointerInteractions.ts`
-  - centraliza:
-    - pan com botão do meio do mouse;
-    - wheel para zoom (`Ctrl/Cmd`) e pan (sem modificador);
-    - pinch-to-zoom com dois dedos;
-    - pan com um dedo no mobile;
-    - prevenção de zoom do browser no container (`Ctrl/Cmd + wheel`).
+    - `src/components/rac-editor/hooks/useCanvasPointerInteractions.ts`
+    - centraliza:
+        - pan com botão do meio do mouse;
+        - wheel para zoom (`Ctrl/Cmd`) e pan (sem modificador);
+        - pinch-to-zoom com dois dedos;
+        - pan com um dedo no mobile;
+        - prevenção de zoom do browser no container (`Ctrl/Cmd + wheel`).
 - `Canvas` atualizado:
-  - remove handlers inline de `mouse`/`wheel`/`touch` e delega para `useCanvasPointerInteractions`;
-  - mantém fluxo de render/composição (minimap/slider/children) sem alteração de comportamento.
+    - remove handlers inline de `mouse`/`wheel`/`touch` e delega para `useCanvasPointerInteractions`;
+    - mantém fluxo de render/composição (minimap/slider/children) sem alteração de comportamento.
 - Ganho:
-  - redução de tamanho de `src/components/rac-editor/Canvas.tsx` para **497** linhas.
+    - redução de tamanho de `src/components/rac-editor/Canvas.tsx` para **497** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasPointerInteractions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasPointerInteractions.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 86 (Ações de piloti extraídas do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/usePilotiActions.ts`
-  - centraliza:
-    - `handlePilotiSelect`
-    - `handlePilotiEditorClose`
-    - `handlePilotiHeightChange`
-    - `handlePilotiNavigate`
+    - `src/components/rac-editor/hooks/usePilotiActions.ts`
+    - centraliza:
+        - `handlePilotiSelect`
+        - `handlePilotiEditorClose`
+        - `handlePilotiHeightChange`
+        - `handlePilotiNavigate`
 - `RacEditor` atualizado:
-  - remove implementação inline das ações de piloti e delega para o hook;
-  - mantém regra de bloqueio em modo contraventamento, sincronização de elevações, histórico e feedback visual.
+    - remove implementação inline das ações de piloti e delega para o hook;
+    - mantém regra de bloqueio em modo contraventamento, sincronização de elevações, histórico e feedback visual.
 - Ganho:
-  - redução de tamanho de `src/components/rac-editor/RacEditor.tsx` para **847** linhas.
+    - redução de tamanho de `src/components/rac-editor/RacEditor.tsx` para **847** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/usePilotiActions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/usePilotiActions.ts` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 87 (Eventos inline extraídos do useCanvasFabricSetup)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
-  - centraliza:
-    - `mouse:dblclick` desktop para edição de dimensão/parede/linha-seta;
-    - `mouse:down` mobile para tap em dimensão/parede/linha-seta;
-    - hit-test local de piloti em grupos de casa para seleção de piloti.
+    - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
+    - centraliza:
+        - `mouse:dblclick` desktop para edição de dimensão/parede/linha-seta;
+        - `mouse:down` mobile para tap em dimensão/parede/linha-seta;
+        - hit-test local de piloti em grupos de casa para seleção de piloti.
 - `useCanvasFabricSetup` atualizado:
-  - remove bloco inline de seleções auxiliares (`distance`, `object name`, `line/arrow`, `double-click` e `mobile tap`);
-  - passa a bindar/desbindar `useCanvasEditorEvents`.
+    - remove bloco inline de seleções auxiliares (`distance`, `object name`, `line/arrow`, `double-click` e
+      `mobile tap`);
+    - passa a bindar/desbindar `useCanvasEditorEvents`.
 - Ganho:
-  - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **405** linhas.
+    - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **405** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 88 (Fluxo de menu/tutorial extraído do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useTutorialMenuActions.ts`
-  - centraliza:
-    - toggle de menu principal e submenus (`house/elements/lines/overflow`);
-    - fluxo de abertura/fechamento do `HouseTypeSelector`;
-    - gates de tutorial (`main-fab`, `house`, `elements`, `zoom-minimap`, `more-options`);
-    - toggle de dicas e zoom controls;
-    - fechamento por clique fora e conclusão de tutorial.
+    - `src/components/rac-editor/hooks/useTutorialMenuActions.ts`
+    - centraliza:
+        - toggle de menu principal e submenus (`house/elements/lines/overflow`);
+        - fluxo de abertura/fechamento do `HouseTypeSelector`;
+        - gates de tutorial (`main-fab`, `house`, `elements`, `zoom-minimap`, `more-options`);
+        - toggle de dicas e zoom controls;
+        - fechamento por clique fora e conclusão de tutorial.
 - `RacEditor` atualizado:
-  - remove handlers inline de menu/tutorial e delega para `useRacMenuTutorialActions`;
-  - mantém contrato da toolbar e hotkeys.
+    - remove handlers inline de menu/tutorial e delega para `useRacMenuTutorialActions`;
+    - mantém contrato da toolbar e hotkeys.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **769** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **769** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useTutorialMenuActions.ts src/components/rac-editor/RacEditor.tsx` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/hooks/useTutorialMenuActions.ts src/components/rac-editor/RacEditor.tsx` ->
+      PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 89 (Tutorial/restart/onboarding extraídos do RacEditor)
 
 - Novos hooks:
-  - `src/components/rac-editor/hooks/useTutorialUiActions.ts`
-  - `src/components/rac-editor/hooks/useCanvasHouseInitialization.ts`
+    - `src/components/rac-editor/hooks/useTutorialUiActions.ts`
+    - `src/components/rac-editor/hooks/useCanvasHouseInitialization.ts`
 - `RacEditor` atualizado:
-  - remove blocos inline de:
-    - reinício de tutorial/canvas (`handleRestartTutorial`, `confirmRestartTutorial`, `closeRestartConfirm`);
-    - exibição/fechamento de balão de tutorial de piloti;
-    - inicialização assíncrona de `houseManager` quando canvas fica disponível.
-  - delega esses fluxos para hooks dedicados, preservando comportamento de UI e regras de reset.
+    - remove blocos inline de:
+        - reinício de tutorial/canvas (`handleRestartTutorial`, `confirmRestartTutorial`, `closeRestartConfirm`);
+        - exibição/fechamento de balão de tutorial de piloti;
+        - inicialização assíncrona de `houseManager` quando canvas fica disponível.
+    - delega esses fluxos para hooks dedicados, preservando comportamento de UI e regras de reset.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **682** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **682** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useTutorialUiActions.ts src/components/rac-editor/hooks/useCanvasHouseInitialization.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/useTutorialMenuActions.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useTutorialUiActions.ts src/components/rac-editor/hooks/useCanvasHouseInitialization.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/useTutorialMenuActions.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 90 (Apply de editores genéricos extraído do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useWallEditorActions.ts`
-  - centraliza:
-    - `handleWallApply` para `wall`, `line/arrow` e `dimension`;
-    - resolução de cor inicial dos editores (`resolveDimensionEditorColor`, `resolveWallEditorColor`);
-    - inferência de tipo para editor de linha/seta (`lineArrowEditorType`).
+    - `src/components/rac-editor/hooks/useWallEditorActions.ts`
+    - centraliza:
+        - `handleWallApply` para `wall`, `line/arrow` e `dimension`;
+        - resolução de cor inicial dos editores (`resolveDimensionEditorColor`, `resolveWallEditorColor`);
+        - inferência de tipo para editor de linha/seta (`lineArrowEditorType`).
 - `RacEditor` atualizado:
-  - remove bloco inline de apply/cores/tipo dos editores genéricos e delega ao hook;
-  - mantém contrato de `RacEditorModalEditors`.
+    - remove bloco inline de apply/cores/tipo dos editores genéricos e delega ao hook;
+    - mantém contrato de `RacEditorModalEditors`.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **618** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **618** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useWallEditorActions.ts src/components/rac-editor/hooks/useTutorialUiActions.ts src/components/rac-editor/hooks/useCanvasHouseInitialization.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useWallEditorActions.ts src/components/rac-editor/hooks/useTutorialUiActions.ts src/components/rac-editor/hooks/useCanvasHouseInitialization.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 91 (Overlays de Canvas extraídos)
 
 - Novo componente:
-  - `src/components/rac-editor/CanvasOverlays.tsx`
-  - centraliza:
-    - indicador visual de pinch;
-    - ZoomSlider + Minimap desktop/mobile;
-    - renderização responsiva de `children` (InfoBar).
+    - `src/components/rac-editor/CanvasOverlays.tsx`
+    - centraliza:
+        - indicador visual de pinch;
+        - ZoomSlider + Minimap desktop/mobile;
+        - renderização responsiva de `children` (InfoBar).
 - `Canvas` atualizado:
-  - remove markup inline de overlays/zoom/minimap e delega para `CanvasOverlays`;
-  - mantém contratos de viewport, zoom e tutorial highlight.
+    - remove markup inline de overlays/zoom/minimap e delega para `CanvasOverlays`;
+    - mantém contratos de viewport, zoom e tutorial highlight.
 - Ganho:
-  - redução de `src/components/rac-editor/Canvas.tsx` para **401** linhas.
+    - redução de `src/components/rac-editor/Canvas.tsx` para **401** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/CanvasOverlays.tsx` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/CanvasOverlays.tsx` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 92 (Overlays/modais de RacEditor extraídos)
 
 - Novo componente:
-  - `src/components/rac-editor/RacEditorModals.tsx`
-  - centraliza:
-    - `HouseTypeSelector`, `House3DViewer`, `SettingsModal`;
-    - `Tutorial`, `PilotiTutorialBalloon`, `TutorialBalloon`;
-    - confirmações de reinício/desagrupar;
-    - `NivelDefinitionEditor`.
+    - `src/components/rac-editor/RacEditorModals.tsx`
+    - centraliza:
+        - `HouseTypeSelector`, `House3DViewer`, `SettingsModal`;
+        - `Tutorial`, `PilotiTutorialBalloon`, `TutorialBalloon`;
+        - confirmações de reinício/desagrupar;
+        - `NivelDefinitionEditor`.
 - `RacEditor` atualizado:
-  - remove bloco inline de overlays/modais e delega para `RacEditorModals`;
-  - mantém contratos de estado e callbacks sem mudança de regra de negócio.
+    - remove bloco inline de overlays/modais e delega para `RacEditorModals`;
+    - mantém contratos de estado e callbacks sem mudança de regra de negócio.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **524** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **524** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorModals.tsx` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorModals.tsx` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 93 (Helpers de interação do RacEditor extraídos)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
-  - centraliza:
-    - obtenção de canvas ativo;
-    - centro visível e add de objeto no centro;
-    - fechamento de menus com limpeza de onboarding/tutorial;
-    - desligamento seguro do modo desenho.
+    - `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
+    - centraliza:
+        - obtenção de canvas ativo;
+        - centro visível e add de objeto no centro;
+        - fechamento de menus com limpeza de onboarding/tutorial;
+        - desligamento seguro do modo desenho.
 - `RacEditor` atualizado:
-  - remove helpers locais de interação e delega para o novo hook;
-  - mantém integração com `useRacTutorialUiActions` e ações de toolbar.
+    - remove helpers locais de interação e delega para o novo hook;
+    - mantém integração com `useRacTutorialUiActions` e ações de toolbar.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **507** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **507** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasInteractionActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasInteractionActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 94 (Correções de tipagem estrita sem alterar regra de negócio)
 
 - Correções aplicadas:
-  - `src/lib/persistence/settings.storage.ts`
-    - leitura/escrita genérica alterada de `T extends Record<string, unknown>` para `T extends object`;
-    - parse protegido por guard de objeto para evitar incompatibilidade com `AppSettings`.
-  - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
-    - refs de entrada migrados para `MutableRefObject` para permitir escrita segura em `.current`;
-    - elimina erro de readonly e nulabilidade indevida em callbacks.
-  - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
-    - inclusão de `text?: string` no runtime type para seleção de editores inline.
-  - `src/lib/canvas/piloti-visual-feedback.ts`
-    - API de utilitários migrada para entradas `unknown[]` com type guards internos;
-    - remoção de casts inseguros (`Record<string, unknown>[]`).
-  - `src/components/rac-editor/hooks/usePilotiActions.ts`
-    - remoção de casts para `Record<string, unknown>[]` ao chamar utilitários de feedback.
-  - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
-    - normalização de `canvas.getActiveObject()` para `null` quando indefinido.
-  - `src/components/rac-editor/House3DScene.tsx`
-    - simplificação de fallback de origem do contraventamento para eliminar `possibly undefined`.
-  - `src/lib/domain/house-application.smoke.test.ts`
-    - anotação explícita de `pilotis` como `Record<string, HousePiloti>`.
+    - `src/lib/persistence/settings.storage.ts`
+        - leitura/escrita genérica alterada de `T extends Record<string, unknown>` para `T extends object`;
+        - parse protegido por guard de objeto para evitar incompatibilidade com `AppSettings`.
+    - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
+        - refs de entrada migrados para `MutableRefObject` para permitir escrita segura em `.current`;
+        - elimina erro de readonly e nulabilidade indevida em callbacks.
+    - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
+        - inclusão de `text?: string` no runtime type para seleção de editores inline.
+    - `src/lib/canvas/piloti-visual-feedback.ts`
+        - API de utilitários migrada para entradas `unknown[]` com type guards internos;
+        - remoção de casts inseguros (`Record<string, unknown>[]`).
+    - `src/components/rac-editor/hooks/usePilotiActions.ts`
+        - remoção de casts para `Record<string, unknown>[]` ao chamar utilitários de feedback.
+    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+        - normalização de `canvas.getActiveObject()` para `null` quando indefinido.
+    - `src/components/rac-editor/House3DScene.tsx`
+        - simplificação de fallback de origem do contraventamento para eliminar `possibly undefined`.
+    - `src/lib/domain/house-application.smoke.test.ts`
+        - anotação explícita de `pilotis` como `Record<string, HousePiloti>`.
 - Revalidação dos alvos solicitados:
-  - `src/lib/settings.ts` -> OK
-  - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> OK
+    - `src/lib/settings.ts` -> OK
+    - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` -> OK
 - Validação pós-correção:
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    -
+    `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 95 (Composição de ações da Toolbar extraída do RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useToolbarActions.ts`
-  - centraliza a composição do `ToolbarActionMap` (comandos de casa/elementos/linhas/projeto/overflow), incluindo ações
-    de abrir viewer 3D e configurações.
+    - `src/components/rac-editor/hooks/useToolbarActions.ts`
+    - centraliza a composição do `ToolbarActionMap` (comandos de casa/elementos/linhas/projeto/overflow), incluindo
+      ações
+      de abrir viewer 3D e configurações.
 - `RacEditor` atualizado:
-  - remove objeto inline gigante de `actions` no `Toolbar` e delega para `useRacToolbarActions`.
+    - remove objeto inline gigante de `actions` no `Toolbar` e delega para `useRacToolbarActions`.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **504** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **504** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useToolbarActions.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useToolbarActions.ts` -> PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 96 (Seção Canvas do RacEditor extraída)
 
 - Novo componente:
-  - `src/components/rac-editor/RacEditorCanvas.tsx`
-  - centraliza:
-    - composição de `Canvas` no `RacEditor`;
-    - wiring dos callbacks de seleção/zoom/contraventamento;
-    - renderização da `InfoBar` dentro do slot `children` do canvas.
+    - `src/components/rac-editor/RacEditorCanvas.tsx`
+    - centraliza:
+        - composição de `Canvas` no `RacEditor`;
+        - wiring dos callbacks de seleção/zoom/contraventamento;
+        - renderização da `InfoBar` dentro do slot `children` do canvas.
 - `RacEditor` atualizado:
-  - remove bloco inline da seção de canvas e delega para `RacEditorCanvas`.
+    - remove bloco inline da seção de canvas e delega para `RacEditorCanvas`.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **493** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **493** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvas.tsx src/components/rac-editor/hooks/useToolbarActions.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/RacEditorCanvas.tsx src/components/rac-editor/hooks/useToolbarActions.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 97 (Compactação de orquestração no RacEditor)
 
 - `RacEditor` atualizado:
-  - compactação de destructuring/assinaturas dos hooks de estado e fluxos (`modal/tutorial/inline/house/contraventamento`);
-  - sem mudança comportamental, apenas redução de ruído de orquestração.
+    - compactação de destructuring/assinaturas dos hooks de estado e fluxos (
+      `modal/tutorial/inline/house/contraventamento`);
+    - sem mudança comportamental, apenas redução de ruído de orquestração.
 - Ganho:
-  - redução de `src/components/rac-editor/RacEditor.tsx` para **443** linhas.
+    - redução de `src/components/rac-editor/RacEditor.tsx` para **443** linhas.
 - Validação pós-compactação:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/RacEditor.tsx` -> PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 98 (Projeção de tela do Canvas extraída)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasScreenProjection.ts`
-  - centraliza:
-    - `getCanvasOffsetFromState`
-    - `getCurrentScreenPoint`
-    - `getVisibleCenter`
+    - `src/components/rac-editor/hooks/useCanvasScreenProjection.ts`
+    - centraliza:
+        - `getCanvasOffsetFromState`
+        - `getCurrentScreenPoint`
+        - `getVisibleCenter`
 - `Canvas` atualizado:
-  - remove funções locais de projeção/offset/centro visível e delega para o hook.
+    - remove funções locais de projeção/offset/centro visível e delega para o hook.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasScreenProjection.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasScreenProjection.ts` ->
+      PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 99 (Snapshot de objetos do minimap extraído)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasMinimapObjects.ts`
-  - centraliza estado e atualização do snapshot do minimap (bounds/ângulo/tipo).
+    - `src/components/rac-editor/hooks/useCanvasMinimapObjects.ts`
+    - centraliza estado e atualização do snapshot do minimap (bounds/ângulo/tipo).
 - `Canvas` atualizado:
-  - remove estado/função inline de objetos do minimap e delega para o novo hook.
+    - remove estado/função inline de objetos do minimap e delega para o novo hook.
 - Ganho:
-  - redução de `src/components/rac-editor/Canvas.tsx` para **335** linhas.
+    - redução de `src/components/rac-editor/Canvas.tsx` para **335** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasMinimapObjects.ts src/components/rac-editor/hooks/useCanvasScreenProjection.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasMinimapObjects.ts src/components/rac-editor/hooks/useCanvasScreenProjection.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 100 (Seleção de piloti extraída do setup do Fabric)
 
 - Novo helper:
-  - `src/components/rac-editor/hooks/canvas-piloti-selection.ts`
-  - centraliza:
-    - resolução de seleção por hit-area/shape de piloti;
-    - interceptação de modo contraventamento;
-    - projeção para posição de tela e emissão de payload de editor;
-    - feedback visual de seleção no canvas.
+    - `src/components/rac-editor/hooks/canvas-piloti-selection.ts`
+    - centraliza:
+        - resolução de seleção por hit-area/shape de piloti;
+        - interceptação de modo contraventamento;
+        - projeção para posição de tela e emissão de payload de editor;
+        - feedback visual de seleção no canvas.
 - `useCanvasFabricSetup` atualizado:
-  - remove implementação inline de `handlePilotiSelection` e delega para `buildPilotiSelectionHandler`.
+    - remove implementação inline de `handlePilotiSelection` e delega para `buildPilotiSelectionHandler`.
 - Ganho:
-  - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **313** linhas.
+    - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **313** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/canvas-piloti-selection.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/canvas-piloti-selection.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 101 (Lifecycle de container/viewport extraído do Canvas)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useCanvasContainerLifecycle.ts`
-  - centraliza:
-    - sincronização de tamanho de container via `ResizeObserver`;
-    - clamp do viewport em mudanças de zoom/tamanho.
+    - `src/components/rac-editor/hooks/useCanvasContainerLifecycle.ts`
+    - centraliza:
+        - sincronização de tamanho de container via `ResizeObserver`;
+        - clamp do viewport em mudanças de zoom/tamanho.
 - `Canvas` atualizado:
-  - remove `useEffect` inline de resize/clamp e delega para `useCanvasContainerLifecycle`.
+    - remove `useEffect` inline de resize/clamp e delega para `useCanvasContainerLifecycle`.
 - Ganho:
-  - redução de `src/components/rac-editor/Canvas.tsx` para **321** linhas.
+    - redução de `src/components/rac-editor/Canvas.tsx` para **321** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasContainerLifecycle.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/Canvas.tsx src/components/rac-editor/hooks/useCanvasContainerLifecycle.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 102 (Inline editor bindings extraídos no RacEditor)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
-  - centraliza:
-    - composição de `useGenericObjectEditors`;
-    - cálculo de `isAnyEditorOpen` (piloti + editores inline);
-    - wiring de callbacks de seleção inline para o `Canvas`.
+    - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
+    - centraliza:
+        - composição de `useGenericObjectEditors`;
+        - cálculo de `isAnyEditorOpen` (piloti + editores inline);
+        - wiring de callbacks de seleção inline para o `Canvas`.
 - `RacEditor` atualizado:
-  - remove cálculo inline de `isAnyEditorOpen` e delega bindings de `onDistanceSelect/onWallSelect/onLinearSelect`.
+    - remove cálculo inline de `isAnyEditorOpen` e delega bindings de `onDistanceSelect/onWallSelect/onLinearSelect`.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 103 (Toolbar decomposto em componentes + config)
 
 - Novos arquivos:
-  - `src/components/rac-editor/toolbar/ToolbarButtons.tsx`
-  - `src/components/rac-editor/toolbar/ToolbarMainMenu.tsx`
-  - `src/components/rac-editor/toolbar/ToolbarOverflowMenu.tsx`
-  - `src/components/rac-editor/toolbar/toolbar-config.ts`
-  - `src/components/rac-editor/toolbar/toolbar-types.ts`
+    - `src/components/rac-editor/toolbar/ToolbarButtons.tsx`
+    - `src/components/rac-editor/toolbar/ToolbarMainMenu.tsx`
+    - `src/components/rac-editor/toolbar/ToolbarOverflowMenu.tsx`
+    - `src/components/rac-editor/toolbar/toolbar-config.ts`
+    - `src/components/rac-editor/toolbar/toolbar-types.ts`
 - `Toolbar` atualizado:
-  - `src/components/rac-editor/Toolbar.tsx` passa a compor menus e manter apenas input JSON + wiring principal.
+    - `src/components/rac-editor/Toolbar.tsx` passa a compor menus e manter apenas input JSON + wiring principal.
 - `useRacToolbarActions`:
-  - contrato de ações mantido compatível (sem alteração de regra de negócio).
+    - contrato de ações mantido compatível (sem alteração de regra de negócio).
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/Toolbar.tsx src/components/rac-editor/toolbar/ToolbarButtons.tsx src/components/rac-editor/toolbar/ToolbarMainMenu.tsx src/components/rac-editor/toolbar/ToolbarOverflowMenu.tsx src/components/rac-editor/toolbar/toolbar-config.ts src/components/rac-editor/toolbar/toolbar-types.ts src/components/rac-editor/hooks/useToolbarActions.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/Toolbar.tsx src/components/rac-editor/toolbar/ToolbarButtons.tsx src/components/rac-editor/toolbar/ToolbarMainMenu.tsx src/components/rac-editor/toolbar/ToolbarOverflowMenu.tsx src/components/rac-editor/toolbar/toolbar-config.ts src/components/rac-editor/toolbar/toolbar-types.ts src/components/rac-editor/hooks/useToolbarActions.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 104 (Contraventamento: queries extraídas)
 
 - Novo hook:
-  - `src/components/rac-editor/hooks/useContraventamentoQueries.ts`
-  - centraliza:
-    - `getTopViewGroup`;
-    - ocupação de lados por coluna (`getContraventamentoColumnSides`);
-    - elegibilidade (`isPilotiEligibleAsOrigin` / `isPilotiEligibleAsDestination` / `isPilotiEligible`);
-    - projeção de estado do editor (`getContraventamentoEditorState`).
+    - `src/components/rac-editor/hooks/useContraventamentoQueries.ts`
+    - centraliza:
+        - `getTopViewGroup`;
+        - ocupação de lados por coluna (`getContraventamentoColumnSides`);
+        - elegibilidade (`isPilotiEligibleAsOrigin` / `isPilotiEligibleAsDestination` / `isPilotiEligible`);
+        - projeção de estado do editor (`getContraventamentoEditorState`).
 - `useContraventamento` atualizado:
-  - remove consultas inline e passa a delegar ao hook de queries, preservando comandos/efeitos existentes.
+    - remove consultas inline e passa a delegar ao hook de queries, preservando comandos/efeitos existentes.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useContraventamentoQueries.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useContraventamentoQueries.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 105 (Contraventamento: commands/effects extraídos)
 
 - Novos hooks:
-  - `src/components/rac-editor/hooks/useContraventamentoCommands.ts`
-    - centraliza comandos de fluxo:
-      - criação/remoção;
-      - seleção/cancelamento;
-      - sincronização de elevações;
-      - entrada no segundo passo.
-  - `src/components/rac-editor/hooks/useContraventamentoEffects.ts`
-    - centraliza efeitos reativos:
-      - sync por `houseVersion`;
-      - cancelamento por `Esc`;
-      - persistência de highlight no modo de contraventamento.
+    - `src/components/rac-editor/hooks/useContraventamentoCommands.ts`
+        - centraliza comandos de fluxo:
+            - criação/remoção;
+            - seleção/cancelamento;
+            - sincronização de elevações;
+            - entrada no segundo passo.
+    - `src/components/rac-editor/hooks/useContraventamentoEffects.ts`
+        - centraliza efeitos reativos:
+            - sync por `houseVersion`;
+            - cancelamento por `Esc`;
+            - persistência de highlight no modo de contraventamento.
 - `useContraventamento` atualizado:
-  - passa a compor `queries + commands + effects` como orquestrador fino.
+    - passa a compor `queries + commands + effects` como orquestrador fino.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useContraventamentoCommands.ts src/components/rac-editor/hooks/useContraventamentoEffects.ts src/components/rac-editor/hooks/useContraventamentoQueries.ts src/components/rac-editor/hooks/useContraventamento.types.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useContraventamento.ts src/components/rac-editor/hooks/useContraventamentoCommands.ts src/components/rac-editor/hooks/useContraventamentoEffects.ts src/components/rac-editor/hooks/useContraventamentoQueries.ts src/components/rac-editor/hooks/useContraventamento.types.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 106 (Canvas Fabric runtime types extraídos)
 
 - Novo arquivo:
-  - `src/components/rac-editor/hooks/canvas.ts`
-  - centraliza tipos runtime usados no setup do canvas:
-    - `CanvasObject`
-    - `CanvasPointerPayload`
-    - `CanvasMouseEvent`
+    - `src/components/rac-editor/hooks/canvas.ts`
+    - centraliza tipos runtime usados no setup do canvas:
+        - `CanvasObject`
+        - `CanvasPointerPayload`
+        - `CanvasMouseEvent`
 - `useCanvasFabricSetup` atualizado:
-  - remove declarações inline desses tipos e passa a importar do arquivo dedicado;
-  - mantém comportamento do setup como orquestrador de binds/events.
+    - remove declarações inline desses tipos e passa a importar do arquivo dedicado;
+    - mantém comportamento do setup como orquestrador de binds/events.
 - Ganho:
-  - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **271** linhas.
+    - redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **271** linhas.
 - Validação pós-extração:
-  - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/canvas.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (121/121)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/canvas.ts` ->
+      PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (121/121)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 107 (Bugfix GenericObjectEditor + regressão automática)
 
 - Problema corrigido:
-  - ao abrir `GenericObjectEditor` (muro/linha/seta/distância), alterações de nome/cor eram perdidas durante digitação;
-  - causa raiz: `useGenericObjectEditorDraft` ressincronizava `draft` em toda renderização por depender de objeto inicial.
+    - ao abrir `GenericObjectEditor` (muro/linha/seta/distância), alterações de nome/cor eram perdidas durante
+      digitação;
+    - causa raiz: `useGenericObjectEditorDraft` ressincronizava `draft` em toda renderização por depender de objeto
+      inicial.
 - Correção:
-  - `src/components/rac-editor/hooks/useGenericObjectEditorDraft.ts`
-  - sincronização de `draft` passou a ocorrer na transição de abertura (`closed -> open`) e em `reset`, preservando
-    edição em andamento.
+    - `src/components/rac-editor/hooks/useGenericObjectEditorDraft.ts`
+    - sincronização de `draft` passou a ocorrer na transição de abertura (`closed -> open`) e em `reset`, preservando
+      edição em andamento.
 - Regressão automática adicionada:
-  - `src/components/rac-editor/modals/editors/GenericObjectEditor.smoke.test.tsx`
-  - valida que o editor mantém valor digitado, troca cor e chama `onApply` com os valores atualizados.
+    - `src/components/rac-editor/modals/editors/GenericObjectEditor.smoke.test.tsx`
+    - valida que o editor mantém valor digitado, troca cor e chama `onApply` com os valores atualizados.
 - Validação pós-correção:
-  - `npx eslint src/components/rac-editor/hooks/useGenericObjectEditorDraft.ts src/components/rac-editor/modals/editors/GenericObjectEditor.smoke.test.tsx` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (122/122)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useGenericObjectEditorDraft.ts src/components/rac-editor/modals/editors/GenericObjectEditor.smoke.test.tsx` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (122/122)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 108 (Bugfix GenericObjectEditor: limpar nome sem remover objeto + reedição de muro agrupado)
 
 - Problemas corrigidos:
-  - em `line/arrow`, limpar o nome no `GenericObjectEditor` removia o objeto do canvas;
-  - em `wall` (`Vizinho/Muro/etc.`), após primeira configuração de nome/cor, reabrir o editor falhava quando o alvo virava grupo.
+    - em `line/arrow`, limpar o nome no `GenericObjectEditor` removia o objeto do canvas;
+    - em `wall` (`Vizinho/Muro/etc.`), após primeira configuração de nome/cor, reabrir o editor falhava quando o alvo
+      virava grupo.
 - Correções aplicadas:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - limpeza de label em grupo agora mantém o objeto no canvas (`text = ""`, `visible = false`) sem desagrupar/remover.
-  - `src/components/rac-editor/utils/wall-editor-apply.ts`
-    - limpeza de nome em parede agrupada agora mantém grupo/parede e apenas oculta label;
-    - reedição posterior continua possível no mesmo grupo (nome/cor).
-  - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
-    - seleção inline de parede agora suporta alvo `group` com `myType = wall`, resolvendo `rect` interno + label atual.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - limpeza de label em grupo agora mantém o objeto no canvas (`text = ""`, `visible = false`) sem
+          desagrupar/remover.
+    - `src/components/rac-editor/utils/wall-editor-apply.ts`
+        - limpeza de nome em parede agrupada agora mantém grupo/parede e apenas oculta label;
+        - reedição posterior continua possível no mesmo grupo (nome/cor).
+    - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
+        - seleção inline de parede agora suporta alvo `group` com `myType = wall`, resolvendo `rect` interno + label
+          atual.
 - Regressões automáticas adicionadas:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
-    - garante que limpar label não remove linha/seta do canvas.
-  - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
-    - garante que limpar nome não remove parede e permite editar novamente.
-  - `src/components/rac-editor/hooks/useCanvasEditorEvents.smoke.test.tsx`
-    - garante abertura do editor de parede para alvo agrupado com label atual.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
+        - garante que limpar label não remove linha/seta do canvas.
+    - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
+        - garante que limpar nome não remove parede e permite editar novamente.
+    - `src/components/rac-editor/hooks/useCanvasEditorEvents.smoke.test.tsx`
+        - garante abertura do editor de parede para alvo agrupado com label atual.
 - Validação pós-correção:
-  - `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/wall-editor-apply.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts src/components/rac-editor/hooks/useCanvasEditorEvents.smoke.test.tsx` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (125/125)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
-  - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 286 errors / 11 warnings)
+    -
+    `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/wall-editor-apply.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts src/components/rac-editor/hooks/useCanvasEditorEvents.smoke.test.tsx` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (125/125)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 286 errors / 11 warnings)
 
 ### Fase 7 - passo incremental 109 (Geometria de escala: seta/distância + label placeholder na inserção)
 
 - Problemas corrigidos:
-  - triângulo da seta deformava após redimensionamentos sucessivos;
-  - barrinhas da distância podiam desalinhar da linha principal após escala;
-  - inserção de `line/arrow` sem label inicial gerava box de seleção inconsistente.
+    - triângulo da seta deformava após redimensionamentos sucessivos;
+    - barrinhas da distância podiam desalinhar da linha principal após escala;
+    - inserção de `line/arrow` sem label inicial gerava box de seleção inconsistente.
 - Correções aplicadas:
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - `createLine` passa a criar grupo com label placeholder `" "` (`lineArrowLabel`) já na inserção;
-    - `createArrow` passa a incluir label placeholder `" "` e normalização de `arrowBody/arrowHead` no `scaling` (sem deformar head);
-    - `createDistance` reforça normalização geométrica no `scaling` (`dimensionMainLine`, `dimensionTickStart`, `dimensionTickEnd`, `dimensionLabel`);
-    - `line/arrow/dimension` com controles diagonais ocultos (`tl/tr/bl/br`) + `lockScalingY`.
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - `lineArrowLabel` vazio passa a ser `" "` visível (placeholder), preservando área de seleção;
-    - handler de `scaling` do wrapper com label foi ajustado para não deformar head da seta e manter label ancorado.
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - `createLine` passa a criar grupo com label placeholder `" "` (`lineArrowLabel`) já na inserção;
+        - `createArrow` passa a incluir label placeholder `" "` e normalização de `arrowBody/arrowHead` no `scaling` (
+          sem deformar head);
+        - `createDistance` reforça normalização geométrica no `scaling` (`dimensionMainLine`, `dimensionTickStart`,
+          `dimensionTickEnd`, `dimensionLabel`);
+        - `line/arrow/dimension` com controles diagonais ocultos (`tl/tr/bl/br`) + `lockScalingY`.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - `lineArrowLabel` vazio passa a ser `" "` visível (placeholder), preservando área de seleção;
+        - handler de `scaling` do wrapper com label foi ajustado para não deformar head da seta e manter label ancorado.
 - Regressão automática adicionada:
-  - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
-    - valida placeholder de label na inserção;
-    - valida escala horizontal estável de `line/arrow/dimension` (sem deformação do triângulo da seta e sem desalinhamento dos ticks).
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
-    - atualizado para novo contrato de placeholder (`" "` visível).
+    - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
+        - valida placeholder de label na inserção;
+        - valida escala horizontal estável de `line/arrow/dimension` (sem deformação do triângulo da seta e sem
+          desalinhamento dos ticks).
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
+        - atualizado para novo contrato de placeholder (`" "` visível).
 - Validação pós-correção:
-  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (128/128)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
-  - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 277 errors / 11 warnings)
+    -
+    `npx eslint src/lib/canvas/factory/elements-factory.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (128/128)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 277 errors / 11 warnings)
 
 ### Fase 7 - passo incremental 110 (Hotfix pós-regressão visual: wall label agrupado + escala longitudinal estável)
 
 - Problemas reportados/corrigidos:
-  - `wall` (`Vizinho/Muro`) ao renomear podia soltar texto no canvas e quebrar posição relativa;
-  - `line/arrow` com label podia iniciar com label fora da posição esperada até novo resize;
-  - `arrow` ainda podia cortar head no redimensionamento;
-  - `line` podia deslocar sem aumentar comprimento de forma consistente.
+    - `wall` (`Vizinho/Muro`) ao renomear podia soltar texto no canvas e quebrar posição relativa;
+    - `line/arrow` com label podia iniciar com label fora da posição esperada até novo resize;
+    - `arrow` ainda podia cortar head no redimensionamento;
+    - `line` podia deslocar sem aumentar comprimento de forma consistente.
 - Correções aplicadas:
-  - `src/components/rac-editor/utils/wall-editor-apply.ts`
-    - detecção de parent group robusta (`_group` e `group`);
-    - fallback de label para `i-text` quando `myType` não estiver presente;
-    - update de label no grupo com coordenadas normalizadas (sem desagrupar).
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - `createLine` com escala longitudinal baseada no comprimento atual da linha (sem drift de posição);
-    - `createArrow` com geometria `shaft + head` para manter triângulo totalmente dentro do comprimento (sem corte);
-    - reforço de `setCoords` para consistência de posição de label logo na inserção;
-    - `createDistance` mantém normalização de ticks/label no `scaling`.
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - normalização de escala do wrapper de edição alinhada ao factory:
-      - linha escala por comprimento atual;
-      - seta usa composição `shaft/head` sem corte;
-      - label permanece ancorado.
+    - `src/components/rac-editor/utils/wall-editor-apply.ts`
+        - detecção de parent group robusta (`_group` e `group`);
+        - fallback de label para `i-text` quando `myType` não estiver presente;
+        - update de label no grupo com coordenadas normalizadas (sem desagrupar).
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - `createLine` com escala longitudinal baseada no comprimento atual da linha (sem drift de posição);
+        - `createArrow` com geometria `shaft + head` para manter triângulo totalmente dentro do comprimento (sem corte);
+        - reforço de `setCoords` para consistência de posição de label logo na inserção;
+        - `createDistance` mantém normalização de ticks/label no `scaling`.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - normalização de escala do wrapper de edição alinhada ao factory:
+            - linha escala por comprimento atual;
+            - seta usa composição `shaft/head` sem corte;
+            - label permanece ancorado.
 - Regressões automáticas adicionadas/expandidas:
-  - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
-    - novo cenário para parent group via `wall.group`.
-  - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
-    - mantém cenários de escala longitudinal de `line/arrow/dimension`.
+    - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
+        - novo cenário para parent group via `wall.group`.
+    - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
+        - mantém cenários de escala longitudinal de `line/arrow/dimension`.
 - Validação pós-hotfix:
-  - `npx eslint src/components/rac-editor/utils/wall-editor-apply.ts src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts src/lib/canvas/factory/elements-factory.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
-  - `npm run test -- --run` -> PASS (129/129)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
-  - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 277 errors / 11 warnings)
+    -
+    `npx eslint src/components/rac-editor/utils/wall-editor-apply.ts src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts src/lib/canvas/factory/elements-factory.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
+    - `npm run test -- --run` -> PASS (129/129)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npm run lint` -> FAIL (dívida pré-existente fora do escopo deste passo; 277 errors / 11 warnings)
 
 ### Fase 7 - passo incremental 111 (Linha: redimensionamento sem deslocar + snap H/V + label inicial estável)
 
 - Problemas reportados/corrigidos:
-  - `line` continuava deslocando no canvas durante resize longitudinal;
-  - `line` não estava com snap ortogonal de rotação como `arrow/dimension`;
-  - label inicial de `line/arrow` podia nascer fora da posição esperada após aplicar o `GenericObjectEditor`.
+    - `line` continuava deslocando no canvas durante resize longitudinal;
+    - `line` não estava com snap ortogonal de rotação como `arrow/dimension`;
+    - label inicial de `line/arrow` podia nascer fora da posição esperada após aplicar o `GenericObjectEditor`.
 - Correções aplicadas:
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - `createLine` passa a normalizar `scaling` com `totalLength = group.width * group.scaleX` e atualizar `group.width`,
-      evitando drift de posição;
-    - constante de ancoragem de label (`LINEAR_LABEL_TOP`) unificada para `line/arrow/dimension`.
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - edição de label em grupos com `lineArrowLabel` passa a recalcular bounds do grupo após troca de texto/cor,
-      mantendo posicionamento inicial consistente sem desagrupar;
-    - normalização de `scaling` do wrapper para linha usa `totalLength` do grupo (mesma regra do factory).
-  - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
-    - snap de rotação ortogonal reabilitado para `line`.
-  - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
-    - ajuste de assinatura do bind de atalhos para refletir remoção de dependência não usada.
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - `createLine` passa a normalizar `scaling` com `totalLength = group.width * group.scaleX` e atualizar
+          `group.width`,
+          evitando drift de posição;
+        - constante de ancoragem de label (`LINEAR_LABEL_TOP`) unificada para `line/arrow/dimension`.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - edição de label em grupos com `lineArrowLabel` passa a recalcular bounds do grupo após troca de texto/cor,
+          mantendo posicionamento inicial consistente sem desagrupar;
+        - normalização de `scaling` do wrapper para linha usa `totalLength` do grupo (mesma regra do factory).
+    - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
+        - snap de rotação ortogonal reabilitado para `line`.
+    - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
+        - ajuste de assinatura do bind de atalhos para refletir remoção de dependência não usada.
 - Regressões automáticas adicionadas/atualizadas:
-  - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.smoke.test.tsx`
-    - garante snap ortogonal de rotação para `line`.
-  - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
-    - reforça assert de atualização de `group.width` no resize de `line` (sem deslocamento).
-    - timeout explícito no cenário de `line` para estabilidade em suíte completa (ambiente jsdom/fabric).
+    - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.smoke.test.tsx`
+        - garante snap ortogonal de rotação para `line`.
+    - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
+        - reforça assert de atualização de `group.width` no resize de `line` (sem deslocamento).
+        - timeout explícito no cenário de `line` para estabilidade em suíte completa (ambiente jsdom/fabric).
 - Validação pós-correção:
-  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.smoke.test.tsx` -> PASS
-  - `npm run test -- --run` -> PASS (130/130)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.smoke.test.tsx` ->
+    PASS
+    - `npm run test -- --run` -> PASS (130/130)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 112 (Label de Linha/Seta: ancoragem imediata igual Distância)
 
 - Problema reportado/corrigido:
-  - em `line/arrow`, ao trocar label inicial `" "` para texto real (`Felipe`), a distância visual entre objeto e label
-    ficava incorreta até ocorrer resize; após redimensionar, a posição voltava ao normal.
+    - em `line/arrow`, ao trocar label inicial `" "` para texto real (`Felipe`), a distância visual entre objeto e label
+      ficava incorreta até ocorrer resize; após redimensionar, a posição voltava ao normal.
 - Causa raiz:
-  - no apply de edição de `line/arrow`, o fluxo de label existente disparava recomputação estrutural do grupo
-    (`addWithUpdate`) ao trocar texto, alterando o centro interno do grupo e deslocando visualmente a label.
+    - no apply de edição de `line/arrow`, o fluxo de label existente disparava recomputação estrutural do grupo
+      (`addWithUpdate`) ao trocar texto, alterando o centro interno do grupo e deslocando visualmente a label.
 - Correção aplicada:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - apply de label existente passa a seguir lógica equivalente ao fluxo de `dimension`:
-      - atualiza `text/fill/left/top/scale`;
-      - atualiza somente coords/render (`setCoords`);
-      - não faz recomputação estrutural (`addWithUpdate`) nessa etapa.
-    - chamada de `setCoords` no label tornou-se defensiva para compatibilidade com mocks de teste.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - apply de label existente passa a seguir lógica equivalente ao fluxo de `dimension`:
+            - atualiza `text/fill/left/top/scale`;
+            - atualiza somente coords/render (`setCoords`);
+            - não faz recomputação estrutural (`addWithUpdate`) nessa etapa.
+        - chamada de `setCoords` no label tornou-se defensiva para compatibilidade com mocks de teste.
 - Regressão automática adicionada:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
-    - novo cenário validando troca de placeholder para texto sem recomputação estrutural do grupo.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts`
+        - novo cenário validando troca de placeholder para texto sem recomputação estrutural do grupo.
 - Validação pós-correção:
-  - `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
-  - `npm run test -- --run` -> PASS (131/131)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (131/131)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 113 (Linha/Seta: preservar top normalizado da label no apply)
 
 - Problema reportado/corrigido:
-  - label de `line/arrow` ainda ficava visualmente alta após confirmar texto no `GenericObjectEditor`,
-    apesar de nascer correta no placeholder inicial.
+    - label de `line/arrow` ainda ficava visualmente alta após confirmar texto no `GenericObjectEditor`,
+      apesar de nascer correta no placeholder inicial.
 - Causa raiz:
-  - o apply de `line/arrow` ainda impunha `top` absoluto na label após edição;
-  - no `scaling`, havia recálculo de `top` que podia divergir do `top` normalizado original do grupo.
+    - o apply de `line/arrow` ainda impunha `top` absoluto na label após edição;
+    - no `scaling`, havia recálculo de `top` que podia divergir do `top` normalizado original do grupo.
 - Correção aplicada:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
-    - atualização de label existente agora preserva `top` corrente normalizado (`existingLabel.top`);
-    - no wrapper de grupos legados, `labelNormalizedTop` é capturado após o `Group` e reaplicado no `scaling`.
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - `createLine` e `createArrow` passam a capturar `objLabelTop/objLabelTop` normalizados pós-criação e
-      reaplicar esse mesmo `top` no `scaling`, evitando drift vertical.
-  - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
-    - asserts atualizados para garantir ancoragem da label no `top` inicial normalizado durante resize.
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+        - atualização de label existente agora preserva `top` corrente normalizado (`existingLabel.top`);
+        - no wrapper de grupos legados, `labelNormalizedTop` é capturado após o `Group` e reaplicado no `scaling`.
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - `createLine` e `createArrow` passam a capturar `objLabelTop/objLabelTop` normalizados pós-criação e
+          reaplicar esse mesmo `top` no `scaling`, evitando drift vertical.
+    - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
+        - asserts atualizados para garantir ancoragem da label no `top` inicial normalizado durante resize.
 - Validação pós-correção:
-  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` -> PASS
-  - `npm run test -- --run` -> PASS (131/131)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.smoke.test.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (131/131)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 114 (Compatibilidade com objetos antigos: normalização de top da label)
 
 - Ajuste adicional aplicado:
-  - alguns objetos de `line/arrow` já existentes podiam carregar `top` legado muito alto para a label;
-  - no apply de edição, foi adicionada normalização defensiva:
-    - quando `existingLabel.top < -8`, aplica fallback para `-3` antes de salvar;
-    - mantém objetos novos/corretos inalterados (preserva top normalizado atual).
+    - alguns objetos de `line/arrow` já existentes podiam carregar `top` legado muito alto para a label;
+    - no apply de edição, foi adicionada normalização defensiva:
+        - quando `existingLabel.top < -8`, aplica fallback para `-3` antes de salvar;
+        - mantém objetos novos/corretos inalterados (preserva top normalizado atual).
 - Arquivos:
-  - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
+    - `src/components/rac-editor/utils/line-arrow-editor-apply.ts`
 - Validação pós-ajuste:
-  - `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts src/lib/canvas/factory/elements-factory.smoke.test.ts` -> PASS
-  - `npm run test -- --run` -> PASS (131/131)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/utils/line-arrow-editor-apply.ts src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/utils/line-arrow-editor-apply.smoke.test.ts src/lib/canvas/factory/elements-factory.smoke.test.ts` ->
+    PASS
+    - `npm run test -- --run` -> PASS (131/131)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 115 (Split do hook combinado de linha/seta)
 
 - Refatoração aplicada:
-  - `src/components/rac-editor/hooks/useLineArrowInlineEditorActions.ts` removido.
-  - Novos hooks dedicados:
-    - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
-    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
-  - Nova util compartilhada para aplicar edição de linha/seta:
-    - `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`
-  - `src/components/rac-editor/RacEditor.tsx` atualizado para orquestrar os dois hooks e manter o contrato do inline editor.
+    - `src/components/rac-editor/hooks/useLineArrowInlineEditorActions.ts` removido.
+    - Novos hooks dedicados:
+        - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
+        - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+    - Nova util compartilhada para aplicar edição de linha/seta:
+        - `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`
+    - `src/components/rac-editor/RacEditor.tsx` atualizado para orquestrar os dois hooks e manter o contrato do inline
+      editor.
 - Objetivo:
-  - reduzir acoplamento e duplicação entre fluxos de linha e seta, mantendo regra de negócio/UX já existente.
+    - reduzir acoplamento e duplicação entre fluxos de linha e seta, mantendo regra de negócio/UX já existente.
 - Validação pós-refatoração:
-  - `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useLinearEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (erro pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`, fora do escopo deste passo)
-  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useLinearEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (erro pré-existente em
+      `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`, fora do escopo deste passo)
+    - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em
+      `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 116 (Split definitivo do apply de Linha/Seta nos hooks)
 
 - Ajuste solicitado aplicado:
-  - removido o util compartilhado `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`.
-  - lógica de `apply` foi separada e movida para os hooks específicos:
-    - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
-    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+    - removido o util compartilhado `src/components/rac-editor/utils/line-arrow-inline-editor-apply.ts`.
+    - lógica de `apply` foi separada e movida para os hooks específicos:
+        - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
+        - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
 - Estrutura nova:
-  - `useLinearEditorActions` contém `applyLineEditorChange` (sem branch por tipo de objeto).
-  - `useArrowEditorActions` contém `applyArrowEditorChange` (sem branch por tipo de objeto).
+    - `useLinearEditorActions` contém `applyLineEditorChange` (sem branch por tipo de objeto).
+    - `useArrowEditorActions` contém `applyArrowEditorChange` (sem branch por tipo de objeto).
 - Objetivo atingido:
-  - redução de acoplamento entre fluxos de linha/seta e queda de complexidade ciclomática do apply combinado.
+    - redução de acoplamento entre fluxos de linha/seta e queda de complexidade ciclomática do apply combinado.
 - Regras/documentação sincronizadas:
-  - `.rules/canvas.md` atualizado para registrar que os applies ficam nos hooks específicos.
+    - `.rules/canvas.md` atualizado para registrar que os applies ficam nos hooks específicos.
 - Validação pós-ajuste:
-  - `npx eslint src/components/rac-editor/hooks/useLinearEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/RacEditor.tsx` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
-  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/components/rac-editor/hooks/useLinearEditorActions.ts src/components/rac-editor/hooks/useArrowEditorActions.ts src/components/rac-editor/RacEditor.tsx` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em
+      `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
+    - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em
+      `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 117 (Remoção de duplicação da escala de Linha entre factory e apply)
 
 - Problema atacado:
-  - duplicação de comportamento entre `createLine` (factory) e `applyLineEditorChange` (hook),
-    principalmente no handler `group.on("scaling")`.
+    - duplicação de comportamento entre `createLine` (factory) e `applyLineEditorChange` (hook),
+      principalmente no handler `group.on("scaling")`.
 - Refatoração aplicada:
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - extraídos helpers reutilizáveis:
-      - `normalizeLineGroupScaling(group, labelTop?)`
-      - `bindLineGroupScaling(group, labelTop?)`
-    - `createLine` passa a usar `bindLineGroupScaling`.
-  - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
-    - `applyLineEditorChange` passa a reutilizar `bindLineGroupScaling` no reagrupamento,
-      removendo lógica duplicada de normalização de escala.
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - extraídos helpers reutilizáveis:
+            - `normalizeLineGroupScaling(group, labelTop?)`
+            - `bindLineGroupScaling(group, labelTop?)`
+        - `createLine` passa a usar `bindLineGroupScaling`.
+    - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
+        - `applyLineEditorChange` passa a reutilizar `bindLineGroupScaling` no reagrupamento,
+          removendo lógica duplicada de normalização de escala.
 - Resultado:
-  - criação e edição inline de linha usam a mesma regra de escala longitudinal (fonte única).
+    - criação e edição inline de linha usam a mesma regra de escala longitudinal (fonte única).
 - Regras/documentação sincronizadas:
-  - `.rules/canvas.md` atualizado com a regra de centralização da escala de `line`.
+    - `.rules/canvas.md` atualizado com a regra de centralização da escala de `line`.
 - Validação pós-refatoração:
-  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useLinearEditorActions.ts` -> PASS
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
-  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    -
+    `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useLinearEditorActions.ts` ->
+    PASS
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em
+      `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
+    - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em
+      `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
 ### Fase 7 - passo incremental 118 (Remoção de duplicação da escala de Seta entre factory e apply)
 
 - Problema atacado:
-  - duplicação de comportamento entre `createArrow` (factory) e `applyArrowEditorChange` (hook),
-    principalmente no handler `group.on("scaling")`.
+    - duplicação de comportamento entre `createArrow` (factory) e `applyArrowEditorChange` (hook),
+      principalmente no handler `group.on("scaling")`.
 - Refatoração aplicada:
-  - `src/lib/canvas/factory/elements-factory.ts`
-    - extraídos helpers reutilizáveis da seta:
-      - `normalizeArrowGroupToLength(group, totalLength, labelTop?)`
-      - `normalizeArrowGroupScaling(group, labelTop?)`
-      - `bindArrowGroupScaling(group, labelTop?)`
-    - `createArrow` passa a usar `bindArrowGroupScaling`.
-  - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
-    - `applyArrowEditorChange` passa a reutilizar `normalizeArrowGroupToLength` no fluxo de scaling do wrapper,
-      removendo duplicação dos cálculos de head/shaft.
+    - `src/lib/canvas/factory/elements-factory.ts`
+        - extraídos helpers reutilizáveis da seta:
+            - `normalizeArrowGroupToLength(group, totalLength, labelTop?)`
+            - `normalizeArrowGroupScaling(group, labelTop?)`
+            - `bindArrowGroupScaling(group, labelTop?)`
+        - `createArrow` passa a usar `bindArrowGroupScaling`.
+    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+        - `applyArrowEditorChange` passa a reutilizar `normalizeArrowGroupToLength` no fluxo de scaling do wrapper,
+          removendo duplicação dos cálculos de head/shaft.
 - Resultado:
-  - criação e edição inline de seta usam a mesma regra geométrica longitudinal (fonte única).
+    - criação e edição inline de seta usam a mesma regra geométrica longitudinal (fonte única).
 - Regras/documentação sincronizadas:
-  - `.rules/canvas.md` atualizado com a regra de centralização da escala de `arrow`.
+    - `.rules/canvas.md` atualizado com a regra de centralização da escala de `arrow`.
 - Validação pós-refatoração:
-  - `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useArrowEditorActions.ts` -> PASS
-  - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
-  - `npm run build` -> PASS
-  - `npm run test:e2e -- --workers=1` -> PASS (16/16)
-  - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)
+    -
+    `npx eslint src/lib/canvas/factory/elements-factory.ts src/components/rac-editor/hooks/useArrowEditorActions.ts` ->
+    PASS
+    - `npm run test -- --run` -> FAIL (3 falhas pré-existentes em
+      `src/lib/canvas/factory/elements-factory.smoke.test.ts`)
+    - `npm run build` -> PASS
+    - `npm run test:e2e -- --workers=1` -> PASS (16/16)
+    - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> FAIL (pré-existente em
+      `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`)

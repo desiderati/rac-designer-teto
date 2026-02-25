@@ -3,8 +3,8 @@ import {Canvas as FabricCanvas, Group} from 'fabric';
 import {toast} from 'sonner';
 import type {CanvasHandle, ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {refreshHouseGroupsOnCanvas, removeContraventamentosFromGroup} from "@/components/lib/canvas";
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {refreshHouseGroupsOnCanvas, removeContraventamentosFromGroup} from '@/components/lib/canvas';
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 interface UseRacEditorJsonActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

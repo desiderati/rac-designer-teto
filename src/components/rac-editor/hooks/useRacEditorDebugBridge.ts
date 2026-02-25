@@ -1,8 +1,8 @@
-import {Dispatch, MutableRefObject, SetStateAction, useEffect} from "react";
-import {houseManager} from "@/components/lib/house-manager.ts";
-import {projectGroupLocalPointToScreen} from "@/components/lib/canvas/piloti-screen-position.ts";
-import type {CanvasHandle, PilotiCanvasSelection} from "@/components/rac-editor/canvas/Canvas.tsx";
-import {HouseSide, HouseViewType} from "@/shared/types/house.ts";
+import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
+import {houseManager} from '@/components/lib/house-manager.ts';
+import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-screen-position.ts';
+import type {CanvasHandle, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 
 interface UseRacEditorDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;
@@ -11,6 +11,12 @@ interface UseRacEditorDebugBridgeParams {
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
 }
+
+type RacDebugWindow = Window & { __racDebug?: Record<string, unknown> };
+type CanvasPilotiObject = { pilotiId?: string; isPilotiCircle?: boolean; left?: number; top?: number };
+type CanvasSummaryObject = { type?: string; myType?: string };
+type CanvasChildObject = { text?: string; fill?: string; stroke?: string; myType?: string };
+type CanvasGroupObject = { getObjects?: () => unknown[]; myType?: string; type?: string };
 
 export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): void {
   useEffect(() => {
@@ -22,8 +28,10 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       const topGroup = house?.views.top?.[0]?.group;
       if (!canvas || !topGroup) return null;
 
-      const piloti = topGroup.getObjects().find((obj: any) =>
-        obj.pilotiId === pilotiId && obj.isPilotiCircle) as any;
+      const piloti = topGroup.getObjects().find((obj) => {
+        const pilotiObject = obj as unknown as CanvasPilotiObject;
+        return pilotiObject.pilotiId === pilotiId && pilotiObject.isPilotiCircle === true;
+      }) as unknown as CanvasPilotiObject | undefined;
 
       if (!piloti) return null;
 
@@ -42,10 +50,12 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       });
     };
 
-    (window as any).__racDebug = {
+    (window as RacDebugWindow).__racDebug = {
       getHouse: () => houseManager.getHouse(),
 
       getPilotiData: (pilotiId: string) => houseManager.getPilotiData(pilotiId),
+
+      getHousePiloti: (pilotiId: string) => houseManager.getPilotiData(pilotiId),
 
       updatePiloti: (pilotiId: string, payload: { isMaster?: boolean; height?: number; nivel?: number }) =>
         houseManager.updatePiloti(pilotiId, payload),
@@ -66,7 +76,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
           currentNivel: pilotiData.nivel,
           group: topGroup,
           screenPosition,
-          houseView: "top",
+          houseView: 'top',
         });
         params.setIsPilotiEditorOpen(true);
         return true;
@@ -123,27 +133,70 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
         return true;
       },
 
-      selectCanvasObjectByMyType: (myType: string, fromEnd = true) => {
+      selectCanvasObjectByMyType: (myType: string, fromEnd = true, triggerInlineEditor = false) => {
         const canvas = params.canvasRef.current?.canvas;
         if (!canvas) return false;
 
         const objects =
-          canvas.getObjects().filter((obj: any) => obj.myType === myType);
+          canvas.getObjects().filter((obj) => {
+            const canvasObject = obj as unknown as CanvasSummaryObject;
+            return canvasObject.myType === myType;
+          });
         if (objects.length === 0) return false;
 
         const target = fromEnd ? objects[objects.length - 1] : objects[0];
+        canvas.discardActiveObject();
         canvas.setActiveObject(target);
+        if (triggerInlineEditor) {
+          canvas.fire('mouse:dblclick', {
+            target,
+            subTargets: [target],
+          } as never);
+        }
+        canvas.fire('selection:created', {
+          target,
+          selected: [target],
+        } as never);
         canvas.requestRenderAll();
         return true;
+      },
+
+      getActiveCanvasObjectSummary: () => {
+        const canvas = params.canvasRef.current?.canvas;
+        if (!canvas) return null;
+
+        const activeObject = canvas.getActiveObject() as unknown as CanvasGroupObject | undefined;
+        if (!activeObject) return null;
+
+        const children = activeObject.getObjects?.() ?? [];
+        const labelObject = children.find((child) => {
+          const c = child as CanvasChildObject;
+          return c.myType === 'objLabel' || c.myType === 'wallLabel';
+        }) as CanvasChildObject | undefined;
+
+        const colorObject = children.find((child) => {
+          const c = child as CanvasChildObject;
+          return c.myType !== 'objLabel' && c.myType !== 'wallLabel';
+        }) as CanvasChildObject | undefined;
+
+        return {
+          type: activeObject.type ?? null,
+          myType: activeObject.myType ?? null,
+          labelText: labelObject?.text ?? null,
+          color: colorObject?.stroke ?? colorObject?.fill ?? null,
+        };
       },
 
       getCanvasObjectsSummary: () => {
         const canvas = params.canvasRef.current?.canvas;
         if (!canvas) return null;
-        return canvas.getObjects().map((obj: any) => ({
-          type: obj.type ?? null,
-          myType: obj.myType ?? null,
-        }));
+        return canvas.getObjects().map((obj) => {
+          const canvasObject = obj as unknown as CanvasSummaryObject;
+          return {
+            type: canvasObject.type ?? null,
+            myType: canvasObject.myType ?? null,
+          };
+        });
       },
 
       getUiState: () => ({
@@ -153,7 +206,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
     };
 
     return () => {
-      delete (window as any).__racDebug;
+      delete (window as RacDebugWindow).__racDebug;
     };
   }, [
     params.canvasRef,

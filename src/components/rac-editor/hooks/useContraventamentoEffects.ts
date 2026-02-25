@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {Group} from 'fabric';
-import {ContraventamentoOrigin, ContraventamentoStep, highlightContraventamentoPilotis} from "@/components/lib/canvas";
+import {ContraventamentoOrigin, ContraventamentoStep, highlightContraventamentoPilotis} from '@/components/lib/canvas';
 
 interface UseContraventamentoEffectsArgs {
   houseVersion: number;

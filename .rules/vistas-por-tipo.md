@@ -37,10 +37,10 @@ Implementação de domínio extraída:
    `house-views-rebuild-use-cases`;
 5. regras de layout de vistas (lados disponíveis, auto-seleção de lado e slots pré-atribuídos) estão em
    `house-view-layout-use-cases`;
-   - a decisão de inserção (`bloqueio`, `inserção direta`, `abrir seletor de instância` ou `abrir seletor de lado`) é
-     centralizada em `resolveViewInsertionRequest`;
-   - o cálculo de empilhamento vertical inicial (planta em cima e vista inicial embaixo) é centralizado em
-     `calculateStackedViewPositions`;
+    - a decisão de inserção (`bloqueio`, `inserção direta`, `abrir seletor de instância` ou `abrir seletor de lado`) é
+      centralizada em `resolveViewInsertionRequest`;
+    - o cálculo de empilhamento vertical inicial (planta em cima e vista inicial embaixo) é centralizado em
+      `calculateStackedViewPositions`;
 6. regras de marcador da porta na planta (`top`) foram extraídas para `house-top-door-marker-use-cases`;
     - inclui inferência de lado, cálculo de dimensões efetivas do corpo, cálculo de posição e patch visual por marcador;
 7. estruturas iniciais de `views` e `sideAssignments` vazias foram extraídas para `house-state-use-cases`;
@@ -78,7 +78,8 @@ Implementação de domínio extraída:
 3. Outras vistas podem exigir seleção de lado conforme `preAssignedSides`.
 4. Se houver apenas um lado disponível, a vista é inserida diretamente.
 5. Se houver mais de um lado disponível, abre `HouseSideSelector`.
-6. transição do `HouseSideSelector` para `NivelDefinitionEditor` (e regra de cancelamento com reset de tipo) é centralizada
+6. transição do `HouseSideSelector` para `NivelDefinitionEditor` (e regra de cancelamento com reset de tipo) é
+   centralizada
    em `side-selector-flow`.
 
 ## 5. Regras de seleção de lado

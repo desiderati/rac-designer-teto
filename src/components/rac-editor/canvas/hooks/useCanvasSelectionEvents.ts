@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
-import {getHintForObject} from "@/components/lib/canvas";
+import {getHintForObject} from '@/components/lib/canvas';
 import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
-import {CanvasObject} from "@/components/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 interface BindSelectionEventsArgs {
   canvas: FabricCanvas;

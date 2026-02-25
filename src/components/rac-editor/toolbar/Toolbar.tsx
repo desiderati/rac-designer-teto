@@ -31,7 +31,7 @@ export function Toolbar({
 
   return (
     <>
-      <input type="file" ref={fileInputRef} accept=".json" onChange={handleFileChange} className="hidden"/>
+      <input type='file' ref={fileInputRef} accept='.json' onChange={handleFileChange} className='hidden'/>
 
       <ToolbarMainMenu
         actions={actions}
