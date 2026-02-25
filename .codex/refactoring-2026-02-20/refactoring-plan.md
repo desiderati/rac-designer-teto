@@ -75,7 +75,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 
 - `src/lib/canvas-utils.ts` -> quebrar em:
     - `src/lib/canvas/constants.ts`
-    - `src/lib/canvas/house-factory.ts`
+    - `src/lib/canvas/house-side.strategy.ts`
     - `src/lib/canvas/piloti-ops.ts`
     - `src/lib/canvas/elements-factory.ts`
     - `src/lib/canvas/contraventamento.ts`
@@ -104,7 +104,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 
 - Criar `src/lib/state/house-store.ts` com adaptador para `houseManager`.
 - Usar `useSyncExternalStore` para assinatura de estado (em vez de `forceUpdate`).
-- Criar `src/lib/persistence/tutorial-storage.ts` e `src/lib/persistence/settings-storage.ts`.
+- Criar `src/lib/persistence/tutorial.storage.ts` e `src/lib/persistence/settings.storage.ts`.
 - Remover acesso direto a `localStorage` de componentes.
 
 **Critério de aceite**
@@ -161,7 +161,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 - Extrair hooks:
     - `useCanvasViewport`
     - `useCanvasHistory`
-    - `useCanvasSelection`
+    - `useCanvasHouseSelection`
     - `useCanvasClipboard`
     - `useCanvasContraventamento`
 - Isolar atalhos de teclado e manipulação touch/mouse.
@@ -192,7 +192,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 - Extrair mapeamento para módulos puros:
     - `src/lib/3d/openings-mapper.ts`
     - `src/lib/3d/contraventamento-parser.ts`
-    - `src/lib/3d/geometry-constants.ts`
+    - `src/lib/3d/constants.ts`
 - `House3DViewer` fica como container de câmera/controles.
 
 **Critério de aceite**
@@ -208,7 +208,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 
 **Arquivos alvo**
 
-- `src/components/rac-editor/GenericInlineEditor.tsx`
+- `src/components/rac-editor/GenericObjectEditor.tsx`
 - `src/components/rac-editor/DistanceEditor.tsx`
 - `src/components/rac-editor/ObjectEditor.tsx`
 - `src/components/rac-editor/LineArrowEditor.tsx`
@@ -299,14 +299,14 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 
 - Renomeação técnica de nomenclatura de componente para padrão atual:
     - componente raiz: `RacEditor`
-    - componente de editores inline: `RacEditorInlineEditors`
+    - componente de editores inline: `RacEditorModalEditors`
 - Renomeação de arquivos e imports no código:
     - `src/components/rac-editor/RacEditor.tsx`
-    - `src/components/rac-editor/RacEditorInlineEditors.tsx`
+    - `src/components/rac-editor/RacEditorModalEditors.tsx`
     - atualização de usos em `src/pages/Index.tsx` e referências internas.
 - Continuidade da quebra de responsabilidades:
     - setup de Fabric isolado em `useCanvasFabricSetup`
-    - fluxo de contraventamento isolado em `useRacContraventamento`
+    - fluxo de contraventamento isolado em `useContraventamento`
     - fluxo de vistas/tipo de casa isolado em `useRacViewActions`.
 - Sincronização de documentação:
     - `.rules` e `.codex` atualizados para refletir hooks extraídos e nomenclatura `RacEditor`.
@@ -325,11 +325,11 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 ### Atualização 2026-02-22 (continuidade - passos 79/80)
 
 - `useCanvasFabricSetup.ts`:
-    - tipagem dos metadados Fabric consolidada em `CanvasRuntimeObject`;
+    - tipagem dos metadados Fabric consolidada em `CanvasObject`;
     - callbacks/refs consumidos por `latestArgsRef` para manter listeners estáveis sem violar `exhaustive-deps`;
     - remoção de `any` explícito sem desabilitar lint.
 - `RacEditor.tsx`:
-    - extraído `useRacCanvasTools` para concentrar ações de inserir elementos/linhas/dimensão/texto e toggle de desenho;
+    - extraído `useCanvasTools` para concentrar ações de inserir elementos/linhas/dimensão/texto e toggle de desenho;
     - redução de tamanho: `1211 -> 1073` linhas.
 
 Estado atual dos arquivos críticos:
@@ -393,7 +393,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passo 86)
 
 - `RacEditor.tsx`:
-    - extração das ações de piloti para `useRacPilotiActions`;
+    - extração das ações de piloti para `usePilotiActions`;
     - delegação de seleção/fechamento/navegação/altura preservando regras existentes.
 
 Estado atual dos arquivos críticos:
@@ -413,7 +413,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passos 87/88)
 
 - `useCanvasFabricSetup.ts`:
-    - extração do bloco remanescente de `double-click`/seleções auxiliares para `useCanvasInlineEditorEvents`.
+    - extração do bloco remanescente de `double-click`/seleções auxiliares para `useCanvasEditorEvents`.
 - `RacEditor.tsx`:
     - extração do fluxo de menu/tutorial para `useRacMenuTutorialActions`.
 
@@ -452,7 +452,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passo 90)
 
 - `RacEditor.tsx`:
-    - extração dos utilitários de edição genérica para `useObjectEditorActions`.
+    - extração dos utilitários de edição genérica para `useWallEditorActions`.
 
 Estado atual dos arquivos críticos:
 
@@ -473,8 +473,8 @@ Próximos recortes planejados:
 - `Canvas.tsx`:
     - extração dos overlays visuais e de navegação para `CanvasOverlays`.
 - `RacEditor.tsx`:
-    - extração dos overlays/modais/tutoriais para `RacEditorOverlays`;
-    - extração de helpers de interação canvas/menu para `useRacCanvasInteractionActions`.
+    - extração dos overlays/modais/tutoriais para `RacEditorModals`;
+    - extração de helpers de interação canvas/menu para `useCanvasInteractionActions`.
 
 Estado atual dos arquivos críticos:
 
@@ -514,7 +514,7 @@ Próximos recortes planejados:
     - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`: 368 linhas
 
 - Próximos recortes planejados:
-    1. reduzir `RacEditor.tsx` para <= 450 com extração do wiring dos editores inline (`RacEditorInlineEditors`) para
+    1. reduzir `RacEditor.tsx` para <= 450 com extração do wiring dos editores inline (`RacEditorModalEditors`) para
        seção dedicada;
     2. revisar `Canvas.tsx` para extração de projeção/offset/centro visível para hook dedicado e manter <= 380;
     3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
@@ -538,7 +538,7 @@ Estado atual dos arquivos críticos:
 Próximos recortes planejados:
 
 1. reduzir `useCanvasFabricSetup.ts` para <= 320 com extração dos blocos remanescentes de bootstrap/configuração;
-2. reduzir `RacEditorInlineEditors`/`RacEditorOverlays` por composição de props em contratos menores para simplificar
+2. reduzir `RacEditorModalEditors`/`RacEditorModals` por composição de props em contratos menores para simplificar
    wiring;
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.
@@ -546,29 +546,29 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (bugfix - passo 107)
 
 - Correção de regressão funcional:
-    - `GenericInlineEditor` voltou a persistir alterações de nome/cor durante edição aberta;
-    - ajuste aplicado em `useGenericInlineEditorDraft` para evitar ressincronização de draft a cada render.
+    - `GenericObjectEditor` voltou a persistir alterações de nome/cor durante edição aberta;
+    - ajuste aplicado em `useGenericObjectEditorDraft` para evitar ressincronização de draft a cada render.
 - Cobertura automática nova:
-    - `GenericInlineEditor.smoke.test.tsx` garante que o fluxo de editar + confirmar mantém valor e cor aplicados.
+    - `GenericObjectEditor.smoke.test.tsx` garante que o fluxo de editar + confirmar mantém valor e cor aplicados.
 
 Estado atual dos arquivos críticos:
 
 - `src/components/rac-editor/RacEditor.tsx`: 443 linhas
 - `src/components/rac-editor/Canvas.tsx`: 321 linhas
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`: 271 linhas
-- `src/components/rac-editor/hooks/useRacContraventamento.ts`: 110 linhas
+- `src/components/rac-editor/hooks/useContraventamento.ts`: 110 linhas
 
 Próximos recortes planejados:
 
-1. revisar contratos de props em `RacEditorOverlays` e `RacEditorInlineEditors` para reduzir largura da interface;
+1. revisar contratos de props em `RacEditorModals` e `RacEditorModalEditors` para reduzir largura da interface;
 2. reduzir acoplamento residual de `RacEditor` com `houseManager` (leituras diretas de estado);
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.
 
 ### Atualização 2026-02-22 (continuidade - passo 104)
 
-- `useRacContraventamento.ts`:
-    - consultas de domínio/canvas extraídas para `useRacContraventamentoQueries`;
+- `useContraventamento.ts`:
+    - consultas de domínio/canvas extraídas para `useContraventamentoQueries`;
     - orquestrador principal preservado para comandos/efeitos.
 
 Estado atual dos arquivos críticos:
@@ -576,34 +576,34 @@ Estado atual dos arquivos críticos:
 - `src/components/rac-editor/RacEditor.tsx`: 443 linhas
 - `src/components/rac-editor/Canvas.tsx`: 321 linhas
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`: 313 linhas
-- `src/components/rac-editor/hooks/useRacContraventamento.ts`: 340 linhas
+- `src/components/rac-editor/hooks/useContraventamento.ts`: 340 linhas
 
 Próximos recortes planejados:
 
-1. extrair comandos de `useRacContraventamento` para `useRacContraventamentoCommands`;
-2. extrair efeitos de `useRacContraventamento` para `useRacContraventamentoEffects`;
-3. mover tipos runtime de `useCanvasFabricSetup.ts` para `canvas-fabric-runtime-types.ts`, mantendo ciclo completo de
+1. extrair comandos de `useContraventamento` para `useContraventamentoCommands`;
+2. extrair efeitos de `useContraventamento` para `useContraventamentoEffects`;
+3. mover tipos runtime de `useCanvasFabricSetup.ts` para `canvas.ts`, mantendo ciclo completo de
    validação por passo.
 
 ### Atualização 2026-02-22 (continuidade - passos 105/106)
 
-- `useRacContraventamento.ts`:
-    - extração dos comandos para `useRacContraventamentoCommands`;
-    - extração dos efeitos para `useRacContraventamentoEffects`;
-    - composição final em orquestrador fino com `useRacContraventamentoQueries`.
+- `useContraventamento.ts`:
+    - extração dos comandos para `useContraventamentoCommands`;
+    - extração dos efeitos para `useContraventamentoEffects`;
+    - composição final em orquestrador fino com `useContraventamentoQueries`.
 - `useCanvasFabricSetup.ts`:
-    - tipos runtime de Fabric movidos para `canvas-fabric-runtime-types.ts`.
+    - tipos runtime de Fabric movidos para `canvas.ts`.
 
 Estado atual dos arquivos críticos:
 
 - `src/components/rac-editor/RacEditor.tsx`: 443 linhas
 - `src/components/rac-editor/Canvas.tsx`: 321 linhas
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`: 271 linhas
-- `src/components/rac-editor/hooks/useRacContraventamento.ts`: 110 linhas
+- `src/components/rac-editor/hooks/useContraventamento.ts`: 110 linhas
 
 Próximos recortes planejados:
 
-1. revisar contratos de props em `RacEditorOverlays` e `RacEditorInlineEditors` para reduzir largura da interface;
+1. revisar contratos de props em `RacEditorModals` e `RacEditorModalEditors` para reduzir largura da interface;
 2. reduzir acoplamento residual de `RacEditor` com `houseManager` (leituras diretas de estado);
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.
@@ -611,7 +611,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passos 102/103)
 
 - `RacEditor.tsx`:
-    - extração do cálculo de `isEditorOpen` e wiring de seleção inline para `useRacInlineEditorBindings`.
+    - extração do cálculo de `isAnyEditorOpen` e wiring de seleção inline para `useGenericObjectEditorBindings`.
 - `Toolbar.tsx`:
     - decomposição em componentes dedicados:
       - `ToolbarButtons`
@@ -629,11 +629,11 @@ Estado atual dos arquivos críticos:
 
 Próximos recortes planejados:
 
-1. quebrar `useRacContraventamento.ts` em:
-   - `useRacContraventamentoQueries`
-   - `useRacContraventamentoCommands`
-   - `useRacContraventamentoEffects`
-2. mover tipos runtime de `useCanvasFabricSetup.ts` para `canvas-fabric-runtime-types.ts`;
+1. quebrar `useContraventamento.ts` em:
+   - `useContraventamentoQueries`
+   - `useContraventamentoCommands`
+   - `useContraventamentoEffects`
+2. mover tipos runtime de `useCanvasFabricSetup.ts` para `canvas.ts`;
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.
 
@@ -651,7 +651,7 @@ Estado atual dos arquivos críticos:
 
 Próximos recortes planejados:
 
-1. reduzir `RacEditorInlineEditors` e `RacEditorOverlays` consolidando payloads de props em contratos menores;
+1. reduzir `RacEditorModalEditors` e `RacEditorModals` consolidando payloads de props em contratos menores;
 2. revisar `Canvas.tsx` para possível extração do bloco de resize/clamp de viewport em hook dedicado (redução
    adicional);
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +
@@ -671,7 +671,7 @@ Estado atual dos arquivos críticos:
 
 Próximos recortes planejados:
 
-1. reduzir `RacEditorInlineEditors` e `RacEditorOverlays` consolidando payloads de props em contratos menores;
+1. reduzir `RacEditorModalEditors` e `RacEditorModals` consolidando payloads de props em contratos menores;
 2. revisar `Canvas.tsx` para extração opcional do bloco de `useImperativeHandle` (helper de handle) para composição
    ainda mais fina;
 3. manter ciclo obrigatório por passo: `eslint` alvo + `tsc --strict` + `npm run test -- --run` + `npm run build` +

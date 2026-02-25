@@ -4,7 +4,7 @@ import {
   ensureOverflowMenuOpen,
   getCanvasObjectsSummary,
   getUiState,
-  setupRacPage,
+  setupRacEditorPage,
   triggerElementsAction,
   triggerLinesAction,
 } from "./helpers/rac-helpers";
@@ -13,7 +13,7 @@ test.describe("RAC toolbar and overflow", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({ page }) => {
-    await setupRacPage(page);
+    await setupRacEditorPage(page);
   });
 
   test("toolbar: elementos e linhas inserem objetos no canvas", async ({ page }) => {

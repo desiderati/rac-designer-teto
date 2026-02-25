@@ -213,13 +213,13 @@ No `RacEditor`, a limpeza de seleção visual/estado de contraventamento foi cen
 `clearContraventamentoSelection` para criação/remoção.
 No `RacEditor`, a sincronização de elevações pós-importação/remoção reutiliza `syncContraventamentoElevations`.
 No `RacEditor`, a orquestração do fluxo (elegibilidade, criação/remoção, seleção e sincronização) foi extraída para
-`useRacContraventamento`, mantendo as mesmas regras de negócio do fluxo anterior.
+`useContraventamento`, mantendo as mesmas regras de negócio do fluxo anterior.
 No `RacEditor`, as consultas de contraventamento (grupo planta, ocupação de lados, elegibilidade e estado do editor)
-foram separadas para `useRacContraventamentoQueries`, mantendo `useRacContraventamento` focado na orquestração.
+foram separadas para `useContraventamentoQueries`, mantendo `useContraventamento` focado na orquestração.
 No `RacEditor`, os comandos do fluxo (criar/remover/selecionar/cancelar/sincronizar) foram separados para
-`useRacContraventamentoCommands`.
+`useContraventamentoCommands`.
 No `RacEditor`, os efeitos reativos do fluxo (ESC, sync por versão e highlight persistente) foram separados para
-`useRacContraventamentoEffects`.
+`useContraventamentoEffects`.
 No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam contraventamento foram extraídas para
 `useRacProjectActions`, preservando a limpeza de seleção e a sincronização de elevações após remoção/importação.
 
@@ -228,11 +228,11 @@ No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam c
 - `src/components/rac-editor/modals/editors/PilotiEditor.tsx`
 - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
 - `src/components/rac-editor/hooks/useContraventamentoFlow.ts`
-- `src/components/rac-editor/hooks/useRacContraventamento.ts`
-- `src/components/rac-editor/hooks/useRacContraventamentoQueries.ts`
-- `src/components/rac-editor/hooks/useRacContraventamentoCommands.ts`
-- `src/components/rac-editor/hooks/useRacContraventamentoEffects.ts`
-- `src/components/rac-editor/hooks/useRacProjectActions.ts`
+- `src/components/rac-editor/hooks/useContraventamento.ts`
+- `src/components/rac-editor/hooks/useContraventamentoQueries.ts`
+- `src/components/rac-editor/hooks/useContraventamentoCommands.ts`
+- `src/components/rac-editor/hooks/useContraventamentoEffects.ts`
+- `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
 - `src/components/rac-editor/RacEditor.tsx`
 - `src/components/rac-editor/Canvas.tsx`
 - `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`

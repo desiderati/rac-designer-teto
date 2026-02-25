@@ -1,16 +1,7 @@
 import {Dispatch, SetStateAction, useState} from "react";
-import type {Group} from "fabric";
-import type {ContraventamentoSide} from "@/lib/canvas-utils";
-import type {ContraventamentoCanvasSelection} from "@/components/rac-editor/Canvas";
-
-type ContraventamentoStep = "select-first" | "select-second";
-
-interface ContraventamentoOrigin {
-  pilotiId: string;
-  col: number;
-  row: number;
-  group: Group;
-}
+import type {ContraventamentoCanvasSelection} from "@/components/rac-editor/canvas/Canvas.tsx";
+import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
+import {ContraventamentoOrigin, ContraventamentoStep} from "@/components/lib/canvas";
 
 interface UseContraventamentoFlowResult {
   isContraventamentoMode: boolean;
@@ -28,7 +19,9 @@ interface UseContraventamentoFlowResult {
 
 export function useContraventamentoFlow(): UseContraventamentoFlowResult {
   const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
-  const [selectedContraventamento, setSelectedContraventamento] = useState<ContraventamentoCanvasSelection | null>(null);
+  const [selectedContraventamento, setSelectedContraventamento] =
+    useState<ContraventamentoCanvasSelection | null>(null);
+
   const [contraventamentoStep, setContraventamentoStep] = useState<ContraventamentoStep>("select-first");
   const [contraventamentoFirst, setContraventamentoFirst] = useState<ContraventamentoOrigin | null>(null);
   const [contraventamentoSide, setContraventamentoSide] = useState<ContraventamentoSide | null>(null);

@@ -3,14 +3,14 @@ import {
   createHouse,
   ensureOverflowMenuOpen,
   getCanvasObjectsSummary,
-  setupRacPage,
+  setupRacEditorPage,
 } from "./helpers/rac-helpers";
 
 test.describe("RAC 3D viewer", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({ page }) => {
-    await setupRacPage(page);
+    await setupRacEditorPage(page);
   });
 
   test("viewer 3D: abre modal, executa controles e insere snapshot no canvas", async ({ page }) => {

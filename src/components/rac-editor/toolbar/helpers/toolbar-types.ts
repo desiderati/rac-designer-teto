@@ -1,4 +1,5 @@
-import type {HouseType} from '@/lib/house-manager.ts';
+import {HouseType} from "@/shared/types/house.ts";
+import {TutorialHighlight} from "@/components/rac-editor/tutorial/Tutorial.tsx";
 
 export interface ToolbarActionMap {
   openHouseTypeSelector: () => void;
@@ -36,7 +37,6 @@ export interface ToolbarActionMap {
 }
 
 export type ToolbarSubmenu = 'house' | 'elements' | 'lines' | 'overflow' | null;
-export type TutorialHighlight = 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
 
 export interface ToolbarViewCount {
   current: number;

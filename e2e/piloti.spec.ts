@@ -1,16 +1,16 @@
 import { expect, test } from "@playwright/test";
 import {
   createHouse,
-  getPilotiDataByDebug,
+  getHousePilotiByDebug,
   setPilotiMasterByDebug,
-  setupRacPage,
+  setupRacEditorPage,
 } from "./helpers/rac-helpers";
 
 test.describe("RAC piloti rules", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({ page }) => {
-    await setupRacPage(page);
+    await setupRacEditorPage(page);
   });
 
   test("pilotis: regra de mestre único permanece válida ao trocar mestre", async ({ page }) => {
@@ -19,8 +19,8 @@ test.describe("RAC piloti rules", () => {
     await setPilotiMasterByDebug(page, "piloti_0_0");
     await setPilotiMasterByDebug(page, "piloti_3_2");
 
-    const a1 = await getPilotiDataByDebug(page, "piloti_0_0");
-    const c4 = await getPilotiDataByDebug(page, "piloti_3_2");
+    const a1 = await getHousePilotiByDebug(page, "piloti_0_0");
+    const c4 = await getHousePilotiByDebug(page, "piloti_3_2");
 
     expect(c4?.isMaster).toBe(true);
     expect(a1?.isMaster).toBe(false);

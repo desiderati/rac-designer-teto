@@ -85,7 +85,7 @@ Cobertura automática existente (não-E2E):
 - `src/components/rac-editor/House3DScene.tsx`
 - `src/lib/3d/contraventamento-parser.ts`
 - `src/lib/3d/openings-mapper.ts`
-- `src/lib/3d/geometry-constants.ts`
+- `src/lib/3d/constants.ts`
 - `src/lib/domain/house-elements-use-cases.ts`
 - `src/lib/domain/house-elements-application.ts`
 - `src/lib/domain/house-elements-repository.ts`

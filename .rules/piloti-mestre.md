@@ -61,7 +61,7 @@ No `HouseManager.updatePiloti`:
 Implementação de domínio extraída:
 
 1. a regra de mestre único está centralizada no caso de uso `applyPilotiUpdateWithSingleMasterRule`;
-2. a camada de aplicação usa a interface `HousePilotiRepository`;
+2. a camada de aplicação usa a interface `HouseRepository`;
 3. `HouseManager` atua como adaptador/orquestrador e sincronizador de canvas/3D.
 4. sincronização visual entre vistas foi decomposta em passes privados no `HouseManager` para reduzir complexidade
    local sem mudar regra.
@@ -102,5 +102,5 @@ Mudanças de mestre são sincronizadas para:
 - `src/lib/domain/house-use-cases.ts`
 - `src/lib/domain/house-application.ts`
 - `src/lib/domain/house-repository.ts`
-- `src/lib/canvas/piloti.ts`
+- `src/lib/canvas/house-piloti.ts`
 - `src/components/rac-editor/House3DScene.tsx`

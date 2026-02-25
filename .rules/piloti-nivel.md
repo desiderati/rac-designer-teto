@@ -68,7 +68,7 @@ No cálculo global de recomendação:
 Implementação de domínio extraída:
 
 1. o cálculo foi isolado no caso de uso `calculateRecommendedPilotiData`;
-2. a camada de aplicação usa a interface `HousePilotiRepository`;
+2. a camada de aplicação usa a interface `HouseRepository`;
 3. reconstrução de dados de piloti a partir de objetos do canvas foi isolada em
    `house-piloti-rebuild-use-cases`;
 4. `HouseManager` aplica o resultado via adaptador e sincroniza as vistas/canvas.
@@ -110,7 +110,7 @@ Complemento de renderização extraído:
 9. feedback visual de seleção no canvas (amarelo geral, azul do piloti ativo e restauração no fechamento do editor)
    foi centralizado em `piloti-visual-feedback`.
 10. no `RacEditor`, ações de seleção/navegação/fechamento do editor de piloti foram delegadas para
-    `useRacPilotiActions`, mantendo a sincronização de elevações e histórico no mesmo fluxo.
+    `usePilotiActions`, mantendo a sincronização de elevações e histórico no mesmo fluxo.
 
 ## 8. Relação com contraventamento
 
@@ -124,7 +124,7 @@ Complemento de renderização extraído:
 
 - `src/components/rac-editor/modals/editors/NivelDefinitionEditor.tsx`
 - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
-- `src/components/rac-editor/hooks/useRacPilotiActions.ts`
+- `src/components/rac-editor/hooks/usePilotiActions.ts`
 - `src/lib/house-manager.ts`
 - `src/lib/domain/house-use-cases.ts`
 - `src/lib/domain/house-application.ts`

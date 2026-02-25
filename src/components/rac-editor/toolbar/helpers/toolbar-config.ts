@@ -35,10 +35,11 @@ import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import type {ToolbarActionMap} from './toolbar-types.ts';
 
 export type HouseMenuLimitKey = 'front' | 'back' | 'side1' | 'side2';
-export type ToolbarActionKey = keyof ToolbarActionMap;
+
 export type ToolbarVoidActionKey = NonNullable<{
   [K in keyof ToolbarActionMap]: ToolbarActionMap[K] extends () => void ? K : never
 }[keyof ToolbarActionMap]>;
+
 export type OverflowActionKey = 'exportJSON' | 'savePDF' | 'open3DViewer' | 'restartTutorial' | 'toggleTips' | 'openSettings';
 
 export interface ToolbarCommandConfig {

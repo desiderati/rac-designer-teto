@@ -1,3 +1,3 @@
-import {toast, useToast} from "@/shared/hooks/use-toast";
+import {toast, useToast} from "@/components/lib/use-toast.ts";
 
 export {useToast, toast};

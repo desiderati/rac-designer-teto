@@ -1,6 +1,7 @@
-import {FABButton, SubMenuButton} from './ToolbarButtons';
+import {FABButton, SubMenuButton} from './ToolbarButtons.tsx';
 import {MAIN_MENU_ICONS, OverflowActionKey, OVERFLOW_MENU_CONFIG} from './helpers/toolbar-config.ts';
-import type {ToolbarActionMap, ToolbarSubmenu, TutorialHighlight} from './helpers/toolbar-types.ts';
+import type {ToolbarActionMap, ToolbarSubmenu} from './helpers/toolbar-types.ts';
+import {TutorialHighlight} from "@/components/rac-editor/tutorial/Tutorial.tsx";
 
 interface ToolbarOverflowMenuProps {
   actions: ToolbarActionMap;
@@ -9,32 +10,6 @@ interface ToolbarOverflowMenuProps {
   isTutorialActive: boolean;
   showTips: boolean;
   onImportClick: () => void;
-}
-
-function runOverflowAction(actions: ToolbarActionMap, action: OverflowActionKey) {
-  if (action === 'exportJSON') {
-    actions.exportJSON();
-    return;
-  }
-  if (action === 'savePDF') {
-    actions.savePDF();
-    return;
-  }
-  if (action === 'open3DViewer') {
-    actions.open3DViewer();
-    return;
-  }
-  if (action === 'restartTutorial') {
-    actions.restartTutorial();
-    return;
-  }
-  if (action === 'toggleTips') {
-    actions.toggleTips();
-    return;
-  }
-  if (action === 'openSettings') {
-    actions.openSettings?.();
-  }
 }
 
 export function ToolbarOverflowMenu({
@@ -92,4 +67,30 @@ export function ToolbarOverflowMenu({
       )}
     </div>
   );
+}
+
+function runOverflowAction(actions: ToolbarActionMap, action: OverflowActionKey) {
+  if (action === 'exportJSON') {
+    actions.exportJSON();
+    return;
+  }
+  if (action === 'savePDF') {
+    actions.savePDF();
+    return;
+  }
+  if (action === 'open3DViewer') {
+    actions.open3DViewer();
+    return;
+  }
+  if (action === 'restartTutorial') {
+    actions.restartTutorial();
+    return;
+  }
+  if (action === 'toggleTips') {
+    actions.toggleTips();
+    return;
+  }
+  if (action === 'openSettings') {
+    actions.openSettings?.();
+  }
 }

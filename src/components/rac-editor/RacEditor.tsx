@@ -1,45 +1,77 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {Toolbar} from './Toolbar';
-import {CanvasHandle, PilotiCanvasSelection,} from './Canvas';
-import {RacEditorInlineEditors} from './RacEditorInlineEditors.tsx';
-import {RacEditorOverlays} from './RacEditorOverlays.tsx';
+import {Toolbar} from '@/components/rac-editor/toolbar/Toolbar.tsx';
+import {CanvasHandle, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
+import {RacEditorModals} from './RacEditorModals.tsx';
 import {RacEditorCanvas} from './RacEditorCanvas.tsx';
-import {useContraventamentoFlow} from './hooks/useContraventamentoFlow';
-import {useHouseTypeFlow} from './hooks/useHouseTypeFlow';
-import {useRacHotkeys} from './hooks/useRacHotkeys';
+import {useContraventamentoFlow} from './hooks/useContraventamentoFlow.ts';
+import {useHouseTypeFlow} from './hooks/useHouseTypeFlow.ts';
+import {useHotkeys} from './hooks/useHotkeys.ts';
 import {
-  useRacInlineEditorBindings
-} from '@/components/rac-editor/modals/editors/generic/hooks/useRacInlineEditorBindings.ts';
-import {useRacTutorialFlow} from './hooks/useRacTutorialFlow';
-import {useRacModalState} from './hooks/useRacModalState';
-import {useRacDebugBridge} from './hooks/useRacDebugBridge';
-import {useRacContraventamento} from './hooks/useRacContraventamento';
-import {useRacViewActions} from './hooks/useRacViewActions';
-import {useRacCanvasTools} from './hooks/useRacCanvasTools';
-import {useRacProjectActions} from './hooks/useRacProjectActions';
-import {useRacGroupingActions} from './hooks/useRacGroupingActions';
-import {useRacMenuTutorialActions} from './hooks/useRacMenuTutorialActions';
-import {useRacPilotiActions} from './hooks/useRacPilotiActions';
-import {useRacTutorialUiActions} from './hooks/useRacTutorialUiActions';
-import {useRacHouseInitialization} from './hooks/useRacHouseInitialization';
-import {useObjectEditorActions} from '@/components/rac-editor/modals/editors/generic/hooks/useObjectEditorActions.ts';
-import {useRacPdfExportAction} from './hooks/useRacPdfExportAction';
-import {useRacToolbarViewCounts} from './hooks/useRacToolbarViewCounts';
-import {useRacCanvasInteractionActions} from './hooks/useRacCanvasInteractionActions';
-import {useRacToolbarActions} from './hooks/useRacToolbarActions';
-import {useIsMobile} from '@/shared/hooks/use-mobile';
-import {getSettings} from '@/lib/settings';
-import {useHouseStoreVersion} from '@/lib/state/house-store';
-import {houseManager, HouseType} from '@/lib/house-manager';
+  useGenericObjectEditorBindings
+} from '@/components/rac-editor/modals/editors/generic/hooks/useGenericObjectEditorBindings.ts';
+import {useRacEditorModalState} from './hooks/useRacEditorModalState.ts';
+import {useRacEditorDebugBridge} from './hooks/useRacEditorDebugBridge.ts';
+import {useContraventamento} from './hooks/useContraventamento.ts';
+import {useCanvasTools} from '@/components/rac-editor/canvas/hooks/useCanvasTools.ts';
+import {usePilotiActions} from './hooks/usePilotiActions.ts';
+import {useWallEditorActions} from '@/components/rac-editor/modals/editors/generic/hooks/useWallEditorActions.ts';
+import {useRacEditorPdfExportAction} from './hooks/useRacEditorPdfExportAction.ts';
+import {useToolbarViewCounts} from '@/components/rac-editor/toolbar/hooks/useToolbarViewCounts.ts';
+import {useCanvasInteractionActions} from '@/components/rac-editor/canvas/hooks/useCanvasInteractionActions.ts';
+import {useToolbarActions} from '@/components/rac-editor/toolbar/hooks/useToolbarActions.ts';
+import {useIsMobile} from '@/components/lib/use-mobile.tsx';
+import {getSettings} from '@/infra/settings.ts';
+import {useHouseStoreVersion} from '@/components/lib/house-store.ts';
+import {houseManager} from '@/components/lib/house-manager.ts';
+import type {HouseType} from '@/shared/types/house.ts';
 import {
-  useLineArrowDistanceEditorActions
-} from "@/components/rac-editor/modals/editors/generic/hooks/useLineArrowDistanceEditorActions.ts";
+  useLinearEditorActions
+} from "@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts";
+import {useTutorialFlow} from "@/components/rac-editor/tutorial/hooks/useTutorialFlow.ts";
+import {useCanvasHouseInitialization} from "@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts";
+import {useTutorialUiActions} from "@/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts";
+import {useCanvasHouseViewActions} from "@/components/rac-editor/canvas/hooks/useCanvasHouseViewActions.ts";
+import {useCanvasGroupingActions} from "@/components/rac-editor/canvas/hooks/useCanvasGroupingActions.ts";
+import {useTutorialMenuActions} from "@/components/rac-editor/tutorial/hooks/useTutorialMenuActions.ts";
+import {useRacEditorJsonActions} from "@/components/rac-editor/hooks/useRacEditorJsonActions.ts";
+import {RacEditorHouseTypeSelector} from "@/components/rac-editor/RacEditorHouseTypeSelector.tsx";
+import {RacEditorTutorial} from "@/components/rac-editor/RacEditorTutorial.tsx";
+import {House3DViewer} from "@/components/rac-editor/House3DViewer.tsx";
 
 export function RacEditor() {
   const [infoMessage, setInfoMessage] =
     useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
 
+  const isMobile = useIsMobile();
+
+  const {
+    pendingViewType,
+    setPendingViewType,
+    sideSelectorMode,
+    setSideSelectorMode,
+    instanceSlots,
+    setInstanceSlots,
+    pendingNivelSide,
+    setPendingNivelSide,
+    niveisAppliedRef,
+    transitionToNivelRef,
+  } = useHouseTypeFlow();
+
+  const houseVersion = useHouseStoreVersion();
+
+  const handleHouseTypeSelected = (type: HouseType) => {
+    handleHouseTypeSelectedFromFlow(type);
+  };
+
+  const [pilotiSelection, setPilotiSelection] = useState<PilotiCanvasSelection | null>(null);
+  const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
+
   const [isDrawing, setIsDrawing] = useState(false);
+
+  const canvasRef = useRef<CanvasHandle>(null);
+
+  // ── RAC Editor ─────────────────────────────────────────────────
 
   const {
     isMenuOpen,
@@ -64,54 +96,8 @@ export function RacEditor() {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
-  } = useRacModalState();
+  } = useRacEditorModalState();
 
-  const {
-    tutorialStep,
-    tutorialHouseSelectorPreview,
-    setTutorialHouseSelectorPreview,
-    advanceTutorial,
-    completeTutorial,
-    restartTutorialProgress
-  } = useRacTutorialFlow();
-
-  const [pilotiSelection, setPilotiSelection] = useState<PilotiCanvasSelection | null>(null);
-  const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
-
-  const {
-    objectSelection,
-    isObjectEditorOpen,
-    closeObjectEditor,
-    lineArrowDistanceSelection,
-    isLineArrowDistanceEditorOpen,
-    closeLineArrowDistanceEditor,
-    isEditorOpen,
-    canvasSelectionBindings,
-  } = useRacInlineEditorBindings({isPilotiEditorOpen});
-
-  const [onboardingBalloon, setOnboardingBalloon] = useState<{
-    position: { x: number; y: number; };
-    text: string;
-  } | null>(null);
-
-  const [pilotiTutorialPosition, setPilotiTutorialPosition] = useState<{ x: number; y: number; } | null>(null);
-
-  const {
-    pendingViewType,
-    setPendingViewType,
-    sideSelectorMode,
-    setSideSelectorMode,
-    instanceSlots,
-    setInstanceSlots,
-    pendingNivelSide,
-    setPendingNivelSide,
-    niveisAppliedRef,
-    transitionToNivelRef,
-  } = useHouseTypeFlow();
-
-  const houseVersion = useHouseStoreVersion();
-  const canvasRef = useRef<CanvasHandle>(null);
-  const isMobile = useIsMobile();
   const showTipsRef = useRef(showTips);
   const showZoomControlsRef = useRef(showZoomControls);
 
@@ -123,7 +109,7 @@ export function RacEditor() {
     showZoomControlsRef.current = showZoomControls;
   }, [showZoomControls]);
 
-  useRacDebugBridge({
+  useRacEditorDebugBridge({
     canvasRef,
     showTipsRef,
     showZoomControlsRef,
@@ -131,26 +117,28 @@ export function RacEditor() {
     setIsPilotiEditorOpen,
   });
 
-  // ── Contraventamento state ─────────────────────────────────────────────────
-  const {
-    isContraventamentoMode,
-    setIsContraventamentoMode,
-    selectedContraventamento,
-    setSelectedContraventamento,
-    contraventamentoStep,
-    setContraventamentoStep,
-    contraventamentoFirst,
-    setContraventamentoFirst,
-    contraventamentoSide,
-    setContraventamentoSide,
-    resetContraventamentoFlow,
-  } = useContraventamentoFlow();
+  // ── Tutorial ─────────────────────────────────────────────────
 
-  useRacHouseInitialization({canvasRef});
+  const [tutorialBalloon, setTutorialBalloon] = useState<{
+    position: { x: number; y: number; };
+    text: string;
+  } | null>(null);
 
-  const clearOnboardingBalloon = useCallback(() => {
-    setOnboardingBalloon(null);
+  const clearTutorialBalloon = useCallback(() => {
+    setTutorialBalloon(null);
   }, []);
+
+  const [tutorialPilotiPosition, setTutorialPilotiPosition] =
+    useState<{ x: number; y: number; } | null>(null);
+
+  const {
+    tutorialStep,
+    tutorialHouseSelectorPreview,
+    setTutorialHouseSelectorPreview,
+    advanceTutorial,
+    completeTutorial,
+    restartTutorialProgress
+  } = useTutorialFlow();
 
   const {
     handleRestartTutorial,
@@ -159,11 +147,11 @@ export function RacEditor() {
     dismissPilotiTutorial,
     handleClosePilotiTutorial,
     showPilotiTutorialIfNeeded,
-  } = useRacTutorialUiActions({
+  } = useTutorialUiActions({
     isMobile,
     canvasRef,
-    pilotiTutorialPosition,
-    setPilotiTutorialPosition,
+    tutorialPilotiPosition,
+    setTutorialPilotiPosition,
     setShowRestartConfirm,
     restartTutorialProgress,
     resetUiAfterRestart: () => {
@@ -173,8 +161,12 @@ export function RacEditor() {
       setTutorialHouseSelectorPreview(false);
       setShowRestartConfirm(false);
     },
-    clearOnboardingBalloon,
+    clearTutorialBalloon,
   });
+
+  // ── Canvas ─────────────────────────────────────────────────
+
+  useCanvasHouseInitialization({canvasRef});
 
   const {
     getCanvas,
@@ -182,12 +174,12 @@ export function RacEditor() {
     addObjectToCanvas,
     closeAllMenus,
     disableDrawingMode,
-  } = useRacCanvasInteractionActions({
+  } = useCanvasInteractionActions({
     canvasRef,
     isDrawing,
     setIsDrawing,
     setInfoMessage,
-    clearOnboardingBalloon,
+    clearTutorialBalloon,
     onCloseSubmenus: () => setActiveSubmenu(null),
     onDismissPilotiTutorial: dismissPilotiTutorial,
   });
@@ -199,7 +191,7 @@ export function RacEditor() {
     handleSideSelectorClose,
     handleAddHouseView,
     handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
-  } = useRacViewActions({
+  } = useCanvasHouseViewActions({
     getCanvas,
     getVisibleCenter,
     closeAllMenus,
@@ -218,16 +210,12 @@ export function RacEditor() {
     setNivelDefinitionOpen,
   });
 
-  const handleHouseTypeSelected = (type: HouseType) => {
-    handleHouseTypeSelectedFromFlow(type);
-  };
-
   const {
     handleGroup,
     handleUngroup,
     confirmUngroup,
     closeUngroupConfirm,
-  } = useRacGroupingActions({
+  } = useCanvasGroupingActions({
     canvasRef,
     getCanvas,
     setInfoMessage,
@@ -246,7 +234,7 @@ export function RacEditor() {
     handleAddDistance,
     handleToggleDrawMode,
     handleAddText,
-  } = useRacCanvasTools({
+  } = useCanvasTools({
     canvasRef,
     getCanvas,
     getVisibleCenter,
@@ -256,8 +244,10 @@ export function RacEditor() {
     isDrawing,
     setIsDrawing,
     setInfoMessage,
-    setOnboardingBalloon,
+    setTutorialBalloon,
   });
+
+  // ── Other Tutorial ─────────────────────────────────────────────────
 
   const {
     handleToggleMenu,
@@ -272,7 +262,7 @@ export function RacEditor() {
     handleTutorialComplete,
     handleZoomTutorialInteraction,
     handleToggleZoomControls,
-  } = useRacMenuTutorialActions({
+  } = useTutorialMenuActions({
     tutorialStep,
     advanceTutorial,
     completeTutorial,
@@ -289,14 +279,21 @@ export function RacEditor() {
     isHouseTypeSelected: () => !!houseManager.getHouseType(),
   });
 
-  useRacHotkeys({
-    onToggleDrawMode: handleToggleDrawMode,
-    onToggleZoomControls: handleToggleZoomControls,
-  });
+  // ── Contraventamento ─────────────────────────────────────────────────
 
-  const {handleSavePDF} = useRacPdfExportAction({
-    getCanvas,
-  });
+  const {
+    isContraventamentoMode,
+    setIsContraventamentoMode,
+    selectedContraventamento,
+    setSelectedContraventamento,
+    contraventamentoStep,
+    setContraventamentoStep,
+    contraventamentoFirst,
+    setContraventamentoFirst,
+    contraventamentoSide,
+    setContraventamentoSide,
+    resetContraventamentoFlow,
+  } = useContraventamentoFlow();
 
   const {
     getTopViewGroup,
@@ -308,7 +305,7 @@ export function RacEditor() {
     isPilotiEligible,
     getContraventamentoEditorState,
     handleContraventamentoFromPilotiSide,
-  } = useRacContraventamento({
+  } = useContraventamento({
     canvasRef,
     getCanvas,
     houseVersion,
@@ -330,11 +327,13 @@ export function RacEditor() {
     setActiveSubmenu,
   });
 
+  // ── RAC Editor Import/Export ─────────────────────────────────────────────────
+
   const {
     handleExportJSON,
     handleImportJSON,
     handleDelete,
-  } = useRacProjectActions({
+  } = useRacEditorJsonActions({
     canvasRef,
     getCanvas,
     setInfoMessage,
@@ -346,15 +345,28 @@ export function RacEditor() {
     getTopViewGroup,
   });
 
+  const {handleSavePDF} = useRacEditorPdfExportAction({
+    getCanvas,
+  });
+
+  // ── Hotkeys ─────────────────────────────────────────────────
+
+  useHotkeys({
+    onToggleDrawMode: handleToggleDrawMode,
+    onToggleZoomControls: handleToggleZoomControls,
+  });
+
+  // ── Piloti ─────────────────────────────────────────────────
+
   const {
     handlePilotiSelect,
     handlePilotiEditorClose,
     handlePilotiHeightChange,
     handlePilotiNavigate,
-  } = useRacPilotiActions({
+  } = usePilotiActions({
     isContraventamentoMode,
     onContraventamentoSelect: handleContraventamentoSelect,
-    hasPilotiTutorial: !!pilotiTutorialPosition,
+    hasPilotiTutorial: !!tutorialPilotiPosition,
     closePilotiTutorial: handleClosePilotiTutorial,
     canvasRef,
     pilotiSelection,
@@ -364,26 +376,44 @@ export function RacEditor() {
     setInfoMessage,
   });
 
+  // ── Modal Editors ─────────────────────────────────────────────────
+
   const {
-    handleObjectApply,
-    resolveObjectEditorColor,
-  } = useObjectEditorActions({
+    wallSelection,
+    isWallEditorOpen,
+    handleWallSelect,
+    closeWallEditor,
+
+    linearSelection,
+    isLinearEditorOpen,
+    handleLinearSelect,
+    closeLinearEditor,
+
+    isAnyEditorOpen,
+  } = useGenericObjectEditorBindings({isPilotiEditorOpen});
+
+  const {
+    handleWallApply,
+    resolveWallEditorColor,
+  } = useWallEditorActions({
     canvasRef,
-    objectSelection,
+    wallSelection,
     setInfoMessage,
   });
 
-  const {handleLineArrowDistanceApply} = useLineArrowDistanceEditorActions({
+  const {handleLinearApply} = useLinearEditorActions({
     canvasRef,
-    lineArrowDistanceSelection,
+    linearSelection,
     setInfoMessage,
   });
 
-  const onLineArrowDistanceApply = useCallback(
+  const onLinearApply = useCallback(
     (newValue: string, newColor: string) => {
-      handleLineArrowDistanceApply(newValue, newColor);
-    }, [handleLineArrowDistanceApply]
+      handleLinearApply(newValue, newColor);
+    }, [handleLinearApply]
   );
+
+  // ── Toolbar ─────────────────────────────────────────────────
 
   const {
     currentHouseType,
@@ -391,9 +421,9 @@ export function RacEditor() {
     backViewCount,
     side1ViewCount,
     side2ViewCount,
-  } = useRacToolbarViewCounts();
+  } = useToolbarViewCounts();
 
-  const toolbarActions = useRacToolbarActions({
+  const toolbarActions = useToolbarActions({
     handleOpenHouseTypeSelector,
     handleAddHouseView,
     handleUngroup,
@@ -451,26 +481,36 @@ export function RacEditor() {
         showTips={showTips}
         showZoomControls={showZoomControls}
         infoMessage={infoMessage}
-        isEditorOpen={isEditorOpen}
+        isAnyEditorOpen={isAnyEditorOpen}
         isContraventamentoMode={isContraventamentoMode}
         isSelectingContraventamentoDestination={isContraventamentoMode && contraventamentoStep === 'select-second'}
         isPilotiEligibleForContraventamento={isPilotiEligible}
         onSelectionMessage={setInfoMessage}
         onSelectionAuxCleanup={() => {
           dismissPilotiTutorial();
-          clearOnboardingBalloon();
+          clearTutorialBalloon();
         }}
         onZoomInteraction={handleZoomTutorialInteraction}
         onPilotiSelect={handlePilotiSelect}
-        onObjectSelect={canvasSelectionBindings.onObjectSelect}
-        onLineArrowDistanceSelect={canvasSelectionBindings.onLineArrowDistanceSelect}
+        onWallSelect={handleWallSelect}
+        onLinearSelect={handleLinearSelect}
         onDelete={handleDelete}
         onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
         onContraventamentoSelect={handleContraventamentoSelect}
         onContraventamentoCancel={handleCancelContraventamento}
       />
 
-      <RacEditorInlineEditors
+      <RacEditorHouseTypeSelector
+        houseTypeSelectorOpen={houseTypeSelectorOpen}
+        onHouseTypeSelectorClose={handleHouseTypeSelectorClose}
+        onHouseTypeSelected={handleHouseTypeSelected}
+        tutorialHouseSelectorPreview={tutorialHouseSelectorPreview}
+        nivelDefinitionOpen={nivelDefinitionOpen}
+        onCloseNivelDefinition={handleNivelDefinitionClose}
+        onApplyNiveis={handleNiveisApplied}
+      />
+
+      <RacEditorModalEditors
         isMobile={isMobile}
         isPilotiEditorOpen={isPilotiEditorOpen}
         pilotiSelection={pilotiSelection}
@@ -480,17 +520,17 @@ export function RacEditor() {
         contraventamentoEditorState={contraventamentoEditorState}
         onContraventamentoSideAction={handleContraventamentoFromPilotiSide}
 
-        onObjectApply={handleObjectApply}
-        onObjectEditorClose={closeObjectEditor}
-        objectSelection={objectSelection}
-        objectEditorColor={resolveObjectEditorColor()}
-        isObjectEditorOpen={isObjectEditorOpen}
+        onWallApply={handleWallApply}
+        onWallEditorClose={closeWallEditor}
+        wallSelection={wallSelection}
+        wallEditorColor={resolveWallEditorColor()}
+        isWallEditorOpen={isWallEditorOpen}
 
-        onLineArrowDistanceApply={onLineArrowDistanceApply}
-        onLineArrowDistanceEditorClose={closeLineArrowDistanceEditor}
-        lineArrowDistanceSelection={lineArrowDistanceSelection}
-        lineArrowDistanceEditorType={lineArrowDistanceSelection?.myType}
-        isLineArrowDistanceEditorOpen={isLineArrowDistanceEditorOpen}
+        onLinearApply={onLinearApply}
+        onLinearEditorClose={closeLinearEditor}
+        linearSelection={linearSelection}
+        linearEditorType={linearSelection?.myType ?? 'line'}
+        isLinearEditorOpen={isLinearEditorOpen}
 
         pendingViewType={pendingViewType}
         sideSelectorOpen={sideSelectorOpen}
@@ -500,34 +540,32 @@ export function RacEditor() {
         onSideSelected={handleSideSelected}
       />
 
-      <RacEditorOverlays
+      <RacEditorModals
         isMobile={isMobile}
-        houseTypeSelectorOpen={houseTypeSelectorOpen}
-        onHouseTypeSelectorClose={handleHouseTypeSelectorClose}
-        onHouseTypeSelected={handleHouseTypeSelected}
-        tutorialHouseSelectorPreview={tutorialHouseSelectorPreview}
-        is3DViewerOpen={is3DViewerOpen}
-        on3DViewerOpenChange={setIs3DViewerOpen}
         isSettingsOpen={isSettingsOpen}
         onSettingsOpenChange={setIsSettingsOpen}
         onSettingsChange={() => setShowZoomControls(getSettings().zoomEnabledByDefault)}
-        tutorialStep={tutorialStep}
-        onTutorialComplete={handleTutorialComplete}
-        pilotiTutorialPosition={pilotiTutorialPosition}
-        onClosePilotiTutorial={handleClosePilotiTutorial}
-        onboardingBalloon={onboardingBalloon}
-        onCloseOnboardingBalloon={clearOnboardingBalloon}
         showRestartConfirm={showRestartConfirm}
         onConfirmRestartTutorial={confirmRestartTutorial}
         onCloseRestartConfirm={closeRestartConfirm}
         showUngroupConfirm={showUngroupConfirm}
         onConfirmUngroup={confirmUngroup}
         onCloseUngroupConfirm={closeUngroupConfirm}
-        nivelDefinitionOpen={nivelDefinitionOpen}
-        onCloseNivelDefinition={handleNivelDefinitionClose}
-        onApplyNiveis={handleNiveisApplied}
-        pilotiData={houseManager.getHouse()?.pilotis || {}}
       />
 
-    </div>);
+      <RacEditorTutorial
+        tutorialStep={tutorialStep}
+        onTutorialComplete={handleTutorialComplete}
+        tutorialPilotiPosition={tutorialPilotiPosition}
+        onCloseTutorialPiloti={handleClosePilotiTutorial}
+        tutorialBalloon={tutorialBalloon}
+        onCloseTutorialBalloon={clearTutorialBalloon}
+      />
+
+      <House3DViewer
+        open={is3DViewerOpen}
+        onOpenChange={setIs3DViewerOpen}/>
+
+    </div>
+  );
 }

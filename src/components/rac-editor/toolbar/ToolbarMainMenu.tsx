@@ -1,4 +1,4 @@
-import {FABButton, SubMenuButton} from './ToolbarButtons';
+import {FABButton, SubMenuButton} from './ToolbarButtons.tsx';
 import {
   ELEMENTS_MENU_CONFIG,
   HOUSE_MENU_CONFIG,
@@ -6,8 +6,9 @@ import {
   LINES_MENU_CONFIG,
   MAIN_MENU_ICONS,
 } from './helpers/toolbar-config.ts';
-import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount, TutorialHighlight} from './helpers/toolbar-types.ts';
-import type {HouseType} from '@/lib/house-manager';
+import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount} from './helpers/toolbar-types.ts';
+import type {HouseType} from '@/shared/types/house.ts';
+import {TutorialHighlight} from "@/components/rac-editor/tutorial/Tutorial.tsx";
 
 interface ToolbarMainMenuProps {
   actions: ToolbarActionMap;
@@ -22,18 +23,6 @@ interface ToolbarMainMenuProps {
   backViewCount: ToolbarViewCount;
   side1ViewCount: ToolbarViewCount;
   side2ViewCount: ToolbarViewCount;
-}
-
-function resolveLimitState(limitKey: HouseMenuLimitKey, limits: {
-  frontViewCount: ToolbarViewCount;
-  backViewCount: ToolbarViewCount;
-  side1ViewCount: ToolbarViewCount;
-  side2ViewCount: ToolbarViewCount;
-}): boolean {
-  if (limitKey === 'front') return limits.frontViewCount.current >= limits.frontViewCount.max;
-  if (limitKey === 'back') return limits.backViewCount.current >= limits.backViewCount.max;
-  if (limitKey === 'side1') return limits.side1ViewCount.current >= limits.side1ViewCount.max;
-  return limits.side2ViewCount.current >= limits.side2ViewCount.max;
 }
 
 export function ToolbarMainMenu({
@@ -101,7 +90,8 @@ export function ToolbarMainMenu({
           <FABButton
             icon={MAIN_MENU_ICONS.unlock}
             title="Desbloquear (Desagrupar) - Em breve"
-            onClick={() => {}}
+            onClick={() => {
+            }}
             hideTooltip={isTutorialActive}
             className="opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]"
           />
@@ -109,7 +99,8 @@ export function ToolbarMainMenu({
           <FABButton
             icon={MAIN_MENU_ICONS.lock}
             title="Bloquear (Agrupar) - Em breve"
-            onClick={() => {}}
+            onClick={() => {
+            }}
             hideTooltip={isTutorialActive}
             className="opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]"
           />
@@ -200,4 +191,16 @@ export function ToolbarMainMenu({
       )}
     </div>
   );
+}
+
+function resolveLimitState(limitKey: HouseMenuLimitKey, limits: {
+  frontViewCount: ToolbarViewCount;
+  backViewCount: ToolbarViewCount;
+  side1ViewCount: ToolbarViewCount;
+  side2ViewCount: ToolbarViewCount;
+}): boolean {
+  if (limitKey === 'front') return limits.frontViewCount.current >= limits.frontViewCount.max;
+  if (limitKey === 'back') return limits.backViewCount.current >= limits.backViewCount.max;
+  if (limitKey === 'side1') return limits.side1ViewCount.current >= limits.side1ViewCount.max;
+  return limits.side2ViewCount.current >= limits.side2ViewCount.max;
 }

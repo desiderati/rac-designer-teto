@@ -7,7 +7,7 @@ Este documento descreve o contrato funcional da `Toolbar` do RAC editor.
 `Toolbar.tsx` é uma view de comandos. Regras de negócio ficam no pai (`RacEditor` + `houseManager`) e em hooks
 dedicados de orquestração.
 
-No `RacEditor`, ações de inserção de elementos/linhas/desenho foram extraídas para `useRacCanvasTools`, que centraliza
+No `RacEditor`, ações de inserção de elementos/linhas/desenho foram extraídas para `useCanvasTools`, que centraliza
 o fluxo comum de add (`addCanvasObject`: fechamento de menu + add + onboarding) e os handlers de desenho/texto.
 As ações de projeto do overflow (`exportar JSON`, `importar JSON` e `excluir seleção`) foram extraídas para
 `useRacProjectActions`, mantendo as mesmas regras de negócio de remoção e sincronização.
@@ -22,13 +22,13 @@ Interações de menu/tutorial (toggle de submenus, selector de tipo de casa e ga
 Fluxo de reinício do tutorial/canvas (confirmação, reset de estado e limpeza de overlays de onboarding) é delegado para
 `useRacTutorialUiActions`.
 Overlays/modais do editor (seletor de tipo de casa, settings, tutorial/balões, confirmações e editor de níveis) foram
-extraídos para `RacEditorOverlays`, mantendo `RacEditor` como orquestrador de estado.
+extraídos para `RacEditorModals`, mantendo `RacEditor` como orquestrador de estado.
 Helpers locais de interação canvas/menu no `RacEditor` (canvas ativo, centro visível, add no centro, fechamento de
-menus e desligamento do modo desenho) foram consolidados em `useRacCanvasInteractionActions`.
+menus e desligamento do modo desenho) foram consolidados em `useCanvasInteractionActions`.
 Composição do `ToolbarActionMap` no `RacEditor` foi extraída para `useRacToolbarActions`, mantendo o contrato da
 `Toolbar` e reduzindo objeto inline no componente raiz.
-No `RacEditor`, o cálculo de `isEditorOpen` e o wiring de seleções inline (`distance/objectName/line-arrow`) para o
-`Canvas` foram extraídos para `useRacInlineEditorBindings`.
+No `RacEditor`, o cálculo de `isAnyEditorOpen` e o wiring de seleções inline (`distance/objectName/line-arrow`) para o
+`Canvas` foram extraídos para `useGenericObjectEditorBindings`.
 No componente de toolbar, a estrutura visual foi quebrada em composição:
 
 1. `ToolbarButtons` (botões base FAB/submenu)
@@ -126,17 +126,17 @@ Cobertura atual em `e2e/views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
 - `src/components/rac-editor/toolbar/toolbar-config.ts`
 - `src/components/rac-editor/toolbar/toolbar-types.ts`
 - `src/components/rac-editor/RacEditor.tsx`
-- `src/components/rac-editor/hooks/useRacCanvasTools.ts`
-- `src/components/rac-editor/hooks/useRacProjectActions.ts`
-- `src/components/rac-editor/hooks/useRacViewActions.ts`
-- `src/components/rac-editor/hooks/useRacGroupingActions.ts`
-- `src/components/rac-editor/hooks/useRacMenuTutorialActions.ts`
-- `src/components/rac-editor/hooks/useRacTutorialUiActions.ts`
-- `src/components/rac-editor/hooks/useRacHouseInitialization.ts`
-- `src/components/rac-editor/RacEditorOverlays.tsx`
-- `src/components/rac-editor/hooks/useRacCanvasInteractionActions.ts`
-- `src/components/rac-editor/hooks/useRacToolbarActions.ts`
-- `src/components/rac-editor/hooks/useRacInlineEditorBindings.ts`
+- `src/components/rac-editor/hooks/useCanvasTools.ts`
+- `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
+- `src/components/rac-editor/hooks/useCanvasHouseViewActions.ts`
+- `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
+- `src/components/rac-editor/hooks/useTutorialMenuActions.ts`
+- `src/components/rac-editor/hooks/useTutorialUiActions.ts`
+- `src/components/rac-editor/hooks/useCanvasHouseInitialization.ts`
+- `src/components/rac-editor/RacEditorModals.tsx`
+- `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
+- `src/components/rac-editor/hooks/useToolbarActions.ts`
+- `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
 - `src/components/rac-editor/modals/ConfirmDialogModal.tsx`
 - `src/lib/house-manager.ts`
 - `e2e/views-limits.spec.ts`

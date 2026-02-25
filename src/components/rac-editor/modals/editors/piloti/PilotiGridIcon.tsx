@@ -1,4 +1,10 @@
-import {cn} from '@/lib/utils.ts';
+import {cn} from '@/components/lib/utils.ts';
+import {MASTER_PILOTI_FILL} from "@/components/lib/canvas";
+
+const GRID_ROWS = 3;
+const GRID_COLS = 4;
+
+const ROW_LETTERS = ['A', 'B', 'C'];
 
 interface PilotiGridIconProps {
   highlight?: 'top' | 'bottom' | 'left' | 'right';
@@ -7,22 +13,13 @@ interface PilotiGridIconProps {
   className?: string;
 }
 
-const GRID_ROWS = 3;
-const GRID_COLS = 4;
-
-const ROW_LETTERS = ['A', 'B', 'C'];
-
-function getPilotiNameAt(row: number, col: number): string {
-  return `${ROW_LETTERS[row]}${col + 1}`;
-}
-
 export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, className}: PilotiGridIconProps) {
   const getColor = (row: number, col: number): string => {
     const name = getPilotiNameAt(row, col);
 
     // Individual mode takes precedence
     if (selectedPiloti && name === selectedPiloti) return 'hsl(var(--primary))';
-    if (masterPiloti && name === masterPiloti) return '#D4A574';
+    if (masterPiloti && name === masterPiloti) return MASTER_PILOTI_FILL;
 
     // Side highlight mode
     if (highlight) {
@@ -69,4 +66,8 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
       {circles}
     </svg>
   );
+}
+
+function getPilotiNameAt(row: number, col: number): string {
+  return `${ROW_LETTERS[row]}${col + 1}`;
 }

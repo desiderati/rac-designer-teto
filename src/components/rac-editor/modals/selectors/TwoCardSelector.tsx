@@ -1,8 +1,8 @@
 import {ReactNode} from 'react';
-import {cn} from '@/lib/utils.ts';
-import {Dialog, DialogContent, DialogHeader, DialogTitle,} from '@/components/ui/dialog.tsx';
-import {Sheet, SheetContent, SheetHeader, SheetTitle,} from '@/components/ui/sheet.tsx';
-import {useIsMobile} from '@/shared/hooks/use-mobile.tsx';
+import {cn} from '@/components/lib/utils.ts';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
+import {Sheet, SheetContent, SheetHeader, SheetTitle} from '@/components/ui/sheet.tsx';
+import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 
 interface TwoCardConfig {
   label: string;

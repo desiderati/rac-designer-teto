@@ -8,7 +8,7 @@ import {
   openPilotiEditorByDebug,
   selectCanvasObjectByMyTypeByDebug,
   setCanvasPositionByDebug,
-  setupRacPage,
+  setupRacEditorPage,
   triggerElementsAction,
 } from "./helpers/rac-helpers";
 
@@ -16,7 +16,7 @@ test.describe("RAC canvas interactions", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({ page }) => {
-    await setupRacPage(page);
+    await setupRacEditorPage(page);
   });
 
   test("canvas: zoom slider altera o nivel de zoom", async ({ page }) => {

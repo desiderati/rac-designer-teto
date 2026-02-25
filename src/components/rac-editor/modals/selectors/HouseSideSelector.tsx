@@ -1,37 +1,35 @@
 import {useMemo} from 'react';
-import {HouseSide, ViewType} from '@/lib/house-manager.ts';
-import {useHouseSnapshot, useHouseStoreVersion} from '@/lib/state/house-store.ts';
+import {useHouseSnapshot, useHouseStoreVersion} from '@/components/lib/house-store.ts';
 import {TwoCardSelector} from './TwoCardSelector.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
+import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from "@/shared/types/house.ts";
 
-export interface HouseSideSlot {
-  label: string;
-  side: HouseSide;
-  onCanvas: boolean;
-}
+export type HouseSideSelectorMode = "position" | "choose-instance";
 
 interface HouseSideSelectorProps {
+  houseViewType: HouseViewType;
+  mode?: HouseSideSelectorMode;
   isOpen: boolean;
   onClose: () => void;
-  viewType: ViewType;
   onSelectSide: (side: HouseSide) => void;
-  mode?: 'position' | 'choose-instance';
-  houseSideSlots?: HouseSideSlot[];
+  houseSideSlots?: HousePreAssignedSideDisplay[];
 }
 
 export function HouseSideSelector({
+  houseViewType,
+  mode = 'position',
   isOpen,
   onClose,
-  viewType,
   onSelectSide,
-  mode = 'position',
   houseSideSlots
 }: HouseSideSelectorProps) {
+
   const house = useHouseSnapshot();
   const houseVersion = useHouseStoreVersion();
   const houseType = house?.houseType ?? null;
-  const isLongSide = viewType === 'front' || viewType === 'back';
-  const slots = useMemo(() => houseSideSlots || [], [houseSideSlots, houseVersion]);
+  const isLongSide = houseViewType === 'front' || houseViewType === 'back';
+  const slots =
+    useMemo(() => houseSideSlots || [], [houseSideSlots, houseVersion]);
 
   const handleSelect = (side: HouseSide) => {
     onSelectSide(side);
@@ -82,7 +80,7 @@ export function HouseSideSelector({
   }
 
   // --- Choose-instance mode ---
-  if (viewType === 'back' && houseType === 'tipo3') {
+  if (houseViewType === 'back' && houseType === 'tipo3') {
     // Laterais: Superior / Inferior
     const topSlot = slots.find(s => s.side === 'top');
     const bottomSlot = slots.find(s => s.side === 'bottom');
@@ -109,7 +107,7 @@ export function HouseSideSelector({
     );
   }
 
-  if (viewType === 'side1') {
+  if (houseViewType === 'side1') {
     // Quadrados: Esquerdo / Direito
     const leftSlot = slots.find(s => s.side === 'left');
     const rightSlot = slots.find(s => s.side === 'right');

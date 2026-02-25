@@ -8,8 +8,9 @@ import {Slider} from '@/components/ui/slider.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {Dialog, DialogContent, DialogDescription} from '@/components/ui/dialog.tsx';
 import {Sheet, SheetContent} from '@/components/ui/sheet.tsx';
-import {useIsMobile} from '@/shared/hooks/use-mobile.tsx';
+import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
+import {clampNivel, formatNivel, getRecommendedHeight} from "@/components/lib/canvas";
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 type CornerName = typeof CORNER_ORDER[number];
@@ -23,22 +24,6 @@ interface NivelDefinitionProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (niveis: Record<string, NivelDefinition>) => void;
-  pilotiData: Record<string, { height: number; isMaster: boolean; nivel: number; }>;
-}
-
-function formatNivel(n: number): string {
-  return n.toFixed(2).replace('.', ',');
-}
-
-function clampNivel(nivel: number, minNivel: number = 0.2): number {
-  return Math.round(Math.max(minNivel, Math.min(nivel, 1.50)) * 100) / 100;
-}
-
-const STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0];
-
-function getRecommendedHeight(nivel: number): number {
-  const minHeight = nivel * 3;
-  return STANDARD_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
 }
 
 function cornerToId(name: string): string {
@@ -47,21 +32,25 @@ function cornerToId(name: string): string {
   return `piloti_${col}_${row}`;
 }
 
-export function NivelDefinitionEditor({isOpen, onClose, onApply, pilotiData}: NivelDefinitionProps) {
+export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitionProps) {
   const isMobile = useIsMobile();
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [entries, setEntries] = useState<Record<CornerName, NivelDefinition & { visited: boolean; }>>(() => ({
-    A1: {nivel: 0.20, isMaster: false, visited: false},
-    A4: {nivel: 0.20, isMaster: false, visited: false},
-    C1: {nivel: 0.20, isMaster: false, visited: false},
-    C4: {nivel: 0.20, isMaster: false, visited: false}
-  }));
+  const [entries, setEntries] =
+    useState<Record<CornerName, NivelDefinition & { visited: boolean; }>>(() => ({
+      A1: {nivel: 0.20, isMaster: false, visited: false},
+      A4: {nivel: 0.20, isMaster: false, visited: false},
+      C1: {nivel: 0.20, isMaster: false, visited: false},
+      C4: {nivel: 0.20, isMaster: false, visited: false}
+    }));
   const appliedRef = useRef(false);
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
-  const hasNavigatedAllCorners = CORNER_ORDER.every((corner, idx) => entries[corner].visited || idx === currentIdx);
+  const hasNavigatedAllCorners =
+    CORNER_ORDER.every(
+      (corner, idx) => entries[corner].visited || idx === currentIdx
+    );
 
   const masterCorner = CORNER_ORDER.find((c) => entries[c].isMaster);
   const canApply = hasMaster && hasNavigatedAllCorners;

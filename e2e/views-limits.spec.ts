@@ -4,7 +4,7 @@ import {
   ensureMainMenuOpen,
   getHouseSnapshot,
   removeViewByDebug,
-  setupRacPage,
+  setupRacEditorPage,
   triggerHouseAction,
 } from "./helpers/rac-helpers";
 
@@ -12,7 +12,7 @@ test.describe("RAC views and limits", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeEach(async ({ page }) => {
-    await setupRacPage(page);
+    await setupRacEditorPage(page);
   });
 
   test("tipo6: bloqueia adicionar visão frontal além do limite", async ({ page }) => {

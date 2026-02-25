@@ -52,7 +52,7 @@ Para manter consistência e reduzir churn em imports durante a refatoração:
 1. Componentes React (`.tsx`) usam `PascalCase`.
    Ex.: `RacEditor.tsx`, `DistanceEditor.tsx`, `House3DViewer.tsx`.
 2. Hooks usam `camelCase` com prefixo `use`.
-   Ex.: `useRacDebugBridge.ts`, `usePilotiEditorLogic.ts`.
+   Ex.: `useRacEditorDebugBridge.ts`, `usePilotiEditorLogic.ts`.
 3. Domínio/infra/utils (`.ts`) usam `kebab-case`.
    Ex.: `house-manager.ts`, `house-view-layout-use-cases.ts`, `canvas-screen-position.ts`.
 4. Hooks compartilhados ficam em `src/shared/hooks`; hooks específicos de feature ficam co-localizados

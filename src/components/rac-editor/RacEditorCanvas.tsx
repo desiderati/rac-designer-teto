@@ -2,13 +2,13 @@ import React from 'react';
 import {
   Canvas,
   CanvasHandle,
-  PilotiCanvasSelection,
   ContraventamentoCanvasSelection,
-  ObjectCanvasSelection,
-  LineArrowDistanceCanvasSelection,
-} from './Canvas';
-import {InfoBar} from './InfoBar';
-import {TutorialStepId} from './hooks/useRacTutorialFlow';
+  linearSelection,
+  PilotiCanvasSelection,
+  wallSelection,
+} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {InfoBar} from './InfoBar.tsx';
+import {TutorialStepId} from "@/components/rac-editor/tutorial/Tutorial.tsx";
 
 interface RacEditorCanvasProps {
   canvasRef: React.Ref<CanvasHandle>;
@@ -16,7 +16,7 @@ interface RacEditorCanvasProps {
   showTips: boolean;
   showZoomControls: boolean;
   infoMessage: string;
-  isEditorOpen: boolean;
+  isAnyEditorOpen: boolean;
   isContraventamentoMode: boolean;
   isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
@@ -24,8 +24,8 @@ interface RacEditorCanvasProps {
   onSelectionAuxCleanup: () => void;
   onZoomInteraction: () => void;
   onPilotiSelect: (selection: PilotiCanvasSelection | null) => void;
-  onObjectSelect: (selection: ObjectCanvasSelection | null) => void;
-  onLineArrowDistanceSelect: (selection: LineArrowDistanceCanvasSelection | null) => void;
+  onWallSelect: (selection: wallSelection | null) => void;
+  onLinearSelect: (selection: linearSelection | null) => void;
   onDelete: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
   onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;
@@ -38,7 +38,7 @@ export function RacEditorCanvas({
   showTips,
   showZoomControls,
   infoMessage,
-  isEditorOpen,
+  isAnyEditorOpen,
   isContraventamentoMode,
   isSelectingContraventamentoDestination,
   isPilotiEligibleForContraventamento,
@@ -46,8 +46,8 @@ export function RacEditorCanvas({
   onSelectionAuxCleanup,
   onZoomInteraction,
   onPilotiSelect,
-  onObjectSelect,
-  onLineArrowDistanceSelect,
+  onWallSelect,
+  onLinearSelect,
   onDelete,
   onContraventamentoPilotiClick,
   onContraventamentoSelect,
@@ -68,9 +68,9 @@ export function RacEditorCanvas({
         tutorialHighlight={tutorialStep}
         showTips={showTips}
         onPilotiSelect={onPilotiSelect}
-        onObjectSelect={onObjectSelect}
-        onLineArrowDistanceSelect={onLineArrowDistanceSelect}
-        isEditorOpen={isEditorOpen}
+        onWallSelect={onWallSelect}
+        onLinearSelect={onLinearSelect}
+        isAnyEditorOpen={isAnyEditorOpen}
         onDelete={onDelete}
         showZoomControls={showZoomControls}
         isContraventamentoMode={isContraventamentoMode}

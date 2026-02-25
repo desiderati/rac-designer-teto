@@ -8,14 +8,12 @@ import {Label} from '@/components/ui/label.tsx';
 import {Slider} from '@/components/ui/slider.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
-import {
-  ContraventamentoSide,
-  formatPilotiHeight,
-  PILOTI_HEIGHTS
-} from '@/lib/canvas-utils.ts';
 import {PilotiGridIcon} from './PilotiGridIcon.tsx';
 import {ContraventamentoSideIcon} from '@/components/rac-editor/modals/editors/piloti/ContraventamentoSideIcon.tsx';
-import {DEFAULT_NIVEL, usePilotiEditorLogic} from '../../../hooks/usePilotiEditorLogic.ts';
+import {usePilotiEditorLogic} from '../../../hooks/usePilotiEditorLogic.ts';
+import {ContraventamentoSide} from "@/shared/types/contraventamento.ts";
+import {HOUSE_PILOTI_STANDARD_HEIGHTS} from "@/shared/types/house.ts";
+import {formatNivel, formatPilotiHeight, PILOTI_DEFAULT_NIVEL} from "@/components/lib/canvas";
 
 interface PilotiEditorProps {
   isOpen: boolean;
@@ -37,17 +35,13 @@ interface PilotiEditorProps {
   onContraventamentoSideAction?: (side: ContraventamentoSide) => void;
 }
 
-function formatNivel(n: number): string {
-  return n.toFixed(2).replace('.', ',');
-}
-
 export function PilotiEditor({
   isOpen,
   onClose,
   pilotiId,
   currentHeight,
   currentIsMaster = false,
-  currentNivel = DEFAULT_NIVEL,
+  currentNivel = PILOTI_DEFAULT_NIVEL,
   group,
   isMobile,
   anchorPosition,
@@ -203,7 +197,7 @@ export function PilotiEditor({
         <div className="space-y-4">
           <p className="text-sm font-medium text-center">Tamanho dos Pilotis</p>
           <div className="grid grid-cols-3 gap-2">
-            {PILOTI_HEIGHTS.map((h) =>
+            {HOUSE_PILOTI_STANDARD_HEIGHTS.map((h) =>
               <button
                 key={h}
                 onClick={() => handleHeightClick(h)}

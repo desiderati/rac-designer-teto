@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 interface MinimapObject {
   left: number;
@@ -7,12 +7,6 @@ interface MinimapObject {
   height: number;
   angle: number;
   type: string;
-}
-
-interface ZoomSliderProps {
-  zoom: number;
-  onZoomChange: (zoom: number) => void;
-  highlight?: boolean;
 }
 
 interface MinimapProps {
@@ -24,109 +18,11 @@ interface MinimapProps {
   viewportY: number;
   zoom: number;
   onViewportChange: (x: number, y: number) => void;
-  visible: boolean;
   objects?: MinimapObject[];
   highlight?: boolean;
 }
 
-const MINIMAP_SIZE = 75;
-const SLIDER_WIDTH = MINIMAP_SIZE;
-const THUMB_SIZE = 12;
-const MIN_ZOOM = 25;
-const MAX_ZOOM = 200;
-
-export function ZoomSlider({zoom, onZoomChange, highlight = false}: ZoomSliderProps) {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const [isSliderDragging, setIsSliderDragging] = useState(false);
-
-  const zoomPercent = Math.round(zoom * 100);
-  const normalizedZoom = (zoomPercent - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM);
-  const thumbX = (THUMB_SIZE / 2) + normalizedZoom * (SLIDER_WIDTH - THUMB_SIZE);
-
-  const updateZoomFromPosition = useCallback((clientX: number) => {
-    if (!sliderRef.current) return;
-
-    const rect = sliderRef.current.getBoundingClientRect();
-    const relativeX = clientX - rect.left;
-    const normalizedX = Math.max(0, Math.min(SLIDER_WIDTH, relativeX));
-
-    const zoomValue = MIN_ZOOM + (normalizedX / SLIDER_WIDTH) * (MAX_ZOOM - MIN_ZOOM);
-    onZoomChange(zoomValue / 100);
-  }, [onZoomChange]);
-
-  const handleSliderMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsSliderDragging(true);
-    updateZoomFromPosition(e.clientX);
-  }, [updateZoomFromPosition]);
-
-  const handleSliderMove = useCallback((e: MouseEvent) => {
-    if (!isSliderDragging) return;
-    updateZoomFromPosition(e.clientX);
-  }, [isSliderDragging, updateZoomFromPosition]);
-
-  const handleSliderTouchMove = useCallback((e: TouchEvent) => {
-    if (!isSliderDragging) return;
-    e.preventDefault();
-    if (e.touches.length > 0) {
-      updateZoomFromPosition(e.touches[0].clientX);
-    }
-  }, [isSliderDragging, updateZoomFromPosition]);
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsSliderDragging(true);
-    if (e.touches.length > 0) {
-      updateZoomFromPosition(e.touches[0].clientX);
-    }
-  }, [updateZoomFromPosition]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsSliderDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isSliderDragging) {
-      window.addEventListener('mousemove', handleSliderMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleSliderTouchMove, {passive: false});
-      window.addEventListener('touchend', handleMouseUp);
-      return () => {
-        window.removeEventListener('mousemove', handleSliderMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-        window.removeEventListener('touchmove', handleSliderTouchMove);
-        window.removeEventListener('touchend', handleMouseUp);
-      };
-    }
-  }, [isSliderDragging, handleSliderMove, handleSliderTouchMove, handleMouseUp]);
-
-  return (
-    <div
-      className={
-        `flex flex-col items-center gap-0.5 ${highlight
-          ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg p-1'
-          : ''
-        }`}>
-      <span className="text-[9px] text-muted-foreground font-medium">{zoomPercent}%</span>
-      <div
-        ref={sliderRef}
-        data-testid="rac-zoom-slider"
-        className="relative bg-background/90 border border-border rounded cursor-pointer touch-none"
-        style={{width: SLIDER_WIDTH, height: 16}}
-        onMouseDown={handleSliderMouseDown}
-        onTouchStart={handleTouchStart}
-      >
-        <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-0.5 bg-muted-foreground/30 rounded"/>
-        <div
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-background shadow transition-all duration-75"
-          style={{left: thumbX - THUMB_SIZE / 2}}
-        />
-      </div>
-    </div>
-  );
-}
+export const MINIMAP_SIZE = 75;
 
 export function Minimap({
   canvasWidth,
@@ -137,10 +33,10 @@ export function Minimap({
   viewportY,
   zoom,
   onViewportChange,
-  visible,
   objects = [],
   highlight = false,
 }: MinimapProps) {
+
   const minimapRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -155,25 +51,27 @@ export function Minimap({
   const viewRectX = (viewportX / zoom) * scale;
   const viewRectY = (viewportY / zoom) * scale;
 
-  const updateViewportFromPosition = useCallback((clientX: number, clientY: number) => {
-    if (!minimapRef.current) return;
+  const updateViewportFromPosition =
+    useCallback((clientX: number, clientY: number) => {
+      if (!minimapRef.current) return;
 
-    const rect = minimapRef.current.getBoundingClientRect();
-    const clickX = clientX - rect.left;
-    const clickY = clientY - rect.top;
+      const rect = minimapRef.current.getBoundingClientRect();
+      const clickX = clientX - rect.left;
+      const clickY = clientY - rect.top;
 
-    const canvasX = (clickX / scale) * zoom - (viewportWidth / 2);
-    const canvasY = (clickY / scale) * zoom - (viewportHeight / 2);
+      const canvasX = (clickX / scale) * zoom - (viewportWidth / 2);
+      const canvasY = (clickY / scale) * zoom - (viewportHeight / 2);
 
-    onViewportChange(
-      Math.max(0, Math.min(canvasX, canvasWidth * zoom - viewportWidth)),
-      Math.max(0, Math.min(canvasY, canvasHeight * zoom - viewportHeight))
-    );
-  }, [scale, zoom, viewportWidth, viewportHeight, canvasWidth, canvasHeight, onViewportChange]);
+      onViewportChange(
+        Math.max(0, Math.min(canvasX, canvasWidth * zoom - viewportWidth)),
+        Math.max(0, Math.min(canvasY, canvasHeight * zoom - viewportHeight))
+      );
+    }, [scale, zoom, viewportWidth, viewportHeight, canvasWidth, canvasHeight, onViewportChange]);
 
-  const handleMinimapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    updateViewportFromPosition(e.clientX, e.clientY);
-  }, [updateViewportFromPosition]);
+  const handleMinimapClick =
+    useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+      updateViewportFromPosition(e.clientX, e.clientY);
+    }, [updateViewportFromPosition]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();

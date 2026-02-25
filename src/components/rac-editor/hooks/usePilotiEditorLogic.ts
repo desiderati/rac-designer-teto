@@ -1,21 +1,15 @@
 import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState} from "react";
 import {Group} from "fabric";
 import {
+  clampNivelByHeight,
   CORNER_PILOTI_IDS,
   getAllPilotiIds,
   getPilotiFromGroup,
   getPilotiIdsFromGroup,
   getPilotiName,
-} from "@/lib/canvas-utils";
-import {houseManager} from "@/lib/house-manager";
-import {getSettings} from "@/lib/settings";
-
-const DEFAULT_NIVEL = 0.2;
-
-function clampNivel(nivel: number, pilotiHeight: number): number {
-  const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
-  return Math.round(Math.max(0.2, Math.min(nivel, maxNivel)) * 100) / 100;
-}
+} from "@/components/lib/canvas";
+import {houseManager} from "@/components/lib/house-manager.ts";
+import {getSettings} from "@/infra/settings.ts";
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;
@@ -42,13 +36,16 @@ export function usePilotiEditorLogic({
   onHeightChange,
   onNavigate,
 }: UsePilotiEditorLogicArgs) {
+
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
 
-  const dragStateRef = useRef<null | { offsetX: number; offsetY: number }>(null);
+  const dragStateRef =
+    useRef<null | { offsetX: number; offsetY: number }>(null);
+
   const userDraggedRef = useRef(false);
   const lastPilotiIdRef = useRef<string | null>(null);
   const wasOpenRef = useRef(false);
@@ -156,7 +153,7 @@ export function usePilotiEditorLogic({
   };
 
   const handleApply = () => {
-    const nivelToApply = clampNivel(tempNivel, tempHeight);
+    const nivelToApply = clampNivelByHeight(tempNivel, tempHeight);
 
     if (pilotiId) {
       houseManager.updatePiloti(pilotiId, {
@@ -179,7 +176,7 @@ export function usePilotiEditorLogic({
   };
 
   const handleNivelChange = (value: number) => {
-    setTempNivel(clampNivel(value, tempHeight));
+    setTempNivel(clampNivelByHeight(value, tempHeight));
   };
 
   const handleNivelIncrement = (delta: number) => {
@@ -187,22 +184,24 @@ export function usePilotiEditorLogic({
     handleNivelChange(newVal);
   };
 
-  const handlePopoverPointerDown = (e: ReactPointerEvent<HTMLElement>) => {
-    const target = e.target as HTMLElement;
-    const isInteractive = target.closest("button, input, textarea, select, [role=\"switch\"], [role=\"slider\"], a");
-    if (isInteractive) return;
+  const handlePopoverPointerDown =
+    (e: ReactPointerEvent<HTMLElement>) => {
+      const target = e.target as HTMLElement;
+      const isInteractive =
+        target.closest("button, input, textarea, select, [role=\"switch\"], [role=\"slider\"], a");
+      if (isInteractive) return;
 
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    dragStateRef.current = {offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top};
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    e.preventDefault();
-  };
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      dragStateRef.current = {offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top};
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    };
 
   const handleHeightClick = (h: number) => {
     setTempHeight(h);
 
     const {autoNavigatePiloti} = getSettings();
-    const nivelToApply = clampNivel(tempNivel, h);
+    const nivelToApply = clampNivelByHeight(tempNivel, h);
 
     if (pilotiId) {
       houseManager.updatePiloti(pilotiId, {
@@ -246,14 +245,15 @@ export function usePilotiEditorLogic({
       : "bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20";
   };
 
-  const getContraventamentoButtonClasses = (isActive: boolean, isDisabled: boolean): string => {
-    if (isDisabled) {
-      return "h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed";
-    }
-    return isActive
-      ? "h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
-      : "h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20";
-  };
+  const getContraventamentoButtonClasses =
+    (isActive: boolean, isDisabled: boolean): string => {
+      if (isDisabled) {
+        return "h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed";
+      }
+      return isActive
+        ? "h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
+        : "h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20";
+    };
 
   const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
 
@@ -284,5 +284,3 @@ export function usePilotiEditorLogic({
     getContraventamentoButtonClasses,
   };
 }
-
-export {DEFAULT_NIVEL};

@@ -1,15 +1,16 @@
 import {Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls, PerspectiveCamera} from '@react-three/drei';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
+import {Button} from '@/components/ui/button.tsx';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCamera, faCompress, faExpand, faPalette, faRotateRight, faXmark} from '@fortawesome/free-solid-svg-icons';
-import {House3DScene} from './House3DScene';
-import {HouseElement, houseManager, HouseType, PilotiData} from '@/lib/house-manager';
-import {useHouseStoreVersion} from '@/lib/state/house-store';
-import {Contraventamento3DData, parseContraventamentosFromTopGroup} from '@/lib/3d/contraventamento-parser';
+import {House3DScene} from './House3DScene.tsx';
+import {houseManager} from '@/components/lib/house-manager.ts';
+import type {HouseElement, HouseType, HousePiloti} from '@/shared/types/house.ts';
+import {useHouseStoreVersion} from '@/components/lib/house-store.ts';
+import {Contraventamento3DData, parseContraventamentosFromTopGroup} from '@/components/lib/3d/contraventamento-parser.ts';
 import {toast} from 'sonner';
 
 const WALL_COLORS = [
@@ -31,7 +32,7 @@ interface House3DViewerProps {
 export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const houseVersion = useHouseStoreVersion();
   const [houseType, setHouseType] = useState<HouseType>(null);
-  const [pilotis, setPilotis] = useState<Record<string, PilotiData>>({});
+  const [pilotis, setPilotis] = useState<Record<string, HousePiloti>>({});
   const [elements, setElements] = useState<HouseElement[]>([]);
   const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);

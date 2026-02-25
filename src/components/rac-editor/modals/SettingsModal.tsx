@@ -4,8 +4,8 @@ import {Label} from '@/components/ui/label.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
-import {useIsMobile} from '@/shared/hooks/use-mobile.tsx';
-import {getSettings, updateSetting} from '@/lib/settings.ts';
+import {useIsMobile} from '@/components/lib/use-mobile.tsx';
+import {getSettings, updateSetting} from '@/infra/settings.ts';
 
 interface SettingsModalProps {
   open: boolean;

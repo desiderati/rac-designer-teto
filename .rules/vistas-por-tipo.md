@@ -13,7 +13,7 @@ Garantir comportamento consistente para:
 
 ## 2. Tipos de vista e rótulos de UI
 
-`ViewType` interno:
+`HouseViewType` interno:
 
 1. `top` -> Planta
 2. `front` -> Visão Frontal
@@ -23,17 +23,17 @@ Garantir comportamento consistente para:
 
 Mapeamento de label foi centralizado em caso de uso:
 
-1. `getViewLabelForHouseType(viewType, houseType)` em `house-view-label-use-cases`.
+1. `getViewLabelForHouseType(houseViewType, houseType)` em `house-view-label-use-cases`.
 
 ## 3. Limites por tipo de casa
 
 Implementação de domínio extraída:
 
 1. os limites e decisões de `canAddView` estão no caso de uso `house-use-cases`;
-2. a camada de aplicação (`house-application`) opera via interface `HousePilotiRepository`;
+2. a camada de aplicação (`house-application`) opera via interface `HouseRepository`;
 3. operações de ciclo de vida de vistas (`register/remove/cleanup/rebuild sideAssignments`) foram extraídas para
    `house-views-*`;
-4. a normalização de rebuild/import (inferência de `viewType`/`side` + deduplicação de `instanceId`) está em
+4. a normalização de rebuild/import (inferência de `houseViewType`/`side` + deduplicação de `instanceId`) está em
    `house-views-rebuild-use-cases`;
 5. regras de layout de vistas (lados disponíveis, auto-seleção de lado e slots pré-atribuídos) estão em
    `house-view-layout-use-cases`;
@@ -49,10 +49,10 @@ Implementação de domínio extraída:
 9. consultas genéricas de views (`hasAnyView` e coleta de grupos) foram extraídas para `house-views-use-cases`;
 10. fábrica de estado inicial da casa foi extraída para `house-state-factory-use-cases`;
 11. contagem por tipo de vista foi centralizada em `house-views-use-cases` (`countViewInstances`);
-12. lista canônica dos tipos de vista foi centralizada em `house-use-cases` (`ALL_VIEW_TYPES`);
+12. lista canônica dos tipos de vista foi centralizada em `house-use-cases` (`ALL_HOUSE_VIEW_TYPES`);
 13. patch de metadata do grupo de vista (`houseViewType`/`houseInstanceId`/`houseSide`) e visibilidade de controles foi
     centralizado em `house-view-metadata-use-cases`;
-    - leitura de hints de remoção (`viewType`/`instanceId`) também foi centralizada no mesmo caso de uso;
+    - leitura de hints de remoção (`houseViewType`/`instanceId`) também foi centralizada no mesmo caso de uso;
 14. `HouseManager` implementa os adaptadores de repositório e mantém o contrato de UI.
 
 ### 3.1 `tipo6`
@@ -75,7 +75,7 @@ Implementação de domínio extraída:
 
 1. Ao atingir limite, a inserção é bloqueada e um `toast` de erro é exibido.
 2. `top` (planta) não exige seleção de lado.
-3. Outras vistas podem exigir seleção de lado conforme `preAssignedSlots`.
+3. Outras vistas podem exigir seleção de lado conforme `preAssignedSides`.
 4. Se houver apenas um lado disponível, a vista é inserida diretamente.
 5. Se houver mais de um lado disponível, abre `HouseSideSelector`.
 6. transição do `HouseSideSelector` para `NivelDefinitionEditor` (e regra de cancelamento com reset de tipo) é centralizada
@@ -90,7 +90,7 @@ Implementação de domínio extraída:
 ## 6. Regras de remoção
 
 1. Ao remover uma vista registrada, o `sideAssignment` da instância removida é limpo.
-2. A contagem de `views[viewType]` é decrementada.
+2. A contagem de `views[houseViewType]` é decrementada.
 3. Um novo add da mesma vista deve voltar a ser permitido enquanto estiver abaixo do limite.
 4. Após `rebuild` (undo/import), se nenhuma vista de casa existir no canvas, `houseType` é limpo para manter
    coerência de regras de inserção.
@@ -111,7 +111,7 @@ Implementação de domínio extraída:
 - `src/components/rac-editor/Toolbar.tsx`
 - `src/components/rac-editor/HouseSideSelector.tsx`
 - `src/components/rac-editor/RacEditor.tsx`
-- `src/components/rac-editor/hooks/useRacViewActions.ts`
+- `src/components/rac-editor/hooks/useCanvasHouseViewActions.ts`
 - `src/components/rac-editor/utils/house-view-creation.ts`
 - `src/lib/house-manager.ts`
 - `src/lib/domain/house-use-cases.ts`
