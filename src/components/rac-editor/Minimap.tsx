@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {MINIMAP} from '@/config.ts';
 
 interface MinimapObject {
   left: number;
@@ -22,7 +23,7 @@ interface MinimapProps {
   highlight?: boolean;
 }
 
-export const MINIMAP_SIZE = 75;
+export const MINIMAP_SIZE = MINIMAP.size;
 
 export function Minimap({
   canvasWidth,
@@ -158,8 +159,8 @@ export function Minimap({
             style={{
               left: obj.left * scale,
               top: obj.top * scale,
-              width: Math.max(2, obj.width * scale),
-              height: Math.max(2, obj.height * scale),
+              width: Math.max(MINIMAP.minObjectSize, obj.width * scale),
+              height: Math.max(MINIMAP.minObjectSize, obj.height * scale),
               transform: `rotate(${obj.angle}deg)`,
               transformOrigin: 'center center',
             }}
@@ -169,8 +170,8 @@ export function Minimap({
         <div
           className='absolute border border-primary bg-primary/20 rounded-sm transition-all duration-75'
           style={{
-            width: Math.max(4, viewRectWidth),
-            height: Math.max(4, viewRectHeight),
+            width: Math.max(MINIMAP.minViewportSize, viewRectWidth),
+            height: Math.max(MINIMAP.minViewportSize, viewRectHeight),
             left: Math.max(0, Math.min(viewRectX, MINIMAP_SIZE - viewRectWidth)),
             top: Math.max(0, Math.min(viewRectY, MINIMAP_SIZE - viewRectHeight)),
           }}

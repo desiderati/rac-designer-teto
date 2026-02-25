@@ -5,8 +5,9 @@ import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas';
 import {TutorialBalloonPosition} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/config.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;
@@ -41,7 +42,7 @@ export function useTutorialUiActions({
     const canvas = canvasRef.current?.canvas;
     if (canvas) {
       canvas.clear();
-      canvas.backgroundColor = '#ffffff';
+      canvas.backgroundColor = CANVAS_STYLE.backgroundColor;
       canvas.renderAll();
       canvasRef.current?.clearHistory();
       canvasRef.current?.saveHistory();
@@ -52,7 +53,7 @@ export function useTutorialUiActions({
     restartTutorialProgress();
     setTutorialPilotiPosition(null);
     clearTutorialBalloon();
-    toast.success('Canvas reiniciado!');
+    toast.success(TOAST_MESSAGES.canvasRestartedSuccessfully);
   }, [
     canvasRef,
     clearTutorialBalloon,
@@ -82,14 +83,16 @@ export function useTutorialUiActions({
     setTimeout(() => {
       const objects = house.getObjects();
       const pilotiA1 = objects.find((object) => {
-        const typedObject = object as CanvasObject;
-        return typedObject.pilotiId === 'piloti_0_0' && typedObject.isPilotiCircle === true;
+        const typedObject = toCanvasObject(object);
+        if (!typedObject) return false;
+        return typedObject.pilotiId === PILOTI_CORNER_ID.topLeft && typedObject.isPilotiCircle === true;
       });
 
       if (!pilotiA1) return;
 
       const groupMatrix = house.calcTransformMatrix();
-      const typedPiloti = pilotiA1 as CanvasObject;
+      const typedPiloti = toCanvasObject(pilotiA1);
+      if (!typedPiloti) return;
       const pilotiLeft = typedPiloti.left || 0;
       const pilotiTop = typedPiloti.top || 0;
       const container = canvas.getElement().parentElement;
@@ -102,7 +105,7 @@ export function useTutorialUiActions({
         viewportTransform: canvas.viewportTransform ?? undefined,
       });
       setTutorialPilotiPosition(position);
-    }, 100);
+    }, TIMINGS.pilotiTutorialDelayMs);
   }, [canvasRef, isMobile, setTutorialPilotiPosition]);
 
   return {
@@ -114,3 +117,5 @@ export function useTutorialUiActions({
     showPilotiTutorialIfNeeded,
   };
 }
+
+

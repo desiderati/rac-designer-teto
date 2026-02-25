@@ -15,6 +15,7 @@ import {
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
+import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES, VIEW_INSERTION_DECISION_TYPES} from '@/config.ts';
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;
@@ -76,7 +77,7 @@ export function useCanvasHouseViewActions({
       }
 
       const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
-      toast.success(`Vista ${label} adicionada!`);
+      toast.success(TOAST_MESSAGES.houseViewAdded(label));
     };
 
   // Helper to add a view with side selection logic
@@ -93,34 +94,34 @@ export function useCanvasHouseViewActions({
       });
 
       switch (decision.type) {
-        case 'blocked_limit': {
+        case VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit: {
           const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
-          toast.error(`Limite de ${label} atingido para este tipo de casa.`);
+          toast.error(TOAST_MESSAGES.houseViewLimitReached(label));
           return;
         }
 
-        case 'add_direct':
+        case VIEW_INSERTION_DECISION_TYPES.addViewDirectly:
           addViewToCanvas(viewType, decision.side);
           return;
 
-        case 'blocked_no_instance_slots': {
+        case VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots: {
           const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
-          toast.error(`Todas as instâncias de ${label} já estão no canvas.`);
+          toast.error(TOAST_MESSAGES.houseViewAllInstancesAlreadyOnCanvas(label));
           return;
         }
 
-        case 'open_instance_selector':
+        case VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector:
           setPendingViewType(viewType);
           setInstanceSlots(decision.slots);
           setSideSelectorMode('choose-instance');
           setSideSelectorOpen(true);
           return;
 
-        case 'blocked_no_sides':
-          toast.error('Nenhum lado disponível para esta vista.');
+        case VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides:
+          toast.error(TOAST_MESSAGES.houseViewHasNoAvailableSide);
           return;
 
-        case 'open_side_selector':
+        case VIEW_INSERTION_DECISION_TYPES.openSideSelector:
           setPendingViewType(viewType);
           setSideSelectorMode('position');
           setSideSelectorOpen(true);
@@ -198,7 +199,7 @@ export function useCanvasHouseViewActions({
 
             if (plantGroup && viewGroup) {
               const center = getVisibleCenter();
-              const gap = 30;
+              const gap = HOUSE_DEFAULTS.viewBetweenGap;
               const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
               const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
               const layout = calculateStackedViewPositions({
@@ -213,7 +214,7 @@ export function useCanvasHouseViewActions({
               viewGroup.setCoords();
               canvas.renderAll();
             }
-          }, 50);
+          }, TIMINGS.stackedViewRepositionDelayMs);
         }
       }
 

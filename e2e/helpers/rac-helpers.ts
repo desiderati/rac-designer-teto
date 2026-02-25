@@ -1,5 +1,5 @@
 import {expect, Page} from '@playwright/test';
-import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house.ts';
+import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house';
 import {CanvasObjectSummary, CanvasPosition} from '../../src/components/lib/canvas';
 import {RacEditorUiState} from '../../src/components/lib/rac-editor';
 
@@ -59,7 +59,7 @@ export function expectNoConsoleErrors(page: Page): void {
 export async function setupRacEditorPage(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('rac-tutorial-completed', 'true');
-    localStorage.setItem('rac-piloti-tutorial-shown', 'true');
+    localStorage.setItem('rac-piloti-tip-shown', 'true');
     localStorage.setItem('rac-wall-tip-shown', 'true');
     localStorage.setItem('rac-line-tip-shown', 'true');
     localStorage.setItem('rac-arrow-tip-shown', 'true');
@@ -127,7 +127,8 @@ export async function triggerHouseAction(
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
   }
 
-  await actionButton.click();
+  await expect(actionButton).toBeVisible();
+  await actionButton.click({force: true});
 
   if (sideChoice) {
     const sideButton = page.getByRole('button', {name: sideChoice});

@@ -1,4 +1,5 @@
 import {Canvas as FabricCanvas, Group, Pattern, Rect, Text} from 'fabric';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
 
@@ -17,14 +18,14 @@ export const waterStrategy: ElementStrategy<Group> = {
     });
 
     const text = new Text('Água', {
-      fontSize: 12,
-      fontFamily: 'Arial',
-      fill: '#0092DD',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
+      fill: CANVAS_ELEMENT_STYLE.strokeColor.wallElement,
       originX: 'center',
       originY: 'center',
       fontWeight: 'bold',
       stroke: 'white',
-      strokeWidth: 3,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       paintFirst: 'stroke',
     });
 
@@ -45,8 +46,8 @@ function createWaterPatternSource(): HTMLCanvasElement {
   const ctx = patternCanvas.getContext('2d')!;
   patternCanvas.width = 40;
   patternCanvas.height = 50;
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = '#0092DD';
+  ctx.lineWidth = CANVAS_ELEMENT_STYLE.strokeWidth;
+  ctx.strokeStyle = CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
   ctx.lineCap = 'round';
 
   const drawWave = (y: number) => {

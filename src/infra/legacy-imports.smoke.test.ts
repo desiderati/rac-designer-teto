@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {readdirSync, readFileSync, statSync} from 'node:fs';
-import {join, extname} from 'node:path';
+import {extname, join} from 'node:path';
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const ROOTS_TO_SCAN = ['src', 'e2e'];

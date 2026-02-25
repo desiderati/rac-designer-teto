@@ -1,16 +1,17 @@
-import type {CanvasObjectProps} from '@/components/lib/canvas';
+import {CANVAS_DEFAULTS, HOUSE_DEFAULTS, PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/config.ts';
 
-export const CANVAS_WIDTH = 1300;
-export const CANVAS_HEIGHT = 1300;
-export const BASE_TOP_WIDTH = 610;
-export const BASE_TOP_HEIGHT = 300;
+export const CANVAS_WIDTH = CANVAS_DEFAULTS.width;
+export const CANVAS_HEIGHT = CANVAS_DEFAULTS.height;
+
+export const HOUSE_BASE_WIDTH = HOUSE_DEFAULTS.width;
+export const HOUSE_BASE_HEIGHT = HOUSE_DEFAULTS.height;
+
+export const PILOTI_BASE_HEIGHT_PX = HOUSE_DEFAULTS.pilotiBaseHeight * 100;
+export const PILOTI_BASE_HEIGHT_PX_WITH_SCALE = PILOTI_BASE_HEIGHT_PX * HOUSE_DEFAULTS.viewScale;
+
+export const PILOTI_DEFAULT_NIVEL = HOUSE_DEFAULTS.pilotiNivel;
+export const PILOTI_STROKE_COLOR = PILOTI_STYLE.strokeColor;
 
 // Colors for master piloti (same as door - light brown)
-export const MASTER_PILOTI_FILL = '#D4A574';
-export const MASTER_PILOTI_STROKE_COLOR = '#8B4513';
-export const MASTER_PILOTI_STROKE_WIDTH = 2;
-
-// Corner piloti IDs (A1, A4, C1, C4) - only these can be master and have nivel
-export const CORNER_PILOTI_IDS = ['piloti_0_0', 'piloti_3_0', 'piloti_0_2', 'piloti_3_2'];
-
-export const BASE_PILOTI_HEIGHT_PX = 100;
+export const PILOTI_MASTER_FILL_COLOR = PILOTI_MASTER_STYLE.fillColor;
+export const PILOTI_MASTER_STROKE_COLOR = PILOTI_MASTER_STYLE.strokeColor;

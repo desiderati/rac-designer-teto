@@ -49,9 +49,9 @@ export function calculatePilotiSizeLabelPosition(params: {
   rectWidth: number;
   rectHeight: number;
   baseHeight: number;
-  basePilotiHeightPx: number;
+  basePilotiHeight: number;
 }): { left: number; top: number } {
-  const s = params.baseHeight / params.basePilotiHeightPx;
+  const s = params.baseHeight / params.basePilotiHeight;
   const offset = 8 * s;
   return {
     left: params.rectLeft + params.rectWidth / 2,

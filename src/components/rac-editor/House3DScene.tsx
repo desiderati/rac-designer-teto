@@ -1,31 +1,31 @@
 import {useMemo} from 'react';
 import * as THREE from 'three';
-import type {HouseElement, HousePiloti, HouseType} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI, type HouseElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
 import {
-  ALL_PILOTI_IDS,
-  BASE_PILOTI_HEIGHT,
   BODY_PROFILE_HEIGHT,
-  CHAPEL_W,
+  CHAPEL_WIDTH,
   COLORS,
-  CONTRAV_OFFSET_M,
+  CONTRAV_OFFSET_FROM_GROUND,
   CONTRAV_SQUARE_WIDTH,
   CONTRAV_TOP_WIDTH,
-  DIAG_H2,
-  DIAG_W,
+  DIAG_HEIGHT,
+  DIAG_WIDTH,
   FLOOR_BEAM_HEIGHT,
   FLOOR_BEAM_ROWS_Z,
   FLOOR_BEAM_STRIP_DEPTH,
   FLOOR_HEIGHT,
-  FRONT_BACK_PANEL_OFFSET,
-  HOUSE_DEPTH,
-  HOUSE_WIDTH,
+  HOUSE_3D_DEPTH,
+  HOUSE_3D_VIEWER_SCALE,
+  HOUSE_3D_WIDTH,
+  PANEL_OFFSET_RATIO,
+  PILOTI_BASE_HEIGHT_PX,
   PILOTI_RADIUS,
   PILOTI_STEP_X,
   PILOTI_STEP_Z,
   PILOTI_TOP_Y,
   ROOF_BASE_Y,
-  ROOF_LONG_SIDE_OVERHANG,
   ROOF_SHORT_SIDE_OVERHANG,
+  ROOF_LONG_SIDE_OVERHANG,
   ROOF_TOP_Y,
   ROOF_WAVE_AMPLITUDE,
   ROOF_WAVE_PITCH,
@@ -33,20 +33,14 @@ import {
   ROOF_WAVE_SEGMENTS_Z,
   TERRAIN_MARGIN,
   TERRAIN_SEGMENTS,
-  VIEWER_MODEL_SCALE,
   WALL_BASE_Y,
   WALL_HEIGHT,
   WALL_THICKNESS,
 } from '@/components/lib/3d/constants.ts';
 import {buildOpeningsFromCanvasModel} from '@/components/lib/3d/openings-mapper.ts';
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
-import {MASTER_PILOTI_FILL} from '@/components/lib/canvas';
-
-const DEFAULT_HOUSE_PILOTI: HousePiloti = {
-  height: 1.0,
-  isMaster: false,
-  nivel: 0.2,
-};
+import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
+import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/config.ts';
 
 interface House3DSceneProps {
   houseType: HouseType;
@@ -63,7 +57,7 @@ export function House3DScene({
   pilotis,
   elements = [],
   contraventamentos = [],
-  wallColor = '#d4d4d4',
+  wallColor = HOUSE_3D_WALL_COLORS.sceneFallbackColor,
   tipo6FrontSide = null,
   tipo3OpenSide = null,
 }: House3DSceneProps) {
@@ -96,16 +90,17 @@ export function House3DScene({
 
 function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
   const geometry = useMemo(() => {
-    const width = HOUSE_WIDTH + TERRAIN_MARGIN * 2;
-    const depth = HOUSE_DEPTH + TERRAIN_MARGIN * 2;
+    const width = HOUSE_3D_WIDTH + TERRAIN_MARGIN * 2;
+    const depth = HOUSE_3D_DEPTH + TERRAIN_MARGIN * 2;
+
     const geo = new THREE.PlaneGeometry(width, depth, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
     const positions = geo.attributes.position as THREE.BufferAttribute;
 
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
       const y = positions.getY(i);
-      const u = 1 - (x + HOUSE_WIDTH / 2) / HOUSE_WIDTH;
-      const v = (y + HOUSE_DEPTH / 2) / HOUSE_DEPTH;
+      const u = 1 - (x + HOUSE_3D_WIDTH / 2) / HOUSE_3D_WIDTH;
+      const v = (y + HOUSE_3D_DEPTH / 2) / HOUSE_3D_DEPTH;
       positions.setZ(i, getTerrainYByUV(pilotis, u, v));
     }
 
@@ -129,7 +124,7 @@ function PilotiMesh({pilotiId, pilotis}: { pilotiId: string; pilotis: Record<str
   const [x, z] = getPilotiTopXZ(grid.col, grid.row);
   const terrainY = getTerrainYByUV(pilotis, 1 - grid.col / 3, grid.row / 2);
 
-  const nominalHeight = (data.height ?? DEFAULT_HOUSE_PILOTI.height) * BASE_PILOTI_HEIGHT;
+  const nominalHeight = (data.height ?? DEFAULT_HOUSE_PILOTI.height) * PILOTI_BASE_HEIGHT_PX;
   const minHeightToTouchTerrain = Math.max(PILOTI_TOP_Y - terrainY, 0);
   const finalHeight = Math.max(nominalHeight, minHeightToTouchTerrain, 0.5);
   const centerY = PILOTI_TOP_Y - finalHeight / 2;
@@ -138,7 +133,7 @@ function PilotiMesh({pilotiId, pilotis}: { pilotiId: string; pilotis: Record<str
     <group position={[x, centerY, z]}>
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, finalHeight, 16]}/>
-        <meshStandardMaterial color={data.isMaster ? MASTER_PILOTI_FILL : COLORS.piloti} roughness={0.65}/>
+        <meshStandardMaterial color={data.isMaster ? PILOTI_MASTER_FILL_COLOR : COLORS.piloti} roughness={0.65}/>
       </mesh>
     </group>
   );
@@ -176,8 +171,8 @@ function ContraventamentoMesh({
   const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
 
   const originNivel = Number(pilotis[originPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
-  const originY = PILOTI_TOP_Y - (originNivel - CONTRAV_OFFSET_M) * BASE_PILOTI_HEIGHT;
-  const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_M * BASE_PILOTI_HEIGHT;
+  const originY = PILOTI_TOP_Y - (originNivel - CONTRAV_OFFSET_FROM_GROUND) * PILOTI_BASE_HEIGHT_PX;
+  const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_FROM_GROUND * PILOTI_BASE_HEIGHT_PX;
   if (originY > destinationY) return null;
 
   const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);
@@ -213,23 +208,23 @@ function HouseShell({wallColor}: { wallColor: string }) {
     <group>
       {FLOOR_BEAM_ROWS_Z.map((z) => (
         <mesh key={`floor-beam-${z}`} position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2, z]} castShadow receiveShadow>
-          <boxGeometry args={[HOUSE_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]}/>
+          <boxGeometry args={[HOUSE_3D_WIDTH, FLOOR_BEAM_HEIGHT, FLOOR_BEAM_STRIP_DEPTH]}/>
           <meshStandardMaterial color={COLORS.beam}/>
         </mesh>
       ))}
 
       <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[HOUSE_WIDTH, FLOOR_HEIGHT, HOUSE_DEPTH]}/>
+        <boxGeometry args={[HOUSE_3D_WIDTH, FLOOR_HEIGHT, HOUSE_3D_DEPTH]}/>
         <meshStandardMaterial color={COLORS.floor}/>
       </mesh>
 
-      <mesh position={[-HOUSE_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]}/>
+      <mesh position={[-HOUSE_3D_WIDTH / 2 + WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
+        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_3D_DEPTH]}/>
         <meshStandardMaterial color={wallColor}/>
       </mesh>
 
-      <mesh position={[HOUSE_WIDTH / 2 - WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_DEPTH]}/>
+      <mesh position={[HOUSE_3D_WIDTH / 2 - WALL_THICKNESS / 2, wallCenterY, 0]} castShadow receiveShadow>
+        <boxGeometry args={[WALL_THICKNESS, WALL_HEIGHT, HOUSE_3D_DEPTH]}/>
         <meshStandardMaterial color={wallColor}/>
       </mesh>
 
@@ -241,15 +236,15 @@ function HouseShell({wallColor}: { wallColor: string }) {
 }
 
 function FrontBackPanels({wallColor}: { wallColor: string }) {
-  const panelOffset = FRONT_BACK_PANEL_OFFSET;
+  const panelOffset = PANEL_OFFSET_RATIO;
   const sidePanelColor = offsetLightness(wallColor, 0.04);
 
   const leftDiagGeo = useMemo(
     () =>
       createFrontBackPanelGeometry([
         [0, BODY_PROFILE_HEIGHT - WALL_HEIGHT],
-        [DIAG_W, BODY_PROFILE_HEIGHT - DIAG_H2],
-        [DIAG_W, BODY_PROFILE_HEIGHT],
+        [DIAG_WIDTH, BODY_PROFILE_HEIGHT - DIAG_HEIGHT],
+        [DIAG_WIDTH, BODY_PROFILE_HEIGHT],
         [0, BODY_PROFILE_HEIGHT],
       ]),
     [],
@@ -258,11 +253,11 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
   const chapelGeo = useMemo(
     () =>
       createFrontBackPanelGeometry([
-        [DIAG_W, BODY_PROFILE_HEIGHT - DIAG_H2],
-        [DIAG_W + CHAPEL_W / 2, 0],
-        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT - DIAG_H2],
-        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT],
-        [DIAG_W, BODY_PROFILE_HEIGHT],
+        [DIAG_WIDTH, BODY_PROFILE_HEIGHT - DIAG_HEIGHT],
+        [DIAG_WIDTH + CHAPEL_WIDTH / 2, 0],
+        [DIAG_WIDTH + CHAPEL_WIDTH, BODY_PROFILE_HEIGHT - DIAG_HEIGHT],
+        [DIAG_WIDTH + CHAPEL_WIDTH, BODY_PROFILE_HEIGHT],
+        [DIAG_WIDTH, BODY_PROFILE_HEIGHT],
       ]),
     [],
   );
@@ -270,17 +265,17 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
   const rightDiagGeo = useMemo(
     () =>
       createFrontBackPanelGeometry([
-        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT - DIAG_H2],
-        [HOUSE_WIDTH, BODY_PROFILE_HEIGHT - WALL_HEIGHT],
-        [HOUSE_WIDTH, BODY_PROFILE_HEIGHT],
-        [DIAG_W + CHAPEL_W, BODY_PROFILE_HEIGHT],
+        [DIAG_WIDTH + CHAPEL_WIDTH, BODY_PROFILE_HEIGHT - DIAG_HEIGHT],
+        [HOUSE_3D_WIDTH, BODY_PROFILE_HEIGHT - WALL_HEIGHT],
+        [HOUSE_3D_WIDTH, BODY_PROFILE_HEIGHT],
+        [DIAG_WIDTH + CHAPEL_WIDTH, BODY_PROFILE_HEIGHT],
       ]),
     [],
   );
 
   return (
     <>
-      <group position={[0, WALL_BASE_Y, HOUSE_DEPTH / 2 + panelOffset]}>
+      <group position={[0, WALL_BASE_Y, HOUSE_3D_DEPTH / 2 + panelOffset]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
@@ -292,7 +287,7 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
         </mesh>
       </group>
 
-      <group position={[0, WALL_BASE_Y, -HOUSE_DEPTH / 2 - panelOffset]} rotation={[0, Math.PI, 0]}>
+      <group position={[0, WALL_BASE_Y, -HOUSE_3D_DEPTH / 2 - panelOffset]} rotation={[0, Math.PI, 0]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
           <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
         </mesh>
@@ -310,9 +305,9 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
 
 function RoofMesh() {
   const geometry = useMemo(() => {
-    const hw = HOUSE_WIDTH / 2;
-    const hwRoof = hw + ROOF_LONG_SIDE_OVERHANG;
-    const hdRoof = HOUSE_DEPTH / 2 + ROOF_SHORT_SIDE_OVERHANG;
+    const hw = HOUSE_3D_WIDTH / 2;
+    const hwRoof = hw + ROOF_SHORT_SIDE_OVERHANG;
+    const hdRoof = HOUSE_3D_DEPTH / 2 + ROOF_LONG_SIDE_OVERHANG;
     const rise = ROOF_TOP_Y - ROOF_BASE_Y;
 
     const positions: number[] = [];
@@ -365,19 +360,19 @@ function RoofMesh() {
 }
 
 function HouseElementMesh({element}: { element: HouseElement }) {
-  const elementWidth = Math.max(element.width * VIEWER_MODEL_SCALE, 1);
-  const elementHeight = Math.max(element.height * VIEWER_MODEL_SCALE, 1);
+  const elementWidth = Math.max(element.width * HOUSE_3D_VIEWER_SCALE, 1);
+  const elementHeight = Math.max(element.height * HOUSE_3D_VIEWER_SCALE, 1);
   const elementDepth = 2;
   const frameDepth = elementDepth * 0.2;
   const fillDepth = elementDepth * 0.26;
   const fillOffset = frameDepth / 2 + fillDepth / 2 + 0.03;
   const frontBackGap = 0.08;
 
-  const xOffset = element.x * VIEWER_MODEL_SCALE;
-  const yOffset = element.y * VIEWER_MODEL_SCALE;
+  const xOffset = element.x * HOUSE_3D_VIEWER_SCALE;
+  const yOffset = element.y * HOUSE_3D_VIEWER_SCALE;
 
-  const hw = HOUSE_WIDTH / 2;
-  const hd = HOUSE_DEPTH / 2;
+  const hw = HOUSE_3D_WIDTH / 2;
+  const hd = HOUSE_3D_DEPTH / 2;
   const faceProfileHeight =
     element.face === 'left' || element.face === 'right' ? WALL_HEIGHT : BODY_PROFILE_HEIGHT;
 
@@ -388,11 +383,11 @@ function HouseElementMesh({element}: { element: HouseElement }) {
 
   switch (element.face) {
     case 'front':
-      position = [xOffset - hw + elementWidth / 2, y, hd + FRONT_BACK_PANEL_OFFSET + elementDepth / 2 + frontBackGap];
+      position = [xOffset - hw + elementWidth / 2, y, hd + PANEL_OFFSET_RATIO + elementDepth / 2 + frontBackGap];
       break;
 
     case 'back':
-      position = [hw - xOffset - elementWidth / 2, y, -hd - FRONT_BACK_PANEL_OFFSET - elementDepth / 2 - frontBackGap];
+      position = [hw - xOffset - elementWidth / 2, y, -hd - PANEL_OFFSET_RATIO - elementDepth / 2 - frontBackGap];
       rotation = [0, Math.PI, 0];
       break;
 
@@ -436,7 +431,7 @@ function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.Bu
   const vertices: number[] = [];
   const normalized =
     points.map(
-      ([x, y]) => [x - HOUSE_WIDTH / 2, BODY_PROFILE_HEIGHT - y] as const
+      ([x, y]) => [x - HOUSE_3D_WIDTH / 2, BODY_PROFILE_HEIGHT - y] as const
     );
 
   for (let i = 1; i < normalized.length - 1; i++) {
@@ -466,10 +461,10 @@ function bilinear(a1: number, a4: number, c1: number, c4: number, u: number, v: 
 }
 
 function getCornerNiveis(pilotis: Record<string, HousePiloti>) {
-  const a1 = pilotis.piloti_0_0?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
-  const a4 = pilotis.piloti_3_0?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
-  const c1 = pilotis.piloti_0_2?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
-  const c4 = pilotis.piloti_3_2?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
+  const a1 = pilotis[PILOTI_CORNER_ID.topLeft]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
+  const a4 = pilotis[PILOTI_CORNER_ID.topRight]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
+  const c1 = pilotis[PILOTI_CORNER_ID.bottomLeft]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
+  const c4 = pilotis[PILOTI_CORNER_ID.bottomRight]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel;
   return {a1, a4, c1, c4};
 }
 
@@ -478,7 +473,7 @@ function getTerrainYByUV(pilotis: Record<string, HousePiloti>, u: number, v: num
   const clampedV = THREE.MathUtils.clamp(v, 0, 1);
   const {a1, a4, c1, c4} = getCornerNiveis(pilotis);
   const nivel = bilinear(a1, a4, c1, c4, clampedU, clampedV);
-  return PILOTI_TOP_Y - nivel * BASE_PILOTI_HEIGHT;
+  return PILOTI_TOP_Y - nivel * PILOTI_BASE_HEIGHT_PX;
 }
 
 function getPilotiTopXZ(col: number, row: number): [number, number] {
@@ -486,3 +481,4 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   const z = (1 - row) * PILOTI_STEP_Z;
   return [x, z];
 }
+

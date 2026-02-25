@@ -4,7 +4,10 @@ import type {
   ContraventamentoCanvasSelection,
   PilotiCanvasSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
-import {applyPilotiEditorCloseVisuals, applyPilotiSelectionVisuals} from '@/components/lib/canvas/piloti-visual-feedback.ts';
+import {
+  applyPilotiEditorCloseVisuals,
+  applyPilotiSelectionVisuals
+} from '@/components/lib/canvas/piloti-visual-feedback.ts';
 import {formatPilotiHeight} from '@/components/lib/canvas';
 
 interface UsePilotiActionsArgs {

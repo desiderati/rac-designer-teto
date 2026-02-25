@@ -26,7 +26,7 @@ describe('house-piloti-visual use cases', () => {
       scaleY: 1,
       fill: '#fef08a',
       stroke: '#ca8a04',
-      strokeWidth: 3,
+      strokeWidth: 4,
     });
   });
 
@@ -50,7 +50,7 @@ describe('house-piloti-visual use cases', () => {
 
   it('creates patches for piloti height text, size label and nivel label background', () => {
     expect(createPilotiHeightTextPatch('2,00')).toEqual({text: '2,00'});
-    expect(createPilotiSizeLabelPatch('2,00')).toEqual({text: '2,00', backgroundColor: '#ffffff'});
-    expect(createNivelLabelBackgroundPatch()).toEqual({backgroundColor: '#ffffff'});
+    expect(createPilotiSizeLabelPatch('2,00')).toEqual({text: '2,00', backgroundColor: '#fff'});
+    expect(createNivelLabelBackgroundPatch()).toEqual({backgroundColor: '#fff'});
   });
 });

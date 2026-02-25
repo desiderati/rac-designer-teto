@@ -834,12 +834,12 @@
 ### Fase 7 - passo incremental 39 (Unificação de inserção de objetos no RacEditor)
 
 - Refatoração estrutural no `RacEditor`:
-    - criação de helper local `addCanvasObject(factory, onboarding?)`
+    - criação de helper local `addCanvasObject(factory, tutorial?)`
     - comandos de `Elementos` e `Linhas` passam a reutilizar o helper
 - Objetivo:
     - remover duplicação nos handlers `handleAddWall/handleAddDoor/handleAddStairs/handleAddTree/handleAddWater/
       handleAddFossa/handleAddLine/handleAddArrow`
-    - preservar os mesmos toasts e dicas de onboarding
+    - preservar os mesmos toasts e dicas de tutorial
 - Validação pós-extração:
     - `npm run test -- --run` -> PASS
     - `npm run build` -> PASS
@@ -1332,11 +1332,11 @@
     - `npm run build` -> PASS
     - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
-### Fase 7 - passo incremental 71 (Fluxo de onboarding de linha/seta consolidado no RacEditor)
+### Fase 7 - passo incremental 71 (Fluxo de tutorial de linha/seta consolidado no RacEditor)
 
 - `RacEditor` atualizado:
-    - extraído helper local `addLineWithOnboarding(...)` para consolidar o fluxo comum de criação + dica de
-      onboarding de `handleAddLine` e `handleAddArrow`
+    - extraído helper local `addLineWithTutorial(...)` para consolidar o fluxo comum de criação + dica de
+      tutorial de `handleAddLine` e `handleAddArrow`
 - Regras/documentação sincronizadas:
     - `.rules/toolbar.md` atualizado para registrar o helper do fluxo de linha/seta
 - Ganho:
@@ -1498,7 +1498,7 @@
 - `RacEditor` atualizado:
     - extraído novo hook `src/components/rac-editor/hooks/useCanvasTools.ts` para centralizar:
         - inserção de muro/porta/escada/árvore/água/fossa;
-        - inserção de linha/seta com onboarding;
+        - inserção de linha/seta com tutorial;
         - inserção de dimensão com abertura automática de editor;
         - toggle de modo desenho e adição de texto.
     - `src/components/rac-editor/RacEditor.tsx` reduzido de **1211** para **1073** linhas.
@@ -1687,7 +1687,7 @@
     - `npm run build` -> PASS
     - `npm run test:e2e -- --workers=1` -> PASS (16/16)
 
-### Fase 7 - passo incremental 89 (Tutorial/restart/onboarding extraídos do RacEditor)
+### Fase 7 - passo incremental 89 (Tutorial/restart/tutorial extraídos do RacEditor)
 
 - Novos hooks:
     - `src/components/rac-editor/hooks/useTutorialUiActions.ts`
@@ -1775,7 +1775,7 @@
     - centraliza:
         - obtenção de canvas ativo;
         - centro visível e add de objeto no centro;
-        - fechamento de menus com limpeza de onboarding/tutorial;
+        - fechamento de menus com limpeza de tutorial/tutorial;
         - desligamento seguro do modo desenho.
 - `RacEditor` atualizado:
     - remove helpers locais de interação e delega para o novo hook;

@@ -3,8 +3,9 @@ import {Canvas as FabricCanvas, FabricObject} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {toCanvasScreenPoint} from '@/components/rac-editor/canvas/helpers/canvas-screen-position.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, getElementStrategy,} from '@/components/lib/canvas';
-import {isOnboardingTipShown, markOnboardingTipShown} from '@/infra/storage/tutorial.storage.ts';
+import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {TIMINGS} from '@/config.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -19,7 +20,7 @@ interface UseCanvasToolsArgs {
   setTutorialBalloon: Dispatch<SetStateAction<TutorialBalloonState | null>>;
 }
 
-interface OnboardingConfig {
+interface TutorialConfig {
   key: 'wall' | 'line' | 'arrow' | 'distance';
   message: string;
 }
@@ -59,7 +60,7 @@ export function useCanvasTools({
 
   const addCanvasObject = useCallback((
     factory: (canvas: FabricCanvas) => FabricObject,
-    onboarding?: OnboardingConfig,
+    tutorial?: TutorialConfig,
   ) => {
     closeAllMenus();
     const canvas = getCanvas();
@@ -68,9 +69,9 @@ export function useCanvasTools({
     const object = factory(canvas);
     addObjectToCanvas(object);
 
-    if (onboarding && !isOnboardingTipShown(onboarding.key)) {
-      markOnboardingTipShown(onboarding.key);
-      setTimeout(() => showTutorialBalloon(object, onboarding.message), 100);
+    if (tutorial && !isTutorialTipShown(tutorial.key)) {
+      markTutorialTipShown(tutorial.key);
+      setTimeout(() => showTutorialBalloon(object, tutorial.message), TIMINGS.tutorialBalloonDelayMs);
     }
 
     return object;

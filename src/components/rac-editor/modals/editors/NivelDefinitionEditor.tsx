@@ -11,8 +11,10 @@ import {Sheet, SheetContent} from '@/components/ui/sheet.tsx';
 import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 import {clampNivel, formatNivel, getRecommendedHeight} from '@/components/lib/canvas';
+import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
+const DEFAULT_NIVEL = DEFAULT_HOUSE_PILOTI.nivel;
 type CornerName = typeof CORNER_ORDER[number];
 
 export interface NivelDefinition {
@@ -37,10 +39,10 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   const [currentIdx, setCurrentIdx] = useState(0);
   const [entries, setEntries] =
     useState<Record<CornerName, NivelDefinition & { visited: boolean; }>>(() => ({
-      A1: {nivel: 0.20, isMaster: false, visited: false},
-      A4: {nivel: 0.20, isMaster: false, visited: false},
-      C1: {nivel: 0.20, isMaster: false, visited: false},
-      C4: {nivel: 0.20, isMaster: false, visited: false}
+      A1: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      A4: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      C1: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      C4: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false}
     }));
   const appliedRef = useRef(false);
 
@@ -91,7 +93,10 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   };
 
   const handleNivelChange = (value: number) => {
-    const clamped = clampNivel(value, entry.isMaster ? 0.2 : masterCorner ? entries[masterCorner].nivel : 0.2);
+    const clamped = clampNivel(
+      value,
+      entry.isMaster ? DEFAULT_NIVEL : masterCorner ? entries[masterCorner].nivel : DEFAULT_NIVEL,
+    );
     setEntries((prev) => {
       const updated = {...prev};
       updated[currentCorner] = {...updated[currentCorner], nivel: clamped, visited: true};
@@ -131,10 +136,10 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   const resetState = () => {
     setCurrentIdx(0);
     setEntries({
-      A1: {nivel: 0.20, isMaster: false, visited: false},
-      A4: {nivel: 0.20, isMaster: false, visited: false},
-      C1: {nivel: 0.20, isMaster: false, visited: false},
-      C4: {nivel: 0.20, isMaster: false, visited: false}
+      A1: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      A4: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      C1: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false},
+      C4: {nivel: DEFAULT_NIVEL, isMaster: false, visited: false}
     });
   };
 
@@ -150,7 +155,8 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
   const maxNivel = 1.50;
-  const minNivel = !entry.isMaster && masterCorner ? Math.max(entries[masterCorner].nivel, 0.20) : 0.20;
+  const minNivel =
+    !entry.isMaster && masterCorner ? Math.max(entries[masterCorner].nivel, DEFAULT_NIVEL) : DEFAULT_NIVEL;
 
   const content =
     <div className='flex flex-col gap-4'>

@@ -36,6 +36,7 @@ if (!window.ResizeObserver) {
     disconnect() {
     }
   }
+
   window.ResizeObserver = ResizeObserverMock;
 }
 

@@ -1,13 +1,18 @@
 import {Canvas as FabricCanvas, FabricImage, FabricObject, Group} from 'fabric';
 import {
-  BASE_PILOTI_HEIGHT_PX,
-  CORNER_PILOTI_IDS,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  CanvasObject,
   createDiagonalStripePattern,
   formatNivel,
   formatPilotiHeight,
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE_COLOR,
+  PILOTI_BASE_HEIGHT_PX,
+  PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+  PILOTI_MASTER_FILL_COLOR,
+  PILOTI_MASTER_STROKE_COLOR,
   refreshHouseGroupRendering,
+  toCanvasGroup,
+  toCanvasObject,
   updateGroundInGroup,
   updatePilotiHeight,
   updatePilotiMaster,
@@ -29,13 +34,10 @@ import type {RebuildViewSource} from '@/domain/use-cases/house-views-rebuild-use
 import {
   buildAutoAssignedSlots,
   canDeletePlant as canDeletePlantInViews,
-  getAutoSelectedSide as getAutoSelectedSideInViews,
   getAvailableSides as getAvailableSidesInViews,
-  getAvailableViewsForType as getAvailableViewsForHouseType,
   getPreAssignedSlots as getPreAssignedSlotsForView,
   hasOtherViews as hasOtherViewsInViews,
   hasPreAssignedSlots as hasAnyPreAssignedSlots,
-  needsSideSelection as needsSideSelectionInViews,
 } from '@/domain/use-cases/house-view-layout-use-cases.ts';
 import {
   createViewGroupControlsVisibilityPatch,
@@ -97,54 +99,23 @@ import {
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
+import {HOUSE_DEFAULTS, PILOTI_CORNER_ID, PILOTI_CORNER_IDS} from '@/config.ts';
 
-type RuntimeViewGroup = Group & {
-  houseViewType?: HouseViewType;
-  houseInstanceId?: string;
-  houseSide?: HouseSide;
-};
-
-type RuntimeFabricObject = FabricObject & {
-  myType?: string;
-  isTopDoorMarker?: boolean;
-  isHouseBody?: boolean;
-  markerSide?: HouseSide;
-  isPilotiCircle?: boolean;
-  isPilotiRect?: boolean;
-  isPilotiText?: boolean;
-  isPilotiNivelText?: boolean;
-  isPilotiSizeLabel?: boolean;
-  isPilotiStripe?: boolean;
-  isNivelLabel?: boolean;
-  pilotiId?: string;
-  pilotiBaseHeight?: number;
-  radius?: number;
-  dirty?: boolean;
-};
-
-function toRuntimeObject(object: FabricObject): RuntimeFabricObject {
-  return object as RuntimeFabricObject;
-}
-
-function toRuntimeGroup(group: Group): RuntimeViewGroup {
-  return group as RuntimeViewGroup;
-}
-
-function isGroupWithObjects(object: FabricObject): object is Group & HouseGroupWithObjects {
-  return object.type === 'group' && typeof (object as {getObjects?: unknown}).getObjects === 'function';
+function isHouseGroupWithObjects(object: FabricObject): object is Group & HouseGroupWithObjects {
+  return object.type === 'group' && typeof (object as { getObjects?: unknown }).getObjects === 'function';
 }
 
 function toRebuildViewSource(group: Group): RebuildViewSource<Group> {
-  const runtimeGroup = toRuntimeGroup(group);
+  const canvasGroup = toCanvasGroup(group);
   return {
     group,
     meta: {
-      houseViewType: runtimeGroup.houseViewType,
-      houseView: runtimeGroup.houseViewType,
-      houseSide: runtimeGroup.houseSide,
-      houseInstanceId: runtimeGroup.houseInstanceId,
-      isFlippedHorizontally: Boolean(runtimeGroup.flipX),
-      isRightSide: runtimeGroup.houseSide === 'right',
+      houseViewType: canvasGroup.houseViewType,
+      houseView: canvasGroup.houseViewType,
+      houseSide: canvasGroup.houseSide,
+      houseInstanceId: canvasGroup.houseInstanceId,
+      isFlippedHorizontally: Boolean(canvasGroup.flipX),
+      isRightSide: canvasGroup.houseSide === 'right',
     },
   };
 }
@@ -187,12 +158,16 @@ class HouseManager {
 
     if (!door) {
       for (const topInstance of topViews) {
-        const markers = topInstance.group.getObjects().filter((object) => toRuntimeObject(object).isTopDoorMarker);
+        const markers =
+          topInstance.group.getObjects().filter(
+            (object) => toCanvasObject(object).isTopDoorMarker
+          );
+
         for (const marker of markers) {
-          const runtimeMarker = toRuntimeObject(marker);
-          runtimeMarker.set({visible: false});
-          runtimeMarker.setCoords?.();
-          runtimeMarker.dirty = true;
+          const canvasObjectMarker = toCanvasObject(marker);
+          canvasObjectMarker.set({visible: false});
+          canvasObjectMarker.setCoords?.();
+          canvasObjectMarker.dirty = true;
         }
       }
       this.canvas?.requestRenderAll();
@@ -207,16 +182,23 @@ class HouseManager {
 
     for (const topInstance of topViews) {
       const group = topInstance.group;
-      const markers = group.getObjects().filter((object) => toRuntimeObject(object).isTopDoorMarker);
+      const markers =
+        group.getObjects().filter(
+          (object) => toCanvasObject(object).isTopDoorMarker
+        );
       if (markers.length === 0) continue;
 
-      const houseBody = group.getObjects().find((object) => toRuntimeObject(object).isHouseBody);
-      const runtimeHouseBody = houseBody ? toRuntimeObject(houseBody) : null;
+      const houseBody =
+        group.getObjects().find(
+          (object) => toCanvasObject(object).isHouseBody
+        );
+
+      const canvasObjectHouseBody = houseBody ? toCanvasObject(houseBody) : null;
       const {bodyWidth, bodyHeight} = calculateTopDoorMarkerBodySize({
-        width: runtimeHouseBody?.width ?? 0,
-        height: runtimeHouseBody?.height ?? 0,
-        scaleX: runtimeHouseBody?.scaleX ?? 1,
-        scaleY: runtimeHouseBody?.scaleY ?? 1,
+        width: canvasObjectHouseBody?.width ?? 0,
+        height: canvasObjectHouseBody?.height ?? 0,
+        scaleX: canvasObjectHouseBody?.scaleX ?? 1,
+        scaleY: canvasObjectHouseBody?.scaleY ?? 1,
       });
 
       const placement = calculateTopDoorPlacement({
@@ -228,11 +210,11 @@ class HouseManager {
       });
 
       for (const marker of markers) {
-        const runtimeMarker = toRuntimeObject(marker);
-        const side = runtimeMarker.markerSide;
+        const canvasObjectMarker = toCanvasObject(marker);
+        const side = canvasObjectMarker.markerSide ?? (canvasObjectMarker as any).doorMarkerSide;
         if (!side) continue;
 
-        runtimeMarker.set(
+        canvasObjectMarker.set(
           createTopDoorMarkerVisualPatch({
             markerSide: placement.markerSide,
             markerCandidateSide: side,
@@ -240,8 +222,8 @@ class HouseManager {
             targetTop: placement.targetTop,
           }),
         );
-        runtimeMarker.setCoords?.();
-        runtimeMarker.dirty = true;
+        canvasObjectMarker.setCoords?.();
+        canvasObjectMarker.dirty = true;
       }
 
       group.setCoords();
@@ -302,16 +284,6 @@ class HouseManager {
     return canAddView(repository, viewType);
   }
 
-  // Get available views for current house type (views that can still be added)
-  getAvailableViewsForType(): HouseViewType[] {
-    if (!this.house) return [];
-
-    return getAvailableViewsForHouseType({
-      houseType: this.house.houseType,
-      views: this.house.views,
-    });
-  }
-
   // Check if plant (top view) can be deleted
   canDeletePlant(): boolean {
     if (!this.house) return false;
@@ -346,13 +318,17 @@ class HouseManager {
     if (!this.house) return null;
 
     return {
-      getViews: () => this.house?.views ?? {top: [], front: [], back: [], side1: [], side2: []},
+      getViews: () =>
+        this.house?.views ?? {top: [], front: [], back: [], side1: [], side2: []},
+
       setViews: (views) => {
         if (!this.aggregate) return;
         this.aggregate.setViews(views);
       },
+
       getSideAssignments: () =>
         this.house?.sideAssignments ?? {top: null, bottom: null, left: null, right: null},
+
       setSideAssignments: (sideAssignments) => {
         if (!this.aggregate) return;
         this.aggregate.setSideAssignments(sideAssignments);
@@ -365,6 +341,7 @@ class HouseManager {
 
     return {
       getElements: () => this.house?.elements ?? [],
+
       setElements: (elements) => {
         if (!this.aggregate) return;
         this.aggregate.setElements(elements);
@@ -383,14 +360,6 @@ class HouseManager {
     if (!repository) return;
 
     cleanupStaleViewsInRepository(repository, viewType, (group) => this.isGroupOnCanvas(group));
-  }
-
-  hasView(viewType: HouseViewType): boolean {
-    // When house isn't initialized yet, no views exist.
-    if (!this.house) return false;
-
-    this.cleanupStaleViews(viewType);
-    return this.house.views[viewType].length > 0;
   }
 
   // Check if this specific view type has reached its maximum
@@ -423,26 +392,6 @@ class HouseManager {
     });
   }
 
-  // Check if user needs to select a side for this view
-  // ALWAYS ask user for side selection when there are available sides
-  needsSideSelection(viewType: HouseViewType): boolean {
-    if (!this.house) return false;
-    return needsSideSelectionInViews({
-      viewType,
-      sideAssignments: this.house.sideAssignments,
-    });
-  }
-
-  // Get the auto-selected side if only one is available or opposite is assigned
-  getAutoSelectedSide(viewType: HouseViewType): HouseSide | null {
-    if (!this.house) return null;
-    return getAutoSelectedSideInViews({
-      viewType,
-      views: this.house.views,
-      sideAssignments: this.house.sideAssignments,
-    });
-  }
-
   // Register a view with its group and side
   registerView(viewType: HouseViewType, group: Group, side?: HouseSide): void {
     if (!this.house) return;
@@ -453,7 +402,7 @@ class HouseManager {
 
     // Mark the group with its view type and instance ID for later identification.
     Object.assign(
-      toRuntimeGroup(group),
+      toCanvasGroup(group),
       createViewGroupMetadataPatch<HouseViewType, HouseSide>({
         viewType,
         instanceId,
@@ -478,14 +427,16 @@ class HouseManager {
   private readPilotiDataFromCanvas(): Record<string, HousePiloti> {
     const canvasPort = this.getCanvasPort();
     const houseGroups = canvasPort
-      ? canvasPort.getObjects().filter((object): object is Group & HouseGroupWithObjects => isGroupWithObjects(object))
-      : [];
+      ? canvasPort.getObjects().filter(
+        (object): object is Group & HouseGroupWithObjects => isHouseGroupWithObjects(object)
+      ) : [];
 
-    const sources: RebuildPilotiSource[] = collectHouseGroupPilotiSources(houseGroups).map((source) => ({
-      objects: source.objects
-        .map((value) => toRebuildPilotiSourceObject(value))
-        .filter((value): value is RebuildPilotiSourceObject => value !== null),
-    }));
+    const sources: RebuildPilotiSource[] =
+      collectHouseGroupPilotiSources(houseGroups).map((source) => ({
+        objects: source.objects
+          .map((value) => toRebuildPilotiSourceObject(value))
+          .filter((value): value is RebuildPilotiSourceObject => value !== null),
+      }));
 
     return rebuildPilotiDataFromSources({
       pilotiIds: getAllPilotiIds(),
@@ -505,9 +456,10 @@ class HouseManager {
       .getObjects()
       .filter((object): object is Group => object.type === 'group');
 
-    const rebuildSources = collectHouseGroupRebuildSources(canvasGroups).map((source) =>
-      toRebuildViewSource(source.group),
-    );
+    const rebuildSources =
+      collectHouseGroupRebuildSources(canvasGroups).map((source) =>
+        toRebuildViewSource(source.group),
+      );
 
     const rebuilt = rebuildViewsFromCanvasSources(viewsRepository, {
       houseType: this.house.houseType,
@@ -516,7 +468,7 @@ class HouseManager {
 
     rebuilt.normalizedItems.forEach((item) => {
       Object.assign(
-        toRuntimeGroup(item.group),
+        toCanvasGroup(item.group),
         createViewGroupMetadataPatch<HouseViewType, HouseSide>({
           viewType: item.viewType as HouseViewType,
           instanceId: item.instanceId,
@@ -545,8 +497,8 @@ class HouseManager {
     if (!repository) return;
 
     const hints = extractViewGroupRemovalHints<HouseViewType>({
-      houseViewType: toRuntimeGroup(group).houseViewType,
-      houseInstanceId: toRuntimeGroup(group).houseInstanceId,
+      houseViewType: toCanvasGroup(group).houseViewType,
+      houseInstanceId: toCanvasGroup(group).houseInstanceId,
     });
 
     const removedWithHint = removeViewInRepository(repository, {
@@ -574,52 +526,54 @@ class HouseManager {
 
   private applyPilotiDataFirstPass(
     objects: FabricObject[],
-    pilotiObjectIndex: Record<string, { circle?: RuntimeFabricObject; rect?: RuntimeFabricObject }>,
+    pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
   ): void {
     if (!this.house) return;
 
     objects.forEach((obj: FabricObject) => {
-      const runtimeObject = toRuntimeObject(obj);
-      const pilotiId = runtimeObject.pilotiId;
+      const canvasObject = toCanvasObject(obj);
+      const pilotiId = canvasObject.pilotiId;
       if (!pilotiId) return;
 
       const data = this.house!.pilotis[pilotiId];
       if (!data) return;
 
-      if (runtimeObject.isPilotiCircle || runtimeObject.isPilotiRect) {
-        const isRect = Boolean(runtimeObject.isPilotiRect);
-        runtimeObject.set(
+      if (canvasObject.isPilotiCircle || canvasObject.isPilotiRect) {
+        const isRect = Boolean(canvasObject.isPilotiRect);
+        canvasObject.set(
           createPilotiVisualDataPatch({
             height: data.height,
             isMaster: data.isMaster,
             nivel: data.nivel,
             isRect,
-            baseHeight: runtimeObject.pilotiBaseHeight || 60,
-            masterFill: MASTER_PILOTI_FILL,
-            masterStroke: MASTER_PILOTI_STROKE_COLOR,
+            baseHeight: canvasObject.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+            masterFill: PILOTI_MASTER_FILL_COLOR,
+            masterStroke: PILOTI_MASTER_STROKE_COLOR,
           }),
         );
 
         if (isRect) {
-          runtimeObject.setCoords();
-          runtimeObject.dirty = true;
+          canvasObject.setCoords();
+          canvasObject.dirty = true;
         }
       }
 
-      if (runtimeObject.isPilotiText) {
-        runtimeObject.set(createPilotiHeightTextPatch(formatPilotiHeight(data.height)));
+      if (canvasObject.isPilotiText) {
+        canvasObject.set(createPilotiHeightTextPatch(formatPilotiHeight(data.height)));
       }
 
-      if (runtimeObject.isPilotiNivelText) {
-        const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+      if (canvasObject.isPilotiNivelText) {
+        const isCorner = PILOTI_CORNER_IDS.includes(pilotiId);
         const pilotiCircle = pilotiObjectIndex[pilotiId]?.circle;
-        const centerX = Number(pilotiCircle?.left ?? runtimeObject.left ?? 0);
-        const centerY = Number(pilotiCircle?.top ?? runtimeObject.top ?? 0);
-        const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
-        const offset = 12 * 0.6;
-        const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
+        const centerX = Number(pilotiCircle?.left ?? canvasObject.left ?? 0);
+        const centerY = Number(pilotiCircle?.top ?? canvasObject.top ?? 0);
+        const radius = Number(
+          pilotiCircle?.radius ?? HOUSE_DEFAULTS.pilotiRadius * HOUSE_DEFAULTS.viewScale,
+        );
+        const offset = HOUSE_DEFAULTS.pilotiNivelLabelOffset * HOUSE_DEFAULTS.viewScale;
+        const isTopCorner = pilotiId === PILOTI_CORNER_ID.topLeft || pilotiId === PILOTI_CORNER_ID.topRight;
 
-        runtimeObject.set(
+        canvasObject.set(
           createPilotiNivelTextPatch({
             isCorner,
             formattedNivel: formatNivel(data.nivel),
@@ -632,36 +586,36 @@ class HouseManager {
         );
       }
 
-      if (runtimeObject.isPilotiSizeLabel) {
-        runtimeObject.set(createPilotiSizeLabelPatch(formatPilotiHeight(data.height)));
+      if (canvasObject.isPilotiSizeLabel) {
+        canvasObject.set(createPilotiSizeLabelPatch(formatPilotiHeight(data.height)));
       }
     });
   }
 
   private applyNivelLabelsBackground(objects: FabricObject[]): void {
     objects.forEach((obj: FabricObject) => {
-      const runtimeObject = toRuntimeObject(obj);
-      if (runtimeObject.isNivelLabel) {
-        runtimeObject.set(createNivelLabelBackgroundPatch());
+      const canvasObject = toCanvasObject(obj);
+      if (canvasObject.isNivelLabel) {
+        canvasObject.set(createNivelLabelBackgroundPatch());
       }
     });
   }
 
   private applyPilotiSizeLabelPositions(
     objects: FabricObject[],
-    pilotiObjectIndex: Record<string, { circle?: RuntimeFabricObject; rect?: RuntimeFabricObject }>,
+    pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
   ): void {
     objects.forEach((obj: FabricObject) => {
-      const runtimeObject = toRuntimeObject(obj);
-      if (!runtimeObject.isPilotiSizeLabel) return;
+      const canvasObject = toCanvasObject(obj);
+      if (!canvasObject.isPilotiSizeLabel) return;
 
-      const pilotiId = runtimeObject.pilotiId;
+      const pilotiId = canvasObject.pilotiId;
       if (!pilotiId) return;
 
       const rect = pilotiObjectIndex[pilotiId]?.rect;
       if (!rect) return;
 
-      const baseHeight = rect.pilotiBaseHeight || 60;
+      const baseHeight = rect.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
       const rectWidth = Number(rect.width ?? 0);
       const rectHeight = Number(rect.height ?? 0);
       const position = calculatePilotiSizeLabelPosition({
@@ -670,25 +624,25 @@ class HouseManager {
         rectWidth,
         rectHeight,
         baseHeight,
-        basePilotiHeightPx: BASE_PILOTI_HEIGHT_PX,
+        basePilotiHeight: PILOTI_BASE_HEIGHT_PX,
       });
 
-      runtimeObject.set('left', position.left);
-      runtimeObject.set('top', position.top);
-      runtimeObject.setCoords?.();
-      runtimeObject.dirty = true;
+      canvasObject.set('left', position.left);
+      canvasObject.set('top', position.top);
+      canvasObject.setCoords?.();
+      canvasObject.dirty = true;
     });
   }
 
   private applyPilotiStripeOverlays(
     objects: FabricObject[],
-    pilotiObjectIndex: Record<string, { circle?: RuntimeFabricObject; rect?: RuntimeFabricObject }>,
+    pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
   ): void {
     objects.forEach((obj: FabricObject) => {
-      const runtimeObject = toRuntimeObject(obj);
-      if (!runtimeObject.isPilotiStripe) return;
+      const canvasObject = toCanvasObject(obj);
+      if (!canvasObject.isPilotiStripe) return;
 
-      const pilotiId = runtimeObject.pilotiId;
+      const pilotiId = canvasObject.pilotiId;
       if (!pilotiId) return;
 
       const rect = pilotiObjectIndex[pilotiId]?.rect;
@@ -698,11 +652,11 @@ class HouseManager {
         rectTop: Number(rect.top ?? 0),
         rectHeight: Number(rect.height ?? 0),
       });
-      runtimeObject.set({height: geometry.height, top: geometry.top});
-      runtimeObject.set('fill', createDiagonalStripePattern());
-      runtimeObject.objectCaching = false;
-      runtimeObject.setCoords();
-      runtimeObject.dirty = true;
+      canvasObject.set({height: geometry.height, top: geometry.top});
+      canvasObject.set('fill', createDiagonalStripePattern());
+      canvasObject.objectCaching = false;
+      canvasObject.setCoords();
+      canvasObject.dirty = true;
     });
   }
 
@@ -728,7 +682,7 @@ class HouseManager {
     if (data.isMaster !== undefined || data.nivel !== undefined) {
       updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
     }
-    if ((data.height !== undefined || data.nivel !== undefined) && CORNER_PILOTI_IDS.includes(pilotiId)) {
+    if ((data.height !== undefined || data.nivel !== undefined) && PILOTI_CORNER_IDS.includes(pilotiId)) {
       updateGroundInGroup(group);
     }
 
@@ -755,16 +709,17 @@ class HouseManager {
     if (!this.house) return;
 
     const objects = group.getObjects();
-    const runtimeObjects = objects.map((object) => toRuntimeObject(object));
-    const pilotiObjectIndex = buildPilotiObjectIndex(runtimeObjects);
-    this.applyPilotiDataFirstPass(runtimeObjects, pilotiObjectIndex);
-    this.applyNivelLabelsBackground(runtimeObjects);
-    this.applyPilotiSizeLabelPositions(runtimeObjects, pilotiObjectIndex);
-    this.applyPilotiStripeOverlays(runtimeObjects, pilotiObjectIndex);
+    const canvasObjects =
+      objects.map((object) => toCanvasObject(object));
+
+    const pilotiObjectIndex = buildPilotiObjectIndex(canvasObjects);
+    this.applyPilotiDataFirstPass(canvasObjects, pilotiObjectIndex);
+    this.applyNivelLabelsBackground(canvasObjects);
+    this.applyPilotiSizeLabelPositions(canvasObjects, pilotiObjectIndex);
+    this.applyPilotiStripeOverlays(canvasObjects, pilotiObjectIndex);
 
     // Update ground line based on the applied nivel values
     updateGroundInGroup(group);
-
     refreshHouseGroupRendering(group);
   }
 
@@ -801,7 +756,9 @@ class HouseManager {
     recalculateRecommendedPilotiData(repository, DEFAULT_HOUSE_PILOTI);
 
     console.log('[HouseManager] Calculated recommended heights:',
-      Object.entries(this.house.pilotis).map(([id, d]) => `${id}: nivel=${d.nivel} h=${d.height}`).join(', '));
+      Object.entries(this.house.pilotis).map(
+        ([id, d]) => `${id}: nivel=${d.nivel} h=${d.height}`).join(', ')
+    );
   }
 
   // Check if any views exist
@@ -837,8 +794,8 @@ class HouseManager {
           centerY: center.y,
           imageWidth: image.width ?? 1,
           imageHeight: image.height ?? 1,
-          canvasWidth: canvas.getWidth() || 1300,
-          canvasHeight: canvas.getHeight() || 1300,
+          canvasWidth: canvas.getWidth() || CANVAS_WIDTH,
+          canvasHeight: canvas.getHeight() || CANVAS_HEIGHT,
         }),
       );
       image.setControlsVisibility?.({mtr: false});
@@ -881,8 +838,6 @@ class HouseManager {
   }
 
   // Initialize default elements based on house type
-  // Uses absolute pixel dimensions matching the 2D canvas scale
-  // House body dimensions at SCALE=0.6: width=366px, height=132px
   initializeDefaultElements(): void {
     if (!this.house?.houseType) return;
     const repository = this.getHouseElementsRepository();

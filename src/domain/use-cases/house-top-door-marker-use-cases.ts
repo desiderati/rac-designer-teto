@@ -1,9 +1,4 @@
-import {
-  HouseElementFace,
-  HouseSide,
-  HouseTypeExcludeNull,
-  HouseViewType,
-} from '@/shared/types/house.ts';
+import {HouseElementFace, HouseSide, HouseTypeExcludeNull, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 
 export function resolveTopDoorSourceViewType(params: {

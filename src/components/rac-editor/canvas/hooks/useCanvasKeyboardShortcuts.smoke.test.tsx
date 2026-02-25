@@ -4,7 +4,7 @@ import {describe, expect, it} from 'vitest';
 import {FabricObject} from 'fabric';
 import {useCanvasKeyboardShortcuts} from '@/components/rac-editor/canvas/hooks/useCanvasKeyboardShortcuts.ts';
 
-type CanvasEventHandler = (event: {target?: FabricObject | null}) => void;
+type CanvasEventHandler = (event: { target?: FabricObject | null }) => void;
 
 function createCanvasMock() {
   const handlers: Record<string, CanvasEventHandler[]> = {};
@@ -24,7 +24,7 @@ function createCanvasMock() {
     remove: () => undefined,
   };
 
-  const emit = (event: string, payload: {target?: FabricObject | null}) => {
+  const emit = (event: string, payload: { target?: FabricObject | null }) => {
     for (const handler of handlers[event] || []) {
       handler(payload);
     }
@@ -33,7 +33,7 @@ function createCanvasMock() {
   return {canvas, emit};
 }
 
-function KeyboardShortcutsHarness({canvas}: {canvas: object}) {
+function KeyboardShortcutsHarness({canvas}: { canvas: object }) {
   const {bindKeyboardShortcuts} = useCanvasKeyboardShortcuts();
 
   useEffect(() => {

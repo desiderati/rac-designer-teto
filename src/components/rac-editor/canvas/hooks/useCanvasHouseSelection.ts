@@ -1,6 +1,7 @@
 import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {MASTER_PILOTI_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/components/lib/canvas';
+import {PILOTI_MASTER_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/components/lib/canvas';
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/config.ts';
 
 interface UseCanvasHouseSelectionArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -28,17 +29,29 @@ export function useCanvasHouseSelection({
           item.getObjects().forEach((child: any) => {
             if (child.isPilotiCircle) {
               if (child.pilotiIsMaster) {
-                child.set({stroke: MASTER_PILOTI_STROKE_COLOR, strokeWidth: 2});
+                child.set({
+                  stroke: PILOTI_MASTER_STROKE_COLOR,
+                  strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView
+                });
               } else {
-                child.set({stroke: PILOTI_STROKE_COLOR, strokeWidth: 1.5 * 0.6});
+                child.set({
+                  stroke: PILOTI_STROKE_COLOR,
+                  strokeWidth: PILOTI_STYLE.strokeWidthTopView
+                });
               }
             }
 
             if (child.isPilotiRect) {
               if (child.pilotiIsMaster) {
-                child.set({stroke: MASTER_PILOTI_STROKE_COLOR, strokeWidth: 3});
+                child.set({
+                  stroke: PILOTI_MASTER_STROKE_COLOR,
+                  strokeWidth: PILOTI_MASTER_STYLE.strokeWidth
+                });
               } else {
-                child.set({stroke: PILOTI_STROKE_COLOR, strokeWidth: 2});
+                child.set({
+                  stroke: PILOTI_STROKE_COLOR,
+                  strokeWidth: PILOTI_STYLE.strokeWidth
+                });
               }
             }
           });
@@ -48,3 +61,4 @@ export function useCanvasHouseSelection({
     }
   }, [fabricCanvasRef, isAnyEditorOpen, isContraventamentoMode]);
 }
+

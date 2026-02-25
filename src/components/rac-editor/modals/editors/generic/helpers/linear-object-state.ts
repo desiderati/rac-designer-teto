@@ -1,4 +1,5 @@
 import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
 
 export interface LinearObjectState {
   currentColor: string;
@@ -9,7 +10,7 @@ export function readLinearObjectState(
   object: CanvasObject
 ): LinearObjectState {
 
-  let currentColor = '#000000';
+  let currentColor: string = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
   let currentLabel = '';
 
   const groupChildren = object.getObjects?.() ?? [];
@@ -28,3 +29,6 @@ export function readLinearObjectState(
 
   return {currentColor, currentLabel};
 }
+
+
+

@@ -1,4 +1,5 @@
 import {cn} from '@/components/lib/utils.ts';
+import {CANVAS_STYLE, EDITOR_ICON_COLORS} from '@/config.ts';
 import {
   GenericObjectEditorType
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
@@ -21,8 +22,10 @@ function WallIcon() {
 function LineIcon() {
   return (
     <>
-      <line x1='5' y1='18' x2='95' y2='18' stroke='#dfe3e8' strokeWidth='6' strokeLinecap='round'/>
-      <line x1='5' y1='38' x2='95' y2='38' stroke='#dfe3e8' strokeWidth='6' strokeLinecap='round'/>
+      <line x1='5' y1='18' x2='95' y2='18' stroke={EDITOR_ICON_COLORS.neutralStrokeColor} strokeWidth='6'
+            strokeLinecap='round'/>
+      <line x1='5' y1='38' x2='95' y2='38' stroke={EDITOR_ICON_COLORS.neutralStrokeColor} strokeWidth='6'
+            strokeLinecap='round'/>
       <line x1='5' y1='58' x2='95' y2='58' stroke='hsl(var(--primary))' strokeWidth='6' strokeLinecap='round'/>
     </>
   );
@@ -46,7 +49,7 @@ function DistanceIcon() {
       <line x1='5' y1='42' x2='5' y2='58' stroke='hsl(var(--primary))' strokeWidth='2.5'/>
       <line x1='95' y1='42' x2='95' y2='58' stroke='hsl(var(--primary))' strokeWidth='2.5'/>
       <text x='50' y='36' textAnchor='middle' fill='hsl(var(--primary))' fontSize='18' fontWeight='600'
-            fontFamily='Arial'>
+            fontFamily={CANVAS_STYLE.fontFamily}>
         1,0 m
       </text>
     </>
@@ -67,3 +70,6 @@ export function GenericObjectEditorIcon({type, className}: GenericObjectEditorIc
     </svg>
   );
 }
+
+
+

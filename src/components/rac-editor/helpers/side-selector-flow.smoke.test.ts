@@ -1,8 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {
-  shouldResetHouseTypeOnSideSelectorCancel,
-  shouldTransitionToNivelDefinition,
-} from './side-selector-flow.ts';
+import {shouldResetHouseTypeOnSideSelectorCancel, shouldTransitionToNivelDefinition,} from './side-selector-flow.ts';
 
 describe('side-selector-flow utils', () => {
   it('transitions to nivel definition only on initial positioning without pre-assigned slots', () => {

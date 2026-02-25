@@ -1,28 +1,33 @@
 import {Canvas as FabricCanvas, Circle, FabricObject, Group, IText, Line, Rect, Text} from 'fabric';
-import {
-  BASE_TOP_HEIGHT,
-  BASE_TOP_WIDTH,
-  CORNER_PILOTI_IDS,
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE_COLOR,
-  MASTER_PILOTI_STROKE_WIDTH,
-} from '../../constants.ts';
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH,} from '../../constants.ts';
 
 import {formatNivel, formatPilotiHeight} from '../../piloti.ts';
+import {
+  CANVAS_ELEMENT_STYLE,
+  CANVAS_STYLE,
+  HOUSE_2D_STYLE,
+  HOUSE_DEFAULTS,
+  PILOTI_CORNER_ID,
+  PILOTI_CORNER_IDS,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE,
+} from '@/config.ts';
+import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
 export function createHouseTop(canvas: FabricCanvas): Group {
-  const s = 0.6;
-  const w = BASE_TOP_WIDTH * s;
-  const h = BASE_TOP_HEIGHT * s;
-  const rad = 15 * s;
-  const cD = 155 * s;
-  const rD = 135 * s;
+  const s = HOUSE_DEFAULTS.viewScale;
+  const w = HOUSE_BASE_WIDTH * s;
+  const h = HOUSE_BASE_HEIGHT * s;
+  const rad = HOUSE_DIMENSIONS.piloti.radius * s;
+  const cD = HOUSE_DIMENSIONS.piloti.columnSpacing * s;
+  const rD = HOUSE_DIMENSIONS.piloti.rowSpacing * s;
 
   // Main rect with NO stroke (we'll use 4 separate border lines instead)
   const rect = new Rect({
     width: w,
     height: h,
-    fill: 'transparent',
+    fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
     stroke: 'transparent',
     strokeWidth: 0,
     originX: 'center',
@@ -34,8 +39,8 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
   // Create 4 border lines for individual side highlighting
   const borderStyle = {
-    stroke: 'black',
-    strokeWidth: 2 * s,
+    stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+    strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
     strokeUniform: true,
     selectable: false,
     evented: false,
@@ -60,57 +65,58 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
 
   // Door markers on top view (hidden by default, positioned by HouseManager based on side assignments)
-  const markerLong = 80 * s;
-  const markerShort = 20 * s;
-  const markerFill = MASTER_PILOTI_FILL;
-  const markerStroke = MASTER_PILOTI_STROKE_COLOR;
+  const doorMarkerLong = HOUSE_DIMENSIONS.openings.topDoorMarker.longSize * s;
+  const doorMarkerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * s;
+  const doorMarkerFill = CANVAS_ELEMENT_STYLE.fillColor.doorBody;
+  const doorMarkerStroke = CANVAS_ELEMENT_STYLE.strokeColor.doorElement;
 
-  const createDoorMarker = (side: 'top' | 'bottom' | 'left' | 'right'): Group => {
-    const vertical = side === 'left' || side === 'right';
-    const rect = new Rect({
-      width: vertical ? markerShort : markerLong,
-      height: vertical ? markerLong : markerShort,
-      fill: markerFill,
-      stroke: markerStroke,
-      strokeWidth: MASTER_PILOTI_STROKE_WIDTH,
-      strokeUniform: true,
-      originX: 'center',
-      originY: 'center',
-      selectable: false,
-      evented: false,
-    });
+  const createDoorMarker =
+    (side: 'top' | 'bottom' | 'left' | 'right'): Group => {
+      const vertical = side === 'left' || side === 'right';
+      const rect = new Rect({
+        width: vertical ? doorMarkerShort : doorMarkerLong,
+        height: vertical ? doorMarkerLong : doorMarkerShort,
+        fill: doorMarkerFill,
+        stroke: doorMarkerStroke,
+        strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
+        strokeUniform: true,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+      });
 
-    const label = new Text('Porta', {
-      fontSize: 15 * s,
-      fontFamily: 'Arial',
-      fill: '#333',
-      originX: 'center',
-      originY: 'center',
-      selectable: false,
-      evented: false,
-      angle: vertical ? 90 : 0,
-    });
+      const label = new Text('Porta', {
+        fontSize: CANVAS_STYLE.fontSize * s,
+        fontFamily: CANVAS_STYLE.fontFamily,
+        fill: doorMarkerStroke,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+        angle: vertical ? 90 : 0,
+      });
 
-    const basePos: Record<typeof side, { left: number; top: number }> = {
-      top: {left: 0, top: -h / 2},
-      bottom: {left: 0, top: h / 2},
-      left: {left: -w / 2, top: 0},
-      right: {left: w / 2, top: 0},
+      const basePos: Record<typeof side, { left: number; top: number }> = {
+        top: {left: 0, top: -h / 2},
+        bottom: {left: 0, top: h / 2},
+        left: {left: -w / 2, top: 0},
+        right: {left: w / 2, top: 0},
+      };
+
+      const doorMarker = new Group([rect, label], {
+        ...basePos[side],
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+        visible: false,
+        objectCaching: false,
+      });
+      (doorMarker as any).isTopDoorMarker = true;
+      (doorMarker as any).doorMarkerSide = side;
+      return doorMarker;
     };
-
-    const marker = new Group([rect, label], {
-      ...basePos[side],
-      originX: 'center',
-      originY: 'center',
-      selectable: false,
-      evented: false,
-      visible: false,
-      objectCaching: false,
-    });
-    (marker as any).isTopDoorMarker = true;
-    (marker as any).markerSide = side;
-    return marker;
-  };
 
   houseObjects.push(
     createDoorMarker('top'),
@@ -119,17 +125,18 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     createDoorMarker('right'),
   );
 
+  const defaultHeight = DEFAULT_HOUSE_PILOTI.height;
+  const defaultIsMaster = DEFAULT_HOUSE_PILOTI.isMaster;
+  const defaultNivel = DEFAULT_HOUSE_PILOTI.nivel;
+
   let pilotiIndex = 0;
   [-1.5 * cD, -0.5 * cD, 0.5 * cD, 1.5 * cD].forEach((x, colIdx) => {
     [-rD, 0, rD].forEach((y, rowIdx) => {
       const pilotiId = `piloti_${colIdx}_${rowIdx}`;
-      const defaultHeight = 1.0;
-      const defaultIsMaster = false;
-      const defaultNivel = 0.2;
 
       // Invisible hit area for mobile (larger touch target)
       const hitArea = new Circle({
-        radius: Math.max(rad * 2.5, 20), // At least 40px diameter
+        radius: rad * 2,
         fill: 'transparent',
         stroke: 'transparent',
         strokeWidth: 0,
@@ -144,9 +151,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
 
       const circle = new Circle({
         radius: rad,
-        fill: 'white',
-        stroke: 'black',
-        strokeWidth: 1.5 * s,
+        fill: PILOTI_STYLE.fillColor,
+        stroke: PILOTI_STYLE.strokeColor,
+        strokeWidth: PILOTI_STYLE.strokeWidthTopView,
         left: x,
         top: y,
         originX: 'center',
@@ -160,9 +167,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (circle as any).isPilotiCircle = true;
 
       const text = new IText(formatPilotiHeight(defaultHeight), {
-        fontSize: 15 * s,
-        fontFamily: 'Arial',
-        fill: '#333',
+        fontSize: PILOTI_STYLE.heightFontSizeTopView * s,
+        fontFamily: CANVAS_STYLE.fontFamily,
+        fill: PILOTI_STYLE.strokeColor,
         originX: 'center',
         originY: 'center',
         left: x,
@@ -175,17 +182,19 @@ export function createHouseTop(canvas: FabricCanvas): Group {
       (text as any).isPilotiText = true;
 
       // Text for nivel (always visible for corner pilotis)
-      const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
-      const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
+      const isCorner = PILOTI_CORNER_IDS.includes(pilotiId);
+      const isTopCorner = pilotiId === PILOTI_CORNER_ID.topLeft || pilotiId === PILOTI_CORNER_ID.topRight;
       const nivelText = new IText(isCorner ? `Nível = ${formatNivel(defaultNivel)}` : '', {
-        fontSize: 11 * s,
-        fontFamily: 'Arial',
+        fontSize: PILOTI_STYLE.nivelFontSizeTopView * s,
+        fontFamily: CANVAS_STYLE.fontFamily,
         fontWeight: 'bold',
-        fill: '#8B4513',
+        fill: PILOTI_MASTER_STYLE.strokeColor,
         originX: 'center',
         originY: 'center',
         left: x,
-        top: isTopCorner ? y - rad - 12 * s : y + rad + 12 * s,
+        top: isTopCorner
+          ? y - rad - PILOTI_STYLE.nivelFontSizeTopView * s
+          : y + rad + PILOTI_STYLE.nivelFontSizeTopView * s,
         editable: false,
         selectable: false,
         visible: isCorner,

@@ -138,13 +138,13 @@ Utilitários:
 ```typescript
 // Padrão repetido 4 vezes
 export function normalizeLineGroupScaling(group, labelTop) {
-    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = group as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
     try {
         normalizeLineGroupToLength(group, ...);
     } finally {
-        runtimeGroup.__normalizingScale = false;
+        canvasGroup.__normalizingScale = false;
     }
 }
 ```
@@ -157,13 +157,13 @@ export function withScalingGuard<T>(
     group: Group,
     normalize: (g: Group) => void
 ): void {
-    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = group as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
     try {
         normalize(group);
     } finally {
-        runtimeGroup.__normalizingScale = false;
+        canvasGroup.__normalizingScale = false;
     }
 }
 
@@ -431,13 +431,13 @@ export function withScalingGuard(
     group: Group,
     normalize: (g: Group) => void
 ): void {
-    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = group as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
     try {
         normalize(group);
     } finally {
-        runtimeGroup.__normalizingScale = false;
+        canvasGroup.__normalizingScale = false;
     }
 }
 ```

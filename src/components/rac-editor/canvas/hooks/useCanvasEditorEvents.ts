@@ -1,18 +1,11 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil} from 'fabric';
-import {
-  readLinearObjectState
-} from '@/components/rac-editor/modals/editors/generic/helpers/linear-object-state.ts';
-import type {
-  CanvasPointerPayload,
-  CanvasObject,
-} from '@/components/lib/canvas/canvas.ts';
-import {
-  linearSelection,
-  linearSelectionType,
-  wallSelection
-} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {readLinearObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/linear-object-state.ts';
+import type {CanvasPointerPayload,} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas';
+import {linearSelection, linearSelectionType, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {readWallObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/wall-object-state.ts';
+import {TIMINGS, VIEWPORT} from '@/config.ts';
 
 interface UseCanvasEditorEventsArgs {
   canvas: FabricCanvas;
@@ -25,10 +18,6 @@ interface UseCanvasEditorEventsArgs {
   onSelectionChange: (message: string) => void;
 }
 
-function toRuntimeObject(object: FabricObject | null | undefined): CanvasObject | null {
-  if (!object) return null;
-  return object as CanvasObject;
-}
 
 export function useCanvasEditorEvents() {
   const bindInlineEditorEvents = useCallback(({
@@ -45,8 +34,9 @@ export function useCanvasEditorEvents() {
     const handleWallSelection = (
       wall: FabricObject,
     ) => {
-
-      const {currentLabel} = readWallObjectState(wall as CanvasObject);
+      const wallObject = toCanvasObject(wall);
+      if (!wallObject) return;
+      const {currentLabel} = readWallObjectState(wallObject);
       const center = wall.getCenterPoint();
       const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
@@ -63,8 +53,9 @@ export function useCanvasEditorEvents() {
       object: FabricObject,
       myType: linearSelectionType
     ) => {
-
-      const {currentColor, currentLabel} = readLinearObjectState(object as CanvasObject);
+      const linearObject = toCanvasObject(object);
+      if (!linearObject) return;
+      const {currentColor, currentLabel} = readLinearObjectState(linearObject);
       const center = object.getCenterPoint();
       const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
@@ -79,13 +70,13 @@ export function useCanvasEditorEvents() {
     };
 
     const handleDesktopDoubleClick = (event: unknown) => {
-      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
       if (isMobileDevice || !target) return;
       if (isAnyEditorOpen()) return;
 
-      const targetRuntime = toRuntimeObject(target);
+      const targetRuntime = toCanvasObject(target);
       if (targetRuntime?.myType === 'wall') {
         handleWallSelection(target);
         return;
@@ -118,7 +109,7 @@ export function useCanvasEditorEvents() {
 
       const objects = group.getObjects();
       for (let i = objects.length - 1; i >= 0; i--) {
-        const object = toRuntimeObject(objects[i]);
+        const object = toCanvasObject(objects[i]);
         if (!object) continue;
         if (object.myType !== 'piloti' && object.myType !== 'pilotiHitArea') continue;
 
@@ -151,19 +142,19 @@ export function useCanvasEditorEvents() {
     };
 
     const handleMobileTap = (event: unknown) => {
-      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
       if (!isMobileDevice || !target) return;
       if (isAnyEditorOpen()) return;
 
-      const runtimeTarget = toRuntimeObject(target);
+      const runtimeTarget = toCanvasObject(target);
       if (runtimeTarget?.myType === 'wall') {
         setTimeout(() => {
           if (canvas.getActiveObject() === target) {
             handleWallSelection(target);
           }
-        }, 300);
+        }, TIMINGS.mobileTapToEditDelayMs);
         return;
       }
 
@@ -172,7 +163,7 @@ export function useCanvasEditorEvents() {
           if (canvas.getActiveObject() === target) {
             handleLinearSelection(target, 'line');
           }
-        }, 300);
+        }, TIMINGS.mobileTapToEditDelayMs);
         return;
       }
 
@@ -181,7 +172,7 @@ export function useCanvasEditorEvents() {
           if (canvas.getActiveObject() === target) {
             handleLinearSelection(target, 'arrow');
           }
-        }, 300);
+        }, TIMINGS.mobileTapToEditDelayMs);
         return;
       }
 
@@ -190,7 +181,7 @@ export function useCanvasEditorEvents() {
           if (canvas.getActiveObject() === target) {
             handleLinearSelection(target, 'distance');
           }
-        }, 300);
+        }, TIMINGS.mobileTapToEditDelayMs);
         return;
       }
     };

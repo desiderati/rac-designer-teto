@@ -1,22 +1,29 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Polyline, Text} from 'fabric';
+import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
 import {
-  BASE_PILOTI_HEIGHT_PX,
-  CORNER_PILOTI_IDS,
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE_COLOR,
+  PILOTI_BASE_HEIGHT_PX,
+  PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+  PILOTI_MASTER_FILL_COLOR,
+  PILOTI_MASTER_STROKE_COLOR,
+  PILOTI_DEFAULT_NIVEL,
 } from './constants.ts';
-import {HOUSE_PILOTI_STANDARD_HEIGHTS} from '@/shared/types/house.ts';
-
-export const PILOTI_DEFAULT_NIVEL = 0.2;
-
-export const PILOTI_STROKE_COLOR = '#222';
+import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
+import {
+  CANVAS_STYLE,
+  HOUSE_2D_STYLE,
+  HOUSE_DEFAULTS,
+  PILOTI_CORNER_ID,
+  PILOTI_CORNER_IDS,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE
+} from '@/config.ts';
+import {HOUSE_DIMENSIONS} from "@/components/lib/house-dimensions.ts";
 
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
   const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
-  return clampNivel(nivel,  0.2, maxNivel);
+  return clampNivel(nivel, PILOTI_DEFAULT_NIVEL, maxNivel);
 }
 
-export function clampNivel(nivel: number, minNivel: number = 0.2, maxNivel: number = 1.50): number {
+export function clampNivel(nivel: number, minNivel: number = PILOTI_DEFAULT_NIVEL, maxNivel: number = 1.50): number {
   return Math.round(Math.max(minNivel, Math.min(nivel, maxNivel)) * 100) / 100;
 }
 
@@ -29,10 +36,10 @@ export function formatNivel(nivel: number): string {
 }
 
 export function getRecommendedHeight(nivel: number): number {
+  // Nivel = 1/3 Piloti :)
   const minHeight = nivel * 3;
-  return HOUSE_PILOTI_STANDARD_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
+  return DEFAULT_HOUSE_PILOTI_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
 }
-
 
 // Get piloti name from ID (e.g., "piloti_0_0" -> "A1")
 export function getPilotiName(pilotiId: string): string {
@@ -72,23 +79,6 @@ export function getPilotiIdsFromGroup(group: Group): string[] {
   return getAllPilotiIds().filter((id) => present.has(id));
 }
 
-// Get next/previous piloti ID
-export function getAdjacentPilotiId(currentId: string, direction: 'next' | 'prev'): string | null {
-  const allIds = getAllPilotiIds();
-  const currentIndex = allIds.indexOf(currentId);
-  if (currentIndex === -1) return null;
-
-  if (direction === 'next' && currentIndex < allIds.length - 1) {
-    return allIds[currentIndex + 1];
-  }
-
-  if (direction === 'prev' && currentIndex > 0) {
-    return allIds[currentIndex - 1];
-  }
-
-  return null;
-}
-
 // Get piloti data from group (works for both circles in top view and rects in front/back/side views)
 export function getPilotiFromGroup(
   group: Group,
@@ -105,9 +95,9 @@ export function getPilotiFromGroup(
     if ((obj as any).pilotiId === pilotiId && ((obj as any).isPilotiCircle || (obj as any).isPilotiRect)) {
       return {
         circle: obj,
-        height: (obj as any).pilotiHeight || 1.0,
+        height: (obj as any).pilotiHeight || DEFAULT_HOUSE_PILOTI.height,
         isMaster: (obj as any).pilotiIsMaster || false,
-        nivel: (obj as any).pilotiNivel ?? 0.2,
+        nivel: (obj as any).pilotiNivel ?? PILOTI_DEFAULT_NIVEL,
       };
     }
   }
@@ -143,8 +133,8 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       const oldHeight = (obj.getScaledHeight?.() ?? obj.height ?? 0) as number;
       obj.pilotiHeight = newHeight;
 
-      const baseHeight = obj.pilotiBaseHeight || 60; // fallback
-      const s = baseHeight / BASE_PILOTI_HEIGHT_PX;
+      const baseHeight = obj.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
+      const s = baseHeight / PILOTI_BASE_HEIGHT_PX;
       const newVisualHeight = baseHeight * newHeight;
       rectHeightDelta = newVisualHeight - oldHeight;
 
@@ -271,12 +261,12 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
       if (obj.pilotiId !== pilotiId) {
         if ((obj.isPilotiCircle || obj.isPilotiRect) && obj.pilotiIsMaster) {
           obj.pilotiIsMaster = false;
-          obj.set('fill', obj.isPilotiRect ? '#fff' : 'white');
-          obj.set('stroke', obj.isPilotiRect ? '#333' : 'black');
-          obj.set('strokeWidth', obj.isPilotiRect ? 2 : 1.5 * 0.6);
+          obj.set('fill', PILOTI_STYLE.fillColor);
+          obj.set('stroke', PILOTI_STYLE.strokeColor);
+          obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView);
         }
         // Keep nivel text visible for corner pilotis even when losing master status
-        if (obj.isPilotiNivelText && !CORNER_PILOTI_IDS.includes(obj.pilotiId)) {
+        if (obj.isPilotiNivelText && !PILOTI_CORNER_IDS.includes(obj.pilotiId)) {
           obj.set('text', '');
           obj.set('visible', false);
         }
@@ -293,24 +283,25 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
 
         // Update visual style based on isMaster
         if (isMaster) {
-          obj.set('fill', MASTER_PILOTI_FILL);
-          obj.set('stroke', MASTER_PILOTI_STROKE_COLOR);
-          obj.set('strokeWidth', obj.isPilotiRect ? 3 : 2);
+          obj.set('fill', PILOTI_MASTER_FILL_COLOR);
+          obj.set('stroke', PILOTI_MASTER_STROKE_COLOR);
+          obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_MASTER_STYLE.strokeWidth : PILOTI_MASTER_STYLE.strokeWidthTopView);
         } else {
-          obj.set('fill', obj.isPilotiRect ? '#fff' : 'white');
-          obj.set('stroke', obj.isPilotiRect ? '#333' : 'black');
-          obj.set('strokeWidth', obj.isPilotiRect ? 2 : 1.5 * 0.6);
+          obj.set('fill', PILOTI_STYLE.fillColor);
+          obj.set('stroke', PILOTI_STYLE.strokeColor);
+          obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView);
         }
       }
+
       if (obj.isPilotiNivelText) {
-        const isCorner = CORNER_PILOTI_IDS.includes(pilotiId);
+        const isCorner = PILOTI_CORNER_IDS.includes(obj.pilotiId);
         if (isCorner) {
           const pilotiCircle = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiCircle) as any;
           const centerX = Number(pilotiCircle?.left ?? obj.left ?? 0);
           const centerY = Number(pilotiCircle?.top ?? obj.top ?? 0);
-          const radius = Number(pilotiCircle?.radius ?? 15 * 0.6);
-          const offset = 12 * 0.6;
-          const isTopCorner = pilotiId === 'piloti_0_0' || pilotiId === 'piloti_3_0';
+          const radius = Number(pilotiCircle?.radius ?? HOUSE_DEFAULTS.pilotiRadius * HOUSE_DEFAULTS.viewScale);
+          const offset = HOUSE_DEFAULTS.pilotiNivelLabelOffset * HOUSE_DEFAULTS.viewScale;
+          const isTopCorner = pilotiId === PILOTI_CORNER_ID.topLeft || pilotiId === PILOTI_CORNER_ID.topRight;
 
           obj.set('text', `Nível = ${formatNivel(nivel)}`);
           obj.set('left', centerX);
@@ -325,45 +316,6 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
   });
 
   group.dirty = true;
-}
-
-// Create a diagonal stripe pattern for piloti fill (bottom 2/3)
-export function createDiagonalStripePattern(): Pattern {
-  const size = 10; // pattern tile size
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-
-  const ctx = canvas.getContext('2d')!;
-  ctx.clearRect(0, 0, size, size);
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 1.2;
-
-  // Draw diagonal line across the tile
-  ctx.beginPath();
-  ctx.moveTo(0, size);
-  ctx.lineTo(size, 0);
-  ctx.stroke();
-
-  // Extra line for seamless tiling
-  ctx.beginPath();
-  ctx.moveTo(-size, size);
-  ctx.lineTo(size, -size);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, 2 * size);
-  ctx.lineTo(2 * size, 0);
-  ctx.stroke();
-
-  return new Pattern({
-    source: canvas,
-    repeat: 'repeat',
-  });
-}
-
-// Calculate piloti visual height based on pilotiHeight value
-export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
-  return BASE_PILOTI_HEIGHT_PX * pilotiHeight * scale;
 }
 
 // Seeded random number generator for deterministic ground line variation
@@ -388,6 +340,7 @@ function generateGroundLinePoints(
   leftCenterX?: number,
   rightCenterX?: number,
 ): { x: number; y: number }[] {
+
   const rng = seededRandom(seed);
   const lcx = leftCenterX ?? leftX;
   const rcx = rightCenterX ?? rightX;
@@ -414,7 +367,6 @@ function generateGroundLinePoints(
 
   // Segment 1: flat left (leftX -> leftCenterX)
   const leftLen = lcx - leftX;
-  const centerLen = rcx - lcx;
   const rightLen = rightX - rcx;
   const totalLen = rightX - leftX;
 
@@ -431,6 +383,175 @@ function generateGroundLinePoints(
   return points;
 }
 
+export function createPilotiRect(
+  pilotLabels: FabricObject[],
+  colIndex: number,
+  rowIndex: number,
+  panelHeight: number,
+  left: number,
+  s: number,
+) {
+  const defaultHeight = DEFAULT_HOUSE_PILOTI.height;
+  const defaultIsMaster = DEFAULT_HOUSE_PILOTI.isMaster;
+  const defaultNivel = DEFAULT_HOUSE_PILOTI.nivel;
+
+  const floorH = HOUSE_DIMENSIONS.structure.floorHeight * s;
+  const floorBeanH = HOUSE_DIMENSIONS.structure.floorBeamHeight * s;
+
+  const pilotiId = `piloti_${colIndex}_${rowIndex}`;
+  const pilotW = HOUSE_DIMENSIONS.piloti.width * s;
+  const pilotH = getPilotiVisualHeight(defaultHeight, s);
+
+  const rect = new Rect({
+    width: pilotW,
+    height: pilotH,
+    fill: PILOTI_STYLE.fillColor,
+    stroke: PILOTI_STYLE.strokeColor,
+    strokeWidth: PILOTI_STYLE.strokeWidth,
+    strokeUniform: true,
+    left,
+    top: panelHeight + floorH + floorBeanH,
+    originY: 'top',
+    objectCaching: false,
+  });
+  (rect as any).myType = 'piloti';
+  (rect as any).pilotiId = pilotiId;
+  (rect as any).pilotiHeight = defaultHeight;
+  (rect as any).pilotiIsMaster = defaultIsMaster;
+  (rect as any).pilotiNivel = defaultNivel;
+  (rect as any).isPilotiRect = true;
+  (rect as any).pilotiBaseHeight = PILOTI_BASE_HEIGHT_PX * s;
+
+  // Create size label below piloti
+  const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
+    fontSize: PILOTI_STYLE.heightFontSize * s,
+    fill: PILOTI_STYLE.heightFontColor,
+    backgroundColor: PILOTI_STYLE.fillColor,
+    left: left + pilotW / 2,
+    top: panelHeight + floorH + floorBeanH + pilotH + 8 * s,
+    originX: 'center',
+    originY: 'top',
+    selectable: false,
+    evented: false,
+  });
+  (sizeLabel as any).isPilotiSizeLabel = true;
+  (sizeLabel as any).pilotiId = pilotiId;
+
+  pilotLabels.push(sizeLabel);
+  return rect;
+}
+
+export function createPilotis(
+  elements: FabricObject[],
+  bodyW: number,
+  s: number,
+  flipHorizontal: boolean = false
+) {
+
+  const bodyH = HOUSE_DIMENSIONS.structure.bodyHeight * s;
+  const floorH = HOUSE_DIMENSIONS.structure.floorHeight * s;
+  const floorBeanH = HOUSE_DIMENSIONS.structure.floorBeamHeight * s;
+
+  const pilotiDefaultH = DEFAULT_HOUSE_PILOTI.height;
+  const pilotW = HOUSE_DIMENSIONS.piloti.width * s;
+  const pilots: FabricObject[] = [];
+
+  const pilotLabels: FabricObject[] = [];
+  const margin = HOUSE_DIMENSIONS.piloti.margin * s;
+
+  const step = (bodyW - 2 * margin - pilotW) / 3;
+  // Position determines piloti IDs (not view type):
+  // Top position (flipHorizontal=true): pilotis A4, A3, A2, A1 (row 0, reversed)
+  // Bottom position (flipHorizontal=false): pilotis C1, C2, C3, C4 (row 2, normal order)
+
+  const rowIndex = flipHorizontal ? 0 : 2;
+
+  for (let i = 0; i < 4; i++) {
+    // Top position: reversed order (A4, A3, A2, A1)
+    // Bottom position: normal order (C1, C2, C3, C4)
+    const colIndex = flipHorizontal ? 3 - i : i;
+    const pilotiId = `piloti_${colIndex}_${rowIndex}`;
+    const pilotH = getPilotiVisualHeight(pilotiDefaultH, s);
+    pilots.push(createPilotiRect(pilotLabels, colIndex, rowIndex, bodyH, margin + i * step, s));
+
+    // Add diagonal stripe overlay for bottom 2/3
+    const stripeOverlay =
+      createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH + floorH + floorBeanH, pilotW, pilotH);
+    pilots.push(stripeOverlay);
+  }
+
+  elements.push(...pilots);
+  elements.push(...pilotLabels);
+}
+
+// Calculate piloti visual height based on pilotiHeight value
+function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
+  return PILOTI_BASE_HEIGHT_PX * pilotiHeight * scale;
+}
+
+// Create a stripe overlay rect for the bottom 2/3 of a piloti rect
+export function createPilotiStripeOverlay(
+  pilotiId: string,
+  left: number,
+  top: number,
+  width: number,
+  fullHeight: number,
+): Rect {
+  const stripeHeight = (fullHeight * 2) / 3;
+  const stripeTop = top + fullHeight / 3;
+
+  const stripe = new Rect({
+    width,
+    height: stripeHeight,
+    fill: createDiagonalStripePattern(),
+    left,
+    top: stripeTop,
+    originY: 'top',
+    strokeWidth: 0,
+    selectable: false,
+    evented: false,
+    objectCaching: false,
+    opacity: 0.5,
+  });
+  (stripe as any).isPilotiStripe = true;
+  (stripe as any).pilotiId = pilotiId;
+  return stripe;
+}
+
+// Create a diagonal stripe pattern for piloti fill (bottom 2/3)
+export function createDiagonalStripePattern(): Pattern {
+  const size = 10; // pattern tile size
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = PILOTI_STYLE.stripeColor;
+  ctx.lineWidth = 1.2;
+
+  // Draw diagonal line across the tile
+  ctx.beginPath();
+  ctx.moveTo(0, size);
+  ctx.lineTo(size, 0);
+  ctx.stroke();
+
+  // Extra line for seamless tiling
+  ctx.beginPath();
+  ctx.moveTo(-size, size);
+  ctx.lineTo(size, -size);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(0, 2 * size);
+  ctx.lineTo(2 * size, 0);
+  ctx.stroke();
+
+  return new Pattern({
+    source: canvas,
+    repeat: 'repeat',
+  });
+}
+
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 export function createGroundElements(
   leftX: number,
@@ -445,10 +566,12 @@ export function createGroundElements(
   rightNivelStr: string,
   maxPilotiBottomY: number,
 ): FabricObject[] {
+
   const elements: FabricObject[] = [];
-  const xSize = 5 * s;
-  const lineColor = '#8B6914';
-  const markerWidth = 1.5;
+  const labelFontSize = PILOTI_STYLE.nivelFontSize * s;
+  const xSize = labelFontSize / 2;
+  const lineColor = HOUSE_2D_STYLE.groundLineColor;
+  const markerWidth = HOUSE_2D_STYLE.outlineStrokeWidth;
 
   // X marker on left corner piloti
   const xL1 = new Line([leftCenterX - xSize, leftNivelY - xSize, leftCenterX + xSize, leftNivelY + xSize], {
@@ -493,15 +616,14 @@ export function createGroundElements(
   (xR2 as any).isNivelMarker = true;
 
   // Nivel labels next to the X markers
-  const labelFontSize = 10 * s;
   const lLabel = new Text(leftNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    backgroundColor: '#ffffff',
-    fontFamily: 'Arial',
+    backgroundColor: HOUSE_2D_STYLE.surfaceBackgroundColor,
+    fontFamily: CANVAS_STYLE.fontFamily,
     fontWeight: 'bold',
-    left: leftCenterX + xSize + 5,
-    top: leftNivelY + xSize + 10 * s,
+    left: leftCenterX + labelFontSize + labelFontSize / 2,
+    top: leftNivelY + xSize + labelFontSize,
     originX: 'right',
     originY: 'center',
     selectable: false,
@@ -513,11 +635,11 @@ export function createGroundElements(
   const rLabel = new Text(rightNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
-    backgroundColor: '#ffffff',
-    fontFamily: 'Arial',
+    backgroundColor: HOUSE_2D_STYLE.surfaceBackgroundColor,
+    fontFamily: CANVAS_STYLE.fontFamily,
     fontWeight: 'bold',
-    left: rightCenterX - xSize - 3,
-    top: rightNivelY + xSize + 10 * s,
+    left: rightCenterX - labelFontSize + labelFontSize / 2,
+    top: rightNivelY + xSize + labelFontSize,
     originX: 'left',
     originY: 'center',
     selectable: false,
@@ -545,7 +667,7 @@ export function createGroundElements(
     top: gMinY,
     fill: 'transparent',
     stroke: lineColor,
-    strokeWidth: 2.5,
+    strokeWidth: markerWidth * 2,
     strokeUniform: true,
     selectable: false,
     evented: false,
@@ -555,7 +677,7 @@ export function createGroundElements(
   (groundLine as any).isGroundLine = true;
   (groundLine as any).groundSeed = seed;
 
-  const fillBottomY = maxPilotiBottomY + 50 * s;
+  const fillBottomY = maxPilotiBottomY + HOUSE_DEFAULTS.viewPadding * s;
   const fillPtsAbs = [...groundPtsAbs, {x: rightX, y: fillBottomY}, {x: leftX, y: fillBottomY}];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
@@ -564,7 +686,7 @@ export function createGroundElements(
   const groundFill = new Polygon(fillPtsAbs, {
     left: fMinX,
     top: fMinY,
-    fill: 'rgba(139, 105, 20, 0.10)',
+    fill: HOUSE_2D_STYLE.groundFillColor,
     stroke: 'transparent',
     strokeWidth: 0,
     selectable: false,
@@ -585,17 +707,17 @@ function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string
   if (houseView === 'front' || houseView === 'back') {
     const isFlipped = (group as any).isFlippedHorizontally;
     if (isFlipped) {
-      return {leftId: 'piloti_3_0', rightId: 'piloti_0_0'};
+      return {leftId: PILOTI_CORNER_ID.topRight, rightId: PILOTI_CORNER_ID.topLeft};
     }
-    return {leftId: 'piloti_0_2', rightId: 'piloti_3_2'};
+    return {leftId: PILOTI_CORNER_ID.bottomLeft, rightId: PILOTI_CORNER_ID.bottomRight};
   }
 
   if (houseView === 'side') {
     const isRight = (group as any).isRightSide;
     if (isRight) {
-      return {leftId: 'piloti_3_2', rightId: 'piloti_3_0'};
+      return {leftId: PILOTI_CORNER_ID.bottomRight, rightId: PILOTI_CORNER_ID.topRight};
     }
-    return {leftId: 'piloti_0_0', rightId: 'piloti_0_2'};
+    return {leftId: PILOTI_CORNER_ID.topLeft, rightId: PILOTI_CORNER_ID.bottomLeft};
   }
 
   return null;
@@ -611,10 +733,10 @@ export function updateGroundInGroup(group: Group): void {
   const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
   if (!leftRect || !rightRect) return;
 
-  const leftNivel = leftRect.pilotiNivel ?? 0.2;
-  const rightNivel = rightRect.pilotiNivel ?? 0.2;
-  const baseHeight = leftRect.pilotiBaseHeight || 60;
-  const scale = baseHeight / BASE_PILOTI_HEIGHT_PX;
+  const leftNivel = leftRect.pilotiNivel ?? PILOTI_DEFAULT_NIVEL;
+  const rightNivel = rightRect.pilotiNivel ?? PILOTI_DEFAULT_NIVEL;
+  const baseHeight = leftRect.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
+  const scale = baseHeight / PILOTI_BASE_HEIGHT_PX;
 
   // Find seed from existing ground
   const oldSeed = (objects.find((o: any) => o.groundSeed) as any)?.groundSeed ?? 42;
@@ -645,8 +767,11 @@ export function updateGroundInGroup(group: Group): void {
 
   if (!leftRectAfter || !rightRectAfter) return;
 
-  const leftCenterX = (leftRectAfter.left ?? 0) + (leftRectAfter.width ?? 30) / 2;
-  const rightCenterX = (rightRectAfter.left ?? 0) + (rightRectAfter.width ?? 30) / 2;
+  const leftCenterX =
+    (leftRectAfter.left ?? 0) + (leftRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width) / 2;
+
+  const rightCenterX =
+    (rightRectAfter.left ?? 0) + (rightRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width) / 2;
 
   // Derive view limits from structural objects (walls, roof) instead of piloti positions
   const structuralObjs =
@@ -662,10 +787,11 @@ export function updateGroundInGroup(group: Group): void {
   }
 
   if (!isFinite(viewLeftX)) viewLeftX = 0;
-  if (!isFinite(viewRightX)) viewRightX = rightCenterX + (rightRectAfter.width ?? 30) / 2;
+  if (!isFinite(viewRightX)) viewRightX =
+    rightCenterX + (rightRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width) / 2;
 
-  const leftX = viewLeftX - 50;
-  const rightX = viewRightX + 50;
+  const leftX = viewLeftX - HOUSE_DEFAULTS.viewPadding;
+  const rightX = viewRightX + HOUSE_DEFAULTS.viewPadding;
   const leftNivelY = (leftRectAfter.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRectAfter.top ?? 0) + rightNivel * 100 * scale;
 
@@ -697,19 +823,19 @@ export function updateGroundInGroup(group: Group): void {
   const groundBack =
     newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
 
-  const groundFront =
+  const nivelFront =
     newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
   // Add new ground elements directly to _objects to avoid coordinate transforms
   const currentObjects = (group as any)._objects as any[];
   if (currentObjects && Array.isArray(currentObjects)) {
-    const allNew = [...groundBack, ...groundFront];
+    const allNew = [...groundBack, ...nivelFront];
     allNew.forEach((o: any) => {
       o.group = group;
       currentObjects.push(o);
     });
   } else {
     if (groundBack.length) group.add(...(groundBack as any));
-    if (groundFront.length) group.add(...(groundFront as any));
+    if (nivelFront.length) group.add(...(nivelFront as any));
   }
 }

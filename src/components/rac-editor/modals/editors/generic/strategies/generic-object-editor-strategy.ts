@@ -1,7 +1,7 @@
-import {Canvas as FabricCanvas, FabricObject, Group, IText} from 'fabric';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {Canvas as FabricCanvas, FabricObject, IText} from 'fabric';
+import {toCanvasChildrenObjects} from '@/components/lib/canvas/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/lib/canvas/factory/elements/shared.ts';
-import {WALL_DEFAULT_COLOR} from '@/components/lib/canvas/factory/elements/wall.strategy.ts';
+import {CANVAS_ELEMENT_STYLE} from "@/config.ts";
 
 export type GenericObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
@@ -33,10 +33,10 @@ function createWallStrategy(): GenericObjectEditorStrategy {
   return {
     kind: 'wall',
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toRuntimeChildren(object);
+      const groupChildren = toCanvasChildrenObjects(object);
       groupChildren.forEach((child) => {
         if (child.myType !== 'wallLabel') {
-          child.set({stroke: color || WALL_DEFAULT_COLOR});
+          child.set({stroke: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement});
         }
       });
 
@@ -44,7 +44,12 @@ function createWallStrategy(): GenericObjectEditorStrategy {
         groupChildren.find((child) => child.myType === 'wallLabel') as IText | undefined;
       if (!existingLabel) return;
 
-      updateLabel({labelObject: existingLabel, defaultTop: 0, text: label, color: color || WALL_DEFAULT_COLOR});
+      updateLabel({
+        labelObject: existingLabel,
+        defaultTop: 0,
+        text: label,
+        color: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement
+      });
       canvas.requestRenderAll();
     },
     getInfoMessage: () => 'Objeto atualizado.',
@@ -56,7 +61,7 @@ function createLinearStrategy(kind: 'line' | 'arrow' | 'distance'): GenericObjec
     kind,
 
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toRuntimeChildren(object);
+      const groupChildren = toCanvasChildrenObjects(object);
       groupChildren.forEach((child) => {
         if (child.type === 'line') {
           child.set({stroke: color});
@@ -92,10 +97,4 @@ function updateLabel(options: {
 
   const normalizedTop = typeof labelObject.top === 'number' ? labelObject.top : defaultTop;
   labelObject.set({text, fill: color, visible: true, left: 0, top: normalizedTop, scaleX: 1, scaleY: 1});
-}
-
-function toRuntimeChildren(object: FabricObject): CanvasObject[] {
-  return (object as Group).getObjects().map(
-    (child) => child as CanvasObject
-  );
 }

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
-  applyPilotiSelectionVisuals,
   applyPilotiEditorCloseVisuals,
+  applyPilotiSelectionVisuals,
   highlightAllHousePilotis,
   highlightPilotiAcrossViews,
 } from './piloti-visual-feedback.ts';
@@ -62,7 +62,7 @@ describe('piloti-visual-feedback utils', () => {
     );
 
     expect(target.state.stroke).toBe('#3b82f6');
-    expect(target.state.strokeWidth).toBe(4);
+    expect(target.state.strokeWidth).toBe(3);
     expect(other.state.stroke).toBeUndefined();
   });
 
@@ -82,7 +82,7 @@ describe('piloti-visual-feedback utils', () => {
     );
 
     expect(target.state.stroke).toBe('#3b82f6');
-    expect(target.state.strokeWidth).toBe(4);
+    expect(target.state.strokeWidth).toBe(3);
     expect(other.state.stroke).toBe('#facc15');
     expect(other.state.strokeWidth).toBe(4);
   });
@@ -96,10 +96,10 @@ describe('piloti-visual-feedback utils', () => {
       houseStillSelected: false,
     });
 
-    expect(normal.state.stroke).toBe('black');
-    expect(normal.state.strokeWidth as number).toBeCloseTo(0.9, 8);
-    expect(masterRect.state.stroke).toBe('#8B4513');
-    expect(masterRect.state.strokeWidth).toBe(3);
+    expect(normal.state.stroke).toBe('#333');
+    expect(normal.state.strokeWidth).toBe(1.5);
+    expect(masterRect.state.stroke).toBe('#8b4513');
+    expect(masterRect.state.strokeWidth).toBe(4);
 
     applyPilotiEditorCloseVisuals({
       groupObjects: [normal.object, masterRect.object],

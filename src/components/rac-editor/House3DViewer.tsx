@@ -8,21 +8,14 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCamera, faCompress, faExpand, faPalette, faRotateRight, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import type {HouseElement, HouseType, HousePiloti} from '@/shared/types/house.ts';
+import type {HouseElement, HousePiloti, HouseType} from '@/shared/types/house.ts';
 import {useHouseStoreVersion} from '@/components/lib/house-store.ts';
-import {Contraventamento3DData, parseContraventamentosFromTopGroup} from '@/components/lib/3d/contraventamento-parser.ts';
+import {
+  Contraventamento3DData,
+  parseContraventamentosFromTopGroup
+} from '@/components/lib/3d/contraventamento-parser.ts';
 import {toast} from 'sonner';
-
-const WALL_COLORS = [
-  {name: 'Terracota', value: '#c4967a'},
-  {name: 'Bege', value: '#d4b896'},
-  {name: 'Cinza', value: '#d4d4d4'},
-  {name: 'Branco', value: '#f0f0f0'},
-  {name: 'Azul', value: '#a8c4d8'},
-  {name: 'Verde', value: '#b8d4b8'},
-  {name: 'Rosa', value: '#e0b8b8'},
-  {name: 'Amarelo', value: '#f5e6a3'},
-];
+import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/config.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -39,7 +32,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [wallColor, setWallColor] = useState('#a8c4d8');
+  const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Sync with HouseManager
@@ -103,13 +96,13 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
 
   const handleInsertOnCanvas = useCallback(async () => {
     if (!houseType) {
-      toast.error('Nenhuma casa 3D para inserir.');
+      toast.error(TOAST_MESSAGES.noHouse3DToInsert);
       return;
     }
 
     const webglCanvas = webglCanvasRef.current;
     if (!webglCanvas) {
-      toast.error('Canvas 3D não disponível.');
+      toast.error(TOAST_MESSAGES.house3DCanvasUnavailable);
       return;
     }
 
@@ -117,13 +110,13 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       const dataUrl = webglCanvas.toDataURL('image/png');
       const inserted = await houseManager.insert3DSnapshotOnCanvas(dataUrl);
       if (inserted) {
-        toast.success('Visão 3D inserida no canvas.');
+        toast.success(TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {
-        toast.error('Não foi possível inserir no canvas.');
+        toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas);
       }
     } catch (error) {
       console.error('[House3DViewer] Failed to capture 3D screenshot:', error);
-      toast.error('Falha ao capturar a imagem 3D.');
+      toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
     }
   }, [houseType]);
 
@@ -157,7 +150,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 <PopoverContent className='w-auto p-3' side='bottom' align='end'>
                   <p className='text-xs font-medium mb-2 text-muted-foreground'>Cor das Paredes</p>
                   <div className='grid grid-cols-4 gap-1.5'>
-                    {WALL_COLORS.map((c) => (
+                    {HOUSE_3D_WALL_COLOR_OPTIONS.map((c) => (
                       <button
                         key={c.value}
                         className={`w-7 h-7 rounded border-2 transition-all ${wallColor === c.value ? 'border-primary scale-110' : 'border-border hover:border-primary/50'}`}
@@ -283,3 +276,4 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
     </Dialog>
   );
 }
+

@@ -1,11 +1,12 @@
 import {Canvas as FabricCanvas, Group, IText, Rect, Triangle} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CanvasObject, toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 
 export const arrowStrategy: ElementStrategy<Group> = {
   create(canvas: FabricCanvas): Group {
-    const arrowColor = '#000000';
+    const arrowColor = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
     const objLabel = '';
     const width = 200;
     const headSize = 15;
@@ -13,7 +14,7 @@ export const arrowStrategy: ElementStrategy<Group> = {
 
     const line = new Rect({
       width: initialShaftWidth,
-      height: 2,
+      height: CANVAS_ELEMENT_STYLE.strokeWidth,
       fill: arrowColor,
       originX: 'center',
       originY: 'center',
@@ -33,8 +34,8 @@ export const arrowStrategy: ElementStrategy<Group> = {
     setCanvasObjectMyType(head, 'arrowHead');
 
     const textLabel = new IText(objLabel, {
-      fontSize: 14,
-      fontFamily: 'Arial',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
       fill: arrowColor,
       originX: 'center',
       originY: 'center',
@@ -61,14 +62,14 @@ export const arrowStrategy: ElementStrategy<Group> = {
 
 function bindArrowGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
   group.on('scaling', function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = this as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
 
     try {
       normalizeArrowGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
     } finally {
-      runtimeGroup.__normalizingScale = false;
+      canvasGroup.__normalizingScale = false;
     }
   });
 }
@@ -79,7 +80,10 @@ function normalizeArrowGroupToLength(
   labelTop: number = LINEAR_LABEL_TOP,
 ): void {
   const newWidth = Math.max(totalLength, 1);
-  const children = group.getObjects().map((childObject) => childObject as CanvasObject);
+  const children = group
+    .getObjects()
+    .map((childObject) => toCanvasObject(childObject))
+    .filter((child): child is CanvasObject => child !== null);
   const arrowHead = children.find((child) => child.myType === 'arrowHead');
 
   let headWidth = 15;

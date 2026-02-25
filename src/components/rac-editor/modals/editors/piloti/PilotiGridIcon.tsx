@@ -1,5 +1,6 @@
 import {cn} from '@/components/lib/utils.ts';
-import {MASTER_PILOTI_FILL} from '@/components/lib/canvas';
+import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
+import {EDITOR_ICON_COLORS} from '@/config.ts';
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;
@@ -19,7 +20,7 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
 
     // Individual mode takes precedence
     if (selectedPiloti && name === selectedPiloti) return 'hsl(var(--primary))';
-    if (masterPiloti && name === masterPiloti) return MASTER_PILOTI_FILL;
+    if (masterPiloti && name === masterPiloti) return PILOTI_MASTER_FILL_COLOR;
 
     // Side highlight mode
     if (highlight) {
@@ -31,7 +32,7 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
       if (isHighlighted) return 'hsl(var(--primary))';
     }
 
-    return '#dfe3e8';
+    return EDITOR_ICON_COLORS.neutralStrokeColor;
   };
 
   const circles: JSX.Element[] = [];
@@ -71,3 +72,4 @@ export function PilotiGridIcon({highlight, selectedPiloti, masterPiloti, classNa
 function getPilotiNameAt(row: number, col: number): string {
   return `${ROW_LETTERS[row]}${col + 1}`;
 }
+

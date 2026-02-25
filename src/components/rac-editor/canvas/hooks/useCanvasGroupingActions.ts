@@ -1,7 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useState} from 'react';
 import {ActiveSelection, Canvas as FabricCanvas, Group} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas';
 
 interface UseCanvasGroupingActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -48,7 +48,7 @@ export function useCanvasGroupingActions({
     }
 
     const group = activeObject as Group;
-    if (!(group as CanvasObject).isMacroGroup) {
+    if (!toCanvasObject(group)?.isMacroGroup) {
       setInfoMessage('Desagrupar só é permitido para grupos macro (objetos inteiros).');
       return;
     }
@@ -109,7 +109,8 @@ export function useCanvasGroupingActions({
       left: selectionLeft ?? 0,
       top: selectionTop ?? 0,
     });
-    const typedGroup = group as CanvasObject;
+    const typedGroup = toCanvasObject(group);
+    if (!typedGroup) return;
     typedGroup.isMacroGroup = true;
     typedGroup.myType = 'macroGroup';
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});

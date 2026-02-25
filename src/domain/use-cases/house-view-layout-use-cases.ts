@@ -1,13 +1,18 @@
 import {canAddViewForType} from './house-use-cases.ts';
 import {
   getHouseSideLabel,
-  HOUSE_OPPOSITE_SIDE, HOUSE_OPPOSITE_VIEW,
-  HOUSE_SIDE_VIEW_MAPPING, HousePreAssignedSideDisplay, HousePreAssignedSides,
-  HouseSide, HouseSideAssignments,
+  HOUSE_OPPOSITE_SIDE,
+  HOUSE_OPPOSITE_VIEW,
+  HOUSE_SIDE_VIEW_MAPPING,
+  HousePreAssignedSideDisplay,
+  HousePreAssignedSides,
+  HouseSide,
+  HouseSideAssignments,
   HouseTypeExcludeNull,
   HouseViewSide,
   HouseViewType
 } from '@/shared/types/house.ts';
+import {VIEW_INSERTION_DECISION_TYPES} from '@/config.ts';
 
 export type {HouseSideAssignments, HouseViewSide};
 
@@ -57,12 +62,12 @@ export function needsSideSelection(params: {
 }
 
 export type DomainViewInsertionDecision =
-  | { type: 'blocked_limit' }
-  | { type: 'add_direct'; side?: HouseSide }
-  | { type: 'blocked_no_instance_slots' }
-  | { type: 'open_instance_selector'; slots: HousePreAssignedSideDisplay[] }
-  | { type: 'blocked_no_sides' }
-  | { type: 'open_side_selector' };
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit }
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.addViewDirectly; side?: HouseSide }
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots }
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector; slots: HousePreAssignedSideDisplay[] }
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides }
+  | { type: typeof VIEW_INSERTION_DECISION_TYPES.openSideSelector };
 
 export function resolveViewInsertionRequest(params: {
   viewType: HouseViewType;
@@ -71,35 +76,35 @@ export function resolveViewInsertionRequest(params: {
   availableSides: HouseSide[];
 }): DomainViewInsertionDecision {
   if (params.isAtLimit) {
-    return {type: 'blocked_limit'};
+    return {type: VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit};
   }
 
   if (params.viewType === 'top') {
-    return {type: 'add_direct'};
+    return {type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly};
   }
 
   if (params.preAssignedSides.length > 0) {
     const availableSlots = params.preAssignedSides.filter((slot) => !slot.onCanvas);
     if (!availableSlots.length) {
-      return {type: 'blocked_no_instance_slots'};
+      return {type: VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots};
     }
 
     if (availableSlots.length === 1) {
-      return {type: 'add_direct', side: availableSlots[0].side};
+      return {type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: availableSlots[0].side};
     }
 
-    return {type: 'open_instance_selector', slots: params.preAssignedSides};
+    return {type: VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector, slots: params.preAssignedSides};
   }
 
   if (!params.availableSides.length) {
-    return {type: 'blocked_no_sides'};
+    return {type: VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides};
   }
 
   if (params.availableSides.length === 1) {
-    return {type: 'add_direct', side: params.availableSides[0]};
+    return {type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: params.availableSides[0]};
   }
 
-  return {type: 'open_side_selector'};
+  return {type: VIEW_INSERTION_DECISION_TYPES.openSideSelector};
 }
 
 export function getAutoSelectedSide(params: {

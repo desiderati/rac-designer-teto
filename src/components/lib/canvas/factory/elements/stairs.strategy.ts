@@ -1,6 +1,7 @@
 import {Canvas as FabricCanvas, Pattern, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
 
 export const stairsStrategy: ElementStrategy<Rect> = {
   create(canvas: FabricCanvas): Rect {
@@ -16,8 +17,8 @@ export const stairsStrategy: ElementStrategy<Rect> = {
         source: createStairsPatternSource(s),
         repeat: 'repeat',
       }),
-      stroke: '#8B4513',
-      strokeWidth: 3,
+      stroke: CANVAS_ELEMENT_STYLE.strokeColor.stairsElement,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       transparentCorners: false,
       left: canvas.width! / 2,
       top: canvas.height! / 2,
@@ -44,15 +45,13 @@ function createStairsPatternSource(s = 1): HTMLCanvasElement {
   patternCanvas.height = stepSpacing;
 
   const ctx = patternCanvas.getContext('2d')!;
-  ctx.fillStyle = '#C89B6D';
+  ctx.fillStyle = CANVAS_ELEMENT_STYLE.fillColor.stairsBody;
   ctx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = '#8B4513';
+  ctx.lineWidth = CANVAS_ELEMENT_STYLE.strokeWidth;
+  ctx.strokeStyle = CANVAS_ELEMENT_STYLE.strokeColor.stairsElement;
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(stepSpacing, 0);
   ctx.stroke();
   return patternCanvas;
 }
-
-

@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {MINIMAP_SIZE} from '@/components/rac-editor/Minimap.tsx';
+import {MINIMAP, ZOOM_SLIDER} from '@/config.ts';
 
-const ZOOM_SLIDER_WIDTH = MINIMAP_SIZE;
-const ZOOM_THUMB_SIZE = 12;
-const ZOOM_MIN_VALUE = 25;
-const ZOOM_MAX_VALUE = 200;
+const ZOOM_SLIDER_WIDTH = MINIMAP.size;
+const ZOOM_THUMB_SIZE = ZOOM_SLIDER.thumbSize;
+const ZOOM_MIN_VALUE = ZOOM_SLIDER.minPercent;
+const ZOOM_MAX_VALUE = ZOOM_SLIDER.maxPercent;
 
 interface ZoomSliderProps {
   zoom: number;
@@ -92,7 +92,7 @@ export function ZoomSlider({zoom, onZoomChange, highlight = false}: ZoomSliderPr
         ref={sliderRef}
         data-testid='rac-zoom-slider'
         className='relative bg-background/90 border border-border rounded cursor-pointer touch-none'
-        style={{width: ZOOM_SLIDER_WIDTH, height: 16}}
+        style={{width: ZOOM_SLIDER_WIDTH, height: ZOOM_SLIDER.height}}
         onMouseDown={handleSliderMouseDown}
         onTouchStart={handleTouchStart}
       >

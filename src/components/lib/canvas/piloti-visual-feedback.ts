@@ -1,3 +1,5 @@
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
+
 export interface PilotiLikeObject {
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;
@@ -43,8 +45,8 @@ function forEachHousePiloti(
 export function highlightAllHousePilotis(canvasObjects: unknown[]): void {
   forEachHousePiloti(canvasObjects, (piloti) => {
     piloti.set({
-      stroke: '#facc15',
-      strokeWidth: piloti.isPilotiRect ? 4 : 3,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+      strokeWidth: piloti.isPilotiRect ? PILOTI_STYLE.selectedStrokeWidth : PILOTI_STYLE.selectedStrokeWidthTopView,
     });
   });
 }
@@ -56,8 +58,8 @@ export function highlightPilotiAcrossViews(
   forEachHousePiloti(canvasObjects, (piloti) => {
     if (piloti.pilotiId !== pilotiId) return;
     piloti.set({
-      stroke: '#3b82f6',
-      strokeWidth: piloti.isPilotiRect ? 5 : 4,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
+      strokeWidth: piloti.isPilotiRect ? PILOTI_STYLE.selectedStrokeWidth : PILOTI_STYLE.selectedStrokeWidthTopView,
     });
   });
 }
@@ -80,23 +82,23 @@ export function applyPilotiEditorCloseVisuals(params: {
 
     if (params.houseStillSelected) {
       piloti.set({
-        stroke: '#facc15',
-        strokeWidth: piloti.isPilotiRect ? 4 : 3,
+        stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+        strokeWidth: piloti.isPilotiRect ? PILOTI_STYLE.selectedStrokeWidth : PILOTI_STYLE.selectedStrokeWidthTopView,
       });
       return;
     }
 
     if (piloti.pilotiIsMaster) {
       piloti.set({
-        stroke: '#8B4513',
-        strokeWidth: piloti.isPilotiRect ? 3 : 2,
+        stroke: PILOTI_MASTER_STYLE.strokeColor,
+        strokeWidth: piloti.isPilotiRect ? PILOTI_MASTER_STYLE.strokeWidth : PILOTI_MASTER_STYLE.strokeWidthTopView,
       });
       return;
     }
 
     piloti.set({
-      stroke: piloti.isPilotiRect ? '#333' : 'black',
-      strokeWidth: piloti.isPilotiRect ? 2 : 1.5 * 0.6,
+      stroke: PILOTI_STYLE.strokeColor,
+      strokeWidth: piloti.isPilotiRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView,
     });
   });
 }

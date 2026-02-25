@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {Tutorial} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {STORAGE_KEYS} from '@/config.ts';
 
 describe('Tutorial smoke', () => {
   beforeEach(() => {
@@ -15,7 +16,7 @@ describe('Tutorial smoke', () => {
     render(<Tutorial currentStepId='main-fab' onComplete={onComplete}/>);
     await user.click(screen.getByRole('button'));
 
-    expect(localStorage.getItem('rac-tutorial-completed')).toBe('true');
+    expect(localStorage.getItem(STORAGE_KEYS.tutorialCompleted)).toBe('true');
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });

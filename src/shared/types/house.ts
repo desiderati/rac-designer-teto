@@ -1,3 +1,5 @@
+import {HOUSE_DEFAULTS} from '@/config.ts';
+
 export interface HouseState<TGroup = unknown> {
   id: string;
   houseType: HouseType;
@@ -98,12 +100,12 @@ export interface HousePiloti {
 }
 
 export const DEFAULT_HOUSE_PILOTI: HousePiloti = {
-  height: 1.0,
-  isMaster: false,
-  nivel: 0.2,
+  height: HOUSE_DEFAULTS.pilotiBaseHeight,
+  isMaster: HOUSE_DEFAULTS.pilotiIsMaster,
+  nivel: HOUSE_DEFAULTS.pilotiNivel,
 };
 
-export const HOUSE_PILOTI_STANDARD_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
+export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
 export type HouseElementType = 'window' | 'door';
 export type HouseElementFace = 'front' | 'back' | 'left' | 'right';

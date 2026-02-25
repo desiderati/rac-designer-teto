@@ -1,4 +1,4 @@
-import type {HouseSide, HouseState, HouseType, HousePiloti, HouseViewType} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseSide, HouseState, HouseType, HouseViewType} from '@/shared/types/house.ts';
 
 export class HouseAggregate<TGroup> {
   private state: HouseState<TGroup>;

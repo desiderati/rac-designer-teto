@@ -36,7 +36,7 @@ Mega refatoração com impacto estrutural alto:
 - [ ] M10: Criar parede, porta, escada, árvore, água e fossa.
 - [ ] M11: Criar linha, seta, distância e texto livre.
 - [ ] M12: Ativar/desativar modo desenho (lápis) sem travar seleção.
-- [ ] M13: Validar edição inline/modais de objetos lineares e parede.
+- [x] M13: Validar edição inline/modais de objetos lineares e parede.
 
 ### Lote 4 — Contraventamento e pilotis
 
@@ -66,7 +66,7 @@ Mega refatoração com impacto estrutural alto:
 
 ### 1) Migração de paths e aliases
 
-- [ ] A1: Não há imports residuais para módulos removidos em `src/lib/*`.
+- [x] A1: Não há imports residuais para módulos removidos em `src/lib/*`.
 - [ ] A2: Imports novos resolvem corretamente para:
     - [ ] `src/domain/*`
     - [ ] `src/infra/*`
@@ -77,8 +77,8 @@ Mega refatoração com impacto estrutural alto:
 ### 2) Contratos de tipo compartilhados
 
 - [ ] A4: `HouseType`, `HouseElement`, `HousePiloti` estão consistentes entre editor, manager e 3D.
-- [ ] A5: `CanvasRuntimeObject` cobre campos usados em edição, seleção e contraventamento.
-- [ ] A6: Sem regressões de narrowing/casts em hooks de editor linear/parede.
+- [ ] A5: `CanvasCanvasObject` cobre campos usados em edição, seleção e contraventamento.
+- [x] A6: Sem regressões de narrowing/casts em hooks de editor linear/parede.
 
 ### 3) Rewiring do RacEditor
 
@@ -105,8 +105,8 @@ Mega refatoração com impacto estrutural alto:
 
 ### Fluxo de edição de objetos
 
-- [ ] F4: Editar cor/texto de linha, seta e distância.
-- [ ] F5: Editar cor/texto de parede.
+- [x] F4: Editar cor/texto de linha, seta e distância.
+- [x] F5: Editar cor/texto de parede.
 - [ ] F6: Confirmar que edição não perde draft ao digitar.
 
 ### Fluxo de piloti
@@ -162,12 +162,12 @@ Mega refatoração com impacto estrutural alto:
 
 > Priorizar estes pontos primeiro, pois concentram chance de quebra após renome/migração massiva.
 
-- [ ] R1: Quebra por path antigo (`@/lib/...`) ainda referenciado em arquivos novos.
+- [x] R1: Quebra por path antigo (`@/lib/...`) ainda referenciado em arquivos novos.
 - [ ] R2: Divergência de contrato entre `houseManager.getHouse()` e `House3DViewer`.
 - [ ] R3: Campos opcionais de runtime fabric ausentes no tipo novo de canvas.
 - [ ] R4: Ações do `ToolbarMainMenu` sem handler funcional após troca de wiring.
-- [ ] R5: Fluxo de editor inline (linear/wall) sem sincronização com seleção ativa.
-- [ ] R6: Snapshot 3D não inserido por quebra em `insert3DSnapshotOnCanvas`.
+- [x] R5: Fluxo de editor inline (linear/wall) sem sincronização com seleção ativa.
+- [x] R6: Snapshot 3D não inserido por quebra em `insert3DSnapshotOnCanvas`.
 - [ ] R7: Import/export JSON inconsistente após migração de tipos compartilhados.
 
 ---

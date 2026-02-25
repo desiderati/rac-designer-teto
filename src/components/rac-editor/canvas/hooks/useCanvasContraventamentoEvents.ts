@@ -1,13 +1,9 @@
 import {useCallback} from 'react';
-import {
-  Canvas as FabricCanvas,
-  FabricObject,
-  Group,
-  util as fabricUtil,
-} from 'fabric';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil,} from 'fabric';
+import {toCanvasObject} from '@/components/lib/canvas';
+import {TIMINGS, VIEWPORT} from '@/config.ts';
 
-type ContraventamentoRuntimeObject = FabricObject & {
+type ContraventamentoCanvasObject = FabricObject & {
   houseView?: string;
   isContraventamento?: boolean;
   contraventamentoId?: string;
@@ -42,10 +38,6 @@ interface BindContraventamentoEventsArgs {
   isAnyEditorOpen: () => boolean;
 }
 
-function toRuntimeObject(object: FabricObject): CanvasObject {
-  return object as CanvasObject;
-}
-
 export function useCanvasContraventamentoEvents() {
   const bindContraventamentoEvents = useCallback(({
     canvas,
@@ -71,7 +63,7 @@ export function useCanvasContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoRuntimeObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
 
       if (!target || target.type !== 'group') {
         onContraventamentoSelect(null);
@@ -79,7 +71,7 @@ export function useCanvasContraventamentoEvents() {
       }
 
       const group = target as Group;
-      if (toRuntimeObject(group)?.houseView !== 'top') {
+      if (toCanvasObject(group)?.houseView !== 'top') {
         onContraventamentoSelect(null);
         return;
       }
@@ -114,12 +106,12 @@ export function useCanvasContraventamentoEvents() {
       }
 
       const group = target as Group;
-      if (toRuntimeObject(group)?.houseView !== 'top') {
+      if (toCanvasObject(group)?.houseView !== 'top') {
         cancelIfSelectingDestination();
         return;
       }
 
-      const subTargets = (payload.subTargets as ContraventamentoRuntimeObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
       const directPilotiTarget = subTargets.find((subTarget) => subTarget?.isPilotiCircle || subTarget?.isPilotiHitArea);
       if (directPilotiTarget) {
         handlePilotiSelection(directPilotiTarget, target);
@@ -141,7 +133,7 @@ export function useCanvasContraventamentoEvents() {
 
       const objects = group.getObjects();
       for (let i = objects.length - 1; i >= 0; i--) {
-        const object = toRuntimeObject(objects[i]);
+        const object = toCanvasObject(objects[i]);
         if (!object || !(object.isPilotiCircle || object.isPilotiHitArea)) continue;
 
         const objectLeft = object.left || 0;
@@ -168,8 +160,8 @@ export function useCanvasContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoRuntimeObject[] | undefined) ?? [];
-      if (!target || target.type !== 'group' || toRuntimeObject(target)?.houseView !== 'top') {
+      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
+      if (!target || target.type !== 'group' || toCanvasObject(target)?.houseView !== 'top') {
         setCanvasCursor('default');
         return;
       }
@@ -188,12 +180,12 @@ export function useCanvasContraventamentoEvents() {
     };
 
     const handleMobilePilotiTap = (event: unknown) => {
-      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
       if (!isMobileDevice || isAnyEditorOpen()) return;
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoRuntimeObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
       const pilotiTarget = subTargets.find((subTarget) =>
         subTarget.myType === 'piloti' || subTarget.myType === 'pilotiHitArea'
       );
@@ -201,7 +193,7 @@ export function useCanvasContraventamentoEvents() {
       if (pilotiTarget && target) {
         setTimeout(() => {
           handlePilotiSelection(pilotiTarget, target);
-        }, 50);
+        }, TIMINGS.mobilePilotiTapDelayMs);
       }
     };
 

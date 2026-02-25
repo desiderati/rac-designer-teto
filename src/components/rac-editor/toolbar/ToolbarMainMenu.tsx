@@ -9,6 +9,7 @@ import {
 import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount} from './helpers/toolbar-types.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {TutorialHighlight} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {TOOLBAR_THEME} from '@/config.ts';
 
 interface ToolbarMainMenuProps {
   actions: ToolbarActionMap;
@@ -49,7 +50,7 @@ export function ToolbarMainMenu({
         title={isMenuOpen ? 'Fechar Menu' : 'Abrir Menu'}
         onClick={actions.toggleMenu}
         isMain
-        className={isMenuOpen ? 'bg-[#e74c3c] hover:bg-[#c0392b]' : ''}
+        className={isMenuOpen ? TOOLBAR_THEME.classes.mainMenuToggleOpenedSurface : ''}
         isPulsing={tutorialHighlight === 'main-fab'}
         hideTooltip={isTutorialActive}
       />
@@ -93,7 +94,7 @@ export function ToolbarMainMenu({
             onClick={() => {
             }}
             hideTooltip={isTutorialActive}
-            className='opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]'
+            className={TOOLBAR_THEME.classes.disabledActionSurface}
           />
 
           <FABButton
@@ -102,7 +103,7 @@ export function ToolbarMainMenu({
             onClick={() => {
             }}
             hideTooltip={isTutorialActive}
-            className='opacity-40 cursor-not-allowed hover:!scale-100 hover:!bg-[#2c3e50]'
+            className={TOOLBAR_THEME.classes.disabledActionSurface}
           />
 
           <div className='relative'>
@@ -174,7 +175,7 @@ export function ToolbarMainMenu({
             icon={MAIN_MENU_ICONS.zoom}
             title={showZoomControls ? 'Esconder Zoom/Minimap' : 'Mostrar Zoom/Minimap'}
             onClick={actions.toggleZoomControls}
-            color={showZoomControls ? '#ecf0f1' : '#74b9ff'}
+            color={showZoomControls ? TOOLBAR_THEME.iconDefaultColor : TOOLBAR_THEME.iconZoomDisabledColor}
             isActive={showZoomControls}
             isPulsing={tutorialHighlight === 'zoom-minimap'}
             hideTooltip={isTutorialActive}
@@ -184,7 +185,7 @@ export function ToolbarMainMenu({
             icon={MAIN_MENU_ICONS.delete}
             title='Excluir Item'
             onClick={actions.deleteSelection}
-            color='#ffaaaa'
+            color={TOOLBAR_THEME.iconDeleteColor}
             hideTooltip={isTutorialActive}
           />
         </div>
@@ -204,3 +205,4 @@ function resolveLimitState(limitKey: HouseMenuLimitKey, limits: {
   if (limitKey === 'side1') return limits.side1ViewCount.current >= limits.side1ViewCount.max;
   return limits.side2ViewCount.current >= limits.side2ViewCount.max;
 }
+

@@ -35,6 +35,7 @@ Para o piloti selecionado:
     - botão fica habilitado;
     - botão aparece como ativo;
     - clique remove o contraventamento desse lado na coluna.
+
 2. Se o lado ainda não possui contraventamento:
     - botão só habilita se `nível > 0,40 m`;
     - com `nível <= 0,40 m`, fica desabilitado.
@@ -163,8 +164,10 @@ Representação sempre diagonal.
 
 1. origem: `20 cm acima` do terreno local:
     - `yOrigem = topRectOrigem + (nívelOrigem - 0,2) * baseHeight`
+
 2. destino: `20 cm abaixo` da viga de piso:
     - `yDestino = topRectDestino + 0,2 * baseHeight`
+
 3. espessura visual na vista quadrado:
     - preenchimento: `10`
     - borda: `10 + 2`
@@ -209,17 +212,24 @@ Ao criar/remover/editar dados relevantes:
 
 No `RacEditor`, os fluxos de editor lateral e estado do editor consomem esse parse centralizado
 (`parsePilotiGridPosition`) em vez de regex local duplicada.
+
 No `RacEditor`, a limpeza de seleção visual/estado de contraventamento foi centralizada em helper
 `clearContraventamentoSelection` para criação/remoção.
+
 No `RacEditor`, a sincronização de elevações pós-importação/remoção reutiliza `syncContraventamentoElevations`.
+
 No `RacEditor`, a orquestração do fluxo (elegibilidade, criação/remoção, seleção e sincronização) foi extraída para
 `useContraventamento`, mantendo as mesmas regras de negócio do fluxo anterior.
+
 No `RacEditor`, as consultas de contraventamento (grupo planta, ocupação de lados, elegibilidade e estado do editor)
 foram separadas para `useContraventamentoQueries`, mantendo `useContraventamento` focado na orquestração.
+
 No `RacEditor`, os comandos do fluxo (criar/remover/selecionar/cancelar/sincronizar) foram separados para
 `useContraventamentoCommands`.
+
 No `RacEditor`, os efeitos reativos do fluxo (ESC, sync por versão e highlight persistente) foram separados para
 `useContraventamentoEffects`.
+
 No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam contraventamento foram extraídas para
 `useRacProjectActions`, preservando a limpeza de seleção e a sincronização de elevações após remoção/importação.
 

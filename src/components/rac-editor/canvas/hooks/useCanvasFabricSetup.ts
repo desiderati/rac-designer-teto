@@ -1,17 +1,14 @@
 import {MutableRefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, PencilBrush} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+import {CANVAS_HEIGHT, CANVAS_WIDTH, toCanvasObject} from '@/components/lib/canvas';
 import {buildPilotiSelectionHandler} from '../helpers/canvas-piloti-selection.ts';
-import {CanvasPointerPayload, CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CanvasObject, CanvasPointerPayload} from '@/components/lib/canvas/canvas.ts';
 import {useCanvasSelectionEvents} from './useCanvasSelectionEvents.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts.ts';
 import {useCanvasEditorEvents} from './useCanvasEditorEvents.ts';
-import {
-  linearSelection,
-  wallSelection,
-  PilotiCanvasSelection
-} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {linearSelection, PilotiCanvasSelection, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -32,7 +29,10 @@ interface UseCanvasFabricSetupArgs {
   isSelectingContraventamentoDestinationRef: MutableRefObject<boolean>;
   isPilotiEligibleForContraventamentoRef: MutableRefObject<((pilotiId: string) => boolean) | undefined>;
   onContraventamentoPilotiClickRef: MutableRefObject<((pilotiId: string, col: number, row: number, group: Group) => void) | undefined>;
-  onContraventamentoSelectRef: MutableRefObject<((selection: { group: Group; contraventamentoId: string } | null) => void) | undefined>;
+  onContraventamentoSelectRef: MutableRefObject<((selection: {
+    group: Group;
+    contraventamentoId: string
+  } | null) => void) | undefined>;
   onContraventamentoCancelRef: MutableRefObject<(() => void) | undefined>;
 }
 
@@ -122,7 +122,7 @@ export function useCanvasFabricSetup({
     const canvas = new FabricCanvas(currentCanvasRef.current, {
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
-      backgroundColor: '#ffffff',
+      backgroundColor: CANVAS_STYLE.backgroundColor,
     });
 
     currentFabricCanvasRef.current = canvas;
@@ -132,7 +132,7 @@ export function useCanvasFabricSetup({
     };
 
     const isPilotiVisualTarget = (object: FabricObject | null | undefined): object is CanvasObject => {
-      const runtime = object as CanvasObject
+      const runtime = toCanvasObject(object);
       if (!runtime) return false;
       return runtime.isPilotiCircle === true || runtime.isPilotiRect === true;
     };
@@ -145,9 +145,9 @@ export function useCanvasFabricSetup({
 
     // Initialize drawing brush
     canvas.freeDrawingBrush = new PencilBrush(canvas);
-    canvas.freeDrawingBrush.color = 'black';
-    canvas.freeDrawingBrush.width = 2;
-    const brushWithDecimate = canvas.freeDrawingBrush as PencilBrush & {decimate?: number};
+    canvas.freeDrawingBrush.color = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
+    canvas.freeDrawingBrush.width = CANVAS_ELEMENT_STYLE.strokeWidth;
+    const brushWithDecimate = canvas.freeDrawingBrush as PencilBrush & { decimate?: number };
     brushWithDecimate.decimate = 8;
 
     // Save initial history
@@ -197,7 +197,7 @@ export function useCanvasFabricSetup({
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
       },
-      onContraventamentoSelect: (selection: {group: Group; contraventamentoId: string} | null) => {
+      onContraventamentoSelect: (selection: { group: Group; contraventamentoId: string } | null) => {
         latestArgsRef.current.onContraventamentoSelectRef.current?.(selection);
       },
       onContraventamentoCancel: () => {
@@ -241,3 +241,7 @@ export function useCanvasFabricSetup({
     };
   }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionEvents]);
 }
+
+
+
+

@@ -1,3 +1,5 @@
+import {CANVAS_STYLE, PILOTI_MASTER_STYLE} from '@/config.ts';
+
 export interface PilotiVisualDataPatch {
   pilotiHeight: number;
   pilotiIsMaster: boolean;
@@ -27,7 +29,7 @@ export function createPilotiVisualDataPatch(params: {
       ? {
         fill: params.masterFill,
         stroke: params.masterStroke,
-        strokeWidth: params.isRect ? 3 : 2,
+        strokeWidth: params.isRect ? PILOTI_MASTER_STYLE.strokeWidth : PILOTI_MASTER_STYLE.strokeWidthTopView,
       }
       : {}),
   };
@@ -40,12 +42,14 @@ export function createPilotiHeightTextPatch(formattedHeight: string): { text: st
 export function createPilotiSizeLabelPatch(formattedHeight: string): { text: string; backgroundColor: string } {
   return {
     text: formattedHeight,
-    backgroundColor: '#ffffff',
+    backgroundColor: CANVAS_STYLE.backgroundColor,
   };
 }
 
 export function createNivelLabelBackgroundPatch(): { backgroundColor: string } {
   return {
-    backgroundColor: '#ffffff',
+    backgroundColor: CANVAS_STYLE.backgroundColor,
   };
 }
+
+

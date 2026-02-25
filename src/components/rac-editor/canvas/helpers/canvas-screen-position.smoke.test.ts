@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {getCanvasViewportOffset, toCanvasScreenPoint} from './canvas-screen-position.ts';
+import {CANVAS_DEFAULTS} from '@/config.ts';
 
 describe('canvas-screen-position utils', () => {
   it('projects point with centered canvas when scaled canvas fits container', () => {
@@ -7,8 +8,8 @@ describe('canvas-screen-position utils', () => {
       toCanvasScreenPoint({
         canvasPosition: {x: 0, y: 0, zoom: 0.5},
         containerRect: {left: 10, top: 20, width: 1000, height: 800},
-        canvasWidth: 1300,
-        canvasHeight: 1300,
+        canvasWidth: CANVAS_DEFAULTS.width,
+        canvasHeight: CANVAS_DEFAULTS.height,
         point: {x: 100, y: 200},
       }),
     ).toEqual({
@@ -22,8 +23,8 @@ describe('canvas-screen-position utils', () => {
       toCanvasScreenPoint({
         canvasPosition: {x: 120, y: 80, zoom: 1.5},
         containerRect: {left: 50, top: 60, width: 900, height: 700},
-        canvasWidth: 1300,
-        canvasHeight: 1300,
+        canvasWidth: CANVAS_DEFAULTS.width,
+        canvasHeight: CANVAS_DEFAULTS.height,
         point: {x: 400, y: 300},
       }),
     ).toEqual({
@@ -38,8 +39,8 @@ describe('canvas-screen-position utils', () => {
         canvasPosition: {x: 30, y: 40, zoom: 0.5},
         containerWidth: 1000,
         containerHeight: 800,
-        canvasWidth: 1300,
-        canvasHeight: 1300,
+        canvasWidth: CANVAS_DEFAULTS.width,
+        canvasHeight: CANVAS_DEFAULTS.height,
       }),
     ).toEqual({
       canvasX: 175,
@@ -53,8 +54,8 @@ describe('canvas-screen-position utils', () => {
         canvasPosition: {x: 120, y: 80, zoom: 1.5},
         containerWidth: 900,
         containerHeight: 700,
-        canvasWidth: 1300,
-        canvasHeight: 1300,
+        canvasWidth: CANVAS_DEFAULTS.width,
+        canvasHeight: CANVAS_DEFAULTS.height,
       }),
     ).toEqual({
       canvasX: -120,

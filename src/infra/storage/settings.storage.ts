@@ -1,4 +1,4 @@
-const SETTINGS_STORAGE_KEY = 'rac-settings';
+import {STORAGE_KEYS} from '@/config.ts';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -6,7 +6,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export function readSettingsStorage<T extends object>(defaults: T): T {
   try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEYS.settings);
     if (!raw) return {...defaults};
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) return {...defaults};
@@ -17,5 +17,5 @@ export function readSettingsStorage<T extends object>(defaults: T): T {
 }
 
 export function writeSettingsStorage<T extends object>(value: T): void {
-  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(value));
+  localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(value));
 }

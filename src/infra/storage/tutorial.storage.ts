@@ -1,10 +1,12 @@
+import {STORAGE_KEYS} from '@/config.ts';
+
 const KEYS = {
-  tutorialCompleted: 'rac-tutorial-completed',
-  pilotiTutorialShown: 'rac-piloti-tutorial-shown',
-  wallTipShown: 'rac-wall-tip-shown',
-  lineTipShown: 'rac-line-tip-shown',
-  arrowTipShown: 'rac-arrow-tip-shown',
-  distanceTipShown: 'rac-distance-tip-shown',
+  tutorialCompleted: STORAGE_KEYS.tutorialCompleted,
+  pilotiTipShown: STORAGE_KEYS.pilotiTipShown,
+  wallTipShown: STORAGE_KEYS.wallTipShown,
+  lineTipShown: STORAGE_KEYS.lineTipShown,
+  arrowTipShown: STORAGE_KEYS.arrowTipShown,
+  distanceTipShown: STORAGE_KEYS.distanceTipShown,
 } as const;
 
 type TipKey = 'wall' | 'line' | 'arrow' | 'distance';
@@ -45,18 +47,18 @@ export function markTutorialCompleted(): void {
 }
 
 export function isPilotiTutorialShown(): boolean {
-  return getFlag(KEYS.pilotiTutorialShown);
+  return getFlag(KEYS.pilotiTipShown);
 }
 
 export function markPilotiTutorialShown(): void {
-  setFlag(KEYS.pilotiTutorialShown, true);
+  setFlag(KEYS.pilotiTipShown, true);
 }
 
-export function isOnboardingTipShown(tip: TipKey): boolean {
+export function isTutorialTipShown(tip: TipKey): boolean {
   return getFlag(TIP_TO_KEY[tip]);
 }
 
-export function markOnboardingTipShown(tip: TipKey): void {
+export function markTutorialTipShown(tip: TipKey): void {
   setFlag(TIP_TO_KEY[tip], true);
 }
 

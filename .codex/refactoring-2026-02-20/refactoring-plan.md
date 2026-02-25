@@ -425,7 +425,7 @@ Estado atual dos arquivos críticos:
 
 Próximos recortes planejados:
 
-1. revisar `RacEditor` para extrair bloco de tutorial/restart/onboarding remanescente em hook dedicado;
+1. revisar `RacEditor` para extrair bloco de tutorial/restart/tutorial remanescente em hook dedicado;
 2. manter `useCanvasFabricSetup` como orquestrador fino (avaliar split opcional de setup de histórico/brush);
 3. manter ciclo obrigatório por passo: `eslint` alvo + `npm run test -- --run` + `npm run build` +
    `npm run test:e2e -- --workers=1`.
@@ -433,7 +433,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passo 89)
 
 - `RacEditor.tsx`:
-    - extração de tutorial/restart/onboarding para `useRacTutorialUiActions`;
+    - extração de tutorial/restart/tutorial para `useRacTutorialUiActions`;
     - extração de inicialização de `houseManager` para `useRacHouseInitialization`.
 
 Estado atual dos arquivos críticos:

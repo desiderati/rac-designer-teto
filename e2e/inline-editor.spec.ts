@@ -35,6 +35,7 @@ test.describe('RAC inline editor sync', () => {
     await page.locator('button[title="Azul"]').first().click();
     await page.getByRole('button', {name: 'Confirmar'}).last().click();
 
+    await selectCanvasObjectByMyTypeByDebug(page, 'wall', true, false);
     await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('wall');
     await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.labelText).toBe('Muro teste e2e');
 
@@ -49,6 +50,7 @@ test.describe('RAC inline editor sync', () => {
     await page.locator('button[title="Vermelho"]').first().click();
     await page.getByRole('button', {name: 'Confirmar'}).last().click();
 
+    await selectCanvasObjectByMyTypeByDebug(page, 'line', true, false);
     await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('line');
     await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.labelText).toBe('Linha teste e2e');
   });

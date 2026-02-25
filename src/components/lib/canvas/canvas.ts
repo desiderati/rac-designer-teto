@@ -1,6 +1,16 @@
 import {FabricObject, Group} from 'fabric';
-import type {HouseSide} from '@/shared/types/house.ts';
+import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+
+export type CanvasGroup = Group & {
+  houseInstanceId?: string;
+  houseViewType?: HouseViewType;
+  houseSide?: HouseSide;
+};
+
+export function toCanvasGroup(group: Group): CanvasGroup {
+  return group as CanvasGroup;
+}
 
 export type CanvasObject = FabricObject & {
   //[key: string]: unknown;
@@ -84,6 +94,19 @@ export type CanvasObject = FabricObject & {
   dirty?: boolean;
   isContentEditable?: boolean;
 };
+
+export function toCanvasObject(object: FabricObject): CanvasObject;
+export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null;
+export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null {
+  if (!object) return null;
+  return object as CanvasObject;
+}
+
+export function toCanvasChildrenObjects(object: FabricObject): CanvasObject[] {
+  return (object as Group).getObjects()
+    .map((child) => toCanvasObject(child))
+    .filter((child): child is CanvasObject => child !== null);
+}
 
 export type CanvasObjectProps = Exclude<keyof CanvasObject, keyof FabricObject>;
 

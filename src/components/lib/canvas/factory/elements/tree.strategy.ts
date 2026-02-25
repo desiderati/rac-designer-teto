@@ -1,4 +1,5 @@
 import {Canvas as FabricCanvas, Circle, Group, Text} from 'fabric';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
 
@@ -6,9 +7,9 @@ export const treeStrategy: ElementStrategy<Group> = {
   create(canvas: FabricCanvas): Group {
     const top = new Circle({
       radius: 35,
-      fill: 'rgba(46, 204, 113, 0.6)',
-      stroke: '#27ae60',
-      strokeWidth: 2,
+      fill: CANVAS_ELEMENT_STYLE.fillColor.treeBody,
+      stroke: CANVAS_ELEMENT_STYLE.strokeColor.treeElement,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       originX: 'center',
       originY: 'center',
       top: -10,
@@ -16,16 +17,16 @@ export const treeStrategy: ElementStrategy<Group> = {
 
     const trunk = new Circle({
       radius: 3,
-      fill: '#5d4037',
+      fill: CANVAS_ELEMENT_STYLE.strokeColor.treeElement,
       originX: 'center',
       originY: 'center',
       top: -10,
     });
 
     const text = new Text('Árvore', {
-      fontSize: 14,
-      fontFamily: 'Arial',
-      fill: '#333',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
+      fill: CANVAS_ELEMENT_STYLE.strokeColor.treeElement,
       originX: 'center',
       originY: 'center',
       top: 35,

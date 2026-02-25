@@ -1,8 +1,9 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Rect, Text} from 'fabric';
-import {BASE_PILOTI_HEIGHT_PX} from '../../constants.ts';
+import {Canvas as FabricCanvas, FabricObject, Group, Rect} from 'fabric';
 
-import {createGroundElements, formatNivel, formatPilotiHeight, getPilotiVisualHeight} from '../../piloti.ts';
-import {createPilotiStripeOverlay, getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
+import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
+import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
+import {HOUSE_2D_STYLE} from '@/config.ts';
+import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 export function createHouseSide(
   canvas: FabricCanvas,
@@ -18,81 +19,33 @@ export function createHouseSide(
 
   // Match the plant view height exactly
   const sideWidth = plantHeight;
-  const wallHeight = 213 * s;
+  const wallHeight = HOUSE_DIMENSIONS.structure.wallHeight * s;
 
   const floorW = sideWidth;
-  const floorH = 10 * s;
+  const floorH = HOUSE_DIMENSIONS.structure.floorHeight * s;
 
-  const floorBeanW = 10 * s;
-  const floorBeanH = 20 * s;
+  const floorBeanW = HOUSE_DIMENSIONS.structure.floorBeamStripDepth * s;
+  const floorBeanH = HOUSE_DIMENSIONS.structure.floorBeamHeight * s;
 
-  const pilotW = 30 * s;
+  const pilotW = HOUSE_DIMENSIONS.piloti.width * s;
 
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
   // Right side: pilotis correspond to column 3 (C4, B4, A4 - reversed order)
   const colIndex = isRightSide ? 3 : 0;
-
   const pilotLabels: FabricObject[] = [];
-
-  // Create pilotis with tracking
-  const createPilotiRect =
-    (rowIndex: number, left: number) => {
-      const pilotiId = `piloti_${colIndex}_${rowIndex}`;
-      const defaultHeight = 1.0;
-      const pilotH = getPilotiVisualHeight(defaultHeight, s);
-
-      const rect = new Rect({
-        width: pilotW,
-        height: pilotH,
-        fill: '#fff',
-        stroke: '#333',
-        strokeWidth: 2,
-        strokeUniform: true,
-        left,
-        top: wallHeight + floorH + floorBeanH,
-        originY: 'top',
-        objectCaching: false,
-      });
-      (rect as any).myType = 'piloti';
-      (rect as any).pilotiId = pilotiId;
-      (rect as any).pilotiHeight = defaultHeight;
-      (rect as any).pilotiIsMaster = false;
-      (rect as any).pilotiNivel = 0.2;
-      (rect as any).isPilotiRect = true;
-      (rect as any).pilotiBaseHeight = BASE_PILOTI_HEIGHT_PX * s;
-
-      // Create size label below piloti
-      const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
-        fontSize: 20 * s,
-        fill: '#666',
-        backgroundColor: '#ffffff',
-        left: left + pilotW / 2,
-        top: wallHeight + floorH + floorBeanH + pilotH + 8 * s,
-        originX: 'center',
-        originY: 'top',
-        selectable: false,
-        evented: false,
-      });
-      (sizeLabel as any).isPilotiSizeLabel = true;
-      (sizeLabel as any).pilotiId = pilotiId;
-
-      pilotLabels.push(sizeLabel);
-
-      return rect;
-    };
 
   // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
   // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
-  const p1 = createPilotiRect(isRightSide ? 2 : 0, 0);
-  const p2 = createPilotiRect(1, (sideWidth - pilotW) / 2);
-  const p3 = createPilotiRect(isRightSide ? 0 : 2, sideWidth - pilotW);
+  const p1 = createPilotiRect(pilotLabels, colIndex, isRightSide ? 2 : 0, wallHeight, 0, s);
+  const p2 = createPilotiRect(pilotLabels, colIndex, 1, wallHeight, (sideWidth - pilotW) / 2, s);
+  const p3 = createPilotiRect(pilotLabels, colIndex, isRightSide ? 0 : 2, wallHeight, sideWidth - pilotW, s);
 
   const wall = new Rect({
     width: sideWidth,
     height: wallHeight,
-    fill: '#eeeeee',
-    stroke: '#333',
-    strokeWidth: 2,
+    fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+    stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+    strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
     strokeUniform: true,
     left: 0,
     top: 0,
@@ -103,9 +56,9 @@ export function createHouseSide(
   const floor = new Rect({
     width: floorW,
     height: floorH,
-    fill: '#fff',
-    stroke: '#333',
-    strokeWidth: 2,
+    fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+    stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+    strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
     strokeUniform: true,
     left: 0,
     top: wallHeight,
@@ -116,9 +69,9 @@ export function createHouseSide(
     const floorBean = new Rect({
       width: floorBeanW,
       height: floorBeanH,
-      fill: '#fff',
-      stroke: '#333',
-      strokeWidth: 2,
+      fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+      stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+      strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
       strokeUniform: true,
       left: left,
       top: wallHeight + floorH,
@@ -131,13 +84,13 @@ export function createHouseSide(
   createFloorBeanRect(sideWidth - floorBeanW);
 
   if (hasDoor) {
-    const doorW = 80 * s;
-    const doorH = 191 * s;
-    const doorShiftX = 45 * s;
+    const doorW = HOUSE_DIMENSIONS.openings.common.doorWidth * s;
+    const doorH = HOUSE_DIMENSIONS.openings.common.doorHeight * s;
+    const doorShiftX = HOUSE_DIMENSIONS.openings.side.doorShiftX * s;
 
-    const windowW = 80 * s;
-    const windowH = 70 * s;
-    const windowShiftX = 45 * s;
+    const windowW = HOUSE_DIMENSIONS.openings.common.windowWidth * s;
+    const windowH = HOUSE_DIMENSIONS.openings.common.windowHeight * s;
+    const windowShiftX = HOUSE_DIMENSIONS.openings.side.windowShiftX * s;
 
     const doorX = sideWidth - doorW - doorShiftX;
     const doorY = wallHeight - doorH;
@@ -148,9 +101,9 @@ export function createHouseSide(
     const doorObj = new Rect({
       width: doorW,
       height: doorH,
-      fill: '#fff',
-      stroke: '#333',
-      strokeWidth: 1.5,
+      fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+      stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+      strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
       strokeUniform: true,
       left: doorX,
       top: doorY,
@@ -159,9 +112,9 @@ export function createHouseSide(
     const windowObj = new Rect({
       width: windowW,
       height: windowH,
-      fill: '#fff',
-      stroke: '#333',
-      strokeWidth: 1.5,
+      fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+      stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+      strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
       strokeUniform: true,
       left: windowX,
       top: windowY,
@@ -170,35 +123,7 @@ export function createHouseSide(
     elements.push(windowObj, doorObj);
   }
 
-  // Add ground line (behind) + markers/labels (in front)
-  const defaultNivelVal = 0.2;
-  const groundSeed = isRightSide ? 314 : 217;
-  const leftX = -50;
-  const leftCenterX = pilotW / 2;
-  const rightX = sideWidth + 50;
-  const rightCenterX = sideWidth - pilotW / 2;
-  const nivelY = wallHeight + floorH + floorBeanH + defaultNivelVal * 100 * s;
-  const nivelStr = formatNivel(defaultNivelVal);
-  const maxPilotiBottom = wallHeight + getPilotiVisualHeight(1.0, s);
-  const groundElems = createGroundElements(
-    leftX,
-    leftCenterX,
-    nivelY,
-    rightX,
-    rightCenterX,
-    nivelY,
-    s,
-    groundSeed,
-    nivelStr,
-    nivelStr,
-    maxPilotiBottom,
-  );
-  const groundBack =
-    groundElems.filter((o: any) => o.isGroundFill || o.isGroundLine);
-
-  const groundFront =
-    groundElems.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
-
+  // Não precisamos adicionar o terreno, pois o mesmo será criado pelo House Manager.
   elements.push(p1, p2, p3);
 
   // Add diagonal stripe overlays for each piloti
@@ -209,9 +134,8 @@ export function createHouseSide(
       createPilotiStripeOverlay(prAny.pilotiId, pr.left ?? 0, pr.top ?? 0, pilotW, pr.height ?? 0);
     elements.push(stripeOverlay);
   }
+
   elements.push(...pilotLabels);
-  elements.push(...groundBack);
-  elements.push(...groundFront);
 
   const group = new Group(elements, {
     left: canvas.width! / 2,

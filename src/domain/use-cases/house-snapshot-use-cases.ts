@@ -1,3 +1,5 @@
+import {CANVAS_DEFAULTS} from '@/config.ts';
+
 export const SNAPSHOT_MAX_CANVAS_RATIO = 0.45;
 
 export interface SnapshotScaleParams {
@@ -33,8 +35,8 @@ export interface SnapshotImagePatch {
 export function calculateSnapshotScale(params: SnapshotScaleParams): number {
   const safeImageWidth = Math.max(params.imageWidth || 0, 1);
   const safeImageHeight = Math.max(params.imageHeight || 0, 1);
-  const safeCanvasWidth = params.canvasWidth || 1300;
-  const safeCanvasHeight = params.canvasHeight || 1300;
+  const safeCanvasWidth = params.canvasWidth || CANVAS_DEFAULTS.width;
+  const safeCanvasHeight = params.canvasHeight || CANVAS_DEFAULTS.height;
   const maxWidth = safeCanvasWidth * SNAPSHOT_MAX_CANVAS_RATIO;
   const maxHeight = safeCanvasHeight * SNAPSHOT_MAX_CANVAS_RATIO;
 

@@ -3,8 +3,10 @@ import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/Piloti
 import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generic/GenericObjectEditor.tsx';
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;
@@ -91,9 +93,9 @@ export function RacEditorModalEditors({
         houseView={pilotiSelection?.houseView ?? 'top'}
         anchorPosition={pilotiSelection?.screenPosition}
 
-        currentHeight={pilotiSelection?.currentHeight ?? 1.0}
-        currentIsMaster={pilotiSelection?.currentIsMaster ?? false}
-        currentNivel={pilotiSelection?.currentNivel ?? 0.2}
+        currentHeight={pilotiSelection?.currentHeight ?? DEFAULT_HOUSE_PILOTI.height}
+        currentIsMaster={pilotiSelection?.currentIsMaster ?? DEFAULT_HOUSE_PILOTI.isMaster}
+        currentNivel={pilotiSelection?.currentNivel ?? DEFAULT_HOUSE_PILOTI.nivel}
 
         isMobile={isMobile}
         isOpen={isPilotiEditorOpen}
@@ -112,7 +114,7 @@ export function RacEditorModalEditors({
       <GenericObjectEditor
         editorType='wall'
         currentValue={wallSelection?.currentLabel ?? ''}
-        currentColor={wallEditorColor ?? '#000000'}
+        currentColor={wallEditorColor ?? CANVAS_ELEMENT_STYLE.strokeColor.wallElement}
         isOpen={isWallEditorOpen}
         isMobile={isMobile}
         onApply={(value, color) => onWallApply(value, color)}
@@ -123,7 +125,7 @@ export function RacEditorModalEditors({
       <GenericObjectEditor
         editorType={linearEditorType}
         currentValue={linearSelection?.currentLabel ?? ''}
-        currentColor={linearSelection?.currentColor ?? '#000000'}
+        currentColor={linearSelection?.currentColor ?? CANVAS_ELEMENT_STYLE.strokeColor.linearElement}
         isOpen={isLinearEditorOpen}
         isMobile={isMobile}
         onApply={(value, color) => onLinearApply(value, color)}
@@ -133,3 +135,6 @@ export function RacEditorModalEditors({
     </>
   );
 }
+
+
+

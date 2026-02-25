@@ -1,5 +1,6 @@
-import {BASE_TOP_HEIGHT, BASE_TOP_WIDTH} from '@/components/lib/canvas';
-import {TOP_VIEW_SCALE} from '@/components/lib/3d/constants.ts';
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/lib/canvas';
+import {HOUSE_3D_SCALE} from '@/components/lib/3d/constants.ts';
+import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 import {HouseElement, HouseType} from '@/shared/types/house.ts';
 
 export interface SceneOpening {
@@ -20,31 +21,31 @@ export function buildOpeningsFromCanvasModel(
 ): SceneOpening[] {
   if (!houseType) return [];
 
-  const s = TOP_VIEW_SCALE;
-  const bodyW = BASE_TOP_WIDTH * s;
-  const bodyH = 273 * s;
-  const sideW = BASE_TOP_HEIGHT * s;
-  const sideWallH = 213 * s;
+  const s = HOUSE_3D_SCALE;
+  const bodyW = HOUSE_BASE_WIDTH * s;
+  const bodyH = HOUSE_DIMENSIONS.structure.bodyHeight * s;
+  const sideW = HOUSE_BASE_HEIGHT * s;
+  const sideWallH = HOUSE_DIMENSIONS.structure.wallHeight * s;
 
-  const fbDoorW = 80 * s;
-  const fbDoorH = 191 * s;
-  const fbWindowW = 80 * s;
-  const fbWindowH = 70 * s;
-  const fbDoorShiftX = 30 * s;
-  const fbWindowShiftX = 30 * s;
+  const fbDoorW = HOUSE_DIMENSIONS.openings.common.doorWidth * s;
+  const fbDoorH = HOUSE_DIMENSIONS.openings.common.doorHeight * s;
+  const fbWindowW = HOUSE_DIMENSIONS.openings.common.windowWidth * s;
+  const fbWindowH = HOUSE_DIMENSIONS.openings.common.windowHeight * s;
+  const fbDoorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * s;
+  const fbWindowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * s;
   const fbWindowY = bodyH - fbDoorH;
-  const fbBackWindowX = 95 * s;
+  const fbBackWindowX = HOUSE_DIMENSIONS.openings.frontBack.windowLateralX * s;
 
   const fbFrontDoorX = bodyW - fbWindowW - fbWindowShiftX - fbDoorW - fbDoorShiftX;
   const fbFrontWindowRightX = bodyW - fbWindowW - fbWindowShiftX;
-  const fbFrontWindowLeftX = 95 * s;
+  const fbFrontWindowLeftX = HOUSE_DIMENSIONS.openings.frontBack.windowLateralX * s;
 
-  const sideDoorW = 80 * s;
-  const sideDoorH = 191 * s;
-  const sideWindowW = 80 * s;
-  const sideWindowH = 70 * s;
-  const sideDoorShiftX = 45 * s;
-  const sideWindowShiftX = 45 * s;
+  const sideDoorW = HOUSE_DIMENSIONS.openings.common.doorWidth * s;
+  const sideDoorH = HOUSE_DIMENSIONS.openings.common.doorHeight * s;
+  const sideWindowW = HOUSE_DIMENSIONS.openings.common.windowWidth * s;
+  const sideWindowH = HOUSE_DIMENSIONS.openings.common.windowHeight * s;
+  const sideDoorShiftX = HOUSE_DIMENSIONS.openings.side.doorShiftX * s;
+  const sideWindowShiftX = HOUSE_DIMENSIONS.openings.side.windowShiftX * s;
   const sideDoorX = sideW - sideDoorW - sideDoorShiftX;
   const sideWindowX = sideW - sideDoorW - sideDoorShiftX - sideWindowW - sideWindowShiftX;
   const sideOpeningY = sideWallH - sideDoorH;

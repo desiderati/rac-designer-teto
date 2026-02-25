@@ -1,9 +1,9 @@
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {formatPilotiHeight, getPilotiFromGroup} from '@/components/lib/canvas';
+import {formatPilotiHeight, getPilotiFromGroup, toCanvasObject} from '@/components/lib/canvas';
 import {applyPilotiSelectionVisuals} from '@/components/lib/canvas/piloti-visual-feedback.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
-interface PilotiRuntimeObject extends FabricObject {
+interface PilotiCanvasObject extends FabricObject {
   houseView?: string;
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;
@@ -20,13 +20,13 @@ interface PilotiSelectionPayload {
   currentIsMaster: boolean;
   currentNivel: number;
   group: Group;
-  screenPosition: {x: number; y: number};
+  screenPosition: { x: number; y: number };
   houseView: 'top' | 'front' | 'back' | 'side';
 }
 
 interface BuildPilotiSelectionHandlerArgs {
   canvas: FabricCanvas;
-  isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is PilotiRuntimeObject;
+  isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is PilotiCanvasObject;
   emitPilotiSelection: (selection: PilotiSelectionPayload | null) => void;
   emitSelectionChange: (hint: string) => void;
   clearContraventamentoSelection: () => void;
@@ -35,7 +35,7 @@ interface BuildPilotiSelectionHandlerArgs {
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onContraventamentoCancel: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => void;
-  getCurrentScreenPoint: (canvasPoint: {x: number; y: number}) => {x: number; y: number} | null;
+  getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
 }
 
 function normalizeHouseView(value: string | undefined): PilotiSelectionPayload['houseView'] {
@@ -61,14 +61,14 @@ export function buildPilotiSelectionHandler({
 
   return (subTarget: FabricObject, target: FabricObject) => {
     const group = target as Group;
-    const runtimeSubTarget = subTarget as CanvasObject
+    const runtimeSubTarget = toCanvasObject(subTarget);
     const pilotiId = typeof runtimeSubTarget?.pilotiId === 'string' ? runtimeSubTarget.pilotiId : '';
     if (!pilotiId) return;
 
     let piloti: FabricObject | null = null;
-    let pilotiHeight = 1.0;
-    let pilotiIsMaster = false;
-    let pilotiNivel = 0.2;
+    let pilotiHeight = DEFAULT_HOUSE_PILOTI.height;
+    let pilotiIsMaster = DEFAULT_HOUSE_PILOTI.isMaster;
+    let pilotiNivel = DEFAULT_HOUSE_PILOTI.nivel;
 
     if (runtimeSubTarget?.isPilotiHitArea) {
       const pilotiData = getPilotiFromGroup(group, pilotiId);
@@ -80,16 +80,16 @@ export function buildPilotiSelectionHandler({
       }
     } else if (isPilotiVisualTarget(subTarget)) {
       piloti = subTarget;
-      pilotiHeight = runtimeSubTarget?.pilotiHeight || 1.0;
+      pilotiHeight = runtimeSubTarget?.pilotiHeight || DEFAULT_HOUSE_PILOTI.height;
       pilotiIsMaster = runtimeSubTarget?.pilotiIsMaster || false;
-      pilotiNivel = runtimeSubTarget?.pilotiNivel ?? 0.2;
+      pilotiNivel = runtimeSubTarget?.pilotiNivel ?? DEFAULT_HOUSE_PILOTI.nivel;
     }
 
     if (!piloti) return;
 
     clearContraventamentoSelection();
 
-    const groupRuntime = group as CanvasObject;
+    const groupRuntime = toCanvasObject(group);
     if (
       isContraventamentoMode() &&
       groupRuntime?.houseView === 'top' &&

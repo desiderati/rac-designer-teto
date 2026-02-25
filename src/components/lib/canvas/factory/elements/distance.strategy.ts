@@ -1,18 +1,19 @@
 import {Canvas as FabricCanvas, Group, IText, Line} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 
 export const distanceStrategy: ElementStrategy<Group> = {
   create(canvas: FabricCanvas): Group {
-    const distanceColor = '#000000';
+    const distanceColor = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
     const objLabel = '';
     const width = 200;
     const tickHeight = 10;
 
     const line = new Line([-width / 2, 0, width / 2, 0], {
       stroke: distanceColor,
-      strokeWidth: 2,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       strokeDashArray: [6, 4],
       originX: 'center',
       originY: 'center',
@@ -21,7 +22,7 @@ export const distanceStrategy: ElementStrategy<Group> = {
 
     const tick1 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
       stroke: distanceColor,
-      strokeWidth: 2,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       left: -width / 2,
       originX: 'center',
       originY: 'center',
@@ -30,7 +31,7 @@ export const distanceStrategy: ElementStrategy<Group> = {
 
     const tick2 = new Line([0, -tickHeight / 2, 0, tickHeight / 2], {
       stroke: distanceColor,
-      strokeWidth: 2,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       left: width / 2,
       originX: 'center',
       originY: 'center',
@@ -38,8 +39,8 @@ export const distanceStrategy: ElementStrategy<Group> = {
     setCanvasObjectMyType(tick2, 'distanceTickEnd');
 
     const textLabel = new IText(objLabel, {
-      fontSize: 14,
-      fontFamily: 'Arial',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
       fill: distanceColor,
       originX: 'center',
       originY: 'center',
@@ -67,14 +68,14 @@ export const distanceStrategy: ElementStrategy<Group> = {
 
 function bindDistanceGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
   group.on('scaling', function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = this as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
 
     try {
       normalizeDistanceGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
     } finally {
-      runtimeGroup.__normalizingScale = false;
+      canvasGroup.__normalizingScale = false;
     }
   });
 }
@@ -87,7 +88,8 @@ function normalizeDistanceGroupToLength(
   const tickHeight = 10;
 
   group.getObjects().forEach((childObject) => {
-    const child = childObject as CanvasObject;
+    const child = toCanvasObject(childObject);
+    if (!child) return;
     if (child.myType === 'distanceMainLine') {
       child.set({x1: -newWidth / 2, y1: 0, x2: newWidth / 2, y2: 0, scaleX: 1, scaleY: 1});
     } else if (child.myType === 'distanceTickStart') {

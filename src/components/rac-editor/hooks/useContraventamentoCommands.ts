@@ -1,7 +1,11 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Group} from 'fabric';
 import {toast} from 'sonner';
-import {CanvasHandle, ContraventamentoCanvasSelection, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {
+  CanvasHandle,
+  ContraventamentoCanvasSelection,
+  PilotiCanvasSelection
+} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {
   canCreateContraventamentoForNivel,
   getContraventamentoSideLabel,
@@ -17,12 +21,13 @@ import {
   resetContraventamentoPilotis,
   setContraventamentoSelection,
   syncContraventamentoElevationsFromTop,
+  toCanvasObject,
 } from '@/components/lib/canvas';
 import {emitHouseStoreChange} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {TOAST_MESSAGES} from '@/config.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -79,7 +84,7 @@ export function useContraventamentoCommands({
     side: ContraventamentoSide
   ) => {
     if (!first.group) {
-      toast.error('Não foi possível identificar a vista planta para contraventamento.');
+      toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
       return;
     }
 
@@ -93,9 +98,7 @@ export function useContraventamentoCommands({
       first.pilotiId
     );
 
-    toast.info(
-      `Lado ${getContraventamentoSideLabel(side)} selecionado. Selecione o piloti final na mesma coluna.`
-    );
+    toast.info(TOAST_MESSAGES.contraventamentoSideSelected(getContraventamentoSideLabel(side)));
   }, [isPilotiEligibleAsDestination, setContraventamentoFirst, setContraventamentoSide, setContraventamentoStep]);
 
   const syncContraventamentoElevations = useCallback(() => {
@@ -128,7 +131,7 @@ export function useContraventamentoCommands({
     if (contraventamentoStep === 'select-first') {
       const occupiedSides = getContraventamentoColumnSides(group, col);
       if (occupiedSides.left && occupiedSides.right) {
-        toast.warning('Esta coluna já possui contraventamentos nos lados esquerdo e direito.');
+        toast.warning(TOAST_MESSAGES.contraventamentoColumnAlreadyUsesBothSides);
         return;
       }
 
@@ -141,7 +144,7 @@ export function useContraventamentoCommands({
     }
 
     if (!contraventamentoFirst || !contraventamentoSide) {
-      toast.warning('Selecione o primeiro piloti para iniciar o contraventamento.');
+      toast.warning(TOAST_MESSAGES.contraventamentoSelectFirstPiloti);
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
@@ -150,25 +153,24 @@ export function useContraventamentoCommands({
     }
 
     if (col !== contraventamentoFirst.col) {
-      toast.warning('Selecione o piloti final na mesma coluna do primeiro.');
+      toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameColumn);
       return;
     }
     if (row === contraventamentoFirst.row) {
-      toast.warning('Selecione um piloti final diferente do primeiro.');
+      toast.warning(TOAST_MESSAGES.contraventamentoSelectDifferentSecondPiloti);
       return;
     }
 
     const originGroup = contraventamentoFirst.group;
     if (!originGroup) {
-      toast.error('Não foi possível identificar a vista planta para contraventamento.');
+      toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
       return;
     }
 
     const occupiedSides = getContraventamentoColumnSides(originGroup, col);
     if (occupiedSides[contraventamentoSide]) {
-      toast.warning(
-        `A coluna já possui contraventamento no lado ${contraventamentoSide === 'left' ? 'esquerdo' : 'direito'}.`
-      );
+      const sideLabel = contraventamentoSide === 'left' ? 'esquerdo' : 'direito';
+      toast.warning(TOAST_MESSAGES.contraventamentoColumnSideAlreadyOccupied(sideLabel));
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
@@ -183,7 +185,7 @@ export function useContraventamentoCommands({
       {anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide}
     );
     if (!createdId) {
-      toast.error('Não foi possível criar o contraventamento.');
+      toast.error(TOAST_MESSAGES.failedToCreateContraventamento);
       return;
     }
 
@@ -195,7 +197,7 @@ export function useContraventamentoCommands({
     setContraventamentoSide(null);
     syncContraventamentoElevations();
     canvasRef.current?.saveHistory();
-    toast.success('Contraventamento adicionado!');
+    toast.success(TOAST_MESSAGES.contraventamentoAddedSuccessfully);
   }, [
     canvasRef,
     clearContraventamentoSelection,
@@ -233,7 +235,7 @@ export function useContraventamentoCommands({
 
       const topGroup = getTopViewGroup();
       if (!topGroup) {
-        toast.error('Adicione uma vista planta primeiro.');
+        toast.error(TOAST_MESSAGES.addTopViewBeforeContraventamento);
         return;
       }
 
@@ -244,7 +246,7 @@ export function useContraventamentoCommands({
       const row = parsed.row;
       const data = houseManager.getPilotiData(pilotiSelection.pilotiId);
       if (!canCreateContraventamentoForNivel(data?.nivel ?? 0)) {
-        toast.warning('O piloti precisa ter nível maior que 40cm para contraventar.');
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresNivelAboveFortyCentimeters);
         return;
       }
 
@@ -252,7 +254,8 @@ export function useContraventamentoCommands({
       if (occupiedSides[side]) {
         const removed =
           removeContraventamentosFromGroup(topGroup, (obj) => {
-            const anyObj = obj as CanvasObject;
+            const anyObj = toCanvasObject(obj);
+            if (!anyObj) return false;
             if (Number(anyObj.contraventamentoCol) !== col) return false;
 
             if (anyObj.contraventamentoSide === 'left' || anyObj.contraventamentoSide === 'right') {
@@ -274,7 +277,7 @@ export function useContraventamentoCommands({
           syncContraventamentoElevations();
           canvasRef.current?.saveHistory();
           emitHouseStoreChange();
-          toast.success(`Contraventamento do lado ${getContraventamentoSideLabel(side)} removido.`);
+          toast.success(TOAST_MESSAGES.contraventamentoRemovedFromSide(getContraventamentoSideLabel(side)));
         }
         return;
       }

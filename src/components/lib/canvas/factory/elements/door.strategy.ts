@@ -1,5 +1,5 @@
 import {Canvas as FabricCanvas, Group, Rect, Text} from 'fabric';
-import {MASTER_PILOTI_FILL, MASTER_PILOTI_STROKE_COLOR, MASTER_PILOTI_STROKE_WIDTH} from '@/components/lib/canvas';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
 
@@ -8,18 +8,18 @@ export const doorStrategy: ElementStrategy<Group> = {
     const rect = new Rect({
       width: 100,
       height: 20,
-      fill: MASTER_PILOTI_FILL,
-      stroke: MASTER_PILOTI_STROKE_COLOR,
-      strokeWidth: MASTER_PILOTI_STROKE_WIDTH,
+      fill: CANVAS_ELEMENT_STYLE.fillColor.doorBody,
+      stroke: CANVAS_ELEMENT_STYLE.strokeColor.doorElement,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       originX: 'center',
       originY: 'center',
       top: -10,
     });
 
     const text = new Text('Porta', {
-      fontSize: 14,
-      fontFamily: 'Arial',
-      fill: '#333',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
+      fill: CANVAS_ELEMENT_STYLE.strokeColor.doorElement,
       originX: 'center',
       originY: 'center',
       top: 10,

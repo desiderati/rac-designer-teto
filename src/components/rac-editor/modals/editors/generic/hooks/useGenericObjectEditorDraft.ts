@@ -27,9 +27,9 @@ import {useEffect, useRef, useState} from 'react';
  * }} Objeto com o rascunho atual, função para editar e função para reiniciar.
  */
 export function useGenericObjectEditorDraft<TDraft>(initialDraft: TDraft, isOpen: boolean): {
-    draft: TDraft;
-    setDraft: (value: TDraft | ((current: TDraft) => TDraft)) => void;
-    resetDraft: () => void;
+  draft: TDraft;
+  setDraft: (value: TDraft | ((current: TDraft) => TDraft)) => void;
+  resetDraft: () => void;
 } {
   const [draft, setDraft] = useState(initialDraft);
   const latestInitialDraftRef = useRef(initialDraft);

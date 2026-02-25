@@ -1,5 +1,5 @@
 import {FABButton, SubMenuButton} from './ToolbarButtons.tsx';
-import {MAIN_MENU_ICONS, OverflowActionKey, OVERFLOW_MENU_CONFIG} from './helpers/toolbar-config.ts';
+import {MAIN_MENU_ICONS, OVERFLOW_MENU_CONFIG, OverflowActionKey} from './helpers/toolbar-config.ts';
 import type {ToolbarActionMap, ToolbarSubmenu} from './helpers/toolbar-types.ts';
 import {TutorialHighlight} from '@/components/rac-editor/tutorial/Tutorial.tsx';
 

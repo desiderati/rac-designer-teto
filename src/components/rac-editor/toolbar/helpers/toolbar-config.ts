@@ -33,6 +33,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import type {ToolbarActionMap} from './toolbar-types.ts';
+import {TOOLBAR_THEME} from '@/config.ts';
 
 export type HouseMenuLimitKey = 'front' | 'back' | 'side1' | 'side2';
 
@@ -40,7 +41,13 @@ export type ToolbarVoidActionKey = NonNullable<{
   [K in keyof ToolbarActionMap]: ToolbarActionMap[K] extends () => void ? K : never
 }[keyof ToolbarActionMap]>;
 
-export type OverflowActionKey = 'exportJSON' | 'savePDF' | 'open3DViewer' | 'restartTutorial' | 'toggleTips' | 'openSettings';
+export type OverflowActionKey =
+  'exportJSON'
+  | 'savePDF'
+  | 'open3DViewer'
+  | 'restartTutorial'
+  | 'toggleTips'
+  | 'openSettings';
 
 export interface ToolbarCommandConfig {
   action: ToolbarVoidActionKey;
@@ -115,11 +122,53 @@ export const LINES_MENU_CONFIG: ToolbarCommandConfig[] = [
 ];
 
 export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [
-  {kind: 'import', icon: faFolderOpen, title: 'Abrir Projeto (JSON)', color: '#ffeaa7'},
-  {kind: 'action', action: 'exportJSON', icon: faFileDownload, title: 'Exportar Projeto (JSON)', color: '#ffeaa7'},
-  {kind: 'action', action: 'savePDF', icon: faFilePdf, title: 'Salvar PDF', color: '#ffeaa7'},
-  {kind: 'action', action: 'open3DViewer', icon: faCube, title: 'Visualizar em 3D', color: '#74b9ff'},
-  {kind: 'action', action: 'restartTutorial', icon: faRotateLeft, title: 'Reiniciar Canvas', color: '#74b9ff'},
-  {kind: 'action', action: 'toggleTips', icon: faLightbulb, title: 'Dicas', color: '#f1c40f'},
-  {kind: 'action', action: 'openSettings', icon: faGear, title: 'Configurações', color: '#dfe6e9'},
+  {
+    kind: 'import',
+    icon: faFolderOpen,
+    title: 'Abrir Projeto (JSON)',
+    color: TOOLBAR_THEME.overflowFileActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'exportJSON',
+    icon: faFileDownload,
+    title: 'Exportar Projeto (JSON)',
+    color: TOOLBAR_THEME.overflowFileActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'savePDF',
+    icon: faFilePdf,
+    title: 'Salvar PDF',
+    color: TOOLBAR_THEME.overflowFileActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'open3DViewer',
+    icon: faCube,
+    title: 'Visualizar em 3D',
+    color: TOOLBAR_THEME.overflowViewerActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'restartTutorial',
+    icon: faRotateLeft,
+    title: 'Reiniciar Canvas',
+    color: TOOLBAR_THEME.overflowViewerActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'toggleTips',
+    icon: faLightbulb,
+    title: 'Dicas',
+    color: TOOLBAR_THEME.overflowTipsActionIconColor,
+  },
+  {
+    kind: 'action',
+    action: 'openSettings',
+    icon: faGear,
+    title: 'Configurações',
+    color: TOOLBAR_THEME.overflowSettingsActionIconColor,
+  },
 ];
+

@@ -2,10 +2,10 @@ import {describe, expect, it} from 'vitest';
 import {
   addElement,
   createElementId,
+  type HouseElement,
   removeElement,
   resetDefaultElements,
   updateElement,
-  type HouseElement,
 } from './house-elements-application.ts';
 import type {HouseElementsRepository} from '@/domain/repository/house-elements-repository.ts';
 

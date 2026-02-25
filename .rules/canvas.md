@@ -121,27 +121,18 @@ API exposta por `ref`:
 2. mobile: `tap` abre edição de parede, linha/seta e dimensão (com threshold no centro da dimensão)
 3. clique em piloti dentro de grupos de casa (hit-test local) mantém abertura de editor de piloti
 4. essas regras de interação são centralizadas em `useCanvasEditorEvents`
-5. paredes agrupadas (`group` com `myType = wall`) devem continuar abrindo o `GenericObjectEditor` com valor atual do
-   label
-
-6. limpar o nome em `GenericObjectEditor` para parede/linha/seta não pode remover objeto do canvas; apenas oculta/limpa
-   label
-
-7. ao inserir `line`, `arrow` ou `dimension`, já deve existir label placeholder `" "` para manter box de seleção
-   consistente
-
+5. paredes agrupadas (`group` com `myType = wall`) devem continuar abrindo o `GenericObjectEditor` com valor atual do label
+6. limpar o nome em `GenericObjectEditor` para parede/linha/seta não pode remover objeto do canvas; apenas oculta/limpa label
+7. ao inserir `line`, `arrow` ou `dimension`, já deve existir label placeholder `" "` para manter box de seleção consistente
 8. em `wall` agrupado, atualização de nome/cor deve sempre manter label dentro do grupo (inclusive quando o parent vier
    via `wall.group`)
-
 9. a geometria da seta deve preservar head completo no redimensionamento longitudinal (sem corte em cache/bounds)
 10. em `line/arrow` agrupado, atualização de label via `GenericObjectEditor` deve recalcular bounds do grupo sem
     desagrupar, mantendo label corretamente ancorado já na primeira edição (antes de qualquer resize manual)
 11. em `line/arrow` agrupado, ao trocar label de `" "` para texto real, não deve haver recomputação estrutural do grupo
-    (`addWithUpdate`) durante o apply; apenas `setCoords`/render, para não deslocar visualmente a distância entre linha
-    e label.
+    (`addWithUpdate`) durante o apply; apenas `setCoords`/render, para não deslocar visualmente a distância entre linha e label
 12. em `line/arrow`, o apply da label deve preservar o `top` normalizado já existente no grupo (não impor offset fixo
-    novo),
-    alinhando o comportamento com `dimension` e evitando salto visual da label após confirmar no `GenericObjectEditor`.
+    novo), alinhando o comportamento com `dimension` e evitando salto visual da label após confirmar no `GenericObjectEditor`.
 
 ## 4. Regras de testabilidade
 
@@ -167,17 +158,26 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 
 - `src/components/rac-editor/Canvas.tsx`
     - componente de composição: viewport, histórico, clipboard, seleção, contraventamento e setup Fabric
+
 - `src/components/rac-editor/CanvasOverlays.tsx`
     - camada de overlays visuais e controles de zoom/minimap, com comportamento responsivo mobile/desktop
+
 - `src/components/rac-editor/RacEditorCanvas.tsx`
     - encapsula a seção de integração `RacEditor` -> `Canvas` + `InfoBar`, mantendo callbacks e estados do editor
       centralizados
+
 - `src/components/rac-editor/Minimap.tsx`
+
 - `src/components/rac-editor/hooks/useCanvasViewport.ts`
+
 - `src/components/rac-editor/hooks/useCanvasHistory.ts`
+
 - `src/components/rac-editor/hooks/useCanvasClipboard.ts`
+
 - `src/components/rac-editor/hooks/useCanvasHouseSelection.ts`
+
 - `src/components/rac-editor/hooks/useCanvasContraventamento.ts`
+
 - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
     - concentra inicialização do `FabricCanvas`, bindings de eventos e cleanup
     - metadados dinâmicos de objetos Fabric são acessados por tipos runtime extraídos para
@@ -185,65 +185,88 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
     - refs mutáveis usados pelo setup (`MutableRefObject`) devem preservar escrita em `.current` sem casts inseguros
     - listeners registrados uma única vez leem callbacks/refs atuais por `latestArgsRef`, preservando estabilidade de
       eventos e regra de lint de dependências (`exhaustive-deps`)
+
 - `src/components/rac-editor/hooks/canvas.ts`
     - tipos runtime do Fabric usados no setup de eventos:
         - `CanvasObject`
         - `CanvasPointerPayload`
         - `CanvasMouseEvent`
+
 - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
     - encapsula fluxo de `selection:*`, hints e highlights de piloto/lateral na planta
+
 - `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
     - encapsula seleção de contraventamento, clique/tap de piloti em modo de contraventamento e cursor contextual
+
 - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
     - encapsula atalhos globais (`delete/copy/paste/undo`) e snap de rotação (`object:rotating`)
+
 - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.smoke.test.tsx`
     - regressão automática para snap ortogonal de rotação em `line`
+
 - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
     - encapsula `double-click` desktop e `tap` mobile para abertura dos editores inline (distância, parede e linha/seta)
     - inclui resolução de alvo de parede agrupada para reedição de nome/cor após primeira configuração
     - mantém hit-test local de piloti em grupos de casa para seleção no fluxo de edição
+
 - `src/components/rac-editor/hooks/canvas-piloti-selection.ts`
     - encapsula o fluxo completo de seleção de piloti (hit area, regras de contraventamento, projeção em tela e feedback
       visual)
     - reduz complexidade interna do `useCanvasFabricSetup` sem alterar contrato dos callbacks de seleção
+
 - `src/components/rac-editor/hooks/useCanvasPointerInteractions.ts`
     - encapsula panning com mouse, zoom/pan por wheel, pinch-to-zoom e single-finger pan mobile
     - aplica prevenção de zoom do browser em `Ctrl/Cmd + wheel` no container do canvas
+
 - `src/components/rac-editor/hooks/useCanvasScreenProjection.ts`
     - encapsula `getCanvasOffsetFromState`, `getCurrentScreenPoint` e `getVisibleCenter`
     - mantém cálculo consistente entre transform do canvas e posicionamento de overlays/editors
+
 - `src/components/rac-editor/hooks/useCanvasMinimapObjects.ts`
     - encapsula snapshot dos objetos renderizados (bounds/ângulo/tipo) para feed do minimap
+
 - `src/components/rac-editor/hooks/useCanvasContainerLifecycle.ts`
     - encapsula observação de resize do container e clamp do viewport em mudanças de zoom/tamanho
+
 - `src/components/rac-editor/hooks/useGenericObjectEditors.ts`
     - estado e handlers dos editores inline (distância, nome de objeto e linha/seta) consumidos pelo `RacEditor`
+
 - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
     - compõe `useGenericObjectEditors` no `RacEditor` e centraliza:
         - cálculo de `isAnyEditorOpen` repassado ao `Canvas`;
         - wiring de callbacks de seleção inline (`distance/object name/line-arrow`) entre `Canvas` e editores.
+
 - `src/components/rac-editor/hooks/useGenericObjectEditorDraft.ts`
     - contrato do draft de edição: deve sincronizar valores iniciais ao abrir o editor e em `reset`, sem sobrescrever a
       digitação/seleção de cor durante a edição aberta.
+
 - `src/components/rac-editor/modals/editors/GenericObjectEditor.smoke.test.tsx`
     - regressão automática para garantir que `GenericObjectEditor` mantém draft digitado e aplica `value/color` no
       `Confirmar`.
+
 - `src/components/rac-editor/hooks/useCanvasEditorEvents.smoke.test.tsx`
     - regressão automática para garantir abertura do editor de parede quando o alvo é `group` (`myType = wall`).
+
 - `src/components/rac-editor/hooks/useWallEditorActions.ts`
     - aplica alterações dos editores inline de distância e parede com persistência de histórico e mensagens de feedback
+
 - `src/components/rac-editor/hooks/useLinearEditorActions.ts`
     - aplica alterações do editor inline de linha (nome/cor) com fluxo de `apply` especializado no próprio hook
       e persistência de histórico/feedback
+
 - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
     - aplica alterações do editor inline de seta (nome/cor) com fluxo de `apply` especializado no próprio hook
       e persistência de histórico/feedback
+
 - `src/components/rac-editor/hooks/useHotkeys.ts`
     - centraliza os atalhos `L` (modo desenho) e `Z` (zoom/minimap) do `RacEditor`
+
 - `src/components/rac-editor/utils/canvas-screen-position.ts`
     - projeção de coordenadas de ponto do canvas para posição absoluta de tela em overlays do editor
+
 - `src/lib/canvas/linear-object-state.ts`
     - leitura de metadados de linha/seta (cor e rótulo) para abertura do editor sem acoplar lógica no `Canvas`
+
 - `src/lib/canvas/factory/elements-factory.ts`
     - centraliza helpers de escala longitudinal da linha (`bindLineGroupScaling`, `normalizeLineGroupScaling`)
       reutilizados por criação e por apply inline para manter comportamento único
@@ -252,19 +275,26 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 - `src/lib/canvas/factory/elements-factory.smoke.test.ts`
     - regressão automática para geometria de escala de `line/arrow/dimension` (triângulo da seta e barrinhas da
       distância)
+
 - `src/components/rac-editor/utils/wall-editor-apply.ts`
     - aplicação de edição de nome/cor de parede com persistência do grupo e controle de visibilidade do label
+
 - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
     - inclui regressão para parent group via `wall.group` (evita label solto/desagrupado)
+
 - `src/components/rac-editor/utils/wall-editor-apply.smoke.test.ts`
     - regressão automática para garantir que limpar nome não remove parede e permite reedição posterior
+
 - `src/lib/canvas/dimension-editor.ts`
     - aplicação de patch de valor/cor para grupos de dimensão (texto + linhas + setas)
+
 - `src/lib/canvas/piloti-screen-position.ts`
     - projeção de ponto local do piloti (group matrix + viewport transform) para posição absoluta de tela
+
 - `src/lib/canvas/piloti-visual-feedback.ts`
     - estilos visuais de seleção de piloti (highlight global, highlight do piloti ativo e restauração visual)
     - utilitários recebem coleções `unknown[]` com type guards internos para evitar casts frágeis de objetos Fabric
+
 - `src/lib/domain/house-canvas-source-use-cases.ts`
     - inclui filtro de grupos de casa e mapeamentos para rebuild/piloti
     - operações: `collectHouseGroupRebuildSources`, `collectHouseGroupPilotiSources`, `findTopViewGroupCandidate`

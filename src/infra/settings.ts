@@ -1,14 +1,12 @@
 import {readSettingsStorage, writeSettingsStorage} from '@/infra/storage/settings.storage.ts';
+import {APP_SETTINGS_DEFAULTS} from '@/config.ts';
 
 export interface AppSettings {
   autoNavigatePiloti: boolean;
   zoomEnabledByDefault: boolean;
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
-  autoNavigatePiloti: false,
-  zoomEnabledByDefault: true,
-};
+const DEFAULT_SETTINGS: AppSettings = {...APP_SETTINGS_DEFAULTS};
 
 export function getSettings(): AppSettings {
   return readSettingsStorage(DEFAULT_SETTINGS);

@@ -3,14 +3,14 @@ import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
+  ContraventamentoObjectCandidate,
   createContraventamentoEditorState,
   isContraventamentoDestinationEligible,
   parsePilotiGridPosition,
 } from '@/domain/use-cases/house-contraventamento-use-cases.ts';
 import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
-import {ContraventamentoOrigin} from '@/components/lib/canvas';
+import {ContraventamentoOrigin, toCanvasObject} from '@/components/lib/canvas';
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;
@@ -34,7 +34,7 @@ export function useContraventamentoQueries({
 
   const getNonTopViewGroups = useCallback((): Group[] => {
     return houseManager.getAllGroups().filter(
-      (g) => (g as CanvasObject).houseView !== 'top'
+      (g) => toCanvasObject(g)?.houseView !== 'top'
     );
   }, []);
 
@@ -44,7 +44,7 @@ export function useContraventamentoQueries({
         objects: group.getObjects() as FabricObject[],
         col,
         onResolvedSide: (object, side) => {
-          (object as CanvasObject).contraventamentoSide = side;
+          (object as ContraventamentoObjectCandidate & {contraventamentoSide?: unknown}).contraventamentoSide = side;
         },
       });
     }, []);

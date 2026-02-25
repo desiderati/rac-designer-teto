@@ -1,10 +1,10 @@
 import {RefObject, useCallback} from 'react';
 import type {CanvasHandle, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {Group} from 'fabric';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas';
 import {
   getGenericObjectEditorStrategy
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
 
 interface UseWallEditorActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -40,15 +40,15 @@ export function useWallEditorActions({
   }, [canvasRef, wallSelection, setInfoMessage]);
 
   const resolveWallEditorColor = useCallback(() => {
-    const wall = wallSelection?.object as Group | undefined;
-    if (!wall || wall.type !== 'group') return '#666666';
+    const wall = wallSelection?.object;
+    if (!wall || wall.type !== 'group') return CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
 
-    const wallChildren = (wall as CanvasObject).getObjects?.() ?? [];
+    const wallChildren = toCanvasObject(wall)?.getObjects?.() ?? [];
     const wallBody = wallChildren.find(
       (child) => child.myType === 'wallBody'
-    ) as CanvasObject | undefined;
+    );
 
-    return (wallBody?.stroke as string) || '#666666';
+    return (wallBody?.stroke as string) || CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
   }, [wallSelection?.object]);
 
   return {
@@ -56,3 +56,6 @@ export function useWallEditorActions({
     resolveWallEditorColor,
   };
 }
+
+
+

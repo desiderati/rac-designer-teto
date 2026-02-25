@@ -1,5 +1,6 @@
 import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, Group} from 'fabric';
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
 
 interface UseCanvasContraventamentoArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -69,9 +70,9 @@ export function useCanvasContraventamento({
       item.getObjects().forEach((child: any) => {
         if (!child.isPilotiRect) return;
         if (child.pilotiIsMaster) {
-          child.set({stroke: '#8B4513', strokeWidth: 3});
+          child.set({stroke: PILOTI_MASTER_STYLE.strokeColor, strokeWidth: PILOTI_MASTER_STYLE.strokeWidth});
         } else {
-          child.set({stroke: '#333', strokeWidth: 2});
+          child.set({stroke: PILOTI_STYLE.strokeColor, strokeWidth: PILOTI_STYLE.strokeWidthTopView});
         }
         (child as any).dirty = true;
       });

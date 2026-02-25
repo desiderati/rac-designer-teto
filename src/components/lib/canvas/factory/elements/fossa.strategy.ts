@@ -1,4 +1,5 @@
 import {Canvas as FabricCanvas, Group, Polygon, Text} from 'fabric';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
 
@@ -7,7 +8,7 @@ export const fossaStrategy: ElementStrategy<Group> = {
     const numPoints = 10;
     const baseRadiusX = 60;
     const baseRadiusY = 40;
-    const points: {x: number; y: number}[] = [];
+    const points: { x: number; y: number }[] = [];
 
     for (let i = 0; i < numPoints; i++) {
       const angle = (i / numPoints) * Math.PI * 2;
@@ -21,17 +22,17 @@ export const fossaStrategy: ElementStrategy<Group> = {
     }
 
     const blob = new Polygon(points, {
-      fill: 'rgba(139, 90, 43, 0.3)',
-      stroke: '#5D4037',
-      strokeWidth: 2,
+      fill: CANVAS_ELEMENT_STYLE.fillColor.fossaBody,
+      stroke: CANVAS_ELEMENT_STYLE.strokeColor.fossaElement,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       originX: 'center',
       originY: 'center',
     });
 
     const text = new Text('Fossa', {
-      fontSize: 14,
-      fontFamily: 'Arial',
-      fill: '#5D4037',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
+      fill: CANVAS_ELEMENT_STYLE.strokeColor.fossaElement,
       fontWeight: 'bold',
       originX: 'center',
       originY: 'center',

@@ -25,9 +25,7 @@ import {getSettings} from '@/infra/settings.ts';
 import {useHouseStoreVersion} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {
-  useLinearEditorActions
-} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
+import {useLinearEditorActions} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {useTutorialFlow} from '@/components/rac-editor/tutorial/hooks/useTutorialFlow.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts';
 import {useTutorialUiActions} from '@/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts';

@@ -8,6 +8,7 @@ Este documento descreve regras do visualizador 3D (`House3DViewer`) e da cena 3D
     - container de UI do modal 3D
     - sincroniza estado com `houseManager`
     - permite inserir snapshot 3D no canvas 2D
+
 2. `House3DScene`
     - composição geométrica do modelo 3D
     - terreno/pilotis/casca/aberturas/contraventamentos
@@ -17,12 +18,15 @@ Este documento descreve regras do visualizador 3D (`House3DViewer`) e da cena 3D
 Quando o viewer está aberto:
 
 1. re-sincroniza em mudanças do `houseVersion`
+
 2. carrega `houseType`, `pilotis`, `elements`
     - presets de `elements` por tipo de casa agora vêm de caso de uso dedicado (`house-elements-use-cases`)
     - ciclo de vida de `elements` (add/remove/update/reset defaults) foi extraído para `house-elements-application`
+
 3. deriva orientações:
     - `tipo6FrontSide` por `sideAssignments` de `front`
     - `tipo3OpenSide` com espelhamento semântico de `side2`
+
 4. parseia contraventamentos da planta com `parseContraventamentosFromTopGroup`
 
 ## 3. Regras de render

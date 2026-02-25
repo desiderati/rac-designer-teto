@@ -3,8 +3,8 @@ import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 
 interface UseCanvasContainerLifecycleArgs {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  setContainerSize: Dispatch<SetStateAction<{width: number; height: number}>>;
-  containerSize: {width: number; height: number};
+  setContainerSize: Dispatch<SetStateAction<{ width: number; height: number }>>;
+  containerSize: { width: number; height: number };
   zoom: number;
   setViewportX: Dispatch<SetStateAction<number>>;
   setViewportY: Dispatch<SetStateAction<number>>;

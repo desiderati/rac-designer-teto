@@ -2,7 +2,6 @@ import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useS
 import {Group} from 'fabric';
 import {
   clampNivelByHeight,
-  CORNER_PILOTI_IDS,
   getAllPilotiIds,
   getPilotiFromGroup,
   getPilotiIdsFromGroup,
@@ -10,6 +9,7 @@ import {
 } from '@/components/lib/canvas';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
+import {PILOTI_CORNER_IDS, TIMINGS} from '@/config.ts';
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;
@@ -59,7 +59,7 @@ export function usePilotiEditorLogic({
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < allIds.length - 1 && currentIndex >= 0;
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
-  const isCornerPiloti = pilotiId ? CORNER_PILOTI_IDS.includes(pilotiId) : false;
+  const isCornerPiloti = pilotiId ? PILOTI_CORNER_IDS.includes(pilotiId) : false;
 
   const masterPilotiName = useMemo(() => {
     if (!group) return undefined;
@@ -234,7 +234,7 @@ export function usePilotiEditorLogic({
         }
 
         onClose();
-      }, 180);
+      }, TIMINGS.pilotiAutoNavigateDelayMs);
     }
   };
 

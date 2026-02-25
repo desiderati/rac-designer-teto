@@ -227,7 +227,7 @@
 
 ### Escopo
 
-- [x] extração do fluxo de tutorial/restart/onboarding de `RacEditor` para hooks dedicados:
+- [x] extração do fluxo de tutorial/restart/tutorial de `RacEditor` para hooks dedicados:
     - `src/components/rac-editor/hooks/useTutorialUiActions.ts`
     - `src/components/rac-editor/hooks/useCanvasHouseInitialization.ts`
 - [x] delegação de confirmação de reinício, reset de canvas/tutorial e controle de balão de piloti.

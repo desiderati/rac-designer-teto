@@ -9,11 +9,12 @@ import {
   getPreAssignedSlots,
   hasOtherViews,
   hasPreAssignedSlots,
-  needsSideSelection,
-  resolveViewInsertionRequest,
   type HouseSideAssignments,
   type HouseViewSide,
+  needsSideSelection,
+  resolveViewInsertionRequest,
 } from './house-view-layout-use-cases.ts';
+import {VIEW_INSERTION_DECISION_TYPES} from '@/config.ts';
 
 function createViews(): HouseViewSide {
   return {
@@ -132,7 +133,7 @@ describe('house-view-layout use cases', () => {
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: 'blocked_limit'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit});
 
     expect(
       resolveViewInsertionRequest({
@@ -141,7 +142,7 @@ describe('house-view-layout use cases', () => {
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: 'add_direct'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly});
 
     expect(
       resolveViewInsertionRequest({
@@ -150,7 +151,7 @@ describe('house-view-layout use cases', () => {
         preAssignedSides: [],
         availableSides: [],
       }),
-    ).toEqual({type: 'blocked_no_sides'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides});
 
     expect(
       resolveViewInsertionRequest({
@@ -159,7 +160,7 @@ describe('house-view-layout use cases', () => {
         preAssignedSides: [],
         availableSides: ['bottom'],
       }),
-    ).toEqual({type: 'add_direct', side: 'bottom'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: 'bottom'});
   });
 
   it('resolves insertion with pre-assigned slots', () => {
@@ -170,7 +171,7 @@ describe('house-view-layout use cases', () => {
         preAssignedSides: [{label: 'Direito', side: 'right', onCanvas: true}],
         availableSides: ['left', 'right'],
       }),
-    ).toEqual({type: 'blocked_no_instance_slots'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots});
 
     expect(
       resolveViewInsertionRequest({
@@ -182,7 +183,7 @@ describe('house-view-layout use cases', () => {
         ],
         availableSides: ['left', 'right'],
       }),
-    ).toEqual({type: 'add_direct', side: 'left'});
+    ).toEqual({type: VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: 'left'});
 
     expect(
       resolveViewInsertionRequest({
@@ -195,7 +196,7 @@ describe('house-view-layout use cases', () => {
         availableSides: ['top', 'bottom'],
       }),
     ).toEqual({
-      type: 'open_instance_selector',
+      type: VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector,
       slots: [
         {label: 'Superior', side: 'top', onCanvas: false},
         {label: 'Inferior', side: 'bottom', onCanvas: false},

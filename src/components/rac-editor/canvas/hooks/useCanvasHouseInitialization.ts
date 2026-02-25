@@ -1,6 +1,7 @@
 import {RefObject, useEffect} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
+import {TIMINGS} from '@/config.ts';
 
 interface UseCanvasHouseInitializationArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -16,10 +17,10 @@ export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitiali
         window.clearInterval(id);
       }
       tries += 1;
-      if (tries > 50) {
+      if (tries > TIMINGS.houseInitializationMaxRetries) {
         window.clearInterval(id);
       }
-    }, 100);
+    }, TIMINGS.houseInitializationPollMs);
 
     return () => window.clearInterval(id);
   }, [canvasRef]);

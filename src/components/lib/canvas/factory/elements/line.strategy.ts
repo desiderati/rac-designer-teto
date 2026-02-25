@@ -1,17 +1,18 @@
 import {Canvas as FabricCanvas, Group, IText, Line} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
 
 export const lineStrategy: ElementStrategy<Group> = {
   create(canvas: FabricCanvas): Group {
-    const lineColor = '#000000';
+    const lineColor = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
     const objLabel = '';
     const width = 200;
 
     const line = new Line([-width / 2, 0, width / 2, 0], {
       stroke: lineColor,
-      strokeWidth: 2,
+      strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       strokeLineCap: 'round',
       originX: 'center',
       originY: 'center',
@@ -19,8 +20,8 @@ export const lineStrategy: ElementStrategy<Group> = {
     setCanvasObjectMyType(line, 'lineBody');
 
     const textLabel = new IText(objLabel, {
-      fontSize: 14,
-      fontFamily: 'Arial',
+      fontSize: CANVAS_STYLE.fontSize,
+      fontFamily: CANVAS_STYLE.fontFamily,
       fill: lineColor,
       originX: 'center',
       originY: 'center',
@@ -47,14 +48,14 @@ export const lineStrategy: ElementStrategy<Group> = {
 
 function bindLineGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
   group.on('scaling', function (this: Group) {
-    const runtimeGroup = this as Group & {__normalizingScale?: boolean};
-    if (runtimeGroup.__normalizingScale) return;
-    runtimeGroup.__normalizingScale = true;
+    const canvasGroup = this as Group & { __normalizingScale?: boolean };
+    if (canvasGroup.__normalizingScale) return;
+    canvasGroup.__normalizingScale = true;
 
     try {
       normalizeLineGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
     } finally {
-      runtimeGroup.__normalizingScale = false;
+      canvasGroup.__normalizingScale = false;
     }
   });
 }
@@ -67,7 +68,8 @@ function normalizeLineGroupToLength(
   const newWidth = Math.max(totalLength, 1);
 
   group.getObjects().forEach((childObject) => {
-    const child = childObject as CanvasObject;
+    const child = toCanvasObject(childObject);
+    if (!child) return;
     if (child.myType === 'lineBody') {
       child.set({
         x1: -newWidth / 2,

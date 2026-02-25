@@ -35,7 +35,7 @@ describe('house-piloti-render use cases', () => {
         rectWidth: 30,
         rectHeight: 40,
         baseHeight: 60,
-        basePilotiHeightPx: 60,
+        basePilotiHeight: 60,
       }),
     ).toEqual({left: 25, top: 68});
   });

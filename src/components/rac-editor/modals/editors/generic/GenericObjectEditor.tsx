@@ -9,16 +9,7 @@ import {useGenericObjectEditorDraft} from './hooks/useGenericObjectEditorDraft.t
 import {
   GenericObjectEditorType
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
-
-const GENERIC_OBJECT_EDITOR_COLOR_PALETTE = [
-  {name: 'Vermelho', value: '#e74c3c'},
-  {name: 'Azul', value: '#3498db'},
-  {name: 'Verde', value: '#27ae60'},
-  {name: 'Amarelo', value: '#f1c40f'},
-  {name: 'Preto', value: '#000000'},
-  {name: 'Cinza', value: '#7f8c8d'},
-  {name: 'Marrom', value: '#795548'},
-  {name: 'Laranja', value: '#e67e22'}];
+import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/config.ts';
 
 export interface GenericObjectEditorAnchorPosition {
   x: number;

@@ -1,11 +1,18 @@
 import {FabricObject, Group, Line, Rect} from 'fabric';
 import {
-  BASE_PILOTI_HEIGHT_PX,
-  MASTER_PILOTI_FILL,
-  MASTER_PILOTI_STROKE_COLOR,
-  MASTER_PILOTI_STROKE_WIDTH,
+  PILOTI_BASE_HEIGHT_PX,
+  PILOTI_MASTER_FILL_COLOR,
+  PILOTI_MASTER_STROKE_COLOR,
 } from './constants.ts';
+import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {
+  CONTRAVENTAMENTO,
+  HOUSE_DEFAULTS,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE,
+  PILOTI_VISUAL_FEEDBACK_COLORS
+} from '@/config.ts';
 
 export type ContraventamentoStep = 'select-first' | 'select-second';
 
@@ -16,32 +23,33 @@ export interface ContraventamentoOrigin {
   group?: Group;
 }
 
-/** Constants matching createHouseTop (s = 0.6) */
-const CONTRAV_S = 0.6;
-const CONTRAV_CD = 155 * CONTRAV_S; // 93  - column distance
-const CONTRAV_RD = 135 * CONTRAV_S; // 81  - row distance
-const CONTRAV_RAD = 15 * CONTRAV_S; // 9   - piloti radius
-const CONTRAV_BEAM_WIDTH = 5;
-const CONTRAV_FILL = MASTER_PILOTI_FILL;
-const CONTRAV_STROKE = MASTER_PILOTI_STROKE_COLOR;
-const CONTRAV_SELECTED_FILL = MASTER_PILOTI_FILL;
-const CONTRAV_SELECTED_STROKE = MASTER_PILOTI_STROKE_COLOR;
-const CONTRAV_STROKE_WIDTH = MASTER_PILOTI_STROKE_WIDTH;
-const CONTRAV_ELEVATION_WIDTH = 10;
+/** Constants matching createHouseTop scale. */
+const CONTRAV_S = HOUSE_DEFAULTS.viewScale;
+const CONTRAV_COLUMN_DISTANCE = HOUSE_DIMENSIONS.piloti.columnSpacing * CONTRAV_S;
+const CONTRAV_ROW_DISTANCE = HOUSE_DIMENSIONS.piloti.rowSpacing * CONTRAV_S;
+const CONTRAV_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAV_S;
+const CONTRAV_BEAM_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth;
+const CONTRAV_OFFSET_FROM_GROUND = CONTRAVENTAMENTO.offsetFromGround;
+const CONTRAV_FILL = PILOTI_MASTER_FILL_COLOR;
+const CONTRAV_STROKE = PILOTI_MASTER_STROKE_COLOR;
+const CONTRAV_SELECTED_FILL = PILOTI_MASTER_FILL_COLOR;
+const CONTRAV_SELECTED_STROKE = PILOTI_MASTER_STROKE_COLOR;
+const CONTRAV_STROKE_WIDTH = CONTRAVENTAMENTO.strokeWidth;
+const CONTRAV_ELEVATION_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth;
 
 /** Local-space X of each column (0-3) in the top-view group */
 const CONTRAV_COL_X = [
-  -1.5 * CONTRAV_CD, // col 0: -139.5
-  -0.5 * CONTRAV_CD, // col 1:  -46.5
-  0.5 * CONTRAV_CD, // col 2:   46.5
-  1.5 * CONTRAV_CD, // col 3:  139.5
+  -1.5 * CONTRAV_COLUMN_DISTANCE, // col 0: -139.5
+  -0.5 * CONTRAV_COLUMN_DISTANCE, // col 1:  -46.5
+  0.5 * CONTRAV_COLUMN_DISTANCE, // col 2:   46.5
+  1.5 * CONTRAV_COLUMN_DISTANCE, // col 3:  139.5
 ];
 
 /** Local-space Y of each row (0-2) in the top-view group */
 const CONTRAV_ROW_Y = [
-  -CONTRAV_RD, // row 0 (A): -81
+  -CONTRAV_ROW_DISTANCE, // row 0 (A): -81
   0, // row 1 (B):   0
-  CONTRAV_RD, // row 2 (C):  81
+  CONTRAV_ROW_DISTANCE, // row 2 (C):  81
 ];
 
 function getOrCreateContraventamentoId(obj: any): string {
@@ -156,7 +164,7 @@ export function addContraventamentoBeam(
   if (beamHeight <= 0) return null; // pilotis too close / same row
 
   const side: ContraventamentoSide = options?.side === 'left' ? 'left' : 'right';
-  const tangentX = side === 'right' ? colX + CONTRAV_RAD : colX - CONTRAV_RAD;
+  const tangentX = side === 'right' ? colX + CONTRAV_RADIUS : colX - CONTRAV_RADIUS;
   const beamLeft = side === 'right' ? tangentX : tangentX - CONTRAV_BEAM_WIDTH;
 
   const beam = new Rect({
@@ -316,7 +324,6 @@ export function syncContraventamentoElevationsFromTop(
     pilotiRects.forEach((rect) => rectByPilotiId.set(String(rect.pilotiId), rect));
 
     const internalObjects = (group as any)._objects as FabricObject[];
-    const CONTRAV_OFFSET_M = 0.2;
 
     const getPilotiRow = (pilotiId: string): number | null => {
       const match = pilotiId.match(/^piloti_\d+_(\d+)$/);
@@ -333,21 +340,21 @@ export function syncContraventamentoElevationsFromTop(
       (rect: any): number => Number(rect?.left ?? 0) + getRectWidth(rect) / 2;
 
     const getRectBaseHeight =
-      (rect: any): number => Number(rect?.pilotiBaseHeight ?? BASE_PILOTI_HEIGHT_PX * CONTRAV_S);
+      (rect: any): number => Number(rect?.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX * CONTRAV_S);
 
     // Origem: 20cm acima do terreno local do piloti de origem.
     const getOriginY = (rect: any, originPilotiId: string): number => {
       const top = getRectTop(rect);
       const base = getRectBaseHeight(rect);
       const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
-      return top + (originNivel - CONTRAV_OFFSET_M) * base;
+      return top + (originNivel - CONTRAV_OFFSET_FROM_GROUND) * base;
     };
 
     // Destino: 20cm abaixo da viga de piso (na projeção, referência = topo do piloti).
     const getDestinationY = (rect: any): number => {
       const top = getRectTop(rect);
       const base = getRectBaseHeight(rect);
-      return top + CONTRAV_OFFSET_M * base;
+      return top + CONTRAV_OFFSET_FROM_GROUND * base;
     };
 
     const isRightSideView = (group as any).isRightSide === true;
@@ -467,10 +474,20 @@ export function highlightContraventamentoPilotis(
 
     if (eligible && inColumn && !isSkipped) {
       // Available - yellow border highlight (same visual language as top-view selection).
-      obj.set({stroke: '#facc15', strokeWidth: 4, fill: MASTER_PILOTI_FILL, hoverCursor: 'pointer'});
+      obj.set({
+        stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+        strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
+        fill: PILOTI_MASTER_STYLE.fillColor,
+        hoverCursor: 'pointer',
+      });
     } else {
       // Dimmed - grey out, including master pilotis while not eligible.
-      obj.set({stroke: '#aaa', strokeWidth: 1, fill: '#eee', hoverCursor: 'default'});
+      obj.set({
+        stroke: PILOTI_STYLE.strokeColor,
+        strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+        fill: PILOTI_STYLE.fillColor,
+        hoverCursor: 'default',
+      });
     }
     (obj as any).dirty = true;
   });
@@ -486,9 +503,19 @@ export function resetContraventamentoPilotis(group: Group): void {
   group.getObjects().forEach((obj: any) => {
     if (!obj.isPilotiCircle) return;
     if (obj.pilotiIsMaster) {
-      obj.set({stroke: '#8B4513', strokeWidth: 2, fill: '#D4A574', hoverCursor: 'default'});
+      obj.set({
+        stroke: PILOTI_MASTER_STYLE.strokeColor,
+        strokeWidth: PILOTI_MASTER_STYLE.strokeWidth,
+        fill: PILOTI_MASTER_STYLE.fillColor,
+        hoverCursor: 'default',
+      });
     } else {
-      obj.set({stroke: 'black', strokeWidth: 1.5 * 0.6, fill: 'white', hoverCursor: 'default'});
+      obj.set({
+        stroke: PILOTI_STYLE.strokeColor,
+        strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+        fill: PILOTI_STYLE.fillColor,
+        hoverCursor: 'default',
+      });
     }
     (obj as any).dirty = true;
   });

@@ -6,8 +6,8 @@ import type {
 } from '@/domain/repository/house-views-repository.ts';
 import {
   cleanupStaleViews,
-  rebuildViewsFromCanvasSources,
   rebuildSideAssignments,
+  rebuildViewsFromCanvasSources,
   registerView,
   removeAllViewsByType,
   removeView,

@@ -1,6 +1,7 @@
 import React, {MutableRefObject, RefObject, useCallback, useEffect} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+import {INTERACTION_THRESHOLDS, TIMINGS, VIEWPORT, ZOOM_LIMITS} from '@/config.ts';
 
 interface UseCanvasPointerInteractionsArgs {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -84,8 +85,8 @@ export function useCanvasPointerInteractions({
     event.preventDefault();
 
     if (event.ctrlKey || event.metaKey) {
-      const delta = event.deltaY > 0 ? -0.1 : 0.1;
-      const newZoom = Math.max(0.25, Math.min(2, zoom + delta));
+      const delta = event.deltaY > 0 ? -ZOOM_LIMITS.wheelStep : ZOOM_LIMITS.wheelStep;
+      const newZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom + delta));
       handleZoomChange(newZoom);
       return;
     }
@@ -98,7 +99,7 @@ export function useCanvasPointerInteractions({
   }, [containerSize, handleZoomChange, setViewportX, setViewportY, zoom]);
 
   const handleTouchStart = useCallback((event: React.TouchEvent) => {
-    const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+    const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
 
     if (event.touches.length === 2) {
       event.preventDefault();
@@ -160,7 +161,7 @@ export function useCanvasPointerInteractions({
   ]);
 
   const handleTouchMove = useCallback((event: React.TouchEvent) => {
-    const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+    const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
 
     if (event.touches.length === 2 && lastPinchDistance.current !== null && lastPinchCenter.current !== null) {
       event.preventDefault();
@@ -182,8 +183,8 @@ export function useCanvasPointerInteractions({
       setViewportX((previous) => Math.max(0, Math.min(previous + panDeltaX, maxX)));
       setViewportY((previous) => Math.max(0, Math.min(previous + panDeltaY, maxY)));
 
-      const delta = (currentDistance - lastPinchDistance.current) * 0.005;
-      const newZoom = Math.max(0.25, Math.min(2, zoom + delta));
+      const delta = (currentDistance - lastPinchDistance.current) * ZOOM_LIMITS.pinchScaleFactor;
+      const newZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom + delta));
       if (newZoom !== zoom) {
         handleZoomChange(newZoom);
       }
@@ -201,7 +202,7 @@ export function useCanvasPointerInteractions({
       const totalDeltaX = Math.abs(touch.clientX - singleFingerStartPoint.current.x);
       const totalDeltaY = Math.abs(touch.clientY - singleFingerStartPoint.current.y);
 
-      if (totalDeltaX > 5 || totalDeltaY > 5) {
+      if (totalDeltaX > INTERACTION_THRESHOLDS.mobilePanActivation || totalDeltaY > INTERACTION_THRESHOLDS.mobilePanActivation) {
         singleFingerMoved.current = true;
         setIsSingleFingerPanning(true);
         event.preventDefault();
@@ -244,7 +245,7 @@ export function useCanvasPointerInteractions({
 
     pinchTimeoutRef.current = setTimeout(() => {
       setIsPinching(false);
-    }, 500);
+    }, TIMINGS.pinchEndDebounceMs);
   }, [
     fabricCanvasRef,
     lastPinchCenter,

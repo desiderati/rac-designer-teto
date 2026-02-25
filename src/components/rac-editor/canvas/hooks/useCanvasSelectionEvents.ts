@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
-import {getHintForObject} from '@/components/lib/canvas';
+import {getHintForObject, toCanvasObject} from '@/components/lib/canvas';
 import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
-import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {HOUSE_2D_STYLE, PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
 
 interface BindSelectionEventsArgs {
   canvas: FabricCanvas;
@@ -12,11 +12,6 @@ interface BindSelectionEventsArgs {
   clearPilotiSelection: () => void;
   isAnyEditorOpen: () => boolean;
   isContraventamentoMode: () => boolean;
-}
-
-function toRuntimeObject(object: FabricObject | null | undefined): CanvasObject | null {
-  if (!object) return null;
-  return object as CanvasObject;
 }
 
 export function useCanvasSelectionEvents() {
@@ -50,8 +45,9 @@ export function useCanvasSelectionEvents() {
     const resolveHouseGroupView =
       (object: FabricObject | null): string | null => {
         if (!object || object.type !== 'group') return null;
-        const runtime = toRuntimeObject(object);
-        const rawView = runtime?.houseViewType ?? runtime?.houseView;
+
+        const canvasObject = toCanvasObject(object);
+        const rawView = canvasObject?.houseViewType ?? canvasObject?.houseView;
         return typeof rawView === 'string' ? rawView : null;
       };
 
@@ -60,7 +56,7 @@ export function useCanvasSelectionEvents() {
       selectedObject: FabricObject | null,
     ): HouseSide | undefined => {
       const house = houseManager.getHouse();
-      const instanceId = toRuntimeObject(selectedObject)?.houseInstanceId;
+      const instanceId = toCanvasObject(selectedObject)?.houseInstanceId;
       const typedView = viewType as HouseViewType;
       const viewInstances = (house?.views[typedView] ?? []) as HouseViewInstance[];
       if (viewInstances.length === 0) return undefined;
@@ -84,10 +80,10 @@ export function useCanvasSelectionEvents() {
 
         if (viewType !== 'top') {
           group.getObjects().forEach((child) => {
-            if (toRuntimeObject(child)?.isPilotiRect) {
+            if (toCanvasObject(child)?.isPilotiRect) {
               child.set({
-                stroke: '#facc15',
-                strokeWidth: 4,
+                stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+                strokeWidth: PILOTI_STYLE.selectedStrokeWidth
               });
             }
           });
@@ -95,39 +91,51 @@ export function useCanvasSelectionEvents() {
         }
 
         group.getObjects().forEach((child) => {
-          if (toRuntimeObject(child)?.isPilotiCircle) {
+          if (toCanvasObject(child)?.isPilotiCircle) {
             child.set({
-              stroke: '#facc15',
-              strokeWidth: 3,
+              stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+              strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView
             });
           }
         });
       };
 
     const applyDefaultPilotiStyles = (child: FabricObject) => {
-      const runtimeChild = toRuntimeObject(child);
-      if (!runtimeChild) return;
+      const canvasObjectChild = toCanvasObject(child);
+      if (!canvasObjectChild) return;
 
-      if (runtimeChild.isPilotiCircle) {
-        if (runtimeChild.pilotiIsMaster) {
-          runtimeChild.set({stroke: '#8B4513', strokeWidth: 2});
+      if (canvasObjectChild.isPilotiCircle) {
+        if (canvasObjectChild.pilotiIsMaster) {
+          canvasObjectChild.set({
+            stroke: PILOTI_MASTER_STYLE.strokeColor,
+            strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView
+          });
         } else {
-          runtimeChild.set({stroke: 'black', strokeWidth: 1.5 * 0.6});
+          canvasObjectChild.set({
+            stroke: PILOTI_STYLE.strokeColor,
+            strokeWidth: PILOTI_STYLE.strokeWidthTopView
+          });
         }
       }
 
-      if (runtimeChild.isPilotiRect) {
-        if (runtimeChild.pilotiIsMaster) {
-          runtimeChild.set({stroke: '#8B4513', strokeWidth: 3});
+      if (canvasObjectChild.isPilotiRect) {
+        if (canvasObjectChild.pilotiIsMaster) {
+          canvasObjectChild.set({
+            stroke: PILOTI_MASTER_STYLE.strokeColor,
+            strokeWidth: PILOTI_MASTER_STYLE.strokeWidth
+          });
         } else {
-          runtimeChild.set({stroke: '#333', strokeWidth: 2});
+          canvasObjectChild.set({
+            stroke: PILOTI_STYLE.strokeColor,
+            strokeWidth: PILOTI_STYLE.strokeWidth
+          });
         }
       }
     };
 
     const resetAllHousePilotiStyles = () => {
       canvas.getObjects().forEach((item) => {
-        if (item.type !== 'group' || toRuntimeObject(item)?.myType !== 'house') return;
+        if (item.type !== 'group' || toCanvasObject(item)?.myType !== 'house') return;
         (item as Group).getObjects().forEach(
           (child) => applyDefaultPilotiStyles(child)
         );
@@ -148,13 +156,13 @@ export function useCanvasSelectionEvents() {
         };
 
         const borderLines = topGroup.getObjects().filter((object) => {
-          return toRuntimeObject(object)?.isHouseBorderEdge === true;
+          return toCanvasObject(object)?.isHouseBorderEdge === true;
         }) as Line[];
 
         borderLines.forEach((line) => {
-          const runtimeLine = toRuntimeObject(line);
-          line.set({stroke: 'black', strokeWidth: 2 * 0.6});
-          if (runtimeLine) runtimeLine.dirty = true;
+          const lineObject = toCanvasObject(line);
+          line.set({stroke: HOUSE_2D_STYLE.outlineStrokeColor, strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth});
+          if (lineObject) lineObject.dirty = true;
         });
 
         const rawView = resolveHouseGroupView(activeObject);
@@ -170,26 +178,29 @@ export function useCanvasSelectionEvents() {
         }
 
         const targetBorder =
-          borderLines.find((line) => toRuntimeObject(line)?.edgeSide === side);
+          borderLines.find((line) => toCanvasObject(line)?.edgeSide === side);
         if (targetBorder) {
-          targetBorder.set({stroke: '#3b82f6', strokeWidth: 4});
-          const runtimeTargetBorder = toRuntimeObject(targetBorder);
+          targetBorder.set({
+            stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
+            strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView
+          });
+          const runtimeTargetBorder = toCanvasObject(targetBorder);
           if (runtimeTargetBorder) runtimeTargetBorder.dirty = true;
         }
 
         const pilotiIdsForSide = getPilotiIdsForSide(side);
         topGroup.getObjects().forEach((child) => {
-          const runtimeChild = toRuntimeObject(child);
-          if (!runtimeChild) return;
-          if (runtimeChild.isPilotiCircle
-            && typeof runtimeChild.pilotiId === 'string'
-            && pilotiIdsForSide.includes(runtimeChild.pilotiId)
+          const canvasObjectChild = toCanvasObject(child);
+          if (!canvasObjectChild) return;
+          if (canvasObjectChild.isPilotiCircle
+            && typeof canvasObjectChild.pilotiId === 'string'
+            && pilotiIdsForSide.includes(canvasObjectChild.pilotiId)
           ) {
             child.set({
-              stroke: '#facc15',
+              stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
               strokeWidth: 3,
             });
-            runtimeChild.dirty = true;
+            canvasObjectChild.dirty = true;
           }
         });
 
@@ -210,7 +221,7 @@ export function useCanvasSelectionEvents() {
 
       resetAllHousePilotiStyles();
 
-      if (object && object.type === 'group' && toRuntimeObject(object)?.myType === 'house') {
+      if (object && object.type === 'group' && toCanvasObject(object)?.myType === 'house') {
         const viewType = resolveHouseGroupView(object);
         applySelectedHousePilotiHighlight(object as Group, viewType);
       }
@@ -232,3 +243,4 @@ export function useCanvasSelectionEvents() {
 
   return {bindSelectionEvents};
 }
+

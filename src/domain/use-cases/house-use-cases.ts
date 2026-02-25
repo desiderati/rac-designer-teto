@@ -1,10 +1,12 @@
 import {
-  HousePiloti,
-  HouseViewType,
-  HouseTypeExcludeNull,
   ALL_HOUSE_VIEW_TYPES,
-  HOUSE_VIEW_LIMITS, HOUSE_PILOTI_STANDARD_HEIGHTS
+  DEFAULT_HOUSE_PILOTI_HEIGHTS,
+  HOUSE_VIEW_LIMITS,
+  HousePiloti,
+  HouseTypeExcludeNull,
+  HouseViewType,
 } from '@/shared/types/house.ts';
+import {PILOTI_CORNER_ID} from '@/config.ts';
 
 export function getMaxViewCountForType(
   houseType: HouseTypeExcludeNull | null,
@@ -88,10 +90,10 @@ export function calculateRecommendedPilotiData({
 }: CalculateRecommendedPilotiDataParams): Record<string, HousePiloti> {
   const nextPilotis: Record<string, HousePiloti> = {...pilotis};
 
-  const a1 = pilotis['piloti_0_0']?.nivel ?? defaultPiloti.nivel;
-  const a4 = pilotis['piloti_3_0']?.nivel ?? defaultPiloti.nivel;
-  const c1 = pilotis['piloti_0_2']?.nivel ?? defaultPiloti.nivel;
-  const c4 = pilotis['piloti_3_2']?.nivel ?? defaultPiloti.nivel;
+  const a1 = pilotis[PILOTI_CORNER_ID.topLeft]?.nivel ?? defaultPiloti.nivel;
+  const a4 = pilotis[PILOTI_CORNER_ID.topRight]?.nivel ?? defaultPiloti.nivel;
+  const c1 = pilotis[PILOTI_CORNER_ID.bottomLeft]?.nivel ?? defaultPiloti.nivel;
+  const c4 = pilotis[PILOTI_CORNER_ID.bottomRight]?.nivel ?? defaultPiloti.nivel;
 
   for (let row = 0; row < 3; row++) {
     for (let col = 0; col < 4; col++) {
@@ -102,7 +104,7 @@ export function calculateRecommendedPilotiData({
       const nivel = (1 - u) * (1 - v) * a1 + u * (1 - v) * a4 + (1 - u) * v * c1 + u * v * c4;
       const minHeight = nivel * 3;
       const height =
-        HOUSE_PILOTI_STANDARD_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
+        DEFAULT_HOUSE_PILOTI_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
 
       nextPilotis[id] = {
         ...(nextPilotis[id] ?? defaultPiloti),
