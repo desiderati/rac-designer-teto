@@ -36,61 +36,61 @@ describe('house-top-door-marker use cases', () => {
   it('calculates marker coordinates for all sides and clamps door center', () => {
     expect(
       calculateTopDoorPlacement({
-        markerSide: 'top',
+        doorMarkerSide: 'top',
         doorX: 30,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: 'top', targetLeft: 60, targetTop: -50});
+    ).toEqual({doorMarkerSide: 'top', targetLeft: 60, targetTop: -50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: 'bottom',
+        doorMarkerSide: 'bottom',
         doorX: 30,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: 'bottom', targetLeft: -60, targetTop: 50});
+    ).toEqual({doorMarkerSide: 'bottom', targetLeft: -60, targetTop: 50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: 'left',
+        doorMarkerSide: 'left',
         doorX: -999,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: 'left', targetLeft: -100, targetTop: -50});
+    ).toEqual({doorMarkerSide: 'left', targetLeft: -100, targetTop: -50});
 
     expect(
       calculateTopDoorPlacement({
-        markerSide: 'right',
+        doorMarkerSide: 'right',
         doorX: 999,
         doorWidth: 20,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: 'right', targetLeft: 100, targetTop: -50});
+    ).toEqual({doorMarkerSide: 'right', targetLeft: 100, targetTop: -50});
   });
 
   it('returns null placement when marker side is unknown', () => {
     expect(
       calculateTopDoorPlacement({
-        markerSide: null,
+        doorMarkerSide: null,
         doorX: 10,
         doorWidth: 10,
         bodyWidth: 200,
         bodyHeight: 100,
       }),
-    ).toEqual({markerSide: null});
+    ).toEqual({doorMarkerSide: null});
   });
 
   it('creates visual patch for active and inactive marker sides', () => {
     expect(
       createTopDoorMarkerVisualPatch({
-        markerSide: 'top',
+        doorMarkerSide: 'top',
         markerCandidateSide: 'top',
         targetLeft: 10,
         targetTop: 20,
@@ -103,7 +103,7 @@ describe('house-top-door-marker use cases', () => {
 
     expect(
       createTopDoorMarkerVisualPatch({
-        markerSide: 'top',
+        doorMarkerSide: 'top',
         markerCandidateSide: 'bottom',
         targetLeft: 10,
         targetTop: 20,

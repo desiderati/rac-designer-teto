@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {FabricImage} from 'fabric';
+import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -174,6 +175,49 @@ describe('houseManager smoke flows', () => {
 
     houseManager.removeElement(firstId);
     expect(houseManager.getElements().find((element) => element.id === firstId)).toBeUndefined();
+  });
+
+  it('positions top door marker using rendered door geometry instead of stored door coordinates', () => {
+    const topMarkerTop = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'top', visible: false});
+    const topMarkerBottom = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'bottom', visible: false});
+    const topMarkerLeft = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'left', visible: false});
+    const topMarkerRight = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'right', visible: false});
+    const topBody = createMockObject({
+      isHouseBody: true,
+      width: HOUSE_DIMENSIONS.footprint.width * HOUSE_DIMENSIONS.view.scale,
+      height: HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale,
+      scaleX: 1,
+      scaleY: 1,
+    });
+
+    const {group: topGroup, objects: topObjects} = createMockGroup();
+    topObjects.push(topBody, topMarkerTop, topMarkerBottom, topMarkerLeft, topMarkerRight);
+
+    const {group: frontGroup} = createMockGroup();
+    const canvas = createMockCanvas([topGroup, frontGroup]);
+    houseManager.initialize(canvas as any);
+    houseManager.setHouseType('tipo6');
+    houseManager.initializeDefaultElements();
+
+    houseManager.registerView('top', topGroup as any);
+    houseManager.registerView('front', frontGroup as any, 'bottom');
+
+    expect(topMarkerBottom.visible).toBe(true);
+    expect(topMarkerTop.visible).toBe(false);
+    expect(topMarkerLeft.visible).toBe(false);
+    expect(topMarkerRight.visible).toBe(false);
+
+    const expectedScale = HOUSE_DIMENSIONS.view.scale;
+    const expectedDoorWidth = HOUSE_DIMENSIONS.openings.common.doorWidth * expectedScale;
+    const expectedWindowWidth = HOUSE_DIMENSIONS.openings.common.windowWidth * expectedScale;
+    const expectedDoorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * expectedScale;
+    const expectedWindowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * expectedScale;
+    const expectedBodyWidth = HOUSE_DIMENSIONS.footprint.width * expectedScale;
+    const expectedDoorX = expectedBodyWidth - expectedWindowWidth - expectedWindowShiftX - expectedDoorWidth - expectedDoorShiftX;
+    const expectedDoorCenter = expectedDoorX + expectedDoorWidth / 2;
+    const expectedBottomLeft = -expectedBodyWidth / 2 + expectedDoorCenter;
+
+    expect(topMarkerBottom.left).toBe(expectedBottomLeft);
   });
 
   it('inserts 3D snapshot on canvas with centered position and bounded scale', async () => {

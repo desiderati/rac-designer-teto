@@ -70,6 +70,7 @@ import {
 } from '@/domain/use-cases/house-piloti-visual-use-cases.ts';
 import {createInitialHouseState} from '@/domain/use-cases/house-state-factory-use-cases.ts';
 import {
+  calculateRenderedDoorGeometryForTopMarker,
   calculateTopDoorMarkerBodySize,
   calculateTopDoorPlacement,
   createTopDoorMarkerVisualPatch,
@@ -150,6 +151,7 @@ class HouseManager {
 
   private refreshTopDoorMarkers(): void {
     if (!this.house) return;
+
     const topViews = this.house.views.top;
     if (!topViews || topViews.length === 0) return;
 
@@ -174,7 +176,7 @@ class HouseManager {
       return;
     }
 
-    const markerSide = resolveTopDoorMarkerSide({
+    const doorMarkerSide = resolveTopDoorMarkerSide({
       houseType: this.house.houseType,
       doorFace: door.face,
       sideAssignments,
@@ -201,22 +203,29 @@ class HouseManager {
         scaleY: canvasObjectHouseBody?.scaleY ?? 1,
       });
 
+      const renderedDoorGeometry =
+        calculateRenderedDoorGeometryForTopMarker({
+          doorMarkerSide,
+          bodyWidth,
+          bodyHeight,
+        });
+
       const placement = calculateTopDoorPlacement({
-        markerSide,
-        doorX: door.x,
-        doorWidth: door.width,
+        doorMarkerSide,
+        doorX: renderedDoorGeometry.doorX,
+        doorWidth: renderedDoorGeometry.doorWidth,
         bodyWidth,
         bodyHeight,
       });
 
       for (const marker of markers) {
         const canvasObjectMarker = toCanvasObject(marker);
-        const side = canvasObjectMarker.markerSide ?? (canvasObjectMarker as any).doorMarkerSide;
+        const side = canvasObjectMarker.doorMarkerSide;
         if (!side) continue;
 
         canvasObjectMarker.set(
           createTopDoorMarkerVisualPatch({
-            markerSide: placement.markerSide,
+            doorMarkerSide: placement.doorMarkerSide,
             markerCandidateSide: side,
             targetLeft: placement.targetLeft,
             targetTop: placement.targetTop,

@@ -35,7 +35,7 @@ const CONTRAV_STROKE = PILOTI_MASTER_STROKE_COLOR;
 const CONTRAV_SELECTED_FILL = PILOTI_MASTER_FILL_COLOR;
 const CONTRAV_SELECTED_STROKE = PILOTI_MASTER_STROKE_COLOR;
 const CONTRAV_STROKE_WIDTH = CONTRAVENTAMENTO.strokeWidth;
-const CONTRAV_ELEVATION_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth;
+const CONTRAV_ELEVATION_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth / 2;
 
 /** Local-space X of each column (0-3) in the top-view group */
 const CONTRAV_COL_X = [

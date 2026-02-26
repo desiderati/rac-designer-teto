@@ -1,7 +1,7 @@
 import {HouseSide} from '@/shared/types/house.ts';
 
 export interface TopDoorPlacement {
-  markerSide: HouseSide | null;
+  doorMarkerSide: HouseSide | null;
   targetLeft?: number;
   targetTop?: number;
 }

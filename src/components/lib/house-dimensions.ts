@@ -181,8 +181,8 @@ export const HOUSE_DIMENSIONS = {
     /** Largura da linha superior do contraventamento na representação 2D (px-base). */
     topWidth: 5,
 
-    /** Largura do marcador quadrado de contraventamento na representação 2D (px-base). */
-    squareWidth: 10,
+    /** Altura do contraventamento na representação 2D (px-base). */
+    squareWidth: 15,
 
     /** Altura-base padrão a partir do chão para posicionamento do contraventamento (metros). */
     offsetFromGround: 0.2,

@@ -64,7 +64,7 @@ export type CanvasObject = FabricObject & {
   pilotiIsMaster?: boolean;
   pilotiNivel?: number;
   isTopDoorMarker?: boolean;
-  markerSide?: HouseSide;
+  doorMarkerSide?: HouseSide;
 
   isGroundElement?: boolean;
   isGroundLine?: boolean;
@@ -133,7 +133,7 @@ export const canvasObjectProps = [
   'pilotiIsMaster',
   'pilotiNivel',
   'isTopDoorMarker',
-  'markerSide',
+  'doorMarkerSide',
   'isGroundElement',
   'isGroundLine',
   'isGroundSegment',

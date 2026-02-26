@@ -1,6 +1,6 @@
 import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, Group} from 'fabric';
-import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/config.ts';
 
 interface UseCanvasContraventamentoArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;

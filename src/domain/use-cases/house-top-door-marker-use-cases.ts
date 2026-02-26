@@ -1,5 +1,6 @@
 import {HouseElementFace, HouseSide, HouseTypeExcludeNull, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
+import {HOUSE_DIMENSIONS} from "@/components/lib/house-dimensions.ts";
 
 export function resolveTopDoorSourceViewType(params: {
   houseType: HouseTypeExcludeNull | null;
@@ -30,48 +31,74 @@ export function resolveTopDoorMarkerSide(params: {
 }
 
 export function calculateTopDoorPlacement(params: {
-  markerSide: HouseSide | null;
+  doorMarkerSide: HouseSide | null;
   doorX: number;
   doorWidth: number;
   bodyWidth: number;
   bodyHeight: number;
 }): TopDoorPlacement {
-  if (!params.markerSide) {
-    return {markerSide: null};
+  if (!params.doorMarkerSide) {
+    return {doorMarkerSide: null};
   }
 
   const axisLength =
-    params.markerSide === 'top' || params.markerSide === 'bottom' ? params.bodyWidth : params.bodyHeight;
+    params.doorMarkerSide === 'top' || params.doorMarkerSide === 'bottom' ? params.bodyWidth : params.bodyHeight;
   const rawDoorCenter = params.doorX + params.doorWidth / 2;
   const doorCenter = Math.max(0, Math.min(axisLength, rawDoorCenter));
 
-  if (params.markerSide === 'top') {
+  if (params.doorMarkerSide === 'top') {
     return {
-      markerSide: 'top',
+      doorMarkerSide: 'top',
       targetLeft: params.bodyWidth / 2 - doorCenter,
       targetTop: -params.bodyHeight / 2,
     };
   }
-  if (params.markerSide === 'bottom') {
+  if (params.doorMarkerSide === 'bottom') {
     return {
-      markerSide: 'bottom',
+      doorMarkerSide: 'bottom',
       targetLeft: -params.bodyWidth / 2 + doorCenter,
       targetTop: params.bodyHeight / 2,
     };
   }
-  if (params.markerSide === 'left') {
+  if (params.doorMarkerSide === 'left') {
     return {
-      markerSide: 'left',
+      doorMarkerSide: 'left',
       targetLeft: -params.bodyWidth / 2,
       targetTop: -params.bodyHeight / 2 + doorCenter,
     };
   }
 
   return {
-    markerSide: 'right',
+    doorMarkerSide: 'right',
     targetLeft: params.bodyWidth / 2,
     targetTop: params.bodyHeight / 2 - doorCenter,
   };
+}
+
+export function calculateRenderedDoorGeometryForTopMarker(params: {
+  doorMarkerSide: HouseSide | null;
+  bodyWidth: number;
+  bodyHeight: number;
+}): { doorX: number; doorWidth: number } {
+  if (!params.doorMarkerSide) {
+    return {doorX: 0, doorWidth: 0};
+  }
+
+  const axisLength = params.bodyWidth;
+  const scale = axisLength / HOUSE_DIMENSIONS.footprint.width;
+  const doorWidth = HOUSE_DIMENSIONS.openings.common.doorWidth * scale;
+  const windowWidth = HOUSE_DIMENSIONS.openings.common.windowWidth * scale;
+  const windowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * scale;
+  const doorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * scale;
+
+  const isFrontBack = params.doorMarkerSide === 'top' || params.doorMarkerSide === 'bottom';
+  if (isFrontBack) {
+    const doorX = axisLength - windowWidth - windowShiftX - doorWidth - doorShiftX;
+    return {doorX, doorWidth};
+  } else {
+    const doorX = axisLength - doorWidth - doorShiftX;
+    return {doorX, doorWidth};
+  }
 }
 
 export function calculateTopDoorMarkerBodySize(params: {
@@ -87,12 +114,12 @@ export function calculateTopDoorMarkerBodySize(params: {
 }
 
 export function createTopDoorMarkerVisualPatch(params: {
-  markerSide: HouseSide | null;
+  doorMarkerSide: HouseSide | null;
   markerCandidateSide: HouseSide;
   targetLeft?: number;
   targetTop?: number;
 }): TopDoorMarkerVisualPatch {
-  const isActive = params.markerSide !== null && params.markerCandidateSide === params.markerSide;
+  const isActive = params.doorMarkerSide !== null && params.markerCandidateSide === params.doorMarkerSide;
   return {
     visible: isActive,
     ...(isActive && params.targetLeft !== undefined ? {left: params.targetLeft} : {}),
