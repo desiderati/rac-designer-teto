@@ -11,7 +11,7 @@ import {
   HOUSE_VIEW_INSERTION_DECISION_TYPES,
   type HousePreAssignedSideDisplay,
   type HouseSide,
-  type HouseType, HouseViewInsertionDecision,
+  type HouseType,
   type HouseViewType
 } from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
@@ -203,12 +203,14 @@ export function useCanvasHouseViewActions({
               const gap = HOUSE_DEFAULTS.viewBetweenGap;
               const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
               const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
+
               const layout = calculateStackedViewPositions({
                 centerY: center.y,
                 topHeight: ph,
                 bottomHeight: vh,
                 gap,
               });
+
               plantGroup.set({left: center.x, top: layout.topY});
               viewGroup.set({left: center.x, top: layout.bottomY});
               plantGroup.setCoords();
@@ -299,7 +301,7 @@ function calculateStackedViewPositions(params: {
   topHeight: number;
   bottomHeight: number;
   gap: number;
-}): { topY: number; bottomY: number } {
+}) {
   const totalHeight = params.topHeight + params.gap + params.bottomHeight;
   return {
     topY: params.centerY - totalHeight / 2 + params.topHeight / 2,
@@ -312,7 +314,7 @@ function resolveHouseViewInsertion(params: {
   isAtLimit: boolean;
   preAssignedSides: HousePreAssignedSideDisplay[];
   availableSides: HouseSide[];
-}): HouseViewInsertionDecision {
+}) {
   if (params.isAtLimit) {
     return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit};
   }
@@ -322,7 +324,8 @@ function resolveHouseViewInsertion(params: {
   }
 
   if (params.preAssignedSides.length > 0) {
-    const availableSlots = params.preAssignedSides.filter((slot) => !slot.onCanvas);
+    const availableSlots =
+      params.preAssignedSides.filter((slot) => !slot.onCanvas);
     if (!availableSlots.length) {
       return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots};
     }

@@ -95,7 +95,7 @@
     - `e2e/toolbar-overflow.spec.ts`
     - `e2e/viewer-3d.spec.ts`
     - `e2e/piloti.spec.ts`
-    - `e2e/helpers/rac-helpers.ts`
+    - `e2e/helpers/rac-helpers.spec.ts`
 - validação após quebra:
   -
   `npm run test:e2e -- e2e/views-limits.spec.ts e2e/canvas.spec.ts e2e/toolbar-overflow.spec.ts e2e/viewer-3d.spec.ts e2e/piloti.spec.ts` ->
@@ -1096,7 +1096,7 @@
 
 ### Fase 7 - passo incremental 55 (Estabilização do bootstrap E2E após tela branca intermitente)
 
-- `e2e/helpers/rac-helpers.ts` atualizado:
+- `e2e/helpers/rac-helpers.spec.ts` atualizado:
     - `setupRacEditorPage` agora usa `page.goto("/", { waitUntil: "domcontentloaded" })`
     - adicionada espera de `networkidle` com tolerância
     - adicionada segunda tentativa de carregamento antes de falhar a asserção do botão de menu

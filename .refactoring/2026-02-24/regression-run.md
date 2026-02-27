@@ -17,7 +17,7 @@ Rodada de validação da mega refatoração iniciada em `2026-02-24`, com foco e
 - Ajuste de teste E2E de toolbar:
     - troca de expectativa de `myType` de `dimension` para `distance` em `e2e/toolbar-overflow.spec.ts`.
 - Robustez de clique em ações de toolbar no E2E:
-    - reforço de actionability em `e2e/helpers/rac-helpers.ts` (`toBeVisible` + `click({ force: true })`).
+    - reforço de actionability em `e2e/helpers/rac-helpers.spec.ts` (`toBeVisible` + `click({ force: true })`).
 - Correção de import no helper E2E:
     - `@/shared/types/house` -> `../../src/shared/types/house.ts`.
 - Ajuste de tipagem estrita:

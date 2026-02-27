@@ -1,5 +1,66 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useReducer, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+
+interface CanvasViewportState {
+  zoom: number;
+  viewportX: number;
+  viewportY: number;
+  containerSize: { width: number; height: number };
+  isPanning: boolean;
+  isPinching: boolean;
+  isSingleFingerPanning: boolean;
+}
+
+const initialCanvasViewPortState: CanvasViewportState = {
+  zoom: 1,
+  viewportX: 0,
+  viewportY: 0,
+  containerSize: {width: 0, height: 0},
+  isPanning: false,
+  isPinching: false,
+  isSingleFingerPanning: false,
+};
+
+type CanvasViewportAction =
+  | { type: 'setZoom'; value: number }
+  | { type: 'setViewport'; value: { x: number; y: number } }
+  | { type: 'setViewportX'; value: number }
+  | { type: 'setViewportY'; value: number }
+  | { type: 'setContainerSize'; value: { width: number; height: number } }
+  | { type: 'setIsPanning'; value: boolean }
+  | { type: 'setIsPinching'; value: boolean }
+  | { type: 'setIsSingleFingerPanning'; value: boolean };
+
+function reducer(state: CanvasViewportState, action: CanvasViewportAction): CanvasViewportState {
+  switch (action.type) {
+    case 'setZoom':
+      return {...state, zoom: action.value};
+
+    case 'setViewport':
+      return {...state, viewportX: action.value.x, viewportY: action.value.y};
+
+    case 'setViewportX':
+      return {...state, viewportX: action.value};
+
+    case 'setViewportY':
+      return {...state, viewportY: action.value};
+
+    case 'setContainerSize':
+      return {...state, containerSize: action.value};
+
+    case 'setIsPanning':
+      return {...state, isPanning: action.value};
+
+    case 'setIsPinching':
+      return {...state, isPinching: action.value};
+
+    case 'setIsSingleFingerPanning':
+      return {...state, isSingleFingerPanning: action.value};
+
+    default:
+      return state;
+  }
+}
 
 interface UseCanvasViewportArgs {
   onMinimapInteraction?: () => void;
@@ -11,13 +72,7 @@ export function useCanvasViewport({
   onZoomInteraction
 }: UseCanvasViewportArgs) {
 
-  const [zoom, setZoom] = useState(1);
-  const [viewportX, setViewportX] = useState(0);
-  const [viewportY, setViewportY] = useState(0);
-  const [containerSize, setContainerSize] = useState({width: 0, height: 0});
-  const [isPanning, setIsPanning] = useState(false);
-  const [isPinching, setIsPinching] = useState(false);
-  const [isSingleFingerPanning, setIsSingleFingerPanning] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialCanvasViewPortState);
 
   const lastPanPoint = useRef({x: 0, y: 0});
   const lastPinchDistance = useRef<number | null>(null);
@@ -26,65 +81,88 @@ export function useCanvasViewport({
   const singleFingerStartPoint = useRef<{ x: number; y: number } | null>(null);
   const singleFingerMoved = useRef(false);
 
-  const zoomRef = useRef(zoom);
-  const viewportXRef = useRef(viewportX);
-  const viewportYRef = useRef(viewportY);
-  const containerSizeRef = useRef(containerSize);
+  const zoomRef = useRef(state.zoom);
+  const viewportXRef = useRef(state.viewportX);
+  const viewportYRef = useRef(state.viewportY);
+  const containerSizeRef = useRef(state.containerSize);
 
   useEffect(() => {
-    zoomRef.current = zoom;
-  }, [zoom]);
-
-  useEffect(() => {
-    viewportXRef.current = viewportX;
-  }, [viewportX]);
-
-  useEffect(() => {
-    viewportYRef.current = viewportY;
-  }, [viewportY]);
-
-  useEffect(() => {
-    containerSizeRef.current = containerSize;
-  }, [containerSize]);
+    zoomRef.current = state.zoom;
+    viewportXRef.current = state.viewportX;
+    viewportYRef.current = state.viewportY;
+    containerSizeRef.current = state.containerSize;
+  }, [state]);
 
   const handleViewportChange = useCallback((x: number, y: number) => {
-    setViewportX(x);
-    setViewportY(y);
+    dispatch({type: 'setViewport', value: {x, y}});
     onMinimapInteraction?.();
   }, [onMinimapInteraction]);
 
   const handleZoomChange = useCallback((newZoom: number) => {
-    const centerX = viewportX + containerSize.width / 2;
-    const centerY = viewportY + containerSize.height / 2;
+    const centerX = state.viewportX + state.containerSize.width / 2;
+    const centerY = state.viewportY + state.containerSize.height / 2;
 
-    const zoomRatio = newZoom / zoom;
-    const newViewportX = centerX * zoomRatio - containerSize.width / 2;
-    const newViewportY = centerY * zoomRatio - containerSize.height / 2;
+    const zoomRatio = newZoom / state.zoom;
+    const newViewportX = centerX * zoomRatio - state.containerSize.width / 2;
+    const newViewportY = centerY * zoomRatio - state.containerSize.height / 2;
 
-    setZoom(newZoom);
+    dispatch({type: 'setZoom', value: newZoom});
 
-    const maxX = Math.max(0, CANVAS_WIDTH * newZoom - containerSize.width);
-    const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - containerSize.height);
-    setViewportX(Math.max(0, Math.min(newViewportX, maxX)));
-    setViewportY(Math.max(0, Math.min(newViewportY, maxY)));
+    const maxX = Math.max(0, CANVAS_WIDTH * newZoom - state.containerSize.width);
+    const maxY = Math.max(0, CANVAS_HEIGHT * newZoom - state.containerSize.height);
+    dispatch({
+      type: 'setViewport',
+      value: {
+        x: Math.max(0, Math.min(newViewportX, maxX)),
+        y: Math.max(0, Math.min(newViewportY, maxY)),
+      },
+    });
 
     onZoomInteraction?.();
-  }, [zoom, viewportX, viewportY, containerSize, onZoomInteraction]);
+  }, [onZoomInteraction, state]);
+
+  const setZoom = useCallback((value: number) => {
+    dispatch({type: 'setZoom', value});
+  }, []);
+
+  const setViewportX = useCallback((value: number) => {
+    dispatch({type: 'setViewportX', value});
+  }, []);
+
+  const setViewportY = useCallback((value: number) => {
+    dispatch({type: 'setViewportY', value});
+  }, []);
+
+  const setContainerSize = useCallback((value: { width: number; height: number }) => {
+    dispatch({type: 'setContainerSize', value});
+  }, []);
+
+  const setIsPanning = useCallback((value: boolean) => {
+    dispatch({type: 'setIsPanning', value});
+  }, []);
+
+  const setIsPinching = useCallback((value: boolean) => {
+    dispatch({type: 'setIsPinching', value});
+  }, []);
+
+  const setIsSingleFingerPanning = useCallback((value: boolean) => {
+    dispatch({type: 'setIsSingleFingerPanning', value});
+  }, []);
 
   return {
-    zoom,
+    zoom: state.zoom,
     setZoom,
-    viewportX,
+    viewportX: state.viewportX,
     setViewportX,
-    viewportY,
+    viewportY: state.viewportY,
     setViewportY,
-    containerSize,
+    containerSize: state.containerSize,
     setContainerSize,
-    isPanning,
+    isPanning: state.isPanning,
     setIsPanning,
-    isPinching,
+    isPinching: state.isPinching,
     setIsPinching,
-    isSingleFingerPanning,
+    isSingleFingerPanning: state.isSingleFingerPanning,
     setIsSingleFingerPanning,
     lastPanPoint,
     lastPinchDistance,

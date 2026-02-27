@@ -3,7 +3,11 @@ import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil} from 'f
 import {readLinearObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/linear-object-state.ts';
 import type {CanvasPointerPayload,} from '@/components/lib/canvas/canvas.ts';
 import {toCanvasObject} from '@/components/lib/canvas';
-import {LinearCanvasSelection, LinearCanvasSelectionType, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {
+  LinearCanvasSelection,
+  LinearCanvasSelectionType,
+  WallCanvasSelection
+} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {readWallObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/wall-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
@@ -17,7 +21,6 @@ interface UseCanvasEditorEventsArgs {
   onLinearSelect: (selection: LinearCanvasSelection) => void;
   onSelectionChange: (message: string) => void;
 }
-
 
 export function useCanvasEditorEvents() {
   const bindInlineEditorEvents = useCallback(({

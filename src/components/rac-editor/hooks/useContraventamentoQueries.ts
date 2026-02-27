@@ -4,9 +4,13 @@ import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {
   canCreateContraventamentoForNivel,
-  CanvasObject, collectOccupiedContraventamentoSides, ContraventamentoObjectCandidate,
+  CanvasObject,
+  collectOccupiedContraventamentoSides,
+  ContraventamentoObjectCandidate,
   ContraventamentoOrigin,
-  createContraventamentoEditorState, isContraventamentoDestinationEligible, parsePilotiGridPosition,
+  createContraventamentoEditorState,
+  isContraventamentoDestinationEligible,
+  parsePilotiGridPosition,
   toCanvasObject
 } from '@/components/lib/canvas';
 

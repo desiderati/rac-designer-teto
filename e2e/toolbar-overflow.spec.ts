@@ -9,7 +9,7 @@ import {
   startConsoleErrorCapture,
   triggerElementsAction,
   triggerLinesAction,
-} from './helpers/rac-helpers';
+} from './helpers/rac-helpers.spec';
 
 test.describe('RAC toolbar and overflow', () => {
   test.describe.configure({ mode: 'serial' });

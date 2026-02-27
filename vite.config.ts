@@ -23,6 +23,14 @@ export default defineConfig(({ mode }) => ({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
+      include: ['src/domain/**', 'src/components/lib/**'],
+      exclude: [
+        '**/*.d.ts',
+        '**/*.smoke.test.*',
+        '**/__tests__/**',
+        '**/test/**',
+        '**/tests/**',
+      ],
     },
   },
 }));

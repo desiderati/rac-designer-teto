@@ -2,7 +2,8 @@ import {FabricObject, Group, Line, Rect} from 'fabric';
 import {PILOTI_BASE_HEIGHT_PX, PILOTI_MASTER_FILL_COLOR, PILOTI_MASTER_STROKE_COLOR,} from './constants.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 import {
-  CONTRAVENTAMENTO_COLUMN_CENTERS, ContraventamentoEditorState,
+  CONTRAVENTAMENTO_COLUMN_CENTERS,
+  ContraventamentoEditorState,
   ContraventamentoSide,
   ContraventamentoSidesOccupation
 } from '@/shared/types/contraventamento.ts';

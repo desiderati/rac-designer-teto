@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
   buildAutoAssignedSides,
-  calculateStackedViewPositions,
   canDeleteTopView,
   getAutoSelectedSide,
   getAvailableSides,
@@ -12,9 +11,7 @@ import {
   type HouseSideMapping,
   type HouseViewSide,
   needsSideSelection,
-  resolveHouseViewInsertion,
 } from './house-views-layout.use-case.ts';
-import {HOUSE_VIEW_INSERTION_DECISION_TYPES} from '@/shared/types/house.ts';
 
 function createViews(): HouseViewSide {
   return {
@@ -125,96 +122,4 @@ describe('house-view-layout use cases', () => {
     expect(hasPreAssignedSides({front: 'top'})).toBe(true);
   });
 
-  it('resolves insertion for direct add and blocking states', () => {
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'top',
-        isAtLimit: true,
-        preAssignedSides: [],
-        availableSides: [],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit});
-
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'top',
-        isAtLimit: false,
-        preAssignedSides: [],
-        availableSides: [],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly});
-
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'front',
-        isAtLimit: false,
-        preAssignedSides: [],
-        availableSides: [],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides});
-
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'back',
-        isAtLimit: false,
-        preAssignedSides: [],
-        availableSides: ['bottom'],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: 'bottom'});
-  });
-
-  it('resolves insertion with pre-assigned slots', () => {
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'side1',
-        isAtLimit: false,
-        preAssignedSides: [{label: 'Direito', side: 'right', onCanvas: true}],
-        availableSides: ['left', 'right'],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots});
-
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'side1',
-        isAtLimit: false,
-        preAssignedSides: [
-          {label: 'Esquerdo', side: 'left', onCanvas: false},
-          {label: 'Direito', side: 'right', onCanvas: true},
-        ],
-        availableSides: ['left', 'right'],
-      }),
-    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: 'left'});
-
-    expect(
-      resolveHouseViewInsertion({
-        viewType: 'back',
-        isAtLimit: false,
-        preAssignedSides: [
-          {label: 'Superior', side: 'top', onCanvas: false},
-          {label: 'Inferior', side: 'bottom', onCanvas: false},
-        ],
-        availableSides: ['top', 'bottom'],
-      }),
-    ).toEqual({
-      type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector,
-      slots: [
-        {label: 'Superior', side: 'top', onCanvas: false},
-        {label: 'Inferior', side: 'bottom', onCanvas: false},
-      ],
-    });
-  });
-
-  it('calculates stacked positions for top and bottom views', () => {
-    expect(
-      calculateStackedViewPositions({
-        centerY: 500,
-        topHeight: 220,
-        bottomHeight: 180,
-        gap: 30,
-      }),
-    ).toEqual({
-      topY: 395,
-      bottomY: 625,
-    });
-  });
 });

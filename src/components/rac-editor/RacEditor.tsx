@@ -1,6 +1,6 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useRef} from 'react';
 import {Toolbar} from '@/components/rac-editor/toolbar/Toolbar.tsx';
-import {CanvasHandle, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
 import {RacEditorModals} from './RacEditorModals.tsx';
 import {RacEditorCanvas} from './RacEditorCanvas.tsx';
@@ -12,6 +12,8 @@ import {
 } from '@/components/rac-editor/modals/editors/generic/hooks/useGenericObjectEditorBindings.ts';
 import {useRacEditorModalState} from './hooks/useRacEditorModalState.ts';
 import {useRacEditorDebugBridge} from './hooks/useRacEditorDebugBridge.ts';
+import {useRacEditorLocalState} from './hooks/useRacEditorLocalState.ts';
+import {useRacEditorUiRefs} from './hooks/useRacEditorUiRefs.ts';
 import {useContraventamento} from './hooks/useContraventamento.ts';
 import {useCanvasTools} from '@/components/rac-editor/canvas/hooks/useCanvasTools.ts';
 import {usePilotiActions} from './hooks/usePilotiActions.ts';
@@ -38,9 +40,6 @@ import {RacEditorTutorial} from '@/components/rac-editor/RacEditorTutorial.tsx';
 import {House3DViewer} from '@/components/rac-editor/House3DViewer.tsx';
 
 export function RacEditor() {
-  const [infoMessage, setInfoMessage] =
-    useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
-
   const isMobile = useIsMobile();
 
   const {
@@ -62,10 +61,21 @@ export function RacEditor() {
     handleHouseTypeSelectedFromFlow(type);
   };
 
-  const [pilotiSelection, setPilotiSelection] = useState<PilotiCanvasSelection | null>(null);
-  const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
-
-  const [isDrawing, setIsDrawing] = useState(false);
+  const {
+    infoMessage,
+    setInfoMessage,
+    pilotiSelection,
+    setPilotiSelection,
+    isPilotiEditorOpen,
+    setIsPilotiEditorOpen,
+    isDrawing,
+    setIsDrawing,
+    tutorialBalloon,
+    setTutorialBalloon,
+    clearTutorialBalloon,
+    tutorialPilotiPosition,
+    setTutorialPilotiPosition,
+  } = useRacEditorLocalState();
 
   const canvasRef = useRef<CanvasHandle>(null);
 
@@ -96,16 +106,7 @@ export function RacEditor() {
     setNivelDefinitionOpen,
   } = useRacEditorModalState();
 
-  const showTipsRef = useRef(showTips);
-  const showZoomControlsRef = useRef(showZoomControls);
-
-  useEffect(() => {
-    showTipsRef.current = showTips;
-  }, [showTips]);
-
-  useEffect(() => {
-    showZoomControlsRef.current = showZoomControls;
-  }, [showZoomControls]);
+  const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
 
   useRacEditorDebugBridge({
     canvasRef,
@@ -116,18 +117,6 @@ export function RacEditor() {
   });
 
   // ── Tutorial ─────────────────────────────────────────────────
-
-  const [tutorialBalloon, setTutorialBalloon] = useState<{
-    position: { x: number; y: number; };
-    text: string;
-  } | null>(null);
-
-  const clearTutorialBalloon = useCallback(() => {
-    setTutorialBalloon(null);
-  }, []);
-
-  const [tutorialPilotiPosition, setTutorialPilotiPosition] =
-    useState<{ x: number; y: number; } | null>(null);
 
   const {
     tutorialStep,

@@ -1,16 +1,17 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Group} from 'fabric';
 import {toast} from 'sonner';
+import {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {
-  CanvasHandle,
-  ContraventamentoCanvasSelection,
-} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {
-  addContraventamentoBeam, canCreateContraventamentoForNivel,
+  addContraventamentoBeam,
+  canCreateContraventamentoForNivel,
   ContraventamentoOrigin,
-  ContraventamentoStep, getContraventamentoSideLabel,
+  ContraventamentoStep,
+  getContraventamentoSideLabel,
   highlightContraventamentoPilotis,
-  inferContraventamentoSideFromBeamGeometry, parsePilotiGridPosition, PilotiCanvasSelection,
+  inferContraventamentoSideFromBeamGeometry,
+  parsePilotiGridPosition,
+  PilotiCanvasSelection,
   removeContraventamentosFromGroup,
   resetContraventamentoPilotis,
   setContraventamentoSelection,

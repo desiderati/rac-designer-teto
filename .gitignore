@@ -22,7 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
 /rac-designer-teto.iml
-playwright-report
-test-results
+
 .playwright
+playwright-report/
+test-results/
+coverage/

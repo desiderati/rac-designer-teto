@@ -1,4 +1,4 @@
-import type {LinearCanvasSelection, PilotiCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {LinearCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generic/GenericObjectEditor.tsx';
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
@@ -7,6 +7,7 @@ import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
+import {PilotiCanvasSelection} from "@/components/lib/canvas";
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;

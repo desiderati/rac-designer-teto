@@ -3,14 +3,12 @@ import {
   HOUSE_OPPOSITE_SIDE,
   HOUSE_OPPOSITE_VIEW,
   HOUSE_SIDE_MAPPINGS,
-  HOUSE_VIEW_INSERTION_DECISION_TYPES,
   HOUSE_VIEW_LIMITS,
   type HousePreAssignedSideDisplay,
   type HousePreAssignedSides,
   type HouseSide,
   type HouseSideMapping,
   type HouseTypeExcludeNull,
-  type HouseViewInsertionDecision,
   type HouseViewSide,
   type HouseViewType,
 } from '@/shared/types/house.ts';
@@ -154,4 +152,3 @@ export function getPreAssignedSides(params: {
 export function hasPreAssignedSides(preAssignedSides: HousePreAssignedSides): boolean {
   return Object.keys(preAssignedSides).length > 0;
 }
-

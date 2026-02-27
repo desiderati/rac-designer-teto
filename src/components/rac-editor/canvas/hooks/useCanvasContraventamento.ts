@@ -84,22 +84,34 @@ export function useCanvasContraventamento({
   return {
     // Expõe refs individuais para compatibilidade com os consumidores existentes.
     isContraventamentoModeRef: {
-      get current() { return refs.current.isContraventamentoMode; },
+      get current() {
+        return refs.current.isContraventamentoMode;
+      },
     },
     isSelectingContraventamentoDestinationRef: {
-      get current() { return refs.current.isSelectingContraventamentoDestination; },
+      get current() {
+        return refs.current.isSelectingContraventamentoDestination;
+      },
     },
     isPilotiEligibleForContraventamentoRef: {
-      get current() { return refs.current.isPilotiEligibleForContraventamento; },
+      get current() {
+        return refs.current.isPilotiEligibleForContraventamento;
+      },
     },
     onContraventamentoPilotiClickRef: {
-      get current() { return refs.current.onContraventamentoPilotiClick; },
+      get current() {
+        return refs.current.onContraventamentoPilotiClick;
+      },
     },
     onContraventamentoSelectRef: {
-      get current() { return refs.current.onContraventamentoSelect; },
+      get current() {
+        return refs.current.onContraventamentoSelect;
+      },
     },
     onContraventamentoCancelRef: {
-      get current() { return refs.current.onContraventamentoCancel; },
+      get current() {
+        return refs.current.onContraventamentoCancel;
+      },
     },
   };
 }

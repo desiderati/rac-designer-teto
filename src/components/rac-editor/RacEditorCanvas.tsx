@@ -4,11 +4,11 @@ import {
   CanvasHandle,
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
-  PilotiCanvasSelection,
   WallCanvasSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/tutorial/Tutorial.tsx';
+import {PilotiCanvasSelection} from "@/components/lib/canvas";
 
 interface RacEditorCanvasProps {
   canvasRef: React.Ref<CanvasHandle>;
