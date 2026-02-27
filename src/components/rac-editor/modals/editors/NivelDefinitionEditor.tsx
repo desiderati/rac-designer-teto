@@ -1,17 +1,17 @@
 import {useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronLeft, faChevronRight, faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
 import {Switch} from '@/components/ui/switch.tsx';
 import {Label} from '@/components/ui/label.tsx';
-import {Slider} from '@/components/ui/slider.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {Dialog, DialogContent, DialogDescription} from '@/components/ui/dialog.tsx';
-import {Sheet, SheetContent} from '@/components/ui/sheet.tsx';
 import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 import {clampNivel, formatNivel, getRecommendedHeight} from '@/components/lib/canvas';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
+import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
+import {NivelSlider} from '@/components/rac-editor/modals/editors/NivelSlider.tsx';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 const DEFAULT_NIVEL = DEFAULT_HOUSE_PILOTI.nivel;
@@ -175,7 +175,7 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
             size='icon'
             onClick={() => handleNavigate('prev')}
             disabled={!hasPrev}
-            className='h-8 w-8 rounded-full bg-white'>
+            className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
 
             <FontAwesomeIcon icon={faChevronLeft} className='h-3 w-3'/>
           </Button>
@@ -184,7 +184,7 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
             size='icon'
             onClick={() => handleNavigate('next')}
             disabled={!hasNext}
-            className='h-8 w-8 rounded-full bg-white'>
+            className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
 
             <FontAwesomeIcon icon={faChevronRight} className='h-3 w-3'/>
           </Button>
@@ -204,57 +204,14 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
         <Separator/>
 
         {/* Nivel section */}
-        <div className='space-y-4'>
-          <p className='text-sm font-medium text-center'>Nível do Piloti</p>
-
-          {/* Value display with +/- buttons */}
-          <div className='flex items-center justify-center gap-3'>
-            <Button
-              variant='outline'
-              size='icon'
-              className='h-9 w-9 rounded-full'
-              onClick={() => handleNivelIncrement(-0.01)}
-              disabled={entry.nivel <= minNivel}>
-
-              <FontAwesomeIcon icon={faMinus} className='h-3 w-3'/>
-            </Button>
-            <div className='flex items-baseline gap-1'>
-              <span className='text-4xl font-bold text-primary'>{formatNivel(entry.nivel)}</span>
-              <span className='text-lg text-muted-foreground'>m</span>
-            </div>
-            <Button
-              variant='outline'
-              size='icon'
-              className='h-9 w-9 rounded-full'
-              onClick={() => handleNivelIncrement(0.01)}
-              disabled={entry.nivel >= maxNivel}>
-
-              <FontAwesomeIcon icon={faPlus} className='h-3 w-3'/>
-            </Button>
-          </div>
-
-          {/* Slider */}
-          <div className='space-y-3 px-2'>
-            <Slider
-              value={[entry.nivel]}
-              onValueChange={([v]) => handleNivelChange(v)}
-              min={minNivel}
-              max={maxNivel}
-              step={0.01}
-              className='w-full'/>
-
-            <div className='flex justify-between text-xs text-muted-foreground'>
-              <span>{formatNivel(minNivel)}m</span>
-              <span>{formatNivel(maxNivel)}m</span>
-            </div>
-          </div>
-
-          <p className='text-xs text-muted-foreground text-center'>
-            Altura recomendada: <span className='font-semibold text-foreground'>
-              {getRecommendedHeight(entry.nivel).toFixed(1).replace('.', ',')} m
-            </span>
-          </p>
-        </div>
+        <NivelSlider
+          nivel={entry.nivel}
+          minNivel={minNivel}
+          maxNivel={maxNivel}
+          onNivelIncrement={handleNivelIncrement}
+          onNivelChange={handleNivelChange}
+          recommendedHeightText={formatNivel(getRecommendedHeight(entry.nivel))}
+        />
       </div>
 
       {/* Progress indicators */}
@@ -273,13 +230,15 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
       </div>
 
       {/* Footer buttons */}
-      <div className='flex w-full gap-[16px]'>
-        <Button variant='outline' className='flex-1 bg-white' onClick={handleClose}>
-          Cancelar
-        </Button>
-        <Button className='flex-1' onClick={handleApply} disabled={!canApply}>
-          Inserir
-        </Button>
+      <div className='flex w-full flex-col gap-3'>
+        <div className='flex w-full gap-[16px]'>
+          <Button variant='outline' className='flex-1 bg-white' onClick={handleClose}>
+            Cancelar
+          </Button>
+          <Button className='flex-1' onClick={handleApply} disabled={!canApply}>
+            Inserir
+          </Button>
+        </div>
       </div>
     </div>;
 
@@ -296,11 +255,12 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <SheetContent side='bottom' className='h-auto max-h-[80vh] rounded-t-xl'>
-        <div className='mx-auto w-full max-w-sm'>
-          <div className='py-4'>{content}</div>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DrawerContent>
+        <div className='px-4 pb-4'>
+          {content}
         </div>
-      </SheetContent>
-    </Sheet>);
+      </DrawerContent>
+    </Drawer>
+  );
 }

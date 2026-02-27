@@ -248,7 +248,7 @@ No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam c
 ## 16. Arquivos principais
 
 - `src/components/rac-editor/modals/editors/PilotiEditor.tsx`
-- `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
+- `src/components/rac-editor/hooks/usePilotiEditor.ts`
 - `src/components/rac-editor/hooks/useContraventamentoFlow.ts`
 - `src/components/rac-editor/hooks/useContraventamento.ts`
 - `src/components/rac-editor/hooks/useContraventamentoQueries.ts`

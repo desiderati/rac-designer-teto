@@ -75,7 +75,7 @@ Para manter consistência e reduzir churn em imports durante a refatoração:
    Ex.: `RacEditor.tsx`, `DistanceEditor.tsx`, `House3DViewer.tsx`.
 
 2. Hooks usam `camelCase` com prefixo `use`.
-   Ex.: `useRacEditorDebugBridge.ts`, `usePilotiEditorLogic.ts`.
+   Ex.: `useRacEditorDebugBridge.ts`, `usePilotiEditor.ts`.
 
 3. Domínio/infra/utils (`.ts`) usam `kebab-case`.
    Ex.: `house-manager.ts`, `house-views-layout.use-case.ts`, `canvas-screen-position.ts`.

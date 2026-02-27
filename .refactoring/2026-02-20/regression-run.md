@@ -1160,7 +1160,7 @@
 
 ### Fase 7 - passo incremental 59 (Sincronização de estado do PilotiEditor sem setState em render)
 
-- `usePilotiEditorLogic` atualizado:
+- `usePilotiEditor` atualizado:
     - sincronização de draft (`tempHeight`, `tempIsMaster`, `tempNivel`) com mudança de `pilotiId`/abertura foi movida
       de bloco em render para `useEffect`
 - Ganho:

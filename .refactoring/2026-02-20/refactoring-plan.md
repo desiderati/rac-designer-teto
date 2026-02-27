@@ -134,7 +134,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 - Reduzir prop drilling de `Toolbar` com `ToolbarActionMap`/`command handlers`.
 - Separar `PilotiEditor` em:
     - componente de apresentação
-    - hook de regra (`usePilotiEditorLogic`)
+    - hook de regra (`usePilotiEditor`)
 
 **Meta técnica**
 

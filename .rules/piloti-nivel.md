@@ -33,7 +33,7 @@ No editor de piloti de canto:
 
 Observação importante:
 
-- esta regra é local ao fluxo de edição do `PilotiEditor` (hook `usePilotiEditorLogic`).
+- esta regra é local ao fluxo de edição do `PilotiEditor` (hook `usePilotiEditor`).
 - o hook sincroniza o draft com o piloti selecionado via `useEffect` (sem `setState` durante render), reduzindo risco
   de comportamento inesperado em modo estrito.
 
@@ -133,7 +133,7 @@ Complemento de renderização extraído:
 ## 9. Referências de código
 
 - `src/components/rac-editor/modals/editors/NivelDefinitionEditor.tsx`
-- `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
+- `src/components/rac-editor/hooks/usePilotiEditor.ts`
 - `src/components/rac-editor/hooks/usePilotiActions.ts`
 - `src/components/lib/house-manager.ts`
 - `src/domain/house/house-aggregate.ts`

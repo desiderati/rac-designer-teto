@@ -115,7 +115,7 @@ A centralização de constantes em `shared/config.ts` (289 linhas) foi um avanç
 | `useCanvasTools`              | 0          | 0           | **14**        | 172    | **MÉDIA**  |
 | `useTutorialMenuActions`      | 0          | 0           | **14**        | 121    | **MÉDIA**  |
 | `useRacEditorModalState`      | **12**     | 0           | 0             | 67     | **MÉDIA**  |
-| `usePilotiEditorLogic`        | **6**      | **4**       | 0             | 286    | **ALTA**   |
+| `usePilotiEditor`             | **6**      | **4**       | 0             | 286    | **ALTA**   |
 | `useContraventamentoCommands` | 0          | 0           | **8**         | 317    | **MÉDIA**  |
 | `useContraventamentoQueries`  | 0          | 0           | **8**         | 123    | **MÉDIA**  |
 

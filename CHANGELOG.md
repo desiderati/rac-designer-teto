@@ -191,11 +191,11 @@
 - Arquivos inicialmente apontados para investigação:
     - `src/lib/canvas/factory/elements-factory.ts`
     - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
-    - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
+    - `src/components/rac-editor/hooks/usePilotiEditor.ts`
 
 ### Diagnóstico realizado
 
-- O fluxo de `Piloti` (`usePilotiEditorLogic.ts`) não era a causa do problema de Linha/Seta.
+- O fluxo de `Piloti` (`usePilotiEditor.ts`) não era a causa do problema de Linha/Seta.
 - O estado inicial do editor de Linha/Seta vinha de `readLineArrowEditorState` (`src/lib/canvas/line-arrow-editor.ts`).
 - Foram identificados problemas de compatibilidade e leitura:
     - Leitura de label sem compatibilidade completa com objetos legados (`lineArrowLabel`).

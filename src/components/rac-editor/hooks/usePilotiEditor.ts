@@ -1,4 +1,4 @@
-import {type PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {Group} from 'fabric';
 import {
   clampNivelByHeight,
@@ -19,12 +19,11 @@ interface UsePilotiEditorLogicArgs {
   currentIsMaster: boolean;
   currentNivel: number;
   group: Group | null;
-  anchorPosition?: { x: number; y: number };
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 }
 
-export function usePilotiEditorLogic({
+export function usePilotiEditor({
   isOpen,
   onClose,
   pilotiId,
@@ -32,7 +31,6 @@ export function usePilotiEditorLogic({
   currentIsMaster,
   currentNivel,
   group,
-  anchorPosition,
   onHeightChange,
   onNavigate,
 }: UsePilotiEditorLogicArgs) {
@@ -41,14 +39,7 @@ export function usePilotiEditorLogic({
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
-  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
-
-  const dragStateRef =
-    useRef<null | { offsetX: number; offsetY: number }>(null);
-
-  const userDraggedRef = useRef(false);
   const lastPilotiIdRef = useRef<string | null>(null);
-  const wasOpenRef = useRef(false);
 
   const allIds = useMemo(() => {
     if (group) return getPilotiIdsFromGroup(group);
@@ -67,6 +58,7 @@ export function usePilotiEditorLogic({
       const data = getPilotiFromGroup(group, id);
       if (data?.isMaster) return getPilotiName(id);
     }
+
     if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
     return undefined;
   }, [group, allIds, tempIsMaster, pilotiId]);
@@ -74,52 +66,11 @@ export function usePilotiEditorLogic({
   useEffect(() => {
     if (!isOpen || pilotiId === lastPilotiIdRef.current) return;
     lastPilotiIdRef.current = pilotiId;
+
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
   }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      wasOpenRef.current = false;
-      lastPilotiIdRef.current = null;
-      return;
-    }
-
-    const isFirstOpen = !wasOpenRef.current;
-    wasOpenRef.current = true;
-
-    if (isFirstOpen) {
-      userDraggedRef.current = false;
-      if (anchorPosition) {
-        setPopoverPos({x: anchorPosition.x + 12, y: anchorPosition.y + 12});
-      } else {
-        setPopoverPos({x: 24, y: 24});
-      }
-    }
-  }, [isOpen, anchorPosition]);
-
-  useEffect(() => {
-    const onMove = (e: globalThis.PointerEvent) => {
-      if (!dragStateRef.current) return;
-      userDraggedRef.current = true;
-      setPopoverPos({
-        x: e.clientX - dragStateRef.current.offsetX,
-        y: e.clientY - dragStateRef.current.offsetY,
-      });
-    };
-
-    const onUp = () => {
-      dragStateRef.current = null;
-    };
-
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-    };
-  }, []);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
@@ -183,19 +134,6 @@ export function usePilotiEditorLogic({
     const newVal = Math.round((tempNivel + delta) * 100) / 100;
     handleNivelChange(newVal);
   };
-
-  const handlePopoverPointerDown =
-    (e: ReactPointerEvent<HTMLElement>) => {
-      const target = e.target as HTMLElement;
-      const isInteractive =
-        target.closest('button, input, textarea, select, [role="switch"], [role="slider"], a');
-      if (isInteractive) return;
-
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      dragStateRef.current = {offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top};
-      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-      e.preventDefault();
-    };
 
   const handleHeightClick = (h: number) => {
     setTempHeight(h);
@@ -264,7 +202,6 @@ export function usePilotiEditorLogic({
     setTempIsMaster,
     tempNivel,
     clickedHeight,
-    popoverPos,
     allIds,
     currentIndex,
     hasPrev,
@@ -278,7 +215,6 @@ export function usePilotiEditorLogic({
     handleCancel,
     handleNivelChange,
     handleNivelIncrement,
-    handlePopoverPointerDown,
     handleHeightClick,
     getHeightButtonClasses,
     getContraventamentoButtonClasses,
