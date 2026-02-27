@@ -47,7 +47,10 @@ export function rebuildPilotiDataFromSources(params: {
   return nextPilotis;
 }
 
-export function readPilotiDataFromCanvas(canvas: FabricCanvas): Record<string, HousePiloti> {
+export function readPilotiDataFromCanvas(
+  canvas: FabricCanvas,
+  currentPilotis?: Record<string, HousePiloti>,
+): Record<string, HousePiloti> {
   const houseGroups = canvas
     ? canvas.getObjects().filter(
       (object): object is Group & CanvasObject => isHouseGroupWithObjects(object)
@@ -62,7 +65,7 @@ export function readPilotiDataFromCanvas(canvas: FabricCanvas): Record<string, H
 
   return rebuildPilotiDataFromSources({
     pilotiIds: getAllPilotiIds(),
-    currentPilotis: this.house?.pilotis ?? {},
+    currentPilotis: currentPilotis ?? {},
     defaultPiloti: DEFAULT_HOUSE_PILOTI,
     sources,
   });

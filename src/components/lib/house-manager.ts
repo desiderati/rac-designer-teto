@@ -263,7 +263,7 @@ class HouseManager {
 
     if (this.house) {
       const nextHouse = this.house;
-      nextHouse.pilotis = readPilotiDataFromCanvas(this.canvas);
+      nextHouse.pilotis = readPilotiDataFromCanvas(this.canvas, this.house?.pilotis);
       this.house = nextHouse;
     }
 
