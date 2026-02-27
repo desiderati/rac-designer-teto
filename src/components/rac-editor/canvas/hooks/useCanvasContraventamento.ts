@@ -12,6 +12,15 @@ interface UseCanvasContraventamentoArgs {
   onContraventamentoCancel?: () => void;
 }
 
+interface ContraventamentoRefs {
+  isContraventamentoMode: boolean;
+  isSelectingContraventamentoDestination: boolean;
+  isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
+  onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoSelect?: (selection: { group: Group; contraventamentoId: string } | null) => void;
+  onContraventamentoCancel?: () => void;
+}
+
 export function useCanvasContraventamento({
   fabricCanvasRef,
   isContraventamentoMode,
@@ -22,36 +31,27 @@ export function useCanvasContraventamento({
   onContraventamentoCancel,
 }: UseCanvasContraventamentoArgs) {
 
-  const isContraventamentoModeRef = useRef(isContraventamentoMode);
-  const isSelectingContraventamentoDestinationRef = useRef(isSelectingContraventamentoDestination);
-  const isPilotiEligibleForContraventamentoRef = useRef(isPilotiEligibleForContraventamento);
-  const onContraventamentoPilotiClickRef = useRef(onContraventamentoPilotiClick);
-  const onContraventamentoSelectRef = useRef(onContraventamentoSelect);
-  const onContraventamentoCancelRef = useRef(onContraventamentoCancel);
+  // Objeto ref único que mantém todas as props atualizadas sem re-render.
+  const refs = useRef<ContraventamentoRefs>({
+    isContraventamentoMode,
+    isSelectingContraventamentoDestination,
+    isPilotiEligibleForContraventamento,
+    onContraventamentoPilotiClick,
+    onContraventamentoSelect,
+    onContraventamentoCancel,
+  });
 
+  // Um único useEffect sincroniza todas as props de uma vez.
   useEffect(() => {
-    isContraventamentoModeRef.current = isContraventamentoMode;
-  }, [isContraventamentoMode]);
-
-  useEffect(() => {
-    isSelectingContraventamentoDestinationRef.current = isSelectingContraventamentoDestination;
-  }, [isSelectingContraventamentoDestination]);
-
-  useEffect(() => {
-    isPilotiEligibleForContraventamentoRef.current = isPilotiEligibleForContraventamento;
-  }, [isPilotiEligibleForContraventamento]);
-
-  useEffect(() => {
-    onContraventamentoPilotiClickRef.current = onContraventamentoPilotiClick;
-  }, [onContraventamentoPilotiClick]);
-
-  useEffect(() => {
-    onContraventamentoSelectRef.current = onContraventamentoSelect;
-  }, [onContraventamentoSelect]);
-
-  useEffect(() => {
-    onContraventamentoCancelRef.current = onContraventamentoCancel;
-  }, [onContraventamentoCancel]);
+    refs.current = {
+      isContraventamentoMode,
+      isSelectingContraventamentoDestination,
+      isPilotiEligibleForContraventamento,
+      onContraventamentoPilotiClick,
+      onContraventamentoSelect,
+      onContraventamentoCancel,
+    };
+  });
 
   useEffect(() => {
     if (isContraventamentoMode) return;
@@ -82,11 +82,24 @@ export function useCanvasContraventamento({
   }, [fabricCanvasRef, isSelectingContraventamentoDestination]);
 
   return {
-    isContraventamentoModeRef,
-    isSelectingContraventamentoDestinationRef,
-    isPilotiEligibleForContraventamentoRef,
-    onContraventamentoPilotiClickRef,
-    onContraventamentoSelectRef,
-    onContraventamentoCancelRef,
+    // Expõe refs individuais para compatibilidade com os consumidores existentes.
+    isContraventamentoModeRef: {
+      get current() { return refs.current.isContraventamentoMode; },
+    },
+    isSelectingContraventamentoDestinationRef: {
+      get current() { return refs.current.isSelectingContraventamentoDestination; },
+    },
+    isPilotiEligibleForContraventamentoRef: {
+      get current() { return refs.current.isPilotiEligibleForContraventamento; },
+    },
+    onContraventamentoPilotiClickRef: {
+      get current() { return refs.current.onContraventamentoPilotiClick; },
+    },
+    onContraventamentoSelectRef: {
+      get current() { return refs.current.onContraventamentoSelect; },
+    },
+    onContraventamentoCancelRef: {
+      get current() { return refs.current.onContraventamentoCancel; },
+    },
   };
 }
