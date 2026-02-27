@@ -270,9 +270,9 @@
 - `useEditorDraft` recebeu JSDoc completo e depois foi reescrito em linguagem mais didática (foco em programador
   júnior), explicando claramente o conceito de `draft` como rascunho temporário.
 - Separação do fluxo combinado de Linha/Seta:
-  - remoção do hook combinado anterior;
-  - criação de hooks dedicados para Linha e Seta;
-  - ajuste de wiring no `RacEditor` para orquestrar os dois fluxos sem mudar contrato de tela.
+    - remoção do hook combinado anterior;
+    - criação de hooks dedicados para Linha e Seta;
+    - ajuste de wiring no `RacEditor` para orquestrar os dois fluxos sem mudar contrato de tela.
 
 #### Ajuste solicitado de arquitetura (apply separado por tipo)
 
@@ -283,20 +283,20 @@
 #### Redução de duplicação de comportamento (scaling)
 
 - Linha:
-  - centralização da regra longitudinal de escala em helper único no factory;
-  - reutilização desse helper no apply da Linha.
+    - centralização da regra longitudinal de escala em helper único no factory;
+    - reutilização desse helper no apply da Linha.
 - Seta:
-  - centralização da regra longitudinal de escala em helper único no factory;
-  - reutilização dessa regra no apply da Seta.
+    - centralização da regra longitudinal de escala em helper único no factory;
+    - reutilização dessa regra no apply da Seta.
 - Objetivo atendido: evitar duplicação de lógica entre criação (`createLine`/`createArrow`) e edição (`apply`).
 
 #### Bugs reportados e corrigidos (Linha/Seta)
 
 - Corrigidos os 4 pontos reportados:
-  1. Linha/Seta não esticavam longitudinalmente em cenários de redimensionamento após edição.
-  2. Cor da Linha não era aplicada corretamente em alguns fluxos de editor.
-  3. Editor podia abrir com texto em branco mesmo havendo label definida.
-  4. Primeira abertura podia não marcar a cor padrão.
+    1. Linha/Seta não esticavam longitudinalmente em cenários de redimensionamento após edição.
+    2. Cor da Linha não era aplicada corretamente em alguns fluxos de editor.
+    3. Editor podia abrir com texto em branco mesmo havendo label definida.
+    4. Primeira abertura podia não marcar a cor padrão.
 - Restrição respeitada: sem alterar a regra de posicionamento da label.
 
 #### Ajustes técnicos aplicados para estabilizar o fluxo

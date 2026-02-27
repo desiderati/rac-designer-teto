@@ -112,19 +112,23 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 **Execução:** Diariamente às 06:00 GMT-3
 
 **Responsabilidades:**
+
 - Analisa o estado ATUAL do código em 6 dimensões:
-  1. **File Structure** - Total de arquivos, linhas, cobertura de testes
-  2. **Clean Architecture** - Ports/Adapters, CQRS, Strategies, normalization functions, duplicate patterns, magic numbers
-  3. **Hooks SRP** - Detecta violações de Single Responsibility Principle
-  4. **Components** - Análise de estrutura de componentes
-  5. **Tests** - Status de testes e cobertura
-  6. **Code Patterns** - Padrões de código, constantes, estratégias
+    1. **File Structure** - Total de arquivos, linhas, cobertura de testes
+    2. **Clean Architecture** - Ports/Adapters, CQRS, Strategies, normalization functions, duplicate patterns, magic
+       numbers
+    3. **Hooks SRP** - Detecta violações de Single Responsibility Principle
+    4. **Components** - Análise de estrutura de componentes
+    5. **Tests** - Status de testes e cobertura
+    6. **Code Patterns** - Padrões de código, constantes, estratégias
 
 **Saída:**
+
 - `.refactoring/YYYYMMDD/refactoring-plan.md` - Plano dinâmico baseado em análise atual
 - `.refactoring/YYYYMMDD/regression-checklist.md` - Checklist adaptativo de testes
 
 **Características:**
+
 - ✅ Plano é **ÚNICO cada dia** (não template estático)
 - ✅ Detecta **issues REAIS** do código
 - ✅ Identifica **opportunities VALIOSAS**
@@ -137,6 +141,7 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 **Trigger:** Após aprovação manual do plano do Agente 1
 
 **Responsabilidades:**
+
 - Executa cada fase do plano de refatoração
 - Roda testes de regressão após cada fase
 - Tenta corrigir automaticamente falhas (até 3 tentativas)
@@ -144,6 +149,7 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 - Notifica apenas em caso de erro crítico
 
 **Características:**
+
 - ✅ 100% autônomo
 - ✅ Executa todas as fases em sequência
 - ✅ Auto-correção com retry (3x)
@@ -287,16 +293,16 @@ const Canvas = (props: any) => {
 // ✅ Bom
 const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
     <div>
-        { houses.map(house => (<HouseCard key = {house.id} house = {house}/>)) }
+        {houses.map(house => (<HouseCard key={house.id} house={house}/>))}
     </div>
 );
 
 // ❌ Evitar
 const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
-    <div>
-        { houses.map((house, index) => (<HouseCard key = {index} house = {house}/>)) }
-    </div>
-)
+        <div>
+            {houses.map((house, index) => (<HouseCard key={index} house={house}/>))}
+        </div>
+    )
 ;
 ```
 
