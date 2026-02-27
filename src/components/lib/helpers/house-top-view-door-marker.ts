@@ -4,7 +4,7 @@ import {HouseSide, HouseTypeExcludeNull, HouseViewInstance, HouseViewType,} from
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
-function resolveTopDoorSourceViewType(params: {
+export function resolveTopDoorSourceViewType(params: {
   houseType: HouseTypeExcludeNull | null;
 }): HouseViewType | null {
   if (params.houseType === 'tipo6') return 'front';
@@ -12,7 +12,7 @@ function resolveTopDoorSourceViewType(params: {
   return null;
 }
 
-function resolveTopDoorMarkerSide(params: {
+export function resolveTopDoorMarkerSide(params: {
   houseType: HouseTypeExcludeNull | null;
   sideMappings: Record<HouseSide, HouseViewType | null>;
 }): HouseSide | null {
@@ -28,7 +28,7 @@ function resolveTopDoorMarkerSide(params: {
   );
 }
 
-function calculateTopDoorPlacement(params: {
+export function calculateTopDoorPlacement(params: {
   doorMarkerSide: HouseSide | null;
   doorX: number;
   doorWidth: number;
@@ -76,7 +76,7 @@ function calculateTopDoorPlacement(params: {
   };
 }
 
-function calculateRenderedDoorGeometryForTopMarker(params: {
+export function calculateRenderedDoorGeometryForTopMarker(params: {
   doorMarkerSide: HouseSide | null;
   bodyWidth: number;
   bodyHeight: number;
@@ -105,7 +105,7 @@ function calculateRenderedDoorGeometryForTopMarker(params: {
   return {doorX, doorWidth};
 }
 
-function calculateTopDoorMarkerBodySize(params: {
+export function calculateTopDoorMarkerBodySize(params: {
   width: number;
   height: number;
   scaleX?: number;
@@ -117,7 +117,7 @@ function calculateTopDoorMarkerBodySize(params: {
   };
 }
 
-function createTopDoorMarkerVisualPatch(params: {
+export function createTopDoorMarkerVisualPatch(params: {
   doorMarkerSide: HouseSide | null;
   markerCandidateSide: HouseSide;
   targetLeft?: number;
