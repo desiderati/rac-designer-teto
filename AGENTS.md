@@ -6,6 +6,8 @@
   listadas ali antes de codificar.
 - Trabalhe exclusivamente dentro de `personal/rac-designer-teto` durante esta sessão; evite operar na raiz ou em outros
   projetos.
+- Consulte o diretório `.guidelines/` antes de propor mudanças de interface e experiência.
+- Para decisões de UI/UX, use como referência principal `.guidelines/ux-design.md`.
 
 ## Ambiente e comandos principais
 
@@ -19,6 +21,7 @@
 ## Comunicação e entregas
 
 - Responda sempre em português nesta pasta.
+- Ao gerar ou editar arquivos em português, use sempre acentuação correta (nunca remover acentos).
 - Documente rapidinho o que mudou num `CHANGELOG` local (se houver) antes de pedir revisão.
 - Se precisar guardar artefatos (logs, capturas) em `test-results` ou `playwright-report`, avise antes de remover
   arquivos existentes.

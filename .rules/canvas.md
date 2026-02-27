@@ -253,11 +253,11 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 - `src/components/rac-editor/canvas/hooks/useCanvasContainerLifecycle.ts`
     - encapsula observação de resize do container e clamp do viewport em mudanças de zoom/tamanho
 
-- `src/components/rac-editor/modals/editors/generic/hooks/useGenericObjectEditors.ts`
+- `src/components/rac-editor/modals/editors/generic/hooks/useGenericObjectEditor.ts`
     - estado e handlers dos editores inline (distância, nome de objeto e linha/seta) consumidos pelo `RacEditor`
 
 - `src/components/rac-editor/modals/editors/generic/hooks/useGenericObjectEditorBindings.ts`
-    - compõe `useGenericObjectEditors` no `RacEditor` e centraliza:
+    - compõe `useGenericObjectEditor` no `RacEditor` e centraliza:
         - cálculo de `isAnyEditorOpen` repassado ao `Canvas`;
         - wiring de callbacks de seleção inline (`distance/object name/line-arrow`) entre `Canvas` e editores.
 

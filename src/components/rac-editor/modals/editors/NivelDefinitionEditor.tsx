@@ -5,13 +5,12 @@ import {Button} from '@/components/ui/button.tsx';
 import {Switch} from '@/components/ui/switch.tsx';
 import {Label} from '@/components/ui/label.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
-import {Dialog, DialogContent, DialogDescription} from '@/components/ui/dialog.tsx';
 import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 import {clampNivel, formatNivel, getRecommendedHeight} from '@/components/lib/canvas';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
-import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
 import {NivelSlider} from '@/components/rac-editor/modals/editors/NivelSlider.tsx';
+import {ConfirmDialogModal} from '@/components/rac-editor/modals/ConfirmDialogModal.tsx';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 const DEFAULT_NIVEL = DEFAULT_HOUSE_PILOTI.nivel;
@@ -228,39 +227,17 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
             }/>
         )}
       </div>
-
-      {/* Footer buttons */}
-      <div className='flex w-full flex-col gap-3'>
-        <div className='flex w-full gap-[16px]'>
-          <Button variant='outline' className='flex-1 bg-white' onClick={handleClose}>
-            Cancelar
-          </Button>
-          <Button className='flex-1' onClick={handleApply} disabled={!canApply}>
-            Inserir
-          </Button>
-        </div>
-      </div>
     </div>;
 
-  if (!isMobile) {
-    return (
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className='sm:max-w-sm' hideCloseButton>
-          <div className='mx-auto w-full max-w-sm'>
-            <DialogDescription className='sr-only'>Defina os níveis dos pilotis de canto</DialogDescription>
-            {content}
-          </div>
-        </DialogContent>
-      </Dialog>);
-  }
-
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DrawerContent>
-        <div className='px-4 pb-4'>
-          {content}
-        </div>
-      </DrawerContent>
-    </Drawer>
+    <ConfirmDialogModal
+      isMobile={isMobile}
+      isOpen={isOpen}
+      content={content}
+      confirmLabel='Inserir'
+      isConfirmDisabled={!canApply}
+      handleConfirm={handleApply}
+      handleCancel={handleClose}
+    />
   );
 }

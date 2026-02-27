@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {LinearCanvasSelection, WallCanvasSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
 
-export function useGenericObjectEditors() {
+export function useGenericObjectEditor() {
 
   const [wallSelection, setWallSelection] =
     useState<WallCanvasSelection | null>(null);

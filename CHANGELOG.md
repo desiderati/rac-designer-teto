@@ -6,7 +6,8 @@
 
 - Atualização da seção "File Structure" do README para refletir a estrutura atual de diretórios.
 - Revisão dos arquivos em `.rules` com regras faltantes e referências atualizadas para a estrutura atual do código.
-- Fase 3 do plano de refatoração: `useCanvasViewport` migrado para `useReducer` e extração de estado local do `RacEditor` para hooks dedicados.
+- Fase 3 do plano de refatoração: `useCanvasViewport` migrado para `useReducer` e extração de estado local do
+  `RacEditor` para hooks dedicados.
 - Adição de smoke tests para todos os arquivos em `src/domain`.
 - Adição de smoke tests para todos os arquivos em `src/components/lib`.
 - Reversão do acesso direto da UI a Use Cases de domínio, mantendo a regra de segurança.

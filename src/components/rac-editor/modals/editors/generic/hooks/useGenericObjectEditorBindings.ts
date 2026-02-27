@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {useGenericObjectEditors} from './useGenericObjectEditors.ts';
+import {useGenericObjectEditor} from './useGenericObjectEditor.ts';
 
 interface UseGenericObjectEditorBindingsArgs {
   isPilotiEditorOpen: boolean;
@@ -8,7 +8,7 @@ interface UseGenericObjectEditorBindingsArgs {
 export function useGenericObjectEditorBindings({
   isPilotiEditorOpen,
 }: UseGenericObjectEditorBindingsArgs) {
-  const genericObjectEditors = useGenericObjectEditors();
+  const genericObjectEditors = useGenericObjectEditor();
 
   const isAnyEditorOpen = useMemo(() => {
     return (

@@ -1059,7 +1059,7 @@
 ### Fase 7 - passo incremental 53 (Estado dos editores inline extraído do RacEditor)
 
 - Novo hook de orquestração de editores inline:
-    - `src/components/rac-editor/hooks/useGenericObjectEditors.ts`
+    - `src/components/rac-editor/hooks/useGenericObjectEditor.ts`
 - `RacEditor` atualizado:
     - estados e handlers de seleção/abertura/fechamento de `distance`, `objectName` e `lineArrow` foram movidos para
       hook dedicado
@@ -1961,7 +1961,7 @@
 - Novo hook:
     - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
     - centraliza:
-        - composição de `useGenericObjectEditors`;
+        - composição de `useGenericObjectEditor`;
         - cálculo de `isAnyEditorOpen` (piloti + editores inline);
         - wiring de callbacks de seleção inline para o `Canvas`.
 - `RacEditor` atualizado:
