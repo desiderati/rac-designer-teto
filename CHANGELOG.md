@@ -10,6 +10,7 @@
 - Adição de smoke tests para todos os arquivos em `src/domain`.
 - Adição de smoke tests para todos os arquivos em `src/components/lib`.
 - Reversão do acesso direto da UI a Use Cases de domínio, mantendo a regra de segurança.
+- Correção do `useCanvasViewport` para suportar setters com função, restaurando o recálculo de viewport no carregamento.
 - Refatoração ampla de padronização no projeto `rac-designer-teto`.
 - Centralização de constantes e estilos.
 - Correções de bugs de renderização em vista planta/top e terreno.

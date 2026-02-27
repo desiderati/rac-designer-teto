@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useReducer, useRef} from 'react';
+import {SetStateAction, useCallback, useEffect, useReducer, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
 
 interface CanvasViewportState {
@@ -121,21 +121,27 @@ export function useCanvasViewport({
     onZoomInteraction?.();
   }, [onZoomInteraction, state]);
 
-  const setZoom = useCallback((value: number) => {
-    dispatch({type: 'setZoom', value});
-  }, []);
+  const setZoom = useCallback((value: SetStateAction<number>) => {
+    const resolved = typeof value === 'function' ? value(zoomRef.current) : value;
+    dispatch({type: 'setZoom', value: resolved});
+  }, [zoomRef]);
 
-  const setViewportX = useCallback((value: number) => {
-    dispatch({type: 'setViewportX', value});
-  }, []);
+  const setViewportX = useCallback((value: SetStateAction<number>) => {
+    const resolved = typeof value === 'function' ? value(viewportXRef.current) : value;
+    dispatch({type: 'setViewportX', value: resolved});
+  }, [viewportXRef]);
 
-  const setViewportY = useCallback((value: number) => {
-    dispatch({type: 'setViewportY', value});
-  }, []);
+  const setViewportY = useCallback((value: SetStateAction<number>) => {
+    const resolved = typeof value === 'function' ? value(viewportYRef.current) : value;
+    dispatch({type: 'setViewportY', value: resolved});
+  }, [viewportYRef]);
 
-  const setContainerSize = useCallback((value: { width: number; height: number }) => {
-    dispatch({type: 'setContainerSize', value});
-  }, []);
+  const setContainerSize = useCallback((value: SetStateAction<{ width: number; height: number }>) => {
+    const resolved = typeof value === 'function'
+      ? value(containerSizeRef.current)
+      : value;
+    dispatch({type: 'setContainerSize', value: resolved});
+  }, [containerSizeRef]);
 
   const setIsPanning = useCallback((value: boolean) => {
     dispatch({type: 'setIsPanning', value});
