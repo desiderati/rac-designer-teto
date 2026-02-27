@@ -24,8 +24,8 @@ Este checklist foi gerado dinamicamente com base nas áreas de maior risco ident
 
 ### 1.2. Marcador de Porta na Vista de Topo (`house-top-view-door-marker`)
 
-- [ ] **Visibilidade do Marcador:** Selecionar uma porta em uma vista de elevação e confirmar que o marcador correspondente aparece na vista de topo.
-- [ ] **Posicionamento do Marcador:** Mover a porta e verificar se a posição do marcador na vista de topo é atualizada em tempo real.
+- [ ] **Visibilidade do Marcador:** Ao inserir uma vista de elevação, confirmar que o marcador correspondente aparece na vista de topo.
+- [ ] **Posicionamento do Marcador:** Ao definir uma nova casa, escolher uma vista de elevação que contenha uma porta porém associada a outro lado da casa, verificar se a posição do marcador na vista de topo é atualizada em tempo real.
 - [ ] **Geometria do Marcador:** Verificar se a largura e o posicionamento do marcador de porta correspondem visualmente à porta na vista 3D.
 
 ### 1.3. Reconstrução do Canvas (`canvas-rebuild` e `house-manager`)
