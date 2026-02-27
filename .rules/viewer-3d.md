@@ -24,7 +24,7 @@ Quando o viewer está aberto:
     - ciclo de vida de `elements` (add/remove/update/reset defaults) foi extraído para `house-elements-application`
 
 3. deriva orientações:
-    - `tipo6FrontSide` por `sideAssignments` de `front`
+    - `tipo6FrontSide` por `sideMappings` de `front`
     - `tipo3OpenSide` com espelhamento semântico de `side2`
 
 4. parseia contraventamentos da planta com `parseContraventamentosFromTopGroup`

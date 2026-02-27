@@ -1,7 +1,7 @@
 import {RefObject, useEffect} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {TIMINGS} from '@/config.ts';
+import {TIMINGS} from '@/shared/config.ts';
 
 interface UseCanvasHouseInitializationArgs {
   canvasRef: RefObject<CanvasHandle | null>;

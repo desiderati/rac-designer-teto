@@ -4,7 +4,7 @@ import {toCanvasObject} from '@/components/lib/canvas';
 import {
   getGenericObjectEditorStrategy
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
-import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 interface UseWallEditorActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

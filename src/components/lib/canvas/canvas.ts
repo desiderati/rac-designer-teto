@@ -95,6 +95,12 @@ export type CanvasObject = FabricObject & {
   isContentEditable?: boolean;
 };
 
+// Extend FabricObject prototype to include custom properties in serialization
+const originalToObject = FabricObject.prototype.toObject;
+FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) {
+  return originalToObject.call(this, [...canvasObjectProps, ...propertiesToInclude]);
+};
+
 export function toCanvasObject(object: FabricObject): CanvasObject;
 export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null;
 export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null {

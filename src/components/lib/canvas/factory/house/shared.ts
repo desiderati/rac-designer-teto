@@ -1,6 +1,6 @@
 import {Canvas as FabricCanvas} from 'fabric';
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '../../constants.ts';
-import {HOUSE_DEFAULTS} from '@/config.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects();

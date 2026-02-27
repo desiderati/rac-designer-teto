@@ -1,7 +1,7 @@
 import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {PILOTI_MASTER_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/components/lib/canvas';
-import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/config.ts';
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
 
 interface UseCanvasHouseSelectionArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;

@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import * as THREE from 'three';
-import {DEFAULT_HOUSE_PILOTI, type HouseElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
 import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
@@ -24,8 +24,8 @@ import {
   PILOTI_STEP_Z,
   PILOTI_TOP_Y,
   ROOF_BASE_Y,
-  ROOF_SHORT_SIDE_OVERHANG,
   ROOF_LONG_SIDE_OVERHANG,
+  ROOF_SHORT_SIDE_OVERHANG,
   ROOF_TOP_Y,
   ROOF_WAVE_AMPLITUDE,
   ROOF_WAVE_PITCH,
@@ -37,15 +37,14 @@ import {
   WALL_HEIGHT,
   WALL_THICKNESS,
 } from '@/components/lib/3d/constants.ts';
-import {buildOpeningsFromCanvasModel} from '@/components/lib/3d/openings-mapper.ts';
+import {buildOpeningsFromCanvasModel, type SceneOpening} from '@/components/lib/3d/openings-mapper.ts';
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
-import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/config.ts';
+import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
 
 interface House3DSceneProps {
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
-  elements?: HouseElement[];
   contraventamentos?: Contraventamento3DData[];
   wallColor?: string;
   tipo6FrontSide?: 'top' | 'bottom' | null;
@@ -55,15 +54,14 @@ interface House3DSceneProps {
 export function House3DScene({
   houseType,
   pilotis,
-  elements = [],
   contraventamentos = [],
   wallColor = HOUSE_3D_WALL_COLORS.sceneFallbackColor,
   tipo6FrontSide = null,
   tipo3OpenSide = null,
 }: House3DSceneProps) {
   const sceneOpenings = useMemo(
-    () => buildOpeningsFromCanvasModel(houseType, elements, tipo6FrontSide, tipo3OpenSide),
-    [houseType, elements, tipo6FrontSide, tipo3OpenSide],
+    () => buildOpeningsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
+    [houseType, tipo6FrontSide, tipo3OpenSide],
   );
   if (!houseType) return null;
 
@@ -359,7 +357,7 @@ function RoofMesh() {
   );
 }
 
-function HouseElementMesh({element}: { element: HouseElement }) {
+function HouseElementMesh({element}: { element: SceneOpening }) {
   const elementWidth = Math.max(element.width * HOUSE_3D_VIEWER_SCALE, 1);
   const elementHeight = Math.max(element.height * HOUSE_3D_VIEWER_SCALE, 1);
   const elementDepth = 2;

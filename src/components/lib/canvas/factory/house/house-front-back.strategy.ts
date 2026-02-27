@@ -2,7 +2,7 @@ import {Canvas as FabricCanvas, FabricObject, Group, Polygon, Polyline, Rect} fr
 
 import {createPilotis} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
-import {HOUSE_2D_STYLE} from '@/config.ts';
+import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 export function createHouseFrontBack(
@@ -37,7 +37,7 @@ export function createHouseFrontBack(
       {x: diagW, y: diagH2},
       {x: 0, y: diagH2},
     ],
-    {fill: HOUSE_2D_STYLE.surfaceBackgroundColor, strokeWidth: 0, left: 0, top: bodyH - diagH2},
+    {fill: HOUSE_2D_STYLE.panelBackgroundColor, strokeWidth: 0, left: 0, top: bodyH - diagH2},
   );
 
   const chapelW = HOUSE_DIMENSIONS.structure.chapelWidth * s;
@@ -50,7 +50,7 @@ export function createHouseFrontBack(
       {x: chapelW, y: bodyH},
       {x: 0, y: bodyH},
     ],
-    {fill: HOUSE_2D_STYLE.surfaceBackgroundColor, strokeWidth: 0, left: diagW, top: 0},
+    {fill: HOUSE_2D_STYLE.panelBackgroundColor, strokeWidth: 0, left: diagW, top: 0},
   );
 
   const rightDiagFill = new Polygon(
@@ -60,7 +60,7 @@ export function createHouseFrontBack(
       {x: diagW, y: diagH2},
       {x: 0, y: diagH2},
     ],
-    {fill: HOUSE_2D_STYLE.surfaceBackgroundColor, strokeWidth: 0, left: diagW + chapelW, top: bodyH - diagH2},
+    {fill: HOUSE_2D_STYLE.panelBackgroundColor, strokeWidth: 0, left: diagW + chapelW, top: bodyH - diagH2},
   );
 
   const bodyStroke = new Polyline(

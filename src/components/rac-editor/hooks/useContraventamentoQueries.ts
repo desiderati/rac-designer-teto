@@ -7,8 +7,8 @@ import {
   createContraventamentoEditorState,
   isContraventamentoDestinationEligible,
   parsePilotiGridPosition,
-} from '@/domain/use-cases/house-contraventamento-use-cases.ts';
-import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
+} from '@/components/lib/helpers/house-contraventamento.ts';
+import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {ContraventamentoOrigin, toCanvasObject} from '@/components/lib/canvas';
 
@@ -44,7 +44,7 @@ export function useContraventamentoQueries({
         objects: group.getObjects() as FabricObject[],
         col,
         onResolvedSide: (object, side) => {
-          (object as ContraventamentoObjectCandidate & {contraventamentoSide?: unknown}).contraventamentoSide = side;
+          (object as ContraventamentoObjectCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;
         },
       });
     }, []);

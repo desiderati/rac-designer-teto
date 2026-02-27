@@ -1,7 +1,7 @@
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/lib/canvas';
 import {HOUSE_3D_SCALE} from '@/components/lib/3d/constants.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
-import {HouseElement, HouseType} from '@/shared/types/house.ts';
+import {HouseType} from '@/shared/types/house.ts';
 
 export interface SceneOpening {
   id: string;
@@ -15,7 +15,6 @@ export interface SceneOpening {
 
 export function buildOpeningsFromCanvasModel(
   houseType: HouseType,
-  rawElements: HouseElement[],
   tipo6FrontSide?: 'top' | 'bottom' | null,
   tipo3OpenSide?: 'left' | 'right' | null,
 ): SceneOpening[] {
@@ -96,12 +95,8 @@ export function buildOpeningsFromCanvasModel(
     return openings;
   }
 
-  const hasLeftDoor = rawElements.some((e) => e.type === 'door' && e.face === 'left');
-  const hasRightDoor = rawElements.some((e) => e.type === 'door' && e.face === 'right');
-  const inferredOpenSide: 'left' | 'right' = hasLeftDoor ? 'left' : hasRightDoor ? 'right' : 'right';
-  const openSide: 'left' | 'right' = tipo3OpenSide === 'left' || tipo3OpenSide === 'right'
-    ? tipo3OpenSide
-    : inferredOpenSide;
+  const openSide: 'left' | 'right' =
+    tipo3OpenSide === 'left' || tipo3OpenSide === 'right' ? tipo3OpenSide : 'right';
 
   openings.push(
     {

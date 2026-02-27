@@ -1,4 +1,4 @@
-import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
+import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
 
 export interface PilotiLikeObject {
   isPilotiCircle?: boolean;

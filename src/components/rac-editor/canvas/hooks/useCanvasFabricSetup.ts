@@ -1,14 +1,14 @@
 import {MutableRefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, PencilBrush} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, toCanvasObject} from '@/components/lib/canvas';
-import {buildPilotiSelectionHandler} from '../helpers/canvas-piloti-selection.ts';
+import {buildPilotiSelectionHandler} from '../../../lib/canvas/canvas-piloti-selection.ts';
 import {CanvasObject, CanvasPointerPayload} from '@/components/lib/canvas/canvas.ts';
 import {useCanvasSelectionEvents} from './useCanvasSelectionEvents.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts.ts';
 import {useCanvasEditorEvents} from './useCanvasEditorEvents.ts';
 import {linearSelection, PilotiCanvasSelection, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;

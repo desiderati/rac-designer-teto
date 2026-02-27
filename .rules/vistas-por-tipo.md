@@ -31,19 +31,19 @@ Implementação de domínio extraída:
 
 1. os limites e decisões de `canAddView` estão no caso de uso `house-use-cases`;
 2. a camada de aplicação (`house-application`) opera via interface `HouseRepository`;
-3. operações de ciclo de vida de vistas (`register/remove/cleanup/rebuild sideAssignments`) foram extraídas para
+3. operações de ciclo de vida de vistas (`register/remove/cleanup/rebuild sideMappings`) foram extraídas para
    `house-views-*`;
 4. a normalização de rebuild/import (inferência de `houseViewType`/`side` + deduplicação de `instanceId`) está em
    `house-views-rebuild-use-cases`;
 5. regras de layout de vistas (lados disponíveis, auto-seleção de lado e slots pré-atribuídos) estão em
    `house-view-layout-use-cases`;
     - a decisão de inserção (`bloqueio`, `inserção direta`, `abrir seletor de instância` ou `abrir seletor de lado`) é
-      centralizada em `resolveViewInsertionRequest`;
+      centralizada em `resolveHouseViewInsertion`;
     - o cálculo de empilhamento vertical inicial (planta em cima e vista inicial embaixo) é centralizado em
       `calculateStackedViewPositions`;
 6. regras de marcador da porta na planta (`top`) foram extraídas para `house-top-door-marker-use-cases`;
     - inclui inferência de lado, cálculo de dimensões efetivas do corpo, cálculo de posição e patch visual por marcador;
-7. estruturas iniciais de `views` e `sideAssignments` vazias foram extraídas para `house-state-use-cases`;
+7. estruturas iniciais de `views` e `sideMappings` vazias foram extraídas para `house-state-use-cases`;
 8. disponibilidade global de vistas (lista de vistas disponíveis + checagem de limite por tipo) foi centralizada em
    `house-use-cases`;
 9. consultas genéricas de views (`hasAnyView` e coleta de grupos) foram extraídas para `house-views-use-cases`;
@@ -118,11 +118,11 @@ Implementação de domínio extraída:
 - `src/lib/domain/house-use-cases.ts`
 - `src/lib/domain/house-application.ts`
 - `src/lib/domain/house-repository.ts`
-- `src/lib/domain/house-views-use-cases.ts`
+- `src/lib/domain/house-views.use-case.ts`
 - `src/lib/domain/house-views-application.ts`
 - `src/lib/domain/house-views-repository.ts`
-- `src/lib/domain/house-views-rebuild-use-cases.ts`
-- `src/lib/domain/house-view-layout-use-cases.ts`
+- `src/lib/domain/house-views-rebuild.use-case.ts`
+- `src/lib/domain/house-views-layout.use-case.ts`
 - `src/lib/domain/house-top-door-marker-use-cases.ts`
 - `src/lib/domain/house-view-metadata-use-cases.ts`
 - `src/lib/domain/house-view-label-use-cases.ts`

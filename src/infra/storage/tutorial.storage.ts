@@ -1,4 +1,4 @@
-import {STORAGE_KEYS} from '@/config.ts';
+import {STORAGE_KEYS} from '@/shared/config.ts';
 
 const KEYS = {
   tutorialCompleted: STORAGE_KEYS.tutorialCompleted,

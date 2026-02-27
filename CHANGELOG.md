@@ -1,0 +1,326 @@
+# CHANGELOG
+
+## 2026-02-27
+
+### Resumo geral da conversa
+
+- Refatoração ampla de padronização no projeto `rac-designer-teto`.
+- Centralização de constantes e estilos.
+- Correções de bugs de renderização em vista planta/top e terreno.
+- Simplificação arquitetural progressiva, removendo abstrações consideradas desnecessárias no cenário atual.
+
+### Padronização de código e constantes
+
+- Solicitação para substituir aspas duplas por aspas simples em `.ts` e `.tsx`, sem quebrar comportamento.
+- Solicitação para mapear valores chumbados e consolidar defaults/constantes em arquivos centrais.
+- Alinhamento de nomenclatura para nomes autoexplicativos e redução de duplicação de variáveis entre arquivos.
+- Migração de estilos para objetos centralizados de configuração.
+- Renomeação de sufixo de cor de `Hex` para `Color` para maior clareza semântica.
+
+### Ajustes de configuração de estilo (canvas)
+
+- Consolidação de configurações em estruturas únicas de estilo.
+- Evolução de `CANVAS_STYLE_COLORS` e `CANVAS_TEXT_DEFAULTS` para um modelo unificado em `CANVAS_STYLE`.
+- Consolidação e renomeação para `CANVAS_ELEMENT_STYLE`.
+- Unificação progressiva de `fontSize`, `strokeColor`, `fillColor` e `strokeWidth` segundo regras discutidas.
+- Normalização de `fontSize` para valor único (`15px`) conforme solicitado.
+- Introdução/ajuste de campos por tipo de elemento para `strokeColor`.
+- Unificação posterior de `strokeWidth` para valor único conforme decisão da conversa.
+
+### Tipagem e casts Fabric
+
+- Normalização do uso de casts para objetos de canvas com helpers:
+- `toCanvasGroup(group: Group): CanvasGroup`
+- `toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null`
+- Aplicação desse padrão em pontos amplos do código para reduzir cast direto espalhado.
+
+### Dimensões 2D/3D e documentação
+
+- Unificação de dimensões estruturais em arquivo central (`house-dimensions.ts`).
+- Documentação das variáveis de dimensão em português.
+- Ajustes de legibilidade e explicações de parâmetros como:
+- `frontBackPanelOffsetRatio`
+- `segments` do terreno
+- fatores de escala do viewer 3D (`HOUSE_3D_SCALE`, `VIEWER_MODEL_SCALE`, etc.).
+- Correções de texto/documentação para acentuação em português.
+
+### Correções funcionais e bugs discutidos
+
+- Correção de marcador de porta na vista top que não aparecia.
+- Causa identificada e tratada: inconsistência de propriedade entre `doorMarkerSide` e `markerSide`.
+- Correção de marcador de porta top fora de posição.
+- Ajuste para usar geometria renderizada da porta (consistente com fórmulas das vistas), em vez de coordenada bruta
+  incompatível.
+- Ajustes de cenário envolvendo atualização de terreno (`createGroundElements`/`updateGroundInGroup`) e timing de
+  chamada após criação de vistas.
+- Discussões e ajustes em stroke de piloti/contraventamento durante investigação visual.
+
+### Limpeza de estado de elementos da casa
+
+- Decisão de remover o estado de `HouseElement` do estado principal da casa.
+- Remoção de referências a `HouseElement`, `HouseElementDraft` e fluxo associado de elementos no domínio/manager/UI.
+- Remoção de módulos antigos relacionados a `house-elements` e seus testes, quando ficaram órfãos.
+- Ajustes no viewer/mapper 3D para operar sem depender desse estado removido.
+
+### Discussão arquitetural e decisões finais
+
+- Debate sobre `Port/Adapter`, `HouseAggregate` e papel do `HouseManager`.
+- Conclusão pragmática para o contexto atual:
+- manter apenas abstrações com ganho real imediato.
+- Evolução acordada para facilitar persistência futura:
+- criação de `HousePersistencePort`.
+- implementação inicial `InMemoryHousePersistence` para manter estado da casa em memória.
+- Remoção de `HouseAggregate` por baixa relação custo/benefício no estado atual do projeto.
+- Remoção de `house-ports.ts`, substituindo aliases por tipos concretos (`HouseRepository`/`HouseViewsRepository`)
+  diretamente no `HouseManager`.
+
+### Itens novos/alterados relevantes no final da conversa
+
+- `src/domain/house-persistence-port.ts` criado.
+- `src/infra/persistence/in-memory-house-persistence.ts` criado.
+- `src/infra/persistence/in-memory-house-persistence.smoke.test.ts` criado.
+- `src/domain/house-aggregate.ts` removido.
+- `src/domain/house-ports.ts` removido.
+- `src/components/lib/house-manager.ts` atualizado para persistência via porta em memória e sem aggregate.
+
+### Validações executadas ao longo do chat
+
+- Execuções repetidas de `build` com sucesso após correções incrementais.
+- Execuções de `tsc --noEmit` com sucesso após ajustes de tipagem.
+- Smoke tests direcionados para fluxos alterados com sucesso, incluindo:
+- `house-manager`
+- `house-top-door-marker`
+- `openings-mapper`
+- `in-memory-house-persistence`
+
+### Estado final consolidado
+
+- Arquitetura simplificada, com menos camadas anêmicas.
+- Persistência preparada para migração futura via `HousePersistencePort`.
+- Bugs críticos discutidos na planta/top e mapeamento de porta tratados.
+- Configuração e nomenclatura mais consistentes e centralizadas.
+
+### Atualização desta conversa (House Factory Strategies)
+
+- Solicitação atendida para criar Strategy para cada elemento/vista definido no `House Factory` da casa.
+- Evolução do contrato de strategy em `src/lib/canvas/factory/elements/element-strategy.ts`:
+- `ElementStrategy` passou a aceitar `options` opcionais em `create(canvas, options?)`.
+- Implementação de registry de strategies por vista em `src/lib/canvas/factory/house-factory.ts`:
+- `createHouseViewStrategies(factories)` cobrindo `top`, `front`, `back`, `side1`, `side2`.
+- `getHouseViewStrategy(viewType, factories?)` para resolver Strategy por tipo de vista.
+- Refatoração de `src/components/rac-editor/helpers/house-view-creation.ts`:
+- remoção do `switch` manual por tipo de vista.
+- delegação para `getHouseViewStrategy(...).create(canvas, { side })`.
+- Compatibilidade preservada com as factories atuais (`createHouseTop`, `createHouseFrontBack`, `createHouseSide`),
+  mantendo mesma regra de orientação por `side`.
+
+### Validação desta conversa
+
+- Teste executado com sucesso:
+- `npm run test -- src/components/rac-editor/helpers/house-view-creation.smoke.test.ts`
+- Resultado: `2 tests passed`.
+
+### Atualização desta conversa (CanvasObject / customProps)
+
+- Solicitação para recriar a lista de propriedades customizadas usando apenas propriedades de `CanvasObject`, sem
+  incluir propriedades herdadas de `FabricObject`.
+- Definição/uso da tipagem: `CanvasObjectProps = Exclude<keyof CanvasObject, keyof FabricObject>`.
+- Ajuste da lista de serialização para conter apenas propriedades custom do domínio (ex.: `myType`, `houseViewType`,
+  `pilotiId`, `isContraventamento`, etc.), removendo itens de `FabricObject`.
+- Esclarecimento técnico registrado:
+- `CanvasObjectProps` é apenas tipo (compile-time) e não substitui, sozinho, a lista de strings em runtime.
+- A abordagem correta é manter o array runtime tipado com `CanvasObjectProps`.
+- Discussão sobre naming da lista (`customProps` vs `canvasObjectProps`), com foco em tipagem forte e sem incluir campos
+  do Fabric.
+- Solicitação atendida para ordenar as strings da lista na mesma sequência em que as propriedades custom aparecem em
+  `CanvasObject`.
+- Resultado esperado da conversa:
+- serialização com lista de propriedades custom tipada;
+- sem dependência de campos de `FabricObject`;
+- ordem do array alinhada com a declaração de `CanvasObject`.
+
+### Atualização desta conversa (correção de `HouseElement`)
+
+- Solicitação para corrigir sintaxe inválida de TypeScript em definição de tipo/interface:
+- trecho enviado com `export interface HouseElement = HouseElementDraft & { ... }`.
+- Correção registrada com duas opções válidas:
+- `export type HouseElement = HouseElementDraft & { id: string }`
+- `export interface HouseElement extends HouseElementDraft { id: string }`
+- Observação aplicada na resposta: ao usar herança/interseção com `HouseElementDraft`, não é necessário repetir campos
+  já existentes (`type`, `face`, `x`, `y`, `width`, `height`).
+
+### Conversa registrada neste chat
+
+1. Foi analisado o arquivo `useObjectEditorActions.ts` (
+   `rac-designer-teto/src/components/rac-editor/modals/editors/generic/hooks/useObjectEditorActions.ts`).
+2. Foi esclarecido que o artefato não é uma classe, e sim um hook React (`useObjectEditorActions`).
+3. Foi explicado o comportamento principal do hook:
+    - `handleObjectApply`: aplica nome/cor no objeto selecionado, salva histórico e exibe mensagem.
+    - `resolveWallEditorColor`: resolve a cor atual do objeto para o editor.
+4. Foi avaliada a complexidade:
+    - O hook em si está simples.
+    - A função `applyWallEditorChange` está no limite (ou levemente acima) de complexidade ideal para manutenção, por
+      concentrar múltiplas responsabilidades e vários ramos condicionais.
+5. Pontos de atenção levantados:
+    - Cor padrão `#00000` (5 dígitos) inválida; sugerido `#000000`.
+    - Uso de `objectSelection.object` sem guarda nula direta em `handleObjectApply`, dependendo de contrato externo de
+      chamada.
+6. Foi respondida a dúvida sobre label não aumentar ao redimensionar grupo (`normalizeWallGroupToLength`):
+    - `IText` no Fabric não cresce visualmente via `width/height`.
+    - Tamanho visual depende de `fontSize` (ou escala).
+    - `scaleX/scaleY` sendo resetados para `1` no label e no grupo impedem ganho visual por escala.
+    - Sugestão técnica: ajustar `fontSize` proporcionalmente (ou usar escala), e considerar `Textbox` se a intenção for
+      controle de quebra por largura.
+
+### Status
+
+- Nenhuma alteração de código foi aplicada automaticamente no projeto durante esta conversa.
+- Este arquivo foi criado para documentar o conteúdo discutido no chat.
+
+### Contexto do chamado
+
+- Problema reportado: o editor de `Linha`/`Seta` não carregava o valor da `label` ao abrir e a mudança de cor não era
+  aplicada corretamente ao selecionar nova cor.
+- Arquivos inicialmente apontados para investigação:
+    - `src/lib/canvas/factory/elements-factory.ts`
+    - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+    - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
+
+### Diagnóstico realizado
+
+- O fluxo de `Piloti` (`usePilotiEditorLogic.ts`) não era a causa do problema de Linha/Seta.
+- O estado inicial do editor de Linha/Seta vinha de `readLineArrowEditorState` (`src/lib/canvas/line-arrow-editor.ts`).
+- Foram identificados problemas de compatibilidade e leitura:
+    - Leitura de label sem compatibilidade completa com objetos legados (`lineArrowLabel`).
+    - Leitura de cor com cobertura incompleta para estruturas aninhadas de `group`.
+- Na aplicação de alterações (hooks de ações):
+    - Atualização de cor não era robusta para filhos aninhados.
+    - Em alguns cenários de objeto agrupado, a estratégia de criação/atualização de label podia prejudicar o fluxo de
+      edição posterior.
+
+### Alterações implementadas
+
+#### 1) Leitura de estado do editor (label + cor)
+
+- Arquivo: `src/lib/canvas/line-arrow-editor.ts`
+- Ajustes:
+    - Suporte a `lineLabel`, `arrowLabel` e `lineArrowLabel`.
+    - Leitura recursiva/achatada de filhos para encontrar label e cor em estruturas aninhadas.
+    - Fallback de cor para cenários de `arrow` e `line` fora de `group`.
+
+#### 2) Aplicação de mudanças no editor de Linha
+
+- Arquivo: `src/components/rac-editor/hooks/useLineEditorActions.ts`
+- Ajustes:
+    - Detecção de label com compatibilidade para tipos legados.
+    - Atualização de cor da linha de forma recursiva em grupos.
+    - Quando o objeto já é `group`, adiciona label no próprio grupo (sem re-encapsular desnecessariamente).
+    - Normalização do `myType` da label atualizada para `lineLabel`.
+
+#### 3) Aplicação de mudanças no editor de Seta
+
+- Arquivo: `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+- Ajustes:
+    - Detecção de label com compatibilidade para tipos legados.
+    - Atualização de cor recursiva para `rect`/`triangle`/`line` dentro de grupos.
+    - Quando o objeto já é `group`, adiciona label no próprio grupo.
+    - Normalização do `myType` da label atualizada para `arrowLabel`.
+
+#### 4) Compatibilidade de normalização de escala com labels legados
+
+- Arquivo: `src/lib/canvas/factory/elements-factory.ts`
+- Ajustes:
+    - `normalizeLineGroupScaling` passou a considerar `lineArrowLabel` junto de `lineLabel`.
+    - `normalizeArrowGroupToLength` passou a considerar `lineArrowLabel` junto de `arrowLabel`.
+
+### Arquivos alterados
+
+- `src/lib/canvas/line-arrow-editor.ts`
+- `src/components/rac-editor/hooks/useLineEditorActions.ts`
+- `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+- `src/lib/canvas/factory/elements-factory.ts`
+
+### Validação executada durante o chat
+
+- `npm run test -- line-arrow-editor.smoke.test.ts`
+    - Resultado final: **passou** (3/3).
+- `npm run lint`
+    - Resultado: **falhou**, com diversos erros preexistentes no projeto (não relacionados diretamente a este ajuste).
+- `npm run test -- elements-factory.smoke.test.ts`
+    - Resultado: **falhou** por expectativas de testes desalinhadas com o estado atual da factory (ex.: expectativa de
+      placeholder label que não existe na criação atual de line/arrow/dimension).
+
+### Observações finais
+
+- A cor e a label do editor de Linha/Seta agora são lidas e aplicadas com maior robustez para estruturas atuais e
+  legadas.
+- O fluxo de Piloti não foi alterado, pois não fazia parte da causa raiz identificada para este problema.
+
+### Atualização desta conversa (refatoração incremental + correções Linha/Seta)
+
+#### Diretrizes alinhadas durante o chat
+
+- Continuar refatoração sem interrupção em `RacEditor` e `Canvas`.
+- Manter atualizados os arquivos de regra (`.rules`) e os logs de execução (`.codex`) a cada incremento relevante.
+- Executar validações após cada etapa para reduzir risco de regressão funcional.
+- Corrigir problemas de lint/tipagem por ajuste de código, sem desabilitar regras.
+
+#### Documentação e organização de hooks
+
+- `useEditorDraft` recebeu JSDoc completo e depois foi reescrito em linguagem mais didática (foco em programador
+  júnior), explicando claramente o conceito de `draft` como rascunho temporário.
+- Separação do fluxo combinado de Linha/Seta:
+  - remoção do hook combinado anterior;
+  - criação de hooks dedicados para Linha e Seta;
+  - ajuste de wiring no `RacEditor` para orquestrar os dois fluxos sem mudar contrato de tela.
+
+#### Ajuste solicitado de arquitetura (apply separado por tipo)
+
+- Foi removida a abordagem com apply combinado compartilhado.
+- O apply passou a ficar separado por tipo (Linha e Seta), em hooks específicos.
+- Resultado: menor acoplamento entre comportamentos e melhor manutenção por responsabilidade única.
+
+#### Redução de duplicação de comportamento (scaling)
+
+- Linha:
+  - centralização da regra longitudinal de escala em helper único no factory;
+  - reutilização desse helper no apply da Linha.
+- Seta:
+  - centralização da regra longitudinal de escala em helper único no factory;
+  - reutilização dessa regra no apply da Seta.
+- Objetivo atendido: evitar duplicação de lógica entre criação (`createLine`/`createArrow`) e edição (`apply`).
+
+#### Bugs reportados e corrigidos (Linha/Seta)
+
+- Corrigidos os 4 pontos reportados:
+  1. Linha/Seta não esticavam longitudinalmente em cenários de redimensionamento após edição.
+  2. Cor da Linha não era aplicada corretamente em alguns fluxos de editor.
+  3. Editor podia abrir com texto em branco mesmo havendo label definida.
+  4. Primeira abertura podia não marcar a cor padrão.
+- Restrição respeitada: sem alterar a regra de posicionamento da label.
+
+#### Ajustes técnicos aplicados para estabilizar o fluxo
+
+- Restauração de placeholder `" "` na criação de `line`/`arrow` (e `dimensionLabel`) para manter contrato de
+  seleção/edição.
+- Unificação de `myType` de label para `lineArrowLabel` com compatibilidade para legados (`lineLabel`/`arrowLabel`).
+- Leitura de estado do editor de Linha/Seta (`line-arrow-editor`) com busca recursiva em grupos aninhados.
+- Normalização de cores default legadas (`black`/`#333`) para `#000000` no estado inicial do editor.
+- Ajustes de fallback para objetos legados sem label, adicionando label no próprio grupo sem quebrar escala.
+
+#### Arquivos principais envolvidos nesta rodada
+
+- `src/components/rac-editor/hooks/useLineEditorActions.ts`
+- `src/components/rac-editor/hooks/useArrowEditorActions.ts`
+- `src/lib/canvas/factory/elements-factory.ts`
+- `src/lib/canvas/line-arrow-editor.ts`
+- `.rules/canvas.md`
+- `.codex/refactoring-2026-02-20/regression-run.md`
+
+#### Validação consolidada da rodada
+
+- `npm run test -- --run`: **PASS** (suite verde na rodada final).
+- `npm run build`: **PASS**.
+- `npm run test:e2e -- --workers=1`: **PASS** (16/16).
+- `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`: **FAIL** por pendências preexistentes fora deste
+  escopo (notadamente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`).

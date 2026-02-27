@@ -2,9 +2,9 @@ import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Pol
 import {
   PILOTI_BASE_HEIGHT_PX,
   PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+  PILOTI_DEFAULT_NIVEL,
   PILOTI_MASTER_FILL_COLOR,
   PILOTI_MASTER_STROKE_COLOR,
-  PILOTI_DEFAULT_NIVEL,
 } from './constants.ts';
 import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {
@@ -15,7 +15,7 @@ import {
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE
-} from '@/config.ts';
+} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from "@/components/lib/house-dimensions.ts";
 
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
@@ -476,7 +476,13 @@ export function createPilotis(
 
     // Add diagonal stripe overlay for bottom 2/3
     const stripeOverlay =
-      createPilotiStripeOverlay(pilotiId, margin + i * step, bodyH + floorH + floorBeanH, pilotW, pilotH);
+      createPilotiStripeOverlay(
+        pilotiId,
+        margin + (PILOTI_STYLE.selectedStrokeWidth / 2) + i * step,
+        bodyH + floorH + floorBeanH,
+        pilotW,
+        pilotH
+      );
     pilots.push(stripeOverlay);
   }
 

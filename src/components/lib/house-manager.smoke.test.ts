@@ -99,13 +99,13 @@ describe('houseManager smoke flows', () => {
     expect(houseManager.hasOtherViews()).toBe(true);
     expect(houseManager.hasAnyView()).toBe(true);
     expect(houseManager.getAllGroups()).toHaveLength(1);
-    expect(houseManager.getHouse()?.sideAssignments.top).toBe('front');
+    expect(houseManager.getHouse()?.sideMappings.top).toBe('front');
 
     houseManager.removeView(group as any);
     expect(houseManager.getViewCount('front')).toBe(0);
     expect(houseManager.hasAnyView()).toBe(false);
     expect(houseManager.getAllGroups()).toHaveLength(0);
-    expect(houseManager.getHouse()?.sideAssignments.top).toBeNull();
+    expect(houseManager.getHouse()?.sideMappings.top).toBeNull();
   });
 
   it('rebuilds views and piloti data from current canvas objects (import-like flow)', () => {
@@ -151,32 +151,6 @@ describe('houseManager smoke flows', () => {
     expect(houseManager.getHouseType()).toBeNull();
   });
 
-  it('manages default/add/update/remove house elements', () => {
-    houseManager.setHouseType('tipo3');
-    houseManager.initializeDefaultElements();
-
-    const initialized = houseManager.getElements();
-    expect(initialized).toHaveLength(4);
-    expect(initialized.some((element) => element.type === 'door' && element.face === 'right')).toBe(true);
-
-    const firstId = initialized[0].id;
-    houseManager.updateElement(firstId, {x: 777});
-    expect(houseManager.getElements().find((element) => element.id === firstId)?.x).toBe(777);
-
-    houseManager.addElement({
-      type: 'window',
-      face: 'left',
-      x: 10,
-      y: 10,
-      width: 20,
-      height: 20,
-    });
-    expect(houseManager.getElements()).toHaveLength(5);
-
-    houseManager.removeElement(firstId);
-    expect(houseManager.getElements().find((element) => element.id === firstId)).toBeUndefined();
-  });
-
   it('positions top door marker using rendered door geometry instead of stored door coordinates', () => {
     const topMarkerTop = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'top', visible: false});
     const topMarkerBottom = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'bottom', visible: false});
@@ -197,7 +171,6 @@ describe('houseManager smoke flows', () => {
     const canvas = createMockCanvas([topGroup, frontGroup]);
     houseManager.initialize(canvas as any);
     houseManager.setHouseType('tipo6');
-    houseManager.initializeDefaultElements();
 
     houseManager.registerView('top', topGroup as any);
     houseManager.registerView('front', frontGroup as any, 'bottom');

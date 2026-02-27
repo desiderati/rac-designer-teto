@@ -8,14 +8,14 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCamera, faCompress, faExpand, faPalette, faRotateRight, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import type {HouseElement, HousePiloti, HouseType} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseType} from '@/shared/types/house.ts';
 import {useHouseStoreVersion} from '@/components/lib/house-store.ts';
 import {
   Contraventamento3DData,
   parseContraventamentosFromTopGroup
 } from '@/components/lib/3d/contraventamento-parser.ts';
 import {toast} from 'sonner';
-import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/config.ts';
+import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -26,7 +26,6 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const houseVersion = useHouseStoreVersion();
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [pilotis, setPilotis] = useState<Record<string, HousePiloti>>({});
-  const [elements, setElements] = useState<HouseElement[]>([]);
   const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
@@ -41,7 +40,6 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
     if (!house) {
       setHouseType(null);
       setPilotis({});
-      setElements([]);
       setTipo6FrontSide(null);
       setTipo3OpenSide(null);
       setContraventamentos([]);
@@ -50,11 +48,10 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
 
     setHouseType(house.houseType);
     setPilotis({...house.pilotis});
-    setElements([...houseManager.getElements()]);
     if (house.houseType === 'tipo6') {
       const frontSide: 'top' | 'bottom' | null =
-        house.sideAssignments.top === 'front' ? 'top' :
-          house.sideAssignments.bottom === 'front' ? 'bottom' :
+        house.sideMappings.top === 'front' ? 'top' :
+          house.sideMappings.bottom === 'front' ? 'bottom' :
             null;
       setTipo6FrontSide(frontSide);
     } else {
@@ -64,8 +61,8 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       // 3D scene lateral axis is mirrored relative to 2D side assignments.
       // Keep "quadrado aberto" (side2) on the same semantic side selected in canvas.
       const openSide: 'left' | 'right' | null =
-        house.sideAssignments.left === 'side2' ? 'right' :
-          house.sideAssignments.right === 'side2' ? 'left' :
+        house.sideMappings.left === 'side2' ? 'right' :
+          house.sideMappings.right === 'side2' ? 'left' :
             null;
       setTipo3OpenSide(openSide);
     } else {
@@ -252,7 +249,6 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 <House3DScene
                   houseType={houseType}
                   pilotis={pilotis}
-                  elements={elements}
                   contraventamentos={contraventamentos}
                   wallColor={wallColor}
                   tipo6FrontSide={tipo6FrontSide}

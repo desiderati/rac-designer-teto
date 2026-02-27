@@ -3,7 +3,7 @@ import {jsPDF} from 'jspdf';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
-import {TOAST_MESSAGES} from '@/config.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseRacEditorPdfExportActionArgs {
   getCanvas: () => CanvasHandle['canvas'];

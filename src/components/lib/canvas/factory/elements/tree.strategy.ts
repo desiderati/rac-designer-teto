@@ -1,5 +1,5 @@
 import {Canvas as FabricCanvas, Circle, Group, Text} from 'fabric';
-import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
 

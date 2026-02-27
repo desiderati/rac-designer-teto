@@ -1,5 +1,5 @@
 import {readSettingsStorage, writeSettingsStorage} from '@/infra/storage/settings.storage.ts';
-import {APP_SETTINGS_DEFAULTS} from '@/config.ts';
+import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
 
 export interface AppSettings {
   autoNavigatePiloti: boolean;

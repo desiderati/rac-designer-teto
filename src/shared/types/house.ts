@@ -1,12 +1,11 @@
-import {HOUSE_DEFAULTS} from '@/config.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 
 export interface HouseState<TGroup = unknown> {
   id: string;
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
-  elements: HouseElement[];
-  views: Record<HouseViewType, HouseViewInstance<TGroup>[]>;
-  sideAssignments: Record<HouseSide, HouseViewType | null>;
+  views: HouseViews<TGroup>;
+  sideMappings: HouseSideMapping;
   preAssignedSides: Record<string, HouseSide>;
 }
 
@@ -16,7 +15,14 @@ export type HouseTypeExcludeNull = Exclude<HouseType, null>;
 
 export type HouseSide = 'top' | 'bottom' | 'left' | 'right';
 
-export type HouseSideAssignments = Record<HouseSide, HouseViewType | null>;
+export type HouseSideMapping = Record<HouseSide, HouseViewType | null>;
+
+export const HOUSE_SIDE_MAPPINGS: Record<HouseSide, HouseViewType[]> = {
+  top: ['front', 'back'],
+  bottom: ['front', 'back'],
+  left: ['side1', 'side2'],
+  right: ['side1', 'side2'],
+};
 
 export type HousePreAssignedSides = Record<string, HouseSide>;
 
@@ -68,13 +74,6 @@ export const HOUSE_VIEW_LIMITS: Record<HouseTypeExcludeNull, Record<HouseViewTyp
   },
 };
 
-export const HOUSE_SIDE_VIEW_MAPPING: Record<HouseSide, HouseViewType[]> = {
-  top: ['front', 'back'],
-  bottom: ['front', 'back'],
-  left: ['side1', 'side2'],
-  right: ['side1', 'side2'],
-};
-
 export const HOUSE_OPPOSITE_VIEW: Record<HouseViewType, HouseViewType | null> = {
   top: null,
   front: 'back',
@@ -91,7 +90,45 @@ export interface HouseViewInstance<TGroup = unknown> {
   group: TGroup;
 }
 
+export type HouseViews<TGroup = unknown> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
+
 export type HouseViewSide = Record<HouseViewType, Array<{ side?: HouseSide; }>>;
+
+export type HouseViewInsertionDecision =
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit }
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly; side?: HouseSide }
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots }
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector; slots: HousePreAssignedSideDisplay[] }
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides }
+  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector };
+
+/**
+ * Resultado da decisão de inserção de uma nova vista de casa.
+ *
+ * Fluxo geral:
+ * 1) Se houver bloqueio definitivo, retorna `blocked_*` e o UI só informa o motivo.
+ * 2) Se houver caminho direto, retorna `add_direct` e a vista é adicionada sem modal.
+ * 3) Se exigir escolha do usuário, retorna `open_*_selector` para abrir o modal correto.
+ */
+export const HOUSE_VIEW_INSERTION_DECISION_TYPES = {
+  // Bloqueia quando o tipo de casa já atingiu o limite de vistas desse tipo.
+  blockedByViewLimit: 'blocked_limit',
+
+  // Adiciona imediatamente (não precisa escolher slot/instância ou lado).
+  addViewDirectly: 'add_direct',
+
+  // Bloqueia quando não há mais instâncias livres para o tipo de vista.
+  blockedByNoFreeInstanceSlots: 'blocked_no_instance_slots',
+
+  // Bloqueia quando não existe lado disponível para posicionar a vista.
+  blockedByNoAvailableSides: 'blocked_no_sides',
+
+  // Abre seletor para o usuário escolher qual instância/slot deseja usar.
+  openInstanceSlotSelector: 'open_instance_selector',
+
+  // Abre seletor para o usuário escolher o lado (left/right/top/bottom).
+  openSideSelector: 'open_side_selector',
+} as const;
 
 export interface HousePiloti {
   height: number;
@@ -107,23 +144,7 @@ export const DEFAULT_HOUSE_PILOTI: HousePiloti = {
 
 export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
-export type HouseElementType = 'window' | 'door';
-export type HouseElementFace = 'front' | 'back' | 'left' | 'right';
-
-export interface HouseElementDraft {
-  type: HouseElementType;
-  face: HouseElementFace;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface HouseElement extends HouseElementDraft {
-  id: string;
-}
-
 export interface HouseSnapshot {
   views: Record<HouseViewType, unknown[]>;
-  sideAssignments: Record<HouseSide, HouseViewType | null>;
+  sideMappings: Record<HouseSide, HouseViewType | null>;
 }

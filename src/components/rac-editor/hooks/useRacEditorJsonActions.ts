@@ -4,7 +4,7 @@ import {toast} from 'sonner';
 import type {CanvasHandle, ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {refreshHouseGroupsOnCanvas, removeContraventamentosFromGroup, toCanvasObject} from '@/components/lib/canvas';
-import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/config.ts';
+import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseRacEditorJsonActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

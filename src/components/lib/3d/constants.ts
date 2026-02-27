@@ -1,5 +1,5 @@
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/lib/canvas';
-import {HOUSE_DEFAULTS} from '@/config.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 export const HOUSE_3D_SCALE = HOUSE_DEFAULTS.viewScale; // Same scale used by createHouseTop

@@ -9,7 +9,7 @@ import {
 import type {ToolbarActionMap, ToolbarSubmenu, ToolbarViewCount} from './helpers/toolbar-types.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {TutorialHighlight} from '@/components/rac-editor/tutorial/Tutorial.tsx';
-import {TOOLBAR_THEME} from '@/config.ts';
+import {TOOLBAR_THEME} from '@/shared/config.ts';
 
 interface ToolbarMainMenuProps {
   actions: ToolbarActionMap;

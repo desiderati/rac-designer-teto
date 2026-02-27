@@ -1,6 +1,6 @@
 import {MutableRefObject, RefObject, useCallback} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
-import {getCanvasViewportOffset} from '@/components/rac-editor/canvas/helpers/canvas-screen-position.ts';
+import {getCanvasViewportOffset} from '@/components/lib/canvas/canvas-screen-position.ts';
 
 interface UseCanvasScreenProjectionArgs {
   containerRef: RefObject<HTMLDivElement | null>;

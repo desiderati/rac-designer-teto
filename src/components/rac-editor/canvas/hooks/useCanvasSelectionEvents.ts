@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
 import {getHintForObject, toCanvasObject} from '@/components/lib/canvas';
-import {findTopViewGroupCandidate} from '@/domain/use-cases/house-canvas-source-use-cases.ts';
+import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
-import {HOUSE_2D_STYLE, PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/config.ts';
+import {HOUSE_2D_STYLE, PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
 
 interface BindSelectionEventsArgs {
   canvas: FabricCanvas;

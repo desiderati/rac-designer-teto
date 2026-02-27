@@ -6,7 +6,7 @@ import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shar
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;

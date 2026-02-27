@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, Pattern, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
-import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 export const stairsStrategy: ElementStrategy<Rect> = {
   create(canvas: FabricCanvas): Rect {

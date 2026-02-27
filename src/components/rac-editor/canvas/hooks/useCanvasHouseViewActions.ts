@@ -5,17 +5,19 @@ import {NivelDefinition} from '@/components/rac-editor/modals/editors/NivelDefin
 import {
   shouldResetHouseTypeOnSideSelectorCancel,
   shouldTransitionToNivelDefinition
-} from '@/components/rac-editor/helpers/side-selector-flow.ts';
-import {createHouseGroupForView} from '@/components/rac-editor/helpers/house-view-creation.ts';
-import {getViewLabelForHouseType} from '@/domain/use-cases/house-view-label-use-cases.ts';
-import {
-  calculateStackedViewPositions,
-  resolveViewInsertionRequest
-} from '@/domain/use-cases/house-view-layout-use-cases.ts';
+} from '@/components/lib/house-side.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import type {HousePreAssignedSideDisplay, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {
+  HOUSE_VIEW_INSERTION_DECISION_TYPES,
+  type HousePreAssignedSideDisplay,
+  type HouseSide,
+  type HouseType,
+  HouseViewInsertionDecision,
+  type HouseViewType
+} from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
-import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES, VIEW_INSERTION_DECISION_TYPES} from '@/config.ts';
+import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {createHouseGroupForView, getViewLabelForHouseType} from "@/components/lib/house-view.ts";
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;
@@ -84,9 +86,9 @@ export function useCanvasHouseViewActions({
   const requestAddView =
     (viewType: HouseViewType) => {
 
-      const slots = houseManager.getPreAssignedSlots(viewType);
+      const slots = houseManager.getPreAssignedSides(viewType);
       const availableSides = houseManager.getAvailableSides(viewType);
-      const decision = resolveViewInsertionRequest({
+      const decision = resolveHouseViewInsertion({
         viewType,
         isAtLimit: houseManager.isViewAtLimit(viewType),
         preAssignedSides: slots,
@@ -94,34 +96,34 @@ export function useCanvasHouseViewActions({
       });
 
       switch (decision.type) {
-        case VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit: {
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit: {
           const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
           toast.error(TOAST_MESSAGES.houseViewLimitReached(label));
           return;
         }
 
-        case VIEW_INSERTION_DECISION_TYPES.addViewDirectly:
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly:
           addViewToCanvas(viewType, decision.side);
           return;
 
-        case VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots: {
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots: {
           const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
           toast.error(TOAST_MESSAGES.houseViewAllInstancesAlreadyOnCanvas(label));
           return;
         }
 
-        case VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector:
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector:
           setPendingViewType(viewType);
           setInstanceSlots(decision.slots);
           setSideSelectorMode('choose-instance');
           setSideSelectorOpen(true);
           return;
 
-        case VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides:
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides:
           toast.error(TOAST_MESSAGES.houseViewHasNoAvailableSide);
           return;
 
-        case VIEW_INSERTION_DECISION_TYPES.openSideSelector:
+        case HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector:
           setPendingViewType(viewType);
           setSideSelectorMode('position');
           setSideSelectorOpen(true);
@@ -138,7 +140,7 @@ export function useCanvasHouseViewActions({
     if (
       shouldTransitionToNivelDefinition({
         sideSelectorMode,
-        hasPreAssignedSlots: houseManager.hasPreAssignedSlots(),
+        hasPreAssignedSides: houseManager.hasPreAssignedSides(),
       })
     ) {
       // Initial positioning - open NivelDefinitionEditor instead of adding immediately
@@ -250,7 +252,7 @@ export function useCanvasHouseViewActions({
     if (
       shouldResetHouseTypeOnSideSelectorCancel({
         sideSelectorMode,
-        hasPreAssignedSlots: houseManager.hasPreAssignedSlots(),
+        hasPreAssignedSides: houseManager.hasPreAssignedSides(),
       })
     ) {
       houseManager.setHouseType(null);
@@ -272,9 +274,6 @@ export function useCanvasHouseViewActions({
       // Set the house type
       houseManager.setHouseType(type);
 
-      // Initialize default windows and doors
-      houseManager.initializeDefaultElements();
-
       // Open HouseSideSelector to position the initial view
       // tipo6: position the front view (top/bottom)
       // tipo3: position the open square (left/right)
@@ -294,4 +293,55 @@ export function useCanvasHouseViewActions({
     handleAddHouseView,
     handleHouseTypeSelected,
   };
+}
+
+function calculateStackedViewPositions(params: {
+  centerY: number;
+  topHeight: number;
+  bottomHeight: number;
+  gap: number;
+}): { topY: number; bottomY: number } {
+  const totalHeight = params.topHeight + params.gap + params.bottomHeight;
+  return {
+    topY: params.centerY - totalHeight / 2 + params.topHeight / 2,
+    bottomY: params.centerY + totalHeight / 2 - params.bottomHeight / 2,
+  };
+}
+
+function resolveHouseViewInsertion(params: {
+  viewType: HouseViewType;
+  isAtLimit: boolean;
+  preAssignedSides: HousePreAssignedSideDisplay[];
+  availableSides: HouseSide[];
+}): HouseViewInsertionDecision {
+  if (params.isAtLimit) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit};
+  }
+
+  if (params.viewType === 'top') {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly};
+  }
+
+  if (params.preAssignedSides.length > 0) {
+    const availableSlots = params.preAssignedSides.filter((slot) => !slot.onCanvas);
+    if (!availableSlots.length) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots};
+    }
+
+    if (availableSlots.length === 1) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: availableSlots[0].side};
+    }
+
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector, slots: params.preAssignedSides};
+  }
+
+  if (!params.availableSides.length) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides};
+  }
+
+  if (params.availableSides.length === 1) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: params.availableSides[0]};
+  }
+
+  return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector};
 }

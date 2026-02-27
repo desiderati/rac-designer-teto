@@ -39,7 +39,7 @@ test.describe('RAC views and limits', () => {
 
     expect(snapshot?.views.top.length).toBe(1);
     expect(snapshot?.views.front.length).toBe(1);
-    expect(snapshot?.sideAssignments.top).toBe('front');
+    expect(snapshot?.sideMappings.top).toBe('front');
   });
 
   test('tipo3: bloqueia adicionar quadrado aberto além do limite', async ({ page }) => {
@@ -67,8 +67,8 @@ test.describe('RAC views and limits', () => {
 
     const snapshot = await getHouseSnapshot(page);
     expect(snapshot?.views.back.length).toBe(2);
-    expect(snapshot?.sideAssignments.top).toBe('back');
-    expect(snapshot?.sideAssignments.bottom).toBe('back');
+    expect(snapshot?.sideMappings.top).toBe('back');
+    expect(snapshot?.sideMappings.bottom).toBe('back');
 
     await triggerHouseAction(page, 'Visão Lateral');
     await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
@@ -85,7 +85,7 @@ test.describe('RAC views and limits', () => {
     expect(removed).toBe(true);
     snapshot = await getHouseSnapshot(page);
     expect(snapshot?.views.back.length).toBe(0);
-    expect(Object.values(snapshot?.sideAssignments ?? {})).not.toContain('back');
+    expect(Object.values(snapshot?.sideMappings ?? {})).not.toContain('back');
 
     await triggerHouseAction(page, 'Visão Traseira');
     snapshot = await getHouseSnapshot(page);
@@ -128,12 +128,12 @@ test.describe('RAC views and limits', () => {
     expect(removed).toBe(true);
     snapshot = await getHouseSnapshot(page);
     expect(snapshot?.views.back.length).toBe(1);
-    expect(snapshot?.sideAssignments.top).toBeNull();
+    expect(snapshot?.sideMappings.top).toBeNull();
 
     await triggerHouseAction(page, 'Visão Lateral', 'Superior');
     snapshot = await getHouseSnapshot(page);
     expect(snapshot?.views.back.length).toBe(2);
-    expect(snapshot?.sideAssignments.top).toBe('back');
+    expect(snapshot?.sideMappings.top).toBe('back');
   });
 
   test('vistas tipo3: quadrado aberto libera novamente após remoção', async ({ page }) => {

@@ -2,7 +2,7 @@ import {Canvas as FabricCanvas, FabricObject, Group, Rect} from 'fabric';
 
 import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
-import {HOUSE_2D_STYLE} from '@/config.ts';
+import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 export function createHouseSide(
@@ -43,7 +43,7 @@ export function createHouseSide(
   const wall = new Rect({
     width: sideWidth,
     height: wallHeight,
-    fill: HOUSE_2D_STYLE.surfaceBackgroundColor,
+    fill: HOUSE_2D_STYLE.panelBackgroundColor,
     stroke: HOUSE_2D_STYLE.outlineStrokeColor,
     strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
     strokeUniform: true,

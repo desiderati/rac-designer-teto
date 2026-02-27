@@ -2,7 +2,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.tsx';
 import {cn} from '@/components/lib/utils.ts';
-import {TOOLBAR_THEME} from '@/config.ts';
+import {TOOLBAR_THEME} from '@/shared/config.ts';
 
 interface FabButtonProps {
   icon: IconDefinition;

@@ -1,5 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {PILOTI_MASTER_STYLE} from '@/config.ts';
+import {PILOTI_MASTER_STYLE} from '@/shared/config.ts';
 
 interface ContraventamentoSideIconProps {
   side: ContraventamentoSide;

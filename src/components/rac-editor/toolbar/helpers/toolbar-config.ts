@@ -33,7 +33,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import type {ToolbarActionMap} from './toolbar-types.ts';
-import {TOOLBAR_THEME} from '@/config.ts';
+import {TOOLBAR_THEME} from '@/shared/config.ts';
 
 export type HouseMenuLimitKey = 'front' | 'back' | 'side1' | 'side2';
 

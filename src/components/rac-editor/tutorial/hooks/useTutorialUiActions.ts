@@ -7,7 +7,7 @@ import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-scr
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {toCanvasObject} from '@/components/lib/canvas';
 import {TutorialBalloonPosition} from '@/components/rac-editor/tutorial/Tutorial.tsx';
-import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/config.ts';
+import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;

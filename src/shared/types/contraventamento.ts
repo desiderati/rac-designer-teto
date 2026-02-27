@@ -1,4 +1,4 @@
-import {HOUSE_DEFAULTS} from '@/config.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 
 export const CONTRAVENTAMENTO_COLUMN_SPACING = HOUSE_DIMENSIONS.piloti.columnSpacing * HOUSE_DEFAULTS.viewScale;

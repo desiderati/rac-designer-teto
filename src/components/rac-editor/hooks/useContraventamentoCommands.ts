@@ -11,7 +11,7 @@ import {
   getContraventamentoSideLabel,
   inferContraventamentoSideFromBeamGeometry,
   parsePilotiGridPosition,
-} from '@/domain/use-cases/house-contraventamento-use-cases.ts';
+} from '@/components/lib/helpers/house-contraventamento.ts';
 import {
   addContraventamentoBeam,
   ContraventamentoOrigin,
@@ -27,7 +27,7 @@ import {emitHouseStoreChange} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
-import {TOAST_MESSAGES} from '@/config.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

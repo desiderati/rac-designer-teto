@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {VIEWPORT} from '@/config.ts';
+import {VIEWPORT} from '@/shared/config.ts';
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);

@@ -5,7 +5,7 @@ import type {CanvasPointerPayload,} from '@/components/lib/canvas/canvas.ts';
 import {toCanvasObject} from '@/components/lib/canvas';
 import {linearSelection, linearSelectionType, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {readWallObjectState} from '@/components/rac-editor/modals/editors/generic/helpers/wall-object-state.ts';
-import {TIMINGS, VIEWPORT} from '@/config.ts';
+import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
 interface UseCanvasEditorEventsArgs {
   canvas: FabricCanvas;

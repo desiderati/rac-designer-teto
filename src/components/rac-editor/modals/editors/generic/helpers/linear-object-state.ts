@@ -1,5 +1,5 @@
 import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
-import {CANVAS_ELEMENT_STYLE} from '@/config.ts';
+import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 export interface LinearObjectState {
   currentColor: string;

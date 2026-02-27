@@ -102,5 +102,5 @@ Mudanças de mestre são sincronizadas para:
 - `src/lib/domain/house-use-cases.ts`
 - `src/lib/domain/house-application.ts`
 - `src/lib/domain/house-repository.ts`
-- `src/lib/canvas/house-piloti.ts`
+- `src/lib/canvas/piloti-visual.ts`
 - `src/components/rac-editor/House3DScene.tsx`

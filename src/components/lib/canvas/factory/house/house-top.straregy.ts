@@ -11,7 +11,7 @@ import {
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE,
-} from '@/config.ts';
+} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 

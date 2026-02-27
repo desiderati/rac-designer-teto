@@ -1,5 +1,5 @@
 import {Canvas as FabricCanvas, IText} from 'fabric';
-import {CANVAS_STYLE} from '@/config.ts';
+import {CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 
 export const textStrategy: ElementStrategy<IText> = {

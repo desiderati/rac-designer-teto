@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil,} from 'fabric';
 import {toCanvasObject} from '@/components/lib/canvas';
-import {TIMINGS, VIEWPORT} from '@/config.ts';
+import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
 type ContraventamentoCanvasObject = FabricObject & {
   houseView?: string;

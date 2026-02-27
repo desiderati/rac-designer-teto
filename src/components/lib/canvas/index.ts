@@ -1,5 +1,7 @@
 export * from './canvas.ts';
-export * from './canvas-utils.ts';
+export * from './canvas-piloti-selection.ts';
+export * from './canvas-rebuild.ts';
+export * from './canvas-screen-position.ts';
 export * from './constants.ts';
 export * from './contraventamento.ts';
 export * from './factory/elements';
@@ -8,3 +10,4 @@ export * from './hints.ts';
 export * from './piloti.ts';
 export * from './piloti-screen-position.ts';
 export * from './piloti-visual-feedback.ts';
+export * from './piloti-visual.ts';

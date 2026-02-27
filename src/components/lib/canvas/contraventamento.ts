@@ -1,9 +1,5 @@
 import {FabricObject, Group, Line, Rect} from 'fabric';
-import {
-  PILOTI_BASE_HEIGHT_PX,
-  PILOTI_MASTER_FILL_COLOR,
-  PILOTI_MASTER_STROKE_COLOR,
-} from './constants.ts';
+import {PILOTI_BASE_HEIGHT_PX, PILOTI_MASTER_FILL_COLOR, PILOTI_MASTER_STROKE_COLOR,} from './constants.ts';
 import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {
@@ -12,7 +8,7 @@ import {
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE,
   PILOTI_VISUAL_FEEDBACK_COLORS
-} from '@/config.ts';
+} from '@/shared/config.ts';
 
 export type ContraventamentoStep = 'select-first' | 'select-second';
 

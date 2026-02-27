@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {MINIMAP} from '@/config.ts';
+import {MINIMAP} from '@/shared/config.ts';
 
 interface MinimapObject {
   left: number;

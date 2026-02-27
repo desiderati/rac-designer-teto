@@ -1,6 +1,6 @@
 import {cn} from '@/components/lib/utils.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
-import {EDITOR_ICON_COLORS} from '@/config.ts';
+import {EDITOR_ICON_COLORS} from '@/shared/config.ts';
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;

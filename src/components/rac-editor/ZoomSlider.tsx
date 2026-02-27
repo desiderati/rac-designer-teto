@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {MINIMAP, ZOOM_SLIDER} from '@/config.ts';
+import {MINIMAP, ZOOM_SLIDER} from '@/shared/config.ts';
 
 const ZOOM_SLIDER_WIDTH = MINIMAP.size;
 const ZOOM_THUMB_SIZE = ZOOM_SLIDER.thumbSize;

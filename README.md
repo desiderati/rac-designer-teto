@@ -176,30 +176,19 @@ const Canvas = (props: any) => {
 - Evitar criar objetos/arrays dentro de render - usar `useMemo` se necessário
 - Sempre adicionar key props em listas
 
-```typescript
+```tsx
 // ✅ Bom
 const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
     <div>
-        {
-            houses.map(house => (
-                <HouseCard key = {house.id} house = {house}
-/>
-))
-}
-</div>
-)
-;
+        { houses.map(house => (<HouseCard key = {house.id} house = {house}/>)) }
+    </div>
+);
 
 // ❌ Evitar
 const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
     <div>
-        {
-            houses.map((house, index) => (
-                <HouseCard key = {index} house = {house}
-/>
-))
-}
-</div>
+        { houses.map((house, index) => (<HouseCard key = {index} house = {house}/>)) }
+    </div>
 )
 ;
 ```

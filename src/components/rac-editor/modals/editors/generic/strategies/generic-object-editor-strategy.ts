@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas, FabricObject, IText} from 'fabric';
 import {toCanvasChildrenObjects} from '@/components/lib/canvas/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/lib/canvas/factory/elements/shared.ts';
-import {CANVAS_ELEMENT_STYLE} from "@/config.ts";
+import {CANVAS_ELEMENT_STYLE} from "@/shared/config.ts";
 
 export type GenericObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 

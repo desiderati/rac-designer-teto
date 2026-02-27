@@ -1,11 +1,11 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {toCanvasScreenPoint} from '@/components/rac-editor/canvas/helpers/canvas-screen-position.ts';
+import {toCanvasScreenPoint} from '@/components/lib/canvas/canvas-screen-position.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, getElementStrategy,} from '@/components/lib/canvas';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/tutorial/Tutorial.tsx';
-import {TIMINGS} from '@/config.ts';
+import {TIMINGS} from '@/shared/config.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

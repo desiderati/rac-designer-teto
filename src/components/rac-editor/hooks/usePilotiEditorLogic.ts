@@ -9,7 +9,7 @@ import {
 } from '@/components/lib/canvas';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
-import {PILOTI_CORNER_IDS, TIMINGS} from '@/config.ts';
+import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;

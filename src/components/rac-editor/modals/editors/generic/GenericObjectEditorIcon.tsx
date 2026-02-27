@@ -1,5 +1,5 @@
 import {cn} from '@/components/lib/utils.ts';
-import {CANVAS_STYLE, EDITOR_ICON_COLORS} from '@/config.ts';
+import {CANVAS_STYLE, EDITOR_ICON_COLORS} from '@/shared/config.ts';
 import {
   GenericObjectEditorType
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
