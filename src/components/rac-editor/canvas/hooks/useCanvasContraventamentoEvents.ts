@@ -1,31 +1,9 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil,} from 'fabric';
-import {toCanvasObject} from '@/components/lib/canvas';
+import {CanvasObject, CanvasPointerPayload, toCanvasObject} from '@/components/lib/canvas';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
-type ContraventamentoCanvasObject = FabricObject & {
-  houseView?: string;
-  isContraventamento?: boolean;
-  contraventamentoId?: string;
-  isPilotiCircle?: boolean;
-  isPilotiHitArea?: boolean;
-  pilotiId?: string;
-  myType?: string;
-  left?: number;
-  top?: number;
-  radius?: number;
-  width?: number;
-};
-
-type CanvasMouseEvent = MouseEvent | PointerEvent | TouchEvent;
-
-interface CanvasPointerPayload {
-  target?: FabricObject | null;
-  subTargets?: FabricObject[];
-  e?: CanvasMouseEvent;
-}
-
-interface BindContraventamentoEventsArgs {
+interface useContraventamentoEventsArgs {
   canvas: FabricCanvas;
   getEventPayload: (event: unknown) => CanvasPointerPayload;
   handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
@@ -50,7 +28,8 @@ export function useCanvasContraventamentoEvents() {
     onContraventamentoCancel,
     onSelectionChange,
     isAnyEditorOpen,
-  }: BindContraventamentoEventsArgs) => {
+  }: useContraventamentoEventsArgs) => {
+
     const setCanvasCursor = (cursor: string) => {
       if (!canvas.upperCanvasEl) return;
       if (canvas.upperCanvasEl.style.cursor !== cursor) {
@@ -63,7 +42,7 @@ export function useCanvasContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
 
       if (!target || target.type !== 'group') {
         onContraventamentoSelect(null);
@@ -76,7 +55,9 @@ export function useCanvasContraventamentoEvents() {
         return;
       }
 
-      const contraventamentoObject = subTargets.find((subTarget) => subTarget?.isContraventamento === true);
+      const contraventamentoObject =
+        subTargets.find((subTarget) => subTarget?.isContraventamento === true);
+
       if (contraventamentoObject) {
         const contraventamentoId = String(contraventamentoObject.contraventamentoId ?? '');
         if (contraventamentoId) {
@@ -111,8 +92,10 @@ export function useCanvasContraventamentoEvents() {
         return;
       }
 
-      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
-      const directPilotiTarget = subTargets.find((subTarget) => subTarget?.isPilotiCircle || subTarget?.isPilotiHitArea);
+      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
+      const directPilotiTarget =
+        subTargets.find((subTarget) => subTarget?.isPilotiCircle || subTarget?.isPilotiHitArea);
+
       if (directPilotiTarget) {
         handlePilotiSelection(directPilotiTarget, target);
         return;
@@ -160,7 +143,7 @@ export function useCanvasContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
       if (!target || target.type !== 'group' || toCanvasObject(target)?.houseView !== 'top') {
         setCanvasCursor('default');
         return;
@@ -185,7 +168,7 @@ export function useCanvasContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as ContraventamentoCanvasObject[] | undefined) ?? [];
+      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
       const pilotiTarget = subTargets.find((subTarget) =>
         subTarget.myType === 'piloti' || subTarget.myType === 'pilotiHitArea'
       );

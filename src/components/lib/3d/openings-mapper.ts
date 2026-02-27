@@ -13,7 +13,7 @@ export interface SceneOpening {
   height: number;
 }
 
-export function buildOpeningsFromCanvasModel(
+export function buildSceneOpeningsFromCanvasModel(
   houseType: HouseType,
   tipo6FrontSide?: 'top' | 'bottom' | null,
   tipo3OpenSide?: 'left' | 'right' | null,

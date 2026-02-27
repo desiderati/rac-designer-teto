@@ -4,19 +4,13 @@ import {toast} from 'sonner';
 import {
   CanvasHandle,
   ContraventamentoCanvasSelection,
-  PilotiCanvasSelection
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {
-  canCreateContraventamentoForNivel,
-  getContraventamentoSideLabel,
-  inferContraventamentoSideFromBeamGeometry,
-  parsePilotiGridPosition,
-} from '@/components/lib/helpers/house-contraventamento.ts';
-import {
-  addContraventamentoBeam,
+  addContraventamentoBeam, canCreateContraventamentoForNivel,
   ContraventamentoOrigin,
-  ContraventamentoStep,
+  ContraventamentoStep, getContraventamentoSideLabel,
   highlightContraventamentoPilotis,
+  inferContraventamentoSideFromBeamGeometry, parsePilotiGridPosition, PilotiCanvasSelection,
   removeContraventamentosFromGroup,
   resetContraventamentoPilotis,
   setContraventamentoSelection,

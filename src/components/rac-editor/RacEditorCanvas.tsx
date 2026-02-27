@@ -3,9 +3,9 @@ import {
   Canvas,
   CanvasHandle,
   ContraventamentoCanvasSelection,
-  linearSelection,
+  LinearCanvasSelection,
   PilotiCanvasSelection,
-  wallSelection,
+  WallCanvasSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/tutorial/Tutorial.tsx';
@@ -24,8 +24,8 @@ interface RacEditorCanvasProps {
   onSelectionAuxCleanup: () => void;
   onZoomInteraction: () => void;
   onPilotiSelect: (selection: PilotiCanvasSelection | null) => void;
-  onWallSelect: (selection: wallSelection | null) => void;
-  onLinearSelect: (selection: linearSelection | null) => void;
+  onWallSelect: (selection: WallCanvasSelection | null) => void;
+  onLinearSelect: (selection: LinearCanvasSelection | null) => void;
   onDelete: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
   onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;

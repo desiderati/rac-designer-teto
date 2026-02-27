@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
-import {getHintForObject, toCanvasObject} from '@/components/lib/canvas';
+import {CanvasObject, getHintForObject, toCanvasObject} from '@/components/lib/canvas';
 import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
@@ -144,7 +144,7 @@ export function useCanvasSelectionEvents() {
 
     const syncPlantSideHighlight =
       (activeObject: FabricObject | null) => {
-        const topGroup = findTopViewGroupCandidate(canvas.getObjects() as FabricObject[]) as Group | null;
+        const topGroup = findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
         if (!topGroup) {
           canvas.requestRenderAll();
           return;

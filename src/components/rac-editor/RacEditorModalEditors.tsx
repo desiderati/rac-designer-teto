@@ -1,4 +1,4 @@
-import type {linearSelection, PilotiCanvasSelection, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {LinearCanvasSelection, PilotiCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generic/GenericObjectEditor.tsx';
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
@@ -30,14 +30,14 @@ interface RacEditorModalEditorsProps {
 
   // Wall Object
   onWallApply: (newValue: string, newColor: string) => void;
-  wallSelection: wallSelection | null;
+  wallSelection: WallCanvasSelection | null;
   wallEditorColor: string;
   isWallEditorOpen: boolean;
   onWallEditorClose: () => void;
 
   // Line/Arrow Object
   onLinearApply: (newValue: string, newColor: string) => void;
-  linearSelection: linearSelection | null;
+  linearSelection: LinearCanvasSelection | null;
   linearEditorType: LinearEditorType;
   isLinearEditorOpen: boolean;
   onLinearEditorClose: () => void;

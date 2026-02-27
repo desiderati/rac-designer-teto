@@ -13,11 +13,12 @@ interface GroupLike {
   getObjects: () => unknown[];
 }
 
-export function parseContraventamentosFromTopGroup(topGroup: GroupLike | null | undefined): Contraventamento3DData[] {
+export function parseContraventamentosFromTopGroup(
+  topGroup: GroupLike | null | undefined
+): Contraventamento3DData[] {
   if (!topGroup) return [];
 
   const parsedContraventamentos: Contraventamento3DData[] = [];
-
   topGroup.getObjects().forEach((objRaw, index) => {
     const obj = objRaw as any;
     if (!obj?.isContraventamento) return;
@@ -36,9 +37,10 @@ export function parseContraventamentosFromTopGroup(topGroup: GroupLike | null | 
       ? obj.contraventamentoSide
       : 'right';
 
-    const anchorPilotiId = typeof obj.contraventamentoAnchorPilotiId === 'string' && obj.contraventamentoAnchorPilotiId
-      ? obj.contraventamentoAnchorPilotiId
-      : `piloti_${col}_${startRow}`;
+    const anchorPilotiId =
+      typeof obj.contraventamentoAnchorPilotiId === 'string' && obj.contraventamentoAnchorPilotiId
+        ? obj.contraventamentoAnchorPilotiId
+        : `piloti_${col}_${startRow}`;
 
     const id = String(obj.contraventamentoId ?? `contrav_3d_${index}`);
     parsedContraventamentos.push({id, col, startRow, endRow, side, anchorPilotiId});

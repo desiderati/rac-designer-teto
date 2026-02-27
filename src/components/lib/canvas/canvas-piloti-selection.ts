@@ -1,23 +1,12 @@
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {formatPilotiHeight, getPilotiFromGroup, toCanvasObject} from '@/components/lib/canvas/index.ts';
+import {CanvasObject, formatPilotiHeight, getPilotiFromGroup, toCanvasObject} from '@/components/lib/canvas/index.ts';
 import {applyPilotiSelectionVisuals} from '@/components/lib/canvas/piloti-visual-feedback.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
-interface PilotiCanvasObject extends FabricObject {
-  houseView?: string;
-  isPilotiCircle?: boolean;
-  isPilotiRect?: boolean;
-  isPilotiHitArea?: boolean;
-  pilotiId?: string;
-  pilotiHeight?: number;
-  pilotiIsMaster?: boolean;
-  pilotiNivel?: number;
-}
-
-interface PilotiSelectionPayload {
+export interface PilotiCanvasSelection {
   pilotiId: string;
-  currentHeight: number;
   currentIsMaster: boolean;
+  currentHeight: number;
   currentNivel: number;
   group: Group;
   screenPosition: { x: number; y: number };
@@ -26,8 +15,8 @@ interface PilotiSelectionPayload {
 
 interface BuildPilotiSelectionHandlerArgs {
   canvas: FabricCanvas;
-  isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is PilotiCanvasObject;
-  emitPilotiSelection: (selection: PilotiSelectionPayload | null) => void;
+  isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is CanvasObject;
+  emitPilotiSelection: (selection: PilotiCanvasSelection | null) => void;
   emitSelectionChange: (hint: string) => void;
   clearContraventamentoSelection: () => void;
   isContraventamentoMode: () => boolean;
@@ -36,13 +25,6 @@ interface BuildPilotiSelectionHandlerArgs {
   onContraventamentoCancel: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => void;
   getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
-}
-
-function normalizeHouseView(value: string | undefined): PilotiSelectionPayload['houseView'] {
-  if (value === 'front' || value === 'back' || value === 'side' || value === 'top') {
-    return value;
-  }
-  return 'top';
 }
 
 export function buildPilotiSelectionHandler({
@@ -86,7 +68,6 @@ export function buildPilotiSelectionHandler({
     }
 
     if (!piloti) return;
-
     clearContraventamentoSelection();
 
     const groupRuntime = toCanvasObject(group);
@@ -134,4 +115,11 @@ export function buildPilotiSelectionHandler({
 
     emitSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
   };
+}
+
+function normalizeHouseView(value: string | undefined): PilotiCanvasSelection['houseView'] {
+  if (value === 'front' || value === 'back' || value === 'side' || value === 'top') {
+    return value;
+  }
+  return 'top';
 }

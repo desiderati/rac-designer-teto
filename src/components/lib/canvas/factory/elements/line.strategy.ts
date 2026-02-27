@@ -1,7 +1,6 @@
 import {Canvas as FabricCanvas, Group, IText, Line} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
-import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
-import {withScalingGuard} from './scaling-guard.ts';
+import {LINEAR_LABEL_TOP, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
 import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 

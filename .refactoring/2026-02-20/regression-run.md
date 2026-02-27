@@ -918,7 +918,7 @@
 
 - Novo utilitário puro de projeção de piloti:
     - `src/lib/canvas/piloti-screen-position.ts`
-    - operação: `projectGroupLocalPointToScreen`
+    - operação: `projectCanvasPointToScreenPoint`
 - `RacEditor` e `useRacDebugBridge` atualizados:
     - cálculo de posição de piloti na tela (tutorial e bridge DEV/E2E) passa a usar o mesmo util
     - remove duplicação da fórmula com `groupMatrix + viewportTransform`

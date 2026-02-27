@@ -1,6 +1,6 @@
 import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-screen-position.ts';
+import {projectCanvasPointToScreenPoint} from '@/components/lib/canvas/piloti-screen-position.ts';
 import type {CanvasHandle, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 
@@ -42,10 +42,10 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       const container = canvas.getElement().parentElement;
       if (!container) return null;
 
-      return projectGroupLocalPointToScreen({
+      return projectCanvasPointToScreenPoint({
         groupMatrix,
-        localPoint: {x: pilotiLeft, y: pilotiTop},
-        containerRect: container.getBoundingClientRect(),
+        localCanvasPoint: {x: pilotiLeft, y: pilotiTop},
+        canvasContainer: container.getBoundingClientRect(),
         viewportTransform: canvas.viewportTransform ?? undefined,
       });
     };

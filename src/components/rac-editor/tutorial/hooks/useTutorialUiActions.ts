@@ -3,7 +3,7 @@ import {Group} from 'fabric';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
-import {projectGroupLocalPointToScreen} from '@/components/lib/canvas/piloti-screen-position.ts';
+import {projectCanvasPointToScreenPoint} from '@/components/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {toCanvasObject} from '@/components/lib/canvas';
 import {TutorialBalloonPosition} from '@/components/rac-editor/tutorial/Tutorial.tsx';
@@ -98,10 +98,10 @@ export function useTutorialUiActions({
       const container = canvas.getElement().parentElement;
       if (!container) return;
 
-      const position = projectGroupLocalPointToScreen({
+      const position = projectCanvasPointToScreenPoint({
         groupMatrix,
-        localPoint: {x: pilotiLeft, y: pilotiTop},
-        containerRect: container.getBoundingClientRect(),
+        localCanvasPoint: {x: pilotiLeft, y: pilotiTop},
+        canvasContainer: container.getBoundingClientRect(),
         viewportTransform: canvas.viewportTransform ?? undefined,
       });
       setTutorialPilotiPosition(position);

@@ -40,7 +40,7 @@ Quando o viewer está aberto:
     - contraventamentos
     - casca da casa
     - aberturas (portas/janelas)
-3. aberturas são mapeadas por `buildOpeningsFromCanvasModel`
+3. aberturas são mapeadas por `buildSceneOpeningsFromCanvasModel`
 
 ## 3.2 Terreno e níveis
 

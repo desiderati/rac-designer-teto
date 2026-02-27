@@ -1,22 +1,22 @@
 import {useState} from 'react';
-import type {linearSelection, wallSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {LinearCanvasSelection, WallCanvasSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
 
 export function useGenericObjectEditors() {
 
   const [wallSelection, setWallSelection] =
-    useState<wallSelection | null>(null);
+    useState<WallCanvasSelection | null>(null);
 
   const [isWallEditorOpen, setIsWallEditorOpen] =
     useState(false);
 
   const [linearSelection, setLinearSelection] =
-    useState<linearSelection | null>(null);
+    useState<LinearCanvasSelection | null>(null);
 
   const [isLinearEditorOpen, setIsLinearEditorOpen] =
     useState(false);
 
   const handleWallSelect = (
-    selection: wallSelection | null
+    selection: WallCanvasSelection | null
   ) => {
     if (selection) {
       setWallSelection(selection);
@@ -30,7 +30,7 @@ export function useGenericObjectEditors() {
   };
 
   const handleLinearSelect = (
-    selection: linearSelection | null
+    selection: LinearCanvasSelection | null
   ) => {
     if (selection) {
       setLinearSelection(selection);

@@ -1,14 +1,14 @@
 import {Canvas as FabricCanvas, FabricImage, Group} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, CanvasObject, getAllPilotiIds, toCanvasGroup,} from '@/components/lib/canvas';
-import {createHouseId, createViewInstanceId,} from '@/components/lib/helpers/house-identity.ts';
+import {createHouseId, createViewInstanceId,} from '@/components/lib/house-identity.ts';
 import {
   createViewGroupControlsVisibilityPatch,
   createViewGroupMetadataPatch,
   extractViewGroupRemovalHints,
 } from '@/components/lib/house-view.ts';
 import {HouseAggregate} from '@/domain/house/house-aggregate.ts';
-import {refreshTopDoorMarkersInViews,} from '@/components/lib/helpers/house-top-view-door-marker.ts';
-import {create3DSnapshotImagePatch} from '@/components/lib/helpers/house-snapshot.ts';
+import {refreshTopDoorMarkersInViews,} from '@/components/lib/house-top-view-door-marker.ts';
+import {create3DSnapshotImagePatch} from '@/components/lib/house-snapshot.ts';
 import type {HousePersistencePort} from '@/domain/house/house-persistence-port.ts';
 import {
   ALL_HOUSE_VIEW_TYPES,

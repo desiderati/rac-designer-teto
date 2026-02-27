@@ -7,7 +7,7 @@ import {useCanvasSelectionEvents} from './useCanvasSelectionEvents.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts.ts';
 import {useCanvasEditorEvents} from './useCanvasEditorEvents.ts';
-import {linearSelection, PilotiCanvasSelection, wallSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {LinearCanvasSelection, PilotiCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
 interface UseCanvasFabricSetupArgs {
@@ -17,8 +17,8 @@ interface UseCanvasFabricSetupArgs {
   saveHistory: () => void;
   onSelectionChange: (hint: string) => void;
   onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
-  onWallSelect?: (selection: wallSelection | null) => void;
-  onLinearSelect?: (selection: linearSelection | null) => void;
+  onWallSelect?: (selection: WallCanvasSelection | null) => void;
+  onLinearSelect?: (selection: LinearCanvasSelection | null) => void;
   isAnyEditorOpenRef: MutableRefObject<boolean>;
   onDelete?: () => void;
   copy: () => void;
@@ -140,8 +140,8 @@ export function useCanvasFabricSetup({
     const runSaveHistory = () => latestArgsRef.current.saveHistory();
     const emitSelectionChange = (hint: string) => latestArgsRef.current.onSelectionChange(hint);
     const emitPilotiSelection = (selection: PilotiCanvasSelection | null) => latestArgsRef.current.onPilotiSelect?.(selection);
-    const emitWallSelection = (selection: wallSelection | null) => latestArgsRef.current.onWallSelect?.(selection);
-    const emitLinearSelection = (selection: linearSelection | null) => latestArgsRef.current.onLinearSelect?.(selection);
+    const emitWallSelection = (selection: WallCanvasSelection | null) => latestArgsRef.current.onWallSelect?.(selection);
+    const emitLinearSelection = (selection: LinearCanvasSelection | null) => latestArgsRef.current.onLinearSelect?.(selection);
 
     // Initialize drawing brush
     canvas.freeDrawingBrush = new PencilBrush(canvas);

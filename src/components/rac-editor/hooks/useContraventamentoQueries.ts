@@ -1,16 +1,14 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {
-  canCreateContraventamentoForNivel,
-  collectOccupiedContraventamentoSides,
-  ContraventamentoObjectCandidate,
-  createContraventamentoEditorState,
-  isContraventamentoDestinationEligible,
-  parsePilotiGridPosition,
-} from '@/components/lib/helpers/house-contraventamento.ts';
 import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {ContraventamentoOrigin, toCanvasObject} from '@/components/lib/canvas';
+import {
+  canCreateContraventamentoForNivel,
+  CanvasObject, collectOccupiedContraventamentoSides, ContraventamentoObjectCandidate,
+  ContraventamentoOrigin,
+  createContraventamentoEditorState, isContraventamentoDestinationEligible, parsePilotiGridPosition,
+  toCanvasObject
+} from '@/components/lib/canvas';
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;
@@ -29,7 +27,7 @@ export function useContraventamentoQueries({
   const getTopViewGroup = useCallback((): Group | null => {
     const canvas = getCanvas();
     if (!canvas) return null;
-    return findTopViewGroupCandidate(canvas.getObjects() as FabricObject[]) as Group | null;
+    return findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
   }, [getCanvas]);
 
   const getNonTopViewGroups = useCallback((): Group[] => {

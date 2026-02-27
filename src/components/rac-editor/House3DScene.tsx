@@ -37,7 +37,7 @@ import {
   WALL_HEIGHT,
   WALL_THICKNESS,
 } from '@/components/lib/3d/constants.ts';
-import {buildOpeningsFromCanvasModel, type SceneOpening} from '@/components/lib/3d/openings-mapper.ts';
+import {buildSceneOpeningsFromCanvasModel, type SceneOpening} from '@/components/lib/3d/openings-mapper.ts';
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
@@ -60,7 +60,7 @@ export function House3DScene({
   tipo3OpenSide = null,
 }: House3DSceneProps) {
   const sceneOpenings = useMemo(
-    () => buildOpeningsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
+    () => buildSceneOpeningsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
     [houseType, tipo6FrontSide, tipo3OpenSide],
   );
   if (!houseType) return null;

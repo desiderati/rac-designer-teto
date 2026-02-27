@@ -4,7 +4,7 @@ export interface CanvasViewportPosition {
   zoom: number;
 }
 
-export interface CanvasContainerRect {
+export interface CanvasContainer {
   left: number;
   top: number;
   width: number;
@@ -27,9 +27,11 @@ export function getCanvasViewportOffset(params: {
   const {x: viewportX, y: viewportY, zoom} = params.canvasPosition;
   const scaledWidth = params.canvasWidth * zoom;
   const scaledHeight = params.canvasHeight * zoom;
+
   const canvasX = scaledWidth <= params.containerWidth
     ? (params.containerWidth - scaledWidth) / 2
     : -viewportX;
+
   const canvasY = scaledHeight <= params.containerHeight
     ? (params.containerHeight - scaledHeight) / 2
     : -viewportY;
@@ -39,7 +41,7 @@ export function getCanvasViewportOffset(params: {
 
 export function toCanvasScreenPoint(params: {
   canvasPosition: CanvasViewportPosition;
-  containerRect: CanvasContainerRect;
+  containerRect: CanvasContainer;
   canvasWidth: number;
   canvasHeight: number;
   point: CanvasPoint;

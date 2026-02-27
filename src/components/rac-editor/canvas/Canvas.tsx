@@ -1,6 +1,6 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+import {CANVAS_HEIGHT, CANVAS_WIDTH, PilotiCanvasSelection} from '@/components/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {useCanvasClipboard} from './hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from './hooks/useCanvasContainerLifecycle.ts';
@@ -13,32 +13,22 @@ import {useCanvasScreenProjection} from './hooks/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from './hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from './hooks/useCanvasViewport.ts';
 
-export interface PilotiCanvasSelection {
-  pilotiId: string;
-  currentIsMaster: boolean;
-  currentHeight: number;
-  currentNivel: number;
-  group: Group;
-  screenPosition: { x: number; y: number };
-  houseView: 'top' | 'front' | 'back' | 'side';
-}
-
 export interface ContraventamentoCanvasSelection {
   contraventamentoId: string;
   group: Group;
 }
 
-export interface wallSelection {
+export interface WallCanvasSelection {
   object: FabricObject;
   currentLabel: string;
   screenPosition: { x: number; y: number };
 }
 
-export type linearSelectionType = 'line' | 'arrow' | 'distance';
+export type LinearCanvasSelectionType = 'line' | 'arrow' | 'distance';
 
-export interface linearSelection {
+export interface LinearCanvasSelection {
   object: FabricObject;
-  myType: linearSelectionType;
+  myType: LinearCanvasSelectionType;
   currentLabel: string;
   currentColor: string;
   screenPosition: { x: number; y: number };
@@ -55,8 +45,8 @@ interface CanvasProps {
   onMinimapInteraction?: () => void;
 
   onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
-  onWallSelect?: (selection: wallSelection | null) => void;
-  onLinearSelect?: (selection: linearSelection | null) => void;
+  onWallSelect?: (selection: WallCanvasSelection | null) => void;
+  onLinearSelect?: (selection: LinearCanvasSelection | null) => void;
 
   showZoomControls?: boolean;
   showTips?: boolean;
@@ -84,262 +74,263 @@ export interface CanvasHandle {
   setCanvasPosition: (x: number, y: number) => void;
 }
 
-export const Canvas = forwardRef<CanvasHandle, CanvasProps>(
-  ({
-    children,
-    isAnyEditorOpen = false,
+export const Canvas =
+  forwardRef<CanvasHandle, CanvasProps>(
+    ({
+      children,
+      isAnyEditorOpen = false,
 
-    onSelectionChange,
-    onDelete,
-    onHistorySave,
-    onZoomInteraction,
-    onMinimapInteraction,
+      onSelectionChange,
+      onDelete,
+      onHistorySave,
+      onZoomInteraction,
+      onMinimapInteraction,
 
-    onPilotiSelect,
-    onWallSelect,
-    onLinearSelect,
+      onPilotiSelect,
+      onWallSelect,
+      onLinearSelect,
 
-    showZoomControls = true,
-    showTips = false,
-    tutorialHighlight,
+      showZoomControls = true,
+      showTips = false,
+      tutorialHighlight,
 
-    isContraventamentoMode = false,
-    isSelectingContraventamentoDestination = false,
-    isPilotiEligibleForContraventamento,
-    onContraventamentoPilotiClick,
-    onContraventamentoSelect,
-    onContraventamentoCancel
-  }, ref) => {
-
-    const containerRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const fabricCanvasRef = useRef<FabricCanvas | null>(null);
-
-    const {
-      zoom,
-      viewportX,
-      setViewportX,
-      viewportY,
-      setViewportY,
-      containerSize,
-      setContainerSize,
-      isPanning,
-      setIsPanning,
-      isPinching,
-      setIsPinching,
-      setIsSingleFingerPanning,
-      lastPanPoint,
-      lastPinchDistance,
-      lastPinchCenter,
-      pinchTimeoutRef,
-      singleFingerStartPoint,
-      singleFingerMoved,
-      zoomRef,
-      viewportXRef,
-      viewportYRef,
-      containerSizeRef,
-      handleViewportChange,
-      handleZoomChange,
-    } = useCanvasViewport({onMinimapInteraction, onZoomInteraction});
-
-    const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
-    const isAnyEditorOpenRef = useRef(isAnyEditorOpen);
-
-    const {
-      isContraventamentoModeRef,
-      isSelectingContraventamentoDestinationRef,
-      isPilotiEligibleForContraventamentoRef,
-      onContraventamentoPilotiClickRef,
-      onContraventamentoSelectRef,
-      onContraventamentoCancelRef,
-    } = useCanvasContraventamento({
-      fabricCanvasRef,
-      isContraventamentoMode,
-      isSelectingContraventamentoDestination,
+      isContraventamentoMode = false,
+      isSelectingContraventamentoDestination = false,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
       onContraventamentoSelect,
-      onContraventamentoCancel,
-    });
+      onContraventamentoCancel
+    }, ref) => {
 
-    useCanvasHouseSelection({
-      fabricCanvasRef,
-      isAnyEditorOpen,
-      isContraventamentoMode,
-    });
+      const containerRef = useRef<HTMLDivElement>(null);
+      const canvasRef = useRef<HTMLCanvasElement>(null);
+      const fabricCanvasRef = useRef<FabricCanvas | null>(null);
 
-    useEffect(() => {
-      isAnyEditorOpenRef.current = isAnyEditorOpen;
-    }, [isAnyEditorOpen]);
+      const {
+        zoom,
+        viewportX,
+        setViewportX,
+        viewportY,
+        setViewportY,
+        containerSize,
+        setContainerSize,
+        isPanning,
+        setIsPanning,
+        isPinching,
+        setIsPinching,
+        setIsSingleFingerPanning,
+        lastPanPoint,
+        lastPinchDistance,
+        lastPinchCenter,
+        pinchTimeoutRef,
+        singleFingerStartPoint,
+        singleFingerMoved,
+        zoomRef,
+        viewportXRef,
+        viewportYRef,
+        containerSizeRef,
+        handleViewportChange,
+        handleZoomChange,
+      } = useCanvasViewport({onMinimapInteraction, onZoomInteraction});
 
-    const {
-      saveHistory,
-      clearHistory,
-      undo,
-    } = useCanvasHistory({
-      fabricCanvasRef,
-      updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
-      onHistorySave,
-      onSelectionChange,
-    });
+      const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
+      const isAnyEditorOpenRef = useRef(isAnyEditorOpen);
 
-    const {copy, paste} = useCanvasClipboard({
-      fabricCanvasRef,
-      saveHistory,
-      onSelectionChange,
-    });
+      const {
+        isContraventamentoModeRef,
+        isSelectingContraventamentoDestinationRef,
+        isPilotiEligibleForContraventamentoRef,
+        onContraventamentoPilotiClickRef,
+        onContraventamentoSelectRef,
+        onContraventamentoCancelRef,
+      } = useCanvasContraventamento({
+        fabricCanvasRef,
+        isContraventamentoMode,
+        isSelectingContraventamentoDestination,
+        isPilotiEligibleForContraventamento,
+        onContraventamentoPilotiClick,
+        onContraventamentoSelect,
+        onContraventamentoCancel,
+      });
 
-    const {
-      getCanvasOffsetFromState,
-      getCurrentScreenPoint,
-      getVisibleCenter,
-    } = useCanvasScreenProjection({
-      containerRef,
-      containerSizeRef,
-      zoomRef,
-      viewportXRef,
-      viewportYRef,
-    });
+      useCanvasHouseSelection({
+        fabricCanvasRef,
+        isAnyEditorOpen,
+        isContraventamentoMode,
+      });
 
-    useImperativeHandle(ref, () => ({
-      canvas: fabricCanvasRef.current,
-      saveHistory,
-      clearHistory,
-      undo,
-      copy,
-      paste,
-      getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
-      setCanvasPosition: (x: number, y: number) => {
-        handleViewportChange(x, y);
-      },
-      getVisibleCenter,
-    }), [clearHistory, copy, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+      useEffect(() => {
+        isAnyEditorOpenRef.current = isAnyEditorOpen;
+      }, [isAnyEditorOpen]);
 
-    useCanvasFabricSetup({
-      canvasRef,
-      containerRef,
-      fabricCanvasRef,
+      const {
+        saveHistory,
+        clearHistory,
+        undo,
+      } = useCanvasHistory({
+        fabricCanvasRef,
+        updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
+        onHistorySave,
+        onSelectionChange,
+      });
 
-      isAnyEditorOpenRef,
-      onSelectionChange,
-      onDelete,
-      onPilotiSelect,
-      onWallSelect: onWallSelect,
-      onLinearSelect: onLinearSelect,
+      const {copy, paste} = useCanvasClipboard({
+        fabricCanvasRef,
+        saveHistory,
+        onSelectionChange,
+      });
 
-      copy,
-      paste,
-      undo,
-      saveHistory,
-      getCurrentScreenPoint,
+      const {
+        getCanvasOffsetFromState,
+        getCurrentScreenPoint,
+        getVisibleCenter,
+      } = useCanvasScreenProjection({
+        containerRef,
+        containerSizeRef,
+        zoomRef,
+        viewportXRef,
+        viewportYRef,
+      });
 
-      isContraventamentoModeRef,
-      isSelectingContraventamentoDestinationRef,
-      isPilotiEligibleForContraventamentoRef,
-      onContraventamentoPilotiClickRef,
-      onContraventamentoSelectRef,
-      onContraventamentoCancelRef,
-    });
+      useImperativeHandle(ref, () => ({
+        canvas: fabricCanvasRef.current,
+        saveHistory,
+        clearHistory,
+        undo,
+        copy,
+        paste,
+        getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
+        setCanvasPosition: (x: number, y: number) => {
+          handleViewportChange(x, y);
+        },
+        getVisibleCenter,
+      }), [clearHistory, copy, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
 
-    useCanvasContainerLifecycle({
-      containerRef,
-      containerSize,
-      setContainerSize,
-      zoom,
-      setViewportX,
-      setViewportY,
-    });
+      useCanvasFabricSetup({
+        canvasRef,
+        containerRef,
+        fabricCanvasRef,
 
-    const {
-      handleMouseDown,
-      handleMouseMove,
-      handleMouseUp,
-      handleWheel,
-      handleTouchStart,
-      handleTouchMove,
-      handleTouchEnd,
-    } = useCanvasPointerInteractions({
-      fabricCanvasRef,
-      containerSize,
-      containerRef,
+        isAnyEditorOpenRef,
+        onSelectionChange,
+        onDelete,
+        onPilotiSelect,
+        onWallSelect: onWallSelect,
+        onLinearSelect: onLinearSelect,
 
-      isPanning,
-      setIsPanning,
-      setIsSingleFingerPanning,
-      lastPanPoint,
+        copy,
+        paste,
+        undo,
+        saveHistory,
+        getCurrentScreenPoint,
 
-      setIsPinching,
-      lastPinchDistance,
-      lastPinchCenter,
-      singleFingerStartPoint,
-      singleFingerMoved,
-      pinchTimeoutRef,
+        isContraventamentoModeRef,
+        isSelectingContraventamentoDestinationRef,
+        isPilotiEligibleForContraventamentoRef,
+        onContraventamentoPilotiClickRef,
+        onContraventamentoSelectRef,
+        onContraventamentoCancelRef,
+      });
 
-      zoom,
-      handleZoomChange,
-      setViewportX,
-      setViewportY,
-    });
+      useCanvasContainerLifecycle({
+        containerRef,
+        containerSize,
+        setContainerSize,
+        zoom,
+        setViewportX,
+        setViewportY,
+      });
 
-    // Calculate canvas position - center it when it fits, otherwise use viewport offset
-    const {canvasX, canvasY} = getCanvasOffsetFromState({
-      zoom,
-      viewportX,
-      viewportY,
-      containerWidth: containerSize.width,
-      containerHeight: containerSize.height,
-    });
+      const {
+        handleMouseDown,
+        handleMouseMove,
+        handleMouseUp,
+        handleWheel,
+        handleTouchStart,
+        handleTouchMove,
+        handleTouchEnd,
+      } = useCanvasPointerInteractions({
+        fabricCanvasRef,
+        containerSize,
+        containerRef,
 
-    return (
-      <div
-        ref={containerRef}
-        data-testid='rac-canvas-container'
-        className='w-full h-full overflow-hidden relative bg-muted touch-none'
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* Canvas */}
+        isPanning,
+        setIsPanning,
+        setIsSingleFingerPanning,
+        lastPanPoint,
+
+        setIsPinching,
+        lastPinchDistance,
+        lastPinchCenter,
+        singleFingerStartPoint,
+        singleFingerMoved,
+        pinchTimeoutRef,
+
+        zoom,
+        handleZoomChange,
+        setViewportX,
+        setViewportY,
+      });
+
+      // Calculate canvas position - center it when it fits, otherwise use viewport offset
+      const {canvasX, canvasY} = getCanvasOffsetFromState({
+        zoom,
+        viewportX,
+        viewportY,
+        containerWidth: containerSize.width,
+        containerHeight: containerSize.height,
+      });
+
+      return (
         <div
-          className='absolute shadow-xl bg-card'
-          style={{
-            transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
-            transformOrigin: '0 0',
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
-          }}
+          ref={containerRef}
+          data-testid='rac-canvas-container'
+          className='w-full h-full overflow-hidden relative bg-muted touch-none'
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          <canvas ref={canvasRef} data-testid='rac-editor-canvas-element'/>
+          {/* Canvas */}
+          <div
+            className='absolute shadow-xl bg-card'
+            style={{
+              transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
+              transformOrigin: '0 0',
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+            }}
+          >
+            <canvas ref={canvasRef} data-testid='rac-editor-canvas-element'/>
+          </div>
+
+          <CanvasOverlays
+            isPinching={isPinching}
+
+            containerHeight={containerSize.height}
+            containerWidth={containerSize.width}
+
+            zoom={zoom}
+            onZoomChange={handleZoomChange}
+            showZoomControls={showZoomControls}
+            minimapObjects={minimapObjects}
+
+            viewportX={viewportX}
+            viewportY={viewportY}
+            onViewportChange={handleViewportChange}
+
+            showTips={showTips}
+            tutorialHighlight={tutorialHighlight}
+          >
+            {children}
+          </CanvasOverlays>
         </div>
-
-        <CanvasOverlays
-          isPinching={isPinching}
-
-          containerHeight={containerSize.height}
-          containerWidth={containerSize.width}
-
-          zoom={zoom}
-          onZoomChange={handleZoomChange}
-          showZoomControls={showZoomControls}
-          minimapObjects={minimapObjects}
-
-          viewportX={viewportX}
-          viewportY={viewportY}
-          onViewportChange={handleViewportChange}
-
-          showTips={showTips}
-          tutorialHighlight={tutorialHighlight}
-        >
-          {children}
-        </CanvasOverlays>
-      </div>
-    );
-  }
-);
+      );
+    }
+  );
 
 Canvas.displayName = 'Canvas';

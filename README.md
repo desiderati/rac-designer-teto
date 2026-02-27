@@ -6,8 +6,6 @@
 aplicação permite que arquitetos, engenheiros e voluntários criem plantas baixas e elevações de casas com ferramentas
 avançadas de desenho 2D e visualização 3D interativa.
 
-**GitHub Repository:** https://github.com/desiderati/rac-designer-teto (branch: manus)
-
 ---
 
 ## 🎯 Project Goals & Priorities
@@ -36,24 +34,24 @@ avançadas de desenho 2D e visualização 3D interativa.
 
 ## 👥 User Personas
 
-### Persona 1: Arquiteto Voluntário
+### Persona 1: Monitor Voluntário
 
 - **Objetivo:** Criar plantas precisas de casas para projetos da TETO
-- **Experiência:** Conhecimento técnico em arquitetura, pouca experiência com software
+- **Experiência:** Conhecimento técnico nos modelos de casa da TETO
 - **Necessidades:** Ferramentas de desenho precisas, exportação para PDF, medições exatas
 - **Frustração:** Interfaces complexas, falta de feedback visual
 
-### Persona 2: Engenheiro Supervisor
+### Persona 2: Líder Voluntário
 
-- **Objetivo:** Revisar e validar plantas criadas por voluntários
-- **Experiência:** Alto conhecimento técnico, experiência com CAD
-- **Necessidades:** Visualização 3D clara, ferramentas de anotação, histórico de edições
-- **Frustração:** Falta de precisão, impossibilidade de fazer correções rápidas
+- **Objetivo:** Ver e validar plantas criadas por monitores
+- **Experiência:** Conhecimento construtivo, experiência com CAD
+- **Necessidades:** Visualização 3D clara, ferramentas de anotação, acesso à histórico de edições
+- **Frustração:** Falta de precisão, falta de entendimento do modelo criado pelos monitores 
 
 ### Persona 3: Voluntário Iniciante
 
 - **Objetivo:** Aprender a usar a ferramenta para contribuir com a TETO
-- **Experiência:** Sem experiência em design ou CAD
+- **Experiência:** Sem experiência em design
 - **Necessidades:** Tutorial interativo, interface clara, mensagens de erro úteis
 - **Frustração:** Falta de orientação, erros sem explicação
 
@@ -124,8 +122,8 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 
 **Saída:**
 
-- `.refactoring/YYYYMMDD/refactoring-plan.md` - Plano dinâmico baseado em análise atual
-- `.refactoring/YYYYMMDD/regression-checklist.md` - Checklist adaptativo de testes
+- `.refactoring/YYYY-MM-DD/refactoring-plan.md` - Plano dinâmico baseado em análise atual
+- `.refactoring/YYYY-MM-DD/regression-checklist.md` - Checklist adaptativo de testes
 
 **Características:**
 
@@ -204,7 +202,7 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 
 ```bash
 # Após revisar o plano do Agente 1:
-./approve-refactoring.sh YYYYMMDD
+./approve-refactoring.sh YYYY-MM-DD
 
 # Isso dispara o Agente 2 para executar
 ```
@@ -218,21 +216,24 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 ```
 src/
 ├── components/
+│   ├── lib/                  # Utilitários e helpers
 │   ├── rac-editor/           # Componentes principais do editor
-│   │   ├── RacEditor.tsx     # Componente raiz do editor
-│   │   ├── Canvas.tsx        # Editor 2D
-│   │   ├── House3DViewer.tsx # Visualizador 3D
-│   │   ├── Toolbar.tsx       # Barra de ferramentas
+│   │   ├── canvas/           # Componentes relativos ao canvas
+│   │   │   ├── Canvas.tsx    # Editor 2D
+│   │   ├── hooks/            # React hooks customizados
+│   │   ├── modals/           # Componentes de modais
+│   │   ├── toolbar/          # Barra de ferramentas
+│   │   ├── tutorial/         # Tutorial (onboarding)
+│   │   ├── House3DScene.tsx  # Modelo da casa em 3D
+│   │   ├── House3DViewer.tsx # Visualizador do modelo da casa em 3D
 │   │   ├── Minimap.tsx       # Minimapa
-│   │   └── [Modals].tsx      # Componentes de modais
+│   │   └── RacEditor.tsx     # Componente raiz do editor
 │   ├── ui/                   # Componentes shadcn/ui
 │   └── [Others].tsx          # Componentes reutilizáveis
 ├── pages/
 │   ├── Index.tsx             # Página principal
 │   └── NotFound.tsx          # Página 404
-├── hooks/                    # React hooks customizados
-├── lib/                      # Utilitários e helpers
-├── types/                    # Definições de tipos TypeScript
+├── shared/types/             # Definições de tipos TypeScript
 └── App.tsx                   # Componente raiz
 ```
 
@@ -299,11 +300,10 @@ const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
 
 // ❌ Evitar
 const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
-        <div>
-            {houses.map((house, index) => (<HouseCard key={index} house={house}/>))}
-        </div>
-    )
-;
+    <div>
+        {houses.map((house, index) => (<HouseCard key={index} house={house}/>))}
+    </div>
+);
 ```
 
 ### CSS & Tailwind

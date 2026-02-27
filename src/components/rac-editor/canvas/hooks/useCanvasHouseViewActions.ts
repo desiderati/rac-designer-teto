@@ -11,13 +11,9 @@ import {
   HOUSE_VIEW_INSERTION_DECISION_TYPES,
   type HousePreAssignedSideDisplay,
   type HouseSide,
-  type HouseType,
+  type HouseType, HouseViewInsertionDecision,
   type HouseViewType
 } from '@/shared/types/house.ts';
-import {
-  calculateStackedViewPositions,
-  resolveHouseViewInsertion,
-} from '@/domain/house/use-cases/house-views-layout.use-case.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {createHouseGroupForView, getViewLabelForHouseType} from "@/components/lib/house-view.ts";
@@ -298,3 +294,53 @@ export function useCanvasHouseViewActions({
   };
 }
 
+function calculateStackedViewPositions(params: {
+  centerY: number;
+  topHeight: number;
+  bottomHeight: number;
+  gap: number;
+}): { topY: number; bottomY: number } {
+  const totalHeight = params.topHeight + params.gap + params.bottomHeight;
+  return {
+    topY: params.centerY - totalHeight / 2 + params.topHeight / 2,
+    bottomY: params.centerY + totalHeight / 2 - params.bottomHeight / 2,
+  };
+}
+
+function resolveHouseViewInsertion(params: {
+  viewType: HouseViewType;
+  isAtLimit: boolean;
+  preAssignedSides: HousePreAssignedSideDisplay[];
+  availableSides: HouseSide[];
+}): HouseViewInsertionDecision {
+  if (params.isAtLimit) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit};
+  }
+
+  if (params.viewType === 'top') {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly};
+  }
+
+  if (params.preAssignedSides.length > 0) {
+    const availableSlots = params.preAssignedSides.filter((slot) => !slot.onCanvas);
+    if (!availableSlots.length) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots};
+    }
+
+    if (availableSlots.length === 1) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: availableSlots[0].side};
+    }
+
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector, slots: params.preAssignedSides};
+  }
+
+  if (!params.availableSides.length) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides};
+  }
+
+  if (params.availableSides.length === 1) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: params.availableSides[0]};
+  }
+
+  return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector};
+}
