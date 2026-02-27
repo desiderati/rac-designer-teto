@@ -1,4 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {CanvasObject} from "@/components/lib/canvas";
 
 export interface Contraventamento3DData {
   id: string;
@@ -9,17 +10,13 @@ export interface Contraventamento3DData {
   anchorPilotiId: string;
 }
 
-interface GroupLike {
-  getObjects: () => unknown[];
-}
-
-export function parseContraventamentosFromTopGroup(
-  topGroup: GroupLike | null | undefined
+export function parseContraventamentosFromTopView(
+  topViewCanvasObject: CanvasObject | null | undefined
 ): Contraventamento3DData[] {
-  if (!topGroup) return [];
+  if (!topViewCanvasObject) return [];
 
   const parsedContraventamentos: Contraventamento3DData[] = [];
-  topGroup.getObjects().forEach((objRaw, index) => {
+  topViewCanvasObject.getObjects().forEach((objRaw, index) => {
     const obj = objRaw as any;
     if (!obj?.isContraventamento) return;
 

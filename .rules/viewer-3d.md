@@ -19,13 +19,11 @@ Quando o viewer está aberto:
 
 1. re-sincroniza em mudanças do `houseVersion`
 
-2. carrega `houseType`, `pilotis`, `elements`
-    - presets de `elements` por tipo de casa agora vêm de caso de uso dedicado (`house-elements-use-cases`)
-    - ciclo de vida de `elements` (add/remove/update/reset defaults) foi extraído para `house-elements-application`
+2. carrega `houseType` e `pilotis` a partir do `houseManager`
 
 3. deriva orientações:
     - `tipo6FrontSide` por `sideMappings` de `front`
-    - `tipo3OpenSide` com espelhamento semântico de `side2`
+    - `tipo3OpenSide` com espelhamento semântico de `side2` (eixo 3D é invertido em relação ao 2D)
 
 4. parseia contraventamentos da planta com `parseContraventamentosFromTopGroup`
 
@@ -58,12 +56,14 @@ Quando o viewer está aberto:
 
 1. reset de camera (`resetKey`)
 2. toggle fullscreen
-3. seleção de cor de parede
+3. seleção de cor de parede (paleta em `HOUSE_3D_WALL_COLOR_OPTIONS`)
 4. inserção de snapshot:
     - captura `toDataURL` do canvas WebGL
+    - `preserveDrawingBuffer = true` para garantir captura
     - chama `houseManager.insert3DSnapshotOnCanvas(dataUrl)`
-    - cálculo de escala/posicionamento centralizado em `house-snapshot-use-cases`
+    - cálculo de escala/posicionamento centralizado em `house-snapshot`
     - exibe `toast` de sucesso/erro
+5. se `houseType` for `null`, o viewer mostra estado vazio e bloqueia inserção
 
 ## 5. Checklist de cobertura E2E (arquivo)
 
@@ -79,18 +79,15 @@ Arquivo E2E principal: `e2e/viewer-3d.spec.ts`
 
 Cobertura automática existente (não-E2E):
 
-1. [x] parser de contraventamento (`src/lib/3d/contraventamento-parser.smoke.test.ts`)
-2. [x] mapeamento de aberturas (`src/lib/3d/openings-mapper.smoke.test.ts`)
-3. [x] inserção de snapshot 3D no `houseManager` (`src/lib/house-manager.smoke.test.ts`)
+1. [x] parser de contraventamento (`src/components/lib/3d/contraventamento-parser.smoke.test.ts`)
+2. [x] mapeamento de aberturas (`src/components/lib/3d/scene-openings-builder.smoke.test.ts`)
+3. [x] inserção de snapshot 3D no `houseManager` (`src/components/lib/house-manager.smoke.test.ts`)
 
 ## 6. Referências de código
 
 - `src/components/rac-editor/House3DViewer.tsx`
 - `src/components/rac-editor/House3DScene.tsx`
-- `src/lib/3d/contraventamento-parser.ts`
-- `src/lib/3d/openings-mapper.ts`
-- `src/lib/3d/constants.ts`
-- `src/lib/domain/house-elements-use-cases.ts`
-- `src/lib/domain/house-elements-application.ts`
-- `src/lib/domain/house-elements-repository.ts`
-- `src/lib/domain/house-snapshot-use-cases.ts`
+- `src/components/lib/3d/contraventamento-parser.ts`
+- `src/components/lib/3d/scene-openings-builder.ts`
+- `src/components/lib/3d/constants.ts`
+- `src/components/lib/house-snapshot.ts`

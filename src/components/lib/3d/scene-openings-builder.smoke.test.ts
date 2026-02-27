@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {buildSceneOpeningsFromCanvasModel} from '@/components/lib/3d/openings-mapper.ts';
+import {buildSceneOpeningsFromCanvasModel} from '@/components/lib/3d/scene-openings-builder.ts';
 
 describe('buildSceneOpeningsFromCanvasModel', () => {
   it('maps tipo6 front/back faces according to selected front side', () => {

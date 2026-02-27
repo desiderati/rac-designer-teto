@@ -1,6 +1,7 @@
 # Refactoring Agents - Regras Operacionais
 
-Este documento descreve as regras operacionais dos Agentes 1 (Análise Dinâmica) e 2 (Execução Autônoma) do sistema de refatoração automática do RAC Designer TETO.
+Este documento descreve as regras operacionais dos Agentes 1 (Análise Dinâmica) e 2 (Execução Autônoma) do sistema de
+refatoração automática do RAC Designer TETO.
 
 ---
 
@@ -22,12 +23,14 @@ Agent 1 é responsável por:
 Agent 1 analisa o código em **6 dimensões**:
 
 #### 1.2.1 File Structure
+
 - Total de arquivos TypeScript/TSX
 - Total de linhas de código
 - Número de arquivos de teste
 - Percentual de cobertura de testes
 
 #### 1.2.2 Clean Architecture
+
 - **Ports & Adapters Pattern** - Existe abstração de dependências?
 - **CQRS Pattern** - Há separação de leitura/escrita?
 - **Strategy Pattern** - Há padrões de estratégia?
@@ -36,20 +39,24 @@ Agent 1 analisa o código em **6 dimensões**:
 - **Magic Numbers** - Há valores hardcoded?
 
 #### 1.2.3 Hooks SRP (Single Responsibility Principle)
+
 - **Multiple useEffect** - Mais de 2 useEffect calls?
 - **Multiple useState** - Mais de 3 useState calls?
 - **Multiple useCallback** - Mais de 2 useCallback calls?
 - **Large Hooks** - Hooks com mais de 150 linhas?
 
 #### 1.2.4 Components
+
 - Total de componentes React
 - Estrutura de componentes
 
 #### 1.2.5 Tests
+
 - Testes passando vs falhando
 - Cobertura de testes
 
 #### 1.2.6 Code Patterns
+
 - TypeScript usage
 - Constants files
 - Strategy patterns
@@ -60,6 +67,7 @@ Agent 1 analisa o código em **6 dimensões**:
 Agent 1 detecta **3 níveis de severidade**:
 
 #### Critical Issues 🚨
+
 - Testes falhando (bloqueia refatoração)
 - Funcionalidade quebrada
 - Erros de tipo
@@ -67,6 +75,7 @@ Agent 1 detecta **3 níveis de severidade**:
 **Ação:** Fase 1 do plano deve ser "Fix Critical Issues"
 
 #### High Priority Issues ⚠️
+
 - Cobertura de testes < 50%
 - Padrões inconsistentes
 - Arquivos grandes
@@ -75,6 +84,7 @@ Agent 1 detecta **3 níveis de severidade**:
 **Ação:** Fase 2 do plano deve ser "Address High Priority Issues"
 
 #### Medium Priority Issues
+
 - SRP violations em hooks
 - Clean Architecture gaps
 - Números mágicos
@@ -86,11 +96,13 @@ Agent 1 detecta **3 níveis de severidade**:
 Agent 1 identifica **oportunidades valiosas** com prioridade:
 
 #### High Priority Opportunities
+
 - Implementar design patterns faltando (Ports/Adapters, CQRS, Strategies)
 - Refatorar hooks para SRP
 - Centralizar constantes
 
 #### Medium Priority Opportunities
+
 - Melhorar cobertura de testes
 - Documentação
 
@@ -125,6 +137,7 @@ Finalmente:
 ```
 
 **Características do Plano:**
+
 - Não é um template estático
 - Adapta-se ao estado atual do código
 - Muda diariamente se código muda
@@ -141,15 +154,18 @@ O checklist de regressão é **DINÂMICO** baseado em:
 - Gaps de cobertura
 
 **Testes Sempre Inclusos:**
+
 1. Unit Tests - Core Functionality
 2. Component Tests
 3. Type Safety (TypeScript)
 4. Code Quality (Linting)
 
 **Testes Condicionais:**
+
 - Se cobertura < 70%: Adicionar Coverage Analysis
 
 **Testes Manuais (Informativo):**
+
 - Listados mas não executados automaticamente
 
 ### 1.8 Saída do Agent 1
@@ -157,7 +173,7 @@ O checklist de regressão é **DINÂMICO** baseado em:
 Agent 1 cria dois arquivos:
 
 ```
-.refactoring/YYYYMMDD/
+.refactoring/YYYY-MM-DD/
 ├── refactoring-plan.md
 │   ├── Current State Analysis
 │   ├── Previously Completed Phases
@@ -183,6 +199,7 @@ Agent 1 cria dois arquivos:
 ### 1.9 Notificação
 
 Agent 1 notifica via App Manus:
+
 - Plano está pronto para revisão
 - Resumo de análise
 - Issues detectadas
@@ -207,7 +224,7 @@ Agent 2 é responsável por:
 Agent 2 inicia **APENAS APÓS** aprovação manual do plano do Agent 1:
 
 ```bash
-./approve-refactoring.sh YYYYMMDD
+./approve-refactoring.sh YYYY-MM-DD
 ```
 
 ### 2.3 Workflow de Execução
@@ -238,10 +255,12 @@ Para **cada fase** do plano:
 ### 2.4 Checkpoints e Rollback
 
 **Antes de cada fase:**
+
 - Criar checkpoint com `webdev_save_checkpoint`
 - Salvar estado para rollback
 
 **Se fase falhar após 3 tentativas:**
+
 - Usar `webdev_rollback_checkpoint` para voltar ao estado anterior
 - Notificar usuário com detalhes do erro
 
@@ -250,13 +269,15 @@ Para **cada fase** do plano:
 Agent 2 executa **todos os testes** do checklist:
 
 **Testes Automatizados:**
-1. Unit Tests - `pnpm test -- src/lib/canvas/factory/`
+
+1. Unit Tests - `pnpm test -- src/components/lib/canvas/factory/`
 2. Component Tests - `pnpm test -- src/components/rac-editor/`
 3. Type Safety - `pnpm tsc --noEmit`
 4. Code Quality - `pnpm lint`
 5. Coverage (condicional) - `pnpm test -- --coverage`
 
 **Para cada teste:**
+
 - Executar comando
 - Validar resultado esperado
 - Se falhar: Tentar corrigir (até 3x)
@@ -267,38 +288,42 @@ Agent 2 executa **todos os testes** do checklist:
 Quando um teste falha:
 
 **Tentativa 1:**
+
 - Analisar erro
 - Identificar causa
 - Aplicar correção óbvia
 - Reexecutar teste
 
 **Tentativa 2:**
+
 - Se Tentativa 1 falhou
 - Abordagem diferente
 - Análise mais profunda
 - Reexecutar teste
 
 **Tentativa 3:**
+
 - Se Tentativa 2 falhou
 - Última tentativa
 - Abordagem alternativa
 - Reexecutar teste
 
 **Após 3 Falhas:**
+
 - PARAR execução
 - Rollback para checkpoint anterior
 - NOTIFICAR usuário com:
-  - Qual fase falhou
-  - Qual teste falhou
-  - Erros detalhados
-  - Sugestões de correção
+    - Qual fase falhou
+    - Qual teste falhou
+    - Erros detalhados
+    - Sugestões de correção
 
 ### 2.7 Saída do Agent 2
 
 Agent 2 cria arquivo de execução:
 
 ```
-.refactoring/YYYYMMDD/regression-run.md
+.refactoring/YYYY-MM-DD/regression-run.md
 ├── Execution Summary
 │   ├── Start Time
 │   ├── End Time
@@ -347,17 +372,17 @@ Agent 2 cria arquivo de execução:
 Agent 2 notifica **APENAS**:
 
 1. **Ao Sucesso:** Resumo completo
-   - Fases executadas
-   - Testes passando
-   - Mudanças realizadas
-   - Próximos passos
+    - Fases executadas
+    - Testes passando
+    - Mudanças realizadas
+    - Próximos passos
 
 2. **Ao Falhar (após 3 tentativas):** Erro detalhado
-   - Qual fase falhou
-   - Qual teste falhou
-   - Erros específicos
-   - Sugestões de correção
-   - Checkpoint para rollback
+    - Qual fase falhou
+    - Qual teste falhou
+    - Erros específicos
+    - Sugestões de correção
+    - Checkpoint para rollback
 
 ### 2.9 Regras de Execução
 
@@ -384,7 +409,7 @@ Agent 2 notifica **APENAS**:
 Você Revisa (Manual)
 ├─ Lê refactoring-plan.md
 ├─ Revisa regression-checklist.md
-└─ Aprova com: ./approve-refactoring.sh YYYYMMDD
+└─ Aprova com: ./approve-refactoring.sh YYYY-MM-DD
 
 Agent 2 Executa (Após aprovação)
 ├─ Para cada fase:
@@ -511,6 +536,7 @@ Histórico completo em:
 ### 7.3 Notificações
 
 Receba notificações via:
+
 - App Manus (automático)
 - Email (configurável)
 
@@ -526,7 +552,8 @@ Receba notificações via:
 ### Problema: Agent 2 falha em uma fase
 
 **Causa:** Teste falhando após 3 tentativas
-**Solução:** 
+**Solução:**
+
 1. Revise `regression-run.md` para detalhes do erro
 2. Corrija manualmente
 3. Faça commit
@@ -536,6 +563,7 @@ Receba notificações via:
 
 **Causa:** Agent 2 falhou e fez rollback
 **Solução:**
+
 1. Revise `regression-run.md` para causa do erro
 2. Corrija o problema
 3. Faça commit

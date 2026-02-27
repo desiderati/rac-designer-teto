@@ -98,9 +98,7 @@ Mudanças de mestre são sincronizadas para:
 - `src/components/rac-editor/modals/editors/NivelDefinitionEditor.tsx`
 - `src/components/rac-editor/modals/editors/PilotiEditor.tsx`
 - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
-- `src/lib/house-manager.ts`
-- `src/lib/domain/house-use-cases.ts`
-- `src/lib/domain/house-application.ts`
-- `src/lib/domain/house-repository.ts`
-- `src/lib/canvas/piloti-visual.ts`
+- `src/components/lib/house-manager.ts`
+- `src/domain/house/house-aggregate.ts`
+- `src/components/lib/canvas/piloti-visual.ts`
 - `src/components/rac-editor/House3DScene.tsx`

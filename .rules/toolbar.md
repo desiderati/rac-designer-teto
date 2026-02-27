@@ -11,22 +11,22 @@ No `RacEditor`, ações de inserção de elementos/linhas/desenho foram extraíd
 o fluxo comum de add (`addCanvasObject`: fechamento de menu + add + tutorial) e os handlers de desenho/texto.
 
 As ações de projeto do overflow (`exportar JSON`, `importar JSON` e `excluir seleção`) foram extraídas para
-`useRacProjectActions`, mantendo as mesmas regras de negócio de remoção e sincronização.
+`useRacEditorJsonActions`, mantendo as mesmas regras de negócio de remoção e sincronização.
 
 Os contadores de limite por vista enviados para `Toolbar` também usam helper único (`getToolbarViewCount`) para
 manter o mesmo contrato com menor repetição.
 
 O fluxo de ações de vistas/tipo de casa (seleção de lado, níveis e inserção inicial) é delegado para
-`useRacViewActions`, mantendo o `RacEditor` como orquestrador.
+`useCanvasHouseViewActions`, mantendo o `RacEditor` como orquestrador.
 
 Ações de `Agrupar`/`Desagrupar` (incluindo confirmação de desagrupamento) são delegadas para
-`useRacGroupingActions`, mantendo o mesmo contrato da toolbar.
+`useCanvasGroupingActions`, mantendo o mesmo contrato da toolbar.
 
 Interações de menu/tutorial (toggle de submenus, selector de tipo de casa e gates de tutorial) são delegadas para
-`useRacMenuTutorialActions`, mantendo o `RacEditor` como composição de fluxos.
+`useTutorialMenuActions`, mantendo o `RacEditor` como composição de fluxos.
 
 Fluxo de reinício do tutorial/canvas (confirmação, reset de estado e limpeza de overlays de tutorial) é delegado para
-`useRacTutorialUiActions`.
+`useTutorialUiActions`.
 
 Overlays/modais do editor (seletor de tipo de casa, settings, tutorial/balões, confirmações e editor de níveis) foram
 extraídos para `RacEditorModals`, mantendo `RacEditor` como orquestrador de estado.
@@ -34,7 +34,7 @@ extraídos para `RacEditorModals`, mantendo `RacEditor` como orquestrador de est
 Helpers locais de interação canvas/menu no `RacEditor` (canvas ativo, centro visível, add no centro, fechamento de
 menus e desligamento do modo desenho) foram consolidados em `useCanvasInteractionActions`.
 
-Composição do `ToolbarActionMap` no `RacEditor` foi extraída para `useRacToolbarActions`, mantendo o contrato da
+Composição do `ToolbarActionMap` no `RacEditor` foi extraída para `useToolbarActions`, mantendo o contrato da
 `Toolbar` e reduzindo objeto inline no componente raiz.
 
 No `RacEditor`, o cálculo de `isAnyEditorOpen` e o wiring de seleções inline (`distance/objectName/line-arrow`) para o
@@ -100,6 +100,20 @@ Comandos de overflow:
 6. toggle de dicas
 7. configurações
 
+Regras do fluxo de projeto:
+
+1. `exportar JSON` serializa o canvas atual e baixa `RAC-TETO-Projeto.json`.
+2. `importar JSON` limpa o canvas, carrega o JSON e então:
+    - reseta fluxo de contraventamento;
+    - normaliza grupos de casa no canvas;
+    - reconstrói estado do `houseManager` via `rebuildFromCanvas`;
+    - sincroniza contraventamentos nas elevações;
+    - salva histórico.
+3. `excluir seleção`:
+    - se há contraventamento selecionado, remove apenas o contraventamento e sincroniza elevações;
+    - se a seleção contém a planta (`top`), só permite excluir quando não houver outras vistas;
+    - ao remover a planta, o `houseType` é resetado.
+
 Regra de robustez para configurações:
 
 1. falha de persistência em `localStorage` não deve quebrar o fluxo de UI;
@@ -108,6 +122,12 @@ Regra de robustez para configurações:
 Confirmações de ações destrutivas do fluxo de toolbar (`reiniciar`/`desagrupar`) são renderizadas por
 `ConfirmDialogModal` (arquivo `ConfirmDialogModal.tsx`), com comportamento consistente em `Dialog` (desktop) e
 `Drawer` (mobile).
+
+## 3.5 Tutorial e dicas
+
+1. ao inserir `muro`, `linha`, `seta` e `distância`, o tutorial pode exibir um balão contextual:
+    - cada dica aparece apenas uma vez (persistido em `tutorial.storage`);
+    - o balão é posicionado usando o centro do objeto recém-criado.
 
 ## 4. Acessibilidade e testabilidade
 
@@ -135,21 +155,21 @@ Cobertura atual em `e2e/views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
 - `src/components/rac-editor/toolbar/ToolbarMainMenu.tsx`
 - `src/components/rac-editor/toolbar/ToolbarOverflowMenu.tsx`
 - `src/components/rac-editor/toolbar/toolbar-config.ts`
-- `src/components/rac-editor/toolbar/toolbar-types.ts`
+- `src/components/rac-editor/toolbar/helpers/toolbar-types.ts`
 - `src/components/rac-editor/RacEditor.tsx`
-- `src/components/rac-editor/hooks/useCanvasTools.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasTools.ts`
 - `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
-- `src/components/rac-editor/hooks/useCanvasHouseViewActions.ts`
-- `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
-- `src/components/rac-editor/hooks/useTutorialMenuActions.ts`
-- `src/components/rac-editor/hooks/useTutorialUiActions.ts`
-- `src/components/rac-editor/hooks/useCanvasHouseInitialization.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasHouseViewActions.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasGroupingActions.ts`
+- `src/components/rac-editor/tutorial/hooks/useTutorialMenuActions.ts`
+- `src/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts`
 - `src/components/rac-editor/RacEditorModals.tsx`
-- `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
-- `src/components/rac-editor/hooks/useToolbarActions.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasInteractionActions.ts`
+- `src/components/rac-editor/toolbar/hooks/useToolbarActions.ts`
 - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
 - `src/components/rac-editor/modals/ConfirmDialogModal.tsx`
-- `src/lib/house-manager.ts`
+- `src/components/lib/house-manager.ts`
 - `e2e/views-limits.spec.ts`
 - `e2e/toolbar-overflow.spec.ts`
 

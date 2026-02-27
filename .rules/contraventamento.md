@@ -63,6 +63,15 @@ Ao clicar em um lado livre no `PilotiEditor`:
 
 Não há modal de escolha de lado nesse fluxo atual.
 
+### 6.1 Seleção automática do lado
+
+No fluxo de clique direto no piloti (modo `select-first`):
+
+1. se a coluna já possui ambos os lados, o fluxo é bloqueado com `toast`;
+2. caso contrário, o lado inicial é escolhido automaticamente:
+    - se `left` está ocupado, usa `right`;
+    - caso contrário, usa `left`.
+
 ## 7. Regras de seleção de destino
 
 No passo de destino:
@@ -78,6 +87,7 @@ No passo de destino:
     - salva histórico.
 5. os bindings de interação desse fluxo no canvas (seleção de beam, clique de piloti, cursor e tap mobile) ficam
    centralizados em `useCanvasContraventamentoEvents`.
+6. se a planta (`top`) não estiver disponível, o fluxo não inicia e exibe erro.
 
 ## 8. Cancelamento do modo
 
@@ -147,6 +157,7 @@ No modo de contraventamento:
 - `contraventamentoEndRow`
 - `contraventamentoSide`
 - `contraventamentoAnchorPilotiId`
+- `contraventamentoSourcePilotiId` (projeções em vistas quadrado)
 
 ## 12. Projeção em vistas quadrado (não-planta)
 
@@ -190,6 +201,7 @@ Representação sempre diagonal.
 2. `Excluir` remove o selecionado;
 3. no editor de piloti, clicar no botão de um lado já ocupado remove o contraventamento daquele lado na coluna do piloti
    selecionado.
+4. ao remover pelo editor de piloti, o fluxo cancela modo de contraventamento ativo e sincroniza elevações.
 
 ## 15. Sincronização
 
@@ -245,10 +257,9 @@ No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam c
 - `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
 - `src/components/rac-editor/RacEditor.tsx`
 - `src/components/rac-editor/Canvas.tsx`
-- `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
-- `src/lib/domain/house-contraventamento-use-cases.ts`
-- `src/lib/canvas/contraventamento.ts`
-- `src/lib/canvas/piloti-ops.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasContraventamentoEvents.ts`
+- `src/components/lib/canvas/contraventamento.ts`
+- `src/components/lib/canvas/piloti.ts`
 - `src/components/rac-editor/House3DViewer.tsx`
 - `src/components/rac-editor/House3DScene.tsx`
 

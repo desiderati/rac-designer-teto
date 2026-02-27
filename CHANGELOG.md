@@ -4,6 +4,8 @@
 
 ### Resumo geral da conversa
 
+- Atualização da seção "File Structure" do README para refletir a estrutura atual de diretórios.
+- Revisão dos arquivos em `.rules` com regras faltantes e referências atualizadas para a estrutura atual do código.
 - Refatoração ampla de padronização no projeto `rac-designer-teto`.
 - Centralização de constantes e estilos.
 - Correções de bugs de renderização em vista planta/top e terreno.

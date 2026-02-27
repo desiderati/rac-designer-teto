@@ -190,7 +190,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
 **Mudanças**
 
 - Extrair mapeamento para módulos puros:
-    - `src/lib/3d/openings-mapper.ts`
+    - `src/lib/3d/scene-openings-builder.ts`
     - `src/lib/3d/contraventamento-parser.ts`
     - `src/lib/3d/constants.ts`
 - `House3DViewer` fica como container de câmera/controles.

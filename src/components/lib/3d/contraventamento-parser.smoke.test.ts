@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {parseContraventamentosFromTopGroup} from '@/components/lib/3d/contraventamento-parser.ts';
+import {parseContraventamentosFromTopView} from '@/components/lib/3d/contraventamento-parser.ts';
 
-describe('parseContraventamentosFromTopGroup', () => {
+describe('parseContraventamentosFromTopView', () => {
   it('parses and normalizes valid contraventamento objects', () => {
     const topGroup = {
       getObjects: () => [
@@ -17,7 +17,7 @@ describe('parseContraventamentosFromTopGroup', () => {
       ],
     };
 
-    const parsed = parseContraventamentosFromTopGroup(topGroup);
+    const parsed = parseContraventamentosFromTopView(topGroup);
     expect(parsed).toEqual([
       {
         id: 'c-1',
@@ -55,7 +55,7 @@ describe('parseContraventamentosFromTopGroup', () => {
       ],
     };
 
-    const parsed = parseContraventamentosFromTopGroup(topGroup);
+    const parsed = parseContraventamentosFromTopView(topGroup);
     expect(parsed).toEqual([
       {
         id: 'contrav_3d_2',

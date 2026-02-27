@@ -182,7 +182,7 @@
 
 - [ ] Abrir visualizador 3D.
 - [~] Validar render para `tipo6` e `tipo3`.
-    - Evidência parcial de mapeamento/regra: `src/lib/3d/openings-mapper.smoke.test.ts`.
+    - Evidência parcial de mapeamento/regra: `src/lib/3d/scene-openings-builder.smoke.test.ts`.
     - Pendência: validação visual manual do render.
 - [ ] Inserir snapshot 3D no canvas 2D.
     - Pendente manual.
@@ -1322,7 +1322,7 @@
 
 - `Canvas` atualizado:
     - `syncPlantSideHighlight` extraiu helper local `refreshTopGroup()` para centralizar:
-      `topGroup.setCoords()` + `canvas.requestRenderAll()`
+      `topViewCanvasObject.setCoords()` + `canvas.requestRenderAll()`
 - Regras/documentação sincronizadas:
     - `.rules/canvas.md` atualizado para registrar helper de refresh no fluxo de highlight lateral
 - Ganho:

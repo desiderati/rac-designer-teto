@@ -214,27 +214,29 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 ### File Structure
 
 ```
-src/
-├── components/
-│   ├── lib/                  # Utilitários e helpers
-│   ├── rac-editor/           # Componentes principais do editor
-│   │   ├── canvas/           # Componentes relativos ao canvas
-│   │   │   ├── Canvas.tsx    # Editor 2D
-│   │   ├── hooks/            # React hooks customizados
-│   │   ├── modals/           # Componentes de modais
-│   │   ├── toolbar/          # Barra de ferramentas
-│   │   ├── tutorial/         # Tutorial (onboarding)
-│   │   ├── House3DScene.tsx  # Modelo da casa em 3D
-│   │   ├── House3DViewer.tsx # Visualizador do modelo da casa em 3D
-│   │   ├── Minimap.tsx       # Minimapa
-│   │   └── RacEditor.tsx     # Componente raiz do editor
-│   ├── ui/                   # Componentes shadcn/ui
-│   └── [Others].tsx          # Componentes reutilizáveis
-├── pages/
-│   ├── Index.tsx             # Página principal
-│   └── NotFound.tsx          # Página 404
-├── shared/types/             # Definições de tipos TypeScript
-└── App.tsx                   # Componente raiz
+.
+├── .lovable/                 # Planos/artefatos do Lovable (automação)
+├── .refactoring/             # Saídas do sistema de refatoração automática
+├── .rules/                   # Regras e guias operacionais do projeto
+├── dist/                     # Build de produção (gerado)
+├── e2e/                      # Testes E2E (Playwright)
+├── node_modules/             # Dependências instaladas (gerado)
+├── public/                   # Assets estáticos
+├── src/
+│   ├── components/           # Componentes React do app/editor
+│   │   ├── lib/              # Helpers e libs internas do editor
+│   │   ├── rac-editor/       # Núcleo do editor (canvas, toolbar, modais, tutorial)
+│   │   └── ui/               # Componentes base (shadcn/ui)
+│   ├── domain/               # Domínio e casos de uso (ex.: house)
+│   ├── infra/                # Infra/persistência/storage e settings
+│   ├── pages/                # Páginas/rotas da aplicação
+│   ├── shared/               # Configurações e tipos compartilhados
+│   ├── test/                 # Setup de testes unitários
+│   ├── App.tsx               # Componente raiz
+│   ├── index.css             # Estilos globais
+│   └── main.tsx              # Bootstrap React/Vite
+├── playwright-report/        # Relatórios Playwright (gerado)
+└── test-results/             # Artefatos de testes (gerado)
 ```
 
 ### Naming Conventions

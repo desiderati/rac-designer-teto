@@ -45,6 +45,8 @@ No fluxo inicial:
 2. mínimo: `0.20 m`
 3. máximo: `1.50 m`
 4. exige ao menos um mestre para concluir
+5. ao definir um canto como mestre, os demais cantos são elevados para no mínimo o nível do mestre
+6. para cantos não mestre, o mínimo permitido é `max(nível do mestre, 0.20 m)`
 
 ## 5. Interpolação global de níveis (12 pilotis)
 
@@ -86,6 +88,14 @@ Importante:
 
 - a regra de altura recomendada (`nivel * 3`) não substitui o limite de edição local do `PilotiEditor` (`height / 2`).
 
+## 6.1 Auto-navegação no editor de piloti
+
+Quando `autoNavigatePiloti` está habilitado nas configurações:
+
+1. clicar em um botão de altura aplica imediatamente `height` e `nivel` (clamp por altura);
+2. após `TIMINGS.pilotiAutoNavigateDelayMs`, o editor navega para o próximo piloti;
+3. se não houver próximo, o editor é fechado automaticamente.
+
 ## 7. Sincronização entre vistas
 
 Quando `height`, `isMaster` ou `nivel` mudam:
@@ -125,13 +135,8 @@ Complemento de renderização extraído:
 - `src/components/rac-editor/modals/editors/NivelDefinitionEditor.tsx`
 - `src/components/rac-editor/hooks/usePilotiEditorLogic.ts`
 - `src/components/rac-editor/hooks/usePilotiActions.ts`
-- `src/lib/house-manager.ts`
-- `src/lib/domain/house-use-cases.ts`
-- `src/lib/domain/house-application.ts`
-- `src/lib/domain/house-repository.ts`
-- `src/lib/domain/house-piloti-rebuild-use-cases.ts`
-- `src/lib/domain/house-piloti-render-use-cases.ts`
-- `src/lib/domain/house-piloti-object-index-use-cases.ts`
-- `src/lib/domain/house-piloti-visual-use-cases.ts`
-- `src/lib/canvas/piloti-visual-feedback.ts`
+- `src/components/lib/house-manager.ts`
+- `src/domain/house/house-aggregate.ts`
+- `src/components/lib/canvas/piloti.ts`
+- `src/components/lib/canvas/piloti-visual-feedback.ts`
 - `src/components/rac-editor/House3DScene.tsx`
