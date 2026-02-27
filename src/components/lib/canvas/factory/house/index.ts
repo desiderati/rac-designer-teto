@@ -3,8 +3,8 @@ import {
   HouseViewStrategy,
   HouseViewStrategyKey,
   HouseViewStrategyOptions
-} from '@/components/lib/canvas/factory/house/house.straregy.ts';
-import {createHouseTop} from '@/components/lib/canvas/factory/house/house-top.straregy.ts';
+} from '@/components/lib/canvas/factory/house/house.strategy.ts';
+import {createHouseTop} from '@/components/lib/canvas/factory/house/house-top.strategy.ts';
 import {createHouseFrontBack} from '@/components/lib/canvas/factory/house/house-front-back.strategy.ts';
 import {createHouseSide} from '@/components/lib/canvas/factory/house/house-side.strategy.ts';
 
