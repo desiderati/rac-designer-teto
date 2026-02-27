@@ -2,6 +2,14 @@
 
 Este diretório consolida regras funcionais do RAC Designer TETO, separadas por tipo de componente.
 
+## Refactoring Automation
+
+- `refactoring-agents.md`
+    - Regras dos Agentes 1 (Analise Dinamica) e 2 (Execucao Autonoma)
+    - Workflow de aprovacao manual
+    - Estrutura de diretorios `.refactoring/`
+    - Regras de regressao e rollback
+
 ## UI / Editor
 
 - `canvas.md`
