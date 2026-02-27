@@ -29,7 +29,7 @@ export function RacEditorModals({
   return (
     <>
       <SettingsModal
-        open={isSettingsOpen}
+        isOpen={isSettingsOpen}
         onOpenChange={onSettingsOpenChange}
         onSettingsChange={onSettingsChange}/>
 
@@ -39,8 +39,8 @@ export function RacEditorModals({
         title='Reiniciar Canvas'
         description='Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?'
         confirmLabel='Confirmar'
-        onConfirm={onConfirmRestartTutorial}
-        onRequestClose={onCloseRestartConfirm}
+        handleConfirm={onConfirmRestartTutorial}
+        handleCancel={onCloseRestartConfirm}
       />
 
       <ConfirmDialogModal
@@ -49,8 +49,8 @@ export function RacEditorModals({
         title='Desagrupar Casa'
         description='Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?'
         confirmLabel='Desagrupar'
-        onConfirm={onConfirmUngroup}
-        onRequestClose={onCloseUngroupConfirm}
+        handleConfirm={onConfirmUngroup}
+        handleCancel={onCloseUngroupConfirm}
       />
     </>
   );
