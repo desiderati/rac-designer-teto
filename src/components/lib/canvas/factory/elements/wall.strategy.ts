@@ -1,6 +1,7 @@
 import {Canvas as FabricCanvas, Group, IText, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasObjectMyType} from './shared.ts';
+import {withScalingGuard} from './scaling-guard.ts';
 import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
@@ -89,16 +90,8 @@ function normalizeWallGroupToLength(group: Group, newWidth: number, newHeight: n
 }
 
 function bindWallGroupScaling(group: Group): void {
-  group.on('scaling', function (this: Group) {
-    const canvasGroup = this as Group & { __normalizingScale?: boolean };
-    if (canvasGroup.__normalizingScale) return;
-    canvasGroup.__normalizingScale = true;
-
-    try {
-      normalizeWallGroupToLength(this, (this.width || 1) * (this.scaleX || 1), (this.height || 1) * (this.scaleY || 1));
-    } finally {
-      canvasGroup.__normalizingScale = false;
-    }
+  withScalingGuard(group, function (this: Group) {
+    normalizeWallGroupToLength(this, (this.width || 1) * (this.scaleX || 1), (this.height || 1) * (this.scaleY || 1));
   });
 }
 

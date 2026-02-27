@@ -1,6 +1,7 @@
 import {Canvas as FabricCanvas, Group, IText, Rect, Triangle} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasObjectMyType} from './shared.ts';
+import {withScalingGuard} from './scaling-guard.ts';
 import {CanvasObject, toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
@@ -61,16 +62,8 @@ export const arrowStrategy: ElementStrategy<Group> = {
 };
 
 function bindArrowGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
-  group.on('scaling', function (this: Group) {
-    const canvasGroup = this as Group & { __normalizingScale?: boolean };
-    if (canvasGroup.__normalizingScale) return;
-    canvasGroup.__normalizingScale = true;
-
-    try {
-      normalizeArrowGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
-    } finally {
-      canvasGroup.__normalizingScale = false;
-    }
+  withScalingGuard(group, function (this: Group) {
+    normalizeArrowGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
   });
 }
 
