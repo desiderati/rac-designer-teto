@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas, FabricObject, Group, Polygon, Polyline, Rect} fr
 import {createPilotis} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export function createHouseFrontBack(
   canvas: FabricCanvas,
@@ -169,6 +169,8 @@ export function createHouseFrontBack(
       left: doorX,
       top: doorY,
     });
+    (doorObj as any).isHouseDoor = true;
+    (doorObj as any).myType = 'door';
 
     const w2 = new Rect({
       width: windowW,

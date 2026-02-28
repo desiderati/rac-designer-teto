@@ -1,6 +1,6 @@
-import {useCallback, useRef} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {Toolbar} from '@/components/rac-editor/toolbar/Toolbar.tsx';
-import {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {CanvasHandle, TerrainCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
 import {RacEditorModals} from './RacEditorModals.tsx';
 import {RacEditorCanvas} from './RacEditorCanvas.tsx';
@@ -38,6 +38,7 @@ import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEdito
 import {RacEditorHouseTypeSelector} from '@/components/rac-editor/RacEditorHouseTypeSelector.tsx';
 import {RacEditorTutorial} from '@/components/rac-editor/RacEditorTutorial.tsx';
 import {House3DViewer} from '@/components/rac-editor/House3DViewer.tsx';
+import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 export function RacEditor() {
   const isMobile = useIsMobile();
@@ -78,6 +79,8 @@ export function RacEditor() {
   } = useRacEditorLocalState();
 
   const canvasRef = useRef<CanvasHandle>(null);
+  const [terrainSelection, setTerrainSelection] = useState<TerrainCanvasSelection | null>(null);
+  const [isTerrainEditorOpen, setIsTerrainEditorOpen] = useState(false);
 
   // ── RAC Editor ─────────────────────────────────────────────────
 
@@ -170,6 +173,31 @@ export function RacEditor() {
     onCloseSubmenus: () => setActiveSubmenu(null),
     onDismissPilotiTutorial: dismissPilotiTutorial,
   });
+
+  const handleTerrainSelect = useCallback((selection: TerrainCanvasSelection | null) => {
+    if (!selection) return;
+    setTerrainSelection({
+      ...selection,
+      terrainType: houseManager.getTerrainType(),
+    });
+    setIsTerrainEditorOpen(true);
+  }, []);
+
+  const handleTerrainEditorClose = useCallback(() => {
+    setIsTerrainEditorOpen(false);
+    setTerrainSelection(null);
+  }, []);
+
+  const handleTerrainApply = useCallback((terrainType: number) => {
+    const normalized = houseManager.setTerrainType(terrainType);
+    canvasRef.current?.saveHistory();
+
+    setTerrainSelection(
+      (current) =>
+        current ? {...current, terrainType: normalized} : null
+    );
+    setInfoMessage(`Terreno atualizado para "${TERRAIN_SOLIDITY.levels[normalized].label}".`);
+  }, [setInfoMessage]);
 
   const {
     handleSideSelected,
@@ -485,6 +513,7 @@ export function RacEditor() {
         onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
         onContraventamentoSelect={handleContraventamentoSelect}
         onContraventamentoCancel={handleCancelContraventamento}
+        onTerrainSelect={handleTerrainSelect}
       />
 
       <RacEditorHouseTypeSelector
@@ -518,6 +547,11 @@ export function RacEditor() {
         linearSelection={linearSelection}
         linearEditorType={linearSelection?.myType ?? 'line'}
         isLinearEditorOpen={isLinearEditorOpen}
+
+        terrainSelection={terrainSelection}
+        isTerrainEditorOpen={isTerrainEditorOpen}
+        onTerrainEditorClose={handleTerrainEditorClose}
+        onTerrainApply={handleTerrainApply}
 
         pendingViewType={pendingViewType}
         sideSelectorOpen={sideSelectorOpen}

@@ -3,13 +3,12 @@ import {Canvas as FabricCanvas} from 'fabric';
 import type {
   CanvasHandle,
   ContraventamentoCanvasSelection,
-  PilotiCanvasSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useContraventamentoEffects.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {ContraventamentoOrigin, ContraventamentoStep} from '@/components/lib/canvas';
+import {ContraventamentoOrigin, ContraventamentoStep, PilotiCanvasSelection} from '@/components/lib/canvas';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 
 interface UseContraventamentoArgs {

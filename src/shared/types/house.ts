@@ -4,6 +4,7 @@ export interface HouseState<TGroup = unknown> {
   id: string;
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
+  terrainType: number;
   views: HouseViews<TGroup>;
   sideMappings: HouseSideMapping;
   preAssignedSides: Record<string, HouseSide>;

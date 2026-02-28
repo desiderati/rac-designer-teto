@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {FabricImage} from 'fabric';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -106,6 +106,24 @@ describe('houseManager smoke flows', () => {
     expect(houseManager.hasAnyView()).toBe(false);
     expect(houseManager.getAllGroups()).toHaveLength(0);
     expect(houseManager.getHouse()?.sideMappings.top).toBeNull();
+  });
+
+  it('mantém tipo de terreno global e aplica para todas as vistas elevadas', () => {
+    houseManager.setHouseType('tipo6');
+    const {group: topGroup} = createMockGroup({houseView: 'top'});
+    const {group: frontGroup} = createMockGroup({houseView: 'front'});
+    const {group: sideGroup} = createMockGroup({houseView: 'side'});
+
+    houseManager.registerView('top', topGroup as any);
+    houseManager.registerView('front', frontGroup as any, 'top');
+    houseManager.registerView('side1', sideGroup as any, 'left');
+
+    const terrain = houseManager.setTerrainType(4);
+    expect(terrain).toBe(4);
+    expect(houseManager.getTerrainType()).toBe(4);
+    expect(houseManager.getHouse()?.terrainType).toBe(4);
+    expect((frontGroup as any).groundTerrainType).toBe(4);
+    expect((sideGroup as any).groundTerrainType).toBe(4);
   });
 
   it('rebuilds views and piloti data from current canvas objects (import-like flow)', () => {

@@ -34,6 +34,12 @@ export interface LinearCanvasSelection {
   screenPosition: { x: number; y: number };
 }
 
+export interface TerrainCanvasSelection {
+  group: Group;
+  terrainType: number;
+  screenPosition: { x: number; y: number };
+}
+
 interface CanvasProps {
   children?: ReactNode;
   isAnyEditorOpen?: boolean;
@@ -47,6 +53,7 @@ interface CanvasProps {
   onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
   onWallSelect?: (selection: WallCanvasSelection | null) => void;
   onLinearSelect?: (selection: LinearCanvasSelection | null) => void;
+  onTerrainSelect?: (selection: TerrainCanvasSelection | null) => void;
 
   showZoomControls?: boolean;
   showTips?: boolean;
@@ -89,6 +96,7 @@ export const Canvas =
       onPilotiSelect,
       onWallSelect,
       onLinearSelect,
+      onTerrainSelect,
 
       showZoomControls = true,
       showTips = false,
@@ -217,6 +225,7 @@ export const Canvas =
         onPilotiSelect,
         onWallSelect: onWallSelect,
         onLinearSelect: onLinearSelect,
+        onTerrainSelect,
 
         copy,
         paste,

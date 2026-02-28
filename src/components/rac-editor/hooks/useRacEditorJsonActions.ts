@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas, Group} from 'fabric';
 import {toast} from 'sonner';
 import type {CanvasHandle, ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {refreshHouseGroupsOnCanvas, removeContraventamentosFromGroup, toCanvasObject} from '@/components/lib/canvas';
+import {refreshHouseGroupsOnCanvas, removeContraventamentosFromTopView, toCanvasObject} from '@/components/lib/canvas';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseRacEditorJsonActionsArgs {
@@ -82,7 +82,7 @@ export function useRacEditorJsonActions({
     if (!canvas) return;
 
     if (selectedContraventamento) {
-      const removed = removeContraventamentosFromGroup(
+      const removed = removeContraventamentosFromTopView(
         selectedContraventamento.group,
         (object) => toCanvasObject(object)?.contraventamentoId === selectedContraventamento.contraventamentoId
       );

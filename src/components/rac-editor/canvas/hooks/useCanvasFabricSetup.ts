@@ -12,7 +12,11 @@ import {useCanvasSelectionEvents} from './useCanvasSelectionEvents.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts.ts';
 import {useCanvasEditorEvents} from './useCanvasEditorEvents.ts';
-import {LinearCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {
+  LinearCanvasSelection,
+  TerrainCanvasSelection,
+  WallCanvasSelection
+} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
 interface UseCanvasFabricSetupArgs {
@@ -24,6 +28,7 @@ interface UseCanvasFabricSetupArgs {
   onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
   onWallSelect?: (selection: WallCanvasSelection | null) => void;
   onLinearSelect?: (selection: LinearCanvasSelection | null) => void;
+  onTerrainSelect?: (selection: TerrainCanvasSelection | null) => void;
   isAnyEditorOpenRef: MutableRefObject<boolean>;
   onDelete?: () => void;
   copy: () => void;
@@ -33,7 +38,8 @@ interface UseCanvasFabricSetupArgs {
   isContraventamentoModeRef: MutableRefObject<boolean>;
   isSelectingContraventamentoDestinationRef: MutableRefObject<boolean>;
   isPilotiEligibleForContraventamentoRef: MutableRefObject<((pilotiId: string) => boolean) | undefined>;
-  onContraventamentoPilotiClickRef: MutableRefObject<((pilotiId: string, col: number, row: number, group: Group) => void) | undefined>;
+  onContraventamentoPilotiClickRef:
+    MutableRefObject<((pilotiId: string, col: number, row: number, group: Group) => void) | undefined>;
   onContraventamentoSelectRef: MutableRefObject<((selection: {
     group: Group;
     contraventamentoId: string
@@ -50,6 +56,7 @@ export function useCanvasFabricSetup({
   onPilotiSelect,
   onWallSelect,
   onLinearSelect,
+  onTerrainSelect,
   isAnyEditorOpenRef,
   onDelete,
   copy,
@@ -72,6 +79,7 @@ export function useCanvasFabricSetup({
     onPilotiSelect,
     onWallSelect,
     onLinearSelect,
+    onTerrainSelect,
     isAnyEditorOpenRef,
     onDelete,
     copy,
@@ -95,6 +103,7 @@ export function useCanvasFabricSetup({
     onPilotiSelect,
     onWallSelect,
     onLinearSelect,
+    onTerrainSelect,
     isAnyEditorOpenRef,
     onDelete,
     copy,
@@ -136,17 +145,29 @@ export function useCanvasFabricSetup({
       return (event as CanvasPointerPayload | undefined) ?? {};
     };
 
-    const isPilotiVisualTarget = (object: FabricObject | null | undefined): object is CanvasObject => {
-      const runtime = toCanvasObject(object);
-      if (!runtime) return false;
-      return runtime.isPilotiCircle === true || runtime.isPilotiRect === true;
-    };
+    const isPilotiVisualTarget =
+      (object: FabricObject | null | undefined): object is CanvasObject => {
+        const runtime = toCanvasObject(object);
+        if (!runtime) return false;
+        return runtime.isPilotiCircle === true || runtime.isPilotiRect === true;
+      };
 
     const runSaveHistory = () => latestArgsRef.current.saveHistory();
-    const emitSelectionChange = (hint: string) => latestArgsRef.current.onSelectionChange(hint);
-    const emitPilotiSelection = (selection: PilotiCanvasSelection | null) => latestArgsRef.current.onPilotiSelect?.(selection);
-    const emitWallSelection = (selection: WallCanvasSelection | null) => latestArgsRef.current.onWallSelect?.(selection);
-    const emitLinearSelection = (selection: LinearCanvasSelection | null) => latestArgsRef.current.onLinearSelect?.(selection);
+
+    const emitSelectionChange =
+      (hint: string) => latestArgsRef.current.onSelectionChange(hint);
+
+    const emitPilotiSelection =
+      (selection: PilotiCanvasSelection | null) => latestArgsRef.current.onPilotiSelect?.(selection);
+
+    const emitWallSelection =
+      (selection: WallCanvasSelection | null) => latestArgsRef.current.onWallSelect?.(selection);
+
+    const emitLinearSelection =
+      (selection: LinearCanvasSelection | null) => latestArgsRef.current.onLinearSelect?.(selection);
+
+    const emitTerrainSelection =
+      (selection: TerrainCanvasSelection | null) => latestArgsRef.current.onTerrainSelect?.(selection);
 
     // Initialize drawing brush
     canvas.freeDrawingBrush = new PencilBrush(canvas);
@@ -172,7 +193,8 @@ export function useCanvasFabricSetup({
         latestArgsRef.current.onContraventamentoSelectRef.current?.(null);
       },
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
-      isSelectingContraventamentoDestination: () => latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
+      isSelectingContraventamentoDestination: () =>
+        latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
       },
@@ -182,7 +204,8 @@ export function useCanvasFabricSetup({
       onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => {
         latestArgsRef.current.onContraventamentoPilotiClickRef.current?.(pilotiId, col, row, group);
       },
-      getCurrentScreenPoint: (canvasPoint) => latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
+      getCurrentScreenPoint: (canvasPoint) =>
+        latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
     });
 
     const unbindSelectionEvents = bindSelectionEvents({
@@ -198,7 +221,8 @@ export function useCanvasFabricSetup({
       getEventPayload,
       handlePilotiSelection,
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
-      isSelectingContraventamentoDestination: () => latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
+      isSelectingContraventamentoDestination: () =>
+        latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
       },
@@ -232,8 +256,10 @@ export function useCanvasFabricSetup({
       handlePilotiSelection,
       onWallSelect: (selection) => emitWallSelection(selection),
       onLinearSelect: (selection) => emitLinearSelection(selection),
+      onTerrainSelect: (selection) => emitTerrainSelection(selection),
       onSelectionChange: emitSelectionChange,
-      getCurrentScreenPoint: (canvasPoint) => latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
+      getCurrentScreenPoint: (canvasPoint) =>
+        latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
       isAnyEditorOpen: () => latestArgsRef.current.isAnyEditorOpenRef.current,
     });
 
@@ -246,7 +272,3 @@ export function useCanvasFabricSetup({
     };
   }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionEvents]);
 }
-
-
-
-

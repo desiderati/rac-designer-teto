@@ -12,7 +12,7 @@ import {
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE,
 } from '@/shared/config.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
 export function createHouseTop(canvas: FabricCanvas): Group {

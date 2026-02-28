@@ -1,4 +1,4 @@
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export const APP_SETTINGS_DEFAULTS = {
   autoNavigatePiloti: false,
@@ -153,9 +153,22 @@ export const ALL_PILOTI_IDS = Array.from({length: 3 * 4}, (_, index) => {
 });
 
 export const CONTRAVENTAMENTO = {
+  offsetFromTop: HOUSE_DIMENSIONS.contraventamento.offsetFromTop,
   offsetFromGround: HOUSE_DIMENSIONS.contraventamento.offsetFromGround,
   strokeWidth: 1.5,
   strokeColor: '#8b4513',
+} as const;
+
+export const TERRAIN_SOLIDITY = {
+  defaultLevel: 1,
+  sideGravelWidth: 10,
+  levels: {
+    1: {label: 'Seco', rachao: 15},
+    2: {label: 'Argiloso', rachao: 30},
+    3: {label: 'Água no fundo', rachao: 45},
+    4: {label: 'Bastante água', rachao: 60},
+    5: {label: 'Submerso', rachao: 75},
+  },
 } as const;
 
 export const ZOOM_LIMITS = {
@@ -237,7 +250,7 @@ export const TOAST_MESSAGES = {
   contraventamentoAddedSuccessfully: 'Contraventamento adicionado!',
   addTopViewBeforeContraventamento: 'Adicione uma vista planta primeiro.',
   contraventamentoRequiresNivelAboveFortyCentimeters:
-    'O piloti precisa ter nível maior que 40cm para contraventar.',
+    'O piloti precisa ter nível de pelo menos 20cm para contraventar.',
 
   contraventamentoRemovedFromSide: (sideLabel: string): string =>
     `Contraventamento do lado ${sideLabel} removido.`,

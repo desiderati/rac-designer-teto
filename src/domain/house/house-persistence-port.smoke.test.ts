@@ -21,6 +21,7 @@ describe('house persistence port', () => {
       id: 'house-1',
       houseType: 'tipo6',
       pilotis: {},
+      terrainType: 1,
       views: {
         top: [],
         front: [],

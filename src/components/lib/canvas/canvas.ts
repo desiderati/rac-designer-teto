@@ -65,6 +65,7 @@ export type CanvasObject = FabricObject & {
   pilotiNivel?: number;
   isTopDoorMarker?: boolean;
   doorMarkerSide?: HouseSide;
+  isHouseDoor?: boolean;
 
   isGroundElement?: boolean;
   isGroundLine?: boolean;
@@ -73,11 +74,21 @@ export type CanvasObject = FabricObject & {
   isNivelMarker?: boolean;
   isNivelLabel?: boolean;
   groundSeed?: number;
+  groundTerrainType?: number;
+  isTerrainRachao?: boolean;
+  isTerrainSideGravel?: boolean;
+  isTerrainEditTarget?: boolean;
+  isAutoStairs?: boolean;
+  stairsStepCount?: number;
+  stairsHeight?: number;
+  stairsNivelLeft?: number;
+  stairsNivelRight?: number;
 
   isRightSide?: boolean;
   isFlippedHorizontally?: boolean;
 
   isContraventamento?: boolean;
+  isAutoContraventamento?: boolean;
   isContraventamentoElevation?: boolean;
   contraventamentoId?: string;
   contraventamentoCol?: number | string;
@@ -101,8 +112,6 @@ FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) 
   return originalToObject.call(this, [...canvasObjectProps, ...propertiesToInclude]);
 };
 
-export function toCanvasObject(object: FabricObject): CanvasObject;
-export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null;
 export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null {
   if (!object) return null;
   return object as CanvasObject;
@@ -140,6 +149,7 @@ export const canvasObjectProps = [
   'pilotiNivel',
   'isTopDoorMarker',
   'doorMarkerSide',
+  'isHouseDoor',
   'isGroundElement',
   'isGroundLine',
   'isGroundSegment',
@@ -147,9 +157,19 @@ export const canvasObjectProps = [
   'isNivelMarker',
   'isNivelLabel',
   'groundSeed',
+  'groundTerrainType',
+  'isTerrainRachao',
+  'isTerrainSideGravel',
+  'isTerrainEditTarget',
+  'isAutoStairs',
+  'stairsStepCount',
+  'stairsHeight',
+  'stairsNivelLeft',
+  'stairsNivelRight',
   'isRightSide',
   'isFlippedHorizontally',
   'isContraventamento',
+  'isAutoContraventamento',
   'isContraventamentoElevation',
   'contraventamentoId',
   'contraventamentoCol',

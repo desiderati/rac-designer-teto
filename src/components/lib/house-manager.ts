@@ -1,5 +1,13 @@
 import {Canvas as FabricCanvas, FabricImage, Group} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH, CanvasObject, getAllPilotiIds, toCanvasGroup,} from '@/components/lib/canvas';
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  CanvasObject,
+  getAllPilotiIds,
+  normalizeTerrainSolidityLevel,
+  toCanvasGroup,
+  updateGroundTerrainType
+} from '@/components/lib/canvas';
 import {createHouseId, createViewInstanceId,} from '@/components/lib/house-identity.ts';
 import {
   createViewGroupControlsVisibilityPatch,
@@ -20,12 +28,15 @@ import {
   HouseViewType,
 } from '@/shared/types/house.ts';
 import {InMemoryHousePersistence} from '@/infra/persistence/in-memory-house-persistence.ts';
-import {applyPilotiDataToGroup, syncPilotiUpdateAcrossViews} from "@/components/lib/canvas/piloti-visual.ts";
+import {applyPilotiDataToGroup, syncPilotiUpdateAcrossViews} from '@/components/lib/canvas/piloti-visual.ts';
 import {
   collectHouseGroupRebuildSources,
   readPilotiDataFromCanvas,
   toRebuildViewSource
-} from "@/components/lib/canvas/canvas-rebuild.ts";
+} from '@/components/lib/canvas/canvas-rebuild.ts';
+import {refreshAutoStairsInViews} from '@/components/lib/house-auto-stairs.ts';
+import {refreshAutoContraventamentoInAllViews} from '@/components/lib/house-auto-contraventamento.ts';
+import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 
 class HouseManager {
@@ -36,6 +47,47 @@ class HouseManager {
 
   private listeners = new Set<() => void>();
 
+  private getDefaultTerrainType(): number {
+    return normalizeTerrainSolidityLevel(TERRAIN_SOLIDITY.defaultLevel);
+  }
+
+  private getElevationViewInstances() {
+    if (!this.house) return [];
+    return [
+      ...this.house.views.front,
+      ...this.house.views.back,
+      ...this.house.views.side1,
+      ...this.house.views.side2,
+    ];
+  }
+
+  private applyTerrainTypeToElevationViews(terrainType: number): void {
+    this.getElevationViewInstances().forEach((instance) => {
+      updateGroundTerrainType(instance.group, terrainType);
+    });
+  }
+
+  private resolveTerrainTypeFromCanvasFallback(): number {
+    const fromCanvas = this.canvas
+      ?.getObjects()
+      .find((object): object is Group & CanvasObject => {
+        const runtime = object as CanvasObject;
+        return (
+          object.type === 'group'
+          && runtime.myType === 'house'
+          && runtime.houseView !== 'top'
+          && Number.isFinite(Number(runtime.groundTerrainType))
+        );
+      });
+
+    const terrainFromCanvas = Number((fromCanvas as CanvasObject | undefined)?.groundTerrainType);
+    if (Number.isFinite(terrainFromCanvas)) {
+      return normalizeTerrainSolidityLevel(terrainFromCanvas);
+    }
+
+    return this.getTerrainType();
+  }
+
   constructor() {
     let persisted = this.persistence.load();
     if (!persisted) {
@@ -43,11 +95,18 @@ class HouseManager {
         id: createHouseId(),
         pilotiIds: getAllPilotiIds(),
         defaultPiloti: DEFAULT_HOUSE_PILOTI,
-      })
+        defaultTerrainType: this.getDefaultTerrainType(),
+      });
+    } else {
+      persisted.terrainType = normalizeTerrainSolidityLevel(
+        persisted.terrainType ?? this.getDefaultTerrainType(),
+      );
     }
 
     this.houseAggregate = HouseAggregate.fromState(persisted);
     this.listeners.add(() => this.refreshTopDoorMarkers());
+    this.listeners.add(() => this.refreshAutoContraventamento());
+    this.listeners.add(() => this.refreshAutoStairs());
   }
 
   private get house(): HouseState<Group> | null {
@@ -81,6 +140,36 @@ class HouseManager {
     }
   }
 
+  private refreshAutoStairs(): void {
+    if (!this.house) return;
+
+    const hasChanges = refreshAutoStairsInViews({
+      houseType: this.house.houseType,
+      sideMappings: this.house.sideMappings,
+      pilotis: this.house.pilotis,
+      topViews: this.house.views.top,
+      elevationViews: this.getElevationViewInstances(),
+    });
+
+    if (hasChanges) {
+      this.canvas?.requestRenderAll();
+    }
+  }
+
+  private refreshAutoContraventamento(): void {
+    if (!this.house) return;
+
+    const hasChanges = refreshAutoContraventamentoInAllViews({
+      pilotis: this.house.pilotis,
+      topViews: this.house.views.top,
+      elevationViews: this.getElevationViewInstances(),
+    });
+
+    if (hasChanges) {
+      this.canvas?.requestRenderAll();
+    }
+  }
+
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -96,6 +185,7 @@ class HouseManager {
       id: createHouseId(),
       pilotiIds: getAllPilotiIds(),
       defaultPiloti: DEFAULT_HOUSE_PILOTI,
+      defaultTerrainType: this.getDefaultTerrainType(),
     });
 
     this.notify();
@@ -116,6 +206,26 @@ class HouseManager {
     aggregate.setHouseType(type);
     this.persistHouse();
     this.notify();
+  }
+
+  getTerrainType(): number {
+    const aggregate = this.getHouseAggregate();
+    if (!aggregate) return this.getDefaultTerrainType();
+
+    return normalizeTerrainSolidityLevel(aggregate.getTerrainType());
+  }
+
+  setTerrainType(terrainType: number): number {
+    const aggregate = this.getHouseAggregate();
+    if (!aggregate) return this.getDefaultTerrainType();
+
+    const normalized = normalizeTerrainSolidityLevel(terrainType);
+    aggregate.setTerrainType(normalized);
+    this.persistHouse();
+    this.applyTerrainTypeToElevationViews(normalized);
+    this.canvas?.requestRenderAll();
+    this.notify();
+    return normalized;
   }
 
   // Get max count for a view type based on current house type
@@ -216,6 +326,7 @@ class HouseManager {
         side,
       }),
     );
+    (toCanvasGroup(group) as any).groundTerrainType = this.getTerrainType();
 
     // Apply current piloti data to the new group
     applyPilotiDataToGroup(group, this.house.pilotis);
@@ -264,6 +375,7 @@ class HouseManager {
     if (this.house) {
       const nextHouse = this.house;
       nextHouse.pilotis = readPilotiDataFromCanvas(this.canvas, this.house?.pilotis);
+      nextHouse.terrainType = this.resolveTerrainTypeFromCanvasFallback();
       this.house = nextHouse;
     }
 
@@ -278,7 +390,10 @@ class HouseManager {
     }
 
     // Re-apply current piloti data to normalized groups after restore.
-    this.getAllGroups().forEach((group) => applyPilotiDataToGroup(group, this.house.pilotis));
+    this.getAllGroups().forEach((group) => {
+      (toCanvasGroup(group) as any).groundTerrainType = this.getTerrainType();
+      applyPilotiDataToGroup(group, this.house.pilotis);
+    });
 
     this.notify();
   }

@@ -14,9 +14,29 @@ import {
   PILOTI_CORNER_ID,
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE,
-  PILOTI_STYLE
+  PILOTI_STYLE,
+  TERRAIN_SOLIDITY
 } from '@/shared/config.ts';
-import {HOUSE_DIMENSIONS} from "@/components/lib/house-dimensions.ts";
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+
+export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
+
+export function parsePilotiGridPosition(pilotiId: string): { col: number; row: number } | null {
+  const match = pilotiId.match(/piloti_(\d+)_(\d+)/);
+  if (!match) return null;
+  return {
+    col: parseInt(match[1], 10),
+    row: parseInt(match[2], 10),
+  };
+}
+
+export function isPilotiOutOfProportion(height: number, nivel: number): boolean {
+  if (!Number.isFinite(height) || !Number.isFinite(nivel)) return false;
+  if (height <= 0 || nivel <= 0) return false;
+
+  // Regra estrutural base: nível = 1/3 da altura total do piloti.
+  return height + 0.0001 < (nivel * 3);
+}
 
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
   const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
@@ -213,16 +233,17 @@ export function refreshHouseGroupRendering(group: Group): void {
     obj.setCoords?.();
   });
 
-  // Z-order sort: normal objects (pilotis, walls, roof) -> ground fill/line -> markers/labels
-  // Ground elements render IN FRONT of pilotis
+  // Z-order sort: normal objects (pilotis, walls, roof) -> ground layers -> markers/labels.
+  // Ground elements render in front of pilotis to preserve the "enterrado" visual.
   const groundBack =
-    objects.filter((o: any) => o.isGroundFill || o.isGroundLine);
+    objects.filter((o: any) => o.isGroundElement && !o.isNivelMarker && !o.isNivelLabel);
 
   const groundFront =
     objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
 
   const normal = objects.filter((o: any) => !o.isGroundElement);
-  const sorted = [...normal, ...groundBack, ...groundFront];
+  // Pilotis e estrutura devem ficar na frente de brita/rachão.
+  const sorted = [...groundBack, ...normal, ...groundFront];
 
   // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
   const internalObjects = (group as any)._objects;
@@ -383,6 +404,53 @@ function generateGroundLinePoints(
   return points;
 }
 
+function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): number {
+  if (!points.length) return 0;
+
+  if (targetX <= points[0].x) return points[0].y;
+  if (targetX >= points[points.length - 1].x) return points[points.length - 1].y;
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const a = points[i];
+    const b = points[i + 1];
+    const minX = Math.min(a.x, b.x);
+    const maxX = Math.max(a.x, b.x);
+    if (targetX < minX || targetX > maxX) continue;
+
+    const dx = b.x - a.x;
+    if (Math.abs(dx) < 0.0001) return Math.min(a.y, b.y);
+    const t = (targetX - a.x) / dx;
+    return a.y + (b.y - a.y) * t;
+  }
+
+  return points[points.length - 1].y;
+}
+
+function getObjectVisualBounds(obj: any): { left: number; right: number; top: number; bottom: number } {
+  const left = Number(obj?.left ?? 0);
+  const top = Number(obj?.top ?? 0);
+  const width = Number(obj?.width ?? 0) * Number(obj?.scaleX ?? 1);
+  const height = Number(obj?.height ?? 0) * Number(obj?.scaleY ?? 1);
+  const strokeWidth = Number(obj?.strokeWidth ?? 0);
+  const halfStroke = strokeWidth / 2;
+
+  return {
+    left: left - halfStroke,
+    right: left + width + halfStroke,
+    top: top - halfStroke,
+    bottom: top + height + halfStroke,
+  };
+}
+
+function resolvePilotiVisualEnvelope(
+  pilotiRect: any,
+): { left: number; right: number; bottom: number } {
+  // Use somente o envelope visual do retângulo do piloti para evitar micro-deslocamento
+  // causado pela faixa hachurada interna.
+  const bounds = getObjectVisualBounds(pilotiRect);
+  return {left: bounds.left, right: bounds.right, bottom: bounds.bottom};
+}
+
 export function createPilotiRect(
   pilotLabels: FabricObject[],
   colIndex: number,
@@ -421,23 +489,7 @@ export function createPilotiRect(
   (rect as any).pilotiNivel = defaultNivel;
   (rect as any).isPilotiRect = true;
   (rect as any).pilotiBaseHeight = PILOTI_BASE_HEIGHT_PX * s;
-
-  // Create size label below piloti
-  const sizeLabel = new Text(formatPilotiHeight(defaultHeight), {
-    fontSize: PILOTI_STYLE.heightFontSize * s,
-    fill: PILOTI_STYLE.heightFontColor,
-    backgroundColor: PILOTI_STYLE.fillColor,
-    left: left + pilotW / 2,
-    top: panelHeight + floorH + floorBeanH + pilotH + 8 * s,
-    originX: 'center',
-    originY: 'top',
-    selectable: false,
-    evented: false,
-  });
-  (sizeLabel as any).isPilotiSizeLabel = true;
-  (sizeLabel as any).pilotiId = pilotiId;
-
-  pilotLabels.push(sizeLabel);
+  // Labels de altura dos pilotis nas vistas elevadas foram removidas por requisito.
   return rect;
 }
 
@@ -558,6 +610,55 @@ export function createDiagonalStripePattern(): Pattern {
   });
 }
 
+export function normalizeTerrainSolidityLevel(value: unknown): TerrainSolidityLevel {
+  const numeric = Number(value);
+  if (numeric >= 5) return 5;
+  if (numeric <= 1) return 1;
+  if (numeric === 2 || numeric === 3 || numeric === 4) return numeric;
+  return TERRAIN_SOLIDITY.defaultLevel;
+}
+
+export function getTerrainRachaoThicknessCm(level: TerrainSolidityLevel): number {
+  return TERRAIN_SOLIDITY.levels[level].rachao;
+}
+
+export function getGroundTerrainType(group: Group): TerrainSolidityLevel {
+  return normalizeTerrainSolidityLevel((group as any).groundTerrainType);
+}
+
+function createRachaoPattern(scale: number): Pattern {
+  const size = Math.max(14, Math.round(28 * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#8d7559';
+  ctx.fillRect(0, 0, size, size);
+
+  const stones = [
+    {x: size * 0.18, y: size * 0.25, r: size * 0.14, c: '#6f5942'},
+    {x: size * 0.48, y: size * 0.15, r: size * 0.12, c: '#9f8770'},
+    {x: size * 0.74, y: size * 0.33, r: size * 0.16, c: '#7a624a'},
+    {x: size * 0.34, y: size * 0.62, r: size * 0.15, c: '#b19a82'},
+    {x: size * 0.66, y: size * 0.68, r: size * 0.11, c: '#6f5942'},
+    {x: size * 0.20, y: size * 0.80, r: size * 0.10, c: '#9f8770'},
+    {x: size * 0.86, y: size * 0.80, r: size * 0.12, c: '#b19a82'},
+  ];
+
+  stones.forEach((stone) => {
+    ctx.beginPath();
+    ctx.fillStyle = stone.c;
+    ctx.arc(stone.x, stone.y, stone.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  return new Pattern({
+    source: canvas,
+    repeat: 'repeat',
+  });
+}
+
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 export function createGroundElements(
   leftX: number,
@@ -571,6 +672,17 @@ export function createGroundElements(
   leftNivelStr: string,
   rightNivelStr: string,
   maxPilotiBottomY: number,
+  terrainType: TerrainSolidityLevel,
+  pilotiRects: Array<{
+    pilotiId: string;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    visualLeft?: number;
+    visualRight?: number;
+    visualBottom?: number;
+  }>,
 ): FabricObject[] {
 
   const elements: FabricObject[] = [];
@@ -621,7 +733,7 @@ export function createGroundElements(
   (xR2 as any).isGroundElement = true;
   (xR2 as any).isNivelMarker = true;
 
-  // Nivel labels next to the X markers
+  // Labels de nível do terreno (devem permanecer visíveis).
   const lLabel = new Text(leftNivelStr, {
     fontSize: labelFontSize,
     fill: lineColor,
@@ -655,6 +767,7 @@ export function createGroundElements(
   (rLabel as any).isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
+  const normalizedTerrainType = normalizeTerrainSolidityLevel(terrainType);
   const groundPtsAbs = generateGroundLinePoints(
     leftX,
     leftNivelY,
@@ -668,12 +781,13 @@ export function createGroundElements(
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
 
+  const strokeMultiplier = 7;
   const groundLine = new Polyline(groundPtsAbs, {
-    left: gMinX,
-    top: gMinY,
+    left: gMinX - strokeMultiplier,
+    top: gMinY - strokeMultiplier,
     fill: 'transparent',
     stroke: lineColor,
-    strokeWidth: markerWidth * 2,
+    strokeWidth: markerWidth * strokeMultiplier,
     strokeUniform: true,
     selectable: false,
     evented: false,
@@ -682,8 +796,11 @@ export function createGroundElements(
   (groundLine as any).isGroundElement = true;
   (groundLine as any).isGroundLine = true;
   (groundLine as any).groundSeed = seed;
+  (groundLine as any).groundTerrainType = normalizedTerrainType;
 
-  const fillBottomY = maxPilotiBottomY + HOUSE_DEFAULTS.viewPadding * s;
+  // Altura do terreno deve cobrir, no mínimo, o fundo do piloti + cama de rachão.
+  const rachaoDepthPx = getTerrainRachaoThicknessCm(normalizedTerrainType) * s;
+  const fillBottomY = maxPilotiBottomY + rachaoDepthPx + HOUSE_DEFAULTS.viewPadding * s;
   const fillPtsAbs = [...groundPtsAbs, {x: rightX, y: fillBottomY}, {x: leftX, y: fillBottomY}];
 
   const fMinX = Math.min(...fillPtsAbs.map((p) => p.x));
@@ -701,8 +818,121 @@ export function createGroundElements(
   });
   (groundFill as any).isGroundElement = true;
   (groundFill as any).isGroundFill = true;
+  (groundFill as any).groundTerrainType = normalizedTerrainType;
 
-  elements.push(groundFill, groundLine, xL1, xL2, xR1, xR2, lLabel, rLabel);
+  // Camadas de rachão e britas ao redor de cada piloti visível.
+  const gravelWidthPx = TERRAIN_SOLIDITY.sideGravelWidth * s;
+
+  const localTerrainElements: FabricObject[] = [];
+  for (const piloti of pilotiRects) {
+    const pilotiLeft = Number(piloti.visualLeft ?? piloti.left);
+    const pilotiRight = Number(piloti.visualRight ?? (piloti.left + piloti.width));
+    const pilotiBottom = Number(piloti.visualBottom ?? (piloti.top + piloti.height));
+    const pilotiVisualWidth = Math.max(0, pilotiRight - pilotiLeft);
+    const rachaoTopY = pilotiBottom;
+    const leftGroundY = sampleGroundYAtX(groundPtsAbs, pilotiLeft);
+    const rightGroundY = sampleGroundYAtX(groundPtsAbs, pilotiRight);
+
+    const leftSideHeight = Math.max(0, pilotiBottom - leftGroundY);
+    if (leftSideHeight > 0.5) {
+      const leftGravel = new Rect({
+        left: pilotiLeft - gravelWidthPx,
+        top: leftGroundY,
+        width: gravelWidthPx,
+        height: leftSideHeight,
+        fill: '#b9b4ad',
+        stroke: '#8f8a84',
+        strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+        opacity: 0.9,
+      });
+      (leftGravel as any).isGroundElement = true;
+      (leftGravel as any).isGroundFill = true;
+      (leftGravel as any).isTerrainSideGravel = true;
+      (leftGravel as any).groundTerrainType = normalizedTerrainType;
+      (leftGravel as any).pilotiId = piloti.pilotiId;
+      localTerrainElements.push(leftGravel);
+    }
+
+    const rightSideHeight = Math.max(0, pilotiBottom - rightGroundY);
+    if (rightSideHeight > 0.5) {
+      const rightGravel = new Rect({
+        left: pilotiRight + (PILOTI_STYLE.strokeWidth * s),
+        top: rightGroundY,
+        width: gravelWidthPx,
+        height: rightSideHeight,
+        fill: '#b9b4ad',
+        stroke: '#8f8a84',
+        strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth * 2 * s,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+        opacity: 0.9,
+      });
+      (rightGravel as any).isGroundElement = true;
+      (rightGravel as any).isGroundFill = true;
+      (rightGravel as any).isTerrainSideGravel = true;
+      (rightGravel as any).groundTerrainType = normalizedTerrainType;
+      (rightGravel as any).pilotiId = piloti.pilotiId;
+      localTerrainElements.push(rightGravel);
+    }
+
+    const rachaoLayer = new Rect({
+      left: pilotiLeft - gravelWidthPx,
+      top: rachaoTopY,
+      width: pilotiVisualWidth + (gravelWidthPx * 2) + (PILOTI_STYLE.strokeWidth * s),
+      height: rachaoDepthPx,
+      fill: createRachaoPattern(s),
+      stroke: '#6f5942',
+      strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth * 2 * s,
+      strokeUniform: true,
+      selectable: false,
+      evented: false,
+      objectCaching: false,
+      opacity: 0.95,
+    });
+    (rachaoLayer as any).isGroundElement = true;
+    (rachaoLayer as any).isGroundFill = true;
+    (rachaoLayer as any).isTerrainRachao = true;
+    (rachaoLayer as any).groundTerrainType = normalizedTerrainType;
+    (rachaoLayer as any).pilotiId = piloti.pilotiId;
+    localTerrainElements.push(rachaoLayer);
+  }
+
+  // Alvo transparente para interação de edição de terreno.
+  const terrainHitAreaTop = Math.min(leftNivelY, rightNivelY) - 6 * s;
+  const terrainHitArea = new Rect({
+    left: leftX,
+    top: terrainHitAreaTop,
+    width: rightX - leftX,
+    height: fillBottomY - terrainHitAreaTop,
+    fill: 'rgba(0,0,0,0)',
+    strokeWidth: 0,
+    selectable: false,
+    evented: true,
+    objectCaching: false,
+  });
+  (terrainHitArea as any).myType = 'terrain';
+  (terrainHitArea as any).isGroundElement = true;
+  (terrainHitArea as any).isTerrainEditTarget = true;
+  (terrainHitArea as any).groundTerrainType = normalizedTerrainType;
+
+  elements.push(
+    groundFill,
+    ...localTerrainElements,
+    groundLine,
+    terrainHitArea,
+    xL1,
+    xL2,
+    xR1,
+    xR2,
+    lLabel,
+    rLabel,
+  );
   return elements;
 }
 
@@ -743,6 +973,8 @@ export function updateGroundInGroup(group: Group): void {
   const rightNivel = rightRect.pilotiNivel ?? PILOTI_DEFAULT_NIVEL;
   const baseHeight = leftRect.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
   const scale = baseHeight / PILOTI_BASE_HEIGHT_PX;
+  const terrainType = getGroundTerrainType(group);
+  (group as any).groundTerrainType = terrainType;
 
   // Find seed from existing ground
   const oldSeed = (objects.find((o: any) => o.groundSeed) as any)?.groundSeed ?? 42;
@@ -824,10 +1056,19 @@ export function updateGroundInGroup(group: Group): void {
     formatNivel(leftNivel),
     formatNivel(rightNivel),
     maxPilotiBottomY,
+    terrainType,
+    allPilotis.map((piloti: any) => ({
+      ...resolvePilotiVisualEnvelope(piloti),
+      pilotiId: String(piloti.pilotiId ?? ''),
+      left: Number(piloti.left ?? 0),
+      top: Number(piloti.top ?? 0),
+      width: Number(piloti.width ?? HOUSE_DIMENSIONS.piloti.width),
+      height: Number(piloti.height ?? 0),
+    })),
   );
 
   const groundBack =
-    newElements.filter((o: any) => o.isGroundFill || o.isGroundLine);
+    newElements.filter((o: any) => o.isGroundFill || o.isGroundLine || o.isTerrainEditTarget);
 
   const nivelFront =
     newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
@@ -838,10 +1079,38 @@ export function updateGroundInGroup(group: Group): void {
     const allNew = [...groundBack, ...nivelFront];
     allNew.forEach((o: any) => {
       o.group = group;
+      o.setCoords?.();
       currentObjects.push(o);
     });
   } else {
-    if (groundBack.length) group.add(...(groundBack as any));
-    if (nivelFront.length) group.add(...(nivelFront as any));
+    if (groundBack.length) {
+      groundBack.forEach((o: any) => o.setCoords?.());
+      group.add(...(groundBack as any));
+    }
+    if (nivelFront.length) {
+      nivelFront.forEach((o: any) => o.setCoords?.());
+      group.add(...(nivelFront as any));
+    }
   }
+
+  // Garante bounds atualizados imediatamente após inserir/remover terreno.
+  (group as any)._clearCache?.();
+  (group as any)._calcBounds?.();
+  group.setCoords();
+  (group as any).dirty = true;
+
+  const canvas = group.canvas;
+  if (canvas?.getActiveObject() === group) {
+    canvas.setActiveObject(group);
+  }
+  group.canvas?.requestRenderAll();
+}
+
+export function updateGroundTerrainType(group: Group, terrainType: number): TerrainSolidityLevel {
+  const normalized = normalizeTerrainSolidityLevel(terrainType);
+  (group as any).groundTerrainType = normalized;
+  updateGroundInGroup(group);
+  refreshHouseGroupRendering(group);
+  group.canvas?.requestRenderAll();
+  return normalized;
 }

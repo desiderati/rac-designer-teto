@@ -3,10 +3,13 @@ import {
   clampNivel,
   clampNivelByHeight,
   formatNivel,
+  getTerrainRachaoThicknessCm,
   getAllPilotiIds,
+  normalizeTerrainSolidityLevel,
   getPilotiName,
   getRecommendedHeight,
 } from './piloti.ts';
+import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 describe('piloti helpers', () => {
   it('clamps nivel respecting min/max', () => {
@@ -33,5 +36,13 @@ describe('piloti helpers', () => {
 
   it('computes recommended height from nivel', () => {
     expect(getRecommendedHeight(0.2)).toBeGreaterThan(0);
+  });
+
+  it('normalizes terrain solidity and resolves rachão thickness', () => {
+    expect(normalizeTerrainSolidityLevel(0)).toBe(1);
+    expect(normalizeTerrainSolidityLevel(4)).toBe(4);
+    expect(normalizeTerrainSolidityLevel(99)).toBe(5);
+    expect(getTerrainRachaoThicknessCm(1)).toBe(TERRAIN_SOLIDITY.levels[1].rachao);
+    expect(getTerrainRachaoThicknessCm(5)).toBe(TERRAIN_SOLIDITY.levels[5].rachao);
   });
 });

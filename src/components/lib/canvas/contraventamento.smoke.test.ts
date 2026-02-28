@@ -6,8 +6,10 @@ import {
   getContraventamentoColumnCenterX,
   getContraventamentoSideLabel,
   inferContraventamentoSideFromBeamGeometry,
+  isPilotiOutOfProportion,
   isContraventamentoDestinationEligible,
   parsePilotiGridPosition,
+  resolveContraventamentoOffsetFromNivel,
 } from './contraventamento.ts';
 
 describe('contraventamento helpers', () => {
@@ -15,7 +17,13 @@ describe('contraventamento helpers', () => {
     expect(parsePilotiGridPosition('piloti_2_1')).toEqual({col: 2, row: 1});
     expect(parsePilotiGridPosition('invalid')).toBeNull();
     expect(canCreateContraventamentoForNivel(0.5)).toBe(true);
-    expect(canCreateContraventamentoForNivel(0.2)).toBe(false);
+    expect(canCreateContraventamentoForNivel(0.2)).toBe(true);
+  });
+
+  it('resolves dynamic offsets from nivel', () => {
+    expect(resolveContraventamentoOffsetFromNivel(0.2)).toBe(0.05);
+    expect(resolveContraventamentoOffsetFromNivel(0.3)).toBe(0.1);
+    expect(resolveContraventamentoOffsetFromNivel(0.4)).toBe(0.2);
   });
 
   it('infers side and labels', () => {
@@ -33,6 +41,11 @@ describe('contraventamento helpers', () => {
         nivel: 0.6,
       }),
     ).toBe(true);
+  });
+
+  it('detects piloti outside the recommended proportion', () => {
+    expect(isPilotiOutOfProportion(1.0, 0.4)).toBe(true);
+    expect(isPilotiOutOfProportion(1.5, 0.5)).toBe(false);
   });
 
   it('collects occupied sides and builds editor state', () => {

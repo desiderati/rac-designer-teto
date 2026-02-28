@@ -33,7 +33,9 @@ function cornerToId(name: string): string {
   return `piloti_${col}_${row}`;
 }
 
-export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitionProps) {
+export function NivelDefinitionEditor(
+  {isOpen, onClose, onApply}: NivelDefinitionProps
+) {
   const isMobile = useIsMobile();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [entries, setEntries] =
@@ -59,6 +61,7 @@ export function NivelDefinitionEditor({isOpen, onClose, onApply}: NivelDefinitio
   const handleNavigate = (direction: 'prev' | 'next') => {
     const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
     if (newIdx < 0 || newIdx >= CORNER_ORDER.length) return;
+
     const fromCorner = CORNER_ORDER[currentIdx];
     setEntries((prev) => ({
       ...prev,

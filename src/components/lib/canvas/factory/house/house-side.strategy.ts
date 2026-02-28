@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas, FabricObject, Group, Rect} from 'fabric';
 import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export function createHouseSide(
   canvas: FabricCanvas,
@@ -108,6 +108,8 @@ export function createHouseSide(
       left: doorX,
       top: doorY,
     });
+    (doorObj as any).isHouseDoor = true;
+    (doorObj as any).myType = 'door';
 
     const windowObj = new Rect({
       width: windowW,

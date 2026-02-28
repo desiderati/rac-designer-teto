@@ -44,6 +44,7 @@ export class HouseAggregate<TGroup = unknown> {
     id: string;
     pilotiIds: string[];
     defaultPiloti: HousePiloti;
+    defaultTerrainType: number;
   }): HouseState<TGroup> {
     return {
       id: params.id,
@@ -52,6 +53,7 @@ export class HouseAggregate<TGroup = unknown> {
         pilotiIds: params.pilotiIds,
         defaultPiloti: params.defaultPiloti,
       }),
+      terrainType: params.defaultTerrainType,
       views: createEmptyViews(),
       sideMappings: createEmptySideMappings(),
       preAssignedSides: {},
@@ -74,11 +76,19 @@ export class HouseAggregate<TGroup = unknown> {
     return this.state.houseType;
   }
 
+  getTerrainType(): number {
+    return Number(this.state.terrainType ?? 0);
+  }
+
   setHouseType(type: HouseType): void {
     this.state.houseType = type;
     if (type === null) {
       this.state.preAssignedSides = {};
     }
+  }
+
+  setTerrainType(terrainType: number): void {
+    this.state.terrainType = terrainType;
   }
 
   getAvailableViews(): HouseViewType[] {

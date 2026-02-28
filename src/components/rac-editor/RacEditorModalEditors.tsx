@@ -1,4 +1,8 @@
-import type {LinearCanvasSelection, WallCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {
+  LinearCanvasSelection,
+  TerrainCanvasSelection,
+  WallCanvasSelection
+} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {PilotiEditor} from '@/components/rac-editor/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generic/GenericObjectEditor.tsx';
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
@@ -7,7 +11,8 @@ import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
-import {PilotiCanvasSelection} from "@/components/lib/canvas";
+import {PilotiCanvasSelection} from '@/components/lib/canvas';
+import {TerrainEditor} from '@/components/rac-editor/modals/editors/terrain/TerrainEditor.tsx';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;
@@ -42,6 +47,12 @@ interface RacEditorModalEditorsProps {
   linearEditorType: LinearEditorType;
   isLinearEditorOpen: boolean;
   onLinearEditorClose: () => void;
+
+  // Terrain
+  terrainSelection: TerrainCanvasSelection | null;
+  isTerrainEditorOpen: boolean;
+  onTerrainEditorClose: () => void;
+  onTerrainApply: (terrainType: number) => void;
 }
 
 export function RacEditorModalEditors({
@@ -74,6 +85,11 @@ export function RacEditorModalEditors({
   linearEditorType,
   isLinearEditorOpen,
   onLinearEditorClose,
+
+  terrainSelection,
+  isTerrainEditorOpen,
+  onTerrainEditorClose,
+  onTerrainApply,
 }: RacEditorModalEditorsProps) {
   return (
     <>
@@ -132,6 +148,15 @@ export function RacEditorModalEditors({
         onApply={(value, color) => onLinearApply(value, color)}
         onClose={onLinearEditorClose}
         anchorPosition={linearSelection?.screenPosition}
+      />
+
+      <TerrainEditor
+        isOpen={isTerrainEditorOpen}
+        isMobile={isMobile}
+        currentTerrainType={terrainSelection?.terrainType ?? 1}
+        anchorPosition={terrainSelection?.screenPosition}
+        onApply={onTerrainApply}
+        onClose={onTerrainEditorClose}
       />
     </>
   );

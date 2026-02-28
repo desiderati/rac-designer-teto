@@ -2,8 +2,15 @@ import {Group} from 'fabric';
 import {toCanvasObject} from '@/components/lib/canvas';
 import {HouseSide, HouseTypeExcludeNull, HouseViewInstance, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
+/**
+ * Resolve qual tipo de vista define a posição da porta na planta,
+ * de acordo com o tipo da casa.
+ *
+ * @param params Parâmetros de resolução com o tipo da casa.
+ * @returns Tipo de vista fonte (`front`/`side2`) ou `null`.
+ */
 export function resolveTopDoorSourceViewType(params: {
   houseType: HouseTypeExcludeNull | null;
 }): HouseViewType | null {
@@ -12,6 +19,12 @@ export function resolveTopDoorSourceViewType(params: {
   return null;
 }
 
+/**
+ * Resolve em qual lado da planta o marcador de porta deve aparecer.
+ *
+ * @param params Tipo da casa e mapeamento de lados para vistas.
+ * @returns Lado da planta (`top`, `bottom`, `left`, `right`) ou `null`.
+ */
 export function resolveTopDoorMarkerSide(params: {
   houseType: HouseTypeExcludeNull | null;
   sideMappings: Record<HouseSide, HouseViewType | null>;
@@ -28,6 +41,12 @@ export function resolveTopDoorMarkerSide(params: {
   );
 }
 
+/**
+ * Calcula a posição final do marcador de porta na planta.
+ *
+ * @param params Dados do lado alvo, geometria da porta e dimensões do corpo da casa.
+ * @returns Estrutura com lado e coordenadas alvo do marcador.
+ */
 export function calculateTopDoorPlacement(params: {
   doorMarkerSide: HouseSide | null;
   doorX: number;
@@ -76,6 +95,12 @@ export function calculateTopDoorPlacement(params: {
   };
 }
 
+/**
+ * Calcula a geometria da porta já renderizada na escala atual da planta.
+ *
+ * @param params Lado do marcador e dimensões atuais do corpo da casa.
+ * @returns Posição inicial da porta no eixo e largura renderizada.
+ */
 export function calculateRenderedDoorGeometryForTopMarker(params: {
   doorMarkerSide: HouseSide | null;
   bodyWidth: number;
@@ -105,6 +130,12 @@ export function calculateRenderedDoorGeometryForTopMarker(params: {
   return {doorX, doorWidth};
 }
 
+/**
+ * Calcula largura e altura renderizadas do corpo da casa considerando escala.
+ *
+ * @param params Dimensões base e escalas atuais.
+ * @returns Dimensões renderizadas usadas no posicionamento do marcador.
+ */
 export function calculateTopDoorMarkerBodySize(params: {
   width: number;
   height: number;
@@ -117,6 +148,12 @@ export function calculateTopDoorMarkerBodySize(params: {
   };
 }
 
+/**
+ * Cria o patch visual do marcador de porta para aplicar no objeto Fabric.
+ *
+ * @param params Lado ativo, lado do marcador candidato e coordenadas alvo.
+ * @returns Patch com visibilidade e, quando ativo, posição (`left`/`top`).
+ */
 export function createTopDoorMarkerVisualPatch(params: {
   doorMarkerSide: HouseSide | null;
   markerCandidateSide: HouseSide;
@@ -131,6 +168,15 @@ export function createTopDoorMarkerVisualPatch(params: {
   };
 }
 
+/**
+ * Atualiza os marcadores de porta em todas as vistas de planta informadas.
+ *
+ * A função resolve o lado da porta pela configuração da casa, calcula
+ * posicionamento em cada grupo e aplica o patch visual em cada marcador.
+ *
+ * @param params Tipo da casa, mapeamentos de lado e instâncias de planta.
+ * @returns `true` quando houve mudança visual em pelo menos um marcador.
+ */
 export function refreshTopDoorMarkersInViews(params: {
   houseType: HouseTypeExcludeNull | null;
   sideMappings: Record<HouseSide, HouseViewType | null>;

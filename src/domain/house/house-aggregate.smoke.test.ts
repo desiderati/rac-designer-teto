@@ -34,6 +34,7 @@ function createState(seed?: {
       piloti_3_2: {height: 1.0, isMaster: false, nivel: 0.2},
       ...(seed?.pilotis ?? {}),
     },
+    terrainType: 1,
     views: {
       top: createViewInstances('top', viewCounts.top),
       front: createViewInstances('front', viewCounts.front),

@@ -4,11 +4,12 @@ import {
   CanvasHandle,
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
+  TerrainCanvasSelection,
   WallCanvasSelection,
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/tutorial/Tutorial.tsx';
-import {PilotiCanvasSelection} from "@/components/lib/canvas";
+import {PilotiCanvasSelection} from '@/components/lib/canvas';
 
 interface RacEditorCanvasProps {
   canvasRef: React.Ref<CanvasHandle>;
@@ -26,6 +27,7 @@ interface RacEditorCanvasProps {
   onPilotiSelect: (selection: PilotiCanvasSelection | null) => void;
   onWallSelect: (selection: WallCanvasSelection | null) => void;
   onLinearSelect: (selection: LinearCanvasSelection | null) => void;
+  onTerrainSelect: (selection: TerrainCanvasSelection | null) => void;
   onDelete: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
   onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;
@@ -48,6 +50,7 @@ export function RacEditorCanvas({
   onPilotiSelect,
   onWallSelect,
   onLinearSelect,
+  onTerrainSelect,
   onDelete,
   onContraventamentoPilotiClick,
   onContraventamentoSelect,
@@ -70,6 +73,7 @@ export function RacEditorCanvas({
         onPilotiSelect={onPilotiSelect}
         onWallSelect={onWallSelect}
         onLinearSelect={onLinearSelect}
+        onTerrainSelect={onTerrainSelect}
         isAnyEditorOpen={isAnyEditorOpen}
         onDelete={onDelete}
         showZoomControls={showZoomControls}

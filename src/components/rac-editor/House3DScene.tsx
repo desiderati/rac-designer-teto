@@ -5,9 +5,9 @@ import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
   COLORS,
-  CONTRAV_OFFSET_FROM_GROUND,
-  CONTRAV_SQUARE_WIDTH,
-  CONTRAV_TOP_WIDTH,
+  CONTRAVENTAMENTO_OFFSET_FROM_GROUND, CONTRAVENTAMENTO_OFFSET_FROM_TOP,
+  CONTRAVENTAMENTO_SQUARE_WIDTH,
+  CONTRAVENTAMENTO_TOP_WIDTH,
   DIAG_HEIGHT,
   DIAG_WIDTH,
   FLOOR_BEAM_HEIGHT,
@@ -166,11 +166,11 @@ function ContraventamentoMesh({
   const tangentX = colCenterX + sideSign * PILOTI_RADIUS;
 
   // Same 2D rule: opposite beam edge touches piloti tangent.
-  const beamCenterX = tangentX + sideSign * (CONTRAV_TOP_WIDTH / 2);
+  const beamCenterX = tangentX + sideSign * (CONTRAVENTAMENTO_TOP_WIDTH / 2);
 
   const originNivel = Number(pilotis[originPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
-  const originY = PILOTI_TOP_Y - (originNivel - CONTRAV_OFFSET_FROM_GROUND) * PILOTI_BASE_HEIGHT_PX;
-  const destinationY = PILOTI_TOP_Y - CONTRAV_OFFSET_FROM_GROUND * PILOTI_BASE_HEIGHT_PX;
+  const originY = PILOTI_TOP_Y - (originNivel - CONTRAVENTAMENTO_OFFSET_FROM_TOP) * PILOTI_BASE_HEIGHT_PX;
+  const destinationY = PILOTI_TOP_Y - CONTRAVENTAMENTO_OFFSET_FROM_GROUND * PILOTI_BASE_HEIGHT_PX;
   if (originY > destinationY) return null;
 
   const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);
@@ -193,7 +193,7 @@ function ContraventamentoMesh({
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[CONTRAV_TOP_WIDTH, length, CONTRAV_SQUARE_WIDTH]}/>
+      <boxGeometry args={[CONTRAVENTAMENTO_TOP_WIDTH, length, CONTRAVENTAMENTO_SQUARE_WIDTH]}/>
       <meshStandardMaterial color={beamColor} roughness={0.65}/>
     </mesh>
   );
@@ -479,4 +479,3 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   const z = (1 - row) * PILOTI_STEP_Z;
   return [x, z];
 }
-

@@ -1381,7 +1381,7 @@
 
 - `RacEditor` atualizado:
     - extraído helper `clearContraventamentoSelection(group?)` para centralizar:
-      `setContraventamentoSelection(group, null)` + `setSelectedContraventamento(null)`
+      `highlightSelectedContraventamento(group, null)` + `setSelectedContraventamento(null)`
     - helper aplicado nos fluxos de remoção/criação de contraventamento e limpeza ao excluir objetos
 - Regras/documentação sincronizadas:
     - `.rules/contraventamento.md` atualizado com referência ao helper de limpeza

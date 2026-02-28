@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import {Group} from 'fabric';
-import {ContraventamentoOrigin, ContraventamentoStep, highlightContraventamentoPilotis} from '@/components/lib/canvas';
+import {ContraventamentoOrigin, ContraventamentoStep} from '@/components/lib/canvas';
+import {highlightEligibleContraventamentoPilotis} from "@/components/lib/canvas/contraventamento-top-view-highlight.ts";
 
 interface UseContraventamentoEffectsArgs {
   houseVersion: number;
@@ -47,9 +48,9 @@ export function useContraventamentoEffects({
     if (!topGroup) return;
 
     if (contraventamentoStep === 'select-second' && contraventamentoFirst) {
-      highlightContraventamentoPilotis(
+      highlightEligibleContraventamentoPilotis(
         topGroup,
-        (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, {
+        (candidatePilotiId: string) => isPilotiEligibleAsDestination(candidatePilotiId, {
           col: contraventamentoFirst.col,
           row: contraventamentoFirst.row,
         }),
@@ -59,7 +60,7 @@ export function useContraventamentoEffects({
       return;
     }
 
-    highlightContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
+    highlightEligibleContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
   }, [
     contraventamentoFirst,
     contraventamentoStep,

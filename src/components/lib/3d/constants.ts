@@ -1,6 +1,6 @@
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/lib/canvas';
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export const HOUSE_3D_SCALE = HOUSE_DEFAULTS.viewScale; // Same scale used by createHouseTop
 export const HOUSE_3D_VIEWER_SCALE = 0.5;
@@ -15,9 +15,10 @@ export const PILOTI_STEP_X = HOUSE_DIMENSIONS.piloti.columnSpacing * HOUSE_3D_FI
 export const PILOTI_STEP_Z = HOUSE_DIMENSIONS.piloti.rowSpacing * HOUSE_3D_FINAL_SCALE;
 export const PILOTI_RADIUS = HOUSE_DIMENSIONS.piloti.radius * HOUSE_3D_FINAL_SCALE;
 
-export const CONTRAV_TOP_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth * HOUSE_3D_FINAL_SCALE;
-export const CONTRAV_SQUARE_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth * HOUSE_3D_FINAL_SCALE;
-export const CONTRAV_OFFSET_FROM_GROUND = HOUSE_DIMENSIONS.contraventamento.offsetFromGround;
+export const CONTRAVENTAMENTO_TOP_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth * HOUSE_3D_FINAL_SCALE;
+export const CONTRAVENTAMENTO_SQUARE_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth * HOUSE_3D_FINAL_SCALE;
+export const CONTRAVENTAMENTO_OFFSET_FROM_TOP = HOUSE_DIMENSIONS.contraventamento.offsetFromTop;
+export const CONTRAVENTAMENTO_OFFSET_FROM_GROUND = HOUSE_DIMENSIONS.contraventamento.offsetFromGround;
 
 export const FLOOR_HEIGHT = HOUSE_DIMENSIONS.structure.floorHeight * HOUSE_3D_FINAL_SCALE;
 

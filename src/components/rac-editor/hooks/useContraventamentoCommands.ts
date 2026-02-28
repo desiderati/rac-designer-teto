@@ -4,25 +4,27 @@ import {toast} from 'sonner';
 import {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {
   addContraventamentoBeam,
-  canCreateContraventamentoForNivel,
   ContraventamentoOrigin,
   ContraventamentoStep,
-  getContraventamentoSideLabel,
-  highlightContraventamentoPilotis,
-  inferContraventamentoSideFromBeamGeometry,
   parsePilotiGridPosition,
   PilotiCanvasSelection,
-  removeContraventamentosFromGroup,
-  resetContraventamentoPilotis,
-  setContraventamentoSelection,
-  syncContraventamentoElevationsFromTop,
+  removeContraventamentosFromTopView,
+  syncContraventamentoElevationViews,
   toCanvasObject,
 } from '@/components/lib/canvas';
 import {emitHouseStoreChange} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
-import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {
+  canCreateContraventamentoForNivel,
+  ContraventamentoSide,
+  getContraventamentoSideLabel, inferContraventamentoSide
+} from '@/shared/types/contraventamento.ts';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
+import {
+  highlightEligibleContraventamentoPilotis, highlightSelectedContraventamento,
+  resetHighlightContraventamentoPilotis
+} from "@/components/lib/canvas/contraventamento-top-view-highlight.ts";
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -36,6 +38,7 @@ interface UseContraventamentoCommandsArgs {
   isPilotiEligibleAsDestination: (pilotiId: string, first: { col: number; row: number } | null) => boolean;
   setInfoMessage: Dispatch<SetStateAction<string>>;
   setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
+  isContraventamentoMode: boolean;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
   contraventamentoStep: ContraventamentoStep;
   setContraventamentoStep: Dispatch<SetStateAction<ContraventamentoStep>>;
@@ -48,7 +51,6 @@ interface UseContraventamentoCommandsArgs {
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
   setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
-  isContraventamentoMode: boolean;
 }
 
 export function useContraventamentoCommands({
@@ -60,6 +62,7 @@ export function useContraventamentoCommands({
   isPilotiEligibleAsDestination,
   setInfoMessage,
   setSelectedContraventamento,
+  isContraventamentoMode,
   setIsContraventamentoMode,
   contraventamentoStep,
   setContraventamentoStep,
@@ -72,8 +75,8 @@ export function useContraventamentoCommands({
   setPilotiSelection,
   setIsPilotiEditorOpen,
   setActiveSubmenu,
-  isContraventamentoMode,
 }: UseContraventamentoCommandsArgs) {
+
   const enterContraventamentoSecondStep = useCallback((
     first: ContraventamentoOrigin,
     side: ContraventamentoSide
@@ -86,7 +89,7 @@ export function useContraventamentoCommands({
     setContraventamentoFirst(first);
     setContraventamentoSide(side);
     setContraventamentoStep('select-second');
-    highlightContraventamentoPilotis(
+    highlightEligibleContraventamentoPilotis(
       first.group,
       (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, first),
       first.col,
@@ -98,9 +101,11 @@ export function useContraventamentoCommands({
 
   const syncContraventamentoElevations = useCallback(() => {
     const topGroup = getTopViewGroup();
+
     if (!topGroup) return;
     const targets = getNonTopViewGroups();
-    syncContraventamentoElevationsFromTop(
+
+    syncContraventamentoElevationViews(
       topGroup,
       targets,
       (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
@@ -109,14 +114,15 @@ export function useContraventamentoCommands({
 
   const clearContraventamentoSelection = useCallback((group?: Group | null) => {
     if (group) {
-      setContraventamentoSelection(group, null);
+      highlightSelectedContraventamento(group, null);
     }
     setSelectedContraventamento(null);
   }, [setSelectedContraventamento]);
 
   const handleCancelContraventamento = useCallback(() => {
     const topGroup = getTopViewGroup();
-    if (topGroup) resetContraventamentoPilotis(topGroup);
+    if (topGroup) resetHighlightContraventamentoPilotis(topGroup);
+
     resetContraventamentoFlow();
   }, [getTopViewGroup, resetContraventamentoFlow]);
 
@@ -143,7 +149,7 @@ export function useContraventamentoCommands({
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
-      highlightContraventamentoPilotis(group, isPilotiEligibleAsOrigin);
+      highlightEligibleContraventamentoPilotis(group, isPilotiEligibleAsOrigin);
       return;
     }
 
@@ -151,6 +157,7 @@ export function useContraventamentoCommands({
       toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameColumn);
       return;
     }
+
     if (row === contraventamentoFirst.row) {
       toast.warning(TOAST_MESSAGES.contraventamentoSelectDifferentSecondPiloti);
       return;
@@ -166,10 +173,11 @@ export function useContraventamentoCommands({
     if (occupiedSides[contraventamentoSide]) {
       const sideLabel = contraventamentoSide === 'left' ? 'esquerdo' : 'direito';
       toast.warning(TOAST_MESSAGES.contraventamentoColumnSideAlreadyOccupied(sideLabel));
+
       setContraventamentoStep('select-first');
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
-      highlightContraventamentoPilotis(originGroup, isPilotiEligibleAsOrigin);
+      highlightEligibleContraventamentoPilotis(originGroup, isPilotiEligibleAsOrigin);
       return;
     }
 
@@ -179,12 +187,13 @@ export function useContraventamentoCommands({
       {col, row},
       {anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide}
     );
+
     if (!createdId) {
       toast.error(TOAST_MESSAGES.failedToCreateContraventamento);
       return;
     }
 
-    resetContraventamentoPilotis(originGroup);
+    resetHighlightContraventamentoPilotis(originGroup);
     clearContraventamentoSelection(originGroup);
     setIsContraventamentoMode(false);
     setContraventamentoStep('select-first');
@@ -193,6 +202,7 @@ export function useContraventamentoCommands({
     syncContraventamentoElevations();
     canvasRef.current?.saveHistory();
     toast.success(TOAST_MESSAGES.contraventamentoAddedSuccessfully);
+
   }, [
     canvasRef,
     clearContraventamentoSelection,
@@ -217,7 +227,7 @@ export function useContraventamentoCommands({
         return;
       }
 
-      setContraventamentoSelection(topGroup, selection?.contraventamentoId ?? null);
+      highlightSelectedContraventamento(topGroup, selection?.contraventamentoId ?? null);
       setSelectedContraventamento(selection);
       if (selection) {
         setInfoMessage('Contraventamento selecionado. Use Excluir para remover.');
@@ -248,16 +258,17 @@ export function useContraventamentoCommands({
       const occupiedSides = getContraventamentoColumnSides(topGroup, col);
       if (occupiedSides[side]) {
         const removed =
-          removeContraventamentosFromGroup(topGroup, (obj) => {
+          removeContraventamentosFromTopView(topGroup, (obj) => {
             const anyObj = toCanvasObject(obj);
             if (!anyObj) return false;
+
             if (Number(anyObj.contraventamentoCol) !== col) return false;
 
             if (anyObj.contraventamentoSide === 'left' || anyObj.contraventamentoSide === 'right') {
               return anyObj.contraventamentoSide === side;
             }
 
-            const inferredSide = inferContraventamentoSideFromBeamGeometry({
+            const inferredSide = inferContraventamentoSide({
               col,
               left: Number(anyObj.left ?? 0),
               width: Number(anyObj.width ?? 0),

@@ -109,8 +109,10 @@ export function useCanvasGroupingActions({
       left: selectionLeft ?? 0,
       top: selectionTop ?? 0,
     });
+
     const typedGroup = toCanvasObject(group);
     if (!typedGroup) return;
+
     typedGroup.isMacroGroup = true;
     typedGroup.myType = 'macroGroup';
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});

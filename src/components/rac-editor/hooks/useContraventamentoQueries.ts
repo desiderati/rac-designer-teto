@@ -105,7 +105,7 @@ export function useContraventamentoQueries({
 
     const occupiedSides = getContraventamentoColumnSides(topGroup, parsed.col);
     const data = houseManager.getPilotiData(pilotiIdForEditor);
-    const canReceiveContraventamento = (data?.nivel ?? 0) > 0.40;
+    const canReceiveContraventamento = canCreateContraventamentoForNivel(data?.nivel ?? 0);
 
     return createContraventamentoEditorState({
       canReceiveContraventamento,

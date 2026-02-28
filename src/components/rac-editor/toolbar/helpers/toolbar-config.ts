@@ -108,8 +108,8 @@ export const HOUSE_MENU_CONFIG: Record<'tipo6' | 'tipo3', HouseMenuCommandConfig
 
 export const ELEMENTS_MENU_CONFIG: ToolbarCommandConfig[] = [
   {action: 'addWall', icon: faTrowelBricks, title: 'Objeto / Muro'},
-  {action: 'addDoor', icon: faDoorOpen, title: 'Porta - Em breve', disabled: true},
-  {action: 'addStairs', icon: faStairs, title: 'Escada'},
+  {action: 'addDoor', icon: faDoorOpen, title: 'Porta - Out Of Service', disabled: true},
+  {action: 'addStairs', icon: faStairs, title: 'Escada - Out Of Service', disabled: true},
   {action: 'addTree', icon: faTree, title: 'Árvore'},
   {action: 'addWater', icon: faWater, title: 'Água / Rio'},
   {action: 'addFossa', icon: faToilet, title: 'Fossa'},

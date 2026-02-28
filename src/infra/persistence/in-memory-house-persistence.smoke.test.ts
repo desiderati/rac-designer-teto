@@ -9,6 +9,7 @@ describe('in-memory house persistence', () => {
       id: 'house_1',
       houseType: 'tipo6',
       pilotis: {},
+      terrainType: 1,
       views: {top: [], front: [], back: [], side1: [], side2: []},
       sideMappings: {top: null, bottom: null, left: null, right: null},
       preAssignedSides: {},

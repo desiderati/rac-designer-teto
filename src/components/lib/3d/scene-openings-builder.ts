@@ -1,6 +1,6 @@
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/lib/canvas';
 import {HOUSE_3D_SCALE} from '@/components/lib/3d/constants.ts';
-import {HOUSE_DIMENSIONS} from '@/components/lib/house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {HouseType} from '@/shared/types/house.ts';
 
 export interface SceneOpening {
