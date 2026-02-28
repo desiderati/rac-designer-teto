@@ -8,6 +8,7 @@
   projetos.
 - Consulte o diretório `.guidelines/` antes de propor mudanças de interface e experiência.
 - Para decisões de UI/UX, use como referência principal `.guidelines/ux-design.md`.
+- Quando criar documentação, manter a acentuação da língua nativa. 
 
 ## Ambiente e comandos principais
 

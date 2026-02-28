@@ -41,10 +41,16 @@ export function ConfirmDialogModal({
 
   const actionButtons = (extraClass = '') =>
     <div className={`flex gap-[16px] ${extraClass}`}>
-      <Button variant='outline' className='flex-1 bg-white' onClick={handleCancel}>
+      <Button
+        variant='outline'
+        className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
+        onClick={handleCancel}>
         {cancelLabel}
       </Button>
-      <Button className='flex-1' onClick={handleConfirm} disabled={isConfirmDisabled}>
+      <Button
+        className='flex-1 disabled:pointer-events-auto disabled:cursor-not-allowed'
+        onClick={handleConfirm}
+        disabled={isConfirmDisabled}>
         {confirmLabel}
       </Button>
     </div>;

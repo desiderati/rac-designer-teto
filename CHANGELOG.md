@@ -332,3 +332,22 @@
 - `npm run test:e2e -- --workers=1`: **PASS** (16/16).
 - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`: **FAIL** por pendências preexistentes fora deste
   escopo (notadamente em `useCanvasFabricSetup.ts` e `GenericEditor.smoke.test.tsx`).
+
+### Atualização desta conversa (.guidelines / padrões arquiteturais)
+
+- Solicitação atendida para formalizar instruções arquiteturais com foco em:
+    - evitar criação de funcionalidade paralela;
+    - auditar reutilização antes de criar componente novo;
+    - padronizar critérios de extração de comuns (componentes/hooks).
+- Novo guia criado:
+    - `.guidelines/architecture-patterns.md`
+- Conteúdo estruturado no novo guia:
+    - princípios obrigatórios (`reuse-first`, simplificação pragmática, `one source of truth`);
+    - fluxo obrigatório antes de codar (inventário, decisão e implementação);
+    - matriz de decisão (reutilizar vs. extrair comum vs. criar novo);
+    - padrões por camada (`UI`, hooks, factory/canvas, domínio/persistência);
+    - critérios para novas abstrações (`Port`, `Strategy`, `Factory`, `Aggregate`);
+    - regras de compatibilidade, anti-padrões e checklist de PR.
+- Ajuste complementar:
+    - `ux-design.md` atualizado com seção de referência para usar
+      `.guidelines/architecture-patterns.md` em decisões arquiteturais.

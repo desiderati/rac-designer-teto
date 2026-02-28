@@ -45,10 +45,16 @@ export function FloatingEditor({
 
       <div className='flex w-full flex-col gap-3' data-no-drag>
         <div className='flex w-full gap-[16px]'>
-          <Button variant='outline' className='flex-1 bg-white' onClick={onCancel}>
+          <Button
+            variant='outline'
+            className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
+            onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button className='flex-1' onClick={onConfirm} disabled={isConfirmDisabled}>
+          <Button
+            className='flex-1 disabled:pointer-events-auto disabled:cursor-not-allowed'
+            onClick={onConfirm}
+            disabled={isConfirmDisabled}>
             {confirmLabel}
           </Button>
         </div>

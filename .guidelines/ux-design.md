@@ -2,8 +2,13 @@
 
 ## Objetivo
 
-Padronizar decisões de arquitetura no RAC Editor para reduzir duplicação, evitar criação de funcionalidade paralela e
+Padronizar decisões de arquitetura no sistema para reduzir duplicação, evitar criação de funcionalidade paralela e
 acelerar evolução com menor risco de regressão.
+
+## Relação com outros guias
+
+- Use este arquivo para decisões de UI/UX e interação.
+- Use `.guidelines/architecture-patterns.md` para decisões de arquitetura, reutilização e extração de componentes/hooks.
 
 ## Princípios obrigatórios
 
