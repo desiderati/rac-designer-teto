@@ -95,19 +95,23 @@ export function canCreateContraventamentoForNivel(nivel: number): boolean {
  * Resolve os offsets verticais de desenho do contraventamento a partir do nível.
  *
  * @param nivel Nível do piloti de origem.
- * @returns Offsets para origem (`offsetFromTop`) e destino (`offsetFromGround`).
+ * @param isOrigin Valida se é o piloti de origem.
+ * @returns Offsets para inserção do piloti a partir do chão.
  */
 export function resolveContraventamentoOffsetFromNivel(
-  nivel: number
-): { offsetFromTop: number; offsetFromGround: number } {
+  nivel: number,
+  isOrigin: boolean,
+): number {
 
-  if (nivel >= 0.5) {
-    return {
-      offsetFromTop: CONTRAVENTAMENTO.offsetFromTop,
-      offsetFromGround: CONTRAVENTAMENTO.offsetFromGround
-    }
+  if (nivel >= 0.6) {
+    return nivel / 3;
   }
-  return {offsetFromTop: 0, offsetFromGround: nivel}
+
+  if (!isOrigin) {
+    return (nivel >= 0.4) ? nivel - (nivel / 1.5) : 0;
+  }
+
+  return (nivel >= 0.4) ? nivel / 1.5 : 0;
 }
 
 /**

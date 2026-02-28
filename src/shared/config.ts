@@ -153,8 +153,6 @@ export const ALL_PILOTI_IDS = Array.from({length: 3 * 4}, (_, index) => {
 });
 
 export const CONTRAVENTAMENTO = {
-  offsetFromTop: HOUSE_DIMENSIONS.contraventamento.offsetFromTop,
-  offsetFromGround: HOUSE_DIMENSIONS.contraventamento.offsetFromGround,
   strokeWidth: 1.5,
   strokeColor: '#8b4513',
 } as const;

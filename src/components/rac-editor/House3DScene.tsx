@@ -5,8 +5,6 @@ import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
   COLORS,
-  CONTRAVENTAMENTO_OFFSET_FROM_GROUND,
-  CONTRAVENTAMENTO_OFFSET_FROM_TOP,
   CONTRAVENTAMENTO_SQUARE_WIDTH,
   CONTRAVENTAMENTO_TOP_WIDTH,
   DIAG_HEIGHT,
@@ -42,6 +40,7 @@ import {buildSceneOpeningsFromCanvasModel, type SceneOpening} from '@/components
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
+import {resolveContraventamentoOffsetFromNivel} from "@/shared/types/contraventamento.ts";
 
 interface House3DSceneProps {
   houseType: HouseType;
@@ -170,8 +169,14 @@ function ContraventamentoMesh({
   const beamCenterX = tangentX + sideSign * (CONTRAVENTAMENTO_TOP_WIDTH / 2);
 
   const originNivel = Number(pilotis[originPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
-  const originY = PILOTI_TOP_Y - (originNivel - CONTRAVENTAMENTO_OFFSET_FROM_TOP) * PILOTI_BASE_HEIGHT_PX;
-  const destinationY = PILOTI_TOP_Y - CONTRAVENTAMENTO_OFFSET_FROM_GROUND * PILOTI_BASE_HEIGHT_PX;
+  const originY =
+    PILOTI_TOP_Y - (originNivel - resolveContraventamentoOffsetFromNivel(originNivel, true)) * PILOTI_BASE_HEIGHT_PX;
+
+  const destinationPilotiId = `piloti_${originCol}_${targetRow}`;
+  const destinationNivel = Number(pilotis[destinationPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
+  const destinationY =
+    PILOTI_TOP_Y - resolveContraventamentoOffsetFromNivel(destinationNivel, false) * PILOTI_BASE_HEIGHT_PX;
+
   if (originY > destinationY) return null;
 
   const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);

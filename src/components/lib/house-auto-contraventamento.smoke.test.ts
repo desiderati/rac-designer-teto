@@ -48,7 +48,7 @@ describe('house auto contraventamento', () => {
     expect(group.getObjects().find((object: any) => object?.isContraventamento === true)).toBeUndefined();
   });
 
-  it('remove contraventamento automático quando a coluna volta à proporção', () => {
+  it('não reaplica contraventamento automático após a inicialização da vista', () => {
     const {group} = createMockGroup();
 
     const firstRun = refreshAutoContraventamentoInAllViews({
@@ -62,15 +62,18 @@ describe('house auto contraventamento', () => {
     expect(firstRun).toBe(true);
     expect(group.getObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
 
+    // Simula o usuário removendo o contraventamento automático.
+    group._objects = group.getObjects().filter((object: any) => object?.isAutoContraventamento !== true);
+
     const secondRun = refreshAutoContraventamentoInAllViews({
       pilotis: {
-        piloti_1_2: {height: 2.0, isMaster: false, nivel: 0.5},
+        piloti_1_2: {height: 1.0, isMaster: false, nivel: 0.5},
       } as any,
       topViews: [{instanceId: 'top_1', group} as any],
       elevationViews: [],
     });
 
-    expect(secondRun).toBe(true);
+    expect(secondRun).toBe(false);
     expect(group.getObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(false);
   });
 
@@ -94,5 +97,48 @@ describe('house auto contraventamento', () => {
     expect(changed).toBe(false);
     expect(group.getObjects()).toHaveLength(1);
     expect(group.getObjects()[0]?.isAutoContraventamento).not.toBe(true);
+  });
+
+  it('usa menor nível como origem, maior nível como destino e maior distância possível', () => {
+    const {group} = createMockGroup();
+
+    const changed = refreshAutoContraventamentoInAllViews({
+      pilotis: {
+        piloti_1_0: {height: 0.5, isMaster: false, nivel: 0.2},
+        piloti_1_1: {height: 0.5, isMaster: false, nivel: 0.2},
+        piloti_1_2: {height: 0.5, isMaster: false, nivel: 0.5},
+      } as any,
+      topViews: [{instanceId: 'top_1', group} as any],
+      elevationViews: [],
+    });
+
+    expect(changed).toBe(true);
+    const contrav = group.getObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
+    expect(contrav).toBeTruthy();
+    expect(contrav?.contraventamentoCol).toBe(1);
+    expect(String(contrav?.contraventamentoAnchorPilotiId)).toBe('piloti_1_0');
+    expect(contrav?.contraventamentoStartRow).toBe(0);
+    expect(contrav?.contraventamentoEndRow).toBe(2);
+  });
+
+  it('prioriza ponta a ponta na coluna mesmo quando o maior nível está no meio', () => {
+    const {group} = createMockGroup();
+
+    const changed = refreshAutoContraventamentoInAllViews({
+      pilotis: {
+        piloti_1_0: {height: 0.5, isMaster: false, nivel: 0.2},
+        piloti_1_1: {height: 0.5, isMaster: false, nivel: 0.6},
+        piloti_1_2: {height: 0.5, isMaster: false, nivel: 0.3},
+      } as any,
+      topViews: [{instanceId: 'top_1', group} as any],
+      elevationViews: [],
+    });
+
+    expect(changed).toBe(true);
+    const contrav = group.getObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
+    expect(contrav).toBeTruthy();
+    expect(contrav?.contraventamentoCol).toBe(1);
+    expect(contrav?.contraventamentoStartRow).toBe(0);
+    expect(contrav?.contraventamentoEndRow).toBe(2);
   });
 });

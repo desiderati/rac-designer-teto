@@ -75,7 +75,7 @@ export function highlightEligibleContraventamentoPilotis(
     if (eligible && inColumn && !isSkipped) {
       // Available - yellow border highlight (same visual language as top-view selection).
       obj.set({
-        stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+        stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
         strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
         fill: PILOTI_MASTER_STYLE.fillColor,
         hoverCursor: 'pointer',

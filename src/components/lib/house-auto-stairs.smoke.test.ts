@@ -99,7 +99,7 @@ describe('house auto stairs', () => {
     // A escada deve encostar logo abaixo da porta:
     // topo da escada == base da porta.
     const stairTopEdge = Number(stair?.top ?? 0) - Number(stair?.height ?? 0) / 2;
-    const expectedDoorBottomEdge = 80 + 95 + (Number((objects[0] as any)?.strokeWidth ?? 1.5) / 2);
+    const expectedDoorBottomEdge = 80 + 95 + (HOUSE_2D_STYLE.outlineStrokeWidth / 2);
     expect(stairTopEdge).toBe(expectedDoorBottomEdge);
 
     // A geometria da escada elevada é a mesma da planta:

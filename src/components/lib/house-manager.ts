@@ -5,7 +5,7 @@ import {
   CanvasObject,
   getAllPilotiIds,
   normalizeTerrainSolidityLevel,
-  toCanvasGroup,
+  toCanvasGroup, toCanvasObject,
   updateGroundTerrainType
 } from '@/components/lib/canvas';
 import {createHouseId, createViewInstanceId,} from '@/components/lib/house-identity.ts';
@@ -38,7 +38,6 @@ import {refreshAutoStairsInViews} from '@/components/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/lib/house-auto-contraventamento.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
-
 class HouseManager {
 
   private readonly persistence: HousePersistencePort<Group> = new InMemoryHousePersistence<Group>();
@@ -46,47 +45,6 @@ class HouseManager {
   private canvas: FabricCanvas | null = null;
 
   private listeners = new Set<() => void>();
-
-  private getDefaultTerrainType(): number {
-    return normalizeTerrainSolidityLevel(TERRAIN_SOLIDITY.defaultLevel);
-  }
-
-  private getElevationViewInstances() {
-    if (!this.house) return [];
-    return [
-      ...this.house.views.front,
-      ...this.house.views.back,
-      ...this.house.views.side1,
-      ...this.house.views.side2,
-    ];
-  }
-
-  private applyTerrainTypeToElevationViews(terrainType: number): void {
-    this.getElevationViewInstances().forEach((instance) => {
-      updateGroundTerrainType(instance.group, terrainType);
-    });
-  }
-
-  private resolveTerrainTypeFromCanvasFallback(): number {
-    const fromCanvas = this.canvas
-      ?.getObjects()
-      .find((object): object is Group & CanvasObject => {
-        const runtime = object as CanvasObject;
-        return (
-          object.type === 'group'
-          && runtime.myType === 'house'
-          && runtime.houseView !== 'top'
-          && Number.isFinite(Number(runtime.groundTerrainType))
-        );
-      });
-
-    const terrainFromCanvas = Number((fromCanvas as CanvasObject | undefined)?.groundTerrainType);
-    if (Number.isFinite(terrainFromCanvas)) {
-      return normalizeTerrainSolidityLevel(terrainFromCanvas);
-    }
-
-    return this.getTerrainType();
-  }
 
   constructor() {
     let persisted = this.persistence.load();
@@ -546,6 +504,48 @@ class HouseManager {
 
     return aggregate.hasPreAssignedSides();
   }
+
+  private getDefaultTerrainType(): number {
+    return normalizeTerrainSolidityLevel(TERRAIN_SOLIDITY.defaultLevel);
+  }
+
+  private getElevationViewInstances() {
+    if (!this.house) return [];
+    return [
+      ...this.house.views.front,
+      ...this.house.views.back,
+      ...this.house.views.side1,
+      ...this.house.views.side2,
+    ];
+  }
+
+  private applyTerrainTypeToElevationViews(terrainType: number): void {
+    this.getElevationViewInstances().forEach((instance) => {
+      updateGroundTerrainType(instance.group, terrainType);
+    });
+  }
+
+  private resolveTerrainTypeFromCanvasFallback(): number {
+    const fromCanvas = this.canvas
+      ?.getObjects()
+      .find((object): object is Group & CanvasObject => {
+        const runtime = toCanvasObject(object);
+        return (
+          object.type === 'group'
+          && runtime.myType === 'house'
+          && runtime.houseView !== 'top'
+          && Number.isFinite(Number(runtime.groundTerrainType))
+        );
+      });
+
+    const terrainFromCanvas = Number((fromCanvas as CanvasObject | undefined)?.groundTerrainType);
+    if (Number.isFinite(terrainFromCanvas)) {
+      return normalizeTerrainSolidityLevel(terrainFromCanvas);
+    }
+
+    return this.getTerrainType();
+  }
+
 }
 
 // Singleton instance

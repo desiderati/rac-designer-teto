@@ -183,12 +183,6 @@ export const HOUSE_DIMENSIONS = {
 
     /** Altura do contraventamento na representação 2D (px-base). */
     squareWidth: 15,
-
-    /** Altura-base padrão a partir do topo para posicionamento do contraventamento (metros). */
-    offsetFromTop: 0.3,
-
-    /** Altura-base padrão a partir do chão para posicionamento do contraventamento (metros). */
-    offsetFromGround: 0.3,
   },
 
   /** Dimensões e configurações das escadas. */

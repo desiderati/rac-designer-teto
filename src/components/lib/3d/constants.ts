@@ -17,8 +17,6 @@ export const PILOTI_RADIUS = HOUSE_DIMENSIONS.piloti.radius * HOUSE_3D_FINAL_SCA
 
 export const CONTRAVENTAMENTO_TOP_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth * HOUSE_3D_FINAL_SCALE;
 export const CONTRAVENTAMENTO_SQUARE_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth * HOUSE_3D_FINAL_SCALE;
-export const CONTRAVENTAMENTO_OFFSET_FROM_TOP = HOUSE_DIMENSIONS.contraventamento.offsetFromTop;
-export const CONTRAVENTAMENTO_OFFSET_FROM_GROUND = HOUSE_DIMENSIONS.contraventamento.offsetFromGround;
 
 export const FLOOR_HEIGHT = HOUSE_DIMENSIONS.structure.floorHeight * HOUSE_3D_FINAL_SCALE;
 

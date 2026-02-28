@@ -14,6 +14,7 @@ import {
 } from '@/components/lib/canvas';
 import {emitHouseStoreChange} from '@/components/lib/house-store.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
+import {refreshAutoStairsInViews} from '@/components/lib/house-auto-stairs.ts';
 import {
   canCreateContraventamentoForNivel,
   ContraventamentoSide,
@@ -112,6 +113,26 @@ export function useContraventamentoCommands({
       targets,
       (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
     );
+
+    // Reaplica auto-stairs após o sync do contraventamento para manter
+    // a ordem visual correta das camadas nas vistas elevadas.
+    const house = houseManager.getHouse();
+    if (!house) return;
+
+    refreshAutoStairsInViews({
+      houseType: house.houseType,
+      sideMappings: house.sideMappings,
+      pilotis: house.pilotis,
+      topViews: house.views.top,
+      elevationViews: [
+        ...house.views.front,
+        ...house.views.back,
+        ...house.views.side1,
+        ...house.views.side2,
+      ],
+    });
+
+    topGroup.canvas?.requestRenderAll();
   }, [getNonTopViewGroups, getTopViewGroup]);
 
   const clearContraventamentoSelection = useCallback((group?: Group | null) => {

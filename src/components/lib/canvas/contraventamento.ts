@@ -395,11 +395,14 @@ export function syncContraventamentoElevationViews(
       if (!originRect || !targetRect) continue;
 
       const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
-      const {offsetFromTop, offsetFromGround} = resolveContraventamentoOffsetFromNivel(originNivel);
+      const targetNivel = Number(getPilotiNivel(targetPilotiId) ?? 0);
+
+      const offsetOrigin = resolveContraventamentoOffsetFromNivel(originNivel, true);
+      const offsetTarget = resolveContraventamentoOffsetFromNivel(targetNivel, false);
       const x1 = getRectCenterX(originRect);
-      const y1 = getOriginY(originRect, originPilotiId, offsetFromTop);
+      const y1 = getOriginY(originRect, originPilotiId, offsetOrigin);
       const x2 = getRectCenterX(targetRect);
-      const y2 = getDestinationY(targetRect, offsetFromGround);
+      const y2 = getDestinationY(targetRect, offsetTarget);
 
       if (
         !Number.isFinite(x1) ||
