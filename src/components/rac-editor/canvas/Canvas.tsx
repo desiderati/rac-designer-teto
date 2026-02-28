@@ -2,16 +2,16 @@ import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'rea
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, PilotiCanvasSelection} from '@/components/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
-import {useCanvasClipboard} from './hooks/useCanvasClipboard.ts';
-import {useCanvasContainerLifecycle} from './hooks/useCanvasContainerLifecycle.ts';
-import {useCanvasContraventamento} from './hooks/useCanvasContraventamento.ts';
-import {useCanvasFabricSetup} from './hooks/useCanvasFabricSetup.ts';
-import {useCanvasHistory} from './hooks/useCanvasHistory.ts';
-import {useCanvasMinimapObjects} from './hooks/useCanvasMinimapObjects.ts';
-import {useCanvasPointerInteractions} from './hooks/useCanvasPointerInteractions.ts';
-import {useCanvasScreenProjection} from './hooks/useCanvasScreenProjection.ts';
-import {useCanvasHouseSelection} from './hooks/useCanvasHouseSelection.ts';
-import {useCanvasViewport} from './hooks/useCanvasViewport.ts';
+import {useCanvasClipboard} from '@/components/rac-editor/canvas/canvas/useCanvasClipboard.ts';
+import {useCanvasContainerLifecycle} from '@/components/rac-editor/canvas/canvas/useCanvasContainerLifecycle.ts';
+import {useCanvasContraventamento} from '@/components/rac-editor/canvas/canvas/useCanvasContraventamento.ts';
+import {useCanvasFabricSetup} from '@/components/rac-editor/canvas/canvas/useCanvasFabricSetup.ts';
+import {useCanvasHistory} from '@/components/rac-editor/canvas/canvas/useCanvasHistory.ts';
+import {useCanvasMinimapObjects} from '@/components/rac-editor/canvas/canvas/useCanvasMinimapObjects.ts';
+import {useCanvasPointerInteractions} from '@/components/rac-editor/canvas/canvas/useCanvasPointerInteractions.ts';
+import {useCanvasScreenProjection} from '@/components/rac-editor/canvas/canvas/useCanvasScreenProjection.ts';
+import {useCanvasHouseSelection} from '@/components/rac-editor/canvas/canvas/useCanvasHouseSelection.ts';
+import {useCanvasViewport} from '@/components/rac-editor/canvas/canvas/useCanvasViewport.ts';
 
 export interface ContraventamentoCanvasSelection {
   contraventamentoId: string;
