@@ -1,18 +1,13 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {
-  CanvasHandle,
-  ContraventamentoCanvasSelection,
-  PilotiCanvasSelection,
-} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {
   applyPilotiEditorCloseVisuals,
   applyPilotiSelectionVisuals
 } from '@/components/lib/canvas/piloti-visual-feedback.ts';
-import {formatPilotiHeight} from '@/components/lib/canvas';
+import {formatPilotiHeight, PilotiCanvasSelection} from '@/components/lib/canvas';
 
 interface UsePilotiActionsArgs {
   isContraventamentoMode: boolean;
-  onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;
   hasPilotiTutorial: boolean;
   closePilotiTutorial: () => void;
   canvasRef: RefObject<CanvasHandle | null>;
@@ -25,7 +20,6 @@ interface UsePilotiActionsArgs {
 
 export function usePilotiActions({
   isContraventamentoMode,
-  onContraventamentoSelect,
   hasPilotiTutorial,
   closePilotiTutorial,
   canvasRef,
@@ -39,7 +33,6 @@ export function usePilotiActions({
   const handlePilotiSelect =
     useCallback((selection: PilotiCanvasSelection | null) => {
       if (isContraventamentoMode) return;
-      if (selection) onContraventamentoSelect(null);
 
       setPilotiSelection(selection);
       if (selection) {
@@ -52,7 +45,6 @@ export function usePilotiActions({
       closePilotiTutorial,
       hasPilotiTutorial,
       isContraventamentoMode,
-      onContraventamentoSelect,
       setIsPilotiEditorOpen,
       setPilotiSelection,
     ]);

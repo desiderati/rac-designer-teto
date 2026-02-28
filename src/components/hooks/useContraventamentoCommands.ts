@@ -162,6 +162,8 @@ export function useContraventamentoCommands({
       const first = {pilotiId, col, row, group};
       setContraventamentoFirst(first);
 
+      //highlightSelectedContraventamento(group, selection?.contraventamentoId ?? null);
+
       const side: ContraventamentoSide = occupiedSides.left ? 'right' : 'left';
       enterContraventamentoSecondStep(first, side);
       return;
@@ -241,21 +243,6 @@ export function useContraventamentoCommands({
     setIsContraventamentoMode,
     syncContraventamentoElevations,
   ]);
-
-  const handleContraventamentoSelect =
-    useCallback((selection: ContraventamentoCanvasSelection | null) => {
-      const topGroup = getTopViewGroup();
-      if (!topGroup) {
-        setSelectedContraventamento(null);
-        return;
-      }
-
-      highlightSelectedContraventamento(topGroup, selection?.contraventamentoId ?? null);
-      setSelectedContraventamento(selection);
-      if (selection) {
-        setInfoMessage('Contraventamento selecionado. Use Excluir para remover.');
-      }
-    }, [getTopViewGroup, setInfoMessage, setSelectedContraventamento]);
 
   const handleContraventamentoFromPilotiSide =
     useCallback((side: ContraventamentoSide) => {
@@ -340,7 +327,6 @@ export function useContraventamentoCommands({
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,
-    handleContraventamentoSelect,
     handleContraventamentoFromPilotiSide,
   };
 }

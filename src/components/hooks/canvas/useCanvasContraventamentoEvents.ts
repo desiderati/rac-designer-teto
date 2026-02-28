@@ -10,7 +10,6 @@ interface useContraventamentoEventsArgs {
   isContraventamentoMode: () => boolean;
   isSelectingContraventamentoDestination: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
-  onContraventamentoSelect: (selection: { group: Group; contraventamentoId: string } | null) => void;
   onContraventamentoCancel: () => void;
   onSelectionChange: (message: string) => void;
   isAnyEditorOpen: () => boolean;
@@ -24,9 +23,7 @@ export function useCanvasContraventamentoEvents() {
     isContraventamentoMode,
     isSelectingContraventamentoDestination,
     isPilotiEligibleForContraventamento,
-    onContraventamentoSelect,
     onContraventamentoCancel,
-    onSelectionChange,
     isAnyEditorOpen,
   }: useContraventamentoEventsArgs) => {
 
@@ -35,39 +32,6 @@ export function useCanvasContraventamentoEvents() {
       if (canvas.upperCanvasEl.style.cursor !== cursor) {
         canvas.upperCanvasEl.style.cursor = cursor;
       }
-    };
-
-    const handleContraventamentoSelection = (event: unknown) => {
-      if (isContraventamentoMode()) return;
-
-      const payload = getEventPayload(event);
-      const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
-
-      if (!target || target.type !== 'group') {
-        onContraventamentoSelect(null);
-        return;
-      }
-
-      const group = target as Group;
-      if (toCanvasObject(group)?.houseView !== 'top') {
-        onContraventamentoSelect(null);
-        return;
-      }
-
-      const contraventamentoObject =
-        subTargets.find((subTarget) => subTarget?.isContraventamento === true);
-
-      if (contraventamentoObject) {
-        const contraventamentoId = String(contraventamentoObject.contraventamentoId ?? '');
-        if (contraventamentoId) {
-          onContraventamentoSelect({group, contraventamentoId});
-          onSelectionChange('Contraventamento selecionado. Use Excluir para remover.');
-          return;
-        }
-      }
-
-      onContraventamentoSelect(null);
     };
 
     const handleContraventamentoPilotiClick = (event: unknown) => {
@@ -94,7 +58,10 @@ export function useCanvasContraventamentoEvents() {
 
       const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
       const directPilotiTarget =
-        subTargets.find((subTarget) => subTarget?.isPilotiCircle || subTarget?.isPilotiHitArea);
+        subTargets.find(
+          (subTarget) =>
+            subTarget?.isPilotiCircle || subTarget?.isPilotiHitArea
+        );
 
       if (directPilotiTarget) {
         handlePilotiSelection(directPilotiTarget, target);
@@ -182,14 +149,12 @@ export function useCanvasContraventamentoEvents() {
 
     const handleMouseOut = () => setCanvasCursor('default');
 
-    canvas.on('mouse:down', handleContraventamentoSelection);
     canvas.on('mouse:down', handleContraventamentoPilotiClick);
     canvas.on('mouse:move', handleContraventamentoCursor);
     canvas.on('mouse:out', handleMouseOut);
     canvas.on('mouse:down', handleMobilePilotiTap);
 
     return () => {
-      canvas.off('mouse:down', handleContraventamentoSelection);
       canvas.off('mouse:down', handleContraventamentoPilotiClick);
       canvas.off('mouse:move', handleContraventamentoCursor);
       canvas.off('mouse:out', handleMouseOut);

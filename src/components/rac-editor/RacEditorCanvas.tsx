@@ -30,7 +30,6 @@ interface RacEditorCanvasProps {
   onTerrainSelect: (selection: TerrainCanvasSelection | null) => void;
   onDelete: () => void;
   onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
-  onContraventamentoSelect: (selection: ContraventamentoCanvasSelection | null) => void;
   onContraventamentoCancel: () => void;
 }
 
@@ -53,7 +52,6 @@ export function RacEditorCanvas({
   onTerrainSelect,
   onDelete,
   onContraventamentoPilotiClick,
-  onContraventamentoSelect,
   onContraventamentoCancel,
 }: RacEditorCanvasProps) {
   return (
@@ -81,7 +79,6 @@ export function RacEditorCanvas({
         isSelectingContraventamentoDestination={isSelectingContraventamentoDestination}
         isPilotiEligibleForContraventamento={isPilotiEligibleForContraventamento}
         onContraventamentoPilotiClick={onContraventamentoPilotiClick}
-        onContraventamentoSelect={onContraventamentoSelect}
         onContraventamentoCancel={onContraventamentoCancel}
       >
         {showTips &&

@@ -103,7 +103,6 @@ export function useContraventamento({
     syncContraventamentoElevations: commands.syncContraventamentoElevations,
     handleCancelContraventamento: commands.handleCancelContraventamento,
     handleContraventamentoPilotiClick: commands.handleContraventamentoPilotiClick,
-    handleContraventamentoSelect: commands.handleContraventamentoSelect,
     isPilotiEligible: queries.isPilotiEligible,
     getContraventamentoEditorState: queries.getContraventamentoEditorState,
     handleContraventamentoFromPilotiSide: commands.handleContraventamentoFromPilotiSide,

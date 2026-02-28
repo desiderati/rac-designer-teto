@@ -40,10 +40,6 @@ interface UseCanvasFabricSetupArgs {
   isPilotiEligibleForContraventamentoRef: MutableRefObject<((pilotiId: string) => boolean) | undefined>;
   onContraventamentoPilotiClickRef:
     MutableRefObject<((pilotiId: string, col: number, row: number, group: Group) => void) | undefined>;
-  onContraventamentoSelectRef: MutableRefObject<((selection: {
-    group: Group;
-    contraventamentoId: string
-  } | null) => void) | undefined>;
   onContraventamentoCancelRef: MutableRefObject<(() => void) | undefined>;
 }
 
@@ -67,7 +63,6 @@ export function useCanvasFabricSetup({
   isSelectingContraventamentoDestinationRef,
   isPilotiEligibleForContraventamentoRef,
   onContraventamentoPilotiClickRef,
-  onContraventamentoSelectRef,
   onContraventamentoCancelRef,
 }: UseCanvasFabricSetupArgs) {
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
@@ -90,7 +85,6 @@ export function useCanvasFabricSetup({
     isSelectingContraventamentoDestinationRef,
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
-    onContraventamentoSelectRef,
     onContraventamentoCancelRef,
   });
 
@@ -114,7 +108,6 @@ export function useCanvasFabricSetup({
     isSelectingContraventamentoDestinationRef,
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
-    onContraventamentoSelectRef,
     onContraventamentoCancelRef,
   };
 
@@ -190,7 +183,6 @@ export function useCanvasFabricSetup({
       emitPilotiSelection,
       emitSelectionChange,
       clearContraventamentoSelection: () => {
-        latestArgsRef.current.onContraventamentoSelectRef.current?.(null);
       },
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
       isSelectingContraventamentoDestination: () =>
@@ -225,9 +217,6 @@ export function useCanvasFabricSetup({
         latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
-      },
-      onContraventamentoSelect: (selection: { group: Group; contraventamentoId: string } | null) => {
-        latestArgsRef.current.onContraventamentoSelectRef.current?.(selection);
       },
       onContraventamentoCancel: () => {
         latestArgsRef.current.onContraventamentoCancelRef.current?.();

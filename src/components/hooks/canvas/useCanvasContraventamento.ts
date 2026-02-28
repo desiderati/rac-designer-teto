@@ -8,7 +8,6 @@ interface UseCanvasContraventamentoArgs {
   isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
-  onContraventamentoSelect?: (selection: { group: Group; contraventamentoId: string } | null) => void;
   onContraventamentoCancel?: () => void;
 }
 
@@ -17,7 +16,6 @@ interface ContraventamentoRefs {
   isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
-  onContraventamentoSelect?: (selection: { group: Group; contraventamentoId: string } | null) => void;
   onContraventamentoCancel?: () => void;
 }
 
@@ -27,7 +25,6 @@ export function useCanvasContraventamento({
   isSelectingContraventamentoDestination,
   isPilotiEligibleForContraventamento,
   onContraventamentoPilotiClick,
-  onContraventamentoSelect,
   onContraventamentoCancel,
 }: UseCanvasContraventamentoArgs) {
 
@@ -37,7 +34,6 @@ export function useCanvasContraventamento({
     isSelectingContraventamentoDestination,
     isPilotiEligibleForContraventamento,
     onContraventamentoPilotiClick,
-    onContraventamentoSelect,
     onContraventamentoCancel,
   });
 
@@ -48,7 +44,6 @@ export function useCanvasContraventamento({
       isSelectingContraventamentoDestination,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
-      onContraventamentoSelect,
       onContraventamentoCancel,
     };
   });
@@ -101,11 +96,6 @@ export function useCanvasContraventamento({
     onContraventamentoPilotiClickRef: {
       get current() {
         return refs.current.onContraventamentoPilotiClick;
-      },
-    },
-    onContraventamentoSelectRef: {
-      get current() {
-        return refs.current.onContraventamentoSelect;
       },
     },
     onContraventamentoCancelRef: {

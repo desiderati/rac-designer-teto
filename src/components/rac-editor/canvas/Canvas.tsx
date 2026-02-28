@@ -65,7 +65,6 @@ interface CanvasProps {
   isSelectingContraventamentoDestination?: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
-  onContraventamentoSelect?: (selection: ContraventamentoCanvasSelection | null) => void;
   onContraventamentoCancel?: () => void;
 }
 
@@ -106,7 +105,6 @@ export const Canvas =
       isSelectingContraventamentoDestination = false,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
-      onContraventamentoSelect,
       onContraventamentoCancel
     }, ref) => {
 
@@ -149,7 +147,6 @@ export const Canvas =
         isSelectingContraventamentoDestinationRef,
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
-        onContraventamentoSelectRef,
         onContraventamentoCancelRef,
       } = useCanvasContraventamento({
         fabricCanvasRef,
@@ -157,7 +154,6 @@ export const Canvas =
         isSelectingContraventamentoDestination,
         isPilotiEligibleForContraventamento,
         onContraventamentoPilotiClick,
-        onContraventamentoSelect,
         onContraventamentoCancel,
       });
 
@@ -237,7 +233,6 @@ export const Canvas =
         isSelectingContraventamentoDestinationRef,
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
-        onContraventamentoSelectRef,
         onContraventamentoCancelRef,
       });
 

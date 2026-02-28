@@ -314,7 +314,6 @@ export function RacEditor() {
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,
-    handleContraventamentoSelect,
     isPilotiEligible,
     getContraventamentoEditorState,
     handleContraventamentoFromPilotiSide,
@@ -378,7 +377,6 @@ export function RacEditor() {
     handlePilotiNavigate,
   } = usePilotiActions({
     isContraventamentoMode,
-    onContraventamentoSelect: handleContraventamentoSelect,
     hasPilotiTutorial: !!tutorialPilotiPosition,
     closePilotiTutorial: handleClosePilotiTutorial,
     canvasRef,
@@ -509,7 +507,6 @@ export function RacEditor() {
         onLinearSelect={handleLinearSelect}
         onDelete={handleDelete}
         onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
-        onContraventamentoSelect={handleContraventamentoSelect}
         onContraventamentoCancel={handleCancelContraventamento}
         onTerrainSelect={handleTerrainSelect}
       />
