@@ -1,7 +1,7 @@
 /**
  * Inserir neste arquivo apenas regras de negócio NÃO relativas ao Canvas!
  */
-import {CONTRAVENTAMENTO, HOUSE_DEFAULTS} from '@/shared/config.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export const CONTRAVENTAMENTO_COLUMN_SPACING =

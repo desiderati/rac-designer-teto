@@ -1,5 +1,4 @@
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {PILOTI_MASTER_FILL_COLOR, PILOTI_MASTER_STROKE_COLOR} from "@/components/lib/canvas";
 
 export const APP_SETTINGS_DEFAULTS = {
   autoNavigatePiloti: false,
@@ -155,8 +154,8 @@ export const ALL_PILOTI_IDS = Array.from({length: 3 * 4}, (_, index) => {
 });
 
 export const CONTRAVENTAMENTO = {
-  fillColor: PILOTI_MASTER_FILL_COLOR,
-  strokeColor: PILOTI_MASTER_STROKE_COLOR,
+  fillColor: PILOTI_MASTER_STYLE.fillColor,
+  strokeColor: PILOTI_MASTER_STYLE.strokeColor,
   strokeWidth: PILOTI_STYLE.strokeWidthTopView,
 } as const;
 

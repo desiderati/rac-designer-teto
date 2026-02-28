@@ -16,14 +16,12 @@ import {
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;
-  contraventamentoStep: 'select-first' | 'select-second';
   contraventamentoFirst: ContraventamentoOrigin | null;
   pilotiIdForEditor: string | null;
 }
 
 export function useContraventamentoQueries({
   getCanvas,
-  contraventamentoStep,
   contraventamentoFirst,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
@@ -71,7 +69,7 @@ export function useContraventamentoQueries({
 
   const isPilotiEligible = useCallback((pilotiId: string): boolean => {
     return isPilotiEligibleAsDestination(pilotiId, contraventamentoFirst);
-  }, [contraventamentoFirst, contraventamentoStep, isPilotiEligibleAsDestination]);
+  }, [contraventamentoFirst, isPilotiEligibleAsDestination]);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({

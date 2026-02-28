@@ -5,7 +5,7 @@ import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useContraventamentoEffects.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {ContraventamentoOrigin, ContraventamentoStep, PilotiCanvasSelection} from '@/components/lib/canvas';
+import {ContraventamentoOrigin, PilotiCanvasSelection} from '@/components/lib/canvas';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 
 interface UseContraventamentoArgs {
@@ -17,8 +17,6 @@ interface UseContraventamentoArgs {
   setInfoMessage: Dispatch<SetStateAction<string>>;
   selectedContraventamento: ContraventamentoCanvasSelection | null;
   setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
-  contraventamentoStep: ContraventamentoStep;
-  setContraventamentoStep: Dispatch<SetStateAction<ContraventamentoStep>>;
   contraventamentoFirst: ContraventamentoOrigin | null;
   setContraventamentoFirst: Dispatch<SetStateAction<ContraventamentoOrigin | null>>;
   contraventamentoSide: ContraventamentoSide | null;
@@ -36,11 +34,8 @@ export function useContraventamento({
   houseVersion,
   isContraventamentoMode,
   setIsContraventamentoMode,
-  setInfoMessage,
   selectedContraventamento,
   setSelectedContraventamento,
-  contraventamentoStep,
-  setContraventamentoStep,
   contraventamentoFirst,
   setContraventamentoFirst,
   contraventamentoSide,
@@ -54,7 +49,6 @@ export function useContraventamento({
 
   const queries = useContraventamentoQueries({
     getCanvas,
-    contraventamentoStep,
     contraventamentoFirst: contraventamentoFirst
       ? {col: contraventamentoFirst.col, row: contraventamentoFirst.row}
       : null,
@@ -84,7 +78,6 @@ export function useContraventamento({
   useContraventamentoEffects({
     houseVersion,
     isContraventamentoMode,
-    contraventamentoStep,
     contraventamentoFirst,
     getTopViewGroup: queries.getTopViewGroup,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,

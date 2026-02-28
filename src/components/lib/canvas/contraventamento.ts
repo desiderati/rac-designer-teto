@@ -15,8 +15,6 @@ import {
 import {HOUSE_DEFAULTS,} from '@/shared/config.ts';
 import {CanvasObject, toCanvasObject} from "@/components/lib/canvas/canvas.ts";
 
-export type ContraventamentoStep = 'select-first' | 'select-second';
-
 export interface ContraventamentoOrigin {
   pilotiId?: string;
   col: number;
