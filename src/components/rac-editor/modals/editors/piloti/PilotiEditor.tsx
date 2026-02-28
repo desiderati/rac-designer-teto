@@ -32,7 +32,7 @@ interface PilotiEditorProps {
   contraventamentoRightDisabled?: boolean;
   contraventamentoLeftActive?: boolean;
   contraventamentoRightActive?: boolean;
-  onContraventamentoSideAction?: (side: ContraventamentoSide) => void;
+  onContraventamentoSelect?: (side: ContraventamentoSide) => void;
 }
 
 export function PilotiEditor({
@@ -51,7 +51,7 @@ export function PilotiEditor({
   contraventamentoRightDisabled = true,
   contraventamentoLeftActive = false,
   contraventamentoRightActive = false,
-  onContraventamentoSideAction
+  onContraventamentoSelect
 }: PilotiEditorProps) {
 
   const {
@@ -174,7 +174,7 @@ export function PilotiEditor({
               <button
                 type='button'
                 disabled={contraventamentoLeftDisabled}
-                onClick={() => onContraventamentoSideAction?.('left')}
+                onClick={() => onContraventamentoSelect?.('left')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoLeftActive, contraventamentoLeftDisabled
@@ -189,7 +189,7 @@ export function PilotiEditor({
               <button
                 type='button'
                 disabled={contraventamentoRightDisabled}
-                onClick={() => onContraventamentoSideAction?.('right')}
+                onClick={() => onContraventamentoSelect?.('right')}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoRightActive,

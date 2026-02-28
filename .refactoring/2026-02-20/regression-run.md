@@ -1219,7 +1219,7 @@
 ### Fase 7 - passo incremental 63 (Parser de posição de piloti reutilizado no fluxo de contraventamento)
 
 - `RacEditor` atualizado:
-    - `getContraventamentoEditorState` e `handleContraventamentoFromPilotiSide` deixam de fazer parsing local por regex
+    - `getContraventamentoEditorState` e `handleContraventamentoSelect` deixam de fazer parsing local por regex
     - passam a reutilizar `parsePilotiGridPosition` de `house-contraventamento-use-cases`
 - Regras/documentação sincronizadas:
     - `.rules/contraventamento.md` atualizado para refletir parser centralizado

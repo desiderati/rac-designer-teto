@@ -1,45 +1,5 @@
 import {Group} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
-import {
-  CONTRAVENTAMENTO_FILL,
-  CONTRAVENTAMENTO_SELECTED_FILL,
-  CONTRAVENTAMENTO_SELECTED_STROKE,
-  CONTRAVENTAMENTO_STROKE,
-  CONTRAVENTAMENTO_STROKE_WIDTH
-} from "@/components/lib/canvas/constants.ts";
-import {getOrCreateContraventamentoId} from "@/components/lib/canvas/contraventamento.ts";
-
-/**
- * Aplica o destaque visual de seleção aos contraventamentos da vista superior.
- *
- * Quando `contraventamentoId` é informado, somente o objeto com o ID correspondente
- * recebe o estilo de selecionado; os demais ficam com o estilo padrão.
- * Quando não é informado, todos ficam no estilo padrão.
- *
- * @param group Grupo Fabric que contém os objetos de contraventamento.
- * @param contraventamentoId ID opcional do contraventamento selecionado.
- */
-export function highlightSelectedContraventamento(
-  group: Group,
-  contraventamentoId?: string,
-): void {
-
-  group.getObjects().forEach((obj: any) => {
-    if (!obj.isContraventamento) return;
-
-    const id = getOrCreateContraventamentoId(obj);
-    const isSelected = !!contraventamentoId && id === contraventamentoId;
-    obj.set({
-      fill: isSelected ? CONTRAVENTAMENTO_SELECTED_FILL : CONTRAVENTAMENTO_FILL,
-      stroke: isSelected ? CONTRAVENTAMENTO_SELECTED_STROKE : CONTRAVENTAMENTO_STROKE,
-      strokeWidth: CONTRAVENTAMENTO_STROKE_WIDTH,
-    });
-    obj.dirty = true;
-  });
-
-  (group as any).dirty = true;
-  group.canvas?.requestRenderAll();
-}
 
 /**
  * Destaca visualmente os pilotis elegíveis para criação de contraventamento
@@ -76,16 +36,16 @@ export function highlightEligibleContraventamentoPilotis(
       // Available - yellow border highlight (same visual language as top-view selection).
       obj.set({
         stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
-        strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
-        fill: PILOTI_MASTER_STYLE.fillColor,
+        strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView,
+        fill: PILOTI_STYLE.fillColor,
         hoverCursor: 'pointer',
       });
     } else {
       // Dimmed - grey out, including master pilotis while not eligible.
       obj.set({
-        stroke: PILOTI_STYLE.strokeColor,
+        stroke: PILOTI_VISUAL_FEEDBACK_COLORS.dimmedStrokeColor,
         strokeWidth: PILOTI_STYLE.strokeWidthTopView,
-        fill: PILOTI_STYLE.fillColor,
+        fill: PILOTI_VISUAL_FEEDBACK_COLORS.dimmedStrokeColor,
         hoverCursor: 'default',
       });
     }
@@ -109,7 +69,7 @@ export function resetHighlightContraventamentoPilotis(group: Group): void {
     if (obj.pilotiIsMaster) {
       obj.set({
         stroke: PILOTI_MASTER_STYLE.strokeColor,
-        strokeWidth: PILOTI_MASTER_STYLE.strokeWidth,
+        strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
         fill: PILOTI_MASTER_STYLE.fillColor,
         hoverCursor: 'default',
       });

@@ -8,11 +8,11 @@ import {GenericObjectEditor} from '@/components/rac-editor/modals/editors/generi
 import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
-import {LinearEditorType} from '@/components/rac-editor/modals/editors/generic/hooks/useLinearEditorActions.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import {PilotiCanvasSelection} from '@/components/lib/canvas';
 import {TerrainEditor} from '@/components/rac-editor/modals/editors/terrain/TerrainEditor.tsx';
+import {LinearEditorType} from "@/components/hooks/modals/useLinearEditorActions.ts";
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;
@@ -32,7 +32,7 @@ interface RacEditorModalEditorsProps {
   onPilotiNavigate: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 
   contraventamentoEditorState: ContraventamentoEditorState;
-  onContraventamentoSideAction: (side: ContraventamentoSide) => void;
+  onContraventamentoSelect: (side: ContraventamentoSide) => void;
 
   // Wall Object
   onWallApply: (newValue: string, newColor: string) => void;
@@ -72,7 +72,7 @@ export function RacEditorModalEditors({
   onPilotiNavigate,
 
   contraventamentoEditorState,
-  onContraventamentoSideAction,
+  onContraventamentoSelect,
 
   onWallApply,
   wallSelection,
@@ -125,7 +125,7 @@ export function RacEditorModalEditors({
         contraventamentoRightDisabled={contraventamentoEditorState.rightDisabled}
         contraventamentoLeftActive={contraventamentoEditorState.leftActive}
         contraventamentoRightActive={contraventamentoEditorState.rightActive}
-        onContraventamentoSideAction={onContraventamentoSideAction}
+        onContraventamentoSelect={onContraventamentoSelect}
       />
 
       <GenericObjectEditor

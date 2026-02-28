@@ -9,7 +9,6 @@ interface UseContraventamentoEffectsArgs {
   contraventamentoStep: ContraventamentoStep;
   contraventamentoFirst: ContraventamentoOrigin | null;
   getTopViewGroup: () => Group | null;
-  isPilotiEligibleAsOrigin: (pilotiId: string) => boolean;
   isPilotiEligibleAsDestination: (pilotiId: string, first: { col: number; row: number } | null) => boolean;
   handleCancelContraventamento: () => void;
   syncContraventamentoElevations: () => void;
@@ -21,7 +20,6 @@ export function useContraventamentoEffects({
   contraventamentoStep,
   contraventamentoFirst,
   getTopViewGroup,
-  isPilotiEligibleAsOrigin,
   isPilotiEligibleAsDestination,
   handleCancelContraventamento,
   syncContraventamentoElevations,
@@ -60,13 +58,12 @@ export function useContraventamentoEffects({
       return;
     }
 
-    highlightEligibleContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
+    // highlightEligibleContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
   }, [
     contraventamentoFirst,
     contraventamentoStep,
     getTopViewGroup,
     isContraventamentoMode,
     isPilotiEligibleAsDestination,
-    isPilotiEligibleAsOrigin,
   ]);
 }

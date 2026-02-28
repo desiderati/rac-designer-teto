@@ -51,6 +51,7 @@ export function useContraventamento({
   setIsPilotiEditorOpen,
   setActiveSubmenu,
 }: UseContraventamentoArgs) {
+
   const queries = useContraventamentoQueries({
     getCanvas,
     contraventamentoStep,
@@ -65,13 +66,9 @@ export function useContraventamento({
     getTopViewGroup: queries.getTopViewGroup,
     getNonTopViewGroups: queries.getNonTopViewGroups,
     getContraventamentoColumnSides: queries.getContraventamentoColumnSides,
-    isPilotiEligibleAsOrigin: queries.isPilotiEligibleAsOrigin,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
-    setInfoMessage,
     setSelectedContraventamento,
     setIsContraventamentoMode,
-    contraventamentoStep,
-    setContraventamentoStep,
     contraventamentoFirst,
     setContraventamentoFirst,
     contraventamentoSide,
@@ -90,7 +87,6 @@ export function useContraventamento({
     contraventamentoStep,
     contraventamentoFirst,
     getTopViewGroup: queries.getTopViewGroup,
-    isPilotiEligibleAsOrigin: queries.isPilotiEligibleAsOrigin,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     handleCancelContraventamento: commands.handleCancelContraventamento,
     syncContraventamentoElevations: commands.syncContraventamentoElevations,
@@ -105,6 +101,6 @@ export function useContraventamento({
     handleContraventamentoPilotiClick: commands.handleContraventamentoPilotiClick,
     isPilotiEligible: queries.isPilotiEligible,
     getContraventamentoEditorState: queries.getContraventamentoEditorState,
-    handleContraventamentoFromPilotiSide: commands.handleContraventamentoFromPilotiSide,
+    handleContraventamentoSelect: commands.handleContraventamentoSelect,
   };
 }

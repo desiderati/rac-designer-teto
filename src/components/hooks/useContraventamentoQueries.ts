@@ -31,6 +31,7 @@ export function useContraventamentoQueries({
   const getTopViewGroup = useCallback((): Group | null => {
     const canvas = getCanvas();
     if (!canvas) return null;
+
     return findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
   }, [getCanvas]);
 
@@ -51,20 +52,6 @@ export function useContraventamentoQueries({
       });
     }, []);
 
-  const isPilotiEligibleAsOrigin = useCallback((pilotiId: string): boolean => {
-    const data = houseManager.getPilotiData(pilotiId);
-    if (!canCreateContraventamentoForNivel(data?.nivel ?? 0)) return false;
-
-    const parsed = parsePilotiGridPosition(pilotiId);
-    if (!parsed) return false;
-
-    const topGroup = getTopViewGroup();
-    if (!topGroup) return false;
-
-    const occupiedSides = getContraventamentoColumnSides(topGroup, parsed.col);
-    return !(occupiedSides.left && occupiedSides.right);
-  }, [getContraventamentoColumnSides, getTopViewGroup]);
-
   const isPilotiEligibleAsDestination = useCallback((
     pilotiId: string,
     first: ContraventamentoOrigin | null
@@ -83,11 +70,8 @@ export function useContraventamentoQueries({
   }, []);
 
   const isPilotiEligible = useCallback((pilotiId: string): boolean => {
-    if (contraventamentoStep === 'select-second') {
-      return isPilotiEligibleAsDestination(pilotiId, contraventamentoFirst);
-    }
-    return isPilotiEligibleAsOrigin(pilotiId);
-  }, [contraventamentoFirst, contraventamentoStep, isPilotiEligibleAsDestination, isPilotiEligibleAsOrigin]);
+    return isPilotiEligibleAsDestination(pilotiId, contraventamentoFirst);
+  }, [contraventamentoFirst, contraventamentoStep, isPilotiEligibleAsDestination]);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({
@@ -117,7 +101,6 @@ export function useContraventamentoQueries({
     getTopViewGroup,
     getNonTopViewGroups,
     getContraventamentoColumnSides,
-    isPilotiEligibleAsOrigin,
     isPilotiEligibleAsDestination,
     isPilotiEligible,
     getContraventamentoEditorState,

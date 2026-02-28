@@ -316,7 +316,7 @@ export function RacEditor() {
     handleContraventamentoPilotiClick,
     isPilotiEligible,
     getContraventamentoEditorState,
-    handleContraventamentoFromPilotiSide,
+    handleContraventamentoSelect,
   } = useContraventamento({
     canvasRef,
     getCanvas,
@@ -494,7 +494,7 @@ export function RacEditor() {
         infoMessage={infoMessage}
         isAnyEditorOpen={isAnyEditorOpen}
         isContraventamentoMode={isContraventamentoMode}
-        isSelectingContraventamentoDestination={isContraventamentoMode && contraventamentoStep === 'select-second'}
+        isSelectingContraventamentoDestination={isContraventamentoMode}
         isPilotiEligibleForContraventamento={isPilotiEligible}
         onSelectionMessage={setInfoMessage}
         onSelectionAuxCleanup={() => {
@@ -528,8 +528,9 @@ export function RacEditor() {
         onPilotiEditorClose={handlePilotiEditorClose}
         onPilotiHeightChange={handlePilotiHeightChange}
         onPilotiNavigate={handlePilotiNavigate}
+
         contraventamentoEditorState={contraventamentoEditorState}
-        onContraventamentoSideAction={handleContraventamentoFromPilotiSide}
+        onContraventamentoSelect={handleContraventamentoSelect}
 
         onWallApply={handleWallApply}
         onWallEditorClose={closeWallEditor}
