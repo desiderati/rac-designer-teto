@@ -6,8 +6,8 @@ import {
   getContraventamentoColumnCenterX,
   getContraventamentoSideLabel,
   inferContraventamentoSideFromBeamGeometry,
-  isPilotiOutOfProportion,
   isContraventamentoDestinationEligible,
+  isPilotiOutOfProportion,
   parsePilotiGridPosition,
   resolveContraventamentoOffsetFromNivel,
 } from './contraventamento.ts';

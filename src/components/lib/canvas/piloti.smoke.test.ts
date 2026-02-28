@@ -3,11 +3,11 @@ import {
   clampNivel,
   clampNivelByHeight,
   formatNivel,
-  getTerrainRachaoThicknessCm,
   getAllPilotiIds,
-  normalizeTerrainSolidityLevel,
   getPilotiName,
   getRecommendedHeight,
+  getTerrainRachaoThicknessCm,
+  normalizeTerrainSolidityLevel,
 } from './piloti.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 

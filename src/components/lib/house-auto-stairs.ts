@@ -1,11 +1,5 @@
 import {FabricObject, Group, Line, Rect} from 'fabric';
-import {
-  HousePiloti,
-  HouseSide,
-  HouseTypeExcludeNull,
-  HouseViewInstance,
-  HouseViewType
-} from '@/shared/types/house.ts';
+import {HousePiloti, HouseSide, HouseTypeExcludeNull, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_ELEMENT_STYLE, HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {

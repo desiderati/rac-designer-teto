@@ -15,6 +15,7 @@ import {
   PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
   PILOTI_MASTER_FILL_COLOR,
   PILOTI_MASTER_STROKE_COLOR,
+  PilotiObjectLike,
   refreshHouseGroupRendering,
   toCanvasObject,
   updateGroundInGroup,
@@ -22,12 +23,6 @@ import {
   updatePilotiMaster
 } from "@/components/lib/canvas/index.ts";
 import {HousePiloti, HouseViews} from "@/shared/types/house.ts";
-
-export interface PilotiObjectLike {
-  pilotiId?: unknown;
-  isPilotiCircle?: unknown;
-  isPilotiRect?: unknown;
-}
 
 export interface PilotiObjectIndexEntry<TObject> {
   circle?: TObject;

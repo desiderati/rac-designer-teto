@@ -1,7 +1,9 @@
 import {FabricObject, Group} from 'fabric';
 import {HousePiloti, HouseViewInstance} from '@/shared/types/house.ts';
 import {
-  addContraventamentoBeam, isPilotiOutOfProportion, parsePilotiGridPosition,
+  addContraventamentoBeam,
+  isPilotiOutOfProportion,
+  parsePilotiGridPosition,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews
 } from '@/components/lib/canvas';

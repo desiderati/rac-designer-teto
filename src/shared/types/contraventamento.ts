@@ -3,9 +3,6 @@
  */
 import {CONTRAVENTAMENTO, HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {FabricObject} from "fabric";
-import {toCanvasObject} from "@/components/lib/canvas";
-import {HousePiloti} from "@/shared/types/house.ts";
 
 export const CONTRAVENTAMENTO_COLUMN_SPACING =
   HOUSE_DIMENSIONS.piloti.columnSpacing * HOUSE_DEFAULTS.viewScale;

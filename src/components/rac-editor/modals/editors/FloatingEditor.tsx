@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
-import {useFloatingEditor} from '@/components/rac-editor/modals/editors/modals/useFloatingEditor.ts';
+import {useFloatingEditor} from '@/components/hooks/modals/useFloatingEditor.ts';
 
 interface FloatingEditorProps {
   isOpen: boolean;

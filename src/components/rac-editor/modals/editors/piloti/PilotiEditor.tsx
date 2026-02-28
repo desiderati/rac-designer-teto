@@ -7,7 +7,7 @@ import {Label} from '@/components/ui/label.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {PilotiGridIcon} from './PilotiGridIcon.tsx';
 import {ContraventamentoSideIcon} from '@/components/rac-editor/modals/editors/piloti/ContraventamentoSideIcon.tsx';
-import {usePilotiEditor} from '../../../hooks/usePilotiEditor.ts';
+import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {formatPilotiHeight, PILOTI_DEFAULT_NIVEL} from '@/components/lib/canvas';

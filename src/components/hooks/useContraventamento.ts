@@ -1,9 +1,6 @@
 import {Dispatch, RefObject, SetStateAction} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import type {
-  CanvasHandle,
-  ContraventamentoCanvasSelection,
-} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useContraventamentoEffects.ts';

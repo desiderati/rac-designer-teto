@@ -90,7 +90,7 @@ export function ToolbarMainMenu({
 
           <FABButton
             icon={MAIN_MENU_ICONS.unlock}
-            title='Desbloquear (Desagrupar) - Em breve'
+            title='Desbloquear (Desagrupar) - Out of Service'
             onClick={() => {
             }}
             hideTooltip={isTutorialActive}
@@ -99,7 +99,7 @@ export function ToolbarMainMenu({
 
           <FABButton
             icon={MAIN_MENU_ICONS.lock}
-            title='Bloquear (Agrupar) - Em breve'
+            title='Bloquear (Agrupar) - Out of Service'
             onClick={() => {
             }}
             hideTooltip={isTutorialActive}

@@ -4,12 +4,12 @@ import {Input} from '@/components/ui/input.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {X} from 'lucide-react';
 import {GenericObjectEditorIcon} from './GenericObjectEditorIcon.tsx';
-import {useGenericObjectEditorDraft} from './hooks/useGenericObjectEditorDraft.ts';
 import {FloatingEditor} from '@/components/rac-editor/modals/editors/FloatingEditor.tsx';
 import {
   GenericObjectEditorType
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
+import {useGenericObjectEditorDraft} from "@/components/hooks/modals/useGenericObjectEditorDraft.ts";
 
 interface GenericObjectEditorProps {
   editorType: GenericObjectEditorType;

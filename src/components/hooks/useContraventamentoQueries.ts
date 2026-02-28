@@ -3,16 +3,16 @@ import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {
-  canCreateContraventamentoForNivel,
   CanvasObject,
-  collectOccupiedContraventamentoSides,
-  ContraventamentoObjectCandidate,
   ContraventamentoOrigin,
-  createContraventamentoEditorState,
-  isContraventamentoDestinationEligible,
   parsePilotiGridPosition,
   toCanvasObject
 } from '@/components/lib/canvas';
+import {
+  canCreateContraventamentoForNivel,
+  collectOccupiedContraventamentoSides,
+  ContraventamentoCandidate, createContraventamentoEditorState, isContraventamentoDestinationEligible
+} from "@/shared/types/contraventamento.ts";
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;
@@ -46,7 +46,7 @@ export function useContraventamentoQueries({
         objects: group.getObjects() as FabricObject[],
         col,
         onResolvedSide: (object, side) => {
-          (object as ContraventamentoObjectCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;
+          (object as ContraventamentoCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;
         },
       });
     }, []);

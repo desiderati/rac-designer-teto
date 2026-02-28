@@ -2,16 +2,16 @@ import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'rea
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, PilotiCanvasSelection} from '@/components/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
-import {useCanvasClipboard} from '@/components/rac-editor/canvas/canvas/useCanvasClipboard.ts';
-import {useCanvasContainerLifecycle} from '@/components/rac-editor/canvas/canvas/useCanvasContainerLifecycle.ts';
-import {useCanvasContraventamento} from '@/components/rac-editor/canvas/canvas/useCanvasContraventamento.ts';
-import {useCanvasFabricSetup} from '@/components/rac-editor/canvas/canvas/useCanvasFabricSetup.ts';
-import {useCanvasHistory} from '@/components/rac-editor/canvas/canvas/useCanvasHistory.ts';
-import {useCanvasMinimapObjects} from '@/components/rac-editor/canvas/canvas/useCanvasMinimapObjects.ts';
-import {useCanvasPointerInteractions} from '@/components/rac-editor/canvas/canvas/useCanvasPointerInteractions.ts';
-import {useCanvasScreenProjection} from '@/components/rac-editor/canvas/canvas/useCanvasScreenProjection.ts';
-import {useCanvasHouseSelection} from '@/components/rac-editor/canvas/canvas/useCanvasHouseSelection.ts';
-import {useCanvasViewport} from '@/components/rac-editor/canvas/canvas/useCanvasViewport.ts';
+import {useCanvasClipboard} from '@/components/hooks/canvas/useCanvasClipboard.ts';
+import {useCanvasContainerLifecycle} from '@/components/hooks/canvas/useCanvasContainerLifecycle.ts';
+import {useCanvasContraventamento} from '@/components/hooks/canvas/useCanvasContraventamento.ts';
+import {useCanvasFabricSetup} from '@/components/hooks/canvas/useCanvasFabricSetup.ts';
+import {useCanvasHistory} from '@/components/hooks/canvas/useCanvasHistory.ts';
+import {useCanvasMinimapObjects} from '@/components/hooks/canvas/useCanvasMinimapObjects.ts';
+import {useCanvasPointerInteractions} from '@/components/hooks/canvas/useCanvasPointerInteractions.ts';
+import {useCanvasScreenProjection} from '@/components/hooks/canvas/useCanvasScreenProjection.ts';
+import {useCanvasHouseSelection} from '@/components/hooks/canvas/useCanvasHouseSelection.ts';
+import {useCanvasViewport} from '@/components/hooks/canvas/useCanvasViewport.ts';
 
 export interface ContraventamentoCanvasSelection {
   contraventamentoId: string;

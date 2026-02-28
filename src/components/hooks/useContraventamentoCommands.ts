@@ -17,12 +17,14 @@ import {houseManager} from '@/components/lib/house-manager.ts';
 import {
   canCreateContraventamentoForNivel,
   ContraventamentoSide,
-  getContraventamentoSideLabel, inferContraventamentoSide
+  getContraventamentoSideLabel,
+  inferContraventamentoSide
 } from '@/shared/types/contraventamento.ts';
 import {ToolbarSubmenu} from '@/components/rac-editor/toolbar/helpers/toolbar-types.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {
-  highlightEligibleContraventamentoPilotis, highlightSelectedContraventamento,
+  highlightEligibleContraventamentoPilotis,
+  highlightSelectedContraventamento,
   resetHighlightContraventamentoPilotis
 } from "@/components/lib/canvas/contraventamento-top-view-highlight.ts";
 
