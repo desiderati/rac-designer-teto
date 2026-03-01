@@ -3,6 +3,7 @@ import {Button} from '@/components/ui/button.tsx';
 import {Slider} from '@/components/ui/slider.tsx';
 import {X} from 'lucide-react';
 import {FloatingEditor} from '@/components/rac-editor/modals/editors/FloatingEditor.tsx';
+import {TerrainPreviewIcon} from '@/components/rac-editor/modals/editors/terrain/TerrainPreviewIcon.tsx';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 interface TerrainEditorProps {
@@ -49,7 +50,7 @@ export function TerrainEditor({
       onCancel={onClose}
       header={
         <div className='flex items-center gap-3'>
-          <div className='w-16 h-12 flex-shrink-0 rounded-lg bg-amber-100 border border-amber-300'/>
+          <TerrainPreviewIcon/>
           <span className='font-bold text-2xl flex-1 text-center'>Terreno</span>
           <Button
             variant='outline'
