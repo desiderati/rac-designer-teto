@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu';
 import {Check, ChevronRight, Circle} from 'lucide-react';
 
-import {cn} from '@/components/lib/utils.ts';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 
 const ContextMenu = ContextMenuPrimitive.Root;
 

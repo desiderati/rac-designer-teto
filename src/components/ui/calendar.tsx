@@ -2,7 +2,7 @@ import * as React from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {DayPicker} from 'react-day-picker';
 
-import {cn} from '@/components/lib/utils.ts';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {buttonVariants} from '@/components/ui/button.tsx';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;

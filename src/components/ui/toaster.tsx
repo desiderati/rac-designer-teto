@@ -1,4 +1,4 @@
-import {useToast} from '@/components/lib/use-toast.ts';
+import {useToast} from '@/components/rac-editor/lib/use-toast.ts';
 import {Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport} from '@/components/ui/toast.tsx';
 
 export function Toaster() {

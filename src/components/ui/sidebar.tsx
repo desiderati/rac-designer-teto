@@ -3,8 +3,8 @@ import {Slot} from '@radix-ui/react-slot';
 import {cva, VariantProps} from 'class-variance-authority';
 import {PanelLeft} from 'lucide-react';
 
-import {useIsMobile} from '@/components/lib/use-mobile.tsx';
-import {cn} from '@/components/lib/utils.ts';
+import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {Button} from '@/components/ui/button.tsx';
 import {Input} from '@/components/ui/input.tsx';
 import {Separator} from '@/components/ui/separator.tsx';

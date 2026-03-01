@@ -2,7 +2,7 @@ import * as SheetPrimitive from '@radix-ui/react-dialog';
 import {cva, type VariantProps} from 'class-variance-authority';
 import * as React from 'react';
 
-import {cn} from '@/components/lib/utils.ts';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 
 const Sheet = SheetPrimitive.Root;
 
