@@ -4,6 +4,7 @@ import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {CanvasObject} from '../../canvas.ts';
 
 export function createHouseSide(
   canvas: FabricCanvas,
@@ -108,8 +109,9 @@ export function createHouseSide(
       left: doorX,
       top: doorY,
     });
-    (doorObj as any).isHouseDoor = true;
-    (doorObj as any).myType = 'door';
+    const doorObjCanvas = doorObj as CanvasObject;
+    doorObjCanvas.isHouseDoor = true;
+    doorObjCanvas.myType = 'door';
 
     const windowObj = new Rect({
       width: windowW,
@@ -131,9 +133,9 @@ export function createHouseSide(
   // Add diagonal stripe overlays for each piloti
   const pilotiRects = [p1, p2, p3];
   for (const pr of pilotiRects) {
-    const prAny = pr as any;
+    const prObj = pr as CanvasObject;
     const stripeOverlay =
-      createPilotiStripeOverlay(prAny.pilotiId, pr.left ?? 0, pr.top ?? 0, pilotW, pr.height ?? 0);
+      createPilotiStripeOverlay(prObj.pilotiId ?? '', pr.left ?? 0, pr.top ?? 0, pilotW, pr.height ?? 0);
     elements.push(stripeOverlay);
   }
 
@@ -147,9 +149,10 @@ export function createHouseSide(
     subTargetCheck: true,
     objectCaching: false,
   });
-  (group as any).myType = 'house';
-  (group as any).houseView = 'side';
-  (group as any).isRightSide = isRightSide;
+  const groupObj = group as CanvasObject;
+  groupObj.myType = 'house';
+  groupObj.houseView = 'side';
+  groupObj.isRightSide = isRightSide;
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;

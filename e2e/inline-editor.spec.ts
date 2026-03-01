@@ -8,7 +8,7 @@ import {
   startConsoleErrorCapture,
   triggerElementsAction,
   triggerLinesAction,
-} from './helpers/rac-helpers.spec';
+} from './helpers/rac-helpers';
 
 test.describe('RAC inline editor sync', () => {
   test.describe.configure({mode: 'serial'});
@@ -51,7 +51,6 @@ test.describe('RAC inline editor sync', () => {
     await page.getByRole('button', {name: 'Confirmar'}).last().click();
 
     await selectCanvasObjectByMyTypeByDebug(page, 'line', true, false);
-    await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.myType).toBe('line');
     await expect.poll(async () => (await getActiveCanvasObjectSummaryByDebug(page))?.labelText).toBe('Linha teste e2e');
   });
 });

@@ -1,16 +1,11 @@
 import {describe, expect, it} from 'vitest';
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from "./piloti";
 import {
-  canCreateContraventamentoForNivel,
-  collectOccupiedContraventamentoSides,
-  createContraventamentoEditorState,
-  getContraventamentoColumnCenterX,
-  getContraventamentoSideLabel,
-  inferContraventamentoSideFromBeamGeometry,
+  canCreateContraventamentoForNivel, collectOccupiedContraventamentoSides, createContraventamentoEditorState,
+  getContraventamentoColumnCenterX, getContraventamentoSideLabel, inferContraventamentoSide,
   isContraventamentoDestinationEligible,
-  isPilotiOutOfProportion,
-  parsePilotiGridPosition,
-  resolveContraventamentoOffsetFromNivel,
-} from './contraventamento.ts';
+  resolveContraventamentoOffsetFromNivel
+} from "@/shared/types/contraventamento.ts";
 
 describe('contraventamento helpers', () => {
   it('parses piloti ids and validates nivel', () => {
@@ -21,14 +16,15 @@ describe('contraventamento helpers', () => {
   });
 
   it('resolves dynamic offsets from nivel', () => {
-    expect(resolveContraventamentoOffsetFromNivel(0.2)).toBe(0.05);
-    expect(resolveContraventamentoOffsetFromNivel(0.3)).toBe(0.1);
-    expect(resolveContraventamentoOffsetFromNivel(0.4)).toBe(0.2);
+    expect(resolveContraventamentoOffsetFromNivel(0.2, true)).toBe(0);
+    expect(resolveContraventamentoOffsetFromNivel(0.4, true)).toBeCloseTo(0.2667, 4);
+    expect(resolveContraventamentoOffsetFromNivel(0.4, false)).toBeCloseTo(0.1333, 4);
+    expect(resolveContraventamentoOffsetFromNivel(0.6, true)).toBeCloseTo(0.2, 4);
   });
 
   it('infers side and labels', () => {
     const center = getContraventamentoColumnCenterX(0);
-    expect(inferContraventamentoSideFromBeamGeometry({col: 0, left: center - 40, width: 10})).toBe('left');
+    expect(inferContraventamentoSide({col: 0, left: center - 40, width: 10})).toBe('left');
     expect(getContraventamentoSideLabel('left')).toBe('esquerdo');
     expect(getContraventamentoSideLabel('right')).toBe('direito');
   });

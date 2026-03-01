@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {Group} from 'fabric';
 import {ContraventamentoOrigin} from '@/components/lib/canvas';
-import {highlightEligibleContraventamentoPilotis} from "@/components/lib/canvas/contraventamento-top-view-highlight.ts";
+import {highlightEligibleContraventamentoPilotis} from '@/components/lib/canvas/contraventamento-top-view-highlight.ts';
 
 interface UseContraventamentoEffectsArgs {
   houseVersion: number;

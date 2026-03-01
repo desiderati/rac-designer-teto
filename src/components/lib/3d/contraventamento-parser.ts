@@ -1,5 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {CanvasObject} from "@/components/lib/canvas";
+import {CanvasObject} from '@/components/lib/canvas';
 
 export interface Contraventamento3DData {
   id: string;

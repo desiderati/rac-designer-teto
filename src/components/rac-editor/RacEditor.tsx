@@ -17,8 +17,8 @@ import {useCanvasTools} from '@/components/hooks/canvas/useCanvasTools.ts';
 import {usePilotiActions} from '../hooks/usePilotiActions.ts';
 import {useWallEditorActions} from '@/components/hooks/modals/useWallEditorActions.ts';
 import {useRacEditorPdfExportAction} from '../hooks/useRacEditorPdfExportAction.ts';
-import {useToolbarViewCounts} from '@/components/hooks/toolbar/useToolbarViewCounts.ts';
-import {useCanvasInteractionActions} from '@/components/hooks/canvas/useCanvasInteractionActions.ts';
+import {useToolbarHouseViewCounts} from '@/components/hooks/toolbar/useToolbarHouseViewCounts.ts';
+import {useCanvasActions} from '@/components/hooks/canvas/useCanvasActions.ts';
 import {useToolbarActions} from '@/components/hooks/toolbar/useToolbarActions.ts';
 import {useIsMobile} from '@/components/lib/use-mobile.tsx';
 import {getSettings} from '@/infra/settings.ts';
@@ -163,7 +163,7 @@ export function RacEditor() {
     closeAllMenus,
     disableDrawingMode,
     handleDelete,
-  } = useCanvasInteractionActions({
+  } = useCanvasActions({
     canvasRef,
     isDrawing,
     setIsDrawing,
@@ -422,7 +422,7 @@ export function RacEditor() {
     backViewCount,
     side1ViewCount,
     side2ViewCount,
-  } = useToolbarViewCounts();
+  } = useToolbarHouseViewCounts();
 
   const toolbarActions = useToolbarActions({
     handleOpenHouseTypeSelector,

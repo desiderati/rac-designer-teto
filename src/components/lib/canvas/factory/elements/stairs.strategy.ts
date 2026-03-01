@@ -2,6 +2,7 @@ import {Canvas as FabricCanvas, Pattern, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
+import {CanvasObject} from '../../canvas.ts';
 
 export const stairsStrategy: ElementStrategy<Rect> = {
   create(canvas: FabricCanvas): Rect {
@@ -23,7 +24,7 @@ export const stairsStrategy: ElementStrategy<Rect> = {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
     });
-    (rect as any).myType = 'stairs';
+    (rect as CanvasObject).myType = 'stairs';
 
     rect.on('scaling', function (this: Rect) {
       this.set({

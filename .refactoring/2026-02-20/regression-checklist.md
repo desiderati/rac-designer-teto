@@ -157,7 +157,7 @@
 - [x] extração de `Agrupar/Desagrupar` do `RacEditor` para hook dedicado:
     - `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
 - [x] split de eventos de `useCanvasFabricSetup` em hooks dedicados:
-    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasSelectionActions.ts`
     - `src/components/rac-editor/hooks/useContraventamentoEvents.ts`
     - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
 - [x] integração dos novos binders com cleanup explícito no `useCanvasFabricSetup`.
@@ -167,7 +167,7 @@
 ### Validação obrigatória da rodada
 
 - [x] 
-  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts`
+  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionActions.ts src/components/rac-editor/hooks/useContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
 - [x] `npm run test:e2e -- --workers=1` (16/16)
@@ -293,7 +293,7 @@
 ### Escopo
 
 - [x] extração dos helpers de interação canvas/menu de `RacEditor` para hook dedicado:
-    - `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
+    - `src/components/rac-editor/hooks/useCanvasActions.ts`
 - [x] delegação de `getCanvas`, centro visível, add no centro, fechamento de menus e desligamento de desenho.
 - [x] revalidação explícita dos arquivos solicitados:
     - `src/lib/settings.ts`
@@ -302,7 +302,7 @@
 ### Validação obrigatória da rodada
 
 - [x] 
-  `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasInteractionActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
+  `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
 - [x] `npm run test:e2e -- --workers=1` (16/16)
@@ -317,7 +317,7 @@
 - [x] correção de refs/runtime types no canvas/editor:
     - `src/components/rac-editor/hooks/useCanvasFabricSetup.ts`
     - `src/components/rac-editor/hooks/useCanvasEditorEvents.ts`
-    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasSelectionActions.ts`
     - `src/components/rac-editor/hooks/usePilotiActions.ts`
     - `src/lib/canvas/piloti-visual-feedback.ts`
 - [x] correção de tipagem estrita auxiliar:
@@ -328,7 +328,7 @@
 
 - [x] `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`
 - [x] 
-  `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts`
+  `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionActions.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
 - [x] `npm run test:e2e -- --workers=1` (16/16)

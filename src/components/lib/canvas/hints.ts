@@ -1,11 +1,12 @@
 import {FabricObject} from 'fabric';
+import {CanvasObject} from './canvas.ts';
 
 export function getHintForObject(obj: FabricObject | null): string {
   if (!obj) {
     return 'Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)';
   }
 
-  const myType = (obj as any).myType;
+  const myType = (obj as CanvasObject).myType;
 
   switch (myType) {
     case 'house':

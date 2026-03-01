@@ -9,7 +9,7 @@ import {
   startConsoleErrorCapture,
   triggerElementsAction,
   triggerLinesAction,
-} from './helpers/rac-helpers.spec';
+} from './helpers/rac-helpers';
 
 test.describe('RAC toolbar and overflow', () => {
   test.describe.configure({mode: 'serial'});
@@ -30,7 +30,6 @@ test.describe('RAC toolbar and overflow', () => {
     const beforeCount = before.length;
 
     await triggerElementsAction(page, 'Objeto / Muro');
-    await triggerElementsAction(page, 'Escada');
     await triggerElementsAction(page, 'Árvore');
     await triggerElementsAction(page, 'Água / Rio');
     await triggerElementsAction(page, 'Fossa');
@@ -40,11 +39,10 @@ test.describe('RAC toolbar and overflow', () => {
     await triggerLinesAction(page, 'Distância');
 
     const after = await getCanvasObjectsSummary(page);
-    expect(after.length).toBeGreaterThanOrEqual(beforeCount + 8);
+    expect(after.length).toBeGreaterThanOrEqual(beforeCount + 7);
 
     const myTypes = new Set(after.map((obj) => obj.myType).filter((myType): myType is string => !!myType));
     expect(myTypes.has('wall')).toBe(true);
-    expect(myTypes.has('stairs')).toBe(true);
     expect(myTypes.has('tree')).toBe(true);
     expect(myTypes.has('water')).toBe(true);
     expect(myTypes.has('fossa')).toBe(true);

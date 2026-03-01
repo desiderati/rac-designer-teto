@@ -1580,7 +1580,7 @@
 ### Fase 7 - passo incremental 84 (useCanvasFabricSetup dividido em hooks de eventos)
 
 - Novos hooks:
-    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasSelectionActions.ts`
     - `src/components/rac-editor/hooks/useContraventamentoEvents.ts`
     - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
 - `useCanvasFabricSetup` atualizado:
@@ -1595,7 +1595,7 @@
     - manutenção de lint limpo sem desativação de regras.
 - Validação pós-extração:
   -
-  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts` ->
+  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionActions.ts src/components/rac-editor/hooks/useContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts` ->
   PASS
     - `npm run test -- --run` -> PASS (121/121)
     - `npm run build` -> PASS
@@ -1772,7 +1772,7 @@
 ### Fase 7 - passo incremental 93 (Helpers de interação do RacEditor extraídos)
 
 - Novo hook:
-    - `src/components/rac-editor/hooks/useCanvasInteractionActions.ts`
+    - `src/components/rac-editor/hooks/useCanvasActions.ts`
     - centraliza:
         - obtenção de canvas ativo;
         - centro visível e add de objeto no centro;
@@ -1785,7 +1785,7 @@
     - redução de `src/components/rac-editor/RacEditor.tsx` para **507** linhas.
 - Validação pós-extração:
   -
-  `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasInteractionActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` ->
+  `npx eslint src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasActions.ts src/lib/settings.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts` ->
   PASS
     - `npm run test -- --run` -> PASS (121/121)
     - `npm run build` -> PASS
@@ -1807,7 +1807,7 @@
         - remoção de casts inseguros (`Record<string, unknown>[]`).
     - `src/components/rac-editor/hooks/usePilotiActions.ts`
         - remoção de casts para `Record<string, unknown>[]` ao chamar utilitários de feedback.
-    - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
+    - `src/components/rac-editor/hooks/useCanvasSelectionActions.ts`
         - normalização de `canvas.getActiveObject()` para `null` quando indefinido.
     - `src/components/rac-editor/House3DScene.tsx`
         - simplificação de fallback de origem do contraventamento para eliminar `possibly undefined`.
@@ -1819,7 +1819,7 @@
 - Validação pós-correção:
     - `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false` -> PASS
     -
-  `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts` ->
+  `npx eslint src/lib/settings.ts src/lib/persistence/settings.storage.ts src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasEditorEvents.ts src/components/rac-editor/hooks/usePilotiActions.ts src/lib/canvas/piloti-visual-feedback.ts src/components/rac-editor/hooks/useCanvasSelectionActions.ts src/components/rac-editor/House3DScene.tsx src/lib/domain/house-application.smoke.test.ts` ->
   PASS
     - `npm run test -- --run` -> PASS (121/121)
     - `npm run build` -> PASS

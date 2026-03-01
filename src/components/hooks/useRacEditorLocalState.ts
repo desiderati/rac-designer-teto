@@ -1,5 +1,5 @@
 import {useCallback, useState} from 'react';
-import {PilotiCanvasSelection} from "@/components/lib/canvas";
+import {PilotiCanvasSelection} from '@/components/lib/canvas';
 
 type TutorialBalloonState = {
   position: { x: number; y: number };
@@ -7,6 +7,7 @@ type TutorialBalloonState = {
 } | null;
 
 export function useRacEditorLocalState() {
+
   const [infoMessage, setInfoMessage] =
     useState('Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)');
 

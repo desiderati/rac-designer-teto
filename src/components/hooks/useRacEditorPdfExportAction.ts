@@ -10,6 +10,7 @@ interface UseRacEditorPdfExportActionArgs {
 }
 
 export function useRacEditorPdfExportAction({getCanvas}: UseRacEditorPdfExportActionArgs) {
+
   const handleSavePDF = useCallback(() => {
     const canvas = getCanvas();
     if (!canvas) return;

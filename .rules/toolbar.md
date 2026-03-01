@@ -32,7 +32,7 @@ Overlays/modais do editor (seletor de tipo de casa, settings, tutorial/balões, 
 extraídos para `RacEditorModals`, mantendo `RacEditor` como orquestrador de estado.
 
 Helpers locais de interação canvas/menu no `RacEditor` (canvas ativo, centro visível, add no centro, fechamento de
-menus e desligamento do modo desenho) foram consolidados em `useCanvasInteractionActions`.
+menus e desligamento do modo desenho) foram consolidados em `useCanvasActions`.
 
 Composição do `ToolbarActionMap` no `RacEditor` foi extraída para `useToolbarActions`, mantendo o contrato da
 `Toolbar` e reduzindo objeto inline no componente raiz.
@@ -165,7 +165,7 @@ Cobertura atual em `e2e/views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
 - `src/components/rac-editor/tutorial/hooks/useTutorialUiActions.ts`
 - `src/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts`
 - `src/components/rac-editor/RacEditorModals.tsx`
-- `src/components/rac-editor/canvas/hooks/useCanvasInteractionActions.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasActions.ts`
 - `src/components/rac-editor/toolbar/hooks/useToolbarActions.ts`
 - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
 - `src/components/rac-editor/modals/ConfirmDialogModal.tsx`

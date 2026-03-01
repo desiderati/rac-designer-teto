@@ -16,7 +16,7 @@ import {
 } from '@/components/lib/3d/contraventamento-parser.ts';
 import {toast} from 'sonner';
 import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
-import {toCanvasObject} from "@/components/lib/canvas";
+import {toCanvasObject} from '@/components/lib/canvas';
 
 interface House3DViewerProps {
   open: boolean;

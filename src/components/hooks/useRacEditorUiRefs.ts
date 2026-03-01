@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 
 export function useRacEditorUiRefs(showTips: boolean, showZoomControls: boolean) {
+
   const showTipsRef = useRef(showTips);
   const showZoomControlsRef = useRef(showZoomControls);
 

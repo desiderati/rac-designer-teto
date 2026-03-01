@@ -6,7 +6,7 @@ import {
   setPilotiMasterByDebug,
   setupRacEditorPage,
   startConsoleErrorCapture,
-} from './helpers/rac-helpers.spec';
+} from './helpers/rac-helpers';
 
 test.describe('RAC piloti rules', () => {
   test.describe.configure({mode: 'serial'});
@@ -43,7 +43,7 @@ test.describe('RAC piloti rules', () => {
     expect(opened).toBe(true);
 
     await expect(page.getByText('Definir como Mestre?')).toBeVisible();
-    await expect(page.getByRole('button', {name: 'Aplicar'})).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Confirmar'})).toBeVisible();
   });
 });
 

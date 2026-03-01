@@ -1,6 +1,6 @@
-import {HouseSide, HouseTypeExcludeNull, HouseViewType} from "@/shared/types/house.ts";
-import {getHouseViewStrategy} from "@/components/lib/canvas";
-import {Canvas as FabricCanvas, Group} from "fabric";
+import {HouseSide, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
+import {getHouseViewStrategy} from '@/components/lib/canvas';
+import {Canvas as FabricCanvas, Group} from 'fabric';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;

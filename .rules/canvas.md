@@ -20,7 +20,7 @@ Este documento descreve o comportamento operacional do `Canvas` 2D do editor RAC
 
 Dentro de `useCanvasFabricSetup`, os bindings de evento foram quebrados em hooks especializados:
 
-1. `useCanvasSelectionEvents`
+1. `useCanvasSelectionActions`
 2. `useContraventamentoEvents`
 3. `useCanvasKeyboardShortcuts`
 4. `useCanvasEditorEvents`
@@ -220,7 +220,7 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
         - `CanvasPointerPayload`
         - `CanvasMouseEvent`
 
-- `src/components/rac-editor/canvas/hooks/useCanvasSelectionEvents.ts`
+- `src/components/rac-editor/canvas/hooks/useCanvasSelectionActions.ts`
     - encapsula fluxo de `selection:*`, hints e highlights de piloto/lateral na planta
 
 - `src/components/rac-editor/canvas/hooks/useContraventamentoEvents.ts`
@@ -303,4 +303,4 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 - `src/components/lib/canvas/canvas-rebuild.ts`
     - inclui filtro de grupos de casa e mapeamentos para rebuild/piloti
     - operações: `collectHouseGroupRebuildSources`, `collectHouseGroupPilotiSources`, `findTopViewGroupCandidate`
-    - `useCanvasSelectionEvents.ts` reutiliza `findTopViewGroupCandidate` para localizar a planta no highlight lateral
+    - `useCanvasSelectionActions.ts` reutiliza `findTopViewGroupCandidate` para localizar a planta no highlight lateral

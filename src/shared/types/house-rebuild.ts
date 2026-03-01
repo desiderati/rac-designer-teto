@@ -1,4 +1,4 @@
-import {HouseViewInstance, HouseViews, HouseViewType} from "@/shared/types/house.ts";
+import {HouseViewInstance, HouseViews, HouseViewType} from '@/shared/types/house.ts';
 
 export interface RebuildGroupMetadata {
   houseInstanceId?: string;

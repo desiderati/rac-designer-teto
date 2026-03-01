@@ -1,12 +1,18 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
-import {CanvasObject, getHintForObject, toCanvasObject} from '@/components/lib/canvas';
+import {CanvasObject, getHintForObject, getPilotiIdsForSide, toCanvasObject} from '@/components/lib/canvas';
 import {findTopViewGroupCandidate} from '@/components/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
-import {HOUSE_2D_STYLE, PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
+import {
+  HOUSE_2D_STYLE,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE,
+  PILOTI_VISUAL_FEEDBACK_COLORS,
+  TERRAIN_STYLE
+} from '@/shared/config.ts';
 
-interface BindSelectionEventsArgs {
+interface BindSelectionActionsArgs {
   canvas: FabricCanvas;
   onSelectionChange: (hint: string) => void;
   clearPilotiSelection: () => void;
@@ -14,34 +20,15 @@ interface BindSelectionEventsArgs {
   isContraventamentoMode: () => boolean;
 }
 
-export function useCanvasSelectionEvents() {
+export function useCanvasSelectionActions() {
 
-  const bindSelectionEvents = useCallback(({
+  const bindSelectionActions = useCallback(({
     canvas,
     onSelectionChange,
     clearPilotiSelection,
     isAnyEditorOpen,
     isContraventamentoMode,
-  }: BindSelectionEventsArgs) => {
-
-    const getPilotiIdsForSide = (side: HouseSide): string[] => {
-      switch (side) {
-        case 'top':
-          return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
-
-        case 'bottom':
-          return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
-
-        case 'left':
-          return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
-
-        case 'right':
-          return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
-
-        default:
-          return [];
-      }
-    };
+  }: BindSelectionActionsArgs) => {
 
     const resolveHouseGroupView =
       (object: FabricObject | null): string | null => {
@@ -56,6 +43,7 @@ export function useCanvasSelectionEvents() {
       viewType: string,
       selectedObject: FabricObject | null,
     ): HouseSide | undefined => {
+
       const house = houseManager.getHouse();
       const instanceId = toCanvasObject(selectedObject)?.houseInstanceId;
       const typedView = viewType as HouseViewType;
@@ -75,7 +63,7 @@ export function useCanvasSelectionEvents() {
       return viewInstances[0]?.side;
     };
 
-    const applySelectedHousePilotiHighlight =
+    const applySelectedHousePilotiHighlightStyle =
       (group: Group, viewType: string | null) => {
         if (!viewType) return;
 
@@ -101,7 +89,7 @@ export function useCanvasSelectionEvents() {
         });
       };
 
-    const applyDefaultPilotiStyles = (child: FabricObject) => {
+    const applyDefaultHousePilotiStyles = (child: FabricObject) => {
       const canvasObjectChild = toCanvasObject(child);
       if (!canvasObjectChild) return;
 
@@ -134,16 +122,63 @@ export function useCanvasSelectionEvents() {
       }
     };
 
+    const applyTerrainStyles = (child: FabricObject) => {
+      applyDefaultTerrainStyles(child, TERRAIN_STYLE.fillColor, TERRAIN_STYLE.strokeColor);
+    };
+
+    const applySelectedTerrainHighlightStyles =
+      (group: Group, viewType: string | null) => {
+        if (!viewType || viewType === 'top') return;
+
+        group.getObjects().forEach((child) => {
+          applyDefaultTerrainStyles(group, TERRAIN_STYLE.selectedFillColor, TERRAIN_STYLE.selectedStrokeColor);
+        });
+      };
+
+    const applyDefaultTerrainStyles =
+      (child: FabricObject, fillColor: string, strokeColor: string) => {
+        const canvasObjectChild = toCanvasObject(child);
+        if (!canvasObjectChild) return;
+
+        if (
+          canvasObjectChild.isGroundFill
+          && !canvasObjectChild.isTerrainRachao
+          && !canvasObjectChild.isTerrainSideGravel
+        ) {
+          child.set({fill: fillColor});
+          canvasObjectChild.dirty = true;
+        }
+
+        if (canvasObjectChild.isGroundLine || canvasObjectChild.isNivelMarker) {
+          child.set({stroke: strokeColor});
+          canvasObjectChild.dirty = true;
+        }
+
+        if (canvasObjectChild.isNivelLabel) {
+          child.set({fill: strokeColor});
+          canvasObjectChild.dirty = true;
+        }
+      };
+
     const resetAllHousePilotiStyles = () => {
       canvas.getObjects().forEach((item) => {
         if (item.type !== 'group' || toCanvasObject(item)?.myType !== 'house') return;
         (item as Group).getObjects().forEach(
-          (child) => applyDefaultPilotiStyles(child)
+          (child) => applyDefaultHousePilotiStyles(child)
         );
       });
     };
 
-    const syncPlantSideHighlight =
+    const resetAllTerrainStyles = () => {
+      canvas.getObjects().forEach((item) => {
+        if (item.type !== 'group' || toCanvasObject(item)?.myType !== 'house') return;
+        (item as Group).getObjects().forEach(
+          (child) => applyTerrainStyles(child)
+        );
+      });
+    };
+
+    const syncHouseTopSideHighlight =
       (activeObject: FabricObject | null) => {
         const topGroup = findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
         if (!topGroup) {
@@ -221,13 +256,15 @@ export function useCanvasSelectionEvents() {
       }
 
       resetAllHousePilotiStyles();
+      resetAllTerrainStyles();
 
       if (object && object.type === 'group' && toCanvasObject(object)?.myType === 'house') {
         const viewType = resolveHouseGroupView(object);
-        applySelectedHousePilotiHighlight(object as Group, viewType);
+        applySelectedHousePilotiHighlightStyle(object as Group, viewType);
+        applySelectedTerrainHighlightStyles(object as Group, viewType);
       }
 
-      syncPlantSideHighlight(object);
+      syncHouseTopSideHighlight(object);
       canvas.renderAll();
     };
 
@@ -242,6 +279,6 @@ export function useCanvasSelectionEvents() {
     };
   }, []);
 
-  return {bindSelectionEvents};
+  return {bindSelectionActions};
 }
 

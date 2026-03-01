@@ -4,6 +4,7 @@ import {createPilotis} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {CanvasObject} from '../../canvas.ts';
 
 export function createHouseFrontBack(
   canvas: FabricCanvas,
@@ -169,8 +170,9 @@ export function createHouseFrontBack(
       left: doorX,
       top: doorY,
     });
-    (doorObj as any).isHouseDoor = true;
-    (doorObj as any).myType = 'door';
+    const doorObjCanvas = doorObj as CanvasObject;
+    doorObjCanvas.isHouseDoor = true;
+    doorObjCanvas.myType = 'door';
 
     const w2 = new Rect({
       width: windowW,
@@ -197,9 +199,10 @@ export function createHouseFrontBack(
     subTargetCheck: true,
     objectCaching: false,
   });
-  (group as any).myType = 'house';
-  (group as any).houseView = isFront ? 'front' : 'back';
-  (group as any).isFlippedHorizontally = flipHorizontal;
+  const groupObj = group as CanvasObject;
+  groupObj.myType = 'house';
+  groupObj.houseView = isFront ? 'front' : 'back';
+  groupObj.isFlippedHorizontally = flipHorizontal;
 
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
   return group;

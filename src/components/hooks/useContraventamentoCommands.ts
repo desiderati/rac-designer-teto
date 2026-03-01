@@ -25,7 +25,7 @@ import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {
   highlightEligibleContraventamentoPilotis,
   resetHighlightContraventamentoPilotis
-} from "@/components/lib/canvas/contraventamento-top-view-highlight.ts";
+} from '@/components/lib/canvas/contraventamento-top-view-highlight.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -256,6 +256,7 @@ export function useContraventamentoCommands({
       enterSecondContraventamentoSelection(first, side);
     }, [
       canvasRef,
+      enterSecondContraventamentoSelection,
       getTopViewGroup,
       getContraventamentoColumnSides,
       setActiveSubmenu,

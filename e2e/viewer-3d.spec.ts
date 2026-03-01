@@ -6,7 +6,7 @@ import {
   getCanvasObjectsSummary,
   setupRacEditorPage,
   startConsoleErrorCapture,
-} from './helpers/rac-helpers.spec';
+} from './helpers/rac-helpers';
 
 test.describe('RAC 3D viewer', () => {
   test.describe.configure({mode: 'serial'});

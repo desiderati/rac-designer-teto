@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {HOUSE_DIMENSIONS} from './house-dimensions.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 describe('house-dimensions', () => {
   it('exposes core dimension sections', () => {

@@ -3,6 +3,7 @@ import {cn} from './utils.ts';
 
 describe('utils cn', () => {
   it('merges class names', () => {
-    expect(cn('base', false && 'hidden', 'active')).toBe('base active');
+    const isHidden = false;
+    expect(cn('base', isHidden && 'hidden', 'active')).toBe('base active');
   });
 });

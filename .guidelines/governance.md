@@ -49,7 +49,7 @@ regressão.
 
 1. Atualizar `.guidelines/architecture-patterns.md` quando a regra arquitetural mudar.
 2. Atualizar `.guidelines/ux-design.md` quando o contrato de interação mudar.
-3. Atualizar `CHANGELOG.md` com marcos relevantes da rodada.
+3. Atualizar `AGENTS_CHANGELOG.md` com marcos relevantes da rodada.
 4. Registrar evidências de comando/validação no artefato de execução adotado pela equipe.
 
 ## Checklist de fechamento de rodada

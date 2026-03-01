@@ -351,7 +351,7 @@ Próximos recortes planejados:
     - extração de `Agrupar/Desagrupar` para `useRacGroupingActions`.
 - `useCanvasFabricSetup.ts`:
     - divisão dos bindings em hooks especializados:
-        - `useCanvasSelectionEvents`
+        - `useCanvasSelectionActions`
         - `useContraventamentoEvents`
         - `useCanvasKeyboardShortcuts`
     - lint preservado sem supressões.
@@ -474,7 +474,7 @@ Próximos recortes planejados:
     - extração dos overlays visuais e de navegação para `CanvasOverlays`.
 - `RacEditor.tsx`:
     - extração dos overlays/modais/tutoriais para `RacEditorModals`;
-    - extração de helpers de interação canvas/menu para `useCanvasInteractionActions`.
+    - extração de helpers de interação canvas/menu para `useCanvasActions`.
 
 Estado atual dos arquivos críticos:
 

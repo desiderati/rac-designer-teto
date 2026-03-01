@@ -1,7 +1,7 @@
-import {DEFAULT_HOUSE_PILOTI, HousePiloti} from "@/shared/types/house.ts";
-import {Canvas as FabricCanvas, FabricObject, Group} from "fabric";
-import {CanvasObject, getAllPilotiIds, toCanvasGroup} from "@/components/lib/canvas/index.ts";
-import {RebuildViewSource} from "@/shared/types/house-rebuild.ts";
+import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
+import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
+import {CanvasObject, getAllPilotiIds, toCanvasGroup} from '@/components/lib/canvas/index.ts';
+import {RebuildViewSource} from '@/shared/types/house-rebuild.ts';
 
 export interface RebuildPilotiSourceObject {
   pilotiId?: unknown;

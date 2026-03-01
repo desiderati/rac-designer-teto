@@ -1,13 +1,13 @@
 import {houseManager} from '@/components/lib/house-manager.ts';
 import type {HouseViewType} from '@/shared/types/house.ts';
 
-export function useToolbarViewCounts() {
+export function useToolbarHouseViewCounts() {
   const currentHouseType = houseManager.getHouseType();
 
   const getToolbarViewCount =
     (viewType: HouseViewType) => ({
-      current: houseManager.getViewCount(viewType),
-      max: houseManager.getMaxViewCount(viewType),
+      current: houseManager.getHouseViewCount(viewType),
+      max: houseManager.getMaxHouseViewCount(viewType),
     });
 
   const frontViewCount = getToolbarViewCount('front');

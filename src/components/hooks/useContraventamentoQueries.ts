@@ -9,7 +9,7 @@ import {
   ContraventamentoCandidate,
   createContraventamentoEditorState,
   isContraventamentoDestinationEligible
-} from "@/shared/types/contraventamento.ts";
+} from '@/shared/types/contraventamento.ts';
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;

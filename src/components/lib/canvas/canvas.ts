@@ -13,7 +13,10 @@ export function toCanvasGroup(group: Group): CanvasGroup {
 }
 
 export type CanvasObject = FabricObject & {
-  //[key: string]: unknown;
+  // Internal Fabric properties and methods
+  _objects?: FabricObject[];
+  _clearCache?: () => void;
+  _calcBounds?: () => void;
 
   isMacroGroup?: boolean;
   myType?: string;
@@ -42,6 +45,7 @@ export type CanvasObject = FabricObject & {
   stroke?: string;
 
   getObjects?: () => CanvasObject[];
+  objectCaching?: boolean;
 
   houseViewType?: string;
   houseView?: string;

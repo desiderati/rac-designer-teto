@@ -188,14 +188,14 @@ class HouseManager {
   }
 
   // Get max count for a view type based on current house type
-  getMaxViewCount(viewType: HouseViewType): number {
+  getMaxHouseViewCount(viewType: HouseViewType): number {
     const aggregate = this.getHouseAggregate();
     if (!aggregate) return 0;
     return aggregate.getMaxViewCount(viewType);
   }
 
   // Get current count of a view type
-  getViewCount(viewType: HouseViewType): number {
+  getHouseViewCount(viewType: HouseViewType): number {
     if (!this.house) return 0;
     return this.house.views[viewType].length;
   }

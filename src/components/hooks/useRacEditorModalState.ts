@@ -28,6 +28,7 @@ interface UseRacEditorModalStateResult {
 }
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
+
   const [activeSubmenu, setActiveSubmenu] = useState<ToolbarSubmenu>(null);
   const [showTips, setShowTips] = useState(false);
   const [showZoomControls, setShowZoomControls] = useState(() => getSettings().zoomEnabledByDefault);

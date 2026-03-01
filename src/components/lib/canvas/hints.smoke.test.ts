@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {getHintForObject} from './hints.ts';
+import {CanvasObject} from './canvas.ts';
 
 describe('canvas hints', () => {
   it('returns default hint when no object is selected', () => {
@@ -7,7 +8,7 @@ describe('canvas hints', () => {
   });
 
   it('returns specific hints based on myType or type', () => {
-    expect(getHintForObject({myType: 'house'} as any)).toContain('Casa');
-    expect(getHintForObject({type: 'activeSelection'} as any)).toContain('Múltiplos itens selecionados');
+    expect(getHintForObject({myType: 'house'} as unknown as CanvasObject)).toContain('Casa');
+    expect(getHintForObject({type: 'activeSelection'} as unknown as CanvasObject)).toContain('Múltiplos itens selecionados');
   });
 });

@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {canvasObjectProps, toCanvasChildrenObjects, toCanvasObject} from './canvas.ts';
+import {Group} from 'fabric';
 
 describe('canvas helpers', () => {
   it('handles null canvas object', () => {
@@ -9,7 +10,7 @@ describe('canvas helpers', () => {
   it('returns children as canvas objects', () => {
     const group = {
       getObjects: () => [null, {myType: 'child'}],
-    } as any;
+    } as unknown as Group;
     const children = toCanvasChildrenObjects(group);
     expect(children).toHaveLength(1);
     expect(children[0]?.myType).toBe('child');

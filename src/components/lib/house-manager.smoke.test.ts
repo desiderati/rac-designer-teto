@@ -58,21 +58,21 @@ describe('houseManager smoke flows', () => {
   it('creates house state for tipo6 and tipo3 with expected view limits', () => {
     houseManager.setHouseType('tipo6');
 
-    expect(houseManager.getMaxViewCount('top')).toBe(1);
-    expect(houseManager.getMaxViewCount('front')).toBe(1);
-    expect(houseManager.getMaxViewCount('back')).toBe(1);
-    expect(houseManager.getMaxViewCount('side1')).toBe(2);
-    expect(houseManager.getMaxViewCount('side2')).toBe(0);
+    expect(houseManager.getMaxHouseViewCount('top')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('front')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('back')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('side1')).toBe(2);
+    expect(houseManager.getMaxHouseViewCount('side2')).toBe(0);
     expect(houseManager.canAddView('side2')).toBe(false);
     expect(houseManager.getAvailableViews()).toEqual(['top', 'front', 'back', 'side1']);
 
     houseManager.setHouseType('tipo3');
 
-    expect(houseManager.getMaxViewCount('top')).toBe(1);
-    expect(houseManager.getMaxViewCount('front')).toBe(0);
-    expect(houseManager.getMaxViewCount('back')).toBe(2);
-    expect(houseManager.getMaxViewCount('side1')).toBe(1);
-    expect(houseManager.getMaxViewCount('side2')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('top')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('front')).toBe(0);
+    expect(houseManager.getMaxHouseViewCount('back')).toBe(2);
+    expect(houseManager.getMaxHouseViewCount('side1')).toBe(1);
+    expect(houseManager.getMaxHouseViewCount('side2')).toBe(1);
     expect(houseManager.canAddView('front')).toBe(false);
     expect(houseManager.getAvailableViews()).toEqual(['top', 'back', 'side1', 'side2']);
   });
@@ -95,14 +95,14 @@ describe('houseManager smoke flows', () => {
     expect(houseManager.hasAnyView()).toBe(false);
 
     houseManager.registerView('front', group as any, 'top');
-    expect(houseManager.getViewCount('front')).toBe(1);
+    expect(houseManager.getHouseViewCount('front')).toBe(1);
     expect(houseManager.hasOtherViews()).toBe(true);
     expect(houseManager.hasAnyView()).toBe(true);
     expect(houseManager.getAllGroups()).toHaveLength(1);
     expect(houseManager.getHouse()?.sideMappings.top).toBe('front');
 
     houseManager.removeView(group as any);
-    expect(houseManager.getViewCount('front')).toBe(0);
+    expect(houseManager.getHouseViewCount('front')).toBe(0);
     expect(houseManager.hasAnyView()).toBe(false);
     expect(houseManager.getAllGroups()).toHaveLength(0);
     expect(houseManager.getHouse()?.sideMappings.top).toBeNull();
@@ -150,7 +150,7 @@ describe('houseManager smoke flows', () => {
     houseManager.setHouseType('tipo6');
     houseManager.rebuildFromCanvas();
 
-    expect(houseManager.getViewCount('top')).toBe(1);
+    expect(houseManager.getHouseViewCount('top')).toBe(1);
     expect(houseManager.getHouse()?.views.top[0]?.instanceId).toBe('top_1');
     expect(houseManager.getPilotiData('piloti_0_0')).toMatchObject({
       height: 2.5,

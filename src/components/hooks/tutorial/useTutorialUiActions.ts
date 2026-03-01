@@ -30,6 +30,7 @@ export function useTutorialUiActions({
   resetUiAfterRestart,
   clearTutorialBalloon,
 }: UseTutorialUiActionsArgs) {
+
   const handleRestartTutorial = useCallback(() => {
     setShowRestartConfirm(true);
   }, [setShowRestartConfirm]);

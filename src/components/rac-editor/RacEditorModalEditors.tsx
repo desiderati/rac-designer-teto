@@ -12,7 +12,7 @@ import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import {PilotiCanvasSelection} from '@/components/lib/canvas';
 import {TerrainEditor} from '@/components/rac-editor/modals/editors/terrain/TerrainEditor.tsx';
-import {LinearEditorType} from "@/components/hooks/modals/useLinearEditorActions.ts";
+import {LinearEditorType} from '@/components/hooks/modals/useLinearEditorActions.ts';
 
 interface RacEditorModalEditorsProps {
   isMobile: boolean;

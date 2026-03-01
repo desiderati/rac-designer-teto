@@ -40,7 +40,7 @@ import {buildSceneOpeningsFromCanvasModel, type SceneOpening} from '@/components
 import {Contraventamento3DData} from '@/components/lib/3d/contraventamento-parser.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/components/lib/canvas';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
-import {resolveContraventamentoOffsetFromNivel} from "@/shared/types/contraventamento.ts";
+import {resolveContraventamentoOffsetFromNivel} from '@/shared/types/contraventamento.ts';
 
 interface House3DSceneProps {
   houseType: HouseType;

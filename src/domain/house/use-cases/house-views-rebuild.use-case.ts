@@ -5,7 +5,7 @@ import {
   RebuildViews,
   RebuildViewSource,
   RebuildViewsResult
-} from "@/shared/types/house-rebuild.ts";
+} from '@/shared/types/house-rebuild.ts';
 
 export function createEmptyViews<TGroup>(): RebuildViews<TGroup> {
   return {

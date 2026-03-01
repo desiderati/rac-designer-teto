@@ -12,7 +12,7 @@ import {
   setupRacEditorPage,
   startConsoleErrorCapture,
   triggerElementsAction,
-} from './helpers/rac-helpers.spec';
+} from './helpers/rac-helpers';
 
 test.describe('RAC canvas interactions', () => {
   test.describe.configure({mode: 'serial'});

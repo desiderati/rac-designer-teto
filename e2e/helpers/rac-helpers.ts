@@ -123,11 +123,14 @@ export async function triggerHouseAction(
   await ensureMainMenuOpen(page);
   const actionButton = page.getByRole('button', {name: actionLabel});
 
-  if (!(await actionButton.isVisible({timeout: 500}).catch(() => false))) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (await actionButton.isVisible({timeout: 500}).catch(() => false)) {
+      break;
+    }
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
   }
 
-  await expect(actionButton).toBeVisible();
+  await expect(actionButton).toBeVisible({timeout: 2000});
   await actionButton.click({force: true});
 
   if (sideChoice) {

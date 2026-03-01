@@ -1,8 +1,9 @@
 import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
 import {houseManager} from '@/components/lib/house-manager.ts';
 import {projectCanvasPointToScreenPoint} from '@/components/lib/canvas/piloti-screen-position.ts';
-import type {CanvasHandle, PilotiCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import {PilotiCanvasSelection} from "@/components/lib/canvas";
 
 interface UseRacEditorDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;
@@ -19,11 +20,20 @@ type CanvasChildObject = { text?: string; fill?: string; stroke?: string; myType
 type CanvasGroupObject = { getObjects?: () => unknown[]; myType?: string; type?: string };
 
 export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): void {
+
+  const {
+    canvasRef,
+    showTipsRef,
+    showZoomControlsRef,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+  } = params;
+
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
     const getPilotiScreenPosition = (pilotiId: string) => {
-      const canvas = params.canvasRef.current?.canvas;
+      const canvas = canvasRef.current?.canvas;
       const house = houseManager.getHouse();
       const topGroup = house?.views.top?.[0]?.group;
       if (!canvas || !topGroup) return null;
@@ -69,7 +79,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
         if (!topGroup || !pilotiData) return false;
 
         const screenPosition = getPilotiScreenPosition(pilotiId) ?? {x: 24, y: 24};
-        params.setPilotiSelection({
+        setPilotiSelection({
           pilotiId,
           currentHeight: pilotiData.height,
           currentIsMaster: pilotiData.isMaster,
@@ -78,17 +88,17 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
           screenPosition,
           houseView: 'top',
         });
-        params.setIsPilotiEditorOpen(true);
+        setIsPilotiEditorOpen(true);
         return true;
       },
 
       closePilotiEditor: () => {
-        params.setIsPilotiEditorOpen(false);
-        params.setPilotiSelection(null);
+        setIsPilotiEditorOpen(false);
+        setPilotiSelection(null);
       },
 
       removeView: (viewType: HouseViewType, side?: HouseSide) => {
-        const canvas = params.canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.canvas;
         const house = houseManager.getHouse();
         if (!canvas || !house) return false;
 
@@ -109,7 +119,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getCanvasScreenCenter: () => {
-        const canvas = params.canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.canvas;
         if (!canvas) return null;
         const container = canvas.getElement().parentElement;
         if (!container) return null;
@@ -121,20 +131,20 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getCanvasPosition: () => {
-        const handle = params.canvasRef.current;
+        const handle = canvasRef.current;
         if (!handle) return null;
         return handle.getCanvasPosition();
       },
 
       setCanvasPosition: (x: number, y: number) => {
-        const handle = params.canvasRef.current;
+        const handle = canvasRef.current;
         if (!handle) return false;
         handle.setCanvasPosition(x, y);
         return true;
       },
 
       selectCanvasObjectByMyType: (myType: string, fromEnd = true, triggerInlineEditor = false) => {
-        const canvas = params.canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.canvas;
         if (!canvas) return false;
 
         const objects =
@@ -162,7 +172,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getActiveCanvasObjectSummary: () => {
-        const canvas = params.canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.canvas;
         if (!canvas) return null;
 
         const activeObject = canvas.getActiveObject() as unknown as CanvasGroupObject | undefined;
@@ -188,7 +198,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getCanvasObjectsSummary: () => {
-        const canvas = params.canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.canvas;
         if (!canvas) return null;
         return canvas.getObjects().map((obj) => {
           const canvasObject = obj as unknown as CanvasSummaryObject;
@@ -200,8 +210,8 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getUiState: () => ({
-        showTips: params.showTipsRef.current,
-        showZoomControls: params.showZoomControlsRef.current,
+        showTips: showTipsRef.current,
+        showZoomControls: showZoomControlsRef.current,
       }),
     };
 
@@ -209,10 +219,10 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       delete (window as RacDebugWindow).__racDebug;
     };
   }, [
-    params.canvasRef,
-    params.showTipsRef,
-    params.showZoomControlsRef,
-    params.setPilotiSelection,
-    params.setIsPilotiEditorOpen,
+    canvasRef,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+    showTipsRef,
+    showZoomControlsRef,
   ]);
 }

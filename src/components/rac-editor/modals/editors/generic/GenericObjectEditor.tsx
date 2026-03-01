@@ -9,7 +9,7 @@ import {
   GenericObjectEditorType
 } from '@/components/rac-editor/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
-import {useGenericObjectEditorDraft} from "@/components/hooks/modals/useGenericObjectEditorDraft.ts";
+import {useGenericObjectEditorDraft} from '@/components/hooks/modals/useGenericObjectEditorDraft.ts';
 
 interface GenericObjectEditorProps {
   editorType: GenericObjectEditorType;

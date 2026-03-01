@@ -32,8 +32,8 @@ import {
   createEmptySideMappings,
   createEmptyViews
 } from '@/domain/house/use-cases/house-state.use-case.ts';
-import {rebuildViewsFromSources,} from "@/domain/house/use-cases/house-views-rebuild.use-case.ts";
-import {RebuildViewSource, RebuildViewsResult} from "@/shared/types/house-rebuild.ts";
+import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
+import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
 
 export class HouseAggregate<TGroup = unknown> {
 

@@ -1,4 +1,4 @@
-import {Group} from "fabric";
+import {Group} from 'fabric';
 
 export const LINEAR_LABEL_TOP = -20;
 

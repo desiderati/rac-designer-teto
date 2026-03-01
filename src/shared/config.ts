@@ -75,8 +75,6 @@ export const HOUSE_2D_STYLE = {
   panelBackgroundColor: '#eee',
   outlineStrokeWidth: 1.5,
   transparentColor: 'transparent',
-  groundLineColor: '#8b6914',
-  groundFillColor: 'rgba(139, 105, 20, 0.10)',
 } as const;
 
 export const HOUSE_3D_WALL_COLOR_OPTIONS = [
@@ -157,6 +155,14 @@ export const CONTRAVENTAMENTO = {
   fillColor: PILOTI_MASTER_STYLE.fillColor,
   strokeColor: PILOTI_MASTER_STYLE.strokeColor,
   strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+} as const;
+
+export const TERRAIN_STYLE = {
+  strokeColor: '#8b6914',
+  fillColor: 'rgba(139, 105, 20, 0.10)',
+
+  selectedStrokeColor: '#b7791f',
+  selectedFillColor: 'rgba(250, 204, 21, 0.28)',
 } as const;
 
 export const TERRAIN_SOLIDITY = {

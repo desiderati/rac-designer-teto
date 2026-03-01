@@ -1,5 +1,4 @@
-import {useMemo} from 'react';
-import {useHouseSnapshot, useHouseStoreVersion} from '@/components/lib/house-store.ts';
+import {useHouseSnapshot} from '@/components/lib/house-store.ts';
 import {TwoCardSelector} from './TwoCardSelector.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/modals/editors/piloti/PilotiGridIcon.tsx';
 import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
@@ -25,11 +24,9 @@ export function HouseSideSelector({
 }: HouseSideSelectorProps) {
 
   const house = useHouseSnapshot();
-  const houseVersion = useHouseStoreVersion();
   const houseType = house?.houseType ?? null;
   const isLongSide = houseViewType === 'front' || houseViewType === 'back';
-  const slots =
-    useMemo(() => houseSideSlots || [], [houseSideSlots, houseVersion]);
+  const slots = houseSideSlots || [];
 
   const handleSelect = (side: HouseSide) => {
     onSelectSide(side);

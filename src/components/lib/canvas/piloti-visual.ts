@@ -5,7 +5,7 @@ import {
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE
 } from '@/shared/config.ts';
-import {FabricObject, Group} from "fabric";
+import {FabricObject, Group} from 'fabric';
 import {
   CanvasObject,
   createDiagonalStripePattern,
@@ -21,8 +21,8 @@ import {
   updateGroundInGroup,
   updatePilotiHeight,
   updatePilotiMaster
-} from "@/components/lib/canvas/index.ts";
-import {HousePiloti, HouseViews} from "@/shared/types/house.ts";
+} from '@/components/lib/canvas/index.ts';
+import {HousePiloti, HouseViews} from '@/shared/types/house.ts';
 
 export interface PilotiObjectIndexEntry<TObject> {
   circle?: TObject;

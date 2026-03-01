@@ -2,11 +2,11 @@ import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
 import {CANVAS_HEIGHT, CANVAS_WIDTH, toCanvasObject} from '@/components/lib/canvas';
 import {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
-import {houseManager} from "@/components/lib/house-manager.ts";
-import {TOAST_MESSAGES} from "@/shared/config.ts";
-import {toast} from "sonner";
+import {houseManager} from '@/components/lib/house-manager.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
+import {toast} from 'sonner';
 
-interface UseCanvasInteractionActionsArgs {
+interface UseCanvasActionsArgs {
   canvasRef: React.RefObject<CanvasHandle | null>;
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
@@ -16,7 +16,7 @@ interface UseCanvasInteractionActionsArgs {
   onDismissPilotiTutorial: () => void;
 }
 
-export function useCanvasInteractionActions({
+export function useCanvasActions({
   canvasRef,
   isDrawing,
   setIsDrawing,
@@ -24,7 +24,7 @@ export function useCanvasInteractionActions({
   clearTutorialBalloon,
   onCloseSubmenus,
   onDismissPilotiTutorial,
-}: UseCanvasInteractionActionsArgs) {
+}: UseCanvasActionsArgs) {
 
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, [canvasRef]);
 

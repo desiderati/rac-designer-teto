@@ -14,6 +14,7 @@ import {
 } from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
+import {CanvasObject} from '../../canvas.ts';
 
 export function createHouseTop(canvas: FabricCanvas): Group {
   const s = HOUSE_DEFAULTS.viewScale;
@@ -33,7 +34,7 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     originX: 'center',
     originY: 'center',
   });
-  (rect as any).isHouseBody = true;
+  (rect as CanvasObject).isHouseBody = true;
 
   const houseObjects: FabricObject[] = [rect];
 
@@ -47,20 +48,24 @@ export function createHouseTop(canvas: FabricCanvas): Group {
   };
 
   const borderTop = new Line([-w / 2, -h / 2, w / 2, -h / 2], {...borderStyle});
-  (borderTop as any).isHouseBorderEdge = true;
-  (borderTop as any).edgeSide = 'top';
+  const borderTopObj = borderTop as CanvasObject;
+  borderTopObj.isHouseBorderEdge = true;
+  borderTopObj.edgeSide = 'top';
 
   const borderBottom = new Line([-w / 2, h / 2, w / 2, h / 2], {...borderStyle});
-  (borderBottom as any).isHouseBorderEdge = true;
-  (borderBottom as any).edgeSide = 'bottom';
+  const borderBottomObj = borderBottom as CanvasObject;
+  borderBottomObj.isHouseBorderEdge = true;
+  borderBottomObj.edgeSide = 'bottom';
 
   const borderLeft = new Line([-w / 2, -h / 2, -w / 2, h / 2], {...borderStyle});
-  (borderLeft as any).isHouseBorderEdge = true;
-  (borderLeft as any).edgeSide = 'left';
+  const borderLeftObj = borderLeft as CanvasObject;
+  borderLeftObj.isHouseBorderEdge = true;
+  borderLeftObj.edgeSide = 'left';
 
   const borderRight = new Line([w / 2, -h / 2, w / 2, h / 2], {...borderStyle});
-  (borderRight as any).isHouseBorderEdge = true;
-  (borderRight as any).edgeSide = 'right';
+  const borderRightObj = borderRight as CanvasObject;
+  borderRightObj.isHouseBorderEdge = true;
+  borderRightObj.edgeSide = 'right';
 
   houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
 
@@ -113,8 +118,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         visible: false,
         objectCaching: false,
       });
-      (doorMarker as any).isTopDoorMarker = true;
-      (doorMarker as any).doorMarkerSide = side;
+      const doorMarkerObj = doorMarker as CanvasObject;
+      doorMarkerObj.isTopDoorMarker = true;
+      doorMarkerObj.doorMarkerSide = side;
       return doorMarker;
     };
 
@@ -145,9 +151,10 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         originX: 'center',
         originY: 'center',
       });
-      (hitArea as any).myType = 'pilotiHitArea';
-      (hitArea as any).pilotiId = pilotiId;
-      (hitArea as any).isPilotiHitArea = true;
+      const hitAreaObj = hitArea as CanvasObject;
+      hitAreaObj.myType = 'pilotiHitArea';
+      hitAreaObj.pilotiId = pilotiId;
+      hitAreaObj.isPilotiHitArea = true;
 
       const circle = new Circle({
         radius: rad,
@@ -159,12 +166,13 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         originX: 'center',
         originY: 'center',
       });
-      (circle as any).myType = 'piloti';
-      (circle as any).pilotiId = pilotiId;
-      (circle as any).pilotiHeight = defaultHeight;
-      (circle as any).pilotiIsMaster = defaultIsMaster;
-      (circle as any).pilotiNivel = defaultNivel;
-      (circle as any).isPilotiCircle = true;
+      const circleObj = circle as CanvasObject;
+      circleObj.myType = 'piloti';
+      circleObj.pilotiId = pilotiId;
+      circleObj.pilotiHeight = defaultHeight;
+      circleObj.pilotiIsMaster = defaultIsMaster;
+      circleObj.pilotiNivel = defaultNivel;
+      circleObj.isPilotiCircle = true;
 
       const text = new IText(formatPilotiHeight(defaultHeight), {
         fontSize: PILOTI_STYLE.heightFontSizeTopView * s,
@@ -177,9 +185,10 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         editable: false,
         selectable: false,
       });
-      (text as any).myType = 'pilotiText';
-      (text as any).pilotiId = pilotiId;
-      (text as any).isPilotiText = true;
+      const textObj = text as CanvasObject;
+      textObj.myType = 'pilotiText';
+      textObj.pilotiId = pilotiId;
+      textObj.isPilotiText = true;
 
       // Text for nivel (always visible for corner pilotis)
       const isCorner = PILOTI_CORNER_IDS.includes(pilotiId);
@@ -199,9 +208,10 @@ export function createHouseTop(canvas: FabricCanvas): Group {
         selectable: false,
         visible: isCorner,
       });
-      (nivelText as any).myType = 'pilotiNivelText';
-      (nivelText as any).pilotiId = pilotiId;
-      (nivelText as any).isPilotiNivelText = true;
+      const nivelTextObj = nivelText as CanvasObject;
+      nivelTextObj.myType = 'pilotiNivelText';
+      nivelTextObj.pilotiId = pilotiId;
+      nivelTextObj.isPilotiNivelText = true;
 
       // Add hit area first (behind), then circle, then text, then nivel text
       houseObjects.push(hitArea);
@@ -219,8 +229,9 @@ export function createHouseTop(canvas: FabricCanvas): Group {
     originY: 'center',
     subTargetCheck: true,
   });
-  (group as any).myType = 'house';
-  (group as any).houseView = 'top';
+  const groupObj = group as CanvasObject;
+  groupObj.myType = 'house';
+  groupObj.houseView = 'top';
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   return group;

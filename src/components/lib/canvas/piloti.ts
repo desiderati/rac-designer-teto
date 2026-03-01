@@ -6,7 +6,7 @@ import {
   PILOTI_MASTER_FILL_COLOR,
   PILOTI_MASTER_STROKE_COLOR,
 } from './constants.ts';
-import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI, DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
 import {
   CANVAS_STYLE,
   HOUSE_2D_STYLE,
@@ -15,9 +15,30 @@ import {
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE,
-  TERRAIN_SOLIDITY
+  TERRAIN_SOLIDITY,
+  TERRAIN_STYLE
 } from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+
+
+export const getPilotiIdsForSide = (side: HouseSide): string[] => {
+  switch (side) {
+    case 'top':
+      return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
+
+    case 'bottom':
+      return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
+
+    case 'left':
+      return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
+
+    case 'right':
+      return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
+
+    default:
+      return [];
+  }
+};
 
 export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
 
@@ -688,7 +709,7 @@ export function createGroundElements(
   const elements: FabricObject[] = [];
   const labelFontSize = PILOTI_STYLE.nivelFontSize * s;
   const xSize = labelFontSize / 2;
-  const lineColor = HOUSE_2D_STYLE.groundLineColor;
+  const lineColor = TERRAIN_STYLE.strokeColor;
   const markerWidth = HOUSE_2D_STYLE.outlineStrokeWidth;
 
   // X marker on left corner piloti
@@ -809,7 +830,7 @@ export function createGroundElements(
   const groundFill = new Polygon(fillPtsAbs, {
     left: fMinX,
     top: fMinY,
-    fill: HOUSE_2D_STYLE.groundFillColor,
+    fill: TERRAIN_STYLE.fillColor,
     stroke: 'transparent',
     strokeWidth: 0,
     selectable: false,
@@ -1058,12 +1079,12 @@ export function updateGroundInGroup(group: Group): void {
     maxPilotiBottomY,
     terrainType,
     allPilotis.map((piloti: any) => ({
-      ...resolvePilotiVisualEnvelope(piloti),
-      pilotiId: String(piloti.pilotiId ?? ''),
-      left: Number(piloti.left ?? 0),
-      top: Number(piloti.top ?? 0),
-      width: Number(piloti.width ?? HOUSE_DIMENSIONS.piloti.width),
-      height: Number(piloti.height ?? 0),
+        ...resolvePilotiVisualEnvelope(piloti),
+        pilotiId: String(piloti.pilotiId ?? ''),
+        left: Number(piloti.left ?? 0),
+        top: Number(piloti.top ?? 0),
+        width: Number(piloti.width ?? HOUSE_DIMENSIONS.piloti.width),
+        height: Number(piloti.height ?? 0),
     })),
   );
 
