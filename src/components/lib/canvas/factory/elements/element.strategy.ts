@@ -1,4 +1,5 @@
-import type {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import type {Canvas as FabricCanvas} from 'fabric';
+import type {CanvasGroup, CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 export type ElementStrategyKey =
   | 'line'
@@ -12,6 +13,10 @@ export type ElementStrategyKey =
   | 'tree'
   | 'text';
 
-export interface ElementStrategy<TObject extends FabricObject = FabricObject, TOptions = undefined> {
-  create(canvas: FabricCanvas, options?: TOptions): TObject;
+export interface ElementStrategy<
+  TGroup extends CanvasGroup = CanvasGroup,
+  TObject extends CanvasObject = CanvasObject,
+  TOptions = undefined
+> {
+  create(canvas: FabricCanvas, options?: TOptions): TGroup | TObject;
 }

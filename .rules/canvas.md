@@ -93,7 +93,7 @@ API exposta por `ref`:
 11. a normalização de escala de `line` deve ser centralizada em helper único do factory (`bindLineGroupScaling` /
     `normalizeLineGroupScaling`) e reutilizada no apply do editor inline, evitando duplicação de comportamento.
 12. a normalização de escala de `arrow` deve ser centralizada em helper único do factory
-    (`bindArrowGroupScaling` / `normalizeArrowGroupScaling` / `normalizeArrowGroupToLength`) e reutilizada no apply
+    (`bindArrowCanvasObjectScaling` / `normalizeArrowGroupScaling` / `normalizeArrowCanvasObjectToLength`) e reutilizada no apply
     do editor inline, evitando duplicação de comportamento.
 
 ## 3.3 Desenho livre
@@ -290,8 +290,8 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
     - helpers de escala longitudinal da linha (`bindLineGroupScaling`, `normalizeLineGroupScaling`)
       reutilizados por criação e por apply inline
 - `src/components/lib/canvas/factory/elements/arrow.strategy.ts`
-    - helpers de escala longitudinal da seta (`bindArrowGroupScaling`, `normalizeArrowGroupScaling`,
-      `normalizeArrowGroupToLength`) reutilizados por criação e por apply inline
+    - helpers de escala longitudinal da seta (`bindArrowCanvasObjectScaling`, `normalizeArrowGroupScaling`,
+      `normalizeArrowCanvasObjectToLength`) reutilizados por criação e por apply inline
 
 - `src/components/lib/canvas/piloti-screen-position.ts`
     - projeção de ponto local do piloti (group matrix + viewport transform) para posição absoluta de tela

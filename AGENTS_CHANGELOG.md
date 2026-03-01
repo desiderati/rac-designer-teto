@@ -256,7 +256,7 @@
     - Cor padrão `#00000` (5 dígitos) inválida; sugerido `#000000`.
     - Uso de `objectSelection.object` sem guarda nula direta em `handleObjectApply`, dependendo de contrato externo de
       chamada.
-6. Foi respondida a dúvida sobre label não aumentar ao redimensionar grupo (`normalizeWallGroupToLength`):
+6. Foi respondida a dúvida sobre label não aumentar ao redimensionar grupo (`normalizeWallCanvasObjectToLength`):
     - `IText` no Fabric não cresce visualmente via `width/height`.
     - Tamanho visual depende de `fontSize` (ou escala).
     - `scaleX/scaleY` sendo resetados para `1` no label e no grupo impedem ganho visual por escala.
@@ -322,7 +322,7 @@
 - Arquivo: `src/lib/canvas/factory/elements-factory.ts`
 - Ajustes:
     - `normalizeLineGroupScaling` passou a considerar `lineArrowLabel` junto de `lineLabel`.
-    - `normalizeArrowGroupToLength` passou a considerar `lineArrowLabel` junto de `arrowLabel`.
+    - `normalizeArrowCanvasObjectToLength` passou a considerar `lineArrowLabel` junto de `arrowLabel`.
 
 ### Arquivos alterados
 

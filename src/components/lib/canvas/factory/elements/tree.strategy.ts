@@ -1,10 +1,11 @@
 import {Canvas as FabricCanvas, Circle, Group, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
-import {setCanvasObjectMyType} from './shared.ts';
+import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 
-export const treeStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const treeStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const top = new Circle({
       radius: 35,
       fill: CANVAS_ELEMENT_STYLE.fillColor.treeBody,
@@ -14,6 +15,7 @@ export const treeStrategy: ElementStrategy<Group> = {
       originY: 'center',
       top: -10,
     });
+    const topObject = setCanvasObjectMyType(top, 'treeBody');
 
     const trunk = new Circle({
       radius: 3,
@@ -22,6 +24,7 @@ export const treeStrategy: ElementStrategy<Group> = {
       originY: 'center',
       top: -10,
     });
+    const trunkObject = setCanvasObjectMyType(trunk, 'treeTrunk');
 
     const text = new Text('Árvore', {
       fontSize: CANVAS_STYLE.fontSize,
@@ -31,15 +34,15 @@ export const treeStrategy: ElementStrategy<Group> = {
       originY: 'center',
       top: 35,
     });
+    const textObject = setCanvasObjectMyType(text, 'treeLabel');
 
-    const group = new Group([top, trunk, text], {
+    const group = new Group([topObject, trunkObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(group, 'tree');
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
-    return group;
+    return setCanvasGroupMyType(group, 'tree');
   },
 };

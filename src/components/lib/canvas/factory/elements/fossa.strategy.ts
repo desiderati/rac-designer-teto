@@ -1,10 +1,11 @@
 import {Canvas as FabricCanvas, Group, Polygon, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
-import {setCanvasObjectMyType} from './shared.ts';
+import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 
-export const fossaStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const fossaStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const numPoints = 10;
     const baseRadiusX = 60;
     const baseRadiusY = 40;
@@ -28,6 +29,7 @@ export const fossaStrategy: ElementStrategy<Group> = {
       originX: 'center',
       originY: 'center',
     });
+    const blobObject = setCanvasObjectMyType(blob, 'fossaBody');
 
     const text = new Text('Fossa', {
       fontSize: CANVAS_STYLE.fontSize,
@@ -37,15 +39,15 @@ export const fossaStrategy: ElementStrategy<Group> = {
       originX: 'center',
       originY: 'center',
     });
+    const textObject = setCanvasObjectMyType(text, 'fossaLabel');
 
-    const group = new Group([blob, text], {
+    const group = new Group([blobObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(group, 'fossa');
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
-    return group;
+    return setCanvasGroupMyType(group, 'fossa');
   },
 };

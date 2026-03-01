@@ -23,8 +23,7 @@ function isPilotiObjectLike(value: unknown): value is PilotiObjectLike {
 function isHouseGroupLikeObject(value: unknown): value is HouseGroupLikeObject {
   if (typeof value !== 'object' || value === null) return false;
   const maybeGroup = value as HouseGroupLikeObject;
-  return maybeGroup.type === 'group'
-    && maybeGroup.myType === 'house'
+  return maybeGroup.myType === 'house'
     && typeof maybeGroup.getObjects === 'function';
 }
 

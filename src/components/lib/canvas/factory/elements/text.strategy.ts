@@ -1,9 +1,11 @@
 import {Canvas as FabricCanvas, IText} from 'fabric';
 import {CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
+import {setCanvasObjectMyType} from './shared.ts';
+import {CanvasObject} from '@/components/lib/canvas/canvas.ts';
 
-export const textStrategy: ElementStrategy<IText> = {
-  create(canvas: FabricCanvas): IText {
+export const textStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasObject {
     const text = new IText('Texto', {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
@@ -12,6 +14,6 @@ export const textStrategy: ElementStrategy<IText> = {
       fontSize: CANVAS_STYLE.fontSize,
     });
     text.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
-    return text;
+    return setCanvasObjectMyType(text, 'text');
   },
 };

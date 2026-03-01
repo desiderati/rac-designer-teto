@@ -11,9 +11,10 @@ import {
 import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 
 const AUTO_STAIR_EXTRA_CONTACT_METERS = 0.1;
-const AUTO_STAIR_STEP_HEIGHT_METERS = 0.2;
+const AUTO_STAIR_STEP_HEIGHT_METERS = 0.3;
 const AUTO_STAIR_TREAD_DEPTH_BASE_PX = 10;
 const AUTO_STAIR_MIN_DEPTH_PX = 8;
+const AUTO_STAIR_WIDTH_PX = 20;
 const AUTO_STAIR_BASE_STEP_HEIGHT_METERS = 0.1;
 const AUTO_STAIR_FLOOR_HEIGHT_METERS = HOUSE_DIMENSIONS.structure.floorHeight / 100;
 const AUTO_STAIR_BEAM_HEIGHT_METERS = HOUSE_DIMENSIONS.structure.floorBeamHeight / 100;
@@ -115,7 +116,7 @@ function refreshTopAutoStairs(params: {
 
     const stepDepthPx = resolveStepDepthPx(sideScale);
     const stairDepth = Math.max(stepDepthPx * metrics.steps, AUTO_STAIR_MIN_DEPTH_PX * sideScale);
-    const stairWidth = Math.max(renderedDoorGeometry.doorWidth, 20 * sideScale);
+    const stairWidth = Math.max(renderedDoorGeometry.doorWidth, AUTO_STAIR_WIDTH_PX * sideScale);
     const markerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * sideScale;
     const markerOffset = markerShort / 2 + AUTO_STAIR_DOOR_MARKER_CLEARANCE_STROKE_PX;
 

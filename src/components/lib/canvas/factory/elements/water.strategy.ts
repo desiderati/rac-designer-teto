@@ -1,10 +1,11 @@
 import {Canvas as FabricCanvas, Group, Pattern, Rect, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
-import {setCanvasObjectMyType} from './shared.ts';
+import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 
-export const waterStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const waterStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const rect = new Rect({
       width: 200,
       height: 50,
@@ -16,6 +17,7 @@ export const waterStrategy: ElementStrategy<Group> = {
       }),
       transparentCorners: false,
     });
+    const rectObject = setCanvasObjectMyType(rect, 'waterBody');
 
     const text = new Text('Água', {
       fontSize: CANVAS_STYLE.fontSize,
@@ -28,16 +30,16 @@ export const waterStrategy: ElementStrategy<Group> = {
       strokeWidth: CANVAS_ELEMENT_STYLE.strokeWidth,
       paintFirst: 'stroke',
     });
+    const textObject = setCanvasObjectMyType(text, 'waterLabel');
 
-    const group = new Group([rect, text], {
+    const group = new Group([rectObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(group, 'water');
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
-    return group;
+    return setCanvasGroupMyType(group, 'water');
   },
 };
 
@@ -60,6 +62,5 @@ function createWaterPatternSource(): HTMLCanvasElement {
   drawWave(15);
   drawWave(25);
   drawWave(35);
-
   return patternCanvas;
 }

@@ -1,16 +1,17 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Polygon, Polyline, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Group, Polygon, Polyline, Rect} from 'fabric';
 
 import {createPilotis} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {CanvasObject} from '../../canvas.ts';
+import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
+import {setCanvasGroupMyType} from "@/components/lib/canvas/factory/elements/shared.ts";
 
 export function createHouseFrontBack(
   canvas: FabricCanvas,
   isFront: boolean,
   flipHorizontal: boolean = false
-): Group {
+): CanvasGroup {
   const factors = getHouseScaleFactors(canvas);
 
   // Front/Back views use the WIDTH of the plant view (horizontal side)
@@ -42,7 +43,6 @@ export function createHouseFrontBack(
   );
 
   const chapelW = HOUSE_DIMENSIONS.structure.chapelWidth * s;
-
   const chapelFill = new Polygon(
     [
       {x: 0, y: bodyH - diagH2},
@@ -83,7 +83,12 @@ export function createHouseFrontBack(
     },
   );
 
-  const elements: FabricObject[] = [leftDiagFill, chapelFill, rightDiagFill, bodyStroke];
+  const elements: CanvasObject[] = [
+    toCanvasObject(leftDiagFill),
+    toCanvasObject(chapelFill),
+    toCanvasObject(rightDiagFill),
+    toCanvasObject(bodyStroke)
+  ];
 
   const floor = new Rect({
     width: floorW,
@@ -95,7 +100,7 @@ export function createHouseFrontBack(
     left: 0,
     top: bodyH,
   });
-  elements.push(floor);
+  elements.push(toCanvasObject(floor));
 
   const floorBean = new Rect({
     width: floorBeanW,
@@ -107,7 +112,7 @@ export function createHouseFrontBack(
     left: 0,
     top: bodyH + floorH,
   });
-  elements.push(floorBean);
+  elements.push(toCanvasObject(floorBean));
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
@@ -143,7 +148,8 @@ export function createHouseFrontBack(
       left: window1FrontX,
       top: window1FrontY,
     });
-    elements.push(w1);
+    elements.push(toCanvasObject(w1));
+
   } else {
     // Back view: window on the left side (mirrored from front)
     const w1 = new Rect({
@@ -156,7 +162,7 @@ export function createHouseFrontBack(
       left: window1BackX,
       top: window1BackY,
     });
-    elements.push(w1);
+    elements.push(toCanvasObject(w1));
   }
 
   if (isFront) {
@@ -170,7 +176,7 @@ export function createHouseFrontBack(
       left: doorX,
       top: doorY,
     });
-    const doorObjCanvas = doorObj as CanvasObject;
+    const doorObjCanvas = toCanvasObject(doorObj);
     doorObjCanvas.isHouseDoor = true;
     doorObjCanvas.myType = 'door';
 
@@ -184,8 +190,7 @@ export function createHouseFrontBack(
       left: window2X,
       top: window2Y,
     });
-
-    elements.push(doorObj, w2);
+    elements.push(toCanvasObject(doorObj), toCanvasObject(w2));
   }
 
   // Não precisamos adicionar o terreno, pois o mesmo será criado pelo House Manager.
@@ -199,11 +204,10 @@ export function createHouseFrontBack(
     subTargetCheck: true,
     objectCaching: false,
   });
-  const groupObj = group as CanvasObject;
-  groupObj.myType = 'house';
+  group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
+
+  const groupObj = setCanvasGroupMyType(group, 'house');
   groupObj.houseView = isFront ? 'front' : 'back';
   groupObj.isFlippedHorizontally = flipHorizontal;
-
-  group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
-  return group;
+  return groupObj;
 }

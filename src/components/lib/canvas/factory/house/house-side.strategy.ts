@@ -1,16 +1,18 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Group, Rect} from 'fabric';
 
 import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {CanvasObject} from '../../canvas.ts';
+import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
+import {setCanvasGroupMyType} from "@/components/lib/canvas/factory/elements/shared.ts";
 
 export function createHouseSide(
   canvas: FabricCanvas,
   hasDoor: boolean,
   isRightSide: boolean = false
-): Group {
+): CanvasGroup {
+
   const factors = getHouseScaleFactors(canvas);
 
   // Side views use the HEIGHT/DEPTH of the plant view (vertical side)
@@ -33,13 +35,18 @@ export function createHouseSide(
   // Left side: pilotis correspond to column 0 (A1, B1, C1)
   // Right side: pilotis correspond to column 3 (C4, B4, A4 - reversed order)
   const colIndex = isRightSide ? 3 : 0;
-  const pilotLabels: FabricObject[] = [];
+  const pilotLabels: CanvasObject[] = [];
 
   // For right side: C4, B4, A4 (row 2, 1, 0 from left to right)
   // For left side: A1, B1, C1 (row 0, 1, 2 from left to right)
-  const p1 = createPilotiRect(pilotLabels, colIndex, isRightSide ? 2 : 0, wallHeight, 0, s);
-  const p2 = createPilotiRect(pilotLabels, colIndex, 1, wallHeight, (sideWidth - pilotW) / 2, s);
-  const p3 = createPilotiRect(pilotLabels, colIndex, isRightSide ? 0 : 2, wallHeight, sideWidth - pilotW, s);
+  const p1 =
+    createPilotiRect(pilotLabels, colIndex, isRightSide ? 2 : 0, wallHeight, 0, s);
+
+  const p2 =
+    createPilotiRect(pilotLabels, colIndex, 1, wallHeight, (sideWidth - pilotW) / 2, s);
+
+  const p3 =
+    createPilotiRect(pilotLabels, colIndex, isRightSide ? 0 : 2, wallHeight, sideWidth - pilotW, s);
 
   const wall = new Rect({
     width: sideWidth,
@@ -51,8 +58,7 @@ export function createHouseSide(
     left: 0,
     top: 0,
   });
-
-  const elements: FabricObject[] = [wall];
+  const elements: CanvasObject[] = [toCanvasObject(wall)];
 
   const floor = new Rect({
     width: floorW,
@@ -64,7 +70,7 @@ export function createHouseSide(
     left: 0,
     top: wallHeight,
   });
-  elements.push(floor);
+  elements.push(toCanvasObject(floor));
 
   const createFloorBeanRect = (left: number) => {
     const floorBean = new Rect({
@@ -77,7 +83,7 @@ export function createHouseSide(
       left: left,
       top: wallHeight + floorH,
     });
-    elements.push(floorBean);
+    elements.push(toCanvasObject(floorBean));
   };
 
   createFloorBeanRect(0);
@@ -109,7 +115,7 @@ export function createHouseSide(
       left: doorX,
       top: doorY,
     });
-    const doorObjCanvas = doorObj as CanvasObject;
+    const doorObjCanvas = toCanvasObject(doorObj);
     doorObjCanvas.isHouseDoor = true;
     doorObjCanvas.myType = 'door';
 
@@ -123,8 +129,7 @@ export function createHouseSide(
       left: windowX,
       top: windowY,
     });
-
-    elements.push(windowObj, doorObj);
+    elements.push(toCanvasObject(windowObj), toCanvasObject(doorObj));
   }
 
   // Não precisamos adicionar o terreno, pois o mesmo será criado pelo House Manager.
@@ -132,10 +137,14 @@ export function createHouseSide(
 
   // Add diagonal stripe overlays for each piloti
   const pilotiRects = [p1, p2, p3];
-  for (const pr of pilotiRects) {
-    const prObj = pr as CanvasObject;
+  for (const prObj of pilotiRects) {
     const stripeOverlay =
-      createPilotiStripeOverlay(prObj.pilotiId ?? '', pr.left ?? 0, pr.top ?? 0, pilotW, pr.height ?? 0);
+      createPilotiStripeOverlay(
+        prObj.pilotiId ?? '',
+        prObj.left ?? 0,
+        prObj.top ?? 0,
+        pilotW, prObj.height ?? 0
+      );
     elements.push(stripeOverlay);
   }
 
@@ -149,11 +158,10 @@ export function createHouseSide(
     subTargetCheck: true,
     objectCaching: false,
   });
-  const groupObj = group as CanvasObject;
-  groupObj.myType = 'house';
-  groupObj.houseView = 'side';
-  groupObj.isRightSide = isRightSide;
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
-  return group;
+  const groupObj = setCanvasGroupMyType(group, 'house');
+  groupObj.houseView = 'side';
+  groupObj.isRightSide = isRightSide;
+  return groupObj;
 }

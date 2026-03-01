@@ -1,4 +1,4 @@
-import {useCallback, useRef, useState} from 'react';
+import {lazy, Suspense, useCallback, useRef, useState} from 'react';
 import {Toolbar} from '@/components/rac-editor/toolbar/Toolbar.tsx';
 import {CanvasHandle, TerrainCanvasSelection} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
@@ -35,8 +35,12 @@ import {useTutorialMenuActions} from '@/components/hooks/tutorial/useTutorialMen
 import {useRacEditorJsonActions} from '@/components/hooks/useRacEditorJsonActions.ts';
 import {RacEditorHouseTypeSelector} from '@/components/rac-editor/RacEditorHouseTypeSelector.tsx';
 import {RacEditorTutorial} from '@/components/rac-editor/RacEditorTutorial.tsx';
-import {House3DViewer} from '@/components/rac-editor/House3DViewer.tsx';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
+
+const LazyHouse3DViewer = lazy(async () => {
+  const module = await import('@/components/rac-editor/House3DViewer.tsx');
+  return {default: module.House3DViewer};
+});
 
 export function RacEditor() {
   const isMobile = useIsMobile();
@@ -568,9 +572,14 @@ export function RacEditor() {
         onCloseTutorialBalloon={clearTutorialBalloon}
       />
 
-      <House3DViewer
-        open={is3DViewerOpen}
-        onOpenChange={setIs3DViewerOpen}/>
+      {is3DViewerOpen ? (
+        <Suspense fallback={null}>
+          <LazyHouse3DViewer
+            open={is3DViewerOpen}
+            onOpenChange={setIs3DViewerOpen}
+          />
+        </Suspense>
+      ) : null}
 
     </div>
   );

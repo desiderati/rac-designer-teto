@@ -1,5 +1,4 @@
 import {useCallback} from 'react';
-import {jsPDF} from 'jspdf';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
@@ -11,23 +10,30 @@ interface UseRacEditorPdfExportActionArgs {
 
 export function useRacEditorPdfExportAction({getCanvas}: UseRacEditorPdfExportActionArgs) {
 
-  const handleSavePDF = useCallback(() => {
+  const handleSavePDF = useCallback(async () => {
     const canvas = getCanvas();
     if (!canvas) return;
 
-    canvas.discardActiveObject();
-    canvas.renderAll();
-    const imgData = canvas.toDataURL();
+    try {
+      const {jsPDF} = await import('jspdf');
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      const imgData = canvas.toDataURL();
 
-    const pdf = new jsPDF({
-      orientation: 'p',
-      unit: 'px',
-      format: [CANVAS_WIDTH, CANVAS_HEIGHT],
-    });
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'px',
+        format: [CANVAS_WIDTH, CANVAS_HEIGHT],
+      });
 
-    pdf.addImage(imgData, 'PNG', 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    pdf.save('RAC-TETO.pdf');
-    toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
+      pdf.addImage(imgData, 'PNG', 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      pdf.save('RAC-TETO.pdf');
+      toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
+
+    } catch (error) {
+      console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);
+      toast.error('Falha ao salvar PDF.');
+    }
   }, [getCanvas]);
 
   return {handleSavePDF};

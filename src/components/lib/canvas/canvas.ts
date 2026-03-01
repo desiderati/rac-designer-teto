@@ -1,16 +1,37 @@
-import {FabricObject, Group} from 'fabric';
+import {FabricObject, Group as FabricGroup} from 'fabric';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
-export type CanvasGroup = Group & {
+//
+// CanvasGroup
+//
+
+export type CanvasGroup = FabricGroup & {
+  myType?: string;
+  isMacroGroup?: boolean;
+
   houseInstanceId?: string;
   houseViewType?: HouseViewType;
   houseSide?: HouseSide;
+  houseView?: string;
+  isFlippedHorizontally?: boolean;
+  isRightSide?: boolean;
+
+  getCanvasObjects?: () => CanvasObject[];
+  getObjects?: () => CanvasObject[];
+  target?: FabricGroup | null;
 };
 
-export function toCanvasGroup(group: Group): CanvasGroup {
-  return group as CanvasGroup;
+export function toCanvasGroup(object: FabricGroup): CanvasGroup;
+export function toCanvasGroup(object: null | undefined): null;
+export function toCanvasGroup(object: FabricGroup | null | undefined): CanvasGroup | null {
+  if (!object) return null;
+  return object as CanvasGroup;
 }
+
+//
+// CanvasObject
+//
 
 export type CanvasObject = FabricObject & {
   // Internal Fabric properties and methods
@@ -18,11 +39,10 @@ export type CanvasObject = FabricObject & {
   _clearCache?: () => void;
   _calcBounds?: () => void;
 
-  isMacroGroup?: boolean;
   myType?: string;
-  type?: string;
-  text?: string;
+  isMacroGroup?: boolean;
 
+  text?: string;
   width?: number;
   height?: number;
   left?: number;
@@ -41,16 +61,18 @@ export type CanvasObject = FabricObject & {
   baseHeight?: number;
 
   radius?: number;
-  fill?: string;
-  stroke?: string;
+  fill?: string | FabricObject['fill'];
+  stroke?: string | FabricObject['stroke'];
 
   getObjects?: () => CanvasObject[];
   objectCaching?: boolean;
 
+  houseInstanceId?: string;
   houseViewType?: string;
   houseView?: string;
-  houseInstanceId?: string;
   houseSide?: HouseSide;
+  isFlippedHorizontally?: boolean;
+  isRightSide?: boolean;
   isHouseBody?: boolean;
   isHouseBorderEdge?: boolean;
   edgeSide?: HouseSide;
@@ -88,9 +110,6 @@ export type CanvasObject = FabricObject & {
   stairsNivelLeft?: number;
   stairsNivelRight?: number;
 
-  isRightSide?: boolean;
-  isFlippedHorizontally?: boolean;
-
   isContraventamento?: boolean;
   isAutoContraventamento?: boolean;
   isContraventamentoElevation?: boolean;
@@ -102,7 +121,7 @@ export type CanvasObject = FabricObject & {
   contraventamentoSourcePilotiId?: string;
   contraventamentoSide?: ContraventamentoSide;
 
-  group?: Group;
+  group?: FabricGroup;
   target?: FabricObject | null;
   e?: Event;
 
@@ -116,22 +135,18 @@ FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) 
   return originalToObject.call(this, [...canvasObjectProps, ...propertiesToInclude]);
 };
 
+export function toCanvasObject(object: FabricObject): CanvasObject;
+export function toCanvasObject(object: null | undefined): null;
 export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null {
   if (!object) return null;
   return object as CanvasObject;
 }
 
-export function toCanvasChildrenObjects(object: FabricObject): CanvasObject[] {
-  return (object as Group).getObjects()
-    .map((child) => toCanvasObject(child))
-    .filter((child): child is CanvasObject => child !== null);
-}
-
 export type CanvasObjectProps = Exclude<keyof CanvasObject, keyof FabricObject>;
 
 export const canvasObjectProps = [
-  'isMacroGroup',
   'myType',
+  'isMacroGroup',
   'houseViewType',
   'houseView',
   'houseInstanceId',

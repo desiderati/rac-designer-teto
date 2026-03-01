@@ -1,5 +1,5 @@
 import {Canvas as FabricCanvas, FabricObject, IText} from 'fabric';
-import {toCanvasChildrenObjects} from '@/components/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/lib/canvas/factory/elements/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
@@ -33,7 +33,7 @@ function createWallStrategy(): GenericObjectEditorStrategy {
   return {
     kind: 'wall',
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toCanvasChildrenObjects(object);
+      const groupChildren = toCanvasObject(object).getObjects();
       groupChildren.forEach((child) => {
         if (child.myType !== 'wallLabel') {
           child.set({stroke: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement});
@@ -61,7 +61,7 @@ function createLinearStrategy(kind: 'line' | 'arrow' | 'distance'): GenericObjec
     kind,
 
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toCanvasChildrenObjects(object);
+      const groupChildren = toCanvasObject(object).getObjects();
       groupChildren.forEach((child) => {
         if (child.type === 'line') {
           child.set({stroke: color});

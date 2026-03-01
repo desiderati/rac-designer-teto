@@ -40,7 +40,7 @@ export const stairsStrategy: ElementStrategy<Rect> = {
 };
 
 function createStairsPatternSource(s = 1): HTMLCanvasElement {
-  const stepSpacing = Math.max(2, Math.round(18 * s));
+  const stepSpacing = Math.max(2, Math.round(30 * s));
   const patternCanvas = document.createElement('canvas');
   patternCanvas.width = stepSpacing;
   patternCanvas.height = stepSpacing;
@@ -48,6 +48,7 @@ function createStairsPatternSource(s = 1): HTMLCanvasElement {
   const ctx = patternCanvas.getContext('2d')!;
   ctx.fillStyle = CANVAS_ELEMENT_STYLE.fillColor.stairsBody;
   ctx.fillRect(0, 0, patternCanvas.width, patternCanvas.height);
+
   ctx.lineWidth = CANVAS_ELEMENT_STYLE.strokeWidth;
   ctx.strokeStyle = CANVAS_ELEMENT_STYLE.strokeColor.stairsElement;
   ctx.beginPath();

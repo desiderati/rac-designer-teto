@@ -107,7 +107,7 @@ export function useCanvasFabricSetup({
     onContraventamentoCancelRef,
   };
 
-  const {bindSelectionEvents} = useCanvasSelectionActions();
+  const {bindSelectionActions} = useCanvasSelectionActions();
   const {bindContraventamentoEvents} = useContraventamentoEvents();
   const {bindKeyboardShortcuts} = useCanvasKeyboardShortcuts();
   const {bindInlineEditorEvents} = useCanvasEditorEvents();
@@ -192,7 +192,7 @@ export function useCanvasFabricSetup({
         latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
     });
 
-    const unbindSelectionEvents = bindSelectionEvents({
+    const unbindSelectionActions = bindSelectionActions({
       canvas,
       onSelectionChange: emitSelectionChange,
       clearPilotiSelection: () => emitPilotiSelection(null),
@@ -246,8 +246,8 @@ export function useCanvasFabricSetup({
       unbindInlineEditorEvents();
       unbindKeyboardShortcuts();
       unbindContraventamentoEvents();
-      unbindSelectionEvents();
+      unbindSelectionActions();
       canvas.dispose();
     };
-  }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionEvents]);
+  }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionActions]);
 }

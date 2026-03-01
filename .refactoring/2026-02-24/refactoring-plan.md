@@ -29,11 +29,11 @@ Você extraiu a lógica de scaling em funções reutilizáveis:
 ```typescript
 // Antes: Lógica duplicada em 3 funções
 // Depois: Funções separadas
-export function normalizeLineGroupToLength(group, totalLength, labelTop)
+export function normalizeLineCanvasObjectToLength(group, totalLength, labelTop)
 
-export function normalizeArrowGroupToLength(group, totalLength, labelTop)
+export function normalizeArrowCanvasObjectToLength(group, totalLength, labelTop)
 
-export function normalizeDistanceGroupToLength(group, newWidth, newHeight)
+export function normalizeDistanceCanvasObjectToLength(group, newWidth, newHeight)
 ```
 
 **Benefício:** Redução de duplicação, melhor testabilidade
@@ -43,7 +43,7 @@ export function normalizeDistanceGroupToLength(group, newWidth, newHeight)
 ```typescript
 export function bindLineGroupScaling(group, labelTop)
 
-export function bindArrowGroupScaling(group, labelTop)
+export function bindArrowCanvasObjectScaling(group, labelTop)
 
 export function bindDistanceGroupScaling(group, labelTop)
 
@@ -106,18 +106,18 @@ export function readLinearObjectState(object): LinearObjectState
 
 ```
 Normalização:
-  ✅ normalizeLineGroupToLength()
+  ✅ normalizeLineCanvasObjectToLength()
   ✅ normalizeLineGroupScaling()
-  ✅ normalizeArrowGroupToLength()
+  ✅ normalizeArrowCanvasObjectToLength()
   ✅ normalizeArrowGroupScaling()
-  ✅ normalizeDistanceGroupToLength()
+  ✅ normalizeDistanceCanvasObjectToLength()
   ✅ normalizeDistanceGroupScaling()
-  ✅ normalizeWallGroupToLength()
+  ✅ normalizeWallCanvasObjectToLength()
   ✅ normalizeWallGroupScaling()
 
 Binding:
   ✅ bindLineGroupScaling()
-  ✅ bindArrowGroupScaling()
+  ✅ bindArrowCanvasObjectScaling()
   ✅ bindDistanceGroupScaling()
   ✅ bindWallGroupScaling()
 
@@ -142,7 +142,7 @@ export function normalizeLineGroupScaling(group, labelTop) {
     if (canvasGroup.__normalizingScale) return;
     canvasGroup.__normalizingScale = true;
     try {
-        normalizeLineGroupToLength(group, ...);
+        normalizeLineCanvasObjectToLength(group, ...);
     } finally {
         canvasGroup.__normalizingScale = false;
     }
@@ -169,7 +169,7 @@ export function withScalingGuard<T>(
 
 // Uso:
 export function normalizeLineGroupScaling(group, labelTop) {
-    withScalingGuard(group, (g) => normalizeLineGroupToLength(g, ...));
+    withScalingGuard(group, (g) => normalizeLineCanvasObjectToLength(g, ...));
 }
 ```
 
@@ -261,11 +261,11 @@ interface ElementCreationStrategy {
 }
 
 class LineElementStrategy implements ElementCreationStrategy {
-    create(canvas: FabricCanvas): Group { ...
+    create(canvas: FabricCanvas): CanvasObject { ...
     }
 
     getNormalizeFunction() {
-        return normalizeLineGroupToLength;
+        return normalizeLineCanvasObjectToLength;
     }
 
     getBindFunction() {
@@ -412,10 +412,10 @@ alinhados
 
 ### Cobertura Necessária
 
-- [ ] `normalizeLineGroupToLength()` - Unitário
-- [ ] `normalizeArrowGroupToLength()` - Unitário
-- [ ] `normalizeDistanceGroupToLength()` - Unitário
-- [ ] `normalizeWallGroupToLength()` - Unitário
+- [ ] `normalizeLineCanvasObjectToLength()` - Unitário
+- [ ] `normalizeArrowCanvasObjectToLength()` - Unitário
+- [ ] `normalizeDistanceCanvasObjectToLength()` - Unitário
+- [ ] `normalizeWallCanvasObjectToLength()` - Unitário
 - [ ] `withScalingGuard()` - Unitário (quando implementado)
 - [ ] Strategy pattern - Integração
 

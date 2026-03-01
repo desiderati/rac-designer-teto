@@ -258,7 +258,7 @@ export function useCanvasSelectionActions() {
       resetAllHousePilotiStyles();
       resetAllTerrainStyles();
 
-      if (object && object.type === 'group' && toCanvasObject(object)?.myType === 'house') {
+      if (object && toCanvasObject(object)?.myType === 'house') {
         const viewType = resolveHouseGroupView(object);
         applySelectedHousePilotiHighlightStyle(object as Group, viewType);
         applySelectedTerrainHighlightStyles(object as Group, viewType);

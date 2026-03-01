@@ -1,5 +1,14 @@
 import {useMemo} from 'react';
-import * as THREE from 'three';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  MathUtils,
+  PlaneGeometry,
+  Quaternion,
+  Vector3,
+} from 'three';
 import {DEFAULT_HOUSE_PILOTI, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
 import {
   BODY_PROFILE_HEIGHT,
@@ -91,8 +100,8 @@ function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
     const width = HOUSE_3D_WIDTH + TERRAIN_MARGIN * 2;
     const depth = HOUSE_3D_DEPTH + TERRAIN_MARGIN * 2;
 
-    const geo = new THREE.PlaneGeometry(width, depth, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
-    const positions = geo.attributes.position as THREE.BufferAttribute;
+    const geo = new PlaneGeometry(width, depth, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
+    const positions = geo.attributes.position as BufferAttribute;
 
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i);
@@ -108,8 +117,8 @@ function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
   }, [pilotis]);
 
   return (
-    <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={THREE.DoubleSide}/>
+      <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={DoubleSide}/>
     </mesh>
   );
 }
@@ -179,15 +188,15 @@ function ContraventamentoMesh({
 
   if (originY > destinationY) return null;
 
-  const startPoint = new THREE.Vector3(beamCenterX, originY, originZ);
-  const endPoint = new THREE.Vector3(beamCenterX, destinationY, targetZ);
+  const startPoint = new Vector3(beamCenterX, originY, originZ);
+  const endPoint = new Vector3(beamCenterX, destinationY, targetZ);
   const direction = endPoint.clone().sub(startPoint);
   const length = direction.length();
   if (!Number.isFinite(length) || length <= 0.01) return null;
 
   direction.normalize();
   const orientation =
-    new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+    new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction);
 
   const midpoint = startPoint.add(endPoint).multiplyScalar(0.5);
   const beamColor = COLORS.piloti;
@@ -281,25 +290,25 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
     <>
       <group position={[0, WALL_BASE_Y, HOUSE_3D_DEPTH / 2 + panelOffset]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
       </group>
 
       <group position={[0, WALL_BASE_Y, -HOUSE_3D_DEPTH / 2 - panelOffset]} rotation={[0, Math.PI, 0]}>
         <mesh geometry={leftDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
         <mesh geometry={chapelGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
         <mesh geometry={rightDiagGeo} castShadow receiveShadow>
-          <meshStandardMaterial color={sidePanelColor} side={THREE.DoubleSide}/>
+          <meshStandardMaterial color={sidePanelColor} side={DoubleSide}/>
         </mesh>
       </group>
     </>
@@ -349,8 +358,8 @@ function RoofMesh() {
     appendSheet(-1);
     appendSheet(1);
 
-    const roofGeometry = new THREE.BufferGeometry();
-    roofGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+    const roofGeometry = new BufferGeometry();
+    roofGeometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
     roofGeometry.setIndex(indices);
     roofGeometry.computeVertexNormals();
     return roofGeometry;
@@ -358,7 +367,7 @@ function RoofMesh() {
 
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
-      <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={THREE.DoubleSide}/>
+      <meshStandardMaterial color={COLORS.roof} roughness={0.9} metalness={0.04} side={DoubleSide}/>
     </mesh>
   );
 }
@@ -426,12 +435,12 @@ function HouseElementMesh({element}: { element: SceneOpening }) {
 }
 
 function offsetLightness(hex: string, lightnessOffset: number): string {
-  const c = new THREE.Color(hex);
+  const c = new Color(hex);
   c.offsetHSL(0, 0, lightnessOffset);
   return `#${c.getHexString()}`;
 }
 
-function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.BufferGeometry {
+function createFrontBackPanelGeometry(points: Array<[number, number]>): BufferGeometry {
   const vertices: number[] = [];
   const normalized =
     points.map(
@@ -445,8 +454,8 @@ function createFrontBackPanelGeometry(points: Array<[number, number]>): THREE.Bu
     vertices.push(x0, y0, 0, x1, y1, 0, x2, y2, 0);
   }
 
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
+  const geo = new BufferGeometry();
+  geo.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
   geo.computeVertexNormals();
   return geo;
 }
@@ -473,8 +482,8 @@ function getCornerNiveis(pilotis: Record<string, HousePiloti>) {
 }
 
 function getTerrainYByUV(pilotis: Record<string, HousePiloti>, u: number, v: number): number {
-  const clampedU = THREE.MathUtils.clamp(u, 0, 1);
-  const clampedV = THREE.MathUtils.clamp(v, 0, 1);
+  const clampedU = MathUtils.clamp(u, 0, 1);
+  const clampedV = MathUtils.clamp(v, 0, 1);
   const {a1, a4, c1, c4} = getCornerNiveis(pilotis);
   const nivel = bilinear(a1, a4, c1, c4, clampedU, clampedV);
   return PILOTI_TOP_Y - nivel * PILOTI_BASE_HEIGHT_PX;

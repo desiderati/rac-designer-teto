@@ -532,8 +532,7 @@ class HouseManager {
       .find((object): object is Group & CanvasObject => {
         const runtime = toCanvasObject(object);
         return (
-          object.type === 'group'
-          && runtime.myType === 'house'
+          runtime.myType === 'house'
           && runtime.houseView !== 'top'
           && Number.isFinite(Number(runtime.groundTerrainType))
         );

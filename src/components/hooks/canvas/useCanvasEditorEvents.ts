@@ -111,7 +111,9 @@ export function useCanvasEditorEvents() {
       const payload = getEventPayload(event);
       if (!payload.e) return false;
 
-      const subTargets = Array.isArray(payload.subTargets) ? payload.subTargets : [];
+      const subTargets =
+        Array.isArray(payload.subTargets) ? payload.subTargets : [];
+
       const terrainSubTarget =
         subTargets.find(
           (object) => toCanvasObject(object)?.isTerrainEditTarget

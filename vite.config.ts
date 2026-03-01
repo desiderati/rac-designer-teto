@@ -27,6 +27,26 @@ export default defineConfig(async ({mode}) => {
       host: '::',
       port: 8080,
     },
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return;
+            }
+
+            if (id.includes('three') || id.includes('@react-three')) {
+              return 'three-vendor';
+            }
+
+            if (id.includes('fabric')) {
+              return 'fabric-vendor';
+            }
+          },
+        },
+      },
+    },
     plugins,
     resolve: {
       alias: {

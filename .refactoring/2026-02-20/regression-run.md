@@ -2378,12 +2378,12 @@
 - Refatoração aplicada:
     - `src/lib/canvas/factory/elements-factory.ts`
         - extraídos helpers reutilizáveis da seta:
-            - `normalizeArrowGroupToLength(group, totalLength, labelTop?)`
+            - `normalizeArrowCanvasObjectToLength(group, totalLength, labelTop?)`
             - `normalizeArrowGroupScaling(group, labelTop?)`
-            - `bindArrowGroupScaling(group, labelTop?)`
-        - `createArrow` passa a usar `bindArrowGroupScaling`.
+            - `bindArrowCanvasObjectScaling(group, labelTop?)`
+        - `createArrow` passa a usar `bindArrowCanvasObjectScaling`.
     - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
-        - `applyArrowEditorChange` passa a reutilizar `normalizeArrowGroupToLength` no fluxo de scaling do wrapper,
+        - `applyArrowEditorChange` passa a reutilizar `normalizeArrowCanvasObjectToLength` no fluxo de scaling do wrapper,
           removendo duplicação dos cálculos de head/shaft.
 - Resultado:
     - criação e edição inline de seta usam a mesma regra geométrica longitudinal (fonte única).
