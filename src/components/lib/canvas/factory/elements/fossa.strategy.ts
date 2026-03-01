@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Group, Polygon, Text} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, Polygon, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
@@ -41,7 +41,7 @@ export const fossaStrategy: ElementStrategy = {
     });
     const textObject = setCanvasObjectMyType(text, 'fossaLabel');
 
-    const group = new Group([blobObject, textObject], {
+    const group = new FabricGroup([blobObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',

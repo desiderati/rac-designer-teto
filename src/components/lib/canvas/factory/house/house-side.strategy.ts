@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Group, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, Rect} from 'fabric';
 
 import {createPilotiRect, createPilotiStripeOverlay} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
@@ -150,7 +150,7 @@ export function createHouseSide(
 
   elements.push(...pilotLabels);
 
-  const group = new Group(elements, {
+  const group = new FabricGroup(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: 'center',

@@ -1,11 +1,11 @@
-import {Canvas as FabricCanvas, Group, IText, Line} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, IText, Line} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
-import {LINEAR_LABEL_TOP, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
-import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {LINEAR_LABEL_TOP, setCanvasGroupMyType, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
-export const lineStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const lineStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const lineColor = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
     const objLabel = '';
     const width = 200;
@@ -17,7 +17,7 @@ export const lineStrategy: ElementStrategy<Group> = {
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(line, 'lineBody');
+    const lineObject = setCanvasObjectMyType(line, 'lineBody');
 
     const textLabel = new IText(objLabel, {
       fontSize: CANVAS_STYLE.fontSize,
@@ -29,39 +29,39 @@ export const lineStrategy: ElementStrategy<Group> = {
       selectable: false,
       evented: false,
     });
-    setCanvasObjectMyType(textLabel, 'objLabel');
     textLabel.set({left: 0, top: LINEAR_LABEL_TOP});
+    const textLabelObject = setCanvasObjectMyType(textLabel, 'objLabel');
 
-    const group = new Group([line, textLabel], {
+    const group = new FabricGroup([lineObject, textLabelObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
       lockScalingY: true,
     });
-    setCanvasObjectMyType(group, 'line');
     group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
-    bindLineGroupScaling(group, LINEAR_LABEL_TOP);
-    return group;
+
+    const canvasGroup = setCanvasGroupMyType(group, 'line');
+    bindLineCanvasGroupScaling(canvasGroup, LINEAR_LABEL_TOP);
+    return canvasGroup;
   },
 };
 
-function bindLineGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
-  withScalingGuard(group, function (this: Group) {
-    normalizeLineGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
+function bindLineCanvasGroupScaling(canvasGroup: CanvasGroup, labelTop: number = LINEAR_LABEL_TOP): void {
+  withScalingGuard(canvasGroup, function (this: CanvasGroup) {
+    normalizeLineCanvasGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
   });
 }
 
-function normalizeLineGroupToLength(
-  group: Group,
+function normalizeLineCanvasGroupToLength(
+  canvasGroup: CanvasGroup,
   totalLength: number,
   labelTop: number = LINEAR_LABEL_TOP,
 ): void {
   const newWidth = Math.max(totalLength, 1);
+  const children = canvasGroup.getCanvasObjects?.() ?? [];
 
-  group.getObjects().forEach((childObject) => {
-    const child = toCanvasObject(childObject);
-    if (!child) return;
+  children.forEach((child) => {
     if (child.myType === 'lineBody') {
       child.set({
         x1: -newWidth / 2,
@@ -76,5 +76,5 @@ function normalizeLineGroupToLength(
     }
   });
 
-  group.set({width: newWidth, scaleX: 1, scaleY: 1});
+  canvasGroup.set({width: newWidth, scaleX: 1, scaleY: 1});
 }

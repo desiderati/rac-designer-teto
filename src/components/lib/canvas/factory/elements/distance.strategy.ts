@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Group, IText, Line} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, IText, Line} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
 import {LINEAR_LABEL_TOP, setCanvasGroupMyType, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
 import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
@@ -51,7 +51,7 @@ export const distanceStrategy: ElementStrategy = {
     textLabel.set({left: 0, top: LINEAR_LABEL_TOP});
     const textLabelObject = setCanvasObjectMyType(textLabel, 'objLabel');
 
-    const group = new Group([lineObject, tick1Object, tick2Object, textLabelObject], {
+    const group = new FabricGroup([lineObject, tick1Object, tick2Object, textLabelObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',

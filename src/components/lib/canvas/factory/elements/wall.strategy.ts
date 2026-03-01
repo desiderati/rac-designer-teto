@@ -1,11 +1,11 @@
-import {Canvas as FabricCanvas, Group, IText, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, IText, Rect} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
-import {setCanvasObjectMyType, withScalingGuard} from './shared.ts';
-import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {setCanvasGroupMyType, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
-export const wallStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const wallStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const wallColor = CANVAS_ELEMENT_STYLE.fillColor.wallBody;
     const wallBorderColor = CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
     const wallLabel = '';
@@ -23,7 +23,7 @@ export const wallStrategy: ElementStrategy<Group> = {
       originY: 'center',
       lockScalingFlip: true,
     });
-    setCanvasObjectMyType(wall, 'wallBody');
+    const wallObject = setCanvasObjectMyType(wall, 'wallBody');
 
     const textLabel = new IText(wallLabel, {
       fontSize: CANVAS_STYLE.fontSize,
@@ -35,32 +35,47 @@ export const wallStrategy: ElementStrategy<Group> = {
       selectable: false,
       evented: false,
     });
-    setCanvasObjectMyType(textLabel, 'wallLabel');
     textLabel.set({left: 0, top: 0});
+    const textLabelObject = setCanvasObjectMyType(textLabel, 'wallLabel');
 
-    const group = new Group([wall, textLabel], {
+    const group = new FabricGroup([wallObject, textLabelObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(group, 'wall');
-    bindWallGroupScaling(group);
-    return group;
+
+    const canvasGroup = setCanvasGroupMyType(group, 'wall');
+    bindWallCanvasGroupScaling(canvasGroup);
+    return canvasGroup;
   },
 };
 
-function normalizeWallGroupToLength(group: Group, newWidth: number, newHeight: number): void {
-  const body = group.getObjects().find((object) =>
-    toCanvasObject(object)?.myType === 'wallBody') as | Rect | undefined;
+function bindWallCanvasGroupScaling(canvasGroup: CanvasGroup): void {
+  withScalingGuard(canvasGroup, function (this: CanvasGroup) {
+    normalizeWallCanvasGroupToLength(
+      this,
+      (this.width || 1) * (this.scaleX || 1),
+      (this.height || 1) * (this.scaleY || 1)
+    );
+  });
+}
+
+function normalizeWallCanvasGroupToLength(
+  canvasGroup: CanvasGroup,
+  newWidth: number,
+  newHeight: number
+): void {
+  const children = canvasGroup.getCanvasObjects?.() ?? [];
+  const body = children.find(
+    (child) => child.myType === 'wallBody'
+  ) as Rect | undefined;
 
   const oldWidth = body?.width || newWidth;
   const oldHeight = body?.height || newHeight;
   const factor = Math.min(newWidth / oldWidth, newHeight / oldHeight);
 
-  group.getObjects().forEach((childObject) => {
-    const child = toCanvasObject(childObject);
-    if (!child) return;
+  children.forEach((child) => {
     if (child.myType === 'wallBody') {
       child.set({
         width: newWidth,
@@ -85,13 +100,6 @@ function normalizeWallGroupToLength(group: Group, newWidth: number, newHeight: n
     }
   });
 
-  group.set({width: newWidth, height: newHeight, scaleX: 1, scaleY: 1});
+  canvasGroup.set({width: newWidth, height: newHeight, scaleX: 1, scaleY: 1});
 }
-
-function bindWallGroupScaling(group: Group): void {
-  withScalingGuard(group, function (this: Group) {
-    normalizeWallGroupToLength(this, (this.width || 1) * (this.scaleX || 1), (this.height || 1) * (this.scaleY || 1));
-  });
-}
-
 

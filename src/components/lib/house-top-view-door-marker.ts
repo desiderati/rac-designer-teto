@@ -1,6 +1,6 @@
 import {Group} from 'fabric';
 import {toCanvasObject} from '@/components/lib/canvas';
-import {HouseSide, HouseTypeExcludeNull, HouseViewInstance, HouseViewType,} from '@/shared/types/house.ts';
+import {HouseSide, HouseType, HouseViewInstance, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
@@ -12,7 +12,7 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
  * @returns Tipo de vista fonte (`front`/`side2`) ou `null`.
  */
 export function resolveTopDoorSourceViewType(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
 }): HouseViewType | null {
   if (params.houseType === 'tipo6') return 'front';
   if (params.houseType === 'tipo3') return 'side2';
@@ -26,7 +26,7 @@ export function resolveTopDoorSourceViewType(params: {
  * @returns Lado da planta (`top`, `bottom`, `left`, `right`) ou `null`.
  */
 export function resolveTopDoorMarkerSide(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
 }): HouseSide | null {
   const sourceViewType = resolveTopDoorSourceViewType({
@@ -178,7 +178,7 @@ export function createTopDoorMarkerVisualPatch(params: {
  * @returns `true` quando houve mudança visual em pelo menos um marcador.
  */
 export function refreshTopDoorMarkersInViews(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   topViews: HouseViewInstance<Group>[];
 }): boolean {

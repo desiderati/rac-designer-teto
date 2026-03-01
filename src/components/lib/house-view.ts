@@ -1,6 +1,6 @@
-import {HouseSide, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
-import {getHouseViewStrategy} from '@/components/lib/canvas';
-import {Canvas as FabricCanvas, Group} from 'fabric';
+import {HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {CanvasGroup, getHouseViewStrategy} from '@/components/lib/canvas';
+import {Canvas as FabricCanvas} from 'fabric';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;
@@ -46,7 +46,7 @@ export function extractViewGroupRemovalHints<TView extends string>(params: {
   };
 }
 
-export function getViewLabelForHouseType(viewType: HouseViewType, houseType: HouseTypeExcludeNull | null): string {
+export function getViewLabelForHouseType(viewType: HouseViewType, houseType: HouseType): string {
   switch (viewType) {
     case 'top':
       return 'Planta';
@@ -69,6 +69,6 @@ export function createHouseGroupForView(params: {
   canvas: FabricCanvas;
   viewType: HouseViewType;
   side?: HouseSide;
-}): Group {
+}): CanvasGroup {
   return getHouseViewStrategy(params.viewType).create(params.canvas, {side: params.side});
 }

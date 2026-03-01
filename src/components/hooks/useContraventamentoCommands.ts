@@ -109,7 +109,7 @@ export function useContraventamentoCommands({
       houseType: house.houseType,
       sideMappings: house.sideMappings,
       pilotis: house.pilotis,
-      topViews: house.views.top,
+      topView: house.views.top,
       elevationViews: [
         ...house.views.front,
         ...house.views.back,

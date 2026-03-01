@@ -106,7 +106,7 @@ class HouseManager {
       houseType: this.house.houseType,
       sideMappings: this.house.sideMappings,
       pilotis: this.house.pilotis,
-      topViews: this.house.views.top,
+      topView: this.house.views.top,
       elevationViews: this.getElevationViewInstances(),
     });
 

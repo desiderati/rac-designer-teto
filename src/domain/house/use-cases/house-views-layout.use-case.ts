@@ -8,6 +8,7 @@ import {
   type HousePreAssignedSides,
   type HouseSide,
   type HouseSideMapping,
+  HouseType,
   type HouseTypeExcludeNull,
   type HouseViewSide,
   type HouseViewType,
@@ -16,7 +17,7 @@ import {
 export type {HouseSideMapping, HouseViewSide};
 
 export function getAvailableViewsForType(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
   views: HouseViewSide;
 }): HouseViewType[] {
   const {houseType, views} = params;

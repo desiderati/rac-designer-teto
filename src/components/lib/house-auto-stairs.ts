@@ -1,5 +1,5 @@
 import {FabricObject, Group, Line, Rect} from 'fabric';
-import {HousePiloti, HouseSide, HouseTypeExcludeNull, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
+import {HousePiloti, HouseSide, HouseType, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_ELEMENT_STYLE, HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
@@ -10,12 +10,17 @@ import {
 } from '@/components/lib/house-top-view-door-marker.ts';
 import {toCanvasObject} from '@/components/lib/canvas/canvas.ts';
 
+// Tamanho em metros que a escada deve ultrapassar a linha do terreno.
 const AUTO_STAIR_EXTRA_CONTACT_METERS = 0.1;
-const AUTO_STAIR_STEP_HEIGHT_METERS = 0.3;
-const AUTO_STAIR_TREAD_DEPTH_BASE_PX = 10;
-const AUTO_STAIR_MIN_DEPTH_PX = 8;
-const AUTO_STAIR_WIDTH_PX = 20;
+
+// Altura de cada degrau em metros.
 const AUTO_STAIR_BASE_STEP_HEIGHT_METERS = 0.1;
+const AUTO_STAIR_STEP_HEIGHT_METERS = 0.3;
+
+const AUTO_STAIR_TREAD_DEPTH_BASE_PX = 100;
+const AUTO_STAIR_MIN_DEPTH_PX = 80;
+
+const AUTO_STAIR_WIDTH_PX = 20;
 const AUTO_STAIR_FLOOR_HEIGHT_METERS = HOUSE_DIMENSIONS.structure.floorHeight / 100;
 const AUTO_STAIR_BEAM_HEIGHT_METERS = HOUSE_DIMENSIONS.structure.floorBeamHeight / 100;
 const AUTO_STAIR_DOOR_MARKER_CLEARANCE_STROKE_PX = HOUSE_2D_STYLE.outlineStrokeWidth;
@@ -28,33 +33,33 @@ interface StairMetrics {
 }
 
 export function refreshAutoStairsInViews(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   pilotis: Record<string, HousePiloti>;
-  topViews: HouseViewInstance<Group>[];
+  topView: HouseViewInstance<Group>[];
   elevationViews: HouseViewInstance<Group>[];
 }): boolean {
 
-  const topChanged = refreshTopAutoStairs({
+  const topViewChanged = refreshTopViewAutoStairs({
     houseType: params.houseType,
     sideMappings: params.sideMappings,
     pilotis: params.pilotis,
-    topViews: params.topViews,
+    topView: params.topView,
   });
 
-  const elevationChanged = refreshElevationAutoStairs({
+  const elevationViewsChanged = refreshElevationViewsAutoStairs({
     pilotis: params.pilotis,
     elevationViews: params.elevationViews,
   });
 
-  return topChanged || elevationChanged;
+  return topViewChanged || elevationViewsChanged;
 }
 
-function refreshTopAutoStairs(params: {
-  houseType: HouseTypeExcludeNull | null;
+function refreshTopViewAutoStairs(params: {
+  houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   pilotis: Record<string, HousePiloti>;
-  topViews: HouseViewInstance<Group>[];
+  topView: HouseViewInstance<Group>[];
 }): boolean {
 
   const doorSide = resolveTopDoorMarkerSide({
@@ -63,7 +68,7 @@ function refreshTopAutoStairs(params: {
   });
 
   let hasChanges = false;
-  for (const topInstance of params.topViews) {
+  for (const topInstance of params.topView) {
     const group = topInstance.group;
     const removed = removeAutoStairsFromGroup(group);
     if (removed) hasChanges = true;
@@ -163,7 +168,7 @@ function refreshTopAutoStairs(params: {
   return hasChanges;
 }
 
-function refreshElevationAutoStairs(params: {
+function refreshElevationViewsAutoStairs(params: {
   pilotis: Record<string, HousePiloti>;
   elevationViews: HouseViewInstance<Group>[];
 }): boolean {
@@ -190,7 +195,7 @@ function refreshElevationAutoStairs(params: {
     if (doorWidth <= 0 || doorHeight <= 0) continue;
 
     const scale = doorWidth / HOUSE_DIMENSIONS.openings.common.doorWidth;
-    const stairWidth = Math.max(doorWidth, 20 * scale);
+    const stairWidth = Math.max(doorWidth, AUTO_STAIR_WIDTH_PX * scale);
     const metrics = resolveElevationStairMetrics({
       pilotis: params.pilotis,
       group,

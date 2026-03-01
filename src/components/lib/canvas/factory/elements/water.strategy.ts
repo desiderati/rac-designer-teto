@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Group, Pattern, Rect, Text} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, Pattern, Rect, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
@@ -32,7 +32,7 @@ export const waterStrategy: ElementStrategy = {
     });
     const textObject = setCanvasObjectMyType(text, 'waterLabel');
 
-    const group = new Group([rectObject, textObject], {
+    const group = new FabricGroup([rectObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',

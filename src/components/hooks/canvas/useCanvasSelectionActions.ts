@@ -131,7 +131,7 @@ export function useCanvasSelectionActions() {
         if (!viewType || viewType === 'top') return;
 
         group.getObjects().forEach((child) => {
-          applyDefaultTerrainStyles(group, TERRAIN_STYLE.selectedFillColor, TERRAIN_STYLE.selectedStrokeColor);
+          applyDefaultTerrainStyles(child, TERRAIN_STYLE.selectedFillColor, TERRAIN_STYLE.selectedStrokeColor);
         });
       };
 

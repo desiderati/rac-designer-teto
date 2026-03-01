@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Group, Polygon, Polyline, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, Polygon, Polyline, Rect} from 'fabric';
 
 import {createPilotis} from '../../piloti.ts';
 import {getHouseScaleFactors} from '@/components/lib/canvas/factory/house/shared.ts';
@@ -196,7 +196,7 @@ export function createHouseFrontBack(
   // Não precisamos adicionar o terreno, pois o mesmo será criado pelo House Manager.
   createPilotis(elements, bodyW, s, flipHorizontal);
 
-  const group = new Group(elements, {
+  const group = new FabricGroup(elements, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: 'center',

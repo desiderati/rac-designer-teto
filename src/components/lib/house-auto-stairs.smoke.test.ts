@@ -44,7 +44,7 @@ describe('house auto stairs', () => {
         piloti_0_0: {height: 1, isMaster: false, nivel: 0.2},
         piloti_3_0: {height: 1, isMaster: false, nivel: 0.2},
       } as any,
-      topViews: [{instanceId: 'top_1', group} as any],
+      topView: [{instanceId: 'top_1', group} as any],
       elevationViews: [],
     });
 
@@ -84,7 +84,7 @@ describe('house auto stairs', () => {
         piloti_0_0: {height: 1, isMaster: false, nivel: 0.2},
         piloti_0_2: {height: 1, isMaster: false, nivel: 0.3},
       } as any,
-      topViews: [],
+      topView: [],
       elevationViews: [{instanceId: 'side_1', group} as any],
     });
 
@@ -165,7 +165,7 @@ describe('house auto stairs', () => {
         piloti_2_2: {height: 1, isMaster: false, nivel: 0.2},
         piloti_3_2: {height: 1, isMaster: false, nivel: 0.2},
       } as any,
-      topViews: [],
+      topView: [],
       elevationViews: [{instanceId: 'front_1', group} as any],
     });
 

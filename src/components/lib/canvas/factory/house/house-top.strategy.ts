@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Circle, Group, IText, Line, Rect, Text} from 'fabric';
+import {Canvas as FabricCanvas, Circle, Group as FabricGroup, IText, Line, Rect, Text} from 'fabric';
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH,} from '../../constants.ts';
 
 import {formatNivel, formatPilotiHeight} from '../../piloti.ts';
@@ -112,7 +112,7 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
         right: {left: w / 2, top: 0},
       };
 
-      const doorMarker = new Group([rect, label], {
+      const doorMarker = new FabricGroup([rect, label], {
         ...basePos[side],
         originX: 'center',
         originY: 'center',
@@ -230,7 +230,7 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
     });
   });
 
-  const group = new Group(houseObjects, {
+  const group = new FabricGroup(houseObjects, {
     left: canvas.width! / 2,
     top: canvas.height! / 2,
     originX: 'center',

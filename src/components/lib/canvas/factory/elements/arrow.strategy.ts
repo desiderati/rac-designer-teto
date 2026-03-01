@@ -1,11 +1,11 @@
-import {Canvas as FabricCanvas, Group, IText, Rect, Triangle} from 'fabric';
+import {Canvas as FabricCanvas, Group as FabricGroup, IText, Rect, Triangle} from 'fabric';
 import {ElementStrategy} from './element.strategy.ts';
-import {LINEAR_LABEL_TOP, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
-import {CanvasObject, toCanvasObject} from '@/components/lib/canvas/canvas.ts';
+import {LINEAR_LABEL_TOP, setCanvasGroupMyType, setCanvasObjectMyType, withScalingGuard} from './shared.ts';
+import {CanvasGroup} from '@/components/lib/canvas/canvas.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 
-export const arrowStrategy: ElementStrategy<Group> = {
-  create(canvas: FabricCanvas): Group {
+export const arrowStrategy: ElementStrategy = {
+  create(canvas: FabricCanvas): CanvasGroup {
     const arrowColor = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
     const objLabel = '';
     const width = 200;
@@ -20,7 +20,7 @@ export const arrowStrategy: ElementStrategy<Group> = {
       originY: 'center',
       left: -headSize / 2,
     });
-    setCanvasObjectMyType(line, 'arrowBody');
+    const lineObjet = setCanvasObjectMyType(line, 'arrowBody');
 
     const head = new Triangle({
       width: headSize,
@@ -31,7 +31,7 @@ export const arrowStrategy: ElementStrategy<Group> = {
       originX: 'center',
       originY: 'center',
     });
-    setCanvasObjectMyType(head, 'arrowHead');
+    const headObject = setCanvasObjectMyType(head, 'arrowHead');
 
     const textLabel = new IText(objLabel, {
       fontSize: CANVAS_STYLE.fontSize,
@@ -43,40 +43,40 @@ export const arrowStrategy: ElementStrategy<Group> = {
       selectable: false,
       evented: false,
     });
-    setCanvasObjectMyType(textLabel, 'objLabel');
     textLabel.set({left: 0, top: LINEAR_LABEL_TOP});
+    const textLabelObject = setCanvasObjectMyType(textLabel, 'objLabel');
 
-    const group = new Group([line, head, textLabel], {
+    const group = new FabricGroup([lineObjet, headObject, textLabelObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
       originY: 'center',
       lockScalingY: true,
     });
-    setCanvasObjectMyType(group, 'arrow');
     group.setControlsVisibility({mt: false, mb: false, tl: false, tr: false, bl: false, br: false});
-    bindArrowGroupScaling(group, LINEAR_LABEL_TOP);
-    return group;
+
+    const canvasGroup = setCanvasGroupMyType(group, 'arrow');
+    bindArrowCanvasGroupScaling(canvasGroup, LINEAR_LABEL_TOP);
+    return canvasGroup
   },
 };
 
-function bindArrowGroupScaling(group: Group, labelTop: number = LINEAR_LABEL_TOP): void {
-  withScalingGuard(group, function (this: Group) {
-    normalizeArrowGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
+function bindArrowCanvasGroupScaling(canvasGroup: CanvasGroup, labelTop: number = LINEAR_LABEL_TOP): void {
+  withScalingGuard(canvasGroup, function (this: CanvasGroup) {
+    normalizeArrowCanvasGroupToLength(this, (this.width || 1) * (this.scaleX || 1), labelTop);
   });
 }
 
-function normalizeArrowGroupToLength(
-  group: Group,
+function normalizeArrowCanvasGroupToLength(
+  canvasGroup: CanvasGroup,
   totalLength: number,
   labelTop: number = LINEAR_LABEL_TOP,
 ): void {
+
   const newWidth = Math.max(totalLength, 1);
-  const children = group
-    .getObjects()
-    .map((childObject) => toCanvasObject(childObject))
-    .filter((child): child is CanvasObject => child !== null);
-  const arrowHead = children.find((child) => child.myType === 'arrowHead');
+  const children = canvasGroup.getCanvasObjects?.() ?? [];
+  const arrowHead =
+    children.find((child) => child.myType === 'arrowHead');
 
   let headWidth = 15;
   let headHeight = 15;
@@ -116,5 +116,5 @@ function normalizeArrowGroupToLength(
     }
   });
 
-  group.set({width: newWidth, scaleX: 1, scaleY: 1});
+  canvasGroup.set({width: newWidth, scaleX: 1, scaleY: 1});
 }

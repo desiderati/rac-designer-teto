@@ -27,7 +27,7 @@ export function isHouseSide(value: unknown): value is HouseSide {
 
 export function inferViewTypeForRebuild(
   meta: RebuildGroupMetadata,
-  houseType: HouseTypeExcludeNull | null,
+  houseType: HouseType,
   currentCounts: Record<HouseViewType, number>,
 ): HouseViewType | null {
 
@@ -85,7 +85,7 @@ export function normalizeInstanceId(
 }
 
 export function rebuildViewsFromSources<TGroup>(params: {
-  houseType: HouseTypeExcludeNull | null;
+  houseType: HouseType;
   sources: RebuildViewSource<TGroup>[];
 }): RebuildViewsResult<TGroup> {
 

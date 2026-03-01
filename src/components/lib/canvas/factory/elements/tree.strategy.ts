@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Circle, Group, Text} from 'fabric';
+import {Canvas as FabricCanvas, Circle, Group as FabricGroup, Text} from 'fabric';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
@@ -36,7 +36,7 @@ export const treeStrategy: ElementStrategy = {
     });
     const textObject = setCanvasObjectMyType(text, 'treeLabel');
 
-    const group = new Group([topObject, trunkObject, textObject], {
+    const group = new FabricGroup([topObject, trunkObject, textObject], {
       left: canvas.width! / 2,
       top: canvas.height! / 2,
       originX: 'center',
