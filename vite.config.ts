@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import path from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(async ({mode}) => {
   const plugins = [];
 
   try {
-    const { default: react } = await import('@vitejs/plugin-react-swc');
+    const {default: react} = await import('@vitejs/plugin-react-swc');
     plugins.push(react());
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -18,7 +18,7 @@ export default defineConfig(async ({ mode }) => {
   }
 
   if (mode === 'development') {
-    const { componentTagger } = await import('lovable-tagger');
+    const {componentTagger} = await import('lovable-tagger');
     plugins.push(componentTagger());
   }
 

@@ -18,14 +18,14 @@ mais estável e manutenível antes de prosseguir com novas funcionalidades.
 
 ## 📊 Análise das 6 Dimensões (Pós-Refatoração)
 
-| Dimensão                     | Observação Chave                                                                 | Status         | Prioridade  |
-|:-----------------------------|:---------------------------------------------------------------------------------|:---------------|:------------|
-| **1. Estrutura de Arquivos** | 214 arquivos de código, 18.9k linhas (core), 19 testes unitários.                | 🟡 **Alerta**  | Média       |
-| **2. Clean Architecture**    | Domínio, Infra e Shared bem definidos. `HouseAggregate` com 264 linhas.          | ✅ **OK**       | Baixa       |
-| **3. Hooks SRP**             | `useCanvasContraventamento` (9 `useEffect`), `useCanvasViewport` (8 `useState`). | 🔴 **Crítico** | Alta        |
-| **4. Componentes**           | `RacEditor.tsx` é um "God Component" com 94 hooks e 569 linhas.                  | 🔴 **Crítico** | Alta        |
-| **5. Testes**                | **12 testes falhando** após a refatoração. Cobertura baixa (19/195).             | 🚨 **BLOCKER** | **URGENTE** |
-| **6. Padrões de Código**     | Typos em `straregy.ts`, duplicação do `scaling guard`.                           | 🔴 **Crítico** | Alta        |
+| Dimensão                     | Observação Chave                                                               | Status         | Prioridade  |
+|:-----------------------------|:-------------------------------------------------------------------------------|:---------------|:------------|
+| **1. Estrutura de Arquivos** | 214 arquivos de código, 18.9k linhas (core), 19 testes unitários.              | 🟡 **Alerta**  | Média       |
+| **2. Clean Architecture**    | Domínio, Infra e Shared bem definidos. `HouseAggregate` com 264 linhas.        | ✅ **OK**       | Baixa       |
+| **3. Hooks SRP**             | `useContraventamentoRefs` (9 `useEffect`), `useCanvasViewport` (8 `useState`). | 🔴 **Crítico** | Alta        |
+| **4. Componentes**           | `RacEditor.tsx` é um "God Component" com 94 hooks e 569 linhas.                | 🔴 **Crítico** | Alta        |
+| **5. Testes**                | **12 testes falhando** após a refatoração. Cobertura baixa (19/195).           | 🚨 **BLOCKER** | **URGENTE** |
+| **6. Padrões de Código**     | Typos em `straregy.ts`, duplicação do `scaling guard`.                         | 🔴 **Crítico** | Alta        |
 
 ---
 
@@ -68,11 +68,11 @@ mais estável e manutenível antes de prosseguir com novas funcionalidades.
       aplicá-la nas 4 strategies, removendo o código duplicado.
     - **Commit:** `refactor(factory): abstrair withScalingGuard para remover duplicação`
 
-- **[ ] Tarefa 2.2: Refatorar `useCanvasContraventamento`**
+- **[ ] Tarefa 2.2: Refatorar `useContraventamentoRefs`**
     - **Problema:** O hook usa 9 `useEffect`s apenas para sincronizar props com refs, um padrão verboso e ineficiente.
     - **Ação:** Substituir os múltiplos `useEffect`s por um único `useEffect` que atualiza um objeto ref contendo todas
       as props, ou usar um custom hook como `useLatest`.
-    - **Commit:** `refactor(hooks): simplificar sincronização de props em useCanvasContraventamento`
+    - **Commit:** `refactor(hooks): simplificar sincronização de props em useContraventamentoRefs`
 
 ### **Fase 3: Melhorias Arquiteturais (Médio Prazo)**
 
@@ -94,10 +94,10 @@ mais estável e manutenível antes de prosseguir com novas funcionalidades.
 
 ## 📈 Métricas de Sucesso
 
-| Métrica                                         | Estado Atual | Meta Pós-Refatoração |
-|:------------------------------------------------|:-------------|:---------------------|
-| **Testes Falhando**                             | 12           | **0**                |
-| **Duplicação de `scaling guard`**               | 4 instâncias | **0**                |
-| **`useEffect`s em `useCanvasContraventamento`** | 9            | **1**                |
-| **`useState`s em `useCanvasViewport`**          | 8            | **1 (useReducer)**   |
-| **Linhas em `RacEditor.tsx`**                   | 569          | **< 400**            |
+| Métrica                                       | Estado Atual | Meta Pós-Refatoração |
+|:----------------------------------------------|:-------------|:---------------------|
+| **Testes Falhando**                           | 12           | **0**                |
+| **Duplicação de `scaling guard`**             | 4 instâncias | **0**                |
+| **`useEffect`s em `useContraventamentoRefs`** | 9            | **1**                |
+| **`useState`s em `useCanvasViewport`**        | 8            | **1 (useReducer)**   |
+| **Linhas em `RacEditor.tsx`**                 | 569          | **< 400**            |

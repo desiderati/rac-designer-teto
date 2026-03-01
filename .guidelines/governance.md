@@ -2,7 +2,8 @@
 
 ## Objetivo
 
-Definir o protocolo operacional para evoluir/refatorar o editor com segurança, mantendo comportamento e reduzindo regressão.
+Definir o protocolo operacional para evoluir/refatorar o editor com segurança, mantendo comportamento e reduzindo
+regressão.
 
 ## Regra de ouro
 

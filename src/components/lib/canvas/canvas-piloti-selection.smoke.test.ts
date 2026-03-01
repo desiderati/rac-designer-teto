@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {buildPilotiSelectionHandler} from './canvas-piloti-selection.ts';
+import {buildPilotiSelectionHandler} from './piloti-selection.ts';
 
 describe('canvas piloti selection handler', () => {
   it('emits selection and hint for piloti clicks', () => {

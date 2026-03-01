@@ -10,7 +10,7 @@ Este documento descreve o comportamento operacional do `Canvas` 2D do editor RAC
 2. `useCanvasHistory`
 3. `useCanvasClipboard`
 4. `useCanvasHouseSelection`
-5. `useCanvasContraventamento`
+5. `useContraventamentoRefs`
 6. `useCanvasFabricSetup` (setup do Fabric + binding de eventos e atalhos de canvas)
 7. `useCanvasPointerInteractions` (pan/wheel/touch/pinch e prevenção de zoom do browser)
 8. `CanvasOverlays` (feedback de pinch + minimap/zoom mobile/desktop + renderização dos filhos com regras de tutorial)
@@ -21,7 +21,7 @@ Este documento descreve o comportamento operacional do `Canvas` 2D do editor RAC
 Dentro de `useCanvasFabricSetup`, os bindings de evento foram quebrados em hooks especializados:
 
 1. `useCanvasSelectionEvents`
-2. `useCanvasContraventamentoEvents`
+2. `useContraventamentoEvents`
 3. `useCanvasKeyboardShortcuts`
 4. `useCanvasEditorEvents`
 
@@ -204,7 +204,7 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 
 - `src/components/rac-editor/canvas/hooks/useCanvasHouseSelection.ts`
 
-- `src/components/rac-editor/canvas/hooks/useCanvasContraventamento.ts`
+- `src/components/rac-editor/canvas/hooks/useContraventamentoRefs.ts`
 
 - `src/components/rac-editor/canvas/hooks/useCanvasFabricSetup.ts`
     - concentra inicialização do `FabricCanvas`, bindings de eventos e cleanup
@@ -223,7 +223,7 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
 - `src/components/rac-editor/canvas/hooks/useCanvasSelectionEvents.ts`
     - encapsula fluxo de `selection:*`, hints e highlights de piloto/lateral na planta
 
-- `src/components/rac-editor/canvas/hooks/useCanvasContraventamentoEvents.ts`
+- `src/components/rac-editor/canvas/hooks/useContraventamentoEvents.ts`
     - encapsula seleção de contraventamento, clique/tap de piloti em modo de contraventamento e cursor contextual
 
 - `src/components/rac-editor/canvas/hooks/useCanvasKeyboardShortcuts.ts`
@@ -234,7 +234,7 @@ Cobertura atual em `e2e/canvas.spec.ts` e suítes relacionadas:
     - inclui resolução de alvo de parede agrupada para reedição de nome/cor após primeira configuração
     - mantém hit-test local de piloti em grupos de casa para seleção no fluxo de edição
 
-- `src/components/lib/canvas/canvas-piloti-selection.ts`
+- `src/components/lib/canvas/piloti-selection.ts`
     - encapsula o fluxo completo de seleção de piloti (hit area, regras de contraventamento, projeção em tela e feedback
       visual)
     - reduz complexidade interna do `useCanvasFabricSetup` sem alterar contrato dos callbacks de seleção

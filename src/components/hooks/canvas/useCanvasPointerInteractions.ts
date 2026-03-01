@@ -42,6 +42,7 @@ export function useCanvasPointerInteractions({
   setViewportY,
   handleZoomChange,
 }: UseCanvasPointerInteractionsArgs) {
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -128,7 +129,6 @@ export function useCanvasPointerInteractions({
       if (pinchTimeoutRef.current) {
         clearTimeout(pinchTimeoutRef.current);
       }
-
       return;
     }
 

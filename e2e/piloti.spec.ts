@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {
   createHouse,
   expectNoConsoleErrors,
@@ -9,18 +9,18 @@ import {
 } from './helpers/rac-helpers.spec';
 
 test.describe('RAC piloti rules', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({page}) => {
     expectNoConsoleErrors(page);
   });
 
-  test('pilotis: regra de mestre único permanece válida ao trocar mestre', async ({ page }) => {
+  test('pilotis: regra de mestre único permanece válida ao trocar mestre', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     await setPilotiMasterByDebug(page, 'piloti_0_0');
@@ -33,7 +33,7 @@ test.describe('RAC piloti rules', () => {
     expect(a1?.isMaster).toBe(false);
   });
 
-  test('pilotis: abre editor de piloti sem tela branca', async ({ page }) => {
+  test('pilotis: abre editor de piloti sem tela branca', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const opened = await page.evaluate(() => {
@@ -43,7 +43,7 @@ test.describe('RAC piloti rules', () => {
     expect(opened).toBe(true);
 
     await expect(page.getByText('Definir como Mestre?')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Aplicar' })).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Aplicar'})).toBeVisible();
   });
 });
 

@@ -69,7 +69,7 @@ existente.
 - [ ] **Redimensionamento de Parede:** Criar e redimensionar um objeto `wall` e verificar se o preenchimento (hachura)
   se adapta corretamente.
 
-### 2.2. Hook `useCanvasContraventamento`
+### 2.2. Hook `useContraventamentoRefs`
 
 - [ ] **Ativação do Modo:** Entrar no modo de contraventamento e verificar se o cursor do mouse muda e se os pilotis
   elegíveis são destacados.

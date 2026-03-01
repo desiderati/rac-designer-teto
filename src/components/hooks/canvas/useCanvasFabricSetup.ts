@@ -1,5 +1,5 @@
 import {MutableRefObject, useEffect, useRef} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group, PencilBrush} from 'fabric';
+import {Canvas as FabricCanvas, FabricObject, PencilBrush} from 'fabric';
 import {
   buildPilotiSelectionHandler,
   CANVAS_HEIGHT,
@@ -9,7 +9,6 @@ import {
 } from '@/components/lib/canvas';
 import {CanvasObject, CanvasPointerPayload} from '@/components/lib/canvas/canvas.ts';
 import {useCanvasSelectionEvents} from './useCanvasSelectionEvents.ts';
-import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {useCanvasKeyboardShortcuts} from './useCanvasKeyboardShortcuts.ts';
 import {useCanvasEditorEvents} from './useCanvasEditorEvents.ts';
 import {
@@ -18,6 +17,7 @@ import {
   WallCanvasSelection
 } from '@/components/rac-editor/canvas/Canvas.tsx';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
+import {useContraventamentoEvents} from "@/components/hooks/useContraventamentoEvents.ts";
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -108,7 +108,7 @@ export function useCanvasFabricSetup({
   };
 
   const {bindSelectionEvents} = useCanvasSelectionEvents();
-  const {bindContraventamentoEvents} = useCanvasContraventamentoEvents();
+  const {bindContraventamentoEvents} = useContraventamentoEvents();
   const {bindKeyboardShortcuts} = useCanvasKeyboardShortcuts();
   const {bindInlineEditorEvents} = useCanvasEditorEvents();
 
@@ -178,8 +178,6 @@ export function useCanvasFabricSetup({
       isPilotiVisualTarget,
       emitPilotiSelection,
       emitSelectionChange,
-      clearContraventamentoSelection: () => {
-      },
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;

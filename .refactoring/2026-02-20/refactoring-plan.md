@@ -163,7 +163,7 @@ O plano original está correto na direção, mas para reduzir risco de regressã
     - `useCanvasHistory`
     - `useCanvasHouseSelection`
     - `useCanvasClipboard`
-    - `useCanvasContraventamento`
+    - `useContraventamentoRefs`
 - Isolar atalhos de teclado e manipulação touch/mouse.
 - Deixar `Canvas.tsx` focado em composição.
 
@@ -352,7 +352,7 @@ Próximos recortes planejados:
 - `useCanvasFabricSetup.ts`:
     - divisão dos bindings em hooks especializados:
         - `useCanvasSelectionEvents`
-        - `useCanvasContraventamentoEvents`
+        - `useContraventamentoEvents`
         - `useCanvasKeyboardShortcuts`
     - lint preservado sem supressões.
 
@@ -640,7 +640,7 @@ Próximos recortes planejados:
 ### Atualização 2026-02-22 (continuidade - passo 100)
 
 - `useCanvasFabricSetup.ts`:
-    - extração do fluxo de seleção de piloti para `canvas-piloti-selection.ts`;
+    - extração do fluxo de seleção de piloti para `piloti-selection.ts`;
     - setup principal permanece como orquestrador de binds/eventos.
 
 Estado atual dos arquivos críticos:

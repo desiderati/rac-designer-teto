@@ -37,7 +37,6 @@ interface UseContraventamentoCommandsArgs {
   };
   isPilotiEligibleAsDestination: (pilotiId: string, first: { col: number; row: number } | null) => boolean;
   setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
-  isContraventamentoMode: boolean;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
   contraventamentoFirst: ContraventamentoOrigin | null;
   setContraventamentoFirst: Dispatch<SetStateAction<ContraventamentoOrigin | null>>;
@@ -57,7 +56,6 @@ export function useContraventamentoCommands({
   getContraventamentoColumnSides,
   isPilotiEligibleAsDestination,
   setSelectedContraventamento,
-  isContraventamentoMode,
   setIsContraventamentoMode,
   contraventamentoFirst,
   setContraventamentoFirst,
@@ -194,7 +192,6 @@ export function useContraventamentoCommands({
     setIsContraventamentoMode,
     getContraventamentoColumnSides,
     clearContraventamentoSelection,
-    enterSecondContraventamentoSelection,
     syncContraventamentoElevations,
   ]);
 
@@ -265,16 +262,11 @@ export function useContraventamentoCommands({
       setIsPilotiEditorOpen,
       pilotiSelection,
       setPilotiSelection,
-      isContraventamentoMode,
       setIsContraventamentoMode,
-      clearContraventamentoSelection,
-      enterSecondContraventamentoSelection,
-      handleCancelContraventamento,
       syncContraventamentoElevations,
     ]);
 
   return {
-    clearContraventamentoSelection,
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,

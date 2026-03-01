@@ -11,6 +11,7 @@ export interface MinimapObjectSnapshot {
 }
 
 export function useCanvasMinimapObjects() {
+
   const [minimapObjects, setMinimapObjects] = useState<MinimapObjectSnapshot[]>([]);
 
   const updateMinimapObjects = useCallback((canvas: FabricCanvas | null) => {

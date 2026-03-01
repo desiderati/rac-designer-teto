@@ -1,5 +1,5 @@
 export * from './canvas.ts';
-export * from './canvas-piloti-selection.ts';
+export * from './piloti-selection.ts';
 export * from './canvas-rebuild.ts';
 export * from './canvas-screen-position.ts';
 export * from './constants.ts';

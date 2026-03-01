@@ -1,7 +1,10 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/lib/canvas';
+import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
+import {CANVAS_HEIGHT, CANVAS_WIDTH, toCanvasObject} from '@/components/lib/canvas';
 import {CanvasHandle} from '@/components/rac-editor/canvas/Canvas.tsx';
+import {houseManager} from "@/components/lib/house-manager.ts";
+import {TOAST_MESSAGES} from "@/shared/config.ts";
+import {toast} from "sonner";
 
 interface UseCanvasInteractionActionsArgs {
   canvasRef: React.RefObject<CanvasHandle | null>;
@@ -22,6 +25,7 @@ export function useCanvasInteractionActions({
   onCloseSubmenus,
   onDismissPilotiTutorial,
 }: UseCanvasInteractionActionsArgs) {
+
   const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.canvas || null, [canvasRef]);
 
   const getVisibleCenter = useCallback(() => {
@@ -58,11 +62,42 @@ export function useCanvasInteractionActions({
     }
   }, [getCanvas, isDrawing, setInfoMessage, setIsDrawing]);
 
+  const handleDelete = useCallback(() => {
+    const canvas = getCanvas();
+    if (!canvas) return;
+
+    const activeObjects = canvas.getActiveObjects();
+    if (activeObjects.length === 0) return;
+
+    canvas.discardActiveObject();
+    for (const object of activeObjects) {
+      const typedObject = toCanvasObject(object);
+      if (!typedObject) continue;
+
+      if (typedObject.myType === 'house') {
+        const rawView = typedObject.houseViewType ?? typedObject.houseView;
+        if (rawView === 'top') {
+          if (!houseManager.canDeletePlant()) {
+            toast.error(TOAST_MESSAGES.removeOtherViewsBeforeDeletingTopView);
+            canvas.setActiveObject(object);
+            return;
+          }
+          houseManager.setHouseType(null);
+        }
+        houseManager.removeView(object as Group);
+      }
+      canvas.remove(object);
+    }
+
+    setInfoMessage('Objeto excluído.');
+  }, [getCanvas, setInfoMessage]);
+
   return {
     getCanvas,
     getVisibleCenter,
     addObjectToCanvas,
     closeAllMenus,
     disableDrawingMode,
+    handleDelete,
   };
 }

@@ -14,7 +14,8 @@ interface useContraventamentoEventsArgs {
   isAnyEditorOpen: () => boolean;
 }
 
-export function useCanvasContraventamentoEvents() {
+export function useContraventamentoEvents() {
+
   const bindContraventamentoEvents = useCallback(({
     canvas,
     getEventPayload,

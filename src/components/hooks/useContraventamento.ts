@@ -72,7 +72,6 @@ export function useContraventamento({
     setPilotiSelection,
     setIsPilotiEditorOpen,
     setActiveSubmenu,
-    isContraventamentoMode,
   });
 
   useContraventamentoEffects({
@@ -87,8 +86,6 @@ export function useContraventamento({
 
   return {
     selectedContraventamento,
-    getTopViewGroup: queries.getTopViewGroup,
-    clearContraventamentoSelection: commands.clearContraventamentoSelection,
     syncContraventamentoElevations: commands.syncContraventamentoElevations,
     handleCancelContraventamento: commands.handleCancelContraventamento,
     handleContraventamentoPilotiClick: commands.handleContraventamentoPilotiClick,

@@ -12,6 +12,7 @@ interface BindKeyboardShortcutsArgs {
 }
 
 export function useCanvasKeyboardShortcuts() {
+
   const bindKeyboardShortcuts = useCallback(({
     canvas,
     isAnyEditorOpen,
@@ -21,6 +22,7 @@ export function useCanvasKeyboardShortcuts() {
     paste,
     undo,
   }: BindKeyboardShortcutsArgs) => {
+
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;

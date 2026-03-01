@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {
   closePilotiEditorByDebug,
   createHouse,
@@ -15,18 +15,18 @@ import {
 } from './helpers/rac-helpers.spec';
 
 test.describe('RAC canvas interactions', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({page}) => {
     expectNoConsoleErrors(page);
   });
 
-  test('canvas: zoom slider altera o nivel de zoom', async ({ page }) => {
+  test('canvas: zoom slider altera o nivel de zoom', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const zoomSlider = page.locator('[data-testid="rac-zoom-slider"]:visible').first();
@@ -61,7 +61,7 @@ test.describe('RAC canvas interactions', () => {
     expect(snapshotAfterMinimapClick).not.toBeNull();
   });
 
-  test('canvas: pan por wheel e minimap atualizam viewport', async ({ page }) => {
+  test('canvas: pan por wheel e minimap atualizam viewport', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const zoomSlider = page.locator('[data-testid="rac-zoom-slider"]:visible').first();
@@ -82,7 +82,7 @@ test.describe('RAC canvas interactions', () => {
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? -1).toBe(0);
 
     const canvasContainer = page.getByTestId('rac-canvas-container');
-    await canvasContainer.dispatchEvent('wheel', { deltaX: 0, deltaY: 280 });
+    await canvasContainer.dispatchEvent('wheel', {deltaX: 0, deltaY: 280});
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? 0).toBeGreaterThan(0);
 
     const minimap = page.locator('[data-testid="rac-minimap"]:visible').first();
@@ -102,7 +102,7 @@ test.describe('RAC canvas interactions', () => {
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? 0).toBeGreaterThan(0);
   });
 
-  test('canvas: atalhos copy/paste/undo e delete com e sem editor aberto', async ({ page }) => {
+  test('canvas: atalhos copy/paste/undo e delete com e sem editor aberto', async ({page}) => {
     await createHouse(page, 'tipo6');
     await triggerElementsAction(page, 'Objeto / Muro');
 

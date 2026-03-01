@@ -4,7 +4,7 @@ import {CANVAS_HEIGHT, CANVAS_WIDTH, PilotiCanvasSelection} from '@/components/l
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {useCanvasClipboard} from '@/components/hooks/canvas/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/hooks/canvas/useCanvasContainerLifecycle.ts';
-import {useCanvasContraventamento} from '@/components/hooks/canvas/useCanvasContraventamento.ts';
+import {useContraventamentoRefs} from '@/components/hooks/useContraventamentoRefs.ts';
 import {useCanvasFabricSetup} from '@/components/hooks/canvas/useCanvasFabricSetup.ts';
 import {useCanvasHistory} from '@/components/hooks/canvas/useCanvasHistory.ts';
 import {useCanvasMinimapObjects} from '@/components/hooks/canvas/useCanvasMinimapObjects.ts';
@@ -145,7 +145,7 @@ export const Canvas =
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,
-      } = useCanvasContraventamento({
+      } = useContraventamentoRefs({
         fabricCanvasRef,
         isContraventamentoMode,
         isPilotiEligibleForContraventamento,

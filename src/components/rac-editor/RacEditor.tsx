@@ -162,6 +162,7 @@ export function RacEditor() {
     addObjectToCanvas,
     closeAllMenus,
     disableDrawingMode,
+    handleDelete,
   } = useCanvasInteractionActions({
     canvasRef,
     isDrawing,
@@ -307,8 +308,6 @@ export function RacEditor() {
   } = useContraventamentoFlow();
 
   const {
-    getTopViewGroup,
-    clearContraventamentoSelection,
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,
@@ -340,17 +339,12 @@ export function RacEditor() {
   const {
     handleExportJSON,
     handleImportJSON,
-    handleDelete,
   } = useRacEditorJsonActions({
     canvasRef,
     getCanvas,
     setInfoMessage,
     resetContraventamentoFlow,
     syncContraventamentoElevations,
-    selectedContraventamento,
-    setSelectedContraventamento,
-    clearContraventamentoSelection,
-    getTopViewGroup,
   });
 
   const {handleSavePDF} = useRacEditorPdfExportAction({

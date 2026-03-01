@@ -86,7 +86,7 @@ No passo de destino:
     - sincroniza projeções nas demais vistas;
     - salva histórico.
 5. os bindings de interação desse fluxo no canvas (seleção de beam, clique de piloti, cursor e tap mobile) ficam
-   centralizados em `useCanvasContraventamentoEvents`.
+   centralizados em `useContraventamentoEvents`.
 6. se a planta (`top`) não estiver disponível, o fluxo não inicia e exibe erro.
 
 ## 8. Cancelamento do modo
@@ -257,7 +257,7 @@ No `RacEditor`, as ações de projeto (`importar JSON` e `excluir`) que afetam c
 - `src/components/rac-editor/hooks/useRacEditorJsonActions.ts`
 - `src/components/rac-editor/RacEditor.tsx`
 - `src/components/rac-editor/Canvas.tsx`
-- `src/components/rac-editor/canvas/hooks/useCanvasContraventamentoEvents.ts`
+- `src/components/rac-editor/canvas/hooks/useContraventamentoEvents.ts`
 - `src/components/lib/canvas/contraventamento.ts`
 - `src/components/lib/canvas/piloti.ts`
 - `src/components/rac-editor/House3DViewer.tsx`

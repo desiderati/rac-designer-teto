@@ -26,6 +26,7 @@ interface UseCanvasEditorEventsArgs {
 }
 
 export function useCanvasEditorEvents() {
+
   const bindInlineEditorEvents = useCallback(({
     canvas,
     isAnyEditorOpen,

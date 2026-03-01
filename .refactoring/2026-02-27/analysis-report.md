@@ -110,7 +110,7 @@ A centralização de constantes em `shared/config.ts` (289 linhas) foi um avanç
 
 | Hook                          | `useState` | `useEffect` | `useCallback` | Linhas | Severidade |
 |:------------------------------|:-----------|:------------|:--------------|:-------|:-----------|
-| `useCanvasContraventamento`   | 0          | **9**       | 0             | 92     | **ALTA**   |
+| `useContraventamentoRefs`     | 0          | **9**       | 0             | 92     | **ALTA**   |
 | `useCanvasViewport`           | **8**      | **5**       | **3**         | 102    | **ALTA**   |
 | `useCanvasTools`              | 0          | 0           | **14**        | 172    | **MÉDIA**  |
 | `useTutorialMenuActions`      | 0          | 0           | **14**        | 121    | **MÉDIA**  |
@@ -121,7 +121,7 @@ A centralização de constantes em `shared/config.ts` (289 linhas) foi um avanç
 
 ### Análise Detalhada
 
-O `useCanvasContraventamento` é o caso mais emblemático: **9 `useEffect`s** onde 6 deles fazem apenas
+O `useContraventamentoRefs` é o caso mais emblemático: **9 `useEffect`s** onde 6 deles fazem apenas
 `ref.current = prop`, um padrão que pode ser substituído por um único `useEffect` ou por um helper `useLatest`. Os 2
 `useEffect`s restantes contêm lógica real de sincronização.
 
@@ -227,7 +227,7 @@ Os seguintes módulos de alta complexidade não possuem nenhum teste:
 | 4  | **BLOCKER** | Bug          | 6 funções não exportadas em door-marker            | `house-top-view-door-marker.ts`              |
 | 5  | **ALTA**    | Typo         | Nomes de arquivo com `straregy`                    | `house-top.straregy.ts`, `house.straregy.ts` |
 | 6  | **ALTA**    | Duplicação   | `__normalizingScale` em 4 strategies               | `arrow/distance/line/wall.strategy.ts`       |
-| 7  | **ALTA**    | SRP          | 9 `useEffect`s em `useCanvasContraventamento`      | `useCanvasContraventamento.ts`               |
+| 7  | **ALTA**    | SRP          | 9 `useEffect`s em `useContraventamentoRefs`        | `useContraventamentoRefs.ts`                 |
 | 8  | **ALTA**    | SRP          | 8 `useState`s em `useCanvasViewport`               | `useCanvasViewport.ts`                       |
 | 9  | **ALTA**    | Complexidade | God Component com 94 hooks                         | `RacEditor.tsx`                              |
 | 10 | **MÉDIA**   | Cobertura    | 9.7% de cobertura de testes                        | Projeto inteiro                              |

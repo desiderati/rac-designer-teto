@@ -15,6 +15,7 @@ interface BindSelectionEventsArgs {
 }
 
 export function useCanvasSelectionEvents() {
+
   const bindSelectionEvents = useCallback(({
     canvas,
     onSelectionChange,

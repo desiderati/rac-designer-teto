@@ -8,6 +8,7 @@ interface UseCanvasHouseInitializationArgs {
 }
 
 export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitializationArgs) {
+
   useEffect(() => {
     let tries = 0;
     const id = window.setInterval(() => {

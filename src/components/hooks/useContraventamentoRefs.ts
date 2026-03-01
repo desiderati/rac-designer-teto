@@ -1,6 +1,13 @@
 import {RefObject, useEffect, useRef} from 'react';
-import {Canvas as FabricCanvas, Group} from 'fabric';
+import {Canvas as FabricCanvas} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
+
+interface ContraventamentoRefs {
+  isContraventamentoMode: boolean;
+  isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
+  onContraventamentoPilotiClick?: (col: number, row: number) => void;
+  onContraventamentoCancel?: () => void;
+}
 
 interface UseCanvasContraventamentoArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -10,14 +17,7 @@ interface UseCanvasContraventamentoArgs {
   onContraventamentoCancel?: () => void;
 }
 
-interface ContraventamentoRefs {
-  isContraventamentoMode: boolean;
-  isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
-  onContraventamentoPilotiClick?: (col: number, row: number) => void;
-  onContraventamentoCancel?: () => void;
-}
-
-export function useCanvasContraventamento({
+export function useContraventamentoRefs({
   fabricCanvasRef,
   isContraventamentoMode,
   isPilotiEligibleForContraventamento,

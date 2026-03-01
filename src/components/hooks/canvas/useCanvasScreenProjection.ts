@@ -17,6 +17,7 @@ export function useCanvasScreenProjection({
   viewportYRef,
   containerSizeRef,
 }: UseCanvasScreenProjectionArgs) {
+
   const getCanvasOffsetFromState = useCallback((params: {
     zoom: number;
     viewportX: number;

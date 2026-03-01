@@ -158,7 +158,7 @@
     - `src/components/rac-editor/hooks/useCanvasGroupingActions.ts`
 - [x] split de eventos de `useCanvasFabricSetup` em hooks dedicados:
     - `src/components/rac-editor/hooks/useCanvasSelectionEvents.ts`
-    - `src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts`
+    - `src/components/rac-editor/hooks/useContraventamentoEvents.ts`
     - `src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts`
 - [x] integração dos novos binders com cleanup explícito no `useCanvasFabricSetup`.
 - [x] correção de lint no `useCanvasFabricSetup` sem desabilitar regras (`exhaustive-deps` resolvido por dependências
@@ -167,7 +167,7 @@
 ### Validação obrigatória da rodada
 
 - [x] 
-  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useCanvasContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts`
+  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/useCanvasSelectionEvents.ts src/components/rac-editor/hooks/useContraventamentoEvents.ts src/components/rac-editor/hooks/useCanvasKeyboardShortcuts.ts src/components/rac-editor/RacEditor.tsx src/components/rac-editor/hooks/useCanvasGroupingActions.ts src/lib/settings.ts`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`
 - [x] `npm run test:e2e -- --workers=1` (16/16)
@@ -409,14 +409,14 @@
 ### Escopo
 
 - [x] extração da seleção de piloti do `useCanvasFabricSetup` para helper dedicado:
-    - `src/components/rac-editor/hooks/canvas-piloti-selection.ts`
+    - `src/components/rac-editor/hooks/piloti-selection.ts`
 - [x] delegação do setup de eventos Fabric para `buildPilotiSelectionHandler`.
 - [x] redução de `src/components/rac-editor/hooks/useCanvasFabricSetup.ts` para **313** linhas.
 
 ### Validação obrigatória da rodada
 
 - [x] 
-  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/canvas-piloti-selection.ts`
+  `npx eslint src/components/rac-editor/hooks/useCanvasFabricSetup.ts src/components/rac-editor/hooks/piloti-selection.ts`
 - [x] `npx tsc -p tsconfig.app.json --noEmit --strict --pretty false`
 - [x] `npm run test -- --run` (121/121)
 - [x] `npm run build`

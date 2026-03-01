@@ -27,13 +27,19 @@ Rodada de validação da mega refatoração iniciada em `2026-02-24`, com foco e
 - Automação adicional (wave 1):
     - novo spec `e2e/inline-editor.spec.ts` para sincronização do editor inline (wall/line) com seleção ativa;
     - novo smoke `src/infra/legacy-imports.smoke.test.ts` para bloquear imports legados `@/lib/*` / `src/lib/*`;
-    - captura de erros de console/pageerror adicionada em suites críticas (`canvas`, `toolbar-overflow`, `viewer-3d`, `views-limits`, `piloti`, `inline-editor`).
+    - captura de erros de console/pageerror adicionada em suites críticas (`canvas`, `toolbar-overflow`, `viewer-3d`,
+      `views-limits`, `piloti`, `inline-editor`).
 - Hotfix de regressão pós-review (wave 2):
-    - restauração de overloads de `toCanvasObject` para suportar entradas nulas sem quebrar inferência em runtime (`src/components/lib/canvas/canvas.ts`);
-    - correção de contrato de tipo em `useContraventamentoQueries` no callback `onResolvedSide` (sem cast indevido para `FabricObject`);
-    - ajuste de narrowing em helper de editor linear (`currentColor: string`) para eliminar erro de literal narrowing em strict mode;
-    - correção de reset visual de piloti ao fechar editor para usar `PILOTI_MASTER_STYLE.strokeColor` e `PILOTI_STYLE.strokeColor` (evitando `stroke` indefinido);
-    - atualização dos smoke tests de piloti para os contratos atuais de estilos/config (`#fff`, `strokeWidth` top-view e master).
+    - restauração de overloads de `toCanvasObject` para suportar entradas nulas sem quebrar inferência em runtime (
+      `src/components/lib/canvas/canvas.ts`);
+    - correção de contrato de tipo em `useContraventamentoQueries` no callback `onResolvedSide` (sem cast indevido para
+      `FabricObject`);
+    - ajuste de narrowing em helper de editor linear (`currentColor: string`) para eliminar erro de literal narrowing em
+      strict mode;
+    - correção de reset visual de piloti ao fechar editor para usar `PILOTI_MASTER_STYLE.strokeColor` e
+      `PILOTI_STYLE.strokeColor` (evitando `stroke` indefinido);
+    - atualização dos smoke tests de piloti para os contratos atuais de estilos/config (`#fff`, `strokeWidth` top-view e
+      master).
 
 ---
 
@@ -51,7 +57,9 @@ Rodada de validação da mega refatoração iniciada em `2026-02-24`, com foco e
 
 - `npm run test -- --run` -> **PASS** (`117/117`)
 - `npm run test -- --run src/infra/legacy-imports.smoke.test.ts` -> **PASS** (`1/1`)
-- `npx vitest run src/components/lib/canvas/piloti-visual-feedback.smoke.test.ts src/domain/use-cases/house-piloti-visual-use-cases.smoke.test.ts` -> **PASS** (`7/7`)
+-
+`npx vitest run src/components/lib/canvas/piloti-visual-feedback.smoke.test.ts src/domain/use-cases/house-piloti-visual-use-cases.smoke.test.ts` ->
+**PASS** (`7/7`)
 - `npm run test -- --run` (re-run após hotfix) -> **PASS** (`117/117`)
 
 ### 3) Build de produção
@@ -123,5 +131,6 @@ Cobertura observada no run E2E:
 
 - Alguns itens permanecem **não marcados** por não terem evidência direta nesta rodada (ex.: import/export JSON,
   contraventamento ponta a ponta, checks de console manual, alguns fluxos de edição específicos).
-- Execução E2E em paralelismo padrão apresentou flakiness pontual; suíte serial (`--workers=1`) ficou estável com `17/17`.
+- Execução E2E em paralelismo padrão apresentou flakiness pontual; suíte serial (`--workers=1`) ficou estável com
+  `17/17`.
 - Se desejado, a próxima rodada pode focar exclusivamente nos itens abertos de **Lote 3, Lote 4 e Lote 6**.

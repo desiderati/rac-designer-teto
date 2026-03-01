@@ -46,7 +46,7 @@ avançadas de desenho 2D e visualização 3D interativa.
 - **Objetivo:** Ver e validar plantas criadas por monitores
 - **Experiência:** Conhecimento construtivo, experiência com CAD
 - **Necessidades:** Visualização 3D clara, ferramentas de anotação, acesso à histórico de edições
-- **Frustração:** Falta de precisão, falta de entendimento do modelo criado pelos monitores 
+- **Frustração:** Falta de precisão, falta de entendimento do modelo criado pelos monitores
 
 ### Persona 3: Voluntário Iniciante
 

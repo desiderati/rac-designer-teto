@@ -16,6 +16,7 @@ export function useCanvasHistory({
   onHistorySave,
   onSelectionChange,
 }: UseCanvasHistoryArgs) {
+
   const historyRef = useRef<string[]>([]);
   const historyProcessingRef = useRef(false);
 

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {
   createHouse,
   ensureOverflowMenuOpen,
@@ -9,26 +9,26 @@ import {
 } from './helpers/rac-helpers.spec';
 
 test.describe('RAC 3D viewer', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({page}) => {
     expectNoConsoleErrors(page);
   });
 
-  test('viewer 3D: abre modal, executa controles e insere snapshot no canvas', async ({ page }) => {
+  test('viewer 3D: abre modal, executa controles e insere snapshot no canvas', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const beforeObjects = await getCanvasObjectsSummary(page);
     const beforeImageCount = beforeObjects.filter((obj) => obj.type === 'image').length;
 
     await ensureOverflowMenuOpen(page);
-    await page.getByRole('button', { name: 'Visualizar em 3D' }).click();
-    await expect(page.getByRole('heading', { name: 'Visualizador 3D' })).toBeVisible();
+    await page.getByRole('button', {name: 'Visualizar em 3D'}).click();
+    await expect(page.getByRole('heading', {name: 'Visualizador 3D'})).toBeVisible();
 
     await page.locator('button[title="Cor das Paredes"]').click();
     await page.locator('button[title="Terracota"]').click();
@@ -50,7 +50,7 @@ test.describe('RAC 3D viewer', () => {
       .toBeGreaterThan(beforeImageCount);
 
     await page.locator('button[title="Fechar"]').click();
-    await expect(page.getByRole('heading', { name: 'Visualizador 3D' })).toBeHidden();
+    await expect(page.getByRole('heading', {name: 'Visualizador 3D'})).toBeHidden();
   });
 });
 

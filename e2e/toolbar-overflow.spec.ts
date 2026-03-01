@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {
   createHouse,
   ensureOverflowMenuOpen,
@@ -12,18 +12,18 @@ import {
 } from './helpers/rac-helpers.spec';
 
 test.describe('RAC toolbar and overflow', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({page}) => {
     expectNoConsoleErrors(page);
   });
 
-  test('toolbar: elementos e linhas inserem objetos no canvas', async ({ page }) => {
+  test('toolbar: elementos e linhas inserem objetos no canvas', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const before = await getCanvasObjectsSummary(page);
@@ -53,25 +53,25 @@ test.describe('RAC toolbar and overflow', () => {
     expect(myTypes.has('distance')).toBe(true);
   });
 
-  test('overflow: alterna dicas e abre configurações', async ({ page }) => {
+  test('overflow: alterna dicas e abre configurações', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     await ensureOverflowMenuOpen(page);
-    await page.getByRole('button', { name: 'Dicas' }).click();
+    await page.getByRole('button', {name: 'Dicas'}).click();
     await expect.poll(async () => (await getUiState(page))?.showTips ?? false).toBe(true);
 
     await ensureOverflowMenuOpen(page);
-    await page.getByRole('button', { name: 'Dicas' }).click();
+    await page.getByRole('button', {name: 'Dicas'}).click();
     await expect.poll(async () => (await getUiState(page))?.showTips ?? true).toBe(false);
 
     await ensureOverflowMenuOpen(page);
-    await page.getByRole('button', { name: 'Configurações' }).click();
-    await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible();
+    await page.getByRole('button', {name: 'Configurações'}).click();
+    await expect(page.getByRole('heading', {name: 'Configurações'})).toBeVisible();
 
-    const zoomSettingSwitch = page.getByRole('switch', { name: /Zoom\/Minimap por padrão/ });
+    const zoomSettingSwitch = page.getByRole('switch', {name: /Zoom\/Minimap por padrão/});
     await zoomSettingSwitch.click();
-    await page.getByRole('button', { name: 'Confirmar' }).click();
-    await expect(page.getByRole('heading', { name: 'Configurações' })).toBeHidden();
+    await page.getByRole('button', {name: 'Confirmar'}).click();
+    await expect(page.getByRole('heading', {name: 'Configurações'})).toBeHidden();
     await expect.poll(async () => (await getUiState(page))?.showZoomControls ?? true).toBe(false);
   });
 });

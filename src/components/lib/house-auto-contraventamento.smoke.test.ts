@@ -3,12 +3,12 @@ import {refreshAutoContraventamentoInAllViews} from '@/components/lib/house-auto
 
 function createMockGroup(props: Record<string, unknown> = {}) {
   const group: any = {
-      _objects: [] as any[],
-      getObjects() {
-        return this._objects;
-      },
-      setCoords: vi.fn(),
-      ...props,
+    _objects: [] as any[],
+    getObjects() {
+      return this._objects;
+    },
+    setCoords: vi.fn(),
+    ...props,
   };
 
   return {group};

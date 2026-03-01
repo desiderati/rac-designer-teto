@@ -5,7 +5,8 @@ import {
   CanvasObject,
   getAllPilotiIds,
   normalizeTerrainSolidityLevel,
-  toCanvasGroup, toCanvasObject,
+  toCanvasGroup,
+  toCanvasObject,
   updateGroundTerrainType
 } from '@/components/lib/canvas';
 import {createHouseId, createViewInstanceId,} from '@/components/lib/house-identity.ts';

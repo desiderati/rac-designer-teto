@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {
   createHouse,
   ensureMainMenuOpen,
@@ -11,28 +11,28 @@ import {
 } from './helpers/rac-helpers.spec';
 
 test.describe('RAC views and limits', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
     await setupRacEditorPage(page);
   });
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({page}) => {
     expectNoConsoleErrors(page);
   });
 
-  test('tipo6: bloqueia adicionar visão frontal além do limite', async ({ page }) => {
+  test('tipo6: bloqueia adicionar visão frontal além do limite', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     await ensureMainMenuOpen(page);
-    await page.getByRole('button', { name: 'Casa TETO (Opções)' }).click();
-    await page.getByRole('button', { name: 'Visão Frontal' }).click();
+    await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
+    await page.getByRole('button', {name: 'Visão Frontal'}).click();
 
     await expect(page.getByText('Limite de Frontal atingido para este tipo de casa.')).toBeVisible();
   });
 
-  test('M4: mantém planta e posição superior da vista inicial (tipo6)', async ({ page }) => {
+  test('M4: mantém planta e posição superior da vista inicial (tipo6)', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const snapshot = await getHouseSnapshot(page);
@@ -42,28 +42,28 @@ test.describe('RAC views and limits', () => {
     expect(snapshot?.sideMappings.top).toBe('front');
   });
 
-  test('tipo3: bloqueia adicionar quadrado aberto além do limite', async ({ page }) => {
+  test('tipo3: bloqueia adicionar quadrado aberto além do limite', async ({page}) => {
     await createHouse(page, 'tipo3');
 
     await ensureMainMenuOpen(page);
-    await page.getByRole('button', { name: 'Casa TETO (Opções)' }).click();
-    await page.getByRole('button', { name: 'Quadrado Aberto' }).click();
+    await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
+    await page.getByRole('button', {name: 'Quadrado Aberto'}).click();
 
     await expect(page.getByText('Limite de Quadrado Aberto atingido para este tipo de casa.')).toBeVisible();
   });
 
-  test('M6: seleciona lado da lateral e bloqueia após atingir limite (tipo3)', async ({ page }) => {
+  test('M6: seleciona lado da lateral e bloqueia após atingir limite (tipo3)', async ({page}) => {
     await createHouse(page, 'tipo3');
 
     await ensureMainMenuOpen(page);
-    await page.getByRole('button', { name: 'Casa TETO (Opções)' }).click();
-    await page.getByRole('button', { name: 'Visão Lateral' }).click();
-    await page.getByRole('button', { name: 'Superior' }).click();
+    await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
+    await page.getByRole('button', {name: 'Visão Lateral'}).click();
+    await page.getByRole('button', {name: 'Superior'}).click();
 
     await ensureMainMenuOpen(page);
-    await page.getByRole('button', { name: 'Casa TETO (Opções)' }).click();
-    await page.getByRole('button', { name: 'Visão Lateral' }).click();
-    await expect(page.getByRole('heading', { name: 'Qual das laterais deseja mostrar?' })).toBeHidden();
+    await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
+    await page.getByRole('button', {name: 'Visão Lateral'}).click();
+    await expect(page.getByRole('heading', {name: 'Qual das laterais deseja mostrar?'})).toBeHidden();
 
     const snapshot = await getHouseSnapshot(page);
     expect(snapshot?.views.back.length).toBe(2);
@@ -74,7 +74,7 @@ test.describe('RAC views and limits', () => {
     await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
   });
 
-  test('vistas tipo6: remove e reinsere visão traseira', async ({ page }) => {
+  test('vistas tipo6: remove e reinsere visão traseira', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     await triggerHouseAction(page, 'Visão Traseira');
@@ -92,7 +92,7 @@ test.describe('RAC views and limits', () => {
     expect(snapshot?.views.back.length).toBe(1);
   });
 
-  test('vistas tipo6: quadrado fechado libera novamente após remoção', async ({ page }) => {
+  test('vistas tipo6: quadrado fechado libera novamente após remoção', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     await triggerHouseAction(page, 'Quadrado Fechado', 'Direito');
@@ -113,7 +113,7 @@ test.describe('RAC views and limits', () => {
     expect(snapshot?.views.side1.length).toBe(2);
   });
 
-  test('vistas tipo3: lateral libera novamente após remoção', async ({ page }) => {
+  test('vistas tipo3: lateral libera novamente após remoção', async ({page}) => {
     await createHouse(page, 'tipo3');
 
     await triggerHouseAction(page, 'Visão Lateral', 'Superior');
@@ -136,7 +136,7 @@ test.describe('RAC views and limits', () => {
     expect(snapshot?.sideMappings.top).toBe('back');
   });
 
-  test('vistas tipo3: quadrado aberto libera novamente após remoção', async ({ page }) => {
+  test('vistas tipo3: quadrado aberto libera novamente após remoção', async ({page}) => {
     await createHouse(page, 'tipo3');
 
     await triggerHouseAction(page, 'Quadrado Aberto');

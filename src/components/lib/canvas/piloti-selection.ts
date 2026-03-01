@@ -18,7 +18,6 @@ interface BuildPilotiSelectionHandlerArgs {
   isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is CanvasObject;
   emitPilotiSelection: (selection: PilotiCanvasSelection | null) => void;
   emitSelectionChange: (hint: string) => void;
-  clearContraventamentoSelection: () => void;
   isContraventamentoMode: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onContraventamentoCancel: () => void;
@@ -31,7 +30,6 @@ export function buildPilotiSelectionHandler({
   isPilotiVisualTarget,
   emitPilotiSelection,
   emitSelectionChange,
-  clearContraventamentoSelection,
   isContraventamentoMode,
   isPilotiEligibleForContraventamento,
   onContraventamentoCancel,
@@ -66,7 +64,6 @@ export function buildPilotiSelectionHandler({
     }
 
     if (!piloti) return;
-    clearContraventamentoSelection();
 
     const groupRuntime = toCanvasObject(group);
     if (

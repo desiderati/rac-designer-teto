@@ -18,6 +18,7 @@ export function useCanvasContainerLifecycle({
   setViewportX,
   setViewportY,
 }: UseCanvasContainerLifecycleArgs) {
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -31,7 +32,6 @@ export function useCanvasContainerLifecycle({
     };
 
     updateSize();
-
     const resizeObserver = new ResizeObserver(updateSize);
     resizeObserver.observe(containerRef.current);
 
