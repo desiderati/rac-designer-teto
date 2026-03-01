@@ -135,6 +135,7 @@ export function useContraventamentoCommands({
     if (topGroup) resetHighlightContraventamentoPilotis(topGroup);
 
     resetContraventamentoFlow();
+    toast.error(TOAST_MESSAGES.contraventamentoNotSelected);
   }, [getTopViewGroup, resetContraventamentoFlow]);
 
   const handleContraventamentoPilotiClick = useCallback((col: number, row: number) => {

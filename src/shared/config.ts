@@ -234,6 +234,9 @@ export const TOAST_MESSAGES = {
   contraventamentoColumnAlreadyUsesBothSides:
     'Esta coluna já possui contraventamentos nos lados esquerdo e direito.',
 
+  contraventamentoNotSelected:
+    'Nenhum piloti de destino selecionado para contraventamento.',
+
   contraventamentoSelectFirstPiloti:
     'Selecione o primeiro piloti para iniciar o contraventamento.',
 
