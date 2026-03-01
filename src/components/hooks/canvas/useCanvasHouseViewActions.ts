@@ -28,7 +28,7 @@ interface UseCanvasHouseViewActionsArgs {
   setPendingViewType: Dispatch<SetStateAction<HouseViewType | null>>;
   sideSelectorMode: HouseSideSelectorMode;
   setSideSelectorMode: Dispatch<SetStateAction<HouseSideSelectorMode>>;
-  setInstanceSlots: Dispatch<SetStateAction<HousePreAssignedSideDisplay[]>>;
+  setHouseSideSlots: Dispatch<SetStateAction<HousePreAssignedSideDisplay[]>>;
   pendingNivelSide: HouseSide | null;
   setPendingNivelSide: Dispatch<SetStateAction<HouseSide | null>>;
   niveisAppliedRef: MutableRefObject<boolean>;
@@ -47,7 +47,7 @@ export function useCanvasHouseViewActions({
   setPendingViewType,
   sideSelectorMode,
   setSideSelectorMode,
-  setInstanceSlots,
+  setHouseSideSlots,
   pendingNivelSide,
   setPendingNivelSide,
   niveisAppliedRef,
@@ -113,7 +113,7 @@ export function useCanvasHouseViewActions({
 
         case HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector:
           setPendingViewType(viewType);
-          setInstanceSlots(decision.slots);
+          setHouseSideSlots(decision.slots);
           setSideSelectorMode('choose-instance');
           setSideSelectorOpen(true);
           return;

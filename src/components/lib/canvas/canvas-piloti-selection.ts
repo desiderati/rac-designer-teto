@@ -20,10 +20,9 @@ interface BuildPilotiSelectionHandlerArgs {
   emitSelectionChange: (hint: string) => void;
   clearContraventamentoSelection: () => void;
   isContraventamentoMode: () => boolean;
-  isSelectingContraventamentoDestination: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onContraventamentoCancel: () => void;
-  onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoPilotiClick: (col: number, row: number) => void;
   getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
 }
 
@@ -34,7 +33,6 @@ export function buildPilotiSelectionHandler({
   emitSelectionChange,
   clearContraventamentoSelection,
   isContraventamentoMode,
-  isSelectingContraventamentoDestination,
   isPilotiEligibleForContraventamento,
   onContraventamentoCancel,
   onContraventamentoPilotiClick,
@@ -78,7 +76,7 @@ export function buildPilotiSelectionHandler({
     ) {
       const eligible = isPilotiEligibleForContraventamento(pilotiId);
       if (!eligible) {
-        if (isSelectingContraventamentoDestination()) {
+        if (isContraventamentoMode()) {
           onContraventamentoCancel();
         }
         return;
@@ -89,7 +87,7 @@ export function buildPilotiSelectionHandler({
 
       const col = parseInt(match[1], 10);
       const row = parseInt(match[2], 10);
-      onContraventamentoPilotiClick(pilotiId, col, row, group);
+      onContraventamentoPilotiClick(col, row);
       return;
     }
 

@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Canvas,
   CanvasHandle,
-  ContraventamentoCanvasSelection,
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection,
@@ -19,7 +18,6 @@ interface RacEditorCanvasProps {
   infoMessage: string;
   isAnyEditorOpen: boolean;
   isContraventamentoMode: boolean;
-  isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onSelectionMessage: (message: string) => void;
   onSelectionAuxCleanup: () => void;
@@ -29,7 +27,7 @@ interface RacEditorCanvasProps {
   onLinearSelect: (selection: LinearCanvasSelection | null) => void;
   onTerrainSelect: (selection: TerrainCanvasSelection | null) => void;
   onDelete: () => void;
-  onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: ContraventamentoCanvasSelection['group']) => void;
+  onContraventamentoPilotiClick: (col: number, row: number) => void;
   onContraventamentoCancel: () => void;
 }
 
@@ -41,7 +39,6 @@ export function RacEditorCanvas({
   infoMessage,
   isAnyEditorOpen,
   isContraventamentoMode,
-  isSelectingContraventamentoDestination,
   isPilotiEligibleForContraventamento,
   onSelectionMessage,
   onSelectionAuxCleanup,
@@ -54,6 +51,7 @@ export function RacEditorCanvas({
   onContraventamentoPilotiClick,
   onContraventamentoCancel,
 }: RacEditorCanvasProps) {
+
   return (
     <div className='h-full p-2.5 overflow-hidden relative'>
       <Canvas
@@ -76,7 +74,6 @@ export function RacEditorCanvas({
         onDelete={onDelete}
         showZoomControls={showZoomControls}
         isContraventamentoMode={isContraventamentoMode}
-        isSelectingContraventamentoDestination={isSelectingContraventamentoDestination}
         isPilotiEligibleForContraventamento={isPilotiEligibleForContraventamento}
         onContraventamentoPilotiClick={onContraventamentoPilotiClick}
         onContraventamentoCancel={onContraventamentoCancel}

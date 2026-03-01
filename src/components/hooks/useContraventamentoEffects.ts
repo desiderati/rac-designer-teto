@@ -56,8 +56,6 @@ export function useContraventamentoEffects({
       );
       return;
     }
-
-    // highlightEligibleContraventamentoPilotis(topGroup, isPilotiEligibleAsOrigin);
   }, [
     contraventamentoFirst,
     getTopViewGroup,

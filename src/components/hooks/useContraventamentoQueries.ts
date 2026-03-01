@@ -50,26 +50,19 @@ export function useContraventamentoQueries({
       });
     }, []);
 
-  const isPilotiEligibleAsDestination = useCallback((
-    pilotiId: string,
-    first: ContraventamentoOrigin | null
-  ): boolean => {
-    if (!first) return false;
+  const isPilotiEligibleAsDestination = useCallback((pilotiId: string): boolean => {
+    if (!contraventamentoFirst) return false;
 
     const data = houseManager.getPilotiData(pilotiId);
     const parsed = parsePilotiGridPosition(pilotiId);
     if (!parsed) return false;
 
     return isContraventamentoDestinationEligible({
-      first,
+      first: contraventamentoFirst,
       candidate: parsed,
       nivel: data?.nivel ?? 0,
     });
-  }, []);
-
-  const isPilotiEligible = useCallback((pilotiId: string): boolean => {
-    return isPilotiEligibleAsDestination(pilotiId, contraventamentoFirst);
-  }, [contraventamentoFirst, isPilotiEligibleAsDestination]);
+  }, [contraventamentoFirst]);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({
@@ -100,7 +93,6 @@ export function useContraventamentoQueries({
     getNonTopViewGroups,
     getContraventamentoColumnSides,
     isPilotiEligibleAsDestination,
-    isPilotiEligible,
     getContraventamentoEditorState,
   };
 }

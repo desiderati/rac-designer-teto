@@ -8,7 +8,6 @@ interface useContraventamentoEventsArgs {
   getEventPayload: (event: unknown) => CanvasPointerPayload;
   handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
   isContraventamentoMode: () => boolean;
-  isSelectingContraventamentoDestination: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onContraventamentoCancel: () => void;
   onSelectionChange: (message: string) => void;
@@ -21,7 +20,6 @@ export function useCanvasContraventamentoEvents() {
     getEventPayload,
     handlePilotiSelection,
     isContraventamentoMode,
-    isSelectingContraventamentoDestination,
     isPilotiEligibleForContraventamento,
     onContraventamentoCancel,
     isAnyEditorOpen,
@@ -38,7 +36,7 @@ export function useCanvasContraventamentoEvents() {
       if (!isContraventamentoMode()) return;
 
       const cancelIfSelectingDestination = () => {
-        if (isSelectingContraventamentoDestination()) {
+        if (isContraventamentoMode()) {
           onContraventamentoCancel();
         }
       };

@@ -5,24 +5,21 @@ import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
 interface UseCanvasContraventamentoArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
   isContraventamentoMode: boolean;
-  isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
-  onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoPilotiClick?: (col: number, row: number) => void;
   onContraventamentoCancel?: () => void;
 }
 
 interface ContraventamentoRefs {
   isContraventamentoMode: boolean;
-  isSelectingContraventamentoDestination: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
-  onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoPilotiClick?: (col: number, row: number) => void;
   onContraventamentoCancel?: () => void;
 }
 
 export function useCanvasContraventamento({
   fabricCanvasRef,
   isContraventamentoMode,
-  isSelectingContraventamentoDestination,
   isPilotiEligibleForContraventamento,
   onContraventamentoPilotiClick,
   onContraventamentoCancel,
@@ -31,7 +28,6 @@ export function useCanvasContraventamento({
   // Objeto ref único que mantém todas as props atualizadas sem re-render.
   const refs = useRef<ContraventamentoRefs>({
     isContraventamentoMode,
-    isSelectingContraventamentoDestination,
     isPilotiEligibleForContraventamento,
     onContraventamentoPilotiClick,
     onContraventamentoCancel,
@@ -41,7 +37,6 @@ export function useCanvasContraventamento({
   useEffect(() => {
     refs.current = {
       isContraventamentoMode,
-      isSelectingContraventamentoDestination,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
       onContraventamentoCancel,
@@ -50,13 +45,16 @@ export function useCanvasContraventamento({
 
   useEffect(() => {
     if (isContraventamentoMode) return;
+
     const canvas = fabricCanvasRef.current;
     if (!canvas?.upperCanvasEl) return;
+
     canvas.upperCanvasEl.style.cursor = 'default';
   }, [fabricCanvasRef, isContraventamentoMode]);
 
   useEffect(() => {
-    if (!isSelectingContraventamentoDestination) return;
+    if (!isContraventamentoMode) return;
+
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
@@ -74,18 +72,13 @@ export function useCanvasContraventamento({
     });
 
     canvas.requestRenderAll();
-  }, [fabricCanvasRef, isSelectingContraventamentoDestination]);
+  }, [fabricCanvasRef, isContraventamentoMode]);
 
   return {
     // Expõe refs individuais para compatibilidade com os consumidores existentes.
     isContraventamentoModeRef: {
       get current() {
         return refs.current.isContraventamentoMode;
-      },
-    },
-    isSelectingContraventamentoDestinationRef: {
-      get current() {
-        return refs.current.isSelectingContraventamentoDestination;
       },
     },
     isPilotiEligibleForContraventamentoRef: {

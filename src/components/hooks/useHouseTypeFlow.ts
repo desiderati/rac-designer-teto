@@ -3,9 +3,10 @@ import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/ty
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/selectors/HouseSideSelector.tsx';
 
 export function useHouseTypeFlow() {
+
   const [pendingViewType, setPendingViewType] = useState<HouseViewType | null>(null);
   const [sideSelectorMode, setSideSelectorMode] = useState<HouseSideSelectorMode>('position');
-  const [instanceSlots, setInstanceSlots] = useState<HousePreAssignedSideDisplay[]>([]);
+  const [houseSideSlots, setHouseSideSlots] = useState<HousePreAssignedSideDisplay[]>([]);
   const [pendingNivelSide, setPendingNivelSide] = useState<HouseSide | null>(null);
   const niveisAppliedRef = useRef(false);
   const transitionToNivelRef = useRef(false);
@@ -15,8 +16,8 @@ export function useHouseTypeFlow() {
     setPendingViewType,
     sideSelectorMode,
     setSideSelectorMode,
-    instanceSlots,
-    setInstanceSlots,
+    houseSideSlots,
+    setHouseSideSlots,
     pendingNivelSide,
     setPendingNivelSide,
     niveisAppliedRef,

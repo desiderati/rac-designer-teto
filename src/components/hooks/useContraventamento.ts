@@ -92,7 +92,7 @@ export function useContraventamento({
     syncContraventamentoElevations: commands.syncContraventamentoElevations,
     handleCancelContraventamento: commands.handleCancelContraventamento,
     handleContraventamentoPilotiClick: commands.handleContraventamentoPilotiClick,
-    isPilotiEligible: queries.isPilotiEligible,
+    isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     getContraventamentoEditorState: queries.getContraventamentoEditorState,
     handleContraventamentoSelect: commands.handleContraventamentoSelect,
   };

@@ -62,9 +62,8 @@ interface CanvasProps {
 
   // Contraventamento
   isContraventamentoMode?: boolean;
-  isSelectingContraventamentoDestination?: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
-  onContraventamentoPilotiClick?: (pilotiId: string, col: number, row: number, group: Group) => void;
+  onContraventamentoPilotiClick?: (col: number, row: number) => void;
   onContraventamentoCancel?: () => void;
 }
 
@@ -102,7 +101,6 @@ export const Canvas =
       tutorialHighlight,
 
       isContraventamentoMode = false,
-      isSelectingContraventamentoDestination = false,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
       onContraventamentoCancel
@@ -144,14 +142,12 @@ export const Canvas =
 
       const {
         isContraventamentoModeRef,
-        isSelectingContraventamentoDestinationRef,
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,
       } = useCanvasContraventamento({
         fabricCanvasRef,
         isContraventamentoMode,
-        isSelectingContraventamentoDestination,
         isPilotiEligibleForContraventamento,
         onContraventamentoPilotiClick,
         onContraventamentoCancel,
@@ -230,7 +226,6 @@ export const Canvas =
         getCurrentScreenPoint,
 
         isContraventamentoModeRef,
-        isSelectingContraventamentoDestinationRef,
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,

@@ -137,9 +137,7 @@ export function useContraventamentoCommands({
     resetContraventamentoFlow();
   }, [getTopViewGroup, resetContraventamentoFlow]);
 
-  const handleContraventamentoPilotiClick = useCallback((
-    pilotiId: string, col: number, row: number
-  ) => {
+  const handleContraventamentoPilotiClick = useCallback((col: number, row: number) => {
     if (col !== contraventamentoFirst.col) {
       toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameColumn);
       return;

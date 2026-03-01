@@ -46,8 +46,8 @@ export function RacEditor() {
     setPendingViewType,
     sideSelectorMode,
     setSideSelectorMode,
-    instanceSlots,
-    setInstanceSlots,
+    houseSideSlots,
+    setHouseSideSlots,
     pendingNivelSide,
     setPendingNivelSide,
     niveisAppliedRef,
@@ -214,7 +214,7 @@ export function RacEditor() {
     setPendingViewType,
     sideSelectorMode,
     setSideSelectorMode,
-    setInstanceSlots,
+    setHouseSideSlots,
     pendingNivelSide,
     setPendingNivelSide,
     niveisAppliedRef,
@@ -312,7 +312,7 @@ export function RacEditor() {
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,
-    isPilotiEligible,
+    isPilotiEligibleAsDestination,
     getContraventamentoEditorState,
     handleContraventamentoSelect,
   } = useContraventamento({
@@ -490,8 +490,7 @@ export function RacEditor() {
         infoMessage={infoMessage}
         isAnyEditorOpen={isAnyEditorOpen}
         isContraventamentoMode={isContraventamentoMode}
-        isSelectingContraventamentoDestination={isContraventamentoMode}
-        isPilotiEligibleForContraventamento={isPilotiEligible}
+        isPilotiEligibleForContraventamento={isPilotiEligibleAsDestination}
         onSelectionMessage={setInfoMessage}
         onSelectionAuxCleanup={() => {
           dismissPilotiTutorial();
@@ -548,7 +547,7 @@ export function RacEditor() {
         pendingViewType={pendingViewType}
         sideSelectorOpen={sideSelectorOpen}
         sideSelectorMode={sideSelectorMode}
-        houseSideSlots={instanceSlots}
+        houseSideSlots={houseSideSlots}
         onSideSelectorClose={handleSideSelectorClose}
         onSideSelected={handleSideSelected}
       />

@@ -80,16 +80,16 @@ export function toRebuildPilotiSourceObject(value: unknown): RebuildPilotiSource
   return value as RebuildPilotiSourceObject;
 }
 
-export function isHouseGroupCandidate(value: CanvasObject): boolean {
-  return value?.type === 'group' && value?.myType === 'house';
-}
-
 export function findTopViewGroupCandidate<T extends CanvasObject>(objects: T[]): T | null {
   return objects.find((object) => isTopViewGroupCandidate(object)) ?? null;
 }
 
 export function isTopViewGroupCandidate(value: CanvasObject): boolean {
   return isHouseGroupCandidate(value) && value?.houseView === 'top';
+}
+
+export function isHouseGroupCandidate(value: CanvasObject): boolean {
+  return value?.type === 'group' && value?.myType === 'house';
 }
 
 export function mapHouseGroupToRebuildSource<TGroup extends CanvasObject>(

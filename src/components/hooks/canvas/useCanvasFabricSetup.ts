@@ -36,10 +36,8 @@ interface UseCanvasFabricSetupArgs {
   undo: () => void;
   getCurrentScreenPoint: (canvasPoint: { x: number; y: number }) => { x: number; y: number } | null;
   isContraventamentoModeRef: MutableRefObject<boolean>;
-  isSelectingContraventamentoDestinationRef: MutableRefObject<boolean>;
   isPilotiEligibleForContraventamentoRef: MutableRefObject<((pilotiId: string) => boolean) | undefined>;
-  onContraventamentoPilotiClickRef:
-    MutableRefObject<((pilotiId: string, col: number, row: number, group: Group) => void) | undefined>;
+  onContraventamentoPilotiClickRef: MutableRefObject<((col: number, row: number) => void) | undefined>;
   onContraventamentoCancelRef: MutableRefObject<(() => void) | undefined>;
 }
 
@@ -60,11 +58,11 @@ export function useCanvasFabricSetup({
   undo,
   getCurrentScreenPoint,
   isContraventamentoModeRef,
-  isSelectingContraventamentoDestinationRef,
   isPilotiEligibleForContraventamentoRef,
   onContraventamentoPilotiClickRef,
   onContraventamentoCancelRef,
 }: UseCanvasFabricSetupArgs) {
+
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
     canvasRef,
     containerRef,
@@ -82,7 +80,6 @@ export function useCanvasFabricSetup({
     undo,
     getCurrentScreenPoint,
     isContraventamentoModeRef,
-    isSelectingContraventamentoDestinationRef,
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
     onContraventamentoCancelRef,
@@ -105,7 +102,6 @@ export function useCanvasFabricSetup({
     undo,
     getCurrentScreenPoint,
     isContraventamentoModeRef,
-    isSelectingContraventamentoDestinationRef,
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
     onContraventamentoCancelRef,
@@ -185,16 +181,14 @@ export function useCanvasFabricSetup({
       clearContraventamentoSelection: () => {
       },
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
-      isSelectingContraventamentoDestination: () =>
-        latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
       },
       onContraventamentoCancel: () => {
         latestArgsRef.current.onContraventamentoCancelRef.current?.();
       },
-      onContraventamentoPilotiClick: (pilotiId: string, col: number, row: number, group: Group) => {
-        latestArgsRef.current.onContraventamentoPilotiClickRef.current?.(pilotiId, col, row, group);
+      onContraventamentoPilotiClick: (col: number, row: number) => {
+        latestArgsRef.current.onContraventamentoPilotiClickRef.current?.(col, row);
       },
       getCurrentScreenPoint: (canvasPoint) =>
         latestArgsRef.current.getCurrentScreenPoint(canvasPoint),
@@ -213,8 +207,6 @@ export function useCanvasFabricSetup({
       getEventPayload,
       handlePilotiSelection,
       isContraventamentoMode: () => latestArgsRef.current.isContraventamentoModeRef.current,
-      isSelectingContraventamentoDestination: () =>
-        latestArgsRef.current.isSelectingContraventamentoDestinationRef.current,
       isPilotiEligibleForContraventamento: (pilotiId: string) => {
         return latestArgsRef.current.isPilotiEligibleForContraventamentoRef.current?.(pilotiId) ?? false;
       },

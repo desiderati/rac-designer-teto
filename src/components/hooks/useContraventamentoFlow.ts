@@ -16,6 +16,7 @@ interface UseContraventamentoFlowResult {
 }
 
 export function useContraventamentoFlow(): UseContraventamentoFlowResult {
+
   const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
   const [selectedContraventamento, setSelectedContraventamento] =
     useState<ContraventamentoCanvasSelection | null>(null);
