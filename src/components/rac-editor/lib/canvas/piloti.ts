@@ -40,6 +40,14 @@ export const getPilotiIdsForSide = (side: HouseSide): string[] => {
   }
 };
 
+export function resolveDoorSideCornerIds(side: HouseSide): { leftId: string; rightId: string } {
+  if (side === 'top') return {leftId: 'piloti_0_0', rightId: 'piloti_3_0'};
+  if (side === 'bottom') return {leftId: 'piloti_0_2', rightId: 'piloti_3_2'};
+  if (side === 'left') return {leftId: 'piloti_0_0', rightId: 'piloti_0_2'};
+  return {leftId: 'piloti_3_0', rightId: 'piloti_3_2'};
+}
+
+
 export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
 
 export function parsePilotiGridPosition(pilotiId: string): { col: number; row: number } | null {

@@ -1,12 +1,12 @@
-import {FabricObject, Group} from 'fabric';
 import {HousePiloti, HouseViewInstance} from '@/shared/types/house.ts';
 import {
   addContraventamentoBeam,
+  CanvasGroup,
+  CanvasObject,
   isPilotiOutOfProportion,
   parsePilotiGridPosition,
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/lib/canvas';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
@@ -29,11 +29,12 @@ const AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY = '__autoContraventamentoInitialized
  */
 export function refreshAutoContraventamentoInAllViews(params: {
   pilotis: Record<string, HousePiloti>;
-  topViews: HouseViewInstance<Group>[];
-  elevationViews: HouseViewInstance<Group>[];
+  topViews: HouseViewInstance<CanvasGroup>[];
+  elevationViews: HouseViewInstance<CanvasGroup>[];
 }): boolean {
   let hasChanges = false;
-  const targetGroups = params.elevationViews.map((view) => view.group);
+  const targetGroups =
+    params.elevationViews.map((view) => view.group);
 
   params.topViews.forEach((topView) => {
     const topGroup = topView.group;
@@ -59,7 +60,7 @@ export function refreshAutoContraventamentoInAllViews(params: {
  * @returns `true` quando houve inclusão/remoção de contraventamento automático.
  */
 function refreshAutoContraventamentoOnTopView(
-  topGroup: Group,
+  topGroup: CanvasGroup,
   pilotis: Record<string, HousePiloti>,
 ): boolean {
   const runtimeTopGroup = topGroup as any;
@@ -69,7 +70,7 @@ function refreshAutoContraventamentoOnTopView(
 
   // If this top view already has any contraventamento (manual/imported),
   // do not auto-manage it anymore.
-  if (topGroup.getObjects().some((object) => toCanvasObject(object)?.isContraventamento === true)) {
+  if (topGroup.getCanvasObjects().some((object) => object?.isContraventamento === true)) {
     runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] = true;
     return false;
   }
@@ -155,10 +156,9 @@ function collectRowsRequiringAutoContraventamentoByColumn(
  * @param col Coluna de referência.
  * @returns Lista de objetos de contraventamento da coluna.
  */
-function getColumnContraventamentos(group: Group, col: number): FabricObject[] {
-  return group.getObjects().filter((object) => {
-    const runtime = toCanvasObject(object);
-    if (!runtime?.isContraventamento) return false;
+function getColumnContraventamentos(group: CanvasGroup, col: number): CanvasObject[] {
+  return group.getCanvasObjects().filter(object => {
+    if (!object?.isContraventamento) return false;
     return resolveContraventamentoColumn(object) === col;
   });
 }
@@ -172,15 +172,14 @@ function getColumnContraventamentos(group: Group, col: number): FabricObject[] {
  * @param object Objeto de contraventamento.
  * @returns Índice da coluna ou `null` quando não for possível resolver.
  */
-function resolveContraventamentoColumn(object: FabricObject): number | null {
-  const runtime = toCanvasObject(object);
-  if (!runtime) return null;
+function resolveContraventamentoColumn(object: CanvasObject): number | null {
+  if (!object) return null;
 
-  const explicitCol = Number(runtime.contraventamentoCol);
+  const explicitCol = Number(object.contraventamentoCol);
   if (Number.isFinite(explicitCol)) return explicitCol;
 
-  const left = Number(runtime.left ?? 0);
-  const width = Number(runtime.width ?? 0) * Number(runtime.scaleX ?? 1);
+  const left = Number(object.left ?? 0);
+  const width = Number(object.width ?? 0) * Number(object.scaleX ?? 1);
   const centerX = left + width / 2;
 
   let closestCol = 0;
@@ -203,12 +202,12 @@ function resolveContraventamentoColumn(object: FabricObject): number | null {
  * @param col Coluna alvo.
  * @returns `left`, `right` ou `null` quando ambos os lados já estão ocupados.
  */
-function resolveAutoContraventamentoSide(group: Group, col: number): ContraventamentoSide | null {
+function resolveAutoContraventamentoSide(group: CanvasGroup, col: number): ContraventamentoSide | null {
   const occupied = collectOccupiedContraventamentoSides({
-    objects: group.getObjects() as FabricObject[],
+    objects: group.getCanvasObjects(),
     col,
     onResolvedSide: (object, side) => {
-      (object as any).contraventamentoSide = side;
+      object.contraventamentoSide = side;
     },
   });
 

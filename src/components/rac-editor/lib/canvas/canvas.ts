@@ -1,39 +1,8 @@
 import {FabricObject, Group as FabricGroup} from 'fabric';
-import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import {HouseSide} from '@/shared/types/house.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
-//
-// CanvasGroup
-//
-
-export type CanvasGroup = FabricGroup & {
-  myType?: string;
-  isMacroGroup?: boolean;
-
-  houseInstanceId?: string;
-  houseViewType?: HouseViewType;
-  houseSide?: HouseSide;
-  houseView?: string;
-  isFlippedHorizontally?: boolean;
-  isRightSide?: boolean;
-
-  getCanvasObjects?: () => CanvasObject[];
-  getObjects?: () => CanvasObject[];
-  target?: FabricGroup | null;
-};
-
-export function toCanvasGroup(object: FabricGroup): CanvasGroup;
-export function toCanvasGroup(object: null | undefined): null;
-export function toCanvasGroup(object: FabricGroup | null | undefined): CanvasGroup | null {
-  if (!object) return null;
-  return object as CanvasGroup;
-}
-
-//
-// CanvasObject
-//
-
-export type CanvasObject = FabricObject & {
+type CanvasProperties = {
   // Internal Fabric properties and methods
   _objects?: FabricObject[];
   _clearCache?: () => void;
@@ -64,6 +33,7 @@ export type CanvasObject = FabricObject & {
   fill?: string | FabricObject['fill'];
   stroke?: string | FabricObject['stroke'];
 
+  getCanvasObjects?: () => CanvasObject[];
   getObjects?: () => CanvasObject[];
   objectCaching?: boolean;
 
@@ -89,9 +59,10 @@ export type CanvasObject = FabricObject & {
   pilotiBaseHeight?: number;
   pilotiIsMaster?: boolean;
   pilotiNivel?: number;
+
+  isHouseDoor?: boolean;
   isTopDoorMarker?: boolean;
   doorMarkerSide?: HouseSide;
-  isHouseDoor?: boolean;
 
   isGroundElement?: boolean;
   isGroundLine?: boolean;
@@ -104,6 +75,7 @@ export type CanvasObject = FabricObject & {
   isTerrainRachao?: boolean;
   isTerrainSideGravel?: boolean;
   isTerrainEditTarget?: boolean;
+
   isAutoStairs?: boolean;
   stairsStepCount?: number;
   stairsHeight?: number;
@@ -129,6 +101,39 @@ export type CanvasObject = FabricObject & {
   isContentEditable?: boolean;
 };
 
+//
+// CanvasGroup
+//
+
+export type CanvasGroup = FabricGroup & CanvasProperties;
+
+export function toCanvasGroup(object: FabricGroup): CanvasGroup;
+export function toCanvasGroup(object: null | undefined): null;
+export function toCanvasGroup(object: FabricGroup | null | undefined): CanvasGroup | null {
+  if (!object) return null;
+
+  // Normalize helper expected by house-related flows even when the source
+  // group is a plain Fabric Group instance (e.g. after import/restore).
+  const canvasGroup = object as CanvasGroup;
+  if (typeof canvasGroup.getCanvasObjects !== 'function') {
+    canvasGroup.getCanvasObjects = () => {
+      if (typeof canvasGroup.getObjects === 'function') {
+        return canvasGroup.getObjects() as CanvasObject[];
+      }
+      const internalObjects = canvasGroup._objects;
+      return Array.isArray(internalObjects) ? (internalObjects as CanvasObject[]) : [];
+    };
+  }
+
+  return canvasGroup;
+}
+
+//
+// CanvasObject
+//
+
+export type CanvasObject = FabricObject & CanvasProperties;
+
 // Extend FabricObject prototype to include custom properties in serialization
 const originalToObject = FabricObject.prototype.toObject;
 FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) {
@@ -147,13 +152,17 @@ export type CanvasObjectProps = Exclude<keyof CanvasObject, keyof FabricObject>;
 export const canvasObjectProps = [
   'myType',
   'isMacroGroup',
+
+  'houseInstanceId',
   'houseViewType',
   'houseView',
-  'houseInstanceId',
   'houseSide',
+  'isFlippedHorizontally',
+  'isRightSide',
   'isHouseBody',
   'isHouseBorderEdge',
   'edgeSide',
+
   'isPilotiCircle',
   'isPilotiRect',
   'isPilotiText',
@@ -166,9 +175,11 @@ export const canvasObjectProps = [
   'pilotiBaseHeight',
   'pilotiIsMaster',
   'pilotiNivel',
+
+  'isHouseDoor',
   'isTopDoorMarker',
   'doorMarkerSide',
-  'isHouseDoor',
+
   'isGroundElement',
   'isGroundLine',
   'isGroundSegment',
@@ -180,13 +191,13 @@ export const canvasObjectProps = [
   'isTerrainRachao',
   'isTerrainSideGravel',
   'isTerrainEditTarget',
+
   'isAutoStairs',
   'stairsStepCount',
   'stairsHeight',
   'stairsNivelLeft',
   'stairsNivelRight',
-  'isRightSide',
-  'isFlippedHorizontally',
+
   'isContraventamento',
   'isAutoContraventamento',
   'isContraventamentoElevation',
