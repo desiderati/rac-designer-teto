@@ -13,7 +13,7 @@ function createState(seed?: {
   houseType?: 'tipo6' | 'tipo3' | null;
   viewCounts?: Partial<Record<HouseViewType, number>>;
   pilotis?: Record<string, { height: number; isMaster: boolean; nivel: number }>;
-}): HouseState {
+}): HouseState<any> {
   const houseType = seed?.houseType ?? 'tipo6';
   const viewCounts = {
     top: 0,
@@ -135,7 +135,8 @@ describe('house aggregate', () => {
   });
 
   it('rebuilds views from canvas-like sources and side mappings', () => {
-    const aggregate = HouseAggregate.fromState(createState() as HouseState<{ id: string }>);
+    const aggregate =
+      HouseAggregate.fromState(createState() as HouseState<{ id: string }>);
 
     const rebuilt = aggregate.rebuildViewsFromCanvasSources([
       {group: {id: 'front-a'}, metadata: {houseView: 'front', isFlippedHorizontally: true}},

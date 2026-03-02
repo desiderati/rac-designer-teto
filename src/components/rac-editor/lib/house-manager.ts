@@ -275,31 +275,32 @@ class HouseManager {
     const aggregate = this.getHouseAggregate();
     if (!aggregate || !this.house) return;
 
+    const canvasGroup = toCanvasGroup(group);
+    if (!canvasGroup) return;
+
     const instanceId = createViewInstanceId(viewType);
 
     // Mark the group with its view type and instance ID for later identification.
     Object.assign(
-      group,
+      canvasGroup,
       createViewGroupMetadataPatch<HouseViewType, HouseSide>({
         viewType,
         instanceId,
         side,
       }),
     );
-    group.groundTerrainType = this.getTerrainType();
+    canvasGroup.groundTerrainType = this.getTerrainType();
 
     // Apply current piloti data to the new group
-    applyPilotiDataToGroup(group, this.house.pilotis);
+    applyPilotiDataToGroup(canvasGroup, this.house.pilotis);
 
     aggregate.registerView({
       viewType,
-      group,
+      group: canvasGroup,
       instanceId,
       side,
     });
     this.persistHouse();
-
-    console.log(`[HouseManager] Registered view ${viewType}, instance: ${instanceId}, side: ${side}`);
     this.notify();
   }
 
@@ -375,9 +376,6 @@ class HouseManager {
 
     if (removedWithHint.removedCount > 0) {
       this.persistHouse();
-      if (removedWithHint.removedViewType) {
-        console.log(`[HouseManager] View ${removedWithHint.removedViewType} instance removed`);
-      }
       this.notify();
       return;
     }
@@ -385,9 +383,6 @@ class HouseManager {
     const removedFallback = aggregate.removeView({group});
     if (removedFallback.removedCount > 0) {
       this.persistHouse();
-      if (removedFallback.removedViewType) {
-        console.log(`[HouseManager] View ${removedFallback.removedViewType} removed by reference`);
-      }
       this.notify();
     }
   }
@@ -425,11 +420,6 @@ class HouseManager {
 
     aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI);
     this.persistHouse();
-
-    console.log('[HouseManager] Calculated recommended heights:',
-      Object.entries(this.house.pilotis).map(
-        ([id, d]) => `${id}: nivel=${d.nivel} h=${d.height}`).join(', ')
-    );
   }
 
   // Check if any views exist
@@ -486,8 +476,6 @@ class HouseManager {
 
     aggregate.autoAssignAllSides(initialSide);
     this.persistHouse();
-
-    console.log('[HouseManager] Auto-assigned slots:', this.house?.preAssignedSides ?? {});
     this.notify();
   }
 

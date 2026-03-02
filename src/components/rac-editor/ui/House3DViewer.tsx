@@ -1,7 +1,7 @@
 import {Suspense, useCallback, useEffect, useRef, useState} from 'react';
 import {Canvas} from '@react-three/fiber';
 import {OrbitControls, PerspectiveCamera} from '@react-three/drei';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -194,9 +194,9 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
               </Button>
             </div>
           </div>
-          <p className='text-sm text-muted-foreground'>
+          <DialogDescription className='text-sm text-muted-foreground'>
             Arraste para rotacionar • Scroll para zoom • Shift+Arraste para mover
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className='flex-1 bg-gradient-to-b from-muted to-muted/50 relative' style={{minHeight: '400px'}}>

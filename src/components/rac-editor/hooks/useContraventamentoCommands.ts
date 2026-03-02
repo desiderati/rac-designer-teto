@@ -218,19 +218,19 @@ export function useContraventamentoCommands({
       const occupiedSides = getContraventamentoColumnSides(topGroup, col);
       if (occupiedSides[side]) {
         const removed =
-          removeContraventamentosFromTopView(topGroup, anyObj => {
-            if (!anyObj) return false;
+          removeContraventamentosFromTopView(topGroup, canvasObj => {
+            if (!canvasObj) return false;
 
-            if (Number(anyObj.contraventamentoCol) !== col) return false;
-            if (anyObj.contraventamentoSide === 'left' || anyObj.contraventamentoSide === 'right') {
-              return anyObj.contraventamentoSide === side;
+            if (Number(canvasObj.contraventamentoCol) !== col) return false;
+            if (canvasObj.contraventamentoSide === 'left' || canvasObj.contraventamentoSide === 'right') {
+              return canvasObj.contraventamentoSide === side;
             }
 
             const inferredSide = inferContraventamentoSide({
               col,
-              left: Number(anyObj.left ?? 0),
-              width: Number(anyObj.width ?? 0),
-              scaleX: Number(anyObj.scaleX ?? 1),
+              left: Number(canvasObj.left ?? 0),
+              width: Number(canvasObj.width ?? 0),
+              scaleX: Number(canvasObj.scaleX ?? 1),
             });
             return inferredSide === side;
           });

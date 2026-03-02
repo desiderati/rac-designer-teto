@@ -35,12 +35,12 @@ import {
 import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
 import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
 
-export class HouseAggregate<TGroup = unknown> {
+export class HouseAggregate<TGroup> {
 
   private constructor(private readonly state: HouseState<TGroup>) {
   }
 
-  static createInitialHouseState<TGroup = unknown>(params: {
+  static createInitialHouseState<TGroup>(params: {
     id: string;
     pilotiIds: string[];
     defaultPiloti: HousePiloti;

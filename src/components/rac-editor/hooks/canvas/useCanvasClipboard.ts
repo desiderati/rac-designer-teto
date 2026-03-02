@@ -1,5 +1,5 @@
 import {RefObject, useRef} from 'react';
-import {ActiveSelection, Canvas as FabricCanvas} from 'fabric';
+import {ActiveSelection, Canvas as FabricCanvas, FabricObject} from 'fabric';
 
 interface UseCanvasClipboardArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
@@ -12,7 +12,7 @@ export function useCanvasClipboard({
   saveHistory,
   onSelectionChange,
 }: UseCanvasClipboardArgs) {
-  const clipboardRef = useRef<any>(null);
+  const clipboardRef = useRef<FabricObject>(null);
 
   const copy = async () => {
     const canvas = fabricCanvasRef.current;
@@ -39,7 +39,7 @@ export function useCanvasClipboard({
 
     if (clonedObj.type === 'activeSelection') {
       clonedObj.canvas = canvas;
-      (clonedObj as ActiveSelection).forEachObject((obj: any) => {
+      (clonedObj as ActiveSelection).forEachObject(obj => {
         canvas.add(obj);
       });
       clonedObj.setCoords();

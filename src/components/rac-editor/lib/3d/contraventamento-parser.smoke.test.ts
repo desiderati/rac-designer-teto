@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseContraventamentosFromTopView} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
+import {toCanvasGroup} from "@/components/rac-editor/lib/canvas";
 
 describe('parseContraventamentosFromTopView', () => {
   it('parses and normalizes valid contraventamento objects', () => {
@@ -17,7 +18,7 @@ describe('parseContraventamentosFromTopView', () => {
       ],
     };
 
-    const parsed = parseContraventamentosFromTopView(topGroup);
+    const parsed = parseContraventamentosFromTopView(toCanvasGroup(topGroup));
     expect(parsed).toEqual([
       {
         id: 'c-1',
@@ -55,7 +56,7 @@ describe('parseContraventamentosFromTopView', () => {
       ],
     };
 
-    const parsed = parseContraventamentosFromTopView(topGroup);
+    const parsed = parseContraventamentosFromTopView(toCanvasGroup(topGroup));
     expect(parsed).toEqual([
       {
         id: 'contrav_3d_2',

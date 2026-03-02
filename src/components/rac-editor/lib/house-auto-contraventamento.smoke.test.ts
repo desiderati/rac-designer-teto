@@ -7,6 +7,9 @@ function createMockGroup(props: Record<string, unknown> = {}) {
     getObjects() {
       return this._objects;
     },
+    getCanvasObjects() {
+      return this._objects;
+    },
     setCoords: vi.fn(),
     ...props,
   };

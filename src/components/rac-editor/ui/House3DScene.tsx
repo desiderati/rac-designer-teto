@@ -120,7 +120,7 @@ function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
   }, [pilotis]);
 
   return (
-      <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+    <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={DoubleSide}/>
     </mesh>
   );

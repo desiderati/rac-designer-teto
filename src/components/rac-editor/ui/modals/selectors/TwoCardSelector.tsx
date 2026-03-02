@@ -1,6 +1,6 @@
 import {ReactNode} from 'react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Sheet, SheetContent, SheetHeader, SheetTitle} from '@/components/ui/sheet.tsx';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 
@@ -78,6 +78,9 @@ export function TwoCardSelector({isOpen, onClose, title, left, right, tutorialLo
         <DialogContent className='sm:max-w-sm' hideCloseButton>
           <DialogHeader className='text-center'>
             <DialogTitle className='text-center text-2xl'>{title}</DialogTitle>
+            <DialogDescription className='sr-only'>
+              Selecione uma das duas opções disponíveis.
+            </DialogDescription>
           </DialogHeader>
           {content}
         </DialogContent>

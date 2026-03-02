@@ -36,7 +36,6 @@ describe('canvas piloti selection handler', () => {
       isPilotiVisualTarget: () => true,
       emitPilotiSelection,
       emitSelectionChange,
-      clearContraventamentoSelection: vi.fn(),
       isContraventamentoMode: () => false,
       isPilotiEligibleForContraventamento: () => true,
       onContraventamentoCancel,

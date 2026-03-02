@@ -3,6 +3,7 @@ import {Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
   CanvasObject,
+  getCanvasGroupObjects,
   getHintForObject,
   getPilotiIdsForSide,
   isCanvasGroup,
@@ -55,7 +56,7 @@ export function useCanvasSelectionActions() {
       const house = houseManager.getHouse();
       const instanceId = selectedObject?.houseInstanceId;
       const typedView = viewType as HouseViewType;
-      const viewInstances = (house?.views[typedView] ?? []) as HouseViewInstance[];
+      const viewInstances = (house?.views[typedView] ?? []) as HouseViewInstance<CanvasGroup>[];
       if (viewInstances.length === 0) return undefined;
 
       if (instanceId) {
@@ -76,7 +77,7 @@ export function useCanvasSelectionActions() {
         if (!viewType) return;
 
         if (viewType !== 'top') {
-          group.getCanvasObjects().forEach((child) => {
+          getCanvasGroupObjects(group).forEach((child) => {
             if (child?.isPilotiRect) {
               child.set({
                 stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
@@ -87,7 +88,7 @@ export function useCanvasSelectionActions() {
           return;
         }
 
-        group.getCanvasObjects().forEach((child) => {
+        getCanvasGroupObjects(group).forEach((child) => {
           if (child?.isPilotiCircle) {
             child.set({
               stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
@@ -137,7 +138,7 @@ export function useCanvasSelectionActions() {
       (group: CanvasGroup, viewType: string | null) => {
         if (!viewType || viewType === 'top') return;
 
-        group.getCanvasObjects().forEach((child) => {
+        getCanvasGroupObjects(group).forEach((child) => {
           applyDefaultTerrainStyles(child, TERRAIN_STYLE.selectedFillColor, TERRAIN_STYLE.selectedStrokeColor);
         });
       };
@@ -168,8 +169,9 @@ export function useCanvasSelectionActions() {
 
     const resetAllHousePilotiStyles = () => {
       canvas.getObjects().forEach((item) => {
-        if (isCanvasGroup(item) || toCanvasGroup(item)?.myType !== 'house') return;
-        toCanvasGroup(item).getObjects().forEach(
+        const group = toCanvasGroup(item);
+        if (!group || group.myType !== 'house') return;
+        getCanvasGroupObjects(group).forEach(
           (child) => applyDefaultHousePilotiStyles(child)
         );
       });
@@ -177,8 +179,9 @@ export function useCanvasSelectionActions() {
 
     const resetAllTerrainStyles = () => {
       canvas.getObjects().forEach((item) => {
-        if (isCanvasGroup(item) || toCanvasGroup(item)?.myType !== 'house') return;
-        toCanvasGroup(item).getObjects().forEach(
+        const group = toCanvasGroup(item);
+        if (!group || group.myType !== 'house') return;
+        getCanvasGroupObjects(group).forEach(
           (child) => applyTerrainStyles(child)
         );
       });
@@ -200,7 +203,7 @@ export function useCanvasSelectionActions() {
           canvas.requestRenderAll();
         };
 
-        const borderLines = topGroup.getCanvasObjects().filter((object) => {
+        const borderLines = getCanvasGroupObjects(topGroup).filter((object) => {
           return object?.isHouseBorderEdge === true;
         });
 
@@ -235,7 +238,7 @@ export function useCanvasSelectionActions() {
         }
 
         const pilotiIdsForSide = getPilotiIdsForSide(side);
-        topGroup.getCanvasObjects().forEach((canvasObjectChild) => {
+        getCanvasGroupObjects(topGroup).forEach((canvasObjectChild) => {
           if (!canvasObjectChild) return;
 
           if (canvasObjectChild.isPilotiCircle
@@ -270,8 +273,11 @@ export function useCanvasSelectionActions() {
 
       if (isCanvasGroup(object) && object?.myType === 'house') {
         const viewType = resolveHouseGroupView(object);
-        applySelectedHousePilotiHighlightStyle(toCanvasGroup(object), viewType);
-        applySelectedTerrainHighlightStyles(toCanvasGroup(object), viewType);
+        const group = toCanvasGroup(object);
+        if (group) {
+          applySelectedHousePilotiHighlightStyle(group, viewType);
+          applySelectedTerrainHighlightStyles(group, viewType);
+        }
       }
 
       syncHouseTopSideHighlight(object);

@@ -8,6 +8,7 @@ import {
   resolveTopDoorMarkerSide,
   resolveTopDoorSourceViewType,
 } from './house-top-view-door-marker.ts';
+import {toCanvasGroup} from "@/components/rac-editor/lib/canvas";
 
 describe('house-top-door-marker use cases', () => {
   it('resolves source view type from house type', () => {
@@ -168,6 +169,7 @@ describe('house-top-door-marker use cases', () => {
         Object.assign(this, patch);
       }),
       setCoords: vi.fn(),
+      visible: true,
       dirty: false,
     };
     const bottomMarker = {
@@ -177,6 +179,7 @@ describe('house-top-door-marker use cases', () => {
         Object.assign(this, patch);
       }),
       setCoords: vi.fn(),
+      visible: false,
       dirty: false,
     };
     const houseBody = {
@@ -196,7 +199,7 @@ describe('house-top-door-marker use cases', () => {
     const changed = refreshTopDoorMarkersInViews({
       houseType: 'tipo6',
       sideMappings: {top: 'front', bottom: null, left: null, right: null},
-      topViews: [{group, instanceId: 'top_1'} as any],
+      topViews: [{group: toCanvasGroup(group), instanceId: 'top_1'}],
     });
 
     expect(changed).toBe(true);

@@ -49,10 +49,10 @@ export function highlightEligibleContraventamentoPilotis(
         hoverCursor: 'default',
       });
     }
-    (obj as any).dirty = true;
+    obj.dirty = true;
   });
 
-  (group as any).dirty = true;
+  group.dirty = true;
   group.canvas?.requestRenderAll();
 }
 
@@ -81,9 +81,9 @@ export function resetHighlightContraventamentoPilotis(group: CanvasGroup): void 
         hoverCursor: 'default',
       });
     }
-    (obj as any).dirty = true;
+    obj.dirty = true;
   });
 
-  (group as any).dirty = true;
+  group.dirty = true;
   group.canvas?.requestRenderAll();
 }

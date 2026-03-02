@@ -108,7 +108,7 @@ type CanvasProperties = {
 export type CanvasGroup = FabricGroup & CanvasProperties;
 
 export function isCanvasGroup(
-  object: FabricGroup | CanvasObject | null | undefined
+  object: FabricGroup | CanvasObject | unknown | null | undefined
 ): object is CanvasGroup {
   if (!object || typeof object !== 'object') return false;
 
@@ -120,8 +120,9 @@ export function isCanvasGroup(
 
 export function toCanvasGroup(object: FabricGroup): CanvasGroup;
 export function toCanvasGroup(object: CanvasObject): CanvasGroup | null;
+export function toCanvasGroup(object: unknown): CanvasGroup | null;
 export function toCanvasGroup(object: null | undefined): null;
-export function toCanvasGroup(object: FabricGroup | CanvasObject | null | undefined): CanvasGroup | null {
+export function toCanvasGroup(object: FabricGroup | CanvasObject | unknown | null | undefined): CanvasGroup | null {
   if (!object) return null;
 
   const isGroup = isCanvasGroup(object)
@@ -143,6 +144,13 @@ export function toCanvasGroup(object: FabricGroup | CanvasObject | null | undefi
   return canvasGroup;
 }
 
+export function getCanvasGroupObjects(
+  group: CanvasGroup | CanvasObject | null | undefined,
+): CanvasObject[] {
+  const canvasGroup = toCanvasGroup(group);
+  return canvasGroup?.getCanvasObjects?.() ?? [];
+}
+
 //
 // CanvasObject
 //
@@ -156,8 +164,9 @@ FabricObject.prototype.toObject = function (propertiesToInclude: string[] = []) 
 };
 
 export function toCanvasObject(object: FabricObject): CanvasObject;
+export function toCanvasObject(object: unknown): CanvasObject;
 export function toCanvasObject(object: null | undefined): null;
-export function toCanvasObject(object: FabricObject | null | undefined): CanvasObject | null {
+export function toCanvasObject(object: FabricObject | unknown | null | undefined): CanvasObject | null {
   if (!object) return null;
   return object as CanvasObject;
 }

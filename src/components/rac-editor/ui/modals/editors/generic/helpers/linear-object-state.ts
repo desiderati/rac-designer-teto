@@ -19,7 +19,7 @@ export function readLinearObjectState(
       (child) => child?.myType === 'objLabel'
     );
 
-  if (labelChild?.fill) {
+  if (typeof labelChild?.fill === 'string') {
     currentColor = labelChild.fill;
   }
 

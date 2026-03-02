@@ -1,7 +1,6 @@
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
-import {CanvasGroup} from "@/components/rac-editor/lib/canvas";
 
-export interface HouseState<TGroup = CanvasGroup> {
+export interface HouseState<TGroup> {
   id: string;
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
@@ -86,23 +85,15 @@ export const HOUSE_OPPOSITE_VIEW: Record<HouseViewType, HouseViewType | null> = 
 
 export const ALL_HOUSE_VIEW_TYPES: HouseViewType[] = ['top', 'front', 'back', 'side1', 'side2'];
 
-export interface HouseViewInstance<TGroup = CanvasGroup> {
+export interface HouseViewInstance<TGroup> {
   instanceId: string;
   side?: HouseSide;
   group: TGroup;
 }
 
-export type HouseViews<TGroup = CanvasGroup> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
+export type HouseViews<TGroup> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
 
 export type HouseViewSide = Record<HouseViewType, Array<{ side?: HouseSide; }>>;
-
-export type HouseViewInsertionDecision =
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit }
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly; side?: HouseSide }
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots }
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector; slots: HousePreAssignedSideDisplay[] }
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides }
-  | { type: typeof HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector };
 
 /**
  * Resultado da decisão de inserção de uma nova vista de casa.
@@ -146,7 +137,7 @@ export const DEFAULT_HOUSE_PILOTI: HousePiloti = {
 
 export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
-export interface HouseSnapshot {
-  views: Record<HouseViewType, CanvasGroup[]>;
+export interface HouseSnapshot<TGroup> {
+  views: Record<HouseViewType, TGroup[]>;
   sideMappings: Record<HouseSide, HouseViewType | null>;
 }

@@ -5,7 +5,7 @@ import type {HouseState} from '@/shared/types/house.ts';
 describe('in-memory house persistence', () => {
   it('stores and loads the current house state in memory', () => {
     const persistence = new InMemoryHousePersistence<unknown>();
-    const state: HouseState = {
+    const state: HouseState<unknown> = {
       id: 'house_1',
       houseType: 'tipo6',
       pilotis: {},

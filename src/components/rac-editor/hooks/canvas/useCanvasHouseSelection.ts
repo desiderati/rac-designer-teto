@@ -1,6 +1,11 @@
 import {RefObject, useEffect, useRef} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
-import {PILOTI_MASTER_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/components/rac-editor/lib/canvas';
+import {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import {
+  CanvasGroup, getCanvasGroupObjects,
+  isCanvasGroup,
+  PILOTI_MASTER_STROKE_COLOR,
+  PILOTI_STROKE_COLOR
+} from '@/components/rac-editor/lib/canvas';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
 
 interface UseCanvasHouseSelectionArgs {
@@ -24,9 +29,11 @@ export function useCanvasHouseSelection({
 
     if (wasOpen && !isAnyEditorOpen && fabricCanvasRef.current) {
       const canvas = fabricCanvasRef.current;
-      canvas.getObjects().forEach((item: any) => {
+      canvas.getObjects()
+        .filter((o): o is CanvasGroup  => isCanvasGroup(o))
+        .forEach((item) => {
         if (item.myType === 'house') {
-          item.getObjects().forEach((child: any) => {
+          getCanvasGroupObjects(item).forEach(child => {
             if (child.isPilotiCircle) {
               if (child.pilotiIsMaster) {
                 child.set({

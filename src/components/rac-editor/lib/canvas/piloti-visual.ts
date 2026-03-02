@@ -11,6 +11,7 @@ import {
   createDiagonalStripePattern,
   formatNivel,
   formatPilotiHeight,
+  getCanvasGroupObjects,
   PILOTI_BASE_HEIGHT_PX,
   PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
   PILOTI_MASTER_FILL_COLOR,
@@ -93,7 +94,7 @@ export function createNivelLabelBackgroundPatch(): { backgroundColor: string } {
 
 // Apply current piloti data to a group (when creating a new view)
 export function applyPilotiDataToGroup(group: CanvasGroup, pilotis: Record<string, HousePiloti>): void {
-  const canvasObjects = group.getCanvasObjects();
+  const canvasObjects = getCanvasGroupObjects(group);
   const pilotiObjectIndex = buildPilotiObjectIndex(canvasObjects);
 
   applyPilotiDataFirstPass(canvasObjects, pilotiObjectIndex, pilotis);
@@ -354,7 +355,7 @@ export function syncPilotiUpdateAcrossViews(
   pilotiId: string,
   pilotis: Record<string, HousePiloti>,
   pilotiData: Partial<HousePiloti>,
-  views: HouseViews,
+  views: HouseViews<CanvasGroup>,
   clearedMasters: string[],
 ): void {
   Object.values(views).forEach((instances) => {

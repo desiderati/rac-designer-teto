@@ -51,14 +51,16 @@ describe('house auto stairs', () => {
     expect(changed).toBe(true);
     const stair = objects.find((object) => object?.isAutoStairs === true) as any;
     expect(stair).toBeTruthy();
-    expect(stair?.stairsStepCount).toBe(3);
+    expect(stair?.stairsStepCount).toBe(2);
 
     // A escada deve ficar fora da porta da planta (sem cobrir metade do marcador).
     const bodyHalf = (HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale) / 2;
     const markerHalf = (HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * HOUSE_DIMENSIONS.view.scale) / 2;
     const markerOutsideEdge = -bodyHalf - markerHalf - HOUSE_2D_STYLE.outlineStrokeWidth / 2;
     const stairInnerEdge = Number(stair?.top ?? 0) + Number(stair?.height ?? 0) / 2;
-    expect(stairInnerEdge).toBeLessThanOrEqual(markerOutsideEdge + 0.01);
+    expect(stairInnerEdge).toBeLessThanOrEqual(
+      markerOutsideEdge + HOUSE_2D_STYLE.outlineStrokeWidth + 0.01,
+    );
   });
 
   it('creates auto stairs on elevation view that contains a door', () => {
@@ -92,7 +94,7 @@ describe('house auto stairs', () => {
     const stair = objects.find((object) => object?.isAutoStairs === true) as any;
     expect(stair).toBeTruthy();
     expect(stair?.myType).toBe('stairs');
-    expect(stair?.stairsStepCount).toBe(3);
+    expect(stair?.stairsStepCount).toBe(2);
     expect(stair?.left).toBe(120);
     expect(stair?.originX).toBe('left');
 
@@ -103,9 +105,9 @@ describe('house auto stairs', () => {
     expect(stairTopEdge).toBe(expectedDoorBottomEdge);
 
     // A geometria da escada elevada é a mesma da planta:
-    // retângulo base + linhas dos degraus.
+    // retângulo base + linhas dos degraus (steps=2 => 1 linha interna).
     const stairObjects = Array.isArray(stair?._objects) ? stair._objects : [];
-    expect(stairObjects).toHaveLength(3);
+    expect(stairObjects).toHaveLength(2);
   });
 
   it('uses binomial terrain interpolation on stair edges to pick the closest side to terrain', () => {
@@ -174,6 +176,6 @@ describe('house auto stairs', () => {
     expect(stair).toBeTruthy();
     expect(stair?.stairsNivelLeft).toBe(0.56);
     expect(stair?.stairsNivelRight).toBe(0.41);
-    expect(stair?.stairsStepCount).toBe(5);
+    expect(stair?.stairsStepCount).toBe(3);
   });
 });

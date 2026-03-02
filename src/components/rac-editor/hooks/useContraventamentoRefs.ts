@@ -1,7 +1,7 @@
 import {RefObject, useEffect, useRef} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
+import {Canvas as FabricCanvas, FabricObject} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
-import {isCanvasGroup} from "@/components/rac-editor/lib/canvas";
+import {getCanvasGroupObjects, isCanvasGroup} from "@/components/rac-editor/lib/canvas";
 
 interface ContraventamentoRefs {
   isContraventamentoMode: boolean;
@@ -59,16 +59,17 @@ export function useContraventamentoRefs({
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
 
-    canvas.getObjects().forEach((item: any) => {
+    canvas.getObjects().forEach((item: FabricObject) => {
       if (!isCanvasGroup(item) || item.myType !== 'house' || item.houseView === 'top') return;
-      item.getObjects().forEach((child: any) => {
+
+      getCanvasGroupObjects(item).forEach(child => {
         if (!child.isPilotiRect) return;
         if (child.pilotiIsMaster) {
           child.set({stroke: PILOTI_MASTER_STYLE.strokeColor, strokeWidth: PILOTI_MASTER_STYLE.strokeWidth});
         } else {
           child.set({stroke: PILOTI_STYLE.strokeColor, strokeWidth: PILOTI_STYLE.strokeWidthTopView});
         }
-        (child as any).dirty = true;
+        child.dirty = true;
       });
     });
 

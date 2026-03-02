@@ -12,7 +12,8 @@ export function TerrainPreviewIcon({className}: TerrainPreviewIconProps) {
       aria-hidden='true'
     >
       <defs>
-        <pattern id='terrain-piloti-hatch' width='4' height='4' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'>
+        <pattern id='terrain-piloti-hatch' width='4' height='4' patternUnits='userSpaceOnUse'
+                 patternTransform='rotate(45)'>
           <line x1='0' y1='0' x2='0' y2='4' stroke='#9aa0a6' strokeWidth='1'/>
         </pattern>
       </defs>

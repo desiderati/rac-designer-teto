@@ -1,6 +1,11 @@
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CanvasGroup, getAllPilotiIds, isCanvasGroup,} from '@/components/rac-editor/lib/canvas/index.ts';
+import {
+  CanvasGroup,
+  getAllPilotiIds,
+  getCanvasGroupObjects,
+  isCanvasGroup
+} from '@/components/rac-editor/lib/canvas/index.ts';
 import {RebuildViewSource} from '@/shared/types/house-rebuild.ts';
 
 export interface RebuildPilotiSourceObject {
@@ -116,7 +121,7 @@ export function collectHouseGroupPilotiSources<TGroup extends CanvasGroup>(
   objects: TGroup[],
 ): RebuildPilotiSource[] {
   return collectHouseGroupCandidates(objects).map((group) => ({
-    objects: group.getCanvasObjects(),
+    objects: getCanvasGroupObjects(group),
   }));
 }
 

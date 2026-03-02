@@ -8,7 +8,13 @@ import {
   calculateTopDoorPlacement,
   resolveTopDoorMarkerSide
 } from '@/components/rac-editor/lib/house-top-view-door-marker.ts';
-import {CanvasGroup, CanvasObject, toCanvasGroup, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {
+  CanvasGroup,
+  CanvasObject,
+  getCanvasGroupObjects,
+  toCanvasGroup,
+  toCanvasObject
+} from '@/components/rac-editor/lib/canvas/canvas.ts';
 import {PILOTI_DEFAULT_NIVEL, resolveDoorSideCornerIds} from "@/components/rac-editor/lib/canvas";
 
 // Largura base da escada.
@@ -88,7 +94,7 @@ function refreshTopViewAutoStairs(params: {
     rightId: corners.rightId,
   });
 
-  const runtimeBody = group.getCanvasObjects().find(
+  const runtimeBody = getCanvasGroupObjects(group).find(
     (object) => object?.isHouseBody
   );
   if (!runtimeBody) return hasChanges;
@@ -179,7 +185,7 @@ function refreshElevationViewsAutoStairs(params: {
     const removed = removeAutoStairsFromGroup(group);
     if (removed) hasChanges = true;
 
-    const runtimeDoor = group.getCanvasObjects().find(object => object?.isHouseDoor);
+    const runtimeDoor = getCanvasGroupObjects(group).find(object => object?.isHouseDoor);
     if (!runtimeDoor) continue;
 
     const corners = resolveElevationCornerIds(group);
@@ -244,7 +250,7 @@ function removeAutoStairsFromGroup(group: CanvasGroup): boolean {
     return true;
   }
 
-  const current = group.getCanvasObjects();
+  const current = getCanvasGroupObjects(group);
   const toRemove =
     current.filter((object) => object?.isAutoStairs === true);
   if (!toRemove.length) return false;
@@ -343,7 +349,7 @@ function clamp01(value: number): number {
 }
 
 function resolvePilotiCenterX(group: CanvasGroup, pilotiId: string): number | null {
-  const piloti = group.getCanvasObjects().find((object) => {
+  const piloti = getCanvasGroupObjects(group).find((object) => {
     return object?.isPilotiRect === true && object?.pilotiId === pilotiId;
   }) ?? null;
   if (!piloti) return null;

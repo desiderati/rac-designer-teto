@@ -1,6 +1,6 @@
 import {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 
 interface ConfirmDialogModalProps {
@@ -29,6 +29,8 @@ export function ConfirmDialogModal({
   handleCancel,
 }: ConfirmDialogModalProps) {
   const hasTitle = Boolean(title?.trim());
+  const dialogDescription =
+    description?.trim() || 'Janela de confirmação. Você pode confirmar ou cancelar.';
 
   const modalBody =
     content ?? <p className='text-sm text-muted-foreground'>{description}</p>;
@@ -62,8 +64,16 @@ export function ConfirmDialogModal({
           {hasTitle &&
             <DialogHeader className='text-center'>
               <DialogTitle className='text-center text-2xl'>{title}</DialogTitle>
+              <DialogDescription className='sr-only'>
+                {dialogDescription}
+              </DialogDescription>
             </DialogHeader>
           }
+          {!hasTitle && (
+            <DialogDescription className='sr-only'>
+              {dialogDescription}
+            </DialogDescription>
+          )}
           {mainCard}
           {actionButtons()}
         </DialogContent>

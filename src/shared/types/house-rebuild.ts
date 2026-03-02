@@ -1,5 +1,4 @@
 import {HouseViewInstance, HouseViews, HouseViewType} from '@/shared/types/house.ts';
-import {CanvasGroup} from "@/components/rac-editor/lib/canvas";
 
 export interface RebuildGroupMetadata {
   houseInstanceId?: string;
@@ -10,7 +9,7 @@ export interface RebuildGroupMetadata {
   isRightSide?: boolean;
 }
 
-export interface RebuildViewSource<TGroup extends CanvasGroup> {
+export interface RebuildViewSource<TGroup> {
   group: TGroup;
   metadata: RebuildGroupMetadata;
 }

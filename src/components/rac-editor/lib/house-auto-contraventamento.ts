@@ -3,6 +3,7 @@ import {
   addContraventamentoBeam,
   CanvasGroup,
   CanvasObject,
+  getCanvasGroupObjects,
   isPilotiOutOfProportion,
   parsePilotiGridPosition,
   syncContraventamentoElevationViews
@@ -55,22 +56,21 @@ export function refreshAutoContraventamentoInAllViews(params: {
 /**
  * Atualiza os contraventamentos automáticos somente na vista superior informada.
  *
- * @param topGroup Grupo da vista superior.
+ * @param runtimeTopGroup Grupo da vista superior.
  * @param pilotis Estado atual dos pilotis.
  * @returns `true` quando houve inclusão/remoção de contraventamento automático.
  */
 function refreshAutoContraventamentoOnTopView(
-  topGroup: CanvasGroup,
+  runtimeTopGroup: CanvasGroup,
   pilotis: Record<string, HousePiloti>,
 ): boolean {
-  const runtimeTopGroup = topGroup as any;
   if (runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] === true) {
     return false;
   }
 
   // If this top view already has any contraventamento (manual/imported),
   // do not auto-manage it anymore.
-  if (topGroup.getCanvasObjects().some((object) => object?.isContraventamento === true)) {
+  if (getCanvasGroupObjects(runtimeTopGroup).some((object) => object?.isContraventamento === true)) {
     runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] = true;
     return false;
   }
@@ -82,10 +82,10 @@ function refreshAutoContraventamentoOnTopView(
     const requiredRows = rowsByCol.get(col) ?? [];
     if (requiredRows.length === 0) return;
 
-    const existingInColumn = getColumnContraventamentos(topGroup, col);
+    const existingInColumn = getColumnContraventamentos(runtimeTopGroup, col);
     if (existingInColumn.length > 0) return;
 
-    const side = resolveAutoContraventamentoSide(topGroup, col);
+    const side = resolveAutoContraventamentoSide(runtimeTopGroup, col);
     if (!side) return;
 
     const {anchorRow, targetRow} = resolveAutoContraventamentoRows({
@@ -94,7 +94,7 @@ function refreshAutoContraventamentoOnTopView(
       requiredRows,
     });
     const createdId = addContraventamentoBeam(
-      topGroup,
+      runtimeTopGroup,
       {col, row: anchorRow},
       {col, row: targetRow},
       {
@@ -108,8 +108,8 @@ function refreshAutoContraventamentoOnTopView(
   });
 
   if (hasChanges) {
-    (topGroup as any).dirty = true;
-    topGroup.setCoords();
+    runtimeTopGroup.dirty = true;
+    runtimeTopGroup.setCoords();
   }
 
   runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] = true;
@@ -157,7 +157,7 @@ function collectRowsRequiringAutoContraventamentoByColumn(
  * @returns Lista de objetos de contraventamento da coluna.
  */
 function getColumnContraventamentos(group: CanvasGroup, col: number): CanvasObject[] {
-  return group.getCanvasObjects().filter(object => {
+  return getCanvasGroupObjects(group).filter(object => {
     if (!object?.isContraventamento) return false;
     return resolveContraventamentoColumn(object) === col;
   });
@@ -204,7 +204,7 @@ function resolveContraventamentoColumn(object: CanvasObject): number | null {
  */
 function resolveAutoContraventamentoSide(group: CanvasGroup, col: number): ContraventamentoSide | null {
   const occupied = collectOccupiedContraventamentoSides({
-    objects: group.getCanvasObjects(),
+    objects: getCanvasGroupObjects(group),
     col,
     onResolvedSide: (object, side) => {
       object.contraventamentoSide = side;
