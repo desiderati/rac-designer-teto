@@ -1,10 +1,10 @@
 import {Canvas as FabricCanvas} from 'fabric';
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '../../constants.ts';
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
-import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
-  const objs = canvas.getObjects() as CanvasObject[];
+  const objs = canvas.getObjects().map(o => toCanvasObject(o));
 
   // Find the top view (plant view) group
   const topViewGroup = objs.find((o) => o.myType === 'house' && o.houseView === 'top');

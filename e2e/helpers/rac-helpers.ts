@@ -1,7 +1,7 @@
 import {expect, Page} from '@playwright/test';
 import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house';
-import {CanvasObjectSummary, CanvasPosition} from '../../src/components/lib/canvas';
-import {RacEditorUiState} from '../../src/components/lib/rac-editor';
+import {CanvasObjectSummary, CanvasPosition} from "../../src/components/rac-editor/lib/canvas";
+import {RacEditorUiState} from "../../src/components/rac-editor/lib/rac-editor";
 
 interface ActiveCanvasObjectSummary {
   type: string | null;

@@ -1,11 +1,10 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import {Group} from 'fabric';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {TutorialBalloonPosition} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 
@@ -74,7 +73,7 @@ export function useTutorialUiActions({
     markPilotiTutorialShown();
   }, [setTutorialPilotiPosition]);
 
-  const showPilotiTutorialIfNeeded = useCallback((house: Group) => {
+  const showPilotiTutorialIfNeeded = useCallback((house: CanvasGroup) => {
     if (isMobile) return;
     if (isPilotiTutorialShown()) return;
 
@@ -82,18 +81,15 @@ export function useTutorialUiActions({
     if (!canvas) return;
 
     setTimeout(() => {
-      const objects = house.getObjects();
-      const pilotiA1 = objects.find((object) => {
-        const typedObject = toCanvasObject(object);
+      const objects = house.getCanvasObjects();
+      const typedPiloti = objects.find((typedObject) => {
         if (!typedObject) return false;
         return typedObject.pilotiId === PILOTI_CORNER_ID.topLeft && typedObject.isPilotiCircle === true;
       });
 
-      if (!pilotiA1) return;
+      if (!typedPiloti) return;
 
       const groupMatrix = house.calcTransformMatrix();
-      const typedPiloti = toCanvasObject(pilotiA1);
-      if (!typedPiloti) return;
       const pilotiLeft = typedPiloti.left || 0;
       const pilotiTop = typedPiloti.top || 0;
       const container = canvas.getElement().parentElement;

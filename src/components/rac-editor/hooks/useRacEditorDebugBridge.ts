@@ -175,7 +175,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
         const canvas = canvasRef.current?.canvas;
         if (!canvas) return null;
 
-        const activeObject = canvas.getActiveObject() as unknown as CanvasGroupObject | undefined;
+        const activeObject = canvas.getActiveObject() as CanvasGroupObject | undefined;
         if (!activeObject) return null;
 
         const children = activeObject.getObjects?.() ?? [];

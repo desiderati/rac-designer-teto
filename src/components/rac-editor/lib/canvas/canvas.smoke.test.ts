@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {canvasObjectProps, toCanvasChildrenObjects, toCanvasObject} from './canvas.ts';
-import {Group} from 'fabric';
+import {canvasObjectProps, toCanvasObject} from './canvas.ts';
 
 describe('canvas helpers', () => {
   it('handles null canvas object', () => {

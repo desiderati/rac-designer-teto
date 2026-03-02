@@ -1,5 +1,6 @@
 import {useCallback, useState} from 'react';
-import {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import {Canvas as FabricCanvas} from 'fabric';
+import {CanvasObject} from "@/components/rac-editor/lib/canvas";
 
 export interface MinimapObjectSnapshot {
   left: number;
@@ -17,7 +18,7 @@ export function useCanvasMinimapObjects() {
   const updateMinimapObjects = useCallback((canvas: FabricCanvas | null) => {
     if (!canvas) return;
 
-    const objects = canvas.getObjects().map((obj: FabricObject) => ({
+    const objects = canvas.getObjects().map((obj: CanvasObject) => ({
       left: Number(obj.left ?? 0) - (Number(obj.width ?? 0) * Number(obj.scaleX ?? 1)) / 2,
       top: Number(obj.top ?? 0) - (Number(obj.height ?? 0) * Number(obj.scaleY ?? 1)) / 2,
       width: Number(obj.width ?? 0) * Number(obj.scaleX ?? 1),

@@ -1,8 +1,13 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
+import {Canvas as FabricCanvas} from 'fabric';
 import {findTopViewGroupCandidate} from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {CanvasObject, ContraventamentoOrigin, parsePilotiGridPosition, toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {
+  CanvasGroup,
+  ContraventamentoOrigin,
+  isCanvasGroup,
+  parsePilotiGridPosition
+} from '@/components/rac-editor/lib/canvas';
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
@@ -23,23 +28,24 @@ export function useContraventamentoQueries({
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
 
-  const getTopViewGroup = useCallback((): Group | null => {
+  const getTopViewGroup = useCallback((): CanvasGroup | null => {
     const canvas = getCanvas();
     if (!canvas) return null;
 
-    return findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
+    return findTopViewGroupCandidate(
+      canvas.getObjects().filter(
+        (o) => isCanvasGroup(o)
+      )) as CanvasGroup | null;
   }, [getCanvas]);
 
-  const getNonTopViewGroups = useCallback((): Group[] => {
-    return houseManager.getAllGroups().filter(
-      (g) => toCanvasObject(g)?.houseView !== 'top'
-    );
+  const getNonTopViewGroups = useCallback((): CanvasGroup[] => {
+    return houseManager.getAllGroups().filter((g) => g?.houseView !== 'top');
   }, []);
 
   const getContraventamentoColumnSides =
-    useCallback((group: Group, col: number) => {
+    useCallback((group: CanvasGroup, col: number) => {
       return collectOccupiedContraventamentoSides({
-        objects: group.getObjects() as FabricObject[],
+        objects: group.getCanvasObjects(),
         col,
         onResolvedSide: (object, side) => {
           (object as ContraventamentoCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;

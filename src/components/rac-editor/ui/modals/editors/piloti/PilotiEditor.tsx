@@ -1,4 +1,3 @@
-import {Group} from 'fabric';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChevronLeft, faChevronRight} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
@@ -10,7 +9,7 @@ import {ContraventamentoSideIcon} from '@/components/rac-editor/ui/modals/editor
 import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
-import {formatPilotiHeight, PILOTI_DEFAULT_NIVEL} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, formatPilotiHeight, PILOTI_DEFAULT_NIVEL} from '@/components/rac-editor/lib/canvas';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
@@ -22,7 +21,7 @@ interface PilotiEditorProps {
   currentHeight: number;
   currentIsMaster?: boolean;
   currentNivel?: number;
-  group: Group | null;
+  group: CanvasGroup | null;
   isMobile: boolean;
   anchorPosition?: { x: number; y: number; };
   houseView?: 'top' | 'front' | 'back' | 'side';

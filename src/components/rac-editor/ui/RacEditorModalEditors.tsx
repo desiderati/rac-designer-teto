@@ -5,7 +5,10 @@ import type {
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {PilotiEditor} from '@/components/rac-editor/ui/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/ui/modals/editors/generic/GenericObjectEditor.tsx';
-import {HouseSideSelector, HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
+import {
+  HouseSideSelector,
+  HouseSideSelectorMode
+} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';

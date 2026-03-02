@@ -1,12 +1,12 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group, util as fabricUtil,} from 'fabric';
-import {CanvasObject, CanvasPointerPayload, toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
+import {CanvasObject, CanvasPointerPayload, isCanvasGroup, toCanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
 interface useContraventamentoEventsArgs {
   canvas: FabricCanvas;
   getEventPayload: (event: unknown) => CanvasPointerPayload;
-  handlePilotiSelection: (subTarget: FabricObject, target: FabricObject) => void;
+  handlePilotiSelection: (subTarget: CanvasObject, target: CanvasObject) => void;
   isContraventamentoMode: () => boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   onContraventamentoCancel: () => void;
@@ -44,18 +44,18 @@ export function useContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      if (!target || target.type !== 'group') {
+      if (!isCanvasGroup(target)) {
         cancelIfSelectingDestination();
         return;
       }
 
-      const group = target as Group;
-      if (toCanvasObject(group)?.houseView !== 'top') {
+      const group = toCanvasGroup(target);
+      if (group?.houseView !== 'top') {
         cancelIfSelectingDestination();
         return;
       }
 
-      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
+      const subTargets = payload.subTargets ?? [];
       const directPilotiTarget =
         subTargets.find(
           (subTarget) =>
@@ -80,9 +80,9 @@ export function useContraventamentoEvents() {
         invertedMatrix
       );
 
-      const objects = group.getObjects();
+      const objects = group.getCanvasObjects();
       for (let i = objects.length - 1; i >= 0; i--) {
-        const object = toCanvasObject(objects[i]);
+        const object = objects[i];
         if (!object || !(object.isPilotiCircle || object.isPilotiHitArea)) continue;
 
         const objectLeft = object.left || 0;
@@ -109,8 +109,8 @@ export function useContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
-      if (!target || target.type !== 'group' || toCanvasObject(target)?.houseView !== 'top') {
+      const subTargets = payload.subTargets ?? [];
+      if (toCanvasGroup(target)?.houseView !== 'top') {
         setCanvasCursor('default');
         return;
       }
@@ -134,7 +134,7 @@ export function useContraventamentoEvents() {
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
-      const subTargets = (payload.subTargets as CanvasObject[] | undefined) ?? [];
+      const subTargets = payload.subTargets ?? [];
       const pilotiTarget = subTargets.find((subTarget) =>
         subTarget.myType === 'piloti' || subTarget.myType === 'pilotiHitArea'
       );

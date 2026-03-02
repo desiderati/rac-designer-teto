@@ -16,7 +16,6 @@ import {
 } from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
 import {toast} from 'sonner';
 import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas';
 
 interface House3DViewerProps {
   open: boolean;
@@ -71,7 +70,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
     }
 
     const topGroup = house.views.top[0]?.group;
-    setContraventamentos(parseContraventamentosFromTopView(toCanvasObject(topGroup)));
+    setContraventamentos(parseContraventamentosFromTopView(topGroup));
   }, []);
 
   // Sync from global house state while the viewer is open

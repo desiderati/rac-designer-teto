@@ -1,5 +1,10 @@
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CanvasObject, formatPilotiHeight, getPilotiFromGroup, toCanvasObject} from '@/components/rac-editor/lib/canvas/index.ts';
+import {Canvas as FabricCanvas} from 'fabric';
+import {
+  CanvasGroup,
+  CanvasObject,
+  formatPilotiHeight,
+  getPilotiFromGroup
+} from '@/components/rac-editor/lib/canvas/index.ts';
 import {applyPilotiSelectionVisuals} from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
@@ -8,14 +13,14 @@ export interface PilotiCanvasSelection {
   currentIsMaster: boolean;
   currentHeight: number;
   currentNivel: number;
-  group: Group;
+  group: CanvasGroup;
   screenPosition: { x: number; y: number };
   houseView: 'top' | 'front' | 'back' | 'side';
 }
 
 interface BuildPilotiSelectionHandlerArgs {
   canvas: FabricCanvas;
-  isPilotiVisualTarget: (object: FabricObject | null | undefined) => object is CanvasObject;
+  isPilotiVisualTarget: (object: CanvasObject) => boolean;
   emitPilotiSelection: (selection: PilotiCanvasSelection | null) => void;
   emitSelectionChange: (hint: string) => void;
   isContraventamentoMode: () => boolean;
@@ -37,27 +42,25 @@ export function buildPilotiSelectionHandler({
   getCurrentScreenPoint,
 }: BuildPilotiSelectionHandlerArgs) {
 
-  return (subTarget: FabricObject, target: FabricObject) => {
-    const group = target as Group;
-    const runtimeSubTarget = toCanvasObject(subTarget);
+  return (runtimeSubTarget: CanvasObject, groupRuntime: CanvasGroup) => {
     const pilotiId = typeof runtimeSubTarget?.pilotiId === 'string' ? runtimeSubTarget.pilotiId : '';
     if (!pilotiId) return;
 
-    let piloti: FabricObject | null = null;
+    let piloti: CanvasObject = null;
     let pilotiHeight = DEFAULT_HOUSE_PILOTI.height;
     let pilotiIsMaster = DEFAULT_HOUSE_PILOTI.isMaster;
     let pilotiNivel = DEFAULT_HOUSE_PILOTI.nivel;
 
     if (runtimeSubTarget?.isPilotiHitArea) {
-      const pilotiData = getPilotiFromGroup(group, pilotiId);
+      const pilotiData = getPilotiFromGroup(groupRuntime, pilotiId);
       if (pilotiData) {
         piloti = pilotiData.circle;
         pilotiHeight = pilotiData.height;
         pilotiIsMaster = pilotiData.isMaster;
         pilotiNivel = pilotiData.nivel;
       }
-    } else if (isPilotiVisualTarget(subTarget)) {
-      piloti = subTarget;
+    } else if (isPilotiVisualTarget(runtimeSubTarget)) {
+      piloti = runtimeSubTarget;
       pilotiHeight = runtimeSubTarget?.pilotiHeight || DEFAULT_HOUSE_PILOTI.height;
       pilotiIsMaster = runtimeSubTarget?.pilotiIsMaster || false;
       pilotiNivel = runtimeSubTarget?.pilotiNivel ?? DEFAULT_HOUSE_PILOTI.nivel;
@@ -65,11 +68,9 @@ export function buildPilotiSelectionHandler({
 
     if (!piloti) return;
 
-    const groupRuntime = toCanvasObject(group);
-    if (
-      isContraventamentoMode() &&
-      groupRuntime?.houseView === 'top' &&
-      (runtimeSubTarget?.isPilotiCircle || runtimeSubTarget?.isPilotiHitArea)
+    if (isContraventamentoMode()
+      && groupRuntime?.houseView === 'top'
+      && (runtimeSubTarget?.isPilotiCircle || runtimeSubTarget?.isPilotiHitArea)
     ) {
       const eligible = isPilotiEligibleForContraventamento(pilotiId);
       if (!eligible) {
@@ -103,7 +104,7 @@ export function buildPilotiSelectionHandler({
       currentHeight: pilotiHeight,
       currentIsMaster: pilotiIsMaster,
       currentNivel: pilotiNivel,
-      group,
+      group: groupRuntime,
       screenPosition: screenPoint,
       houseView: normalizeHouseView(groupRuntime?.houseView),
     });

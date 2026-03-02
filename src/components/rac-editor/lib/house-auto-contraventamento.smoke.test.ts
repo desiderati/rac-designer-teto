@@ -27,7 +27,7 @@ describe('house auto contraventamento', () => {
     });
 
     expect(changed).toBe(true);
-    const contrav = group.getObjects().find((object: any) => object?.isContraventamento === true) as any;
+    const contrav = group.getCanvasObjects().find((object: any) => object?.isContraventamento === true) as any;
     expect(contrav).toBeTruthy();
     expect(contrav?.isAutoContraventamento).toBe(true);
     expect(contrav?.contraventamentoCol).toBe(2);
@@ -45,7 +45,7 @@ describe('house auto contraventamento', () => {
     });
 
     expect(changed).toBe(false);
-    expect(group.getObjects().find((object: any) => object?.isContraventamento === true)).toBeUndefined();
+    expect(group.getCanvasObjects().find((object: any) => object?.isContraventamento === true)).toBeUndefined();
   });
 
   it('não reaplica contraventamento automático após a inicialização da vista', () => {
@@ -60,10 +60,10 @@ describe('house auto contraventamento', () => {
     });
 
     expect(firstRun).toBe(true);
-    expect(group.getObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
+    expect(group.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
 
     // Simula o usuário removendo o contraventamento automático.
-    group._objects = group.getObjects().filter((object: any) => object?.isAutoContraventamento !== true);
+    group._objects = group.getCanvasObjects().filter((object: any) => object?.isAutoContraventamento !== true);
 
     const secondRun = refreshAutoContraventamentoInAllViews({
       pilotis: {
@@ -74,12 +74,12 @@ describe('house auto contraventamento', () => {
     });
 
     expect(secondRun).toBe(false);
-    expect(group.getObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(false);
+    expect(group.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(false);
   });
 
   it('mantém contraventamento manual sem duplicar com automático na mesma coluna', () => {
     const {group} = createMockGroup();
-    group.getObjects().push({
+    group.getCanvasObjects().push({
       isContraventamento: true,
       contraventamentoId: 'manual_col0',
       contraventamentoCol: 0,
@@ -95,8 +95,8 @@ describe('house auto contraventamento', () => {
     });
 
     expect(changed).toBe(false);
-    expect(group.getObjects()).toHaveLength(1);
-    expect(group.getObjects()[0]?.isAutoContraventamento).not.toBe(true);
+    expect(group.getCanvasObjects()).toHaveLength(1);
+    expect(group.getCanvasObjects()[0]?.isAutoContraventamento).not.toBe(true);
   });
 
   it('usa menor nível como origem, maior nível como destino e maior distância possível', () => {
@@ -113,7 +113,7 @@ describe('house auto contraventamento', () => {
     });
 
     expect(changed).toBe(true);
-    const contrav = group.getObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
+    const contrav = group.getCanvasObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
     expect(contrav).toBeTruthy();
     expect(contrav?.contraventamentoCol).toBe(1);
     expect(String(contrav?.contraventamentoAnchorPilotiId)).toBe('piloti_1_0');
@@ -135,7 +135,7 @@ describe('house auto contraventamento', () => {
     });
 
     expect(changed).toBe(true);
-    const contrav = group.getObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
+    const contrav = group.getCanvasObjects().find((object: any) => object?.isAutoContraventamento === true) as any;
     expect(contrav).toBeTruthy();
     expect(contrav?.contraventamentoCol).toBe(1);
     expect(contrav?.contraventamentoStartRow).toBe(0);

@@ -1,4 +1,4 @@
-import {ALL_HOUSE_VIEW_TYPES, HouseSide, HouseTypeExcludeNull, HouseViewType} from '@/shared/types/house.ts';
+import {ALL_HOUSE_VIEW_TYPES, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {
   RebuildGroupMetadata,
   RebuildNormalizedViewInstance,

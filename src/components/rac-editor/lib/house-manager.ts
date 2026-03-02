@@ -1,12 +1,12 @@
-import {Canvas as FabricCanvas, FabricImage, Group} from 'fabric';
+import {Canvas as FabricCanvas, FabricImage} from 'fabric';
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  CanvasObject,
+  CanvasGroup,
   getAllPilotiIds,
+  isCanvasGroup,
   normalizeTerrainSolidityLevel,
   toCanvasGroup,
-  toCanvasObject,
   updateGroundTerrainType
 } from '@/components/rac-editor/lib/canvas';
 import {createHouseId, createViewInstanceId,} from '@/components/rac-editor/lib/house-identity.ts';
@@ -41,8 +41,8 @@ import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 class HouseManager {
 
-  private readonly persistence: HousePersistencePort<Group> = new InMemoryHousePersistence<Group>();
-  private houseAggregate: HouseAggregate<Group> | null = null;
+  private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistence<CanvasGroup>();
+  private houseAggregate: HouseAggregate<CanvasGroup> | null = null;
   private canvas: FabricCanvas | null = null;
 
   private listeners = new Set<() => void>();
@@ -50,7 +50,7 @@ class HouseManager {
   constructor() {
     let persisted = this.persistence.load();
     if (!persisted) {
-      persisted = HouseAggregate.createInitialHouseState<Group>({
+      persisted = HouseAggregate.createInitialHouseState<CanvasGroup>({
         id: createHouseId(),
         pilotiIds: getAllPilotiIds(),
         defaultPiloti: DEFAULT_HOUSE_PILOTI,
@@ -68,11 +68,11 @@ class HouseManager {
     this.listeners.add(() => this.refreshAutoStairs());
   }
 
-  private get house(): HouseState<Group> | null {
+  private get house(): HouseState<CanvasGroup> | null {
     return this.houseAggregate?.toState() ?? null;
   }
 
-  private set house(nextHouse: HouseState<Group> | null) {
+  private set house(nextHouse: HouseState<CanvasGroup> | null) {
     this.houseAggregate = nextHouse ? HouseAggregate.fromState(nextHouse) : null;
     this.persistence.save(nextHouse);
   }
@@ -140,7 +140,7 @@ class HouseManager {
   }
 
   reset(): void {
-    this.house = HouseAggregate.createInitialHouseState<Group>({
+    this.house = HouseAggregate.createInitialHouseState<CanvasGroup>({
       id: createHouseId(),
       pilotiIds: getAllPilotiIds(),
       defaultPiloti: DEFAULT_HOUSE_PILOTI,
@@ -221,15 +221,15 @@ class HouseManager {
     return aggregate.hasOtherViews();
   }
 
-  getHouse(): HouseState<Group> | null {
+  getHouse(): HouseState<CanvasGroup> | null {
     return this.house;
   }
 
-  private getHouseAggregate(): HouseAggregate<Group> | null {
+  private getHouseAggregate(): HouseAggregate<CanvasGroup> | null {
     return this.houseAggregate;
   }
 
-  private isGroupOnCanvas(group: Group): boolean {
+  private isGroupOnCanvas(group: CanvasGroup): boolean {
     if (!this.canvas) return false;
     return this.canvas.getObjects().includes(group);
   }
@@ -237,7 +237,8 @@ class HouseManager {
   private cleanupStaleViews(viewType: HouseViewType): void {
     const aggregate = this.getHouseAggregate();
     if (!aggregate) return;
-    const removedCount = aggregate.cleanupStaleViews(viewType, (group) => this.isGroupOnCanvas(group));
+    const removedCount =
+      aggregate.cleanupStaleViews(viewType, (group) => this.isGroupOnCanvas(group));
     if (removedCount > 0) {
       this.persistHouse();
     }
@@ -270,7 +271,7 @@ class HouseManager {
   }
 
   // Register a view with its group and side
-  registerView(viewType: HouseViewType, group: Group, side?: HouseSide): void {
+  registerView(viewType: HouseViewType, group: CanvasGroup, side?: HouseSide): void {
     const aggregate = this.getHouseAggregate();
     if (!aggregate || !this.house) return;
 
@@ -278,14 +279,14 @@ class HouseManager {
 
     // Mark the group with its view type and instance ID for later identification.
     Object.assign(
-      toCanvasGroup(group),
+      group,
       createViewGroupMetadataPatch<HouseViewType, HouseSide>({
         viewType,
         instanceId,
         side,
       }),
     );
-    (toCanvasGroup(group) as any).groundTerrainType = this.getTerrainType();
+    group.groundTerrainType = this.getTerrainType();
 
     // Apply current piloti data to the new group
     applyPilotiDataToGroup(group, this.house.pilotis);
@@ -307,9 +308,8 @@ class HouseManager {
     const aggregate = this.getHouseAggregate();
     if (!this.canvas || !this.house || !aggregate) return;
 
-    const canvasGroups = this.canvas
-      .getObjects()
-      .filter((object): object is Group & CanvasObject => object.type === 'group');
+    const canvasGroups = this.canvas.getObjects()
+      .filter((object): object is CanvasGroup => isCanvasGroup(object));
 
     const rebuildSources =
       collectHouseGroupRebuildSources(canvasGroups).map((source) =>
@@ -321,7 +321,7 @@ class HouseManager {
 
     rebuilt.normalizedItems.forEach((item) => {
       Object.assign(
-        toCanvasGroup(item.group),
+        item.group,
         createViewGroupMetadataPatch<HouseViewType, HouseSide>({
           viewType: item.viewType as HouseViewType,
           instanceId: item.instanceId,
@@ -350,7 +350,7 @@ class HouseManager {
 
     // Re-apply current piloti data to normalized groups after restore.
     this.getAllGroups().forEach((group) => {
-      (toCanvasGroup(group) as any).groundTerrainType = this.getTerrainType();
+      group.groundTerrainType = this.getTerrainType();
       applyPilotiDataToGroup(group, this.house.pilotis);
     });
 
@@ -358,13 +358,13 @@ class HouseManager {
   }
 
   // Remove a view (when deleted from canvas)
-  removeView(group: Group): void {
+  removeView(group: CanvasGroup): void {
     const aggregate = this.getHouseAggregate();
     if (!aggregate) return;
 
     const hints = extractViewGroupRemovalHints<HouseViewType>({
-      houseViewType: toCanvasGroup(group).houseViewType,
-      houseInstanceId: toCanvasGroup(group).houseInstanceId,
+      houseViewType: group.houseViewType,
+      houseInstanceId: group.houseInstanceId,
     });
 
     const removedWithHint = aggregate.removeView({
@@ -440,7 +440,7 @@ class HouseManager {
   }
 
   // Get all registered groups
-  getAllGroups(): Group[] {
+  getAllGroups(): CanvasGroup[] {
     const aggregate = this.getHouseAggregate();
     if (!aggregate && !this.house) return [];
     return aggregate.collectAllViewGroups(this.house.views);
@@ -452,7 +452,8 @@ class HouseManager {
     if (!dataUrl) return false;
 
     try {
-      const image = await FabricImage.fromURL(dataUrl, {crossOrigin: 'anonymous'});
+      const image =
+        await FabricImage.fromURL(dataUrl, {crossOrigin: 'anonymous'});
       const canvas = this.canvas;
       const center = canvas.getVpCenter();
 
@@ -527,10 +528,9 @@ class HouseManager {
   }
 
   private resolveTerrainTypeFromCanvasFallback(): number {
-    const fromCanvas = this.canvas
-      ?.getObjects()
-      .find((object): object is Group & CanvasObject => {
-        const runtime = toCanvasObject(object);
+    const fromCanvas = this.canvas?.getObjects()
+      .find((object): object is CanvasGroup => {
+        const runtime = toCanvasGroup(object);
         return (
           runtime.myType === 'house'
           && runtime.houseView !== 'top'
@@ -538,7 +538,7 @@ class HouseManager {
         );
       });
 
-    const terrainFromCanvas = Number((fromCanvas as CanvasObject | undefined)?.groundTerrainType);
+    const terrainFromCanvas = Number(fromCanvas?.groundTerrainType);
     if (Number.isFinite(terrainFromCanvas)) {
       return normalizeTerrainSolidityLevel(terrainFromCanvas);
     }

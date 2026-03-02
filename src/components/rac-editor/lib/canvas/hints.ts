@@ -1,12 +1,11 @@
-import {FabricObject} from 'fabric';
-import {CanvasObject} from './canvas.ts';
+import {CanvasObject, isCanvasGroup} from './canvas.ts';
 
-export function getHintForObject(obj: FabricObject | null): string {
+export function getHintForObject(obj: CanvasObject | null): string {
   if (!obj) {
     return 'Dica: Selecione uma ferramenta. (Ctrl+C Copiar, Ctrl+V Colar, Ctrl+Z Desfazer)';
   }
 
-  const myType = (obj as CanvasObject).myType;
+  const myType = obj.myType;
 
   switch (myType) {
     case 'house':
@@ -44,7 +43,7 @@ export function getHintForObject(obj: FabricObject | null): string {
         return '<b>Texto:</b> Clique duas vezes para editar.';
       } else if (obj.type === 'activeSelection') {
         return 'Múltiplos itens selecionados. Use "Bloquear" para Agrupar.';
-      } else if (obj.type === 'group') {
+      } else if (isCanvasGroup(obj)) {
         return '<b>Grupo:</b> Use "Desbloquear" para editar partes.';
       }
       return 'Objeto selecionado.';

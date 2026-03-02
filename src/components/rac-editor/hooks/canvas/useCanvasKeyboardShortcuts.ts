@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, IText} from 'fabric';
+import {Canvas as FabricCanvas, IText} from 'fabric';
+import {CanvasObject} from "@/components/rac-editor/lib/canvas";
 
 interface BindKeyboardShortcutsArgs {
   canvas: FabricCanvas;
@@ -66,24 +67,25 @@ export function useCanvasKeyboardShortcuts() {
       }
     };
 
-    const handleObjectRotating = (event: { target?: FabricObject | null }) => {
-      const object = event.target ?? null;
-      if (!object) return;
+    const handleObjectRotating =
+      (event: { target?: CanvasObject | null }) => {
+        const object = event.target ?? null;
+        if (!object) return;
 
-      const snapAngle = 10;
-      let angle = (object.angle || 0) % 360;
-      if (angle < 0) angle += 360;
+        const snapAngle = 10;
+        let angle = (object.angle || 0) % 360;
+        if (angle < 0) angle += 360;
 
-      if (angle < snapAngle || angle > 360 - snapAngle) {
-        object.angle = 0;
-      } else if (Math.abs(angle - 90) < snapAngle) {
-        object.angle = 90;
-      } else if (Math.abs(angle - 180) < snapAngle) {
-        object.angle = 180;
-      } else if (Math.abs(angle - 270) < snapAngle) {
-        object.angle = 270;
-      }
-    };
+        if (angle < snapAngle || angle > 360 - snapAngle) {
+          object.angle = 0;
+        } else if (Math.abs(angle - 90) < snapAngle) {
+          object.angle = 90;
+        } else if (Math.abs(angle - 180) < snapAngle) {
+          object.angle = 180;
+        } else if (Math.abs(angle - 270) < snapAngle) {
+          object.angle = 270;
+        }
+      };
 
     window.addEventListener('keydown', handleKeyDown);
     canvas.on('object:rotating', handleObjectRotating);

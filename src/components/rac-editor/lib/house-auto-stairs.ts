@@ -179,9 +179,7 @@ function refreshElevationViewsAutoStairs(params: {
     const removed = removeAutoStairsFromGroup(group);
     if (removed) hasChanges = true;
 
-    const runtimeDoor = group.getCanvasObjects().find(
-      object => object?.isHouseDoor
-    ) as CanvasObject | undefined;
+    const runtimeDoor = group.getCanvasObjects().find(object => object?.isHouseDoor);
     if (!runtimeDoor) continue;
 
     const corners = resolveElevationCornerIds(group);
@@ -256,16 +254,15 @@ function removeAutoStairsFromGroup(group: CanvasGroup): boolean {
 }
 
 function applyStairMetrics(
-  object: FabricObject,
+  canvasGroup: CanvasGroup,
   metrics: StairMetrics,
 ): void {
-  const runtime = toCanvasObject(object)!;
-  runtime.myType = 'stairs';
-  runtime.isAutoStairs = true;
-  runtime.stairsStepCount = metrics.steps;
-  runtime.stairsHeight = metrics.stairHeight;
-  runtime.stairsNivelLeft = metrics.leftNivel;
-  runtime.stairsNivelRight = metrics.rightNivel;
+  canvasGroup.myType = 'stairs';
+  canvasGroup.isAutoStairs = true;
+  canvasGroup.stairsStepCount = metrics.steps;
+  canvasGroup.stairsHeight = metrics.stairHeight;
+  canvasGroup.stairsNivelLeft = metrics.leftNivel;
+  canvasGroup.stairsNivelRight = metrics.rightNivel;
 }
 
 function resolveElevationCornerIds(group: CanvasGroup): { leftId: string; rightId: string } | null {
@@ -536,8 +533,9 @@ function createStripedTopStair(params: {
     evented: false,
     objectCaching: false,
   });
-  applyStairMetrics(group, params.metrics);
-  return toCanvasGroup(group);
+  const canvasGroup = toCanvasGroup(group);
+  applyStairMetrics(canvasGroup, params.metrics);
+  return canvasGroup;
 }
 
 function resolveStepDepthPx(scale: number): number {

@@ -107,10 +107,25 @@ type CanvasProperties = {
 
 export type CanvasGroup = FabricGroup & CanvasProperties;
 
+export function isCanvasGroup(
+  object: FabricGroup | CanvasObject | null | undefined
+): object is CanvasGroup {
+  if (!object || typeof object !== 'object') return false;
+
+  const candidate = object as { type?: unknown; getObjects?: unknown };
+  return object instanceof FabricGroup
+    || candidate.type === 'group'
+    || typeof candidate.getObjects === 'function';
+}
+
 export function toCanvasGroup(object: FabricGroup): CanvasGroup;
+export function toCanvasGroup(object: CanvasObject): CanvasGroup | null;
 export function toCanvasGroup(object: null | undefined): null;
-export function toCanvasGroup(object: FabricGroup | null | undefined): CanvasGroup | null {
+export function toCanvasGroup(object: FabricGroup | CanvasObject | null | undefined): CanvasGroup | null {
   if (!object) return null;
+
+  const isGroup = isCanvasGroup(object)
+  if (!isGroup) return null;
 
   // Normalize helper expected by house-related flows even when the source
   // group is a plain Fabric Group instance (e.g. after import/restore).
@@ -118,10 +133,10 @@ export function toCanvasGroup(object: FabricGroup | null | undefined): CanvasGro
   if (typeof canvasGroup.getCanvasObjects !== 'function') {
     canvasGroup.getCanvasObjects = () => {
       if (typeof canvasGroup.getObjects === 'function') {
-        return canvasGroup.getObjects() as CanvasObject[];
+        return canvasGroup.getObjects().map(o => toCanvasObject(o));
       }
       const internalObjects = canvasGroup._objects;
-      return Array.isArray(internalObjects) ? (internalObjects as CanvasObject[]) : [];
+      return Array.isArray(internalObjects) ? internalObjects.map(o => toCanvasObject(o)) : [];
     };
   }
 
@@ -218,8 +233,8 @@ export interface CanvasObjectSummary {
 export type CanvasMouseEvent = MouseEvent | PointerEvent | TouchEvent;
 
 export interface CanvasPointerPayload {
-  target?: FabricObject | null;
-  subTargets?: FabricObject[];
+  target?: CanvasGroup | CanvasObject | null;
+  subTargets?: CanvasObject[];
   e?: CanvasMouseEvent;
 }
 

@@ -1,8 +1,8 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject} from 'fabric';
+import {Canvas as FabricCanvas} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {toCanvasScreenPoint} from '@/components/rac-editor/lib/canvas/canvas-screen-position.ts';
-import {CANVAS_HEIGHT, CANVAS_WIDTH, getElementStrategy,} from '@/components/rac-editor/lib/canvas';
+import {CANVAS_HEIGHT, CANVAS_WIDTH, CanvasObject, getElementStrategy,} from '@/components/rac-editor/lib/canvas';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {TIMINGS} from '@/shared/config.ts';
@@ -11,7 +11,7 @@ interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
   getCanvas: () => FabricCanvas | null;
   getVisibleCenter: () => { x: number; y: number };
-  addObjectToCanvas: (object: FabricObject) => void;
+  addObjectToCanvas: (object: CanvasObject) => void;
   closeAllMenus: () => void;
   disableDrawingMode: () => void;
   isDrawing: boolean;
@@ -38,7 +38,7 @@ export function useCanvasTools({
 }: UseCanvasToolsArgs) {
 
   const showTutorialBalloon =
-    useCallback((object: FabricObject, text: string) => {
+    useCallback((object: CanvasObject, text: string) => {
 
       const canvas = canvasRef.current?.canvas;
       if (!canvas) return;
@@ -59,7 +59,7 @@ export function useCanvasTools({
     }, [canvasRef, setTutorialBalloon]);
 
   const addCanvasObject = useCallback((
-    factory: (canvas: FabricCanvas) => FabricObject,
+    factory: (canvas: FabricCanvas) => CanvasObject,
     tutorial?: TutorialConfig,
   ) => {
     closeAllMenus();

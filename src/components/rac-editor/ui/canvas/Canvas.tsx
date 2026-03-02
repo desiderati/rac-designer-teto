@@ -1,6 +1,6 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {Canvas as FabricCanvas} from 'fabric';
+import {CANVAS_HEIGHT, CANVAS_WIDTH, CanvasGroup, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {useCanvasClipboard} from '@/components/rac-editor/hooks/canvas/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
@@ -14,12 +14,12 @@ import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useC
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
 
 export interface ContraventamentoCanvasSelection {
+  group: CanvasGroup;
   contraventamentoId: string;
-  group: Group;
 }
 
 export interface WallCanvasSelection {
-  object: FabricObject;
+  object: CanvasGroup;
   currentLabel: string;
   screenPosition: { x: number; y: number };
 }
@@ -27,7 +27,7 @@ export interface WallCanvasSelection {
 export type LinearCanvasSelectionType = 'line' | 'arrow' | 'distance';
 
 export interface LinearCanvasSelection {
-  object: FabricObject;
+  object: CanvasGroup;
   myType: LinearCanvasSelectionType;
   currentLabel: string;
   currentColor: string;
@@ -35,7 +35,7 @@ export interface LinearCanvasSelection {
 }
 
 export interface TerrainCanvasSelection {
-  group: Group;
+  group: CanvasGroup;
   terrainType: number;
   screenPosition: { x: number; y: number };
 }

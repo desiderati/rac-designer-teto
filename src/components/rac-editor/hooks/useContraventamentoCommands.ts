@@ -1,15 +1,14 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import {Group} from 'fabric';
 import {toast} from 'sonner';
 import {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {
   addContraventamentoBeam,
+  CanvasGroup,
   ContraventamentoOrigin,
   parsePilotiGridPosition,
   PilotiCanvasSelection,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
-  toCanvasObject,
 } from '@/components/rac-editor/lib/canvas';
 import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
@@ -29,9 +28,9 @@ import {
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
-  getTopViewGroup: () => Group | null;
-  getNonTopViewGroups: () => Group[];
-  getContraventamentoColumnSides: (group: Group, col: number) => {
+  getTopViewGroup: () => CanvasGroup | null;
+  getNonTopViewGroups: () => CanvasGroup[];
+  getContraventamentoColumnSides: (group: CanvasGroup, col: number) => {
     left: boolean;
     right: boolean;
   };
@@ -121,7 +120,7 @@ export function useContraventamentoCommands({
     topGroup.canvas?.requestRenderAll();
   }, [getNonTopViewGroups, getTopViewGroup]);
 
-  const clearContraventamentoSelection = useCallback((group?: Group | null) => {
+  const clearContraventamentoSelection = useCallback((group?: CanvasGroup | null) => {
     if (group) {
       resetHighlightContraventamentoPilotis(group);
     }
@@ -219,8 +218,7 @@ export function useContraventamentoCommands({
       const occupiedSides = getContraventamentoColumnSides(topGroup, col);
       if (occupiedSides[side]) {
         const removed =
-          removeContraventamentosFromTopView(topGroup, (obj) => {
-            const anyObj = toCanvasObject(obj);
+          removeContraventamentosFromTopView(topGroup, anyObj => {
             if (!anyObj) return false;
 
             if (Number(anyObj.contraventamentoCol) !== col) return false;

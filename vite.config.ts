@@ -31,7 +31,7 @@ export default defineConfig(async ({mode}) => {
       chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          manualChunks(id) {
+          manualChunks(id: string | string[]) {
             if (!id.includes('node_modules')) {
               return;
             }
@@ -61,7 +61,7 @@ export default defineConfig(async ({mode}) => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'html'],
-        include: ['src/domain/**', 'src/components/lib/**'],
+        include: ['src/domain/**', 'src/components/rac-editor/lib/**'],
         exclude: [
           '**/*.d.ts',
           '**/*.smoke.test.*',

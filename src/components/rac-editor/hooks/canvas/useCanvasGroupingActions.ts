@@ -1,7 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useState} from 'react';
-import {ActiveSelection, Canvas as FabricCanvas, Group} from 'fabric';
+import {ActiveSelection, Canvas as FabricCanvas, Group as FabricGroup} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {toCanvasGroup} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, isCanvasGroup, toCanvasGroup} from '@/components/rac-editor/lib/canvas';
 
 interface UseCanvasGroupingActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -16,9 +16,9 @@ export function useCanvasGroupingActions({
   setInfoMessage,
   setShowUngroupConfirm,
 }: UseCanvasGroupingActionsArgs) {
-  const [groupToUngroup, setGroupToUngroup] = useState<Group | null>(null);
+  const [groupToUngroup, setGroupToUngroup] = useState<CanvasGroup | null>(null);
 
-  const performUngroup = (group: Group) => {
+  const performUngroup = (group: CanvasGroup) => {
     const canvas = getCanvas();
     if (!canvas) return;
 
@@ -28,12 +28,13 @@ export function useCanvasGroupingActions({
       canvas.requestRenderAll();
       return;
     }
-
     canvas.add(...items);
+
     const selection = new ActiveSelection(items, {canvas});
     canvas.setActiveObject(selection);
     canvas.requestRenderAll();
     canvasRef.current?.saveHistory();
+
     setInfoMessage('Grupo macro desagrupado.');
   };
 
@@ -42,13 +43,13 @@ export function useCanvasGroupingActions({
     if (!canvas) return;
 
     const activeObject = canvas.getActiveObject();
-    if (!activeObject || activeObject.type !== 'group') {
+    if (!isCanvasGroup(activeObject)) {
       setInfoMessage('Selecione um grupo para desbloquear.');
       return;
     }
 
-    const group = activeObject as Group;
-    if (!toCanvasGroup(group)?.isMacroGroup) {
+    const group = toCanvasGroup(activeObject);
+    if (!group?.isMacroGroup) {
       setInfoMessage('Desagrupar só é permitido para grupos macro (objetos inteiros).');
       return;
     }
@@ -105,7 +106,7 @@ export function useCanvasGroupingActions({
     canvas.discardActiveObject();
     objects.forEach((object) => canvas.remove(object));
 
-    const group = new Group(objects, {
+    const group = new FabricGroup(objects, {
       left: selectionLeft ?? 0,
       top: selectionTop ?? 0,
     });

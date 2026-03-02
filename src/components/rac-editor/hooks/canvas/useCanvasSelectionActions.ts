@@ -1,6 +1,14 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group, Line} from 'fabric';
-import {CanvasObject, getHintForObject, getPilotiIdsForSide, toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {Canvas as FabricCanvas} from 'fabric';
+import {
+  CanvasGroup,
+  CanvasObject,
+  getHintForObject,
+  getPilotiIdsForSide,
+  isCanvasGroup,
+  toCanvasGroup,
+  toCanvasObject
+} from '@/components/rac-editor/lib/canvas';
 import {findTopViewGroupCandidate} from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
@@ -31,21 +39,21 @@ export function useCanvasSelectionActions() {
   }: BindSelectionActionsArgs) => {
 
     const resolveHouseGroupView =
-      (object: FabricObject | null): string | null => {
-        if (!object || object.type !== 'group') return null;
+      (object: CanvasObject | null): string | null => {
+        if (!isCanvasGroup(object)) return null;
 
-        const canvasObject = toCanvasObject(object);
-        const rawView = canvasObject?.houseViewType ?? canvasObject?.houseView;
+        const canvasGroup = toCanvasGroup(object);
+        const rawView = canvasGroup?.houseViewType ?? canvasGroup?.houseView;
         return typeof rawView === 'string' ? rawView : null;
       };
 
     const resolveHouseSideForSelection = (
       viewType: string,
-      selectedObject: FabricObject | null,
+      selectedObject: CanvasObject | null,
     ): HouseSide | undefined => {
 
       const house = houseManager.getHouse();
-      const instanceId = toCanvasObject(selectedObject)?.houseInstanceId;
+      const instanceId = selectedObject?.houseInstanceId;
       const typedView = viewType as HouseViewType;
       const viewInstances = (house?.views[typedView] ?? []) as HouseViewInstance[];
       if (viewInstances.length === 0) return undefined;
@@ -64,12 +72,12 @@ export function useCanvasSelectionActions() {
     };
 
     const applySelectedHousePilotiHighlightStyle =
-      (group: Group, viewType: string | null) => {
+      (group: CanvasGroup, viewType: string | null) => {
         if (!viewType) return;
 
         if (viewType !== 'top') {
-          group.getObjects().forEach((child) => {
-            if (toCanvasObject(child)?.isPilotiRect) {
+          group.getCanvasObjects().forEach((child) => {
+            if (child?.isPilotiRect) {
               child.set({
                 stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
                 strokeWidth: PILOTI_STYLE.selectedStrokeWidth
@@ -79,8 +87,8 @@ export function useCanvasSelectionActions() {
           return;
         }
 
-        group.getObjects().forEach((child) => {
-          if (toCanvasObject(child)?.isPilotiCircle) {
+        group.getCanvasObjects().forEach((child) => {
+          if (child?.isPilotiCircle) {
             child.set({
               stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
               strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView
@@ -89,8 +97,7 @@ export function useCanvasSelectionActions() {
         });
       };
 
-    const applyDefaultHousePilotiStyles = (child: FabricObject) => {
-      const canvasObjectChild = toCanvasObject(child);
+    const applyDefaultHousePilotiStyles = (canvasObjectChild: CanvasObject) => {
       if (!canvasObjectChild) return;
 
       if (canvasObjectChild.isPilotiCircle) {
@@ -122,22 +129,21 @@ export function useCanvasSelectionActions() {
       }
     };
 
-    const applyTerrainStyles = (child: FabricObject) => {
+    const applyTerrainStyles = (child: CanvasObject) => {
       applyDefaultTerrainStyles(child, TERRAIN_STYLE.fillColor, TERRAIN_STYLE.strokeColor);
     };
 
     const applySelectedTerrainHighlightStyles =
-      (group: Group, viewType: string | null) => {
+      (group: CanvasGroup, viewType: string | null) => {
         if (!viewType || viewType === 'top') return;
 
-        group.getObjects().forEach((child) => {
+        group.getCanvasObjects().forEach((child) => {
           applyDefaultTerrainStyles(child, TERRAIN_STYLE.selectedFillColor, TERRAIN_STYLE.selectedStrokeColor);
         });
       };
 
     const applyDefaultTerrainStyles =
-      (child: FabricObject, fillColor: string, strokeColor: string) => {
-        const canvasObjectChild = toCanvasObject(child);
+      (canvasObjectChild: CanvasObject, fillColor: string, strokeColor: string) => {
         if (!canvasObjectChild) return;
 
         if (
@@ -145,25 +151,25 @@ export function useCanvasSelectionActions() {
           && !canvasObjectChild.isTerrainRachao
           && !canvasObjectChild.isTerrainSideGravel
         ) {
-          child.set({fill: fillColor});
+          canvasObjectChild.set({fill: fillColor});
           canvasObjectChild.dirty = true;
         }
 
         if (canvasObjectChild.isGroundLine || canvasObjectChild.isNivelMarker) {
-          child.set({stroke: strokeColor});
+          canvasObjectChild.set({stroke: strokeColor});
           canvasObjectChild.dirty = true;
         }
 
         if (canvasObjectChild.isNivelLabel) {
-          child.set({fill: strokeColor});
+          canvasObjectChild.set({fill: strokeColor});
           canvasObjectChild.dirty = true;
         }
       };
 
     const resetAllHousePilotiStyles = () => {
       canvas.getObjects().forEach((item) => {
-        if (item.type !== 'group' || toCanvasObject(item)?.myType !== 'house') return;
-        (item as Group).getObjects().forEach(
+        if (isCanvasGroup(item) || toCanvasGroup(item)?.myType !== 'house') return;
+        toCanvasGroup(item).getObjects().forEach(
           (child) => applyDefaultHousePilotiStyles(child)
         );
       });
@@ -171,16 +177,19 @@ export function useCanvasSelectionActions() {
 
     const resetAllTerrainStyles = () => {
       canvas.getObjects().forEach((item) => {
-        if (item.type !== 'group' || toCanvasObject(item)?.myType !== 'house') return;
-        (item as Group).getObjects().forEach(
+        if (isCanvasGroup(item) || toCanvasGroup(item)?.myType !== 'house') return;
+        toCanvasGroup(item).getObjects().forEach(
           (child) => applyTerrainStyles(child)
         );
       });
     };
 
     const syncHouseTopSideHighlight =
-      (activeObject: FabricObject | null) => {
-        const topGroup = findTopViewGroupCandidate(canvas.getObjects() as CanvasObject[]) as Group | null;
+      (activeObject: CanvasObject | null) => {
+        const topGroup = findTopViewGroupCandidate(
+          canvas.getObjects().filter((item) => isCanvasGroup(item))
+        );
+
         if (!topGroup) {
           canvas.requestRenderAll();
           return;
@@ -191,13 +200,15 @@ export function useCanvasSelectionActions() {
           canvas.requestRenderAll();
         };
 
-        const borderLines = topGroup.getObjects().filter((object) => {
-          return toCanvasObject(object)?.isHouseBorderEdge === true;
-        }) as Line[];
+        const borderLines = topGroup.getCanvasObjects().filter((object) => {
+          return object?.isHouseBorderEdge === true;
+        });
 
-        borderLines.forEach((line) => {
-          const lineObject = toCanvasObject(line);
-          line.set({stroke: HOUSE_2D_STYLE.outlineStrokeColor, strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth});
+        borderLines.forEach((lineObject) => {
+          lineObject.set({
+            stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+            strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth
+          });
           if (lineObject) lineObject.dirty = true;
         });
 
@@ -213,26 +224,25 @@ export function useCanvasSelectionActions() {
           return;
         }
 
-        const targetBorder =
-          borderLines.find((line) => toCanvasObject(line)?.edgeSide === side);
-        if (targetBorder) {
-          targetBorder.set({
+        const runtimeTargetBorder =
+          borderLines.find((line) => line?.edgeSide === side);
+        if (runtimeTargetBorder) {
+          runtimeTargetBorder.set({
             stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
             strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView
           });
-          const runtimeTargetBorder = toCanvasObject(targetBorder);
           if (runtimeTargetBorder) runtimeTargetBorder.dirty = true;
         }
 
         const pilotiIdsForSide = getPilotiIdsForSide(side);
-        topGroup.getObjects().forEach((child) => {
-          const canvasObjectChild = toCanvasObject(child);
+        topGroup.getCanvasObjects().forEach((canvasObjectChild) => {
           if (!canvasObjectChild) return;
+
           if (canvasObjectChild.isPilotiCircle
             && typeof canvasObjectChild.pilotiId === 'string'
             && pilotiIdsForSide.includes(canvasObjectChild.pilotiId)
           ) {
-            child.set({
+            canvasObjectChild.set({
               stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
               strokeWidth: 3,
             });
@@ -244,7 +254,7 @@ export function useCanvasSelectionActions() {
       };
 
     const updateHint = () => {
-      const object = canvas.getActiveObject() ?? null;
+      const object = toCanvasObject(canvas.getActiveObject()) ?? null;
       onSelectionChange(getHintForObject(object));
 
       if (isContraventamentoMode()) {
@@ -258,10 +268,10 @@ export function useCanvasSelectionActions() {
       resetAllHousePilotiStyles();
       resetAllTerrainStyles();
 
-      if (object && toCanvasObject(object)?.myType === 'house') {
+      if (isCanvasGroup(object) && object?.myType === 'house') {
         const viewType = resolveHouseGroupView(object);
-        applySelectedHousePilotiHighlightStyle(object as Group, viewType);
-        applySelectedTerrainHighlightStyles(object as Group, viewType);
+        applySelectedHousePilotiHighlightStyle(toCanvasGroup(object), viewType);
+        applySelectedTerrainHighlightStyles(toCanvasGroup(object), viewType);
       }
 
       syncHouseTopSideHighlight(object);

@@ -1,6 +1,6 @@
 import {RefObject, useCallback} from 'react';
 import type {CanvasHandle, WallCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {isCanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {
   getGenericObjectEditorStrategy
 } from '@/components/rac-editor/ui/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
@@ -41,9 +41,9 @@ export function useWallEditorActions({
 
   const resolveWallEditorColor = useCallback(() => {
     const wall = wallSelection?.object;
-    if (!wall || wall.type !== 'group') return CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
+    if (!isCanvasGroup(wall)) return CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
 
-    const wallChildren = toCanvasObject(wall)?.getObjects?.() ?? [];
+    const wallChildren = wall.getCanvasObjects() ?? [];
     const wallBody = wallChildren.find(
       (child) => child.myType === 'wallBody'
     );

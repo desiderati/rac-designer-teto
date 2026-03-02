@@ -1,5 +1,3 @@
-import {Group} from 'fabric';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas';
 import {HouseSide, HouseType, HouseViewInstance, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
@@ -180,7 +178,7 @@ export function createTopDoorMarkerVisualPatch(params: {
 export function refreshTopDoorMarkersInViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
-  topViews: HouseViewInstance<Group>[];
+  topViews: HouseViewInstance[];
 }): boolean {
   const doorMarkerSide = resolveTopDoorMarkerSide({
     houseType: params.houseType,
@@ -190,19 +188,15 @@ export function refreshTopDoorMarkersInViews(params: {
   let hasChanges = false;
   for (const topInstance of params.topViews) {
     const group = topInstance.group;
-    const groupObjects = group.getObjects();
+    const groupObjects = group.getCanvasObjects();
 
     const topDoorMarker =
-      groupObjects.filter(
-        (object) => toCanvasObject(object).isTopDoorMarker
-      );
+      groupObjects.filter((object) => object.isTopDoorMarker);
     if (topDoorMarker.length === 0) continue;
 
     const houseBody =
-      groupObjects.find(
-        (object) => toCanvasObject(object).isHouseBody
-      );
-    const canvasObjectHouseBody = houseBody ? toCanvasObject(houseBody) : null;
+      groupObjects.find((object) => object.isHouseBody);
+    const canvasObjectHouseBody = houseBody ?? null;
 
     const {bodyWidth, bodyHeight} = calculateTopDoorMarkerBodySize({
       width: canvasObjectHouseBody?.width ?? 0,
@@ -226,8 +220,7 @@ export function refreshTopDoorMarkersInViews(params: {
       bodyHeight,
     });
 
-    for (const marker of topDoorMarker) {
-      const canvasObjectMarker = toCanvasObject(marker);
+    for (const canvasObjectMarker of topDoorMarker) {
       const side =
         (canvasObjectMarker as { markerSide?: HouseSide; doorMarkerSide?: HouseSide }).doorMarkerSide;
       if (!side) continue;

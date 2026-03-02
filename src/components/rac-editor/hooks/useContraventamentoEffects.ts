@@ -1,13 +1,14 @@
 import {useEffect} from 'react';
-import {Group} from 'fabric';
-import {ContraventamentoOrigin} from '@/components/rac-editor/lib/canvas';
-import {highlightEligibleContraventamentoPilotis} from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
+import {CanvasGroup, ContraventamentoOrigin} from '@/components/rac-editor/lib/canvas';
+import {
+  highlightEligibleContraventamentoPilotis
+} from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
 
 interface UseContraventamentoEffectsArgs {
   houseVersion: number;
   isContraventamentoMode: boolean;
   contraventamentoFirst: ContraventamentoOrigin | null;
-  getTopViewGroup: () => Group | null;
+  getTopViewGroup: () => CanvasGroup | null;
   isPilotiEligibleAsDestination: (pilotiId: string, first: { col: number; row: number } | null) => boolean;
   handleCancelContraventamento: () => void;
   syncContraventamentoElevations: () => void;

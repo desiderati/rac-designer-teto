@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {Group} from 'fabric';
 import {
+  CanvasGroup,
   clampNivelByHeight,
   getAllPilotiIds,
   getPilotiFromGroup,
@@ -18,7 +18,7 @@ interface UsePilotiEditorLogicArgs {
   currentHeight: number;
   currentIsMaster: boolean;
   currentNivel: number;
-  group: Group | null;
+  group: CanvasGroup | null;
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 }

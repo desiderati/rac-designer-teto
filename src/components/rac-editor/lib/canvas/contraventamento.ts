@@ -1,4 +1,4 @@
-import {FabricObject, Group, Line, Rect} from 'fabric';
+import {FabricObject, Line, Rect} from 'fabric';
 import {
   CONTRAVENTAMENTO_FILL,
   CONTRAVENTAMENTO_STROKE,
@@ -13,13 +13,13 @@ import {
   resolveContraventamentoOffsetFromNivel
 } from '@/shared/types/contraventamento.ts';
 import {HOUSE_DEFAULTS,} from '@/shared/config.ts';
-import {CanvasObject, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {CanvasGroup, CanvasObject, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
 export interface ContraventamentoOrigin {
   pilotiId?: string;
   col: number;
   row: number;
-  group?: Group;
+  group?: CanvasGroup;
 }
 
 const CONTRAVENTAMENTO_S = HOUSE_DEFAULTS.viewScale;
@@ -151,7 +151,7 @@ export function getNearestContraventamentoRow(y: number): number {
  * @return O ID do contraventamento da viga criada se bem-sucedido, ou `null` se a viga não pôde ser criada.
  */
 export function addContraventamentoBeam(
-  group: Group,
+  group: CanvasGroup,
   piloti1: { col: number; row: number },
   piloti2: { col: number; row: number },
   options?: { anchorPilotiId?: string; side?: ContraventamentoSide; isAuto?: boolean },
@@ -218,8 +218,8 @@ export function addContraventamentoBeam(
  * @returns Quantidade de objetos removidos.
  */
 export function removeContraventamentosFromTopView(
-  group: Group,
-  predicate?: (obj: FabricObject) => boolean,
+  group: CanvasGroup,
+  predicate?: (obj: CanvasObject) => boolean,
 ): number {
 
   const internalObjects = (group as any)._objects as FabricObject[];
@@ -257,7 +257,7 @@ export function removeContraventamentosFromTopView(
  * @returns Quantidade de objetos removidos.
  */
 export function removeContraventamentoFromElevationViews(
-  group: Group,
+  group: CanvasGroup,
   contraventamentoId?: string,
 ): number {
 
@@ -295,8 +295,8 @@ export function removeContraventamentoFromElevationViews(
  * @param getPilotiNivel Função que retorna o nível de um piloti por ID.
  */
 export function syncContraventamentoElevationViews(
-  topGroup: Group | null,
-  targetGroups: Group[],
+  topGroup: CanvasGroup | null,
+  targetGroups: CanvasGroup[],
   getPilotiNivel: (pilotiId: string) => number,
 ): void {
 
@@ -357,7 +357,7 @@ export function syncContraventamentoElevationViews(
     const houseView = String((group as any).houseView ?? '');
     if (houseView !== 'side') continue;
 
-    const pilotiRects = group.getObjects().filter((obj: any) => obj.isPilotiRect && obj.pilotiId) as any[];
+    const pilotiRects = group.getCanvasObjects().filter((obj: any) => obj.isPilotiRect && obj.pilotiId) as any[];
     if (pilotiRects.length === 0) continue;
 
     const rectByPilotiId = new Map<string, any>();

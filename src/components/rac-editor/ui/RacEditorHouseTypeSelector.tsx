@@ -1,6 +1,9 @@
 import type {HouseType} from '@/shared/types/house.ts';
 import {HouseTypeSelector} from '@/components/rac-editor/ui/modals/selectors/HouseTypeSelector.tsx';
-import {NivelDefinition, NivelDefinitionEditor} from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
+import {
+  NivelDefinition,
+  NivelDefinitionEditor
+} from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
 
 interface RacEditorHouseTypeSelectorProps {
   houseTypeSelectorOpen: boolean;

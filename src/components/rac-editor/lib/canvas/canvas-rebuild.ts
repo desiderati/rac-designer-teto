@@ -1,6 +1,6 @@
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CanvasObject, getAllPilotiIds, toCanvasGroup} from '@/components/rac-editor/lib/canvas/index.ts';
+import {Canvas as FabricCanvas} from 'fabric';
+import {CanvasGroup, getAllPilotiIds, isCanvasGroup,} from '@/components/rac-editor/lib/canvas/index.ts';
 import {RebuildViewSource} from '@/shared/types/house-rebuild.ts';
 
 export interface RebuildPilotiSourceObject {
@@ -53,7 +53,7 @@ export function readPilotiDataFromCanvas(
 ): Record<string, HousePiloti> {
   const houseGroups = canvas
     ? canvas.getObjects().filter(
-      (object): object is Group & CanvasObject => isHouseGroupWithObjects(object)
+      (object): object is CanvasGroup => isCanvasGroup(object)
     ) : [];
 
   const sources: RebuildPilotiSource[] =
@@ -71,28 +71,24 @@ export function readPilotiDataFromCanvas(
   });
 }
 
-export function isHouseGroupWithObjects(object: FabricObject): object is Group & CanvasObject {
-  return object.type === 'group' && typeof (object as { getObjects?: unknown }).getObjects === 'function';
-}
-
 export function toRebuildPilotiSourceObject(value: unknown): RebuildPilotiSourceObject | null {
   if (!value || typeof value !== 'object') return null;
   return value as RebuildPilotiSourceObject;
 }
 
-export function findTopViewGroupCandidate<T extends CanvasObject>(objects: T[]): T | null {
+export function findTopViewGroupCandidate<T extends CanvasGroup>(objects: T[]): T | null {
   return objects.find((object) => isTopViewGroupCandidate(object)) ?? null;
 }
 
-export function isTopViewGroupCandidate(value: CanvasObject): boolean {
+export function isTopViewGroupCandidate(value: CanvasGroup): boolean {
   return isHouseGroupCandidate(value) && value?.houseView === 'top';
 }
 
-export function isHouseGroupCandidate(value: CanvasObject): boolean {
-  return value?.type === 'group' && value?.myType === 'house';
+export function isHouseGroupCandidate(value: CanvasGroup): boolean {
+  return isCanvasGroup(value) && value?.myType === 'house';
 }
 
-export function mapHouseGroupToRebuildSource<TGroup extends CanvasObject>(
+export function mapHouseGroupToRebuildSource<TGroup extends CanvasGroup>(
   group: TGroup,
 ): RebuildViewSource<TGroup> {
   return {
@@ -108,7 +104,7 @@ export function mapHouseGroupToRebuildSource<TGroup extends CanvasObject>(
   };
 }
 
-export function collectHouseGroupRebuildSources<TGroup extends CanvasObject>(
+export function collectHouseGroupRebuildSources<TGroup extends CanvasGroup>(
   objects: TGroup[],
 ): RebuildViewSource<TGroup>[] {
   return collectHouseGroupCandidates(objects).map(
@@ -116,22 +112,21 @@ export function collectHouseGroupRebuildSources<TGroup extends CanvasObject>(
   );
 }
 
-export function collectHouseGroupPilotiSources<TGroup extends CanvasObject>(
+export function collectHouseGroupPilotiSources<TGroup extends CanvasGroup>(
   objects: TGroup[],
 ): RebuildPilotiSource[] {
   return collectHouseGroupCandidates(objects).map((group) => ({
-    objects: group.getObjects(),
+    objects: group.getCanvasObjects(),
   }));
 }
 
-export function collectHouseGroupCandidates<T extends CanvasObject>(objects: T[]): T[] {
+export function collectHouseGroupCandidates<T extends CanvasGroup>(objects: T[]): T[] {
   return objects.filter((object) => isHouseGroupCandidate(object));
 }
 
-export function toRebuildViewSource(group: Group): RebuildViewSource<Group> {
-  const canvasGroup = toCanvasGroup(group);
+export function toRebuildViewSource(canvasGroup: CanvasGroup): RebuildViewSource<CanvasGroup> {
   return {
-    group,
+    group: canvasGroup,
     metadata: {
       houseViewType: canvasGroup.houseViewType,
       houseView: canvasGroup.houseViewType,

@@ -5,8 +5,8 @@ import {
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE
 } from '@/shared/config.ts';
-import {FabricObject, Group} from 'fabric';
 import {
+  CanvasGroup,
   CanvasObject,
   createDiagonalStripePattern,
   formatNivel,
@@ -17,7 +17,6 @@ import {
   PILOTI_MASTER_STROKE_COLOR,
   PilotiObjectLike,
   refreshHouseGroupRendering,
-  toCanvasObject,
   updateGroundInGroup,
   updatePilotiHeight,
   updatePilotiMaster
@@ -93,12 +92,10 @@ export function createNivelLabelBackgroundPatch(): { backgroundColor: string } {
 }
 
 // Apply current piloti data to a group (when creating a new view)
-export function applyPilotiDataToGroup(group: Group, pilotis: Record<string, HousePiloti>): void {
-  const objects = group.getObjects();
-  const canvasObjects =
-    objects.map((object) => toCanvasObject(object));
-
+export function applyPilotiDataToGroup(group: CanvasGroup, pilotis: Record<string, HousePiloti>): void {
+  const canvasObjects = group.getCanvasObjects();
   const pilotiObjectIndex = buildPilotiObjectIndex(canvasObjects);
+
   applyPilotiDataFirstPass(canvasObjects, pilotiObjectIndex, pilotis);
   applyNivelLabelsBackground(canvasObjects);
   applyPilotiSizeLabelPositions(canvasObjects, pilotiObjectIndex);
@@ -109,9 +106,8 @@ export function applyPilotiDataToGroup(group: Group, pilotis: Record<string, Hou
   refreshHouseGroupRendering(group);
 }
 
-function applyNivelLabelsBackground(objects: FabricObject[]): void {
-  objects.forEach((obj: FabricObject) => {
-    const canvasObject = toCanvasObject(obj);
+function applyNivelLabelsBackground(objects: CanvasObject[]): void {
+  objects.forEach(canvasObject => {
     if (canvasObject.isNivelLabel) {
       canvasObject.set(createNivelLabelBackgroundPatch());
     }
@@ -119,12 +115,11 @@ function applyNivelLabelsBackground(objects: FabricObject[]): void {
 }
 
 function applyPilotiDataFirstPass(
-  objects: FabricObject[],
+  objects: CanvasObject[],
   pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
   pilotis: Record<string, HousePiloti>
 ): void {
-  objects.forEach((obj: FabricObject) => {
-    const canvasObject = toCanvasObject(obj);
+  objects.forEach(canvasObject => {
     const pilotiId = canvasObject.pilotiId;
     if (!pilotiId) return;
 
@@ -186,11 +181,10 @@ function applyPilotiDataFirstPass(
 }
 
 function applyPilotiSizeLabelPositions(
-  objects: FabricObject[],
+  objects: CanvasObject[],
   pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
 ): void {
-  objects.forEach((obj: FabricObject) => {
-    const canvasObject = toCanvasObject(obj);
+  objects.forEach(canvasObject => {
     if (!canvasObject.isPilotiSizeLabel) return;
 
     const pilotiId = canvasObject.pilotiId;
@@ -219,11 +213,10 @@ function applyPilotiSizeLabelPositions(
 }
 
 function applyPilotiStripeOverlays(
-  objects: FabricObject[],
+  objects: CanvasObject[],
   pilotiObjectIndex: Record<string, { circle?: CanvasObject; rect?: CanvasObject }>,
 ): void {
-  objects.forEach((obj: FabricObject) => {
-    const canvasObject = toCanvasObject(obj);
+  objects.forEach(canvasObject => {
     if (!canvasObject.isPilotiStripe) return;
 
     const pilotiId = canvasObject.pilotiId;
@@ -330,7 +323,7 @@ export function buildPilotiObjectIndex<TObject extends PilotiObjectLike>(
 }
 
 function syncPilotiUpdateOnGroup(
-  group: Group,
+  group: CanvasGroup,
   pilotiId: string,
   pilotis: Record<string, HousePiloti>,
   pilotiData: Partial<HousePiloti>,
@@ -361,7 +354,7 @@ export function syncPilotiUpdateAcrossViews(
   pilotiId: string,
   pilotis: Record<string, HousePiloti>,
   pilotiData: Partial<HousePiloti>,
-  views: HouseViews<Group>,
+  views: HouseViews,
   clearedMasters: string[],
 ): void {
   Object.values(views).forEach((instances) => {

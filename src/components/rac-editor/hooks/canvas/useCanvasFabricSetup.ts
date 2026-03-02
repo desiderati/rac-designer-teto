@@ -1,11 +1,10 @@
 import {MutableRefObject, useEffect, useRef} from 'react';
-import {Canvas as FabricCanvas, FabricObject, PencilBrush} from 'fabric';
+import {Canvas as FabricCanvas, PencilBrush} from 'fabric';
 import {
   buildPilotiSelectionHandler,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  PilotiCanvasSelection,
-  toCanvasObject
+  PilotiCanvasSelection
 } from '@/components/rac-editor/lib/canvas';
 import {CanvasObject, CanvasPointerPayload} from '@/components/rac-editor/lib/canvas/canvas.ts';
 import {useCanvasSelectionActions} from './useCanvasSelectionActions.ts';
@@ -135,10 +134,9 @@ export function useCanvasFabricSetup({
     };
 
     const isPilotiVisualTarget =
-      (object: FabricObject | null | undefined): object is CanvasObject => {
-        const runtime = toCanvasObject(object);
-        if (!runtime) return false;
-        return runtime.isPilotiCircle === true || runtime.isPilotiRect === true;
+      (object: CanvasObject): boolean => {
+        if (!object) return false;
+        return object.isPilotiCircle === true || object.isPilotiRect === true;
       };
 
     const runSaveHistory = () => latestArgsRef.current.saveHistory();
@@ -247,7 +245,9 @@ export function useCanvasFabricSetup({
       unbindKeyboardShortcuts();
       unbindContraventamentoEvents();
       unbindSelectionActions();
-      canvas.dispose();
+      canvas.dispose().then(_ => {
+        /*/ Do nothing! */
+      });
     };
   }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionActions]);
 }

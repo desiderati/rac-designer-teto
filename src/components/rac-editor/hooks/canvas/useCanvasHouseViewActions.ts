@@ -1,5 +1,5 @@
 import {Dispatch, MutableRefObject, SetStateAction} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
+import {Canvas as FabricCanvas} from 'fabric';
 import {toast} from 'sonner';
 import {NivelDefinition} from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
 import {
@@ -17,13 +17,14 @@ import {
 import {HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {createHouseGroupForView, getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
+import {CanvasGroup, CanvasObject} from "@/components/rac-editor/lib/canvas";
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
-  addObjectToCanvas: (obj: FabricObject) => void;
-  showPilotiTutorialIfNeeded: (house: Group) => void;
+  addObjectToCanvas: (obj: CanvasObject) => void;
+  showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
   pendingViewType: HouseViewType | null;
   setPendingViewType: Dispatch<SetStateAction<HouseViewType | null>>;
   sideSelectorMode: HouseSideSelectorMode;

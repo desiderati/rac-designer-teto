@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, FabricObject, Group, Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
+import {Canvas as FabricCanvas, FabricObject, Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
 import {
   PILOTI_BASE_HEIGHT_PX,
   PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
@@ -19,34 +19,42 @@ import {
   TERRAIN_STYLE
 } from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {CanvasObject, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts'
+import {
+  CanvasGroup,
+  CanvasObject,
+  isCanvasGroup,
+  toCanvasGroup,
+  toCanvasObject
+} from '@/components/rac-editor/lib/canvas/canvas.ts'
 
-export const getPilotiIdsForSide = (side: HouseSide): string[] => {
-  switch (side) {
-    case 'top':
-      return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
+export const getPilotiIdsForSide =
+  (side: HouseSide): string[] => {
+    switch (side) {
+      case 'top':
+        return ['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'];
 
-    case 'bottom':
-      return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
+      case 'bottom':
+        return ['piloti_0_2', 'piloti_1_2', 'piloti_2_2', 'piloti_3_2'];
 
-    case 'left':
-      return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
+      case 'left':
+        return ['piloti_0_0', 'piloti_0_1', 'piloti_0_2'];
 
-    case 'right':
-      return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
+      case 'right':
+        return ['piloti_3_0', 'piloti_3_1', 'piloti_3_2'];
 
-    default:
-      return [];
-  }
-};
+      default:
+        return [];
+    }
+  };
 
-export function resolveDoorSideCornerIds(side: HouseSide): { leftId: string; rightId: string } {
+export function resolveDoorSideCornerIds(
+  side: HouseSide
+): { leftId: string; rightId: string } {
   if (side === 'top') return {leftId: 'piloti_0_0', rightId: 'piloti_3_0'};
   if (side === 'bottom') return {leftId: 'piloti_0_2', rightId: 'piloti_3_2'};
   if (side === 'left') return {leftId: 'piloti_0_0', rightId: 'piloti_0_2'};
   return {leftId: 'piloti_3_0', rightId: 'piloti_3_2'};
 }
-
 
 export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
 
@@ -117,9 +125,9 @@ export function getAllPilotiIds(): string[] {
 }
 
 // Get piloti IDs that actually exist inside a given house group, ordered like getAllPilotiIds()
-export function getPilotiIdsFromGroup(group: Group): string[] {
+export function getPilotiIdsFromGroup(group: CanvasGroup): string[] {
   const present = new Set<string>();
-  group.getObjects().forEach((obj: any) => {
+  group.getCanvasObjects().forEach(obj => {
     if ((obj.isPilotiCircle || obj.isPilotiRect) && typeof obj.pilotiId === 'string') {
       present.add(obj.pilotiId);
     }
@@ -130,23 +138,23 @@ export function getPilotiIdsFromGroup(group: Group): string[] {
 
 // Get piloti data from group (works for both circles in top view and rects in front/back/side views)
 export function getPilotiFromGroup(
-  group: Group,
+  group: CanvasGroup,
   pilotiId: string,
 ): {
-  circle: FabricObject;
+  circle: CanvasObject;
   height: number;
   isMaster: boolean;
   nivel: number;
 } | null {
-  const objects = group.getObjects();
+  const objects = group.getCanvasObjects();
 
   for (const obj of objects) {
-    if ((obj as any).pilotiId === pilotiId && ((obj as any).isPilotiCircle || (obj as any).isPilotiRect)) {
+    if (obj.pilotiId === pilotiId && (obj.isPilotiCircle || obj.isPilotiRect)) {
       return {
         circle: obj,
-        height: (obj as any).pilotiHeight || DEFAULT_HOUSE_PILOTI.height,
-        isMaster: (obj as any).pilotiIsMaster || false,
-        nivel: (obj as any).pilotiNivel ?? PILOTI_DEFAULT_NIVEL,
+        height: obj.pilotiHeight || DEFAULT_HOUSE_PILOTI.height,
+        isMaster: obj.pilotiIsMaster || false,
+        nivel: obj.pilotiNivel ?? PILOTI_DEFAULT_NIVEL,
       };
     }
   }
@@ -154,24 +162,24 @@ export function getPilotiFromGroup(
   return null;
 }
 
-export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: number): void {
-  const objects = group.getObjects();
+export function updatePilotiHeight(group: CanvasGroup, pilotiId: string, newHeight: number): void {
+  const objects = group.getCanvasObjects();
 
   // Fabric caching note:
   // Groups can cache to an offscreen canvas; when a child grows, the cached bounds can clip the new geometry.
   // We disable caching + force a refresh to guarantee the new rect is actually redrawn.
-  (group as any).objectCaching = false;
+  group.objectCaching = false;
 
   // Track delta to keep the house centered while piloti rect grows downwards.
   // (Rects in front/back/side use originY="top", so growth increases maxY only.)
   let rectHeightDelta = 0;
 
-  objects.forEach((obj: any) => {
+  objects.forEach(obj => {
     if (obj.pilotiId !== pilotiId) return;
 
     if (obj.isPilotiCircle) {
       obj.pilotiHeight = newHeight;
-      (obj as any).dirty = true;
+      obj.dirty = true;
       return;
     }
 
@@ -190,18 +198,19 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
       // IMPORTANT: reset scaling so height is the real source of truth
       obj.set({height: newVisualHeight, scaleY: 1});
       obj.setCoords();
-      (obj as any).dirty = true;
+      obj.dirty = true;
 
       // Update size label position using the *same* computed height (no guessing)
-      const sizeLabel = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiSizeLabel) as any;
+      const sizeLabel = objects.find(o => o.pilotiId === pilotiId && o.isPilotiSizeLabel);
       if (sizeLabel) {
         const offset = 8 * s;
         const rectWidth = (obj.width ?? 0) as number;
+
         sizeLabel.set('left', (obj.left ?? 0) + rectWidth / 2);
         sizeLabel.set('top', (obj.top ?? 0) + newVisualHeight + offset);
         sizeLabel.set('text', formatPilotiHeight(newHeight));
         sizeLabel.setCoords();
-        (sizeLabel as any).dirty = true;
+        sizeLabel.dirty = true;
       }
 
       return;
@@ -209,27 +218,29 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
 
     if (obj.isPilotiStripe) {
       // Update stripe overlay to cover bottom 2/3 of the new piloti height
-      const pilotiRect = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiRect) as any;
+      const pilotiRect = objects.find(o => o.pilotiId === pilotiId && o.isPilotiRect);
       if (pilotiRect) {
         const newVisualHeight = (pilotiRect.height ?? 0) as number;
         const stripeHeight = (newVisualHeight * 2) / 3;
+
         obj.set({height: stripeHeight, top: (pilotiRect.top ?? 0) + newVisualHeight / 3});
         obj.set('fill', createDiagonalStripePattern());
         obj.objectCaching = false;
+
         obj.setCoords();
-        (obj as any).dirty = true;
+        obj.dirty = true;
       }
       return;
     }
 
     if (obj.isPilotiText) {
       obj.set('text', formatPilotiHeight(newHeight));
-      (obj as any).dirty = true;
+      obj.dirty = true;
     }
 
     if (obj.isPilotiSizeLabel) {
       obj.set('text', formatPilotiHeight(newHeight));
-      (obj as any).dirty = true;
+      obj.dirty = true;
     }
   });
 
@@ -247,67 +258,70 @@ export function updatePilotiHeight(group: Group, pilotiId: string, newHeight: nu
  * IMPORTANT: We must remove and re-add children to force the group to recalculate its bounding box
  * correctly in Fabric v6.
  */
-export function refreshHouseGroupRendering(group: Group): void {
-  (group as any).objectCaching = false;
+export function refreshHouseGroupRendering(group: CanvasGroup): void {
+  group.objectCaching = false;
 
   // Keep house interaction constraints stable after JSON restore/undo.
-  if ((group as any).myType === 'house') {
+  if (group.myType === 'house') {
     group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
   }
 
-  const objects = group.getObjects();
-  objects.forEach((obj: any) => {
+  const objects = group.getCanvasObjects();
+  objects.forEach(obj => {
     obj.objectCaching = false;
-    (obj as any).dirty = true;
+    obj.dirty = true;
     obj.setCoords?.();
   });
 
   // Z-order sort: normal objects (pilotis, walls, roof) -> ground layers -> markers/labels.
   // Ground elements render in front of pilotis to preserve the "enterrado" visual.
   const groundBack =
-    objects.filter((o: any) => o.isGroundElement && !o.isNivelMarker && !o.isNivelLabel);
+    objects.filter(o => o.isGroundElement && !o.isNivelMarker && !o.isNivelLabel);
 
   const groundFront =
-    objects.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
+    objects.filter(o => o.isNivelMarker || o.isNivelLabel);
 
-  const normal = objects.filter((o: any) => !o.isGroundElement);
+  const normal = objects.filter(o => !o.isGroundElement);
   // Pilotis e estrutura devem ficar na frente de brita/rachão.
   const sorted = [...groundBack, ...normal, ...groundFront];
 
   // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
-  const internalObjects = (group as any)._objects;
+  const internalObjects = group._objects;
   if (internalObjects && Array.isArray(internalObjects)) {
     internalObjects.length = 0;
     internalObjects.push(...sorted);
   }
 
   // Polyline/Polygon need pathOffset recalculation
-  objects.forEach((obj: any) => {
+  objects.forEach(obj => {
     if (obj instanceof Polyline || obj instanceof Polygon) {
       obj.setDimensions?.();
     }
   });
 
   // Recalculate bounds without triggering object coordinate transforms
-  (group as any)._clearCache?.();
-  (group as any)._calcBounds?.();
+  group._clearCache?.();
+  group._calcBounds?.();
   group.setCoords();
-  (group as any).dirty = true;
+  group.dirty = true;
 }
 
 export function refreshHouseGroupsOnCanvas(canvas: FabricCanvas): void {
-  canvas.getObjects().forEach((obj: any) => {
-    if (obj?.myType === 'house') {
-      refreshHouseGroupRendering(obj as Group);
-    }
-  });
+  canvas.getObjects()
+    .filter(o => isCanvasGroup(o) && o.myType === 'house')
+    .forEach(group => refreshHouseGroupRendering(toCanvasGroup(group)));
 }
 
-export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boolean, nivel: number): void {
-  const objects = group.getObjects();
+export function updatePilotiMaster(
+  group: CanvasGroup,
+  pilotiId: string,
+  isMaster: boolean,
+  nivel: number
+): void {
 
+  const objects = group.getCanvasObjects();
   if (isMaster) {
-    objects.forEach((obj: any) => {
+    objects.forEach(obj => {
       if (obj.pilotiId !== pilotiId) {
         if ((obj.isPilotiCircle || obj.isPilotiRect) && obj.pilotiIsMaster) {
           obj.pilotiIsMaster = false;
@@ -325,7 +339,7 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
   }
 
   // Now update the target piloti
-  objects.forEach((obj: any) => {
+  objects.forEach(obj => {
     if (obj.pilotiId === pilotiId) {
       if (obj.isPilotiCircle || obj.isPilotiRect) {
         obj.pilotiIsMaster = isMaster;
@@ -346,7 +360,7 @@ export function updatePilotiMaster(group: Group, pilotiId: string, isMaster: boo
       if (obj.isPilotiNivelText) {
         const isCorner = PILOTI_CORNER_IDS.includes(obj.pilotiId);
         if (isCorner) {
-          const pilotiCircle = objects.find((o: any) => o.pilotiId === pilotiId && o.isPilotiCircle) as any;
+          const pilotiCircle = objects.find(o => o.pilotiId === pilotiId && o.isPilotiCircle);
           const centerX = Number(pilotiCircle?.left ?? obj.left ?? 0);
           const centerY = Number(pilotiCircle?.top ?? obj.top ?? 0);
           const radius = Number(pilotiCircle?.radius ?? HOUSE_DEFAULTS.pilotiRadius * HOUSE_DEFAULTS.viewScale);
@@ -455,7 +469,10 @@ function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): 
   return points[points.length - 1].y;
 }
 
-function getObjectVisualBounds(obj: any): { left: number; right: number; top: number; bottom: number } {
+function getObjectVisualBounds(
+  obj: CanvasObject
+): { left: number; right: number; top: number; bottom: number } {
+
   const left = Number(obj?.left ?? 0);
   const top = Number(obj?.top ?? 0);
   const width = Number(obj?.width ?? 0) * Number(obj?.scaleX ?? 1);
@@ -472,7 +489,7 @@ function getObjectVisualBounds(obj: any): { left: number; right: number; top: nu
 }
 
 function resolvePilotiVisualEnvelope(
-  pilotiRect: any,
+  pilotiRect: CanvasObject,
 ): { left: number; right: number; bottom: number } {
   // Use somente o envelope visual do retângulo do piloti para evitar micro-deslocamento
   // causado pela faixa hachurada interna.
@@ -662,7 +679,7 @@ export function createDiagonalStripePattern(): Pattern {
   });
 }
 
-export function normalizeTerrainSolidityLevel(value: unknown): TerrainSolidityLevel {
+export function normalizeTerrainSolidityLevel(value: number): TerrainSolidityLevel {
   const numeric = Number(value);
   if (numeric >= 5) return 5;
   if (numeric <= 1) return 1;
@@ -674,8 +691,8 @@ export function getTerrainRachaoThicknessCm(level: TerrainSolidityLevel): number
   return TERRAIN_SOLIDITY.levels[level].rachao;
 }
 
-export function getGroundTerrainType(group: Group): TerrainSolidityLevel {
-  return normalizeTerrainSolidityLevel((group as any).groundTerrainType);
+export function getGroundTerrainType(group: CanvasGroup): TerrainSolidityLevel {
+  return normalizeTerrainSolidityLevel(group.groundTerrainType);
 }
 
 function createRachaoPattern(scale: number): Pattern {
@@ -735,9 +752,9 @@ export function createGroundElements(
     visualRight?: number;
     visualBottom?: number;
   }>,
-): FabricObject[] {
+): CanvasObject[] {
 
-  const elements: FabricObject[] = [];
+  const elements: CanvasObject[] = [];
   const labelFontSize = PILOTI_STYLE.nivelFontSize * s;
   const xSize = labelFontSize / 2;
   const lineColor = TERRAIN_STYLE.strokeColor;
@@ -751,8 +768,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (xL1 as any).isGroundElement = true;
-  (xL1 as any).isNivelMarker = true;
+  const xL1Object = toCanvasObject(xL1);
+  xL1Object.isGroundElement = true;
+  xL1Object.isNivelMarker = true;
 
   const xL2 = new Line([leftCenterX - xSize, leftNivelY + xSize, leftCenterX + xSize, leftNivelY - xSize], {
     stroke: lineColor,
@@ -761,8 +779,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (xL2 as any).isGroundElement = true;
-  (xL2 as any).isNivelMarker = true;
+  const xL2Object = toCanvasObject(xL2);
+  xL2Object.isGroundElement = true;
+  xL2Object.isNivelMarker = true;
 
   // X marker on right corner piloti
   const xR1 = new Line([rightCenterX - xSize, rightNivelY - xSize, rightCenterX + xSize, rightNivelY + xSize], {
@@ -772,8 +791,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (xR1 as any).isGroundElement = true;
-  (xR1 as any).isNivelMarker = true;
+  const xR1Object = toCanvasObject(xR1);
+  xR1Object.isGroundElement = true;
+  xR1Object.isNivelMarker = true;
 
   const xR2 = new Line([rightCenterX - xSize, rightNivelY + xSize, rightCenterX + xSize, rightNivelY - xSize], {
     stroke: lineColor,
@@ -782,8 +802,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (xR2 as any).isGroundElement = true;
-  (xR2 as any).isNivelMarker = true;
+  const xR2Object = toCanvasObject(xR2);
+  xR2Object.isGroundElement = true;
+  xR2Object.isNivelMarker = true;
 
   // Labels de nível do terreno (devem permanecer visíveis).
   const lLabel = new Text(leftNivelStr, {
@@ -799,8 +820,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (lLabel as any).isGroundElement = true;
-  (lLabel as any).isNivelLabel = true;
+  const lLabelObject = toCanvasObject(lLabel);
+  lLabelObject.isGroundElement = true;
+  lLabelObject.isNivelLabel = true;
 
   const rLabel = new Text(rightNivelStr, {
     fontSize: labelFontSize,
@@ -815,8 +837,9 @@ export function createGroundElements(
     selectable: false,
     evented: false,
   });
-  (rLabel as any).isGroundElement = true;
-  (rLabel as any).isNivelLabel = true;
+  const rLabelObject = toCanvasObject(rLabel);
+  rLabelObject.isGroundElement = true;
+  rLabelObject.isNivelLabel = true;
 
   // --- Polyline + Polygon: terreno irregular ---
   const normalizedTerrainType = normalizeTerrainSolidityLevel(terrainType);
@@ -845,10 +868,11 @@ export function createGroundElements(
     evented: false,
     objectCaching: false,
   });
-  (groundLine as any).isGroundElement = true;
-  (groundLine as any).isGroundLine = true;
-  (groundLine as any).groundSeed = seed;
-  (groundLine as any).groundTerrainType = normalizedTerrainType;
+  const groundLineObject = toCanvasObject(groundLine);
+  groundLineObject.isGroundElement = true;
+  groundLineObject.isGroundLine = true;
+  groundLineObject.groundSeed = seed;
+  groundLineObject.groundTerrainType = normalizedTerrainType;
 
   // Altura do terreno deve cobrir, no mínimo, o fundo do piloti + cama de rachão.
   const rachaoDepthPx = getTerrainRachaoThicknessCm(normalizedTerrainType) * s;
@@ -868,14 +892,15 @@ export function createGroundElements(
     evented: false,
     objectCaching: false,
   });
-  (groundFill as any).isGroundElement = true;
-  (groundFill as any).isGroundFill = true;
-  (groundFill as any).groundTerrainType = normalizedTerrainType;
+  const groundFillObject = toCanvasObject(groundFill);
+  groundFillObject.isGroundElement = true;
+  groundFillObject.isGroundFill = true;
+  groundFillObject.groundTerrainType = normalizedTerrainType;
 
   // Camadas de rachão e britas ao redor de cada piloti visível.
   const gravelWidthPx = TERRAIN_SOLIDITY.sideGravelWidth * s;
 
-  const localTerrainElements: FabricObject[] = [];
+  const localTerrainElements: CanvasObject[] = [];
   for (const piloti of pilotiRects) {
     const pilotiLeft = Number(piloti.visualLeft ?? piloti.left);
     const pilotiRight = Number(piloti.visualRight ?? (piloti.left + piloti.width));
@@ -901,12 +926,13 @@ export function createGroundElements(
         objectCaching: false,
         opacity: 0.9,
       });
-      (leftGravel as any).isGroundElement = true;
-      (leftGravel as any).isGroundFill = true;
-      (leftGravel as any).isTerrainSideGravel = true;
-      (leftGravel as any).groundTerrainType = normalizedTerrainType;
-      (leftGravel as any).pilotiId = piloti.pilotiId;
-      localTerrainElements.push(leftGravel);
+      const leftGravelObject = toCanvasObject(leftGravel);
+      leftGravelObject.isGroundElement = true;
+      leftGravelObject.isGroundFill = true;
+      leftGravelObject.isTerrainSideGravel = true;
+      leftGravelObject.groundTerrainType = normalizedTerrainType;
+      leftGravelObject.pilotiId = piloti.pilotiId;
+      localTerrainElements.push(leftGravelObject);
     }
 
     const rightSideHeight = Math.max(0, pilotiBottom - rightGroundY);
@@ -925,12 +951,13 @@ export function createGroundElements(
         objectCaching: false,
         opacity: 0.9,
       });
-      (rightGravel as any).isGroundElement = true;
-      (rightGravel as any).isGroundFill = true;
-      (rightGravel as any).isTerrainSideGravel = true;
-      (rightGravel as any).groundTerrainType = normalizedTerrainType;
-      (rightGravel as any).pilotiId = piloti.pilotiId;
-      localTerrainElements.push(rightGravel);
+      const rightGravelObject = toCanvasObject(rightGravel);
+      rightGravelObject.isGroundElement = true;
+      rightGravelObject.isGroundFill = true;
+      rightGravelObject.isTerrainSideGravel = true;
+      rightGravelObject.groundTerrainType = normalizedTerrainType;
+      rightGravelObject.pilotiId = piloti.pilotiId;
+      localTerrainElements.push(rightGravelObject);
     }
 
     const rachaoLayer = new Rect({
@@ -947,12 +974,13 @@ export function createGroundElements(
       objectCaching: false,
       opacity: 0.95,
     });
-    (rachaoLayer as any).isGroundElement = true;
-    (rachaoLayer as any).isGroundFill = true;
-    (rachaoLayer as any).isTerrainRachao = true;
-    (rachaoLayer as any).groundTerrainType = normalizedTerrainType;
-    (rachaoLayer as any).pilotiId = piloti.pilotiId;
-    localTerrainElements.push(rachaoLayer);
+    const rachaoLayerObject = toCanvasObject(rachaoLayer);
+    rachaoLayerObject.isGroundElement = true;
+    rachaoLayerObject.isGroundFill = true;
+    rachaoLayerObject.isTerrainRachao = true;
+    rachaoLayerObject.groundTerrainType = normalizedTerrainType;
+    rachaoLayerObject.pilotiId = piloti.pilotiId;
+    localTerrainElements.push(rachaoLayerObject);
   }
 
   // Alvo transparente para interação de edição de terreno.
@@ -968,32 +996,33 @@ export function createGroundElements(
     evented: true,
     objectCaching: false,
   });
-  (terrainHitArea as any).myType = 'terrain';
-  (terrainHitArea as any).isGroundElement = true;
-  (terrainHitArea as any).isTerrainEditTarget = true;
-  (terrainHitArea as any).groundTerrainType = normalizedTerrainType;
+  const terrainHitAreaObject = toCanvasObject(terrainHitArea);
+  terrainHitAreaObject.myType = 'terrain';
+  terrainHitAreaObject.isGroundElement = true;
+  terrainHitAreaObject.isTerrainEditTarget = true;
+  terrainHitAreaObject.groundTerrainType = normalizedTerrainType;
 
   elements.push(
-    groundFill,
+    groundFillObject,
     ...localTerrainElements,
-    groundLine,
-    terrainHitArea,
-    xL1,
-    xL2,
-    xR1,
-    xR2,
-    lLabel,
-    rLabel,
+    groundLineObject,
+    terrainHitAreaObject,
+    xL1Object,
+    xL2Object,
+    xR1Object,
+    xR2Object,
+    lLabelObject,
+    rLabelObject,
   );
   return elements;
 }
 
 // Get corner piloti IDs for a given elevation view
-function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string } | null {
-  const houseView = (group as any).houseView;
+function getViewCornerPilotiIds(group: CanvasGroup): { leftId: string; rightId: string } | null {
+  const houseView = group.houseView;
 
   if (houseView === 'front' || houseView === 'back') {
-    const isFlipped = (group as any).isFlippedHorizontally;
+    const isFlipped = group.isFlippedHorizontally;
     if (isFlipped) {
       return {leftId: PILOTI_CORNER_ID.topRight, rightId: PILOTI_CORNER_ID.topLeft};
     }
@@ -1001,7 +1030,7 @@ function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string
   }
 
   if (houseView === 'side') {
-    const isRight = (group as any).isRightSide;
+    const isRight = group.isRightSide;
     if (isRight) {
       return {leftId: PILOTI_CORNER_ID.bottomRight, rightId: PILOTI_CORNER_ID.topRight};
     }
@@ -1012,13 +1041,13 @@ function getViewCornerPilotiIds(group: Group): { leftId: string; rightId: string
 }
 
 // Update ground elements in an elevation view group based on corner piloti nivel values
-export function updateGroundInGroup(group: Group): void {
+export function updateGroundInGroup(group: CanvasGroup): void {
   const corners = getViewCornerPilotiIds(group);
   if (!corners) return;
 
-  const objects = group.getObjects();
-  const leftRect = objects.find((o: any) => o.pilotiId === corners.leftId && o.isPilotiRect) as any;
-  const rightRect = objects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
+  const objects = group.getCanvasObjects();
+  const leftRect = objects.find(o => o.pilotiId === corners.leftId && o.isPilotiRect);
+  const rightRect = objects.find(o => o.pilotiId === corners.rightId && o.isPilotiRect);
   if (!leftRect || !rightRect) return;
 
   const leftNivel = leftRect.pilotiNivel ?? PILOTI_DEFAULT_NIVEL;
@@ -1026,34 +1055,35 @@ export function updateGroundInGroup(group: Group): void {
   const baseHeight = leftRect.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
   const scale = baseHeight / PILOTI_BASE_HEIGHT_PX;
   const terrainType = getGroundTerrainType(group);
-  (group as any).groundTerrainType = terrainType;
+  group.groundTerrainType = terrainType;
 
   // Find seed from existing ground
-  const oldSeed = (objects.find((o: any) => o.groundSeed) as any)?.groundSeed ?? 42;
+  const oldSeed = (objects.find(o => o.groundSeed))?.groundSeed ?? 42;
 
   // Remove all existing ground elements directly from _objects to avoid coordinate transforms
-  const groundElements = objects.filter((o: any) => o.isGroundElement);
+  const groundElements = objects.filter(o => o.isGroundElement);
   if (groundElements.length) {
-    const internalObjects = (group as any)._objects as any[];
+    const internalObjects = group._objects as FabricObject[];
     if (internalObjects && Array.isArray(internalObjects)) {
-      (group as any)._objects = internalObjects.filter((o: any) => !o.isGroundElement);
-      groundElements.forEach((o: any) => {
+      group._objects =
+        internalObjects.filter(o => !toCanvasObject(o)?.isGroundElement);
+      groundElements.forEach(o => {
         o.group = undefined;
       });
     } else {
-      group.remove(...(groundElements as any));
+      group.remove(...(groundElements));
     }
   }
 
   // Re-read objects after removal
-  const remainingObjects = group.getObjects();
+  const remainingObjects = group.getCanvasObjects();
 
   // Calculate anchor positions (center of each corner piloti rect)
   const leftRectAfter =
-    remainingObjects.find((o: any) => o.pilotiId === corners.leftId && o.isPilotiRect) as any;
+    remainingObjects.find(o => o.pilotiId === corners.leftId && o.isPilotiRect);
 
   const rightRectAfter =
-    remainingObjects.find((o: any) => o.pilotiId === corners.rightId && o.isPilotiRect) as any;
+    remainingObjects.find(o => o.pilotiId === corners.rightId && o.isPilotiRect);
 
   if (!leftRectAfter || !rightRectAfter) return;
 
@@ -1065,13 +1095,13 @@ export function updateGroundInGroup(group: Group): void {
 
   // Derive view limits from structural objects (walls, roof) instead of piloti positions
   const structuralObjs =
-    remainingObjects.filter((o: any) => !o.isGroundElement && !o.isPilotiRect && !o.isPilotiLabel);
+    remainingObjects.filter(o => !o.isGroundElement && !o.isPilotiRect);
 
   let viewLeftX = Infinity;
   let viewRightX = -Infinity;
   for (const o of structuralObjs) {
-    const oLeft = (o as any).left ?? 0;
-    const oWidth = (o as any).width ?? 0;
+    const oLeft = o.left ?? 0;
+    const oWidth = o.width ?? 0;
     if (oLeft < viewLeftX) viewLeftX = oLeft;
     if (oLeft + oWidth > viewRightX) viewRightX = oLeft + oWidth;
   }
@@ -1086,11 +1116,11 @@ export function updateGroundInGroup(group: Group): void {
   const rightNivelY = (rightRectAfter.top ?? 0) + rightNivel * 100 * scale;
 
   // Find the max bottom Y of all pilotis in this view
-  const allPilotis = remainingObjects.filter((o: any) => o.isPilotiRect);
+  const allPilotis = remainingObjects.filter(o => o.isPilotiRect);
   let maxPilotiBottomY = 0;
   for (const p of allPilotis) {
-    const pTop = (p as any).top ?? 0;
-    const pH = (p as any).height ?? 0;
+    const pTop = p.top ?? 0;
+    const pH = p.height ?? 0;
     const bottom = pTop + pH;
     if (bottom > maxPilotiBottomY) maxPilotiBottomY = bottom;
   }
@@ -1109,7 +1139,7 @@ export function updateGroundInGroup(group: Group): void {
     formatNivel(rightNivel),
     maxPilotiBottomY,
     terrainType,
-    allPilotis.map((piloti: any) => ({
+    allPilotis.map(piloti => ({
       ...resolvePilotiVisualEnvelope(piloti),
       pilotiId: String(piloti.pilotiId ?? ''),
       left: Number(piloti.left ?? 0),
@@ -1120,36 +1150,36 @@ export function updateGroundInGroup(group: Group): void {
   );
 
   const groundBack =
-    newElements.filter((o: any) => o.isGroundFill || o.isGroundLine || o.isTerrainEditTarget);
+    newElements.filter(o => o.isGroundFill || o.isGroundLine || o.isTerrainEditTarget);
 
   const nivelFront =
-    newElements.filter((o: any) => o.isNivelMarker || o.isNivelLabel);
+    newElements.filter(o => o.isNivelMarker || o.isNivelLabel);
 
   // Add new ground elements directly to _objects to avoid coordinate transforms
-  const currentObjects = (group as any)._objects as any[];
+  const currentObjects = group._objects as FabricObject[];
   if (currentObjects && Array.isArray(currentObjects)) {
     const allNew = [...groundBack, ...nivelFront];
-    allNew.forEach((o: any) => {
+    allNew.forEach(o => {
       o.group = group;
       o.setCoords?.();
       currentObjects.push(o);
     });
   } else {
     if (groundBack.length) {
-      groundBack.forEach((o: any) => o.setCoords?.());
-      group.add(...(groundBack as any));
+      groundBack.forEach(o => o.setCoords?.());
+      group.add(...(groundBack));
     }
     if (nivelFront.length) {
-      nivelFront.forEach((o: any) => o.setCoords?.());
-      group.add(...(nivelFront as any));
+      nivelFront.forEach(o => o.setCoords?.());
+      group.add(...(nivelFront));
     }
   }
 
   // Garante bounds atualizados imediatamente após inserir/remover terreno.
-  (group as any)._clearCache?.();
-  (group as any)._calcBounds?.();
+  group._clearCache?.();
+  group._calcBounds?.();
   group.setCoords();
-  (group as any).dirty = true;
+  group.dirty = true;
 
   const canvas = group.canvas;
   if (canvas?.getActiveObject() === group) {
@@ -1158,9 +1188,9 @@ export function updateGroundInGroup(group: Group): void {
   group.canvas?.requestRenderAll();
 }
 
-export function updateGroundTerrainType(group: Group, terrainType: number): TerrainSolidityLevel {
+export function updateGroundTerrainType(group: CanvasGroup, terrainType: number): TerrainSolidityLevel {
   const normalized = normalizeTerrainSolidityLevel(terrainType);
-  (group as any).groundTerrainType = normalized;
+  group.groundTerrainType = normalized;
   updateGroundInGroup(group);
   refreshHouseGroupRendering(group);
   group.canvas?.requestRenderAll();

@@ -1,5 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {CanvasObject} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 
 export interface Contraventamento3DData {
   id: string;
@@ -11,12 +11,12 @@ export interface Contraventamento3DData {
 }
 
 export function parseContraventamentosFromTopView(
-  topViewCanvasObject: CanvasObject | null | undefined
+  topViewGroup: CanvasGroup | null | undefined
 ): Contraventamento3DData[] {
-  if (!topViewCanvasObject) return [];
+  if (!topViewGroup) return [];
 
   const parsedContraventamentos: Contraventamento3DData[] = [];
-  topViewCanvasObject.getObjects().forEach((objRaw, index) => {
+  topViewGroup.getCanvasObjects().forEach((objRaw, index) => {
     const obj = objRaw as any;
     if (!obj?.isContraventamento) return;
 

@@ -1,5 +1,5 @@
-import {Canvas as FabricCanvas, FabricObject, IText} from 'fabric';
-import {toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {Canvas as FabricCanvas, IText} from 'fabric';
+import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/rac-editor/lib/canvas/factory/elements/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
@@ -7,7 +7,7 @@ export type GenericObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
 export interface GenericObjectEditorApplyPayload {
   canvas: FabricCanvas;
-  object: FabricObject;
+  object: CanvasObject;
   color: string;
   label: string;
 }
@@ -33,7 +33,7 @@ function createWallStrategy(): GenericObjectEditorStrategy {
   return {
     kind: 'wall',
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toCanvasObject(object).getObjects();
+      const groupChildren = object.getObjects();
       groupChildren.forEach((child) => {
         if (child.myType !== 'wallLabel') {
           child.set({stroke: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement});
@@ -61,7 +61,7 @@ function createLinearStrategy(kind: 'line' | 'arrow' | 'distance'): GenericObjec
     kind,
 
     apply: ({canvas, object, color, label}) => {
-      const groupChildren = toCanvasObject(object).getObjects();
+      const groupChildren = object.getObjects();
       groupChildren.forEach((child) => {
         if (child.type === 'line') {
           child.set({stroke: color});

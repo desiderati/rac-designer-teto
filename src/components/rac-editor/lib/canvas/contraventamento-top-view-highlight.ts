@@ -1,5 +1,5 @@
-import {Group} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
+import {CanvasGroup} from "@/components/rac-editor/lib/canvas/canvas.ts";
 
 /**
  * Destaca visualmente os pilotis elegíveis para criação de contraventamento
@@ -15,12 +15,12 @@ import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '
  * @param skipPilotiId ID opcional do piloti que deve ser ignorado no destaque.
  */
 export function highlightEligibleContraventamentoPilotis(
-  group: Group,
+  group: CanvasGroup,
   getIsEligible: (pilotiId: string) => boolean,
   selectedCol?: number,
   skipPilotiId?: string,
 ): void {
-  group.getObjects().forEach((obj: any) => {
+  group.getCanvasObjects().forEach((obj) => {
     if (!obj.isPilotiCircle) return;
 
     const id: string = obj.pilotiId ?? '';
@@ -62,8 +62,8 @@ export function highlightEligibleContraventamentoPilotis(
  *
  * @param group Grupo Fabric da vista superior (`houseView = 'top'`).
  */
-export function resetHighlightContraventamentoPilotis(group: Group): void {
-  group.getObjects().forEach((obj: any) => {
+export function resetHighlightContraventamentoPilotis(group: CanvasGroup): void {
+  group.getCanvasObjects().forEach((obj) => {
     if (!obj.isPilotiCircle) return;
 
     if (obj.pilotiIsMaster) {

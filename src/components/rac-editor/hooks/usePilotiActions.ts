@@ -57,7 +57,7 @@ export function usePilotiActions({
       const activeObject = canvas.getActiveObject();
       const houseStillSelected = activeObject === group;
       applyPilotiEditorCloseVisuals({
-        groupObjects: group.getObjects(),
+        groupObjects: group.getCanvasObjects(),
         houseStillSelected,
       });
       canvas.renderAll();

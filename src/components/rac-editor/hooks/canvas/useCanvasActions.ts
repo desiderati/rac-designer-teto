@@ -1,6 +1,12 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
-import {Canvas as FabricCanvas, FabricObject, Group} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH, toCanvasObject} from '@/components/rac-editor/lib/canvas';
+import {Canvas as FabricCanvas} from 'fabric';
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  CanvasObject,
+  toCanvasGroup,
+  toCanvasObject
+} from '@/components/rac-editor/lib/canvas';
 import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
@@ -36,7 +42,7 @@ export function useCanvasActions({
     return {x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2};
   }, [canvasRef]);
 
-  const addObjectToCanvas = useCallback((obj: FabricObject) => {
+  const addObjectToCanvas = useCallback((obj: CanvasObject) => {
     const canvas = getCanvas();
     if (!canvas) return;
 
@@ -84,7 +90,7 @@ export function useCanvasActions({
           }
           houseManager.setHouseType(null);
         }
-        houseManager.removeView(object as Group);
+        houseManager.removeView(toCanvasGroup(object));
       }
       canvas.remove(object);
     }

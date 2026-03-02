@@ -1,6 +1,7 @@
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
+import {CanvasGroup} from "@/components/rac-editor/lib/canvas";
 
-export interface HouseState<TGroup = unknown> {
+export interface HouseState<TGroup = CanvasGroup> {
   id: string;
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
@@ -85,13 +86,13 @@ export const HOUSE_OPPOSITE_VIEW: Record<HouseViewType, HouseViewType | null> = 
 
 export const ALL_HOUSE_VIEW_TYPES: HouseViewType[] = ['top', 'front', 'back', 'side1', 'side2'];
 
-export interface HouseViewInstance<TGroup = unknown> {
+export interface HouseViewInstance<TGroup = CanvasGroup> {
   instanceId: string;
   side?: HouseSide;
   group: TGroup;
 }
 
-export type HouseViews<TGroup = unknown> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
+export type HouseViews<TGroup = CanvasGroup> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
 
 export type HouseViewSide = Record<HouseViewType, Array<{ side?: HouseSide; }>>;
 
@@ -146,6 +147,6 @@ export const DEFAULT_HOUSE_PILOTI: HousePiloti = {
 export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
 export interface HouseSnapshot {
-  views: Record<HouseViewType, unknown[]>;
+  views: Record<HouseViewType, CanvasGroup[]>;
   sideMappings: Record<HouseSide, HouseViewType | null>;
 }

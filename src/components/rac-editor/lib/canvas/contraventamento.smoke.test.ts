@@ -1,8 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from "./piloti";
 import {
-  canCreateContraventamentoForNivel, collectOccupiedContraventamentoSides, createContraventamentoEditorState,
-  getContraventamentoColumnCenterX, getContraventamentoSideLabel, inferContraventamentoSide,
+  canCreateContraventamentoForNivel,
+  collectOccupiedContraventamentoSides,
+  createContraventamentoEditorState,
+  getContraventamentoColumnCenterX,
+  getContraventamentoSideLabel,
+  inferContraventamentoSide,
   isContraventamentoDestinationEligible,
   resolveContraventamentoOffsetFromNivel
 } from "@/shared/types/contraventamento.ts";
