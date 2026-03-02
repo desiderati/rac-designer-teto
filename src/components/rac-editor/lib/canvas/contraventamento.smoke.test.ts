@@ -6,6 +6,7 @@ import {
   createContraventamentoEditorState,
   getContraventamentoColumnCenterX,
   getContraventamentoSideLabel,
+  hasEligiblePilotiInContraventamentoColumn,
   inferContraventamentoSide,
   isContraventamentoDestinationEligible,
   resolveContraventamentoOffsetFromNivel
@@ -60,5 +61,21 @@ describe('contraventamento helpers', () => {
     expect(
       createContraventamentoEditorState({canReceiveContraventamento: false, occupiedSides: occupied}),
     ).toEqual({leftDisabled: true, rightDisabled: true, leftActive: false, rightActive: false});
+  });
+
+  it('enables column when at least one piloti is eligible', () => {
+    expect(
+      hasEligiblePilotiInContraventamentoColumn({
+        col: 2,
+        isPilotiEligible: (pilotiId) => pilotiId === 'piloti_2_1',
+      }),
+    ).toBe(true);
+
+    expect(
+      hasEligiblePilotiInContraventamentoColumn({
+        col: 2,
+        isPilotiEligible: () => false,
+      }),
+    ).toBe(false);
   });
 });

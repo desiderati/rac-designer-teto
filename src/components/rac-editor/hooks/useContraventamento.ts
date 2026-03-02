@@ -60,6 +60,7 @@ export function useContraventamento({
     getTopViewGroup: queries.getTopViewGroup,
     getNonTopViewGroups: queries.getNonTopViewGroups,
     getContraventamentoColumnSides: queries.getContraventamentoColumnSides,
+    isPilotiEligibleForContraventamentoColumn: queries.isPilotiEligibleForContraventamentoColumn,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     setSelectedContraventamento,
     setIsContraventamentoMode,

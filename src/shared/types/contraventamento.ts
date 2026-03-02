@@ -192,3 +192,23 @@ export function collectOccupiedContraventamentoSides(params: {
   return occupied;
 }
 
+/**
+ * Verifica se existe ao menos um piloti elegível para contraventamento em uma coluna.
+ *
+ * Quando `true`, a coluna inteira é considerada habilitada (linhas 0, 1 e 2).
+ *
+ * @param params Coluna alvo e função de elegibilidade por `pilotiId`.
+ * @returns `true` quando pelo menos um piloti da coluna for elegível.
+ */
+export function hasEligiblePilotiInContraventamentoColumn(params: {
+  col: number;
+  isPilotiEligible: (pilotiId: string) => boolean;
+}): boolean {
+  for (let row = 0; row <= 2; row += 1) {
+    if (params.isPilotiEligible(`piloti_${params.col}_${row}`)) {
+      return true;
+    }
+  }
+  return false;
+}
+

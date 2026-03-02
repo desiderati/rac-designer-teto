@@ -257,7 +257,11 @@ export function useCanvasSelectionActions() {
       };
 
     const updateHint = () => {
-      const object = toCanvasObject(canvas.getActiveObject()) ?? null;
+      const activeObjectRaw =
+        typeof (canvas as any).getActiveObject === 'function'
+          ? (canvas as any).getActiveObject()
+          : (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
+      const object = toCanvasObject(activeObjectRaw) ?? null;
       onSelectionChange(getHintForObject(object));
 
       if (isContraventamentoMode()) {

@@ -14,7 +14,6 @@ import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {
-  canCreateContraventamentoForNivel,
   ContraventamentoSide,
   getContraventamentoSideLabel,
   inferContraventamentoSide
@@ -34,7 +33,8 @@ interface UseContraventamentoCommandsArgs {
     left: boolean;
     right: boolean;
   };
-  isPilotiEligibleAsDestination: (pilotiId: string, first: { col: number; row: number } | null) => boolean;
+  isPilotiEligibleForContraventamentoColumn: (pilotiId: string) => boolean;
+  isPilotiEligibleAsDestination: (pilotiId: string) => boolean;
   setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
   contraventamentoFirst: ContraventamentoOrigin | null;
@@ -53,6 +53,7 @@ export function useContraventamentoCommands({
   getTopViewGroup,
   getNonTopViewGroups,
   getContraventamentoColumnSides,
+  isPilotiEligibleForContraventamentoColumn,
   isPilotiEligibleAsDestination,
   setSelectedContraventamento,
   setIsContraventamentoMode,
@@ -80,7 +81,7 @@ export function useContraventamentoCommands({
     setContraventamentoSide(side);
     highlightEligibleContraventamentoPilotis(
       first.group,
-      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, first),
+      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId),
       first.col,
       first.pilotiId
     );
@@ -209,9 +210,8 @@ export function useContraventamentoCommands({
 
       const col = parsed.col;
       const row = parsed.row;
-      const data = houseManager.getPilotiData(pilotiSelection.pilotiId);
-      if (!canCreateContraventamentoForNivel(data?.nivel ?? 0)) {
-        toast.warning(TOAST_MESSAGES.contraventamentoRequiresNivelAboveXCentimeters);
+      if (!isPilotiEligibleForContraventamentoColumn(pilotiSelection.pilotiId)) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
         return;
       }
 
@@ -257,6 +257,7 @@ export function useContraventamentoCommands({
       enterSecondContraventamentoSelection,
       getTopViewGroup,
       getContraventamentoColumnSides,
+      isPilotiEligibleForContraventamentoColumn,
       setActiveSubmenu,
       setIsPilotiEditorOpen,
       pilotiSelection,

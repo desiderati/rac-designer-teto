@@ -5,15 +5,15 @@ import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {
   CanvasGroup,
   ContraventamentoOrigin,
+  isPilotiOutOfProportion,
   isCanvasGroup,
   parsePilotiGridPosition
 } from '@/components/rac-editor/lib/canvas';
 import {
-  canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
   ContraventamentoCandidate,
   createContraventamentoEditorState,
-  isContraventamentoDestinationEligible
+  hasEligiblePilotiInContraventamentoColumn,
 } from '@/shared/types/contraventamento.ts';
 
 interface UseContraventamentoQueriesArgs {
@@ -56,16 +56,40 @@ export function useContraventamentoQueries({
   const isPilotiEligibleAsDestination = useCallback((pilotiId: string): boolean => {
     if (!contraventamentoFirst) return false;
 
-    const data = houseManager.getPilotiData(pilotiId);
     const parsed = parsePilotiGridPosition(pilotiId);
     if (!parsed) return false;
 
-    return isContraventamentoDestinationEligible({
-      first: contraventamentoFirst,
-      candidate: parsed,
-      nivel: data?.nivel ?? 0,
+    const columnEnabled = hasEligiblePilotiInContraventamentoColumn({
+      col: parsed.col,
+      isPilotiEligible: (columnPilotiId) => {
+        const data = houseManager.getPilotiData(columnPilotiId);
+        return isPilotiOutOfProportion(
+          Number(data?.height ?? 0),
+          Number(data?.nivel ?? 0),
+        );
+      },
     });
+    if (!columnEnabled) return false;
+
+    return parsed.col === contraventamentoFirst.col
+      && parsed.row !== contraventamentoFirst.row;
   }, [contraventamentoFirst]);
+
+  const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
+    const parsed = parsePilotiGridPosition(pilotiId);
+    if (!parsed) return false;
+
+    return hasEligiblePilotiInContraventamentoColumn({
+      col: parsed.col,
+      isPilotiEligible: (columnPilotiId) => {
+        const data = houseManager.getPilotiData(columnPilotiId);
+        return isPilotiOutOfProportion(
+          Number(data?.height ?? 0),
+          Number(data?.nivel ?? 0),
+        );
+      },
+    });
+  }, []);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({
@@ -82,19 +106,24 @@ export function useContraventamentoQueries({
     if (!parsed) return disabled;
 
     const occupiedSides = getContraventamentoColumnSides(topGroup, parsed.col);
-    const data = houseManager.getPilotiData(pilotiIdForEditor);
-    const canReceiveContraventamento = canCreateContraventamentoForNivel(data?.nivel ?? 0);
+    const canReceiveContraventamento = isPilotiEligibleForContraventamentoColumn(pilotiIdForEditor);
 
     return createContraventamentoEditorState({
       canReceiveContraventamento,
       occupiedSides,
     });
-  }, [getContraventamentoColumnSides, getTopViewGroup, pilotiIdForEditor]);
+  }, [
+    getContraventamentoColumnSides,
+    getTopViewGroup,
+    isPilotiEligibleForContraventamentoColumn,
+    pilotiIdForEditor,
+  ]);
 
   return {
     getTopViewGroup,
     getNonTopViewGroups,
     getContraventamentoColumnSides,
+    isPilotiEligibleForContraventamentoColumn,
     isPilotiEligibleAsDestination,
     getContraventamentoEditorState,
   };

@@ -260,6 +260,8 @@ export const TOAST_MESSAGES = {
   addTopViewBeforeContraventamento: 'Adicione uma vista planta primeiro.',
   contraventamentoRequiresNivelAboveXCentimeters:
     'O piloti precisa ter nível de pelo menos 20cm para contraventar.',
+  contraventamentoRequiresOutOfProportionColumn:
+    'A coluna só permite contraventamento quando pelo menos um piloti está fora de proporção.',
 
   contraventamentoRemovedFromSide: (sideLabel: string): string =>
     `Contraventamento do lado ${sideLabel} removido.`,
