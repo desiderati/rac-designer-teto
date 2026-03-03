@@ -12,9 +12,9 @@ import {
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
-import {setCanvasGroupMyType} from "@/components/rac-editor/lib/canvas/factory/elements/shared.ts";
-import {formatNivel, formatPilotiHeight} from "@/shared/types/piloti.ts";
-import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from "@/shared/constants.ts";
+import {setCanvasGroupMyType} from '@/components/rac-editor/lib/canvas/factory/elements/shared.ts';
+import {formatNivel, formatPilotiHeight} from '@/shared/types/piloti.ts';
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 
 export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
 

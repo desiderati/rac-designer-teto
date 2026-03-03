@@ -12,7 +12,7 @@ import {useCanvasPointerInteractions} from '@/components/rac-editor/hooks/canvas
 import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;

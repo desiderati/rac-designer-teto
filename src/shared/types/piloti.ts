@@ -1,5 +1,5 @@
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
-import {PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from "../constants";
+import {PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from '../constants';
 
 export const getPilotiIdsForSide =
   (side: HouseSide): string[] => {

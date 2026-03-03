@@ -15,8 +15,8 @@ import {
   toCanvasGroup,
   toCanvasObject
 } from '@/components/rac-editor/lib/canvas/canvas.ts';
-import {resolveDoorSideCornerIds} from "@/shared/types/piloti.ts";
-import {PILOTI_DEFAULT_NIVEL} from "@/shared/constants.ts";
+import {resolveDoorSideCornerIds} from '@/shared/types/piloti.ts';
+import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 
 // Largura base da escada.
 const AUTO_STAIR_BASE_WIDTH_PX = HOUSE_DIMENSIONS.openings.common.windowWidth

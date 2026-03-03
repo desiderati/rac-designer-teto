@@ -17,7 +17,7 @@ import {
 import {HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {createHouseGroupForView, getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
-import {CanvasGroup, CanvasObject} from "@/components/rac-editor/lib/canvas";
+import {CanvasGroup, CanvasObject} from '@/components/rac-editor/lib/canvas';
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;

@@ -1,6 +1,6 @@
 import {useCallback, useState} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CanvasObject} from "@/components/rac-editor/lib/canvas";
+import {CanvasObject} from '@/components/rac-editor/lib/canvas';
 
 export interface MinimapObjectSnapshot {
   left: number;

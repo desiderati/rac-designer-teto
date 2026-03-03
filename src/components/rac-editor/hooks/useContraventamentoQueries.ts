@@ -13,7 +13,7 @@ import {
   createContraventamentoEditorState,
   hasEligiblePilotiInContraventamentoColumn,
 } from '@/shared/types/contraventamento.ts';
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from "@/shared/types/piloti.ts";
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;

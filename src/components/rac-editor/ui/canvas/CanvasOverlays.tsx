@@ -1,7 +1,7 @@
 import {ReactNode} from 'react';
 import {Minimap} from '../Minimap.tsx';
 import {ZoomSlider} from '@/components/rac-editor/ui/ZoomSlider.tsx';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;

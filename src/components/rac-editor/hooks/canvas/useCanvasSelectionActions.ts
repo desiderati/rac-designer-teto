@@ -19,7 +19,7 @@ import {
   PILOTI_VISUAL_FEEDBACK_COLORS,
   TERRAIN_STYLE
 } from '@/shared/config.ts';
-import {getPilotiIdsForSide} from "@/shared/types/piloti.ts";
+import {getPilotiIdsForSide} from '@/shared/types/piloti.ts';
 
 interface BindSelectionActionsArgs {
   canvas: FabricCanvas;
@@ -258,9 +258,8 @@ export function useCanvasSelectionActions() {
 
     const updateHint = () => {
       const activeObjectRaw =
-        typeof (canvas as any).getActiveObject === 'function'
-          ? (canvas as any).getActiveObject()
-          : (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
+        canvas.getActiveObject()
+        ?? (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
       const object = toCanvasObject(activeObjectRaw) ?? null;
       onSelectionChange(getHintForObject(object));
 
@@ -301,4 +300,6 @@ export function useCanvasSelectionActions() {
 
   return {bindSelectionActions};
 }
+
+
 

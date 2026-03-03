@@ -33,9 +33,9 @@ import {
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
 import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
-import {getAllPilotiIds} from "@/shared/types/piloti.ts";
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
-import {updateGroundTerrainType} from "@/components/rac-editor/lib/canvas/terrain.ts";
+import {getAllPilotiIds} from '@/shared/types/piloti.ts';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
 
 class HouseManager {
 

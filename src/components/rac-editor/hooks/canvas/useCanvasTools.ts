@@ -6,7 +6,7 @@ import {CanvasObject, getElementStrategy,} from '@/components/rac-editor/lib/can
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {TIMINGS} from '@/shared/config.ts';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

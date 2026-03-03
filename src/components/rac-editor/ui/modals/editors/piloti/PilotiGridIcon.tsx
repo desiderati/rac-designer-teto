@@ -1,6 +1,6 @@
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {EDITOR_ICON_COLORS} from '@/shared/config.ts';
-import {PILOTI_MASTER_FILL_COLOR} from "@/shared/constants.ts";
+import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 
 const GRID_ROWS = 3;
 const GRID_COLS = 4;

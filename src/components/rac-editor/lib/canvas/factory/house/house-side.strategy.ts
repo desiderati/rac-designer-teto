@@ -5,7 +5,7 @@ import {getHouseScaleFactors} from '@/components/rac-editor/lib/canvas/factory/h
 import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
-import {setCanvasGroupMyType} from "@/components/rac-editor/lib/canvas/factory/elements/shared.ts";
+import {setCanvasGroupMyType} from '@/components/rac-editor/lib/canvas/factory/elements/shared.ts';
 
 export function createHouseSide(
   canvas: FabricCanvas,

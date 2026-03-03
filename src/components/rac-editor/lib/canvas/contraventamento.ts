@@ -18,7 +18,7 @@ import {
   CONTRAVENTAMENTO_STROKE,
   CONTRAVENTAMENTO_STROKE_WIDTH,
   PILOTI_BASE_HEIGHT_PX
-} from "@/shared/constants";
+} from '@/shared/constants';
 
 export interface ContraventamentoOrigin {
   pilotiId?: string;

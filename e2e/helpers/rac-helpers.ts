@@ -1,7 +1,7 @@
 import {expect, Page} from '@playwright/test';
 import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house';
-import {CanvasObjectSummary, CanvasPosition} from "../../src/components/rac-editor/lib/canvas";
-import {RacEditorUiState} from "../../src/components/rac-editor/lib/rac-editor";
+import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../src/components/rac-editor/lib/canvas';
+import {RacEditorUiState} from '../../src/components/rac-editor/lib/rac-editor';
 
 interface ActiveCanvasObjectSummary {
   type: string | null;
@@ -11,7 +11,7 @@ interface ActiveCanvasObjectSummary {
 }
 
 interface RacEditorDebugApi {
-  getHouse?: () => HouseSnapshot | null;
+  getHouse?: () => HouseSnapshot<CanvasGroup> | null;
   getHousePiloti?: (pilotiId: string) => HousePiloti | null;
   updatePiloti?: (
     pilotiId: string,
@@ -175,7 +175,7 @@ export async function triggerLinesAction(page: Page, actionLabel: string) {
   await actionButton.click({force: true});
 }
 
-export async function getHouseSnapshot(page: Page): Promise<HouseSnapshot | null> {
+export async function getHouseSnapshot(page: Page): Promise<HouseSnapshot<CanvasGroup> | null> {
   return page.evaluate(() => {
     const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
     return debug?.getHouse?.() ?? null;

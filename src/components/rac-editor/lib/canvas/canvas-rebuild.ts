@@ -6,7 +6,7 @@ import {
   isCanvasGroup
 } from '@/components/rac-editor/lib/canvas/index.ts';
 import {RebuildViewSource} from '@/shared/types/house-rebuild.ts';
-import {getAllPilotiIds} from "@/shared/types/piloti.ts";
+import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
 export interface RebuildPilotiSourceObject {
   pilotiId?: unknown;

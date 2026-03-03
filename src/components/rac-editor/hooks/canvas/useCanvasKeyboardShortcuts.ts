@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, IText} from 'fabric';
-import {CanvasObject} from "@/components/rac-editor/lib/canvas";
+import {CanvasObject} from '@/components/rac-editor/lib/canvas';
 
 interface BindKeyboardShortcutsArgs {
   canvas: FabricCanvas;

@@ -1,7 +1,7 @@
 import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, FabricObject} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
-import {getCanvasGroupObjects, isCanvasGroup} from "@/components/rac-editor/lib/canvas";
+import {getCanvasGroupObjects, isCanvasGroup} from '@/components/rac-editor/lib/canvas';
 
 interface ContraventamentoRefs {
   isContraventamentoMode: boolean;

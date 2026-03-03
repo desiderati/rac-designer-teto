@@ -1,5 +1,5 @@
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
-import {CanvasObject} from "@/components/rac-editor/lib/canvas/canvas.ts";
+import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
 export interface PilotiObjectIndexEntry<TObject> {
   circle?: TObject;

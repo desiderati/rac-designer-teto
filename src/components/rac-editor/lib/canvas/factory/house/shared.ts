@@ -1,7 +1,7 @@
 import {Canvas as FabricCanvas} from 'fabric';
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
-import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from "@/shared/constants.ts";
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects().map(o => toCanvasObject(o));

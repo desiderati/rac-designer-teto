@@ -5,7 +5,7 @@ import {
   HOUSE_BASE_HEIGHT,
   HOUSE_BASE_WIDTH, PILOTI_BASE_HEIGHT_PX,
   PILOTI_MASTER_FILL_COLOR
-} from "@/shared/constants.ts";
+} from '@/shared/constants.ts';
 
 describe('canvas constants', () => {
   it('exposes expected base values', () => {

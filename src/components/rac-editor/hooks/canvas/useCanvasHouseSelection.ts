@@ -2,7 +2,7 @@ import {RefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {CanvasGroup, getCanvasGroupObjects, isCanvasGroup,} from '@/components/rac-editor/lib/canvas';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
-import {PILOTI_MASTER_STROKE_COLOR, PILOTI_STROKE_COLOR} from "@/shared/constants.ts";
+import {PILOTI_MASTER_STROKE_COLOR, PILOTI_STROKE_COLOR} from '@/shared/constants.ts';
 
 interface UseCanvasHouseSelectionArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;

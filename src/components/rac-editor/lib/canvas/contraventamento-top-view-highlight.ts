@@ -1,5 +1,5 @@
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
-import {CanvasGroup} from "@/components/rac-editor/lib/canvas/canvas.ts";
+import {CanvasGroup} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
 /**
  * Destaca visualmente os pilotis elegíveis para criação de contraventamento

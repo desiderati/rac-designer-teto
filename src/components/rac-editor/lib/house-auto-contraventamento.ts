@@ -12,7 +12,7 @@ import {
   ContraventamentoSide,
   getContraventamentoColumnCenterX
 } from '@/shared/types/contraventamento.ts';
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from "@/shared/types/piloti.ts";
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 const GRID_COLUMNS = [0, 1, 2, 3] as const;
 const GRID_ROWS = [0, 1, 2] as const;

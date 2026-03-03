@@ -6,8 +6,8 @@ import {
   formatNivel, getAllPilotiIds,
   getPilotiName,
   getRecommendedHeight
-} from "@/shared/types/piloti.ts";
-import {getTerrainRachaoThicknessCm} from "@/components/rac-editor/lib/canvas/terrain.ts";
+} from '@/shared/types/piloti.ts';
+import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/lib/canvas/terrain.ts';
 
 describe('piloti helpers', () => {
   it('clamps nivel respecting min/max', () => {

@@ -11,10 +11,10 @@ import {
   TerrainSolidityLevel
 } from '@/shared/config.ts';
 import {CanvasGroup, CanvasObject, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts'
-import {refreshHouseGroupRendering} from "@/components/rac-editor/lib/canvas/piloti.ts";
-import {HOUSE_DIMENSIONS} from "@/shared/types/house-dimensions.ts";
-import {PILOTI_BASE_HEIGHT_PX, PILOTI_BASE_HEIGHT_PX_WITH_SCALE, PILOTI_DEFAULT_NIVEL} from "@/shared/constants.ts";
-import {formatNivel} from "@/shared/types/piloti.ts";
+import {refreshHouseGroupRendering} from '@/components/rac-editor/lib/canvas/piloti.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {PILOTI_BASE_HEIGHT_PX, PILOTI_BASE_HEIGHT_PX_WITH_SCALE, PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
+import {formatNivel} from '@/shared/types/piloti.ts';
 
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 export function createGroundElements(

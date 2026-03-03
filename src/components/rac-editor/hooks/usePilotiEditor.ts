@@ -3,7 +3,7 @@ import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/compone
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
-import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from "@/shared/types/piloti.ts";
+import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;

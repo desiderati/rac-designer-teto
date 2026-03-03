@@ -16,14 +16,14 @@ import {
   updatePilotiMaster
 } from '@/components/rac-editor/lib/canvas/index.ts';
 import {HousePiloti, HouseViews} from '@/shared/types/house.ts';
-import {updateGroundInGroup} from "@/components/rac-editor/lib/canvas/terrain.ts";
+import {updateGroundInGroup} from '@/components/rac-editor/lib/canvas/terrain.ts';
 import {
   PILOTI_BASE_HEIGHT_PX,
   PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
   PILOTI_MASTER_FILL_COLOR,
   PILOTI_MASTER_STROKE_COLOR
-} from "@/shared/constants.ts";
-import {formatNivel, formatPilotiHeight} from "@/shared/types/piloti.ts";
+} from '@/shared/constants.ts';
+import {formatNivel, formatPilotiHeight} from '@/shared/types/piloti.ts';
 
 export interface PilotiNivelTextPatch {
   text: string;

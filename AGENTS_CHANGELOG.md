@@ -434,3 +434,15 @@
 - Ajuste complementar:
     - `ux-design.md` atualizado com seção de referência para usar
       `.guidelines/architecture-patterns.md` em decisões arquiteturais.
+
+## 2026-03-03
+
+### Correções
+
+- Correção de imports quebrados no editor de nível e no módulo 3D, ajustando referências indevidas de @/components/rac-editor/lib/canvas para @/shared/types/piloti.ts e @/shared/constants.ts.
+- Validação final de imports com 
+pm run build e 
+px tsc --noEmit sem erros.
+- Correção de lint em todo o projeto com `eslint --fix` (padronização de aspas/imports) e ajustes de regra para permitir `any` apenas em `*.smoke.test.*`.
+- Remoção de `any` no código de produção em `useCanvasSelectionActions.ts`.
+- `npm run lint` finalizado sem erros (apenas warnings de Fast Refresh).

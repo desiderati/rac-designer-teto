@@ -3,7 +3,7 @@ import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
-import {PilotiCanvasSelection} from "@/components/rac-editor/lib/canvas";
+import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 
 interface UseRacEditorDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;

@@ -9,8 +9,8 @@ import {
   inferContraventamentoSide,
   isContraventamentoDestinationEligible,
   resolveContraventamentoOffsetFromNivel
-} from "@/shared/types/contraventamento.ts";
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from "@/shared/types/piloti.ts";
+} from '@/shared/types/contraventamento.ts';
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 describe('contraventamento helpers', () => {
   it('parses piloti ids and validates nivel', () => {

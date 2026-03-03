@@ -7,7 +7,7 @@ import {
 import {createHouseTop} from '@/components/rac-editor/lib/canvas/factory/house/house-top.strategy.ts';
 import {createHouseFrontBack} from '@/components/rac-editor/lib/canvas/factory/house/house-front-back.strategy.ts';
 import {createHouseSide} from '@/components/rac-editor/lib/canvas/factory/house/house-side.strategy.ts';
-import {CanvasGroup} from "@/components/rac-editor/lib/canvas";
+import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 
 export function getHouseViewStrategy(
   strategyKey: HouseViewStrategyKey,
