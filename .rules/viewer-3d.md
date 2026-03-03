@@ -45,6 +45,7 @@ Quando o viewer está aberto:
 1. terreno usa interpolação bilinear dos níveis de canto
 2. piloti ajusta altura visual conforme terreno/nível
 3. mestre preserva destaque de cor no 3D
+4. no modo `ocultar abaixo do terreno`, o recorte dos pilotis usa piso mínimo de `0,5 m` para o ponto de corte
 
 ## 3.3 Contraventamentos 3D
 
@@ -57,13 +58,16 @@ Quando o viewer está aberto:
 1. reset de camera (`resetKey`)
 2. toggle fullscreen
 3. seleção de cor de parede (paleta em `HOUSE_3D_WALL_COLOR_OPTIONS`)
-4. inserção de snapshot:
+4. toggle de visibilidade abaixo do terreno:
+    - quando ativo, o viewer oculta partes dos pilotis abaixo da superfície do terreno;
+    - a face inferior do terreno também deixa de ser renderizada (evita visualização “por baixo”).
+5. inserção de snapshot:
     - captura `toDataURL` do canvas WebGL
     - `preserveDrawingBuffer = true` para garantir captura
     - chama `houseManager.insert3DSnapshotOnCanvas(dataUrl)`
     - cálculo de escala/posicionamento centralizado em `house-snapshot`
     - exibe `toast` de sucesso/erro
-5. se `houseType` for `null`, o viewer mostra estado vazio e bloqueia inserção
+6. se `houseType` for `null`, o viewer mostra estado vazio e bloqueia inserção
 
 ## 5. Checklist de cobertura E2E (arquivo)
 

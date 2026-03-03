@@ -245,7 +245,10 @@ export class HouseAggregate<TGroup> {
     return {clearedMasters};
   }
 
-  recalculateRecommendedPilotiData(defaultPiloti: HousePiloti): void {
+  recalculateRecommendedPilotiData(
+    defaultPiloti: HousePiloti,
+    recalculateHeight: boolean = true,
+  ): void {
     const nextPilotis: Record<string, HousePiloti> = {...this.state.pilotis};
 
     const a1 = this.state.pilotis[PILOTI_CORNER_ID.topLeft]?.nivel ?? defaultPiloti.nivel;
@@ -265,7 +268,7 @@ export class HouseAggregate<TGroup> {
         nextPilotis[id] = {
           ...(nextPilotis[id] ?? defaultPiloti),
           nivel: HouseAggregate.round2(nivel),
-          height,
+          ...(recalculateHeight ? {height} : {}),
         };
       }
     }

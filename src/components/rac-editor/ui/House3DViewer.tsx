@@ -5,7 +5,15 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import {Button} from '@/components/ui/button.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCamera, faCompress, faExpand, faPalette, faRotateRight, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {
+  faCamera,
+  faCompress,
+  faExpand,
+  faEyeSlash,
+  faPalette,
+  faRotateRight,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {HousePiloti, HouseType} from '@/shared/types/house.ts';
@@ -32,6 +40,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
+  const [hideBelowTerrain, setHideBelowTerrain] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Sync with HouseManager
@@ -160,6 +169,14 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 </PopoverContent>
               </Popover>
               <Button
+                variant={hideBelowTerrain ? 'default' : 'outline'}
+                size='icon'
+                onClick={() => setHideBelowTerrain((previous) => !previous)}
+                title={hideBelowTerrain ? 'Mostrar abaixo do terreno' : 'Ocultar abaixo do terreno'}
+              >
+                <FontAwesomeIcon icon={faEyeSlash}/>
+              </Button>
+              <Button
                 variant='outline'
                 size='icon'
                 title='Inserir no Canvas'
@@ -253,6 +270,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                   wallColor={wallColor}
                   tipo6FrontSide={tipo6FrontSide}
                   tipo3OpenSide={tipo3OpenSide}
+                  hideBelowTerrain={hideBelowTerrain}
                 />
 
                 {/* Controls */}

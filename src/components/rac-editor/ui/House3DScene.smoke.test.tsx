@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from '@testing-library/react';
 import {House3DScene} from '@/components/rac-editor/ui/House3DScene.tsx';
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
+import {ALL_PILOTI_IDS} from '@/shared/config.ts';
 
 describe('House3DScene contraventamento', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -49,5 +50,20 @@ describe('House3DScene contraventamento', () => {
     const withContraventamentoBoxGeometryCount = withContraventamento.container.querySelectorAll('boxgeometry').length;
 
     expect(withContraventamentoBoxGeometryCount).toBe(baselineBoxGeometryCount + 1);
+  });
+
+  it('renderiza piloti segmentado em duas partes (2/3 inferior + 1/3 superior)', () => {
+    const pilotis = {} as Record<string, HousePiloti>;
+
+    const scene = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+      />,
+    );
+
+    const cylinderCount = scene.container.querySelectorAll('cylindergeometry').length;
+    expect(cylinderCount).toBe(ALL_PILOTI_IDS.length * 2);
   });
 });

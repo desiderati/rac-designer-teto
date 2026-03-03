@@ -32,7 +32,7 @@ import {
 } from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
-import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {normalizeTerrainSolidityLevel, PILOTI_CORNER_IDS, TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
@@ -396,7 +396,27 @@ class HouseManager {
     const aggregate = this.getHouseAggregate();
     if (!aggregate) return;
 
+    const previousPiloti = this.house?.pilotis?.[pilotiId] ?? null;
+
+    const shouldRecalculateInterpolatedNiveis = PILOTI_CORNER_IDS.includes(pilotiId)
+      && pilotiData.nivel !== undefined
+      && previousPiloti?.nivel !== pilotiData.nivel;
+
     const {clearedMasters} = aggregate.applyPilotiPatch(pilotiId, pilotiData);
+
+    if (shouldRecalculateInterpolatedNiveis) {
+      aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI, false);
+      this.persistHouse();
+
+      this.getAllGroups().forEach((group) => {
+        applyPilotiDataToGroup(group, this.house.pilotis);
+      });
+
+      this.canvas?.requestRenderAll();
+      this.notify();
+      return;
+    }
+
     this.persistHouse();
     syncPilotiUpdateAcrossViews(pilotiId, this.house.pilotis, pilotiData, this.house.views, clearedMasters);
 

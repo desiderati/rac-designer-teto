@@ -57,6 +57,7 @@ export const TERRAIN_SEGMENTS = HOUSE_DIMENSIONS.terrain.segments;
 export const COLORS = {
   roof: '#a8b8c4',
   piloti: '#d8d8d8',
+  pilotiLower: '#5f5f5f',
   terrain: '#7da86d',
   floor: '#f7f7f7',
   beam: '#ececec',

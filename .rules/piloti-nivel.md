@@ -103,9 +103,11 @@ Quando `autoNavigatePiloti` está habilitado nas configurações:
 Quando `height`, `isMaster` ou `nivel` mudam:
 
 1. `HouseManager` atualiza estado central
-2. propagação para todas as vistas registradas
-3. atualização visual de textos/estilo
-4. exclusividade de mestre aplicada centralmente
+2. ao alterar `nivel` de um piloti de canto, os níveis dos pilotis intermediários são recalculados por interpolação
+   bilinear usando os 4 cantos atuais
+3. propagação para todas as vistas registradas
+4. atualização visual de textos/estilo
+5. exclusividade de mestre aplicada centralmente
 
 Complemento de renderização extraído:
 

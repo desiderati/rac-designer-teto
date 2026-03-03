@@ -4,6 +4,7 @@ import {
   BufferGeometry,
   Color,
   DoubleSide,
+  FrontSide,
   MathUtils,
   PlaneGeometry,
   Quaternion,
@@ -50,6 +51,7 @@ import {
   type SceneOpening
 } from '@/components/rac-editor/lib/3d/scene-openings-builder.ts';
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
+import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-visibility.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {resolveContraventamentoOffsetFromNivel} from '@/shared/types/contraventamento.ts';
@@ -61,7 +63,10 @@ interface House3DSceneProps {
   wallColor?: string;
   tipo6FrontSide?: 'top' | 'bottom' | null;
   tipo3OpenSide?: 'left' | 'right' | null;
+  hideBelowTerrain?: boolean;
 }
+
+const MIN_HIDE_BELOW_TERRAIN_NIVEL = 0.5;
 
 export function House3DScene({
   houseType,
@@ -70,6 +75,7 @@ export function House3DScene({
   wallColor = HOUSE_3D_WALL_COLORS.sceneFallbackColor,
   tipo6FrontSide = null,
   tipo3OpenSide = null,
+  hideBelowTerrain = false,
 }: House3DSceneProps) {
   const sceneOpenings = useMemo(
     () => buildSceneOpeningsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
@@ -79,10 +85,15 @@ export function House3DScene({
 
   return (
     <group>
-      <TerrainMesh pilotis={pilotis}/>
+      <TerrainMesh pilotis={pilotis} hideBelowTerrain={hideBelowTerrain}/>
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
-        <PilotiMesh key={pilotiId} pilotiId={pilotiId} pilotis={pilotis}/>
+        <PilotiMesh
+          key={pilotiId}
+          pilotiId={pilotiId}
+          pilotis={pilotis}
+          hideBelowTerrain={hideBelowTerrain}
+        />
       ))}
 
       {contraventamentos.map((contraventamento) => (
@@ -98,7 +109,13 @@ export function House3DScene({
   );
 }
 
-function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
+function TerrainMesh({
+  pilotis,
+  hideBelowTerrain,
+}: {
+  pilotis: Record<string, HousePiloti>;
+  hideBelowTerrain: boolean;
+}) {
   const geometry = useMemo(() => {
     const width = HOUSE_3D_WIDTH + TERRAIN_MARGIN * 2;
     const depth = HOUSE_3D_DEPTH + TERRAIN_MARGIN * 2;
@@ -121,30 +138,67 @@ function TerrainMesh({pilotis}: { pilotis: Record<string, HousePiloti> }) {
 
   return (
     <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <meshStandardMaterial color={COLORS.terrain} roughness={0.95} metalness={0} side={DoubleSide}/>
+      <meshStandardMaterial
+        color={COLORS.terrain}
+        roughness={0.95}
+        metalness={0}
+        side={hideBelowTerrain ? FrontSide : DoubleSide}
+      />
     </mesh>
   );
 }
 
-function PilotiMesh({pilotiId, pilotis}: { pilotiId: string; pilotis: Record<string, HousePiloti> }) {
+function PilotiMesh({
+  pilotiId,
+  pilotis,
+  hideBelowTerrain,
+}: {
+  pilotiId: string;
+  pilotis: Record<string, HousePiloti>;
+  hideBelowTerrain: boolean;
+}) {
   const grid = parsePilotiId(pilotiId);
   if (!grid) return null;
 
   const data = pilotis[pilotiId] ?? DEFAULT_HOUSE_PILOTI;
   const [x, z] = getPilotiTopXZ(grid.col, grid.row);
-  const terrainY = getTerrainYByUV(pilotis, 1 - grid.col / 3, grid.row / 2);
+  // No eixo de 6m (front/back), o UV do terreno segue o índice de coluna direto.
+  // Inverter esse eixo aqui causa recorte flipado na ocultação abaixo do terreno.
+  const terrainY = resolvePilotiTerrainY({
+    pilotis,
+    col: grid.col,
+    row: grid.row,
+    hideBelowTerrain,
+  });
 
   const nominalHeight = (data.height ?? DEFAULT_HOUSE_PILOTI.height) * PILOTI_BASE_HEIGHT_PX;
   const minHeightToTouchTerrain = Math.max(PILOTI_TOP_Y - terrainY, 0);
-  const finalHeight = Math.max(nominalHeight, minHeightToTouchTerrain, 0.5);
-  const centerY = PILOTI_TOP_Y - finalHeight / 2;
+  const {visibleHeight, topVisibleHeight, bottomVisibleHeight} = resolvePilotiHeightSegments({
+    nominalHeight,
+    minHeightToTouchTerrain,
+    hideBelowTerrain,
+    minVisibleHeightWhenHidden: MIN_HIDE_BELOW_TERRAIN_NIVEL * PILOTI_BASE_HEIGHT_PX,
+  });
+  if (visibleHeight <= 0) return null;
+
+  const centerY = PILOTI_TOP_Y - visibleHeight / 2;
+  const topColor = data.isMaster ? PILOTI_MASTER_FILL_COLOR : COLORS.piloti;
 
   return (
     <group position={[x, centerY, z]}>
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, finalHeight, 16]}/>
-        <meshStandardMaterial color={data.isMaster ? PILOTI_MASTER_FILL_COLOR : COLORS.piloti} roughness={0.65}/>
-      </mesh>
+      {bottomVisibleHeight > 0 && (
+        <mesh position={[0, -topVisibleHeight / 2, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, bottomVisibleHeight, 16]}/>
+          <meshStandardMaterial color={COLORS.pilotiLower} roughness={0.65}/>
+        </mesh>
+      )}
+
+      {topVisibleHeight > 0 && (
+        <mesh position={[0, bottomVisibleHeight / 2, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[PILOTI_RADIUS, PILOTI_RADIUS, topVisibleHeight, 16]}/>
+          <meshStandardMaterial color={topColor} roughness={0.65}/>
+        </mesh>
+      )}
     </group>
   );
 }
@@ -494,4 +548,43 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   const x = (1.5 - col) * PILOTI_STEP_X;
   const z = (1 - row) * PILOTI_STEP_Z;
   return [x, z];
+}
+
+function resolvePilotiTerrainY(params: {
+  pilotis: Record<string, HousePiloti>;
+  col: number;
+  row: number;
+  hideBelowTerrain: boolean;
+}): number {
+  const centerU = params.col / 3;
+  const centerV = params.row / 2;
+  const centerY = getTerrainYByUV(params.pilotis, centerU, centerV);
+  if (!params.hideBelowTerrain) return centerY;
+
+  // Em terreno íngreme, cortar pelo nível do centro do piloti remove mais do que o necessário.
+  // Aqui usamos o menor Y amostrado em múltiplos anéis ao redor do raio do piloti
+  // para reduzir sobrecorte visual.
+  const du = PILOTI_RADIUS / (PILOTI_STEP_X * 3);
+  const dv = PILOTI_RADIUS / (PILOTI_STEP_Z * 2);
+  let minY = Number.POSITIVE_INFINITY;
+  const ringScales = [0, 0.5, 1];
+  const ringSamples = 32;
+
+  ringScales.forEach((scale) => {
+    if (scale === 0) {
+      const y = getTerrainYByUV(params.pilotis, centerU, centerV);
+      if (y < minY) minY = y;
+      return;
+    }
+
+    for (let i = 0; i < ringSamples; i += 1) {
+      const angle = (i / ringSamples) * Math.PI * 2;
+      const offsetU = Math.cos(angle) * du * scale;
+      const offsetV = Math.sin(angle) * dv * scale;
+      const y = getTerrainYByUV(params.pilotis, centerU + offsetU, centerV + offsetV);
+      if (y < minY) minY = y;
+    }
+  });
+
+  return Number.isFinite(minY) ? minY : centerY;
 }

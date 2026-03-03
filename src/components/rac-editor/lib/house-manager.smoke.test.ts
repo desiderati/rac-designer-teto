@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {FabricImage} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -87,6 +88,21 @@ describe('houseManager smoke flows', () => {
     expect(houseManager.getPilotiData('piloti_0_0').isMaster).toBe(false);
     expect(houseManager.getPilotiData('piloti_0_0').height).toBe(2.0);
     expect(houseManager.getPilotiData('piloti_0_0').nivel).toBe(0.5);
+  });
+
+  it('recalcula níveis intermediários quando um nível de canto é alterado', () => {
+    houseManager.setHouseType('tipo6');
+
+    houseManager.updatePiloti('piloti_0_0', {nivel: 0.2});
+    houseManager.updatePiloti('piloti_3_0', {nivel: 1.0});
+    houseManager.updatePiloti('piloti_0_2', {nivel: 0.2});
+    houseManager.updatePiloti('piloti_3_2', {nivel: 1.0});
+
+    expect(houseManager.getPilotiData('piloti_1_1').nivel).toBe(0.47);
+    expect(houseManager.getPilotiData('piloti_2_1').nivel).toBe(0.73);
+
+    // A regra recalcula nível interpolado sem sobrescrever altura manual dos intermediários.
+    expect(houseManager.getPilotiData('piloti_1_1').height).toBe(DEFAULT_HOUSE_PILOTI.height);
   });
 
   it('registers and removes views while syncing side assignments', () => {
