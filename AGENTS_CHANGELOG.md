@@ -447,3 +447,5 @@ px tsc --noEmit sem erros.
 - Remoção de `any` no código de produção em `useCanvasSelectionActions.ts`.
 - `npm run lint` finalizado sem erros (apenas warnings de Fast Refresh).
 - Regra `react-refresh/only-export-components` desativada para `src/components/ui/**/*.{ts,tsx}` conforme alinhamento de projeto.
+- Correção de três regressões em smoke tests: fallback seguro de `getActiveObject` em `useCanvasSelectionActions`, reexport de `getAllPilotiIds` no barrel de canvas e ajuste de import em `factory/house/shared.smoke.test.ts`.
+- Validação: `npx vitest run smoke.test` com 58/58 arquivos e 140/140 testes passando.

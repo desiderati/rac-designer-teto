@@ -257,8 +257,9 @@ export function useCanvasSelectionActions() {
       };
 
     const updateHint = () => {
+      const activeObjectGetter = (canvas as unknown as { getActiveObject?: () => unknown }).getActiveObject;
       const activeObjectRaw =
-        canvas.getActiveObject()
+        (typeof activeObjectGetter === 'function' ? activeObjectGetter.call(canvas) : null)
         ?? (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
       const object = toCanvasObject(activeObjectRaw) ?? null;
       onSelectionChange(getHintForObject(object));
@@ -300,6 +301,7 @@ export function useCanvasSelectionActions() {
 
   return {bindSelectionActions};
 }
+
 
 
 

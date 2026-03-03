@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {getHouseScaleFactors} from './shared.ts';
-import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '../../constants.ts';
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 import {Canvas as FabricCanvas} from 'fabric';
 import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
@@ -30,3 +30,4 @@ describe('house factory shared', () => {
     expect(result.depthFactor).toBeCloseTo(200 / HOUSE_BASE_HEIGHT, 5);
   });
 });
+
