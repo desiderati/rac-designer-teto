@@ -170,6 +170,7 @@ export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
 export const TERRAIN_SOLIDITY = {
   defaultLevel: 1,
   sideGravelWidth: 10,
+  voidFactor: 1.35,
   levels: {
     1: {label: 'Seco', rachao: 15},
     2: {label: 'Argiloso', rachao: 30},

@@ -144,13 +144,12 @@ export function createGroundElements(
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
   const gMinY = Math.min(...groundPtsAbs.map((p) => p.y));
 
-  const strokeMultiplier = 7;
   const groundLine = new Polyline(groundPtsAbs, {
-    left: gMinX - strokeMultiplier,
-    top: gMinY - strokeMultiplier,
+    left: gMinX - 5,
+    top: gMinY - 5,
     fill: 'transparent',
     stroke: lineColor,
-    strokeWidth: markerWidth * strokeMultiplier,
+    strokeWidth: markerWidth * 7, // Multiplicador :)
     strokeUniform: true,
     selectable: false,
     evented: false,

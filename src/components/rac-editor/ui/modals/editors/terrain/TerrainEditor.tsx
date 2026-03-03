@@ -4,12 +4,15 @@ import {Slider} from '@/components/ui/slider.tsx';
 import {X} from 'lucide-react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
 import {TerrainPreviewIcon} from '@/components/rac-editor/ui/modals/editors/terrain/TerrainPreviewIcon.tsx';
-import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
+import type {HousePiloti} from '@/shared/types/house.ts';
 
 interface TerrainEditorProps {
   isOpen: boolean;
   isMobile: boolean;
   currentTerrainType: number;
+  pilotis: Record<string, HousePiloti>;
   anchorPosition?: { x: number; y: number };
   onApply: (terrainType: number) => void;
   onClose: () => void;
@@ -19,6 +22,7 @@ export function TerrainEditor({
   isOpen,
   isMobile,
   currentTerrainType,
+  pilotis,
   anchorPosition,
   onApply,
   onClose,
@@ -30,10 +34,29 @@ export function TerrainEditor({
     setDraftType(currentTerrainType);
   }, [currentTerrainType, isOpen]);
 
-  const selected = useMemo(() => {
-    const normalized = Math.max(1, Math.min(5, Math.round(draftType))) as 1 | 2 | 3 | 4 | 5;
-    return TERRAIN_SOLIDITY.levels[normalized];
-  }, [draftType]);
+  const normalizedDraftType = useMemo(
+    () => normalizeTerrainSolidityLevel(draftType),
+    [draftType],
+  );
+
+  const selected = useMemo(
+    () => TERRAIN_SOLIDITY.levels[normalizedDraftType],
+    [normalizedDraftType],
+  );
+
+  const volumes = useMemo(
+    () => calculateTotalVolumes(normalizedDraftType, Object.values(pilotis)),
+    [normalizedDraftType, pilotis],
+  );
+
+  const formatVolume = useMemo(
+    () =>
+      new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    [],
+  );
 
   if (!isOpen) return null;
 
@@ -44,7 +67,7 @@ export function TerrainEditor({
       anchorPosition={anchorPosition}
       confirmLabel='Confirmar'
       onConfirm={() => {
-        onApply(Math.max(1, Math.min(5, Math.round(draftType))));
+        onApply(normalizedDraftType);
         onClose();
       }}
       onCancel={onClose}
@@ -82,6 +105,11 @@ export function TerrainEditor({
             <span className='text-center'>3</span>
             <span className='text-center'>4</span>
             <span className='text-center'>5</span>
+          </div>
+
+          <div className='mt-4 rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs space-y-1'>
+            <p>Rachão total: {formatVolume.format(volumes.rachaoM3)} m³</p>
+            <p>Brita total: {formatVolume.format(volumes.britaM3)} m³</p>
           </div>
         </>
       }

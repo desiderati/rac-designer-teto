@@ -462,6 +462,8 @@ export function RacEditor() {
   });
 
   const contraventamentoEditorState = getContraventamentoEditorState();
+  const pilotis = houseManager.getHouse()?.pilotis ?? {};
+
   return (
     <div className='relative h-full overflow-hidden bg-muted' onClick={handleContainerClick}>
       <Toolbar
@@ -538,6 +540,7 @@ export function RacEditor() {
         isLinearEditorOpen={isLinearEditorOpen}
 
         terrainSelection={terrainSelection}
+        pilotis={pilotis}
         isTerrainEditorOpen={isTerrainEditorOpen}
         onTerrainEditorClose={handleTerrainEditorClose}
         onTerrainApply={handleTerrainApply}

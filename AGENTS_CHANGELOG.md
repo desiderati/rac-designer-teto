@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2026-03-03
+
+### Correções
+
+- Correção no render de contraventamento no modelo 3D: remoção do descarte indevido quando a diagonal tinha `originY > destinationY` (caso típico: nível de origem menor que metade do destino).
+- Adição de smoke test em `House3DScene` para garantir a renderização do contraventamento nesse cenário de desnível.
+- Novo módulo `terrain-volume` com fórmulas puras de volume (rachão e brita) em m³, usando `TERRAIN_SOLIDITY` e `HOUSE_DIMENSIONS`.
+- Exibição dos volumes totais no `TerrainEditor` com atualização em tempo real conforme alteração da solidez.
+- Integração do `TerrainEditor` com `pilotis` da casa para cálculo de brita por nível individual.
+- Adição de smoke test para validar os cálculos de volume.
+- Inclusão de `voidFactor` configurável em `TERRAIN_SOLIDITY` (1.35) e aplicação do fator de vazios no volume exibido de rachão e brita.
+
 ## 2026-03-01
 
 ### Correções
@@ -449,3 +461,10 @@ px tsc --noEmit sem erros.
 - Regra `react-refresh/only-export-components` desativada para `src/components/ui/**/*.{ts,tsx}` conforme alinhamento de projeto.
 - Correção de três regressões em smoke tests: fallback seguro de `getActiveObject` em `useCanvasSelectionActions`, reexport de `getAllPilotiIds` no barrel de canvas e ajuste de import em `factory/house/shared.smoke.test.ts`.
 - Validação: `npx vitest run smoke.test` com 58/58 arquivos e 140/140 testes passando.
+- Reestruturação completa dos documentos em `.rules` com foco em linguagem para usuário (objetivo, comportamento esperado, regras funcionais e erros comuns).
+- Atualização de referências para a estrutura real atual (`ui/hooks/lib/domain/shared/e2e`) e remoção de caminhos legados.
+- Validação automática das referências citadas em `.rules`: sem links locais quebrados.
+- Reescrita aprofundada dos arquivos em `.rules` com base em análise de código-fonte e testes (UI, hooks, lib, domínio e E2E/smoke), substituindo a versão resumida anterior.
+- Regras agora incluem fluxos de bloqueio/cancelamento, limites por tipo de casa, critérios estruturais de piloti/contraventamento e rastreabilidade para arquivos reais.
+- Inclusão explícita de mapeamento de caminhos legados (`src/components/hooks`, `src/components/libs`, `src/components/lib`) para caminhos canônicos atuais.
+- Validação automática final: referências locais em `.rules` sem links quebrados.

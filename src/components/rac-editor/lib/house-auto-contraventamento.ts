@@ -92,6 +92,7 @@ function refreshAutoContraventamentoOnTopView(
       pilotis,
       requiredRows,
     });
+
     const createdId = addContraventamentoBeam(
       runtimeTopGroup,
       {col, row: anchorRow},

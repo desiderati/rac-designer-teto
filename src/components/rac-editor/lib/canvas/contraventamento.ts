@@ -86,7 +86,6 @@ export function getContraventamentoCanvasObject(obj: CanvasObject): {
   obj.contraventamentoEndRow = endRow;
   obj.contraventamentoSide = side;
   obj.contraventamentoAnchorPilotiId = anchorPilotiId;
-
   return {id, col, startRow, endRow, side, anchorPilotiId};
 }
 

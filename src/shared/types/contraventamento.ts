@@ -111,7 +111,7 @@ export function resolveContraventamentoOffsetFromNivel(
     return (nivel >= 0.4) ? nivel - (nivel / 1.5) : 0;
   }
 
-  return (nivel >= 0.4) ? nivel / 1.5 : 0;
+  return (nivel >= 0.4) ? nivel / 1.5 : nivel;
 }
 
 /**

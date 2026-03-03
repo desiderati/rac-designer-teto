@@ -11,6 +11,7 @@ import {
 } from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
+import type {HousePiloti} from '@/shared/types/house.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
@@ -53,6 +54,7 @@ interface RacEditorModalEditorsProps {
 
   // Terrain
   terrainSelection: TerrainCanvasSelection | null;
+  pilotis: Record<string, HousePiloti>;
   isTerrainEditorOpen: boolean;
   onTerrainEditorClose: () => void;
   onTerrainApply: (terrainType: number) => void;
@@ -90,6 +92,7 @@ export function RacEditorModalEditors({
   onLinearEditorClose,
 
   terrainSelection,
+  pilotis,
   isTerrainEditorOpen,
   onTerrainEditorClose,
   onTerrainApply,
@@ -157,6 +160,7 @@ export function RacEditorModalEditors({
         isOpen={isTerrainEditorOpen}
         isMobile={isMobile}
         currentTerrainType={terrainSelection?.terrainType ?? 1}
+        pilotis={pilotis}
         anchorPosition={terrainSelection?.screenPosition}
         onApply={onTerrainApply}
         onClose={onTerrainEditorClose}

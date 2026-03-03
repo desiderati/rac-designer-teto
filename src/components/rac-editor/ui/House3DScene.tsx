@@ -189,8 +189,6 @@ function ContraventamentoMesh({
   const destinationY =
     PILOTI_TOP_Y - resolveContraventamentoOffsetFromNivel(destinationNivel, false) * PILOTI_BASE_HEIGHT_PX;
 
-  if (originY > destinationY) return null;
-
   const startPoint = new Vector3(beamCenterX, originY, originZ);
   const endPoint = new Vector3(beamCenterX, destinationY, targetZ);
   const direction = endPoint.clone().sub(startPoint);
