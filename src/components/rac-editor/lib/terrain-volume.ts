@@ -1,65 +1,70 @@
 import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import type {HousePiloti} from '@/shared/types/house.ts';
 
-export interface TerrainVolumePilotiInput {
-  nivel: number;
+/** Diâmetro do piloti em cm (px-base = cm neste contexto). */
+const PILOTI_DIAMETER_CM = HOUSE_DIMENSIONS.piloti.widthMt3;
+
+/** Largura de cada lateral de brita em cm. */
+const SIDE_GRAVEL_CM = TERRAIN_SOLIDITY.sideGravelWidth;
+
+/** Diâmetro total do cilindro (piloti + 2× brita lateral) em cm. */
+const EXTERNAL_DIAMETER_CM = PILOTI_DIAMETER_CM + (2 * SIDE_GRAVEL_CM);
+
+/**
+ * Retorna ambos os volumes calculados.
+ */
+export function calculateTotalVolumes(
+  terrainLevel: number,
+  pilotis: Record<string, HousePiloti>,
+): { rachaoM3: number; britaM3: number } {
+  const pilotiCount = Object.keys(pilotis).length || 12;
+  return {
+    rachaoM3: calculateRachaoVolume(terrainLevel, pilotiCount),
+    britaM3: calculateBritaVolume(pilotis),
+  };
 }
 
-export interface TerrainVolumesResult {
-  rachaoM3: number;
-  britaM3: number;
+/**
+ * Volume total de rachão para a casa inteira.
+ * Cada piloti recebe um cilindro de rachão com:
+ *   - diâmetro = piloti.width + 2 × sideGravelWidth
+ *   - altura = rachão do nível de solidez selecionado
+ */
+export function calculateRachaoVolume(
+  terrainLevel: number,
+  pilotiCount: number = 12,
+): number {
+  const level = normalizeTerrainSolidityLevel(terrainLevel);
+  const rachaoHeightCm = TERRAIN_SOLIDITY.levels[level].rachaoMt3;
+  const volumePerPiloti = cylinderVolumeM3(EXTERNAL_DIAMETER_CM, rachaoHeightCm);
+  return volumePerPiloti * pilotiCount * TERRAIN_SOLIDITY.voidFactorRachao;
 }
 
-const CENTIMETERS_PER_METER = 100;
-// No contexto do editor, dimensões base em px deste módulo são tratadas como cm para orçamento de volume.
-const PILOTI_DIAMETER_CM = HOUSE_DIMENSIONS.piloti.width;
-const SIDE_GRAVEL_WIDTH_CM = TERRAIN_SOLIDITY.sideGravelWidth;
-const EXTERNAL_DIAMETER_CM = PILOTI_DIAMETER_CM + (SIDE_GRAVEL_WIDTH_CM * 2);
-const VOID_FACTOR = TERRAIN_SOLIDITY.voidFactor;
+/**
+ * Volume total de brita para todos os pilotis.
+ * Para cada piloti:
+ *   cilindro externo (alt. = nível em cm) − cilindro do piloti (mesma alt.)
+ *
+ * O nível (metros) é a parte enterrada do piloti.
+ */
+export function calculateBritaVolume(
+  pilotis: Record<string, HousePiloti>,
+): number {
 
-function toMeters(centimeters: number): number {
-  return centimeters / CENTIMETERS_PER_METER;
-}
+  return Object.values(pilotis).reduce((total, p) => {
+    const nivelCm = p.nivel * 100;
+    if (nivelCm <= 0) return total;
 
-function toPositiveNumber(value: number): number {
-  return Number.isFinite(value) && value > 0 ? value : 0;
-}
-
-function getCylinderVolumeM3(diameterCm: number, heightCm: number): number {
-  const diameterM = toMeters(toPositiveNumber(diameterCm));
-  const heightM = toMeters(toPositiveNumber(heightCm));
-  const radiusM = diameterM / 2;
-  return Math.PI * radiusM * radiusM * heightM;
-}
-
-function toNivelCentimeters(nivel: number): number {
-  return toPositiveNumber(nivel) * CENTIMETERS_PER_METER;
-}
-
-export function calculateRachaoVolume(terrainLevel: number, pilotiCount = 12): number {
-  const normalizedLevel = normalizeTerrainSolidityLevel(terrainLevel);
-  const rachaoHeightCm = TERRAIN_SOLIDITY.levels[normalizedLevel].rachao;
-  const normalizedCount = Math.max(0, Math.trunc(toPositiveNumber(pilotiCount)));
-  return getCylinderVolumeM3(EXTERNAL_DIAMETER_CM, rachaoHeightCm) * normalizedCount * VOID_FACTOR;
-}
-
-export function calculateBritaVolume(pilotis: TerrainVolumePilotiInput[]): number {
-  return pilotis.reduce((total, piloti) => {
-    const heightCm = toNivelCentimeters(Number(piloti?.nivel ?? 0));
-    if (heightCm <= 0) return total;
-
-    const externalVolume = getCylinderVolumeM3(EXTERNAL_DIAMETER_CM, heightCm);
-    const pilotiVolume = getCylinderVolumeM3(PILOTI_DIAMETER_CM, heightCm);
-    return total + Math.max(0, externalVolume - pilotiVolume) * VOID_FACTOR;
+    const outer = cylinderVolumeM3(EXTERNAL_DIAMETER_CM, nivelCm);
+    const inner = cylinderVolumeM3(PILOTI_DIAMETER_CM, nivelCm);
+    return total + (outer - inner) * TERRAIN_SOLIDITY.voidFactorGravel;
   }, 0);
 }
 
-export function calculateTotalVolumes(
-  terrainLevel: number,
-  pilotis: TerrainVolumePilotiInput[],
-): TerrainVolumesResult {
-  return {
-    rachaoM3: calculateRachaoVolume(terrainLevel),
-    britaM3: calculateBritaVolume(pilotis),
-  };
+/** Volume de um cilindro dado diâmetro (cm) e altura (cm), retornado em m³. */
+function cylinderVolumeM3(diameterCm: number, heightCm: number): number {
+  const radiusM = (diameterCm / 2) / 100;
+  const heightM = heightCm / 100;
+  return Math.PI * radiusM * radiusM * heightM;
 }

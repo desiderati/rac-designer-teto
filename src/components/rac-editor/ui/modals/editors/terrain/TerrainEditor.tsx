@@ -45,7 +45,7 @@ export function TerrainEditor({
   );
 
   const volumesCodex = useMemo(
-    () => calculateTotalVolumes(normalizedDraftType, Object.values(pilotis)),
+    () => calculateTotalVolumes(normalizedDraftType, pilotis),
     [normalizedDraftType, pilotis],
   );
 
@@ -114,13 +114,12 @@ export function TerrainEditor({
 
           {volumes && (
             <div className='mt-3 pt-3 border-t border-border space-y-1'>
-              <p className='text-xs font-medium text-center'>Volume estimado de material</p>
               <div className='flex justify-between text-xs text-muted-foreground px-1'>
-                <span>Rachão:</span>
+                <span>Qtd. de Rachão Aprox.:</span>&nbsp;
                 <span className='font-mono'>{volumes.rachaoM3.toFixed(2)} m³</span>
               </div>
               <div className='flex justify-between text-xs text-muted-foreground px-1'>
-                <span>Brita:</span>
+                <span>Qtd. de Brita Aprox.:</span>&nbsp;
                 <span className='font-mono'>{volumes.britaM3.toFixed(2)} m³</span>
               </div>
               <div className='flex justify-between text-xs font-medium px-1 pt-1 border-t border-border'>
@@ -129,11 +128,6 @@ export function TerrainEditor({
               </div>
             </div>
           )}
-
-          <div className='mt-4 rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs space-y-1'>
-            <p>Rachão total: {formatVolume.format(volumesCodex.rachaoM3)} m³</p>
-            <p>Brita total: {formatVolume.format(volumesCodex.britaM3)} m³</p>
-          </div>
         </>
       }
     />

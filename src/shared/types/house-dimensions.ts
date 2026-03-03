@@ -30,6 +30,9 @@ export const HOUSE_DIMENSIONS = {
     /** Largura visual do piloti quando renderizado como retângulo (px-base). */
     width: 30,
 
+    /** Largura real do piloti para cálculo da mt3 de brita. */
+    widthMt3: 20,
+
     /** Altura de referência usada na normalização dos cálculos de piloti (metros). */
     baseHeight: 1.0,
 
