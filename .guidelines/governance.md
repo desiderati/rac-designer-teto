@@ -11,6 +11,16 @@ regressão.
 2. Não criar funcionalidade nova quando o objetivo for refatoração.
 3. Reutilizar implementação existente antes de extrair ou criar módulo.
 
+## Alinhamento de abordagem (obrigatório antes de mudanças grandes)
+
+Antes de iniciar alterações com impacto estrutural (arquitetura, organização de módulos, fluxo transversal):
+
+1. Perguntar explicitamente ao solicitante:
+   opção 1: solução operacional (pontual, menor risco imediato, menor refatoração);
+   opção 2: solução estratégica (maior componentização/reuso, maior risco de refatoração, ganho estrutural).
+2. Se o solicitante não escolher, assumir por padrão a opção estratégica.
+3. Registrar no contexto da execução qual abordagem foi escolhida e por quê.
+
 ## Protocolo por passo (obrigatório)
 
 1. Escolher 1 mudança pequena e isolada.

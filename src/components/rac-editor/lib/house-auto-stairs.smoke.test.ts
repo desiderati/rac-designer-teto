@@ -110,6 +110,58 @@ describe('house auto stairs', () => {
     expect(stairObjects).toHaveLength(2);
   });
 
+  it('uses the same stair depth in top and elevation views when both are present', () => {
+    const {group: topGroup, objects: topObjects} = createMockGroup();
+    topObjects.push(createMockObject({
+      isHouseBody: true,
+      width: HOUSE_DIMENSIONS.footprint.width * HOUSE_DIMENSIONS.view.scale,
+      height: HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale,
+      scaleX: 1,
+      scaleY: 1,
+    }));
+
+    const {group: elevationGroup, objects: elevationObjects} = createMockGroup({houseView: 'front'});
+    elevationObjects.push(
+      createMockObject({
+        isHouseDoor: true,
+        left: 120,
+        top: 80,
+        width: 40,
+        height: 95,
+      }),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_0_2', left: 90, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_1_2', left: 150, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_2_2', left: 210, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_3_2', left: 270, width: 20}),
+    );
+
+    const changed = refreshAutoStairsInViews({
+      houseType: 'tipo6',
+      sideMappings: {top: 'front', bottom: null, left: null, right: null},
+      pilotis: {
+        piloti_0_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_1_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_2_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_3_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_0_2: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_1_2: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_2_2: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_3_2: {height: 1, isMaster: false, nivel: 0.2},
+      } as any,
+      topView: [{instanceId: 'top_1', group: topGroup} as any],
+      elevationViews: [{instanceId: 'front_1', side: 'top', group: elevationGroup} as any],
+    });
+
+    expect(changed).toBe(true);
+    const topStair = topObjects.find((object) => object?.isAutoStairs === true) as any;
+    const elevationStair = elevationObjects.find((object) => object?.isAutoStairs === true) as any;
+
+    expect(topStair).toBeTruthy();
+    expect(elevationStair).toBeTruthy();
+    expect(Number(topStair?.height ?? 0)).toBeCloseTo(Number(elevationStair?.height ?? 0), 6);
+    expect(Number(topStair?.stairsHeight ?? 0)).toBeCloseTo(Number(elevationStair?.stairsHeight ?? 0), 6);
+  });
+
   it('uses binomial terrain interpolation on stair edges to pick the closest side to terrain', () => {
     const {group, objects} = createMockGroup({houseView: 'front', isFlippedHorizontally: false});
     objects.push(

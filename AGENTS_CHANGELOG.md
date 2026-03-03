@@ -37,6 +37,19 @@
   automaticamente ao concluir um desenho à mão livre (`path:created`), mantendo o estado da toolbar sincronizado.
 - Ajuste no `InfoBar` de dicas: agora só é exibido quando a opção de dicas está ativa e existe objeto selecionado no
   canvas; sem seleção, a barra não aparece.
+- Ajuste no cálculo da escada automática: a profundidade visual agora é derivada diretamente da altura calculada
+  (regra `altura = profundidade`), usando a lógica da vista elevada como referência de métricas e reaplicando o mesmo
+  valor na vista planta (mudando apenas posicionamento por vista).
+- `refreshAutoStairsInViews` passa a calcular primeiro as escadas das vistas elevadas e reutilizar as métricas por lado
+  na planta quando disponíveis, garantindo consistência entre vistas.
+- Novo smoke test garantindo igualdade de profundidade/altura da escada entre planta e elevação quando ambas as vistas
+  existem.
+- Atualização de `.guidelines/governance.md` com protocolo obrigatório de alinhamento prévio entre abordagem
+  operacional (pontual) e estratégica (refatoração/componentização), incluindo default para estratégica.
+- Atualização de `.guidelines/architectural-standards.md` para explicitar preferência por decisões de engenharia em
+  nível sênior (reuso/componentização e evolução arquitetural intencional).
+- Atualização do `AGENTS.md`: instrução explícita para leitura obrigatória de `.guidelines/` e `.rules/` no início de
+  cada sessão, antes de análise/proposta/implementação.
 - Correção dos smoke tests de `terrain-volume` para refletir as fórmulas atuais (diâmetro real via
   `HOUSE_DIMENSIONS.piloti.widthMt3`, brita lateral `TERRAIN_SOLIDITY.sideGravelWidthMt3` e fatores de vazios
   `voidFactorRachao`/`voidFactorGravel`).

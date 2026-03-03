@@ -6,6 +6,8 @@
   listadas ali antes de codificar.
 - Trabalhe exclusivamente dentro de `personal/rac-designer-teto` durante esta sessão; evite operar na raiz ou em outros
   projetos.
+- No início de cada sessão, leia obrigatoriamente os diretórios `.guidelines/` e `.rules/` antes de qualquer análise,
+  proposta ou implementação.
 - Consulte o diretório `.guidelines/` antes de propor mudanças de interface e experiência.
 - Para decisões de UI/UX, use como referência principal `.guidelines/ux-design.md`.
 - Quando criar documentação, manter a acentuação da língua nativa.

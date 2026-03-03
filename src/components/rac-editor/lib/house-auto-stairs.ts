@@ -22,17 +22,11 @@ import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 const AUTO_STAIR_BASE_WIDTH_PX = HOUSE_DIMENSIONS.openings.common.windowWidth
 
 // Tamanho em metros que a escada deve ultrapassar a linha do terreno.
-const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.1;
+const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.2;
 
 // Tamanho mínimo permitido (Top View), para o degrau nunca ficar fino demais e sumir.
 // Na Top View, usamos DEPTH para representar o comprimento do degrau.
 const AUTO_STAIR_STEP_MIN_DEPTH_PX = 10;
-
-// Profundidade base de cada degrau. Aqui usada pelas vistas de elevação.
-const AUTO_STAIR_BASE_STEP_DEPTH_PX = 20;
-
-// Altura base de cada degrau em metros. Geralmente = AUTO_STAIR_BASE_STEP_DEPTH_PX / 100.
-const AUTO_STAIR_BASE_STEP_HEIGHT_MTS = 0.2;
 
 // Altura de cada degrau em metros.
 const AUTO_STAIR_STEP_HEIGHT_MTS = 0.3;
@@ -47,6 +41,11 @@ interface StairMetrics {
   steps: number;
 }
 
+interface ElevationViewsAutoStairsResult {
+  hasChanges: boolean;
+  metricsBySide: Partial<Record<HouseSide, StairMetrics>>;
+}
+
 export function refreshAutoStairsInViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
@@ -55,21 +54,90 @@ export function refreshAutoStairsInViews(params: {
   elevationViews: HouseViewInstance<CanvasGroup>[];
 }): boolean {
 
+  const elevationResult = refreshElevationViewsAutoStairs({
+    pilotis: params.pilotis,
+    elevationViews: params.elevationViews,
+  });
+
   const topViewChanged = params.topView[0]
     ? refreshTopViewAutoStairs({
       houseType: params.houseType,
       sideMappings: params.sideMappings,
       pilotis: params.pilotis,
       topView: params.topView[0],
+      sharedMetricsBySide: elevationResult.metricsBySide,
     })
     : false;
 
-  const elevationViewsChanged = refreshElevationViewsAutoStairs({
-    pilotis: params.pilotis,
-    elevationViews: params.elevationViews,
-  });
+  return topViewChanged || elevationResult.hasChanges;
+}
 
-  return topViewChanged || elevationViewsChanged;
+function refreshElevationViewsAutoStairs(params: {
+  pilotis: Record<string, HousePiloti>;
+  elevationViews: HouseViewInstance<CanvasGroup>[];
+}): ElevationViewsAutoStairsResult {
+
+  let hasChanges = false;
+  const metricsBySide: Partial<Record<HouseSide, StairMetrics>> = {};
+
+  for (const viewInstance of params.elevationViews) {
+    const group = viewInstance.group;
+    const removed = removeAutoStairsFromGroup(group);
+    if (removed) hasChanges = true;
+
+    const runtimeDoor = getCanvasGroupObjects(group).find(object => object?.isHouseDoor);
+    if (!runtimeDoor) continue;
+
+    const corners = resolveElevationCornerIds(group);
+    if (!corners) continue;
+
+    const doorLeft = Number(runtimeDoor.left ?? 0);
+    const doorTop = Number(runtimeDoor.top ?? 0);
+    const doorWidth = Number(runtimeDoor.width ?? 0) * Number(runtimeDoor.scaleX ?? 1);
+    const doorHeight = Number(runtimeDoor.height ?? 0) * Number(runtimeDoor.scaleY ?? 1);
+    if (doorWidth <= 0 || doorHeight <= 0) continue;
+
+    const scale = doorWidth / HOUSE_DIMENSIONS.openings.common.doorWidth;
+    const stairWidth = Math.max(doorWidth, AUTO_STAIR_BASE_WIDTH_PX * scale);
+    const metrics = resolveElevationStairMetrics({
+      pilotis: params.pilotis,
+      group,
+      corners,
+      stairLeftX: doorLeft,
+      stairRightX: doorLeft + stairWidth,
+    });
+
+    const stairDepth = resolveStairDepthPxFromHeight(metrics.stairHeight, scale);
+    const doorStroke = Number(runtimeDoor?.strokeWidth ?? HOUSE_2D_STYLE.outlineStrokeWidth);
+    const stairStroke = HOUSE_2D_STYLE.outlineStrokeWidth;
+    const strokeOffset = (doorStroke + stairStroke) / 2;
+
+    // Na elevação, a escada é igual à da planta: retângulo com linhas de degrau,
+    // posicionada logo abaixo da porta.
+    const elevationStair = createStripedTopStair({
+      width: stairWidth,
+      depth: stairDepth,
+      steps: metrics.steps,
+      lineOrientation: 'horizontal',
+      metrics,
+    });
+    elevationStair.set({
+      originX: 'left',
+      left: doorLeft,
+      top: doorTop + doorHeight + stairDepth / 2 + strokeOffset,
+    });
+    addObjectToGroup(group, elevationStair);
+
+    hasChanges = true;
+    if (viewInstance.side) {
+      metricsBySide[viewInstance.side] = metrics;
+    }
+
+    group.dirty = true;
+    refreshGroupBounds(group);
+  }
+
+  return {hasChanges, metricsBySide};
 }
 
 function refreshTopViewAutoStairs(params: {
@@ -77,6 +145,7 @@ function refreshTopViewAutoStairs(params: {
   sideMappings: Record<HouseSide, HouseViewType | null>;
   pilotis: Record<string, HousePiloti>;
   topView: HouseViewInstance<CanvasGroup>;
+  sharedMetricsBySide: Partial<Record<HouseSide, StairMetrics>>;
 }): boolean {
 
   const group = params.topView.group;
@@ -87,13 +156,6 @@ function refreshTopViewAutoStairs(params: {
     sideMappings: params.sideMappings,
   });
   if (!doorSide) return hasChanges;
-
-  const corners = resolveDoorSideCornerIds(doorSide);
-  const metrics = resolveTopStairMetrics({
-    pilotis: params.pilotis,
-    leftId: corners.leftId,
-    rightId: corners.rightId,
-  });
 
   const runtimeBody = getCanvasGroupObjects(group).find(
     (object) => object?.isHouseBody
@@ -128,9 +190,20 @@ function refreshTopViewAutoStairs(params: {
       ? bodyHeight / HOUSE_DIMENSIONS.footprint.depth
       : bodyWidth / HOUSE_DIMENSIONS.footprint.width;
 
-  const stepDepthPx = resolveStepDepthPx(sideScale);
-  const stairDepth = Math.max(stepDepthPx * metrics.steps, AUTO_STAIR_STEP_MIN_DEPTH_PX * sideScale);
   const stairWidth = Math.max(renderedDoorGeometry.doorWidth, AUTO_STAIR_BASE_WIDTH_PX * sideScale);
+  const localMetrics = resolveTopStairMetrics({
+    pilotis: params.pilotis,
+    doorSide,
+    bodyWidth,
+    bodyHeight,
+    stairSpan: stairWidth,
+    stairCenter:
+      doorSide === 'left' || doorSide === 'right'
+        ? Number(placement.targetTop ?? 0)
+        : Number(placement.targetLeft ?? 0),
+  });
+  const metrics = params.sharedMetricsBySide[doorSide] ?? localMetrics;
+  const stairDepth = resolveStairDepthPxFromHeight(metrics.stairHeight, sideScale);
   const markerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * sideScale;
   const markerOffset = markerShort / 2;
 
@@ -172,69 +245,6 @@ function refreshTopViewAutoStairs(params: {
   group.dirty = true;
   refreshGroupBounds(group);
   hasChanges = true;
-  return hasChanges;
-}
-
-function refreshElevationViewsAutoStairs(params: {
-  pilotis: Record<string, HousePiloti>;
-  elevationViews: HouseViewInstance<CanvasGroup>[];
-}): boolean {
-  let hasChanges = false;
-
-  for (const viewInstance of params.elevationViews) {
-    const group = viewInstance.group;
-    const removed = removeAutoStairsFromGroup(group);
-    if (removed) hasChanges = true;
-
-    const runtimeDoor = getCanvasGroupObjects(group).find(object => object?.isHouseDoor);
-    if (!runtimeDoor) continue;
-
-    const corners = resolveElevationCornerIds(group);
-    if (!corners) continue;
-
-    const doorLeft = Number(runtimeDoor.left ?? 0);
-    const doorTop = Number(runtimeDoor.top ?? 0);
-    const doorWidth = Number(runtimeDoor.width ?? 0) * Number(runtimeDoor.scaleX ?? 1);
-    const doorHeight = Number(runtimeDoor.height ?? 0) * Number(runtimeDoor.scaleY ?? 1);
-    if (doorWidth <= 0 || doorHeight <= 0) continue;
-
-    const scale = doorWidth / HOUSE_DIMENSIONS.openings.common.doorWidth;
-    const stairWidth = Math.max(doorWidth, AUTO_STAIR_BASE_WIDTH_PX * scale);
-    const metrics = resolveElevationStairMetrics({
-      pilotis: params.pilotis,
-      group,
-      corners,
-      stairLeftX: doorLeft,
-      stairRightX: doorLeft + stairWidth,
-    });
-
-    const stepDepthPx = resolveStepDepthPx(scale);
-    const stairDepth = Math.max(stepDepthPx * metrics.steps, AUTO_STAIR_STEP_MIN_DEPTH_PX * scale);
-    const doorStroke = Number(runtimeDoor?.strokeWidth ?? HOUSE_2D_STYLE.outlineStrokeWidth);
-    const stairStroke = HOUSE_2D_STYLE.outlineStrokeWidth;
-    const strokeOffset = (doorStroke + stairStroke) / 2;
-
-    // Na elevação, a escada é igual à da planta: retângulo com linhas de degrau,
-    // posicionada logo abaixo da porta.
-    const elevationStair = createStripedTopStair({
-      width: stairWidth,
-      depth: stairDepth,
-      steps: metrics.steps,
-      lineOrientation: 'horizontal',
-      metrics,
-    });
-    elevationStair.set({
-      originX: 'left',
-      left: doorLeft,
-      top: doorTop + doorHeight + stairDepth / 2 + strokeOffset,
-    });
-    addObjectToGroup(group, elevationStair);
-    hasChanges = true;
-
-    group.dirty = true;
-    refreshGroupBounds(group);
-  }
-
   return hasChanges;
 }
 
@@ -316,31 +326,61 @@ function resolveElevationMiddleIds(group: CanvasGroup): string[] | null {
   return null;
 }
 
+function resolvePilotisMiddleIds(side: HouseSide): string[] {
+  if (side === 'top') return ['piloti_1_0', 'piloti_2_0'];
+  if (side === 'bottom') return ['piloti_1_2', 'piloti_2_2'];
+  if (side === 'left') return ['piloti_0_1'];
+  return ['piloti_3_1'];
+}
+
 function resolveTopStairMetrics(params: {
   pilotis: Record<string, HousePiloti>;
-  leftId: string;
-  rightId: string;
+  doorSide: HouseSide;
+  bodyWidth: number;
+  bodyHeight: number;
+  stairSpan: number;
+  stairCenter: number;
 }): StairMetrics {
 
-  const leftNivel = Number(params.pilotis[params.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
-  const rightNivel = Number(params.pilotis[params.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
-  const referenceGroundLevel = Math.min(leftNivel, rightNivel);
+  const corners = resolveDoorSideCornerIds(params.doorSide);
+  const leftCornerNivel = Number(params.pilotis[corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
+  const rightCornerNivel = Number(params.pilotis[corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
+  const middleNivel = resolveAverageNivelFromIds({
+    pilotis: params.pilotis,
+    ids: resolvePilotisMiddleIds(params.doorSide),
+    fallback: (leftCornerNivel + rightCornerNivel) / 2,
+  });
 
-  // Altura mínima para a escada encostar no terreno: nível baixo + 10 cm de contato + piso + viga.
-  const stairHeight = round2(
-    referenceGroundLevel
-    + AUTO_STAIR_HEIGHT_EXTRA_MTS
-    + AUTO_STAIR_FLOOR_HEIGHT_MTS
-    + AUTO_STAIR_BEAM_HEIGHT_MTS,
-  );
+  const axisLeft =
+    params.doorSide === 'left' || params.doorSide === 'right'
+      ? -params.bodyHeight / 2
+      : -params.bodyWidth / 2;
+  const axisRight =
+    params.doorSide === 'left' || params.doorSide === 'right'
+      ? params.bodyHeight / 2
+      : params.bodyWidth / 2;
 
-  const steps = Math.max(1, Math.ceil(stairHeight / AUTO_STAIR_STEP_HEIGHT_MTS));
-  return {
-    leftNivel: round2(leftNivel),
-    rightNivel: round2(rightNivel),
-    stairHeight,
-    steps,
-  };
+  const leftEdgeNivel = evaluateBinomialQuadraticNivel({
+    x: params.stairCenter - params.stairSpan / 2,
+    leftX: axisLeft,
+    rightX: axisRight,
+    leftNivel: leftCornerNivel,
+    middleNivel,
+    rightNivel: rightCornerNivel,
+  });
+  const rightEdgeNivel = evaluateBinomialQuadraticNivel({
+    x: params.stairCenter + params.stairSpan / 2,
+    leftX: axisLeft,
+    rightX: axisRight,
+    leftNivel: leftCornerNivel,
+    middleNivel,
+    rightNivel: rightCornerNivel,
+  });
+
+  return buildStairMetricsFromGroundNiveis({
+    leftGroundNivel: leftEdgeNivel,
+    rightGroundNivel: rightEdgeNivel,
+  });
 }
 
 function resolveElevationStairMetrics(params: {
@@ -351,10 +391,9 @@ function resolveElevationStairMetrics(params: {
   stairRightX: number;
 }): StairMetrics {
 
-  const fallback = resolveTopStairMetrics({
-    pilotis: params.pilotis,
-    leftId: params.corners.leftId,
-    rightId: params.corners.rightId,
+  const fallback = buildStairMetricsFromGroundNiveis({
+    leftGroundNivel: Number(params.pilotis[params.corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
+    rightGroundNivel: Number(params.pilotis[params.corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
   });
 
   const axisLeftX = resolvePilotiCenterX(params.group, params.corners.leftId);
@@ -389,7 +428,20 @@ function resolveElevationStairMetrics(params: {
     rightNivel: rightCornerNivel,
   });
 
-  const referenceGroundLevel = Math.min(leftEdgeNivel, rightEdgeNivel);
+  return buildStairMetricsFromGroundNiveis({
+    leftGroundNivel: leftEdgeNivel,
+    rightGroundNivel: rightEdgeNivel,
+  });
+}
+
+function buildStairMetricsFromGroundNiveis(params: {
+  leftGroundNivel: number;
+  rightGroundNivel: number;
+}): StairMetrics {
+  const leftNivel = round2(params.leftGroundNivel);
+  const rightNivel = round2(params.rightGroundNivel);
+  const referenceGroundLevel = Math.min(leftNivel, rightNivel);
+
   const stairHeight = round2(
     referenceGroundLevel
     + AUTO_STAIR_HEIGHT_EXTRA_MTS
@@ -398,12 +450,7 @@ function resolveElevationStairMetrics(params: {
   );
   const steps = Math.max(1, Math.round(stairHeight / AUTO_STAIR_STEP_HEIGHT_MTS));
 
-  return {
-    leftNivel: round2(leftEdgeNivel),
-    rightNivel: round2(rightEdgeNivel),
-    stairHeight,
-    steps,
-  };
+  return {leftNivel, rightNivel, stairHeight, steps};
 }
 
 function clamp01(value: number): number {
@@ -433,7 +480,7 @@ function resolveAverageNivelFromIds(params: {
   if (!params.ids?.length) return params.fallback;
 
   const values = params.ids
-    .map((id) => Number(params.pilotis[id]?.nivel))
+    .map((id) => params.pilotis[id]?.nivel)
     .filter((value) => Number.isFinite(value));
   if (!values.length) return params.fallback;
 
@@ -545,9 +592,9 @@ function createStripedTopStair(params: {
   return canvasGroup;
 }
 
-function resolveStepDepthPx(scale: number): number {
-  const stepScaleFactor = AUTO_STAIR_STEP_HEIGHT_MTS / AUTO_STAIR_BASE_STEP_HEIGHT_MTS;
-  return Math.max(AUTO_STAIR_STEP_MIN_DEPTH_PX * scale, AUTO_STAIR_BASE_STEP_DEPTH_PX * scale * stepScaleFactor);
+function resolveStairDepthPxFromHeight(stairHeightMts: number, scale: number): number {
+  const stairHeightPx = stairHeightMts * 100 * scale;
+  return Math.max(AUTO_STAIR_STEP_MIN_DEPTH_PX * scale, stairHeightPx);
 }
 
 function round2(value: number): number {
