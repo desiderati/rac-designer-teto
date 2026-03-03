@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from "./piloti";
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
@@ -11,6 +10,7 @@ import {
   isContraventamentoDestinationEligible,
   resolveContraventamentoOffsetFromNivel
 } from "@/shared/types/contraventamento.ts";
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from "@/shared/types/piloti.ts";
 
 describe('contraventamento helpers', () => {
   it('parses piloti ids and validates nivel', () => {

@@ -1,10 +1,4 @@
 import {FabricObject, Line, Rect} from 'fabric';
-import {
-  CONTRAVENTAMENTO_FILL,
-  CONTRAVENTAMENTO_STROKE,
-  CONTRAVENTAMENTO_STROKE_WIDTH,
-  PILOTI_BASE_HEIGHT_PX,
-} from './constants.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
   CONTRAVENTAMENTO_COLUMN_X,
@@ -19,6 +13,12 @@ import {
   getCanvasGroupObjects,
   toCanvasObject
 } from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {
+  CONTRAVENTAMENTO_FILL,
+  CONTRAVENTAMENTO_STROKE,
+  CONTRAVENTAMENTO_STROKE_WIDTH,
+  PILOTI_BASE_HEIGHT_PX
+} from "@/shared/constants";
 
 export interface ContraventamentoOrigin {
   pilotiId?: string;

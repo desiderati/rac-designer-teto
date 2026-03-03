@@ -165,6 +165,8 @@ export const TERRAIN_STYLE = {
   selectedFillColor: 'rgba(250, 204, 21, 0.28)',
 } as const;
 
+export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
+
 export const TERRAIN_SOLIDITY = {
   defaultLevel: 1,
   sideGravelWidth: 10,
@@ -176,6 +178,14 @@ export const TERRAIN_SOLIDITY = {
     5: {label: 'Submerso', rachao: 75},
   },
 } as const;
+
+export function normalizeTerrainSolidityLevel(value: number): TerrainSolidityLevel {
+  const numeric = Number(value);
+  if (numeric >= 5) return 5;
+  if (numeric <= 1) return 1;
+  if (numeric === 2 || numeric === 3 || numeric === 4) return numeric;
+  return TERRAIN_SOLIDITY.defaultLevel;
+}
 
 export const ZOOM_LIMITS = {
   min: 0.25,

@@ -2,8 +2,6 @@ import {MutableRefObject, useEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, PencilBrush} from 'fabric';
 import {
   buildPilotiSelectionHandler,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
   PilotiCanvasSelection
 } from '@/components/rac-editor/lib/canvas';
 import {CanvasObject, CanvasPointerPayload} from '@/components/rac-editor/lib/canvas/canvas.ts';
@@ -17,6 +15,7 @@ import {
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {useContraventamentoEvents} from '@/components/rac-editor/hooks/useContraventamentoEvents.ts';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;

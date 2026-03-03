@@ -6,30 +6,24 @@ import {
   PILOTI_MASTER_STYLE
 } from '@/shared/config.ts';
 import {
+  buildPilotiObjectIndex,
   CanvasGroup,
   CanvasObject,
   createDiagonalStripePattern,
-  formatNivel,
-  formatPilotiHeight,
   getCanvasGroupObjects,
-  PILOTI_BASE_HEIGHT_PX,
-  PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
-  PILOTI_MASTER_FILL_COLOR,
-  PILOTI_MASTER_STROKE_COLOR,
-  PilotiObjectLike,
   refreshHouseGroupRendering,
-  updateGroundInGroup,
   updatePilotiHeight,
   updatePilotiMaster
 } from '@/components/rac-editor/lib/canvas/index.ts';
 import {HousePiloti, HouseViews} from '@/shared/types/house.ts';
-
-export interface PilotiObjectIndexEntry<TObject> {
-  circle?: TObject;
-  rect?: TObject;
-}
-
-export type PilotiObjectIndex<TObject> = Record<string, PilotiObjectIndexEntry<TObject>>;
+import {updateGroundInGroup} from "@/components/rac-editor/lib/canvas/terrain.ts";
+import {
+  PILOTI_BASE_HEIGHT_PX,
+  PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+  PILOTI_MASTER_FILL_COLOR,
+  PILOTI_MASTER_STROKE_COLOR
+} from "@/shared/constants.ts";
+import {formatNivel, formatPilotiHeight} from "@/shared/types/piloti.ts";
 
 export interface PilotiNivelTextPatch {
   text: string;
@@ -48,6 +42,7 @@ export interface PilotiVisualDataPatch {
   stroke?: string;
   strokeWidth?: number;
 }
+
 
 export function createPilotiVisualDataPatch(params: {
   height: number;
@@ -75,6 +70,35 @@ export function createPilotiVisualDataPatch(params: {
 
 export function createPilotiHeightTextPatch(formattedHeight: string): { text: string } {
   return {text: formattedHeight};
+}
+
+export function createPilotiNivelTextPatch(params: {
+  isCorner: boolean;
+  formattedNivel: string;
+  centerX: number;
+  centerY: number;
+  radius: number;
+  offset: number;
+  isTopCorner: boolean;
+}): PilotiNivelTextPatch {
+  if (!params.isCorner) {
+    return {
+      text: '',
+      visible: false,
+    };
+  }
+
+  return {
+    text: `Nível = ${params.formattedNivel}`,
+    left: params.centerX,
+    top: calculateCornerNivelLabelTop({
+      centerY: params.centerY,
+      radius: params.radius,
+      offset: params.offset,
+      isTopCorner: params.isTopCorner,
+    }),
+    visible: true,
+  };
 }
 
 export function createPilotiSizeLabelPatch(
@@ -249,35 +273,6 @@ export function calculateCornerNivelLabelTop(params: {
     : params.centerY + params.radius + params.offset;
 }
 
-export function createPilotiNivelTextPatch(params: {
-  isCorner: boolean;
-  formattedNivel: string;
-  centerX: number;
-  centerY: number;
-  radius: number;
-  offset: number;
-  isTopCorner: boolean;
-}): PilotiNivelTextPatch {
-  if (!params.isCorner) {
-    return {
-      text: '',
-      visible: false,
-    };
-  }
-
-  return {
-    text: `Nível = ${params.formattedNivel}`,
-    left: params.centerX,
-    top: calculateCornerNivelLabelTop({
-      centerY: params.centerY,
-      radius: params.radius,
-      offset: params.offset,
-      isTopCorner: params.isTopCorner,
-    }),
-    visible: true,
-  };
-}
-
 export function calculatePilotiSizeLabelPosition(params: {
   rectLeft: number;
   rectTop: number;
@@ -304,25 +299,6 @@ export function calculatePilotiStripeGeometry(params: {
   };
 }
 
-export function buildPilotiObjectIndex<TObject extends PilotiObjectLike>(
-  objects: TObject[],
-): PilotiObjectIndex<TObject> {
-  return objects.reduce((acc, object) => {
-    const pilotiId = typeof object.pilotiId === 'string' ? object.pilotiId : '';
-    if (!pilotiId) return acc;
-
-    const entry = acc[pilotiId] ?? {};
-    if (object.isPilotiCircle && !entry.circle) {
-      entry.circle = object;
-    }
-    if (object.isPilotiRect && !entry.rect) {
-      entry.rect = object;
-    }
-    acc[pilotiId] = entry;
-    return acc;
-  }, {} as PilotiObjectIndex<TObject>);
-}
-
 function syncPilotiUpdateOnGroup(
   group: CanvasGroup,
   pilotiId: string,
@@ -344,7 +320,7 @@ function syncPilotiUpdateOnGroup(
   if (pilotiData.isMaster !== undefined || pilotiData.nivel !== undefined) {
     updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
   }
-  if ((pilotiData.height !== undefined || pilotiData.nivel !== undefined) && PILOTI_CORNER_IDS.includes(pilotiId)) {
+  if (pilotiData.height !== undefined || pilotiData.nivel !== undefined) {
     updateGroundInGroup(group);
   }
 

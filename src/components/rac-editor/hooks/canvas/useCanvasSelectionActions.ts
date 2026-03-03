@@ -5,7 +5,6 @@ import {
   CanvasObject,
   getCanvasGroupObjects,
   getHintForObject,
-  getPilotiIdsForSide,
   isCanvasGroup,
   toCanvasGroup,
   toCanvasObject
@@ -20,6 +19,7 @@ import {
   PILOTI_VISUAL_FEEDBACK_COLORS,
   TERRAIN_STYLE
 } from '@/shared/config.ts';
+import {getPilotiIdsForSide} from "@/shared/types/piloti.ts";
 
 interface BindSelectionActionsArgs {
   canvas: FabricCanvas;

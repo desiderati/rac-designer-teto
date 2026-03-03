@@ -5,9 +5,7 @@ import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {
   CanvasGroup,
   ContraventamentoOrigin,
-  isPilotiOutOfProportion,
   isCanvasGroup,
-  parsePilotiGridPosition
 } from '@/components/rac-editor/lib/canvas';
 import {
   collectOccupiedContraventamentoSides,
@@ -15,6 +13,7 @@ import {
   createContraventamentoEditorState,
   hasEligiblePilotiInContraventamentoColumn,
 } from '@/shared/types/contraventamento.ts';
+import {isPilotiOutOfProportion, parsePilotiGridPosition} from "@/shared/types/piloti.ts";
 
 interface UseContraventamentoQueriesArgs {
   getCanvas: () => FabricCanvas | null;

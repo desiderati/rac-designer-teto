@@ -33,6 +33,7 @@ type CanvasProperties = {
   fill?: string | FabricObject['fill'];
   stroke?: string | FabricObject['stroke'];
 
+  set: (patch: Record<string, unknown>) => void;
   getCanvasObjects?: () => CanvasObject[];
   getObjects?: () => CanvasObject[];
   objectCaching?: boolean;

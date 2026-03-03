@@ -2,11 +2,11 @@ import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
 import {Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
-  getAllPilotiIds,
   getCanvasGroupObjects,
   isCanvasGroup
 } from '@/components/rac-editor/lib/canvas/index.ts';
 import {RebuildViewSource} from '@/shared/types/house-rebuild.ts';
+import {getAllPilotiIds} from "@/shared/types/piloti.ts";
 
 export interface RebuildPilotiSourceObject {
   pilotiId?: unknown;

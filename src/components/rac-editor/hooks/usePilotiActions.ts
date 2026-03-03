@@ -4,7 +4,8 @@ import {
   applyPilotiEditorCloseVisuals,
   applyPilotiSelectionVisuals
 } from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
-import {formatPilotiHeight, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {formatPilotiHeight} from "@/shared/types/piloti.ts";
 
 interface UsePilotiActionsArgs {
   isContraventamentoMode: boolean;

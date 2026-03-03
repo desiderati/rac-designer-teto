@@ -5,7 +5,6 @@ import {
   addContraventamentoBeam,
   CanvasGroup,
   ContraventamentoOrigin,
-  parsePilotiGridPosition,
   PilotiCanvasSelection,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
@@ -24,6 +23,7 @@ import {
   highlightEligibleContraventamentoPilotis,
   resetHighlightContraventamentoPilotis
 } from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
+import {parsePilotiGridPosition} from "@/shared/types/piloti.ts";
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

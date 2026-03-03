@@ -1,5 +1,5 @@
 import {SetStateAction, useCallback, useEffect, useReducer, useRef} from 'react';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/rac-editor/lib/canvas';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
 
 interface CanvasViewportState {
   zoom: number;

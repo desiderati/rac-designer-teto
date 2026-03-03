@@ -1,6 +1,6 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CANVAS_HEIGHT, CANVAS_WIDTH, CanvasGroup, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import {useCanvasClipboard} from '@/components/rac-editor/hooks/canvas/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
@@ -12,6 +12,7 @@ import {useCanvasPointerInteractions} from '@/components/rac-editor/hooks/canvas
 import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;

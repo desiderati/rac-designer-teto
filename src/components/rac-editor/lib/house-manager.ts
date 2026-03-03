@@ -1,13 +1,8 @@
 import {Canvas as FabricCanvas, FabricImage} from 'fabric';
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
   CanvasGroup,
-  getAllPilotiIds,
   isCanvasGroup,
-  normalizeTerrainSolidityLevel,
   toCanvasGroup,
-  updateGroundTerrainType
 } from '@/components/rac-editor/lib/canvas';
 import {createHouseId, createViewInstanceId,} from '@/components/rac-editor/lib/house-identity.ts';
 import {
@@ -37,7 +32,10 @@ import {
 } from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
-import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {getAllPilotiIds} from "@/shared/types/piloti.ts";
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
+import {updateGroundTerrainType} from "@/components/rac-editor/lib/canvas/terrain.ts";
 
 class HouseManager {
 

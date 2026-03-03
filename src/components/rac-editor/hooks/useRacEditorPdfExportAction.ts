@@ -1,8 +1,8 @@
 import {useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/components/rac-editor/lib/canvas';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
 
 interface UseRacEditorPdfExportActionArgs {
   getCanvas: () => CanvasHandle['canvas'];

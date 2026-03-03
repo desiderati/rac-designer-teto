@@ -1,15 +1,9 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {
-  CanvasGroup,
-  clampNivelByHeight,
-  getAllPilotiIds,
-  getPilotiFromGroup,
-  getPilotiIdsFromGroup,
-  getPilotiName,
-} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/components/rac-editor/lib/canvas';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
+import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from "@/shared/types/piloti.ts";
 
 interface UsePilotiEditorLogicArgs {
   isOpen: boolean;

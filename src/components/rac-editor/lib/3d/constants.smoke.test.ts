@@ -4,9 +4,8 @@ import {
   FLOOR_HEIGHT,
   HOUSE_3D_DEPTH,
   HOUSE_3D_FINAL_SCALE,
-  HOUSE_3D_WIDTH,
-  PILOTI_RADIUS,
-} from './constants.ts';
+  HOUSE_3D_WIDTH, PILOTI_RADIUS
+} from "@/components/rac-editor/lib/3d/constants.ts";
 
 describe('3d constants', () => {
   it('derives positive dimensions from base scale', () => {

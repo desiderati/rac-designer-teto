@@ -1,46 +1,30 @@
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
+import {CanvasObject} from "@/components/rac-editor/lib/canvas/canvas.ts";
 
-export interface PilotiObjectLike {
-  isPilotiCircle?: boolean;
-  isPilotiRect?: boolean;
-  pilotiId?: string;
-  pilotiIsMaster?: boolean;
-  set: (patch: Record<string, unknown>) => void;
+export interface PilotiObjectIndexEntry<TObject> {
+  circle?: TObject;
+  rect?: TObject;
 }
 
-interface HouseGroupLikeObject {
-  type?: unknown;
-  myType?: unknown;
-  getObjects?: () => unknown[];
-}
+export type PilotiObjectIndex<TObject> = Record<string, PilotiObjectIndexEntry<TObject>>;
 
-function isPilotiObjectLike(value: unknown): value is PilotiObjectLike {
-  if (typeof value !== 'object' || value === null) return false;
-  const maybePiloti = value as { set?: unknown };
-  return typeof maybePiloti.set === 'function';
-}
+export function buildPilotiObjectIndex<TObject extends CanvasObject>(
+  objects: TObject[],
+): PilotiObjectIndex<TObject> {
+  return objects.reduce((acc, object) => {
+    const pilotiId = typeof object.pilotiId === 'string' ? object.pilotiId : '';
+    if (!pilotiId) return acc;
 
-function isHouseGroupLikeObject(value: unknown): value is HouseGroupLikeObject {
-  if (typeof value !== 'object' || value === null) return false;
-  const maybeGroup = value as HouseGroupLikeObject;
-  return maybeGroup.myType === 'house'
-    && typeof maybeGroup.getObjects === 'function';
-}
-
-function forEachHousePiloti(
-  canvasObjects: unknown[],
-  callback: (piloti: PilotiObjectLike) => void,
-) {
-  canvasObjects.forEach((object) => {
-    if (!isHouseGroupLikeObject(object)) return;
-
-    object.getObjects?.().forEach((child) => {
-      if (!isPilotiObjectLike(child)) return;
-      if (child.isPilotiCircle || child.isPilotiRect) {
-        callback(child);
-      }
-    });
-  });
+    const entry = acc[pilotiId] ?? {};
+    if (object.isPilotiCircle && !entry.circle) {
+      entry.circle = object;
+    }
+    if (object.isPilotiRect && !entry.rect) {
+      entry.rect = object;
+    }
+    acc[pilotiId] = entry;
+    return acc;
+  }, {} as PilotiObjectIndex<TObject>);
 }
 
 export function highlightAllHousePilotis(canvasObjects: unknown[]): void {
@@ -82,7 +66,7 @@ export function applyPilotiEditorCloseVisuals(params: {
   houseStillSelected: boolean;
 }): void {
   params.groupObjects.forEach((piloti) => {
-    if (!isPilotiObjectLike(piloti)) return;
+    if (!isCanvasObject(piloti)) return;
     if (!(piloti.isPilotiCircle || piloti.isPilotiRect)) return;
 
     if (params.houseStillSelected) {
@@ -112,4 +96,33 @@ export function applyPilotiEditorCloseVisuals(params: {
         : PILOTI_STYLE.strokeWidthTopView,
     });
   });
+}
+
+function forEachHousePiloti(
+  canvasObjects: unknown[],
+  callback: (piloti: CanvasObject) => void,
+) {
+  canvasObjects.forEach((object) => {
+    if (!isHouseCanvasObject(object)) return;
+
+    object.getObjects?.().forEach((child) => {
+      if (!isCanvasObject(child)) return;
+      if (child.isPilotiCircle || child.isPilotiRect) {
+        callback(child);
+      }
+    });
+  });
+}
+
+function isCanvasObject(value: unknown): value is CanvasObject {
+  if (typeof value !== 'object' || value === null) return false;
+  const maybePiloti = value as { set?: unknown };
+  return typeof maybePiloti.set === 'function';
+}
+
+function isHouseCanvasObject(value: unknown): value is CanvasObject {
+  if (typeof value !== 'object' || value === null) return false;
+  const maybeGroup = value as CanvasObject;
+  return maybeGroup.myType === 'house'
+    && typeof maybeGroup.getObjects === 'function';
 }

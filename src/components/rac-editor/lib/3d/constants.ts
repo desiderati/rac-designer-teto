@@ -1,4 +1,4 @@
-import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/components/rac-editor/lib/canvas';
+import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 

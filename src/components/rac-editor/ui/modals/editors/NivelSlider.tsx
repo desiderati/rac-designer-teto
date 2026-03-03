@@ -2,7 +2,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
 import {Slider} from '@/components/ui/slider.tsx';
-import {formatNivel} from '@/components/rac-editor/lib/canvas';
+import {formatNivel} from "@/shared/types/piloti.ts";
 
 interface NivelSliderProps {
   nivel: number;

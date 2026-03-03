@@ -2,11 +2,11 @@ import {Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
   CanvasObject,
-  formatPilotiHeight,
   getPilotiFromGroup
 } from '@/components/rac-editor/lib/canvas/index.ts';
 import {applyPilotiSelectionVisuals} from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
+import {formatPilotiHeight} from "@/shared/types/piloti.ts";
 
 export interface PilotiCanvasSelection {
   pilotiId: string;

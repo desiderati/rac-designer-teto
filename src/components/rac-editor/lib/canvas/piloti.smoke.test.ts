@@ -1,15 +1,13 @@
 import {describe, expect, it} from 'vitest';
+import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {
   clampNivel,
   clampNivelByHeight,
-  formatNivel,
-  getAllPilotiIds,
+  formatNivel, getAllPilotiIds,
   getPilotiName,
-  getRecommendedHeight,
-  getTerrainRachaoThicknessCm,
-  normalizeTerrainSolidityLevel,
-} from './piloti.ts';
-import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
+  getRecommendedHeight
+} from "@/shared/types/piloti.ts";
+import {getTerrainRachaoThicknessCm} from "@/components/rac-editor/lib/canvas/terrain.ts";
 
 describe('piloti helpers', () => {
   it('clamps nivel respecting min/max', () => {

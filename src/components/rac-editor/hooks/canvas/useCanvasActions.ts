@@ -1,8 +1,6 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
   CanvasObject,
   toCanvasGroup,
   toCanvasObject
@@ -11,6 +9,7 @@ import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {toast} from 'sonner';
+import {CANVAS_HEIGHT, CANVAS_WIDTH} from "@/shared/constants.ts";
 
 interface UseCanvasActionsArgs {
   canvasRef: React.RefObject<CanvasHandle | null>;

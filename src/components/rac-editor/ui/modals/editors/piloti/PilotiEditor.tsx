@@ -9,10 +9,12 @@ import {ContraventamentoSideIcon} from '@/components/rac-editor/ui/modals/editor
 import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
-import {CanvasGroup, formatPilotiHeight, PILOTI_DEFAULT_NIVEL} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
+import {PILOTI_DEFAULT_NIVEL} from "@/shared/constants.ts";
+import {formatPilotiHeight} from "@/shared/types/piloti.ts";
 
 interface PilotiEditorProps {
   isOpen: boolean;

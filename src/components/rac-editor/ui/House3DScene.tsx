@@ -50,7 +50,7 @@ import {
   type SceneOpening
 } from '@/components/rac-editor/lib/3d/scene-openings-builder.ts';
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
-import {PILOTI_MASTER_FILL_COLOR} from '@/components/rac-editor/lib/canvas';
+import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {resolveContraventamentoOffsetFromNivel} from '@/shared/types/contraventamento.ts';
 
