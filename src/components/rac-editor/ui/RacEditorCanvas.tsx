@@ -7,7 +7,7 @@ import {
   WallCanvasSelection,
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {InfoBar} from './InfoBar.tsx';
-import {TutorialStepId} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
+import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 
 interface RacEditorCanvasProps {

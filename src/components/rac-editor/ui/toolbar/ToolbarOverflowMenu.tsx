@@ -1,7 +1,7 @@
 import {FABButton, SubMenuButton} from './ToolbarButtons.tsx';
 import {MAIN_MENU_ICONS, OVERFLOW_MENU_CONFIG, OverflowActionKey} from './helpers/toolbar-config.ts';
 import type {ToolbarActionMap, ToolbarSubmenu} from './helpers/toolbar-types.ts';
-import {TutorialHighlight} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
+import {TutorialHighlight} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface ToolbarOverflowMenuProps {
   actions: ToolbarActionMap;

@@ -1,7 +1,7 @@
 import type {Dispatch, MouseEvent as ReactMouseEvent, SetStateAction} from 'react';
 import {useCallback} from 'react';
 import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
-import {TutorialStepId} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
+import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialMenuActionsArgs {
   tutorialStep: TutorialStepId | null;

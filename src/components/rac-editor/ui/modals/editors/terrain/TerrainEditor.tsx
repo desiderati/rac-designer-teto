@@ -44,10 +44,15 @@ export function TerrainEditor({
     [normalizedDraftType],
   );
 
-  const volumes = useMemo(
+  const volumesCodex = useMemo(
     () => calculateTotalVolumes(normalizedDraftType, Object.values(pilotis)),
     [normalizedDraftType, pilotis],
   );
+
+  const volumes = useMemo(() => {
+    if (!pilotis || Object.keys(pilotis).length === 0) return null;
+    return calculateTotalVolumes(draftType, pilotis);
+  }, [draftType, pilotis]);
 
   const formatVolume = useMemo(
     () =>
@@ -107,13 +112,30 @@ export function TerrainEditor({
             <span className='text-center'>5</span>
           </div>
 
+          {volumes && (
+            <div className='mt-3 pt-3 border-t border-border space-y-1'>
+              <p className='text-xs font-medium text-center'>Volume estimado de material</p>
+              <div className='flex justify-between text-xs text-muted-foreground px-1'>
+                <span>Rachão:</span>
+                <span className='font-mono'>{volumes.rachaoM3.toFixed(2)} m³</span>
+              </div>
+              <div className='flex justify-between text-xs text-muted-foreground px-1'>
+                <span>Brita:</span>
+                <span className='font-mono'>{volumes.britaM3.toFixed(2)} m³</span>
+              </div>
+              <div className='flex justify-between text-xs font-medium px-1 pt-1 border-t border-border'>
+                <span>Total:</span>
+                <span className='font-mono'>{(volumes.rachaoM3 + volumes.britaM3).toFixed(2)} m³</span>
+              </div>
+            </div>
+          )}
+
           <div className='mt-4 rounded-md border border-border/60 bg-muted/40 px-3 py-2 text-xs space-y-1'>
-            <p>Rachão total: {formatVolume.format(volumes.rachaoM3)} m³</p>
-            <p>Brita total: {formatVolume.format(volumes.britaM3)} m³</p>
+            <p>Rachão total: {formatVolume.format(volumesCodex.rachaoM3)} m³</p>
+            <p>Brita total: {formatVolume.format(volumesCodex.britaM3)} m³</p>
           </div>
         </>
       }
     />
   );
 }
-
