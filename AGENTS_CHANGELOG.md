@@ -26,6 +26,10 @@
   mesma rotina de persistência do botão Confirmar.
 - O seletor on/off de piloti mestre também passa a persistir imediatamente ao alternar (`onCheckedChange`), com a mesma
   rotina de commit usada no Confirmar.
+- Ao reduzir a altura do piloti, o valor do slider de nível agora é ajustado imediatamente para o novo máximo permitido
+  (clamp instantâneo), evitando manter valor acima do limite.
+- No editor de terreno, ao soltar o drag do slider de tipo de solo (`onValueCommit`), a alteração agora é aplicada
+  imediatamente no modelo.
 - Correção de imports quebrados no editor de nível e no módulo 3D, ajustando referências indevidas de
   @/components/rac-editor/lib/canvas para @/shared/types/piloti.ts e @/shared/constants.ts.
 - Validação final de imports com pm run build e px tsc --noEmit sem erros.

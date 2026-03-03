@@ -117,6 +117,9 @@ export function usePilotiEditor({
     const {autoNavigatePiloti} = getSettings();
     const nivelToApply = clampNivelByHeight(tempNivel, h);
 
+    // Ao reduzir altura, ajusta imediatamente o slider para não ultrapassar o novo máximo.
+    setTempNivel(nivelToApply);
+
     if (pilotiId) {
       houseManager.updatePiloti(pilotiId, {
         height: h,
@@ -170,6 +173,13 @@ export function usePilotiEditor({
     };
 
   const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
+
+  useEffect(() => {
+    const clamped = clampNivelByHeight(tempNivel, tempHeight);
+    if (clamped !== tempNivel) {
+      setTempNivel(clamped);
+    }
+  }, [tempHeight, tempNivel]);
 
   const commitDraftChanges =
     (params?: { nivelOverride?: number; isMasterOverride?: boolean }): boolean => {

@@ -102,6 +102,13 @@ export function TerrainEditor({
             min={1} max={5} step={1} value={[draftType]}
             onValueChange={(values) => setDraftType(values[0] ?? 1)}
             className='my-4'
+
+            // Aplica no modelo ao soltar o drag do slider de tipo de solo.
+            onValueCommit={(values) => {
+              const committed = normalizeTerrainSolidityLevel(values[0] ?? 1);
+              setDraftType(committed);
+              onApply(committed);
+            }}
           />
 
           <div className='grid grid-cols-5 text-[10px] text-muted-foreground'>
