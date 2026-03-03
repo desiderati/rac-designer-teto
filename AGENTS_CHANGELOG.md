@@ -42,6 +42,9 @@
   valor na vista planta (mudando apenas posicionamento por vista).
 - `refreshAutoStairsInViews` passa a calcular primeiro as escadas das vistas elevadas e reutilizar as métricas por lado
   na planta quando disponíveis, garantindo consistência entre vistas.
+- Refatoração estratégica em `house-auto-stairs`: unificação das regras de IDs médios/cantos por meio de um contexto
+  único de lado + orientação de eixo (`DoorSideAxisContext`), eliminando duplicação entre os fluxos de planta e
+  elevação.
 - Novo smoke test garantindo igualdade de profundidade/altura da escada entre planta e elevação quando ambas as vistas
   existem.
 - Atualização de `.guidelines/governance.md` com protocolo obrigatório de alinhamento prévio entre abordagem
@@ -512,3 +515,111 @@
 - Ajuste complementar:
     - `ux-design.md` atualizado com seção de referência para usar
       `.guidelines/architecture-patterns.md` em decisões arquiteturais.
+
+### Atualização desta conversa (limite de nível inicial com piloti 3.5)
+
+- Problema:
+    - o fluxo inicial (`NivelDefinitionEditor`) mantinha limite fixo de `1.50 m`, incompatível com a nova altura de
+      piloti `3.5 m`.
+- Ajustes aplicados:
+    - `src/shared/types/piloti.ts`
+      - extração de `getMaxNivelForPilotiHeight(height)` como fonte única de cálculo (`height / 2`);
+      - criação de `MAX_AVAILABLE_PILOTI_HEIGHT` e `MAX_AVAILABLE_PILOTI_NIVEL` com base em
+        `DEFAULT_HOUSE_PILOTI_HEIGHTS`;
+      - `clampNivelByHeight` passou a reutilizar o helper extraído;
+      - `clampNivel` passou a usar `MAX_AVAILABLE_PILOTI_NIVEL` como máximo padrão.
+    - `src/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx`
+      - remoção do limite fixo `1.50`;
+      - uso de `MAX_AVAILABLE_PILOTI_NIVEL` no slider e no clamp do valor digitado/arrastado.
+    - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
+      - novo teste garantindo `3.5 -> 1.75` e clamp padrão respeitando esse teto.
+    - `.rules/piloti-nivel.md`
+      - documentação do fluxo inicial atualizada para máximo dinâmico (atualmente `1.75 m`).
+
+### Atualização desta conversa (unificação estratégica das regras de proporção de piloti)
+
+- Problema:
+    - após elevar o teto de nível para `1.75`, a regra de altura recomendada ainda usava `nivel * 3`, gerando
+      recomendação incoerente para níveis altos (ex.: `1.75` não recomendava `3.5`).
+- Decisão arquitetural:
+    - unificar limite, recomendação e validação de proporção na mesma base estrutural (`altura mínima = nivel * 2`),
+      removendo duplicação de fórmula entre camadas.
+- Ajustes aplicados:
+    - `src/shared/types/piloti.ts`
+      - novo helper `getMinimumPilotiHeightForNivel`;
+      - `isPilotiOutOfProportion` passou a reutilizar o helper unificado;
+      - `getRecommendedHeight` passou a usar a mesma proporção (`*2`) e fallback no maior valor da tabela
+        (`MAX_AVAILABLE_PILOTI_HEIGHT`).
+    - `src/domain/house/house-aggregate.ts`
+      - `recalculateRecommendedPilotiData` passou a reutilizar `getRecommendedHeight` (remoção da regra duplicada local).
+    - `src/components/rac-editor/lib/house-manager.ts`
+      - JSDoc atualizado para refletir a nova regra unificada.
+    - Testes atualizados:
+      - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
+      - `src/components/rac-editor/lib/canvas/contraventamento.smoke.test.ts`
+      - `src/components/rac-editor/lib/house-auto-contraventamento.smoke.test.ts`
+      - `src/domain/house/house-aggregate.smoke.test.ts`
+    - `.rules/piloti-nivel.md`
+      - seção de recomendação atualizada para `nivel * 2` e tabela de alturas atual (`1.0` a `3.5`).
+
+### Atualização desta conversa (correção de regressão no auto contraventamento)
+
+- Problema:
+    - a unificação da proporção para recomendação (`nivel * 2`) acabou alterando também a elegibilidade de
+      contraventamento automático, reduzindo casos que antes geravam contraventamento.
+- Ajuste aplicado:
+    - separação explícita das regras de domínio em `src/shared/types/piloti.ts`:
+      - `getMinimumPilotiHeightForNivel` (`*2`) para recomendação/consistência de nível;
+      - `getMinimumPilotiHeightForNivel` (`*3`) para elegibilidade de contraventamento;
+      - `isPilotiOutOfProportion` dedicado ao fluxo de contraventamento.
+    - `house-auto-contraventamento.ts` e `useContraventamentoQueries.ts` passaram a usar a função dedicada de
+      contraventamento (`*3`), restaurando o comportamento esperado do auto contraventamento.
+    - testes atualizados para cobrir a separação de regras sem regressão:
+      - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
+      - `src/components/rac-editor/lib/canvas/contraventamento.smoke.test.ts`
+      - `src/components/rac-editor/lib/house-auto-contraventamento.smoke.test.ts`
+    - documentação ajustada:
+      - `.rules/piloti-nivel.md`
+      - `.rules/contraventamento.md`
+
+### Atualização desta conversa (padronização de tolerância numérica)
+
+- Problema:
+    - uso repetido de literal `0.0001` em comparações de ponto flutuante (domínio e geometria), sem fonte única.
+- Ajustes aplicados:
+    - `src/shared/constants.ts`
+      - adição de `NUMERIC_EPSILON = 1e-4` como tolerância padrão global.
+    - substituição de literais por constante compartilhada em:
+      - `src/shared/types/piloti.ts`
+      - `src/components/rac-editor/lib/canvas/terrain.ts`
+      - `src/components/rac-editor/lib/house-auto-stairs.ts`
+    - documentação adicionada:
+      - `.rules/README.md` com seção **Tolerância Numérica** (regra de uso e objetivo).
+      - `.rules/piloti-nivel.md` com referência explícita ao `NUMERIC_EPSILON`.
+
+### Atualização desta conversa (regra de recomendação corrigida para `nivel * 3`)
+
+- Ajuste solicitado:
+    - `getMinimumPilotiHeightForNivel` voltou para `nivel * 3`.
+    - o problema real era o fallback fixo em `3.0`, não a proporção.
+- Correções aplicadas:
+    - `src/shared/types/piloti.ts`
+      - `getMinimumPilotiHeightForNivel` ajustado para `*3`;
+      - `getMinimumPilotiHeightForNivel` reaproveita a mesma base (`getMinimumPilotiHeightForNivel`);
+      - fallback de recomendação permanece dinâmico no maior piloti disponível (`MAX_AVAILABLE_PILOTI_HEIGHT`).
+    - `src/components/rac-editor/lib/house-manager.ts`
+      - JSDoc atualizado para `Minimum required height = nivel × 3`.
+    - testes ajustados:
+      - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
+      - `src/domain/house/house-aggregate.smoke.test.ts`
+      - cenário continua cobrindo `nivel=1.75` recomendando `3.5` via fallback dinâmico.
+
+### Atualização desta conversa (diretriz de simplicidade sem encadeamento desnecessário)
+
+- Preferência registrada:
+    - quando não há divergência de regra, evitar criar funções/wrappers em cadeia que não reduzem código nem
+      aumentam clareza.
+- Aplicação:
+    - fluxo de proporção de piloti mantido em funções diretas (`isPilotiOutOfProportion` + `getMinimumPilotiHeightForNivel`),
+      sem camadas adicionais.
+    - `.guidelines/architectural-standards.md` atualizado com anti-padrão explícito contra encadeamento sem ganho.

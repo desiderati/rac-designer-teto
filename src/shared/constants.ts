@@ -3,6 +3,9 @@ import {CANVAS_DEFAULTS, CONTRAVENTAMENTO, HOUSE_DEFAULTS, PILOTI_MASTER_STYLE, 
 export const CANVAS_WIDTH = CANVAS_DEFAULTS.width;
 export const CANVAS_HEIGHT = CANVAS_DEFAULTS.height;
 
+// Tolerância padrão para comparações numéricas com ponto flutuante.
+export const NUMERIC_EPSILON = 1e-4;
+
 export const HOUSE_BASE_WIDTH = HOUSE_DEFAULTS.width;
 export const HOUSE_BASE_HEIGHT = HOUSE_DEFAULTS.height;
 

@@ -44,7 +44,7 @@ describe('contraventamento helpers', () => {
     ).toBe(true);
   });
 
-  it('detects piloti outside the recommended proportion', () => {
+  it('detects piloti outside contraventamento proportion', () => {
     expect(isPilotiOutOfProportion(1.0, 0.4)).toBe(true);
     expect(isPilotiOutOfProportion(1.5, 0.5)).toBe(false);
   });

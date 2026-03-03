@@ -2,7 +2,6 @@ import {PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
-  DEFAULT_HOUSE_PILOTI_HEIGHTS,
   HOUSE_VIEW_LIMITS,
   HousePiloti,
   HousePreAssignedSideDisplay,
@@ -34,6 +33,7 @@ import {
 } from '@/domain/house/use-cases/house-state.use-case.ts';
 import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
 import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
+import {getRecommendedHeight} from '@/shared/types/piloti.ts';
 
 export class HouseAggregate<TGroup> {
 
@@ -260,9 +260,7 @@ export class HouseAggregate<TGroup> {
         const v = row / 2;
 
         const nivel = (1 - u) * (1 - v) * a1 + u * (1 - v) * a4 + (1 - u) * v * c1 + u * v * c4;
-        const minHeight = nivel * 3;
-        const height =
-          DEFAULT_HOUSE_PILOTI_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
+        const height = getRecommendedHeight(nivel);
 
         nextPilotis[id] = {
           ...(nextPilotis[id] ?? defaultPiloti),

@@ -405,12 +405,12 @@ class HouseManager {
 
   /**
    * Calculate recommended heights for all 12 pilotis using bilinear interpolation
-   * of the 4 corner levels and the 2/3 rule.
+   * of the 4 corner levels and the current proporção estrutural.
    *
    * - The nivel at each grid point is interpolated from corners A1, A4, C1, C4.
-   * - Minimum required height = nivel × 3 (so 1/3 above ground, 2/3 buried).
-   * - Select the smallest standard height (1.0, 1.2, 1.5, 2.0, 2.5, 3.0) >= minimum.
-   * - If minimum exceeds 3.0m, cap at 3.0m (out-of-level acceptable).
+   * - Minimum required height = nivel × 3.
+   * - Select the smallest standard height >= minimum.
+   * - If minimum exceeds the available table, cap at the highest available height.
    */
   calculateAndApplyRecommendedHeights(): void {
     const aggregate = this.getHouseAggregate();

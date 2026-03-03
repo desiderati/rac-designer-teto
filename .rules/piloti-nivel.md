@@ -14,6 +14,8 @@ Cada piloti possui:
 
 Valor padrão de nível: `0.20 m`.
 
+Comparações de ponto flutuante neste domínio usam `NUMERIC_EPSILON` (`src/shared/constants.ts`).
+
 ## 2. Pilotis com edição direta de nível
 
 No `PilotiEditor`, a seção de nível aparece somente nos cantos:
@@ -43,7 +45,7 @@ No fluxo inicial:
 
 1. os 4 cantos são configurados sequencialmente
 2. mínimo: `0.20 m`
-3. máximo: `1.50 m`
+3. máximo dinâmico: `round(max(DEFAULT_HOUSE_PILOTI_HEIGHTS) / 2, 2)` (atual: `1.75 m`)
 4. exige ao menos um mestre para concluir
 5. ao definir um canto como mestre, os demais cantos são elevados para no mínimo o nível do mestre
 6. para cantos não mestre, o mínimo permitido é `max(nível do mestre, 0.20 m)`
@@ -59,13 +61,13 @@ Após definir os cantos, o `HouseManager` calcula todos os pilotis por interpola
     - `nivel = (1-u)(1-v)A1 + u(1-v)A4 + (1-u)vC1 + uvC4`
 3. nível final arredondado para 2 casas
 
-## 6. Alturas recomendadas (regra separada)
+## 6. Alturas recomendadas
 
 No cálculo global de recomendação:
 
 1. `minHeight = nivel * 3`
 2. escolhe a menor altura padrão `>= minHeight`
-3. fallback para `3.0` quando ultrapassa a tabela
+3. fallback para a maior altura padrão disponível quando ultrapassa a tabela
 
 Implementação de domínio extraída:
 
@@ -78,15 +80,15 @@ Implementação de domínio extraída:
 Tabela de alturas padrão:
 
 1. `1.0`
-2. `1.2`
-3. `1.5`
-4. `2.0`
-5. `2.5`
-6. `3.0`
+2. `1.5`
+3. `2.0`
+4. `2.5`
+5. `3.0`
+6. `3.5`
 
 Importante:
 
-- a regra de altura recomendada (`nivel * 3`) não substitui o limite de edição local do `PilotiEditor` (`height / 2`).
+- a regra de altura recomendada usa a mesma proporção estrutural do limite de edição (`height / 2`).
 
 ## 6.1 Auto-navegação no editor de piloti
 
@@ -129,6 +131,7 @@ Complemento de renderização extraído:
 1. criação exige `nivel > 0.40 m`
 2. com `nivel <= 0.40 m`, lado livre fica desabilitado
 3. remoção de contraventamento existente continua permitida
+4. coluna só é elegível quando existe piloti fora da proporção de contraventamento (`height < nivel * 3`)
 
 ## 9. Referências de código
 

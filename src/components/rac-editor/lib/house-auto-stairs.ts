@@ -16,13 +16,13 @@ import {
   toCanvasObject
 } from '@/components/rac-editor/lib/canvas/canvas.ts';
 import {resolveDoorSideCornerIds} from '@/shared/types/piloti.ts';
-import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
+import {NUMERIC_EPSILON, PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 
 // Largura base da escada.
 const AUTO_STAIR_BASE_WIDTH_PX = HOUSE_DIMENSIONS.openings.common.windowWidth
 
 // Tamanho em metros que a escada deve ultrapassar a linha do terreno.
-const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.2;
+const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.3;
 
 // Tamanho mínimo permitido (Top View), para o degrau nunca ficar fino demais e sumir.
 // Na Top View, usamos DEPTH para representar o comprimento do degrau.
@@ -44,6 +44,11 @@ interface StairMetrics {
 interface ElevationViewsAutoStairsResult {
   hasChanges: boolean;
   metricsBySide: Partial<Record<HouseSide, StairMetrics>>;
+}
+
+interface DoorSideAxisContext {
+  side: HouseSide;
+  reverseAxis: boolean;
 }
 
 export function refreshAutoStairsInViews(params: {
@@ -88,21 +93,20 @@ function refreshElevationViewsAutoStairs(params: {
     const runtimeDoor = getCanvasGroupObjects(group).find(object => object?.isHouseDoor);
     if (!runtimeDoor) continue;
 
-    const corners = resolveElevationCornerIds(group);
-    if (!corners) continue;
-
     const doorLeft = Number(runtimeDoor.left ?? 0);
     const doorTop = Number(runtimeDoor.top ?? 0);
     const doorWidth = Number(runtimeDoor.width ?? 0) * Number(runtimeDoor.scaleX ?? 1);
     const doorHeight = Number(runtimeDoor.height ?? 0) * Number(runtimeDoor.scaleY ?? 1);
     if (doorWidth <= 0 || doorHeight <= 0) continue;
+    const axisContext = resolveDoorSideAxisContextFromElevationGroup(group);
+    if (!axisContext) continue;
 
     const scale = doorWidth / HOUSE_DIMENSIONS.openings.common.doorWidth;
     const stairWidth = Math.max(doorWidth, AUTO_STAIR_BASE_WIDTH_PX * scale);
     const metrics = resolveElevationStairMetrics({
       pilotis: params.pilotis,
       group,
-      corners,
+      axisContext,
       stairLeftX: doorLeft,
       stairRightX: doorLeft + stairWidth,
     });
@@ -129,9 +133,7 @@ function refreshElevationViewsAutoStairs(params: {
     addObjectToGroup(group, elevationStair);
 
     hasChanges = true;
-    if (viewInstance.side) {
-      metricsBySide[viewInstance.side] = metrics;
-    }
+    metricsBySide[axisContext.side] = metrics;
 
     group.dirty = true;
     refreshGroupBounds(group);
@@ -191,7 +193,11 @@ function refreshTopViewAutoStairs(params: {
       : bodyWidth / HOUSE_DIMENSIONS.footprint.width;
 
   const stairWidth = Math.max(renderedDoorGeometry.doorWidth, AUTO_STAIR_BASE_WIDTH_PX * sideScale);
-  const localMetrics = resolveTopStairMetrics({
+  const sharedMetrics = params.sharedMetricsBySide[doorSide];
+
+  // Quando não existe vista elevada correspondente no canvas, calculamos
+  // as métricas no contexto da planta para manter a escada funcional.
+  const metrics = sharedMetrics ?? resolveTopStairMetrics({
     pilotis: params.pilotis,
     doorSide,
     bodyWidth,
@@ -202,7 +208,6 @@ function refreshTopViewAutoStairs(params: {
         ? Number(placement.targetTop ?? 0)
         : Number(placement.targetLeft ?? 0),
   });
-  const metrics = params.sharedMetricsBySide[doorSide] ?? localMetrics;
   const stairDepth = resolveStairDepthPxFromHeight(metrics.stairHeight, sideScale);
   const markerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * sideScale;
   const markerOffset = markerShort / 2;
@@ -282,55 +287,38 @@ function applyStairMetrics(
   canvasGroup.stairsNivelRight = metrics.rightNivel;
 }
 
-function resolveElevationCornerIds(group: CanvasGroup): { leftId: string; rightId: string } | null {
+function resolveDoorSideAxisContextFromElevationGroup(group: CanvasGroup): DoorSideAxisContext | null {
   const houseView = String(group.houseView ?? '');
 
   if (houseView === 'front' || houseView === 'back') {
     const isFlipped = Boolean(group.isFlippedHorizontally);
-    if (isFlipped) {
-      return {leftId: 'piloti_3_0', rightId: 'piloti_0_0'};
-    }
-    return {leftId: 'piloti_0_2', rightId: 'piloti_3_2'};
+    return {side: isFlipped ? 'top' : 'bottom', reverseAxis: isFlipped};
   }
 
   if (houseView === 'side') {
     const isRight = Boolean(group.isRightSide);
-    if (isRight) {
-      return {leftId: 'piloti_3_2', rightId: 'piloti_3_0'};
-    }
-    return {leftId: 'piloti_0_0', rightId: 'piloti_0_2'};
+    return {side: isRight ? 'right' : 'left', reverseAxis: isRight};
   }
 
   return null;
 }
 
-function resolveElevationMiddleIds(group: CanvasGroup): string[] | null {
-  const houseView = String(group.houseView ?? '');
-
-  if (houseView === 'front' || houseView === 'back') {
-    const isFlipped = Boolean(group.isFlippedHorizontally);
-    if (isFlipped) {
-      return ['piloti_2_0', 'piloti_1_0'];
-    }
-    return ['piloti_1_2', 'piloti_2_2'];
-  }
-
-  if (houseView === 'side') {
-    const isRight = Boolean(group.isRightSide);
-    if (isRight) {
-      return ['piloti_3_1'];
-    }
-    return ['piloti_0_1'];
-  }
-
-  return null;
-}
-
-function resolvePilotisMiddleIds(side: HouseSide): string[] {
+function resolveDoorSideMiddleIds(side: HouseSide): string[] {
   if (side === 'top') return ['piloti_1_0', 'piloti_2_0'];
   if (side === 'bottom') return ['piloti_1_2', 'piloti_2_2'];
   if (side === 'left') return ['piloti_0_1'];
   return ['piloti_3_1'];
+}
+
+function resolveAxisCornerIds(params: DoorSideAxisContext): { leftId: string; rightId: string } {
+  const corners = resolveDoorSideCornerIds(params.side);
+  if (!params.reverseAxis) return corners;
+  return {leftId: corners.rightId, rightId: corners.leftId};
+}
+
+function resolveAxisMiddleIds(params: DoorSideAxisContext): string[] {
+  const middleIds = resolveDoorSideMiddleIds(params.side);
+  return params.reverseAxis ? [...middleIds].reverse() : middleIds;
 }
 
 function resolveTopStairMetrics(params: {
@@ -347,7 +335,7 @@ function resolveTopStairMetrics(params: {
   const rightCornerNivel = Number(params.pilotis[corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
   const middleNivel = resolveAverageNivelFromIds({
     pilotis: params.pilotis,
-    ids: resolvePilotisMiddleIds(params.doorSide),
+    ids: resolveAxisMiddleIds({side: params.doorSide, reverseAxis: false}),
     fallback: (leftCornerNivel + rightCornerNivel) / 2,
   });
 
@@ -386,25 +374,26 @@ function resolveTopStairMetrics(params: {
 function resolveElevationStairMetrics(params: {
   pilotis: Record<string, HousePiloti>;
   group: CanvasGroup;
-  corners: { leftId: string; rightId: string };
+  axisContext: DoorSideAxisContext;
   stairLeftX: number;
   stairRightX: number;
 }): StairMetrics {
+  const corners = resolveAxisCornerIds(params.axisContext);
 
   const fallback = buildStairMetricsFromGroundNiveis({
-    leftGroundNivel: Number(params.pilotis[params.corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
-    rightGroundNivel: Number(params.pilotis[params.corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
+    leftGroundNivel: Number(params.pilotis[corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
+    rightGroundNivel: Number(params.pilotis[corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
   });
 
-  const axisLeftX = resolvePilotiCenterX(params.group, params.corners.leftId);
-  const axisRightX = resolvePilotiCenterX(params.group, params.corners.rightId);
-  if (axisLeftX === null || axisRightX === null || Math.abs(axisRightX - axisLeftX) < 0.0001) {
+  const axisLeftX = resolvePilotiCenterX(params.group, corners.leftId);
+  const axisRightX = resolvePilotiCenterX(params.group, corners.rightId);
+  if (axisLeftX === null || axisRightX === null || Math.abs(axisRightX - axisLeftX) < NUMERIC_EPSILON) {
     return fallback;
   }
 
-  const leftCornerNivel = Number(params.pilotis[params.corners.leftId]?.nivel ?? fallback.leftNivel);
-  const rightCornerNivel = Number(params.pilotis[params.corners.rightId]?.nivel ?? fallback.rightNivel);
-  const middleIds = resolveElevationMiddleIds(params.group);
+  const leftCornerNivel = Number(params.pilotis[corners.leftId]?.nivel ?? fallback.leftNivel);
+  const rightCornerNivel = Number(params.pilotis[corners.rightId]?.nivel ?? fallback.rightNivel);
+  const middleIds = resolveAxisMiddleIds(params.axisContext);
   const middleNivel = resolveAverageNivelFromIds({
     pilotis: params.pilotis,
     ids: middleIds,
@@ -498,7 +487,7 @@ function evaluateBinomialQuadraticNivel(params: {
 }): number {
 
   const denominator = params.rightX - params.leftX;
-  if (Math.abs(denominator) < 0.0001) return params.leftNivel;
+  if (Math.abs(denominator) < NUMERIC_EPSILON) return params.leftNivel;
 
   const t = clamp01((params.x - params.leftX) / denominator);
   const oneMinusT = 1 - t;

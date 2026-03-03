@@ -9,7 +9,7 @@ export function getHintForObject(obj: CanvasObject | null): string {
 
   switch (myType) {
     case 'house':
-      return '<b>Casa:</b> Clique em um piloti para editar sua altura. Para mover a casa inteira, arraste.';
+      return '<b>Casa:</b> Clique em um piloti para editar sua altura. Para vista elevadas, clique no terro para alterar a dificuldade. Para mover a casa inteira, arraste.';
 
     case 'piloti':
       return '<b>Piloti:</b> Clique para editar a altura.';

@@ -44,6 +44,8 @@ Resumo prático:
 
 - `nível > 0,40 m` habilita criação no lado livre.
 - lado já ocupado permite remoção mesmo com nível baixo.
+- elegibilidade automática por coluna considera proporção de contraventamento:
+  `height < nivel * 3`.
 
 ## 5. Regras de ocupação por coluna
 

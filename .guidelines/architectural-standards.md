@@ -134,6 +134,7 @@ Para qualquer mudança arquitetural:
 3. Corrigir UI sem validar contrato funcional.
 4. Introduzir abstração por hipótese futura sem demanda atual.
 5. Espalhar constantes/valores padrão em múltiplos arquivos.
+6. Criar encadeamento de funções/wrappers sem ganho real de legibilidade, redução de código ou variação de regra.
 
 ## Checklist obrigatório de PR
 

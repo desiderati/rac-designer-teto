@@ -13,7 +13,12 @@ import {
 import {CanvasGroup, CanvasObject, toCanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts'
 import {refreshHouseGroupRendering} from '@/components/rac-editor/lib/canvas/piloti.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {PILOTI_BASE_HEIGHT_PX, PILOTI_BASE_HEIGHT_PX_WITH_SCALE, PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
+import {
+  NUMERIC_EPSILON,
+  PILOTI_BASE_HEIGHT_PX,
+  PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
+  PILOTI_DEFAULT_NIVEL
+} from '@/shared/constants.ts';
 import {formatNivel} from '@/shared/types/piloti.ts';
 
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
@@ -420,7 +425,7 @@ function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): 
     if (targetX < minX || targetX > maxX) continue;
 
     const dx = b.x - a.x;
-    if (Math.abs(dx) < 0.0001) return Math.min(a.y, b.y);
+    if (Math.abs(dx) < NUMERIC_EPSILON) return Math.min(a.y, b.y);
     const t = (targetX - a.x) / dx;
     return a.y + (b.y - a.y) * t;
   }

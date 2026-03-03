@@ -1,5 +1,5 @@
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
-import {PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from '../constants';
+import {NUMERIC_EPSILON, PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from '../constants';
 
 export const getPilotiIdsForSide =
   (side: HouseSide): string[] => {
@@ -43,16 +43,30 @@ export function isPilotiOutOfProportion(height: number, nivel: number): boolean 
   if (!Number.isFinite(height) || !Number.isFinite(nivel)) return false;
   if (height <= 0 || nivel <= 0) return false;
 
-  // Regra estrutural base: nível = 1/3 da altura total do piloti.
-  return height + 0.0001 < (nivel * 3);
+  return height + NUMERIC_EPSILON < getMinimumPilotiHeightForNivel(nivel);
 }
 
+export function getMaxNivelForPilotiHeight(pilotiHeight: number): number {
+  return Math.round((pilotiHeight / 2) * 100) / 100;
+}
+
+export function getMinimumPilotiHeightForNivel(nivel: number): number {
+  return nivel * 3;
+}
+
+export const MAX_AVAILABLE_PILOTI_HEIGHT = Math.max(...DEFAULT_HOUSE_PILOTI_HEIGHTS);
+export const MAX_AVAILABLE_PILOTI_NIVEL = getMaxNivelForPilotiHeight(MAX_AVAILABLE_PILOTI_HEIGHT);
+
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
-  const maxNivel = Math.round((pilotiHeight / 2) * 100) / 100;
+  const maxNivel = getMaxNivelForPilotiHeight(pilotiHeight);
   return clampNivel(nivel, PILOTI_DEFAULT_NIVEL, maxNivel);
 }
 
-export function clampNivel(nivel: number, minNivel: number = PILOTI_DEFAULT_NIVEL, maxNivel: number = 1.50): number {
+export function clampNivel(
+  nivel: number,
+  minNivel: number = PILOTI_DEFAULT_NIVEL,
+  maxNivel: number = MAX_AVAILABLE_PILOTI_NIVEL
+): number {
   return Math.round(Math.max(minNivel, Math.min(nivel, maxNivel)) * 100) / 100;
 }
 
@@ -65,9 +79,10 @@ export function formatNivel(nivel: number): string {
 }
 
 export function getRecommendedHeight(nivel: number): number {
-  // Nivel = 1/3 Piloti :)
-  const minHeight = nivel * 3;
-  return DEFAULT_HOUSE_PILOTI_HEIGHTS.find((h) => h >= minHeight) ?? 3.0;
+  const minHeight = getMinimumPilotiHeightForNivel(nivel);
+  return DEFAULT_HOUSE_PILOTI_HEIGHTS.find(
+    (h) => h + NUMERIC_EPSILON >= minHeight
+  ) ?? MAX_AVAILABLE_PILOTI_HEIGHT;
 }
 
 // Get piloti name from ID (e.g., "piloti_0_0" -> "A1")

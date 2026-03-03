@@ -85,4 +85,19 @@ Para manter consistência e reduzir churn em imports durante a refatoração:
 
 Observação: evitar renomeação em massa apenas por estilo; priorizar mudanças funcionais com validação automática.
 
+## Tolerância Numérica
+
+Para comparações com ponto flutuante, usar sempre `NUMERIC_EPSILON` definido em `src/shared/constants.ts`.
+
+Objetivo:
+
+1. evitar falsos negativos/positivos por erro de precisão (`float`);
+2. manter consistência entre regras de domínio e geometria de canvas;
+3. eliminar números mágicos repetidos (ex.: `0.0001`).
+
+Regra prática:
+
+1. em comparações de limite, usar `value + NUMERIC_EPSILON` ou `Math.abs(value) < NUMERIC_EPSILON`;
+2. não declarar novos epsilons locais sem justificativa explícita no código.
+
 
