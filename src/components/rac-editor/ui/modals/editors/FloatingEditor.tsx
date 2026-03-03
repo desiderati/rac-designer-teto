@@ -2,6 +2,7 @@ import React, {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
 import {useFloatingEditor} from '@/components/rac-editor/hooks/modals/useFloatingEditor.ts';
+import {getSettings} from '@/infra/settings.ts';
 
 interface FloatingEditorProps {
   isOpen: boolean;
@@ -28,6 +29,13 @@ export function FloatingEditor({
   onConfirm,
   onCancel,
 }: FloatingEditorProps) {
+
+  const {openEditorsAtFixedPosition} = getSettings();
+  const fallbackDesktopPos = openEditorsAtFixedPosition
+    ? {position: 'fixed' as const, left: 88, top: 24}
+    : anchorPosition
+      ? {position: 'fixed' as const, left: anchorPosition.x + 12, top: anchorPosition.y + 12}
+      : {position: 'fixed' as const, left: 24, top: 24};
 
   const {panelPos, handleDragStart} = useFloatingEditor({
     isOpen,
@@ -80,9 +88,7 @@ export function FloatingEditor({
         style={
           panelPos
             ? {position: 'fixed', left: panelPos.x, top: panelPos.y}
-            : anchorPosition
-              ? {position: 'fixed', left: anchorPosition.x + 12, top: anchorPosition.y + 12}
-              : {position: 'fixed', left: 24, top: 24}
+            : fallbackDesktopPos
         }>
         {editorBody}
       </div>

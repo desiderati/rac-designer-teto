@@ -4,6 +4,8 @@ import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
 export interface AppSettings {
   autoNavigatePiloti: boolean;
   zoomEnabledByDefault: boolean;
+  openEditorsAtFixedPosition: boolean;
+  disableDrawModeAfterFreehand: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {...APP_SETTINGS_DEFAULTS};

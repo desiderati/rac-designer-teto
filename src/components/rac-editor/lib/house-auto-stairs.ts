@@ -89,7 +89,7 @@ function refreshTopViewAutoStairs(params: {
   if (!doorSide) return hasChanges;
 
   const corners = resolveDoorSideCornerIds(doorSide);
-  const metrics = resolveStairMetrics({
+  const metrics = resolveTopStairMetrics({
     pilotis: params.pilotis,
     leftId: corners.leftId,
     rightId: corners.rightId,
@@ -316,7 +316,7 @@ function resolveElevationMiddleIds(group: CanvasGroup): string[] | null {
   return null;
 }
 
-function resolveStairMetrics(params: {
+function resolveTopStairMetrics(params: {
   pilotis: Record<string, HousePiloti>;
   leftId: string;
   rightId: string;
@@ -338,6 +338,69 @@ function resolveStairMetrics(params: {
   return {
     leftNivel: round2(leftNivel),
     rightNivel: round2(rightNivel),
+    stairHeight,
+    steps,
+  };
+}
+
+function resolveElevationStairMetrics(params: {
+  pilotis: Record<string, HousePiloti>;
+  group: CanvasGroup;
+  corners: { leftId: string; rightId: string };
+  stairLeftX: number;
+  stairRightX: number;
+}): StairMetrics {
+
+  const fallback = resolveTopStairMetrics({
+    pilotis: params.pilotis,
+    leftId: params.corners.leftId,
+    rightId: params.corners.rightId,
+  });
+
+  const axisLeftX = resolvePilotiCenterX(params.group, params.corners.leftId);
+  const axisRightX = resolvePilotiCenterX(params.group, params.corners.rightId);
+  if (axisLeftX === null || axisRightX === null || Math.abs(axisRightX - axisLeftX) < 0.0001) {
+    return fallback;
+  }
+
+  const leftCornerNivel = Number(params.pilotis[params.corners.leftId]?.nivel ?? fallback.leftNivel);
+  const rightCornerNivel = Number(params.pilotis[params.corners.rightId]?.nivel ?? fallback.rightNivel);
+  const middleIds = resolveElevationMiddleIds(params.group);
+  const middleNivel = resolveAverageNivelFromIds({
+    pilotis: params.pilotis,
+    ids: middleIds,
+    fallback: (leftCornerNivel + rightCornerNivel) / 2,
+  });
+
+  const leftEdgeNivel = evaluateBinomialQuadraticNivel({
+    x: params.stairLeftX,
+    leftX: axisLeftX,
+    rightX: axisRightX,
+    leftNivel: leftCornerNivel,
+    middleNivel,
+    rightNivel: rightCornerNivel,
+  });
+  const rightEdgeNivel = evaluateBinomialQuadraticNivel({
+    x: params.stairRightX,
+    leftX: axisLeftX,
+    rightX: axisRightX,
+    leftNivel: leftCornerNivel,
+    middleNivel,
+    rightNivel: rightCornerNivel,
+  });
+
+  const referenceGroundLevel = Math.min(leftEdgeNivel, rightEdgeNivel);
+  const stairHeight = round2(
+    referenceGroundLevel
+    + AUTO_STAIR_HEIGHT_EXTRA_MTS
+    + AUTO_STAIR_FLOOR_HEIGHT_MTS
+    + AUTO_STAIR_BEAM_HEIGHT_MTS,
+  );
+  const steps = Math.max(1, Math.round(stairHeight / AUTO_STAIR_STEP_HEIGHT_MTS));
+
+  return {
+    leftNivel: round2(leftEdgeNivel),
+    rightNivel: round2(rightEdgeNivel),
     stairHeight,
     steps,
   };
@@ -399,69 +462,6 @@ function evaluateBinomialQuadraticNivel(params: {
     + 2 * oneMinusT * t * params.middleNivel
     + t * t * params.rightNivel
   );
-}
-
-function resolveElevationStairMetrics(params: {
-  pilotis: Record<string, HousePiloti>;
-  group: CanvasGroup;
-  corners: { leftId: string; rightId: string };
-  stairLeftX: number;
-  stairRightX: number;
-}): StairMetrics {
-
-  const fallback = resolveStairMetrics({
-    pilotis: params.pilotis,
-    leftId: params.corners.leftId,
-    rightId: params.corners.rightId,
-  });
-
-  const axisLeftX = resolvePilotiCenterX(params.group, params.corners.leftId);
-  const axisRightX = resolvePilotiCenterX(params.group, params.corners.rightId);
-  if (axisLeftX === null || axisRightX === null || Math.abs(axisRightX - axisLeftX) < 0.0001) {
-    return fallback;
-  }
-
-  const leftCornerNivel = Number(params.pilotis[params.corners.leftId]?.nivel ?? fallback.leftNivel);
-  const rightCornerNivel = Number(params.pilotis[params.corners.rightId]?.nivel ?? fallback.rightNivel);
-  const middleIds = resolveElevationMiddleIds(params.group);
-  const middleNivel = resolveAverageNivelFromIds({
-    pilotis: params.pilotis,
-    ids: middleIds,
-    fallback: (leftCornerNivel + rightCornerNivel) / 2,
-  });
-
-  const leftEdgeNivel = evaluateBinomialQuadraticNivel({
-    x: params.stairLeftX,
-    leftX: axisLeftX,
-    rightX: axisRightX,
-    leftNivel: leftCornerNivel,
-    middleNivel,
-    rightNivel: rightCornerNivel,
-  });
-  const rightEdgeNivel = evaluateBinomialQuadraticNivel({
-    x: params.stairRightX,
-    leftX: axisLeftX,
-    rightX: axisRightX,
-    leftNivel: leftCornerNivel,
-    middleNivel,
-    rightNivel: rightCornerNivel,
-  });
-
-  const referenceGroundLevel = Math.min(leftEdgeNivel, rightEdgeNivel);
-  const stairHeight = round2(
-    referenceGroundLevel
-    + AUTO_STAIR_HEIGHT_EXTRA_MTS
-    + AUTO_STAIR_FLOOR_HEIGHT_MTS
-    + AUTO_STAIR_BEAM_HEIGHT_MTS,
-  );
-  const steps = Math.max(1, Math.ceil(stairHeight / AUTO_STAIR_STEP_HEIGHT_MTS));
-
-  return {
-    leftNivel: round2(leftEdgeNivel),
-    rightNivel: round2(rightEdgeNivel),
-    stairHeight,
-    steps,
-  };
 }
 
 function addObjectToGroup(group: CanvasGroup, object: CanvasObject): void {

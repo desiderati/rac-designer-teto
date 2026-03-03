@@ -16,6 +16,7 @@ import {
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {useContraventamentoEvents} from '@/components/rac-editor/hooks/useContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {getSettings} from '@/infra/settings.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -37,6 +38,7 @@ interface UseCanvasFabricSetupArgs {
   isPilotiEligibleForContraventamentoRef: MutableRefObject<((pilotiId: string) => boolean) | undefined>;
   onContraventamentoPilotiClickRef: MutableRefObject<((col: number, row: number) => void) | undefined>;
   onContraventamentoCancelRef: MutableRefObject<(() => void) | undefined>;
+  onFreeDrawPathCreated?: () => void;
 }
 
 export function useCanvasFabricSetup({
@@ -59,6 +61,7 @@ export function useCanvasFabricSetup({
   isPilotiEligibleForContraventamentoRef,
   onContraventamentoPilotiClickRef,
   onContraventamentoCancelRef,
+  onFreeDrawPathCreated,
 }: UseCanvasFabricSetupArgs) {
 
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
@@ -81,6 +84,7 @@ export function useCanvasFabricSetup({
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
     onContraventamentoCancelRef,
+    onFreeDrawPathCreated,
   });
 
   latestArgsRef.current = {
@@ -103,6 +107,7 @@ export function useCanvasFabricSetup({
     isPilotiEligibleForContraventamentoRef,
     onContraventamentoPilotiClickRef,
     onContraventamentoCancelRef,
+    onFreeDrawPathCreated,
   };
 
   const {bindSelectionActions} = useCanvasSelectionActions();
@@ -155,6 +160,13 @@ export function useCanvasFabricSetup({
     const emitTerrainSelection =
       (selection: TerrainCanvasSelection | null) => latestArgsRef.current.onTerrainSelect?.(selection);
 
+    const handlePathCreated = () => {
+      if (!getSettings().disableDrawModeAfterFreehand || !canvas.isDrawingMode) return;
+      canvas.isDrawingMode = false;
+      canvas.selection = true;
+      latestArgsRef.current.onFreeDrawPathCreated?.();
+    };
+
     // Initialize drawing brush
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.color = CANVAS_ELEMENT_STYLE.strokeColor.linearElement;
@@ -169,6 +181,7 @@ export function useCanvasFabricSetup({
     canvas.on('object:added', runSaveHistory);
     canvas.on('object:modified', runSaveHistory);
     canvas.on('object:removed', runSaveHistory);
+    canvas.on('path:created', handlePathCreated);
 
     const handlePilotiSelection = buildPilotiSelectionHandler({
       canvas,
@@ -244,6 +257,7 @@ export function useCanvasFabricSetup({
       unbindKeyboardShortcuts();
       unbindContraventamentoEvents();
       unbindSelectionActions();
+      canvas.off('path:created', handlePathCreated);
       canvas.dispose().then(_ => {
         /*/ Do nothing! */
       });

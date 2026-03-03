@@ -66,6 +66,7 @@ interface CanvasProps {
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (col: number, row: number) => void;
   onContraventamentoCancel?: () => void;
+  onFreeDrawPathCreated?: () => void;
 }
 
 export interface CanvasHandle {
@@ -104,7 +105,8 @@ export const Canvas =
       isContraventamentoMode = false,
       isPilotiEligibleForContraventamento,
       onContraventamentoPilotiClick,
-      onContraventamentoCancel
+      onContraventamentoCancel,
+      onFreeDrawPathCreated,
     }, ref) => {
 
       const containerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +232,7 @@ export const Canvas =
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,
+        onFreeDrawPathCreated,
       });
 
       useCanvasContainerLifecycle({

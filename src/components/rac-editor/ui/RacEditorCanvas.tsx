@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Canvas,
   CanvasHandle,
@@ -11,7 +11,7 @@ import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 
 interface RacEditorCanvasProps {
-  canvasRef: React.Ref<CanvasHandle>;
+  canvasRef: React.RefObject<CanvasHandle | null>;
   tutorialStep: TutorialStepId | null;
   showTips: boolean;
   showZoomControls: boolean;
@@ -29,6 +29,7 @@ interface RacEditorCanvasProps {
   onDelete: () => void;
   onContraventamentoPilotiClick: (col: number, row: number) => void;
   onContraventamentoCancel: () => void;
+  onFreeDrawPathCreated: () => void;
 }
 
 export function RacEditorCanvas({
@@ -50,16 +51,29 @@ export function RacEditorCanvas({
   onDelete,
   onContraventamentoPilotiClick,
   onContraventamentoCancel,
+  onFreeDrawPathCreated,
 }: RacEditorCanvasProps) {
+  const [hasActiveSelection, setHasActiveSelection] = useState(false);
+
+  useEffect(() => {
+    if (!showTips) return;
+    const activeSelectionCount = canvasRef.current?.canvas?.getActiveObjects().length ?? 0;
+    setHasActiveSelection(activeSelectionCount > 0);
+  }, [canvasRef, showTips]);
+
+  const handleSelectionChange = useCallback((message: string) => {
+    onSelectionMessage(message);
+    onSelectionAuxCleanup();
+
+    const activeSelectionCount = canvasRef.current?.canvas?.getActiveObjects().length ?? 0;
+    setHasActiveSelection(activeSelectionCount > 0);
+  }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
   return (
     <div className='h-full p-2.5 overflow-hidden relative'>
       <Canvas
         ref={canvasRef}
-        onSelectionChange={(msg) => {
-          onSelectionMessage(msg);
-          onSelectionAuxCleanup();
-        }}
+        onSelectionChange={handleSelectionChange}
         onHistorySave={() => {
         }}
         onZoomInteraction={onZoomInteraction}
@@ -77,8 +91,9 @@ export function RacEditorCanvas({
         isPilotiEligibleForContraventamento={isPilotiEligibleForContraventamento}
         onContraventamentoPilotiClick={onContraventamentoPilotiClick}
         onContraventamentoCancel={onContraventamentoCancel}
+        onFreeDrawPathCreated={onFreeDrawPathCreated}
       >
-        {showTips &&
+        {showTips && hasActiveSelection &&
           <div
             className='sm:absolute sm:bottom-2.5 sm:left-1/2 sm:-translate-x-1/2 max-w-md w-full pointer-events-auto'>
             <InfoBar message={infoMessage}/>

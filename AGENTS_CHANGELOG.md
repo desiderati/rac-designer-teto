@@ -30,6 +30,16 @@
   (clamp instantâneo), evitando manter valor acima do limite.
 - No editor de terreno, ao soltar o drag do slider de tipo de solo (`onValueCommit`), a alteração agora é aplicada
   imediatamente no modelo.
+- Nova configuração em `Settings` para posicionamento de modais de editores:
+  `openEditorsAtFixedPosition` alterna entre abertura relativa ao mouse (padrão) e abertura fixa ao lado da toolbar
+  esquerda.
+- Nova configuração em `Settings`: `disableDrawModeAfterFreehand`. Quando ativa, o modo Lápis é desabilitado
+  automaticamente ao concluir um desenho à mão livre (`path:created`), mantendo o estado da toolbar sincronizado.
+- Ajuste no `InfoBar` de dicas: agora só é exibido quando a opção de dicas está ativa e existe objeto selecionado no
+  canvas; sem seleção, a barra não aparece.
+- Correção dos smoke tests de `terrain-volume` para refletir as fórmulas atuais (diâmetro real via
+  `HOUSE_DIMENSIONS.piloti.widthMt3`, brita lateral `TERRAIN_SOLIDITY.sideGravelWidthMt3` e fatores de vazios
+  `voidFactorRachao`/`voidFactorGravel`).
 - Correção de imports quebrados no editor de nível e no módulo 3D, ajustando referências indevidas de
   @/components/rac-editor/lib/canvas para @/shared/types/piloti.ts e @/shared/constants.ts.
 - Validação final de imports com pm run build e px tsc --noEmit sem erros.

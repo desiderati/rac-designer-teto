@@ -21,13 +21,18 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
     }
   }, [isOpen]);
 
-  const handleToggle = (key: 'autoNavigatePiloti' | 'zoomEnabledByDefault', value: boolean) => {
+  const handleToggle = (
+    key: 'autoNavigatePiloti' | 'zoomEnabledByDefault' | 'openEditorsAtFixedPosition' | 'disableDrawModeAfterFreehand',
+    value: boolean
+  ) => {
     setTempSettings((prev) => ({...prev, [key]: value}));
   };
 
   const handleConfirm = () => {
     updateSetting('autoNavigatePiloti', tempSettings.autoNavigatePiloti);
     updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
+    updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
+    updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
     onSettingsChange?.();
     onOpenChange(false);
   };
@@ -57,6 +62,26 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
           id='zoom-enabled'
           checked={tempSettings.zoomEnabledByDefault}
           onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}/>
+      </div>
+
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='fixed-editors' className='text-sm leading-snug cursor-pointer flex-1'>
+          Abrir modais de editores em posição fixa ao lado da barra de ferramentas esquerda
+        </Label>
+        <Switch
+          id='fixed-editors'
+          checked={tempSettings.openEditorsAtFixedPosition}
+          onCheckedChange={(v) => handleToggle('openEditorsAtFixedPosition', v)}/>
+      </div>
+
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='disable-draw-after-freehand' className='text-sm leading-snug cursor-pointer flex-1'>
+          Desabilitar a opção Lápis após desenho à mão livre
+        </Label>
+        <Switch
+          id='disable-draw-after-freehand'
+          checked={tempSettings.disableDrawModeAfterFreehand}
+          onCheckedChange={(v) => handleToggle('disableDrawModeAfterFreehand', v)}/>
       </div>
     </>;
 

@@ -6,7 +6,7 @@ import type {HousePiloti} from '@/shared/types/house.ts';
 const PILOTI_DIAMETER_CM = HOUSE_DIMENSIONS.piloti.widthMt3;
 
 /** Largura de cada lateral de brita em cm. */
-const SIDE_GRAVEL_CM = TERRAIN_SOLIDITY.sideGravelWidth;
+const SIDE_GRAVEL_CM = TERRAIN_SOLIDITY.sideGravelWidthMt3;
 
 /** Diâmetro total do cilindro (piloti + 2× brita lateral) em cm. */
 const EXTERNAL_DIAMETER_CM = PILOTI_DIAMETER_CM + (2 * SIDE_GRAVEL_CM);

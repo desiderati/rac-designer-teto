@@ -202,6 +202,11 @@ export function RacEditor() {
     setInfoMessage(`Terreno atualizado para "${TERRAIN_SOLIDITY.levels[normalized].label}".`);
   }, [setInfoMessage]);
 
+  const handleFreeDrawPathCreated = useCallback(() => {
+    setIsDrawing(false);
+    setInfoMessage('<b>Dica:</b> Modo Lápis desativado após concluir o desenho à mão livre.');
+  }, [setInfoMessage, setIsDrawing]);
+
   const {
     handleSideSelected,
     handleNiveisApplied,
@@ -502,6 +507,7 @@ export function RacEditor() {
         onContraventamentoPilotiClick={handleContraventamentoPilotiClick}
         onContraventamentoCancel={handleCancelContraventamento}
         onTerrainSelect={handleTerrainSelect}
+        onFreeDrawPathCreated={handleFreeDrawPathCreated}
       />
 
       <RacEditorHouseTypeSelector

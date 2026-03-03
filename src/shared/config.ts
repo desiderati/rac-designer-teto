@@ -3,6 +3,8 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 export const APP_SETTINGS_DEFAULTS = {
   autoNavigatePiloti: false,
   zoomEnabledByDefault: true,
+  openEditorsAtFixedPosition: false,
+  disableDrawModeAfterFreehand: false,
 } as const;
 
 export const STORAGE_KEYS = {
@@ -170,6 +172,7 @@ export type TerrainSolidityLevel = 1 | 2 | 3 | 4 | 5;
 export const TERRAIN_SOLIDITY = {
   defaultLevel: 1,
   sideGravelWidth: 10,
+  sideGravelWidthMt3: 8,
   voidFactorGravel: 1.20,
   voidFactorRachao: 1.40,
   levels: {

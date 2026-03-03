@@ -14,6 +14,8 @@ describe('settings persistence smoke', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
       zoomEnabledByDefault: true,
+      openEditorsAtFixedPosition: false,
+      disableDrawModeAfterFreehand: false,
     });
   });
 
@@ -22,6 +24,8 @@ describe('settings persistence smoke', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: true,
       zoomEnabledByDefault: true,
+      openEditorsAtFixedPosition: false,
+      disableDrawModeAfterFreehand: false,
     });
   });
 
@@ -34,6 +38,8 @@ describe('settings persistence smoke', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
       zoomEnabledByDefault: true,
+      openEditorsAtFixedPosition: false,
+      disableDrawModeAfterFreehand: false,
     });
   });
 });

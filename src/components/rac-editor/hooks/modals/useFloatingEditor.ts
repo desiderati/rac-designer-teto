@@ -1,6 +1,8 @@
 import {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState} from 'react';
+import {getSettings} from '@/infra/settings.ts';
 
 const INTERACTIVE_SELECTOR = '[data-no-drag], button, input, textarea, select, a';
+const FIXED_EDITOR_POSITION = {x: 88, y: 24} as const;
 
 interface UseFloatingEditorArgs {
   isOpen: boolean;
@@ -20,6 +22,7 @@ export function useFloatingEditor({
 }: UseFloatingEditorArgs): UseFloatingEditorResult {
 
   const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(null);
+  const {openEditorsAtFixedPosition} = getSettings();
   const wasOpenRef = useRef(false);
   const isDraggingRef = useRef(false);
   const dragOffsetRef = useRef({x: 0, y: 0});
@@ -35,7 +38,9 @@ export function useFloatingEditor({
 
     if (isFirstOpen) {
       isDraggingRef.current = false;
-      if (anchorPosition) {
+      if (openEditorsAtFixedPosition) {
+        setPanelPos({...FIXED_EDITOR_POSITION});
+      } else if (anchorPosition) {
         setPanelPos({x: anchorPosition.x + 12, y: anchorPosition.y + 12});
       } else {
         setPanelPos({x: 24, y: 24});
@@ -44,7 +49,7 @@ export function useFloatingEditor({
     }
 
     setPanelPos(null);
-  }, [isOpen, anchorPosition]);
+  }, [isOpen, anchorPosition, openEditorsAtFixedPosition]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -64,8 +69,8 @@ export function useFloatingEditor({
     if (target.closest(INTERACTIVE_SELECTOR)) return;
 
     const currentPos = panelPos || {
-      x: (anchorPosition?.x ?? 200) + 10,
-      y: (anchorPosition?.y ?? 200) - 60,
+      x: openEditorsAtFixedPosition ? FIXED_EDITOR_POSITION.x : (anchorPosition?.x ?? 200) + 10,
+      y: openEditorsAtFixedPosition ? FIXED_EDITOR_POSITION.y : (anchorPosition?.y ?? 200) - 60,
     };
 
     isDraggingRef.current = true;
@@ -90,7 +95,7 @@ export function useFloatingEditor({
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  }, [panelPos, anchorPosition]);
+  }, [panelPos, anchorPosition, openEditorsAtFixedPosition]);
 
   return {
     panelPos,
