@@ -22,7 +22,11 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
   }, [isOpen]);
 
   const handleToggle = (
-    key: 'autoNavigatePiloti' | 'zoomEnabledByDefault' | 'openEditorsAtFixedPosition' | 'disableDrawModeAfterFreehand',
+    key: 'autoNavigatePiloti'
+      | 'zoomEnabledByDefault'
+      | 'openEditorsAtFixedPosition'
+      | 'disableDrawModeAfterFreehand'
+      | 'showStairsOnTopView',
     value: boolean
   ) => {
     setTempSettings((prev) => ({...prev, [key]: value}));
@@ -33,6 +37,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
     updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
     updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
     updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
+    updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
     onSettingsChange?.();
     onOpenChange(false);
   };
@@ -82,6 +87,16 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
           id='disable-draw-after-freehand'
           checked={tempSettings.disableDrawModeAfterFreehand}
           onCheckedChange={(v) => handleToggle('disableDrawModeAfterFreehand', v)}/>
+      </div>
+
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='show-stairs-top-view' className='text-sm leading-snug cursor-pointer flex-1'>
+          Mostrar escada na vista superior (planta)
+        </Label>
+        <Switch
+          id='show-stairs-top-view'
+          checked={tempSettings.showStairsOnTopView}
+          onCheckedChange={(v) => handleToggle('showStairsOnTopView', v)}/>
       </div>
     </>;
 

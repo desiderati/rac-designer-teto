@@ -16,6 +16,7 @@ describe('settings persistence smoke', () => {
       zoomEnabledByDefault: true,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      showStairsOnTopView: false,
     });
   });
 
@@ -26,6 +27,7 @@ describe('settings persistence smoke', () => {
       zoomEnabledByDefault: true,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      showStairsOnTopView: false,
     });
   });
 
@@ -40,6 +42,7 @@ describe('settings persistence smoke', () => {
       zoomEnabledByDefault: true,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      showStairsOnTopView: false,
     });
   });
 });

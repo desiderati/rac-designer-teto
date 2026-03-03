@@ -24,6 +24,7 @@ import {
   resetHighlightContraventamentoPilotis
 } from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
 import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
+import {getSettings} from '@/infra/settings.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -116,6 +117,7 @@ export function useContraventamentoCommands({
         ...house.views.side1,
         ...house.views.side2,
       ],
+      showStairsOnTopView: getSettings().showStairsOnTopView,
     });
 
     topGroup.canvas?.requestRenderAll();

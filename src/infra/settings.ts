@@ -6,6 +6,7 @@ export interface AppSettings {
   zoomEnabledByDefault: boolean;
   openEditorsAtFixedPosition: boolean;
   disableDrawModeAfterFreehand: boolean;
+  showStairsOnTopView: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {...APP_SETTINGS_DEFAULTS};

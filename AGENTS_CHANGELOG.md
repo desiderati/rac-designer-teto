@@ -623,3 +623,39 @@
     - fluxo de proporção de piloti mantido em funções diretas (`isPilotiOutOfProportion` + `getMinimumPilotiHeightForNivel`),
       sem camadas adicionais.
     - `.guidelines/architectural-standards.md` atualizado com anti-padrão explícito contra encadeamento sem ganho.
+
+### Atualização desta conversa (acessibilidade de modal com DialogTitle obrigatório)
+
+- Problema:
+    - warning de acessibilidade do Radix: `DialogContent requires a DialogTitle`.
+    - no `ConfirmDialogModal`, quando `title` não era informado, o `DialogTitle` não era renderizado.
+- Correção:
+    - `src/components/rac-editor/ui/modals/ConfirmDialogModal.tsx`
+      - passa a renderizar `DialogTitle` sempre (fallback: `Janela de confirmação`);
+      - quando não há título visual, o `DialogTitle` fica em `sr-only`;
+      - alinhamento equivalente aplicado no drawer móvel (`DrawerTitle` + `DrawerDescription` `sr-only`).
+    - novo teste:
+      - `src/components/rac-editor/ui/modals/ConfirmDialogModal.smoke.test.tsx`
+      - valida fallback de título acessível quando `title` não é informado.
+
+### Atualização desta conversa (setting: mostrar escada na planta)
+
+- Nova configuração adicionada:
+    - `showStairsOnTopView` (`false` por padrão) em `APP_SETTINGS_DEFAULTS`.
+    - opção exposta no modal de configurações:
+      - `Mostrar escada na vista superior (planta)`.
+- Comportamento no canvas:
+    - quando desabilitado, a escada automática da vista superior é removida/ocultada;
+    - vistas elevadas continuam com escada automática;
+    - ao confirmar Settings, o canvas reaplica imediatamente a automação de escadas com a configuração atual.
+- Arquivos principais:
+    - `src/shared/config.ts`
+    - `src/infra/settings.ts`
+    - `src/components/rac-editor/ui/modals/SettingsModal.tsx`
+    - `src/components/rac-editor/lib/house-auto-stairs.ts`
+    - `src/components/rac-editor/lib/house-manager.ts`
+    - `src/components/rac-editor/ui/RacEditor.tsx`
+    - `src/components/rac-editor/hooks/useContraventamentoCommands.ts`
+- Testes:
+    - `src/infra/settings.smoke.test.ts` (default/persistência da nova chave)
+    - `src/components/rac-editor/lib/house-auto-stairs-settings.smoke.test.ts` (remoção da escada da planta quando desabilitado)

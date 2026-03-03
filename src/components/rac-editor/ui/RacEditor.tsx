@@ -561,7 +561,11 @@ export function RacEditor() {
         isMobile={isMobile}
         isSettingsOpen={isSettingsOpen}
         onSettingsOpenChange={setIsSettingsOpen}
-        onSettingsChange={() => setShowZoomControls(getSettings().zoomEnabledByDefault)}
+        onSettingsChange={() => {
+          const settings = getSettings();
+          setShowZoomControls(settings.zoomEnabledByDefault);
+          houseManager.refreshAutoStairsForCurrentSettings();
+        }}
         showRestartConfirm={showRestartConfirm}
         onConfirmRestartTutorial={confirmRestartTutorial}
         onCloseRestartConfirm={closeRestartConfirm}

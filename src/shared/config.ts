@@ -5,6 +5,7 @@ export const APP_SETTINGS_DEFAULTS = {
   zoomEnabledByDefault: true,
   openEditorsAtFixedPosition: false,
   disableDrawModeAfterFreehand: false,
+  showStairsOnTopView: false,
 } as const;
 
 export const STORAGE_KEYS = {

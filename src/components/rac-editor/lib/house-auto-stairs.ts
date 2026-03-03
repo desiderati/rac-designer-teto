@@ -57,24 +57,40 @@ export function refreshAutoStairsInViews(params: {
   pilotis: Record<string, HousePiloti>;
   topView: HouseViewInstance<CanvasGroup>[];
   elevationViews: HouseViewInstance<CanvasGroup>[];
+  showStairsOnTopView?: boolean;
 }): boolean {
+  const showStairsOnTopView = params.showStairsOnTopView ?? true;
 
   const elevationResult = refreshElevationViewsAutoStairs({
     pilotis: params.pilotis,
     elevationViews: params.elevationViews,
   });
 
-  const topViewChanged = params.topView[0]
-    ? refreshTopViewAutoStairs({
-      houseType: params.houseType,
-      sideMappings: params.sideMappings,
-      pilotis: params.pilotis,
-      topView: params.topView[0],
-      sharedMetricsBySide: elevationResult.metricsBySide,
-    })
-    : false;
+  const topViewChanged = showStairsOnTopView
+    ? (params.topView[0]
+      ? refreshTopViewAutoStairs({
+        houseType: params.houseType,
+        sideMappings: params.sideMappings,
+        pilotis: params.pilotis,
+        topView: params.topView[0],
+        sharedMetricsBySide: elevationResult.metricsBySide,
+      })
+      : false)
+    : removeAutoStairsFromTopViews(params.topView);
 
   return topViewChanged || elevationResult.hasChanges;
+}
+
+function removeAutoStairsFromTopViews(topViews: HouseViewInstance<CanvasGroup>[]): boolean {
+  let changed = false;
+  for (const topView of topViews) {
+    if (removeAutoStairsFromGroup(topView.group)) {
+      topView.group.dirty = true;
+      refreshGroupBounds(topView.group);
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 function refreshElevationViewsAutoStairs(params: {

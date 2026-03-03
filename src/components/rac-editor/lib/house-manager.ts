@@ -36,6 +36,7 @@ import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.t
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
+import {getSettings} from '@/infra/settings.ts';
 
 class HouseManager {
 
@@ -106,11 +107,16 @@ class HouseManager {
       pilotis: this.house.pilotis,
       topView: this.house.views.top,
       elevationViews: this.getElevationViewInstances(),
+      showStairsOnTopView: getSettings().showStairsOnTopView,
     });
 
     if (hasChanges) {
       this.canvas?.requestRenderAll();
     }
+  }
+
+  refreshAutoStairsForCurrentSettings(): void {
+    this.refreshAutoStairs();
   }
 
   private refreshAutoContraventamento(): void {
