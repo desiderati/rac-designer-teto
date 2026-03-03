@@ -1,6 +1,6 @@
 import {Dispatch, SetStateAction, useEffect, useState} from 'react';
-import {getTutorialStepIds, TutorialStepId} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {isTutorialCompleted, markTutorialCompleted, resetTutorialProgress} from '@/infra/storage/tutorial.storage.ts';
+import {getTutorialStepIds, TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialFlowResult {
   tutorialStep: TutorialStepId | null;

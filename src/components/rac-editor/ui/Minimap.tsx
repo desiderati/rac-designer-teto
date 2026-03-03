@@ -23,7 +23,7 @@ interface MinimapProps {
   highlight?: boolean;
 }
 
-export const MINIMAP_SIZE = MINIMAP.size;
+const MINIMAP_SIZE = MINIMAP.size;
 
 export function Minimap({
   canvasWidth,

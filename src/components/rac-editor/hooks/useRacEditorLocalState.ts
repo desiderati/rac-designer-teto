@@ -1,10 +1,6 @@
 import {useCallback, useState} from 'react';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
-
-type TutorialBalloonState = {
-  position: { x: number; y: number };
-  text: string;
-} | null;
+import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 export function useRacEditorLocalState() {
 

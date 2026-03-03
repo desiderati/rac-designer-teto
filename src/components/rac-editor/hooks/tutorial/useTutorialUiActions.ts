@@ -5,8 +5,8 @@ import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tu
 import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
-import {TutorialBalloonPosition} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;

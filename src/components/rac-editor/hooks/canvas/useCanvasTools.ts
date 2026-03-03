@@ -4,9 +4,9 @@ import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {toCanvasScreenPoint} from '@/components/rac-editor/lib/canvas/canvas-screen-position.ts';
 import {CanvasObject, getElementStrategy,} from '@/components/rac-editor/lib/canvas';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
-import {TutorialBalloonState} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {TIMINGS} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

@@ -446,3 +446,4 @@ px tsc --noEmit sem erros.
 - Correção de lint em todo o projeto com `eslint --fix` (padronização de aspas/imports) e ajustes de regra para permitir `any` apenas em `*.smoke.test.*`.
 - Remoção de `any` no código de produção em `useCanvasSelectionActions.ts`.
 - `npm run lint` finalizado sem erros (apenas warnings de Fast Refresh).
+- Regra `react-refresh/only-export-components` desativada para `src/components/ui/**/*.{ts,tsx}` conforme alinhamento de projeto.
