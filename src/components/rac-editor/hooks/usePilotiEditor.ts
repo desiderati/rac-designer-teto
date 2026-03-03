@@ -76,15 +76,7 @@ export function usePilotiEditor({
     const newId = allIds[newIndex];
     if (!newId) return;
 
-    if (tempHeight !== currentHeight || tempIsMaster !== currentIsMaster || tempNivel !== currentNivel) {
-      houseManager.updatePiloti(pilotiId, {
-        height: tempHeight,
-        isMaster: tempIsMaster,
-        nivel: tempNivel,
-      });
-      onHeightChange(tempHeight);
-      onNavigate?.(pilotiId, tempHeight, tempIsMaster, tempNivel);
-    }
+    commitDraftChanges();
 
     if (!group) return;
 
@@ -98,17 +90,7 @@ export function usePilotiEditor({
   };
 
   const handleApply = () => {
-    const nivelToApply = clampNivelByHeight(tempNivel, tempHeight);
-
-    if (pilotiId) {
-      houseManager.updatePiloti(pilotiId, {
-        height: tempHeight,
-        isMaster: tempIsMaster,
-        nivel: nivelToApply,
-      });
-      onHeightChange(tempHeight);
-      onNavigate?.(pilotiId, tempHeight, tempIsMaster, nivelToApply);
-    }
+    commitDraftChanges();
 
     onClose();
   };
@@ -189,6 +171,36 @@ export function usePilotiEditor({
 
   const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
 
+  const commitDraftChanges =
+    (params?: { nivelOverride?: number; isMasterOverride?: boolean }): boolean => {
+      if (!pilotiId) return false;
+
+      const resolvedNivel =
+        Number.isFinite(params?.nivelOverride)
+          ? Number(params?.nivelOverride)
+          : tempNivel;
+
+      const resolvedIsMaster =
+        typeof params?.isMasterOverride === 'boolean'
+          ? params.isMasterOverride
+          : tempIsMaster;
+
+      const nivelToApply = clampNivelByHeight(resolvedNivel, tempHeight);
+      const hasChanges = tempHeight !== currentHeight
+        || resolvedIsMaster !== currentIsMaster
+        || nivelToApply !== currentNivel;
+      if (!hasChanges) return false;
+
+      houseManager.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: resolvedIsMaster,
+        nivel: nivelToApply,
+      });
+      onHeightChange(tempHeight);
+      onNavigate?.(pilotiId, tempHeight, resolvedIsMaster, nivelToApply);
+      return true;
+    };
+
   return {
     tempHeight,
     setTempHeight,
@@ -210,6 +222,7 @@ export function usePilotiEditor({
     handleNivelChange,
     handleNivelIncrement,
     handleHeightClick,
+    commitDraftChanges,
     getHeightButtonClasses,
     getContraventamentoButtonClasses,
   };

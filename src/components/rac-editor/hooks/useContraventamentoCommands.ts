@@ -147,6 +147,12 @@ export function useContraventamentoCommands({
       return;
     }
 
+    const destinationPilotiId = `piloti_${col}_${row}`;
+    if (!isPilotiEligibleAsDestination(destinationPilotiId)) {
+      toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
+      return;
+    }
+
     const originGroup = contraventamentoFirst.group;
     if (!originGroup) {
       toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
@@ -191,13 +197,15 @@ export function useContraventamentoCommands({
     setContraventamentoSide,
     setIsContraventamentoMode,
     getContraventamentoColumnSides,
+    isPilotiEligibleAsDestination,
     clearContraventamentoSelection,
     syncContraventamentoElevations,
   ]);
 
   const handleContraventamentoSelect =
-    useCallback((side: ContraventamentoSide) => {
-      if (!pilotiSelection?.pilotiId) return;
+    useCallback((side: ContraventamentoSide, sourcePilotiId?: string) => {
+      const selectedPilotiId = sourcePilotiId ?? pilotiSelection?.pilotiId;
+      if (!selectedPilotiId) return;
 
       const topGroup = getTopViewGroup();
       if (!topGroup) {
@@ -205,16 +213,11 @@ export function useContraventamentoCommands({
         return;
       }
 
-      const parsed = parsePilotiGridPosition(pilotiSelection.pilotiId);
+      const parsed = parsePilotiGridPosition(selectedPilotiId);
       if (!parsed) return;
 
       const col = parsed.col;
       const row = parsed.row;
-      if (!isPilotiEligibleForContraventamentoColumn(pilotiSelection.pilotiId)) {
-        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
-        return;
-      }
-
       const occupiedSides = getContraventamentoColumnSides(topGroup, col);
       if (occupiedSides[side]) {
         const removed =
@@ -245,7 +248,13 @@ export function useContraventamentoCommands({
         return;
       }
 
-      const first = {pilotiId: pilotiSelection.pilotiId, col, row, group: topGroup};
+      // Sem contraventamento existente no lado: daqui em diante é tentativa de inserção.
+      if (!isPilotiEligibleForContraventamentoColumn(selectedPilotiId)) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
+        return;
+      }
+
+      const first = {pilotiId: selectedPilotiId, col, row, group: topGroup};
 
       setIsPilotiEditorOpen(false);
       setPilotiSelection(null);

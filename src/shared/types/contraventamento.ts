@@ -56,10 +56,12 @@ export function createContraventamentoEditorState(params: {
 }): ContraventamentoEditorState {
   if (!params.canReceiveContraventamento) {
     return {
-      leftDisabled: true,
-      rightDisabled: true,
-      leftActive: false,
-      rightActive: false,
+      // Coluna inelegível para inserção: mantém habilitado somente o lado ocupado,
+      // para permitir remoção de contraventamento já existente.
+      leftDisabled: !params.occupiedSides.left,
+      rightDisabled: !params.occupiedSides.right,
+      leftActive: params.occupiedSides.left,
+      rightActive: params.occupiedSides.right,
     };
   }
 

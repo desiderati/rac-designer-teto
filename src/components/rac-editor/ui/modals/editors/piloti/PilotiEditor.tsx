@@ -33,7 +33,7 @@ interface PilotiEditorProps {
   contraventamentoRightDisabled?: boolean;
   contraventamentoLeftActive?: boolean;
   contraventamentoRightActive?: boolean;
-  onContraventamentoSelect?: (side: ContraventamentoSide) => void;
+  onContraventamentoSelect?: (side: ContraventamentoSide, pilotiId?: string) => void;
 }
 
 export function PilotiEditor({
@@ -72,6 +72,7 @@ export function PilotiEditor({
     handleNivelChange,
     handleNivelIncrement,
     handleHeightClick,
+    commitDraftChanges,
     getHeightButtonClasses,
     getContraventamentoButtonClasses,
   } = usePilotiEditor({
@@ -130,7 +131,15 @@ export function PilotiEditor({
                 <Label htmlFor='is-master' className='text-sm font-medium select-none'>
                   Definir como Mestre?
                 </Label>
-                <Switch id='is-master' checked={tempIsMaster} onCheckedChange={setTempIsMaster}/>
+                <Switch
+                  id='is-master'
+                  checked={tempIsMaster}
+                  onCheckedChange={(checked) => {
+                    // Aplica imediatamente ao alternar on/off do mestre.
+                    setTempIsMaster(checked);
+                    commitDraftChanges({isMasterOverride: checked});
+                  }}
+                />
               </div>
 
               <Separator/>
@@ -145,6 +154,10 @@ export function PilotiEditor({
                 maxNivel={maxNivel}
                 onNivelIncrement={handleNivelIncrement}
                 onNivelChange={handleNivelChange}
+                onNivelCommit={(value) => {
+                  handleNivelChange(value);
+                  commitDraftChanges({nivelOverride: value});
+                }}
               />
 
               <Separator/>
@@ -175,7 +188,10 @@ export function PilotiEditor({
               <button
                 type='button'
                 disabled={contraventamentoLeftDisabled}
-                onClick={() => onContraventamentoSelect?.('left')}
+                onClick={() => {
+                  commitDraftChanges();
+                  onContraventamentoSelect?.('left', pilotiId ?? undefined);
+                }}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoLeftActive, contraventamentoLeftDisabled
@@ -190,7 +206,10 @@ export function PilotiEditor({
               <button
                 type='button'
                 disabled={contraventamentoRightDisabled}
-                onClick={() => onContraventamentoSelect?.('right')}
+                onClick={() => {
+                  commitDraftChanges();
+                  onContraventamentoSelect?.('right', pilotiId ?? undefined);
+                }}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoRightActive,

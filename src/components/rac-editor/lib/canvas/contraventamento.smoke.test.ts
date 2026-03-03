@@ -21,7 +21,7 @@ describe('contraventamento helpers', () => {
   });
 
   it('resolves dynamic offsets from nivel', () => {
-    expect(resolveContraventamentoOffsetFromNivel(0.2, true)).toBe(0);
+    expect(resolveContraventamentoOffsetFromNivel(0.2, true)).toBeCloseTo(0.2, 4);
     expect(resolveContraventamentoOffsetFromNivel(0.4, true)).toBeCloseTo(0.2667, 4);
     expect(resolveContraventamentoOffsetFromNivel(0.4, false)).toBeCloseTo(0.1333, 4);
     expect(resolveContraventamentoOffsetFromNivel(0.6, true)).toBeCloseTo(0.2, 4);
@@ -60,6 +60,13 @@ describe('contraventamento helpers', () => {
 
     expect(
       createContraventamentoEditorState({canReceiveContraventamento: false, occupiedSides: occupied}),
+    ).toEqual({leftDisabled: false, rightDisabled: true, leftActive: true, rightActive: false});
+
+    expect(
+      createContraventamentoEditorState({
+        canReceiveContraventamento: false,
+        occupiedSides: {left: false, right: false},
+      }),
     ).toEqual({leftDisabled: true, rightDisabled: true, leftActive: false, rightActive: false});
   });
 

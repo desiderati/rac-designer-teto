@@ -35,7 +35,7 @@ interface RacEditorModalEditorsProps {
   onPilotiNavigate: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 
   contraventamentoEditorState: ContraventamentoEditorState;
-  onContraventamentoSelect: (side: ContraventamentoSide) => void;
+  onContraventamentoSelect: (side: ContraventamentoSide, pilotiId?: string) => void;
 
   // Wall Object
   onWallApply: (newValue: string, newColor: string) => void;

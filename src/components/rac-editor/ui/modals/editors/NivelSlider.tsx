@@ -10,6 +10,7 @@ interface NivelSliderProps {
   maxNivel: number;
   onNivelIncrement: (delta: number) => void;
   onNivelChange: (value: number) => void;
+  onNivelCommit?: (value: number) => void;
   recommendedHeightText?: string;
 }
 
@@ -19,6 +20,7 @@ export function NivelSlider({
   maxNivel,
   onNivelIncrement,
   onNivelChange,
+  onNivelCommit,
   recommendedHeightText,
 }: NivelSliderProps) {
   return (
@@ -56,6 +58,8 @@ export function NivelSlider({
         <Slider
           value={[nivel]}
           onValueChange={([v]) => onNivelChange(v)}
+          // Só aplica alterações persistentes ao soltar o drag do slider.
+          onValueCommit={([v]) => onNivelCommit?.(v)}
           min={minNivel}
           max={maxNivel}
           step={0.01}

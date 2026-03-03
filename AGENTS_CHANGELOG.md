@@ -4,13 +4,52 @@
 
 ### Correções
 
-- Correção no render de contraventamento no modelo 3D: remoção do descarte indevido quando a diagonal tinha `originY > destinationY` (caso típico: nível de origem menor que metade do destino).
+- Correção no render de contraventamento no modelo 3D: remoção do descarte indevido quando a diagonal tinha
+  `originY > destinationY` (caso típico: nível de origem menor que metade do destino).
 - Adição de smoke test em `House3DScene` para garantir a renderização do contraventamento nesse cenário de desnível.
-- Novo módulo `terrain-volume` com fórmulas puras de volume (rachão e brita) em m³, usando `TERRAIN_SOLIDITY` e `HOUSE_DIMENSIONS`.
+- Novo módulo `terrain-volume` com fórmulas puras de volume (rachão e brita) em m³, usando `TERRAIN_SOLIDITY` e
+  `HOUSE_DIMENSIONS`.
 - Exibição dos volumes totais no `TerrainEditor` com atualização em tempo real conforme alteração da solidez.
 - Integração do `TerrainEditor` com `pilotis` da casa para cálculo de brita por nível individual.
 - Adição de smoke test para validar os cálculos de volume.
-- Inclusão de `voidFactor` configurável em `TERRAIN_SOLIDITY` (1.35) e aplicação do fator de vazios no volume exibido de rachão e brita.
+- Inclusão de `voidFactor` configurável em `TERRAIN_SOLIDITY` (1.35) e aplicação do fator de vazios no volume exibido de
+  rachão e brita.
+- Ajuste de regra no contraventamento: quando a coluna está inelegível para novas inserções, lados já ocupados continuam
+  habilitados para remoção no editor; tentativa de inserir novo lado segue bloqueada.
+- Correção adicional no fluxo de contraventamento: clique no botão de lado agora persiste alterações pendentes do editor
+  de piloti (altura/nível) antes de validar elegibilidade, evitando inserção indevida por estado desatualizado.
+- Revalidação de elegibilidade ao selecionar o segundo piloti do contraventamento (bloqueio extra antes de criar a
+  viga).
+- Clique de contraventamento passa a usar explicitamente o `pilotiId` ativo do editor, evitando validação/inserção com
+  seleção global desatualizada.
+- Ao soltar o drag do `NivelSlider` no editor de piloti (`onValueCommit`), o nível agora é aplicado imediatamente com a
+  mesma rotina de persistência do botão Confirmar.
+- O seletor on/off de piloti mestre também passa a persistir imediatamente ao alternar (`onCheckedChange`), com a mesma
+  rotina de commit usada no Confirmar.
+- Correção de imports quebrados no editor de nível e no módulo 3D, ajustando referências indevidas de
+  @/components/rac-editor/lib/canvas para @/shared/types/piloti.ts e @/shared/constants.ts.
+- Validação final de imports com pm run build e px tsc --noEmit sem erros.
+- Correção de lint em todo o projeto com `eslint --fix` (padronização de aspas/imports) e ajustes de regra para permitir
+  `any` apenas em `*.smoke.test.*`.
+- Remoção de `any` no código de produção em `useCanvasSelectionActions.ts`.
+- `npm run lint` finalizado sem erros (apenas warnings de Fast Refresh).
+- Regra `react-refresh/only-export-components` desativada para `src/components/ui/**/*.{ts,tsx}` conforme alinhamento de
+  projeto.
+- Correção de três regressões em smoke tests: fallback seguro de `getActiveObject` em `useCanvasSelectionActions`,
+  reexport de `getAllPilotiIds` no barrel de canvas e ajuste de import em `factory/house/shared.smoke.test.ts`.
+- Validação: `npx vitest run smoke.test` com 58/58 arquivos e 140/140 testes passando.
+- Reestruturação completa dos documentos em `.rules` com foco em linguagem para usuário (objetivo, comportamento
+  esperado, regras funcionais e erros comuns).
+- Atualização de referências para a estrutura real atual (`ui/hooks/lib/domain/shared/e2e`) e remoção de caminhos
+  legados.
+- Validação automática das referências citadas em `.rules`: sem links locais quebrados.
+- Reescrita aprofundada dos arquivos em `.rules` com base em análise de código-fonte e testes (UI, hooks, lib, domínio e
+  E2E/smoke), substituindo a versão resumida anterior.
+- Regras agora incluem fluxos de bloqueio/cancelamento, limites por tipo de casa, critérios estruturais de
+  piloti/contraventamento e rastreabilidade para arquivos reais.
+- Inclusão explícita de mapeamento de caminhos legados (`src/components/hooks`, `src/components/libs`,
+  `src/components/lib`) para caminhos canônicos atuais.
+- Validação automática final: referências locais em `.rules` sem links quebrados.
 
 ## 2026-03-01
 
@@ -446,25 +485,3 @@
 - Ajuste complementar:
     - `ux-design.md` atualizado com seção de referência para usar
       `.guidelines/architecture-patterns.md` em decisões arquiteturais.
-
-## 2026-03-03
-
-### Correções
-
-- Correção de imports quebrados no editor de nível e no módulo 3D, ajustando referências indevidas de @/components/rac-editor/lib/canvas para @/shared/types/piloti.ts e @/shared/constants.ts.
-- Validação final de imports com 
-pm run build e 
-px tsc --noEmit sem erros.
-- Correção de lint em todo o projeto com `eslint --fix` (padronização de aspas/imports) e ajustes de regra para permitir `any` apenas em `*.smoke.test.*`.
-- Remoção de `any` no código de produção em `useCanvasSelectionActions.ts`.
-- `npm run lint` finalizado sem erros (apenas warnings de Fast Refresh).
-- Regra `react-refresh/only-export-components` desativada para `src/components/ui/**/*.{ts,tsx}` conforme alinhamento de projeto.
-- Correção de três regressões em smoke tests: fallback seguro de `getActiveObject` em `useCanvasSelectionActions`, reexport de `getAllPilotiIds` no barrel de canvas e ajuste de import em `factory/house/shared.smoke.test.ts`.
-- Validação: `npx vitest run smoke.test` com 58/58 arquivos e 140/140 testes passando.
-- Reestruturação completa dos documentos em `.rules` com foco em linguagem para usuário (objetivo, comportamento esperado, regras funcionais e erros comuns).
-- Atualização de referências para a estrutura real atual (`ui/hooks/lib/domain/shared/e2e`) e remoção de caminhos legados.
-- Validação automática das referências citadas em `.rules`: sem links locais quebrados.
-- Reescrita aprofundada dos arquivos em `.rules` com base em análise de código-fonte e testes (UI, hooks, lib, domínio e E2E/smoke), substituindo a versão resumida anterior.
-- Regras agora incluem fluxos de bloqueio/cancelamento, limites por tipo de casa, critérios estruturais de piloti/contraventamento e rastreabilidade para arquivos reais.
-- Inclusão explícita de mapeamento de caminhos legados (`src/components/hooks`, `src/components/libs`, `src/components/lib`) para caminhos canônicos atuais.
-- Validação automática final: referências locais em `.rules` sem links quebrados.
