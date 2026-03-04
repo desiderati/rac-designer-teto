@@ -215,10 +215,10 @@ describe('houseManager smoke flows', () => {
     expect(topMarkerRight.visible).toBe(false);
 
     const expectedScale = HOUSE_DIMENSIONS.view.scale;
-    const expectedDoorWidth = HOUSE_DIMENSIONS.openings.common.doorWidth * expectedScale;
-    const expectedWindowWidth = HOUSE_DIMENSIONS.openings.common.windowWidth * expectedScale;
-    const expectedDoorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * expectedScale;
-    const expectedWindowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * expectedScale;
+    const expectedDoorWidth = HOUSE_DIMENSIONS.elements.common.doorWidth * expectedScale;
+    const expectedWindowWidth = HOUSE_DIMENSIONS.elements.common.windowWidth * expectedScale;
+    const expectedDoorShiftX = HOUSE_DIMENSIONS.elements.frontBack.doorShiftX * expectedScale;
+    const expectedWindowShiftX = HOUSE_DIMENSIONS.elements.frontBack.windowShiftX * expectedScale;
     const expectedBodyWidth = HOUSE_DIMENSIONS.footprint.width * expectedScale;
     const expectedDoorX = expectedBodyWidth - expectedWindowWidth - expectedWindowShiftX - expectedDoorWidth - expectedDoorShiftX;
     const expectedDoorCenter = expectedDoorX + expectedDoorWidth / 2;

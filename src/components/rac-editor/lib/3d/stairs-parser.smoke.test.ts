@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {parseAutoStairsFromElevationViews} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
+import {parseStairsFromElevationViews} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 
 function createGroupWithStairs(params: {
   bodyWidth: number;
@@ -51,7 +51,7 @@ function createGroupWithStairs(params: {
 
 describe('stairs parser', () => {
   it('mapeia escada de tipo6 para a face frontal correta', () => {
-    const parsed = parseAutoStairsFromElevationViews({
+    const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
       sideMappings: {
         top: 'front',
@@ -83,7 +83,7 @@ describe('stairs parser', () => {
   });
 
   it('mapeia escada de tipo3 (side2 à esquerda no 2D) para face direita no 3D', () => {
-    const parsed = parseAutoStairsFromElevationViews({
+    const parsed = parseStairsFromElevationViews({
       houseType: 'tipo3',
       sideMappings: {
         top: 'back',
@@ -109,7 +109,7 @@ describe('stairs parser', () => {
   });
 
   it('usa fallback da largura da fachada via porta quando não existe isHouseBody na elevação', () => {
-    const parsed = parseAutoStairsFromElevationViews({
+    const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
       sideMappings: {
         top: 'front',

@@ -24,11 +24,13 @@
 
 - Responda sempre em português nesta pasta.
 - Ao gerar ou editar arquivos em português, use sempre acentuação correta (nunca remover acentos).
-- Documente rapidinho o que mudou num `CHANGELOG` local (se houver) antes de pedir revisão, respeitando e inserindo na
-  seção referente à data atual.
+- Documente rapidinho o que mudou em `.changelogs/changelog-AAAAMMDD.md` (arquivo da data atual) antes de pedir revisão.
+  Se o arquivo do dia ainda não existir, crie-o.
 
 ## Contexto colaborativo
 
 - Confirme comigo o objetivo antes de iniciar tarefas grandes (por exemplo: adicionar novas telas, alterar renderizador
   3D, mudar o sistema de undo/redo).
 - Se o branch mudar ou o `package-lock.json` atualizar de forma inesperada, pare e peça uma visão geral do estado atual.
+
+

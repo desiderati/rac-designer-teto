@@ -9,7 +9,7 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import {DEFAULT_HOUSE_PILOTI, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI, House3DElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
 import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
@@ -48,12 +48,11 @@ import {
   WALL_THICKNESS,
 } from '@/components/rac-editor/lib/3d/constants.ts';
 import {
-  buildSceneOpeningsFromCanvasModel,
-  type SceneOpening
-} from '@/components/rac-editor/lib/3d/scene-openings-builder.ts';
+  buildHouseElementsFromCanvasModel,
+} from '@/components/rac-editor/lib/3d/house-elements-parser.ts';
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
-import {Stair3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
-import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-visibility.ts';
+import {Stairs3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
+import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-parser.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {resolveContraventamentoOffsetFromNivel} from '@/shared/types/contraventamento.ts';
@@ -62,7 +61,7 @@ interface House3DSceneProps {
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
   contraventamentos?: Contraventamento3DData[];
-  stair: Stair3DData;
+  stairs?: Stairs3DData;
   wallColor?: string;
   tipo6FrontSide?: 'top' | 'bottom' | null;
   tipo3OpenSide?: 'left' | 'right' | null;
@@ -71,29 +70,27 @@ interface House3DSceneProps {
 
 const MIN_HIDE_BELOW_TERRAIN_NIVEL = 0.5;
 const STAIR_FACE_GAP = 0.35;
-const STAIR_TREAD_THICKNESS = 2;
-const STAIR_TREAD_WIDTH_FACTOR = 0.97;
-const STAIR_TREAD_DEPTH_FACTOR = 0.97;
 
 export function House3DScene({
   houseType,
   pilotis,
   contraventamentos = [],
-  stair,
+  stairs = null,
   wallColor = HOUSE_3D_WALL_COLORS.sceneFallbackColor,
   tipo6FrontSide = null,
   tipo3OpenSide = null,
   hideBelowTerrain = false,
 }: House3DSceneProps) {
-  const sceneOpenings = useMemo(
-    () => buildSceneOpeningsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
+
+  const houseElements = useMemo(
+    () => buildHouseElementsFromCanvasModel(houseType, tipo6FrontSide, tipo3OpenSide),
     [houseType, tipo6FrontSide, tipo3OpenSide],
   );
   if (!houseType) return null;
 
   return (
     <group>
-      <TerrainMesh pilotis={pilotis} margin={stair.stairHeightMts * 100 * HOUSE_3D_VIEWER_SCALE}/>
+      <TerrainMesh pilotis={pilotis} margin={stairs.stairHeightMts * 100 * HOUSE_3D_VIEWER_SCALE}/>
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
         <PilotiMesh
@@ -108,62 +105,103 @@ export function House3DScene({
         <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis}/>
       ))}
 
-      <AutoStairMesh key={stair.id} stair={stair}/>
+      <HouseMesh wallColor={wallColor}/>
 
-      <HouseShell wallColor={wallColor}/>
-
-      {sceneOpenings.map((element) => (
+      {houseElements.map((element) => (
         <HouseElementMesh key={element.id} element={element}/>
       ))}
+
+      {stairs && <StairsMesh stairs={stairs}/>}
     </group>
   );
 }
 
-function AutoStairMesh({stair}: { stair: Stair3DData }) {
-  const stepCount = Math.max(1, Math.round(stair.stepCount));
+function StairsMesh({stairs}: { stairs: Stairs3DData }) {
+  const stepCount = Math.round(stairs.stepCount);
+  if (!Number.isFinite(stepCount) || stepCount <= 0) return null;
 
-  const visibleStairHeightMts = stair.stairHeightMts;
-  const stairHeight = visibleStairHeightMts * 100 * HOUSE_3D_FINAL_SCALE;
-  const stairWidth = Math.max(stair.width * HOUSE_3D_VIEWER_SCALE, 1);
-  if (!Number.isFinite(stairHeight) || stairHeight <= 0) return null;
+  let stairWidth = Math.max(stairs.stairWidth * HOUSE_3D_VIEWER_SCALE, 1);
   if (!Number.isFinite(stairWidth) || stairWidth <= 0) return null;
 
-  const stepRise = stairHeight / stepCount;
-  const stepRun = stepRise; // Regra da escada: altura = profundidade.
-  const centerFromLeft = stair.centerFromLeft * HOUSE_3D_VIEWER_SCALE;
-  const anchor = resolveStairFaceAnchor(stair.face, centerFromLeft);
-  const baseY = WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight;
+  const placement =
+    useMemo(() => computeStairs3DPlacement(stairs), [stairs]);
+
+  const plankThickness = 2;
+  const stringerThickness = plankThickness
+  stairWidth += (stringerThickness * 2) * 1.25; // 1.25 = Para as vigas laterais da escada nâo baterem na porta!
+
+  const stepDepth = placement.totalHeight3D / stepCount;
+  const plankWidth = stairWidth - (stringerThickness * 2);
+
+  // Build steps and stringers
+  const steps = useMemo(() => {
+    const result: Array<{ y: number; z: number }> = [];
+    for (let i = 0; i < stepCount; i++) {
+      const t = i / stepCount;
+      const y = t * placement.totalHeight3D + stepDepth - plankThickness;
+      const z = plankThickness + (stepCount - 1 - i) * stepDepth;
+      result.push({y, z});
+    }
+    return result;
+  }, [stepCount, placement, stepDepth]);
+
+  // Stringer geometry: inclined beam from bottom to top
+  const stringerLength = Math.sqrt(
+    placement.totalDepth3D * placement.totalHeight3D +
+    placement.totalDepth3D * placement.totalHeight3D,
+  ) + (plankThickness * 5);
+
+  const stringerAngle = Math.atan2(placement.totalDepth3D, placement.totalHeight3D);
+  const stringerCenterY = (placement.topY - placement.bottomY) / 2;
+  const stringerCenterZ = placement.totalHeight3D / 2;
+  const stringerHeight = stepDepth * 0.85; // Para a viga lateral seja 0.85 da profundidade do degrau.
 
   return (
-    <group position={[anchor.x, baseY, anchor.z]} rotation={[0, anchor.rotationY, 0]}>
-      {Array.from({length: stepCount}, (_, index) => {
-        const level = index + 1;
-        const bodyHeight = level * stepRise;
-        const stepCenterZ = ((stepCount - index) * stepRun) - stepRun / 2;
+    <group position={[placement.position.x, placement.position.y, placement.position.z]}
+           rotation={[0, placement.rotationY, 0]}>
+      {/* Step planks */}
+      {steps.map((step, i) => (
+        <mesh
+          key={`step-${i}`}
+          position={[0, step.y, step.z]}
+          castShadow
+          receiveShadow
+        >
+          {/* 0.85 para que os degraus não fiquem muito grandes e ultrapassem as vigas laterias da escada. */}
+          <boxGeometry args={[plankWidth, plankThickness, stepDepth * 0.85]}/>
+          <meshStandardMaterial color={COLORS.stairsTread} roughness={0.7}/>
+        </mesh>
+      ))}
 
-        return (
-          <group key={`${stair.id}-step-${index}`}>
-            <mesh position={[0, bodyHeight / 2, stepCenterZ]} castShadow receiveShadow>
-              <boxGeometry args={[stairWidth, bodyHeight, stepRun]}/>
-              <meshStandardMaterial color={COLORS.stairsSide} roughness={0.7}/>
-            </mesh>
-            <mesh
-              position={[0, bodyHeight + STAIR_TREAD_THICKNESS / 2, stepCenterZ]}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry
-                args={[
-                  stairWidth * STAIR_TREAD_WIDTH_FACTOR,
-                  STAIR_TREAD_THICKNESS,
-                  stepRun * STAIR_TREAD_DEPTH_FACTOR,
-                ]}
-              />
-              <meshStandardMaterial color={COLORS.stairsTread} roughness={0.7}/>
-            </mesh>
-          </group>
-        );
-      })}
+      {/* Left stringer */}
+      <mesh
+        position={[
+          -(stairWidth / 2) + stringerThickness / 2,
+          stringerCenterY,
+          stringerCenterZ,
+        ]}
+        rotation={[stringerAngle - Math.PI / 2, 0, 0]}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[stringerThickness, stringerLength, stringerHeight]}/>
+        <meshStandardMaterial color={COLORS.stairsStinger} roughness={0.7}/>
+      </mesh>
+
+      {/* Right stringer */}
+      <mesh
+        position={[
+          (stairWidth / 2) - stringerThickness / 2,
+          stringerCenterY,
+          stringerCenterZ,
+        ]}
+        rotation={[stringerAngle - Math.PI / 2, 0, 0]}
+        castShadow
+        receiveShadow
+      >
+        <boxGeometry args={[stringerThickness, stringerLength, stringerHeight]}/>
+        <meshStandardMaterial color={COLORS.stairsStinger} roughness={0.7}/>
+      </mesh>
     </group>
   );
 }
@@ -334,7 +372,7 @@ function ContraventamentoMesh({
   );
 }
 
-function HouseShell({wallColor}: { wallColor: string }) {
+function HouseMesh({wallColor}: { wallColor: string }) {
   const wallCenterY = WALL_BASE_Y + WALL_HEIGHT / 2;
 
   return (
@@ -435,7 +473,6 @@ function FrontBackPanels({wallColor}: { wallColor: string }) {
   );
 }
 
-
 function RoofMesh() {
   const geometry = useMemo(() => {
     const hw = HOUSE_3D_WIDTH / 2;
@@ -492,7 +529,7 @@ function RoofMesh() {
   );
 }
 
-function HouseElementMesh({element}: { element: SceneOpening }) {
+function HouseElementMesh({element}: { element: House3DElement }) {
   const elementWidth = Math.max(element.width * HOUSE_3D_VIEWER_SCALE, 1);
   const elementHeight = Math.max(element.height * HOUSE_3D_VIEWER_SCALE, 1);
   const elementDepth = 2;
@@ -615,42 +652,73 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   return [x, z];
 }
 
-function resolveStairFaceAnchor(
-  face: Stair3DData['face'],
-  centerFromLeft: number,
-): { x: number; z: number; rotationY: number } {
+/**
+ * Computes the 3D position and dimensions for placing the stair mesh.
+ */
+export function computeStairs3DPlacement(stairs: Stairs3DData) {
+  const stairHeight = stairs.stairHeightMts * 100 * HOUSE_3D_FINAL_SCALE;
+  if (!Number.isFinite(stairHeight) || stairHeight <= 0) return null;
+
+  // Total run = total height (45° angle)
+  const totalHeight3D = stairs.stairHeightMts * PILOTI_BASE_HEIGHT_PX;
+  const topY = WALL_BASE_Y - FLOOR_BEAM_HEIGHT;
+  const bottomY = topY - totalHeight3D;
+
+  let position: { x: number, y: number, z: number } = {x: 0, y: 0, z: 0};
+  let rotationY = 0;
+
   const halfWidth = HOUSE_3D_WIDTH / 2;
   const halfDepth = HOUSE_3D_DEPTH / 2;
   const faceOffset = PANEL_OFFSET_RATIO + STAIR_FACE_GAP;
 
-  if (face === 'front') {
-    return {
-      x: centerFromLeft - halfWidth,
-      z: halfDepth + faceOffset,
-      rotationY: 0,
-    };
-  }
+  // Position at the door location on the corresponding face
 
-  if (face === 'back') {
-    return {
-      x: halfWidth - centerFromLeft,
-      z: -halfDepth - faceOffset,
-      rotationY: Math.PI,
-    };
-  }
+  const centerFromLeft = stairs.centerFromLeft * HOUSE_3D_VIEWER_SCALE;
+  switch (stairs.face) {
+    case 'front':
+      position = {
+        x: centerFromLeft - halfWidth,
+        y: WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight,
+        z: halfDepth + faceOffset
+      };
+      rotationY = 0;
+      break;
 
-  if (face === 'left') {
-    return {
-      x: -halfWidth - faceOffset,
-      z: centerFromLeft - halfDepth,
-      rotationY: -Math.PI / 2,
-    };
+    case 'back':
+      position = {
+        x: halfWidth - centerFromLeft,
+        y: WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight,
+        z: -halfDepth - faceOffset
+      };
+      rotationY = Math.PI;
+      break;
+
+    case 'left':
+      position = {
+        x: -halfWidth - faceOffset,
+        y: WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight,
+        z: centerFromLeft - halfDepth
+      };
+      rotationY = -Math.PI / 2;
+      break;
+
+    case 'right':
+      position = {
+        x: halfWidth + faceOffset,
+        y: WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight,
+        z: -(centerFromLeft - halfDepth)
+      };
+      rotationY = Math.PI / 2;
+      break;
   }
 
   return {
-    x: halfWidth + faceOffset,
-    z: -(centerFromLeft - halfDepth),
-    rotationY: Math.PI / 2,
+    position,
+    rotationY,
+    totalDepth3D: totalHeight3D,
+    totalHeight3D,
+    topY,
+    bottomY,
   };
 }
 

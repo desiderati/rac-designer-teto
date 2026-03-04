@@ -40,7 +40,7 @@ Quando o viewer está aberto:
     - escadas
     - casca da casa
     - aberturas (portas/janelas)
-3. aberturas são mapeadas por `buildSceneOpeningsFromCanvasModel`
+3. aberturas são mapeadas por `buildHouseElementsFromCanvasModel`
 
 ## 3.2 Terreno e níveis
 
@@ -103,7 +103,7 @@ Arquivo E2E principal: `e2e/viewer-3d.spec.ts`
 Cobertura automática existente (não-E2E):
 
 1. [x] parser de contraventamento (`src/components/lib/3d/contraventamento-parser.smoke.test.ts`)
-2. [x] mapeamento de aberturas (`src/components/lib/3d/scene-openings-builder.smoke.test.ts`)
+2. [x] mapeamento de aberturas (`src/components/lib/3d/scene-elements-builder.smoke.test.ts`)
 3. [x] inserção de snapshot 3D no `houseManager` (`src/components/lib/house-manager.smoke.test.ts`)
 
 ## 6. Referências de código
@@ -111,6 +111,6 @@ Cobertura automática existente (não-E2E):
 - `src/components/rac-editor/House3DViewer.tsx`
 - `src/components/rac-editor/House3DScene.tsx`
 - `src/components/lib/3d/contraventamento-parser.ts`
-- `src/components/lib/3d/scene-openings-builder.ts`
+- `src/components/lib/3d/house-elements-parser.ts`
 - `src/components/lib/3d/constants.ts`
 - `src/components/lib/house-snapshot.ts`

@@ -65,7 +65,7 @@ export const HOUSE_DIMENSIONS = {
     wallHeight: 213,
 
     /** Espessura de parede usada em representação 3D (px-base). */
-    wallThickness: 0,
+    wallThickness: 1,
 
     /** Largura auxiliar da diagonal de transição entre corpo e telhado (px-base). */
     diagonalWidth: 244,
@@ -126,7 +126,7 @@ export const HOUSE_DIMENSIONS = {
   },
 
   /** Dimensões de portas/janelas e offsets de posicionamento por vista. */
-  openings: {
+  elements: {
 
     /** Dimensões comuns de aberturas compartilhadas por todas as fachadas. */
     common: {

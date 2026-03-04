@@ -55,7 +55,7 @@ describe('house auto stairs', () => {
 
     // A escada deve ficar fora da porta da planta (sem cobrir metade do marcador).
     const bodyHalf = (HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale) / 2;
-    const markerHalf = (HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * HOUSE_DIMENSIONS.view.scale) / 2;
+    const markerHalf = (HOUSE_DIMENSIONS.elements.topDoorMarker.shortSize * HOUSE_DIMENSIONS.view.scale) / 2;
     const markerOutsideEdge = -bodyHalf - markerHalf - HOUSE_2D_STYLE.outlineStrokeWidth / 2;
     const stairInnerEdge = Number(stair?.top ?? 0) + Number(stair?.height ?? 0) / 2;
     expect(stairInnerEdge).toBeLessThanOrEqual(

@@ -113,18 +113,18 @@ export function calculateRenderedDoorGeometryForTopMarker(params: {
   if (isFrontBack) {
     const axisLength = params.bodyWidth;
     const scale = axisLength / HOUSE_DIMENSIONS.footprint.width;
-    const doorWidth = HOUSE_DIMENSIONS.openings.common.doorWidth * scale;
-    const windowWidth = HOUSE_DIMENSIONS.openings.common.windowWidth * scale;
-    const windowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * scale;
-    const doorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * scale;
+    const doorWidth = HOUSE_DIMENSIONS.elements.common.doorWidth * scale;
+    const windowWidth = HOUSE_DIMENSIONS.elements.common.windowWidth * scale;
+    const windowShiftX = HOUSE_DIMENSIONS.elements.frontBack.windowShiftX * scale;
+    const doorShiftX = HOUSE_DIMENSIONS.elements.frontBack.doorShiftX * scale;
     const doorX = axisLength - windowWidth - windowShiftX - doorWidth - doorShiftX;
     return {doorX, doorWidth};
   }
 
   const axisLength = params.bodyHeight;
   const scale = axisLength / HOUSE_DIMENSIONS.footprint.depth;
-  const doorWidth = HOUSE_DIMENSIONS.openings.common.doorWidth * scale;
-  const doorShiftX = HOUSE_DIMENSIONS.openings.side.doorShiftX * scale;
+  const doorWidth = HOUSE_DIMENSIONS.elements.common.doorWidth * scale;
+  const doorShiftX = HOUSE_DIMENSIONS.elements.side.doorShiftX * scale;
   const doorX = axisLength - doorWidth - doorShiftX;
   return {doorX, doorWidth};
 }

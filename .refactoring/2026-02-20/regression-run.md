@@ -182,7 +182,7 @@
 
 - [ ] Abrir visualizador 3D.
 - [~] Validar render para `tipo6` e `tipo3`.
-    - Evidência parcial de mapeamento/regra: `src/lib/3d/scene-openings-builder.smoke.test.ts`.
+    - Evidência parcial de mapeamento/regra: `src/lib/3d/scene-elements-builder.smoke.test.ts`.
     - Pendência: validação visual manual do render.
 - [ ] Inserir snapshot 3D no canvas 2D.
     - Pendente manual.

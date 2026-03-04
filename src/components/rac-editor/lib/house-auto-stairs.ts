@@ -19,7 +19,7 @@ import {resolveDoorSideCornerIds} from '@/shared/types/piloti.ts';
 import {NUMERIC_EPSILON, PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 
 // Largura base da escada.
-const AUTO_STAIR_BASE_WIDTH_PX = HOUSE_DIMENSIONS.openings.common.windowWidth
+const AUTO_STAIR_BASE_WIDTH_PX = HOUSE_DIMENSIONS.elements.common.windowWidth
 
 // Tamanho em metros que a escada deve ultrapassar a linha do terreno.
 const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.3;
@@ -117,7 +117,7 @@ function refreshElevationViewsAutoStairs(params: {
     const axisContext = resolveDoorSideAxisContextFromElevationGroup(group);
     if (!axisContext) continue;
 
-    const scale = doorWidth / HOUSE_DIMENSIONS.openings.common.doorWidth;
+    const scale = doorWidth / HOUSE_DIMENSIONS.elements.common.doorWidth;
     const stairWidth = Math.max(doorWidth, AUTO_STAIR_BASE_WIDTH_PX * scale);
     const metrics = resolveElevationStairMetrics({
       pilotis: params.pilotis,
@@ -225,7 +225,7 @@ function refreshTopViewAutoStairs(params: {
         : Number(placement.targetLeft ?? 0),
   });
   const stairDepth = resolveStairDepthPxFromHeight(metrics.stairHeight, sideScale);
-  const markerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * sideScale;
+  const markerShort = HOUSE_DIMENSIONS.elements.topDoorMarker.shortSize * sideScale;
   const markerOffset = markerShort / 2;
 
   let stairLeft = placement.targetLeft ?? 0;

@@ -14,7 +14,19 @@ export type HouseType = 'tipo6' | 'tipo3' | null;
 
 export type HouseTypeExcludeNull = Exclude<HouseType, null>;
 
+export interface House3DElement {
+  id: string;
+  type: 'window' | 'door';
+  face: House3DFace;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export type HouseSide = 'top' | 'bottom' | 'left' | 'right';
+
+export type House3DFace = 'front' | 'back' | 'left' | 'right'
 
 export type HouseSideMapping = Record<HouseSide, HouseViewType | null>;
 

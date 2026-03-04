@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-visibility.ts';
+import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-parser.ts';
 
 describe('piloti visibility', () => {
   it('mantém altura nominal quando ocultação abaixo do terreno está desabilitada', () => {

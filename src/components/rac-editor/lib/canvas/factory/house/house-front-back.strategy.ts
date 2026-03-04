@@ -116,13 +116,13 @@ export function createHouseFrontBack(
 
   // Front view: door + 2 windows
   // Back view: only right window (w1), no door, no left window
-  const doorW = HOUSE_DIMENSIONS.openings.common.doorWidth * s;
-  const doorH = HOUSE_DIMENSIONS.openings.common.doorHeight * s;
-  const doorShiftX = HOUSE_DIMENSIONS.openings.frontBack.doorShiftX * s;
+  const doorW = HOUSE_DIMENSIONS.elements.common.doorWidth * s;
+  const doorH = HOUSE_DIMENSIONS.elements.common.doorHeight * s;
+  const doorShiftX = HOUSE_DIMENSIONS.elements.frontBack.doorShiftX * s;
 
-  const windowW = HOUSE_DIMENSIONS.openings.common.windowWidth * s;
-  const windowH = HOUSE_DIMENSIONS.openings.common.windowHeight * s;
-  const windowShiftX = HOUSE_DIMENSIONS.openings.frontBack.windowShiftX * s;
+  const windowW = HOUSE_DIMENSIONS.elements.common.windowWidth * s;
+  const windowH = HOUSE_DIMENSIONS.elements.common.windowHeight * s;
+  const windowShiftX = HOUSE_DIMENSIONS.elements.frontBack.windowShiftX * s;
 
   const doorX = bodyW - windowW - windowShiftX - doorW - doorShiftX;
   const doorY = bodyH - doorH;
@@ -130,10 +130,10 @@ export function createHouseFrontBack(
   const window1FrontX = bodyW - windowW - windowShiftX;
   const window1FrontY = bodyH - doorH;
 
-  const window1BackX = HOUSE_DIMENSIONS.openings.frontBack.windowLateralX * s;
+  const window1BackX = HOUSE_DIMENSIONS.elements.frontBack.windowLateralX * s;
   const window1BackY = bodyH - doorH;
 
-  const window2X = HOUSE_DIMENSIONS.openings.frontBack.windowLateralX * s;
+  const window2X = HOUSE_DIMENSIONS.elements.frontBack.windowLateralX * s;
   const window2Y = bodyH - doorH;
 
   if (isFront) {

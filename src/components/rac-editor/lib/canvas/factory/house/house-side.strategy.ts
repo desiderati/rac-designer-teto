@@ -91,13 +91,13 @@ export function createHouseSide(
   createFloorBeanRect(sideWidth - floorBeanW);
 
   if (hasDoor) {
-    const doorW = HOUSE_DIMENSIONS.openings.common.doorWidth * s;
-    const doorH = HOUSE_DIMENSIONS.openings.common.doorHeight * s;
-    const doorShiftX = HOUSE_DIMENSIONS.openings.side.doorShiftX * s;
+    const doorW = HOUSE_DIMENSIONS.elements.common.doorWidth * s;
+    const doorH = HOUSE_DIMENSIONS.elements.common.doorHeight * s;
+    const doorShiftX = HOUSE_DIMENSIONS.elements.side.doorShiftX * s;
 
-    const windowW = HOUSE_DIMENSIONS.openings.common.windowWidth * s;
-    const windowH = HOUSE_DIMENSIONS.openings.common.windowHeight * s;
-    const windowShiftX = HOUSE_DIMENSIONS.openings.side.windowShiftX * s;
+    const windowW = HOUSE_DIMENSIONS.elements.common.windowWidth * s;
+    const windowH = HOUSE_DIMENSIONS.elements.common.windowHeight * s;
+    const windowShiftX = HOUSE_DIMENSIONS.elements.side.windowShiftX * s;
 
     const doorX = sideWidth - doorW - doorShiftX;
     const doorY = wallHeight - doorH;

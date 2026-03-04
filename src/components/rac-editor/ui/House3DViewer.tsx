@@ -22,7 +22,7 @@ import {
   Contraventamento3DData,
   parseContraventamentosFromTopView
 } from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
-import {parseAutoStairsFromElevationViews, Stair3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
+import {parseStairsFromElevationViews, Stairs3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {toast} from 'sonner';
 import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
 
@@ -38,7 +38,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
-  const [stair, setStair] = useState<Stair3DData>(null);
+  const [stairs, setStairs] = useState<Stairs3DData>(null);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
@@ -54,7 +54,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       setTipo6FrontSide(null);
       setTipo3OpenSide(null);
       setContraventamentos([]);
-      setStair(null);
+      setStairs(null);
       return;
     }
 
@@ -103,7 +103,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       ),
     ];
 
-    setStair(parseAutoStairsFromElevationViews({
+    setStairs(parseStairsFromElevationViews({
       houseType: house.houseType,
       sideMappings: house.sideMappings,
       elevationViews,
@@ -295,7 +295,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                   houseType={houseType}
                   pilotis={pilotis}
                   contraventamentos={contraventamentos}
-                  stair={stair}
+                  stairs={stairs}
                   wallColor={wallColor}
                   tipo6FrontSide={tipo6FrontSide}
                   tipo3OpenSide={tipo3OpenSide}

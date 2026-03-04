@@ -72,8 +72,8 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
   houseObjects.push(borderTop, borderBottom, borderLeft, borderRight);
 
   // Door markers on top view (hidden by default, positioned by HouseManager based on side assignments)
-  const doorMarkerLong = HOUSE_DIMENSIONS.openings.topDoorMarker.longSize * s;
-  const doorMarkerShort = HOUSE_DIMENSIONS.openings.topDoorMarker.shortSize * s;
+  const doorMarkerLong = HOUSE_DIMENSIONS.elements.topDoorMarker.longSize * s;
+  const doorMarkerShort = HOUSE_DIMENSIONS.elements.topDoorMarker.shortSize * s;
   const doorMarkerFill = CANVAS_ELEMENT_STYLE.fillColor.doorBody;
   const doorMarkerStroke = CANVAS_ELEMENT_STYLE.strokeColor.doorElement;
 
