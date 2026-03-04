@@ -27,7 +27,7 @@ function createPiloti(params: {
   };
 }
 
-describe('piloti-visual-feedback utils', () => {
+describe('piloti-visual-feedback.ts', () => {
   it('highlights all pilotis in house groups', () => {
     const a = createPiloti({pilotiId: 'piloti_0_0'});
     const b = createPiloti({pilotiId: 'piloti_1_0', isRect: true});
@@ -110,3 +110,4 @@ describe('piloti-visual-feedback utils', () => {
     expect(masterRect.state.stroke).toBe('#facc15');
   });
 });
+

@@ -15,7 +15,7 @@ vi.mock('@/components/rac-editor/lib/canvas', () => ({
   }),
 }));
 
-describe('house-view helpers', () => {
+describe('house-view.ts', () => {
   it('creates metadata and controls patches', () => {
     expect(createViewGroupMetadataPatch({viewType: 'top', instanceId: 'top_1'})).toEqual({
       houseViewType: 'top',
@@ -44,3 +44,4 @@ describe('house-view helpers', () => {
     expect(createMock).toHaveBeenCalledWith(canvas, {side: undefined});
   });
 });
+

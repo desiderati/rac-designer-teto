@@ -14,7 +14,7 @@ class MemoryHousePersistence implements HousePersistencePort<string> {
   }
 }
 
-describe('house persistence port', () => {
+describe('house-persistence-port.ts', () => {
   it('supports load/save contract in a minimal implementation', () => {
     const persistence = new MemoryHousePersistence();
     const state: HouseState<string> = {
@@ -43,3 +43,4 @@ describe('house persistence port', () => {
     expect(persistence.load()).toEqual(state);
   });
 });
+

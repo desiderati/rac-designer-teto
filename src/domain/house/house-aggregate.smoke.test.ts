@@ -47,7 +47,7 @@ function createState(seed?: {
   };
 }
 
-describe('house aggregate', () => {
+describe('house-aggregate.ts', () => {
   it('applies layout rules for sides and pre-assigned slots', () => {
     const state = createState({houseType: 'tipo6'});
     state.views.front.push({instanceId: 'front_1', group: {id: 'g1'}, side: 'top'});
@@ -217,3 +217,4 @@ describe('house aggregate', () => {
     expect(pilotis.piloti_1_1.height).toBe(1.5);
   });
 });
+

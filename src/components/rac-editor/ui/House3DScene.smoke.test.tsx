@@ -4,7 +4,7 @@ import {House3DScene} from '@/components/rac-editor/ui/House3DScene.tsx';
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
 import {ALL_PILOTI_IDS} from '@/shared/config.ts';
 
-describe('House3DScene contraventamento', () => {
+describe('House3DScene.tsx', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[]}
-      />
+      />,
     );
     const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
     baseline.unmount();
@@ -45,7 +45,7 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[contraventamento]}
-      />
+      />,
     );
     const withContraventamentoBoxGeometryCount = withContraventamento.container.querySelectorAll('boxgeometry').length;
 
@@ -75,7 +75,7 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[]}
-        stairs={[]}
+        stairs={null}
       />,
     );
     const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
@@ -86,24 +86,23 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[]}
-        stairs={[{
+        stairs={{
           id: 'stairs-1',
           face: 'front',
           centerFromLeft: 220,
-          width: 40,
+          stairWidth: 40,
           stairHeightMts: 0.9,
           stepCount: 3,
-        }]}
+        }}
       />,
     );
     const withStairsBoxGeometryCount = withStairs.container.querySelectorAll('boxgeometry').length;
 
-    // No 3D, remove o degrau mais alto: stepCount=3 renderiza 2 degraus.
-    // Cada degrau adiciona 2 boxes: corpo branco + piso marrom.
-    expect(withStairsBoxGeometryCount).toBe(baselineBoxGeometryCount + 4);
+    // stepCount=3 gera 3 degraus + 2 vigas laterais = 5 box geometries adicionais.
+    expect(withStairsBoxGeometryCount).toBe(baselineBoxGeometryCount + 5);
   });
 
-  it('não renderiza escada no 3D quando altura útil fica menor ou igual a zero após desconto extra', () => {
+  it('renderiza escada minima no 3D quando stepCount e valido', () => {
     const pilotis = {} as Record<string, HousePiloti>;
 
     const baseline = render(
@@ -111,7 +110,7 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[]}
-        stairs={[]}
+        stairs={null}
       />,
     );
     const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
@@ -122,18 +121,19 @@ describe('House3DScene contraventamento', () => {
         houseType='tipo6'
         pilotis={pilotis}
         contraventamentos={[]}
-        stairs={[{
+        stairs={{
           id: 'stairs-tiny',
           face: 'front',
           centerFromLeft: 220,
-          width: 40,
+          stairWidth: 40,
           stairHeightMts: 0.3,
           stepCount: 1,
-        }]}
+        }}
       />,
     );
     const withTinyStairBoxGeometryCount = withTinyStair.container.querySelectorAll('boxgeometry').length;
 
-    expect(withTinyStairBoxGeometryCount).toBe(baselineBoxGeometryCount);
+    expect(withTinyStairBoxGeometryCount).toBe(baselineBoxGeometryCount + 3);
   });
 });
+

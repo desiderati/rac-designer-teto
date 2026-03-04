@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {InMemoryHousePersistence} from '@/infra/persistence/in-memory-house-persistence.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
-describe('in-memory house persistence', () => {
+describe('in-memory-house-persistence.ts', () => {
   it('stores and loads the current house state in memory', () => {
     const persistence = new InMemoryHousePersistence<unknown>();
     const state: HouseState<unknown> = {
@@ -24,3 +24,4 @@ describe('in-memory house persistence', () => {
     expect(persistence.load()).toBeNull();
   });
 });
+

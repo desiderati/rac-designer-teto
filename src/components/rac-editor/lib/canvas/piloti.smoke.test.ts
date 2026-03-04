@@ -14,7 +14,7 @@ import {
 } from '@/shared/types/piloti.ts';
 import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/lib/canvas/terrain.ts';
 
-describe('piloti helpers', () => {
+describe('piloti.ts', () => {
   it('clamps nivel respecting min/max', () => {
     expect(clampNivel(0.1, 0.2, 1.5)).toBe(0.2);
     expect(clampNivel(2.0, 0.2, 1.5)).toBe(1.5);
@@ -68,3 +68,4 @@ describe('piloti helpers', () => {
     expect(getTerrainRachaoThicknessCm(5)).toBe(TERRAIN_SOLIDITY.levels[5].rachao);
   });
 });
+

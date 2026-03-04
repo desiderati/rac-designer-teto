@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {calculateSnapshotScale, create3DSnapshotImagePatch, SNAPSHOT_MAX_CANVAS_RATIO,} from './house-snapshot.ts';
 import {CANVAS_DEFAULTS} from '@/shared/config.ts';
 
-describe('house-snapshot use cases', () => {
+describe('house-snapshot.ts', () => {
   it('exports canonical max ratio for snapshot insertion', () => {
     expect(SNAPSHOT_MAX_CANVAS_RATIO).toBe(0.45);
   });
@@ -51,3 +51,4 @@ describe('house-snapshot use cases', () => {
     });
   });
 });
+

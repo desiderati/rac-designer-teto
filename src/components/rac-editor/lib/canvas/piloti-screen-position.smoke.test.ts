@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {projectCanvasPointToScreenPoint} from './piloti-screen-position.ts';
 
-describe('piloti-screen-position utils', () => {
+describe('piloti-screen-position.ts', () => {
   it('projects local point with explicit viewport transform', () => {
     expect(
       projectCanvasPointToScreenPoint({
@@ -29,3 +29,4 @@ describe('piloti-screen-position utils', () => {
     });
   });
 });
+

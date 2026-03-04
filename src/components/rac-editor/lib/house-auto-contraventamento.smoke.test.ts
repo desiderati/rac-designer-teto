@@ -17,7 +17,7 @@ function createMockGroup(props: Record<string, unknown> = {}) {
   return {group};
 }
 
-describe('house auto contraventamento', () => {
+describe('house-auto-contraventamento.ts', () => {
   it('cria contraventamento automático quando piloti está fora da proporção', () => {
     const {group} = createMockGroup();
 
@@ -145,3 +145,4 @@ describe('house auto contraventamento', () => {
     expect(contrav?.contraventamentoEndRow).toBe(2);
   });
 });
+

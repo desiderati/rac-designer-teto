@@ -7,7 +7,7 @@ import {
   PILOTI_MASTER_FILL_COLOR
 } from '@/shared/constants.ts';
 
-describe('canvas constants', () => {
+describe('constants.ts', () => {
   it('exposes expected base values', () => {
     expect(CANVAS_WIDTH).toBeGreaterThan(0);
     expect(CANVAS_HEIGHT).toBeGreaterThan(0);
@@ -17,3 +17,4 @@ describe('canvas constants', () => {
     expect(typeof PILOTI_MASTER_FILL_COLOR).toBe('string');
   });
 });
+

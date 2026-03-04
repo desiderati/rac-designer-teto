@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {buildPilotiSelectionHandler} from './piloti-selection.ts';
 
-describe('canvas piloti selection handler', () => {
+describe('piloti-selection.ts', () => {
   it('emits selection and hint for piloti clicks', () => {
     const piloti = {
       pilotiId: 'piloti_0_0',
@@ -53,3 +53,4 @@ describe('canvas piloti selection handler', () => {
     expect(onContraventamentoCancel).not.toHaveBeenCalled();
   });
 });
+

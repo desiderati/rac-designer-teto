@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {getHintForObject} from './hints.ts';
 import {CanvasObject} from './canvas.ts';
 
-describe('canvas hints', () => {
+describe('hints.ts', () => {
   it('returns default hint when no object is selected', () => {
     expect(getHintForObject(null)).toContain('Dica: Selecione uma ferramenta');
   });
@@ -12,3 +12,4 @@ describe('canvas hints', () => {
     expect(getHintForObject({type: 'activeSelection'} as unknown as CanvasObject)).toContain('Múltiplos itens selecionados');
   });
 });
+

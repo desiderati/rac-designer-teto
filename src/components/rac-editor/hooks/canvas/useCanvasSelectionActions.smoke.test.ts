@@ -32,7 +32,7 @@ function createCanvasObject(initial: Partial<MockCanvasObject>): MockCanvasObjec
   return state;
 }
 
-describe('useCanvasSelectionActions', () => {
+describe('useCanvasSelectionActions.ts', () => {
   it('highlights terrain when an elevation house group is selected', () => {
     const groundFill = createCanvasObject({
       isGroundFill: true,
@@ -85,4 +85,5 @@ describe('useCanvasSelectionActions', () => {
     expect(onSelectionChange).toHaveBeenCalled();
   });
 });
+
 

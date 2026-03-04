@@ -1,4 +1,4 @@
-# RAC Editor - Padrões Arquiteturais
+# Padrões Arquiteturais
 
 ## Objetivo
 

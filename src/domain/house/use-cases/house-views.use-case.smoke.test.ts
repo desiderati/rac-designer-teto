@@ -29,7 +29,7 @@ function createMappings(): HouseSideMapping {
   };
 }
 
-describe('house-views use cases', () => {
+describe('house-views.use-case.ts', () => {
   it('registers view instances and updates side mappings', () => {
     const views = createViews<{ id: string }>();
     const mappings = createMappings();
@@ -209,3 +209,4 @@ describe('house-views use cases', () => {
     expect(counts).toEqual(expected);
   });
 });
+

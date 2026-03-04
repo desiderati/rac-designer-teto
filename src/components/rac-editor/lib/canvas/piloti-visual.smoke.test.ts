@@ -6,7 +6,7 @@ import {
   createPilotiVisualDataPatch,
 } from './piloti-visual.ts';
 
-describe('house-piloti-visual use cases', () => {
+describe('piloti-visual.ts', () => {
   it('creates visual data patch for master rect piloti', () => {
     expect(
       createPilotiVisualDataPatch({
@@ -54,3 +54,4 @@ describe('house-piloti-visual use cases', () => {
     expect(createNivelLabelBackgroundPatch()).toEqual({backgroundColor: '#fff'});
   });
 });
+

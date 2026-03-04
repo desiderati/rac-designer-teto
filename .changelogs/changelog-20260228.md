@@ -71,6 +71,3 @@
 - `npm run test` (todos os smoke tests passaram).
 - `npm run build` (build de produção concluído com sucesso).
 - `npm run lint` continua com passivo preexistente amplo fora do escopo desta entrega.
-
-------------------------------------------------------------------------------------------
-

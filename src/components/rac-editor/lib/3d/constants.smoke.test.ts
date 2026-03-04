@@ -7,7 +7,7 @@ import {
   HOUSE_3D_WIDTH, PILOTI_RADIUS
 } from '@/components/rac-editor/lib/3d/constants.ts';
 
-describe('3d constants', () => {
+describe('constants.ts', () => {
   it('derives positive dimensions from base scale', () => {
     expect(HOUSE_3D_FINAL_SCALE).toBeGreaterThan(0);
     expect(HOUSE_3D_WIDTH).toBeGreaterThan(0);
@@ -17,3 +17,4 @@ describe('3d constants', () => {
     expect(COLORS.roof).toBe('#a8b8c4');
   });
 });
+

@@ -51,7 +51,7 @@ function createMockCanvas(groups: Array<Record<string, unknown>>) {
   };
 }
 
-describe('houseManager smoke flows', () => {
+describe('house-manager.ts', () => {
   beforeEach(() => {
     houseManager.reset();
   });
@@ -297,3 +297,4 @@ describe('houseManager smoke flows', () => {
     fromUrlSpy.mockRestore();
   });
 });
+

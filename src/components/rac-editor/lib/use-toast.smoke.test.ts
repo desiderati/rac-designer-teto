@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {reducer} from './use-toast.ts';
 
-describe('use-toast reducer', () => {
+describe('use-toast.ts', () => {
   it('adds, updates and removes toasts', () => {
     const initial = {toasts: []};
     const added = reducer(initial, {
@@ -23,3 +23,4 @@ describe('use-toast reducer', () => {
     expect(removed.toasts).toHaveLength(0);
   });
 });
+

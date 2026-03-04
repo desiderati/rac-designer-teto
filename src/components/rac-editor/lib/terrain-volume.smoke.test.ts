@@ -13,7 +13,7 @@ function cylinderVolumeM3(diameterCm: number, heightCm: number): number {
   return Math.PI * radiusM * radiusM * heightM;
 }
 
-describe('terrain-volume', () => {
+describe('terrain-volume.ts', () => {
   it('calculates rachão volume for level 1 with 12 pilotis', () => {
     const vol = calculateRachaoVolume(1, 12);
     const expected =
@@ -58,3 +58,4 @@ describe('terrain-volume', () => {
     expect(result.britaM3).toBeGreaterThan(0);
   });
 });
+

@@ -8,7 +8,7 @@ import {
 } from './canvas-rebuild.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
-describe('canvas rebuild helpers', () => {
+describe('canvas-rebuild.ts', () => {
   it('rebuilds piloti data from sources', () => {
     const next = rebuildPilotiDataFromSources({
       pilotiIds: ['piloti_0_0'],
@@ -47,3 +47,4 @@ describe('canvas rebuild helpers', () => {
     expect(mapped.metadata.houseInstanceId).toBe('top_1');
   });
 });
+

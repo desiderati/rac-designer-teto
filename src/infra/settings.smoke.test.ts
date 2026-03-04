@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {getSettings, updateSetting} from '@/infra/settings.ts';
 
-describe('settings persistence smoke', () => {
+describe('settings.ts', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -46,3 +46,4 @@ describe('settings persistence smoke', () => {
     });
   });
 });
+

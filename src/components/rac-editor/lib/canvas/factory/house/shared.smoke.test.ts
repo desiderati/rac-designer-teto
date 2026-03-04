@@ -4,7 +4,7 @@ import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 import {Canvas as FabricCanvas} from 'fabric';
 import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
 
-describe('house factory shared', () => {
+describe('shared.ts', () => {
   it('derives scale factors from top view group', () => {
     const houseBody = {
       isHouseBody: true,
@@ -30,4 +30,5 @@ describe('house factory shared', () => {
     expect(result.depthFactor).toBeCloseTo(200 / HOUSE_BASE_HEIGHT, 5);
   });
 });
+
 

@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {render, screen} from '@testing-library/react';
 import {ConfirmDialogModal} from '@/components/rac-editor/ui/modals/ConfirmDialogModal.tsx';
 
-describe('ConfirmDialogModal', () => {
+describe('ConfirmDialogModal.tsx', () => {
   it('renders an accessible fallback title when visual title is omitted', () => {
     render(
       <ConfirmDialogModal
@@ -18,3 +18,4 @@ describe('ConfirmDialogModal', () => {
     expect(screen.getByText('Janela de confirmação')).toBeTruthy();
   });
 });
+

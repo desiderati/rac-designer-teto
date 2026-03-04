@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {rebuildViewsFromSources} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
 
-describe('house views rebuild use cases', () => {
+describe('house-views-rebuild.use-case.ts', () => {
   it('rebuilds normalized views with inferred type/side and unique ids', () => {
     const g1 = {id: 'g1'};
     const g2 = {id: 'g2'};
@@ -46,3 +46,4 @@ describe('house views rebuild use cases', () => {
     expect(rebuilt.views.side2).toHaveLength(0);
   });
 });
+

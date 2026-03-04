@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {shouldResetHouseTypeOnSideSelectorCancel, shouldTransitionToNivelDefinition} from './house-side.ts';
 
-describe('house-side helpers', () => {
+describe('house-side.ts', () => {
   it('transitions to nivel definition only on initial positioning without slots', () => {
     expect(shouldTransitionToNivelDefinition({sideSelectorMode: 'position', hasPreAssignedSides: false})).toBe(true);
     expect(shouldTransitionToNivelDefinition({sideSelectorMode: 'position', hasPreAssignedSides: true})).toBe(false);
@@ -26,3 +26,4 @@ describe('house-side helpers', () => {
     })).toBe(false);
   });
 });
+

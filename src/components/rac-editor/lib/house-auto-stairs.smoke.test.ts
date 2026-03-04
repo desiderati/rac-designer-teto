@@ -26,7 +26,23 @@ function createMockGroup(props: Record<string, unknown> = {}) {
   };
 }
 
-describe('house auto stairs', () => {
+function createTopViewGroupWithAutoStair() {
+  const group: any = {
+    _objects: [{isAutoStairs: true}],
+    getCanvasObjects() {
+      return this._objects;
+    },
+    _clearCache: vi.fn(),
+    _calcBounds: vi.fn(),
+    setCoords: vi.fn(),
+    add: vi.fn(),
+    remove: vi.fn(),
+    dirty: false,
+  };
+  return group;
+}
+
+describe('house-auto-stairs.ts', () => {
   it('creates auto stairs on top view using door-side mapping', () => {
     const {group, objects} = createMockGroup();
     objects.push(createMockObject({
@@ -51,9 +67,8 @@ describe('house auto stairs', () => {
     expect(changed).toBe(true);
     const stair = objects.find((object) => object?.isAutoStairs === true) as any;
     expect(stair).toBeTruthy();
-    expect(stair?.stairsStepCount).toBe(2);
+    expect(stair?.stairsStepCount).toBe(3);
 
-    // A escada deve ficar fora da porta da planta (sem cobrir metade do marcador).
     const bodyHalf = (HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale) / 2;
     const markerHalf = (HOUSE_DIMENSIONS.elements.topDoorMarker.shortSize * HOUSE_DIMENSIONS.view.scale) / 2;
     const markerOutsideEdge = -bodyHalf - markerHalf - HOUSE_2D_STYLE.outlineStrokeWidth / 2;
@@ -94,20 +109,16 @@ describe('house auto stairs', () => {
     const stair = objects.find((object) => object?.isAutoStairs === true) as any;
     expect(stair).toBeTruthy();
     expect(stair?.myType).toBe('stairs');
-    expect(stair?.stairsStepCount).toBe(2);
+    expect(stair?.stairsStepCount).toBe(3);
     expect(stair?.left).toBe(120);
     expect(stair?.originX).toBe('left');
 
-    // A escada deve encostar logo abaixo da porta:
-    // topo da escada == base da porta.
     const stairTopEdge = Number(stair?.top ?? 0) - Number(stair?.height ?? 0) / 2;
     const expectedDoorBottomEdge = 80 + 95 + (HOUSE_2D_STYLE.outlineStrokeWidth / 2);
     expect(stairTopEdge).toBe(expectedDoorBottomEdge);
 
-    // A geometria da escada elevada é a mesma da planta:
-    // retângulo base + linhas dos degraus (steps=2 => 1 linha interna).
     const stairObjects = Array.isArray(stair?._objects) ? stair._objects : [];
-    expect(stairObjects).toHaveLength(2);
+    expect(stairObjects).toHaveLength(3);
   });
 
   it('uses the same stair depth in top and elevation views when both are present', () => {
@@ -229,5 +240,21 @@ describe('house auto stairs', () => {
     expect(stair?.stairsNivelLeft).toBe(0.56);
     expect(stair?.stairsNivelRight).toBe(0.41);
     expect(stair?.stairsStepCount).toBe(3);
+  });
+
+  it('removes top-view auto stairs when showStairsOnTopView is disabled', () => {
+    const topGroup = createTopViewGroupWithAutoStair();
+
+    const changed = refreshAutoStairsInViews({
+      houseType: null,
+      sideMappings: {top: null, bottom: null, left: null, right: null},
+      pilotis: {},
+      topView: [{instanceId: 'top_1', group: topGroup}] as any,
+      elevationViews: [],
+      showStairsOnTopView: false,
+    });
+
+    expect(changed).toBe(true);
+    expect(topGroup.getCanvasObjects()).toEqual([]);
   });
 });

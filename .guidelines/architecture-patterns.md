@@ -1,4 +1,4 @@
-# RAC Editor - Architectural Patterns (Reuse Before Build)
+# Architectural Patterns (Reuse Before Build)
 
 ## Objetivo
 

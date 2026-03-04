@@ -3,7 +3,7 @@ import {renderHook, waitFor} from '@testing-library/react';
 import {useIsMobile} from './use-mobile.tsx';
 import {VIEWPORT} from '@/shared/config.ts';
 
-describe('useIsMobile', () => {
+describe('use-mobile.tsx', () => {
   beforeEach(() => {
     window.matchMedia = vi.fn().mockImplementation(() => ({
       matches: false,
@@ -21,3 +21,4 @@ describe('useIsMobile', () => {
     });
   });
 });
+

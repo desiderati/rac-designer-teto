@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-parser.ts';
 
-describe('piloti visibility', () => {
+describe('piloti-parser.ts', () => {
   it('mantém altura nominal quando ocultação abaixo do terreno está desabilitada', () => {
     const resolved = resolvePilotiHeightSegments({
       nominalHeight: 120,
@@ -51,3 +51,5 @@ describe('piloti visibility', () => {
     expect(resolved.bottomVisibleHeight).toBeCloseTo(10, 6);
   });
 });
+
+

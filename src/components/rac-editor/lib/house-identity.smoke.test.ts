@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createElementId, createHouseId, createViewInstanceId} from './house-identity.ts';
 
-describe('house-identity use cases', () => {
+describe('house-identity.ts', () => {
   it('creates deterministic house and view ids with injected clock', () => {
     expect(createHouseId(() => 123)).toBe('house_123');
     expect(createViewInstanceId('front', () => 456)).toBe('front_456');
@@ -15,3 +15,4 @@ describe('house-identity use cases', () => {
     expect(id.startsWith('element_123_')).toBe(true);
   });
 });
+

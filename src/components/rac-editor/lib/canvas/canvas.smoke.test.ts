@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {canvasObjectProps, toCanvasObject} from './canvas.ts';
 
-describe('canvas helpers', () => {
+describe('canvas.ts', () => {
   it('handles null canvas object', () => {
     expect(toCanvasObject(null)).toBeNull();
   });
@@ -11,3 +11,4 @@ describe('canvas helpers', () => {
     expect(canvasObjectProps).toContain('contraventamentoId');
   });
 });
+

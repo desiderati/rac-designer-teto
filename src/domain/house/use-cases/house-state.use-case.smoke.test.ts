@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {createDefaultPilotis, createEmptySideMappings, createEmptyViews,} from './house-state.use-case.ts';
 import type {HousePiloti} from '@/shared/types/house.ts';
 
-describe('house-state use cases', () => {
+describe('house-state.use-case.ts', () => {
   it('creates default pilotis for all ids with cloned values', () => {
     const defaultPiloti: HousePiloti = {height: 1, isMaster: false, nivel: 0.2};
     const pilotis = createDefaultPilotis({
@@ -36,3 +36,4 @@ describe('house-state use cases', () => {
     });
   });
 });
+

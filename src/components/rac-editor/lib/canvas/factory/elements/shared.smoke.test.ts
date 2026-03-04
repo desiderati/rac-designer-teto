@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {setCanvasObjectMyType, withScalingGuard} from './shared.ts';
 
-describe('element shared helpers', () => {
+describe('shared.ts', () => {
   it('sets myType on objects', () => {
     const obj: { myType?: string } = {};
     setCanvasObjectMyType(obj, 'line');
@@ -26,3 +26,4 @@ describe('element shared helpers', () => {
     expect(group.__normalizingScale).toBe(false);
   });
 });
+

@@ -1,4 +1,4 @@
-# RAC Editor - Governança de Refatoração Incremental
+#Governança de Refatoração Incremental
 
 ## Objetivo
 

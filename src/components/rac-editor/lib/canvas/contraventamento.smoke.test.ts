@@ -12,7 +12,7 @@ import {
 } from '@/shared/types/contraventamento.ts';
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
-describe('contraventamento helpers', () => {
+describe('contraventamento.ts', () => {
   it('parses piloti ids and validates nivel', () => {
     expect(parsePilotiGridPosition('piloti_2_1')).toEqual({col: 2, row: 1});
     expect(parsePilotiGridPosition('invalid')).toBeNull();
@@ -86,3 +86,4 @@ describe('contraventamento helpers', () => {
     ).toBe(false);
   });
 });
+

@@ -32,7 +32,7 @@ function createAssignments(): HouseSideMapping {
   };
 }
 
-describe('house-view-layout use cases', () => {
+describe('house-views-layout.use-case.ts', () => {
   it('returns available views based on house type limits', () => {
     const views = createViews();
     views.top.push({side: undefined});
@@ -123,3 +123,4 @@ describe('house-view-layout use cases', () => {
   });
 
 });
+

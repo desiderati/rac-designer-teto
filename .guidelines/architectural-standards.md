@@ -1,4 +1,4 @@
-# RAC Editor - Architectural Standards (Reuse Before Build)
+# Architectural Standards (Reuse Before Build)
 
 ## Objetivo
 

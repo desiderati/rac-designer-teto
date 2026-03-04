@@ -349,4 +349,3 @@
 - Ajuste complementar:
     - `ux-design.md` atualizado com seção de referência para usar
       `.guidelines/architecture-patterns.md` em decisões arquiteturais.
-

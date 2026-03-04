@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import {Tutorial} from '@/components/rac-editor/ui/tutorial/Tutorial.tsx';
 import {STORAGE_KEYS} from '@/shared/config.ts';
 
-describe('Tutorial smoke', () => {
+describe('Tutorial.tsx', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -20,3 +20,4 @@ describe('Tutorial smoke', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });
+

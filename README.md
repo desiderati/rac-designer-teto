@@ -3,8 +3,8 @@
 ## 📋 Project Overview
 
 **RAC Designer TETO** é um editor visual profissional para design de plantas de casas desenvolvido para a ONG TETO. A
-aplicação permite que arquitetos, engenheiros e voluntários criem plantas baixas e elevações de casas com ferramentas
-avançadas de desenho 2D e visualização 3D interativa.
+aplicação permite que monitores, líderes de construção e voluntários criem plantas baixas e elevações de casas com
+ferramentas avançadas de desenho 2D e visualização 3D interativa.
 
 ---
 
@@ -44,55 +44,16 @@ avançadas de desenho 2D e visualização 3D interativa.
 ### Persona 2: Líder Voluntário
 
 - **Objetivo:** Ver e validar plantas criadas por monitores
-- **Experiência:** Conhecimento construtivo, experiência com CAD
-- **Necessidades:** Visualização 3D clara, ferramentas de anotação, acesso à histórico de edições
-- **Frustração:** Falta de precisão, falta de entendimento do modelo criado pelos monitores
+- **Experiência:** Conhecimento construtivo, experiência em métodos construtivos
+- **Necessidades:** Visualização 3D clara, ferramentas de anotação, acesso a histórico de edições
+- **Frustração:** Falta de precisão; falta de entendimento do modelo criado pelos monitores
 
 ### Persona 3: Voluntário Iniciante
 
-- **Objetivo:** Aprender a usar a ferramenta para contribuir com a TETO
+- **Objetivo:** Aprender a usar a ferramenta para entender como um processo construtivo funciona
 - **Experiência:** Sem experiência em design
 - **Necessidades:** Tutorial interativo, interface clara, mensagens de erro úteis
 - **Frustração:** Falta de orientação, erros sem explicação
-
----
-
-## 🎨 Design Assets & Visual System
-
-### Color Palette
-
-- **Primary:** `#1F2937` (Slate 800) - Botões e elementos principais
-- **Secondary:** `#6B7280` (Slate 600) - Elementos secundários
-- **Accent:** `#3B82F6` (Blue 500) - Destaques e seleções
-- **Background:** `#FFFFFF` (White) - Fundo principal
-- **Surface:** `#F3F4F6` (Slate 100) - Painéis e cards
-- **Success:** `#10B981` (Emerald 500) - Confirmações
-- **Warning:** `#F59E0B` (Amber 500) - Avisos
-- **Error:** `#EF4444` (Red 500) - Erros
-
-### Typography
-
-- **Display Font:** System fonts (Segoe UI, -apple-system, BlinkMacSystemFont)
-- **Body Font:** System fonts
-- **Font Sizes:**
-    - Display: 32px (bold)
-    - Heading 1: 24px (bold)
-    - Heading 2: 20px (semibold)
-    - Body: 14px (regular)
-    - Small: 12px (regular)
-
-### Spacing System
-
-- Base unit: 4px
-- Spacing scale: 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
-- Padding padrão: 16px
-- Margin padrão: 16px
-
-### Component Styles
-
-- **Border Radius:** 8px (padrão), 4px (compacto)
-- **Shadows:** Subtle (0 1px 3px rgba(0,0,0,0.1))
-- **Transitions:** 200ms ease-in-out para hover/focus states
 
 ---
 
@@ -102,7 +63,7 @@ avançadas de desenho 2D e visualização 3D interativa.
 
 RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agentes inteligentes**:
 
-1. **Agent 1 (Análise)** - Análise dinâmica diária do código
+1. **Agent 1 (Análise)** - Análise dinâmica semanal do código
 2. **Agent 2 (Execução)** - Execução autônoma do plano de refatoração
 
 ### Agent 1: Intelligent Dynamic Analysis
@@ -157,7 +118,7 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 ### Workflow Completo
 
 ```
-1. Agent 1 Roda (06:00 diariamente)
+1. Agent 1 Roda (06:00 semanalmente)
    ├─ Analisa código ATUAL
    ├─ Detecta issues e opportunities
    ├─ Gera plano DINÂMICO
@@ -197,17 +158,6 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
     ├── regression-checklist.md
     └── regression-run.md            ← Agente 2 gera
 ```
-
-### Aprovando o Plano
-
-```bash
-# Após revisar o plano do Agente 1:
-./approve-refactoring.sh YYYY-MM-DD
-
-# Isso dispara o Agente 2 para executar
-```
-
----
 
 ## 🛠️ Coding Conventions
 
@@ -360,13 +310,12 @@ function calculatePolygonArea(points: [number, number][]): number {
 
 - Usar React Three Fiber para renderização 3D
 - Implementar rotação, zoom e pan intuitivos
-- Mostrar grid de referência
-- Suportar múltiplas vistas (superior, frontal, lateral)
+- Suportar múltiplas ângulos (superior, frontal, lateral)
 - Otimizar performance para plantas complexas
 
 ### Modals & Dialogs
 
-- Usar confirmação antes de ações destrutivas
+- Usar confirmação antes de persistir estado do canvas
 - Manter modais simples e focados em uma tarefa
 - Suportar fechar com ESC
 
@@ -407,12 +356,10 @@ function calculatePolygonArea(points: [number, number][]): number {
 <type>(<scope>): <subject>
 
 <body>
-
-<footer>
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-Scopes: `canvas`, `3d-viewer`, `toolbar`, `modals`, `ui`, `core`
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- Scopes: `canvas`, `3d-viewer`, `toolbar`, `modals`, `ui`, `core`
 
 Exemplo:
 
@@ -422,8 +369,6 @@ feat(canvas): add polygon drawing tool
 - Implement polygon drawing with click-to-add-points
 - Add double-click to finish polygon
 - Include snap-to-grid functionality
-
-Closes #123
 ```
 
 ---
@@ -549,6 +494,6 @@ Closes #123
 ## 📚 Additional Resources
 
 - **Refactoring Agents:** `.rules/refactoring-agents.md`
-- **Dynamic Analysis Guide:** `INTELLIGENT_ANALYSIS_GUIDE.md`
-- **Automated System Documentation:** `AUTOMATED_REFACTORING_SYSTEM.md`
+- **Dynamic Analysis Guide:** `.manus/INTELLIGENT_ANALYSIS_GUIDE.md`
+- **Automated System Documentation:** `.manus/AUTOMATED_REFACTORING_SYSTEM.md`
 

@@ -29,16 +29,14 @@ function createGroupWithStairs(params: {
     });
   }
 
-  objects.push(
-    {
-      isAutoStairs: true,
-      width: params.stairWidth,
-      scaleX: 1,
-      left: params.stairLeft,
-      stairsHeight: params.stairHeightMts,
-      stairsStepCount: params.stepCount,
-    },
-  );
+  objects.push({
+    isAutoStairs: true,
+    width: params.stairWidth,
+    scaleX: 1,
+    left: params.stairLeft,
+    stairsHeight: params.stairHeightMts,
+    stairsStepCount: params.stepCount,
+  });
 
   return {
     type: 'group',
@@ -49,7 +47,7 @@ function createGroupWithStairs(params: {
   } as any;
 }
 
-describe('stairs parser', () => {
+describe('stairs-parser.ts', () => {
   it('mapeia escada de tipo6 para a face frontal correta', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
@@ -72,17 +70,17 @@ describe('stairs parser', () => {
       }],
     });
 
-    expect(parsed).toHaveLength(1);
-    expect(parsed[0]).toMatchObject({
+    expect(parsed).toBeTruthy();
+    expect(parsed).toMatchObject({
       face: 'front',
-      width: 40,
+      stairWidth: 40,
       stairHeightMts: 1.2,
       stepCount: 4,
       centerFromLeft: 250,
     });
   });
 
-  it('mapeia escada de tipo3 (side2 à esquerda no 2D) para face direita no 3D', () => {
+  it('mapeia escada de tipo3 (side2 a esquerda no 2D) para face direita no 3D', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo3',
       sideMappings: {
@@ -104,11 +102,11 @@ describe('stairs parser', () => {
       }],
     });
 
-    expect(parsed).toHaveLength(1);
-    expect(parsed[0]?.face).toBe('right');
+    expect(parsed).toBeTruthy();
+    expect(parsed?.face).toBe('right');
   });
 
-  it('usa fallback da largura da fachada via porta quando não existe isHouseBody na elevação', () => {
+  it('usa fallback da largura da fachada via porta quando nao existe isHouseBody na elevacao', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
       sideMappings: {
@@ -122,7 +120,7 @@ describe('stairs parser', () => {
         group: createGroupWithStairs({
           bodyWidth: 0,
           includeBody: false,
-          doorWidth: 40, // scale = 0.5
+          doorWidth: 40,
           stairWidth: 40,
           stairLeft: 80,
           stairHeightMts: 1.2,
@@ -132,7 +130,7 @@ describe('stairs parser', () => {
       }],
     });
 
-    expect(parsed).toHaveLength(1);
-    expect(parsed[0]?.centerFromLeft).toBe(252.5);
+    expect(parsed).toBeTruthy();
+    expect(parsed?.centerFromLeft).toBe(252.5);
   });
 });

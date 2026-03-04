@@ -10,7 +10,7 @@ import {
 } from './house-top-view-door-marker.ts';
 import {toCanvasGroup} from '@/components/rac-editor/lib/canvas';
 
-describe('house-top-door-marker use cases', () => {
+describe('house-top-view-door-marker.ts', () => {
   it('resolves source view type from house type', () => {
     expect(resolveTopDoorSourceViewType({houseType: 'tipo6'})).toBe('front');
     expect(resolveTopDoorSourceViewType({houseType: 'tipo3'})).toBe('side2');
@@ -208,3 +208,4 @@ describe('house-top-door-marker use cases', () => {
     expect(group.setCoords).toHaveBeenCalledTimes(1);
   });
 });
+

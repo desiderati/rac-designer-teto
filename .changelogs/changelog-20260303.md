@@ -263,6 +263,3 @@
     - `src/infra/settings.smoke.test.ts` (default/persistência da nova chave)
     - `src/components/rac-editor/lib/house-auto-stairs-settings.smoke.test.ts` (remoção da escada da planta quando
       desabilitado)
-
-------------------------------------------------------------------------------------------
-

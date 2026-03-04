@@ -90,7 +90,7 @@ export function House3DScene({
 
   return (
     <group>
-      <TerrainMesh pilotis={pilotis} margin={stairs.stairHeightMts * 100 * HOUSE_3D_VIEWER_SCALE}/>
+      <TerrainMesh pilotis={pilotis} margin={(stairs?.stairHeightMts ?? 0) * 100 * HOUSE_3D_VIEWER_SCALE}/>
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
         <PilotiMesh
@@ -117,33 +117,28 @@ export function House3DScene({
 }
 
 function StairsMesh({stairs}: { stairs: Stairs3DData }) {
+  const placement = useMemo(() => computeStairs3DPlacement(stairs), [stairs]);
+
   const stepCount = Math.round(stairs.stepCount);
   if (!Number.isFinite(stepCount) || stepCount <= 0) return null;
 
   let stairWidth = Math.max(stairs.stairWidth * HOUSE_3D_VIEWER_SCALE, 1);
   if (!Number.isFinite(stairWidth) || stairWidth <= 0) return null;
 
-  const placement =
-    useMemo(() => computeStairs3DPlacement(stairs), [stairs]);
-
   const plankThickness = 2;
-  const stringerThickness = plankThickness
-  stairWidth += (stringerThickness * 2) * 1.25; // 1.25 = Para as vigas laterais da escada nâo baterem na porta!
+  const stringerThickness = plankThickness;
+  stairWidth += (stringerThickness * 2) * 1.25; // 1.25 = Para as vigas laterais da escada não baterem na porta.
 
   const stepDepth = placement.totalHeight3D / stepCount;
   const plankWidth = stairWidth - (stringerThickness * 2);
 
-  // Build steps and stringers
-  const steps = useMemo(() => {
-    const result: Array<{ y: number; z: number }> = [];
-    for (let i = 0; i < stepCount; i++) {
-      const t = i / stepCount;
-      const y = t * placement.totalHeight3D + stepDepth - plankThickness;
-      const z = plankThickness + (stepCount - 1 - i) * stepDepth;
-      result.push({y, z});
-    }
-    return result;
-  }, [stepCount, placement, stepDepth]);
+  const steps: Array<{ y: number; z: number }> = [];
+  for (let i = 0; i < stepCount; i++) {
+    const t = i / stepCount;
+    const y = t * placement.totalHeight3D + stepDepth - plankThickness;
+    const z = plankThickness + (stepCount - 1 - i) * stepDepth;
+    steps.push({y, z});
+  }
 
   // Stringer geometry: inclined beam from bottom to top
   const stringerLength = Math.sqrt(
@@ -154,11 +149,13 @@ function StairsMesh({stairs}: { stairs: Stairs3DData }) {
   const stringerAngle = Math.atan2(placement.totalDepth3D, placement.totalHeight3D);
   const stringerCenterY = (placement.topY - placement.bottomY) / 2;
   const stringerCenterZ = placement.totalHeight3D / 2;
-  const stringerHeight = stepDepth * 0.85; // Para a viga lateral seja 0.85 da profundidade do degrau.
+  const stringerHeight = stepDepth * 0.85; // Para a viga lateral ser 0.85 da profundidade do degrau.
 
   return (
-    <group position={[placement.position.x, placement.position.y, placement.position.z]}
-           rotation={[0, placement.rotationY, 0]}>
+    <group
+      position={[placement.position.x, placement.position.y, placement.position.z]}
+      rotation={[0, placement.rotationY, 0]}
+    >
       {/* Step planks */}
       {steps.map((step, i) => (
         <mesh
@@ -167,7 +164,7 @@ function StairsMesh({stairs}: { stairs: Stairs3DData }) {
           castShadow
           receiveShadow
         >
-          {/* 0.85 para que os degraus não fiquem muito grandes e ultrapassem as vigas laterias da escada. */}
+          {/* 0.85 para que os degraus não fiquem muito grandes e ultrapassem as vigas laterais da escada. */}
           <boxGeometry args={[plankWidth, plankThickness, stepDepth * 0.85]}/>
           <meshStandardMaterial color={COLORS.stairsTread} roughness={0.7}/>
         </mesh>
@@ -205,7 +202,6 @@ function StairsMesh({stairs}: { stairs: Stairs3DData }) {
     </group>
   );
 }
-
 function TerrainMesh({
   pilotis,
   margin,
@@ -231,7 +227,7 @@ function TerrainMesh({
     positions.needsUpdate = true;
     geo.computeVertexNormals();
     return geo;
-  }, [pilotis]);
+  }, [pilotis, margin]);
 
   const volumeGeometry = useMemo(
     () => createTerrainVolumeGeometry(topGeometry, TERRAIN_SEGMENTS, TERRAIN_THICKNESS),
@@ -812,3 +808,7 @@ function createTerrainVolumeGeometry(
   geometry.computeVertexNormals();
   return geometry;
 }
+
+
+
+

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {getCanvasViewportOffset, toCanvasScreenPoint} from './canvas-screen-position.ts';
 
-describe('canvas screen position helpers', () => {
+describe('canvas-screen-position.ts', () => {
   it('centers canvas when scaled size is smaller than container', () => {
     const offset = getCanvasViewportOffset({
       canvasPosition: {x: 0, y: 0, zoom: 1},
@@ -26,3 +26,4 @@ describe('canvas screen position helpers', () => {
     expect(point).toEqual({x: 120, y: 110});
   });
 });
+

@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {buildHouseElementsFromCanvasModel} from '@/components/rac-editor/lib/3d/house-elements-parser.ts';
 
-describe('buildHouseElementsFromCanvasModel', () => {
+describe('house-elements-parser.ts', () => {
   it('maps tipo6 front/back faces according to selected front side', () => {
     const elements = buildHouseElementsFromCanvasModel('tipo6', 'bottom', null);
     const frontDoor = elements.find((o) => o.id === 'canvas-front-door');
@@ -22,3 +22,5 @@ describe('buildHouseElementsFromCanvasModel', () => {
     expect(fallbackDoor?.face).toBe('right');
   });
 });
+
+
