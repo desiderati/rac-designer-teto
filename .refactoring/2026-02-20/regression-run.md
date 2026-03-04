@@ -2383,8 +2383,8 @@
             - `bindArrowCanvasObjectScaling(group, labelTop?)`
         - `createArrow` passa a usar `bindArrowCanvasObjectScaling`.
     - `src/components/rac-editor/hooks/useArrowEditorActions.ts`
-        - `applyArrowEditorChange` passa a reutilizar `normalizeArrowCanvasObjectToLength` no fluxo de scaling do wrapper,
-          removendo duplicação dos cálculos de head/shaft.
+        - `applyArrowEditorChange` passa a reutilizar `normalizeArrowCanvasObjectToLength` no fluxo de scaling do
+          wrapper, removendo duplicação dos cálculos de head/shaft.
 - Resultado:
     - criação e edição inline de seta usam a mesma regra geométrica longitudinal (fonte única).
 - Regras/documentação sincronizadas:

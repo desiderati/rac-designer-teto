@@ -26,15 +26,15 @@
 
 ```typescript
 export const elementCreators = {
-  line: createLine,
-  arrow: createArrow,
-  distance: createDistance,
-  wall: createWall,
-  water: createWater,
-  fossa: createFossa,
-  tree: createTree,
-  text: createText,
-  door: createDoor,
+    line: createLine,
+    arrow: createArrow,
+    distance: createDistance,
+    wall: createWall,
+    water: createWater,
+    fossa: createFossa,
+    tree: createTree,
+    text: createText,
+    door: createDoor,
 } as const;
 
 export type ElementType = keyof typeof elementCreators;
@@ -51,14 +51,14 @@ export type ElementType = keyof typeof elementCreators;
 
 ```typescript
 export function createElement(
-  canvas: FabricCanvas,
-  type: ElementType
+    canvas: FabricCanvas,
+    type: ElementType
 ): Group | IText {
-  const creator = elementCreators[type];
-  if (!creator) {
-    throw new Error(`Unknown element type: ${type}`);
-  }
-  return creator(canvas);
+    const creator = elementCreators[type];
+    if (!creator) {
+        throw new Error(`Unknown element type: ${type}`);
+    }
+    return creator(canvas);
 }
 ```
 
@@ -72,7 +72,7 @@ export function createElement(
 
 ```typescript
 export function getAvailableElementTypes(): ElementType[] {
-  return Object.keys(elementCreators) as ElementType[];
+    return Object.keys(elementCreators) as ElementType[];
 }
 ```
 
@@ -128,8 +128,8 @@ const types = getAvailableElementTypes(); // ['line', 'arrow', ...]
 
 ```typescript
 export const elementCreators = {
-  // ... existing
-  newElement: createNewElement,
+    // ... existing
+    newElement: createNewElement,
 } as const;
 ```
 
@@ -222,7 +222,7 @@ const element = createElement(canvas, 'line');
 ### Criar Elemento por Tipo
 
 ```typescript
-import { createElement } from '@/lib/canvas/factory/elements-factory';
+import {createElement} from '@/lib/canvas/factory/elements-factory';
 
 const canvas = /* ... */;
 const line = createElement(canvas, 'line');
@@ -232,7 +232,7 @@ const arrow = createElement(canvas, 'arrow');
 ### Usar Strategy Diretamente
 
 ```typescript
-import { elementCreators } from '@/lib/canvas/factory/elements-factory';
+import {elementCreators} from '@/lib/canvas/factory/elements-factory';
 
 const creator = elementCreators['line'];
 const element = creator(canvas);
@@ -241,7 +241,7 @@ const element = creator(canvas);
 ### Listar Tipos Disponíveis
 
 ```typescript
-import { getAvailableElementTypes } from '@/lib/canvas/factory/elements-factory';
+import {getAvailableElementTypes} from '@/lib/canvas/factory/elements-factory';
 
 const types = getAvailableElementTypes();
 // ['line', 'arrow', 'distance', 'wall', 'water', 'fossa', 'tree', 'text', 'door']

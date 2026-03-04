@@ -51,15 +51,18 @@ export const ROOF_TOP_Y = ROOF_BASE_Y + ROOF_RISE;
 
 export const PANEL_OFFSET_RATIO = WALL_THICKNESS * HOUSE_DIMENSIONS.structure.panelOffsetRatio;
 
-export const TERRAIN_MARGIN = HOUSE_DIMENSIONS.terrain.margin * HOUSE_3D_FINAL_SCALE;
+export const TERRAIN_MARGIN = 10 * HOUSE_3D_FINAL_SCALE;
 export const TERRAIN_SEGMENTS = HOUSE_DIMENSIONS.terrain.segments;
+export const TERRAIN_THICKNESS = 0.55 * 100 * HOUSE_3D_FINAL_SCALE; // 30 cm
 
 export const COLORS = {
   roof: '#a8b8c4',
   piloti: '#d8d8d8',
-  pilotiLower: '#5f5f5f',
+  pilotiLower: '#9f9f9f',
+  stairsTread: '#d4a574',
+  stairsSide: '#ececec',
   terrain: '#7da86d',
-  floor: '#f7f7f7',
+  floor: '#ececec',
   beam: '#ececec',
   frame: '#bdbdbd',
 } as const;

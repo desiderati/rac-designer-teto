@@ -29,7 +29,8 @@ Este projeto deve assumir perfil de decisão sênior (20+ anos de experiência),
 1. Eliminar duplicação estrutural assim que houver sinal de repetição.
 2. Extrair componentes/hooks/comportamentos compartilhados para virar base de conhecimento reutilizável.
 3. Evitar solução "remendo local" quando houver oportunidade clara de evolução arquitetural segura.
-4. Priorizar transferência de conhecimento arquitetural para o repositório em vez de repetir decisões ad hoc a cada sessão.
+4. Priorizar transferência de conhecimento arquitetural para o repositório em vez de repetir decisões ad hoc a cada
+   sessão.
 
 ## Fluxo decisório obrigatório (antes de codar)
 

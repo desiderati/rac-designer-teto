@@ -103,6 +103,21 @@
   para reduzir sobrecorte residual observado principalmente nos pilotis menores.
 - Regra de corte simplificada no modo ocultar: quando o nível local é menor que `0.5 m`, o ponto de corte passa a usar
   `0.5 m` como piso mínimo visual.
+- Implementação da escada no visualizador 3D com geometria em degraus, respeitando o padrão visual de referência:
+  corpo/laterais claras e piso dos degraus em marrom.
+- Nova extração de dados de escada a partir das vistas elevadas (`stairs-parser`), reutilizando metadados do 2D
+  (`isAutoStairs`, `stairsHeight`, `stairsStepCount`) como fonte de verdade para dimensões e quantidade de degraus.
+- Regra estrutural aplicada no 3D: `altura = profundidade` (em cada degrau `stepRise = stepRun`), mantendo consistência
+  com a regra funcional da escada no 2D.
+- Integração do `House3DViewer` com parsing de escadas e renderização no `House3DScene`, com smoke tests cobrindo parser
+  e render da malha de escada.
+- Ajuste de orientação dos degraus no 3D: o último degrau (maior altura) agora fica encostado na porta.
+- Ajuste exclusivo do 3D: altura renderizada da escada passa a descontar `AUTO_STAIR_HEIGHT_EXTRA_MTS`, sem alterar
+  cálculo/metadata no modelo 2D.
+- Ajuste exclusivo do 3D: degrau mais alto da escada não é renderizado; a escada é deslocada em direção à casa pela
+  profundidade do degrau removido.
+- Visualizador 3D: terreno passa a ser renderizado com volume (topo + laterais + base) e espessura fixa equivalente
+  a `20 cm`.
 
 ### Atualização desta conversa (limite de nível inicial com piloti 3.5)
 

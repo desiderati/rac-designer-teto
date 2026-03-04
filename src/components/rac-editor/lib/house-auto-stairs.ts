@@ -447,9 +447,20 @@ function buildStairMetricsFromGroundNiveis(params: {
   const rightNivel = round2(params.rightGroundNivel);
   const referenceGroundLevel = Math.min(leftNivel, rightNivel);
 
+  function getHeightExtraMts(leftNivel: number, rightNivel: number): number {
+    // TODO Felipe Desiderati: Validar porque não está calculando direito!
+    // if (leftNivel >= rightNivel) {
+    //   return (leftNivel - rightNivel) > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
+    // } else {
+    //   return (rightNivel - leftNivel) > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
+    // }
+    return AUTO_STAIR_HEIGHT_EXTRA_MTS;
+  }
+
+  const heightExtraMts = getHeightExtraMts(leftNivel, rightNivel);
   const stairHeight = round2(
     referenceGroundLevel
-    + AUTO_STAIR_HEIGHT_EXTRA_MTS
+    + heightExtraMts
     + AUTO_STAIR_FLOOR_HEIGHT_MTS
     + AUTO_STAIR_BEAM_HEIGHT_MTS,
   );

@@ -16,12 +16,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import type {HousePiloti, HouseType} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import {
   Contraventamento3DData,
   parseContraventamentosFromTopView
 } from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
+import {parseAutoStairsFromElevationViews, Stair3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {toast} from 'sonner';
 import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
 
@@ -37,6 +38,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
   const [contraventamentos, setContraventamentos] = useState<Contraventamento3DData[]>([]);
+  const [stair, setStair] = useState<Stair3DData>(null);
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
@@ -52,6 +54,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       setTipo6FrontSide(null);
       setTipo3OpenSide(null);
       setContraventamentos([]);
+      setStair(null);
       return;
     }
 
@@ -80,6 +83,31 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
 
     const topGroup = house.views.top[0]?.group;
     setContraventamentos(parseContraventamentosFromTopView(topGroup));
+
+    const elevationViews = [
+      ...house.views.front.map(
+        (view) =>
+          ({viewType: 'front' as HouseViewType, group: view.group})
+      ),
+      ...house.views.back.map(
+        (view) =>
+          ({viewType: 'back' as HouseViewType, group: view.group})
+      ),
+      ...house.views.side1.map(
+        (view) =>
+          ({viewType: 'side1' as HouseViewType, group: view.group})
+      ),
+      ...house.views.side2.map(
+        (view) =>
+          ({viewType: 'side2' as HouseViewType, group: view.group})
+      ),
+    ];
+
+    setStair(parseAutoStairsFromElevationViews({
+      houseType: house.houseType,
+      sideMappings: house.sideMappings,
+      elevationViews,
+    }));
   }, []);
 
   // Sync from global house state while the viewer is open
@@ -267,6 +295,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                   houseType={houseType}
                   pilotis={pilotis}
                   contraventamentos={contraventamentos}
+                  stair={stair}
                   wallColor={wallColor}
                   tipo6FrontSide={tipo6FrontSide}
                   tipo3OpenSide={tipo3OpenSide}

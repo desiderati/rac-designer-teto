@@ -30,7 +30,9 @@ Você extraiu a lógica de scaling em funções reutilizáveis:
 // Antes: Lógica duplicada em 3 funções
 // Depois: Funções separadas
 export function normalizeLineGroupToLength(group, totalLength, labelTop)
+
 export function normalizeArrowGroupToLength(group, totalLength, labelTop)
+
 export function normalizeDistanceGroupToLength(group, newWidth, newHeight)
 ```
 
@@ -40,8 +42,11 @@ export function normalizeDistanceGroupToLength(group, newWidth, newHeight)
 
 ```typescript
 export function bindLineGroupScaling(group, labelTop)
+
 export function bindArrowGroupScaling(group, labelTop)
+
 export function bindDistanceGroupScaling(group, labelTop)
+
 export function bindWallGroupScaling(group)
 ```
 
@@ -61,7 +66,7 @@ const child = childObject as CanvasRuntimeObject;
 
 ```typescript
 export function setCanvasRuntimeObjectMyType(object: object, myType: string): void {
-  (object as {myType?: string}).myType = myType;
+    (object as { myType?: string }).myType = myType;
 }
 ```
 
@@ -72,11 +77,11 @@ export function setCanvasRuntimeObjectMyType(object: object, myType: string): vo
 Novo arquivo criado:
 
 ```typescript
-src/components/rac-editor/modals/editors/generic/helpers/line-arrow-distance-editor-state.ts
+src / components / rac - editor / modals / editors / generic / helpers / line - arrow - distance - editor - state.ts
 
 export interface LineArrowDistanceEditorState {
-  currentColor: string;
-  currentLabel: string;
+    currentColor: string;
+    currentLabel: string;
 }
 
 export function readLineArrowDistanceEditorState(object): LineArrowDistanceEditorState
@@ -91,11 +96,11 @@ export function readLineArrowDistanceEditorState(object): LineArrowDistanceEdito
 | Aspecto                   | Antes       | Depois     | Melhoria                              |
 |---------------------------|-------------|------------|---------------------------------------|
 | **Linhas**                | 597         | 651        | -8% (aumentou por funções auxiliares) |
-| **Duplicação de Scaling** | 150+ linhas | ~50 linhas | **-67%** ✅                            |
+| **Duplicação de Scaling** | 150+ linhas | ~50 linhas | **-67%**                              |
 | **Funções Auxiliares**    | 0           | 13         | Melhor organização                    |
-| **Type-safety**           | Baixa       | Alta       | **+100%** ✅                           |
-| **Testabilidade**         | Média       | Alta       | **+80%** ✅                            |
-| **Testes Passando**       | Sim         | Sim        | ✅                                     |
+| **Type-safety**           | Baixa       | Alta       | **+100%**                             |
+| **Testabilidade**         | Média       | Alta       | **+80%**                              |
+| **Testes Passando**       | Sim         | Sim        | OK                                    |
 
 ### Detalhamento de Funções Auxiliares Criadas
 
@@ -133,14 +138,14 @@ Utilitários:
 ```typescript
 // Padrão repetido 4 vezes
 export function normalizeLineGroupScaling(group, labelTop) {
-  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
-  if (runtimeGroup.__normalizingScale) return;
-  runtimeGroup.__normalizingScale = true;
-  try {
-    normalizeLineGroupToLength(group, ...);
-  } finally {
-    runtimeGroup.__normalizingScale = false;
-  }
+    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
+    if (runtimeGroup.__normalizingScale) return;
+    runtimeGroup.__normalizingScale = true;
+    try {
+        normalizeLineGroupToLength(group, ...);
+    } finally {
+        runtimeGroup.__normalizingScale = false;
+    }
 }
 ```
 
@@ -149,22 +154,22 @@ export function normalizeLineGroupScaling(group, labelTop) {
 ```typescript
 // Função genérica de scaling
 export function withScalingGuard<T>(
-  group: Group,
-  normalize: (g: Group) => void
+    group: Group,
+    normalize: (g: Group) => void
 ): void {
-  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
-  if (runtimeGroup.__normalizingScale) return;
-  runtimeGroup.__normalizingScale = true;
-  try {
-    normalize(group);
-  } finally {
-    runtimeGroup.__normalizingScale = false;
-  }
+    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
+    if (runtimeGroup.__normalizingScale) return;
+    runtimeGroup.__normalizingScale = true;
+    try {
+        normalize(group);
+    } finally {
+        runtimeGroup.__normalizingScale = false;
+    }
 }
 
 // Uso:
 export function normalizeLineGroupScaling(group, labelTop) {
-  withScalingGuard(group, (g) => normalizeLineGroupToLength(g, ...));
+    withScalingGuard(group, (g) => normalizeLineGroupToLength(g, ...));
 }
 ```
 
@@ -187,39 +192,39 @@ const distanceColor = "#000000";
 ```typescript
 // src/lib/canvas/constants.ts (expandir)
 export const ELEMENT_DEFAULTS = {
-  LINE: {
-    width: 200,
-    color: "#000000",
-    strokeWidth: 2,
-  },
-  ARROW: {
-    width: 200,
-    headSize: 15,
-    color: "#000000",
-  },
-  DISTANCE: {
-    width: 200,
-    tickHeight: 10,
-    color: "#000000",
-  },
-  WALL: {
-    width: 200,
-    height: 50,
-    color: "rgba(128, 128, 128, 0.3)",
-  },
-  WATER: {
-    width: 200,
-    height: 50,
-    color: "#0092DD",
-  },
-  FOSSA: {
-    fill: "rgba(139, 90, 43, 0.3)",
-    stroke: "#5D4037",
-  },
-  TREE: {
-    fill: "rgba(46, 204, 113, 0.6)",
-    stroke: "#27ae60",
-  },
+    LINE: {
+        width: 200,
+        color: "#000000",
+        strokeWidth: 2,
+    },
+    ARROW: {
+        width: 200,
+        headSize: 15,
+        color: "#000000",
+    },
+    DISTANCE: {
+        width: 200,
+        tickHeight: 10,
+        color: "#000000",
+    },
+    WALL: {
+        width: 200,
+        height: 50,
+        color: "rgba(128, 128, 128, 0.3)",
+    },
+    WATER: {
+        width: 200,
+        height: 50,
+        color: "#0092DD",
+    },
+    FOSSA: {
+        fill: "rgba(139, 90, 43, 0.3)",
+        stroke: "#5D4037",
+    },
+    TREE: {
+        fill: "rgba(46, 204, 113, 0.6)",
+        stroke: "#27ae60",
+    },
 };
 ```
 
@@ -231,9 +236,15 @@ export const ELEMENT_DEFAULTS = {
 
 ```typescript
 // Cada elemento tem seu próprio padrão de criação
-export function createLine(canvas) { ... }
-export function createArrow(canvas) { ... }
-export function createDistance(canvas) { ... }
+export function createLine(canvas) { ...
+}
+
+export function createArrow(canvas) { ...
+}
+
+export function createDistance(canvas) { ...
+}
+
 // ... 7 funções diferentes
 ```
 
@@ -242,28 +253,37 @@ export function createDistance(canvas) { ... }
 ```typescript
 // Padrão Strategy para criação
 interface ElementCreationStrategy {
-  create(canvas: FabricCanvas): Group | IText;
-  getNormalizeFunction?(): (group: Group, ...args: any[]) => void;
-  getBindFunction?(): (group: Group, ...args: any[]) => void;
+    create(canvas: FabricCanvas): Group | IText;
+
+    getNormalizeFunction?(): (group: Group, ...args: any[]) => void;
+
+    getBindFunction?(): (group: Group, ...args: any[]) => void;
 }
 
 class LineElementStrategy implements ElementCreationStrategy {
-  create(canvas: FabricCanvas): Group { ... }
-  getNormalizeFunction() { return normalizeLineGroupToLength; }
-  getBindFunction() { return bindLineGroupScaling; }
+    create(canvas: FabricCanvas): Group { ...
+    }
+
+    getNormalizeFunction() {
+        return normalizeLineGroupToLength;
+    }
+
+    getBindFunction() {
+        return bindLineGroupScaling;
+    }
 }
 
 // Factory
 const strategies: Record<string, ElementCreationStrategy> = {
-  line: new LineElementStrategy(),
-  arrow: new ArrowElementStrategy(),
-  // ...
+    line: new LineElementStrategy(),
+    arrow: new ArrowElementStrategy(),
+    // ...
 };
 
 export function createElement(type: string, canvas: FabricCanvas): Group | IText {
-  const strategy = strategies[type];
-  if (!strategy) throw new Error(`Unknown element: ${type}`);
-  return strategy.create(canvas);
+    const strategy = strategies[type];
+    if (!strategy) throw new Error(`Unknown element: ${type}`);
+    return strategy.create(canvas);
 }
 ```
 
@@ -275,11 +295,11 @@ export function createElement(type: string, canvas: FabricCanvas): Group | IText
 
 ```typescript
 // Novo arquivo criado
-src/components/rac-editor/modals/editors/generic/helpers/line-arrow-distance-editor-state.ts
+src / components / rac - editor / modals / editors / generic / helpers / line - arrow - distance - editor - state.ts
 
 export interface LineArrowDistanceEditorState {
-  currentColor: string;
-  currentLabel: string;
+    currentColor: string;
+    currentLabel: string;
 }
 
 export function readLineArrowDistanceEditorState(object): LineArrowDistanceEditorState
@@ -290,13 +310,19 @@ export function readLineArrowDistanceEditorState(object): LineArrowDistanceEdito
 ```typescript
 // Criar estratégias de editor para cada tipo
 export interface ElementEditorStrategy {
-  readState(object: CanvasRuntimeObject): unknown;
-  applyChanges(params: {canvas, object, ...changes}): void;
+    readState(object: CanvasRuntimeObject): unknown;
+
+    applyChanges(params: { canvas, object, ...changes }): void;
 }
 
 class LineArrowDistanceEditorStrategy implements ElementEditorStrategy {
-  readState(object) { return readLineArrowDistanceEditorState(object); }
-  applyChanges(params) { return applyLineArrowDistanceEditorChange(params); }
+    readState(object) {
+        return readLineArrowDistanceEditorState(object);
+    }
+
+    applyChanges(params) {
+        return applyLineArrowDistanceEditorChange(params);
+    }
 }
 ```
 
@@ -368,9 +394,18 @@ class LineArrowDistanceEditorStrategy implements ElementEditorStrategy {
 ### Smoke Tests Existentes
 
 ```typescript
-✅ createLine() - Mantém scaling horizontal apenas
-✅ createArrow() - Mantém tamanho da cabeça fixo
-✅ createDistance() - Mantém ticks alinhados
+✅ createLine() - Mantém
+scaling
+horizontal
+apenas
+✅ createArrow() - Mantém
+tamanho
+da
+cabeça
+fixo
+✅ createDistance() - Mantém
+ticks
+alinhados
 ```
 
 **Status:** Todos passando ✅
@@ -393,17 +428,17 @@ class LineArrowDistanceEditorStrategy implements ElementEditorStrategy {
 ```typescript
 // Reduz 30 linhas, melhora manutenção
 export function withScalingGuard(
-  group: Group,
-  normalize: (g: Group) => void
+    group: Group,
+    normalize: (g: Group) => void
 ): void {
-  const runtimeGroup = group as Group & {__normalizingScale?: boolean};
-  if (runtimeGroup.__normalizingScale) return;
-  runtimeGroup.__normalizingScale = true;
-  try {
-    normalize(group);
-  } finally {
-    runtimeGroup.__normalizingScale = false;
-  }
+    const runtimeGroup = group as Group & { __normalizingScale?: boolean };
+    if (runtimeGroup.__normalizingScale) return;
+    runtimeGroup.__normalizingScale = true;
+    try {
+        normalize(group);
+    } finally {
+        runtimeGroup.__normalizingScale = false;
+    }
 }
 ```
 
@@ -414,7 +449,7 @@ export function withScalingGuard(
 
 ```typescript
 // Centraliza valores mágicos
-export const ELEMENT_DEFAULTS = { ... };
+export const ELEMENT_DEFAULTS = {...};
 ```
 
 **Tempo:** 1 hora  
@@ -454,14 +489,14 @@ export const ELEMENT_DEFAULTS = { ... };
 
 ## 🎯 Métricas de Sucesso
 
-| Métrica                   | Atual      | Meta       | Status          |
-|---------------------------|------------|------------|-----------------|
-| **Duplicação de Scaling** | ~50 linhas | 0 linhas   | 🔄 Em progresso |
-| **Type-safety**           | Alta       | Muito Alta | ✅ Bom           |
-| **Testabilidade**         | Alta       | Muito Alta | ✅ Bom           |
-| **Extensibilidade**       | Média      | Muito Alta | 🔄 Próximo      |
-| **Linhas totais**         | 651        | ~600       | 🔄 Próximo      |
-| **Testes passando**       | 100%       | 100%       | ✅ Mantido       |
+| Métrica                   | Atual      | Meta       |    | Status       |
+|---------------------------|------------|------------|----|--------------|
+| **Duplicação de Scaling** | ~50 linhas | 0 linhas   | 🔄 | Em progresso |
+| **Type-safety**           | Alta       | Muito Alta | ✅ | Bom          |
+| **Testabilidade**         | Alta       | Muito Alta | ✅ | Bom          |
+| **Extensibilidade**       | Média      | Muito Alta | 🔄 | Próximo      |
+| **Linhas totais**         | 651        | ~600       | 🔄 | Próximo      |
+| **Testes passando**       | 100%       | 100%       | ✅ | Mantido      |
 
 ---
 

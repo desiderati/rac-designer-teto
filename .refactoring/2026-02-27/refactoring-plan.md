@@ -20,8 +20,8 @@ mais estável e manutenível antes de prosseguir com novas funcionalidades.
 
 | Dimensão                     | Observação Chave                                                               | Status         | Prioridade  |
 |:-----------------------------|:-------------------------------------------------------------------------------|:---------------|:------------|
-| **1. Estrutura de Arquivos** | 214 arquivos de código, 18.9k linhas (core), 19 testes unitários.              | 🟡 **Alerta**  | Média       |
-| **2. Clean Architecture**    | Domínio, Infra e Shared bem definidos. `HouseAggregate` com 264 linhas.        | ✅ **OK**       | Baixa       |
+| **1. Estrutura de Arquivos** | 214 arquivos de código, 18.9k linhas (core), 19 testes unitários.              | **Alerta**     | Média       |
+| **2. Clean Architecture**    | Domínio, Infra e Shared bem definidos. `HouseAggregate` com 264 linhas.        | ✅ **OK**      | Baixa       |
 | **3. Hooks SRP**             | `useContraventamentoRefs` (9 `useEffect`), `useCanvasViewport` (8 `useState`). | 🔴 **Crítico** | Alta        |
 | **4. Componentes**           | `RacEditor.tsx` é um "God Component" com 94 hooks e 569 linhas.                | 🔴 **Crítico** | Alta        |
 | **5. Testes**                | **12 testes falhando** após a refatoração. Cobertura baixa (19/195).           | 🚨 **BLOCKER** | **URGENTE** |

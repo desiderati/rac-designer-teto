@@ -492,11 +492,11 @@ export const ELEMENT_DEFAULTS = {...};
 | Métrica                   | Atual      | Meta       | Status          |
 |---------------------------|------------|------------|-----------------|
 | **Duplicação de Scaling** | ~50 linhas | 0 linhas   | 🔄 Em progresso |
-| **Type-safety**           | Alta       | Muito Alta | ✅ Bom           |
-| **Testabilidade**         | Alta       | Muito Alta | ✅ Bom           |
+| **Type-safety**           | Alta       | Muito Alta | ✅ Bom          |
+| **Testabilidade**         | Alta       | Muito Alta | ✅ Bom          |
 | **Extensibilidade**       | Média      | Muito Alta | 🔄 Próximo      |
 | **Linhas totais**         | 651        | ~600       | 🔄 Próximo      |
-| **Testes passando**       | 100%       | 100%       | ✅ Mantido       |
+| **Testes passando**       | 100%       | 100%       | ✅ Mantido      |
 
 ---
 

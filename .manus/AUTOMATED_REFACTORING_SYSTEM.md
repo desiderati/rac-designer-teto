@@ -11,26 +11,22 @@
 A two-agent automated system for continuous code analysis and refactoring of the `rac-designer-teto` repository.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│  Agent 1: Analysis (Daily)                                  │
-│  ├─ Pull repository changes                                 │
-│  ├─ Check for new commits                                   │
-│  ├─ Generate refactoring plan                               │
-│  ├─ Generate regression checklist                           │
-│  └─ Notify for manual approval                              │
-│                                                             │
-│  ⏳ WAITING FOR YOUR APPROVAL                               │
-│                                                             │
-│  Agent 2: Execution (Automatic after approval)              │
-│  ├─ Read plan and checklist                                 │
-│  ├─ Execute each phase                                      │
-│  ├─ Run regression tests                                    │
-│  ├─ Auto-fix failures (up to 3 attempts)                    │
-│  ├─ Rollback on failure                                     │
-│  └─ Notify on completion                                    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+  Agent 1: Analysis (Daily)
+  ├─ Pull repository changes
+  ├─ Check for new commits
+  ├─ Generate refactoring plan
+  ├─ Generate regression checklist
+  └─ Notify for manual approval
+
+  ⏳ WAITING FOR YOUR APPROVAL
+
+  Agent 2: Execution (Automatic after approval)
+  ├─ Read plan and checklist
+  ├─ Execute each phase
+  ├─ Run regression tests
+  ├─ Auto-fix failures (up to 3 attempts)
+  ├─ Rollback on failure
+  └─ Notify on completion
 ```
 
 ---

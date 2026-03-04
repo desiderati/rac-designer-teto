@@ -42,32 +42,32 @@ Adicionar constantes para as 3 funcionalidades:
 ```typescript
 // Escadas
 export const STAIR_DEFAULTS = {
-  width: 80,
-  depth: 30,
-  minHeight: 10,
-  color: '#8B7355',
-  material: 'wood'
+    width: 80,
+    depth: 30,
+    minHeight: 10,
+    color: '#8B7355',
+    material: 'wood'
 };
 
 // Contraventamento - Regras de Posicionamento
 export const CONTRAVENTAMENTO_RULES = {
-  20: { aboveGround: 5, belowBeam: 5 },
-  30: { aboveGround: 10, belowBeam: 10 },
-  40: { aboveGround: 20, belowBeam: 20 }
+    20: {aboveGround: 5, belowBeam: 5},
+    30: {aboveGround: 10, belowBeam: 10},
+    40: {aboveGround: 20, belowBeam: 20}
 };
 
 // Terreno - Tipos e Dimensões
 export const TERRENO_TYPES = {
-  1: { name: 'Seco', depth: 13 },
-  2: { name: 'Argiloso', depth: 25 },
-  3: { name: 'Com água no fundo', depth: 38 },
-  4: { name: 'Com bastante água', depth: 50 },
-  5: { name: 'Submerso', depth: 63 }
+    1: {name: 'Seco', depth: 13},
+    2: {name: 'Argiloso', depth: 25},
+    3: {name: 'Com água no fundo', depth: 38},
+    4: {name: 'Com bastante água', depth: 50},
+    5: {name: 'Submerso', depth: 63}
 };
 
 export const TERRENO_DIMENSIONS = {
-  lateralBritasWidth: 10, // cm em cada lado
-  pattern: 'stones' // tipo de padrão visual
+    lateralBritasWidth: 10, // cm em cada lado
+    pattern: 'stones' // tipo de padrão visual
 };
 ```
 
@@ -78,34 +78,34 @@ Arquivo: `src/components/rac-editor/types/features.ts`
 ```typescript
 // Escada
 export interface Stair {
-  id: string;
-  pilotiId: string;
-  leftLevel: number;
-  rightLevel: number;
-  height: number;
-  width: number;
-  depth: number;
-  position: Point3D;
+    id: string;
+    pilotiId: string;
+    leftLevel: number;
+    rightLevel: number;
+    height: number;
+    width: number;
+    depth: number;
+    position: Point3D;
 }
 
 // Contraventamento (atualizar tipo existente)
 export interface Contraventamento {
-  id: string;
-  pilotiId: string;
-  level: number; // 20, 30, 40+
-  aboveGround: number;
-  belowBeam: number;
-  position: Point3D;
+    id: string;
+    pilotiId: string;
+    level: number; // 20, 30, 40+
+    aboveGround: number;
+    belowBeam: number;
+    position: Point3D;
 }
 
 // Terreno
 export interface Terreno {
-  id: string;
-  pilotiId: string;
-  solidityLevel: 1 | 2 | 3 | 4 | 5;
-  depth: number;
-  lateralBritasWidth: number;
-  position: Point3D;
+    id: string;
+    pilotiId: string;
+    solidityLevel: 1 | 2 | 3 | 4 | 5;
+    depth: number;
+    lateralBritasWidth: number;
+    position: Point3D;
 }
 ```
 
@@ -115,23 +115,23 @@ Arquivo: `src/lib/canvas/factory/elements-factory.smoke.test.ts`
 
 ```typescript
 describe('New Features - Smoke Tests', () => {
-  describe('Stairs', () => {
-    it('should create stair element', () => {
-      // Teste básico
+    describe('Stairs', () => {
+        it('should create stair element', () => {
+            // Teste básico
+        });
     });
-  });
 
-  describe('Contraventamento', () => {
-    it('should create contraventamento with correct positioning', () => {
-      // Teste básico
+    describe('Contraventamento', () => {
+        it('should create contraventamento with correct positioning', () => {
+            // Teste básico
+        });
     });
-  });
 
-  describe('Terreno', () => {
-    it('should create terreno with correct depth', () => {
-      // Teste básico
+    describe('Terreno', () => {
+        it('should create terreno with correct depth', () => {
+            // Teste básico
+        });
     });
-  });
 });
 ```
 
@@ -163,18 +163,18 @@ Implementar geração automática de escadas em TopView e Elevation.
  * @returns Group containing stair representation
  */
 export function createStair(canvas: Canvas, piloti: Piloti): Group {
-  // Cálculos:
-  // 1. Altura da escada = altura do menor contato com solo + 10cm
-  // 2. Nível esquerdo = calculado automaticamente
-  // 3. Nível direito = calculado automaticamente
-  
-  // Criar grupo com:
-  // - Degraus (múltiplos retângulos)
-  // - Corrimão esquerdo
-  // - Corrimão direito
-  // - Etiqueta com níveis
-  
-  // Retornar grupo
+    // Cálculos:
+    // 1. Altura da escada = altura do menor contato com solo + 10cm
+    // 2. Nível esquerdo = calculado automaticamente
+    // 3. Nível direito = calculado automaticamente
+
+    // Criar grupo com:
+    // - Degraus (múltiplos retângulos)
+    // - Corrimão esquerdo
+    // - Corrimão direito
+    // - Etiqueta com níveis
+
+    // Retornar grupo
 }
 ```
 
@@ -192,20 +192,20 @@ Arquivo: `src/components/rac-editor/hooks/useStairCalculations.ts`
 
 ```typescript
 export function useStairCalculations(piloti: Piloti) {
-  // Calcular:
-  // - Altura total
-  // - Número de degraus
-  // - Altura de cada degrau
-  // - Nível esquerdo
-  // - Nível direito
-  
-  return {
-    totalHeight,
-    numberOfSteps,
-    stepHeight,
-    leftLevel,
-    rightLevel
-  };
+    // Calcular:
+    // - Altura total
+    // - Número de degraus
+    // - Altura de cada degrau
+    // - Nível esquerdo
+    // - Nível direito
+
+    return {
+        totalHeight,
+        numberOfSteps,
+        stepHeight,
+        leftLevel,
+        rightLevel
+    };
 }
 ```
 
@@ -215,23 +215,23 @@ Arquivo: `src/components/rac-editor/hooks/useStairCreation.ts`
 
 ```typescript
 export function useStairCreation(canvas: Canvas) {
-  const createStairForPiloti = (piloti: Piloti) => {
-    // 1. Validar se piloti tem porta
-    // 2. Calcular dimensões
-    // 3. Chamar createStair()
-    // 4. Adicionar ao canvas
-    // 5. Atualizar modelo
-  };
+    const createStairForPiloti = (piloti: Piloti) => {
+        // 1. Validar se piloti tem porta
+        // 2. Calcular dimensões
+        // 3. Chamar createStair()
+        // 4. Adicionar ao canvas
+        // 5. Atualizar modelo
+    };
 
-  const updateStair = (stair: Stair, piloti: Piloti) => {
-    // Atualizar escada quando piloti muda
-  };
+    const updateStair = (stair: Stair, piloti: Piloti) => {
+        // Atualizar escada quando piloti muda
+    };
 
-  const deleteStair = (stairId: string) => {
-    // Deletar escada
-  };
+    const deleteStair = (stairId: string) => {
+        // Deletar escada
+    };
 
-  return { createStairForPiloti, updateStair, deleteStair };
+    return {createStairForPiloti, updateStair, deleteStair};
 }
 ```
 
@@ -240,15 +240,17 @@ export function useStairCreation(canvas: Canvas) {
 Arquivo: `src/components/rac-editor/modals/editors/stair/StairEditor.tsx`
 
 ```typescript
-export function StairEditor({ stair, piloti, onSave, onClose }: Props) {
-  // Modal com:
-  // - Exibição de altura total
-  // - Exibição de nível esquerdo
-  // - Exibição de nível direito
-  // - Botão salvar
-  // - Botão cancelar
-  
-  return <Modal>...</Modal>;
+export function StairEditor({stair, piloti, onSave, onClose}: Props) {
+    // Modal com:
+    // - Exibição de altura total
+    // - Exibição de nível esquerdo
+    // - Exibição de nível direito
+    // - Botão salvar
+    // - Botão cancelar
+
+    return <Modal>
+...
+    </Modal>;
 }
 ```
 
@@ -266,21 +268,21 @@ Arquivo: `src/lib/canvas/factory/elements-factory.test.ts`
 
 ```typescript
 describe('createStair', () => {
-  it('should calculate height correctly', () => {
-    // Teste
-  });
+    it('should calculate height correctly', () => {
+        // Teste
+    });
 
-  it('should calculate left level correctly', () => {
-    // Teste
-  });
+    it('should calculate left level correctly', () => {
+        // Teste
+    });
 
-  it('should calculate right level correctly', () => {
-    // Teste
-  });
+    it('should calculate right level correctly', () => {
+        // Teste
+    });
 
-  it('should create stair with correct dimensions', () => {
-    // Teste
-  });
+    it('should create stair with correct dimensions', () => {
+        // Teste
+    });
 });
 ```
 
@@ -309,26 +311,26 @@ Atualizar contraventamento com novas regras de posicionamento.
 
 ```typescript
 export function createContraventamento(canvas: Canvas, piloti: Piloti): Group {
-  // Obter nível do piloti
-  const level = piloti.level; // 20, 30, 40+
-  
-  // Obter regras de posicionamento
-  const rules = getContraventamentoRules(level);
-  
-  // Calcular posição:
-  // - Acima do chão: rules.aboveGround
-  // - Abaixo da viga: rules.belowBeam
-  
-  // Criar contraventamento com posição correta
-  // Retornar grupo
+    // Obter nível do piloti
+    const level = piloti.level; // 20, 30, 40+
+
+    // Obter regras de posicionamento
+    const rules = getContraventamentoRules(level);
+
+    // Calcular posição:
+    // - Acima do chão: rules.aboveGround
+    // - Abaixo da viga: rules.belowBeam
+
+    // Criar contraventamento com posição correta
+    // Retornar grupo
 }
 
 function getContraventamentoRules(level: number) {
-  // Retornar regras baseadas em nível
-  // Se level < 20: erro
-  // Se level === 20: { aboveGround: 5, belowBeam: 5 }
-  // Se level === 30: { aboveGround: 10, belowBeam: 10 }
-  // Se level >= 40: { aboveGround: 20, belowBeam: 20 }
+    // Retornar regras baseadas em nível
+    // Se level < 20: erro
+    // Se level === 20: { aboveGround: 5, belowBeam: 5 }
+    // Se level === 30: { aboveGround: 10, belowBeam: 10 }
+    // Se level >= 40: { aboveGround: 20, belowBeam: 20 }
 }
 ```
 
@@ -342,18 +344,18 @@ function getContraventamentoRules(level: number) {
 
 ```typescript
 export function useContraventamentoCalculations(piloti: Piloti) {
-  // Calcular:
-  // - Nível do piloti
-  // - Regras de posicionamento
-  // - Posição acima do chão
-  // - Posição abaixo da viga
-  
-  return {
-    level,
-    rules,
-    aboveGround,
-    belowBeam
-  };
+    // Calcular:
+    // - Nível do piloti
+    // - Regras de posicionamento
+    // - Posição acima do chão
+    // - Posição abaixo da viga
+
+    return {
+        level,
+        rules,
+        aboveGround,
+        belowBeam
+    };
 }
 ```
 
@@ -361,25 +363,25 @@ export function useContraventamentoCalculations(piloti: Piloti) {
 
 ```typescript
 describe('Contraventamento - New Rules', () => {
-  it('should support level 20cm', () => {
-    // Teste
-  });
+    it('should support level 20cm', () => {
+        // Teste
+    });
 
-  it('should support level 30cm', () => {
-    // Teste
-  });
+    it('should support level 30cm', () => {
+        // Teste
+    });
 
-  it('should position correctly at 20cm', () => {
-    // Teste: aboveGround=5, belowBeam=5
-  });
+    it('should position correctly at 20cm', () => {
+        // Teste: aboveGround=5, belowBeam=5
+    });
 
-  it('should position correctly at 30cm', () => {
-    // Teste: aboveGround=10, belowBeam=10
-  });
+    it('should position correctly at 30cm', () => {
+        // Teste: aboveGround=10, belowBeam=10
+    });
 
-  it('should position correctly at 40cm+', () => {
-    // Teste: aboveGround=20, belowBeam=20
-  });
+    it('should position correctly at 40cm+', () => {
+        // Teste: aboveGround=20, belowBeam=20
+    });
 });
 ```
 
@@ -405,15 +407,15 @@ Implementar representação gráfica de terreno com edição de solidez.
 #### 4.1 Implementar `createTerreno()` em `elements-factory.ts`
 
 ```typescript
-export function createTerreno(canvas: Canvas, piloti: Piloti, solidityLevel: 1|2|3|4|5 = 1): Group {
-  // Criar grupo com:
-  // - Cama de rachão (desenho 2D)
-  // - Britas laterais (10cm cada lado)
-  
-  // Profundidade baseada em solidityLevel:
-  // 1 = 13cm, 2 = 25cm, 3 = 38cm, 4 = 50cm, 5 = 63cm
-  
-  // Retornar grupo
+export function createTerreno(canvas: Canvas, piloti: Piloti, solidityLevel: 1 | 2 | 3 | 4 | 5 = 1): Group {
+    // Criar grupo com:
+    // - Cama de rachão (desenho 2D)
+    // - Britas laterais (10cm cada lado)
+
+    // Profundidade baseada em solidityLevel:
+    // 1 = 13cm, 2 = 25cm, 3 = 38cm, 4 = 50cm, 5 = 63cm
+
+    // Retornar grupo
 }
 ```
 
@@ -423,21 +425,21 @@ Arquivo: `src/lib/canvas/renderers/drawTerreno.ts`
 
 ```typescript
 export function drawTerreno(
-  canvas: Canvas,
-  piloti: Piloti,
-  solidityLevel: 1|2|3|4|5
+    canvas: Canvas,
+    piloti: Piloti,
+    solidityLevel: 1 | 2 | 3 | 4 | 5
 ): void {
-  // Desenhar cama de rachão:
-  // - Padrão de pedras (círculos/polígonos)
-  // - Cor cinza/marrom
-  // - Profundidade baseada em solidityLevel
-  
-  // Desenhar britas laterais:
-  // - 10cm de largura em cada lado
-  // - Padrão de pedras menores
-  // - Cor mais clara
-  
-  // Usar Canvas 2D API para desenho
+    // Desenhar cama de rachão:
+    // - Padrão de pedras (círculos/polígonos)
+    // - Cor cinza/marrom
+    // - Profundidade baseada em solidityLevel
+
+    // Desenhar britas laterais:
+    // - 10cm de largura em cada lado
+    // - Padrão de pedras menores
+    // - Cor mais clara
+
+    // Usar Canvas 2D API para desenho
 }
 ```
 
@@ -449,20 +451,20 @@ Arquivo: `src/components/rac-editor/hooks/useTerreno.ts`
 
 ```typescript
 export function useTerreno(canvas: Canvas) {
-  const createTerreno = (piloti: Piloti, solidityLevel: 1|2|3|4|5) => {
-    // Criar terreno
-  };
+    const createTerreno = (piloti: Piloti, solidityLevel: 1 | 2 | 3 | 4 | 5) => {
+        // Criar terreno
+    };
 
-  const updateTerreno = (terreno: Terreno, solidityLevel: 1|2|3|4|5) => {
-    // Atualizar profundidade
-    // Redesenhar
-  };
+    const updateTerreno = (terreno: Terreno, solidityLevel: 1 | 2 | 3 | 4 | 5) => {
+        // Atualizar profundidade
+        // Redesenhar
+    };
 
-  const deleteTerreno = (terraId: string) => {
-    // Deletar terreno
-  };
+    const deleteTerreno = (terraId: string) => {
+        // Deletar terreno
+    };
 
-  return { createTerreno, updateTerreno, deleteTerreno };
+    return {createTerreno, updateTerreno, deleteTerreno};
 }
 ```
 
@@ -471,21 +473,23 @@ export function useTerreno(canvas: Canvas) {
 Arquivo: `src/components/rac-editor/modals/editors/terreno/TerrenoEditor.tsx`
 
 ```typescript
-export function TerrenoEditor({ terreno, piloti, onSave, onClose }: Props) {
-  // Modal com:
-  // - Slider com 5 posições (1-5)
-  // - Labels: Seco, Argiloso, Com água no fundo, Com bastante água, Submerso
-  // - Exibição de profundidade (13, 25, 38, 50, 63 cm)
-  // - Preview visual do terreno
-  // - Botão salvar
-  // - Botão cancelar
-  
-  const handleSliderChange = (value: 1|2|3|4|5) => {
-    // Atualizar solidityLevel
-    // Atualizar preview
-  };
+export function TerrenoEditor({terreno, piloti, onSave, onClose}: Props) {
+    // Modal com:
+    // - Slider com 5 posições (1-5)
+    // - Labels: Seco, Argiloso, Com água no fundo, Com bastante água, Submerso
+    // - Exibição de profundidade (13, 25, 38, 50, 63 cm)
+    // - Preview visual do terreno
+    // - Botão salvar
+    // - Botão cancelar
 
-  return <Modal>...</Modal>;
+    const handleSliderChange = (value: 1 | 2 | 3 | 4 | 5) => {
+        // Atualizar solidityLevel
+        // Atualizar preview
+    };
+
+    return <Modal>
+...
+    </Modal>;
 }
 ```
 
@@ -500,12 +504,12 @@ Atualizar canvas para:
 ```typescript
 // Em hook de interatividade do canvas
 canvas.on('mouse:down', (event) => {
-  const clickedObject = event.target;
-  
-  if (clickedObject?.myType === 'terreno') {
-    // Abrir modal de edição
-    openTerrenoEditor(clickedObject.terraId);
-  }
+    const clickedObject = event.target;
+
+    if (clickedObject?.myType === 'terreno') {
+        // Abrir modal de edição
+        openTerrenoEditor(clickedObject.terraId);
+    }
 });
 ```
 
@@ -513,25 +517,25 @@ canvas.on('mouse:down', (event) => {
 
 ```typescript
 describe('Terreno', () => {
-  it('should create terreno with correct depth for level 1', () => {
-    // Teste: depth = 13cm
-  });
+    it('should create terreno with correct depth for level 1', () => {
+        // Teste: depth = 13cm
+    });
 
-  it('should create terreno with correct depth for level 5', () => {
-    // Teste: depth = 63cm
-  });
+    it('should create terreno with correct depth for level 5', () => {
+        // Teste: depth = 63cm
+    });
 
-  it('should draw lateral britas with 10cm width', () => {
-    // Teste
-  });
+    it('should draw lateral britas with 10cm width', () => {
+        // Teste
+    });
 
-  it('should update terreno when solidityLevel changes', () => {
-    // Teste
-  });
+    it('should update terreno when solidityLevel changes', () => {
+        // Teste
+    });
 
-  it('should be clickable and open editor', () => {
-    // Teste de interatividade
-  });
+    it('should be clickable and open editor', () => {
+        // Teste de interatividade
+    });
 });
 ```
 

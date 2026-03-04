@@ -66,4 +66,74 @@ describe('House3DScene contraventamento', () => {
     const cylinderCount = scene.container.querySelectorAll('cylindergeometry').length;
     expect(cylinderCount).toBe(ALL_PILOTI_IDS.length * 2);
   });
+
+  it('renderiza escada 3D em degraus com laterais e piso do degrau', () => {
+    const pilotis = {} as Record<string, HousePiloti>;
+
+    const baseline = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+        stairs={[]}
+      />,
+    );
+    const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
+    baseline.unmount();
+
+    const withStairs = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+        stairs={[{
+          id: 'stairs-1',
+          face: 'front',
+          centerFromLeft: 220,
+          width: 40,
+          stairHeightMts: 0.9,
+          stepCount: 3,
+        }]}
+      />,
+    );
+    const withStairsBoxGeometryCount = withStairs.container.querySelectorAll('boxgeometry').length;
+
+    // No 3D, remove o degrau mais alto: stepCount=3 renderiza 2 degraus.
+    // Cada degrau adiciona 2 boxes: corpo branco + piso marrom.
+    expect(withStairsBoxGeometryCount).toBe(baselineBoxGeometryCount + 4);
+  });
+
+  it('não renderiza escada no 3D quando altura útil fica menor ou igual a zero após desconto extra', () => {
+    const pilotis = {} as Record<string, HousePiloti>;
+
+    const baseline = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+        stairs={[]}
+      />,
+    );
+    const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
+    baseline.unmount();
+
+    const withTinyStair = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+        stairs={[{
+          id: 'stairs-tiny',
+          face: 'front',
+          centerFromLeft: 220,
+          width: 40,
+          stairHeightMts: 0.3,
+          stepCount: 1,
+        }]}
+      />,
+    );
+    const withTinyStairBoxGeometryCount = withTinyStair.container.querySelectorAll('boxgeometry').length;
+
+    expect(withTinyStairBoxGeometryCount).toBe(baselineBoxGeometryCount);
+  });
 });

@@ -11,7 +11,7 @@ Este documento descreve regras do visualizador 3D (`House3DViewer`) e da cena 3D
 
 2. `House3DScene`
     - composição geométrica do modelo 3D
-    - terreno/pilotis/casca/aberturas/contraventamentos
+    - terreno/pilotis/casca/aberturas/contraventamentos/escadas
 
 ## 2. Sincronização de dados
 
@@ -26,6 +26,7 @@ Quando o viewer está aberto:
     - `tipo3OpenSide` com espelhamento semântico de `side2` (eixo 3D é invertido em relação ao 2D)
 
 4. parseia contraventamentos da planta com `parseContraventamentosFromTopGroup`
+5. parseia escadas automáticas das vistas elevadas com `parseAutoStairsFromElevationViews`
 
 ## 3. Regras de render
 
@@ -36,6 +37,7 @@ Quando o viewer está aberto:
     - terreno
     - pilotis
     - contraventamentos
+    - escadas
     - casca da casa
     - aberturas (portas/janelas)
 3. aberturas são mapeadas por `buildSceneOpeningsFromCanvasModel`
@@ -46,12 +48,29 @@ Quando o viewer está aberto:
 2. piloti ajusta altura visual conforme terreno/nível
 3. mestre preserva destaque de cor no 3D
 4. no modo `ocultar abaixo do terreno`, o recorte dos pilotis usa piso mínimo de `0,5 m` para o ponto de corte
+5. terreno 3D possui espessura fixa equivalente a `30 cm`
 
 ## 3.3 Contraventamentos 3D
 
 1. fonte de verdade vem da planta (`top`)
 2. parser normaliza metadados e descarta entradas inválidas
 3. mesh 3D depende de coluna/linhas/lado e piloti ancora
+
+## 3.4 Escadas 3D
+
+1. fonte de verdade vem dos objetos de escada automática nas vistas elevadas (metadados `isAutoStairs`)
+2. parser carrega `face`, largura, centro horizontal, altura total e quantidade de degraus
+3. o mapeamento de face respeita o mesmo espelhamento semântico já usado no viewer:
+    - `tipo6`: frente/trás baseado em `sideMappings.top/bottom`
+    - `tipo3`: `side2` convertido para `left/right` no eixo 3D
+4. geometria dos degraus segue regra fixa: `stepRise = stepRun` (`altura = profundidade`)
+5. visual da escada:
+    - corpo/laterais em cor clara (`COLORS.stairsSide`)
+    - piso do degrau em marrom (`COLORS.stairsTread`)
+6. no 3D, a altura visível da escada desconta `AUTO_STAIR_HEIGHT_EXTRA_MTS` (folga usada no 2D); o 2D permanece sem alteração
+7. no 3D, o degrau mais alto não é renderizado:
+    - renderiza `stepCount - 1` degraus
+    - desloca a escada 1 profundidade de degrau em direção à casa (equivalente ao degrau removido)
 
 ## 4. Ações do viewer
 

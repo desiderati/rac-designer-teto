@@ -4,7 +4,6 @@ import {
   BufferGeometry,
   Color,
   DoubleSide,
-  FrontSide,
   MathUtils,
   PlaneGeometry,
   Quaternion,
@@ -24,6 +23,7 @@ import {
   FLOOR_BEAM_STRIP_DEPTH,
   FLOOR_HEIGHT,
   HOUSE_3D_DEPTH,
+  HOUSE_3D_FINAL_SCALE,
   HOUSE_3D_VIEWER_SCALE,
   HOUSE_3D_WIDTH,
   PANEL_OFFSET_RATIO,
@@ -42,6 +42,7 @@ import {
   ROOF_WAVE_SEGMENTS_Z,
   TERRAIN_MARGIN,
   TERRAIN_SEGMENTS,
+  TERRAIN_THICKNESS,
   WALL_BASE_Y,
   WALL_HEIGHT,
   WALL_THICKNESS,
@@ -51,6 +52,7 @@ import {
   type SceneOpening
 } from '@/components/rac-editor/lib/3d/scene-openings-builder.ts';
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
+import {Stair3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-visibility.ts';
 import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
@@ -60,6 +62,7 @@ interface House3DSceneProps {
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
   contraventamentos?: Contraventamento3DData[];
+  stair: Stair3DData;
   wallColor?: string;
   tipo6FrontSide?: 'top' | 'bottom' | null;
   tipo3OpenSide?: 'left' | 'right' | null;
@@ -67,11 +70,16 @@ interface House3DSceneProps {
 }
 
 const MIN_HIDE_BELOW_TERRAIN_NIVEL = 0.5;
+const STAIR_FACE_GAP = 0.35;
+const STAIR_TREAD_THICKNESS = 2;
+const STAIR_TREAD_WIDTH_FACTOR = 0.97;
+const STAIR_TREAD_DEPTH_FACTOR = 0.97;
 
 export function House3DScene({
   houseType,
   pilotis,
   contraventamentos = [],
+  stair,
   wallColor = HOUSE_3D_WALL_COLORS.sceneFallbackColor,
   tipo6FrontSide = null,
   tipo3OpenSide = null,
@@ -85,7 +93,7 @@ export function House3DScene({
 
   return (
     <group>
-      <TerrainMesh pilotis={pilotis} hideBelowTerrain={hideBelowTerrain}/>
+      <TerrainMesh pilotis={pilotis} margin={stair.stairHeightMts * 100 * HOUSE_3D_VIEWER_SCALE}/>
 
       {ALL_PILOTI_IDS.map((pilotiId) => (
         <PilotiMesh
@@ -100,6 +108,8 @@ export function House3DScene({
         <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis}/>
       ))}
 
+      <AutoStairMesh key={stair.id} stair={stair}/>
+
       <HouseShell wallColor={wallColor}/>
 
       {sceneOpenings.map((element) => (
@@ -109,16 +119,65 @@ export function House3DScene({
   );
 }
 
+function AutoStairMesh({stair}: { stair: Stair3DData }) {
+  const stepCount = Math.max(1, Math.round(stair.stepCount));
+
+  const visibleStairHeightMts = stair.stairHeightMts;
+  const stairHeight = visibleStairHeightMts * 100 * HOUSE_3D_FINAL_SCALE;
+  const stairWidth = Math.max(stair.width * HOUSE_3D_VIEWER_SCALE, 1);
+  if (!Number.isFinite(stairHeight) || stairHeight <= 0) return null;
+  if (!Number.isFinite(stairWidth) || stairWidth <= 0) return null;
+
+  const stepRise = stairHeight / stepCount;
+  const stepRun = stepRise; // Regra da escada: altura = profundidade.
+  const centerFromLeft = stair.centerFromLeft * HOUSE_3D_VIEWER_SCALE;
+  const anchor = resolveStairFaceAnchor(stair.face, centerFromLeft);
+  const baseY = WALL_BASE_Y - FLOOR_BEAM_HEIGHT - stairHeight;
+
+  return (
+    <group position={[anchor.x, baseY, anchor.z]} rotation={[0, anchor.rotationY, 0]}>
+      {Array.from({length: stepCount}, (_, index) => {
+        const level = index + 1;
+        const bodyHeight = level * stepRise;
+        const stepCenterZ = ((stepCount - index) * stepRun) - stepRun / 2;
+
+        return (
+          <group key={`${stair.id}-step-${index}`}>
+            <mesh position={[0, bodyHeight / 2, stepCenterZ]} castShadow receiveShadow>
+              <boxGeometry args={[stairWidth, bodyHeight, stepRun]}/>
+              <meshStandardMaterial color={COLORS.stairsSide} roughness={0.7}/>
+            </mesh>
+            <mesh
+              position={[0, bodyHeight + STAIR_TREAD_THICKNESS / 2, stepCenterZ]}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry
+                args={[
+                  stairWidth * STAIR_TREAD_WIDTH_FACTOR,
+                  STAIR_TREAD_THICKNESS,
+                  stepRun * STAIR_TREAD_DEPTH_FACTOR,
+                ]}
+              />
+              <meshStandardMaterial color={COLORS.stairsTread} roughness={0.7}/>
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
 function TerrainMesh({
   pilotis,
-  hideBelowTerrain,
+  margin,
 }: {
   pilotis: Record<string, HousePiloti>;
-  hideBelowTerrain: boolean;
+  margin: number;
 }) {
-  const geometry = useMemo(() => {
-    const width = HOUSE_3D_WIDTH + TERRAIN_MARGIN * 2;
-    const depth = HOUSE_3D_DEPTH + TERRAIN_MARGIN * 2;
+  const topGeometry = useMemo(() => {
+    const width = HOUSE_3D_WIDTH + TERRAIN_MARGIN + margin;
+    const depth = HOUSE_3D_DEPTH + TERRAIN_MARGIN + margin;
 
     const geo = new PlaneGeometry(width, depth, TERRAIN_SEGMENTS, TERRAIN_SEGMENTS);
     const positions = geo.attributes.position as BufferAttribute;
@@ -136,13 +195,18 @@ function TerrainMesh({
     return geo;
   }, [pilotis]);
 
+  const volumeGeometry = useMemo(
+    () => createTerrainVolumeGeometry(topGeometry, TERRAIN_SEGMENTS, TERRAIN_THICKNESS),
+    [topGeometry],
+  );
+
   return (
-    <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+    <mesh geometry={volumeGeometry} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <meshStandardMaterial
         color={COLORS.terrain}
-        roughness={0.95}
+        roughness={2}
         metalness={0}
-        side={hideBelowTerrain ? FrontSide : DoubleSide}
+        side={DoubleSide}
       />
     </mesh>
   );
@@ -162,6 +226,7 @@ function PilotiMesh({
 
   const data = pilotis[pilotiId] ?? DEFAULT_HOUSE_PILOTI;
   const [x, z] = getPilotiTopXZ(grid.col, grid.row);
+
   // No eixo de 6m (front/back), o UV do terreno segue o índice de coluna direto.
   // Inverter esse eixo aqui causa recorte flipado na ocultação abaixo do terreno.
   const terrainY = resolvePilotiTerrainY({
@@ -550,6 +615,45 @@ function getPilotiTopXZ(col: number, row: number): [number, number] {
   return [x, z];
 }
 
+function resolveStairFaceAnchor(
+  face: Stair3DData['face'],
+  centerFromLeft: number,
+): { x: number; z: number; rotationY: number } {
+  const halfWidth = HOUSE_3D_WIDTH / 2;
+  const halfDepth = HOUSE_3D_DEPTH / 2;
+  const faceOffset = PANEL_OFFSET_RATIO + STAIR_FACE_GAP;
+
+  if (face === 'front') {
+    return {
+      x: centerFromLeft - halfWidth,
+      z: halfDepth + faceOffset,
+      rotationY: 0,
+    };
+  }
+
+  if (face === 'back') {
+    return {
+      x: halfWidth - centerFromLeft,
+      z: -halfDepth - faceOffset,
+      rotationY: Math.PI,
+    };
+  }
+
+  if (face === 'left') {
+    return {
+      x: -halfWidth - faceOffset,
+      z: centerFromLeft - halfDepth,
+      rotationY: -Math.PI / 2,
+    };
+  }
+
+  return {
+    x: halfWidth + faceOffset,
+    z: -(centerFromLeft - halfDepth),
+    rotationY: Math.PI / 2,
+  };
+}
+
 function resolvePilotiTerrainY(params: {
   pilotis: Record<string, HousePiloti>;
   col: number;
@@ -587,4 +691,56 @@ function resolvePilotiTerrainY(params: {
   });
 
   return Number.isFinite(minY) ? minY : centerY;
+}
+
+function createTerrainVolumeGeometry(
+  topGeometry: PlaneGeometry,
+  segments: number,
+  thickness: number,
+): BufferGeometry {
+  const topPositions = topGeometry.attributes.position as BufferAttribute;
+  const topIndex = topGeometry.index;
+  const topVertexCount = topPositions.count;
+
+  const positions: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i < topVertexCount; i += 1) {
+    positions.push(topPositions.getX(i), topPositions.getY(i), topPositions.getZ(i));
+  }
+  for (let i = 0; i < topVertexCount; i += 1) {
+    positions.push(topPositions.getX(i), topPositions.getY(i), topPositions.getZ(i) - thickness);
+  }
+
+  const topIndices = topIndex ? Array.from(topIndex.array as Iterable<number>) : [];
+  for (let i = 0; i < topIndices.length; i += 3) {
+    const a = topIndices[i];
+    const b = topIndices[i + 1];
+    const c = topIndices[i + 2];
+    indices.push(a, b, c);
+    indices.push(c + topVertexCount, b + topVertexCount, a + topVertexCount);
+  }
+
+  const rowStride = segments + 1;
+  const edgeLoop: number[] = [];
+  for (let ix = 0; ix <= segments; ix += 1) edgeLoop.push(ix);
+  for (let iy = 1; iy <= segments; iy += 1) edgeLoop.push(iy * rowStride + segments);
+  for (let ix = segments - 1; ix >= 0; ix -= 1) edgeLoop.push(segments * rowStride + ix);
+  for (let iy = segments - 1; iy >= 1; iy -= 1) edgeLoop.push(iy * rowStride);
+
+  for (let i = 0; i < edgeLoop.length; i += 1) {
+    const aTop = edgeLoop[i];
+    const bTop = edgeLoop[(i + 1) % edgeLoop.length];
+    const aBottom = aTop + topVertexCount;
+    const bBottom = bTop + topVertexCount;
+
+    indices.push(aTop, bTop, aBottom);
+    indices.push(bTop, bBottom, aBottom);
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }
