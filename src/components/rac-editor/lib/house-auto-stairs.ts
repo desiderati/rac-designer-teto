@@ -384,6 +384,8 @@ function resolveTopStairMetrics(params: {
   return buildStairMetricsFromGroundNiveis({
     leftGroundNivel: leftEdgeNivel,
     rightGroundNivel: rightEdgeNivel,
+    leftCornerNivel,
+    rightCornerNivel,
   });
 }
 
@@ -396,9 +398,14 @@ function resolveElevationStairMetrics(params: {
 }): StairMetrics {
   const corners = resolveAxisCornerIds(params.axisContext);
 
+  const leftCornerNivelFallback = Number(params.pilotis[corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
+  const rightCornerNivelFallback = Number(params.pilotis[corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL);
+
   const fallback = buildStairMetricsFromGroundNiveis({
-    leftGroundNivel: Number(params.pilotis[corners.leftId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
-    rightGroundNivel: Number(params.pilotis[corners.rightId]?.nivel ?? PILOTI_DEFAULT_NIVEL),
+    leftGroundNivel: leftCornerNivelFallback,
+    rightGroundNivel: rightCornerNivelFallback,
+    leftCornerNivel: leftCornerNivelFallback,
+    rightCornerNivel: rightCornerNivelFallback,
   });
 
   const axisLeftX = resolvePilotiCenterX(params.group, corners.leftId);
@@ -436,28 +443,28 @@ function resolveElevationStairMetrics(params: {
   return buildStairMetricsFromGroundNiveis({
     leftGroundNivel: leftEdgeNivel,
     rightGroundNivel: rightEdgeNivel,
+    leftCornerNivel: leftCornerNivel,
+    rightCornerNivel: rightCornerNivel,
   });
 }
 
 function buildStairMetricsFromGroundNiveis(params: {
   leftGroundNivel: number;
   rightGroundNivel: number;
+  leftCornerNivel?: number;
+  rightCornerNivel?: number;
 }): StairMetrics {
   const leftNivel = round2(params.leftGroundNivel);
   const rightNivel = round2(params.rightGroundNivel);
   const referenceGroundLevel = Math.min(leftNivel, rightNivel);
 
-  function getHeightExtraMts(leftNivel: number, rightNivel: number): number {
-    // TODO Felipe Desiderati: Validar porque não está calculando direito!
-    // if (leftNivel >= rightNivel) {
-    //   return (leftNivel - rightNivel) > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
-    // } else {
-    //   return (rightNivel - leftNivel) > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
-    // }
-    return AUTO_STAIR_HEIGHT_EXTRA_MTS;
-  }
+  // Usa os níveis dos cantos do lado (não os interpolados da borda da escada)
+  // para decidir se o terreno tem declive suficiente para aplicar o extra.
+  const cornerLeft = params.leftCornerNivel ?? leftNivel;
+  const cornerRight = params.rightCornerNivel ?? rightNivel;
+  const cornerDiff = Math.abs(cornerLeft - cornerRight);
+  const heightExtraMts = cornerDiff > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
 
-  const heightExtraMts = getHeightExtraMts(leftNivel, rightNivel);
   const stairHeight = round2(
     referenceGroundLevel
     + heightExtraMts

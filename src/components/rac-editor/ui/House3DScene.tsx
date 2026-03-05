@@ -1,5 +1,9 @@
 import {useMemo} from 'react';
 import {
+  HOUSE_3D_SCALE,
+} from '@/components/rac-editor/lib/3d/constants.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -10,6 +14,7 @@ import {
   Vector3,
 } from 'three';
 import {DEFAULT_HOUSE_PILOTI, House3DElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
+import {HOUSE_BASE_HEIGHT, PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
 import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
@@ -53,7 +58,7 @@ import {
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
 import {Stairs3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-parser.ts';
-import {PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
+
 import {ALL_PILOTI_IDS, HOUSE_3D_WALL_COLORS, PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {resolveContraventamentoOffsetFromNivel} from '@/shared/types/contraventamento.ts';
 
@@ -105,7 +110,7 @@ export function House3DScene({
         <ContraventamentoMesh key={contraventamento.id} contraventamento={contraventamento} pilotis={pilotis}/>
       ))}
 
-      <HouseMesh wallColor={wallColor}/>
+      <HouseMesh wallColor={wallColor} houseType={houseType} tipo3OpenSide={tipo3OpenSide}/>
 
       {houseElements.map((element) => (
         <HouseElementMesh key={element.id} element={element}/>
@@ -202,6 +207,7 @@ function StairsMesh({stairs}: { stairs: Stairs3DData }) {
     </group>
   );
 }
+
 function TerrainMesh({
   pilotis,
   margin,
@@ -368,7 +374,11 @@ function ContraventamentoMesh({
   );
 }
 
-function HouseMesh({wallColor}: { wallColor: string }) {
+function HouseMesh({wallColor, houseType, tipo3OpenSide}: {
+  wallColor: string;
+  houseType: HouseType;
+  tipo3OpenSide?: 'left' | 'right' | null
+}) {
   const wallCenterY = WALL_BASE_Y + WALL_HEIGHT / 2;
 
   return (
@@ -379,6 +389,8 @@ function HouseMesh({wallColor}: { wallColor: string }) {
           <meshStandardMaterial color={COLORS.beam}/>
         </mesh>
       ))}
+
+      {houseType === 'tipo3' && <DoorReinforcementBeam tipo3OpenSide={tipo3OpenSide}/>}
 
       <mesh position={[0, PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT + FLOOR_HEIGHT / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[HOUSE_3D_WIDTH, FLOOR_HEIGHT, HOUSE_3D_DEPTH]}/>
@@ -399,6 +411,41 @@ function HouseMesh({wallColor}: { wallColor: string }) {
 
       <RoofMesh/>
     </group>
+  );
+}
+
+function DoorReinforcementBeam({tipo3OpenSide}: { tipo3OpenSide?: 'left' | 'right' | null }) {
+  const openSide = tipo3OpenSide === 'left' || tipo3OpenSide === 'right' ? tipo3OpenSide : 'right';
+
+  // Door position on the side face (same calc as house-elements-parser.ts)
+  const s = HOUSE_3D_SCALE;
+  const sideW = HOUSE_BASE_HEIGHT * s;
+  const sideDoorW = HOUSE_DIMENSIONS.elements.common.doorWidth * s;
+  const sideDoorShiftX = HOUSE_DIMENSIONS.elements.side.doorShiftX * s;
+  const sideDoorX = sideW - sideDoorW - sideDoorShiftX;
+
+  // Convert door center to 3D Z coordinate (same as HouseElementMesh for left/right faces)
+  const xOffset = sideDoorX * HOUSE_3D_VIEWER_SCALE;
+  const doorWidth = sideDoorW * HOUSE_3D_VIEWER_SCALE;
+  const hd = HOUSE_3D_DEPTH / 2;
+  const doorCenterZ = xOffset - hd + doorWidth / 2;
+
+  // For right face, Z is negated
+  const beamX = openSide === 'right' ? -doorCenterZ : doorCenterZ;
+
+  // Beam runs from center row (B) to edge row (A or C)
+  const centerZ = FLOOR_BEAM_ROWS_Z[1]; // 0
+  const edgeZ = openSide === 'right' ? FLOOR_BEAM_ROWS_Z[2] : FLOOR_BEAM_ROWS_Z[0];
+  const beamLength = Math.abs(edgeZ - centerZ);
+  const beamCenterZ = (centerZ + edgeZ) / 2;
+
+  const beamY = PILOTI_TOP_Y + FLOOR_BEAM_HEIGHT / 2;
+
+  return (
+    <mesh position={[beamX, beamY, beamCenterZ]} castShadow receiveShadow>
+      <boxGeometry args={[FLOOR_BEAM_STRIP_DEPTH, FLOOR_BEAM_HEIGHT, beamLength]}/>
+      <meshStandardMaterial color={COLORS.beam}/>
+    </mesh>
   );
 }
 

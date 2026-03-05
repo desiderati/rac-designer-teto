@@ -405,7 +405,7 @@ class HouseManager {
     const {clearedMasters} = aggregate.applyPilotiPatch(pilotiId, pilotiData);
 
     if (shouldRecalculateInterpolatedNiveis) {
-      aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI, false);
+      aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI);
       this.persistHouse();
 
       this.getAllGroups().forEach((group) => {
