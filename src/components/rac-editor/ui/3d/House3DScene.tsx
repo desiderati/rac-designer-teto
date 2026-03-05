@@ -1,21 +1,5 @@
 import {useMemo} from 'react';
 import {
-  HOUSE_3D_SCALE,
-} from '@/components/rac-editor/lib/3d/constants.ts';
-import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Color,
-  DoubleSide,
-  MathUtils,
-  PlaneGeometry,
-  Quaternion,
-  Vector3,
-} from 'three';
-import {DEFAULT_HOUSE_PILOTI, House3DElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
-import {HOUSE_BASE_HEIGHT, PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
-import {
   BODY_PROFILE_HEIGHT,
   CHAPEL_WIDTH,
   COLORS,
@@ -53,8 +37,18 @@ import {
   WALL_THICKNESS,
 } from '@/components/rac-editor/lib/3d/constants.ts';
 import {
-  buildHouseElementsFromCanvasModel,
-} from '@/components/rac-editor/lib/3d/house-elements-parser.ts';
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  MathUtils,
+  PlaneGeometry,
+  Quaternion,
+  Vector3,
+} from 'three';
+import {DEFAULT_HOUSE_PILOTI, House3DElement, type HousePiloti, type HouseType} from '@/shared/types/house.ts';
+import {HOUSE_BASE_WIDTH, PILOTI_MASTER_FILL_COLOR} from '@/shared/constants.ts';
+import {buildHouseElementsFromCanvasModel,} from '@/components/rac-editor/lib/3d/house-elements-parser.ts';
 import {Contraventamento3DData} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
 import {Stairs3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {resolvePilotiHeightSegments} from '@/components/rac-editor/lib/3d/piloti-parser.ts';
@@ -359,7 +353,7 @@ function ContraventamentoMesh({
     new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction);
 
   const midpoint = startPoint.add(endPoint).multiplyScalar(0.5);
-  const beamColor = COLORS.piloti;
+  const beamColor = COLORS.contraventamento;
 
   return (
     <mesh
@@ -417,21 +411,9 @@ function HouseMesh({wallColor, houseType, tipo3OpenSide}: {
 function DoorReinforcementBeam({tipo3OpenSide}: { tipo3OpenSide?: 'left' | 'right' | null }) {
   const openSide = tipo3OpenSide === 'left' || tipo3OpenSide === 'right' ? tipo3OpenSide : 'right';
 
-  // Door position on the side face (same calc as house-elements-parser.ts)
-  const s = HOUSE_3D_SCALE;
-  const sideW = HOUSE_BASE_HEIGHT * s;
-  const sideDoorW = HOUSE_DIMENSIONS.elements.common.doorWidth * s;
-  const sideDoorShiftX = HOUSE_DIMENSIONS.elements.side.doorShiftX * s;
-  const sideDoorX = sideW - sideDoorW - sideDoorShiftX;
-
-  // Convert door center to 3D Z coordinate (same as HouseElementMesh for left/right faces)
-  const xOffset = sideDoorX * HOUSE_3D_VIEWER_SCALE;
-  const doorWidth = sideDoorW * HOUSE_3D_VIEWER_SCALE;
-  const hd = HOUSE_3D_DEPTH / 2;
-  const doorCenterZ = xOffset - hd + doorWidth / 2;
-
   // For right face, Z is negated
-  const beamX = openSide === 'right' ? -doorCenterZ : doorCenterZ;
+  const doorCenterZ = (HOUSE_BASE_WIDTH / 4 - FLOOR_BEAM_STRIP_DEPTH) * HOUSE_3D_VIEWER_SCALE;
+  const beamX = openSide === 'right' ? doorCenterZ : -doorCenterZ;
 
   // Beam runs from center row (B) to edge row (A or C)
   const centerZ = FLOOR_BEAM_ROWS_Z[1]; // 0

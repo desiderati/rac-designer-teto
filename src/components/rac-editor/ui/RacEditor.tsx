@@ -38,7 +38,7 @@ import {RacEditorTutorial} from '@/components/rac-editor/ui/RacEditorTutorial.ts
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
-  const module = await import('@/components/rac-editor/ui/House3DViewer.tsx');
+  const module = await import('@/components/rac-editor/ui/3d/House3DViewer.tsx');
   return {default: module.House3DViewer};
 });
 

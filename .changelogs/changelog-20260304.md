@@ -85,3 +85,18 @@
 - Mantidas regras de negócio e comportamento esperado por tema (canvas, 	oolbar, istas, piloti, contraventamento, iewer-3d, gentes).
 - Arquivos revisados:
   - README.md`n  - canvas.md`n  - contraventamento.md`n  - piloti-mestre.md`n  - piloti-nivel.md`n  - efactoring-agents.md`n  - 	oolbar.md`n  - iewer-3d.md`n  - istas-por-tipo.md`n
+### Reescrita editorial das regras (.rules)
+
+- Conversão dos documentos de `.rules` para linguagem de manual de operação, voltada a pessoas não técnicas.
+- Remoção de acoplamento excessivo com detalhes internos de implementação.
+- Organização por: objetivo, regras de uso, bloqueios/limites e erros comuns.
+- Arquivos revisados:
+  - `README.md`
+  - `canvas.md`
+  - `contraventamento.md`
+  - `piloti-mestre.md`
+  - `piloti-nivel.md`
+  - `refactoring-agents.md`
+  - `toolbar.md`
+  - `viewer-3d.md`
+  - `vistas-por-tipo.md`

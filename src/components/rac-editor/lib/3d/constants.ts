@@ -65,5 +65,6 @@ export const COLORS = {
   terrain: '#7da86d',
   floor: '#ececec',
   beam: '#ececec',
-  frame: '#bdbdbd',
+  contraventamento: '#ececec',
+  frame: '#bdbdbd', // Janela e Portas
 } as const;
