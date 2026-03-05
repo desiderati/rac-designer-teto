@@ -63,7 +63,6 @@ class HouseManager {
 
     this.houseAggregate = HouseAggregate.fromState(persisted);
     this.listeners.add(() => this.refreshTopDoorMarkers());
-    this.listeners.add(() => this.refreshAutoContraventamento());
     this.listeners.add(() => this.refreshAutoStairs());
   }
 
@@ -305,6 +304,11 @@ class HouseManager {
       side,
     });
     this.persistHouse();
+
+    if (viewType === 'top') {
+      this.refreshAutoContraventamento();
+    }
+
     this.notify();
   }
 
@@ -397,10 +401,15 @@ class HouseManager {
     if (!aggregate) return;
 
     const previousPiloti = this.house?.pilotis?.[pilotiId] ?? null;
+    const hasNivelChange =
+      pilotiData.nivel !== undefined
+      && previousPiloti?.nivel !== Number(pilotiData.nivel);
+    const shouldRefreshAutoContraventamento =
+      hasNivelChange && (this.house?.views?.top?.length ?? 0) > 0;
 
     const shouldRecalculateInterpolatedNiveis = PILOTI_CORNER_IDS.includes(pilotiId)
       && pilotiData.nivel !== undefined
-      && previousPiloti?.nivel !== pilotiData.nivel;
+      && previousPiloti?.nivel !== Number(pilotiData.nivel);
 
     const {clearedMasters} = aggregate.applyPilotiPatch(pilotiId, pilotiData);
 
@@ -412,6 +421,10 @@ class HouseManager {
         applyPilotiDataToGroup(group, this.house.pilotis);
       });
 
+      if (shouldRefreshAutoContraventamento) {
+        this.refreshAutoContraventamento();
+      }
+
       this.canvas?.requestRenderAll();
       this.notify();
       return;
@@ -420,6 +433,9 @@ class HouseManager {
     this.persistHouse();
     syncPilotiUpdateAcrossViews(pilotiId, this.house.pilotis, pilotiData, this.house.views, clearedMasters);
 
+    if (shouldRefreshAutoContraventamento) {
+      this.refreshAutoContraventamento();
+    }
     this.canvas?.requestRenderAll();
     this.notify();
   }

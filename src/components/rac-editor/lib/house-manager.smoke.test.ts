@@ -296,5 +296,16 @@ describe('house-manager.ts', () => {
     errorSpy.mockRestore();
     fromUrlSpy.mockRestore();
   });
-});
 
+  it('aplica auto contraventamento ao inserir a vista superior da casa', () => {
+    houseManager.setHouseType('tipo6');
+
+    houseManager.updatePiloti('piloti_1_1', {height: 1.0, nivel: 0.5});
+
+    const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
+    houseManager.registerView('top', topGroup as any);
+
+    expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(true);
+  });
+
+});

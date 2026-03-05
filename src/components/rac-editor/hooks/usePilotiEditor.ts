@@ -1,11 +1,11 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/components/rac-editor/lib/canvas';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 
-interface UsePilotiEditorLogicArgs {
+interface UsePilotiEditorArgs {
   isOpen: boolean;
   onClose: () => void;
   pilotiId: string | null;
@@ -27,13 +27,13 @@ export function usePilotiEditor({
   group,
   onHeightChange,
   onNavigate,
-}: UsePilotiEditorLogicArgs) {
+}: UsePilotiEditorArgs) {
 
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
   const [tempIsMaster, setTempIsMaster] = useState(() => currentIsMaster);
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
-  const lastPilotiIdRef = useRef<string | null>(null);
+
 
   const allIds = useMemo(() => {
     if (group) return getPilotiIdsFromGroup(group);
@@ -48,6 +48,7 @@ export function usePilotiEditor({
 
   const masterPilotiName = useMemo(() => {
     if (!group) return undefined;
+
     for (const id of allIds) {
       const data = getPilotiFromGroup(group, id);
       if (data?.isMaster) return getPilotiName(id);
@@ -58,13 +59,19 @@ export function usePilotiEditor({
   }, [group, allIds, tempIsMaster, pilotiId]);
 
   useEffect(() => {
-    if (!isOpen || pilotiId === lastPilotiIdRef.current) return;
-    lastPilotiIdRef.current = pilotiId;
+    if (!isOpen) return;
 
     setTempHeight(currentHeight);
     setTempIsMaster(currentIsMaster);
     setTempNivel(currentNivel);
   }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel]);
+
+  useEffect(() => {
+    const clamped = clampNivelByHeight(tempNivel, tempHeight);
+    if (clamped !== tempNivel) {
+      setTempNivel(clamped);
+    }
+  }, [tempHeight, tempNivel]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
@@ -79,7 +86,6 @@ export function usePilotiEditor({
     commitDraftChanges();
 
     if (!group) return;
-
     const pilotiData = getPilotiFromGroup(group, newId);
     if (pilotiData && onNavigate) {
       onNavigate(newId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
@@ -91,7 +97,6 @@ export function usePilotiEditor({
 
   const handleApply = () => {
     commitDraftChanges();
-
     onClose();
   };
 
@@ -126,8 +131,15 @@ export function usePilotiEditor({
         isMaster: tempIsMaster,
         nivel: nivelToApply,
       });
-      onHeightChange(h);
-      onNavigate?.(pilotiId, h, tempIsMaster, nivelToApply);
+
+      const updatedPiloti = houseManager.getPilotiData(pilotiId);
+      onHeightChange(updatedPiloti.height);
+      onNavigate?.(
+        pilotiId,
+        updatedPiloti.height,
+        updatedPiloti.isMaster,
+        updatedPiloti.nivel,
+      );
     }
 
     if (autoNavigatePiloti && pilotiId) {
@@ -172,15 +184,6 @@ export function usePilotiEditor({
         : 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20';
     };
 
-  const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
-
-  useEffect(() => {
-    const clamped = clampNivelByHeight(tempNivel, tempHeight);
-    if (clamped !== tempNivel) {
-      setTempNivel(clamped);
-    }
-  }, [tempHeight, tempNivel]);
-
   const commitDraftChanges =
     (params?: { nivelOverride?: number; isMasterOverride?: boolean }): boolean => {
       if (!pilotiId) return false;
@@ -206,10 +209,19 @@ export function usePilotiEditor({
         isMaster: resolvedIsMaster,
         nivel: nivelToApply,
       });
-      onHeightChange(tempHeight);
-      onNavigate?.(pilotiId, tempHeight, resolvedIsMaster, nivelToApply);
+
+      const updatedPiloti = houseManager.getPilotiData(pilotiId);
+      onHeightChange(updatedPiloti.height);
+      onNavigate?.(
+        pilotiId,
+        updatedPiloti.height,
+        updatedPiloti.isMaster,
+        updatedPiloti.nivel,
+      );
       return true;
     };
+
+  const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
 
   return {
     tempHeight,

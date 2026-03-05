@@ -51,7 +51,7 @@ describe('house-auto-contraventamento.ts', () => {
     expect(group.getCanvasObjects().find((object: any) => object?.isContraventamento === true)).toBeUndefined();
   });
 
-  it('não reaplica contraventamento automático após a inicialização da vista', () => {
+  it('reaplica contraventamento automático quando a rotina é chamada novamente após remoção', () => {
     const {group} = createMockGroup();
 
     const firstRun = refreshAutoContraventamentoInAllViews({
@@ -76,8 +76,8 @@ describe('house-auto-contraventamento.ts', () => {
       elevationViews: [],
     });
 
-    expect(secondRun).toBe(false);
-    expect(group.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(false);
+    expect(secondRun).toBe(true);
+    expect(group.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
   });
 
   it('mantém contraventamento manual sem duplicar com automático na mesma coluna', () => {
@@ -144,5 +144,31 @@ describe('house-auto-contraventamento.ts', () => {
     expect(contrav?.contraventamentoStartRow).toBe(0);
     expect(contrav?.contraventamentoEndRow).toBe(2);
   });
-});
 
+  it('remove contraventamento existente (inclusive manual) quando a coluna não exige mais', () => {
+    const {group} = createMockGroup();
+    group.getCanvasObjects().push({
+      isContraventamento: true,
+      contraventamentoId: 'manual_col2',
+      contraventamentoCol: 2,
+      contraventamentoSide: 'right',
+      left: 0,
+      width: 1,
+      scaleX: 1,
+    });
+
+    const changed = refreshAutoContraventamentoInAllViews({
+      pilotis: {
+        piloti_2_0: {height: 2.0, isMaster: false, nivel: 0.2},
+        piloti_2_1: {height: 2.0, isMaster: false, nivel: 0.2},
+        piloti_2_2: {height: 2.0, isMaster: false, nivel: 0.2},
+      } as any,
+      topViews: [{instanceId: 'top_1', group} as any],
+      elevationViews: [],
+    });
+
+    expect(changed).toBe(true);
+    expect(group.getCanvasObjects().some((object: any) => object?.isContraventamento === true)).toBe(false);
+  });
+
+});

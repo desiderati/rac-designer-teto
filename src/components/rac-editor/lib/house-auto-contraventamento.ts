@@ -4,6 +4,7 @@ import {
   CanvasGroup,
   CanvasObject,
   getCanvasGroupObjects,
+  removeContraventamentosFromTopView,
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/lib/canvas';
 import {
@@ -16,7 +17,6 @@ import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/p
 
 const GRID_COLUMNS = [0, 1, 2, 3] as const;
 const GRID_ROWS = [0, 1, 2] as const;
-const AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY = '__autoContraventamentoInitialized';
 
 /**
  * Recalcula e sincroniza contraventamentos automáticos em todas as vistas da casa.
@@ -63,25 +63,23 @@ function refreshAutoContraventamentoOnTopView(
   runtimeTopGroup: CanvasGroup,
   pilotis: Record<string, HousePiloti>,
 ): boolean {
-  if (runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] === true) {
-    return false;
-  }
-
-  // If this top view already has any contraventamento (manual/imported),
-  // do not auto-manage it anymore.
-  if (getCanvasGroupObjects(runtimeTopGroup).some((object) => object?.isContraventamento === true)) {
-    runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] = true;
-    return false;
-  }
-
   const rowsByCol = collectRowsRequiringAutoContraventamentoByColumn(pilotis);
   let hasChanges = false;
 
   GRID_COLUMNS.forEach((col) => {
     const requiredRows = rowsByCol.get(col) ?? [];
-    if (requiredRows.length === 0) return;
-
     const existingInColumn = getColumnContraventamentos(runtimeTopGroup, col);
+
+    if (requiredRows.length === 0) {
+      if (existingInColumn.length === 0) return;
+      const removed = removeContraventamentosFromTopView(
+        runtimeTopGroup,
+        (object) => resolveContraventamentoColumn(object) === col,
+      );
+
+      if (removed > 0) hasChanges = true;
+      return;
+    }
     if (existingInColumn.length > 0) return;
 
     const side = resolveAutoContraventamentoSide(runtimeTopGroup, col);
@@ -112,7 +110,6 @@ function refreshAutoContraventamentoOnTopView(
     runtimeTopGroup.setCoords();
   }
 
-  runtimeTopGroup[AUTO_CONTRAVENTAMENTO_INITIALIZED_KEY] = true;
   return hasChanges;
 }
 
