@@ -8,7 +8,7 @@ import {
   setupRacEditorPage,
   startConsoleErrorCapture,
   triggerHouseAction,
-} from './helpers/rac-helpers';
+} from './helpers/rac-editor.helpers';
 
 test.describe('RAC views and limits', () => {
   test.describe.configure({mode: 'serial'});

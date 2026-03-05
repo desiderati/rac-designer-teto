@@ -25,7 +25,7 @@ Rodada de validação da mega refatoração iniciada em `2026-02-24`, com foco e
     - remoção de `any` introduzido no debug bridge;
     - atualização de smoke test de house view para estratégia (`getHouseViewStrategy`).
 - Automação adicional (wave 1):
-    - novo spec `e2e/inline-editor.spec.ts` para sincronização do editor inline (wall/line) com seleção ativa;
+    - novo spec `e2e/modal-editors.spec.ts` para sincronização do editor inline (wall/line) com seleção ativa;
     - novo smoke `src/infra/legacy-imports.smoke.test.ts` para bloquear imports legados `@/lib/*` / `src/lib/*`;
     - captura de erros de console/pageerror adicionada em suites críticas (`canvas`, `toolbar-overflow`, `viewer-3d`,
       `views-limits`, `piloti`, `inline-editor`).
@@ -74,11 +74,11 @@ Rodada de validação da mega refatoração iniciada em `2026-02-24`, com foco e
 Cobertura observada no run E2E:
 
 - `e2e/canvas.spec.ts` -> PASS
-- `e2e/inline-editor.spec.ts` -> PASS
+- `e2e/modal-editors.spec.ts` -> PASS
 - `e2e/piloti.spec.ts` -> PASS
 - `e2e/toolbar-overflow.spec.ts` -> PASS
 - `e2e/viewer-3d.spec.ts` -> PASS
-- `e2e/views-limits.spec.ts` -> PASS
+- `e2e/house-views-limits.spec.ts` -> PASS
 
 ### 5) Pacote de regressão completo
 

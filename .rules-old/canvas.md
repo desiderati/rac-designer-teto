@@ -93,7 +93,8 @@ API exposta por `ref`:
 11. a normalização de escala de `line` deve ser centralizada em helper único do factory (`bindLineGroupScaling` /
     `normalizeLineGroupScaling`) e reutilizada no apply do editor inline, evitando duplicação de comportamento.
 12. a normalização de escala de `arrow` deve ser centralizada em helper único do factory
-    (`bindArrowCanvasObjectScaling` / `normalizeArrowGroupScaling` / `normalizeArrowCanvasObjectToLength`) e reutilizada no apply
+    (`bindArrowCanvasObjectScaling` / `normalizeArrowGroupScaling` / `normalizeArrowCanvasObjectToLength`) e reutilizada
+    no apply
     do editor inline, evitando duplicação de comportamento.
 
 ## 3.3 Desenho livre

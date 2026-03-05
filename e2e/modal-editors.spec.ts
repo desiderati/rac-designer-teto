@@ -8,7 +8,7 @@ import {
   startConsoleErrorCapture,
   triggerElementsAction,
   triggerLinesAction,
-} from './helpers/rac-helpers';
+} from './helpers/rac-editor.helpers';
 
 test.describe('RAC inline editor sync', () => {
   test.describe.configure({mode: 'serial'});

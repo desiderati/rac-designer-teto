@@ -67,7 +67,8 @@ Quando o viewer está aberto:
 5. visual da escada:
     - corpo/laterais em cor clara (`COLORS.stairsSide`)
     - piso do degrau em marrom (`COLORS.stairsTread`)
-6. no 3D, a altura visível da escada desconta `AUTO_STAIR_HEIGHT_EXTRA_MTS` (folga usada no 2D); o 2D permanece sem alteração
+6. no 3D, a altura visível da escada desconta `AUTO_STAIR_HEIGHT_EXTRA_MTS` (folga usada no 2D); o 2D permanece sem
+   alteração
 7. no 3D, o degrau mais alto não é renderizado:
     - renderiza `stepCount - 1` degraus
     - desloca a escada 1 profundidade de degrau em direção à casa (equivalente ao degrau removido)

@@ -136,7 +136,7 @@ Confirmações de ações destrutivas do fluxo de toolbar (`reiniciar`/`desagrup
 
 ## 5. Checklist de cobertura E2E (arquivo)
 
-Cobertura atual em `e2e/views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
+Cobertura atual em `e2e/house-views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
 
 1. [x] abertura de `Casa TETO (Opções)`
 2. [x] comandos de vistas por tipo (`Visão Frontal`, `Visão Traseira`, `Visão Lateral`, `Quadrado Fechado`,
@@ -170,7 +170,7 @@ Cobertura atual em `e2e/views-limits.spec.ts` e `e2e/toolbar-overflow.spec.ts`:
 - `src/components/rac-editor/hooks/useGenericObjectEditorBindings.ts`
 - `src/components/rac-editor/modals/ConfirmDialogModal.tsx`
 - `src/components/lib/house-manager.ts`
-- `e2e/views-limits.spec.ts`
+- `e2e/house-views-limits.spec.ts`
 - `e2e/toolbar-overflow.spec.ts`
 
 

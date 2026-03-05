@@ -93,7 +93,6 @@ Objetivo:
 
 1. evitar falsos negativos/positivos por erro de precisão (`float`);
 2. manter consistência entre regras de domínio e geometria de canvas;
-3. eliminar números mágicos repetidos (ex.: `0.0001`).
 
 Regra prática:
 

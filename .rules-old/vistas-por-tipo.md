@@ -138,6 +138,6 @@ Implementação de domínio extraída:
 - `src/domain/house/use-cases/house-views-layout.use-case.ts`
 - `src/components/lib/house-top-view-door-marker.ts`
 - `src/domain/house/use-cases/house-state.use-case.ts`
-- `e2e/views-limits.spec.ts`
+- `e2e/house-views-limits.spec.ts`
 
 

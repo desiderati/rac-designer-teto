@@ -90,7 +90,7 @@
 - arquivo monolitico removido:
     - `e2e/rac-regression.spec.ts`
 - nova organização:
-    - `e2e/views-limits.spec.ts`
+    - `e2e/house-views-limits.spec.ts`
     - `e2e/canvas.spec.ts`
     - `e2e/toolbar-overflow.spec.ts`
     - `e2e/viewer-3d.spec.ts`
@@ -98,7 +98,7 @@
     - `e2e/helpers/rac-helpers.spec.ts`
 - validação após quebra:
   -
-  `npm run test:e2e -- e2e/views-limits.spec.ts e2e/canvas.spec.ts e2e/toolbar-overflow.spec.ts e2e/viewer-3d.spec.ts e2e/piloti.spec.ts` ->
+  `npm run test:e2e -- e2e/house-views-limits.spec.ts e2e/canvas.spec.ts e2e/toolbar-overflow.spec.ts e2e/viewer-3d.spec.ts e2e/piloti.spec.ts` ->
   PASS (14/14)
     - `npm test` -> PASS (12/12)
     - `npm run build` -> PASS

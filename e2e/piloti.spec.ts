@@ -6,7 +6,7 @@ import {
   setPilotiMasterByDebug,
   setupRacEditorPage,
   startConsoleErrorCapture,
-} from './helpers/rac-helpers';
+} from './helpers/rac-editor.helpers';
 
 test.describe('RAC piloti rules', () => {
   test.describe.configure({mode: 'serial'});
