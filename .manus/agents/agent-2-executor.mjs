@@ -2,7 +2,7 @@
 
 /**
  * Agent 2: Automatic Refactoring Executor
- * 
+ *
  * Responsibilities:
  * 1. Read refactoring plan from .refactoring/YYYY-MM-DD/refactoring-plan.md
  * 2. Read regression checklist from .refactoring/YYYY-MM-DD/regression-checklist.md
@@ -16,14 +16,14 @@
  * 4. Generate regression-run.md with DETAILED execution steps
  * 5. Commit results to repository
  * 6. Notify user of completion or failure
- * 
+ *
  * Triggered: Automatically after Agent 1 (after user approval)
  */
 
-import { execSync } from 'child_process';
+import {execSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,7 +61,7 @@ try {
   console.log('\n📖 Reading refactoring plan and checklist...');
   const plan = fs.readFileSync(PLAN_FILE, 'utf-8');
   const checklist = fs.readFileSync(CHECKLIST_FILE, 'utf-8');
-  
+
   // Extract phases from plan
   const phases = extractPhases(plan);
   console.log(`✅ Found ${phases.length} phases to execute`);
@@ -95,7 +95,7 @@ try {
   // Step 5: Commit results
   console.log('\n🚀 Committing execution results...');
   try {
-    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-2 execution results for ${TODAY}" && git push origin ${BRANCH}`, { stdio: 'inherit' });
+    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-2 execution results for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
   } catch (e) {
     console.log('⚠️  Commit skipped (no changes or push failed)');
   }
@@ -166,7 +166,7 @@ function executePhase(phase, phaseNumber, checklist) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     console.log(`\n🔄 Attempt ${attempt}/3`);
     const attemptStartTime = new Date();
-    
+
     const attemptResult = {
       number: attempt,
       startTime: attemptStartTime.toISOString(),
@@ -181,7 +181,7 @@ function executePhase(phase, phaseNumber, checklist) {
       console.log(`   Executing phase changes...`);
       attemptResult.steps.push(`[${new Date().toISOString()}] Starting phase execution`);
       attemptResult.steps.push(`[${new Date().toISOString()}] Phase name: ${phase.name}`);
-      
+
       // Run regression tests
       console.log(`   Running regression tests...`);
       attemptResult.steps.push(`[${new Date().toISOString()}] Starting regression tests`);
@@ -202,7 +202,7 @@ function executePhase(phase, phaseNumber, checklist) {
         phaseResult.attempts.push(attemptResult);
         phaseResult.success = true;
         phaseResult.endTime = new Date().toISOString();
-        
+
         const duration = Math.round((new Date() - phaseStartTime) / 1000);
         phaseResult.executionSteps.push(`[${new Date().toISOString()}] Phase completed successfully in ${duration}s`);
         return phaseResult;
@@ -210,7 +210,7 @@ function executePhase(phase, phaseNumber, checklist) {
         console.log(`   ❌ Some tests failed. Attempting auto-fix...`);
         attemptResult.steps.push(`[${new Date().toISOString()}] Some tests failed, attempting auto-fix`);
         attemptResult.success = false;
-        
+
         // Try to auto-fix
         const fixResult = attemptAutoFix(testResults);
         attemptResult.corrections.push(fixResult.message);
@@ -240,7 +240,7 @@ function executePhase(phase, phaseNumber, checklist) {
   rollbackCheckpoint(checkpoint);
   phaseResult.executionSteps.push(`[${new Date().toISOString()}] Rollback completed`);
   phaseResult.endTime = new Date().toISOString();
-  
+
   return phaseResult;
 }
 
@@ -252,7 +252,7 @@ function createCheckpoint(phaseNumber) {
     const timestamp = new Date().toISOString();
     const checkpointName = `phase-${phaseNumber}-${timestamp}`;
     console.log(`   Creating checkpoint: ${checkpointName}`);
-    
+
     // In real scenario, this would call webdev_save_checkpoint
     // For now, we just track it
     return {
@@ -304,7 +304,7 @@ function runRegressionTests(checklist) {
   for (const test of tests) {
     try {
       console.log(`     Running: ${test.name}...`);
-      const output = execSync(`cd ${REPO_PATH} && ${test.command}`, { 
+      const output = execSync(`cd ${REPO_PATH} && ${test.command}`, {
         encoding: 'utf-8',
         timeout: test.timeout * 1000,
         stdio: ['pipe', 'pipe', 'pipe']
@@ -327,12 +327,12 @@ function runRegressionTests(checklist) {
  */
 function attemptAutoFix(testResults) {
   const failedTests = testResults.filter(t => !t.passed);
-  
+
   console.log(`     Analyzing ${failedTests.length} failed test(s)...`);
-  
+
   // This is a placeholder for auto-fix logic
   // In real scenario, this would analyze errors and attempt fixes
-  
+
   return {
     message: `Attempted to fix ${failedTests.length} issues`,
     fixed: 0
@@ -363,9 +363,9 @@ function rollbackCheckpoint(checkpoint) {
 function generateDetailedExecutionReport(phaseResults, status, startTime) {
   const endTime = new Date();
   const totalDuration = Math.round((endTime - startTime) / 1000);
-  
+
   let report = `# 📊 Regression Run Report\n\n`;
-  
+
   report += `## Execution Summary\n\n`;
   report += `- **Date:** ${TODAY}\n`;
   report += `- **Start Time:** ${startTime.toISOString()}\n`;
@@ -380,7 +380,7 @@ function generateDetailedExecutionReport(phaseResults, status, startTime) {
 
   // Detailed phase execution
   report += `## Phase Execution Details\n\n`;
-  
+
   for (const phase of phaseResults) {
     report += `### Phase ${phase.number}: ${phase.name}\n\n`;
     report += `**Status:** ${phase.success ? '✅ SUCCESS' : '❌ FAILED'}\n`;

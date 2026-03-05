@@ -143,7 +143,7 @@
 **Uso:**
 
 ```bash
-./approve-refactoring.sh YYYY-MM-DD
+.manus/agents/approve-refactoring.sh YYYY-MM-DD
 ```
 
 ---
@@ -177,7 +177,7 @@
    └─ Notifica
 
 2. Você Aprova (Manual)
-   └─ Executa: ./approve-refactoring.sh YYYY-MM-DD
+   └─ Executa: .manus/agents/approve-refactoring.sh YYYY-MM-DD
 
 3. Agente 2 (Automático)
    ├─ Executa plano
@@ -229,7 +229,7 @@
 **Perguntas Frequentes:**
 
 - **Onde estão os agentes?** → `.manus/agents/`
-- **Como aprovar refatoração?** → `./approve-refactoring.sh YYYY-MM-DD`
+- **Como aprovar refatoração?** → `.manus/agents/approve-refactoring.sh YYYY-MM-DD`
 - **Onde vejo resultados?** → `.refactoring/YYYY-MM-DD/regression-run.md`
 - **Como editar plano?** → Editar `.refactoring/YYYY-MM-DD/refactoring-plan.md`
 - **Como adicionar testes?** → Editar `.refactoring/YYYY-MM-DD/regression-checklist.md`

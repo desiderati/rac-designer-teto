@@ -59,105 +59,64 @@ ferramentas avançadas de desenho 2D e visualização 3D interativa.
 
 ## 🤖 Automated Refactoring System
 
-### Overview
+Definir como os agentes automáticos devem apoiar evolução do projeto sem causar regressões.
+Para informações mais detalhadas veja em: `.guidelines/refactoring-agents.md`
 
-RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agentes inteligentes**:
+### Visão geral
 
-1. **Agent 1 (Análise)** - Análise dinâmica semanal do código
-2. **Agent 2 (Execução)** - Execução autônoma do plano de refatoração
+O processo tem dois agentes:
 
-### Agent 1: Intelligent Dynamic Analysis
+1. Agente 1 (Análise)
+    - Faz leitura do estado atual do projeto.
+    - Propõe plano de melhoria.
+    - Gera checklist de validação.
 
-**Execução:** Diariamente às 06:00 GMT-3
+2. Agente 2 (Execução)
+    - Executa o plano aprovado.
+    - Valida cada etapa.
+    - Interrompe e sinaliza quando encontrar erro crítico.
 
-**Responsabilidades:**
+##3 Regras do Agente 1
 
-- Analisa o estado ATUAL do código em 6 dimensões:
-    1. **File Structure** - Total de arquivos, linhas, cobertura de testes
-    2. **Clean Architecture** - Ports/Adapters, CQRS, Strategies, normalization functions, duplicate patterns, magic
-       numbers
-    3. **Hooks SRP** - Detecta violações de Single Responsibility Principle
-    4. **Components** - Análise de estrutura de componentes
-    5. **Tests** - Status de testes e cobertura
-    6. **Code Patterns** - Padrões de código, constantes, estratégias
+1. Rodar em rotina definida.
+2. Considerar apenas estado atual do projeto (sem suposição antiga).
+3. Propor melhorias pequenas e executáveis.
+4. Evitar repetir etapas já concluídas.
+5. Produzir material claro para revisão humana.
 
-**Saída:**
+##3 Regras do Agente 2
 
-- `.refactoring/YYYY-MM-DD/refactoring-plan.md` - Plano dinâmico baseado em análise atual
-- `.refactoring/YYYY-MM-DD/regression-checklist.md` - Checklist adaptativo de testes
+1. Só iniciar após aprovação humana do plano.
+2. Executar por fases, com validação entre elas.
+3. Tentar correção automática de falhas recuperáveis.
+4. Parar em falhas críticas e registrar contexto.
+5. Preservar segurança dos dados e possibilidade de recuperação.
 
-**Características:**
+### Regras de aprovação humana
 
-- ✅ Plano é **ÚNICO cada dia** (não template estático)
-- ✅ Detecta **issues REAIS** do código
-- ✅ Identifica **opportunities VALIOSAS**
-- ✅ Reconhece **fases JÁ COMPLETADAS** (não repete)
-- ✅ Adapta-se ao **estado ATUAL** do projeto
-- ✅ Só roda se houver **novos commits**
+1. Sempre revisar plano antes da execução.
+2. Validar riscos de regressão e impacto no produto.
+3. Confirmar se escopo proposto está adequado ao momento do projeto.
 
-### Agent 2: Autonomous Execution
+### Regras de validação mínima
 
-**Trigger:** Após aprovação manual do plano do Agente 1
+Após execução das fases, deve haver validação de:
 
-**Responsabilidades:**
+1. Testes automatizados definidos para a rodada.
+2. Build do projeto.
+3. Fluxos críticos de produto afetados pela mudança.
 
-- Executa cada fase do plano de refatoração
-- Roda testes de regressão após cada fase
-- Tenta corrigir automaticamente falhas (até 3 tentativas)
-- Cria checkpoints para rollback se necessário
-- Notifica apenas em caso de erro crítico
+### Regras de rastreabilidade
 
-**Características:**
+1. Registrar plano, execução e resultado em documentação de rodada.
+2. Manter histórico de sucesso/falha para aprendizado contínuo.
+3. Em caso de rollback, registrar motivo e ponto de retorno.
 
-- ✅ 100% autônomo
-- ✅ Executa todas as fases em sequência
-- ✅ Auto-correção com retry (3x)
-- ✅ Rollback seguro se falhar
-- ✅ Notificação final com resumo
+### O que evitar
 
-### Workflow Completo
-
-```
-1. Agent 1 Roda (06:00 semanalmente)
-   ├─ Analisa código ATUAL
-   ├─ Detecta issues e opportunities
-   ├─ Gera plano DINÂMICO
-   ├─ Cria checklist ADAPTATIVO
-   └─ Notifica para aprovação
-
-2. Você Revisa (Manual)
-   ├─ Lê refactoring-plan.md
-   ├─ Revisa regression-checklist.md
-   └─ Aprova ou ajusta
-
-3. Agent 2 Executa (Após aprovação)
-   ├─ Lê plano dinâmico
-   ├─ Executa cada fase
-   ├─ Roda testes de regressão
-   ├─ Tenta corrigir falhas (3x)
-   └─ Notifica resultado
-
-4. Você Valida (Manual)
-   ├─ Revisa regression-run.md
-   ├─ Testa código gerado
-   └─ Merge ou iterate
-```
-
-### Estrutura de Diretórios
-
-```
-.refactoring/
-├── 2026-02-24/
-│   ├── refactoring-plan.md          ← Agente 1 gera
-│   └── regression-checklist.md      ← Agente 1 gera
-├── 2026-02-25/
-│   ├── refactoring-plan.md
-│   └── regression-checklist.md
-└── 2026-02-26/
-    ├── refactoring-plan.md
-    ├── regression-checklist.md
-    └── regression-run.md            ← Agente 2 gera
-```
+1. Execução sem aprovação.
+2. Mudanças amplas sem checkpoints.
+3. Encerrar rodada com falhas críticas não resolvidas sem registro explícito.
 
 ## 🛠️ Coding Conventions
 
@@ -549,7 +508,7 @@ feat(canvas): add polygon drawing tool
 ## 📚 Additional Resources
 
 - **Regras funcionais por módulo:** `.rules/README.md`
-- **Refactoring Agents:** `.rules/refactoring-agents.md`
+- **Workflow de Testes e Validações:** `.guidelines/testing.md`
+- **Refactoring Agents:** `.guidelines/refactoring-agents.md`
 - **Dynamic Analysis Guide:** `.manus/INTELLIGENT_ANALYSIS_GUIDE.md`
 - **Automated System Documentation:** `.manus/AUTOMATED_REFACTORING_SYSTEM.md`
-- **Workflow de Testes e Validações:** `.guidelines/testing.md`

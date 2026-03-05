@@ -2,19 +2,19 @@
 
 /**
  * Agent 1 v2: Intelligent Dynamic Refactoring Analysis
- * 
+ *
  * Updated with:
  * - Clean Architecture analysis (Ports/Adapters, CQRS, Strategies, etc)
  * - SRP (Single Responsibility Principle) analysis for Hooks
- * 
+ *
  * This agent performs LIVE analysis of the codebase state and generates
  * adaptive refactoring plans based on CURRENT conditions, not templates.
  */
 
-import { execSync } from 'child_process';
+import {execSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,9 +35,9 @@ try {
   // Step 1: Update repository
   console.log('\n📦 Updating repository...');
   if (!fs.existsSync(REPO_PATH)) {
-    execSync(`git clone --branch ${BRANCH} ${REPO_URL} ${REPO_PATH}`, { stdio: 'inherit' });
+    execSync(`git clone --branch ${BRANCH} ${REPO_URL} ${REPO_PATH}`, {stdio: 'inherit'});
   } else {
-    execSync(`cd ${REPO_PATH} && git fetch origin && git checkout ${BRANCH} && git pull origin ${BRANCH}`, { stdio: 'inherit' });
+    execSync(`cd ${REPO_PATH} && git fetch origin && git checkout ${BRANCH} && git pull origin ${BRANCH}`, {stdio: 'inherit'});
   }
 
   // Step 2: Check for new commits
@@ -54,7 +54,7 @@ try {
 
   // Step 3: Create today's directory
   if (!fs.existsSync(TODAY_DIR)) {
-    fs.mkdirSync(TODAY_DIR, { recursive: true });
+    fs.mkdirSync(TODAY_DIR, {recursive: true});
   }
 
   // Step 4: Perform DEEP code analysis
@@ -87,7 +87,7 @@ try {
   // Step 8: Commit and push
   console.log('\n🚀 Committing to repository...');
   try {
-    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-1 intelligent analysis for ${TODAY}" && git push origin ${BRANCH}`, { stdio: 'inherit' });
+    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-1 intelligent analysis for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
   } catch (e) {
     console.log('⚠️  Commit skipped (no changes or push failed)');
   }
@@ -108,19 +108,19 @@ try {
 /**
  * Get the last analysis directory
  function getLastAnalysisDirectory(refactoringDir) {
-  if (!fs.existsSync(refactoringDir)) return null;
-  const dirs = fs.readdirSync(refactoringDir)
-    .filter(f => {
-      const fullPath = path.join(refactoringDir, f);
-      return fs.statSync(fullPath).isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(f);
-    })
-    .sort()
-    .reverse();
-  return dirs[0] || null;
-}th > 0 ? path.join(refactoringDir, dirs[0]) : null;
-}
+ if (!fs.existsSync(refactoringDir)) return null;
+ const dirs = fs.readdirSync(refactoringDir)
+ .filter(f => {
+ const fullPath = path.join(refactoringDir, f);
+ return fs.statSync(fullPath).isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(f);
+ })
+ .sort()
+ .reverse();
+ return dirs[0] || null;
+ }th > 0 ? path.join(refactoringDir, dirs[0]) : null;
+ }
 
-/**
+ /**
  * Check if there are new commits since last analysis
  */
 function checkForNewCommits(repoPath, lastAnalysisDir) {
@@ -130,9 +130,9 @@ function checkForNewCommits(repoPath, lastAnalysisDir) {
     const lastAnalysisDate = path.basename(lastAnalysisDir);
     const commitsAfter = execSync(
       `cd ${repoPath} && git log --oneline --since="${lastAnalysisDate}" --until="$(date -d '${lastAnalysisDate} + 1 day' +%Y-%m-%d)"`,
-      { encoding: 'utf-8' }
+      {encoding: 'utf-8'}
     );
-    
+
     return commitsAfter.trim().length > 0;
   } catch (e) {
     return true;
@@ -178,9 +178,9 @@ function performDeepCodeAnalysis(repoPath) {
  */
 function analyzeFileStructure(repoPath) {
   try {
-    const fileCount = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\) | wc -l`, { encoding: 'utf-8' }).trim();
-    const totalLines = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\) -exec wc -l {} + | tail -1 | awk '{print $1}'`, { encoding: 'utf-8' }).trim();
-    const testFiles = execSync(`cd ${repoPath} && find src -type f -name "*.test.ts" -o -name "*.test.tsx" | wc -l`, { encoding: 'utf-8' }).trim();
+    const fileCount = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\) | wc -l`, {encoding: 'utf-8'}).trim();
+    const totalLines = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\) -exec wc -l {} + | tail -1 | awk '{print $1}'`, {encoding: 'utf-8'}).trim();
+    const testFiles = execSync(`cd ${repoPath} && find src -type f -name "*.test.ts" -o -name "*.test.tsx" | wc -l`, {encoding: 'utf-8'}).trim();
 
     return {
       totalFiles: parseInt(fileCount),
@@ -189,7 +189,7 @@ function analyzeFileStructure(repoPath) {
       testCoverage: (parseInt(testFiles) / parseInt(fileCount) * 100).toFixed(2)
     };
   } catch (e) {
-    return { error: e.message };
+    return {error: e.message};
   }
 }
 
@@ -206,7 +206,7 @@ function analyzeCleanArchitecture(repoPath) {
   try {
     const srcDir = path.join(repoPath, 'src');
     const content = fs.readdirSync(srcDir);
-    
+
     const analysis = {
       status: 'FOUND',
       patterns: {
@@ -225,7 +225,7 @@ function analyzeCleanArchitecture(repoPath) {
     // Get all files
     let allFiles = [];
     try {
-      allFiles = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\)`, { encoding: 'utf-8' }).split('\n').filter(f => f);
+      allFiles = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\)`, {encoding: 'utf-8'}).split('\n').filter(f => f);
     } catch (e) {
       // Ignore
     }
@@ -289,7 +289,7 @@ function analyzeCleanArchitecture(repoPath) {
 
     return analysis;
   } catch (e) {
-    return { error: e.message };
+    return {error: e.message};
   }
 }
 
@@ -337,9 +337,9 @@ function findDuplicatePatternsInFiles(files, repoPath) {
 function analyzeHooks(repoPath) {
   try {
     const hooksDir = path.join(repoPath, 'src/components/rac-editor/hooks');
-    
+
     if (!fs.existsSync(hooksDir)) {
-      return { status: 'NOT_FOUND' };
+      return {status: 'NOT_FOUND'};
     }
 
     const hookFiles = fs.readdirSync(hooksDir).filter(f => f.endsWith('.ts') || f.endsWith('.tsx'));
@@ -383,7 +383,7 @@ function analyzeHooks(repoPath) {
 
     return analysis;
   } catch (e) {
-    return { error: e.message };
+    return {error: e.message};
   }
 }
 
@@ -393,12 +393,12 @@ function analyzeHooks(repoPath) {
 function analyzeComponents(repoPath) {
   try {
     const componentsDir = path.join(repoPath, 'src/components/rac-editor');
-    
+
     if (!fs.existsSync(componentsDir)) {
-      return { status: 'NOT_FOUND' };
+      return {status: 'NOT_FOUND'};
     }
 
-    const componentFiles = execSync(`cd ${repoPath} && find src/components/rac-editor -type f \\( -name "*.tsx" \\) | wc -l`, { encoding: 'utf-8' }).trim();
+    const componentFiles = execSync(`cd ${repoPath} && find src/components/rac-editor -type f \\( -name "*.tsx" \\) | wc -l`, {encoding: 'utf-8'}).trim();
 
     return {
       status: 'FOUND',
@@ -406,7 +406,7 @@ function analyzeComponents(repoPath) {
       recommendations: []
     };
   } catch (e) {
-    return { error: e.message };
+    return {error: e.message};
   }
 }
 
@@ -415,8 +415,11 @@ function analyzeComponents(repoPath) {
  */
 function runTests(repoPath) {
   try {
-    const output = execSync(`cd ${repoPath} && pnpm test 2>&1 | tail -20`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-    
+    const output = execSync(`cd ${repoPath} && pnpm test 2>&1 | tail -20`, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
     const passMatch = output.match(/(\d+)\s+passed/);
     const failMatch = output.match(/(\d+)\s+failed/);
 
@@ -440,7 +443,7 @@ function runTests(repoPath) {
 function analyzeCodePatterns(repoPath) {
   try {
     const srcDir = path.join(repoPath, 'src');
-    const allFiles = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\)`, { encoding: 'utf-8' }).split('\n').filter(f => f);
+    const allFiles = execSync(`cd ${repoPath} && find src -type f \\( -name "*.ts" -o -name "*.tsx" \\)`, {encoding: 'utf-8'}).split('\n').filter(f => f);
 
     const patterns = {
       usesTypeScript: true,
@@ -456,7 +459,7 @@ function analyzeCodePatterns(repoPath) {
 
     return patterns;
   } catch (e) {
-    return { error: e.message };
+    return {error: e.message};
   }
 }
 
@@ -465,7 +468,7 @@ function analyzeCodePatterns(repoPath) {
  */
 function getRecentCommits(repoPath) {
   try {
-    return execSync(`cd ${repoPath} && git log --oneline -10`, { encoding: 'utf-8' });
+    return execSync(`cd ${repoPath} && git log --oneline -10`, {encoding: 'utf-8'});
   } catch (e) {
     return '';
   }
@@ -648,7 +651,7 @@ function generateDynamicRefactoringPlan(analysis, issues, opportunities, complet
       plan += `**Severity:** ${issue.severity}\n`;
       plan += `**Description:** ${issue.description}\n`;
       plan += `**Impact:** ${issue.impact}\n\n`;
-      
+
       if (issue.details) {
         plan += `**Details:**\n`;
         for (const detail of issue.details) {
@@ -672,7 +675,7 @@ function generateDynamicRefactoringPlan(analysis, issues, opportunities, complet
 
   // Section 5: Refactoring Phases
   plan += `---\n\n## 🎯 Recommended Refactoring Phases\n\n`;
-  
+
   const phases = generatePhases(analysis, issues, opportunities, completed);
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
@@ -864,7 +867,7 @@ function sendApprovalNotification(date, analysis, issues, opportunities) {
   console.log('📢 INTELLIGENT ANALYSIS COMPLETE');
   console.log('='.repeat(70));
   console.log(`\n✅ Dynamic analysis for ${date} is ready for review!\n`);
-  
+
   console.log('📊 Analysis Summary:');
   console.log(`   - Files: ${analysis.fileStats.totalFiles}`);
   console.log(`   - Lines: ${analysis.fileStats.totalLines}`);

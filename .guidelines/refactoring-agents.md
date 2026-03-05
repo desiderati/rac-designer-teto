@@ -1,7 +1,7 @@
 # Refactoring Agents - Regras Operacionais
 
 Este documento descreve as regras operacionais dos Agentes 1 (Análise Dinâmica) e 2 (Execução Autônoma) do sistema de
-refatoração automática do RAC Designer TETO.
+refatoração automática.
 
 ---
 
@@ -224,7 +224,7 @@ Agent 2 é responsável por:
 Agent 2 inicia **APENAS APÓS** aprovação manual do plano do Agent 1:
 
 ```bash
-./approve-refactoring.sh YYYY-MM-DD
+.manus/agents/approve-refactoring.sh YYYY-MM-DD
 ```
 
 ### 2.3 Workflow de Execução
@@ -270,8 +270,8 @@ Agent 2 executa **todos os testes** do checklist:
 
 **Testes Automatizados:**
 
-1. Unit Tests - `pnpm test -- src/components/lib/canvas/factory/`
-2. Component Tests - `pnpm test -- src/components/rac-editor/`
+1. Unit Tests - `pnpm test -- src/components/`
+2. Component Tests - `pnpm test -- src/components/`
 3. Type Safety - `pnpm tsc --noEmit`
 4. Code Quality - `pnpm lint`
 5. Coverage (condicional) - `pnpm test -- --coverage`
@@ -409,7 +409,7 @@ Agent 2 notifica **APENAS**:
 Você Revisa (Manual)
 ├─ Lê refactoring-plan.md
 ├─ Revisa regression-checklist.md
-└─ Aprova com: ./approve-refactoring.sh YYYY-MM-DD
+└─ Aprova com: ./manus/approve-refactoring.sh YYYY-MM-DD
 
 Agent 2 Executa (Após aprovação)
 ├─ Para cada fase:
@@ -453,15 +453,7 @@ Você Valida (Manual)
 
 ### 5.1 Respeitando Regras Existentes
 
-Agent 1 e Agent 2 **DEVEM RESPEITAR** todas as regras definidas em:
-
-- `canvas.md` - Regras do canvas 2D
-- `toolbar.md` - Regras da toolbar
-- `piloti-mestre.md` - Regras de mestre
-- `piloti-nivel.md` - Regras de nível
-- `contraventamento.md` - Regras de contraventamento
-- `vistas-por-tipo.md` - Regras de vistas
-- `viewer-3d.md` - Regras do viewer 3D
+Agent 1 e Agent 2 **DEVEM RESPEITAR** todas as regras definidas em `./rules/*`:
 
 ### 5.2 Validação de Conformidade
 
@@ -482,7 +474,7 @@ Após revisar `refactoring-plan.md` e `regression-checklist.md`:
 
 ```bash
 # Aprovar plano do dia
-./approve-refactoring.sh 2026-02-26
+.manus/agents/approve-refactoring.sh 2026-02-26
 
 # Isso cria arquivo de aprovação:
 # .refactoring/2026-02-26/APPROVED
@@ -571,6 +563,6 @@ Receba notificações via:
 
 ---
 
-**Last Updated:** 2026-02-26  
-**Maintained By:** Felipe Desiderati  
+**Last Updated:** 2026-02-26
+**Maintained By:** Felipe Desiderati
 **Automated By:** Agent 1 (Analysis) & Agent 2 (Execution)

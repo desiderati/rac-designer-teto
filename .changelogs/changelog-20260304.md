@@ -58,3 +58,30 @@
   - atualização de Version History (1.1.0) e Last Updated para 2026-03-04;
   - atualização dos recursos adicionais com referências a .guidelines/testing-validation-workflow.md e .rules/README.md.
 
+### Regras funcionais (migração e enriquecimento de .rules-new)
+
+- Mapeamento extensivo executado nos módulos `rac-editor`, `canvas`, `3d`, `domain/house`, `shared` e `infra` para validar regras de negócio vigentes no código.
+- Enriquecimento completo de `.rules-new` com base no conteúdo detalhado de `.rules-old`, preservando granularidade funcional por arquivo correspondente.
+- Correções de compatibilidade aplicadas durante a migração:
+  - atualização de caminhos legados para a estrutura atual (`ui/`, `hooks/canvas`, `hooks/modals`, `ui/modals`, `ui/toolbar/helpers`);
+  - atualização de nomes de funções e artefatos (`useHotkeys`, `parseStairsFromElevationViews`, smoke tests 3D renomeados);
+  - ajustes de regra no `viewer-3d` conforme código atual (espessura do terreno e sem remoção extra de degrau na cena 3D).
+- Validação automática final de referências locais em `.rules-new`: `OK_NO_BROKEN_PATHS`.
+- Arquivos atualizados em `.rules-new`:
+  - `README.md`
+  - `canvas.md`
+  - `contraventamento.md`
+  - `piloti-mestre.md`
+  - `piloti-nivel.md`
+  - `refactoring-agents.md`
+  - `toolbar.md`
+  - `viewer-3d.md`
+  - `vistas-por-tipo.md`
+
+### Reescrita de linguagem das regras (.rules-new)
+
+- Reescrita completa dos documentos de .rules-new para linguagem funcional e fluida, voltada a pessoas não técnicas.
+- Removido tecnicismo acoplado a implementação e detalhes internos de código.
+- Mantidas regras de negócio e comportamento esperado por tema (canvas, 	oolbar, istas, piloti, contraventamento, iewer-3d, gentes).
+- Arquivos revisados:
+  - README.md`n  - canvas.md`n  - contraventamento.md`n  - piloti-mestre.md`n  - piloti-nivel.md`n  - efactoring-agents.md`n  - 	oolbar.md`n  - iewer-3d.md`n  - istas-por-tipo.md`n
