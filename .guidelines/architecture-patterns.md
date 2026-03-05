@@ -80,14 +80,8 @@ Obrigatório:
 ### Hooks
 
 1. Hook comum para fluxo transversal (draft, confirmação, histórico, seleção).
-2. Hook específico para regra de tipo (ex.: Linha, Seta, Piloti).
+2. Hook específico por regra.
 3. Não concentrar múltiplas responsabilidades em um único hook extenso.
-
-### Canvas/factory
-
-1. Regras geométricas compartilhadas (escala, normalização, defaults) em helpers únicos.
-2. Criação e edição devem reutilizar a mesma regra base para evitar divergência.
-3. Estratégias por vista/tipo são preferíveis a `switch` grande quando já há variação estável.
 
 ### Domínio e persistência
 
@@ -116,7 +110,7 @@ Se não atender, manter solução direta e simples.
 
 Para qualquer mudança estrutural:
 
-1. Rodar testes de fumaça do fluxo alterado.
+1. Rodar `smoke tests` do fluxo alterado.
 2. Rodar build.
 3. Rodar checagem de tipos quando houver impacto em tipagem/contratos.
 
@@ -148,5 +142,5 @@ Se lint/tsc falhar por passivo preexistente fora do escopo, registrar explicitam
 
 ## Governança operacional
 
-1. Para processo incremental (fases, passos, validação obrigatória, atualização de `.rules`/`.codex`/`CHANGELOG`),
-   seguir também: `.guidelines/governance.md`.
+1. Para processo incremental (fases, passos, validação obrigatória, atualização de `.rules`/`.guidelines`/
+   `.changelogs`), seguir também: `.guidelines/governance.md`.

@@ -51,7 +51,7 @@ Não duplicar lógica de abertura/fechamento, botões de ação e estrutura de m
 
 ## Padrão para controles repetidos
 
-Quando um bloco de UI repete (ex.: nível com `- / valor / + / slider`), extrair componente reutilizável:
+Quando um bloco de UI repete, extrair componente reutilizável:
 
 - Entrada por props (valor, limites, callbacks, estado disabled).
 - Formatação, limites e UX no componente comum.
@@ -96,15 +96,9 @@ Manter separado quando houver:
 
 ## Convenções de implementação
 
-1. Nomes de componentes comuns devem refletir papel funcional (`CommonEditor`, `NivelControl`, `ConfirmDialogModal`).
+1. Nomes de componentes comuns devem refletir papel funcional (`NivelControl`, `ConfirmDialogModal`).
 2. APIs de props devem ser pequenas e estáveis.
 3. Evitar acoplamento com estado global quando props resolvem.
 4. Priorizar composição de componentes puros e hooks focados.
-
-## Estratégia de evolução
-
-1. Primeiro consolidar Generic + Piloti em base comum.
-2. Depois migrar demais editores para o mesmo shell.
-3. Por último remover duplicações residuais e simplificar hooks.
 
 Essa ordem reduz risco de regressão e facilita rollback por etapas.

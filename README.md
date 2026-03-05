@@ -165,28 +165,33 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 
 ```
 .
+├── .changelogs/              # Registro diário de mudanças
+├── .guidelines/              # Guias de arquitetura, UX e workflow
 ├── .lovable/                 # Planos/artefatos do Lovable (automação)
+├── .manus/                   # Documentação técnica e planos auxiliares
 ├── .refactoring/             # Saídas do sistema de refatoração automática
-├── .rules/                   # Regras e guias operacionais do projeto
+├── .rules/                   # Regras funcionais por domínio/componente
 ├── dist/                     # Build de produção (gerado)
 ├── e2e/                      # Testes E2E (Playwright)
 ├── node_modules/             # Dependências instaladas (gerado)
+├── playwright-report/        # Relatórios Playwright (gerado)
 ├── public/                   # Assets estáticos
 ├── src/
-│   ├── components/           # Componentes React do app/editor
-│   │   ├── lib/              # Helpers e libs internas do editor
-│   │   ├── rac-editor/       # Núcleo do editor (canvas, toolbar, modais, tutorial)
+│   ├── components/
+│   │   ├── rac-editor/       # Núcleo do editor (ui, lib, hooks)
 │   │   └── ui/               # Componentes base (shadcn/ui)
 │   ├── domain/               # Domínio e casos de uso (ex.: house)
 │   ├── infra/                # Infra/persistência/storage e settings
 │   ├── pages/                # Páginas/rotas da aplicação
 │   ├── shared/               # Configurações e tipos compartilhados
-│   ├── test/                 # Setup de testes unitários
+│   ├── test/                 # Setup de testes
 │   ├── App.tsx               # Componente raiz
 │   ├── index.css             # Estilos globais
 │   └── main.tsx              # Bootstrap React/Vite
-├── playwright-report/        # Relatórios Playwright (gerado)
-└── test-results/             # Artefatos de testes (gerado)
+├── test-results/             # Artefatos de testes (gerado)
+├── AGENTS.md                 # Instruções operacionais para agentes
+├── package.json              # Scripts e dependências do projeto
+└── README.md                 # Este documento
 ```
 
 ### Naming Conventions
@@ -194,7 +199,7 @@ RAC Designer TETO utiliza um **sistema de refatoração automática com 2 agente
 #### Components
 
 - PascalCase para nomes de componentes: `RacEditor`, `Canvas`, `Toolbar`
-- Sufixo `Modal` para componentes de modal: `SettingsModal`, `ConfirmModal`
+- Sufixo `Modal` para componentes de modal: `SettingsModal`, `ConfirmDialogModal`
 - Sufixo `Editor` para componentes de edição: `PilotiEditor`, `DistanceEditor`
 
 #### Functions & Variables
@@ -343,6 +348,51 @@ function calculatePolygonArea(points: [number, number][]): number {
 3. Verificar responsividade em mobile
 4. Adicionar tipos TypeScript completos
 
+### Comandos principais (estado atual)
+
+1. Instalação de dependências:
+
+    ```bash
+    npm install
+    ```
+
+2. Desenvolvimento local (recomendado para esta pasta):
+
+    ```bash
+    npm run dev -- --host 0.0.0.0
+    ```
+
+3. Build de produção:
+
+    ```bash
+    npm run build
+    ```
+
+4. Testes unitários/smoke:
+
+    ```bash
+    npm run test
+    npx vitest run smoke.test
+    ```
+
+5. Lint:
+
+    ```bash
+    npm run lint
+    ```
+
+6. Testes E2E:
+
+    ```bash
+    npm run test:e2e
+    ```
+
+7. Regressão completa:
+
+    ```bash
+    npm run test:regression
+    ```
+
 ### Before Committing
 
 1. Executar `npm run lint` e corrigir erros
@@ -476,6 +526,11 @@ feat(canvas): add polygon drawing tool
 
 ## 🔄 Version History
 
+- **v1.1.0** (2026-03-04) - Atualização incremental de compatibilidade com o código atual
+    - Estrutura de diretórios revisada
+    - Comandos de execução/teste sincronizados com `package.json`
+    - Ajustes de nomenclatura e referências
+
 - **v1.0.0** (2026-02-17) - Initial guideline creation
     - Definição de personas
     - Convenções de código
@@ -484,7 +539,7 @@ feat(canvas): add polygon drawing tool
 
 ---
 
-**Last Updated:** 2026-02-26  
+**Last Updated:** 2026-03-04  
 **Maintained By:** Felipe Desiderati  
 **Automated By:** Agent 1 (Analysis) & Agent 2 (Execution)  
 **Questions?** Consulte a documentação do projeto ou abra uma issue no GitHub
@@ -493,7 +548,8 @@ feat(canvas): add polygon drawing tool
 
 ## 📚 Additional Resources
 
+- **Regras funcionais por módulo:** `.rules/README.md`
 - **Refactoring Agents:** `.rules/refactoring-agents.md`
 - **Dynamic Analysis Guide:** `.manus/INTELLIGENT_ANALYSIS_GUIDE.md`
 - **Automated System Documentation:** `.manus/AUTOMATED_REFACTORING_SYSTEM.md`
-
+- **Workflow de Testes e Validações:** `.guidelines/testing.md`

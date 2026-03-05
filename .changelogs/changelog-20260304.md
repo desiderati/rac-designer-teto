@@ -47,3 +47,14 @@
     - comandos padrão e critérios mínimos de aceitação;
     - protocolo de registro de evidências no changelog.
 
+### README (atualização incremental)
+
+- Revisão incremental de README.md para compatibilidade com o estado atual do código.
+- Ajustes principais:
+  - correção do fluxo do Agent 1 para execução diária no bloco de workflow;
+  - seção File Structure sincronizada com a estrutura real do repositório (incluindo .guidelines, .changelogs, .manus e src/components/rac-editor);
+  - adição de seção Comandos principais (estado atual) com scripts reais do package.json;
+  - atualização de nomenclatura de modal (ConfirmDialogModal);
+  - atualização de Version History (1.1.0) e Last Updated para 2026-03-04;
+  - atualização dos recursos adicionais com referências a .guidelines/testing-validation-workflow.md e .rules/README.md.
+

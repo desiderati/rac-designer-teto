@@ -1,8 +1,8 @@
-#Governança de Refatoração Incremental
+# Governance for Incremental Refactoring
 
 ## Objetivo
 
-Definir o protocolo operacional para evoluir/refatorar o editor com segurança, mantendo comportamento e reduzindo
+Definir o protocolo operacional para evoluir/refatorar o projeto com segurança, mantendo comportamento e reduzindo
 regressão.
 
 ## Regra de ouro
@@ -26,7 +26,7 @@ Antes de iniciar alterações com impacto estrutural (arquitetura, organização
 1. Escolher 1 mudança pequena e isolada.
 2. Implementar preservando contratos públicos.
 3. Executar validação técnica mínima do escopo.
-4. Registrar o passo em `.codex` (quando existir no fluxo da equipe).
+4. Registrar o passo em `.guidelines` (quando existir no fluxo da equipe).
 5. Atualizar regras em `.rules` quando houver alteração de contrato/comportamento.
 6. Só avançar para o próximo passo após validação.
 
@@ -50,7 +50,7 @@ Antes de iniciar alterações com impacto estrutural (arquitetura, organização
 
 ## Política de reutilização vs. criação
 
-1. Antes de criar módulo novo, auditar código existente com `rg`.
+1. Antes de criar módulo novo, auditar código existente com `rg` ou ferramenta equivalente.
 2. Se houver equivalente, estender contrato em vez de duplicar.
 3. Se houver duplicação em 2+ pontos, extrair comum.
 4. Criar novo módulo apenas quando a diferença de domínio/interação for comprovada.
@@ -59,7 +59,8 @@ Antes de iniciar alterações com impacto estrutural (arquitetura, organização
 
 1. Atualizar `.guidelines/architecture-patterns.md` quando a regra arquitetural mudar.
 2. Atualizar `.guidelines/ux-design.md` quando o contrato de interação mudar.
-3. Atualizar `AGENTS_CHANGELOG.md` com marcos relevantes da rodada.
+3. Atualizar `.changelogs/changelog-AAAAMMDD.md` com marcos relevantes da rodada, onde `AAAAMMDD` é equivalente ao dia
+   corrente da execução.
 4. Registrar evidências de comando/validação no artefato de execução adotado pela equipe.
 
 ## Checklist de fechamento de rodada
