@@ -3,7 +3,14 @@ import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/compone
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
-import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
+import {
+  clampNivel,
+  getAllPilotiIds,
+  getPilotiName,
+  MAX_AVAILABLE_PILOTI_NIVEL,
+} from '@/shared/types/piloti.ts';
+
+const MIN_NIVEL_GLOBAL = 0.20;
 
 interface UsePilotiEditorArgs {
   isOpen: boolean;
@@ -34,7 +41,6 @@ export function usePilotiEditor({
   const [tempNivel, setTempNivel] = useState(() => currentNivel);
   const [clickedHeight, setClickedHeight] = useState<number | null>(null);
 
-
   const allIds = useMemo(() => {
     if (group) return getPilotiIdsFromGroup(group);
     return getAllPilotiIds();
@@ -46,17 +52,50 @@ export function usePilotiEditor({
   const pilotiName = pilotiId ? getPilotiName(pilotiId) : '';
   const isCornerPiloti = pilotiId ? PILOTI_CORNER_IDS.includes(pilotiId) : false;
 
-  const masterPilotiName = useMemo(() => {
-    if (!group) return undefined;
+  const masterPilotiId = useMemo(() => {
+    if (!group) return null;
 
     for (const id of allIds) {
       const data = getPilotiFromGroup(group, id);
-      if (data?.isMaster) return getPilotiName(id);
+      if (data?.isMaster) return id;
     }
 
-    if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
-    return undefined;
-  }, [group, allIds, tempIsMaster, pilotiId]);
+    return null;
+  }, [group, allIds]);
+
+  const masterPilotiName = useMemo(() => {
+    if (!masterPilotiId) {
+      if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
+      return undefined;
+    }
+
+    return getPilotiName(masterPilotiId);
+  }, [masterPilotiId, tempIsMaster, pilotiId]);
+
+  const masterNivel = useMemo(() => {
+    if (!group || !masterPilotiId) return undefined;
+    return Number(getPilotiFromGroup(group, masterPilotiId)?.nivel);
+  }, [group, masterPilotiId]);
+
+  const allowedMaxNivel = Math.round((tempHeight / 2) * 100) / 100;
+  const allowedMinNivelRaw = tempIsMaster
+    ? MIN_NIVEL_GLOBAL
+    : Math.max(MIN_NIVEL_GLOBAL, Number(masterNivel ?? MIN_NIVEL_GLOBAL));
+
+  const allowedMinNivel = Math.min(allowedMinNivelRaw, allowedMaxNivel);
+  const minNivelGlobal = MIN_NIVEL_GLOBAL;
+  const maxNivelGlobal = MAX_AVAILABLE_PILOTI_NIVEL;
+
+  const clampNivelWithinAllowedRange = (value: number, maxOverride?: number): number => {
+    const computedMax =
+      typeof maxOverride === 'number' && Number.isFinite(maxOverride)
+        ? maxOverride
+        : allowedMaxNivel;
+
+    const lower = Math.min(allowedMinNivel, computedMax);
+    const upper = Math.max(allowedMinNivel, computedMax);
+    return clampNivel(value, lower, upper);
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -67,11 +106,14 @@ export function usePilotiEditor({
   }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel]);
 
   useEffect(() => {
-    const clamped = clampNivelByHeight(tempNivel, tempHeight);
+    const lower = Math.min(allowedMinNivel, allowedMaxNivel);
+    const upper = Math.max(allowedMinNivel, allowedMaxNivel);
+    const clamped = clampNivel(tempNivel, lower, upper);
+
     if (clamped !== tempNivel) {
       setTempNivel(clamped);
     }
-  }, [tempHeight, tempNivel]);
+  }, [tempHeight, tempNivel, allowedMinNivel, allowedMaxNivel]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
@@ -108,7 +150,7 @@ export function usePilotiEditor({
   };
 
   const handleNivelChange = (value: number) => {
-    setTempNivel(clampNivelByHeight(value, tempHeight));
+    setTempNivel(clampNivelWithinAllowedRange(value));
   };
 
   const handleNivelIncrement = (delta: number) => {
@@ -120,7 +162,8 @@ export function usePilotiEditor({
     setTempHeight(h);
 
     const {autoNavigatePiloti} = getSettings();
-    const nivelToApply = clampNivelByHeight(tempNivel, h);
+    const nextAllowedMaxNivel = Math.round((h / 2) * 100) / 100;
+    const nivelToApply = clampNivelWithinAllowedRange(tempNivel, nextAllowedMaxNivel);
 
     // Ao reduzir altura, ajusta imediatamente o slider para não ultrapassar o novo máximo.
     setTempNivel(nivelToApply);
@@ -198,7 +241,7 @@ export function usePilotiEditor({
           ? params.isMasterOverride
           : tempIsMaster;
 
-      const nivelToApply = clampNivelByHeight(resolvedNivel, tempHeight);
+      const nivelToApply = clampNivelWithinAllowedRange(resolvedNivel);
       const hasChanges = tempHeight !== currentHeight
         || resolvedIsMaster !== currentIsMaster
         || nivelToApply !== currentNivel;
@@ -221,8 +264,6 @@ export function usePilotiEditor({
       return true;
     };
 
-  const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
-
   return {
     tempHeight,
     setTempHeight,
@@ -237,7 +278,10 @@ export function usePilotiEditor({
     pilotiName,
     isCornerPiloti,
     masterPilotiName,
-    maxNivel,
+    minNivelGlobal,
+    maxNivelGlobal,
+    allowedMinNivel,
+    allowedMaxNivel,
     handleNavigate,
     handleApply,
     handleCancel,
@@ -249,3 +293,4 @@ export function usePilotiEditor({
     getContraventamentoButtonClasses,
   };
 }
+

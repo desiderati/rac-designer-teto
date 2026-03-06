@@ -209,8 +209,10 @@ export function NivelDefinitionEditor(
         {/* Nivel section */}
         <NivelSlider
           nivel={entry.nivel}
-          minNivel={minNivel}
+          minNivel={DEFAULT_NIVEL}
           maxNivel={maxNivel}
+          allowedMinNivel={minNivel}
+          allowedMaxNivel={maxNivel}
           onNivelIncrement={handleNivelIncrement}
           onNivelChange={handleNivelChange}
           recommendedHeightText={formatNivel(getRecommendedHeight(entry.nivel))}
@@ -245,3 +247,4 @@ export function NivelDefinitionEditor(
     />
   );
 }
+

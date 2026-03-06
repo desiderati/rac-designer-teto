@@ -65,7 +65,10 @@ export function PilotiEditor({
     pilotiName,
     isCornerPiloti,
     masterPilotiName,
-    maxNivel,
+    minNivelGlobal,
+    maxNivelGlobal,
+    allowedMinNivel,
+    allowedMaxNivel,
     handleNavigate,
     handleApply,
     handleCancel,
@@ -150,8 +153,10 @@ export function PilotiEditor({
             <>
               <NivelSlider
                 nivel={tempNivel}
-                minNivel={0.20}
-                maxNivel={maxNivel}
+                minNivel={minNivelGlobal}
+                maxNivel={maxNivelGlobal}
+                allowedMinNivel={allowedMinNivel}
+                allowedMaxNivel={allowedMaxNivel}
                 onNivelIncrement={handleNivelIncrement}
                 onNivelChange={handleNivelChange}
                 onNivelCommit={(value) => {
@@ -234,3 +239,4 @@ export function PilotiEditor({
     />
   );
 }
+

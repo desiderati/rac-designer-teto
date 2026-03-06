@@ -72,3 +72,36 @@
 
 2. `npm run lint`
 - Resultado: passou com 1 warning preexistente em `src/components/rac-editor/ui/3d/House3DScene.tsx`.
+
+## Implementação — Slider de nível com faixa global fixa e bloqueios por piloti
+
+- O `NivelSlider` agora usa faixa visual global fixa:
+  - mínimo global `0,20`;
+  - máximo global = metade do maior piloti disponível (`MAX_AVAILABLE_PILOTI_NIVEL`).
+- Adicionado suporte a `allowedMinNivel` e `allowedMaxNivel` no `NivelSlider`.
+- O trilho agora renderiza as áreas bloqueadas em cinza escuro:
+  - bloqueio inferior (`globalMin -> allowedMin`),
+  - bloqueio superior (`allowedMax -> globalMax`).
+- O thumb e o commit foram limitados à faixa permitida (`allowedMin/allowedMax`), sem redimensionar o slider.
+
+### Regras dinâmicas por piloti (editor)
+
+- Em `usePilotiEditor`:
+  - `allowedMaxNivel = tempHeight / 2`.
+  - `allowedMinNivel = 0,20` para mestre.
+  - Para não-mestre, `allowedMinNivel = max(0,20, nível do mestre)`.
+- Com isso, quando o mestre sobe (ex.: `0,50`), os demais ficam com faixa inferior bloqueada até `0,50`.
+- O mestre continua podendo descer até `0,20`.
+
+### Propagação nos fluxos
+
+- `PilotiEditor` passou a enviar `min/max` globais + `allowedMin/allowedMax` ao `NivelSlider`.
+- `NivelDefinitionEditor` também passou a usar faixa global fixa no slider, com faixa permitida por contexto.
+
+### Validações executadas (rodada)
+
+1. `npx tsc --noEmit`
+- Resultado: passou.
+
+2. `npm run lint`
+- Resultado: passou com 1 warning preexistente em `src/components/rac-editor/ui/3d/House3DScene.tsx`.
