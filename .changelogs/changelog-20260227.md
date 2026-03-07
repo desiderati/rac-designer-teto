@@ -75,17 +75,17 @@
 - manter apenas abstrações com ganho real imediato.
 - Evolução acordada para facilitar persistência futura:
 - criação de `HousePersistencePort`.
-- implementação inicial `InMemoryHousePersistence` para manter estado da casa em memória.
+- implementação inicial `InMemoryHousePersistenceAdapter` para manter estado da casa em memória.
 - Remoção de `HouseAggregate` por baixa relação custo/benefício no estado atual do projeto.
 - Remoção de `house-ports.ts`, substituindo aliases por tipos concretos (`HouseRepository`/`HouseViewsRepository`)
   diretamente no `HouseManager`.
 
 ### Itens novos/alterados relevantes no final da conversa
 
-- `src/domain/house-persistence-port.ts` criado.
-- `src/infra/persistence/in-memory-house-persistence.ts` criado.
-- `src/infra/persistence/in-memory-house-persistence.smoke.test.ts` criado.
-- `src/domain/house-aggregate.ts` removido.
+- `src/domain/house-persistence.port.ts` criado.
+- `src/infra/persistence/in-memory-house-persistence.adapter.ts` criado.
+- `src/infra/persistence/in-memory-house-persistence.adapter.smoke.test.ts` criado.
+- `src/domain/house.aggregate.ts` removido.
 - `src/domain/house-ports.ts` removido.
 - `src/components/lib/house-manager.ts` atualizado para persistência via porta em memória e sem aggregate.
 

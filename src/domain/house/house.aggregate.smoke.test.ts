@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {HouseAggregate} from '@/domain/house/house-aggregate.ts';
+import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {HouseState, HouseViewType} from '@/shared/types/house.ts';
 
 function createViewInstances(viewType: HouseViewType, count: number) {
@@ -47,7 +47,7 @@ function createState(seed?: {
   };
 }
 
-describe('house-aggregate.ts', () => {
+describe('house.aggregate.ts', () => {
   it('applies layout rules for sides and pre-assigned slots', () => {
     const state = createState({houseType: 'tipo6'});
     state.views.front.push({instanceId: 'front_1', group: {id: 'g1'}, side: 'top'});

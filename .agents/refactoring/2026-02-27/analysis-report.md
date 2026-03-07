@@ -56,13 +56,13 @@ A separação de camadas está **bem definida** e sem violações de dependênci
 
 - **Domínio** (`src/domain/`): Contém o `HouseAggregate` (264 linhas), a `HousePersistencePort` (interface), e 4 use
   cases. **Nenhuma dependência** de `components` ou `infra`.
-- **Infra** (`src/infra/`): Implementação da persistência (`InMemoryHousePersistence`) e settings. Depende apenas do
+- **Infra** (`src/infra/`): Implementação da persistência (`InMemoryHousePersistenceAdapter`) e settings. Depende apenas do
   domínio e shared.
 - **Shared** (`src/shared/`): Tipos e configurações centralizadas. **Nenhuma dependência** de domínio ou infra.
 
 ### Ports/Adapters
 
-A `HousePersistencePort` é a única porta formal. A implementação `InMemoryHousePersistence` a implementa corretamente. A
+A `HousePersistencePort` é a única porta formal. A implementação `InMemoryHousePersistenceAdapter` a implementa corretamente. A
 arquitetura está funcional, mas o número de portas é baixo para o tamanho do projeto.
 
 ### Strategy Pattern
