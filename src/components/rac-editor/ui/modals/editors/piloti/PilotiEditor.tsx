@@ -70,6 +70,7 @@ export function PilotiEditor({
     handleApply,
     handleCancel,
     handleNivelChange,
+    handleNivelCommit,
     handleNivelIncrement,
     handleHeightClick,
     commitDraftChanges,
@@ -154,10 +155,7 @@ export function PilotiEditor({
                 maxNivel={maxNivel}
                 onNivelIncrement={handleNivelIncrement}
                 onNivelChange={handleNivelChange}
-                onNivelCommit={(value) => {
-                  handleNivelChange(value);
-                  commitDraftChanges({nivelOverride: value});
-                }}
+                onNivelCommit={handleNivelCommit}
               />
 
               <Separator/>

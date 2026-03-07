@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {render} from '@testing-library/react';
-import {House3DScene} from '@/components/rac-editor/ui/House3DScene.tsx';
+import {House3DScene} from '@/components/rac-editor/ui/3d/House3DScene.tsx';
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
 import {ALL_PILOTI_IDS} from '@/shared/config.ts';
 

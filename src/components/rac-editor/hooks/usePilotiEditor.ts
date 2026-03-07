@@ -3,7 +3,7 @@ import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/compone
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
-import {clampNivelByHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
+import {clampNivelByHeight, getAllPilotiIds, getPilotiName, MAX_AVAILABLE_PILOTI_NIVEL} from '@/shared/types/piloti.ts';
 
 interface UsePilotiEditorArgs {
   isOpen: boolean;
@@ -109,6 +109,12 @@ export function usePilotiEditor({
 
   const handleNivelChange = (value: number) => {
     setTempNivel(clampNivelByHeight(value, tempHeight));
+  };
+
+  const handleNivelCommit = (value: number) => {
+    const clamped = clampNivelByHeight(value, tempHeight);
+    setTempNivel(clamped);
+    commitDraftChanges({nivelOverride: clamped});
   };
 
   const handleNivelIncrement = (delta: number) => {
@@ -221,7 +227,7 @@ export function usePilotiEditor({
       return true;
     };
 
-  const maxNivel = Math.round((tempHeight / 2) * 100) / 100;
+  const maxNivel = MAX_AVAILABLE_PILOTI_NIVEL;
 
   return {
     tempHeight,
@@ -242,6 +248,7 @@ export function usePilotiEditor({
     handleApply,
     handleCancel,
     handleNivelChange,
+    handleNivelCommit,
     handleNivelIncrement,
     handleHeightClick,
     commitDraftChanges,
