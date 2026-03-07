@@ -62,8 +62,8 @@ Estas são as convenções de nomenclatura oficiais do projeto. A consistência 
 
 <rule name="Nomenclatura Específica de Clean Architecture">
   <description>Convenções de nomenclatura para os artefatos da Clean Architecture.</description>
-  <spec>Agregado: `{model}-aggregate.ts` (ex: `house-aggregate.ts`)</spec>
-  <spec>Porta: `{model}-{concern}-port.ts` (ex: `house-persistence-port.ts`)</spec>
+  <spec>Agregado: `{model}-aggregate.ts` (ex: `house.aggregate.ts`)</spec>
+  <spec>Porta: `{model}-{concern}-port.ts` (ex: `house-persistence.port.ts`)</spec>
   <spec>Adapter: `{location}-{model}-{concern}-adapter.ts` (ex: `in-memory-house-persistence-adapter.ts`)</spec>
   <spec>Caso de Uso: `{action}.use-case.ts` (ex: `house-state.use-case.ts`)</spec>
   <spec>Estratégia: `{element}.strategy.ts` (ex: `door.strategy.ts`)</spec>

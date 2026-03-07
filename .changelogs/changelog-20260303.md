@@ -151,7 +151,7 @@
         - `isPilotiOutOfProportion` passou a reutilizar o helper unificado;
         - `getRecommendedHeight` passou a usar a mesma proporção (`*2`) e fallback no maior valor da tabela
           (`MAX_AVAILABLE_PILOTI_HEIGHT`).
-    - `src/domain/house/house-aggregate.ts`
+    - `src/domain/house/house.aggregate.ts`
         - `recalculateRecommendedPilotiData` passou a reutilizar `getRecommendedHeight` (remoção da regra duplicada
           local).
     - `src/components/rac-editor/lib/house-manager.ts`
@@ -160,7 +160,7 @@
         - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
         - `src/components/rac-editor/lib/canvas/contraventamento.smoke.test.ts`
         - `src/components/rac-editor/lib/house-auto-contraventamento.smoke.test.ts`
-        - `src/domain/house/house-aggregate.smoke.test.ts`
+        - `src/domain/house/house.aggregate.smoke.test.ts`
     - `.rules/piloti-nivel.md`
         - seção de recomendação atualizada para `nivel * 2` e tabela de alturas atual (`1.0` a `3.5`).
 
@@ -213,7 +213,7 @@
         - JSDoc atualizado para `Minimum required height = nivel × 3`.
     - testes ajustados:
         - `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`
-        - `src/domain/house/house-aggregate.smoke.test.ts`
+        - `src/domain/house/house.aggregate.smoke.test.ts`
         - cenário continua cobrindo `nivel=1.75` recomendando `3.5` via fallback dinâmico.
 
 ### Atualização desta conversa (diretriz de simplicidade sem encadeamento desnecessário)

@@ -7,9 +7,11 @@
 
 ## Visão Geral do Projeto
 
-**RAC Designer TETO** é uma Single-Page Application (SPA) de editor gráfico que permite a voluntários, monitores e líderes de construção da ONG TETO criar plantas baixas 2D com visualização 3D de casas modulares. RAC = Representação de Arranjo de Construção.
+**RAC Designer TETO** é uma Single-Page Application (SPA) de editor gráfico que permite a voluntários, monitores e
+líderes de construção da ONG TETO criar plantas baixas 2D com visualização 3D de casas modulares. 
+RAC = Representação de Arranjo de Construção.
 
-- **Versão:** v1.1.0
+- **Versão:** v3.0.0
 - **Linguagem principal:** TypeScript 5.8.3 (modo não-estrito)
 - **Framework:** React 18.3.1 + Vite 7.1.11
 - **Package manager:** npm (Node.js 22.x)
@@ -82,22 +84,22 @@ rac-designer-teto/
 
 ## Stack Tecnológica
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Build | Vite 7.1.11 + @vitejs/plugin-react-swc |
-| UI | React 18.3.1 + TypeScript 5.8.3 |
-| Roteamento | React Router DOM 6.30.1 |
-| Estilo | TailwindCSS 3.4.17 + shadcn/ui + Radix UI |
-| Ícones | Lucide React + FontAwesome 7 |
-| Canvas 2D | Fabric.js 6.9.0 |
-| 3D | Three.js 0.170.0 + @react-three/fiber + @react-three/drei |
-| Formulários | React Hook Form 7.61.1 + Zod 3.25.76 |
-| Data fetching | TanStack React Query 5 |
-| PDF | jsPDF 4.2.0 |
-| Testes unitários | Vitest 3.2.4 + React Testing Library 16 |
-| Testes E2E | Playwright 1.58.2 (Chromium) |
-| Linting | ESLint 9.32.0 + typescript-eslint |
-| Formatação | Prettier (ver `.prettierrc`) |
+| Camada           | Tecnologia                                                |
+|------------------|-----------------------------------------------------------|
+| Build            | Vite 7.1.11 + @vitejs/plugin-react-swc                    |
+| UI               | React 18.3.1 + TypeScript 5.8.3                           |
+| Roteamento       | React Router DOM 6.30.1                                   |
+| Estilo           | TailwindCSS 3.4.17 + shadcn/ui + Radix UI                 |
+| Ícones           | Lucide React + FontAwesome 7                              |
+| Canvas 2D        | Fabric.js 6.9.0                                           |
+| 3D               | Three.js 0.170.0 + @react-three/fiber + @react-three/drei |
+| Formulários      | React Hook Form 7.61.1 + Zod 3.25.76                      |
+| Data fetching    | TanStack React Query 5                                    |
+| PDF              | jsPDF 4.2.0                                               |
+| Testes unitários | Vitest 3.2.4 + React Testing Library 16                   |
+| Testes E2E       | Playwright 1.58.2 (Chromium)                              |
+| Linting          | ESLint 9.32.0 + typescript-eslint                         |
+| Formatação       | Prettier (ver `.prettierrc`)                              |
 
 ---
 
@@ -105,9 +107,9 @@ rac-designer-teto/
 
 ### Domain-Driven Design
 
-- **`HouseAggregate`** (`src/domain/house/house-aggregate.ts`) — estado central imutável da casa
+- **`HouseAggregate`** (`src/domain/house/house.aggregate.ts`) — estado central imutável da casa
 - **Use-cases** em `src/domain/house/use-cases/` — regras de negócio isoladas e testáveis
-- **Port** `house-persistence-port.ts` + **Adapter** in-memory em `src/infra/persistence/`
+- **Port** `house-persistence.port.ts` + **Adapter** in-memory em `src/infra/persistence/`
 - Domínio completamente separado da apresentação
 
 ### Organização do Feature `rac-editor`
@@ -211,15 +213,15 @@ E2E tests    → fluxos de usuário completos
 
 ## Configurações Importantes
 
-| Arquivo | Propósito |
-|---------|-----------|
+| Arquivo                | Propósito                                                                |
+|------------------------|--------------------------------------------------------------------------|
 | `src/shared/config.ts` | Constantes da aplicação (canvas, house defaults, storage keys, viewport) |
-| `vite.config.ts` | Build, dev server (porta 8080), chunking para three.js e fabric |
-| `tsconfig.app.json` | Configuração TypeScript da aplicação |
-| `tailwind.config.ts` | Temas com variáveis CSS, suporte a dark mode |
-| `components.json` | Configuração shadcn/ui e aliases de componentes |
-| `playwright.config.ts` | Configuração dos testes E2E |
-| `.editorconfig` | UTF-8, LF, indentação 2 espaços, máx 120 chars |
+| `vite.config.ts`       | Build, dev server (porta 8080), chunking para three.js e fabric          |
+| `tsconfig.app.json`    | Configuração TypeScript da aplicação                                     |
+| `tailwind.config.ts`   | Temas com variáveis CSS, suporte a dark mode                             |
+| `components.json`      | Configuração shadcn/ui e aliases de componentes                          |
+| `playwright.config.ts` | Configuração dos testes E2E                                              |
+| `.editorconfig`        | UTF-8, LF, indentação 2 espaços, máx 120 chars                           |
 
 ---
 
@@ -284,16 +286,16 @@ As regras funcionais estão documentadas em `.rules/`:
 
 Para aprofundamento em cada área, leia os guias em `.prompts/`:
 
-| Arquivo | Conteúdo |
-|---------|----------|
-| `00_persona.md` | Personalidade e instruções gerais do agente |
-| `01_core_principles.md` | Princípios fundamentais de desenvolvimento |
-| `02_tech_stack.md` | Stack tecnológica detalhada |
-| `03_project_structure.md` | Arquitetura e organização |
-| `04_naming_conventions.md` | Convenções de nomenclatura |
-| `05_component_patterns.md` | Padrões de componentes React |
-| `06_hooks_and_state.md` | Gerenciamento de estado e hooks |
-| `07_data_fetching.md` | Busca e mutação de dados |
-| `08_testing.md` | Especificações de testes |
-| `09_security_and_a11y.md` | Segurança e acessibilidade (WCAG) |
-| `10_git_and_ci.md` | Git workflow e CI/CD |
+| Arquivo                    | Conteúdo                                    |
+|----------------------------|---------------------------------------------|
+| `00_persona.md`            | Personalidade e instruções gerais do agente |
+| `01_core_principles.md`    | Princípios fundamentais de desenvolvimento  |
+| `02_tech_stack.md`         | Stack tecnológica detalhada                 |
+| `03_project_structure.md`  | Arquitetura e organização                   |
+| `04_naming_conventions.md` | Convenções de nomenclatura                  |
+| `05_component_patterns.md` | Padrões de componentes React                |
+| `06_hooks_and_state.md`    | Gerenciamento de estado e hooks             |
+| `07_data_fetching.md`      | Busca e mutação de dados                    |
+| `08_testing.md`            | Especificações de testes                    |
+| `09_security_and_a11y.md`  | Segurança e acessibilidade (WCAG)           |
+| `10_git_and_ci.md`         | Git workflow e CI/CD                        |

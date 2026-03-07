@@ -31,8 +31,8 @@ Ele existe para evitar dois erros comuns:
 <rule name="Domínio (`src/domain`)">
   <description>O domínio continua sendo o núcleo da aplicação. Ele contém regras, invariantes e casos de uso ligados ao modelo da casa.</description>
   <spec>Organização por domínio de negócio, por exemplo `house`.</spec>
-  <spec>`house/house-aggregate.ts` representa o agregado central do domínio.</spec>
-  <spec>`house/house-persistence-port.ts` define o contrato de persistência do agregado.</spec>
+  <spec>`house/house.aggregate.ts` representa o agregado central do domínio.</spec>
+  <spec>`house/house-persistence.port.ts` define o contrato de persistência do agregado.</spec>
   <spec>`house/use-cases/*.use-case.ts` contém regras e transformações do domínio.</spec>
   <spec>O domínio não deve importar React, Fabric ou componentes visuais.</spec>
 </rule>

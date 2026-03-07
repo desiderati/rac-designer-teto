@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {InMemoryHousePersistence} from '@/infra/persistence/in-memory-house-persistence.ts';
+import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
-describe('in-memory-house-persistence.ts', () => {
+describe('in-memory-house-persistence.adapter.ts', () => {
   it('stores and loads the current house state in memory', () => {
-    const persistence = new InMemoryHousePersistence<unknown>();
+    const persistence = new InMemoryHousePersistenceAdapter<unknown>();
     const state: HouseState<unknown> = {
       id: 'house_1',
       houseType: 'tipo6',

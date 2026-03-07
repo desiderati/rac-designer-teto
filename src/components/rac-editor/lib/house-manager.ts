@@ -10,10 +10,10 @@ import {
   createViewGroupMetadataPatch,
   extractViewGroupRemovalHints,
 } from '@/components/rac-editor/lib/house-view.ts';
-import {HouseAggregate} from '@/domain/house/house-aggregate.ts';
+import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {refreshTopDoorMarkersInViews,} from '@/components/rac-editor/lib/house-top-view-door-marker.ts';
 import {create3DSnapshotImagePatch} from '@/components/rac-editor/lib/house-snapshot.ts';
-import type {HousePersistencePort} from '@/domain/house/house-persistence-port.ts';
+import type {HousePersistencePort} from '@/domain/house/house-persistence.port.ts';
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
@@ -23,7 +23,7 @@ import {
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import {InMemoryHousePersistence} from '@/infra/persistence/in-memory-house-persistence.ts';
+import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {applyPilotiDataToGroup, syncPilotiUpdateAcrossViews} from '@/components/rac-editor/lib/canvas/piloti-visual.ts';
 import {
   collectHouseGroupRebuildSources,
@@ -40,7 +40,7 @@ import {getSettings} from '@/infra/settings.ts';
 
 class HouseManager {
 
-  private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistence<CanvasGroup>();
+  private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistenceAdapter<CanvasGroup>();
   private houseAggregate: HouseAggregate<CanvasGroup> | null = null;
   private canvas: FabricCanvas | null = null;
 

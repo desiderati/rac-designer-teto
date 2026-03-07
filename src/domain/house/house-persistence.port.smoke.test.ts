@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {HousePersistencePort} from './house-persistence-port.ts';
+import type {HousePersistencePort} from './house-persistence.port.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
 class MemoryHousePersistence implements HousePersistencePort<string> {
@@ -14,7 +14,7 @@ class MemoryHousePersistence implements HousePersistencePort<string> {
   }
 }
 
-describe('house-persistence-port.ts', () => {
+describe('house-persistence.port.ts', () => {
   it('supports load/save contract in a minimal implementation', () => {
     const persistence = new MemoryHousePersistence();
     const state: HouseState<string> = {

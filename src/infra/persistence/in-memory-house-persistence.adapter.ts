@@ -1,7 +1,7 @@
-import type {HousePersistencePort} from '@/domain/house/house-persistence-port.ts';
+import type {HousePersistencePort} from '@/domain/house/house-persistence.port.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
-export class InMemoryHousePersistence<TGroup = unknown> implements HousePersistencePort<TGroup> {
+export class InMemoryHousePersistenceAdapter<TGroup = unknown> implements HousePersistencePort<TGroup> {
   private state: HouseState<TGroup> | null;
 
   constructor(initialState: HouseState<TGroup> | null = null) {
