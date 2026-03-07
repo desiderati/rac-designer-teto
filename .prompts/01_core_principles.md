@@ -55,7 +55,7 @@ Estes são os princípios fundamentais que guiam TODAS as decisões de desenvolv
 
 <rule name="Principle 5: Clarity Over Premature Abstraction">
   <description>
-    Escreva código que seja, acima de tudo, fácil de ler e entender.  Uma abstração só é justificada se atender a pelo menos DOIS dos seguintes critérios IMEDIATAMENTE:
+    Escreva código que seja, acima de tudo, fácil de ler e entender. Uma abstração só é justificada se atender a pelo menos DOIS dos seguintes critérios IMEDIATAMENTE:
     1. Elimina duplicação de lógica crítica já existente.
     2. Reduz acoplamento problemático já existente.
     3. Permite uma troca REAL de implementação necessária no curto/médio prazo.
