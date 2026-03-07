@@ -6,10 +6,8 @@
   e prioridades listadas ali antes de codificar.
 - Trabalhe exclusivamente dentro de `personal/rac-designer-teto` durante esta sessão; evite operar na raiz ou em outros
   projetos.
-- No início de cada sessão, leia obrigatoriamente os diretórios `.guidelines/` e `.rules/` antes de qualquer análise,
+- No início de cada sessão, leia obrigatoriamente os diretórios `.prompts/` e `.specs/` antes de qualquer análise,
   proposta ou implementação. Consulte tais diretórios antes de propor mudanças de interface e experiência.
-- Para decisões de UI/UX, use como referência principal `.guidelines/ux-design.md`.
-- Quando criar documentação, manter a acentuação da língua nativa.
 
 ## Ambiente e comandos principais
 
@@ -23,6 +21,7 @@
 ## Comunicação e entregas
 
 - Responda sempre em português neste módulo.
+- Quando criar documentação, manter sempre em português e a acentuação da língua nativa.
 - Ao gerar ou editar arquivos em português, use sempre acentuação correta (nunca remover acentos).
 - Documente o que mudou em `.changelogs/changelog-AAAAMMDD.md` (arquivo da data atual) antes de pedir revisão.
   Se o arquivo do dia ainda não existir, crie-o.

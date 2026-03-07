@@ -15,7 +15,7 @@
 set -e
 
 REPO_PATH="/home/ubuntu/rac-designer-teto"
-REFACTORING_DIR="${REPO_PATH}/.refactoring"
+REFACTORING_DIR="${REPO_PATH}/.agents/refactoring"
 
 # Get date from argument or use today
 if [ -z "$1" ]; then
@@ -80,7 +80,7 @@ touch "$APPROVED_MARKER"
 # Commit approval
 echo "🚀 Committing approval..."
 cd "$REPO_PATH"
-git add ".refactoring/${ANALYSIS_DATE}/.approved"
+git add ".agents/refactoring/${ANALYSIS_DATE}/.approved"
 git commit -m "docs: approved refactoring for ${ANALYSIS_DATE}" || true
 git push origin manus || true
 
@@ -89,7 +89,7 @@ echo "✅ Approval complete!"
 echo "🤖 Agent 2 will now execute the refactoring plan"
 echo ""
 echo "📄 Execution will be logged to:"
-echo "   .refactoring/${ANALYSIS_DATE}/regression-run.md"
+echo "   .agents/refactoring/${ANALYSIS_DATE}/regression-run.md"
 echo ""
 echo "💡 You will be notified when execution completes"
 echo ""

@@ -1,0 +1,14 @@
+/**
+ * {{pascalCase model}} Persistence Port
+ *
+ * Defines the contract for persisting and loading the {{pascalCase model}} aggregate.
+ * This is a PORT (interface) — the Domain layer defines WHAT it needs,
+ * and the Infrastructure layer provides HOW.
+ */
+
+import type { {{pascalCase model}}State } from './{{kebabCase model}}-aggregate';
+
+export interface {{pascalCase model}}PersistencePort {
+  save(state: {{pascalCase model}}State): Promise<void>;
+  load(): Promise<{{pascalCase model}}State | null>;
+}

@@ -11,7 +11,7 @@ refatoração automática.
 
 Agent 1 é responsável por:
 
-1. **Análise Dinâmica Diária** - Executar às 06:00 GMT-3
+1. **Análise Dinâmica Semanalmente** - Executar às 06:00 GMT-3
 2. **Detecção de Issues** - Identificar problemas reais no código
 3. **Identificação de Opportunities** - Encontrar melhorias valiosas
 4. **Reconhecimento de Progresso** - Detectar fases já completadas
@@ -173,7 +173,7 @@ O checklist de regressão é **DINÂMICO** baseado em:
 Agent 1 cria dois arquivos:
 
 ```
-.refactoring/YYYY-MM-DD/
+.agents/refactoring/YYYY-MM-DD/
 ├── refactoring-plan.md
 │   ├── Current State Analysis
 │   ├── Previously Completed Phases
@@ -224,7 +224,7 @@ Agent 2 é responsável por:
 Agent 2 inicia **APENAS APÓS** aprovação manual do plano do Agent 1:
 
 ```bash
-.manus/agents/approve-refactoring.sh YYYY-MM-DD
+.agents/approve-refactoring.sh YYYY-MM-DD
 ```
 
 ### 2.3 Workflow de Execução
@@ -323,7 +323,7 @@ Quando um teste falha:
 Agent 2 cria arquivo de execução:
 
 ```
-.refactoring/YYYY-MM-DD/regression-run.md
+.agents/refactoring/YYYY-MM-DD/regression-run.md
 ├── Execution Summary
 │   ├── Start Time
 │   ├── End Time
@@ -409,7 +409,7 @@ Agent 2 notifica **APENAS**:
 Você Revisa (Manual)
 ├─ Lê refactoring-plan.md
 ├─ Revisa regression-checklist.md
-└─ Aprova com: ./manus/approve-refactoring.sh YYYY-MM-DD
+└─ Aprova com: .agents/refactoring/approve-refactoring.sh YYYY-MM-DD
 
 Agent 2 Executa (Após aprovação)
 ├─ Para cada fase:
@@ -432,7 +432,7 @@ Você Valida (Manual)
 ## 4. Estrutura de Diretórios
 
 ```
-.refactoring/
+.agents/refactoring/
 ├── 2026-02-24/
 │   ├── refactoring-plan.md          ← Agent 1 gera
 │   └── regression-checklist.md      ← Agent 1 gera
@@ -474,10 +474,10 @@ Após revisar `refactoring-plan.md` e `regression-checklist.md`:
 
 ```bash
 # Aprovar plano do dia
-.manus/agents/approve-refactoring.sh 2026-02-26
+.agents/refactoring/agents/approve-refactoring.sh 2026-02-26
 
 # Isso cria arquivo de aprovação:
-# .refactoring/2026-02-26/APPROVED
+# .agents/refactoring/2026-02-26/APPROVED
 ```
 
 ### 6.2 Rejeitando o Plano
@@ -506,7 +506,7 @@ Se quer ajustar antes de aprovar:
 Todos os logs estão em:
 
 ```
-.manus-logs/
+.agents/logs/
 ├── devserver.log
 ├── browserConsole.log
 ├── networkRequests.log
@@ -518,7 +518,7 @@ Todos os logs estão em:
 Histórico completo em:
 
 ```
-.refactoring/
+.agents/refactoring/
 ├── 2026-02-24/
 ├── 2026-02-25/
 ├── 2026-02-26/

@@ -39,14 +39,14 @@ ferramentas avançadas de desenho 2D e visualização 3D interativa.
 - **Objetivo:** Criar plantas precisas de casas para projetos da TETO
 - **Experiência:** Conhecimento técnico nos modelos de casa da TETO
 - **Necessidades:** Ferramentas de desenho precisas, exportação para PDF, medições exatas
-- **Frustração:** Interfaces complexas, falta de feedback visual
+- **Frustração:** Interfaces complexas, demora na criação e alteração de RACs, falta de feedback visual
 
 ### Persona 2: Líder Voluntário
 
 - **Objetivo:** Ver e validar plantas criadas por monitores
 - **Experiência:** Conhecimento construtivo, experiência em métodos construtivos
 - **Necessidades:** Visualização 3D clara, ferramentas de anotação, acesso a histórico de edições
-- **Frustração:** Falta de precisão; falta de entendimento do modelo criado pelos monitores
+- **Frustração:** Imprecisão da RAC; falta de entendimento do modelo criado pelos monitores
 
 ### Persona 3: Voluntário Iniciante
 
@@ -60,7 +60,7 @@ ferramentas avançadas de desenho 2D e visualização 3D interativa.
 ## 🤖 Automated Refactoring System
 
 Definir como os agentes automáticos devem apoiar evolução do projeto sem causar regressões.
-Para informações mais detalhadas veja em: `.guidelines/refactoring-agents.md`
+Para informações mais detalhadas veja em: `.agents/refactoring/README.md`
 
 ### Visão geral
 
@@ -124,16 +124,13 @@ Após execução das fases, deve haver validação de:
 
 ```
 .
+├── .agents/                  # Documentação técnica para agentes
+├── .agents/refactoring/      # Saídas do sistema de refatoração automática
 ├── .changelogs/              # Registro diário de mudanças
-├── .guidelines/              # Guias de arquitetura, UX e workflow
 ├── .lovable/                 # Planos/artefatos do Lovable (automação)
-├── .manus/                   # Documentação técnica e planos auxiliares
-├── .refactoring/             # Saídas do sistema de refatoração automática
+├── .prompts/                 # Guias de arquitetura, UX e workflow
 ├── .rules/                   # Regras funcionais por domínio/componente
-├── dist/                     # Build de produção (gerado)
 ├── e2e/                      # Testes E2E (Playwright)
-├── node_modules/             # Dependências instaladas (gerado)
-├── playwright-report/        # Relatórios Playwright (gerado)
 ├── public/                   # Assets estáticos
 ├── src/
 │   ├── components/
@@ -147,7 +144,6 @@ Após execução das fases, deve haver validação de:
 │   ├── App.tsx               # Componente raiz
 │   ├── index.css             # Estilos globais
 │   └── main.tsx              # Bootstrap React/Vite
-├── test-results/             # Artefatos de testes (gerado)
 ├── AGENTS.md                 # Instruções operacionais para agentes
 ├── package.json              # Scripts e dependências do projeto
 └── README.md                 # Este documento
@@ -201,7 +197,7 @@ const Canvas = (props: any) => {
 ### React Best Practices
 
 - Usar functional components com hooks
-- Memoizar componentes pesados com `React.memo` quando apropriado
+- Memorizar componentes pesados com `React.memo` quando apropriado
 - Usar `useCallback` para event handlers que são passados como props
 - Evitar criar objetos/arrays dentro de render - usar `useMemo` se necessário
 - Sempre adicionar key props em listas
@@ -507,8 +503,5 @@ feat(canvas): add polygon drawing tool
 
 ## 📚 Additional Resources
 
+- **Refactoring Agents:** `.agents/refactoring/README.md`
 - **Regras funcionais por módulo:** `.rules/README.md`
-- **Workflow de Testes e Validações:** `.guidelines/testing.md`
-- **Refactoring Agents:** `.guidelines/refactoring-agents.md`
-- **Dynamic Analysis Guide:** `.manus/INTELLIGENT_ANALYSIS_GUIDE.md`
-- **Automated System Documentation:** `.manus/AUTOMATED_REFACTORING_SYSTEM.md`

@@ -4,8 +4,8 @@
  * Agent 2: Automatic Refactoring Executor
  *
  * Responsibilities:
- * 1. Read refactoring plan from .refactoring/YYYY-MM-DD/refactoring-plan.md
- * 2. Read regression checklist from .refactoring/YYYY-MM-DD/regression-checklist.md
+ * 1. Read refactoring plan from .agents/refactoring/YYYY-MM-DD/refactoring-plan.md
+ * 2. Read regression checklist from .agents/refactoring/YYYY-MM-DD/regression-checklist.md
  * 3. Execute each phase of the plan:
  *    - Create checkpoint before phase
  *    - Execute phase changes
@@ -30,7 +30,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Configuration
 const REPO_PATH = '/home/ubuntu/rac-designer-teto';
 const BRANCH = 'manus';
-const REFACTORING_DIR = path.join(REPO_PATH, '.refactoring');
+const REFACTORING_DIR = path.join(REPO_PATH, '.agents/refactoring');
 const TODAY = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 const TODAY_DIR = path.join(REFACTORING_DIR, TODAY);
 const PLAN_FILE = path.join(TODAY_DIR, 'refactoring-plan.md');
@@ -95,7 +95,7 @@ try {
   // Step 5: Commit results
   console.log('\n🚀 Committing execution results...');
   try {
-    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-2 execution results for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
+    execSync(`cd ${REPO_PATH} && git add .agents/refactoring/ && git commit -m "docs: agent-2 execution results for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
   } catch (e) {
     console.log('⚠️  Commit skipped (no changes or push failed)');
   }
@@ -471,7 +471,7 @@ function sendFinalNotification(status, phaseResults) {
   console.log(`\n${status === 'SUCCESS' ? '✅ SUCCESS' : '❌ FAILED'}\n`);
   console.log(`Phases Executed: ${phaseResults.length}`);
   console.log(`Phases Successful: ${phaseResults.filter(p => p.success).length}`);
-  console.log(`\n📁 Report: .refactoring/${TODAY}/regression-run.md`);
+  console.log(`\n📁 Report: .agents/refactoring/${TODAY}/regression-run.md`);
   console.log('\n💡 Next: Review the execution report and validate the changes');
   console.log('='.repeat(60) + '\n');
 }

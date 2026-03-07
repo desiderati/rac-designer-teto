@@ -1,0 +1,23 @@
+/**
+ * In-Memory {{pascalCase model}} Persistence Adapter
+ *
+ * Implements the {{pascalCase model}}PersistencePort using in-memory storage.
+ * This is an ADAPTER — it lives in the Infrastructure layer and provides
+ * a concrete implementation of the Domain's port.
+ */
+
+import type { {{pascalCase model}}State } from '@/domain/{{kebabCase model}}/{{kebabCase model}}-aggregate';
+import type { {{pascalCase model}}PersistencePort } from '@/domain/{{kebabCase model}}/{{kebabCase model}}-persistence-port';
+
+export function createInMemory{{pascalCase model}}PersistenceAdapter(): {{pascalCase model}}PersistencePort {
+  let stored: {{pascalCase model}}State | null = null;
+
+  return {
+    async save(state: {{pascalCase model}}State): Promise<void> {
+      stored = structuredClone(state);
+    },
+    async load(): Promise<{{pascalCase model}}State | null> {
+      return stored ? structuredClone(stored) : null;
+    },
+  };
+}

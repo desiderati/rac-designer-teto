@@ -1,0 +1,21 @@
+/**
+ * {{pascalCase action}} Use Case
+ *
+ * Orchestrates the business logic for the "{{action}}" action on the {{model}} domain.
+ * Use cases coordinate between the aggregate and the ports.
+ */
+
+import type { {{pascalCase model}}State } from '../{{kebabCase model}}-aggregate';
+import type { {{pascalCase model}}PersistencePort } from '../{{kebabCase model}}-persistence-port';
+
+export function {{camelCase action}}UseCase(
+  persistence: {{pascalCase model}}PersistencePort,
+) {
+  return {
+    async execute(): Promise<{{pascalCase model}}State | null> {
+      // TODO: Implement use case logic
+      const state = await persistence.load();
+      return state;
+    },
+  };
+}

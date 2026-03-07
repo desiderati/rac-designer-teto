@@ -1,0 +1,17 @@
+/**
+ * {{pascalCase model}} Aggregate
+ *
+ * Encapsulates the state and business rules for the {{model}} domain model.
+ * This file belongs to the Domain layer and MUST NOT import from infra/ or components/.
+ */
+
+export type {{pascalCase model}}State = {
+  // TODO: Define aggregate state
+};
+
+export function create{{pascalCase model}}(initial?: Partial<{{pascalCase model}}State>): {{pascalCase model}}State {
+  return {
+    // TODO: Set default values
+    ...initial,
+  };
+}

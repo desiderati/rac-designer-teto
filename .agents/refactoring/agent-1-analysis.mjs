@@ -22,7 +22,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_PATH = '/home/ubuntu/rac-designer-teto';
 const REPO_URL = 'https://github.com/desiderati/rac-designer-teto.git';
 const BRANCH = 'manus';
-const REFACTORING_DIR = path.join(REPO_PATH, '.refactoring');
+const REFACTORING_DIR = path.join(REPO_PATH, '.agents/refactoring');
 const TODAY = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 const TODAY_DIR = path.join(REFACTORING_DIR, TODAY);
 const PLAN_FILE = path.join(TODAY_DIR, 'refactoring-plan.md');
@@ -87,7 +87,7 @@ try {
   // Step 8: Commit and push
   console.log('\n🚀 Committing to repository...');
   try {
-    execSync(`cd ${REPO_PATH} && git add .refactoring/ && git commit -m "docs: agent-1 intelligent analysis for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
+    execSync(`cd ${REPO_PATH} && git add .agents/refactoring/ && git commit -m "docs: agent-1 intelligent analysis for ${TODAY}" && git push origin ${BRANCH}`, {stdio: 'inherit'});
   } catch (e) {
     console.log('⚠️  Commit skipped (no changes or push failed)');
   }
@@ -97,7 +97,7 @@ try {
   sendApprovalNotification(TODAY, codeAnalysis, issues, opportunities);
 
   console.log('\n✅ Agent 1 analysis complete!');
-  console.log(`📁 Reports location: .refactoring/${TODAY}/`);
+  console.log(`📁 Reports location: .agents/refactoring/${TODAY}/`);
   console.log('⏳ Waiting for manual approval before Agent 2 starts...');
 
 } catch (error) {
@@ -886,7 +886,7 @@ function sendApprovalNotification(date, analysis, issues, opportunities) {
     console.log(`💡 Opportunities: ${opportunities.length}\n`);
   }
 
-  console.log('📁 Location: .refactoring/' + date + '/');
+  console.log('📁 Location: .agents/refactoring/' + date + '/');
   console.log('   - refactoring-plan.md (DYNAMIC)');
   console.log('   - regression-checklist.md (ADAPTIVE)');
   console.log('\n⏳ Waiting for your approval...');
