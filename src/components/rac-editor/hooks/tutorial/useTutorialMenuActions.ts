@@ -12,6 +12,7 @@ interface UseTutorialMenuActionsArgs {
   setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
   setShowTips: Dispatch<SetStateAction<boolean>>;
   setShowZoomControls: Dispatch<SetStateAction<boolean>>;
+  setFamilySetupOpen: Dispatch<SetStateAction<boolean>>;
   setHouseTypeSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setTutorialHouseSelectorPreview: Dispatch<SetStateAction<boolean>>;
   closeAllMenus: () => void;
@@ -29,6 +30,7 @@ export function useTutorialMenuActions({
   setActiveSubmenu,
   setShowTips,
   setShowZoomControls,
+  setFamilySetupOpen,
   setHouseTypeSelectorOpen,
   setTutorialHouseSelectorPreview,
   closeAllMenus,
@@ -39,7 +41,7 @@ export function useTutorialMenuActions({
 
   const handleOpenHouseTypeSelector = useCallback(() => {
     closeAllMenus();
-    setHouseTypeSelectorOpen(true);
+    setFamilySetupOpen(true);
 
     if (tutorialStep === 'house') {
       setTutorialHouseSelectorPreview(true);
@@ -48,7 +50,7 @@ export function useTutorialMenuActions({
   }, [
     advanceTutorial,
     closeAllMenus,
-    setHouseTypeSelectorOpen,
+    setFamilySetupOpen,
     setTutorialHouseSelectorPreview,
     tutorialStep,
   ]);
@@ -84,7 +86,7 @@ export function useTutorialMenuActions({
 
     if (tutorialStep === 'house') {
       closeAllMenus();
-      setHouseTypeSelectorOpen(true);
+      setFamilySetupOpen(true);
       setTutorialHouseSelectorPreview(true);
       advanceTutorial('house');
       return;
@@ -103,7 +105,7 @@ export function useTutorialMenuActions({
     handleOpenHouseTypeSelector,
     isHouseTypeSelected,
     setActiveSubmenu,
-    setHouseTypeSelectorOpen,
+    setFamilySetupOpen,
     setTutorialHouseSelectorPreview,
     tutorialStep,
   ]);

@@ -4,8 +4,12 @@ import {
   NivelDefinition,
   NivelDefinitionEditor
 } from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
+import {FamilySetupModal, FamilySetupResult} from '@/components/rac-editor/ui/modals/editors/FamilySetupModal.tsx';
 
 interface RacEditorHouseTypeSelectorProps {
+  familySetupOpen: boolean;
+  onFamilySetupClose: () => void;
+  onFamilySetupConfirm: (result: FamilySetupResult) => void;
   houseTypeSelectorOpen: boolean;
   onHouseTypeSelectorClose: () => void;
   onHouseTypeSelected: (type: HouseType) => void;
@@ -16,6 +20,9 @@ interface RacEditorHouseTypeSelectorProps {
 }
 
 export function RacEditorHouseTypeSelector({
+  familySetupOpen,
+  onFamilySetupClose,
+  onFamilySetupConfirm,
   houseTypeSelectorOpen,
   onHouseTypeSelectorClose,
   onHouseTypeSelected,
@@ -26,6 +33,12 @@ export function RacEditorHouseTypeSelector({
 }: RacEditorHouseTypeSelectorProps) {
   return (
     <>
+      <FamilySetupModal
+        isOpen={familySetupOpen}
+        onClose={onFamilySetupClose}
+        onConfirm={onFamilySetupConfirm}
+      />
+
       <HouseTypeSelector
         isOpen={houseTypeSelectorOpen}
         onClose={onHouseTypeSelectorClose}

@@ -26,6 +26,7 @@ import {getSettings} from '@/infra/settings.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {HouseType} from '@/shared/types/house.ts';
+import type {FamilySetupResult} from '@/components/rac-editor/ui/modals/editors/FamilySetupModal.tsx';
 import {useLinearEditorActions} from '@/components/rac-editor/hooks/modals/useLinearEditorActions.ts';
 import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutorialFlow.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
@@ -64,6 +65,7 @@ export function RacEditor() {
   const handleHouseTypeSelected = (type: HouseType) => {
     handleHouseTypeSelectedFromFlow(type);
   };
+
 
   const {
     infoMessage,
@@ -110,9 +112,18 @@ export function RacEditor() {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
+    familySetupOpen,
+    setFamilySetupOpen,
   } = useRacEditorModalState();
 
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
+
+  const handleFamilySetupConfirm = useCallback((result: FamilySetupResult) => {
+    houseManager.setFamilyName(result.familyName);
+    houseManager.setSelectedPilotiHeights(result.selectedHeights);
+    setFamilySetupOpen(false);
+    setHouseTypeSelectorOpen(true);
+  }, [setFamilySetupOpen, setHouseTypeSelectorOpen]);
 
   useRacEditorDebugBridge({
     canvasRef,
@@ -295,6 +306,7 @@ export function RacEditor() {
     setActiveSubmenu,
     setShowTips,
     setShowZoomControls,
+    setFamilySetupOpen,
     setHouseTypeSelectorOpen,
     setTutorialHouseSelectorPreview,
     closeAllMenus,
@@ -512,6 +524,9 @@ export function RacEditor() {
       />
 
       <RacEditorHouseTypeSelector
+        familySetupOpen={familySetupOpen}
+        onFamilySetupClose={() => setFamilySetupOpen(false)}
+        onFamilySetupConfirm={handleFamilySetupConfirm}
         houseTypeSelectorOpen={houseTypeSelectorOpen}
         onHouseTypeSelectorClose={handleHouseTypeSelectorClose}
         onHouseTypeSelected={handleHouseTypeSelected}

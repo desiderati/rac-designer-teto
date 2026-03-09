@@ -8,7 +8,7 @@ import {PilotiGridIcon} from './PilotiGridIcon.tsx';
 import {ContraventamentoSideIcon} from '@/components/rac-editor/ui/modals/editors/piloti/ContraventamentoSideIcon.tsx';
 import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
+import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
@@ -165,7 +165,7 @@ export function PilotiEditor({
           <div className='space-y-4'>
             <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
             <div className='grid grid-cols-3 gap-2'>
-              {DEFAULT_HOUSE_PILOTI_HEIGHTS.map((h) =>
+              {houseManager.getSelectedPilotiHeights().map((h) =>
                 <button
                   key={h}
                   onClick={() => handleHeightClick(h)}

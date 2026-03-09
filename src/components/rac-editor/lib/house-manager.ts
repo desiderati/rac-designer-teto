@@ -22,6 +22,7 @@ import {
   HouseState,
   HouseType,
   HouseViewType,
+  DEFAULT_HOUSE_PILOTI_HEIGHTS,
 } from '@/shared/types/house.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {applyPilotiDataToGroup, syncPilotiUpdateAcrossViews} from '@/components/rac-editor/lib/canvas/piloti-visual.ts';
@@ -43,6 +44,8 @@ class HouseManager {
   private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistenceAdapter<CanvasGroup>();
   private houseAggregate: HouseAggregate<CanvasGroup> | null = null;
   private canvas: FabricCanvas | null = null;
+  private _familyName: string = '';
+  private _selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
 
   private listeners = new Set<() => void>();
 
@@ -150,7 +153,25 @@ class HouseManager {
       defaultTerrainType: this.getDefaultTerrainType(),
     });
 
+    this._familyName = '';
+    this._selectedPilotiHeights = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
     this.notify();
+  }
+
+  getFamilyName(): string {
+    return this._familyName;
+  }
+
+  setFamilyName(name: string): void {
+    this._familyName = name;
+  }
+
+  getSelectedPilotiHeights(): readonly number[] {
+    return this._selectedPilotiHeights;
+  }
+
+  setSelectedPilotiHeights(heights: number[]): void {
+    this._selectedPilotiHeights = [...heights].sort((a, b) => a - b);
   }
 
   // Get/Set house type

@@ -1,4 +1,4 @@
-import {DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
+import {ALL_PILOTI_HEIGHTS, DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
 import {NUMERIC_EPSILON, PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from '../constants';
 
 export const getPilotiIdsForSide =
@@ -54,7 +54,7 @@ export function getMinimumPilotiHeightForNivel(nivel: number): number {
   return nivel * 3;
 }
 
-export const MAX_AVAILABLE_PILOTI_HEIGHT = Math.max(...DEFAULT_HOUSE_PILOTI_HEIGHTS);
+export const MAX_AVAILABLE_PILOTI_HEIGHT = Math.max(...ALL_PILOTI_HEIGHTS);
 export const MAX_AVAILABLE_PILOTI_NIVEL = getMaxNivelForPilotiHeight(MAX_AVAILABLE_PILOTI_HEIGHT);
 
 export function clampNivelByHeight(nivel: number, pilotiHeight: number): number {
@@ -78,11 +78,12 @@ export function formatNivel(nivel: number): string {
   return nivel.toFixed(2).replace('.', ',');
 }
 
-export function getRecommendedHeight(nivel: number): number {
+export function getRecommendedHeight(nivel: number, availableHeights?: readonly number[]): number {
+  const heights = availableHeights ?? DEFAULT_HOUSE_PILOTI_HEIGHTS;
   const minHeight = getMinimumPilotiHeightForNivel(nivel);
-  return DEFAULT_HOUSE_PILOTI_HEIGHTS.find(
+  return heights.find(
     (h) => h + NUMERIC_EPSILON >= minHeight
-  ) ?? MAX_AVAILABLE_PILOTI_HEIGHT;
+  ) ?? Math.max(...heights);
 }
 
 // Get piloti name from ID (e.g., "piloti_0_0" -> "A1")
