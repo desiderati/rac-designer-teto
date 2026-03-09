@@ -458,16 +458,11 @@ function buildStairMetricsFromGroundNiveis(params: {
   const rightNivel = round2(params.rightGroundNivel);
   const referenceGroundLevel = Math.min(leftNivel, rightNivel);
 
-  // Usa os níveis dos cantos do lado (não os interpolados da borda da escada)
-  // para decidir se o terreno tem declive suficiente para aplicar o extra.
-  const cornerLeft = params.leftCornerNivel ?? leftNivel;
-  const cornerRight = params.rightCornerNivel ?? rightNivel;
-  const cornerDiff = Math.abs(cornerLeft - cornerRight);
-  const heightExtraMts = cornerDiff > AUTO_STAIR_HEIGHT_EXTRA_MTS ? AUTO_STAIR_HEIGHT_EXTRA_MTS : 0;
-
+  // O extra é sempre aplicado: representa o quanto a escada deve ultrapassar
+  // a linha do terreno para garantir a transição segura entre terreno e estrutura.
   const stairHeight = round2(
     referenceGroundLevel
-    + heightExtraMts
+    + AUTO_STAIR_HEIGHT_EXTRA_MTS
     + AUTO_STAIR_FLOOR_HEIGHT_MTS
     + AUTO_STAIR_BEAM_HEIGHT_MTS,
   );

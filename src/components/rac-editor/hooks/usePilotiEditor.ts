@@ -3,7 +3,13 @@ import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/compone
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
-import {clampNivelByHeight, getAllPilotiIds, getPilotiName, MAX_AVAILABLE_PILOTI_NIVEL} from '@/shared/types/piloti.ts';
+import {
+  clampNivelByHeight,
+  getAllPilotiIds,
+  getPilotiName,
+  getRecommendedHeight,
+  MAX_AVAILABLE_PILOTI_NIVEL,
+} from '@/shared/types/piloti.ts';
 
 interface UsePilotiEditorArgs {
   isOpen: boolean;
@@ -66,12 +72,14 @@ export function usePilotiEditor({
     setTempNivel(currentNivel);
   }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel]);
 
+  // Clipa o nível apenas quando a altura muda (botão de altura), nunca durante o drag.
+  // Usa atualização funcional para ler o valor mais recente sem precisar de tempNivel nas deps.
   useEffect(() => {
-    const clamped = clampNivelByHeight(tempNivel, tempHeight);
-    if (clamped !== tempNivel) {
-      setTempNivel(clamped);
-    }
-  }, [tempHeight, tempNivel]);
+    setTempNivel(prev => {
+      const clamped = clampNivelByHeight(prev, tempHeight);
+      return clamped !== prev ? clamped : prev;
+    });
+  }, [tempHeight]);
 
   const handleNavigate = (direction: 'prev' | 'next') => {
     if (!pilotiId) return;
@@ -107,14 +115,29 @@ export function usePilotiEditor({
     onClose();
   };
 
+  // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
+  // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
-    setTempNivel(clampNivelByHeight(value, tempHeight));
+    setTempNivel(value);
   };
 
   const handleNivelCommit = (value: number) => {
-    const clamped = clampNivelByHeight(value, tempHeight);
-    setTempNivel(clamped);
-    commitDraftChanges({nivelOverride: clamped});
+    if (!pilotiId) return;
+
+    // Regra: ao soltar o drag do slider, a altura é sempre recalculada com base no nível escolhido.
+    const recommendedHeight = getRecommendedHeight(value);
+    setTempHeight(recommendedHeight);
+    setTempNivel(value);
+
+    houseManager.updatePiloti(pilotiId, {
+      height: recommendedHeight,
+      isMaster: tempIsMaster,
+      nivel: value,
+    });
+
+    const updatedPiloti = houseManager.getPilotiData(pilotiId);
+    onHeightChange(updatedPiloti.height);
+    onNavigate?.(pilotiId, updatedPiloti.height, updatedPiloti.isMaster, updatedPiloti.nivel);
   };
 
   const handleNivelIncrement = (delta: number) => {
