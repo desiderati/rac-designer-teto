@@ -251,8 +251,9 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
             </div>
           ) : (
             <Suspense fallback={
-              <div className='absolute inset-0 flex items-center justify-center'>
-                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'/>
+              <div className='absolute inset-0 flex flex-col items-center justify-center gap-3'>
+                <div className='animate-spin rounded-full h-10 w-10 border-4 border-muted-foreground/20 border-t-primary'/>
+                <p className='text-sm text-muted-foreground animate-pulse'>Carregando visualizador 3D…</p>
               </div>
             }>
               <Canvas
