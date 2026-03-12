@@ -67,5 +67,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
+    pilotiSetupOpen,
+    setPilotiSetupOpen,
   };
 }
