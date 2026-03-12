@@ -8,7 +8,7 @@ import {PilotiGridIcon} from './PilotiGridIcon.tsx';
 import {ContraventamentoSideIcon} from '@/components/rac-editor/ui/modals/editors/piloti/ContraventamentoSideIcon.tsx';
 import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
+import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
