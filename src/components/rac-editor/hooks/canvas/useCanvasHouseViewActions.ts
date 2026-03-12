@@ -36,6 +36,7 @@ interface UseCanvasHouseViewActionsArgs {
   transitionToNivelRef: MutableRefObject<boolean>;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+  setPilotiSetupOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useCanvasHouseViewActions({
