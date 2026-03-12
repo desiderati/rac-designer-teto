@@ -25,6 +25,8 @@ interface UseRacEditorModalStateResult {
   setIs3DViewerOpen: Dispatch<SetStateAction<boolean>>;
   nivelDefinitionOpen: boolean;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+  pilotiSetupOpen: boolean;
+  setPilotiSetupOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
