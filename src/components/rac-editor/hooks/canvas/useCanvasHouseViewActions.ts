@@ -56,6 +56,7 @@ export function useCanvasHouseViewActions({
   transitionToNivelRef,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
+  setPilotiSetupOpen,
 }: UseCanvasHouseViewActionsArgs) {
 
   const addViewToCanvas =
