@@ -36,6 +36,7 @@ interface UseCanvasHouseViewActionsArgs {
   transitionToNivelRef: MutableRefObject<boolean>;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+  setPilotiSetupOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useCanvasHouseViewActions({
@@ -55,6 +56,7 @@ export function useCanvasHouseViewActions({
   transitionToNivelRef,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
+  setPilotiSetupOpen,
 }: UseCanvasHouseViewActionsArgs) {
 
   const addViewToCanvas =
@@ -151,7 +153,7 @@ export function useCanvasHouseViewActions({
       // Use a flag to prevent handleSideSelectorClose from clearing pendingViewType
       transitionToNivelRef.current = true;
       setSideSelectorOpen(false);
-      setNivelDefinitionOpen(true);
+      setPilotiSetupOpen(true);
       return;
     } else {
       // Regular side selection or choose-instance
@@ -285,6 +287,21 @@ export function useCanvasHouseViewActions({
       setSideSelectorOpen(true);
     };
 
+  const handlePilotiSetupConfirm = (heights: number[]) => {
+    houseManager.setSelectedPilotiHeights(heights);
+    setPilotiSetupOpen(false);
+    setNivelDefinitionOpen(true);
+  };
+
+  const handlePilotiSetupClose = () => {
+    // User cancelled - reset house type since we already auto-assigned
+    houseManager.setHouseType(null);
+    houseManager.reset();
+    setPendingViewType(null);
+    setPendingNivelSide(null);
+    setPilotiSetupOpen(false);
+  };
+
   return {
     addViewToCanvas,
     requestAddView,
@@ -294,6 +311,8 @@ export function useCanvasHouseViewActions({
     handleSideSelectorClose,
     handleAddHouseView,
     handleHouseTypeSelected,
+    handlePilotiSetupConfirm,
+    handlePilotiSetupClose,
   };
 }
 

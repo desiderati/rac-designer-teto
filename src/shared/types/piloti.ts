@@ -85,6 +85,14 @@ export function getRecommendedHeight(nivel: number): number {
   ) ?? MAX_AVAILABLE_PILOTI_HEIGHT;
 }
 
+export function getRecommendedHeightFromHeights(nivel: number, heights: number[]): number {
+  const minHeight = getMinimumPilotiHeightForNivel(nivel);
+  const sorted = [...heights].sort((a, b) => a - b);
+  return sorted.find(
+    (h) => h + NUMERIC_EPSILON >= minHeight
+  ) ?? (sorted.length > 0 ? sorted[sorted.length - 1] : MAX_AVAILABLE_PILOTI_HEIGHT);
+}
+
 // Get piloti name from ID (e.g., "piloti_0_0" -> "A1")
 export function getPilotiName(pilotiId: string): string {
   const match = pilotiId.match(/piloti_(\d+)_(\d+)/);

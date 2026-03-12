@@ -110,6 +110,8 @@ export function RacEditor() {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
+    pilotiSetupOpen,
+    setPilotiSetupOpen,
   } = useRacEditorModalState();
 
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
@@ -215,6 +217,8 @@ export function RacEditor() {
     handleSideSelectorClose,
     handleAddHouseView,
     handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
+    handlePilotiSetupConfirm,
+    handlePilotiSetupClose,
   } = useCanvasHouseViewActions({
     getCanvas,
     getVisibleCenter,
@@ -232,6 +236,7 @@ export function RacEditor() {
     transitionToNivelRef,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
+    setPilotiSetupOpen,
   });
 
   const {
@@ -516,6 +521,9 @@ export function RacEditor() {
         onHouseTypeSelectorClose={handleHouseTypeSelectorClose}
         onHouseTypeSelected={handleHouseTypeSelected}
         tutorialHouseSelectorPreview={tutorialHouseSelectorPreview}
+        pilotiSetupOpen={pilotiSetupOpen}
+        onPilotiSetupClose={handlePilotiSetupClose}
+        onPilotiSetupConfirm={handlePilotiSetupConfirm}
         nivelDefinitionOpen={nivelDefinitionOpen}
         onCloseNivelDefinition={handleNivelDefinitionClose}
         onApplyNiveis={handleNiveisApplied}

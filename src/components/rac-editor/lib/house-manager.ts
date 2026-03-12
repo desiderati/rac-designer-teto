@@ -17,6 +17,7 @@ import type {HousePersistencePort} from '@/domain/house/house-persistence.port.t
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
+  DEFAULT_HOUSE_PILOTI_HEIGHTS,
   HousePiloti,
   HouseSide,
   HouseState,
@@ -43,6 +44,7 @@ class HouseManager {
   private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistenceAdapter<CanvasGroup>();
   private houseAggregate: HouseAggregate<CanvasGroup> | null = null;
   private canvas: FabricCanvas | null = null;
+  private _selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
 
   private listeners = new Set<() => void>();
 
@@ -150,7 +152,21 @@ class HouseManager {
       defaultTerrainType: this.getDefaultTerrainType(),
     });
 
+    this._selectedPilotiHeights = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
     this.notify();
+  }
+
+  getSelectedPilotiHeights(): number[] {
+    return this._selectedPilotiHeights;
+  }
+
+  setSelectedPilotiHeights(heights: number[]): void {
+    this._selectedPilotiHeights = [...heights].sort((a, b) => a - b);
+  }
+
+  getMaxSelectedPilotiHeight(): number {
+    if (this._selectedPilotiHeights.length === 0) return Math.max(...DEFAULT_HOUSE_PILOTI_HEIGHTS);
+    return Math.max(...this._selectedPilotiHeights);
   }
 
   // Get/Set house type

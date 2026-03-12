@@ -10,7 +10,8 @@ import {PilotiGridIcon} from '@/components/rac-editor/ui/modals/editors/piloti/P
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/ui/modals/ConfirmDialogModal.tsx';
-import {clampNivel, formatNivel, getRecommendedHeight, MAX_AVAILABLE_PILOTI_NIVEL} from '@/shared/types/piloti.ts';
+import {clampNivel, formatNivel, getMaxNivelForPilotiHeight, getRecommendedHeight} from '@/shared/types/piloti.ts';
+import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 const DEFAULT_NIVEL = DEFAULT_HOUSE_PILOTI.nivel;
@@ -157,7 +158,7 @@ export function NivelDefinitionEditor(
 
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
-  const maxNivel = MAX_AVAILABLE_PILOTI_NIVEL;
+  const maxNivel = getMaxNivelForPilotiHeight(houseManager.getMaxSelectedPilotiHeight());
   const minNivel =
     !entry.isMaster && masterCorner ? Math.max(entries[masterCorner].nivel, DEFAULT_NIVEL) : DEFAULT_NIVEL;
 

@@ -25,6 +25,8 @@ interface UseRacEditorModalStateResult {
   setIs3DViewerOpen: Dispatch<SetStateAction<boolean>>;
   nivelDefinitionOpen: boolean;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+  pilotiSetupOpen: boolean;
+  setPilotiSetupOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
@@ -40,6 +42,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
+  const [pilotiSetupOpen, setPilotiSetupOpen] = useState(false);
 
   return {
     activeSubmenu,
@@ -64,5 +67,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
+    pilotiSetupOpen,
+    setPilotiSetupOpen,
   };
 }
