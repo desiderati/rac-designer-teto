@@ -42,6 +42,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
+  const [pilotiSetupOpen, setPilotiSetupOpen] = useState(false);
 
   return {
     activeSubmenu,
