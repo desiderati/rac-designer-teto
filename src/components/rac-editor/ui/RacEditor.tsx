@@ -236,7 +236,7 @@ export function RacEditor() {
     transitionToNivelRef,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
-    setPilotiSetupOpen: useRacEditorModalState_result.pilotiSetupOpen !== undefined ? setPilotiSetupOpen : (() => {}),
+    setPilotiSetupOpen,
   });
 
   const {
