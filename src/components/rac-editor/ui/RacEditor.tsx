@@ -521,6 +521,9 @@ export function RacEditor() {
         onHouseTypeSelectorClose={handleHouseTypeSelectorClose}
         onHouseTypeSelected={handleHouseTypeSelected}
         tutorialHouseSelectorPreview={tutorialHouseSelectorPreview}
+        pilotiSetupOpen={pilotiSetupOpen}
+        onPilotiSetupClose={handlePilotiSetupClose}
+        onPilotiSetupConfirm={handlePilotiSetupConfirm}
         nivelDefinitionOpen={nivelDefinitionOpen}
         onCloseNivelDefinition={handleNivelDefinitionClose}
         onApplyNiveis={handleNiveisApplied}
