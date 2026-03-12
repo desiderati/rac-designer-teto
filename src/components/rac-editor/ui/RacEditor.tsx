@@ -110,6 +110,8 @@ export function RacEditor() {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
+    pilotiSetupOpen,
+    setPilotiSetupOpen,
   } = useRacEditorModalState();
 
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
