@@ -43,6 +43,7 @@ class HouseManager {
   private readonly persistence: HousePersistencePort<CanvasGroup> = new InMemoryHousePersistenceAdapter<CanvasGroup>();
   private houseAggregate: HouseAggregate<CanvasGroup> | null = null;
   private canvas: FabricCanvas | null = null;
+  private _selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
 
   private listeners = new Set<() => void>();
 
