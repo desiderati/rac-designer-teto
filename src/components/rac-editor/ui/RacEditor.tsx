@@ -215,6 +215,8 @@ export function RacEditor() {
     handleSideSelectorClose,
     handleAddHouseView,
     handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
+    handlePilotiSetupConfirm,
+    handlePilotiSetupClose,
   } = useCanvasHouseViewActions({
     getCanvas,
     getVisibleCenter,
@@ -232,6 +234,7 @@ export function RacEditor() {
     transitionToNivelRef,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
+    setPilotiSetupOpen: useRacEditorModalState_result.pilotiSetupOpen !== undefined ? setPilotiSetupOpen : (() => {}),
   });
 
   const {

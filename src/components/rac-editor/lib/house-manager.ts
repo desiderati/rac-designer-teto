@@ -17,6 +17,7 @@ import type {HousePersistencePort} from '@/domain/house/house-persistence.port.t
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
+  DEFAULT_HOUSE_PILOTI_HEIGHTS,
   HousePiloti,
   HouseSide,
   HouseState,

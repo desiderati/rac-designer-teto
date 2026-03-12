@@ -287,6 +287,21 @@ export function useCanvasHouseViewActions({
       setSideSelectorOpen(true);
     };
 
+  const handlePilotiSetupConfirm = (heights: number[]) => {
+    houseManager.setSelectedPilotiHeights(heights);
+    setPilotiSetupOpen(false);
+    setNivelDefinitionOpen(true);
+  };
+
+  const handlePilotiSetupClose = () => {
+    // User cancelled - reset house type since we already auto-assigned
+    houseManager.setHouseType(null);
+    houseManager.reset();
+    setPendingViewType(null);
+    setPendingNivelSide(null);
+    setPilotiSetupOpen(false);
+  };
+
   return {
     addViewToCanvas,
     requestAddView,
@@ -296,6 +311,8 @@ export function useCanvasHouseViewActions({
     handleSideSelectorClose,
     handleAddHouseView,
     handleHouseTypeSelected,
+    handlePilotiSetupConfirm,
+    handlePilotiSetupClose,
   };
 }
 
