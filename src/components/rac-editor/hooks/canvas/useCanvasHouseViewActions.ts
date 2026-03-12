@@ -153,7 +153,7 @@ export function useCanvasHouseViewActions({
       // Use a flag to prevent handleSideSelectorClose from clearing pendingViewType
       transitionToNivelRef.current = true;
       setSideSelectorOpen(false);
-      setNivelDefinitionOpen(true);
+      setPilotiSetupOpen(true);
       return;
     } else {
       // Regular side selection or choose-instance

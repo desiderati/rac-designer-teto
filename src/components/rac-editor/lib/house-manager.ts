@@ -151,7 +151,21 @@ class HouseManager {
       defaultTerrainType: this.getDefaultTerrainType(),
     });
 
+    this._selectedPilotiHeights = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
     this.notify();
+  }
+
+  getSelectedPilotiHeights(): number[] {
+    return this._selectedPilotiHeights;
+  }
+
+  setSelectedPilotiHeights(heights: number[]): void {
+    this._selectedPilotiHeights = [...heights].sort((a, b) => a - b);
+  }
+
+  getMaxSelectedPilotiHeight(): number {
+    if (this._selectedPilotiHeights.length === 0) return Math.max(...DEFAULT_HOUSE_PILOTI_HEIGHTS);
+    return Math.max(...this._selectedPilotiHeights);
   }
 
   // Get/Set house type
