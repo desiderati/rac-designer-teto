@@ -158,7 +158,7 @@ export function NivelDefinitionEditor(
 
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < CORNER_ORDER.length - 1;
-  const maxNivel = MAX_AVAILABLE_PILOTI_NIVEL;
+  const maxNivel = getMaxNivelForPilotiHeight(houseManager.getMaxSelectedPilotiHeight());
   const minNivel =
     !entry.isMaster && masterCorner ? Math.max(entries[masterCorner].nivel, DEFAULT_NIVEL) : DEFAULT_NIVEL;
 
