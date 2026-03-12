@@ -1,54 +1,40 @@
-## Plano: Cálculo de volume de rachão e brita + correção de erros de build
 
-### 1. Correção dos erros de build existentes (pré-requisito)
 
-**Problema**: 4 arquivos importam `TutorialStepId` e `TutorialHighlight` de `Tutorial.tsx`, mas esses tipos estão em
-`tutorial.ts`. Além disso, `index.smoke.test.ts` importa `getAllPilotiIds` de `./index.ts` mas esse barrel não reexporta
-`piloti.ts` (que por sua vez importa de `@/shared/types/piloti.ts`).
+## Plano: Modal "Configuração de Pilotis" antes da Definição de Nível
 
-**Correções**:
+### Resumo
 
-- `toolbar-types.ts`, `ToolbarMainMenu.tsx`, `ToolbarOverflowMenu.tsx`: mudar import de `Tutorial.tsx` para
-  `@/components/rac-editor/lib/tutorial.ts`
-- `useTutorialMenuActions.ts`, `RacEditorCanvas.tsx`: idem para `TutorialStepId`
-- `index.smoke.test.ts`: importar `getAllPilotiIds` de `@/shared/types/piloti.ts` em vez de `./index.ts`
+Criar um modal "Configuração de Pilotis" que aparece **logo antes** do NivelDefinitionEditor no fluxo de inserção da casa. O usuário seleciona 6 de 9 alturas disponíveis. O layout segue o padrão do PilotiEditor (grid 3x3 com botões toggle). O valor máximo do nível passa a depender do maior piloti selecionado.
 
-### 2. Lógica de cálculo de volume (novo módulo)
-
-Criar `src/components/rac-editor/lib/terrain-volume.ts` com funções puras:
-
-**Fórmulas** (cilindro: V = π × (d/2)² × h, convertendo cm para m):
-
-- **Rachão por piloti**: cilindro com altura = `rachao` cm (da config por solidez), diâmetro = `piloti.width` (30cm) +
-  2 × `sideGravelWidth` (10cm) = 50cm. Total = volume × 12.
-- **Brita por piloti**: (cilindro externo − cilindro do piloti). Cilindro externo: altura = nível do piloti em cm (parte
-  enterrada), diâmetro = 50cm. Cilindro piloti: mesma altura, diâmetro = 30cm. Somar para os 12 pilotis (cada um pode
-  ter nível diferente).
+### Fluxo atualizado
 
 ```text
-Interface pública:
-  calculateRachaoVolume(terrainLevel, pilotiCount=12) → m³
-  calculateBritaVolume(pilotis: {nivel: number}[]) → m³
-  calculateTotalVolumes(terrainLevel, pilotis) → { rachaoM3, britaM3 }
+HouseTypeSelector → SideSelector → PilotiSetupModal (NOVO) → NivelDefinitionEditor → Canvas
 ```
 
-Constantes usadas: `TERRAIN_SOLIDITY.levels[n].rachao`, `TERRAIN_SOLIDITY.sideGravelWidth` (10cm),
-`HOUSE_DIMENSIONS.piloti.width` (30px = 30cm).
+### Arquivo a criar
 
-### 3. Exibição no TerrainEditor
+**`src/components/rac-editor/ui/modals/editors/PilotiSetupModal.tsx`**
+- Usa `ConfirmDialogModal` (mesmo padrão do NivelDefinitionEditor)
+- Título: "Configuração de Pilotis"
+- Subtítulo: "Tamanho dos Pilotis"
+- Grid 3x3 com 9 botões toggle para alturas: 1.0, 1.2, 1.5, 2.0, 2.2, 2.5, 3.0, 3.2, 3.5
+- Mesma aparência dos botões de altura do PilotiEditor (`bg-primary/10` inativo, `bg-primary text-primary-foreground` ativo)
+- Botão "Confirmar" habilitado quando exatamente 6 alturas selecionadas
+- Contador visual: "X de 6 selecionadas"
+- `onConfirm(heights: number[])` retorna as 6 alturas ordenadas
 
-Adicionar ao `TerrainEditor.tsx`, abaixo do slider, uma seção com os volumes calculados:
+### Arquivos a modificar
 
-- Receber prop `pilotis: Record<string, HousePiloti>` para acessar o nível de cada piloti
-- Mostrar: "Rachão total: X,XX m³" e "Brita total: X,XX m³"
-- Atualizar em tempo real conforme o slider de solidez muda
-
-### Detalhes técnicos
-
-- Largura do piloti = 30cm (valor em `HOUSE_DIMENSIONS.piloti.width`)
-- Largura da brita lateral = 10cm (valor em `TERRAIN_SOLIDITY.sideGravelWidth`)
-- Diâmetro total = 30 + 10×2 = 50cm
-- Rachão: uniforme para todos os pilotis (mesma altura de rachão)
-- Brita: variável por piloti (depende do nível/parte enterrada de cada um)
-- Volume do cilindro em m³: π × (d/2)² × h, com d e h em metros
+| Arquivo | Mudança |
+|---|---|
+| `src/shared/types/house.ts` | Adicionar `ALL_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.2, 2.5, 3.0, 3.2, 3.5]` |
+| `src/components/rac-editor/lib/house-manager.ts` | Adicionar campo `_selectedPilotiHeights: number[]` com getter/setter. Inicializa com `DEFAULT_HOUSE_PILOTI_HEIGHTS`. Reset limpa para default. |
+| `src/components/rac-editor/hooks/useRacEditorModalState.ts` | Adicionar `pilotiSetupOpen` / `setPilotiSetupOpen` |
+| `src/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts` | No `handleSideSelected`, ao transicionar para nível, abrir `pilotiSetupOpen` em vez de `nivelDefinitionOpen`. Adicionar handler `handlePilotiSetupConfirm` que salva as alturas no houseManager e abre `nivelDefinitionOpen`. |
+| `src/components/rac-editor/ui/RacEditorHouseTypeSelector.tsx` | Adicionar `PilotiSetupModal` com props de open/close/confirm |
+| `src/components/rac-editor/ui/RacEditor.tsx` | Passar `pilotiSetupOpen`/handlers para `RacEditorHouseTypeSelector` |
+| `src/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx` | `maxNivel` passa a usar `getMaxNivelForPilotiHeight(houseManager.getMaxSelectedPilotiHeight())` em vez do global fixo |
+| `src/components/rac-editor/ui/modals/editors/piloti/PilotiEditor.tsx` | Usar `houseManager.getSelectedPilotiHeights()` em vez de `DEFAULT_HOUSE_PILOTI_HEIGHTS` |
+| `src/shared/types/piloti.ts` | Adicionar `getRecommendedHeightFromHeights(nivel, heights)` que aceita array dinâmico. `MAX_AVAILABLE_PILOTI_NIVEL` permanece como constante global (baseada no 3.5). |
 
