@@ -4,12 +4,16 @@ import {
   NivelDefinition,
   NivelDefinitionEditor
 } from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
+import {PilotiSetupModal} from '@/components/rac-editor/ui/modals/editors/PilotiSetupModal.tsx';
 
 interface RacEditorHouseTypeSelectorProps {
   houseTypeSelectorOpen: boolean;
   onHouseTypeSelectorClose: () => void;
   onHouseTypeSelected: (type: HouseType) => void;
   tutorialHouseSelectorPreview: boolean;
+  pilotiSetupOpen: boolean;
+  onPilotiSetupClose: () => void;
+  onPilotiSetupConfirm: (heights: number[]) => void;
   nivelDefinitionOpen: boolean;
   onCloseNivelDefinition: () => void;
   onApplyNiveis: (niveis: Record<string, NivelDefinition>) => void;
@@ -20,6 +24,9 @@ export function RacEditorHouseTypeSelector({
   onHouseTypeSelectorClose,
   onHouseTypeSelected,
   tutorialHouseSelectorPreview,
+  pilotiSetupOpen,
+  onPilotiSetupClose,
+  onPilotiSetupConfirm,
   nivelDefinitionOpen,
   onCloseNivelDefinition,
   onApplyNiveis,
@@ -31,6 +38,11 @@ export function RacEditorHouseTypeSelector({
         onClose={onHouseTypeSelectorClose}
         onSelectType={onHouseTypeSelected}
         tutorialLocked={tutorialHouseSelectorPreview}/>
+
+      <PilotiSetupModal
+        isOpen={pilotiSetupOpen}
+        onClose={onPilotiSetupClose}
+        onConfirm={onPilotiSetupConfirm}/>
 
       <NivelDefinitionEditor
         isOpen={nivelDefinitionOpen}
