@@ -179,6 +179,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                     variant='outline'
                     size='icon'
                     title='Cor das Paredes'
+                    disabled={!isSceneReady}
                   >
                     <FontAwesomeIcon icon={faPalette}/>
                   </Button>
@@ -203,6 +204,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={() => setHideBelowTerrain((previous) => !previous)}
                 title={hideBelowTerrain ? 'Mostrar abaixo do terreno' : 'Ocultar abaixo do terreno'}
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={faEyeSlash}/>
               </Button>
@@ -211,7 +213,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 title='Inserir no Canvas'
                 onClick={handleInsertOnCanvas}
-                disabled={!houseType}
+                disabled={!houseType || !isSceneReady}
               >
                 <FontAwesomeIcon icon={faCamera}/>
               </Button>
@@ -220,6 +222,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={handleReset}
                 title='Resetar Câmera'
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={faRotateRight}/>
               </Button>
@@ -228,6 +231,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={toggleFullscreen}
                 title={isFullscreen ? 'Sair do Fullscreen' : 'Fullscreen'}
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand}/>
               </Button>
