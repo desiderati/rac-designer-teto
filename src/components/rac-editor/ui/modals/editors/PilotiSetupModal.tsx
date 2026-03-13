@@ -45,7 +45,7 @@ export function PilotiSetupModal({isOpen, onClose, onConfirm}: PilotiSetupModalP
   const content = (
     <div className='flex flex-col gap-4'>
       <div className='space-y-4'>
-        <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
+        <p className='text-sm font-medium text-center'>Selecione seis tamanhos possíveis de Pilotis para a casa:</p>
         <div className='grid grid-cols-3 gap-2'>
           {ALL_PILOTI_HEIGHTS.map((h) => {
             const isActive = selected.has(h);
@@ -55,7 +55,7 @@ export function PilotiSetupModal({isOpen, onClose, onConfirm}: PilotiSetupModalP
                 type='button'
                 onClick={() => toggle(h)}
                 className={`
-                  h-10 rounded-lg text-sm font-semibold transition-colors
+                  rounded-xl text-lg py-3 font-semibold transition-colors
                   ${isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-primary/10 text-foreground hover:bg-primary/20'}
@@ -66,9 +66,6 @@ export function PilotiSetupModal({isOpen, onClose, onConfirm}: PilotiSetupModalP
             );
           })}
         </div>
-        <p className='text-xs text-muted-foreground text-center'>
-          {selected.size} de {REQUIRED_COUNT} selecionadas
-        </p>
       </div>
     </div>
   );

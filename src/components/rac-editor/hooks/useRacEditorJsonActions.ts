@@ -4,6 +4,7 @@ import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/lib/canvas';
+import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
 
 interface UseRacEditorJsonActionsArgs {
@@ -62,9 +63,15 @@ export function useRacEditorJsonActions({
 
         canvas.renderAll();
         syncContraventamentoElevations();
+        emitHouseStoreChange();
         canvasRef.current?.saveHistory();
         setInfoMessage(EDITOR_INFO_MESSAGES.projectLoaded);
         toast.success(TOAST_MESSAGES.projectLoadedSuccessfully);
+
+        // Force a second render pass to ensure door markers are visible
+        setTimeout(() => {
+          canvas.requestRenderAll();
+        }, 100);
       });
     };
     reader.readAsText(file);

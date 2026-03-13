@@ -1,5 +1,4 @@
 import {lazy, Suspense, useCallback, useRef, useState} from 'react';
-import {Dialog, DialogContent} from '@/components/ui/dialog.tsx';
 import {Toolbar} from '@/components/rac-editor/ui/toolbar/Toolbar.tsx';
 import {CanvasHandle, TerrainCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
@@ -593,16 +592,7 @@ export function RacEditor() {
       />
 
       {is3DViewerOpen ? (
-        <Suspense fallback={
-          <Dialog open onOpenChange={setIs3DViewerOpen}>
-            <DialogContent className='max-w-3xl w-full h-[70vh] max-h-[70vh] p-0 gap-0 flex flex-col items-center justify-center'>
-              <div className='flex flex-col items-center justify-center gap-3'>
-                <div className='animate-spin rounded-full h-10 w-10 border-4 border-muted-foreground/20 border-t-primary'/>
-                <p className='text-sm text-muted-foreground animate-pulse'>Carregando visualizador 3D…</p>
-              </div>
-            </DialogContent>
-          </Dialog>
-        }>
+        <Suspense fallback={null}>
           <LazyHouse3DViewer
             open={is3DViewerOpen}
             onOpenChange={setIs3DViewerOpen}
