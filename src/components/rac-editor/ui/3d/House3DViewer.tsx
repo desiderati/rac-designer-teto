@@ -118,6 +118,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   }, [open, houseVersion, syncFromManager]);
 
   const handleReset = () => {
+    setIsSceneReady(false);
     setResetKey((k) => k + 1);
   };
 
