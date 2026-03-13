@@ -1,5 +1,4 @@
 import {lazy, Suspense, useCallback, useRef, useState} from 'react';
-import {Dialog, DialogContent} from '@/components/ui/dialog.tsx';
 import {Toolbar} from '@/components/rac-editor/ui/toolbar/Toolbar.tsx';
 import {CanvasHandle, TerrainCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {RacEditorModalEditors} from './RacEditorModalEditors.tsx';
