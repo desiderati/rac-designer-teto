@@ -222,9 +222,11 @@ export function refreshTopDoorMarkersInViews(params: {
     });
 
     for (const canvasObjectMarker of topDoorMarker) {
-      const side =
-        (canvasObjectMarker as { markerSide?: HouseSide; doorMarkerSide?: HouseSide }).doorMarkerSide;
-      if (!side) continue;
+      const markerMetadata = canvasObjectMarker as {
+        markerSide?: HouseSide;
+        doorMarkerSide?: HouseSide;
+      };
+      const side = markerMetadata.doorMarkerSide ?? markerMetadata.markerSide;
 
       canvasObjectMarker.set(
         createTopDoorMarkerVisualPatch({
