@@ -43,6 +43,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
   const [hideBelowTerrain, setHideBelowTerrain] = useState(false);
+  const [isSceneReady, setIsSceneReady] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Sync with HouseManager

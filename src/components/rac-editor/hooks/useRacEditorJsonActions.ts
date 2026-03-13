@@ -63,9 +63,15 @@ export function useRacEditorJsonActions({
 
         canvas.renderAll();
         syncContraventamentoElevations();
+        emitHouseStoreChange();
         canvasRef.current?.saveHistory();
         setInfoMessage(EDITOR_INFO_MESSAGES.projectLoaded);
         toast.success(TOAST_MESSAGES.projectLoadedSuccessfully);
+
+        // Force a second render pass to ensure door markers are visible
+        setTimeout(() => {
+          canvas.requestRenderAll();
+        }, 100);
       });
     };
     reader.readAsText(file);
