@@ -268,6 +268,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 gl={{preserveDrawingBuffer: true}}
                 onCreated={({gl}) => {
                   webglCanvasRef.current = gl.domElement;
+                  setIsSceneReady(true);
                 }}
               >
                 <PerspectiveCamera
