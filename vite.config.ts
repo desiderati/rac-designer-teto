@@ -23,9 +23,11 @@ export default defineConfig(async ({mode}) => {
   }
 
   return {
+    base: mode === 'production' ? '/rac-designer-teto/' : '/',
     server: {
       host: '::',
       port: 8080,
+      allowedHosts: true,
     },
     build: {
       chunkSizeWarningLimit: 1000,
