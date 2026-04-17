@@ -34,10 +34,11 @@ import {
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
 import {normalizeTerrainSolidityLevel, PILOTI_CORNER_IDS, TERRAIN_SOLIDITY} from '@/shared/config.ts';
-import {getAllPilotiIds} from '@/shared/types/piloti.ts';
+import {getAllPilotiIds, normalizeAvailablePilotiHeights} from '@/shared/types/piloti.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
 import {getSettings} from '@/infra/settings.ts';
+import {projectSession} from '@/components/rac-editor/lib/project-session.ts';
 
 class HouseManager {
 
@@ -80,6 +81,32 @@ class HouseManager {
 
   private persistHouse(): void {
     this.persistence.save(this.houseAggregate?.toState() ?? null);
+  }
+
+  private hydrateEditorMetadataFromProjectSession(): void {
+    const activeHouse = projectSession.getActiveHouse();
+    const activeFamily = projectSession.getActiveFamily();
+    const aggregate = this.getHouseAggregate();
+
+    this._familyName = activeFamily.name;
+    this._selectedPilotiHeights = normalizeAvailablePilotiHeights(
+      activeHouse.designSettings.selectedPilotiHeights,
+    );
+
+    if (!aggregate) return;
+
+    aggregate.setHouseType(activeHouse.houseType);
+    aggregate.setTerrainType(activeHouse.terrainType);
+    this.persistHouse();
+  }
+
+  private syncProjectSession(): void {
+    projectSession.syncActiveHouseMetadata({
+      houseType: this.getHouseType(),
+      terrainType: this.getTerrainType(),
+      familyName: this._familyName,
+      selectedPilotiHeights: this._selectedPilotiHeights,
+    });
   }
 
   private notify(): void {
@@ -155,6 +182,7 @@ class HouseManager {
 
     this._familyName = '';
     this._selectedPilotiHeights = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
+    this.hydrateEditorMetadataFromProjectSession();
     this.notify();
   }
 
@@ -164,6 +192,7 @@ class HouseManager {
 
   setFamilyName(name: string): void {
     this._familyName = name;
+    this.syncProjectSession();
   }
 
   getSelectedPilotiHeights(): readonly number[] {
@@ -171,7 +200,8 @@ class HouseManager {
   }
 
   setSelectedPilotiHeights(heights: number[]): void {
-    this._selectedPilotiHeights = [...heights].sort((a, b) => a - b);
+    this._selectedPilotiHeights = normalizeAvailablePilotiHeights(heights);
+    this.syncProjectSession();
   }
 
   // Get/Set house type
@@ -188,6 +218,7 @@ class HouseManager {
 
     aggregate.setHouseType(type);
     this.persistHouse();
+    this.syncProjectSession();
     this.notify();
   }
 
@@ -205,6 +236,7 @@ class HouseManager {
     const normalized = normalizeTerrainSolidityLevel(terrainType);
     aggregate.setTerrainType(normalized);
     this.persistHouse();
+    this.syncProjectSession();
     this.applyTerrainTypeToElevationViews(normalized);
     this.canvas?.requestRenderAll();
     this.notify();
@@ -494,7 +526,11 @@ class HouseManager {
     const aggregate = this.getHouseAggregate();
     if (!this.house || !aggregate) return;
 
-    aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI);
+    aggregate.recalculateRecommendedPilotiData(
+      DEFAULT_HOUSE_PILOTI,
+      true,
+      this._selectedPilotiHeights,
+    );
     this.persistHouse();
   }
 

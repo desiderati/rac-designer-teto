@@ -5,11 +5,13 @@ import {
   clampNivelByHeight,
   formatNivel,
   getAllPilotiIds,
+  getMaxNivelForAvailableHeights,
   getMaxNivelForPilotiHeight,
   getMinimumPilotiHeightForNivel,
   getPilotiName,
   getRecommendedHeight,
   isPilotiOutOfProportion,
+  normalizeAvailablePilotiHeights,
   MAX_AVAILABLE_PILOTI_NIVEL
 } from '@/shared/types/piloti.ts';
 import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/lib/canvas/terrain.ts';
@@ -47,6 +49,20 @@ describe('piloti.ts', () => {
     expect(getMinimumPilotiHeightForNivel(0.2)).toBeCloseTo(0.6, 6);
     expect(getRecommendedHeight(0.2)).toBe(1.0);
     expect(getRecommendedHeight(1.75)).toBe(3.5);
+  });
+
+  it('computes recommendation and max nivel from selected family heights', () => {
+    const selectedHeights = [1.2, 1.5, 2.0, 2.2, 3.0, 3.2] as const;
+
+    expect(getRecommendedHeight(0.2, selectedHeights)).toBe(1.2);
+    expect(getRecommendedHeight(0.5, selectedHeights)).toBe(1.5);
+    expect(getRecommendedHeight(1.55, selectedHeights)).toBe(3.2);
+    expect(getMaxNivelForAvailableHeights(selectedHeights)).toBe(1.6);
+  });
+
+  it('normalizes selected family heights and falls back safely when needed', () => {
+    expect(normalizeAvailablePilotiHeights([3.2, 1.5, 3.2, 9] as unknown as number[])).toEqual([1.5, 3.2]);
+    expect(normalizeAvailablePilotiHeights([])).toEqual([1.0, 1.5, 2.0, 2.5, 3.0, 3.5]);
   });
 
   it('detects out-of-proportion piloti using the same ratio as recommendation', () => {

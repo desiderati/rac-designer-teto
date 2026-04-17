@@ -54,6 +54,24 @@ export function getMinimumPilotiHeightForNivel(nivel: number): number {
   return nivel * 3;
 }
 
+export function normalizeAvailablePilotiHeights(availableHeights?: readonly number[]): number[] {
+  const allowedHeights = new Set<number>(ALL_PILOTI_HEIGHTS);
+  const normalized = [...new Set(
+    (availableHeights ?? DEFAULT_HOUSE_PILOTI_HEIGHTS)
+      .map((height) => Number(height))
+      .filter((height) => Number.isFinite(height) && allowedHeights.has(height))
+  )].sort((a, b) => a - b);
+
+  return normalized.length > 0
+    ? normalized
+    : [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
+}
+
+export function getMaxNivelForAvailableHeights(availableHeights?: readonly number[]): number {
+  const heights = normalizeAvailablePilotiHeights(availableHeights);
+  return getMaxNivelForPilotiHeight(Math.max(...heights));
+}
+
 export const MAX_AVAILABLE_PILOTI_HEIGHT = Math.max(...ALL_PILOTI_HEIGHTS);
 export const MAX_AVAILABLE_PILOTI_NIVEL = getMaxNivelForPilotiHeight(MAX_AVAILABLE_PILOTI_HEIGHT);
 
@@ -79,7 +97,7 @@ export function formatNivel(nivel: number): string {
 }
 
 export function getRecommendedHeight(nivel: number, availableHeights?: readonly number[]): number {
-  const heights = availableHeights ?? DEFAULT_HOUSE_PILOTI_HEIGHTS;
+  const heights = normalizeAvailablePilotiHeights(availableHeights);
   const minHeight = getMinimumPilotiHeightForNivel(nivel);
   return heights.find(
     (h) => h + NUMERIC_EPSILON >= minHeight

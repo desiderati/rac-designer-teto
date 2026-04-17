@@ -164,7 +164,7 @@ export function PilotiEditor({
 
           <div className='space-y-4'>
             <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-            <div className='grid grid-cols-3 gap-2'>
+            <div className='grid grid-cols-3 justify-items-center gap-3 max-w-[240px] mx-auto'>
               {houseManager.getSelectedPilotiHeights().map((h) =>
                 <button
                   key={h}

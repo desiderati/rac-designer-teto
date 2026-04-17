@@ -7,9 +7,9 @@ import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {
   clampNivelByHeight,
   getAllPilotiIds,
+  getMaxNivelForAvailableHeights,
   getPilotiName,
   getRecommendedHeight,
-  MAX_AVAILABLE_PILOTI_NIVEL,
 } from '@/shared/types/piloti.ts';
 
 interface UsePilotiEditorArgs {
@@ -46,6 +46,9 @@ export function usePilotiEditor({
     if (group) return getPilotiIdsFromGroup(group);
     return getAllPilotiIds();
   }, [group]);
+
+  const selectedHeights = houseManager.getSelectedPilotiHeights();
+  const maxNivel = getMaxNivelForAvailableHeights(selectedHeights);
 
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
@@ -119,14 +122,14 @@ export function usePilotiEditor({
   // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
   // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
-    setTempNivel(value);
+    setTempNivel(Math.round(Math.min(value, maxNivel) * 100) / 100);
   };
 
   const handleNivelCommit = (value: number) => {
     if (!pilotiId) return;
 
     // Regra: ao soltar o drag do slider, a altura é sempre recalculada com base no nível escolhido.
-    const recommendedHeight = getRecommendedHeight(value);
+    const recommendedHeight = getRecommendedHeight(value, selectedHeights);
     setTempHeight(recommendedHeight);
     setTempNivel(value);
 
@@ -201,8 +204,8 @@ export function usePilotiEditor({
   const getHeightButtonClasses = (h: number): string => {
     const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
     return isSelected
-      ? 'bg-primary text-primary-foreground rounded-xl text-lg font-semibold py-3'
-      : 'bg-primary/10 text-foreground rounded-xl text-lg font-semibold py-3 hover:bg-primary/20';
+      ? 'h-16 w-16 rounded-2xl border border-primary bg-primary text-primary-foreground text-lg font-semibold flex items-center justify-center shadow-sm'
+      : 'h-16 w-16 rounded-2xl border border-transparent bg-primary/10 text-foreground text-lg font-semibold flex items-center justify-center hover:bg-primary/20';
   };
 
   const getContraventamentoButtonClasses =
@@ -251,11 +254,8 @@ export function usePilotiEditor({
       );
       return true;
     };
-
-  const maxNivel = MAX_AVAILABLE_PILOTI_NIVEL;
-
   return {
-    tempHeight,
+   tempHeight,
     setTempHeight,
     tempIsMaster,
     setTempIsMaster,

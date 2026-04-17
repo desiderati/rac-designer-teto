@@ -248,6 +248,7 @@ export class HouseAggregate<TGroup> {
   recalculateRecommendedPilotiData(
     defaultPiloti: HousePiloti,
     recalculateHeight: boolean = true,
+    availableHeights?: readonly number[],
   ): void {
     const nextPilotis: Record<string, HousePiloti> = {...this.state.pilotis};
 
@@ -263,7 +264,7 @@ export class HouseAggregate<TGroup> {
         const v = row / 2;
 
         const nivel = (1 - u) * (1 - v) * a1 + u * (1 - v) * a4 + (1 - u) * v * c1 + u * v * c4;
-        const height = getRecommendedHeight(nivel);
+        const height = getRecommendedHeight(nivel, availableHeights);
 
         nextPilotis[id] = {
           ...(nextPilotis[id] ?? defaultPiloti),

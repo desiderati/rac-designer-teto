@@ -10,6 +10,7 @@ export const APP_SETTINGS_DEFAULTS = {
 
 export const STORAGE_KEYS = {
   settings: 'rac-settings',
+  projects: 'rac-projects',
   tutorialCompleted: 'rac-tutorial-completed',
   pilotiTipShown: 'rac-piloti-tip-shown',
   wallTipShown: 'rac-wall-tip-shown',
