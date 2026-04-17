@@ -1,6 +1,5 @@
 import {useCallback, useState} from 'react';
 import {Input} from '@/components/ui/input.tsx';
-import {Label} from '@/components/ui/label.tsx';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/ui/modals/ConfirmDialogModal.tsx';
 import {ALL_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
@@ -53,28 +52,21 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
   }, [onClose]);
 
   const content = (
-    <div className='flex flex-col gap-4'>
-      <div className='space-y-2'>
-        <Label htmlFor='family-name' className='text-sm font-medium'>
-          Nome da Família
-        </Label>
+    <div className='flex flex-col items-center gap-4'>
+      <div className='w-full max-w-[216px]'>
         <Input
           id='family-name'
-          placeholder='Ex: Silva'
+          className='placeholder:text-muted-foreground/60'
+          placeholder='Nome da Família'
           value={familyName}
           onChange={(e) => setFamilyName(e.target.value)}
           autoFocus
         />
       </div>
 
-      <div className='space-y-3'>
-        <div className='flex items-center justify-between'>
-          <p className='text-sm font-medium'>Alturas dos Pilotis</p>
-          <span className='text-xs text-muted-foreground'>
-            {selectedHeights.size}/6 selecionadas
-          </span>
-        </div>
-        <div className='grid grid-cols-3 gap-2'>
+      <div className='flex flex-col items-center gap-3 w-full'>
+        <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
+        <div className='grid grid-cols-3 justify-items-center gap-3 w-[216px] mx-auto'>
           {ALL_PILOTI_HEIGHTS.map((h) => {
             const isSelected = selectedHeights.has(h);
             const isDisabled = !isSelected && selectedHeights.size >= 6;
@@ -85,10 +77,11 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
                 onClick={() => toggleHeight(h)}
                 disabled={isDisabled}
                 className={`
-                  rounded-lg py-2.5 text-sm font-semibold transition-all border
+                  h-16 w-16 rounded-2xl border text-lg font-semibold transition-all
+                  flex items-center justify-center shadow-sm
                   ${isSelected
-                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                  : 'bg-background text-foreground border-border hover:border-primary/50'}
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:border-primary/50 hover:bg-primary/5'}
                   ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
@@ -97,7 +90,12 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
             );
           })}
         </div>
+        <span className='text-xs text-muted-foreground text-center'>
+          {selectedHeights.size}/6 selecionadas
+        </span>
       </div>
+
+      <div className='h-px w-full max-w-[216px] bg-border/80' />
     </div>
   );
 
@@ -105,10 +103,13 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
     <ConfirmDialogModal
       isMobile={isMobile}
       isOpen={isOpen}
-      title='Configuração da Família'
+      title='Designação'
       content={content}
-      confirmLabel='Continuar'
+      mainCardClassName='max-w-[272px] mx-auto w-full'
+      dialogContentClassName='sm:max-w-[320px]'
+      confirmLabel='Confirmar'
       isConfirmDisabled={!canConfirm}
+      actionButtonsClassName='max-w-[272px] mx-auto w-full'
       handleConfirm={handleConfirm}
       handleCancel={handleCancel}
     />
