@@ -2,6 +2,7 @@ import {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 
 interface ConfirmDialogModalProps {
   isMobile: boolean;
@@ -12,6 +13,9 @@ interface ConfirmDialogModalProps {
   confirmLabel: string;
   cancelLabel?: string;
   isConfirmDisabled?: boolean;
+  mainCardClassName?: string;
+  dialogContentClassName?: string;
+  actionButtonsClassName?: string;
   handleConfirm: () => void;
   handleCancel: () => void;
 }
@@ -25,6 +29,9 @@ export function ConfirmDialogModal({
   confirmLabel,
   cancelLabel = 'Cancelar',
   isConfirmDisabled = false,
+  mainCardClassName,
+  dialogContentClassName = 'sm:max-w-sm',
+  actionButtonsClassName,
   handleConfirm,
   handleCancel,
 }: ConfirmDialogModalProps) {
@@ -37,13 +44,13 @@ export function ConfirmDialogModal({
     content ?? <p className='text-sm text-muted-foreground'>{description}</p>;
 
   const mainCard = hasTitle ?
-    <div className='bg-white rounded-xl p-4 space-y-5'>
+    <div className={cn('bg-white rounded-xl p-4 space-y-5', mainCardClassName)}>
       {modalBody}
     </div> :
     modalBody;
 
   const actionButtons = (extraClass = '') =>
-    <div className={`flex gap-[16px] ${extraClass}`}>
+    <div className={cn('flex gap-[16px]', actionButtonsClassName, extraClass)}>
       <Button
         variant='outline'
         className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
@@ -61,7 +68,7 @@ export function ConfirmDialogModal({
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-        <DialogContent className='sm:max-w-sm' hideCloseButton>
+        <DialogContent className={dialogContentClassName} hideCloseButton>
           <DialogHeader className={hasTitle ? 'text-center' : 'sr-only'}>
             <DialogTitle className={hasTitle ? 'text-center text-2xl' : 'sr-only'}>
               {resolvedTitle}

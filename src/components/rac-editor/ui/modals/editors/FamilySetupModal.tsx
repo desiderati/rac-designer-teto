@@ -53,7 +53,7 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
 
   const content = (
     <div className='flex flex-col items-center gap-4'>
-      <div className='w-full max-w-[216px]'>
+      <div className='w-full'>
         <Input
           id='family-name'
           className='placeholder:text-muted-foreground/60'
@@ -65,8 +65,13 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
       </div>
 
       <div className='flex flex-col items-center gap-3 w-full'>
-        <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-        <div className='grid grid-cols-3 justify-items-center gap-3 w-[216px] mx-auto'>
+        <p className='text-sm font-medium text-center'>
+          Pilotis{' '}
+          <span className='text-xs text-muted-foreground font-normal'>
+            ({selectedHeights.size}/6 selecionados)
+          </span>
+        </p>
+        <div className='grid grid-cols-3 gap-3 w-full'>
           {ALL_PILOTI_HEIGHTS.map((h) => {
             const isSelected = selectedHeights.has(h);
             const isDisabled = !isSelected && selectedHeights.size >= 6;
@@ -77,7 +82,7 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
                 onClick={() => toggleHeight(h)}
                 disabled={isDisabled}
                 className={`
-                  h-16 w-16 rounded-2xl border text-lg font-semibold transition-all
+                  h-16 w-full rounded-2xl border text-lg font-semibold transition-all
                   flex items-center justify-center shadow-sm
                   ${isSelected
                   ? 'bg-primary text-primary-foreground border-primary'
@@ -90,12 +95,7 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
             );
           })}
         </div>
-        <span className='text-xs text-muted-foreground text-center'>
-          {selectedHeights.size}/6 selecionadas
-        </span>
       </div>
-
-      <div className='h-px w-full max-w-[216px] bg-border/80' />
     </div>
   );
 
@@ -105,11 +105,11 @@ export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalP
       isOpen={isOpen}
       title='Designação'
       content={content}
-      mainCardClassName='max-w-[272px] mx-auto w-full'
-      dialogContentClassName='sm:max-w-[320px]'
+      mainCardClassName='md:max-w-[248px] mx-auto w-full !p-4'
+      dialogContentClassName='sm:max-w-[280px] p-4'
       confirmLabel='Confirmar'
       isConfirmDisabled={!canConfirm}
-      actionButtonsClassName='max-w-[272px] mx-auto w-full'
+      actionButtonsClassName='md:max-w-[248px] mx-auto w-full'
       handleConfirm={handleConfirm}
       handleCancel={handleCancel}
     />
