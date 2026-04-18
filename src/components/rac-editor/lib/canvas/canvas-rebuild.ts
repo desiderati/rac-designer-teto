@@ -134,7 +134,8 @@ export function toRebuildViewSource(canvasGroup: CanvasGroup): RebuildViewSource
     group: canvasGroup,
     metadata: {
       houseViewType: canvasGroup.houseViewType,
-      houseView: canvasGroup.houseViewType,
+      // Compatibilidade com JSONs antigos que persistiam somente `houseView`.
+      houseView: canvasGroup.houseView ?? canvasGroup.houseViewType,
       houseSide: canvasGroup.houseSide,
       houseInstanceId: canvasGroup.houseInstanceId,
       isFlippedHorizontally: Boolean(canvasGroup.flipX),

@@ -43,6 +43,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
   const [hideBelowTerrain, setHideBelowTerrain] = useState(false);
+  const [isSceneReady, setIsSceneReady] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Sync with HouseManager
@@ -117,6 +118,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   }, [open, houseVersion, syncFromManager]);
 
   const handleReset = () => {
+    setIsSceneReady(false);
     setResetKey((k) => k + 1);
   };
 
@@ -177,6 +179,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                     variant='outline'
                     size='icon'
                     title='Cor das Paredes'
+                    disabled={!isSceneReady}
                   >
                     <FontAwesomeIcon icon={faPalette}/>
                   </Button>
@@ -201,6 +204,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={() => setHideBelowTerrain((previous) => !previous)}
                 title={hideBelowTerrain ? 'Mostrar abaixo do terreno' : 'Ocultar abaixo do terreno'}
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={faEyeSlash}/>
               </Button>
@@ -209,7 +213,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 title='Inserir no Canvas'
                 onClick={handleInsertOnCanvas}
-                disabled={!houseType}
+                disabled={!houseType || !isSceneReady}
               >
                 <FontAwesomeIcon icon={faCamera}/>
               </Button>
@@ -218,6 +222,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={handleReset}
                 title='Resetar Câmera'
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={faRotateRight}/>
               </Button>
@@ -226,6 +231,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 onClick={toggleFullscreen}
                 title={isFullscreen ? 'Sair do Fullscreen' : 'Fullscreen'}
+                disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand}/>
               </Button>
@@ -262,6 +268,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 gl={{preserveDrawingBuffer: true}}
                 onCreated={({gl}) => {
                   webglCanvasRef.current = gl.domElement;
+                  setIsSceneReady(true);
                 }}
               >
                 <PerspectiveCamera
