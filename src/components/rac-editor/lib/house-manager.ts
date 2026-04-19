@@ -435,10 +435,22 @@ class HouseManager {
     const {clearedMasters} = aggregate.applyPilotiPatch(pilotiId, pilotiData);
 
     if (shouldRecalculateInterpolatedNiveis) {
-      // Recalcula apenas os níveis interpolados (bilinear) dos pilotis intermediários.
-      // recalculateHeight=false preserva as alturas de todos os pilotis, inclusive a
-      // escolha manual do usuário para este canto (já aplicada por applyPilotiPatch acima).
-      aggregate.recalculateRecommendedPilotiData(DEFAULT_HOUSE_PILOTI, false);
+      // Recalcula níveis (bilinear) e alturas recomendadas de TODOS os 12 pilotis,
+      // pois a mudança de nível em um canto afeta os níveis interpolados — e,
+      // consequentemente, as alturas recomendadas — de toda a casa.
+      aggregate.recalculateRecommendedPilotiData(
+        DEFAULT_HOUSE_PILOTI,
+        true,
+        this._selectedPilotiHeights,
+      );
+
+      // Precedência: a escolha explícita de altura no piloti editado não é
+      // sobrescrita pelo recálculo global. Ajustes de nível foram propagados
+      // aos demais pilotis; apenas este piloti mantém a altura escolhida.
+      if (pilotiData.height !== undefined) {
+        aggregate.applyPilotiPatch(pilotiId, {height: pilotiData.height});
+      }
+
       this.persistHouse();
 
       this.getAllGroups().forEach((group) => {

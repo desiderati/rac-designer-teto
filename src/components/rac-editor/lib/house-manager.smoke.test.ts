@@ -2,7 +2,6 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {FabricImage} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -86,11 +85,14 @@ describe('house-manager.ts', () => {
 
     expect(houseManager.getPilotiData('piloti_3_2').isMaster).toBe(true);
     expect(houseManager.getPilotiData('piloti_0_0').isMaster).toBe(false);
+    // Precedência: quando o caller passa uma altura explícita junto com o novo nível,
+    // a altura escolhida não é sobrescrita pelo recálculo global. Recálculo continua
+    // propagando níveis e alturas para os demais pilotis.
     expect(houseManager.getPilotiData('piloti_0_0').height).toBe(2.0);
     expect(houseManager.getPilotiData('piloti_0_0').nivel).toBe(0.5);
   });
 
-  it('recalcula níveis intermediários quando um nível de canto é alterado', () => {
+  it('recalcula níveis intermediários e alturas recomendadas quando um nível de canto é alterado', () => {
     houseManager.setHouseType('tipo6');
 
     houseManager.updatePiloti('piloti_0_0', {nivel: 0.2});
@@ -101,8 +103,12 @@ describe('house-manager.ts', () => {
     expect(houseManager.getPilotiData('piloti_1_1').nivel).toBe(0.47);
     expect(houseManager.getPilotiData('piloti_2_1').nivel).toBe(0.73);
 
-    // A regra recalcula nível interpolado sem sobrescrever altura manual dos intermediários.
-    expect(houseManager.getPilotiData('piloti_1_1').height).toBe(DEFAULT_HOUSE_PILOTI.height);
+    // Mudança de nível em canto afeta toda a casa: alturas recomendadas são
+    // recalculadas em todos os 12 pilotis via regra de ouro (altura = menor ≥ nivel*3).
+    // piloti_1_1 @ nivel=0.47 → minHeight=1.41 → recommended=1.5.
+    expect(houseManager.getPilotiData('piloti_1_1').height).toBe(1.5);
+    // piloti_2_1 @ nivel=0.73 → minHeight=2.19 → recommended=2.5.
+    expect(houseManager.getPilotiData('piloti_2_1').height).toBe(2.5);
   });
 
   it('registers and removes views while syncing side assignments', () => {
