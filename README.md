@@ -94,9 +94,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 ---
 
-## 🛠️ Coding Conventions
-
-### File Structure
+## 🗂️ Estrutura do Repositório
 
 ```
 .
@@ -129,142 +127,9 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 └── README.md                 # Este documento
 ```
 
-### Naming Conventions
-
-#### Components
-
-- PascalCase para nomes de componentes: `RacEditor`, `Canvas`, `Toolbar`
-- Sufixo `Modal` para componentes de modal: `SettingsModal`, `ConfirmDialogModal`
-- Sufixo `Editor` para componentes de edição: `PilotiEditor`, `DistanceEditor`
-
-#### Functions & Variables
-
-- camelCase para funções e variáveis: `handleCanvasClick`, `updateHouseData`
-- Prefixo `handle` para event handlers: `handleMouseDown`, `handleKeyPress`
-- Prefixo `on` para callbacks: `onSave`, `onCancel`
-- Prefixo `is` ou `has` para booleanos: `isSelected`, `hasError`
-
-#### Constants
-
-- UPPER_SNAKE_CASE para constantes globais: `MAX_ZOOM_LEVEL`, `DEFAULT_CANVAS_SIZE`
-- camelCase para constantes de módulo: `defaultSettings`, `toolbarHeight`
-
-### TypeScript Best Practices
-
-- Sempre definir tipos explícitos para props e retorno de funções
-- Usar interfaces para definir estruturas de dados
-- Evitar `any` - usar `unknown` se necessário e fazer type narrowing
-- Usar tipos genéricos para componentes reutilizáveis
-
-```typescript
-// ✅ Bom
-interface CanvasProps {
-    width: number;
-    height: number;
-    onDraw: (data: DrawData) => void;
-}
-
-const Canvas: React.FC<CanvasProps> = ({width, height, onDraw}) => {
-    // ...
-};
-
-// ❌ Evitar
-const Canvas = (props: any) => {
-    // ...
-};
-```
-
-### React Best Practices
-
-- Usar functional components com hooks
-- Memorizar componentes pesados com `React.memo` quando apropriado
-- Usar `useCallback` para event handlers que são passados como props
-- Evitar criar objetos/arrays dentro de render - usar `useMemo` se necessário
-- Sempre adicionar key props em listas
-
-```tsx
-// ✅ Bom
-const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
-    <div>
-        {houses.map(house => (<HouseCard key={house.id} house={house}/>))}
-    </div>
-);
-
-// ❌ Evitar
-const HouseList: React.FC<{ houses: House[] }> = ({houses}) => (
-    <div>
-        {houses.map((house, index) => (<HouseCard key={index} house={house}/>))}
-    </div>
-);
-```
-
-### CSS & Tailwind
-
-- Usar Tailwind CSS para styling - evitar CSS-in-JS quando possível
-- Manter classes Tailwind organizadas: layout → spacing → sizing → colors → effects
-- Usar `clsx` para classes condicionais
-- Extrair componentes reutilizáveis ao invés de duplicar classes
-
-```typescript
-// ✅ Bom
-const buttonClasses = clsx(
-    'px-4 py-2 rounded-lg font-medium',
-    'transition-colors duration-200',
-    isActive ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
-);
-
-// ❌ Evitar
-const buttonClasses = `${isActive ? 'bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200' : 'bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors duration-200'}`;
-```
-
-### Comments & Documentation
-
-- Comentar lógica complexa, não código óbvio
-- Usar JSDoc para funções e componentes públicos
-- Manter comentários atualizados quando código muda
-
-```typescript
-/**
- * Calcula a área de um polígono usando a fórmula de Shoelace
- * @param points - Array de pontos [x, y] que formam o polígono
- * @returns Área do polígono em unidades quadradas
- */
-function calculatePolygonArea(points: [number, number][]): number {
-    // Implementação...
-}
-```
-
----
-
-## 🎯 Feature-Specific Guidelines
-
-### Canvas Editor (2D)
-
-- Usar Fabric.js para manipulação de objetos
-- Suportar undo/redo para todas as operações
-- Fornecer feedback visual claro para seleção de objetos
-- Implementar snap-to-grid para alinhamento preciso
-- Suportar múltiplas seleções com Ctrl/Cmd+Click
-
-### 3D Viewer
-
-- Usar React Three Fiber para renderização 3D
-- Implementar rotação, zoom e pan intuitivos
-- Suportar múltiplas ângulos (superior, frontal, lateral)
-- Otimizar performance para plantas complexas
-
-### Modals & Dialogs
-
-- Usar confirmação antes de persistir estado do canvas
-- Manter modais simples e focados em uma tarefa
-- Suportar fechar com ESC
-
-### Toolbar
-
-- Agrupar ferramentas relacionadas
-- Mostrar tooltip ao passar mouse
-- Indicar ferramenta ativa visualmente
-- Desabilitar ferramentas não aplicáveis ao contexto
+As convenções detalhadas de nomenclatura, componentes, hooks, estado, testes, segurança e acessibilidade vivem no
+playbook em `docs/engineering-playbook/`. Este README mantém apenas o mapa geral do projeto e os comandos reais de
+trabalho.
 
 ---
 
@@ -274,7 +139,8 @@ function calculatePolygonArea(points: [number, number][]): number {
 
 1. Ler `AGENTS.md`, este `README.md` e o `docs/README.md`
 2. Entender a persona do usuário afetada e as regras de negócio aplicáveis
-3. Verificar se há componentes, hooks ou utilitários reutilizáveis antes de criar algo novo
+3. Consultar o `docs/engineering-playbook/` antes de qualquer mudança estrutural ou comportamental
+4. Verificar se há componentes, hooks ou utilitários reutilizáveis antes de criar algo novo
 
 ### During Development
 
@@ -343,28 +209,7 @@ function calculatePolygonArea(points: [number, number][]): number {
 1. Executar `npm run lint` e corrigir erros
 2. Testar funcionalidade completa
 3. Verificar se não quebrou features existentes
-4. Escrever mensagem de commit clara
-
-### Commit Message Format
-
-```
-<type>(<scope>): <subject>
-
-<body>
-```
-
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Scopes: `canvas`, `3d-viewer`, `toolbar`, `modals`, `ui`, `core`
-
-Exemplo:
-
-```
-feat(canvas): add polygon drawing tool
-
-- Implement polygon drawing with click-to-add-points
-- Add double-click to finish polygon
-- Include snap-to-grid functionality
-```
+4. Seguir `CONTRIBUTING.md` para formato de commit, PR e CI
 
 ## 🧪 Testes e Validação
 
@@ -385,111 +230,12 @@ feat(canvas): add polygon drawing tool
 
 ---
 
-## 🚀 Performance Guidelines
-
-### Canvas Performance
-
-- Renderizar apenas objetos visíveis
-- Usar debounce para eventos de mouse
-- Limitar taxa de atualização para 60fps
-- Otimizar Fabric.js com `renderOnAddRemove: false`
-
-### 3D Performance
-
-- Usar LOD (Level of Detail) para modelos complexos
-- Limpar geometrias não utilizadas
-- Usar instancing para objetos repetidos
-- Monitorar FPS e avisar se < 30fps
-
-### Memory Management
-
-- Limpar listeners de eventos ao desmontar componentes
-- Usar `useCallback` para evitar recriação de funções
-- Implementar lazy loading para dados grandes
-- Limpar canvas antes de descarregar
-
----
-
-## 🔒 Security & Data Protection
-
-### User Data
-
-- Não armazenar dados sensíveis em localStorage sem encriptação
-- Validar entrada de usuário no frontend e backend
-- Sanitizar dados antes de renderizar
-
-### File Handling
-
-- Validar tipo de arquivo antes de processar
-- Limitar tamanho máximo de arquivo
-- Usar Web Workers para processamento pesado
-- Implementar timeout para operações longas
-
----
-
-## 📱 Accessibility & Inclusivity
-
-### WCAG 2.1 Compliance
-
-- Manter contraste de cores ≥ 4.5:1 para texto
-- Suportar navegação por teclado (Tab, Enter, ESC)
-- Adicionar ARIA labels para elementos interativos
-- Testar com screen readers (NVDA, JAWS)
-
-### Mobile Considerations
-
-- Touch targets mínimo de 44x44px
-- Suportar orientação portrait e landscape
-- Testar em dispositivos reais, não apenas emuladores
-- Considerar conexões lentas (3G)
-
 ## 📚 Regras de Negócio
 
 - O índice canônico está em `docs/business-rules/README.md`
 - Hoje o repositório documenta regras específicas para canvas, toolbar, vistas por tipo de casa, piloti,
   contraventamento e viewer 3D
 - Mudanças comportamentais no editor devem ser confrontadas com esses documentos antes da implementação
-
----
-
-## 🐛 Debugging & Troubleshooting
-
-### Common Issues
-
-**Canvas não renderiza:**
-
-- Verificar se Fabric.js foi inicializado
-- Verificar console para erros de JavaScript
-- Validar dimensões do canvas
-
-**3D Viewer lento:**
-
-- Verificar quantidade de objetos renderizados
-- Usar DevTools > Performance para profile
-- Reduzir qualidade de texturas se necessário
-
-**Undo/Redo não funciona:**
-
-- Verificar se ação foi adicionada ao histórico
-- Validar serialização de objetos
-- Testar com diferentes tipos de objetos
-
-### Debug Mode
-
-- Adicionar `?debug=true` à URL para modo debug
-- Mostrar grid, coordenadas e informações de performance
-- Logar todas as ações para auditoria
-
----
-
-## 📚 External References
-
-- **Fabric.js Docs:** http://fabricjs.com/
-- **React Three Fiber:** https://docs.pmnd.rs/react-three-fiber/
-- **Tailwind CSS:** https://tailwindcss.com/
-- **shadcn/ui:** https://ui.shadcn.com/
-- **TypeScript Handbook:** https://www.typescriptlang.org/docs/
-- **TETO ONG:** https://www.teto.org.br/
 
 ---
 
@@ -505,3 +251,14 @@ feat(canvas): add polygon drawing tool
 - **Execuções e regressões de refatoração:** `.agents/refactorings/`
 - **Heurísticas repo-locais:** `.agents/refactorings/heuristics/`
 - **Contribuição, Git e CI:** `CONTRIBUTING.md`
+
+---
+
+## 📚 External References
+
+- **Fabric.js Docs:** http://fabricjs.com/
+- **React Three Fiber:** https://docs.pmnd.rs/react-three-fiber/
+- **Tailwind CSS:** https://tailwindcss.com/
+- **shadcn/ui:** https://ui.shadcn.com/
+- **TypeScript Handbook:** https://www.typescriptlang.org/docs/
+- **TETO ONG:** https://www.teto.org.br/
