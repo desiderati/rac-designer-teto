@@ -1,7 +1,8 @@
 # CLAUDE.md — RAC Designer TETO
 
 > Guia de referência rápida para assistentes de IA que trabalham neste repositório.
-> Leia também: `AGENTS.md`, `.prompts/` (11 guias arquiteturais) e `.rules/` (8 regras funcionais de negócio).
+> Leia também: `AGENTS.md`, `docs/engineering-playbook/` (10 guias do playbook) e `docs/` (regras funcionais,
+> PRDs e documentação durável).
 
 ---
 
@@ -52,10 +53,15 @@ npm run test:regression            # test → build → test:e2e
 
 ```
 rac-designer-teto/
-├── .agents/refactoring/           # Sistema dual-agent de refatoração automatizada
-├── .changelogs/                   # Changelogs diários (changelog-AAAAMMDD.md)
-├── .prompts/                      # 11 guias arquiteturais (leitura obrigatória no início da sessão)
-├── .rules/                        # 8 documentos de regras funcionais de negócio
+├── .agents/
+│   ├── prompts/                   # Prompts operacionais especializados e duráveis
+│   ├── refactorings/              # Registros duráveis das frentes de refatoração
+│   └── templates/                 # Templates operacionais da camada de agentes
+├── docs/
+│   ├── business-rules/            # Regras funcionais do produto, em ordem canônica
+│   ├── engineering-playbook/      # Constituição técnica e guias locais de engenharia
+│   ├── code-scaffolds/            # Scaffolds aprovados quando houver uso operacional real
+│   └── product-requirements/      # PRDs canônicos e sidecars associados
 ├── e2e/                           # Testes Playwright (6 specs)
 ├── public/                        # Assets estáticos
 ├── src/
@@ -241,7 +247,7 @@ E2E tests    → fluxos de usuário completos
 
 ### Fluxo de Desenvolvimento
 
-1. Ler `.prompts/` e `.rules/` relevantes antes de implementar
+1. Ler `docs/engineering-playbook/` e `docs/` relevantes antes de implementar
 2. Implementar as mudanças
 3. Rodar `npm run lint && npm run test`
 4. Documentar em `.changelogs/changelog-AAAAMMDD.md` (criar se não existir)
@@ -259,15 +265,16 @@ E2E tests    → fluxos de usuário completos
 
 ## Regras de Negócio
 
-As regras funcionais estão documentadas em `.rules/`:
+As regras funcionais estão documentadas em `docs/business-rules/`:
 
-- `canvas.md` — interações 2D do canvas
-- `toolbar.md` — comportamento da toolbar
-- `vistas-por-tipo.md` — limites de vistas por tipo de casa
-- `piloti-nivel.md` — edição de nível de piloti
-- `piloti-mestre.md` — regras do piloti mestre
-- `contraventamento.md` — contraventamento estrutural
-- `viewer-3d.md` — visualizador 3D
+- `README.md` — índice canônico das regras de negócio
+- `BUS-001-canvas.md` — interações 2D do canvas
+- `BUS-002-toolbar.md` — comportamento da toolbar
+- `BUS-003-vistas-por-tipo.md` — limites de vistas por tipo de casa
+- `BUS-004-piloti-nivel.md` — edição de nível de piloti
+- `BUS-005-piloti-mestre.md` — regras do piloti mestre
+- `BUS-006-contraventamento.md` — contraventamento estrutural
+- `BUS-007-viewer-3d.md` — visualizador 3D
 
 **Consulte sempre estas regras antes de alterar comportamentos do editor.**
 
@@ -284,18 +291,20 @@ As regras funcionais estão documentadas em `.rules/`:
 
 ## Guias de Referência
 
-Para aprofundamento em cada área, leia os guias em `.prompts/`:
+Para aprofundamento em cada área, leia os guias em `docs/engineering-playbook/`:
 
 | Arquivo                    | Conteúdo                                    |
 |----------------------------|---------------------------------------------|
-| `00_persona.md`            | Personalidade e instruções gerais do agente |
-| `01_core_principles.md`    | Princípios fundamentais de desenvolvimento  |
-| `02_tech_stack.md`         | Stack tecnológica detalhada                 |
-| `03_project_structure.md`  | Arquitetura e organização                   |
-| `04_naming_conventions.md` | Convenções de nomenclatura                  |
-| `05_component_patterns.md` | Padrões de componentes React                |
-| `06_hooks_and_state.md`    | Gerenciamento de estado e hooks             |
-| `07_data_fetching.md`      | Busca e mutação de dados                    |
-| `08_testing.md`            | Especificações de testes                    |
-| `09_security_and_a11y.md`  | Segurança e acessibilidade (WCAG)           |
-| `10_git_and_ci.md`         | Git workflow e CI/CD                        |
+| `PLAY-001-persona.md`                 | Personalidade e instruções gerais do agente |
+| `PLAY-002-core-principles.md`         | Princípios fundamentais de desenvolvimento  |
+| `PLAY-003-tech-stack.md`              | Stack tecnológica detalhada                 |
+| `PLAY-004-project-structure.md`       | Arquitetura e organização                   |
+| `PLAY-005-naming-conventions.md`      | Convenções de nomenclatura                  |
+| `PLAY-006-component-patterns.md`      | Padrões de componentes React                |
+| `PLAY-007-hooks-and-state.md`         | Gerenciamento de estado e hooks             |
+| `PLAY-008-data-fetching.md`           | Busca e mutação de dados                    |
+| `PLAY-009-testing.md`                 | Especificações de testes                    |
+| `PLAY-010-security-and-a11y.md`       | Segurança e acessibilidade (WCAG)           |
+
+Scaffolds reutilizáveis aprovados vivem em `docs/code-scaffolds/`.
+Convenções de branch, commits e CI vivem em `docs/contributing/GIT-AND-CI.md`.

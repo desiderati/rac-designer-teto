@@ -6,8 +6,11 @@
   e prioridades listadas ali antes de codificar.
 - Trabalhe exclusivamente dentro de `personal/rac-designer-teto` durante esta sessão; evite operar na raiz ou em outros
   projetos.
-- No início de cada sessão, leia obrigatoriamente os diretórios `.prompts/` e `.specs/` antes de qualquer análise,
-  proposta ou implementação. Consulte tais diretórios antes de propor mudanças de interface e experiência.
+- No início de cada sessão, leia obrigatoriamente `docs/engineering-playbook/` e os documentos relevantes em `docs/`
+  antes de qualquer análise, proposta ou implementação. Consulte `.agents/prompts/` quando a frente exigir um prompt
+  operacional especializado.
+- PRDs duráveis do projeto vivem em `docs/product-requirements/`, usando o padrão `PRD-{id_number}-{slug}.prd.md` com sidecar
+  `*.prd.assets/` e JSON derivado opcional ao lado do Markdown.
 
 ## Ambiente e comandos principais
 
@@ -31,5 +34,3 @@
 - Confirme comigo o objetivo antes de iniciar tarefas grandes (por exemplo: adicionar novas telas, alterar renderizador
   3D, mudar o sistema de undo/redo).
 - Se o branch mudar ou o `package-lock.json` atualizar de forma inesperada, pare e peça uma visão geral do estado atual.
-
-

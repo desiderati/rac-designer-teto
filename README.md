@@ -59,22 +59,21 @@ ferramentas avançadas de desenho 2D e visualização 3D interativa.
 
 ## 🤖 Automated Refactoring System
 
-Definir como os agentes automáticos devem apoiar evolução do projeto sem causar regressões.
-Para informações mais detalhadas veja em: `.agents/refactoring/README.md`
+Definir como a camada durável de refatoração e heurísticas deve apoiar a evolução do projeto sem causar regressões.
 
 ### Visão geral
 
-O processo tem dois agentes:
+O processo atual separa duas responsabilidades:
 
-1. Agente 1 (Análise)
-    - Faz leitura do estado atual do projeto.
-    - Propõe plano de melhoria.
-    - Gera checklist de validação.
+1. `refactoring`
+    - Mantém o prompt durável por frente.
+    - Registra execução, checklist e evidência factual.
+    - Conduz a refatoração estrutural com baseline e validação.
 
-2. Agente 2 (Execução)
-    - Executa o plano aprovado.
-    - Valida cada etapa.
-    - Interrompe e sinaliza quando encontrar erro crítico.
+2. `refactoring-heuristics`
+    - Destila heurísticas calibradas ao repositório.
+    - Associa essas heurísticas às frentes corretas via `resource-slug`.
+    - Não executa refatoração; apenas produz insumo durável.
 
 ##3 Regras do Agente 1
 
@@ -124,12 +123,16 @@ Após execução das fases, deve haver validação de:
 
 ```
 .
-├── .agents/                  # Documentação técnica para agentes
-├── .agents/refactoring/      # Saídas do sistema de refatoração automática
-├── .changelogs/              # Registro diário de mudanças
+├── .agents/
+│   ├── prompts/              # Prompts operacionais especializados
+│   ├── refactorings/         # Registros duráveis das frentes de refatoração
+│   └── templates/            # Templates operacionais da camada de agentes
 ├── .lovable/                 # Planos/artefatos do Lovable (automação)
-├── .prompts/                 # Guias de arquitetura, UX e workflow
-├── .rules/                   # Regras funcionais por domínio/componente
+├── docs/
+│   ├── business-rules/       # Regras funcionais do produto, numeradas em ordem canônica
+│   ├── engineering-playbook/ # Constituição técnica e guias locais de engenharia
+│   ├── code-scaffolds/       # Scaffolds aprovados quando houver uso operacional real
+│   └── product-requirements/ # PRDs canônicos e sidecars associados
 ├── e2e/                      # Testes E2E (Playwright)
 ├── public/                   # Assets estáticos
 ├── src/
@@ -503,5 +506,11 @@ feat(canvas): add polygon drawing tool
 
 ## 📚 Additional Resources
 
-- **Refactoring Agents:** `.agents/refactoring/README.md`
-- **Regras funcionais por módulo:** `.rules/README.md`
+- **Prompts duráveis de refatoração:** `.agents/prompts/refactoring-*.prompt.md`
+- **Execuções e regressões de refatoração:** `.agents/refactorings/`
+- **Heurísticas repo-locais:** `.agents/refactorings/heuristics/`
+- **Índice documental do projeto:** `docs/README.md`
+- **Regras de negócio:** `docs/business-rules/README.md`
+- **Engineering Playbook:** `docs/engineering-playbook/README.md`
+- **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
+- **Contribuição, Git e CI:** `docs/contributing/GIT-AND-CI.md`
