@@ -6,6 +6,18 @@
 aplicação permite que monitores, líderes de construção e voluntários criem plantas baixas e elevações de casas com
 ferramentas avançadas de desenho 2D e visualização 3D interativa.
 
+## 🧭 Leitura Recomendada
+
+Este README concentra o contexto humano e operacional do repositório. Para qualquer trabalho técnico, siga esta ordem:
+
+1. `AGENTS.md`
+2. `docs/README.md`
+3. `docs/business-rules/README.md` quando a mudança afetar comportamento do editor
+4. `docs/engineering-playbook/README.md` e os guias `PLAY-*` relevantes
+5. `docs/product-requirements/README.md` e o PRD específico quando houver iniciativa formal
+
+> `package.json` continua sendo a fonte de verdade para scripts e dependências instaladas.
+
 ---
 
 ## 🎯 Project Goals & Priorities
@@ -55,67 +67,32 @@ ferramentas avançadas de desenho 2D e visualização 3D interativa.
 - **Necessidades:** Tutorial interativo, interface clara, mensagens de erro úteis
 - **Frustração:** Falta de orientação, erros sem explicação
 
+## 🧱 Stack Tecnológica Atual
+
+- SPA em React + Vite + TypeScript
+- Roteamento client-side com React Router DOM
+- UI com TailwindCSS, shadcn/ui, Radix UI e Lucide React
+- Editor 2D baseado em Fabric.js
+- Visualização 3D com Three.js, `@react-three/fiber` e `@react-three/drei`
+- Formulários com React Hook Form + Zod
+- Data fetching remoto com TanStack Query, quando houver integração real
+- Exportação em PDF com jsPDF
+- Testes com Vitest, React Testing Library e Playwright
+
+## 🏗️ Arquitetura Atual
+
+- `src/domain/house/` concentra agregado, casos de uso e contratos do domínio
+- `src/infra/` implementa persistência em memória, storage local e integrações técnicas
+- `src/components/rac-editor/` é a feature principal e organiza a interface em `ui/`, `hooks/` e `lib/`
+- `src/shared/config.ts` concentra constantes operacionais compartilhadas
+- O projeto usa alias `@/` para imports absolutos
+- Não há store global genérico; o estado do editor permanece concentrado na própria feature e nos contratos já
+  existentes
+- O TypeScript roda hoje em modo não estrito, mas o código deve continuar explícito e defensivo
+- O playbook em `docs/engineering-playbook/` continua sendo a fonte canônica para arquitetura, convenções e critérios de
+  refatoração
+
 ---
-
-## 🤖 Automated Refactoring System
-
-Definir como a camada durável de refatoração e heurísticas deve apoiar a evolução do projeto sem causar regressões.
-
-### Visão geral
-
-O processo atual separa duas responsabilidades:
-
-1. `refactoring`
-    - Mantém o prompt durável por frente.
-    - Registra execução, checklist e evidência factual.
-    - Conduz a refatoração estrutural com baseline e validação.
-
-2. `refactoring-heuristics`
-    - Destila heurísticas calibradas ao repositório.
-    - Associa essas heurísticas às frentes corretas via `resource-slug`.
-    - Não executa refatoração; apenas produz insumo durável.
-
-##3 Regras do Agente 1
-
-1. Rodar em rotina definida.
-2. Considerar apenas estado atual do projeto (sem suposição antiga).
-3. Propor melhorias pequenas e executáveis.
-4. Evitar repetir etapas já concluídas.
-5. Produzir material claro para revisão humana.
-
-##3 Regras do Agente 2
-
-1. Só iniciar após aprovação humana do plano.
-2. Executar por fases, com validação entre elas.
-3. Tentar correção automática de falhas recuperáveis.
-4. Parar em falhas críticas e registrar contexto.
-5. Preservar segurança dos dados e possibilidade de recuperação.
-
-### Regras de aprovação humana
-
-1. Sempre revisar plano antes da execução.
-2. Validar riscos de regressão e impacto no produto.
-3. Confirmar se escopo proposto está adequado ao momento do projeto.
-
-### Regras de validação mínima
-
-Após execução das fases, deve haver validação de:
-
-1. Testes automatizados definidos para a rodada.
-2. Build do projeto.
-3. Fluxos críticos de produto afetados pela mudança.
-
-### Regras de rastreabilidade
-
-1. Registrar plano, execução e resultado em documentação de rodada.
-2. Manter histórico de sucesso/falha para aprendizado contínuo.
-3. Em caso de rollback, registrar motivo e ponto de retorno.
-
-### O que evitar
-
-1. Execução sem aprovação.
-2. Mudanças amplas sem checkpoints.
-3. Encerrar rodada com falhas críticas não resolvidas sem registro explícito.
 
 ## 🛠️ Coding Conventions
 
@@ -295,16 +272,16 @@ function calculatePolygonArea(points: [number, number][]): number {
 
 ### Before Starting Work
 
-1. Ler este guideline completamente
-2. Entender a persona do usuário afetada
-3. Verificar se há componentes reutilizáveis existentes
+1. Ler `AGENTS.md`, este `README.md` e o `docs/README.md`
+2. Entender a persona do usuário afetada e as regras de negócio aplicáveis
+3. Verificar se há componentes, hooks ou utilitários reutilizáveis antes de criar algo novo
 
 ### During Development
 
-1. Seguir as convenções de código definidas
-2. Testar em múltiplos navegadores
-3. Verificar responsividade em mobile
-4. Adicionar tipos TypeScript completos
+1. Seguir as convenções daqui e do playbook
+2. Verificar impacto em regras de negócio e documentação durável quando houver mudança comportamental
+3. Testar os fluxos afetados
+4. Verificar responsividade em mobile/tablet quando a interface for tocada
 
 ### Comandos principais (estado atual)
 
@@ -314,38 +291,48 @@ function calculatePolygonArea(points: [number, number][]): number {
     npm install
     ```
 
-2. Desenvolvimento local (recomendado para esta pasta):
+2. Desenvolvimento local na rede:
 
     ```bash
     npm run dev -- --host 0.0.0.0
     ```
 
-3. Build de produção:
+3. Desenvolvimento local para E2E:
+
+    ```bash
+    npm run dev:local
+    ```
+
+4. Builds:
 
     ```bash
     npm run build
+    npm run build:dev
     ```
 
-4. Testes unitários/smoke:
+5. Preview local do build:
 
     ```bash
-    npm run test
-    npx vitest run smoke.test
+    npm run preview
     ```
 
-5. Lint:
+6. Qualidade e testes unitários:
 
     ```bash
     npm run lint
+    npm run test
+    npm run test:watch
+    npm run test:coverage
     ```
 
-6. Testes E2E:
+7. Testes E2E (requer `npm run dev:local` em `127.0.0.1:5200`):
 
     ```bash
     npm run test:e2e
+    npm run test:e2e:ui
     ```
 
-7. Regressão completa:
+8. Regressão completa:
 
     ```bash
     npm run test:regression
@@ -378,6 +365,23 @@ feat(canvas): add polygon drawing tool
 - Add double-click to finish polygon
 - Include snap-to-grid functionality
 ```
+
+## 🧪 Testes e Validação
+
+- Smoke tests coexistem com unit/integration tests em arquivos `*.smoke.test.ts` e `*.smoke.test.tsx`
+- A suíte E2E vive em `e2e/` e gera relatórios em `playwright-report/`
+- `npm run test:regression` encadeia `test`, `build` e `test:e2e`; use-o quando a mudança tiver blast radius maior
+
+## ⚙️ Configurações Importantes
+
+| Arquivo                | Propósito                                            |
+|------------------------|------------------------------------------------------|
+| `src/shared/config.ts` | Constantes operacionais compartilhadas do editor     |
+| `vite.config.ts`       | Build, dev server e otimizações do Vite              |
+| `tailwind.config.ts`   | Tema e configuração do Tailwind                      |
+| `components.json`      | Configuração e aliases do shadcn/ui                  |
+| `playwright.config.ts` | Configuração da suíte E2E                            |
+| `.editorconfig`        | Convenções editoriais e de formatação do repositório |
 
 ---
 
@@ -439,6 +443,13 @@ feat(canvas): add polygon drawing tool
 - Testar em dispositivos reais, não apenas emuladores
 - Considerar conexões lentas (3G)
 
+## 📚 Regras de Negócio
+
+- O índice canônico está em `docs/business-rules/README.md`
+- Hoje o repositório documenta regras específicas para canvas, toolbar, vistas por tipo de casa, piloti,
+  contraventamento e viewer 3D
+- Mudanças comportamentais no editor devem ser confrontadas com esses documentos antes da implementação
+
 ---
 
 ## 🐛 Debugging & Troubleshooting
@@ -482,35 +493,15 @@ feat(canvas): add polygon drawing tool
 
 ---
 
-## 🔄 Version History
+## 📚 Documentação Canônica e Recursos
 
-- **v1.1.0** (2026-03-04) - Atualização incremental de compatibilidade com o código atual
-    - Estrutura de diretórios revisada
-    - Comandos de execução/teste sincronizados com `package.json`
-    - Ajustes de nomenclatura e referências
-
-- **v1.0.0** (2026-02-17) - Initial guideline creation
-    - Definição de personas
-    - Convenções de código
-    - Design system
-    - Performance guidelines
-
----
-
-**Last Updated:** 2026-03-04  
-**Maintained By:** Felipe Desiderati  
-**Automated By:** Agent 1 (Analysis) & Agent 2 (Execution)  
-**Questions?** Consulte a documentação do projeto ou abra uma issue no GitHub
-
----
-
-## 📚 Additional Resources
-
+- **Guardrails operacionais:** `AGENTS.md`
+- **Índice documental do projeto:** `docs/README.md`
+- **Regras de negócio:** `docs/business-rules/README.md`
+- **PRDs e sidecars:** `docs/product-requirements/README.md`
+- **Engineering Playbook:** `docs/engineering-playbook/README.md`
+- **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
 - **Prompts duráveis de refatoração:** `.agents/prompts/refactoring-*.prompt.md`
 - **Execuções e regressões de refatoração:** `.agents/refactorings/`
 - **Heurísticas repo-locais:** `.agents/refactorings/heuristics/`
-- **Índice documental do projeto:** `docs/README.md`
-- **Regras de negócio:** `docs/business-rules/README.md`
-- **Engineering Playbook:** `docs/engineering-playbook/README.md`
-- **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
-- **Contribuição, Git e CI:** `docs/contributing/GIT-AND-CI.md`
+- **Contribuição, Git e CI:** `CONTRIBUTING.md`
