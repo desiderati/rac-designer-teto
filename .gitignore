@@ -36,6 +36,7 @@ coverage/
 .agents/refactorings/
 .agents/skill-evaluations/
 .agents/work-items/
+.claude/
 .codex/hooks/codex-resolution-time-state/
 .obsidian/
 .tmp/
@@ -46,4 +47,3 @@ graphify-out/
 
 /tmp/
 /output/
-/.claude/

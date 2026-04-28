@@ -31,10 +31,13 @@ Nele, a pessoa consegue:
 1. Zoom
     - Pode ser feito por controle de zoom, roda do mouse e gesto de pinça no celular/tablet.
     - Existe limite mínimo e máximo para evitar perda de controle da visualização.
+    - No celular/tablet, o menu de zoom exibe as opções por ícones para preservar espaço útil.
 
 2. Deslocamento (pan)
     - Pode ser feito por arraste e também pelo minimapa.
     - O sistema mantém a visualização dentro da área válida do desenho.
+    - No desktop, o modo de panning permite deslocar o canvas com o botão principal do mouse.
+    - No desktop, o cursor do modo de panning deve usar mão aberta em repouso e mão fechada durante o arraste.
 
 3. Minimap
     - Mostra a posição atual da janela visível no desenho completo.
@@ -79,6 +82,7 @@ Nele, a pessoa consegue:
 
 4. Atalhos de ferramenta
     - Ativam modos de trabalho (ex.: desenho, exibição de zoom) sem precisar abrir menus.
+    - Os atalhos `S`, `P` e `F` para seleção, panning e enquadramento são exclusivos do desktop.
 
 ## Regras de histórico e segurança
 
@@ -92,11 +96,19 @@ Nele, a pessoa consegue:
 3. Consistência visual
     - Após operações como importar, desfazer, colar e remover, o canvas deve manter seleção e estado visual coerentes.
 
+## Regras visuais
+
+1. Área de trabalho
+    - O fundo externo do canvas usa base cinza bem clara com grade branca para reforçar a leitura espacial sem competir com o desenho.
+    - A grade da área de trabalho deve encostar nos limites da página, sem margem cinza ao redor.
+    - A superfície editável do desenho deve ter quinas arredondadas e recortar seu conteúdo dentro desse limite.
+
 ## Regras de experiência no mobile
 
 1. Toques
     - Um toque e arraste: deslocamento.
     - Dois toques: zoom por gesto.
+    - A barra lateral pode ser recolhida por gesto horizontal para liberar área de desenho.
 
 2. Feedback
     - Durante zoom por gesto, o sistema informa o nível de zoom para facilitar o controle.

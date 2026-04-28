@@ -66,7 +66,7 @@ test.describe('RAC toolbar and overflow', () => {
     await page.getByRole('button', {name: 'Configurações'}).click();
     await expect(page.getByRole('heading', {name: 'Configurações'})).toBeVisible();
 
-    const zoomSettingSwitch = page.getByRole('switch', {name: /Zoom\/Minimap por padrão/});
+    const zoomSettingSwitch = page.getByRole('switch', {name: /Minimap por padrão/});
     await zoomSettingSwitch.click();
     await page.getByRole('button', {name: 'Confirmar'}).click();
     await expect(page.getByRole('heading', {name: 'Configurações'})).toBeHidden();

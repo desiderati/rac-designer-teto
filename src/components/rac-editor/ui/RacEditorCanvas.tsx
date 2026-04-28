@@ -9,6 +9,7 @@ import {
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;
@@ -19,6 +20,8 @@ interface RacEditorCanvasProps {
   isAnyEditorOpen: boolean;
   isContraventamentoMode: boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
+  canvasToolMode: CanvasToolMode;
+  onZoomChange: (zoom: number) => void;
   onSelectionMessage: (message: string) => void;
   onSelectionAuxCleanup: () => void;
   onZoomInteraction: () => void;
@@ -41,6 +44,8 @@ export function RacEditorCanvas({
   isAnyEditorOpen,
   isContraventamentoMode,
   isPilotiEligibleForContraventamento,
+  canvasToolMode,
+  onZoomChange,
   onSelectionMessage,
   onSelectionAuxCleanup,
   onZoomInteraction,
@@ -70,7 +75,7 @@ export function RacEditorCanvas({
   }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
   return (
-    <div className='h-full p-2.5 overflow-hidden relative'>
+    <div className='h-full overflow-hidden relative'>
       <Canvas
         ref={canvasRef}
         onSelectionChange={handleSelectionChange}
@@ -78,6 +83,8 @@ export function RacEditorCanvas({
         }}
         onZoomInteraction={onZoomInteraction}
         onMinimapInteraction={onZoomInteraction}
+        onZoomChange={onZoomChange}
+        canvasToolMode={canvasToolMode}
         tutorialHighlight={tutorialStep}
         showTips={showTips}
         onPilotiSelect={onPilotiSelect}

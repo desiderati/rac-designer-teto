@@ -60,13 +60,17 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
       </div>
 
       <div className='flex items-start justify-between gap-4'>
-        <Label htmlFor='zoom-enabled' className='text-sm leading-snug cursor-pointer flex-1'>
-          Habilitar funcionalidade de Zoom/Minimap por padrão
+        <Label
+          htmlFor='zoom-enabled'
+          className='text-sm leading-snug cursor-pointer flex-1'
+        >
+          Habilitar Minimap por padrão
         </Label>
         <Switch
           id='zoom-enabled'
           checked={tempSettings.zoomEnabledByDefault}
-          onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}/>
+          onCheckedChange={(v) => handleToggle('zoomEnabledByDefault', v)}
+        />
       </div>
 
       <div className='flex items-start justify-between gap-4'>
@@ -91,7 +95,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
 
       <div className='flex items-start justify-between gap-4'>
         <Label htmlFor='show-stairs-top-view' className='text-sm leading-snug cursor-pointer flex-1'>
-          Mostrar escada na vista superior, tipo planta
+          Mostrar escada na vista superior (planta)
         </Label>
         <Switch
           id='show-stairs-top-view'

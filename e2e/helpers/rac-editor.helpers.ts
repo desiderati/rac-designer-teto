@@ -64,31 +64,31 @@ export async function setupRacEditorPage(page: Page) {
     localStorage.setItem('rac-line-tip-shown', 'true');
     localStorage.setItem('rac-arrow-tip-shown', 'true');
     localStorage.setItem('rac-distance-tip-shown', 'true');
+    localStorage.setItem('rac-settings', JSON.stringify({
+      autoNavigatePiloti: false,
+      zoomEnabledByDefault: true,
+      openEditorsAtFixedPosition: false,
+      disableDrawModeAfterFreehand: false,
+      showStairsOnTopView: false,
+    }));
+    localStorage.removeItem('rac-projects');
   });
 
-  const menuToggleButton = page.getByRole('button', {name: /Abrir Menu|Fechar Menu/});
+  const houseButton = page.getByRole('button', {name: 'Casa TETO (Opções)'});
   for (let attempt = 0; attempt < 2; attempt += 1) {
     await page.goto('/', {waitUntil: 'domcontentloaded'});
     await page.waitForLoadState('networkidle', {timeout: 8000}).catch(() => undefined);
 
-    if (await menuToggleButton.isVisible({timeout: 8000}).catch(() => false)) {
+    if (await houseButton.isVisible({timeout: 8000}).catch(() => false)) {
       return;
     }
   }
 
-  await expect(menuToggleButton).toBeVisible({timeout: 12000});
+  await expect(houseButton).toBeVisible({timeout: 12000});
 }
 
 export async function ensureMainMenuOpen(page: Page) {
-  const closeMenuButton = page.getByRole('button', {name: 'Fechar Menu'});
-  if (await closeMenuButton.isVisible({timeout: 500}).catch(() => false)) {
-    return;
-  }
-
-  const openMenuButton = page.getByRole('button', {name: 'Abrir Menu'});
-  if (await openMenuButton.isVisible({timeout: 1000}).catch(() => false)) {
-    await openMenuButton.click();
-  }
+  await expect(page.getByRole('button', {name: 'Casa TETO (Opções)'})).toBeVisible();
 }
 
 async function completeNivelDefinition(page: Page) {
@@ -110,6 +110,13 @@ async function completeNivelDefinition(page: Page) {
 export async function createHouse(page: Page, houseType: HouseType) {
   await ensureMainMenuOpen(page);
   await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
+
+  const familyNameInput = page.getByPlaceholder('Nome da Família');
+  if (await familyNameInput.isVisible({timeout: 1000}).catch(() => false)) {
+    await familyNameInput.fill('Família E2E');
+    await page.getByRole('button', {name: 'Confirmar'}).click();
+  }
+
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Casa Tipo 6' : 'Casa Tipo 3'}).click();
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Superior' : 'Esquerdo'}).click();
   await completeNivelDefinition(page);
@@ -142,13 +149,13 @@ export async function triggerHouseAction(
 }
 
 export async function ensureOverflowMenuOpen(page: Page) {
-  const visualizerButton = page.getByRole('button', {name: 'Visualizar em 3D'});
-  if (await visualizerButton.isVisible({timeout: 500}).catch(() => false)) {
+  const settingsButton = page.getByRole('button', {name: 'Configurações'});
+  if (await settingsButton.isVisible({timeout: 500}).catch(() => false)) {
     return;
   }
 
-  await page.getByRole('button', {name: 'Mais Opções'}).click();
-  await expect(visualizerButton).toBeVisible();
+  await page.getByRole('button', {name: 'Abrir menu da conta'}).click();
+  await expect(settingsButton).toBeVisible();
 }
 
 export async function triggerElementsAction(page: Page, actionLabel: string) {

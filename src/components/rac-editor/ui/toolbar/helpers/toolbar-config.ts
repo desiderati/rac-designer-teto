@@ -1,15 +1,22 @@
 import {
+  faArrowPointer,
   faArrowRightLong,
   faArrowsLeftRight,
   faBars,
+  faCircleQuestion,
+  faCircleUser,
   faCube,
   faDoorOpen,
   faEllipsisVertical,
+  faExpand,
   faFileDownload,
+  faFileExport,
   faFilePdf,
   faFolderOpen,
   faFont,
   faGear,
+  faGraduationCap,
+  faHand,
   faHome,
   faHouseChimney,
   faHouseChimneyWindow,
@@ -18,7 +25,9 @@ import {
   faLockOpen,
   faMagnifyingGlass,
   faPenNib,
+  faPenToSquare,
   faPlus,
+  faRightFromBracket,
   faRotateLeft,
   faShapes,
   faSlash,
@@ -91,6 +100,34 @@ export const MAIN_MENU_ICONS = {
   zoom: faMagnifyingGlass,
   delete: faTrash,
   overflow: faEllipsisVertical,
+} as const;
+
+/**
+ * Refined-canvas top-bar icons (Stitch-aligned).
+ * Used by TopBar, ZoomMenu, UserAvatarMenu, HamburgerMenu and FamilyName.
+ */
+export const TOP_BAR_ICONS = {
+  hamburger: faBars,
+  edit: faPenToSquare,
+  zoom: faMagnifyingGlass,
+  view3d: faCube,
+  export: faFileExport,
+  user: faCircleUser,
+  // Zoom submenu
+  toolSelect: faArrowPointer,
+  toolPan: faHand,
+  toolFitView: faExpand,
+  // Avatar dropdown
+  restart: faRotateLeft,
+  tips: faLightbulb,
+  tutorial: faGraduationCap,
+  settings: faGear,
+  exit: faRightFromBracket,
+  // Hamburger dropdown
+  importJson: faFolderOpen,
+  exportJson: faFileDownload,
+  savePdf: faFilePdf,
+  help: faCircleQuestion,
 } as const;
 
 export const HOUSE_MENU_CONFIG: Record<'tipo6' | 'tipo3', HouseMenuCommandConfig[]> = {
@@ -171,4 +208,3 @@ export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [
     color: TOOLBAR_THEME.overflowSettingsActionIconColor,
   },
 ];
-

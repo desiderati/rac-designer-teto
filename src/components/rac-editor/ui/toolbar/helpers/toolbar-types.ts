@@ -1,14 +1,14 @@
 import {HouseType} from '@/shared/types/house.ts';
 import {TutorialHighlight} from '@/components/rac-editor/lib/tutorial.ts';
 
+export type CanvasToolMode = 'select' | 'pan';
+
 export interface ToolbarActionMap {
   openHouseTypeSelector: () => void;
   addHouseFront: () => void;
   addHouseBack: () => void;
   addHouseSide1: () => void;
   addHouseSide2: () => void;
-  ungroup: () => void;
-  group: () => void;
   addWall: () => void;
   addDoor: () => void;
   addStairs: () => void;
@@ -34,6 +34,16 @@ export interface ToolbarActionMap {
   toggleMenu: () => void;
   restartTutorial: () => void;
   openSettings?: () => void;
+  /** Opens the project tutorial without resetting the canvas. */
+  openTutorial: () => void;
+  /** User exit / sign-out hook. Currently a no-op stub. */
+  exit: () => void;
+  /** Persists a new family name from the inline top-bar editor. */
+  renameFamily: (newName: string) => void;
+  /** Switches the canvas tool mode (select vs pan). */
+  setCanvasToolMode: (mode: CanvasToolMode) => void;
+  /** Resets viewport to fit the canvas in the visible container. */
+  fitToView: () => void;
 }
 
 export type ToolbarSubmenu = 'house' | 'elements' | 'lines' | 'overflow' | null;
@@ -57,4 +67,12 @@ export interface ToolbarProps {
   backViewCount?: ToolbarViewCount;
   side1ViewCount?: ToolbarViewCount;
   side2ViewCount?: ToolbarViewCount;
+  /** Family name shown in the top bar. Empty string hides the label. */
+  familyName: string;
+  /** Current canvas zoom (1 = 100%). */
+  zoom: number;
+  /** Active canvas tool mode (select / pan). */
+  canvasToolMode: CanvasToolMode;
+  /** Whether the editor is currently rendered in the mobile layout. */
+  isMobile: boolean;
 }

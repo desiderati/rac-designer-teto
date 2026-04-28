@@ -34,6 +34,7 @@ interface House3DViewerProps {
 export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const houseVersion = useHouseStoreVersion();
   const [houseType, setHouseType] = useState<HouseType>(null);
+  const [hasHouseViews, setHasHouseViews] = useState(false);
   const [pilotis, setPilotis] = useState<Record<string, HousePiloti>>({});
   const [tipo6FrontSide, setTipo6FrontSide] = useState<'top' | 'bottom' | null>(null);
   const [tipo3OpenSide, setTipo3OpenSide] = useState<'left' | 'right' | null>(null);
@@ -51,15 +52,24 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
     const house = houseManager.getHouse();
     if (!house) {
       setHouseType(null);
+      setHasHouseViews(false);
       setPilotis({});
       setTipo6FrontSide(null);
       setTipo3OpenSide(null);
       setContraventamentos([]);
       setStairs(null);
+      setIsSceneReady(false);
+      webglCanvasRef.current = null;
       return;
     }
 
+    const nextHasHouseViews = Object.values(house.views).some((instances) => instances.length > 0);
     setHouseType(house.houseType);
+    setHasHouseViews(nextHasHouseViews);
+    if (!nextHasHouseViews) {
+      setIsSceneReady(false);
+      webglCanvasRef.current = null;
+    }
     setPilotis({...house.pilotis});
     if (house.houseType === 'tipo6') {
       const frontSide: 'top' | 'bottom' | null =
@@ -131,7 +141,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   };
 
   const handleInsertOnCanvas = useCallback(async () => {
-    if (!houseType) {
+    if (!houseType || !hasHouseViews) {
       toast.error(TOAST_MESSAGES.noHouse3DToInsert);
       return;
     }
@@ -154,12 +164,13 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       console.error('[House3DViewer] Failed to capture 3D screenshot:', error);
       toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
     }
-  }, [houseType]);
+  }, [hasHouseViews, houseType]);
 
   // Fixed dialog dimensions
   const dialogClass = isFullscreen
     ? 'max-w-[95vw] w-[95vw] h-[90vh] max-h-[90vh]'
     : 'max-w-3xl w-full h-[70vh] max-h-[70vh]';
+  const canRenderHouse = Boolean(houseType && hasHouseViews);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -213,7 +224,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
                 size='icon'
                 title='Inserir no Canvas'
                 onClick={handleInsertOnCanvas}
-                disabled={!houseType || !isSceneReady}
+                disabled={!canRenderHouse || !isSceneReady}
               >
                 <FontAwesomeIcon icon={faCamera}/>
               </Button>
@@ -251,7 +262,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
         </DialogHeader>
 
         <div className='flex-1 bg-gradient-to-b from-muted to-muted/50 relative' style={{minHeight: '400px'}}>
-          {!houseType ? (
+          {!canRenderHouse ? (
             <div className='absolute inset-0 flex items-center justify-center text-muted-foreground'>
               <p>Nenhuma casa criada. Adicione uma planta primeiro.</p>
             </div>

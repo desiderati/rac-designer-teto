@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Tadeu e Odete - RAC Designer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+          rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap"
+          rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        secondary: "#495c95",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-dim": "#d2d9f4",
+                        "tertiary-container": "#bc4800",
+                        "on-primary-fixed": "#00174b",
+                        tertiary: "#943700",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container": "#eaedff",
+                        "on-secondary-fixed": "#00174b",
+                        "primary-container": "#2563eb",
+                        background: "#faf8ff",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-container-lowest": "#ffffff",
+                        primary: "#004ac6",
+                        "surface-tint": "#0053db",
+                        "on-secondary-container": "#394c84",
+                        "error-container": "#ffdad6",
+                        "on-background": "#131b2e",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#b4c5ff",
+                        "tertiary-fixed": "#ffdbcd",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed-variant": "#31447b",
+                        "secondary-container": "#acbfff",
+                        "inverse-on-surface": "#eef0ff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#ffede6",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#dae2fd",
+                        error: "#ba1a1a",
+                        "secondary-fixed": "#dbe1ff",
+                        "surface-container-high": "#e2e7ff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-primary-container": "#eeefff",
+                        "on-surface-variant": "#434655",
+                        "on-tertiary": "#ffffff",
+                        outline: "#737686",
+                        surface: "#faf8ff",
+                        "on-surface": "#131b2e",
+                        "on-tertiary-fixed": "#360f00",
+                        "surface-variant": "#dae2fd",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-surface": "#283044"
+                    },
+                    borderRadius: {
+                        DEFAULT: "1rem",
+                        lg: "2rem",
+                        xl: "3rem",
+                        full: "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk"],
+                        body: ["Inter"],
+                        label: ["Inter"],
+                        display: "Space Grotesk"
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .blueprint-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(148, 163, 184, 0.2) 1px, transparent 1px);
+        }
+
+        .ambient-shadow {
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+        }
+
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        .cta-gradient {
+            background: linear-gradient(45deg, #3b82f6, #93c5fd);
+        }
+
+        .dropdown-menu {
+            display: none;
+        }
+
+        .dropdown-container:hover .dropdown-menu {
+            display: block;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen blueprint-grid relative">
+<!-- Floating Top Left: Menu & Brand -->
+<div class="absolute top-6 left-6 z-50 flex items-center gap-6">
+    <button class="w-12 h-12 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors text-slate-700">
+        <span class="material-symbols-outlined" data-icon="menu">menu</span>
+    </button>
+    <div class="flex items-center gap-2 group cursor-pointer py-3">
+        <h1 class="text-lg font-bold text-slate-800 uppercase tracking-widest font-['Space_Grotesk']">Tadeu e Odete</h1>
+        <span class="material-symbols-outlined text-sm text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              data-icon="edit">edit</span>
+    </div>
+</div>
+<!-- Floating Top Center: Zoom Indicator & Sub-menu -->
+<div class="absolute top-6 left-1/2 -translate-x-1/2 z-50 dropdown-container">
+    <button class="flex items-center gap-2 px-6 py-3 rounded-full glass-panel shadow-sm hover:bg-slate-50 transition-colors text-slate-700 text-sm font-medium border border-slate-200">
+        <span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+        <span>50%</span>
+    </button>
+    <!-- Sub-menu (Vertical) -->
+    <div class="dropdown-menu absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 p-2 rounded-2xl glass-panel border border-slate-200 shadow-xl z-30">
+        <div class="flex flex-col gap-1">
+            <button class="flex items-center justify-between px-4 py-2.5 rounded-xl bg-blue-50 text-blue-600 text-sm font-medium transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-lg" data-icon="near_me">near_me</span>
+                    <span>Selecionar</span>
+                </div>
+                <span class="text-[10px] opacity-60 font-bold">S</span>
+            </button>
+            <button class="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-lg" data-icon="pan_tool">pan_tool</span>
+                    <span>Mover</span>
+                </div>
+                <span class="text-[10px] opacity-60 font-bold">M</span>
+            </button>
+            <button class="flex items-center justify-between px-4 py-2.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-800 text-sm font-medium transition-colors border-t border-slate-100 mt-1 pt-3">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-lg" data-icon="aspect_ratio">aspect_ratio</span>
+                    <span>Fixar na Proporção</span>
+                </div>
+                <span class="text-[10px] opacity-60 font-bold">F</span>
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Floating Top Right: Actions -->
+<div class="absolute top-6 right-6 z-50 flex items-center gap-3">
+    <button class="flex items-center gap-2 px-4 py-3 rounded-full bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors text-slate-700 font-medium text-sm">
+        <span class="material-symbols-outlined text-lg" data-icon="view_in_ar">view_in_ar</span>
+        3D
+    </button>
+    <button class="flex items-center gap-2 px-6 py-3 rounded-full cta-gradient text-white font-bold text-sm transition-transform hover:scale-105 active:scale-95 shadow-md border border-blue-200">
+        <span class="material-symbols-outlined text-lg" data-icon="ios_share">ios_share</span>
+        Exportar
+    </button>
+    <div class="dropdown-container relative">
+        <button class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm hover:border-blue-400 transition-colors">
+            <img alt="User Profile" class="w-full h-full object-cover"
+                 data-alt="close up professional headshot of young woman with dark hair in modern lighting"
+                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPXK3HVorxrGEpmCl1FuRZT6h1HvXH0aw-cmFHidyNlvvARPITioMrVkT1G2Blz08CJLDdoogKg_vQA9Xb1uTHLNAhCBpwvnu0r7Jql76jJmcZpnvHgIb60H_-xhLwmmsOqqOxDgvxubTCkExaLYF_dnNxkVHd-4CWnO8hPJk14_5GqtIqRPBmGHphOO4Iq78ywFay4eJ6UPmX6cXegR0HYVwTcO766CzLmGo7OdlKMamaNZ8fKOCKwISJaOga3PIDt2Z1zf-cmEa7"/>
+        </button>
+        <div class="dropdown-menu absolute top-full right-0 mt-2 w-48 py-2 bg-white rounded-xl shadow-lg border border-slate-100 z-50">
+            <a class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" href="#">Reiniciar Desenho</a>
+            <div class="h-px bg-slate-100 my-1"></div>
+            <a class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" href="#">Dicas</a>
+            <a class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" href="#">Abrir Tutorial</a>
+            <div class="h-px bg-slate-100 my-1"></div>
+            <a class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" href="#">Configurações</a>
+            <div class="h-px bg-slate-100 my-1"></div>
+            <a class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50" href="#">Sair</a>
+        </div>
+    </div>
+</div>
+<!-- Main Workspace Area -->
+<main class="flex-1 relative w-full h-screen overflow-hidden flex">
+    <!-- NavigationDrawer (Floating Left Vertical Toolbar) -->
+    <aside class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center py-4 space-y-4 glass-panel border border-slate-200 rounded-full w-16 shadow-lg transition-all duration-300 ease-in-out z-40">
+        <nav class="flex flex-col gap-2 w-full items-center">
+            <!-- Select (Active) -->
+            <button class="relative group flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+                <span class="material-symbols-outlined text-2xl" data-icon="near_me">near_me</span>
+            </button>
+            <!-- Draw -->
+            <button class="relative group flex items-center justify-center w-12 h-12 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-2xl" data-icon="edit">edit</span>
+            </button>
+            <!-- Pan -->
+            <button class="relative group flex items-center justify-center w-12 h-12 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-2xl" data-icon="pan_tool">pan_tool</span>
+            </button>
+            <!-- Media -->
+            <button class="relative group flex items-center justify-center w-12 h-12 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-2xl" data-icon="image">image</span>
+            </button>
+        </nav>
+    </aside>
+    <!-- Canvas Area -->
+    <section class="flex-1 relative w-full h-full">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-white rounded-xl border border-slate-200 ambient-shadow flex items-center justify-center overflow-hidden">
+            <div class="text-slate-400 font-headline text-lg tracking-widest uppercase">Canvas Area</div>
+            <div class="absolute inset-4 border border-slate-100 rounded-lg"></div>
+            <div class="absolute top-1/4 left-0 w-full h-[1px] bg-slate-100"></div>
+            <div class="absolute left-1/3 top-0 w-[1px] h-full bg-slate-100"></div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

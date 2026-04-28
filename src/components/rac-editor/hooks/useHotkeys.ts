@@ -1,13 +1,35 @@
 import {useEffect, useRef} from 'react';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {VIEWPORT} from '@/shared/config.ts';
 
 interface UseHotkeysOptions {
   onToggleDrawMode: () => void;
   onToggleZoomControls: () => void;
+  onSetCanvasToolMode: (mode: CanvasToolMode) => void;
+  onFitToView: () => void;
 }
 
-export function useHotkeys({onToggleDrawMode, onToggleZoomControls}: UseHotkeysOptions) {
+/**
+ * Global keyboard shortcuts for the canvas:
+ *  - L: toggle draw (pencil) mode
+ *  - Z: toggle zoom/minimap visibility
+ *  - S: switch to selection tool
+ *  - P: switch to pan tool
+ *  - F: fit canvas to view
+ *
+ * Shortcuts are suppressed while the user is typing in editable elements
+ * or pressing modifier keys (ctrl/meta/alt).
+ */
+export function useHotkeys({
+  onToggleDrawMode,
+  onToggleZoomControls,
+  onSetCanvasToolMode,
+  onFitToView,
+}: UseHotkeysOptions) {
   const drawModeHandlerRef = useRef(onToggleDrawMode);
   const zoomHandlerRef = useRef(onToggleZoomControls);
+  const setToolModeRef = useRef(onSetCanvasToolMode);
+  const fitToViewRef = useRef(onFitToView);
 
   useEffect(() => {
     drawModeHandlerRef.current = onToggleDrawMode;
@@ -18,19 +40,43 @@ export function useHotkeys({onToggleDrawMode, onToggleZoomControls}: UseHotkeysO
   }, [onToggleZoomControls]);
 
   useEffect(() => {
+    setToolModeRef.current = onSetCanvasToolMode;
+  }, [onSetCanvasToolMode]);
+
+  useEffect(() => {
+    fitToViewRef.current = onFitToView;
+  }, [onFitToView]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (shouldIgnoreShortcut(event)) return;
 
       const key = event.key.toLowerCase();
-      if (key === 'l') {
-        event.preventDefault();
-        drawModeHandlerRef.current();
-        return;
-      }
-
-      if (key === 'z') {
-        event.preventDefault();
-        zoomHandlerRef.current();
+      const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
+      switch (key) {
+        case 'l':
+          event.preventDefault();
+          drawModeHandlerRef.current();
+          return;
+        case 'z':
+          event.preventDefault();
+          zoomHandlerRef.current();
+          return;
+        case 's':
+          if (isMobileDevice) return;
+          event.preventDefault();
+          setToolModeRef.current('select');
+          return;
+        case 'p':
+          if (isMobileDevice) return;
+          event.preventDefault();
+          setToolModeRef.current('pan');
+          return;
+        case 'f':
+          if (isMobileDevice) return;
+          event.preventDefault();
+          fitToViewRef.current();
+          return;
       }
     };
 

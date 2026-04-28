@@ -2,7 +2,7 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export const APP_SETTINGS_DEFAULTS = {
   autoNavigatePiloti: false,
-  zoomEnabledByDefault: true,
+  zoomEnabledByDefault: false,
   openEditorsAtFixedPosition: false,
   disableDrawModeAfterFreehand: false,
   showStairsOnTopView: false,

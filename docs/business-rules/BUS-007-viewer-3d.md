@@ -31,18 +31,21 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 1. Sem tipo de casa definido
     - Viewer mostra estado vazio e orienta criação inicial.
 
-2. Ordem visual
+2. Sem vista de casa inserida
+    - Viewer mostra estado vazio mesmo quando o tipo de casa já foi escolhido, pois ainda não existe casa representada no canvas.
+
+3. Ordem visual
     - Terreno, estrutura da casa, pilotis, contraventamentos, escadas e aberturas.
 
-3. Terreno
+4. Terreno
     - Deve respeitar níveis da casa.
     - Possui volume com espessura fixa.
 
-4. Pilotis
+5. Pilotis
     - Devem respeitar altura e diferenciação visual de mestre.
     - No modo de ocultar abaixo do terreno, recorte deve preservar leitura visual.
 
-5. Escadas 3D
+6. Escadas 3D
     - Devem seguir métricas derivadas do projeto.
     - Quantidade e posicionamento de degraus devem ser coerentes com dados recebidos.
 

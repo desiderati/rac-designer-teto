@@ -2,6 +2,7 @@ import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'rea
 import {Canvas as FabricCanvas} from 'fabric';
 import {CanvasGroup, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/hooks/canvas/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
 import {useContraventamentoRefs} from '@/components/rac-editor/hooks/useContraventamentoRefs.ts';
@@ -13,6 +14,7 @@ import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/us
 import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;
@@ -59,6 +61,11 @@ interface CanvasProps {
   showZoomControls?: boolean;
   showTips?: boolean;
 
+  /** Active canvas tool mode. 'pan' disables fabric multi-selection. */
+  canvasToolMode?: CanvasToolMode;
+  /** Notifies the parent whenever the internal zoom changes. */
+  onZoomChange?: (zoom: number) => void;
+
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
 
   // Contraventamento
@@ -79,6 +86,8 @@ export interface CanvasHandle {
   getVisibleCenter: () => { x: number; y: number };
   getCanvasPosition: () => { x: number; y: number; zoom: number };
   setCanvasPosition: (x: number, y: number) => void;
+  /** Reset zoom + viewport so the canvas fits the visible container. */
+  fitToView: () => void;
 }
 
 export const Canvas =
@@ -100,6 +109,8 @@ export const Canvas =
 
       showZoomControls = true,
       showTips = false,
+      canvasToolMode = 'select',
+      onZoomChange,
       tutorialHighlight,
 
       isContraventamentoMode = false,
@@ -138,6 +149,7 @@ export const Canvas =
         containerSizeRef,
         handleViewportChange,
         handleZoomChange,
+        fitToView,
       } = useCanvasViewport({onMinimapInteraction, onZoomInteraction});
 
       const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
@@ -207,7 +219,44 @@ export const Canvas =
           handleViewportChange(x, y);
         },
         getVisibleCenter,
-      }), [clearHistory, copy, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+        fitToView,
+      }), [clearHistory, copy, fitToView, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+
+      // Surface zoom changes back to the parent so the top-bar zoom indicator
+      // can stay in sync with wheel/pinch interactions.
+      useEffect(() => {
+        onZoomChange?.(zoom);
+      }, [onZoomChange, zoom]);
+
+      // Apply tool-mode side effects to the fabric canvas.
+      // 'pan' disables multi-selection and switches to a grab cursor;
+      // 'select' restores fabric defaults.
+      useEffect(() => {
+        const fabric = fabricCanvasRef.current;
+        if (!fabric) return;
+
+        if (canvasToolMode === 'pan') {
+          const panCursor = isPanning ? 'grabbing' : 'grab';
+          fabric.selection = false;
+          fabric.skipTargetFind = true;
+          fabric.defaultCursor = panCursor;
+          fabric.hoverCursor = panCursor;
+          fabric.moveCursor = panCursor;
+          fabric.upperCanvasEl.style.cursor = panCursor;
+          fabric.lowerCanvasEl.style.cursor = panCursor;
+          fabric.wrapperEl.style.cursor = panCursor;
+        } else {
+          fabric.selection = true;
+          fabric.skipTargetFind = false;
+          fabric.defaultCursor = 'default';
+          fabric.hoverCursor = 'move';
+          fabric.moveCursor = 'move';
+          fabric.upperCanvasEl.style.cursor = 'default';
+          fabric.lowerCanvasEl.style.cursor = 'default';
+          fabric.wrapperEl.style.cursor = 'default';
+        }
+        fabric.requestRenderAll();
+      }, [canvasToolMode, isPanning]);
 
       useCanvasFabricSetup({
         canvasRef,
@@ -256,6 +305,7 @@ export const Canvas =
         fabricCanvasRef,
         containerSize,
         containerRef,
+        canvasToolMode,
 
         isPanning,
         setIsPanning,
@@ -284,11 +334,17 @@ export const Canvas =
         containerHeight: containerSize.height,
       });
 
+      const canvasCursor = canvasToolMode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : undefined;
+
       return (
         <div
           ref={containerRef}
           data-testid='rac-canvas-container'
-          className='w-full h-full overflow-hidden relative bg-muted touch-none'
+          className='w-full h-full overflow-hidden relative touch-none'
+          style={{
+            ...CANVAS_WORKSPACE_STYLE,
+            cursor: canvasCursor,
+          }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -300,7 +356,8 @@ export const Canvas =
         >
           {/* Canvas */}
           <div
-            className='absolute shadow-xl bg-card'
+            data-testid='rac-canvas-surface'
+            className='absolute overflow-hidden rounded-[2rem] bg-card shadow-xl ring-1 ring-slate-200/80'
             style={{
               transform: `translate(${canvasX}px, ${canvasY}px) scale(${zoom})`,
               transformOrigin: '0 0',

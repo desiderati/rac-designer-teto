@@ -1,5 +1,9 @@
 import {SetStateAction, useCallback, useEffect, useReducer, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {ZOOM_LIMITS} from '@/shared/config.ts';
+
+/** Margin kept around the canvas when fitting to the visible container. */
+const FIT_TO_VIEW_MARGIN = 0.95;
 
 interface CanvasViewportState {
   zoom: number;
@@ -155,6 +159,32 @@ export function useCanvasViewport({
     dispatch({type: 'setIsSingleFingerPanning', value});
   }, []);
 
+  /**
+   * Fit the canvas inside the visible container.
+   *
+   * Computes the largest zoom that keeps the entire canvas visible (with a
+   * small margin) and re-centers the viewport. No-op while the container has
+   * not been measured yet.
+   */
+  const fitToView = useCallback(() => {
+    const {width, height} = containerSizeRef.current;
+    if (width <= 0 || height <= 0) return;
+
+    const fitZoomRaw = Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT) * FIT_TO_VIEW_MARGIN;
+    const fitZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, fitZoomRaw));
+
+    const overflowX = Math.max(0, CANVAS_WIDTH * fitZoom - width);
+    const overflowY = Math.max(0, CANVAS_HEIGHT * fitZoom - height);
+
+    dispatch({type: 'setZoom', value: fitZoom});
+    dispatch({
+      type: 'setViewport',
+      value: {x: overflowX / 2, y: overflowY / 2},
+    });
+
+    onZoomInteraction?.();
+  }, [onZoomInteraction]);
+
   return {
     zoom: state.zoom,
     setZoom,
@@ -182,5 +212,6 @@ export function useCanvasViewport({
     containerSizeRef,
     handleViewportChange,
     handleZoomChange,
+    fitToView,
   };
 }

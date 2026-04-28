@@ -1,0 +1,35 @@
+{
+  "name": "projects/12694201971562418000",
+  "projectId": "12694201971562418000",
+  "title": "TETO RAC Designer",
+  "visibility": "PRIVATE",
+  "createTime": "2026-04-21T14:12:26.076305Z",
+  "updateTime": "2026-04-28T00:37:51.751917Z",
+  "projectType": "TEXT_TO_UI_PRO",
+  "origin": "STITCH",
+  "deviceType": "MOBILE",
+  "designTheme": {
+    "colorMode": "LIGHT",
+    "font": "SPACE_GROTESK",
+    "roundness": "ROUND_TWELVE",
+    "customColor": "#1121d4",
+    "saturation": 2
+  },
+  "screens": {
+    "canvas-refined": {
+      "id": "4374caedbb0747edbe1b6880dda0e9a6",
+      "sourceScreen": "projects/12694201971562418000/screens/4374caedbb0747edbe1b6880dda0e9a6",
+      "label": "RAC Designer - Cavas Page Refined",
+      "title": "RAC Designer - Refined Floating Interface",
+      "deviceType": "DESKTOP",
+      "x": 13535,
+      "y": 2141,
+      "width": 2560,
+      "height": 2048
+    }
+  },
+  "metadata": {
+    "isRemixed": true,
+    "userRole": "OWNER"
+  }
+}

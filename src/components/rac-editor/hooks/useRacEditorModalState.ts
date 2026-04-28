@@ -1,6 +1,6 @@
 import {Dispatch, SetStateAction, useState} from 'react';
 import {getSettings} from '@/infra/settings.ts';
-import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {CanvasToolMode, ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
 interface UseRacEditorModalStateResult {
   activeSubmenu: ToolbarSubmenu;
@@ -15,8 +15,6 @@ interface UseRacEditorModalStateResult {
   setIsMenuOpen: Dispatch<SetStateAction<boolean>>;
   showRestartConfirm: boolean;
   setShowRestartConfirm: Dispatch<SetStateAction<boolean>>;
-  showUngroupConfirm: boolean;
-  setShowUngroupConfirm: Dispatch<SetStateAction<boolean>>;
   sideSelectorOpen: boolean;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   houseTypeSelectorOpen: boolean;
@@ -27,6 +25,12 @@ interface UseRacEditorModalStateResult {
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
   familySetupOpen: boolean;
   setFamilySetupOpen: Dispatch<SetStateAction<boolean>>;
+  /** Active canvas tool mode (select / pan), driven by the zoom-menu submenu. */
+  canvasToolMode: CanvasToolMode;
+  setCanvasToolMode: Dispatch<SetStateAction<CanvasToolMode>>;
+  /** Live zoom value mirrored from the canvas (1 = 100%). */
+  displayZoom: number;
+  setDisplayZoom: Dispatch<SetStateAction<number>>;
 }
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
@@ -37,12 +41,13 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
-  const [showUngroupConfirm, setShowUngroupConfirm] = useState(false);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
   const [houseTypeSelectorOpen, setHouseTypeSelectorOpen] = useState(false);
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
   const [familySetupOpen, setFamilySetupOpen] = useState(false);
+  const [canvasToolMode, setCanvasToolMode] = useState<CanvasToolMode>('select');
+  const [displayZoom, setDisplayZoom] = useState(1);
 
   return {
     activeSubmenu,
@@ -57,8 +62,6 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setIsMenuOpen,
     showRestartConfirm,
     setShowRestartConfirm,
-    showUngroupConfirm,
-    setShowUngroupConfirm,
     sideSelectorOpen,
     setSideSelectorOpen,
     houseTypeSelectorOpen,
@@ -69,5 +72,9 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setNivelDefinitionOpen,
     familySetupOpen,
     setFamilySetupOpen,
+    canvasToolMode,
+    setCanvasToolMode,
+    displayZoom,
+    setDisplayZoom,
   };
 }

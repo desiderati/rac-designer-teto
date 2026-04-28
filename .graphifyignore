@@ -13,11 +13,13 @@ vendor/
 .agents/code-reviews/
 .agents/examples/
 .agents/prompts/
+.agents/refactorings/
+.agents/references/
+.agents/security-scans/
+.agents/security-reviews/
 .agents/templates/
 .agents/work-items/
 .codex/
 AGENTS.md
 CLAUDE.md
 OBSIDIAN.md
-.agents/references/
-.agents/refactorings/

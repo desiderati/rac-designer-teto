@@ -193,6 +193,7 @@ class HouseManager {
   setFamilyName(name: string): void {
     this._familyName = name;
     this.syncProjectSession();
+    this.notify();
   }
 
   getSelectedPilotiHeights(): readonly number[] {

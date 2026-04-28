@@ -92,6 +92,17 @@ describe('house-manager.ts', () => {
     expect(houseManager.getPilotiData('piloti_0_0').nivel).toBe(0.5);
   });
 
+  it('notifies subscribers when the family name changes', () => {
+    const listener = vi.fn();
+    const unsubscribe = houseManager.subscribe(listener);
+
+    houseManager.setFamilyName('Família Nova');
+
+    expect(houseManager.getFamilyName()).toBe('Família Nova');
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
   it('recalcula níveis intermediários e alturas recomendadas quando um nível de canto é alterado', () => {
     houseManager.setHouseType('tipo6');
 

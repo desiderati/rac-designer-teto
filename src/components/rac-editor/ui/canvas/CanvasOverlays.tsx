@@ -1,6 +1,5 @@
 import {ReactNode} from 'react';
 import {Minimap} from '../Minimap.tsx';
-import {ZoomSlider} from '@/components/rac-editor/ui/ZoomSlider.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface CanvasOverlaysProps {
@@ -26,12 +25,19 @@ interface CanvasOverlaysProps {
   children?: ReactNode;
 }
 
+/**
+ * Canvas overlays — pinch-zoom indicator + minimap + InfoBar children.
+ *
+ * The bottom-left ZoomSlider was removed when the toolbar was refactored to
+ * the Stitch-aligned layout: zoom is now exposed via the top-center FAB
+ * and via wheel/pinch interactions.
+ */
 export function CanvasOverlays({
   showZoomControls,
   tutorialHighlight,
   isPinching,
   zoom,
-  onZoomChange,
+  onZoomChange: _onZoomChange,
   containerWidth,
   containerHeight,
   viewportX,
@@ -58,14 +64,6 @@ export function CanvasOverlays({
       {showZoomControls && (
         <div
           className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
-          <div
-            className={isZoomTutorialHighlighted ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
-            <ZoomSlider
-              zoom={zoom}
-              onZoomChange={onZoomChange}
-              highlight={false}
-            />
-          </div>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
@@ -85,28 +83,18 @@ export function CanvasOverlays({
       <div
         className={`absolute left-2.5 bottom-2.5 right-2.5 flex flex-col items-start gap-2 sm:hidden ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
         {showZoomControls && (
-          <>
-            <div
-              className={isZoomTutorialHighlighted ? 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 rounded-lg' : ''}>
-              <ZoomSlider
-                zoom={zoom}
-                onZoomChange={onZoomChange}
-                highlight={false}
-              />
-            </div>
-            <Minimap
-              canvasWidth={CANVAS_WIDTH}
-              canvasHeight={CANVAS_HEIGHT}
-              viewportWidth={containerWidth}
-              viewportHeight={containerHeight}
-              viewportX={viewportX}
-              viewportY={viewportY}
-              zoom={zoom}
-              onViewportChange={onViewportChange}
-              objects={minimapObjects}
-              highlight={isZoomTutorialHighlighted}
-            />
-          </>
+          <Minimap
+            canvasWidth={CANVAS_WIDTH}
+            canvasHeight={CANVAS_HEIGHT}
+            viewportWidth={containerWidth}
+            viewportHeight={containerHeight}
+            viewportX={viewportX}
+            viewportY={viewportY}
+            zoom={zoom}
+            onViewportChange={onViewportChange}
+            objects={minimapObjects}
+            highlight={isZoomTutorialHighlighted}
+          />
         )}
         {/* Mobile InfoBar rendered here */}
         {showTips && children}

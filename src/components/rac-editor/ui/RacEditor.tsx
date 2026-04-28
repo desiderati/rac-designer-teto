@@ -21,6 +21,8 @@ import {useToolbarHouseViewCounts} from '@/components/rac-editor/hooks/toolbar/u
 import {useCanvasActions} from '@/components/rac-editor/hooks/canvas/useCanvasActions.ts';
 import {useToolbarActions} from '@/components/rac-editor/hooks/toolbar/useToolbarActions.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+// useCanvasGroupingActions removed: group/ungroup functionality was retired
+// alongside the unlock/lock buttons in the side rail.
 import {getSettings} from '@/infra/settings.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
@@ -31,12 +33,13 @@ import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutoria
 import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
 import {useTutorialUiActions} from '@/components/rac-editor/hooks/tutorial/useTutorialUiActions.ts';
 import {useCanvasHouseViewActions} from '@/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts';
-import {useCanvasGroupingActions} from '@/components/rac-editor/hooks/canvas/useCanvasGroupingActions.ts';
 import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
 import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
 import {RacEditorHouseTypeSelector} from '@/components/rac-editor/ui/RacEditorHouseTypeSelector.tsx';
 import {RacEditorTutorial} from '@/components/rac-editor/ui/RacEditorTutorial.tsx';
+import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/ui/canvas/workspace-style.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
   const module = await import('@/components/rac-editor/ui/3d/House3DViewer.tsx');
@@ -101,8 +104,6 @@ export function RacEditor() {
     setIsSettingsOpen,
     showRestartConfirm,
     setShowRestartConfirm,
-    showUngroupConfirm,
-    setShowUngroupConfirm,
     sideSelectorOpen,
     setSideSelectorOpen,
     houseTypeSelectorOpen,
@@ -113,6 +114,10 @@ export function RacEditor() {
     setNivelDefinitionOpen,
     familySetupOpen,
     setFamilySetupOpen,
+    canvasToolMode,
+    setCanvasToolMode,
+    displayZoom,
+    setDisplayZoom,
   } = useRacEditorModalState();
 
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
@@ -123,6 +128,26 @@ export function RacEditor() {
     setFamilySetupOpen(false);
     setHouseTypeSelectorOpen(true);
   }, [setFamilySetupOpen, setHouseTypeSelectorOpen]);
+
+  const handleRenameFamily = useCallback((newName: string) => {
+    houseManager.setFamilyName(newName);
+  }, []);
+
+  const handleSetCanvasToolMode = useCallback(
+    (mode: CanvasToolMode) => setCanvasToolMode(mode),
+    [setCanvasToolMode],
+  );
+
+  const handleFitToView = useCallback(() => {
+    canvasRef.current?.fitToView();
+  }, []);
+
+  // Stub: "Sair" lives in the avatar dropdown for visual parity with the
+  // Stitch reference, but the app has no auth flow yet. Logging keeps the
+  // hook discoverable until a sign-out destination exists.
+  const handleExit = useCallback(() => {
+    console.info('[RacEditor] exit clicked — no sign-out flow wired yet.');
+  }, []);
 
   useRacEditorDebugBridge({
     canvasRef,
@@ -242,18 +267,6 @@ export function RacEditor() {
     transitionToNivelRef,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
-  });
-
-  const {
-    handleGroup,
-    handleUngroup,
-    confirmUngroup,
-    closeUngroupConfirm,
-  } = useCanvasGroupingActions({
-    canvasRef,
-    getCanvas,
-    setInfoMessage,
-    setShowUngroupConfirm,
   });
 
   const {
@@ -377,6 +390,8 @@ export function RacEditor() {
   useHotkeys({
     onToggleDrawMode: handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
+    onSetCanvasToolMode: handleSetCanvasToolMode,
+    onFitToView: handleFitToView,
   });
 
   // ── Piloti ─────────────────────────────────────────────────
@@ -448,8 +463,6 @@ export function RacEditor() {
   const toolbarActions = useToolbarActions({
     handleOpenHouseTypeSelector,
     handleAddHouseView,
-    handleUngroup,
-    handleGroup,
     handleAddWall,
     handleAddDoor,
     handleAddStairs,
@@ -473,14 +486,30 @@ export function RacEditor() {
     handleToggleZoomControls,
     handleToggleMenu,
     handleRestartTutorial,
+    handleOpenTutorial: restartTutorialProgress,
+    handleExit,
+    handleRenameFamily,
+    handleSetCanvasToolMode,
+    handleFitToView,
     setIs3DViewerOpen,
     setActiveSubmenu,
     setIsSettingsOpen,
   });
 
+  // Re-read family name on every house-store version bump so the top bar
+  // stays in sync without having to wire a dedicated subscription.
+  const currentFamilyName = (() => {
+    void houseVersion;
+    return houseManager.getFamilyName();
+  })();
+
   const contraventamentoEditorState = getContraventamentoEditorState();
   return (
-    <div className='relative h-full overflow-hidden bg-muted' onClick={handleContainerClick}>
+    <div
+      className='relative h-full overflow-hidden'
+      style={CANVAS_WORKSPACE_STYLE}
+      onClick={handleContainerClick}
+    >
       <Toolbar
         actions={toolbarActions}
         isDrawing={isDrawing}
@@ -495,6 +524,10 @@ export function RacEditor() {
         backViewCount={backViewCount}
         side1ViewCount={side1ViewCount}
         side2ViewCount={side2ViewCount}
+        familyName={currentFamilyName}
+        zoom={displayZoom}
+        canvasToolMode={canvasToolMode}
+        isMobile={isMobile}
       />
 
       <RacEditorCanvas
@@ -506,6 +539,8 @@ export function RacEditor() {
         isAnyEditorOpen={isAnyEditorOpen}
         isContraventamentoMode={isContraventamentoMode}
         isPilotiEligibleForContraventamento={isPilotiEligibleAsDestination}
+        canvasToolMode={canvasToolMode}
+        onZoomChange={setDisplayZoom}
         onSelectionMessage={setInfoMessage}
         onSelectionAuxCleanup={() => {
           dismissPilotiTutorial();
@@ -584,9 +619,6 @@ export function RacEditor() {
         showRestartConfirm={showRestartConfirm}
         onConfirmRestartTutorial={confirmRestartTutorial}
         onCloseRestartConfirm={closeRestartConfirm}
-        showUngroupConfirm={showUngroupConfirm}
-        onConfirmUngroup={confirmUngroup}
-        onCloseUngroupConfirm={closeUngroupConfirm}
       />
 
       <RacEditorTutorial

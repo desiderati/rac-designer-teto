@@ -9,9 +9,6 @@ interface RacEditorOverlaysProps {
   showRestartConfirm: boolean;
   onConfirmRestartTutorial: () => void;
   onCloseRestartConfirm: () => void;
-  showUngroupConfirm: boolean;
-  onConfirmUngroup: () => void;
-  onCloseUngroupConfirm: () => void;
 }
 
 export function RacEditorModals({
@@ -22,9 +19,6 @@ export function RacEditorModals({
   showRestartConfirm,
   onConfirmRestartTutorial,
   onCloseRestartConfirm,
-  showUngroupConfirm,
-  onConfirmUngroup,
-  onCloseUngroupConfirm,
 }: RacEditorOverlaysProps) {
   return (
     <>
@@ -41,16 +35,6 @@ export function RacEditorModals({
         confirmLabel='Confirmar'
         handleConfirm={onConfirmRestartTutorial}
         handleCancel={onCloseRestartConfirm}
-      />
-
-      <ConfirmDialogModal
-        isMobile={isMobile}
-        isOpen={showUngroupConfirm}
-        title='Desagrupar Casa'
-        description='Ao desagrupar a casa, ela perderá a funcionalidade de edição de pilotis e se tornará apenas um conjunto de formas sem funcionalidades especiais. Deseja continuar?'
-        confirmLabel='Desagrupar'
-        handleConfirm={onConfirmUngroup}
-        handleCancel={onCloseUngroupConfirm}
       />
     </>
   );

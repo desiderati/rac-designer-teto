@@ -1,60 +1,58 @@
-import {ChangeEvent, useRef} from 'react';
-import {ToolbarMainMenu} from './ToolbarMainMenu.tsx';
-import {ToolbarOverflowMenu} from './ToolbarOverflowMenu.tsx';
+import {SideRail} from './SideRail.tsx';
+import {TopBar} from './parts/TopBar.tsx';
 import type {ToolbarProps} from './helpers/toolbar-types.ts';
 
+/**
+ * Composition root for the refined canvas toolbar.
+ *
+ * Layout (Stitch-aligned, see `.stitch/designs/canvas-refined.html`):
+ *  - Top bar: hamburger + family name (left), zoom + tools (center),
+ *             3D / Exportar / avatar (right).
+ *  - Side rail: vertical, always-visible, centered on the left edge.
+ *
+ * Replaces the previous floating-FAB layout (single hamburger toggling a
+ * collapsible main menu + an overflow menu on the right).
+ */
 export function Toolbar({
   actions,
   isDrawing,
   activeSubmenu,
   showTips,
-  showZoomControls,
   tutorialHighlight = null,
-  isMenuOpen,
   isTutorialActive = false,
   houseType,
   frontViewCount = {current: 0, max: 0},
   backViewCount = {current: 0, max: 0},
   side1ViewCount = {current: 0, max: 0},
   side2ViewCount = {current: 0, max: 0},
+  familyName,
+  zoom,
+  canvasToolMode,
+  isMobile,
 }: ToolbarProps) {
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    actions.importJSON(file);
-    e.target.value = '';
-  };
-
   return (
     <>
-      <input type='file' ref={fileInputRef} accept='.json' onChange={handleFileChange} className='hidden'/>
+      <TopBar
+        actions={actions}
+        familyName={familyName}
+        showTips={showTips}
+        zoom={zoom}
+        canvasToolMode={canvasToolMode}
+        isMobile={isMobile}
+      />
 
-      <ToolbarMainMenu
+      <SideRail
         actions={actions}
         isDrawing={isDrawing}
         activeSubmenu={activeSubmenu}
-        isMenuOpen={isMenuOpen}
         isTutorialActive={isTutorialActive}
         tutorialHighlight={tutorialHighlight}
-        showZoomControls={showZoomControls}
         houseType={houseType}
         frontViewCount={frontViewCount}
         backViewCount={backViewCount}
         side1ViewCount={side1ViewCount}
         side2ViewCount={side2ViewCount}
-      />
-
-      <ToolbarOverflowMenu
-        actions={actions}
-        activeSubmenu={activeSubmenu}
-        tutorialHighlight={tutorialHighlight}
-        isTutorialActive={isTutorialActive}
-        showTips={showTips}
-        onImportClick={() => fileInputRef.current?.click()}
+        isMobile={isMobile}
       />
     </>
   );

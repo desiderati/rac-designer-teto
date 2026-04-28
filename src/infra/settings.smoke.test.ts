@@ -13,7 +13,7 @@ describe('settings.ts', () => {
   it('returns defaults when storage is empty', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
-      zoomEnabledByDefault: true,
+      zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,
@@ -24,7 +24,7 @@ describe('settings.ts', () => {
     updateSetting('autoNavigatePiloti', true);
     expect(getSettings()).toEqual({
       autoNavigatePiloti: true,
-      zoomEnabledByDefault: true,
+      zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,
@@ -39,7 +39,7 @@ describe('settings.ts', () => {
     expect(() => updateSetting('autoNavigatePiloti', true)).not.toThrow();
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
-      zoomEnabledByDefault: true,
+      zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,

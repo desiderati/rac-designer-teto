@@ -1,11 +1,13 @@
 import {Dispatch, SetStateAction, useMemo} from 'react';
-import {ToolbarActionMap, ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {
+  CanvasToolMode,
+  ToolbarActionMap,
+  ToolbarSubmenu,
+} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
 interface UseToolbarActionsArgs {
   handleOpenHouseTypeSelector: () => void;
   handleAddHouseView: (viewType: 'front' | 'back' | 'side1' | 'side2') => void;
-  handleUngroup: () => void;
-  handleGroup: () => void;
   handleAddWall: () => void;
   handleAddDoor: () => void;
   handleAddStairs: () => void;
@@ -29,6 +31,11 @@ interface UseToolbarActionsArgs {
   handleToggleZoomControls: () => void;
   handleToggleMenu: () => void;
   handleRestartTutorial: () => void;
+  handleOpenTutorial: () => void;
+  handleExit: () => void;
+  handleRenameFamily: (newName: string) => void;
+  handleSetCanvasToolMode: (mode: CanvasToolMode) => void;
+  handleFitToView: () => void;
   setIs3DViewerOpen: Dispatch<SetStateAction<boolean>>;
   setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
   setIsSettingsOpen: Dispatch<SetStateAction<boolean>>;
@@ -37,8 +44,6 @@ interface UseToolbarActionsArgs {
 export function useToolbarActions({
   handleOpenHouseTypeSelector,
   handleAddHouseView,
-  handleUngroup,
-  handleGroup,
   handleAddWall,
   handleAddDoor,
   handleAddStairs,
@@ -62,6 +67,11 @@ export function useToolbarActions({
   handleToggleZoomControls,
   handleToggleMenu,
   handleRestartTutorial,
+  handleOpenTutorial,
+  handleExit,
+  handleRenameFamily,
+  handleSetCanvasToolMode,
+  handleFitToView,
   setIs3DViewerOpen,
   setActiveSubmenu,
   setIsSettingsOpen,
@@ -73,8 +83,6 @@ export function useToolbarActions({
     addHouseBack: () => handleAddHouseView('back'),
     addHouseSide1: () => handleAddHouseView('side1'),
     addHouseSide2: () => handleAddHouseView('side2'),
-    ungroup: handleUngroup,
-    group: handleGroup,
     addWall: handleAddWall,
     addDoor: handleAddDoor,
     addStairs: handleAddStairs,
@@ -99,6 +107,11 @@ export function useToolbarActions({
     open3DViewer: () => setIs3DViewerOpen(true),
     toggleMenu: handleToggleMenu,
     restartTutorial: handleRestartTutorial,
+    openTutorial: handleOpenTutorial,
+    exit: handleExit,
+    renameFamily: handleRenameFamily,
+    setCanvasToolMode: handleSetCanvasToolMode,
+    fitToView: handleFitToView,
     openSettings: () => {
       setActiveSubmenu(null);
       setIsSettingsOpen(true);
@@ -116,12 +129,16 @@ export function useToolbarActions({
     handleAddWall,
     handleAddWater,
     handleDelete,
+    handleExit,
     handleExportJSON,
-    handleGroup,
+    handleFitToView,
     handleImportJSON,
     handleOpenHouseTypeSelector,
+    handleOpenTutorial,
+    handleRenameFamily,
     handleRestartTutorial,
     handleSavePDF,
+    handleSetCanvasToolMode,
     handleToggleDrawMode,
     handleToggleElementsMenu,
     handleToggleHouseMenu,
@@ -130,7 +147,6 @@ export function useToolbarActions({
     handleToggleOverflowMenu,
     handleToggleTips,
     handleToggleZoomControls,
-    handleUngroup,
     setActiveSubmenu,
     setIs3DViewerOpen,
     setIsSettingsOpen,

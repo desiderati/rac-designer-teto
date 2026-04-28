@@ -2,6 +2,7 @@ import React, {MutableRefObject, RefObject, useCallback, useEffect} from 'react'
 import {Canvas as FabricCanvas} from 'fabric';
 import {INTERACTION_THRESHOLDS, TIMINGS, VIEWPORT, ZOOM_LIMITS} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
 interface UseCanvasPointerInteractionsArgs {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -21,6 +22,18 @@ interface UseCanvasPointerInteractionsArgs {
   setViewportX: React.Dispatch<React.SetStateAction<number>>;
   setViewportY: React.Dispatch<React.SetStateAction<number>>;
   handleZoomChange: (newZoom: number) => void;
+  canvasToolMode: CanvasToolMode;
+}
+
+function applyFabricCursor(canvas: FabricCanvas | null, cursor: string): void {
+  if (!canvas) return;
+
+  canvas.defaultCursor = cursor;
+  canvas.hoverCursor = cursor;
+  canvas.moveCursor = cursor;
+  canvas.upperCanvasEl.style.cursor = cursor;
+  canvas.lowerCanvasEl.style.cursor = cursor;
+  canvas.wrapperEl.style.cursor = cursor;
 }
 
 export function useCanvasPointerInteractions({
@@ -41,6 +54,7 @@ export function useCanvasPointerInteractions({
   setViewportX,
   setViewportY,
   handleZoomChange,
+  canvasToolMode,
 }: UseCanvasPointerInteractionsArgs) {
 
   useEffect(() => {
@@ -58,13 +72,26 @@ export function useCanvasPointerInteractions({
   }, [containerRef]);
 
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
-    if (event.button !== 1) return;
+    const shouldPan = event.button === 1 || (canvasToolMode === 'pan' && event.button === 0);
+    if (!shouldPan) return;
     event.preventDefault();
+    const canvas = fabricCanvasRef.current;
+    if (canvasToolMode === 'pan' && canvas) {
+      canvas.discardActiveObject();
+      canvas.selection = false;
+      canvas.skipTargetFind = true;
+      applyFabricCursor(canvas, 'grabbing');
+      canvas.requestRenderAll();
+    }
     setIsPanning(true);
     lastPanPoint.current = {x: event.clientX, y: event.clientY};
-  }, [lastPanPoint, setIsPanning]);
+  }, [canvasToolMode, fabricCanvasRef, lastPanPoint, setIsPanning]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    if (canvasToolMode === 'pan') {
+      applyFabricCursor(fabricCanvasRef.current, isPanning ? 'grabbing' : 'grab');
+    }
+
     if (!isPanning) return;
 
     const deltaX = event.clientX - lastPanPoint.current.x;
@@ -76,11 +103,14 @@ export function useCanvasPointerInteractions({
 
     setViewportX((previous) => Math.max(0, Math.min(previous - deltaX, maxX)));
     setViewportY((previous) => Math.max(0, Math.min(previous - deltaY, maxY)));
-  }, [containerSize, isPanning, lastPanPoint, setViewportX, setViewportY, zoom]);
+  }, [canvasToolMode, containerSize, fabricCanvasRef, isPanning, lastPanPoint, setViewportX, setViewportY, zoom]);
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
-  }, [setIsPanning]);
+    if (canvasToolMode === 'pan') {
+      applyFabricCursor(fabricCanvasRef.current, 'grab');
+    }
+  }, [canvasToolMode, fabricCanvasRef, setIsPanning]);
 
   const handleWheel = useCallback((event: React.WheelEvent) => {
     event.preventDefault();
@@ -237,7 +267,7 @@ export function useCanvasPointerInteractions({
 
     const canvas = fabricCanvasRef.current;
     if (canvas) {
-      canvas.selection = true;
+      canvas.selection = canvasToolMode !== 'pan';
     }
 
     setIsSingleFingerPanning(false);
@@ -255,6 +285,7 @@ export function useCanvasPointerInteractions({
     setIsSingleFingerPanning,
     singleFingerMoved,
     singleFingerStartPoint,
+    canvasToolMode,
   ]);
 
   return {
