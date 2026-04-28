@@ -1,9 +1,15 @@
-# PRD — Evolução Multicasa do RAC Designer TETO
+---
+title: Evolução Multicasa do RAC Designer TETO
+id: PRD-001
+doc_type: prd
+doc_set: product-requirements
+status: review
+version: "0.1.0"
+owners: []
+lang: pt-BR
+---
 
-- id: PRD-001
-- status: review
-- versão: 0.1.0
-- owners: a definir
+# Evolução Multicasa do RAC Designer TETO
 
 > Este é o artefato humano primário da iniciativa. O JSON derivado adjacente existe para consumo estruturado e o
 > sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas, exportações brutas e material

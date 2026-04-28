@@ -1,11 +1,5 @@
 # Análise Técnica de Bug ou Regressão
 
-> Migrado de `.agents/bug-analysis/piloti.bug-analysis.md` para a convenção
-> `YYYY-MM/yyyyMMdd-{bug-slug}.bug-analysis.md`.
->
-> Se o mesmo caso também tiver incidente operacional, manter o `.incident.md`
-> correlato como artefato separado e registrar apenas cross-link explícito.
-
 ## 1. Identificação
 
 - tipo do registro: análise técnica de bug

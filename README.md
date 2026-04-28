@@ -84,13 +84,17 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/domain/house/` concentra agregado, casos de uso e contratos do domínio
 - `src/infra/` implementa persistência em memória, storage local e integrações técnicas
 - `src/components/rac-editor/` é a feature principal e organiza a interface em `ui/`, `hooks/` e `lib/`
+- `src/components/rac-editor/lib/house-manager.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
+  `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
 - O projeto usa alias `@/` para imports absolutos
-- Não há store global genérico; o estado do editor permanece concentrado na própria feature e nos contratos já
-  existentes
+- O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor permanece concentrado na
+  própria feature
 - O TypeScript roda hoje em modo não estrito, mas o código deve continuar explícito e defensivo
 - O playbook em `docs/engineering-playbook/` continua sendo a fonte canônica para arquitetura, convenções e critérios de
-  refatoração
+  refatoração, com qualquer direção futura marcada explicitamente como transição
+- A taxonomia atual do playbook separa núcleo comum em `PLAY-001` a `PLAY-005` e módulos frontend em
+  `PLAY-101` a `PLAY-105`
 
 ---
 
@@ -99,10 +103,13 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 ```
 .
 ├── .agents/
+│   ├── bug-analysis/         # Registros versionados de análises de bug
+│   ├── changelogs/           # Registro factual das execuções relevantes
+│   ├── examples/             # Exemplos de calibragem para prompts locais
 │   ├── prompts/              # Prompts operacionais especializados
 │   ├── refactorings/         # Registros duráveis das frentes de refatoração
-│   └── templates/            # Templates operacionais da camada de agentes
-├── .lovable/                 # Planos/artefatos do Lovable (automação)
+│   ├── templates/            # Templates operacionais da camada de agentes
+│   └── work-items/           # Continuidade local efêmera
 ├── docs/
 │   ├── business-rules/       # Regras funcionais do produto, numeradas em ordem canônica
 │   ├── engineering-playbook/ # Constituição técnica e guias locais de engenharia
@@ -245,7 +252,8 @@ trabalho.
 - **Índice documental do projeto:** `docs/README.md`
 - **Regras de negócio:** `docs/business-rules/README.md`
 - **PRDs e sidecars:** `docs/product-requirements/README.md`
-- **Engineering Playbook:** `docs/engineering-playbook/README.md`
+- **Engineering Playbook:** `docs/engineering-playbook/README.md` (núcleo comum `PLAY-001` a `PLAY-005` e frente
+  frontend `PLAY-101` a `PLAY-105`)
 - **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
 - **Prompts duráveis de refatoração:** `.agents/prompts/refactoring-*.prompt.md`
 - **Execuções e regressões de refatoração:** `.agents/refactorings/`

@@ -1,3 +1,13 @@
+---
+title: Regras de Nível do Piloti
+id: BUS-004
+doc_type: business-rule
+doc_set: business-rules
+order: 4
+status: active
+lang: pt-BR
+---
+
 # Regras de Nível do Piloti
 
 ## Objetivo
@@ -7,11 +17,12 @@ Definir como o nível dos pilotis é calculado, editado e mantido consistente em
 ## Conceito de nível
 
 O nível representa a altura de referência do terreno sob um piloti, em metros. Influencia a
-visualização 2D/3D, a altura recomendada do piloti e as escadas automáticas.
+visualização 2D/3D, a altura recomendada do piloti, o diagnóstico de proporção estrutural e as escadas automáticas.
 
 - **Mínimo global:** 0.20 m
 - **Máximo global:** 1.75 m (metade da maior altura disponível, 3.5 m / 2)
-- **Máximo por piloti:** `Altura do Piloti / 2`
+- **Limite máximo permitido por piloti:** `Altura do piloti / 2`
+- **Relação usada para recomendação estrutural:** `Altura recomendada >= nível * 3`
 
 ### Alturas disponíveis e máximos de nível
 
@@ -28,24 +39,28 @@ visualização 2D/3D, a altura recomendada do piloti e as escadas automáticas.
 
 1. O nível pode ser alterado livremente entre o mínimo global (0.20 m) e o máximo global (1.75 m)
 2. Ao confirmar alteração, o valor deve ser aplicado imediatamente.
-3. Ao alterar o nível, aplica-se a "regra de ouro":
-    - A altura do piloti é **sempre recalculada** com a menor altura disponível tal que `nivel ≤ altura / 2`.
-      Se nenhuma altura satisfizer a condição (nível muito alto), usa a altura do maior piloti disponível.
-    - O nível escolhido é mantido exatamente como o usuário deixou.
+3. Ao alterar o nível pelo slider:
+    - o nível escolhido é mantido exatamente como o usuário deixou;
+    - a altura do piloti é recalculada com a menor altura disponível que satisfaça `altura >= nível * 3`.
+4. Ao alterar a altura manualmente pelos botões:
+    - a altura escolhida é mantida;
+    - se o nível atual ultrapassar o máximo permitido da nova altura (`altura / 2`), o nível é reduzido para esse
+      limite;
+    - se a nova altura continuar compatível, o nível permanece como estava.
 
-### Regra de ouro (síntese)
+### Síntese operacional
 
 | Ação do usuário         | Altura recalculada? | Nível recalculado?              |
 |-------------------------|---------------------|---------------------------------|
-| Alterar o nível         | **Sim**, sempre     | Não (mantém o valor escolhido)  |
+| Alterar o nível         | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido) |
 | Botão de altura (menor) | Não                 | Sim, se nível > nova altura / 2 |
 | Botão de altura (maior) | Não                 | Não                             |
 
 ## Regras de limite
 
 1. O nível tem mínimo e máximo válidos.
-2. O máximo acompanha as regras estruturais da altura disponível de piloti.
-3. O sistema não deve aceitar nível acima da capacidade estrutural.
+2. O máximo permitido por piloti acompanha a regra `nível <= altura / 2`.
+3. O sistema não deve aceitar nível acima da capacidade permitida para a altura manual atual.
 
 ## Regras de alteração de altura de piloti
 
@@ -62,23 +77,25 @@ Ao modificar a altura de um piloti:
 
 ## Regras de recomendação de altura
 
-1. A altura recomendada do piloti depende do nível definido.
-2. Quando o valor calculado ultrapassa opções disponíveis, o sistema usa a maior opção válida.
+1. A altura recomendada usa a menor altura disponível que satisfaça `altura >= nível * 3`.
+2. A mesma relação é usada para diagnosticar pilotis fora de proporção.
+3. Quando o valor calculado ultrapassa opções disponíveis, o sistema usa a maior opção válida.
+4. Um piloti pode continuar dentro do limite permitido (`altura / 2`) e ainda assim ficar fora da proporção
+   recomendada (`altura >= nível * 3`).
 
 ## Regras de interpolação
 
 1. Níveis de pilotis intermediários devem manter coerência com os cantos definidos.
-2. Ajustes nos cantos podem recalcular recomendações dos intermediários sem quebrar o estado manual necessário.
-3. Ao alterar um piloti de **canto**, os pilotis intermediários são recalculados por interpolação bilinear:
-
-    1. **Somente os níveis** dos pilotis intermediários são interpolados — as **alturas nunca são
-       recalculadas** neste contexto.
-    2. A altura manualmente escolhida para o canto editado é aplicada antes da interpolação e não
-       pode ser sobrescrita por ela.
+2. Ao alterar o nível de um piloti de canto, os níveis dos demais pilotis podem ser recalculados por interpolação
+   bilinear.
+3. Após essa interpolação, as alturas recomendadas dos pilotis afetados também podem ser recalculadas
+   automaticamente.
+4. Se a edição do canto trouxe uma altura manual explícita junto com o novo nível, a altura do piloti editado deve ser
+   preservada depois do recálculo global.
 
 ## Regras de feedback e segurança
 
-1. O usuário deve perceber quando houve ajuste automático por limite.
+1. O usuário deve perceber quando houve ajuste automático por limite ou por recomendação.
 2. O sistema não pode manter valores inválidos escondidos.
 
 ## Regras de consistência

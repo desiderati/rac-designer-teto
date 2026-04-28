@@ -1,90 +1,92 @@
-# CORE ENGINEERING PRINCIPLES
+---
+title: Princípios Centrais de Engenharia
+id: PLAY-002
+doc_type: playbook
+doc_set: engineering-playbook
+family: core
+precedence: 2
+status: active
+lang: pt-BR
+---
 
-<ruleset name="Core Principles">
+# Princípios Centrais de Engenharia
 
-<description>
-Estes são os princípios fundamentais que guiam TODAS as decisões de desenvolvimento. Eles são a base da nossa filosofia de engenharia e devem ser seguidos sem exceção, representando a mentalidade de um desenvolvedor sênior com mais de 20 anos de experiência.
-</description>
+## Objetivo
 
-<rule name="Principle 1: Reuse Before Build">
-  <description>
-    Antes de criar qualquer novo componente, hook, ou função, você DEVE auditar a base de código existente em busca de uma solução reutilizável. A duplicação de código é o principal inimigo a ser combatido. A criação de algo novo é o último recurso, não o primeiro.
-  </description>
-</rule>
+Este documento define os princípios fundamentais que guiam todas as decisões de desenvolvimento no repositório. Eles
+representam a filosofia de engenharia esperada para qualquer intervenção relevante no código.
 
-<rule name="Principle 2: Mandatory Decision Flow">
-  <description>
-    Você deve seguir este fluxo de decisão ANTES de escrever qualquer código de feature ou refatoração. A falha em seguir este fluxo resultará em uma revisão obrigatória.
+## Reutilizar antes de construir
 
-    1. **Define Problem:** Descreva o problema a ser resolvido em uma única frase (sintoma + impacto no negócio).
-    2. **Inventory Existing Code:** Use a busca global (ex: `rg -n "termoDoComportamento" src`) para encontrar funcionalidades ou componentes com nomes, props ou propósitos similares. A evidência da busca deve ser registrada.
-    3. **Classify Logic:** Analise o código encontrado e separe a lógica em duas categorias: 'comum' (lógica de UI, estado, fluxo, que pode ser compartilhada) e 'específica' (regras de negócio que pertencem a um domínio particular).
-    4. **Apply Decision Matrix:** Com base na classificação, aplique a Matriz de Decisão (ver próxima regra) para determinar a ação correta.
-    5. **Implement:** Somente após os passos 1-4 serem concluídos, inicie a implementação.
-  </description>
-</rule>
+Antes de criar qualquer componente, hook ou função nova, audite a base existente em busca de uma solução reutilizável.
+Duplicação de código é o principal inimigo a ser combatido. Criar algo novo é último recurso, não o primeiro.
 
-<rule name="Principle 3: The Decision Matrix">
-  <description>
-    Esta matriz determina a ação correta após o inventário e classificação do código.
+## Fluxo obrigatório de decisão
 
-    - **WHEN TO REUSE:**
-      - O comportamento desejado já existe e a diferença é apenas em dados, texto, estilo ou props simples.
-      - O contrato de interação (ex: abrir/editar/confirmar/cancelar) é idêntico.
-      - **ACTION:** Estenda a API do componente/hook existente com a menor superfície de mudança possível. NÃO crie um novo módulo paralelo.
+Antes de escrever qualquer código de feature ou refatoração, siga esta sequência:
 
-    - **WHEN TO EXTRACT:**
-      - Existe duplicação de lógica ou estrutura em 2 ou mais pontos do código.
-      - Há uma chance concreta e imediata de um terceiro uso.
-      - O fluxo base é o mesmo, mudando apenas a regra de domínio aplicada no final.
-      - **ACTION:** Extraia a lógica/estrutura comum para um novo componente ou hook compartilhado. Mantenha a regra de negócio específica no consumidor, injetando-a como uma prop ou callback.
+1. Defina o problema em uma única frase, combinando sintoma e impacto no negócio.
+2. Faça um inventário do código existente com busca global e registre a evidência encontrada.
+3. Classifique a lógica localizada entre o que é comum e o que é específico de domínio.
+4. Aplique a matriz de decisão deste documento.
+5. Só então implemente.
 
-    - **WHEN TO CREATE:**
-      - A auditoria (passo 2 do fluxo) comprova que não existe implementação equivalente.
-      - A natureza da interação ou do domínio é fundamentalmente diferente.
-      - Tentar reutilizar forçaria um acoplamento prejudicial ou uma abstração excessivamente complexa.
-      - **ACTION:** Crie um novo módulo, mas você DEVE documentar a justificativa de por que a reutilização ou extração não foram possíveis.
-  </description>
-</rule>
+## Matriz de decisão
 
-<rule name="Principle 4: Small, Incremental, Validated Steps">
-  <description>
-    Toda mudança deve ser a menor unidade de trabalho lógica possível. Após cada passo (ex: extrair um hook, refatorar um componente), execute as validações relevantes (testes, lint, type-check) para garantir que nada foi quebrado. Não agrupe múltiplas refatorações ou features em um único passo gigante.
-  </description>
-</rule>
+### Quando reutilizar
 
-<rule name="Principle 5: Clarity Over Premature Abstraction">
-  <description>
-    Escreva código que seja, acima de tudo, fácil de ler e entender. Uma abstração só é justificada se atender a pelo menos DOIS dos seguintes critérios IMEDIATAMENTE:
-    1. Elimina duplicação de lógica crítica já existente.
-    2. Reduz acoplamento problemático já existente.
-    3. Permite uma troca REAL de implementação necessária no curto/médio prazo.
-    4. Melhora significativamente a testabilidade de um comportamento central.
-    Se não atender, mantenha a solução direta e simples.
-  </description>
-</rule>
+- O comportamento desejado já existe e a diferença é apenas de dados, texto, estilo ou props simples.
+- O contrato de interação já é idêntico.
+- A ação correta é estender a API do componente ou hook existente com a menor superfície de mudança possível.
 
-<rule name="Principle 6: One Source of Truth">
-  <description>
-    Regras de negócio, constantes, configurações de escala, mapeamentos e qualquer outra informação compartilhada devem viver em um único arquivo e ser importados de lá. Espalhar constantes e valores padrão em múltiplos arquivos é estritamente proibido.
-  </description>
-</rule>
+### Quando extrair
 
-<rule name="Principle 7: Incremental Compatibility">
-  <description>
-    Ao refatorar código que lida com estruturas de dados (tipos, serialização), você deve garantir a compatibilidade com o formato legado durante o período de transição. A leitura deve suportar tanto o formato novo quanto o antigo. A escrita deve ser sempre no novo formato. Breaking changes silenciosos em dados existentes são inaceitáveis.
-  </description>
-</rule>
+- Já existe duplicação de lógica ou estrutura em dois ou mais pontos.
+- Há chance concreta e imediata de um terceiro uso.
+- O fluxo-base é o mesmo e apenas a regra de domínio final muda.
+- A ação correta é extrair a parte comum para componente ou hook compartilhado e manter a regra específica no
+  consumidor.
 
-<rule name="Forbidden Anti-Patterns">
-  <description>
-    As seguintes ações são estritamente proibidas e serão consideradas falhas graves:
-    - Criar um novo componente/hook sem realizar e documentar a auditoria de reutilização prévia.
-    - Copiar e colar lógica de UI ou de fluxo para "acelerar" a entrega.
-    - Introduzir uma abstração complexa por uma necessidade hipotética futura.
-    - Espalhar constantes, defaults ou regras de negócio em múltiplos arquivos.
-    - Corrigir um problema visual (UI) sem antes validar que o contrato funcional e de interação (UX) permanece intacto.
-  </description>
-</rule>
+### Quando criar
 
-</ruleset>
+- A auditoria comprova que não existe implementação equivalente.
+- A natureza da interação ou do domínio é fundamentalmente diferente.
+- Reutilizar forçaria acoplamento ruim ou abstração excessiva.
+- A ação correta é criar um novo módulo com justificativa explícita para não reutilizar nem extrair.
+
+## Passos pequenos, incrementais e validados
+
+Toda mudança deve ser a menor unidade lógica possível. Após cada passo relevante, execute as validações compatíveis
+com o escopo, como testes, lint ou type-check. Não agrupe múltiplas frentes de refatoração ou feature num único bloco
+grande de mudança.
+
+## Clareza antes de abstração prematura
+
+Prefira código fácil de ler e entender. Uma abstração só se justifica quando atende imediatamente a pelo menos dois dos
+critérios abaixo:
+
+1. Elimina duplicação de lógica crítica já existente.
+2. Reduz acoplamento problemático já existente.
+3. Permite troca real de implementação no curto ou médio prazo.
+4. Melhora significativamente a testabilidade de um comportamento central.
+
+Se esses critérios não forem atendidos, mantenha a solução direta.
+
+## Fonte única de verdade
+
+Regras de negócio, constantes, configurações de escala, mapeamentos e demais informações compartilhadas devem viver em
+um único ponto canônico. Espalhar defaults ou regras em múltiplos arquivos é proibido.
+
+## Compatibilidade incremental
+
+Ao refatorar estruturas de dados, tipos ou serialização, preserve compatibilidade com o formato legado durante a
+transição. A leitura deve suportar formato novo e antigo. A escrita deve convergir para o formato novo. Breaking
+changes silenciosos em dados existentes são inaceitáveis.
+
+## Antipadrões proibidos
+
+- Criar componente ou hook novo sem auditoria prévia de reutilização.
+- Copiar e colar lógica de UI ou fluxo para acelerar entrega.
+- Introduzir abstração complexa para necessidade apenas hipotética.
+- Espalhar constantes, defaults ou regras de negócio em múltiplos arquivos.
+- Corrigir UI sem validar que o contrato funcional e de interação continua intacto.

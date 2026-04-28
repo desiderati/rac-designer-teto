@@ -1,21 +1,24 @@
 /**
  * {{pascalCase action}} Use Case
  *
- * Orchestrates the business logic for the "{{action}}" action on the {{model}} domain.
- * Use cases coordinate between the aggregate and the ports.
+ * Esqueleto alinhado ao padrão atual do repositório:
+ * função pura com parâmetros explícitos e resultado estruturado.
  */
 
-import type { {{pascalCase model}}State } from '../{{kebabCase model}}-aggregate';
-import type { {{pascalCase model}}PersistencePort } from '../{{kebabCase model}}-persistence-port';
+export interface {{pascalCase action}}UseCaseParams {
+  // TODO: declarar entradas do caso de uso
+}
+
+export interface {{pascalCase action}}UseCaseResult {
+  // TODO: declarar saídas do caso de uso
+}
 
 export function {{camelCase action}}UseCase(
-  persistence: {{pascalCase model}}PersistencePort,
-) {
+  params: {{pascalCase action}}UseCaseParams,
+): {{pascalCase action}}UseCaseResult {
+  void params;
+
   return {
-    async execute(): Promise<{{pascalCase model}}State | null> {
-      // TODO: Implement use case logic
-      const state = await persistence.load();
-      return state;
-    },
-  };
+    // TODO: retornar estado ou artefato derivado do caso de uso
+  } as {{pascalCase action}}UseCaseResult;
 }

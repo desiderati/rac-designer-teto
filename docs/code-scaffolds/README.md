@@ -1,6 +1,15 @@
+---
+title: Code Scaffolds
+doc_type: index
+doc_set: code-scaffolds
+status: active
+lang: pt-BR
+---
+
 # Code Scaffolds
 
-Este diretório reúne scaffolds aprovados com utilidade operacional real para o projeto.
+Este diretório reúne scaffolds alinhados aos padrões atualmente observáveis em `src/domain/house/` e
+`src/infra/persistence/`.
 
 Eles existem como ponto de partida, não como autorização para gerar código por reflexo. Antes de usar qualquer scaffold,
 confirme que o padrão realmente se aplica ao domínio e à arquitetura vigentes.
@@ -8,18 +17,19 @@ confirme que o padrão realmente se aplica ao domínio e à arquitetura vigentes
 ## Scaffolds disponíveis
 
 - `aggregate.ts.hbs`
-    - Esqueleto de agregado de domínio com fronteira explícita entre domínio e infraestrutura.
+    - Esqueleto de agregado em classe, com `fromState()` e `toState()`.
 - `persistence-port.ts.hbs`
-    - Contrato de persistência para o agregado no domínio.
+    - Contrato síncrono de persistência para o agregado no domínio.
 - `persistence-adapter.ts.hbs`
-    - Adaptador in-memory alinhado ao port de persistência.
+    - Adaptador in-memory em classe, alinhado ao port de persistência atual.
 - `use-case.ts.hbs`
-    - Esqueleto de caso de uso coordenando agregado e port.
+    - Esqueleto de caso de uso como função pura com parâmetros explícitos e resultado estruturado.
 - `smoke-test.ts.hbs`
-    - Smoke test co-localizado para validação rápida de lógica crítica.
+    - Smoke test co-localizado no estilo da suíte atual.
 
 ## Regras de uso
 
 1. Adapte o scaffold ao caso concreto antes de consolidar o código.
 2. Não use estes arquivos para contornar análise arquitetural ou design de domínio.
-3. Se um scaffold deixar de refletir o padrão real do repositório, atualize-o ou remova-o.
+3. Não trate o scaffold como licença para introduzir camada nova que o repositório ainda não usa.
+4. Se um scaffold deixar de refletir o padrão real do repositório, atualize-o ou remova-o.

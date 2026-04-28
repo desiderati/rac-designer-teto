@@ -1,3 +1,11 @@
+---
+title: Regras de Negócio
+doc_type: index
+doc_set: business-rules
+status: active
+lang: pt-BR
+---
+
 # Regras de Negócio
 
 ## Objetivo
@@ -11,7 +19,8 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 
 1. Cada documento usa o padrão `BUS-00x-{business-rule-slug}.md`.
 2. A numeração expressa a ordem canônica de leitura e referência.
-3. `../README.md` continua sendo o índice geral de `docs/`; este arquivo é o índice específico das regras de negócio.
+3. `docs/README.md` continua sendo o índice geral de `docs/`; este arquivo é o índice específico das regras de
+   negócio.
 
 ## Ordem canônica
 

@@ -1,3 +1,13 @@
+---
+title: Regras de Piloti Mestre
+id: BUS-005
+doc_type: business-rule
+doc_set: business-rules
+order: 5
+status: active
+lang: pt-BR
+---
+
 # Regras de Piloti Mestre
 
 ## Objetivo

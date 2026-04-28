@@ -1,0 +1,39 @@
+{
+  "mode": "warn",
+  "require_daily_changelog": true,
+  "require_work_item_updated_today": true,
+  "command_patterns": [
+    {
+      "label": "Apps Script publish",
+      "regex": "(?i)\\bclasp\\s+(push|deploy|version)\\b"
+    },
+    {
+      "label": "n8n workflow mutation",
+      "regex": "(?i)\\bn8n\\s+(import:workflow|update:workflow|activate|deactivate)\\b"
+    },
+    {
+      "label": "gcloud runtime mutation",
+      "regex": "(?i)\\bgcloud\\b.*\\b(deploy|create|update|patch|delete|restart|start|stop)\\b"
+    },
+    {
+      "label": "kubectl mutation",
+      "regex": "(?i)\\bkubectl\\s+(apply|patch|delete|scale)\\b"
+    },
+    {
+      "label": "kubectl rollout restart",
+      "regex": "(?i)\\bkubectl\\s+rollout\\s+restart\\b"
+    },
+    {
+      "label": "kubectl set image",
+      "regex": "(?i)\\bkubectl\\s+set\\s+image\\b"
+    },
+    {
+      "label": "docker compose mutation",
+      "regex": "(?i)\\bdocker\\s+compose\\s+(restart\\b|up\\b.*\\s-d(?:\\s|$))"
+    },
+    {
+      "label": "docker restart",
+      "regex": "(?i)\\bdocker\\s+restart\\b"
+    }
+  ]
+}

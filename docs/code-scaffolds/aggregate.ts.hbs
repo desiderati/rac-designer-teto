@@ -1,17 +1,33 @@
 /**
  * {{pascalCase model}} Aggregate
  *
- * Encapsulates the state and business rules for the {{model}} domain model.
- * This file belongs to the Domain layer and MUST NOT import from infra/ or components/.
+ * Esqueleto alinhado ao padrão atual do repositório:
+ * agregado em classe, estado encapsulado e factories explícitas.
+ * Este arquivo pertence ao domínio e não deve importar `infra/` nem componentes React.
  */
 
 export type {{pascalCase model}}State = {
-  // TODO: Define aggregate state
+  // TODO: definir o estado do agregado
 };
 
-export function create{{pascalCase model}}(initial?: Partial<{{pascalCase model}}State>): {{pascalCase model}}State {
-  return {
-    // TODO: Set default values
-    ...initial,
-  };
+export class {{pascalCase model}}Aggregate {
+  private constructor(private readonly state: {{pascalCase model}}State) {
+  }
+
+  static createInitialState(
+    initial: Partial<{{pascalCase model}}State> = {},
+  ): {{pascalCase model}}State {
+    return {
+      // TODO: definir defaults obrigatórios do agregado
+      ...initial,
+    } as {{pascalCase model}}State;
+  }
+
+  static fromState(state: {{pascalCase model}}State): {{pascalCase model}}Aggregate {
+    return new {{pascalCase model}}Aggregate(state);
+  }
+
+  toState(): {{pascalCase model}}State {
+    return this.state;
+  }
 }

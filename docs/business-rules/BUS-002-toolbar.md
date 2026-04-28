@@ -1,3 +1,13 @@
+---
+title: Regras da Toolbar
+id: BUS-002
+doc_type: business-rule
+doc_set: business-rules
+order: 2
+status: active
+lang: pt-BR
+---
+
 # Regras da Toolbar
 
 ## Objetivo
@@ -38,9 +48,10 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 ## Regras de segurança
 
-1. Ações destrutivas devem pedir confirmação.
-2. Ações bloqueadas por regra devem informar motivo de forma explícita.
-3. Importação deve reconstruir estado da casa sem deixar dados inconsistentes.
+1. Ações destrutivas com maior impacto contextual, como reiniciar o canvas/tutorial ou desagrupar, devem pedir confirmação.
+2. Exclusão simples da seleção atua diretamente, mas deve respeitar bloqueios de segurança do projeto.
+3. Ações bloqueadas por regra devem informar motivo de forma explícita.
+4. Importação deve reconstruir estado da casa sem deixar dados inconsistentes.
 
 ## Regras de feedback
 

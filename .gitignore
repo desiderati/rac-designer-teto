@@ -29,3 +29,21 @@ dist-ssr
 playwright-report/
 test-results/
 coverage/
+
+# Claude AI agent — específico do desenvolvedor
+.agents/changelogs/
+.agents/code-reviews/
+.agents/refactorings/
+.agents/skill-evaluations/
+.agents/work-items/
+.codex/hooks/codex-resolution-time-state/
+.obsidian/
+.tmp/
+
+# Diretórios do Graphify
+.graphify_*
+graphify-out/
+
+/tmp/
+/output/
+/.claude/

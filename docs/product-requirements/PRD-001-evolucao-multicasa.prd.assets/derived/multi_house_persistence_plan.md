@@ -1,3 +1,12 @@
+---
+title: Multi-house Persistence Evolution Plan
+doc_type: derived-note
+doc_set: product-requirements
+status: active
+lang: en
+parent_id: PRD-001
+---
+
 # RAC Designer TETO — Multi-house Persistence Evolution Plan
 
 The application can be transformed into a **complete persisted project editor** without discarding the current drawing
@@ -452,12 +461,12 @@ IndexedDB schema, and UI flow**, and then start implementing the first milestone
 
 ## References
 
-[1]: file:///home/ubuntu/rac-designer-teto/src/components/rac-editor/lib/house-manager.ts "Current single-house manager with in-memory persistence and non-persisted family fields"
+[1]: ../../../../src/components/rac-editor/lib/house-manager.ts "Current single-house manager with in-memory persistence and non-persisted family fields"
 
-[2]: file:///home/ubuntu/rac-designer-teto/src/shared/types/house.ts "Current HouseState type used by the editor"
+[2]: ../../../../src/shared/types/house.ts "Current HouseState type used by the editor"
 
-[3]: file:///home/ubuntu/rac-designer-teto/src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
+[3]: ../../../../src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
 
-[4]: file:///home/ubuntu/rac-designer-teto/src/components/rac-editor/hooks/useRacEditorJsonActions.ts "Current canvas-only JSON import/export flow"
+[4]: ../../../../src/components/rac-editor/hooks/useRacEditorJsonActions.ts "Current canvas-only JSON import/export flow"
 
 [5]: https://docs.google.com/spreadsheets/d/16ZYrcTcABqMJAK7_URahCg_h2ZfC_yYWJvZyeRBhbm8/edit?gid=0#gid=0 "Reference Google Sheet used to infer house data groups and persistent entities"

@@ -1,3 +1,11 @@
+---
+title: Documentação do Diretório docs
+doc_type: index
+doc_set: docs
+status: active
+lang: pt-BR
+---
+
 # Documentação do Diretório `docs/`
 
 ## Objetivo
@@ -22,6 +30,8 @@ técnicas e não técnicas.
 
 2. `engineering-playbook/`
     - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
+      O playbook combina um núcleo comum em `PLAY-001` a `PLAY-005` com módulos específicos de família, hoje
+      materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
 3. `code-scaffolds/`
     - Scaffolds aprovados com utilidade operacional real, mantidos como referência documental e ponto de partida.

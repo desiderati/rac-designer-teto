@@ -1,0 +1,23 @@
+# Saídas derivadas
+graphify-out/
+
+# Dependências e artefatos gerados
+node_modules/
+dist/
+vendor/
+
+# Metadados e histórico operacional que não devem poluir o grafo
+.git/
+.obsidian/
+.agents/changelogs/
+.agents/code-reviews/
+.agents/examples/
+.agents/prompts/
+.agents/templates/
+.agents/work-items/
+.codex/
+AGENTS.md
+CLAUDE.md
+OBSIDIAN.md
+.agents/references/
+.agents/refactorings/
