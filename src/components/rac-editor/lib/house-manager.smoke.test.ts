@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {createHouseManagerCanvasPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-house-manager-canvas-port.ts';
+import {createHouseManagerCanvasPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-house-manager-canvas-port.ts';
 import {FabricImage} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 

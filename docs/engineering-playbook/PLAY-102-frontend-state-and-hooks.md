@@ -57,8 +57,10 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 
 ## Uso de Fabric em hooks
 
-- É aceitável importar Fabric em hooks estritamente ligados ao canvas e à feature editor.
-- Não espalhe Fabric para hooks genéricos, shared, domain ou componentes fora dessa borda.
+- É aceitável importar Fabric em hooks de adapter dentro de `src/components/rac-editor/canvas/ui/adapters/hooks`.
+- Hooks gerais em `src/components/rac-editor/hooks` devem falar com ports, callbacks e tipos serializáveis, não com
+  instâncias Fabric.
+- Não espalhe Fabric para hooks genéricos, `shared`, `domain`, `infra` ou componentes fora do slice `canvas`.
 
 ## O que hooks não podem fazer
 

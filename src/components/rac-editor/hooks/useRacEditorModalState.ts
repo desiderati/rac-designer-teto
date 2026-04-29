@@ -1,10 +1,10 @@
 import {Dispatch, SetStateAction, useState} from 'react';
 import {getSettings} from '@/infra/settings.ts';
-import {CanvasToolMode, ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {CanvasToolMode, MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 
 interface UseRacEditorModalStateResult {
-  activeSubmenu: ToolbarSubmenu;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  activeSubmenu: MenuSubmenu;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   showTips: boolean;
   setShowTips: Dispatch<SetStateAction<boolean>>;
   showZoomControls: boolean;
@@ -35,7 +35,7 @@ interface UseRacEditorModalStateResult {
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
 
-  const [activeSubmenu, setActiveSubmenu] = useState<ToolbarSubmenu>(null);
+  const [activeSubmenu, setActiveSubmenu] = useState<MenuSubmenu>(null);
   const [showTips, setShowTips] = useState(false);
   const [showZoomControls, setShowZoomControls] = useState(() => getSettings().zoomEnabledByDefault);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);

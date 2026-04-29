@@ -1,5 +1,5 @@
 import {useRef} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
 import {useHotkeys} from '@/components/rac-editor/hooks/useHotkeys.ts';
@@ -12,11 +12,11 @@ import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 // alongside the unlock/lock buttons in the side rail.
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
+import {useCanvasHouseInitialization} from '@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts';
 import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
 import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
 import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
-import {useRacEditorToolbarController} from '@/components/rac-editor/hooks/toolbar/useRacEditorToolbarController.ts';
+import {useRacEditorMenusController} from '@/components/rac-editor/menus/hooks/useRacEditorMenusController.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useRacEditorCanvasController} from '@/components/rac-editor/hooks/useRacEditorCanvasController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
@@ -308,10 +308,10 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setInfoMessage,
   });
 
-  // â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â”€â”€ Menus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const {
-    toolbarActions,
+    menuActions,
     currentHouseType,
     frontViewCount,
     backViewCount,
@@ -320,7 +320,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     currentFamilyName,
     selectedPilotiHeights,
     terrainPilotis,
-  } = useRacEditorToolbarController({
+  } = useRacEditorMenusController({
     houseVersion,
     actions: {
       handleOpenHouseTypeSelector,
@@ -361,7 +361,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
 
   return buildRacEditorLayoutProps({
     handleContainerClick,
-    toolbarActions,
+    menuActions,
     isDrawing,
     activeSubmenu,
     showTips,

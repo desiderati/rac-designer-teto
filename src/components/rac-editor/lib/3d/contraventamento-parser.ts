@@ -1,5 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/canvas/lib';
 
 export interface Contraventamento3DData {
   id: string;

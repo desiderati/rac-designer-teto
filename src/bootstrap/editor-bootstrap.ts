@@ -1,6 +1,6 @@
 import {createContext, useContext} from 'react';
 import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/store/HouseRuntimePort.ts';
@@ -49,7 +49,7 @@ export function createEditorPorts(): EditorPorts {
 export function useEditorStore(): EditorStore {
   const store = useContext(EditorStoreContext);
   if (!store) {
-    throw new Error('useEditorStore must be used within EditorStoreProvider.');
+    throw new Error('useEditorStore must be used within RacEditorStoreProvider.');
   }
   return store;
 }
@@ -57,7 +57,7 @@ export function useEditorStore(): EditorStore {
 export function useEditorPorts(): EditorPorts {
   const ports = useContext(EditorPortsContext);
   if (!ports) {
-    throw new Error('useEditorPorts must be used within EditorStoreProvider.');
+    throw new Error('useEditorPorts must be used within RacEditorStoreProvider.');
   }
   return ports;
 }

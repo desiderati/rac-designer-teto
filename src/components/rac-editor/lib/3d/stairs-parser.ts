@@ -1,4 +1,4 @@
-import {CanvasGroup, CanvasObject, getCanvasGroupObjects} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, CanvasObject, getCanvasGroupObjects} from '@/components/rac-editor/canvas/lib';
 import {House3DFace, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 

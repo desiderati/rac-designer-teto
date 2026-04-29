@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {parseContraventamentosFromTopView} from '@/components/rac-editor/lib/3d/contraventamento-parser.ts';
-import {toCanvasGroup} from '@/components/rac-editor/lib/canvas';
+import {toCanvasGroup} from '@/components/rac-editor/canvas/lib';
 
 describe('contraventamento-parser.ts', () => {
   it('parses and normalizes valid contraventamento objects', () => {

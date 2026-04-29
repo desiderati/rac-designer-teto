@@ -1,6 +1,6 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
-import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 

@@ -4,22 +4,22 @@ type LayoutProps = RacEditorLayoutProps;
 
 interface BuildRacEditorLayoutPropsArgs {
   handleContainerClick: LayoutProps['root']['onClick'];
-  toolbarActions: LayoutProps['toolbar']['actions'];
-  isDrawing: LayoutProps['toolbar']['isDrawing'];
-  activeSubmenu: LayoutProps['toolbar']['activeSubmenu'];
-  showTips: LayoutProps['toolbar']['showTips'];
-  showZoomControls: LayoutProps['toolbar']['showZoomControls'];
-  tutorialStep: LayoutProps['toolbar']['tutorialHighlight'];
-  isMenuOpen: LayoutProps['toolbar']['isMenuOpen'];
-  currentHouseType: LayoutProps['toolbar']['houseType'];
-  frontViewCount: LayoutProps['toolbar']['frontViewCount'];
-  backViewCount: LayoutProps['toolbar']['backViewCount'];
-  side1ViewCount: LayoutProps['toolbar']['side1ViewCount'];
-  side2ViewCount: LayoutProps['toolbar']['side2ViewCount'];
-  currentFamilyName: LayoutProps['toolbar']['familyName'];
-  displayZoom: LayoutProps['toolbar']['zoom'];
-  canvasToolMode: LayoutProps['toolbar']['canvasToolMode'];
-  isMobile: LayoutProps['toolbar']['isMobile'];
+  menuActions: LayoutProps['menus']['actions'];
+  isDrawing: LayoutProps['menus']['isDrawing'];
+  activeSubmenu: LayoutProps['menus']['activeSubmenu'];
+  showTips: LayoutProps['menus']['showTips'];
+  showZoomControls: LayoutProps['menus']['showZoomControls'];
+  tutorialStep: LayoutProps['menus']['tutorialHighlight'];
+  isMenuOpen: LayoutProps['menus']['isMenuOpen'];
+  currentHouseType: LayoutProps['menus']['houseType'];
+  frontViewCount: LayoutProps['menus']['frontViewCount'];
+  backViewCount: LayoutProps['menus']['backViewCount'];
+  side1ViewCount: LayoutProps['menus']['side1ViewCount'];
+  side2ViewCount: LayoutProps['menus']['side2ViewCount'];
+  currentFamilyName: LayoutProps['menus']['familyName'];
+  displayZoom: LayoutProps['menus']['zoom'];
+  canvasToolMode: LayoutProps['menus']['canvasToolMode'];
+  isMobile: LayoutProps['menus']['isMobile'];
   canvasRef: LayoutProps['canvas']['canvasRef'];
   infoMessage: LayoutProps['canvas']['infoMessage'];
   isAnyEditorOpen: LayoutProps['canvas']['isAnyEditorOpen'];
@@ -95,8 +95,8 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
     root: {
       onClick: args.handleContainerClick,
     },
-    toolbar: {
-      actions: args.toolbarActions,
+    menus: {
+      actions: args.menuActions,
       isDrawing: args.isDrawing,
       activeSubmenu: args.activeSubmenu,
       showTips: args.showTips,

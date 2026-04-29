@@ -1,5 +1,5 @@
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
-import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
+import type {HouseManagerCanvasPort} from '@/components/rac-editor/canvas/store/HouseManagerCanvasPort.ts';
 import type {HousePiloti} from '@/shared/types/house.ts';
 
 export interface HouseManagerCanvasRebuildInput {

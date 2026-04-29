@@ -1,4 +1,4 @@
-import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {CanvasObject} from '@/components/rac-editor/canvas/lib/canvas.ts';
 
 export interface WallObjectState {
   currentLabel: string;

@@ -1,6 +1,6 @@
 import type {Dispatch, MouseEvent as ReactMouseEvent, SetStateAction} from 'react';
 import {useCallback} from 'react';
-import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialMenuActionsArgs {
@@ -9,7 +9,7 @@ interface UseTutorialMenuActionsArgs {
   completeTutorial: () => void;
   isMenuOpen: boolean;
   setIsMenuOpen: Dispatch<SetStateAction<boolean>>;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   setShowTips: Dispatch<SetStateAction<boolean>>;
   setShowZoomControls: Dispatch<SetStateAction<boolean>>;
   setFamilySetupOpen: Dispatch<SetStateAction<boolean>>;

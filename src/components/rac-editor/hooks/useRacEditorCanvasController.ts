@@ -1,13 +1,13 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
-import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
-import {useCanvasActions} from '@/components/rac-editor/hooks/canvas/useCanvasActions.ts';
+import {useCanvasActions} from '@/components/rac-editor/canvas/hooks/useCanvasActions.ts';
 import {useRacEditorTerrainActions} from '@/components/rac-editor/hooks/useRacEditorTerrainActions.ts';
-import {useCanvasHouseViewActions} from '@/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts';
-import {useCanvasTools} from '@/components/rac-editor/hooks/canvas/useCanvasTools.ts';
+import {useCanvasHouseViewActions} from '@/components/rac-editor/canvas/hooks/useCanvasHouseViewActions.ts';
+import {useCanvasTools} from '@/components/rac-editor/canvas/hooks/useCanvasTools.ts';
 import type {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
 
 type HouseTypeFlowState = Pick<
@@ -30,7 +30,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   setInfoMessage: Dispatch<SetStateAction<string>>;
   setTutorialBalloon: Dispatch<SetStateAction<TutorialBalloonState>>;
   clearTutorialBalloon: () => void;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   dismissPilotiTutorial: () => void;
   showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;

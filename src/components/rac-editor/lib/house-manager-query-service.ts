@@ -1,5 +1,5 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,

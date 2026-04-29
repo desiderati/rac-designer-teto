@@ -1,4 +1,4 @@
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {HouseState} from '@/shared/types/house.ts';
 
 /**

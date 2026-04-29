@@ -8,7 +8,7 @@ import {
 } from '@/bootstrap/editor-bootstrap.ts';
 import type {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
 
-interface EditorStoreProviderProps {
+interface RacEditorStoreProviderProps {
   children: ReactNode;
   store?: EditorStore;
   ports?: EditorPorts;
@@ -21,7 +21,7 @@ interface EditorStoreProviderProps {
  * singleton de módulo. Isso permite testes com stores isolados e prepara a
  * migração de bindings UI/canvas para commands.
  */
-export function EditorStoreProvider({children, store, ports}: EditorStoreProviderProps) {
+export function RacEditorStoreProvider({children, store, ports}: RacEditorStoreProviderProps) {
   const storeRef = useRef<EditorStore | null>(null);
   const portsRef = useRef<EditorPorts | null>(null);
 

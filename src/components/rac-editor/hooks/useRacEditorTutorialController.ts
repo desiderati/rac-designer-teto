@@ -1,6 +1,6 @@
 import type {Dispatch, RefObject, SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
-import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutorialFlow.ts';
 import {useTutorialUiActions} from '@/components/rac-editor/hooks/tutorial/useTutorialUiActions.ts';
@@ -12,7 +12,7 @@ interface UseRacEditorTutorialControllerArgs {
   tutorialPilotiPosition: TutorialBalloonPosition | null;
   setTutorialPilotiPosition: Dispatch<SetStateAction<TutorialBalloonPosition | null>>;
   clearTutorialBalloon: () => void;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   setIsMenuOpen: Dispatch<SetStateAction<boolean>>;
   setHouseTypeSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setShowRestartConfirm: Dispatch<SetStateAction<boolean>>;

@@ -1,12 +1,12 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HousePiloti, HouseState} from '@/shared/types/house.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {PILOTI_CORNER_IDS} from '@/shared/config.ts';
 import {
   applyPilotiDataToGroup,
   syncPilotiUpdateAcrossViews,
-} from '@/components/rac-editor/lib/canvas/piloti-visual.ts';
+} from '@/components/rac-editor/canvas/lib/piloti-visual.ts';
 
 export function updateHousePiloti(params: {
   aggregate: HouseAggregate<CanvasGroup>;

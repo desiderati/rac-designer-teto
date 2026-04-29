@@ -1,12 +1,12 @@
 import {Dispatch, RefObject, SetStateAction} from 'react';
-import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
+import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
 import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useContraventamentoEffects.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {ContraventamentoOrigin, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
-import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {ContraventamentoOrigin, PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
+import {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 
 interface UseContraventamentoArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -24,7 +24,7 @@ interface UseContraventamentoArgs {
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
 }
 
 export function useContraventamento({

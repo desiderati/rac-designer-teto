@@ -2,10 +2,10 @@ import {ReactNode} from 'react';
 import {renderHook} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
-import {EditorStoreProvider} from '@/bootstrap/editor-context.tsx';
+import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 
 function wrapper({children}: { children: ReactNode }) {
-  return <EditorStoreProvider>{children}</EditorStoreProvider>;
+  return <RacEditorStoreProvider>{children}</RacEditorStoreProvider>;
 }
 
 describe('editor-context.tsx', () => {

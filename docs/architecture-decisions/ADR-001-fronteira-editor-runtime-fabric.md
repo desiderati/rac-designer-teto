@@ -5,7 +5,7 @@ adr_number: ADR-001
 decision_mode: previo
 status: proposed
 created: 2026-04-28
-updated: 2026-04-28
+updated: 2026-04-29
 supersedes:
 superseded_by:
 decision_source: ".agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/loop-state.md"
@@ -25,7 +25,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - restrições reais do ambiente:
   - O repositório já trata `src/components/rac-editor` como miniaplicação interna.
   - O playbook vigente não recomenda mover Fabric para `src/infra` por generalização.
-  - O estado atual ainda usa `HouseState<CanvasGroup>` e `CanvasHandle.canvas: FabricCanvas | null`.
+  - O estado atual ainda usa `HouseState<CanvasGroup>` em pontos transitórios, mas o `CanvasHandle` público já não
+    expõe a instância Fabric.
 - por que a decisão importa agora:
   - A refatoração planejada pretende remover vazamentos de Fabric, reduzir god files e preparar expansão futura do
     editor com commands, store e ports testáveis.
@@ -34,8 +35,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/fabric-boundary-baseline.md`
   - `src/components/rac-editor/lib/house-manager.ts`
-  - `src/components/rac-editor/ui/canvas/Canvas.tsx`
-  - `src/components/rac-editor/lib/canvas/canvas.ts`
+  - `src/components/rac-editor/canvas/ui/Canvas.tsx`
+  - `src/components/rac-editor/canvas/lib/canvas.ts`
 
 ## 2. Decisão
 
@@ -157,7 +158,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ## 6. Artefatos e contratos relacionados
 
 - blueprint ou schema relacionado:
-  - `src/components/rac-editor/canvas/types/editor-selection.ts`
+  - `src/components/rac-editor/canvas/store/types/editor-selection.ts`
   - `src/components/rac-editor/canvas/types/editor-ids.ts`
 - prompts relacionados:
   - `.agents/prompts/solution-design.prompt.md`

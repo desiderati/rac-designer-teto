@@ -1,7 +1,7 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {
   EditorPilotiId,
-} from '@/components/rac-editor/canvas/types.ts';
+} from '@/components/rac-editor/canvas/store/types.ts';
 import type {
   EditorPilotiData,
   PilotiEditorPort,

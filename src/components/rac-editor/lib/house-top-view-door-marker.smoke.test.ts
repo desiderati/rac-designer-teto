@@ -8,7 +8,7 @@ import {
   resolveTopDoorMarkerSide,
   resolveTopDoorSourceViewType,
 } from './house-top-view-door-marker.ts';
-import {toCanvasGroup} from '@/components/rac-editor/lib/canvas';
+import {toCanvasGroup} from '@/components/rac-editor/canvas/lib';
 
 describe('house-top-view-door-marker.ts', () => {
   it('resolves source view type from house type', () => {

@@ -23,16 +23,22 @@ Ele existe para evitar dois erros comuns:
 
 - `src/domain/house` concentra o agregado e os casos de uso puros do domínio da casa.
 - `src/infra` concentra persistência in-memory, storage local e settings.
-- `src/components/rac-editor` concentra a feature principal em `ui/`, `hooks/` e `lib/`.
+- `src/components/rac-editor` concentra a feature principal como miniaplicação interna, hoje organizada em slices
+  como `canvas/`, `menus/`, `ui/`, `hooks/`, `lib/` e `store/`.
 - `src/components/ui` concentra componentes base compartilhados.
 - `src/shared` concentra tipos, constantes e utilitários compartilhados.
 - `src/pages`, `src/App.tsx` e `src/main.tsx` montam a aplicação e o roteamento.
 
 ## Estado atual do editor
 
-- `src/components/rac-editor/lib/house-manager.ts` é hoje o coordenador do estado compartilhado da casa.
+- `src/components/rac-editor/lib/house-manager.ts` é hoje a fachada legada do estado compartilhado da casa.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
-- Tipos e objetos de Fabric aparecem hoje em `ui/`, `hooks/` e `lib/` da feature editor, não em `src/infra`.
+- `src/components/rac-editor/canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
+  factories e adapters Fabric.
+- `src/components/rac-editor/menus` concentra a superfície de menus do editor, como `RacEditorMenus`,
+  `CanvasToolsMenu`, menus superiores, tipos e configs locais.
+- Tipos e objetos de Fabric devem permanecer no slice `canvas`, especialmente em `canvas/ui/adapters` e nos helpers
+  visuais de `canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
 - Esse é o estado real atual e deve ser documentado como tal.
 
 ## Domínio
@@ -55,10 +61,14 @@ Ele existe para evitar dois erros comuns:
 ## Feature editor
 
 - O editor é tratado como miniaplicação interna com organização própria e responsabilidades claras.
-- `ui/` concentra componentes visuais e presentacionais da feature.
-- `hooks/` concentra bindings, leitura de estado e comandos da feature.
-- `lib/` concentra utilitários, coordenação compartilhada e lógica local do editor.
-- Essas três áreas participam hoje juntas da borda de integração com o canvas.
+- `canvas/` concentra a borda visual 2D, com subdiretórios `hooks/`, `lib/`, `store/` e `ui/`.
+- `menus/` concentra menus e ferramentas de superfície, com subdiretórios `hooks/`, `lib/` e `ui/`.
+- `ui/` concentra componentes de composição geral da tela, modais, tutorial e viewer 3D enquanto esses slices ainda
+  não forem separados.
+- `hooks/` concentra orquestração geral, leitura de estado e comandos que não pertencem diretamente a um slice mais
+  específico.
+- `lib/` concentra coordenação compartilhada e lógica local do editor que ainda não pertence a `canvas`, `menus` ou
+  `domain`.
 
 ## Fluxo de dependência
 
@@ -71,7 +81,8 @@ Ele existe para evitar dois erros comuns:
 
 - Não criar raízes genéricas de application, services ou store sem decisão arquitetural explícita.
 - Não usar shared como lixeira para regra de negócio.
-- Não espalhar novas integrações de Fabric para módulos não relacionados ao editor sem justificativa clara.
+- Não espalhar novas integrações de Fabric para fora de `src/components/rac-editor/canvas` sem justificativa clara e
+  atualização simultânea deste playbook.
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
 
 ## Direção de evolução

@@ -1,7 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
+import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
 import {
   addContraventamentoBeam,
   CanvasGroup,
@@ -9,20 +9,20 @@ import {
   PilotiCanvasSelection,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
-} from '@/components/rac-editor/lib/canvas';
+} from '@/components/rac-editor/canvas/lib';
 import {emitHouseStoreChange, useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
-import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
+import {refreshAutoStairsInViews} from '@/components/rac-editor/canvas/lib/house-auto-stairs.ts';
 import {
   ContraventamentoSide,
   getContraventamentoSideLabel,
   inferContraventamentoSide
 } from '@/shared/types/contraventamento.ts';
-import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {
   highlightEligibleContraventamentoPilotis,
   resetHighlightContraventamentoPilotis
-} from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
+} from '@/components/rac-editor/canvas/lib/contraventamento-top-view-highlight.ts';
 import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 import {getSettings} from '@/infra/settings.ts';
 
@@ -46,7 +46,7 @@ interface UseContraventamentoCommandsArgs {
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
 }
 
 export function useContraventamentoCommands({

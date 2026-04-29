@@ -1,6 +1,4 @@
 import {HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
-import {CanvasGroup, getHouseViewStrategy} from '@/components/rac-editor/lib/canvas';
-import {Canvas as FabricCanvas} from 'fabric';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;
@@ -65,10 +63,3 @@ export function getViewLabelForHouseType(viewType: HouseViewType, houseType: Hou
   }
 }
 
-export function createHouseGroupForView(params: {
-  canvas: FabricCanvas;
-  viewType: HouseViewType;
-  side?: HouseSide;
-}): CanvasGroup {
-  return getHouseViewStrategy(params.viewType).create(params.canvas, {side: params.side});
-}

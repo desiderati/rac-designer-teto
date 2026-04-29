@@ -83,7 +83,12 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 - `src/domain/house/` concentra agregado, casos de uso e contratos do domínio
 - `src/infra/` implementa persistência em memória, storage local e integrações técnicas
-- `src/components/rac-editor/` é a feature principal e organiza a interface em `ui/`, `hooks/` e `lib/`
+- `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `canvas/`,
+  `menus/`, `ui/`, `hooks/`, `lib/` e `store/`
+- `src/components/rac-editor/canvas/` concentra a borda visual 2D, incluindo hooks, ports, adapters Fabric,
+  factories e helpers de projeção/renderização do canvas
+- `src/components/rac-editor/menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
+  `CanvasToolsMenu`, menus superiores, tipos e configs locais
 - `src/components/rac-editor/lib/house-manager.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
@@ -119,7 +124,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 ├── public/                   # Assets estáticos
 ├── src/
 │   ├── components/
-│   │   ├── rac-editor/       # Núcleo do editor (ui, lib, hooks)
+│   │   ├── rac-editor/       # Núcleo do editor (canvas, menus, ui, lib, hooks, store)
 │   │   └── ui/               # Componentes base (shadcn/ui)
 │   ├── domain/               # Domínio e casos de uso (ex.: house)
 │   ├── infra/                # Infra/persistência/storage e settings

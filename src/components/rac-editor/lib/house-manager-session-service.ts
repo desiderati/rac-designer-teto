@@ -1,5 +1,5 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {HouseType} from '@/shared/types/house.ts';
 import {HouseManagerSessionMetadata} from '@/components/rac-editor/lib/house-manager-session.ts';
 

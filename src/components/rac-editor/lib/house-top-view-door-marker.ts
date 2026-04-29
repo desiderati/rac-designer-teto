@@ -1,7 +1,7 @@
 import {HouseSide, HouseType, HouseViewInstance, HouseViewType,} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/canvas/lib';
 
 /**
  * Resolve qual tipo de vista define a posição da porta na planta,

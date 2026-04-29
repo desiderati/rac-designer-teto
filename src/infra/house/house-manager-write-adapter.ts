@@ -1,5 +1,5 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
 
 /**

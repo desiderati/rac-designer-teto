@@ -1,7 +1,7 @@
 import type {Dispatch, RefObject, SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
-import type {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
-import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
+import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {useContraventamentoFlow} from '@/components/rac-editor/hooks/useContraventamentoFlow.ts';
 import {useContraventamento} from '@/components/rac-editor/hooks/useContraventamento.ts';
 
@@ -11,7 +11,7 @@ interface UseRacEditorContraventamentoControllerArgs {
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
-  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
 }
 

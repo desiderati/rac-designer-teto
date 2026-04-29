@@ -4,8 +4,8 @@ import type {
 } from '@/shared/types/house.ts';
 import {
   CanvasGroup,
-} from '@/components/rac-editor/lib/canvas';
-import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
+} from '@/components/rac-editor/canvas/lib';
+import {updateGroundTerrainType} from '@/components/rac-editor/canvas/lib/terrain.ts';
 
 /**
  * Coleta apenas vistas de elevação, excluindo a planta.

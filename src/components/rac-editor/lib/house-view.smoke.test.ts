@@ -1,19 +1,10 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import {
-  createHouseGroupForView,
   createViewGroupControlsVisibilityPatch,
   createViewGroupMetadataPatch,
   extractViewGroupRemovalHints,
   getViewLabelForHouseType,
 } from './house-view.ts';
-
-const createMock = vi.fn(() => ({id: 'group'}));
-
-vi.mock('@/components/rac-editor/lib/canvas', () => ({
-  getHouseViewStrategy: () => ({
-    create: createMock,
-  }),
-}));
 
 describe('house-view.ts', () => {
   it('creates metadata and controls patches', () => {
@@ -37,11 +28,5 @@ describe('house-view.ts', () => {
     expect(getViewLabelForHouseType('back', 'tipo6')).toBe('Traseira');
   });
 
-  it('delegates group creation to view strategy', () => {
-    const canvas = {width: 1000, height: 800} as any;
-    const group = createHouseGroupForView({canvas, viewType: 'top'});
-    expect(group).toEqual({id: 'group'});
-    expect(createMock).toHaveBeenCalledWith(canvas, {side: undefined});
-  });
 });
 

@@ -6,7 +6,7 @@ import {
   getCanvasGroupObjects,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews
-} from '@/components/rac-editor/lib/canvas';
+} from '@/components/rac-editor/canvas/lib';
 import {
   canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,

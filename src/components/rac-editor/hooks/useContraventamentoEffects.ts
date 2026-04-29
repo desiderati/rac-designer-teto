@@ -1,8 +1,8 @@
 import {useEffect} from 'react';
-import {CanvasGroup, ContraventamentoOrigin} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, ContraventamentoOrigin} from '@/components/rac-editor/canvas/lib';
 import {
   highlightEligibleContraventamentoPilotis
-} from '@/components/rac-editor/lib/canvas/contraventamento-top-view-highlight.ts';
+} from '@/components/rac-editor/canvas/lib/contraventamento-top-view-highlight.ts';
 
 interface UseContraventamentoEffectsArgs {
   houseVersion: number;

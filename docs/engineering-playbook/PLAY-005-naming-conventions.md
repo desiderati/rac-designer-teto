@@ -32,7 +32,7 @@ componentes é crucial para legibilidade e manutenibilidade.
 - Use camelCase com prefixo `use`.
 - Prefira extensão TS, mas use TSX quando o arquivo realmente precisar de TSX ou de APIs React acopladas a isso.
 - Exemplos recomendados: `src/components/rac-editor/hooks/useHouseTypeFlow.ts`,
-  `src/components/rac-editor/hooks/canvas/useCanvasHistory.ts`,
+  `src/components/rac-editor/canvas/ui/adapters/hooks/useCanvasHistory.ts`,
   `src/components/rac-editor/lib/use-mobile.tsx`.
 - Exemplos a evitar: nomes como UserDataHook.ts ou use-form-validation.ts.
 
@@ -88,4 +88,4 @@ componentes é crucial para legibilidade e manutenibilidade.
 - Adapter: `{location}-{model}-{concern}.adapter.ts`, como `in-memory-house-persistence.adapter.ts`.
 - Caso de uso: `{action}.use-case.ts`, como `src/domain/house/use-cases/house-state.use-case.ts`.
 - Estratégia: `{element}.strategy.ts`, como
-  `src/components/rac-editor/lib/canvas/factory/elements/door.strategy.ts`.
+  `src/components/rac-editor/canvas/lib/factory/elements/door.strategy.ts`.

@@ -2,7 +2,7 @@ import type {
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection
-} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
+} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
 import {PilotiEditor} from '@/components/rac-editor/ui/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/ui/modals/editors/generic/GenericObjectEditor.tsx';
 import {
@@ -13,7 +13,7 @@ import type {HousePreAssignedSideDisplay, HousePiloti, HouseSide, HouseViewType}
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
-import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
 import {TerrainEditor} from '@/components/rac-editor/ui/modals/editors/terrain/TerrainEditor.tsx';
 import {LinearEditorType} from '@/components/rac-editor/hooks/modals/useLinearEditorActions.ts';
 

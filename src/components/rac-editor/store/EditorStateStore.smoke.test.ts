@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import type {EditorSelection} from '@/components/rac-editor/canvas/types.ts';
+import type {EditorSelection} from '@/components/rac-editor/canvas/store/types.ts';
 import {EditorStore} from './EditorStateStore.ts';
 
 const pilotiSelection: EditorSelection = {

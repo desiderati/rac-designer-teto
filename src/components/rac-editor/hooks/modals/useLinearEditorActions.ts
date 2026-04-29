@@ -1,9 +1,9 @@
 import {RefObject, useCallback} from 'react';
-import type {LinearCanvasSelection} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
+import type {LinearCanvasSelection} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
 import {
   GenericObjectEditorType
-} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
+} from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';
 
 export type LinearEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 

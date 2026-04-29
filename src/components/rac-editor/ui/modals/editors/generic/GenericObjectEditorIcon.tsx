@@ -2,7 +2,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {CANVAS_STYLE, EDITOR_ICON_COLORS} from '@/shared/config.ts';
 import {
   GenericObjectEditorType
-} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
+} from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';
 
 interface GenericObjectEditorIconProps {
   type: GenericObjectEditorType;

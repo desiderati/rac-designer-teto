@@ -3,7 +3,7 @@ import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
   ContraventamentoOrigin,
-} from '@/components/rac-editor/lib/canvas';
+} from '@/components/rac-editor/canvas/lib';
 import {
   collectOccupiedContraventamentoSides,
   ContraventamentoCandidate,

@@ -1,4 +1,4 @@
-import type {EditorPilotiId} from '@/components/rac-editor/canvas/types.ts';
+import type {EditorPilotiId} from '@/components/rac-editor/canvas/store/types.ts';
 
 export interface EditorPilotiData {
   pilotiId: EditorPilotiId;

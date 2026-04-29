@@ -1,4 +1,4 @@
-import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
+import type {HouseManagerCanvasPort} from '@/components/rac-editor/canvas/store/HouseManagerCanvasPort.ts';
 
 /**
  * Porta de ciclo de vida do runtime lógico da casa.

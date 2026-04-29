@@ -1,4 +1,4 @@
-import {CanvasObject} from '@/components/rac-editor/lib/canvas/canvas.ts';
+import {CanvasObject} from '@/components/rac-editor/canvas/lib/canvas.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 export interface LinearObjectState {
