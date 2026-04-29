@@ -20,8 +20,8 @@ componentes é crucial para legibilidade e manutenibilidade.
 
 - Componentes de produto e feature devem usar PascalCase com extensão TSX.
 - Exemplos recomendados: `src/components/rac-editor/ui/RacEditor.tsx`,
-  `src/components/rac-editor/ui/3d/House3DViewer.tsx`,
-  `src/components/rac-editor/ui/modals/selectors/HouseTypeSelector.tsx`.
+  `src/components/rac-editor/viewer3d/ui/House3DViewer.tsx`,
+  `src/components/rac-editor/modals/ui/selectors/HouseTypeSelector.tsx`.
 - Exemplos a evitar: nomes como my-component.tsx ou user_profile_card.js.
 - Exceção vigente: primitives base de shadcn/ui em `src/components/ui` preservam o padrão gerado em lowercase ou
   kebab-case, como `src/components/ui/button.tsx` e `src/components/ui/alert-dialog.tsx`.

@@ -46,7 +46,7 @@ interface HouseManagerCommandServiceArgs {
 }
 
 /**
- * Centraliza comandos de mutacao da casa mantendo a fachada publica fina.
+ * Centraliza comandos de mutação da casa mantendo a fachada pública fina.
  */
 export class HouseManagerCommandService {
   constructor(private readonly args: HouseManagerCommandServiceArgs) {
@@ -68,9 +68,11 @@ export class HouseManagerCommandService {
 
     const normalized = normalizeTerrainSolidityLevel(terrainType);
     aggregate.setTerrainType(normalized);
+
     this.args.persistHouse();
     this.args.syncProjectSession();
     applyTerrainTypeToElevationViews(this.args.getHouse(), normalized);
+
     this.args.requestCanvasRender();
     this.args.notify();
     return normalized;
@@ -92,7 +94,6 @@ export class HouseManagerCommandService {
     if (!result.registered) return;
 
     this.args.persistHouse();
-
     if (result.registeredTopView) {
       this.args.refreshAutoContraventamento();
     }

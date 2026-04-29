@@ -12,7 +12,7 @@ interface HouseManagerEffectsArgs {
 }
 
 /**
- * Coordena efeitos graficos derivados do estado da casa.
+ * Coordena efeitos gráficos derivados do estado da casa.
  */
 export class HouseManagerEffects {
   constructor(private readonly args: HouseManagerEffectsArgs) {

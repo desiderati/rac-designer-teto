@@ -3,13 +3,11 @@ import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInte
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
 import {useHotkeys} from '@/components/rac-editor/hooks/useHotkeys.ts';
-import {useRacEditorModalState} from '@/components/rac-editor/hooks/useRacEditorModalState.ts';
+import {useRacEditorModalState} from '@/components/rac-editor/modals/hooks/useRacEditorModalState.ts';
 import {useRacEditorLocalState} from '@/components/rac-editor/hooks/useRacEditorLocalState.ts';
 import {useRacEditorUiRefs} from '@/components/rac-editor/hooks/useRacEditorUiRefs.ts';
 import {usePilotiActions} from '@/components/rac-editor/hooks/usePilotiActions.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
-// useCanvasGroupingActions removed: group/ungroup functionality was retired
-// alongside the unlock/lock buttons in the side rail.
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/canvas/hooks/useCanvasHouseInitialization.ts';
@@ -25,7 +23,7 @@ import {useRacEditorShellController} from '@/components/rac-editor/hooks/useRacE
 import {buildRacEditorLayoutProps} from '@/components/rac-editor/hooks/buildRacEditorLayoutProps.ts';
 
 /**
- * Compoe os controladores do RAC editor e devolve o contrato de layout da tela.
+ * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
  */
 export function useRacEditorController(): RacEditorLayoutProps {
   const isMobile = useIsMobile();
@@ -68,8 +66,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
   } = useRacEditorLocalState();
 
   const canvasRef = useRef<CanvasHandle>(null);
-
-  // â”€â”€ RAC Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const {
     isMenuOpen,
@@ -121,8 +117,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setCanvasToolMode,
   });
 
-  // â”€â”€ Tutorial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   const {
     tutorialStep,
     tutorialHouseSelectorPreview,
@@ -147,8 +141,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setHouseTypeSelectorOpen,
     setShowRestartConfirm,
   });
-
-  // â”€â”€ Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   useCanvasHouseInitialization({canvasRef});
 
@@ -287,8 +279,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setInfoMessage,
   });
 
-  // â”€â”€ Modal Editors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   const {
     wallSelection,
     isWallEditorOpen,
@@ -307,8 +297,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isPilotiEditorOpen,
     setInfoMessage,
   });
-
-  // â”€â”€ Menus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const {
     menuActions,

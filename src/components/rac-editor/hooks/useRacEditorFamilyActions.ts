@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import type {FamilySetupResult} from '@/components/rac-editor/ui/modals/editors/FamilySetupModal.tsx';
+import type {FamilySetupResult} from '@/components/rac-editor/modals/ui/editors/FamilySetupModal.tsx';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorFamilyActionsArgs {
@@ -17,7 +17,7 @@ export function useRacEditorFamilyActions({
   const {houseWritePort} = useEditorPorts();
 
   const handleFamilySetupConfirm = useCallback((result: FamilySetupResult) => {
-    houseWritePort.applyFamilySetup({
+    houseWritePort.applyHouseSetup({
       familyName: result.familyName,
       selectedPilotiHeights: result.selectedHeights,
     });

@@ -5,24 +5,23 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import type {CanvasToolMode} from '../lib/menu-types.ts';
 
 interface ZoomMenuProps {
-  /** Current canvas zoom (1 = 100%). */
+  /** Zoom atual do canvas (1 = 100%). */
   zoom: number;
-  /** Current canvas tool mode. */
+  /** Modo atual da ferramenta do canvas. */
   canvasToolMode: CanvasToolMode;
-  /** Switch the canvas tool mode. */
+  /** Alterna o modo da ferramenta do canvas. */
   onSetToolMode: (mode: CanvasToolMode) => void;
-  /** Reset the viewport so the canvas fits the visible container. */
+  /** Reposiciona a viewport para encaixar o canvas no contêiner visível. */
   onFitToView: () => void;
-  /** Mobile mode keeps compact controls while preserving accessible names. */
+  /** Modo mobile mantém controles compactos com nomes acessíveis. */
   isMobile: boolean;
 }
 
 /**
- * Top-center zoom indicator button.
+ * Botão indicador de zoom no centro superior.
  *
- * Shows the current zoom percent and opens a horizontal submenu with three
- * canvas-tool options — Selection (S), Panning (P) and Fit to View (F) —
- * mirroring Stitch's refined-canvas reference.
+ * Mostra o percentual de zoom atual e abre um submenu horizontal com seleção,
+ * pan e ajuste à viewport, seguindo a referência visual refinada do Stitch.
  */
 export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, isMobile}: ZoomMenuProps) {
   const zoomPercent = Math.round(zoom * 100);

@@ -25,7 +25,7 @@ describe('house manager state/runtime adapters', () => {
     expect(houseManagerStatePort.getSnapshot()).not.toBeNull();
   });
 
-  it('publica alterações de estado sem expor o singleton à UI', () => {
+  it('emite alterações de estado sem expor o singleton à UI', () => {
     const listener = vi.fn();
     const unsubscribe = houseManagerStatePort.subscribe(listener);
 

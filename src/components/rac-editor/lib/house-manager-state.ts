@@ -7,6 +7,7 @@ import {DEFAULT_HOUSE_PILOTI, type HouseState} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
 export class HouseManagerState<TGroup> {
+
   private readonly persistence: HousePersistencePort<TGroup> = new InMemoryHousePersistenceAdapter<TGroup>();
   private houseAggregate: HouseAggregate<TGroup> | null = null;
 

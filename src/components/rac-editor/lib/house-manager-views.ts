@@ -29,13 +29,13 @@ export function registerHouseView(params: {
   side?: HouseSide;
   terrainType: number;
 }): { registered: boolean; registeredTopView: boolean } {
+
   const canvasGroup = toCanvasGroup(params.group);
   if (!canvasGroup) {
     return {registered: false, registeredTopView: false};
   }
 
   const instanceId = createViewInstanceId(params.viewType);
-
   Object.assign(
     canvasGroup,
     createViewGroupMetadataPatch<HouseViewType, HouseSide>({
@@ -44,8 +44,8 @@ export function registerHouseView(params: {
       side: params.side,
     }),
   );
-  canvasGroup.groundTerrainType = params.terrainType;
 
+  canvasGroup.groundTerrainType = params.terrainType;
   applyPilotiDataToGroup(canvasGroup, params.house.pilotis);
 
   params.aggregate.registerView({
@@ -65,6 +65,7 @@ export function removeHouseView(params: {
   aggregate: HouseAggregate<CanvasGroup>;
   group: CanvasGroup;
 }): { removedCount: number } {
+
   const hints = extractViewGroupRemovalHints<HouseViewType>({
     houseViewType: params.group.houseViewType,
     houseInstanceId: params.group.houseInstanceId,
@@ -91,6 +92,7 @@ export function rebuildHouseViewsFromCanvas(params: {
   pilotisFromCanvas: Record<string, HousePiloti>;
   terrainTypeFromCanvas: number;
 }): { groupsToSync: CanvasGroup[] } {
+
   const rebuildSources =
     collectHouseGroupRebuildSources(params.canvasGroups).map((source) =>
       toRebuildViewSource(source.group),

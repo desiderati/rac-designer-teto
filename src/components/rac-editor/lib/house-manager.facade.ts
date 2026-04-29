@@ -21,8 +21,11 @@ import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-mana
 export class HouseManagerFacade {
 
   private readonly state = new HouseManagerState<CanvasGroup>();
+
   private readonly canvasRuntime = new HouseManagerCanvasRuntime();
+
   private readonly notifier = new HouseManagerNotifier();
+
   private readonly session = new HouseManagerSessionService({
     getAggregate: () => this.getHouseAggregate(),
     getHouseType: () => this.getHouseType(),
@@ -30,10 +33,12 @@ export class HouseManagerFacade {
     persistHouse: () => this.persistHouse(),
     notify: () => this.notify(),
   });
+
   private readonly effects = new HouseManagerEffects({
     getHouse: () => this.house,
     requestCanvasRender: () => this.requestCanvasRender(),
   });
+
   private readonly commands = new HouseManagerCommandService({
     getHouse: () => this.house,
     getAggregate: () => this.getHouseAggregate(),
@@ -48,6 +53,7 @@ export class HouseManagerFacade {
     notify: () => this.notify(),
     refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
   });
+
   private readonly queries = new HouseManagerQueryService({
     getHouse: () => this.house,
     getAggregate: () => this.getHouseAggregate(),
@@ -213,30 +219,30 @@ export class HouseManagerFacade {
     this.commands.updatePiloti(pilotiId, pilotiData);
   }
 
-  // Get piloti data
+  // Obtém os dados de um piloti.
   getPilotiData(pilotiId: string): HousePiloti {
     return this.queries.getPilotiData(pilotiId);
   }
 
   /**
-   * Calculate recommended heights for all 12 pilotis using bilinear interpolation
-   * of the 4 corner levels and the current proporção estrutural.
+   * Calcula as alturas recomendadas para os 12 pilotis usando interpolação bilinear
+   * dos 4 níveis de canto e da proporção estrutural atual.
    *
-   * - The nivel at each grid point is interpolated from corners A1, A4, C1, C4.
-   * - Minimum required height = nivel × 3.
-   * - Select the smallest standard height >= minimum.
-   * - If minimum exceeds the available table, cap at the highest available height.
+   * - O nível de cada ponto da grade é interpolado a partir dos cantos A1, A4, C1 e C4.
+   * - A altura mínima exigida é igual ao nível multiplicado por 3.
+   * - A menor altura padrão maior ou igual à mínima é selecionada.
+   * - Se a mínima exceder a tabela disponível, usa-se a maior altura disponível.
    */
   calculateAndApplyRecommendedHeights(): void {
     this.commands.calculateAndApplyRecommendedHeights();
   }
 
-  // Check if any views exist
+  // Verifica se há alguma vista registrada.
   hasAnyView(): boolean {
     return this.queries.hasAnyView();
   }
 
-  // Get all registered groups
+  // Obtém todos os grupos registrados.
   getAllGroups(): CanvasGroup[] {
     return this.queries.getAllGroups();
   }
@@ -264,5 +270,4 @@ export class HouseManagerFacade {
   private getDefaultTerrainType(): number {
     return this.state.getDefaultTerrainType();
   }
-
 }

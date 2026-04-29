@@ -41,14 +41,14 @@ export function Minimap({
   const minimapRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Calculate the scale factor for minimap
+  // Calcula o fator de escala do minimapa.
   const scale = MINIMAP_SIZE / Math.max(canvasWidth, canvasHeight);
 
-  // Calculate viewport rectangle dimensions in minimap
+  // Calcula as dimensões do retângulo da viewport no minimapa.
   const viewRectWidth = (viewportWidth / zoom) * scale;
   const viewRectHeight = (viewportHeight / zoom) * scale;
 
-  // Calculate viewport rectangle position in minimap
+  // Calcula a posição do retângulo da viewport no minimapa.
   const viewRectX = (viewportX / zoom) * scale;
   const viewRectY = (viewportY / zoom) * scale;
 
@@ -89,7 +89,7 @@ export function Minimap({
     setIsDragging(false);
   }, []);
 
-  // Touch handlers
+  // Handlers de toque.
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();

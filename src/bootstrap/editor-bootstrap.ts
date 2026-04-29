@@ -1,10 +1,10 @@
 import {createContext, useContext} from 'react';
 import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
-import type {HouseRuntimePort} from '@/components/rac-editor/store/HouseRuntimePort.ts';
-import type {HouseStatePort} from '@/components/rac-editor/store/HouseStatePort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/house/store/HouseReadPort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
+import type {HouseRuntimePort} from '@/components/rac-editor/house/store/HouseRuntimePort.ts';
+import type {HouseStatePort} from '@/components/rac-editor/house/store/HouseStatePort.ts';
 import {houseManagerReadPort} from '@/infra/house/house-manager-read-adapter.ts';
 import {houseManagerWritePort} from '@/infra/house/house-manager-write-adapter.ts';
 import {houseManagerRuntimePort} from '@/infra/house/house-manager-runtime-adapter.ts';
@@ -16,7 +16,7 @@ export interface EditorPorts {
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort<CanvasGroup>;
   houseRuntimePort: HouseRuntimePort;
-  houseStatePort: HouseStatePort<CanvasGroup>;
+  houseStatePort: HouseStatePort;
 }
 
 export const EditorPortsContext = createContext<EditorPorts | null>(null);
@@ -32,10 +32,10 @@ export function createEditorStore(): EditorStore {
 }
 
 /**
- * Compoe as portas atuais do editor.
+ * Compõe as portas atuais do editor.
  *
- * A implementacao ainda usa adapters sobre o houseManager, mas o restante da aplicacao
- * passa a depender deste ponto de composicao em vez de importar singletons.
+ * A implementação ainda usa adapters sobre o houseManager, mas o restante da aplicação
+ * passa a depender deste ponto de composição em vez de importar singletons.
  */
 export function createEditorPorts(): EditorPorts {
   return {

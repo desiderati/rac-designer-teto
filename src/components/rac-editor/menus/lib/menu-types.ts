@@ -67,12 +67,12 @@ export interface RacEditorMenusProps {
   backViewCount?: MenuViewCount;
   side1ViewCount?: MenuViewCount;
   side2ViewCount?: MenuViewCount;
-  /** Family name shown in the top bar. Empty string hides the label. */
+  /** Nome da família exibido na barra superior. String vazia oculta o rótulo. */
   familyName: string;
-  /** Current canvas zoom (1 = 100%). */
+  /** Zoom atual do canvas (1 = 100%). */
   zoom: number;
-  /** Active canvas tool mode (select / pan). */
+  /** Modo ativo da ferramenta do canvas (seleção / pan). */
   canvasToolMode: CanvasToolMode;
-  /** Whether the editor is currently rendered in the mobile layout. */
+  /** Indica se o editor está renderizado no layout mobile. */
   isMobile: boolean;
 }

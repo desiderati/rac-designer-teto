@@ -10,15 +10,15 @@ interface UseHotkeysOptions {
 }
 
 /**
- * Global keyboard shortcuts for the canvas:
- *  - L: toggle draw (pencil) mode
- *  - Z: toggle zoom/minimap visibility
- *  - S: switch to selection tool
- *  - P: switch to pan tool
- *  - F: fit canvas to view
+ * Atalhos globais de teclado para o canvas:
+ *  - L: alternar modo de desenho a lápis
+ *  - Z: alternar visibilidade de zoom/minimapa
+ *  - S: alternar para ferramenta de seleção
+ *  - P: alternar para ferramenta de pan
+ *  - F: ajustar canvas à viewport
  *
- * Shortcuts are suppressed while the user is typing in editable elements
- * or pressing modifier keys (ctrl/meta/alt).
+ * Os atalhos são suprimidos enquanto o usuário digita em elementos editáveis
+ * ou pressiona teclas modificadoras (ctrl/meta/alt).
  */
 export function useHotkeys({
   onToggleDrawMode,

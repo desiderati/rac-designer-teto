@@ -1,4 +1,4 @@
-import {HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {HouseType, HouseViewType} from '@/shared/types/house.ts';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;
@@ -62,4 +62,3 @@ export function getViewLabelForHouseType(viewType: HouseViewType, houseType: Hou
       return 'Quadrado Aberto';
   }
 }
-

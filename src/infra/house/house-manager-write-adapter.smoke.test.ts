@@ -8,7 +8,7 @@ describe('house-manager-write-adapter.ts', () => {
   });
 
   it('applies family setup through the write port', () => {
-    houseManagerWritePort.applyFamilySetup({
+    houseManagerWritePort.applyHouseSetup({
       familyName: 'Familia teste',
       selectedPilotiHeights: [1, 1.5, 2],
     });

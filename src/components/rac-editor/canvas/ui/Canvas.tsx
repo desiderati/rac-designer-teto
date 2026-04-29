@@ -50,9 +50,9 @@ interface CanvasProps {
   showZoomControls?: boolean;
   showTips?: boolean;
 
-  /** Active canvas tool mode. 'pan' disables fabric multi-selection. */
+  /** Modo ativo da ferramenta do canvas. `pan` desativa a multisseleção do Fabric. */
   canvasToolMode?: CanvasToolMode;
-  /** Notifies the parent whenever the internal zoom changes. */
+  /** Notifica o componente pai sempre que o zoom interno muda. */
   onZoomChange?: (zoom: number) => void;
 
   tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;

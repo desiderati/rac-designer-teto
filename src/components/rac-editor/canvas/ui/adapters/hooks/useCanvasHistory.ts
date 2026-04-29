@@ -1,7 +1,7 @@
 import {RefObject, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
 
 interface UseCanvasHistoryArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;

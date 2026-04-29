@@ -1,7 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
-import {recalculateRecommendedPilotiData} from '@/domain/house/use-cases/house-piloti.use-case.ts';
+import {
+  recalculateRecommendedPilotiData,
+  resolvePilotiUpdateEffects,
+} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 function createPilotis() {
   return Object.fromEntries(
@@ -41,5 +44,20 @@ describe('house-piloti.use-case.ts', () => {
 
     expect(result.piloti_0_0.nivel).toBe(1.0);
     expect(result.piloti_0_0.height).toBe(0.5);
+  });
+
+  it('resolve efeitos lógicos de alteração de nível sem depender do canvas', () => {
+    const effects = resolvePilotiUpdateEffects({
+      pilotiId: 'piloti_0_0',
+      pilotiData: {nivel: 0.8},
+      previousPiloti: {...DEFAULT_HOUSE_PILOTI, nivel: 0.3},
+      hasTopView: true,
+    });
+
+    expect(effects).toEqual({
+      hasNivelChange: true,
+      shouldRefreshAutoContraventamento: true,
+      shouldRecalculateInterpolatedNiveis: true,
+    });
   });
 });

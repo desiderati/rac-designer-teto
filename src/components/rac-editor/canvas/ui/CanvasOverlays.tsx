@@ -26,11 +26,11 @@ interface CanvasOverlaysProps {
 }
 
 /**
- * Canvas overlays — pinch-zoom indicator + minimap + InfoBar children.
+ * Sobreposições do canvas: indicador de pinch zoom, minimapa e filhos do InfoBar.
  *
- * The bottom-left ZoomSlider was removed when the menus were refactored to
- * the Stitch-aligned layout: zoom is now exposed via the top-center FAB
- * and via wheel/pinch interactions.
+ * O ZoomSlider inferior esquerdo foi removido quando os menus foram refatorados
+ * para o layout alinhado ao Stitch. O zoom agora fica disponível pelo FAB
+ * superior central e pelas interações de roda/pinch.
  */
 export function CanvasOverlays({
   showZoomControls,
@@ -50,7 +50,7 @@ export function CanvasOverlays({
   const isZoomTutorialHighlighted = tutorialHighlight === 'zoom-minimap';
   return (
     <>
-      {/* Pinch-zoom feedback indicator */}
+      {/* Indicador de feedback do pinch zoom */}
       {isPinching && (
         <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none'>
           <div
@@ -60,7 +60,7 @@ export function CanvasOverlays({
         </div>
       )}
 
-      {/* Desktop: Minimap fixed position */}
+      {/* Desktop: minimapa em posição fixa */}
       {showZoomControls && (
         <div
           className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
@@ -79,7 +79,7 @@ export function CanvasOverlays({
         </div>
       )}
 
-      {/* Mobile: Minimap + InfoBar stacked in flex container */}
+      {/* Mobile: minimapa e InfoBar empilhados no contêiner flex */}
       <div
         className={`absolute left-2.5 bottom-2.5 right-2.5 flex flex-col items-start gap-2 sm:hidden ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
         {showZoomControls && (
@@ -96,11 +96,11 @@ export function CanvasOverlays({
             highlight={isZoomTutorialHighlighted}
           />
         )}
-        {/* Mobile InfoBar rendered here */}
+        {/* InfoBar mobile renderizado aqui */}
         {showTips && children}
       </div>
 
-      {/* Desktop: Children (InfoBar) - centered at bottom */}
+      {/* Desktop: filhos (InfoBar) centralizados abaixo */}
       <div className='hidden sm:block'>
         {children}
       </div>

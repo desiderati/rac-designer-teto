@@ -1,6 +1,6 @@
 import {Dispatch, MutableRefObject, RefObject, SetStateAction} from 'react';
 import {toast} from 'sonner';
-import {NivelDefinition} from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
+import {NivelDefinition} from '@/components/rac-editor/modals/ui/editors/NivelDefinitionEditor.tsx';
 import {
   shouldResetHouseTypeOnSideSelectorCancel,
   shouldTransitionToNivelDefinition
@@ -12,11 +12,11 @@ import {
   type HouseType,
   type HouseViewType
 } from '@/shared/types/house.ts';
-import {HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
+import {HouseSideSelectorMode} from '@/components/rac-editor/modals/ui/selectors/HouseSideSelector.tsx';
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
 import {
   calculateStackedViewPositions,
@@ -181,15 +181,15 @@ export function useCanvasHouseViewActions({
         });
       }
 
-      // Calculate recommended heights for all 12 pilotis using bilinear interpolation
+      // Calcula as alturas recomendadas dos 12 pilotis por interpolação bilinear.
       houseWritePort.calculateAndApplyRecommendedHeights();
 
-      // Add plant + initial view
+      // Adiciona planta e vista inicial.
       if (viewType) {
-        addViewToCanvas('top'); // Plant
-        addViewToCanvas(viewType, side ?? undefined); // Initial view
+        addViewToCanvas('top'); // Planta
+        addViewToCanvas(viewType, side ?? undefined); // Vista inicial
 
-        // Reposition so plant is above and view is below
+        // Reposiciona para manter a planta acima e a vista abaixo.
         if (canvasRef.current) {
           setTimeout(() => {
             const {topGroup: plantGroup, viewGroup} =

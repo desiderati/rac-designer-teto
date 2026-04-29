@@ -1,4 +1,4 @@
-import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/house/store/HouseReadPort.ts';
 import type {HouseViewType} from '@/shared/types/house.ts';
 
 export function useMenuHouseViewCounts(houseReadPort: HouseReadPort) {

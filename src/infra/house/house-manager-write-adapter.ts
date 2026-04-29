@@ -1,6 +1,6 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
 
 /**
  * Adapter transitório de escrita sobre o `houseManager`.
@@ -9,7 +9,7 @@ import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.
  * UI dependam diretamente do singleton de gerenciamento da casa.
  */
 export const houseManagerWritePort: HouseWritePort<CanvasGroup> = {
-  applyFamilySetup: (setup) => {
+  applyHouseSetup: (setup) => {
     houseManager.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
     houseManager.setFamilyName(setup.familyName);
   },

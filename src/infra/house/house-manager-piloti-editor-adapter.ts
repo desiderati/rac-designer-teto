@@ -6,7 +6,7 @@ import type {
   EditorPilotiData,
   PilotiEditorPort,
   UpdateEditorPilotiPatch,
-} from '@/components/rac-editor/store/PilotiEditorPort.ts';
+} from '@/components/rac-editor/piloti/store/PilotiEditorPort.ts';
 
 function readPilotiData(pilotiId: EditorPilotiId): EditorPilotiData {
   const piloti = houseManager.getPilotiData(pilotiId);

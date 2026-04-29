@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
-import {readLinearObjectState} from '@/components/rac-editor/ui/modals/editors/generic/helpers/linear-object-state.ts';
+import {readLinearObjectState} from '@/components/rac-editor/modals/ui/editors/generic/helpers/linear-object-state.ts';
 import {
   CanvasGroup,
   CanvasObject,
@@ -15,7 +15,7 @@ import {
   TerrainCanvasSelection,
   WallCanvasSelection
 } from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
-import {readWallObjectState} from '@/components/rac-editor/ui/modals/editors/generic/helpers/wall-object-state.ts';
+import {readWallObjectState} from '@/components/rac-editor/modals/ui/editors/generic/helpers/wall-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 

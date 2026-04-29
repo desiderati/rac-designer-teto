@@ -5,7 +5,7 @@ import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tu
 import {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;

@@ -15,7 +15,7 @@ class MemoryHousePersistence implements HousePersistencePort<string> {
 }
 
 describe('house-persistence.port.ts', () => {
-  it('supports load/save contract in a minimal implementation', () => {
+  it('suporta o contrato de load/save em uma implementação mínima', () => {
     const persistence = new MemoryHousePersistence();
     const state: HouseState<string> = {
       id: 'house-1',

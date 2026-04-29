@@ -1,5 +1,5 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/house/store/HouseReadPort.ts';
 
 /**
  * Adapter transitório de leitura sobre o `houseManager`.

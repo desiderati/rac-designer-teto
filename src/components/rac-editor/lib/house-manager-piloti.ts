@@ -2,11 +2,11 @@ import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HousePiloti, HouseState} from '@/shared/types/house.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
-import {PILOTI_CORNER_IDS} from '@/shared/config.ts';
 import {
   applyPilotiDataToGroup,
   syncPilotiUpdateAcrossViews,
 } from '@/components/rac-editor/canvas/lib/piloti-visual.ts';
+import {resolvePilotiUpdateEffects} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 export function updateHousePiloti(params: {
   aggregate: HouseAggregate<CanvasGroup>;
@@ -16,16 +16,18 @@ export function updateHousePiloti(params: {
   selectedPilotiHeights: readonly number[];
   groups: CanvasGroup[];
 }): { updated: boolean; shouldRefreshAutoContraventamento: boolean } {
-  const previousPiloti = params.house.pilotis?.[params.pilotiId] ?? null;
-  const hasNivelChange =
-    params.pilotiData.nivel !== undefined
-    && previousPiloti?.nivel !== Number(params.pilotiData.nivel);
-  const shouldRefreshAutoContraventamento =
-    hasNivelChange && (params.house.views?.top?.length ?? 0) > 0;
 
-  const shouldRecalculateInterpolatedNiveis = PILOTI_CORNER_IDS.includes(params.pilotiId)
-    && params.pilotiData.nivel !== undefined
-    && previousPiloti?.nivel !== Number(params.pilotiData.nivel);
+  const previousPiloti = params.house.pilotis?.[params.pilotiId] ?? null;
+
+  const {
+    shouldRefreshAutoContraventamento,
+    shouldRecalculateInterpolatedNiveis,
+  } = resolvePilotiUpdateEffects({
+    pilotiId: params.pilotiId,
+    pilotiData: params.pilotiData,
+    previousPiloti,
+    hasTopView: (params.house.views?.top?.length ?? 0) > 0,
+  });
 
   const {clearedMasters} = params.aggregate.applyPilotiPatch(params.pilotiId, params.pilotiData);
 
@@ -68,6 +70,7 @@ export function calculateRecommendedHousePilotiHeights(params: {
   aggregate: HouseAggregate<CanvasGroup>;
   selectedPilotiHeights: readonly number[];
 }): void {
+
   params.aggregate.recalculateRecommendedPilotiData(
     DEFAULT_HOUSE_PILOTI,
     true,

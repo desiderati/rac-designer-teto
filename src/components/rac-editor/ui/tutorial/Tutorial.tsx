@@ -53,12 +53,12 @@ export function Tutorial({onComplete, currentStepId}: TutorialProps) {
 
   const arrowStyles = getArrowStyles();
 
-  // Only show full blur on steps before "more-options" to keep zoom/minimap visible
+  // Exibe blur completo apenas antes de "more-options" para manter zoom/minimapa visíveis.
   const showFullBlur = step.id !== 'more-options';
 
   return (
     <>
-      {/* Overlay sutil - reduced blur on more-options step */}
+      {/* Overlay sutil, com blur reduzido na etapa more-options */}
       <div
         className={`fixed inset-0 z-40 pointer-events-none ${showFullBlur ? 'bg-background/40 backdrop-blur-[2px]' : 'bg-background/20'}`}
       />
@@ -74,10 +74,10 @@ export function Tutorial({onComplete, currentStepId}: TutorialProps) {
         }}
       >
         <div className='relative bg-amber-100 text-amber-900 rounded-xl shadow-lg p-4 max-w-[240px]'>
-          {/* Arrow */}
+          {/* Seta */}
           <div className={arrowStyles.className} style={arrowStyles.style}/>
 
-          {/* Close button */}
+          {/* Botão de fechar */}
           <button
             onClick={handleComplete}
             className={`absolute -top-2 w-6 h-6 bg-amber-200 hover:bg-amber-300 rounded-full flex items-center justify-center transition-colors z-50 ${
@@ -87,11 +87,11 @@ export function Tutorial({onComplete, currentStepId}: TutorialProps) {
             <FontAwesomeIcon icon={faXmark} className='text-amber-800 text-xs'/>
           </button>
 
-          {/* Content */}
+          {/* Conteúdo */}
           <h3 className='font-semibold text-sm mb-1'>{step.title}</h3>
           <p className='text-xs text-amber-800 mb-3'>{step.description}</p>
 
-          {/* Progress dots */}
+          {/* Indicadores de progresso */}
           <div className='flex gap-1 justify-center'>
             {tutorialSteps.map((_, index) => (
               <div

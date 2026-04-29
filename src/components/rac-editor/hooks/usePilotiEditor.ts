@@ -3,7 +3,7 @@ import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import {houseManagerPilotiEditorPort} from '@/infra/house/house-manager-piloti-editor-adapter.ts';
-import type {PilotiEditorPort} from '@/components/rac-editor/store/PilotiEditorPort.ts';
+import type {PilotiEditorPort} from '@/components/rac-editor/piloti/store/PilotiEditorPort.ts';
 import {
   clampNivelByHeight,
   getAllPilotiIds,

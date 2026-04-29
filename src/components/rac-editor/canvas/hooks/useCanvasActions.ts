@@ -1,7 +1,7 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/canvas/lib';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {toast} from 'sonner';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';

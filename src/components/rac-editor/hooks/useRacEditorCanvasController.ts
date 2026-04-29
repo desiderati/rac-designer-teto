@@ -38,7 +38,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
 }
 
 /**
- * Coordena a camada de aplicacao que transforma comandos da UI em operacoes do canvas.
+ * Coordena a camada de aplicação que transforma comandos da UI em operações do canvas.
  */
 export function useRacEditorCanvasController({
   canvasRef,

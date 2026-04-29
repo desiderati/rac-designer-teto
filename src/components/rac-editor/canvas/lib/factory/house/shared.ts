@@ -6,14 +6,14 @@ import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 export function getHouseScaleFactors(canvas: FabricCanvas) {
   const objs = canvas.getObjects().map(o => toCanvasObject(o));
 
-  // Find the top view (plant view) group
+  // Encontra o grupo da vista superior (planta).
   const topViewGroup = objs.find((o) => o.myType === 'house' && o.houseView === 'top');
 
   if (topViewGroup) {
-    // Get the house body rect inside the group
+    // Obtém o retângulo do corpo da casa dentro do grupo.
     const houseBody = topViewGroup.getObjects?.().find((o) => o.isHouseBody === true);
     if (houseBody) {
-      // Calculate actual dimensions considering group scale and object scale
+      // Calcula as dimensões reais considerando escala do grupo e do objeto.
       const groupScaleX = topViewGroup.scaleX || 1;
       const groupScaleY = topViewGroup.scaleY || 1;
       const currentW = (houseBody.width ?? 0) * (houseBody.scaleX || 1) * groupScaleX;

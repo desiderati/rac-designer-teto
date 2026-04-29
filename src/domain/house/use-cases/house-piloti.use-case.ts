@@ -1,5 +1,5 @@
 import type {HousePiloti} from '@/shared/types/house.ts';
-import {PILOTI_CORNER_ID} from '@/shared/config.ts';
+import {PILOTI_CORNER_ID, PILOTI_CORNER_IDS} from '@/shared/config.ts';
 import {getRecommendedHeight} from '@/shared/types/piloti.ts';
 
 function round2(value: number): number {
@@ -24,8 +24,8 @@ export function recalculateRecommendedPilotiData(params: {
   const c1 = params.pilotis[PILOTI_CORNER_ID.bottomLeft]?.nivel ?? params.defaultPiloti.nivel;
   const c4 = params.pilotis[PILOTI_CORNER_ID.bottomRight]?.nivel ?? params.defaultPiloti.nivel;
 
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 4; col++) {
+  for (let row = 0; row < 3; row += 1) {
+    for (let col = 0; col < 4; col += 1) {
       const id = `piloti_${col}_${row}`;
       const u = col / 3;
       const v = row / 2;
@@ -42,4 +42,33 @@ export function recalculateRecommendedPilotiData(params: {
   }
 
   return nextPilotis;
+}
+
+/**
+ * Decide quais efeitos lógicos uma alteração de piloti deve acionar.
+ *
+ * A decisão é independente de canvas: quem chama escolhe como sincronizar a
+ * representação visual depois que o domínio informa o impacto da mudança.
+ */
+export function resolvePilotiUpdateEffects(params: {
+  pilotiId: string;
+  pilotiData: Partial<HousePiloti>;
+  previousPiloti: HousePiloti | null;
+  hasTopView: boolean;
+}): {
+  hasNivelChange: boolean;
+  shouldRefreshAutoContraventamento: boolean;
+  shouldRecalculateInterpolatedNiveis: boolean;
+} {
+  const hasNivelChange =
+    params.pilotiData.nivel !== undefined
+    && params.previousPiloti?.nivel !== Number(params.pilotiData.nivel);
+
+  return {
+    hasNivelChange,
+    shouldRefreshAutoContraventamento: hasNivelChange && params.hasTopView,
+    shouldRecalculateInterpolatedNiveis:
+      PILOTI_CORNER_IDS.includes(params.pilotiId)
+      && hasNivelChange,
+  };
 }
