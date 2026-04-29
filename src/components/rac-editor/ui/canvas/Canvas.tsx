@@ -5,7 +5,9 @@ import {
   CanvasObject,
   ElementStrategyKey,
   getElementStrategy,
-  PilotiCanvasSelection
+  PilotiCanvasSelection,
+  toCanvasGroup,
+  toCanvasObject,
 } from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {
@@ -101,7 +103,11 @@ interface CanvasProps {
 }
 
 export interface CanvasHandle {
-  canvas: FabricCanvas | null;
+  /**
+   * @deprecated Transitional Fabric escape hatch for legacy flows. Prefer
+   * explicit CanvasHandle capabilities or dedicated canvas ports.
+   */
+  getRuntimeCanvas: () => FabricCanvas | null;
   saveHistory: () => void;
   clearHistory: () => void;
   undo: () => void;
@@ -113,6 +119,12 @@ export interface CanvasHandle {
   resetSurface: () => void;
   renderAll: () => void;
   getActiveObjectCount: () => number;
+  deleteActiveObjects: (handlers?: {
+    canDeleteTopView?: () => boolean;
+    onTopViewDeleted?: () => void;
+    onHouseViewRemoved?: (group: CanvasGroup | null) => void;
+    onBlockedTopViewDelete?: () => void;
+  }) => 'deleted' | 'blocked' | 'none';
   getCanvasPointScreenPosition: (point: { x: number; y: number }) => { x: number; y: number } | null;
   getGroupLocalPointScreenPosition: (
     group: CanvasGroup,
@@ -251,7 +263,7 @@ export const Canvas =
       });
 
       useImperativeHandle(ref, () => ({
-        canvas: fabricCanvasRef.current,
+        getRuntimeCanvas: () => fabricCanvasRef.current,
         saveHistory,
         clearHistory,
         undo,
@@ -295,6 +307,36 @@ export const Canvas =
           fabricCanvasRef.current?.renderAll();
         },
         getActiveObjectCount: () => fabricCanvasRef.current?.getActiveObjects().length ?? 0,
+        deleteActiveObjects: (handlers) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return 'none';
+
+          const activeObjects = canvas.getActiveObjects();
+          if (activeObjects.length === 0) return 'none';
+
+          canvas.discardActiveObject();
+          for (const object of activeObjects) {
+            const typedObject = toCanvasObject(object);
+            if (!typedObject) continue;
+
+            if (typedObject.myType === 'house') {
+              const rawView = typedObject.houseViewType ?? typedObject.houseView;
+              if (rawView === 'top') {
+                if (handlers?.canDeleteTopView && !handlers.canDeleteTopView()) {
+                  handlers.onBlockedTopViewDelete?.();
+                  canvas.setActiveObject(object);
+                  return 'blocked';
+                }
+                handlers?.onTopViewDeleted?.();
+              }
+              handlers?.onHouseViewRemoved?.(toCanvasGroup(object));
+            }
+
+            canvas.remove(object);
+          }
+
+          return 'deleted';
+        },
         getCanvasPointScreenPosition: (point) => getCurrentScreenPoint(point),
         getGroupLocalPointScreenPosition: (group, localCanvasPoint) => {
           const canvas = fabricCanvasRef.current;

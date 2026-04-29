@@ -25,7 +25,6 @@ import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 // alongside the unlock/lock buttons in the side rail.
 import {getSettings} from '@/infra/settings.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import type {FamilySetupResult} from '@/components/rac-editor/ui/modals/editors/FamilySetupModal.tsx';
 import {useLinearEditorActions} from '@/components/rac-editor/hooks/modals/useLinearEditorActions.ts';
@@ -43,6 +42,7 @@ import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/to
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {EditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
+import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
   const module = await import('@/components/rac-editor/ui/3d/House3DViewer.tsx');
@@ -127,14 +127,16 @@ function RacEditorContent() {
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
 
   const handleFamilySetupConfirm = useCallback((result: FamilySetupResult) => {
-    houseManager.setFamilyName(result.familyName);
-    houseManager.setSelectedPilotiHeights(result.selectedHeights);
+    legacyHouseWritePort.applyFamilySetup({
+      familyName: result.familyName,
+      selectedPilotiHeights: result.selectedHeights,
+    });
     setFamilySetupOpen(false);
     setHouseTypeSelectorOpen(true);
   }, [setFamilySetupOpen, setHouseTypeSelectorOpen]);
 
   const handleRenameFamily = useCallback((newName: string) => {
-    houseManager.setFamilyName(newName);
+    legacyHouseWritePort.renameFamily(newName);
   }, []);
 
   const handleSetCanvasToolMode = useCallback(
@@ -212,6 +214,7 @@ function RacEditorContent() {
     isDrawing,
     setIsDrawing,
     setInfoMessage,
+    houseWritePort: legacyHouseWritePort,
     clearTutorialBalloon,
     onCloseSubmenus: () => setActiveSubmenu(null),
     onDismissPilotiTutorial: dismissPilotiTutorial,
@@ -225,7 +228,7 @@ function RacEditorContent() {
     });
     setTerrainSelection({
       ...selection,
-      terrainType: houseManager.getTerrainType(),
+      terrainType: legacyHouseReadPort.getTerrainType(),
     });
     setIsTerrainEditorOpen(true);
   }, [editorStore]);
@@ -237,7 +240,7 @@ function RacEditorContent() {
   }, [editorStore]);
 
   const handleTerrainApply = useCallback((terrainType: number) => {
-    const normalized = houseManager.setTerrainType(terrainType);
+    const normalized = legacyHouseWritePort.setTerrainType(terrainType);
     canvasRef.current?.saveHistory();
 
     setTerrainSelection(
@@ -265,6 +268,7 @@ function RacEditorContent() {
     closeAllMenus,
     addObjectToCanvas,
     showPilotiTutorialIfNeeded,
+    houseWritePort: legacyHouseWritePort,
     pendingViewType,
     setPendingViewType,
     sideSelectorMode,
@@ -331,7 +335,7 @@ function RacEditorContent() {
     closeAllMenus,
     dismissPilotiTutorial,
     disableDrawingMode,
-    isHouseTypeSelected: () => !!houseManager.getHouseType(),
+    isHouseTypeSelected: () => !!legacyHouseReadPort.getCurrentHouseType(),
   });
 
   // ── Contraventamento ─────────────────────────────────────────────────
@@ -622,7 +626,7 @@ function RacEditorContent() {
         onSettingsChange={() => {
           const settings = getSettings();
           setShowZoomControls(settings.zoomEnabledByDefault);
-          houseManager.refreshAutoStairsForCurrentSettings();
+          legacyHouseWritePort.refreshAutoStairsForCurrentSettings();
         }}
         showRestartConfirm={showRestartConfirm}
         onConfirmRestartTutorial={confirmRestartTutorial}

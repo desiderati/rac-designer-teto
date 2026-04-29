@@ -34,7 +34,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
     if (!import.meta.env.DEV) return;
 
     const getPilotiScreenPosition = (pilotiId: string) => {
-      const canvas = canvasRef.current?.canvas;
+      const canvas = canvasRef.current?.getRuntimeCanvas();
       const house = houseManager.getHouse();
       const topGroup = house?.views.top?.[0]?.group;
       if (!canvas || !topGroup) return null;
@@ -106,7 +106,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       removeView: (viewType: HouseViewType, side?: HouseSide) => {
-        const canvas = canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.getRuntimeCanvas();
         const house = houseManager.getHouse();
         if (!canvas || !house) return false;
 
@@ -127,7 +127,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getCanvasScreenCenter: () => {
-        const canvas = canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.getRuntimeCanvas();
         if (!canvas) return null;
         const container = canvas.getElement().parentElement;
         if (!container) return null;
@@ -152,7 +152,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       selectCanvasObjectByMyType: (myType: string, fromEnd = true, triggerInlineEditor = false) => {
-        const canvas = canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.getRuntimeCanvas();
         if (!canvas) return false;
 
         const objects =
@@ -180,7 +180,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getActiveCanvasObjectSummary: () => {
-        const canvas = canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.getRuntimeCanvas();
         if (!canvas) return null;
 
         const activeObject = canvas.getActiveObject() as CanvasGroupObject | undefined;
@@ -206,7 +206,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       },
 
       getCanvasObjectsSummary: () => {
-        const canvas = canvasRef.current?.canvas;
+        const canvas = canvasRef.current?.getRuntimeCanvas();
         if (!canvas) return null;
         return canvas.getObjects().map((obj) => {
           const canvasObject = obj as unknown as CanvasSummaryObject;

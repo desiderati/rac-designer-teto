@@ -6,7 +6,6 @@ import {
   shouldResetHouseTypeOnSideSelectorCancel,
   shouldTransitionToNivelDefinition
 } from '@/components/rac-editor/lib/house-side.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {
   HOUSE_VIEW_INSERTION_DECISION_TYPES,
   type HousePreAssignedSideDisplay,
@@ -18,6 +17,7 @@ import {HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {createHouseGroupForView, getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/lib/canvas';
+import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
 
 interface UseCanvasHouseViewActionsArgs {
   getCanvas: () => FabricCanvas | null;
@@ -25,6 +25,7 @@ interface UseCanvasHouseViewActionsArgs {
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;
   showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
+  houseWritePort: HouseWritePort<CanvasGroup>;
   pendingViewType: HouseViewType | null;
   setPendingViewType: Dispatch<SetStateAction<HouseViewType | null>>;
   sideSelectorMode: HouseSideSelectorMode;
@@ -44,6 +45,7 @@ export function useCanvasHouseViewActions({
   closeAllMenus,
   addObjectToCanvas,
   showPilotiTutorialIfNeeded,
+  houseWritePort,
   pendingViewType,
   setPendingViewType,
   sideSelectorMode,
@@ -70,15 +72,14 @@ export function useCanvasHouseViewActions({
         side,
       });
 
-      // Register with house manager (this applies synced piloti data)
-      houseManager.registerView(viewType, house, side);
+      houseWritePort.registerView(viewType, house, side);
       addObjectToCanvas(house);
 
       if (viewType === 'top') {
         showPilotiTutorialIfNeeded(house);
       }
 
-      const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
+      const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));
     };
 
@@ -86,18 +87,18 @@ export function useCanvasHouseViewActions({
   const requestAddView =
     (viewType: HouseViewType) => {
 
-      const slots = houseManager.getPreAssignedSides(viewType);
-      const availableSides = houseManager.getAvailableSides(viewType);
+      const slots = houseWritePort.getPreAssignedSides(viewType);
+      const availableSides = houseWritePort.getAvailableSides(viewType);
       const decision = resolveHouseViewInsertion({
         viewType,
-        isAtLimit: houseManager.isViewAtLimit(viewType),
+        isAtLimit: houseWritePort.isViewAtLimit(viewType),
         preAssignedSides: slots,
         availableSides,
       });
 
       switch (decision.type) {
         case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit: {
-          const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
+          const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
           toast.error(TOAST_MESSAGES.houseViewLimitReached(label));
           return;
         }
@@ -107,7 +108,7 @@ export function useCanvasHouseViewActions({
           return;
 
         case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots: {
-          const label = getViewLabelForHouseType(viewType, houseManager.getHouseType());
+          const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
           toast.error(TOAST_MESSAGES.houseViewAllInstancesAlreadyOnCanvas(label));
           return;
         }
@@ -140,11 +141,11 @@ export function useCanvasHouseViewActions({
     if (
       shouldTransitionToNivelDefinition({
         sideSelectorMode,
-        hasPreAssignedSides: houseManager.hasPreAssignedSides(),
+        hasPreAssignedSides: houseWritePort.hasPreAssignedSides(),
       })
     ) {
       // Initial positioning - open NivelDefinitionEditor instead of adding immediately
-      houseManager.autoAssignAllSides(pendingViewType, side);
+      houseWritePort.autoAssignAllSides(pendingViewType, side);
       setPendingNivelSide(side);
       niveisAppliedRef.current = false;
 
@@ -171,16 +172,16 @@ export function useCanvasHouseViewActions({
       // Mark as applied so onClose won't reset the house manager
       niveisAppliedRef.current = true;
 
-      // Update corner pilotis in HouseManager with the defined levels
+      // Update corner pilotis through the house write port.
       for (const [pilotiId, entry] of Object.entries(niveis)) {
-        houseManager.updatePiloti(pilotiId, {
+        houseWritePort.updatePiloti(pilotiId, {
           isMaster: entry.isMaster,
           nivel: entry.nivel
         });
       }
 
       // Calculate recommended heights for all 12 pilotis using bilinear interpolation
-      houseManager.calculateAndApplyRecommendedHeights();
+      houseWritePort.calculateAndApplyRecommendedHeights();
 
       // Add plant + initial view
       if (viewType) {
@@ -191,13 +192,8 @@ export function useCanvasHouseViewActions({
         const canvas = getCanvas();
         if (canvas) {
           setTimeout(() => {
-            const house = houseManager.getHouse();
-            const plantInst = house?.views.top?.[0];
-            const viewInst =
-              house?.views[viewType]?.find((v) => v.side === side);
-
-            const plantGroup = plantInst?.group;
-            const viewGroup = viewInst?.group;
+            const {topGroup: plantGroup, viewGroup} =
+              houseWritePort.getStackedViewGroups(viewType, side ?? undefined);
 
             if (plantGroup && viewGroup) {
               const center = getVisibleCenter();
@@ -236,8 +232,8 @@ export function useCanvasHouseViewActions({
       return;
     }
     // User cancelled - reset house type since we already auto-assigned
-    houseManager.setHouseType(null);
-    houseManager.reset();
+    houseWritePort.setHouseType(null);
+    houseWritePort.resetHouse();
     setPendingViewType(null);
     setPendingNivelSide(null);
     setNivelDefinitionOpen(false);
@@ -254,10 +250,10 @@ export function useCanvasHouseViewActions({
     if (
       shouldResetHouseTypeOnSideSelectorCancel({
         sideSelectorMode,
-        hasPreAssignedSides: houseManager.hasPreAssignedSides(),
+        hasPreAssignedSides: houseWritePort.hasPreAssignedSides(),
       })
     ) {
-      houseManager.setHouseType(null);
+      houseWritePort.setHouseType(null);
     }
     setSideSelectorOpen(false);
     setPendingViewType(null);
@@ -274,7 +270,7 @@ export function useCanvasHouseViewActions({
       if (!type) return;
 
       // Set the house type
-      houseManager.setHouseType(type);
+      houseWritePort.setHouseType(type);
 
       // Open HouseSideSelector to position the initial view
       // tipo6: position the front view (top/bottom)

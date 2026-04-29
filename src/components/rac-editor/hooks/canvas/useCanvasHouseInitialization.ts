@@ -12,7 +12,7 @@ export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitiali
   useEffect(() => {
     let tries = 0;
     const id = window.setInterval(() => {
-      const canvas = canvasRef.current?.canvas;
+      const canvas = canvasRef.current?.getRuntimeCanvas();
       if (canvas) {
         houseManager.initialize(canvas);
         window.clearInterval(id);

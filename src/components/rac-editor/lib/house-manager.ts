@@ -36,9 +36,13 @@ import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib
 import {normalizeTerrainSolidityLevel, PILOTI_CORNER_IDS, TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {getAllPilotiIds, normalizeAvailablePilotiHeights} from '@/shared/types/piloti.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
-import {updateGroundTerrainType} from '@/components/rac-editor/lib/canvas/terrain.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {projectSession} from '@/components/rac-editor/lib/project-session.ts';
+import {
+  applyTerrainTypeToElevationViews,
+  collectElevationViewInstances,
+  resolveTerrainTypeFromCanvasFallback,
+} from '@/components/rac-editor/lib/house-manager-terrain.ts';
 
 class HouseManager {
 
@@ -135,7 +139,7 @@ class HouseManager {
       sideMappings: this.house.sideMappings,
       pilotis: this.house.pilotis,
       topView: this.house.views.top,
-      elevationViews: this.getElevationViewInstances(),
+      elevationViews: collectElevationViewInstances(this.house),
       showStairsOnTopView: getSettings().showStairsOnTopView,
     });
 
@@ -154,7 +158,7 @@ class HouseManager {
     const hasChanges = refreshAutoContraventamentoInAllViews({
       pilotis: this.house.pilotis,
       topViews: this.house.views.top,
-      elevationViews: this.getElevationViewInstances(),
+      elevationViews: collectElevationViewInstances(this.house),
     });
 
     if (hasChanges) {
@@ -238,7 +242,7 @@ class HouseManager {
     aggregate.setTerrainType(normalized);
     this.persistHouse();
     this.syncProjectSession();
-    this.applyTerrainTypeToElevationViews(normalized);
+    applyTerrainTypeToElevationViews(this.house, normalized);
     this.canvas?.requestRenderAll();
     this.notify();
     return normalized;
@@ -397,7 +401,10 @@ class HouseManager {
     if (this.house) {
       const nextHouse = this.house;
       nextHouse.pilotis = readPilotiDataFromCanvas(this.canvas, this.house?.pilotis);
-      nextHouse.terrainType = this.resolveTerrainTypeFromCanvasFallback();
+      nextHouse.terrainType = resolveTerrainTypeFromCanvasFallback({
+        canvas: this.canvas,
+        fallbackTerrainType: this.getTerrainType(),
+      });
       this.house = nextHouse;
     }
 
@@ -610,41 +617,6 @@ class HouseManager {
 
   private getDefaultTerrainType(): number {
     return normalizeTerrainSolidityLevel(TERRAIN_SOLIDITY.defaultLevel);
-  }
-
-  private getElevationViewInstances() {
-    if (!this.house) return [];
-    return [
-      ...this.house.views.front,
-      ...this.house.views.back,
-      ...this.house.views.side1,
-      ...this.house.views.side2,
-    ];
-  }
-
-  private applyTerrainTypeToElevationViews(terrainType: number): void {
-    this.getElevationViewInstances().forEach((instance) => {
-      updateGroundTerrainType(instance.group, terrainType);
-    });
-  }
-
-  private resolveTerrainTypeFromCanvasFallback(): number {
-    const fromCanvas = this.canvas?.getObjects()
-      .find((object): object is CanvasGroup => {
-        const runtime = toCanvasGroup(object);
-        return (
-          runtime.myType === 'house'
-          && runtime.houseView !== 'top'
-          && Number.isFinite(Number(runtime.groundTerrainType))
-        );
-      });
-
-    const terrainFromCanvas = Number(fromCanvas?.groundTerrainType);
-    if (Number.isFinite(terrainFromCanvas)) {
-      return normalizeTerrainSolidityLevel(terrainFromCanvas);
-    }
-
-    return this.getTerrainType();
   }
 
 }
