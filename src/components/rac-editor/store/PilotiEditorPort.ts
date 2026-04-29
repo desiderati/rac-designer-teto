@@ -17,7 +17,7 @@ export interface UpdateEditorPilotiPatch {
  * Porta de aplicação usada pelo editor de piloti.
  *
  * A UI precisa ler e alterar dados de piloti, mas não deve saber se a fonte
- * atual é um adapter legado, storage, worker ou outro mecanismo. A porta mantém
+ * atual é um adapter de infraestrutura, storage, worker ou outro mecanismo. A porta mantém
  * esse fluxo testável sem carregar objetos do runtime gráfico.
  */
 export interface PilotiEditorPort {

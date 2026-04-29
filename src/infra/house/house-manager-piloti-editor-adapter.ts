@@ -19,13 +19,13 @@ function readPilotiData(pilotiId: EditorPilotiId): EditorPilotiData {
 }
 
 /**
- * Adapter transitório entre o editor de piloti e o `houseManager` legado.
+ * Adapter transitório entre o editor de piloti e o `houseManager`.
  *
  * Enquanto o estado canônico ainda vive no manager, este adapter impede que o
  * hook de UI dependa diretamente desse singleton e prepara a substituição por
  * um use case/store serializável.
  */
-export const legacyPilotiEditorPort: PilotiEditorPort = {
+export const houseManagerPilotiEditorPort: PilotiEditorPort = {
   getSelectedPilotiHeights: () => houseManager.getSelectedPilotiHeights(),
 
   getPilotiData: (pilotiId) => readPilotiData(pilotiId),

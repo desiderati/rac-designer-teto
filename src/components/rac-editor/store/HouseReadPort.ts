@@ -13,7 +13,7 @@ export interface HouseViewCountSnapshot {
  * Porta de leitura do estado lógico da casa para a UI do editor.
  *
  * Componentes e hooks de apresentação devem depender desta leitura
- * serializável em vez de consultar diretamente o manager legado.
+ * serializável em vez de consultar diretamente o manager de infraestrutura.
  */
 export interface HouseReadPort {
   getCurrentHouseType(): HouseType;

@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   buildAutoAssignedSides,
+  calculateStackedViewPositions,
   canDeleteTopView,
   getAutoSelectedSide,
   getAvailableSides,
@@ -11,7 +12,9 @@ import {
   type HouseSideMapping,
   type HouseViewSide,
   needsSideSelection,
+  resolveHouseViewInsertion,
 } from './house-views-layout.use-case.ts';
+import {HOUSE_VIEW_INSERTION_DECISION_TYPES} from '@/shared/types/house.ts';
 
 function createViews(): HouseViewSide {
   return {
@@ -120,6 +123,49 @@ describe('house-views-layout.use-case.ts', () => {
   it('checks if there are any pre-assigned slots', () => {
     expect(hasPreAssignedSides({})).toBe(false);
     expect(hasPreAssignedSides({front: 'top'})).toBe(true);
+  });
+
+  it('resolves insertion decisions without React or canvas runtime', () => {
+    expect(
+      resolveHouseViewInsertion({
+        viewType: 'front',
+        isAtLimit: true,
+        preAssignedSides: [],
+        availableSides: ['top'],
+      }),
+    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit});
+
+    expect(
+      resolveHouseViewInsertion({
+        viewType: 'front',
+        isAtLimit: false,
+        preAssignedSides: [
+          {label: 'Superior', side: 'top', onCanvas: true},
+          {label: 'Inferior', side: 'bottom', onCanvas: false},
+        ],
+        availableSides: [],
+      }),
+    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: 'bottom'});
+
+    expect(
+      resolveHouseViewInsertion({
+        viewType: 'side1',
+        isAtLimit: false,
+        preAssignedSides: [],
+        availableSides: ['left', 'right'],
+      }),
+    ).toEqual({type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector});
+  });
+
+  it('calculates stacked top/elevation positions around a center', () => {
+    expect(
+      calculateStackedViewPositions({
+        centerY: 200,
+        topHeight: 80,
+        bottomHeight: 100,
+        gap: 20,
+      }),
+    ).toEqual({topY: 140, bottomY: 250});
   });
 
 });

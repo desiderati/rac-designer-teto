@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
-import {legacyPilotiEditorPort} from '@/infra/house/house-manager-piloti-editor-adapter.ts';
+import {houseManagerPilotiEditorPort} from '@/infra/house/house-manager-piloti-editor-adapter.ts';
 import type {PilotiEditorPort} from '@/components/rac-editor/store/PilotiEditorPort.ts';
 import {
   clampNivelByHeight,
@@ -35,7 +35,7 @@ export function usePilotiEditor({
   pilotiIds,
   onHeightChange,
   onNavigate,
-  pilotiPort = legacyPilotiEditorPort,
+  pilotiPort = houseManagerPilotiEditorPort,
 }: UsePilotiEditorArgs) {
 
   const [tempHeight, setTempHeight] = useState(() => currentHeight);

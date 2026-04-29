@@ -19,7 +19,7 @@ export interface HouseStackedViewGroups<TGroup = unknown> {
 /**
  * Porta de escrita para os fluxos de casa usados pelo editor.
  *
- * Esta porta ainda pode ser implementada por adapters legados, mas a UI passa
+ * Esta porta ainda pode ser implementada por adapters de infraestrutura, mas a UI passa
  * a depender de comandos explícitos em vez de conhecer diretamente o
  * `houseManager`.
  */

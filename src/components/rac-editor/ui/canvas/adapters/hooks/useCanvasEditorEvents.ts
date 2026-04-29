@@ -17,7 +17,7 @@ import {
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {readWallObjectState} from '@/components/rac-editor/ui/modals/editors/generic/helpers/wall-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
-import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseCanvasEditorEventsArgs {
   canvas: FabricCanvas;
@@ -32,6 +32,7 @@ interface UseCanvasEditorEventsArgs {
 }
 
 export function useCanvasEditorEvents() {
+  const {houseReadPort} = useEditorPorts();
 
   const bindInlineEditorEvents = useCallback(({
     canvas,
@@ -143,7 +144,7 @@ export function useCanvasEditorEvents() {
         const pointer = canvas.getPointer(payload.e);
         const screenPoint = getCurrentScreenPoint({x: pointer.x, y: pointer.y});
         if (!terrainGroup || !screenPoint) return false;
-        const terrainType = legacyHouseReadPort.getTerrainType();
+        const terrainType = houseReadPort.getTerrainType();
 
         onTerrainSelect({
           group: terrainGroup,
@@ -206,7 +207,7 @@ export function useCanvasEditorEvents() {
 
       const screenPoint = getCurrentScreenPoint({x: pointer.x, y: pointer.y});
       if (!screenPoint) return false;
-      const terrainType = legacyHouseReadPort.getTerrainType();
+      const terrainType = houseReadPort.getTerrainType();
 
       onTerrainSelect({
         group: selectedGroup,
@@ -351,7 +352,7 @@ export function useCanvasEditorEvents() {
       canvas.off('mouse:down', handleMobileTap);
       canvas.off('mouse:dblclick', handleTerrainDoubleClick);
     };
-  }, []);
+  }, [houseReadPort]);
 
   return {bindInlineEditorEvents};
 }

@@ -4,9 +4,8 @@ import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
-import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;
@@ -29,12 +28,13 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
     setIsPilotiEditorOpen,
   } = params;
   const houseSnapshot = useHouseSnapshot();
+  const {houseReadPort, houseWritePort} = useEditorPorts();
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 
     const getPilotiData = (pilotiId: string) =>
-      legacyHouseReadPort.getPilotis()?.[pilotiId] ?? {...DEFAULT_HOUSE_PILOTI};
+      houseReadPort.getPilotis()?.[pilotiId] ?? {...DEFAULT_HOUSE_PILOTI};
 
     const getPilotiScreenPosition = (pilotiId: string) => {
       const topGroup = houseSnapshot?.views.top?.[0]?.group;
@@ -64,7 +64,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
       getHousePiloti: getPilotiData,
 
       updatePiloti: (pilotiId: string, payload: { isMaster?: boolean; height?: number; nivel?: number }) =>
-        legacyHouseWritePort.updatePiloti(pilotiId, payload),
+        houseWritePort.updatePiloti(pilotiId, payload),
 
       getPilotiScreenPosition,
 
@@ -113,7 +113,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
         if (!target) return false;
 
         debugPort.removeObject(target.group);
-        legacyHouseWritePort.removeView(target.group);
+        houseWritePort.removeView(target.group);
         return true;
       },
 
@@ -158,7 +158,9 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
     };
   }, [
     canvasRef,
+    houseReadPort,
     houseSnapshot,
+    houseWritePort,
     setPilotiSelection,
     setIsPilotiEditorOpen,
     showTipsRef,

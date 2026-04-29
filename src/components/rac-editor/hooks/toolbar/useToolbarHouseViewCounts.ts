@@ -1,10 +1,7 @@
-import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
 import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
 import type {HouseViewType} from '@/shared/types/house.ts';
 
-export function useToolbarHouseViewCounts(
-  houseReadPort: HouseReadPort = legacyHouseReadPort,
-) {
+export function useToolbarHouseViewCounts(houseReadPort: HouseReadPort) {
   const currentHouseType = houseReadPort.getCurrentHouseType();
 
   const getToolbarViewCount =

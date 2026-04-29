@@ -33,7 +33,7 @@ function assertValidSelection(selection: EditorSelection | null): void {
 /**
  * Store serializável do estado de interação do editor.
  *
- * Esta store não substitui ainda o gerenciador legado: ela concentra apenas estado
+ * Esta store não substitui ainda o gerenciador principal: ela concentra apenas estado
  * de editor que pode ser expresso sem Fabric, começando pela seleção pública.
  * O objetivo é permitir migração incremental de UI e bindings para commands.
  */

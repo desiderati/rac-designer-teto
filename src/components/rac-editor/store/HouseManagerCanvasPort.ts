@@ -2,7 +2,7 @@ import type {HousePiloti} from '@/shared/types/house.ts';
 import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 
 /**
- * Porta mínima de canvas exigida pelo coordenador legado da casa.
+ * Porta mínima de canvas exigida pelo coordenador da casa.
  */
 export interface HouseManagerCanvasPort {
   requestRenderAll(): void;

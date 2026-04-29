@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {legacyHouseRuntimePort} from './legacy-house-runtime-adapter.ts';
-import {legacyHouseStatePort} from './legacy-house-state-adapter.ts';
-import {legacyHouseWritePort} from './legacy-house-write-adapter.ts';
+import {houseManagerRuntimePort} from './house-manager-runtime-adapter.ts';
+import {houseManagerStatePort} from './house-manager-state-adapter.ts';
+import {houseManagerWritePort} from './house-manager-write-adapter.ts';
 
 function createCanvasPort() {
   return {
@@ -14,25 +14,25 @@ function createCanvasPort() {
   };
 }
 
-describe('legacy house state/runtime adapters', () => {
+describe('house manager state/runtime adapters', () => {
   beforeEach(() => {
-    legacyHouseWritePort.resetHouse();
+    houseManagerWritePort.resetHouse();
   });
 
   it('inicializa o runtime da casa por porta dedicada', () => {
-    legacyHouseRuntimePort.initializeCanvas(createCanvasPort());
+    houseManagerRuntimePort.initializeCanvas(createCanvasPort());
 
-    expect(legacyHouseStatePort.getSnapshot()).not.toBeNull();
+    expect(houseManagerStatePort.getSnapshot()).not.toBeNull();
   });
 
   it('publica alterações de estado sem expor o singleton à UI', () => {
     const listener = vi.fn();
-    const unsubscribe = legacyHouseStatePort.subscribe(listener);
+    const unsubscribe = houseManagerStatePort.subscribe(listener);
 
-    legacyHouseWritePort.setHouseType('tipo6');
+    houseManagerWritePort.setHouseType('tipo6');
 
     expect(listener).toHaveBeenCalled();
-    expect(legacyHouseStatePort.getSnapshot()?.houseType).toBe('tipo6');
+    expect(houseManagerStatePort.getSnapshot()?.houseType).toBe('tipo6');
     unsubscribe();
   });
 });

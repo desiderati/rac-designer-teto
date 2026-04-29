@@ -2,7 +2,7 @@ import {RefObject} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorDocumentActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -20,6 +20,8 @@ export function useRacEditorDocumentActions({
   resetContraventamentoFlow,
   syncContraventamentoElevations,
 }: UseRacEditorDocumentActionsArgs) {
+  const {houseWritePort} = useEditorPorts();
+
   const {
     handleExportJSON,
     handleImportJSON,
@@ -28,7 +30,7 @@ export function useRacEditorDocumentActions({
     setInfoMessage,
     resetContraventamentoFlow,
     syncContraventamentoElevations,
-    houseWritePort: legacyHouseWritePort,
+    houseWritePort,
   });
 
   const {handleSavePDF} = useRacEditorPdfExportAction({

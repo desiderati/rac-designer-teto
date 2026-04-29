@@ -15,7 +15,6 @@ import {
   faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import type {HousePiloti, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
@@ -25,6 +24,7 @@ import {
 import {parseStairsFromElevationViews, Stairs3DData} from '@/components/rac-editor/lib/3d/stairs-parser.ts';
 import {toast} from 'sonner';
 import {HOUSE_3D_WALL_COLOR_OPTIONS, HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -32,6 +32,7 @@ interface House3DViewerProps {
 }
 
 export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
+  const {houseWritePort} = useEditorPorts();
   const houseSnapshot = useHouseSnapshot();
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [hasHouseViews, setHasHouseViews] = useState(false);
@@ -153,7 +154,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
 
     try {
       const dataUrl = webglCanvas.toDataURL('image/png');
-      const inserted = await legacyHouseWritePort.insert3DSnapshotOnCanvas(dataUrl);
+      const inserted = await houseWritePort.insert3DSnapshotOnCanvas(dataUrl);
       if (inserted) {
         toast.success(TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {
@@ -163,7 +164,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       console.error('[House3DViewer] Failed to capture 3D screenshot:', error);
       toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
     }
-  }, [hasHouseViews, houseType]);
+  }, [hasHouseViews, houseType, houseWritePort]);
 
   // Fixed dialog dimensions
   const dialogClass = isFullscreen

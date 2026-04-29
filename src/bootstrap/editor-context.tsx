@@ -1,6 +1,9 @@
 import {type ReactNode, useRef} from 'react';
 import {
+  createEditorPorts,
   createEditorStore,
+  EditorPorts,
+  EditorPortsContext,
   EditorStoreContext,
 } from '@/bootstrap/editor-bootstrap.ts';
 import type {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
@@ -8,6 +11,7 @@ import type {EditorStore} from '@/components/rac-editor/store/EditorStateStore.t
 interface EditorStoreProviderProps {
   children: ReactNode;
   store?: EditorStore;
+  ports?: EditorPorts;
 }
 
 /**
@@ -17,16 +21,23 @@ interface EditorStoreProviderProps {
  * singleton de módulo. Isso permite testes com stores isolados e prepara a
  * migração de bindings UI/canvas para commands.
  */
-export function EditorStoreProvider({children, store}: EditorStoreProviderProps) {
+export function EditorStoreProvider({children, store, ports}: EditorStoreProviderProps) {
   const storeRef = useRef<EditorStore | null>(null);
+  const portsRef = useRef<EditorPorts | null>(null);
 
   if (!storeRef.current) {
     storeRef.current = store ?? createEditorStore();
   }
 
+  if (!portsRef.current) {
+    portsRef.current = ports ?? createEditorPorts();
+  }
+
   return (
-    <EditorStoreContext.Provider value={storeRef.current}>
-      {children}
-    </EditorStoreContext.Provider>
+    <EditorPortsContext.Provider value={portsRef.current}>
+      <EditorStoreContext.Provider value={storeRef.current}>
+        {children}
+      </EditorStoreContext.Provider>
+    </EditorPortsContext.Provider>
   );
 }

@@ -26,7 +26,6 @@ import {createHouseManagerCanvasPort} from '@/components/rac-editor/ui/canvas/ad
 import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/store/CanvasDocumentPort.ts';
 import type {CanvasDebugPort} from '@/components/rac-editor/store/CanvasDebugPort.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
 import {
@@ -37,6 +36,7 @@ import {createFabricCanvasDocumentPort} from '@/components/rac-editor/ui/canvas/
 import {createFabricCanvasDebugPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-debug-port.ts';
 import {createFabricCanvasCommandPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-command-port.ts';
 import type {FabricCanvasRuntime} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-runtime.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;
@@ -176,6 +176,7 @@ export const Canvas =
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
       const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
+      const {houseWritePort} = useEditorPorts();
 
       const {
         zoom,
@@ -240,7 +241,7 @@ export const Canvas =
         updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
         onHistorySave,
         onSelectionChange,
-        houseWritePort: legacyHouseWritePort,
+        houseWritePort,
       });
 
       const {copy, paste} = useCanvasClipboard({

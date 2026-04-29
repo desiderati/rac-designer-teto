@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import {getSettings} from '@/infra/settings.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorSettingsActionsArgs {
   setShowZoomControls: (show: boolean) => void;
@@ -12,11 +12,13 @@ interface UseRacEditorSettingsActionsArgs {
 export function useRacEditorSettingsActions({
   setShowZoomControls,
 }: UseRacEditorSettingsActionsArgs) {
+  const {houseWritePort} = useEditorPorts();
+
   const handleSettingsChange = useCallback(() => {
     const settings = getSettings();
     setShowZoomControls(settings.zoomEnabledByDefault);
-    legacyHouseWritePort.refreshAutoStairsForCurrentSettings();
-  }, [setShowZoomControls]);
+    houseWritePort.refreshAutoStairsForCurrentSettings();
+  }, [houseWritePort, setShowZoomControls]);
 
   return {handleSettingsChange};
 }

@@ -1,5 +1,6 @@
 import {
   getHouseSideLabel,
+  HOUSE_VIEW_INSERTION_DECISION_TYPES,
   HOUSE_OPPOSITE_SIDE,
   HOUSE_OPPOSITE_VIEW,
   HOUSE_SIDE_MAPPINGS,
@@ -152,4 +153,56 @@ export function getPreAssignedSides(params: {
 
 export function hasPreAssignedSides(preAssignedSides: HousePreAssignedSides): boolean {
   return Object.keys(preAssignedSides).length > 0;
+}
+
+export function calculateStackedViewPositions(params: {
+  centerY: number;
+  topHeight: number;
+  bottomHeight: number;
+  gap: number;
+}) {
+  const totalHeight = params.topHeight + params.gap + params.bottomHeight;
+  return {
+    topY: params.centerY - totalHeight / 2 + params.topHeight / 2,
+    bottomY: params.centerY + totalHeight / 2 - params.bottomHeight / 2,
+  };
+}
+
+export function resolveHouseViewInsertion(params: {
+  viewType: HouseViewType;
+  isAtLimit: boolean;
+  preAssignedSides: HousePreAssignedSideDisplay[];
+  availableSides: HouseSide[];
+}) {
+  if (params.isAtLimit) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit};
+  }
+
+  if (params.viewType === 'top') {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly};
+  }
+
+  if (params.preAssignedSides.length > 0) {
+    const availableSlots =
+      params.preAssignedSides.filter((slot) => !slot.onCanvas);
+    if (!availableSlots.length) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots};
+    }
+
+    if (availableSlots.length === 1) {
+      return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: availableSlots[0].side};
+    }
+
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openInstanceSlotSelector, slots: params.preAssignedSides};
+  }
+
+  if (!params.availableSides.length) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoAvailableSides};
+  }
+
+  if (params.availableSides.length === 1) {
+    return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.addViewDirectly, side: params.availableSides[0]};
+  }
+
+  return {type: HOUSE_VIEW_INSERTION_DECISION_TYPES.openSideSelector};
 }

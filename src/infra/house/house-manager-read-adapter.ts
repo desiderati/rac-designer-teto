@@ -7,7 +7,7 @@ import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts
  * Mantém a UI dependente de uma porta explícita enquanto o estado canônico da
  * casa ainda não foi migrado para uma store/use case sem Fabric.
  */
-export const legacyHouseReadPort: HouseReadPort = {
+export const houseManagerReadPort: HouseReadPort = {
   getCurrentHouseType: () => houseManager.getHouseType(),
 
   getFamilyName: () => houseManager.getFamilyName(),

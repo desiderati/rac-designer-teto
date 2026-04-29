@@ -1,7 +1,5 @@
 import {RefObject, useCallback, useState} from 'react';
-import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
-import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import type {
   CanvasHandle,
@@ -22,6 +20,7 @@ export function useRacEditorTerrainActions({
   editorStore,
   setInfoMessage,
 }: UseRacEditorTerrainActionsArgs) {
+  const {houseReadPort, houseWritePort} = useEditorPorts();
   const [terrainSelection, setTerrainSelection] = useState<TerrainCanvasSelection | null>(null);
   const [isTerrainEditorOpen, setIsTerrainEditorOpen] = useState(false);
 
@@ -33,10 +32,10 @@ export function useRacEditorTerrainActions({
     });
     setTerrainSelection({
       ...selection,
-      terrainType: legacyHouseReadPort.getTerrainType(),
+      terrainType: houseReadPort.getTerrainType(),
     });
     setIsTerrainEditorOpen(true);
-  }, [editorStore]);
+  }, [editorStore, houseReadPort]);
 
   const handleTerrainEditorClose = useCallback(() => {
     setIsTerrainEditorOpen(false);
@@ -45,7 +44,7 @@ export function useRacEditorTerrainActions({
   }, [editorStore]);
 
   const handleTerrainApply = useCallback((terrainType: number) => {
-    const normalized = legacyHouseWritePort.setTerrainType(terrainType);
+    const normalized = houseWritePort.setTerrainType(terrainType);
     canvasRef.current?.saveHistory();
 
     setTerrainSelection(
@@ -53,7 +52,7 @@ export function useRacEditorTerrainActions({
         current ? {...current, terrainType: normalized} : null,
     );
     setInfoMessage(`Terreno atualizado para "${TERRAIN_SOLIDITY.levels[normalized].label}".`);
-  }, [canvasRef, setInfoMessage]);
+  }, [canvasRef, houseWritePort, setInfoMessage]);
 
   return {
     terrainSelection,

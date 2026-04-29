@@ -10,17 +10,13 @@ import {
   HouseViewType,
 } from '@/shared/types/house.ts';
 import {HouseManagerSessionMetadata} from '@/components/rac-editor/lib/house-manager-session.ts';
-import {
-  refreshAutoContraventamento,
-  refreshAutoStairs,
-  refreshTopDoorMarkers,
-} from '@/components/rac-editor/lib/house-manager-auto-effects.ts';
 import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
 import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
+import {HouseManagerEffects} from '@/components/rac-editor/lib/house-manager-effects.ts';
 
 export class HouseManagerFacade {
 
@@ -28,6 +24,10 @@ export class HouseManagerFacade {
   private readonly sessionMetadata = new HouseManagerSessionMetadata();
   private readonly canvasRuntime = new HouseManagerCanvasRuntime();
   private readonly notifier = new HouseManagerNotifier();
+  private readonly effects = new HouseManagerEffects({
+    getHouse: () => this.house,
+    requestCanvasRender: () => this.requestCanvasRender(),
+  });
   private readonly commands = new HouseManagerCommandService({
     getHouse: () => this.house,
     getAggregate: () => this.getHouseAggregate(),
@@ -40,7 +40,7 @@ export class HouseManagerFacade {
     syncProjectSession: () => this.syncProjectSession(),
     requestCanvasRender: () => this.requestCanvasRender(),
     notify: () => this.notify(),
-    refreshAutoContraventamento: () => this.refreshAutoContraventamento(),
+    refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
   });
   private readonly queries = new HouseManagerQueryService({
     getHouse: () => this.house,
@@ -50,8 +50,8 @@ export class HouseManagerFacade {
   });
 
   constructor() {
-    this.notifier.addInternalListener(() => this.refreshTopDoorMarkers());
-    this.notifier.addInternalListener(() => this.refreshAutoStairs());
+    this.notifier.addInternalListener(() => this.effects.refreshTopDoorMarkers());
+    this.notifier.addInternalListener(() => this.effects.refreshAutoStairs());
   }
 
   private get house(): HouseState<CanvasGroup> | null {
@@ -88,29 +88,8 @@ export class HouseManagerFacade {
     this.canvasRuntime.requestRender();
   }
 
-  private refreshTopDoorMarkers(): void {
-    refreshTopDoorMarkers({
-      house: this.house,
-      requestRender: () => this.requestCanvasRender(),
-    });
-  }
-
-  private refreshAutoStairs(): void {
-    refreshAutoStairs({
-      house: this.house,
-      requestRender: () => this.requestCanvasRender(),
-    });
-  }
-
   refreshAutoStairsForCurrentSettings(): void {
-    this.refreshAutoStairs();
-  }
-
-  private refreshAutoContraventamento(): void {
-    refreshAutoContraventamento({
-      house: this.house,
-      requestRender: () => this.requestCanvasRender(),
-    });
+    this.effects.refreshAutoStairs();
   }
 
   subscribe(listener: () => void): () => void {

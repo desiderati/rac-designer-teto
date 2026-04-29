@@ -6,9 +6,9 @@ import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.
  * Adapter transitório de escrita sobre o `houseManager`.
  *
  * Ele preserva o estado canônico atual, mas impede que componentes e hooks de
- * UI dependam diretamente do singleton legado.
+ * UI dependam diretamente do singleton de gerenciamento da casa.
  */
-export const legacyHouseWritePort: HouseWritePort<CanvasGroup> = {
+export const houseManagerWritePort: HouseWritePort<CanvasGroup> = {
   applyFamilySetup: (setup) => {
     houseManager.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
     houseManager.setFamilyName(setup.familyName);

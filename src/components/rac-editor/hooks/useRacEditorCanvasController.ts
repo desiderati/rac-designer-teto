@@ -3,8 +3,7 @@ import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import type {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
-import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {useCanvasActions} from '@/components/rac-editor/hooks/canvas/useCanvasActions.ts';
 import {useRacEditorTerrainActions} from '@/components/rac-editor/hooks/useRacEditorTerrainActions.ts';
 import {useCanvasHouseViewActions} from '@/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts';
@@ -64,6 +63,7 @@ export function useRacEditorCanvasController({
   setNivelDefinitionOpen,
 }: UseRacEditorCanvasControllerArgs) {
   const editorStore = useEditorStore();
+  const {houseWritePort} = useEditorPorts();
 
   const {
     getVisibleCenter,
@@ -76,7 +76,7 @@ export function useRacEditorCanvasController({
     isDrawing,
     setIsDrawing,
     setInfoMessage,
-    houseWritePort: legacyHouseWritePort,
+    houseWritePort,
     clearTutorialBalloon,
     onCloseSubmenus: () => setActiveSubmenu(null),
     onDismissPilotiTutorial: dismissPilotiTutorial,
@@ -112,7 +112,7 @@ export function useRacEditorCanvasController({
     closeAllMenus,
     addObjectToCanvas,
     showPilotiTutorialIfNeeded,
-    houseWritePort: legacyHouseWritePort,
+    houseWritePort,
     pendingViewType,
     setPendingViewType,
     sideSelectorMode,

@@ -1,10 +1,9 @@
-﻿import {useCallback, useRef} from 'react';
+import {useRef} from 'react';
 import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
 import {useHotkeys} from '@/components/rac-editor/hooks/useHotkeys.ts';
 import {useRacEditorModalState} from '@/components/rac-editor/hooks/useRacEditorModalState.ts';
-import {useRacEditorDebugBridge} from '@/components/rac-editor/hooks/useRacEditorDebugBridge.ts';
 import {useRacEditorLocalState} from '@/components/rac-editor/hooks/useRacEditorLocalState.ts';
 import {useRacEditorUiRefs} from '@/components/rac-editor/hooks/useRacEditorUiRefs.ts';
 import {usePilotiActions} from '@/components/rac-editor/hooks/usePilotiActions.ts';
@@ -13,26 +12,24 @@ import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 // alongside the unlock/lock buttons in the side rail.
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutorialFlow.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
-import {useTutorialUiActions} from '@/components/rac-editor/hooks/tutorial/useTutorialUiActions.ts';
 import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
-import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
-import {useRacEditorFamilyActions} from '@/components/rac-editor/hooks/useRacEditorFamilyActions.ts';
 import {useRacEditorHouseReadModel} from '@/components/rac-editor/hooks/useRacEditorHouseReadModel.ts';
-import {useRacEditorSettingsActions} from '@/components/rac-editor/hooks/useRacEditorSettingsActions.ts';
 import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
 import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
 import {useRacEditorToolbarModel} from '@/components/rac-editor/hooks/toolbar/useRacEditorToolbarModel.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useRacEditorCanvasController} from '@/components/rac-editor/hooks/useRacEditorCanvasController.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import {useRacEditorTutorialController} from '@/components/rac-editor/hooks/useRacEditorTutorialController.ts';
+import {useRacEditorShellController} from '@/components/rac-editor/hooks/useRacEditorShellController.ts';
 
 /**
  * Compoe os controladores do RAC editor e devolve o contrato de layout da tela.
  */
 export function useRacEditorController(): RacEditorLayoutProps {
   const isMobile = useIsMobile();
+  const {houseWritePort} = useEditorPorts();
 
   const {
     pendingViewType,
@@ -108,37 +105,20 @@ export function useRacEditorController(): RacEditorLayoutProps {
   const {
     handleFamilySetupConfirm,
     handleRenameFamily,
-  } = useRacEditorFamilyActions({
-    setFamilySetupOpen,
-    setHouseTypeSelectorOpen,
-  });
-
-  const {handleSettingsChange} = useRacEditorSettingsActions({
-    setShowZoomControls,
-  });
-
-  const handleSetCanvasToolMode = useCallback(
-    (mode: CanvasToolMode) => setCanvasToolMode(mode),
-    [setCanvasToolMode],
-  );
-
-  const handleFitToView = useCallback(() => {
-    canvasRef.current?.fitToView();
-  }, []);
-
-  // Stub: "Sair" lives in the avatar dropdown for visual parity with the
-  // Stitch reference, but the app has no auth flow yet. Logging keeps the
-  // hook discoverable until a sign-out destination exists.
-  const handleExit = useCallback(() => {
-    console.info('[RacEditor] exit clicked â€” no sign-out flow wired yet.');
-  }, []);
-
-  useRacEditorDebugBridge({
+    handleSettingsChange,
+    handleSetCanvasToolMode,
+    handleFitToView,
+    handleExit,
+  } = useRacEditorShellController({
     canvasRef,
     showTipsRef,
     showZoomControlsRef,
     setPilotiSelection,
     setIsPilotiEditorOpen,
+    setFamilySetupOpen,
+    setHouseTypeSelectorOpen,
+    setShowZoomControls,
+    setCanvasToolMode,
   });
 
   // â”€â”€ Tutorial â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -149,32 +129,23 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setTutorialHouseSelectorPreview,
     advanceTutorial,
     completeTutorial,
-    restartTutorialProgress
-  } = useTutorialFlow();
-
-  const {
+    restartTutorialProgress,
     handleRestartTutorial,
     confirmRestartTutorial,
     closeRestartConfirm,
     dismissPilotiTutorial,
     handleClosePilotiTutorial,
     showPilotiTutorialIfNeeded,
-  } = useTutorialUiActions({
+  } = useRacEditorTutorialController({
     isMobile,
     canvasRef,
     tutorialPilotiPosition,
     setTutorialPilotiPosition,
-    setShowRestartConfirm,
-    restartTutorialProgress,
-    resetUiAfterRestart: () => {
-      setActiveSubmenu(null);
-      setIsMenuOpen(false);
-      setHouseTypeSelectorOpen(false);
-      setTutorialHouseSelectorPreview(false);
-      setShowRestartConfirm(false);
-    },
     clearTutorialBalloon,
-    houseWritePort: legacyHouseWritePort,
+    setActiveSubmenu,
+    setIsMenuOpen,
+    setHouseTypeSelectorOpen,
+    setShowRestartConfirm,
   });
 
   // â”€â”€ Canvas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -259,7 +230,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     closeAllMenus,
     dismissPilotiTutorial,
     disableDrawingMode,
-    isHouseTypeSelected: () => !!legacyHouseWritePort.getCurrentHouseType(),
+    isHouseTypeSelected: () => !!houseWritePort.getCurrentHouseType(),
   });
 
   const {

@@ -10,13 +10,13 @@ import {PilotiGridIcon} from '@/components/rac-editor/ui/modals/editors/piloti/P
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/ui/modals/ConfirmDialogModal.tsx';
-import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
 import {
   clampNivel,
   formatPilotiHeight,
   getMaxNivelForAvailableHeights,
   getRecommendedHeight,
 } from '@/shared/types/piloti.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 const CORNER_ORDER = ['A1', 'A4', 'C1', 'C4'] as const;
 const DEFAULT_NIVEL = DEFAULT_HOUSE_PILOTI.nivel;
@@ -42,6 +42,7 @@ function cornerToId(name: string): string {
 export function NivelDefinitionEditor(
   {isOpen, onClose, onApply}: NivelDefinitionProps
 ) {
+  const {houseReadPort} = useEditorPorts();
   const isMobile = useIsMobile();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [entries, setEntries] =
@@ -55,7 +56,7 @@ export function NivelDefinitionEditor(
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
-  const selectedHeights = legacyHouseReadPort.getSelectedPilotiHeights();
+  const selectedHeights = houseReadPort.getSelectedPilotiHeights();
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
   const hasNavigatedAllCorners =
     CORNER_ORDER.every(

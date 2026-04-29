@@ -5,7 +5,7 @@
  * concreta do runtime de renderização para hooks de aplicação.
  */
 export interface CanvasDocumentPort {
-  exportProjectJson(): string | null;
   loadProjectJson(rawContent: string): Promise<boolean>;
+  exportProjectJson(): string | null;
   exportImageDataUrl(): string | null;
 }

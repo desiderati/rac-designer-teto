@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import type {FamilySetupResult} from '@/components/rac-editor/ui/modals/editors/FamilySetupModal.tsx';
-import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorFamilyActionsArgs {
   setFamilySetupOpen: (open: boolean) => void;
@@ -14,18 +14,20 @@ export function useRacEditorFamilyActions({
   setFamilySetupOpen,
   setHouseTypeSelectorOpen,
 }: UseRacEditorFamilyActionsArgs) {
+  const {houseWritePort} = useEditorPorts();
+
   const handleFamilySetupConfirm = useCallback((result: FamilySetupResult) => {
-    legacyHouseWritePort.applyFamilySetup({
+    houseWritePort.applyFamilySetup({
       familyName: result.familyName,
       selectedPilotiHeights: result.selectedHeights,
     });
     setFamilySetupOpen(false);
     setHouseTypeSelectorOpen(true);
-  }, [setFamilySetupOpen, setHouseTypeSelectorOpen]);
+  }, [houseWritePort, setFamilySetupOpen, setHouseTypeSelectorOpen]);
 
   const handleRenameFamily = useCallback((newName: string) => {
-    legacyHouseWritePort.renameFamily(newName);
-  }, []);
+    houseWritePort.renameFamily(newName);
+  }, [houseWritePort]);
 
   return {
     handleFamilySetupConfirm,
