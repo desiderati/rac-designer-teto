@@ -121,8 +121,8 @@ export function useContraventamentoCommands({
       showStairsOnTopView: getSettings().showStairsOnTopView,
     });
 
-    topGroup.canvas?.requestRenderAll();
-  }, [getNonTopViewGroups, getTopViewGroup, houseSnapshot]);
+    canvasRef.current?.renderAll();
+  }, [canvasRef, getNonTopViewGroups, getTopViewGroup, houseSnapshot]);
 
   const clearContraventamentoSelection = useCallback((group?: CanvasGroup | null) => {
     if (group) {
