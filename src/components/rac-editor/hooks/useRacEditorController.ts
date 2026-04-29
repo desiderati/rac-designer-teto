@@ -14,10 +14,9 @@ import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
 import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
-import {useRacEditorHouseReadModel} from '@/components/rac-editor/hooks/useRacEditorHouseReadModel.ts';
 import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
 import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
-import {useRacEditorToolbarModel} from '@/components/rac-editor/hooks/toolbar/useRacEditorToolbarModel.ts';
+import {useRacEditorToolbarController} from '@/components/rac-editor/hooks/toolbar/useRacEditorToolbarController.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useRacEditorCanvasController} from '@/components/rac-editor/hooks/useRacEditorCanvasController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
@@ -317,47 +316,47 @@ export function useRacEditorController(): RacEditorLayoutProps {
     backViewCount,
     side1ViewCount,
     side2ViewCount,
-  } = useRacEditorToolbarModel({
-    handleOpenHouseTypeSelector,
-    handleAddHouseView,
-    handleAddWall,
-    handleAddDoor,
-    handleAddStairs,
-    handleAddTree,
-    handleAddWater,
-    handleAddFossa,
-    handleAddLine,
-    handleAddArrow,
-    handleAddDistance,
-    handleToggleDrawMode,
-    handleAddText,
-    handleExportJSON,
-    handleImportJSON,
-    handleDelete,
-    handleSavePDF,
-    handleToggleHouseMenu,
-    handleToggleElementsMenu,
-    handleToggleLinesMenu,
-    handleToggleOverflowMenu,
-    handleToggleTips,
-    handleToggleZoomControls,
-    handleToggleMenu,
-    handleRestartTutorial,
-    handleOpenTutorial: restartTutorialProgress,
-    handleExit,
-    handleRenameFamily,
-    handleSetCanvasToolMode,
-    handleFitToView,
-    setIs3DViewerOpen,
-    setActiveSubmenu,
-    setIsSettingsOpen,
-  });
-
-  const {
     currentFamilyName,
     selectedPilotiHeights,
     terrainPilotis,
-  } = useRacEditorHouseReadModel(houseVersion);
+  } = useRacEditorToolbarController({
+    houseVersion,
+    actions: {
+      handleOpenHouseTypeSelector,
+      handleAddHouseView,
+      handleAddWall,
+      handleAddDoor,
+      handleAddStairs,
+      handleAddTree,
+      handleAddWater,
+      handleAddFossa,
+      handleAddLine,
+      handleAddArrow,
+      handleAddDistance,
+      handleToggleDrawMode,
+      handleAddText,
+      handleExportJSON,
+      handleImportJSON,
+      handleDelete,
+      handleSavePDF,
+      handleToggleHouseMenu,
+      handleToggleElementsMenu,
+      handleToggleLinesMenu,
+      handleToggleOverflowMenu,
+      handleToggleTips,
+      handleToggleZoomControls,
+      handleToggleMenu,
+      handleRestartTutorial,
+      handleOpenTutorial: restartTutorialProgress,
+      handleExit,
+      handleRenameFamily,
+      handleSetCanvasToolMode,
+      handleFitToView,
+      setIs3DViewerOpen,
+      setActiveSubmenu,
+      setIsSettingsOpen,
+    },
+  });
 
   return {
       root: {

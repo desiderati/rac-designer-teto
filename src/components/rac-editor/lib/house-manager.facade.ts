@@ -9,7 +9,6 @@ import {
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import {HouseManagerSessionMetadata} from '@/components/rac-editor/lib/house-manager-session.ts';
 import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
@@ -17,13 +16,20 @@ import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-no
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
 import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
 import {HouseManagerEffects} from '@/components/rac-editor/lib/house-manager-effects.ts';
+import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 
 export class HouseManagerFacade {
 
   private readonly state = new HouseManagerState<CanvasGroup>();
-  private readonly sessionMetadata = new HouseManagerSessionMetadata();
   private readonly canvasRuntime = new HouseManagerCanvasRuntime();
   private readonly notifier = new HouseManagerNotifier();
+  private readonly session = new HouseManagerSessionService({
+    getAggregate: () => this.getHouseAggregate(),
+    getHouseType: () => this.getHouseType(),
+    getTerrainType: () => this.getTerrainType(),
+    persistHouse: () => this.persistHouse(),
+    notify: () => this.notify(),
+  });
   private readonly effects = new HouseManagerEffects({
     getHouse: () => this.house,
     requestCanvasRender: () => this.requestCanvasRender(),
@@ -33,11 +39,11 @@ export class HouseManagerFacade {
     getAggregate: () => this.getHouseAggregate(),
     getDefaultTerrainType: () => this.getDefaultTerrainType(),
     getTerrainType: () => this.getTerrainType(),
-    getSelectedPilotiHeights: () => this.sessionMetadata.getSelectedPilotiHeights(),
+    getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
     getAllGroups: () => this.getAllGroups(),
     createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
     persistHouse: () => this.persistHouse(),
-    syncProjectSession: () => this.syncProjectSession(),
+    syncProjectSession: () => this.session.syncProjectSession(),
     requestCanvasRender: () => this.requestCanvasRender(),
     notify: () => this.notify(),
     refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
@@ -66,20 +72,6 @@ export class HouseManagerFacade {
     this.state.persist();
   }
 
-  private hydrateEditorMetadataFromProjectSession(): void {
-    this.sessionMetadata.hydrateFromProjectSession({
-      aggregate: this.getHouseAggregate(),
-      persistHouse: () => this.persistHouse(),
-    });
-  }
-
-  private syncProjectSession(): void {
-    this.sessionMetadata.syncProjectSession({
-      houseType: this.getHouseType(),
-      terrainType: this.getTerrainType(),
-    });
-  }
-
   private notify(): void {
     this.notifier.notify();
   }
@@ -103,28 +95,24 @@ export class HouseManagerFacade {
 
   reset(): void {
     this.state.reset();
-    this.sessionMetadata.reset();
-    this.hydrateEditorMetadataFromProjectSession();
+    this.session.reset();
     this.notify();
   }
 
   getFamilyName(): string {
-    return this.sessionMetadata.getFamilyName();
+    return this.session.getFamilyName();
   }
 
   setFamilyName(name: string): void {
-    this.sessionMetadata.setFamilyName(name);
-    this.syncProjectSession();
-    this.notify();
+    this.session.setFamilyName(name);
   }
 
   getSelectedPilotiHeights(): readonly number[] {
-    return this.sessionMetadata.getSelectedPilotiHeights();
+    return this.session.getSelectedPilotiHeights();
   }
 
   setSelectedPilotiHeights(heights: number[]): void {
-    this.sessionMetadata.setSelectedPilotiHeights(heights);
-    this.syncProjectSession();
+    this.session.setSelectedPilotiHeights(heights);
   }
 
   // Get/Set house type
