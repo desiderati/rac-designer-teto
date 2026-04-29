@@ -1,9 +1,6 @@
 import {RefObject, useCallback} from 'react';
 import type {CanvasHandle, WallCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {isCanvasGroup} from '@/components/rac-editor/lib/canvas';
-import {
-  getGenericObjectEditorStrategy
-} from '@/components/rac-editor/ui/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 interface UseWallEditorActionsArgs {
@@ -22,20 +19,18 @@ export function useWallEditorActions({
     newValue: string,
     newColor: string
   ) => {
-    const canvas = canvasRef.current?.canvas;
     const object = wallSelection?.object;
-    if (!canvas || !object) return;
+    if (!object) return;
 
-    const strategy = getGenericObjectEditorStrategy('wall');
-    strategy.apply({
-      canvas,
+    const infoMessage = canvasRef.current?.applyGenericObjectEdit({
+      kind: 'wall',
       object,
       color: newColor,
       label: newValue,
     });
+    if (!infoMessage) return;
 
-    canvasRef.current?.saveHistory();
-    setInfoMessage(strategy.getInfoMessage());
+    setInfoMessage(infoMessage);
     return;
   }, [canvasRef, wallSelection, setInfoMessage]);
 

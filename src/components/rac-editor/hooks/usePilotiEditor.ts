@@ -1,9 +1,9 @@
 import {useEffect, useMemo, useState} from 'react';
-import {CanvasGroup, getPilotiFromGroup, getPilotiIdsFromGroup,} from '@/components/rac-editor/lib/canvas';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
+import {legacyPilotiEditorPort} from '@/infra/house/house-manager-piloti-editor-adapter.ts';
+import type {PilotiEditorPort} from '@/components/rac-editor/store/PilotiEditorPort.ts';
 import {
   clampNivelByHeight,
   getAllPilotiIds,
@@ -19,9 +19,10 @@ interface UsePilotiEditorArgs {
   currentHeight: number;
   currentIsMaster: boolean;
   currentNivel: number;
-  group: CanvasGroup | null;
+  pilotiIds: readonly string[];
   onHeightChange: (newHeight: number) => void;
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
+  pilotiPort?: PilotiEditorPort;
 }
 
 export function usePilotiEditor({
@@ -31,9 +32,10 @@ export function usePilotiEditor({
   currentHeight,
   currentIsMaster,
   currentNivel,
-  group,
+  pilotiIds,
   onHeightChange,
   onNavigate,
+  pilotiPort = legacyPilotiEditorPort,
 }: UsePilotiEditorArgs) {
 
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
@@ -43,11 +45,11 @@ export function usePilotiEditor({
 
 
   const allIds = useMemo(() => {
-    if (group) return getPilotiIdsFromGroup(group);
+    if (pilotiIds.length > 0) return [...pilotiIds];
     return getAllPilotiIds();
-  }, [group]);
+  }, [pilotiIds]);
 
-  const selectedHeights = houseManager.getSelectedPilotiHeights();
+  const selectedHeights = pilotiPort.getSelectedPilotiHeights();
   const maxNivel = getMaxNivelForAvailableHeights(selectedHeights);
 
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
@@ -57,16 +59,14 @@ export function usePilotiEditor({
   const isCornerPiloti = pilotiId ? PILOTI_CORNER_IDS.includes(pilotiId) : false;
 
   const masterPilotiName = useMemo(() => {
-    if (!group) return undefined;
-
     for (const id of allIds) {
-      const data = getPilotiFromGroup(group, id);
+      const data = pilotiPort.getPilotiData(id);
       if (data?.isMaster) return getPilotiName(id);
     }
 
     if (tempIsMaster && pilotiId) return getPilotiName(pilotiId);
     return undefined;
-  }, [group, allIds, tempIsMaster, pilotiId]);
+  }, [allIds, pilotiPort, tempIsMaster, pilotiId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -97,8 +97,7 @@ export function usePilotiEditor({
 
     commitDraftChanges();
 
-    if (!group) return;
-    const pilotiData = getPilotiFromGroup(group, newId);
+    const pilotiData = pilotiPort.getPilotiData(newId);
     if (pilotiData && onNavigate) {
       onNavigate(newId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
       setTempHeight(pilotiData.height);
@@ -133,13 +132,11 @@ export function usePilotiEditor({
     setTempHeight(recommendedHeight);
     setTempNivel(value);
 
-    houseManager.updatePiloti(pilotiId, {
+    const updatedPiloti = pilotiPort.updatePiloti(pilotiId, {
       height: recommendedHeight,
       isMaster: tempIsMaster,
       nivel: value,
     });
-
-    const updatedPiloti = houseManager.getPilotiData(pilotiId);
     onHeightChange(updatedPiloti.height);
     onNavigate?.(pilotiId, updatedPiloti.height, updatedPiloti.isMaster, updatedPiloti.nivel);
   };
@@ -160,13 +157,11 @@ export function usePilotiEditor({
     setTempNivel(nivelToApply);
 
     if (pilotiId) {
-      houseManager.updatePiloti(pilotiId, {
+      const updatedPiloti = pilotiPort.updatePiloti(pilotiId, {
         height: h,
         isMaster: tempIsMaster,
         nivel: nivelToApply,
       });
-
-      const updatedPiloti = houseManager.getPilotiData(pilotiId);
       onHeightChange(updatedPiloti.height);
       onNavigate?.(
         pilotiId,
@@ -185,8 +180,8 @@ export function usePilotiEditor({
       setTimeout(() => {
         setClickedHeight(null);
 
-        if (nextId && group) {
-          const pilotiData = getPilotiFromGroup(group, nextId);
+        if (nextId) {
+          const pilotiData = pilotiPort.getPilotiData(nextId);
           if (pilotiData && onNavigate) {
             onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
             setTempHeight(pilotiData.height);
@@ -238,14 +233,12 @@ export function usePilotiEditor({
         || nivelToApply !== currentNivel;
       if (!hasChanges) return false;
 
-      houseManager.updatePiloti(pilotiId, {
-        height: tempHeight,
-        isMaster: resolvedIsMaster,
-        nivel: nivelToApply,
-      });
-
-      const updatedPiloti = houseManager.getPilotiData(pilotiId);
-      onHeightChange(updatedPiloti.height);
+    const updatedPiloti = pilotiPort.updatePiloti(pilotiId, {
+      height: tempHeight,
+      isMaster: resolvedIsMaster,
+      nivel: nivelToApply,
+    });
+    onHeightChange(updatedPiloti.height);
       onNavigate?.(
         pilotiId,
         updatedPiloti.height,

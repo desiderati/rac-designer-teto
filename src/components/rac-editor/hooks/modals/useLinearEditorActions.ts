@@ -1,8 +1,8 @@
 import {RefObject, useCallback} from 'react';
 import type {CanvasHandle, LinearCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {
-  getGenericObjectEditorStrategy
-} from '@/components/rac-editor/ui/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
+  GenericObjectEditorType
+} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
 
 export type LinearEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
@@ -20,20 +20,18 @@ export function useLinearEditorActions({
 
   const handleLinearApply =
     useCallback((newValue: string, newColor: string) => {
-      const canvas = canvasRef.current?.canvas;
       const object = linearSelection?.object;
-      if (!canvas || !object) return;
+      if (!object) return;
 
-      const strategy = getGenericObjectEditorStrategy(linearSelection.myType);
-      strategy.apply({
-        canvas,
+      const infoMessage = canvasRef.current?.applyGenericObjectEdit({
+        kind: linearSelection.myType as GenericObjectEditorType,
         object,
         color: newColor,
         label: newValue,
       });
+      if (!infoMessage) return;
 
-      canvasRef.current?.saveHistory();
-      setInfoMessage(strategy.getInfoMessage());
+      setInfoMessage(infoMessage);
     }, [canvasRef, linearSelection, setInfoMessage]);
 
   return {

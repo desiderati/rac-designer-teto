@@ -1,7 +1,12 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CanvasGroup, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {CanvasGroup, CanvasObject, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
+import type {
+  EditorLinearSelection,
+  EditorTerrainSelection,
+  EditorWallSelection,
+} from '@/components/rac-editor/canvas/types.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/hooks/canvas/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
@@ -14,7 +19,17 @@ import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/us
 import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {CANVAS_STYLE} from '@/shared/config.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
+import {
+  applyPilotiEditorCloseVisuals,
+  applyPilotiSelectionVisuals
+} from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
+import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
+import {
+  GenericObjectEditorType,
+  getGenericObjectEditorStrategy
+} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;
@@ -23,6 +38,7 @@ export interface ContraventamentoCanvasSelection {
 
 export interface WallCanvasSelection {
   object: CanvasGroup;
+  editorSelection: EditorWallSelection;
   currentLabel: string;
   screenPosition: { x: number; y: number };
 }
@@ -31,6 +47,7 @@ export type LinearCanvasSelectionType = 'line' | 'arrow' | 'distance';
 
 export interface LinearCanvasSelection {
   object: CanvasGroup;
+  editorSelection: EditorLinearSelection;
   myType: LinearCanvasSelectionType;
   currentLabel: string;
   currentColor: string;
@@ -39,6 +56,7 @@ export interface LinearCanvasSelection {
 
 export interface TerrainCanvasSelection {
   group: CanvasGroup;
+  editorSelection: EditorTerrainSelection;
   terrainType: number;
   screenPosition: { x: number; y: number };
 }
@@ -83,6 +101,22 @@ export interface CanvasHandle {
   undo: () => void;
   copy: () => void;
   paste: () => void;
+  resetSurface: () => void;
+  renderAll: () => void;
+  getActiveObjectCount: () => number;
+  getCanvasPointScreenPosition: (point: { x: number; y: number }) => { x: number; y: number } | null;
+  getGroupLocalPointScreenPosition: (
+    group: CanvasGroup,
+    localCanvasPoint: { x: number; y: number },
+  ) => { x: number; y: number } | null;
+  applyGenericObjectEdit: (payload: {
+    kind: GenericObjectEditorType;
+    object: CanvasObject;
+    color: string;
+    label: string;
+  }) => string | null;
+  applyPilotiEditorCloseVisuals: (group: CanvasGroup | null | undefined) => void;
+  applyPilotiSelectionVisuals: (pilotiId: string) => void;
   getVisibleCenter: () => { x: number; y: number };
   getCanvasPosition: () => { x: number; y: number; zoom: number };
   setCanvasPosition: (x: number, y: number) => void;
@@ -214,13 +248,68 @@ export const Canvas =
         undo,
         copy,
         paste,
+        resetSurface: () => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return;
+
+          canvas.clear();
+          canvas.backgroundColor = CANVAS_STYLE.backgroundColor;
+          canvas.renderAll();
+          clearHistory();
+          saveHistory();
+        },
+        renderAll: () => {
+          fabricCanvasRef.current?.renderAll();
+        },
+        getActiveObjectCount: () => fabricCanvasRef.current?.getActiveObjects().length ?? 0,
+        getCanvasPointScreenPosition: (point) => getCurrentScreenPoint(point),
+        getGroupLocalPointScreenPosition: (group, localCanvasPoint) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return null;
+
+          const container = canvas.getElement().parentElement;
+          if (!container) return null;
+
+          return projectCanvasPointToScreenPoint({
+            groupMatrix: group.calcTransformMatrix(),
+            localCanvasPoint,
+            canvasContainer: container.getBoundingClientRect(),
+            viewportTransform: canvas.viewportTransform ?? undefined,
+          });
+        },
+        applyGenericObjectEdit: ({kind, object, color, label}) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return null;
+
+          const strategy = getGenericObjectEditorStrategy(kind);
+          strategy.apply({canvas, object, color, label});
+          saveHistory();
+          return strategy.getInfoMessage();
+        },
+        applyPilotiEditorCloseVisuals: (group) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas || !group) return;
+
+          applyPilotiEditorCloseVisuals({
+            groupObjects: group.getCanvasObjects(),
+            houseStillSelected: canvas.getActiveObject() === group,
+          });
+          canvas.renderAll();
+        },
+        applyPilotiSelectionVisuals: (pilotiId) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return;
+
+          applyPilotiSelectionVisuals(canvas.getObjects(), pilotiId);
+          canvas.renderAll();
+        },
         getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
         setCanvasPosition: (x: number, y: number) => {
           handleViewportChange(x, y);
         },
         getVisibleCenter,
         fitToView,
-      }), [clearHistory, copy, fitToView, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+      }), [clearHistory, copy, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
 
       // Surface zoom changes back to the parent so the top-bar zoom indicator
       // can stay in sync with wheel/pinch interactions.

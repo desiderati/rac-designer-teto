@@ -40,6 +40,9 @@ técnicas e não técnicas.
     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 
+5. `architecture-decisions/`
+    - Registros de decisão arquitetural durável, usando o padrão `ADR-NNN-{slug}.md`.
+
 ## Princípios deste diretório
 
 1. Linguagem clara e orientada a comportamento de produto.

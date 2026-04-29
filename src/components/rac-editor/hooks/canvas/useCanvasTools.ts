@@ -1,11 +1,9 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {toCanvasScreenPoint} from '@/components/rac-editor/lib/canvas/canvas-screen-position.ts';
 import {CanvasObject, getElementStrategy,} from '@/components/rac-editor/lib/canvas';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseCanvasToolsArgs {
@@ -40,22 +38,9 @@ export function useCanvasTools({
 
   const showTutorialBalloon =
     useCallback((object: CanvasObject, text: string) => {
+      const point = canvasRef.current?.getCanvasPointScreenPosition(object.getCenterPoint());
+      if (!point) return;
 
-      const canvas = canvasRef.current?.canvas;
-      if (!canvas) return;
-
-      const canvasPosition = canvasRef.current?.getCanvasPosition();
-      const container = canvas.getElement().parentElement?.parentElement;
-      if (!container || !canvasPosition) return;
-
-      const center = object.getCenterPoint();
-      const point = toCanvasScreenPoint({
-        canvasPosition,
-        containerRect: container.getBoundingClientRect(),
-        canvasWidth: CANVAS_WIDTH,
-        canvasHeight: CANVAS_HEIGHT,
-        point: {x: center.x, y: center.y},
-      });
       setTutorialBalloon({position: point, text});
     }, [canvasRef, setTutorialBalloon]);
 

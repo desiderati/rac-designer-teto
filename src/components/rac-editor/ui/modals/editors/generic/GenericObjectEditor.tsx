@@ -7,7 +7,7 @@ import {GenericObjectEditorIcon} from './GenericObjectEditorIcon.tsx';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
 import {
   GenericObjectEditorType
-} from '@/components/rac-editor/ui/modals/editors/generic/strategies/generic-object-editor-strategy.ts';
+} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
 import {useGenericObjectEditorDraft} from '@/components/rac-editor/hooks/modals/useGenericObjectEditorDraft.ts';
 

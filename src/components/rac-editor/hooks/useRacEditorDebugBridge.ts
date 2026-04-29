@@ -4,6 +4,7 @@ import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canva
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
 interface UseRacEditorDebugBridgeParams {
   canvasRef: MutableRefObject<CanvasHandle | null>;
@@ -84,6 +85,13 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
           currentHeight: pilotiData.height,
           currentIsMaster: pilotiData.isMaster,
           currentNivel: pilotiData.nivel,
+          editorSelection: {
+            type: 'piloti',
+            pilotiId,
+            houseView: 'top',
+            screenPosition,
+          },
+          pilotiIds: getAllPilotiIds(),
           group: topGroup,
           screenPosition,
           houseView: 'top',

@@ -30,6 +30,7 @@ interface RacEditorModalEditorsProps {
 
   isPilotiEditorOpen: boolean;
   pilotiSelection: PilotiCanvasSelection | null;
+  selectedPilotiHeights: readonly number[];
   onPilotiEditorClose: () => void;
   onPilotiHeightChange: (newHeight: number) => void;
   onPilotiNavigate: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
@@ -71,6 +72,7 @@ export function RacEditorModalEditors({
 
   isPilotiEditorOpen,
   pilotiSelection,
+  selectedPilotiHeights,
   onPilotiEditorClose,
   onPilotiHeightChange,
   onPilotiNavigate,
@@ -111,7 +113,8 @@ export function RacEditorModalEditors({
 
       <PilotiEditor
         pilotiId={pilotiSelection?.pilotiId ?? null}
-        group={pilotiSelection?.group ?? null}
+        pilotiIds={pilotiSelection?.pilotiIds ?? []}
+        selectedPilotiHeights={selectedPilotiHeights}
         houseView={pilotiSelection?.houseView ?? 'top'}
         anchorPosition={pilotiSelection?.screenPosition}
 

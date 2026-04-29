@@ -8,8 +8,6 @@ import {PilotiGridIcon} from './PilotiGridIcon.tsx';
 import {ContraventamentoSideIcon} from '@/components/rac-editor/ui/modals/editors/piloti/ContraventamentoSideIcon.tsx';
 import {usePilotiEditor} from '../../../../hooks/usePilotiEditor.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/ui/modals/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
@@ -23,7 +21,8 @@ interface PilotiEditorProps {
   currentHeight: number;
   currentIsMaster?: boolean;
   currentNivel?: number;
-  group: CanvasGroup | null;
+  pilotiIds: readonly string[];
+  selectedPilotiHeights: readonly number[];
   isMobile: boolean;
   anchorPosition?: { x: number; y: number; };
   houseView?: 'top' | 'front' | 'back' | 'side';
@@ -43,7 +42,8 @@ export function PilotiEditor({
   currentHeight,
   currentIsMaster = false,
   currentNivel = PILOTI_DEFAULT_NIVEL,
-  group,
+  pilotiIds,
+  selectedPilotiHeights,
   isMobile,
   anchorPosition,
   onHeightChange,
@@ -83,7 +83,7 @@ export function PilotiEditor({
     currentHeight,
     currentIsMaster,
     currentNivel,
-    group,
+    pilotiIds,
     onHeightChange,
     onNavigate,
   });
@@ -165,7 +165,7 @@ export function PilotiEditor({
           <div className='space-y-4'>
             <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
             <div className='grid grid-cols-3 justify-items-center gap-3 max-w-[240px] mx-auto'>
-              {houseManager.getSelectedPilotiHeights().map((h) =>
+              {selectedPilotiHeights.map((h) =>
                 <button
                   key={h}
                   onClick={() => handleHeightClick(h)}

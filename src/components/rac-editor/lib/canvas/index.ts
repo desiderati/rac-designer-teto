@@ -5,6 +5,7 @@ export * from './canvas-screen-position.ts';
 export * from './contraventamento.ts';
 export * from './factory/elements';
 export * from './factory/house';
+export * from './generic-object-editor-strategy.ts';
 export * from './hints.ts';
 export * from './piloti.ts';
 export * from './piloti-screen-position.ts';

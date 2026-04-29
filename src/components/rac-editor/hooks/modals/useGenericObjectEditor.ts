@@ -1,7 +1,9 @@
 import {useState} from 'react';
 import type {LinearCanvasSelection, WallCanvasSelection,} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 
 export function useGenericObjectEditor() {
+  const editorStore = useEditorStore();
 
   const [wallSelection, setWallSelection] =
     useState<WallCanvasSelection | null>(null);
@@ -18,6 +20,10 @@ export function useGenericObjectEditor() {
   const handleWallSelect = (
     selection: WallCanvasSelection | null
   ) => {
+    editorStore.dispatch({
+      type: 'SELECT_EDITOR_TARGET',
+      selection: selection?.editorSelection ?? null,
+    });
     if (selection) {
       setWallSelection(selection);
       setIsWallEditorOpen(true);
@@ -27,11 +33,16 @@ export function useGenericObjectEditor() {
   const closeWallEditor = () => {
     setIsWallEditorOpen(false);
     setWallSelection(null);
+    editorStore.dispatch({type: 'CLEAR_EDITOR_SELECTION'});
   };
 
   const handleLinearSelect = (
     selection: LinearCanvasSelection | null
   ) => {
+    editorStore.dispatch({
+      type: 'SELECT_EDITOR_TARGET',
+      selection: selection?.editorSelection ?? null,
+    });
     if (selection) {
       setLinearSelection(selection);
       setIsLinearEditorOpen(true);
@@ -41,6 +52,7 @@ export function useGenericObjectEditor() {
   const closeLinearEditor = () => {
     setIsLinearEditorOpen(false);
     setLinearSelection(null);
+    editorStore.dispatch({type: 'CLEAR_EDITOR_SELECTION'});
   };
 
   return {

@@ -1,14 +1,14 @@
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
+import type {HouseReadPort} from '@/components/rac-editor/store/HouseReadPort.ts';
 import type {HouseViewType} from '@/shared/types/house.ts';
 
-export function useToolbarHouseViewCounts() {
-  const currentHouseType = houseManager.getHouseType();
+export function useToolbarHouseViewCounts(
+  houseReadPort: HouseReadPort = legacyHouseReadPort,
+) {
+  const currentHouseType = houseReadPort.getCurrentHouseType();
 
   const getToolbarViewCount =
-    (viewType: HouseViewType) => ({
-      current: houseManager.getHouseViewCount(viewType),
-      max: houseManager.getMaxHouseViewCount(viewType),
-    });
+    (viewType: HouseViewType) => houseReadPort.getViewCount(viewType);
 
   const frontViewCount = getToolbarViewCount('front');
   const backViewCount = getToolbarViewCount('back');

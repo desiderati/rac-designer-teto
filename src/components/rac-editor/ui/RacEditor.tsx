@@ -40,14 +40,18 @@ import {RacEditorTutorial} from '@/components/rac-editor/ui/RacEditorTutorial.ts
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/ui/canvas/workspace-style.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
+import {EditorStoreProvider} from '@/bootstrap/editor-context.tsx';
+import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
   const module = await import('@/components/rac-editor/ui/3d/House3DViewer.tsx');
   return {default: module.House3DViewer};
 });
 
-export function RacEditor() {
+function RacEditorContent() {
   const isMobile = useIsMobile();
+  const editorStore = useEditorStore();
 
   const {
     pendingViewType,
@@ -215,17 +219,22 @@ export function RacEditor() {
 
   const handleTerrainSelect = useCallback((selection: TerrainCanvasSelection | null) => {
     if (!selection) return;
+    editorStore.dispatch({
+      type: 'SELECT_EDITOR_TARGET',
+      selection: selection.editorSelection,
+    });
     setTerrainSelection({
       ...selection,
       terrainType: houseManager.getTerrainType(),
     });
     setIsTerrainEditorOpen(true);
-  }, []);
+  }, [editorStore]);
 
   const handleTerrainEditorClose = useCallback(() => {
     setIsTerrainEditorOpen(false);
     setTerrainSelection(null);
-  }, []);
+    editorStore.dispatch({type: 'CLEAR_EDITOR_SELECTION'});
+  }, [editorStore]);
 
   const handleTerrainApply = useCallback((terrainType: number) => {
     const normalized = houseManager.setTerrainType(terrainType);
@@ -500,7 +509,7 @@ export function RacEditor() {
   // stays in sync without having to wire a dedicated subscription.
   const currentFamilyName = (() => {
     void houseVersion;
-    return houseManager.getFamilyName();
+    return legacyHouseReadPort.getFamilyName();
   })();
 
   const contraventamentoEditorState = getContraventamentoEditorState();
@@ -574,6 +583,7 @@ export function RacEditor() {
         isMobile={isMobile}
         isPilotiEditorOpen={isPilotiEditorOpen}
         pilotiSelection={pilotiSelection}
+        selectedPilotiHeights={legacyHouseReadPort.getSelectedPilotiHeights()}
         onPilotiEditorClose={handlePilotiEditorClose}
         onPilotiHeightChange={handlePilotiHeightChange}
         onPilotiNavigate={handlePilotiNavigate}
@@ -594,7 +604,7 @@ export function RacEditor() {
         isLinearEditorOpen={isLinearEditorOpen}
 
         terrainSelection={terrainSelection}
-        terrainPilotis={houseManager.getHouse()?.pilotis}
+        terrainPilotis={legacyHouseReadPort.getPilotis()}
         isTerrainEditorOpen={isTerrainEditorOpen}
         onTerrainEditorClose={handleTerrainEditorClose}
         onTerrainApply={handleTerrainApply}
@@ -640,5 +650,13 @@ export function RacEditor() {
       ) : null}
 
     </div>
+  );
+}
+
+export function RacEditor() {
+  return (
+    <EditorStoreProvider>
+      <RacEditorContent/>
+    </EditorStoreProvider>
   );
 }

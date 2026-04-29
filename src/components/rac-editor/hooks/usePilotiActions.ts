@@ -1,11 +1,8 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {
-  applyPilotiEditorCloseVisuals,
-  applyPilotiSelectionVisuals
-} from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
+import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UsePilotiActionsArgs {
   isContraventamentoMode: boolean;
@@ -30,11 +27,16 @@ export function usePilotiActions({
   syncContraventamentoElevations,
   setInfoMessage,
 }: UsePilotiActionsArgs) {
+  const editorStore = useEditorStore();
 
   const handlePilotiSelect =
     useCallback((selection: PilotiCanvasSelection | null) => {
       if (isContraventamentoMode) return;
 
+      editorStore.dispatch({
+        type: 'SELECT_EDITOR_TARGET',
+        selection: selection?.editorSelection ?? null,
+      });
       setPilotiSelection(selection);
       if (selection) {
         setIsPilotiEditorOpen(true);
@@ -45,6 +47,7 @@ export function usePilotiActions({
     }, [
       closePilotiTutorial,
       hasPilotiTutorial,
+      editorStore,
       isContraventamentoMode,
       setIsPilotiEditorOpen,
       setPilotiSelection,
@@ -52,24 +55,15 @@ export function usePilotiActions({
 
   const handlePilotiEditorClose = useCallback(() => {
     setIsPilotiEditorOpen(false);
-    const canvas = canvasRef.current?.canvas;
-    const group = pilotiSelection?.group;
-    if (group && canvas) {
-      const activeObject = canvas.getActiveObject();
-      const houseStillSelected = activeObject === group;
-      applyPilotiEditorCloseVisuals({
-        groupObjects: group.getCanvasObjects(),
-        houseStillSelected,
-      });
-      canvas.renderAll();
-    }
+    canvasRef.current?.applyPilotiEditorCloseVisuals(pilotiSelection?.group);
     setPilotiSelection(null);
-  }, [canvasRef, pilotiSelection, setIsPilotiEditorOpen, setPilotiSelection]);
+    editorStore.dispatch({type: 'CLEAR_EDITOR_SELECTION'});
+  }, [canvasRef, editorStore, pilotiSelection, setIsPilotiEditorOpen, setPilotiSelection]);
 
   const handlePilotiHeightChange = useCallback((newHeight: number) => {
     syncContraventamentoElevations();
     canvasRef.current?.saveHistory();
-    canvasRef.current?.canvas?.renderAll();
+    canvasRef.current?.renderAll();
     setInfoMessage(`Altura do piloti atualizada para ${formatPilotiHeight(newHeight)} m.`);
   }, [canvasRef, setInfoMessage, syncContraventamentoElevations]);
 
@@ -81,12 +75,7 @@ export function usePilotiActions({
   ) => {
     if (!pilotiSelection?.group) return;
 
-    const canvas = canvasRef.current?.canvas;
-    if (!canvas) return;
-
-    const canvasObjects = canvas.getObjects();
-    applyPilotiSelectionVisuals(canvasObjects, pilotiId);
-    canvas.renderAll();
+    canvasRef.current?.applyPilotiSelectionVisuals(pilotiId);
 
     setPilotiSelection((previous) => previous ? {
       ...previous,
@@ -94,11 +83,24 @@ export function usePilotiActions({
       currentHeight: height,
       currentIsMaster: isMaster,
       currentNivel: nivel,
+      editorSelection: {
+        ...previous.editorSelection,
+        pilotiId,
+      },
     } : null);
+    if (pilotiSelection.editorSelection) {
+      editorStore.dispatch({
+        type: 'SELECT_EDITOR_TARGET',
+        selection: {
+          ...pilotiSelection.editorSelection,
+          pilotiId,
+        },
+      });
+    }
 
     syncContraventamentoElevations();
     setInfoMessage(`Piloti selecionado – Altura atual: ${formatPilotiHeight(height)} m.`);
-  }, [canvasRef, pilotiSelection?.group, setInfoMessage, setPilotiSelection, syncContraventamentoElevations]);
+  }, [canvasRef, editorStore, pilotiSelection, setInfoMessage, setPilotiSelection, syncContraventamentoElevations]);
 
   return {
     handlePilotiSelect,

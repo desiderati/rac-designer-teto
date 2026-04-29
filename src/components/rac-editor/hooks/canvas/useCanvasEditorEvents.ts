@@ -5,6 +5,7 @@ import {
   CanvasGroup,
   CanvasObject,
   CanvasPointerPayload,
+  ensureCanvasObjectId,
   isCanvasGroup,
   toCanvasGroup,
 } from '@/components/rac-editor/lib/canvas/canvas.ts';
@@ -56,6 +57,12 @@ export function useCanvasEditorEvents() {
 
       onWallSelect({
         object: wallObject,
+        editorSelection: {
+          type: 'wall',
+          objectId: ensureCanvasObjectId(wallObject),
+          currentLabel,
+          screenPosition: screenPoint,
+        },
         currentLabel: currentLabel,
         screenPosition: screenPoint,
       });
@@ -75,6 +82,14 @@ export function useCanvasEditorEvents() {
 
       onLinearSelect({
         object: linearObject,
+        editorSelection: {
+          type: 'linear',
+          objectId: ensureCanvasObjectId(linearObject),
+          linearType: myType,
+          currentColor,
+          currentLabel,
+          screenPosition: screenPoint,
+        },
         myType,
         currentColor,
         currentLabel,
@@ -124,12 +139,19 @@ export function useCanvasEditorEvents() {
         subTargets.find(object => object?.isTerrainEditTarget);
 
       if (isCanvasGroup(terrainSubTarget?.group)) {
+        const terrainGroup = toCanvasGroup(terrainSubTarget.group);
         const pointer = canvas.getPointer(payload.e);
         const screenPoint = getCurrentScreenPoint({x: pointer.x, y: pointer.y});
-        if (!screenPoint) return false;
+        if (!terrainGroup || !screenPoint) return false;
 
         onTerrainSelect({
-          group: toCanvasGroup(terrainSubTarget.group),
+          group: terrainGroup,
+          editorSelection: {
+            type: 'terrain',
+            viewId: terrainGroup.houseInstanceId ?? ensureCanvasObjectId(terrainGroup),
+            terrainType: houseManager.getTerrainType(),
+            screenPosition: screenPoint,
+          },
           terrainType: houseManager.getTerrainType(),
           screenPosition: screenPoint,
         });
@@ -186,6 +208,12 @@ export function useCanvasEditorEvents() {
 
       onTerrainSelect({
         group: selectedGroup,
+        editorSelection: {
+          type: 'terrain',
+          viewId: selectedGroup.houseInstanceId ?? ensureCanvasObjectId(selectedGroup),
+          terrainType: houseManager.getTerrainType(),
+          screenPosition: screenPoint,
+        },
         terrainType: houseManager.getTerrainType(),
         screenPosition: screenPoint,
       });

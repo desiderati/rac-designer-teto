@@ -23,6 +23,7 @@ estabelecida.
 ## Navegação inicial
 
 - `docs/`, quando esse diretório existir
+- `docs/architecture-decisions/`, quando houver decisões arquiteturais duráveis registradas
 - quando o repositório adotar `.agents/bug-analysis/` ou `.agents/incidents/` como acervos versionados, referenciar
   aqui os casos relevantes ou índices curados desses acervos
 - quando o repositório adotar `.agents/refactorings/` como acervo versionado seletivo de frentes duráveis de

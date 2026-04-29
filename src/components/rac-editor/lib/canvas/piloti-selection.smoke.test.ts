@@ -18,6 +18,7 @@ describe('piloti-selection.ts', () => {
       myType: 'house',
       houseView: 'top',
       getObjects: () => [piloti],
+      getCanvasObjects: () => [piloti],
       setCoords: vi.fn(),
     } as any;
 
@@ -46,7 +47,18 @@ describe('piloti-selection.ts', () => {
     handler(piloti, group);
 
     expect(emitPilotiSelection).toHaveBeenCalledWith(
-      expect.objectContaining({pilotiId: 'piloti_0_0', currentHeight: 1.5, currentNivel: 0.3}),
+      expect.objectContaining({
+        pilotiId: 'piloti_0_0',
+        currentHeight: 1.5,
+        currentNivel: 0.3,
+        pilotiIds: ['piloti_0_0'],
+        editorSelection: {
+          type: 'piloti',
+          pilotiId: 'piloti_0_0',
+          houseView: 'top',
+          screenPosition: {x: 100, y: 200},
+        },
+      }),
     );
     expect(emitSelectionChange).toHaveBeenCalled();
     expect(onContraventamentoPilotiClick).not.toHaveBeenCalled();

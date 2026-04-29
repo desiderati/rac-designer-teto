@@ -2,10 +2,9 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
-import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
-import {CANVAS_STYLE, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialUiActionsArgs {
@@ -39,14 +38,7 @@ export function useTutorialUiActions({
   }, [setShowRestartConfirm]);
 
   const confirmRestartTutorial = useCallback(() => {
-    const canvas = canvasRef.current?.canvas;
-    if (canvas) {
-      canvas.clear();
-      canvas.backgroundColor = CANVAS_STYLE.backgroundColor;
-      canvas.renderAll();
-      canvasRef.current?.clearHistory();
-      canvasRef.current?.saveHistory();
-    }
+    canvasRef.current?.resetSurface();
 
     houseManager.reset();
     resetUiAfterRestart();
@@ -77,9 +69,6 @@ export function useTutorialUiActions({
     if (isMobile) return;
     if (isPilotiTutorialShown()) return;
 
-    const canvas = canvasRef.current?.canvas;
-    if (!canvas) return;
-
     setTimeout(() => {
       const objects = house.getCanvasObjects();
       const typedPiloti = objects.find((typedObject) => {
@@ -89,18 +78,14 @@ export function useTutorialUiActions({
 
       if (!typedPiloti) return;
 
-      const groupMatrix = house.calcTransformMatrix();
       const pilotiLeft = typedPiloti.left || 0;
       const pilotiTop = typedPiloti.top || 0;
-      const container = canvas.getElement().parentElement;
-      if (!container) return;
+      const position = canvasRef.current?.getGroupLocalPointScreenPosition(
+        house,
+        {x: pilotiLeft, y: pilotiTop},
+      );
+      if (!position) return;
 
-      const position = projectCanvasPointToScreenPoint({
-        groupMatrix,
-        localCanvasPoint: {x: pilotiLeft, y: pilotiTop},
-        canvasContainer: container.getBoundingClientRect(),
-        viewportTransform: canvas.viewportTransform ?? undefined,
-      });
       setTutorialPilotiPosition(position);
     }, TIMINGS.pilotiTutorialDelayMs);
   }, [canvasRef, isMobile, setTutorialPilotiPosition]);

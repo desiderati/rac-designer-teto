@@ -1,6 +1,7 @@
 import {FabricObject, Group as FabricGroup} from 'fabric';
 import {HouseSide} from '@/shared/types/house.ts';
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {createElementId} from '@/components/rac-editor/lib/house-identity.ts';
 
 type CanvasProperties = {
   // Internal Fabric properties and methods
@@ -9,6 +10,7 @@ type CanvasProperties = {
   _calcBounds?: () => void;
 
   myType?: string;
+  editorObjectId?: string;
   isMacroGroup?: boolean;
 
   text?: string;
@@ -176,6 +178,7 @@ export type CanvasObjectProps = Exclude<keyof CanvasObject, keyof FabricObject>;
 
 export const canvasObjectProps = [
   'myType',
+  'editorObjectId',
   'isMacroGroup',
 
   'houseInstanceId',
@@ -234,6 +237,23 @@ export const canvasObjectProps = [
   'contraventamentoSourcePilotiId',
   'contraventamentoSide',
 ] as const satisfies readonly CanvasObjectProps[];
+
+/**
+ * Garante identidade serializável para um objeto vivo do canvas.
+ *
+ * O runtime Fabric ainda é a fonte dos objetos visuais, mas seleções públicas
+ * e histórico não devem usar referência de objeto como identidade. Este helper
+ * cria um identificador persistível quando o objeto ainda não possui um.
+ */
+export function ensureCanvasObjectId(
+  object: CanvasObject | CanvasGroup,
+  createId: () => string = createElementId,
+): string {
+  if (!object.editorObjectId) {
+    object.editorObjectId = createId();
+  }
+  return object.editorObjectId;
+}
 
 export interface CanvasObjectSummary {
   type: string | null;

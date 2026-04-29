@@ -62,7 +62,7 @@ export function RacEditorCanvas({
 
   useEffect(() => {
     if (!showTips) return;
-    const activeSelectionCount = canvasRef.current?.canvas?.getActiveObjects().length ?? 0;
+    const activeSelectionCount = canvasRef.current?.getActiveObjectCount() ?? 0;
     setHasActiveSelection(activeSelectionCount > 0);
   }, [canvasRef, showTips]);
 
@@ -70,7 +70,7 @@ export function RacEditorCanvas({
     onSelectionMessage(message);
     onSelectionAuxCleanup();
 
-    const activeSelectionCount = canvasRef.current?.canvas?.getActiveObjects().length ?? 0;
+    const activeSelectionCount = canvasRef.current?.getActiveObjectCount() ?? 0;
     setHasActiveSelection(activeSelectionCount > 0);
   }, [canvasRef, onSelectionAuxCleanup, onSelectionMessage]);
 
