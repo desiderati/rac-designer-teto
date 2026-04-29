@@ -30,8 +30,10 @@ export interface HouseWritePort<TGroup = unknown> {
 
   setHouseType(type: HouseType): void;
   resetHouse(): void;
+  rebuildHouseFromCanvas(): void;
 
   setTerrainType(terrainType: number): number;
+  insert3DSnapshotOnCanvas(dataUrl: string): Promise<boolean>;
 
   canDeleteTopView(): boolean;
   removeView(group: TGroup): void;

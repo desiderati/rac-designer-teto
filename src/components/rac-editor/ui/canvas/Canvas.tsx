@@ -26,6 +26,9 @@ import {useCanvasPointerInteractions} from '@/components/rac-editor/hooks/canvas
 import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
+import {createHouseManagerCanvasPort} from '@/components/rac-editor/lib/house-manager-fabric-canvas-adapter.ts';
+import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
+import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
@@ -108,6 +111,7 @@ export interface CanvasHandle {
    * explicit CanvasHandle capabilities or dedicated canvas ports.
    */
   getRuntimeCanvas: () => FabricCanvas | null;
+  createHouseManagerCanvasPort: () => HouseManagerCanvasPort | null;
   saveHistory: () => void;
   clearHistory: () => void;
   undo: () => void;
@@ -242,6 +246,7 @@ export const Canvas =
         updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
         onHistorySave,
         onSelectionChange,
+        houseWritePort: legacyHouseWritePort,
       });
 
       const {copy, paste} = useCanvasClipboard({
@@ -264,6 +269,10 @@ export const Canvas =
 
       useImperativeHandle(ref, () => ({
         getRuntimeCanvas: () => fabricCanvasRef.current,
+        createHouseManagerCanvasPort: () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas ? createHouseManagerCanvasPort(canvas) : null;
+        },
         saveHistory,
         clearHistory,
         undo,

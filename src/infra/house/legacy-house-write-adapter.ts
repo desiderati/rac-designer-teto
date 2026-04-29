@@ -22,7 +22,11 @@ export const legacyHouseWritePort: HouseWritePort<CanvasGroup> = {
 
   resetHouse: () => houseManager.reset(),
 
+  rebuildHouseFromCanvas: () => houseManager.rebuildFromCanvas(),
+
   setTerrainType: (terrainType) => houseManager.setTerrainType(terrainType),
+
+  insert3DSnapshotOnCanvas: (dataUrl) => houseManager.insert3DSnapshotOnCanvas(dataUrl),
 
   canDeleteTopView: () => houseManager.canDeletePlant(),
 

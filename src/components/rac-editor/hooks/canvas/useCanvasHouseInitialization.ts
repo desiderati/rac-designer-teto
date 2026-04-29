@@ -12,9 +12,9 @@ export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitiali
   useEffect(() => {
     let tries = 0;
     const id = window.setInterval(() => {
-      const canvas = canvasRef.current?.getRuntimeCanvas();
-      if (canvas) {
-        houseManager.initialize(canvas);
+      const canvasPort = canvasRef.current?.createHouseManagerCanvasPort();
+      if (canvasPort) {
+        houseManager.initialize(canvasPort);
         window.clearInterval(id);
       }
       tries += 1;

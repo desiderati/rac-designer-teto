@@ -5,7 +5,7 @@ import {
   ToolbarSubmenu,
 } from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 
-interface UseToolbarActionsArgs {
+export interface UseToolbarActionsArgs {
   handleOpenHouseTypeSelector: () => void;
   handleAddHouseView: (viewType: 'front' | 'back' | 'side1' | 'side2') => void;
   handleAddWall: () => void;

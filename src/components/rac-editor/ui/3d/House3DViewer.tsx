@@ -15,9 +15,9 @@ import {
   faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import type {HousePiloti, HouseType, HouseViewType} from '@/shared/types/house.ts';
-import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
+import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   Contraventamento3DData,
   parseContraventamentosFromTopView
@@ -32,7 +32,7 @@ interface House3DViewerProps {
 }
 
 export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
-  const houseVersion = useHouseStoreVersion();
+  const houseSnapshot = useHouseSnapshot();
   const [houseType, setHouseType] = useState<HouseType>(null);
   const [hasHouseViews, setHasHouseViews] = useState(false);
   const [pilotis, setPilotis] = useState<Record<string, HousePiloti>>({});
@@ -47,9 +47,8 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
   const [isSceneReady, setIsSceneReady] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Sync with HouseManager
-  const syncFromManager = useCallback(() => {
-    const house = houseManager.getHouse();
+  const syncFromHouse = useCallback(() => {
+    const house = houseSnapshot;
     if (!house) {
       setHouseType(null);
       setHasHouseViews(false);
@@ -119,13 +118,13 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
       sideMappings: house.sideMappings,
       elevationViews,
     }));
-  }, []);
+  }, [houseSnapshot]);
 
   // Sync from global house state while the viewer is open
   useEffect(() => {
     if (!open) return;
-    syncFromManager();
-  }, [open, houseVersion, syncFromManager]);
+    syncFromHouse();
+  }, [open, syncFromHouse]);
 
   const handleReset = () => {
     setIsSceneReady(false);
@@ -154,7 +153,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
 
     try {
       const dataUrl = webglCanvas.toDataURL('image/png');
-      const inserted = await houseManager.insert3DSnapshotOnCanvas(dataUrl);
+      const inserted = await legacyHouseWritePort.insert3DSnapshotOnCanvas(dataUrl);
       if (inserted) {
         toast.success(TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {

@@ -10,7 +10,7 @@ import {PilotiGridIcon} from '@/components/rac-editor/ui/modals/editors/piloti/P
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {NivelSlider} from '@/components/rac-editor/ui/modals/editors/NivelSlider.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/ui/modals/ConfirmDialogModal.tsx';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
 import {
   clampNivel,
   formatPilotiHeight,
@@ -55,7 +55,7 @@ export function NivelDefinitionEditor(
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
-  const selectedHeights = houseManager.getSelectedPilotiHeights();
+  const selectedHeights = legacyHouseReadPort.getSelectedPilotiHeights();
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
   const hasNavigatedAllCorners =
     CORNER_ORDER.every(

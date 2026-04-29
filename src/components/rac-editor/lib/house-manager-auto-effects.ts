@@ -1,0 +1,64 @@
+import type {HouseState} from '@/shared/types/house.ts';
+import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import {refreshTopDoorMarkersInViews} from '@/components/rac-editor/lib/house-top-view-door-marker.ts';
+import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
+import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
+import {getSettings} from '@/infra/settings.ts';
+import {collectElevationViewInstances} from '@/components/rac-editor/lib/house-manager-terrain.ts';
+
+function renderWhenChanged(changed: boolean, requestRender: () => void): void {
+  if (changed) {
+    requestRender();
+  }
+}
+
+export function refreshTopDoorMarkers(params: {
+  house: HouseState<CanvasGroup> | null;
+  requestRender: () => void;
+}): void {
+  if (!params.house) return;
+
+  renderWhenChanged(
+    refreshTopDoorMarkersInViews({
+      houseType: params.house.houseType,
+      sideMappings: params.house.sideMappings,
+      topViews: params.house.views.top,
+    }),
+    params.requestRender,
+  );
+}
+
+export function refreshAutoStairs(params: {
+  house: HouseState<CanvasGroup> | null;
+  requestRender: () => void;
+}): void {
+  if (!params.house) return;
+
+  renderWhenChanged(
+    refreshAutoStairsInViews({
+      houseType: params.house.houseType,
+      sideMappings: params.house.sideMappings,
+      pilotis: params.house.pilotis,
+      topView: params.house.views.top,
+      elevationViews: collectElevationViewInstances(params.house),
+      showStairsOnTopView: getSettings().showStairsOnTopView,
+    }),
+    params.requestRender,
+  );
+}
+
+export function refreshAutoContraventamento(params: {
+  house: HouseState<CanvasGroup> | null;
+  requestRender: () => void;
+}): void {
+  if (!params.house) return;
+
+  renderWhenChanged(
+    refreshAutoContraventamentoInAllViews({
+      pilotis: params.house.pilotis,
+      topViews: params.house.views.top,
+      elevationViews: collectElevationViewInstances(params.house),
+    }),
+    params.requestRender,
+  );
+}

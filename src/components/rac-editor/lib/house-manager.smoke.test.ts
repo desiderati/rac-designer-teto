@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {createHouseManagerCanvasPort} from '@/components/rac-editor/lib/house-manager-fabric-canvas-adapter.ts';
 import {FabricImage} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
@@ -48,6 +49,10 @@ function createMockCanvas(groups: Array<Record<string, unknown>>) {
     getObjects: vi.fn(() => groups),
     requestRenderAll: vi.fn(),
   };
+}
+
+function initializeHouseManagerCanvas(canvas: any) {
+  houseManager.initialize(createHouseManagerCanvasPort(canvas));
 }
 
 describe('house-manager.ts', () => {
@@ -179,7 +184,7 @@ describe('house-manager.ts', () => {
     objects.push(pilotiCircle);
 
     const canvas = createMockCanvas([group]);
-    houseManager.initialize(canvas as any);
+    initializeHouseManagerCanvas(canvas);
     houseManager.setHouseType('tipo6');
     houseManager.rebuildFromCanvas();
 
@@ -194,7 +199,7 @@ describe('house-manager.ts', () => {
 
   it('clears house type when rebuild finds no house groups on canvas', () => {
     const canvas = createMockCanvas([]);
-    houseManager.initialize(canvas as any);
+    initializeHouseManagerCanvas(canvas);
     houseManager.setHouseType('tipo6');
 
     houseManager.rebuildFromCanvas();
@@ -220,7 +225,7 @@ describe('house-manager.ts', () => {
 
     const {group: frontGroup} = createMockGroup();
     const canvas = createMockCanvas([topGroup, frontGroup]);
-    houseManager.initialize(canvas as any);
+    initializeHouseManagerCanvas(canvas);
     houseManager.setHouseType('tipo6');
 
     houseManager.registerView('top', topGroup as any);
@@ -262,7 +267,7 @@ describe('house-manager.ts', () => {
       setActiveObject: vi.fn(),
       requestRenderAll: vi.fn(),
     };
-    houseManager.initialize(canvas as any);
+    initializeHouseManagerCanvas(canvas);
 
     const inserted = await houseManager.insert3DSnapshotOnCanvas('data:image/png;base64,abc');
 
@@ -302,7 +307,7 @@ describe('house-manager.ts', () => {
       setActiveObject: vi.fn(),
       requestRenderAll: vi.fn(),
     };
-    houseManager.initialize(canvas as any);
+    initializeHouseManagerCanvas(canvas);
 
     const inserted = await houseManager.insert3DSnapshotOnCanvas('data:image/png;base64,abc');
 

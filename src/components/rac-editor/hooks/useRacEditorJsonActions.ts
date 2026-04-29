@@ -2,10 +2,10 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/lib/canvas';
 import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
+import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
 
 interface UseRacEditorJsonActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
@@ -13,6 +13,7 @@ interface UseRacEditorJsonActionsArgs {
   setInfoMessage: Dispatch<SetStateAction<string>>;
   resetContraventamentoFlow: () => void;
   syncContraventamentoElevations: () => void;
+  houseWritePort: Pick<HouseWritePort, 'rebuildHouseFromCanvas'>;
 }
 
 export function useRacEditorJsonActions({
@@ -21,6 +22,7 @@ export function useRacEditorJsonActions({
   setInfoMessage,
   resetContraventamentoFlow,
   syncContraventamentoElevations,
+  houseWritePort,
 }: UseRacEditorJsonActionsArgs) {
 
   const handleExportJSON = useCallback(() => {
@@ -59,7 +61,7 @@ export function useRacEditorJsonActions({
       canvas.loadFromJSON(rawContent).then(() => {
         resetContraventamentoFlow();
         refreshHouseGroupsOnCanvas(canvas);
-        houseManager.rebuildFromCanvas();
+        houseWritePort.rebuildHouseFromCanvas();
 
         canvas.renderAll();
         syncContraventamentoElevations();
@@ -75,7 +77,7 @@ export function useRacEditorJsonActions({
       });
     };
     reader.readAsText(file);
-  }, [canvasRef, getCanvas, resetContraventamentoFlow, setInfoMessage, syncContraventamentoElevations]);
+  }, [canvasRef, getCanvas, houseWritePort, resetContraventamentoFlow, setInfoMessage, syncContraventamentoElevations]);
 
   return {
     handleExportJSON,

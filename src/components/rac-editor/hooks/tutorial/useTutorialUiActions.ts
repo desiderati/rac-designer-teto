@@ -2,10 +2,10 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
+import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;
@@ -16,6 +16,7 @@ interface UseTutorialUiActionsArgs {
   restartTutorialProgress: () => void;
   resetUiAfterRestart: () => void;
   clearTutorialBalloon: () => void;
+  houseWritePort: Pick<HouseWritePort<CanvasGroup>, 'resetHouse'>;
 }
 
 export function useTutorialUiActions({
@@ -27,6 +28,7 @@ export function useTutorialUiActions({
   restartTutorialProgress,
   resetUiAfterRestart,
   clearTutorialBalloon,
+  houseWritePort,
 }: UseTutorialUiActionsArgs) {
 
   const handleRestartTutorial = useCallback(() => {
@@ -40,7 +42,7 @@ export function useTutorialUiActions({
   const confirmRestartTutorial = useCallback(() => {
     canvasRef.current?.resetSurface();
 
-    houseManager.reset();
+    houseWritePort.resetHouse();
     resetUiAfterRestart();
     restartTutorialProgress();
     setTutorialPilotiPosition(null);
@@ -52,6 +54,7 @@ export function useTutorialUiActions({
     resetUiAfterRestart,
     restartTutorialProgress,
     setTutorialPilotiPosition,
+    houseWritePort,
   ]);
 
   const dismissPilotiTutorial = useCallback(() => {

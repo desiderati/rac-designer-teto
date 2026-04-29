@@ -17,7 +17,7 @@ import {
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {readWallObjectState} from '@/components/rac-editor/ui/modals/editors/generic/helpers/wall-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseReadPort} from '@/infra/house/legacy-house-read-adapter.ts';
 
 interface UseCanvasEditorEventsArgs {
   canvas: FabricCanvas;
@@ -143,16 +143,17 @@ export function useCanvasEditorEvents() {
         const pointer = canvas.getPointer(payload.e);
         const screenPoint = getCurrentScreenPoint({x: pointer.x, y: pointer.y});
         if (!terrainGroup || !screenPoint) return false;
+        const terrainType = legacyHouseReadPort.getTerrainType();
 
         onTerrainSelect({
           group: terrainGroup,
           editorSelection: {
             type: 'terrain',
             viewId: terrainGroup.houseInstanceId ?? ensureCanvasObjectId(terrainGroup),
-            terrainType: houseManager.getTerrainType(),
+            terrainType,
             screenPosition: screenPoint,
           },
-          terrainType: houseManager.getTerrainType(),
+          terrainType,
           screenPosition: screenPoint,
         });
         onSelectionChange('Editando tipo de terreno.');
@@ -205,16 +206,17 @@ export function useCanvasEditorEvents() {
 
       const screenPoint = getCurrentScreenPoint({x: pointer.x, y: pointer.y});
       if (!screenPoint) return false;
+      const terrainType = legacyHouseReadPort.getTerrainType();
 
       onTerrainSelect({
         group: selectedGroup,
         editorSelection: {
           type: 'terrain',
           viewId: selectedGroup.houseInstanceId ?? ensureCanvasObjectId(selectedGroup),
-          terrainType: houseManager.getTerrainType(),
+          terrainType,
           screenPosition: screenPoint,
         },
-        terrainType: houseManager.getTerrainType(),
+        terrainType,
         screenPosition: screenPoint,
       });
       onSelectionChange('Editando tipo de terreno.');

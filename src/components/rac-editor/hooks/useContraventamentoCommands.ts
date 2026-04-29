@@ -9,8 +9,7 @@ import {
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
 } from '@/components/rac-editor/lib/canvas';
-import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {emitHouseStoreChange, useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/lib/house-auto-stairs.ts';
 import {
   ContraventamentoSide,
@@ -68,6 +67,7 @@ export function useContraventamentoCommands({
   setIsPilotiEditorOpen,
   setActiveSubmenu,
 }: UseContraventamentoCommandsArgs) {
+  const houseSnapshot = useHouseSnapshot();
 
   const enterSecondContraventamentoSelection = useCallback((
     first: ContraventamentoOrigin,
@@ -98,12 +98,12 @@ export function useContraventamentoCommands({
     syncContraventamentoElevationViews(
       topGroup,
       targets,
-      (pilotiId) => houseManager.getPilotiData(pilotiId).nivel
+      (pilotiId) => houseSnapshot?.pilotis[pilotiId]?.nivel ?? 0
     );
 
     // Reaplica auto-stairs após o sync do contraventamento para manter
     // a ordem visual correta das camadas nas vistas elevadas.
-    const house = houseManager.getHouse();
+    const house = houseSnapshot;
     if (!house) return;
 
     refreshAutoStairsInViews({
@@ -121,7 +121,7 @@ export function useContraventamentoCommands({
     });
 
     topGroup.canvas?.requestRenderAll();
-  }, [getNonTopViewGroups, getTopViewGroup]);
+  }, [getNonTopViewGroups, getTopViewGroup, houseSnapshot]);
 
   const clearContraventamentoSelection = useCallback((group?: CanvasGroup | null) => {
     if (group) {

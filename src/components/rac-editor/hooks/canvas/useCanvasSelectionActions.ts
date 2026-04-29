@@ -10,7 +10,7 @@ import {
   toCanvasObject
 } from '@/components/rac-editor/lib/canvas';
 import {findTopViewGroupCandidate} from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
 import {
   HOUSE_2D_STYLE,
@@ -30,6 +30,7 @@ interface BindSelectionActionsArgs {
 }
 
 export function useCanvasSelectionActions() {
+  const houseSnapshot = useHouseSnapshot();
 
   const bindSelectionActions = useCallback(({
     canvas,
@@ -53,10 +54,9 @@ export function useCanvasSelectionActions() {
       selectedObject: CanvasObject | null,
     ): HouseSide | undefined => {
 
-      const house = houseManager.getHouse();
       const instanceId = selectedObject?.houseInstanceId;
       const typedView = viewType as HouseViewType;
-      const viewInstances = (house?.views[typedView] ?? []) as HouseViewInstance<CanvasGroup>[];
+      const viewInstances = (houseSnapshot?.views[typedView] ?? []) as HouseViewInstance<CanvasGroup>[];
       if (viewInstances.length === 0) return undefined;
 
       if (instanceId) {
@@ -297,7 +297,7 @@ export function useCanvasSelectionActions() {
       canvas.off('selection:updated', updateHint);
       canvas.off('selection:cleared', updateHint);
     };
-  }, []);
+  }, [houseSnapshot]);
 
   return {bindSelectionActions};
 }

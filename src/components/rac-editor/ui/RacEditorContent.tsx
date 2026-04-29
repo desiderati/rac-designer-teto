@@ -1,0 +1,578 @@
+import {useCallback, useRef} from 'react';
+import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import {RacEditorLayout} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
+import {useContraventamentoFlow} from '../hooks/useContraventamentoFlow.ts';
+import {useHouseTypeFlow} from '../hooks/useHouseTypeFlow.ts';
+import {useHotkeys} from '../hooks/useHotkeys.ts';
+import {useRacEditorModalState} from '../hooks/useRacEditorModalState.ts';
+import {useRacEditorDebugBridge} from '../hooks/useRacEditorDebugBridge.ts';
+import {useRacEditorLocalState} from '../hooks/useRacEditorLocalState.ts';
+import {useRacEditorUiRefs} from '../hooks/useRacEditorUiRefs.ts';
+import {useContraventamento} from '../hooks/useContraventamento.ts';
+import {useCanvasTools} from '@/components/rac-editor/hooks/canvas/useCanvasTools.ts';
+import {usePilotiActions} from '../hooks/usePilotiActions.ts';
+import {useCanvasActions} from '@/components/rac-editor/hooks/canvas/useCanvasActions.ts';
+import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+// useCanvasGroupingActions removed: group/ungroup functionality was retired
+// alongside the unlock/lock buttons in the side rail.
+import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
+import type {HouseType} from '@/shared/types/house.ts';
+import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutorialFlow.ts';
+import {useCanvasHouseInitialization} from '@/components/rac-editor/hooks/canvas/useCanvasHouseInitialization.ts';
+import {useTutorialUiActions} from '@/components/rac-editor/hooks/tutorial/useTutorialUiActions.ts';
+import {useCanvasHouseViewActions} from '@/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts';
+import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
+import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
+import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useRacEditorFamilyActions} from '@/components/rac-editor/hooks/useRacEditorFamilyActions.ts';
+import {useRacEditorHouseReadModel} from '@/components/rac-editor/hooks/useRacEditorHouseReadModel.ts';
+import {useRacEditorSettingsActions} from '@/components/rac-editor/hooks/useRacEditorSettingsActions.ts';
+import {useRacEditorTerrainActions} from '@/components/rac-editor/hooks/useRacEditorTerrainActions.ts';
+import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
+import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
+import {useRacEditorToolbarModel} from '@/components/rac-editor/hooks/toolbar/useRacEditorToolbarModel.ts';
+
+export function RacEditorContent() {
+  const isMobile = useIsMobile();
+  const editorStore = useEditorStore();
+
+  const {
+    pendingViewType,
+    setPendingViewType,
+    sideSelectorMode,
+    setSideSelectorMode,
+    houseSideSlots,
+    setHouseSideSlots,
+    pendingNivelSide,
+    setPendingNivelSide,
+    niveisAppliedRef,
+    transitionToNivelRef,
+  } = useHouseTypeFlow();
+
+  const houseVersion = useHouseStoreVersion();
+
+  const handleHouseTypeSelected = (type: HouseType) => {
+    handleHouseTypeSelectedFromFlow(type);
+  };
+
+
+  const {
+    infoMessage,
+    setInfoMessage,
+    pilotiSelection,
+    setPilotiSelection,
+    isPilotiEditorOpen,
+    setIsPilotiEditorOpen,
+    isDrawing,
+    setIsDrawing,
+    tutorialBalloon,
+    setTutorialBalloon,
+    clearTutorialBalloon,
+    tutorialPilotiPosition,
+    setTutorialPilotiPosition,
+  } = useRacEditorLocalState();
+
+  const canvasRef = useRef<CanvasHandle>(null);
+
+  // ── RAC Editor ─────────────────────────────────────────────────
+
+  const {
+    isMenuOpen,
+    setIsMenuOpen,
+    activeSubmenu,
+    setActiveSubmenu,
+    showTips,
+    setShowTips,
+    showZoomControls,
+    setShowZoomControls,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    showRestartConfirm,
+    setShowRestartConfirm,
+    sideSelectorOpen,
+    setSideSelectorOpen,
+    houseTypeSelectorOpen,
+    setHouseTypeSelectorOpen,
+    is3DViewerOpen,
+    setIs3DViewerOpen,
+    nivelDefinitionOpen,
+    setNivelDefinitionOpen,
+    familySetupOpen,
+    setFamilySetupOpen,
+    canvasToolMode,
+    setCanvasToolMode,
+    displayZoom,
+    setDisplayZoom,
+  } = useRacEditorModalState();
+
+  const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
+
+  const {
+    handleFamilySetupConfirm,
+    handleRenameFamily,
+  } = useRacEditorFamilyActions({
+    setFamilySetupOpen,
+    setHouseTypeSelectorOpen,
+  });
+
+  const {handleSettingsChange} = useRacEditorSettingsActions({
+    setShowZoomControls,
+  });
+
+  const handleSetCanvasToolMode = useCallback(
+    (mode: CanvasToolMode) => setCanvasToolMode(mode),
+    [setCanvasToolMode],
+  );
+
+  const handleFitToView = useCallback(() => {
+    canvasRef.current?.fitToView();
+  }, []);
+
+  // Stub: "Sair" lives in the avatar dropdown for visual parity with the
+  // Stitch reference, but the app has no auth flow yet. Logging keeps the
+  // hook discoverable until a sign-out destination exists.
+  const handleExit = useCallback(() => {
+    console.info('[RacEditor] exit clicked — no sign-out flow wired yet.');
+  }, []);
+
+  useRacEditorDebugBridge({
+    canvasRef,
+    showTipsRef,
+    showZoomControlsRef,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+  });
+
+  // ── Tutorial ─────────────────────────────────────────────────
+
+  const {
+    tutorialStep,
+    tutorialHouseSelectorPreview,
+    setTutorialHouseSelectorPreview,
+    advanceTutorial,
+    completeTutorial,
+    restartTutorialProgress
+  } = useTutorialFlow();
+
+  const {
+    handleRestartTutorial,
+    confirmRestartTutorial,
+    closeRestartConfirm,
+    dismissPilotiTutorial,
+    handleClosePilotiTutorial,
+    showPilotiTutorialIfNeeded,
+  } = useTutorialUiActions({
+    isMobile,
+    canvasRef,
+    tutorialPilotiPosition,
+    setTutorialPilotiPosition,
+    setShowRestartConfirm,
+    restartTutorialProgress,
+    resetUiAfterRestart: () => {
+      setActiveSubmenu(null);
+      setIsMenuOpen(false);
+      setHouseTypeSelectorOpen(false);
+      setTutorialHouseSelectorPreview(false);
+      setShowRestartConfirm(false);
+    },
+    clearTutorialBalloon,
+    houseWritePort: legacyHouseWritePort,
+  });
+
+  // ── Canvas ─────────────────────────────────────────────────
+
+  useCanvasHouseInitialization({canvasRef});
+
+  const {
+    getCanvas,
+    getVisibleCenter,
+    addObjectToCanvas,
+    closeAllMenus,
+    disableDrawingMode,
+    handleDelete,
+  } = useCanvasActions({
+    canvasRef,
+    isDrawing,
+    setIsDrawing,
+    setInfoMessage,
+    houseWritePort: legacyHouseWritePort,
+    clearTutorialBalloon,
+    onCloseSubmenus: () => setActiveSubmenu(null),
+    onDismissPilotiTutorial: dismissPilotiTutorial,
+  });
+
+  const {
+    terrainSelection,
+    isTerrainEditorOpen,
+    handleTerrainSelect,
+    handleTerrainEditorClose,
+    handleTerrainApply,
+  } = useRacEditorTerrainActions({
+    canvasRef,
+    editorStore,
+    setInfoMessage,
+  });
+
+  const handleFreeDrawPathCreated = useCallback(() => {
+    setIsDrawing(false);
+    setInfoMessage('<b>Dica:</b> Modo Lápis desativado após concluir o desenho à mão livre.');
+  }, [setInfoMessage, setIsDrawing]);
+
+  const {
+    handleSideSelected,
+    handleNiveisApplied,
+    handleNivelDefinitionClose,
+    handleSideSelectorClose,
+    handleAddHouseView,
+    handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
+  } = useCanvasHouseViewActions({
+    getCanvas,
+    getVisibleCenter,
+    closeAllMenus,
+    addObjectToCanvas,
+    showPilotiTutorialIfNeeded,
+    houseWritePort: legacyHouseWritePort,
+    pendingViewType,
+    setPendingViewType,
+    sideSelectorMode,
+    setSideSelectorMode,
+    setHouseSideSlots,
+    pendingNivelSide,
+    setPendingNivelSide,
+    niveisAppliedRef,
+    transitionToNivelRef,
+    setSideSelectorOpen,
+    setNivelDefinitionOpen,
+  });
+
+  const {
+    handleAddWall,
+    handleAddDoor,
+    handleAddStairs,
+    handleAddTree,
+    handleAddWater,
+    handleAddFossa,
+    handleAddLine,
+    handleAddArrow,
+    handleAddDistance,
+    handleToggleDrawMode,
+    handleAddText,
+  } = useCanvasTools({
+    canvasRef,
+    addObjectToCanvas,
+    closeAllMenus,
+    disableDrawingMode,
+    isDrawing,
+    setIsDrawing,
+    setInfoMessage,
+    setTutorialBalloon,
+  });
+
+  // ── Other Tutorial ─────────────────────────────────────────────────
+
+  const {
+    handleToggleMenu,
+    handleOpenHouseTypeSelector,
+    handleHouseTypeSelectorClose,
+    handleToggleHouseMenu,
+    handleToggleElementsMenu,
+    handleToggleLinesMenu,
+    handleToggleOverflowMenu,
+    handleToggleTips,
+    handleContainerClick,
+    handleTutorialComplete,
+    handleZoomTutorialInteraction,
+    handleToggleZoomControls,
+  } = useTutorialMenuActions({
+    tutorialStep,
+    advanceTutorial,
+    completeTutorial,
+    isMenuOpen,
+    setIsMenuOpen,
+    setActiveSubmenu,
+    setShowTips,
+    setShowZoomControls,
+    setFamilySetupOpen,
+    setHouseTypeSelectorOpen,
+    setTutorialHouseSelectorPreview,
+    closeAllMenus,
+    dismissPilotiTutorial,
+    disableDrawingMode,
+    isHouseTypeSelected: () => !!legacyHouseWritePort.getCurrentHouseType(),
+  });
+
+  // ── Contraventamento ─────────────────────────────────────────────────
+
+  const {
+    isContraventamentoMode,
+    setIsContraventamentoMode,
+    selectedContraventamento,
+    setSelectedContraventamento,
+    contraventamentoFirst,
+    setContraventamentoFirst,
+    contraventamentoSide,
+    setContraventamentoSide,
+    resetContraventamentoFlow,
+  } = useContraventamentoFlow();
+
+  const {
+    syncContraventamentoElevations,
+    handleCancelContraventamento,
+    handleContraventamentoPilotiClick,
+    isPilotiEligibleAsDestination,
+    getContraventamentoEditorState,
+    handleContraventamentoSelect,
+  } = useContraventamento({
+    canvasRef,
+    getCanvas,
+    houseVersion,
+    isContraventamentoMode,
+    setIsContraventamentoMode,
+    setInfoMessage,
+    selectedContraventamento,
+    setSelectedContraventamento,
+    contraventamentoFirst,
+    setContraventamentoFirst,
+    contraventamentoSide,
+    setContraventamentoSide,
+    resetContraventamentoFlow,
+    pilotiSelection,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+    setActiveSubmenu,
+  });
+
+  // ── RAC Editor Import/Export ─────────────────────────────────────────────────
+
+  const {
+    handleExportJSON,
+    handleImportJSON,
+    handleSavePDF,
+  } = useRacEditorDocumentActions({
+    canvasRef,
+    getCanvas,
+    setInfoMessage,
+    resetContraventamentoFlow,
+    syncContraventamentoElevations,
+  });
+
+  // ── Hotkeys ─────────────────────────────────────────────────
+
+  useHotkeys({
+    onToggleDrawMode: handleToggleDrawMode,
+    onToggleZoomControls: handleToggleZoomControls,
+    onSetCanvasToolMode: handleSetCanvasToolMode,
+    onFitToView: handleFitToView,
+  });
+
+  // ── Piloti ─────────────────────────────────────────────────
+
+  const {
+    handlePilotiSelect,
+    handlePilotiEditorClose,
+    handlePilotiHeightChange,
+    handlePilotiNavigate,
+  } = usePilotiActions({
+    isContraventamentoMode,
+    hasPilotiTutorial: !!tutorialPilotiPosition,
+    closePilotiTutorial: handleClosePilotiTutorial,
+    canvasRef,
+    pilotiSelection,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+    syncContraventamentoElevations,
+    setInfoMessage,
+  });
+
+  // ── Modal Editors ─────────────────────────────────────────────────
+
+  const {
+    wallSelection,
+    isWallEditorOpen,
+    handleWallSelect,
+    closeWallEditor,
+    handleWallApply,
+    wallEditorColor,
+    linearSelection,
+    isLinearEditorOpen,
+    handleLinearSelect,
+    closeLinearEditor,
+    onLinearApply,
+    isAnyEditorOpen,
+  } = useRacEditorObjectEditorActions({
+    canvasRef,
+    isPilotiEditorOpen,
+    setInfoMessage,
+  });
+
+  // ── Toolbar ─────────────────────────────────────────────────
+
+  const {
+    toolbarActions,
+    currentHouseType,
+    frontViewCount,
+    backViewCount,
+    side1ViewCount,
+    side2ViewCount,
+  } = useRacEditorToolbarModel({
+    handleOpenHouseTypeSelector,
+    handleAddHouseView,
+    handleAddWall,
+    handleAddDoor,
+    handleAddStairs,
+    handleAddTree,
+    handleAddWater,
+    handleAddFossa,
+    handleAddLine,
+    handleAddArrow,
+    handleAddDistance,
+    handleToggleDrawMode,
+    handleAddText,
+    handleExportJSON,
+    handleImportJSON,
+    handleDelete,
+    handleSavePDF,
+    handleToggleHouseMenu,
+    handleToggleElementsMenu,
+    handleToggleLinesMenu,
+    handleToggleOverflowMenu,
+    handleToggleTips,
+    handleToggleZoomControls,
+    handleToggleMenu,
+    handleRestartTutorial,
+    handleOpenTutorial: restartTutorialProgress,
+    handleExit,
+    handleRenameFamily,
+    handleSetCanvasToolMode,
+    handleFitToView,
+    setIs3DViewerOpen,
+    setActiveSubmenu,
+    setIsSettingsOpen,
+  });
+
+  const {
+    currentFamilyName,
+    selectedPilotiHeights,
+    terrainPilotis,
+  } = useRacEditorHouseReadModel(houseVersion);
+
+  const contraventamentoEditorState = getContraventamentoEditorState();
+  return (
+    <RacEditorLayout
+      root={{
+        onClick: handleContainerClick,
+      }}
+      toolbar={{
+        actions: toolbarActions,
+        isDrawing,
+        activeSubmenu,
+        showTips,
+        showZoomControls,
+        tutorialHighlight: tutorialStep,
+        isMenuOpen,
+        isTutorialActive: tutorialStep !== null,
+        houseType: currentHouseType,
+        frontViewCount,
+        backViewCount,
+        side1ViewCount,
+        side2ViewCount,
+        familyName: currentFamilyName,
+        zoom: displayZoom,
+        canvasToolMode,
+        isMobile,
+      }}
+      canvas={{
+        canvasRef,
+        tutorialStep,
+        showTips,
+        showZoomControls,
+        infoMessage,
+        isAnyEditorOpen,
+        isContraventamentoMode,
+        isPilotiEligibleForContraventamento: isPilotiEligibleAsDestination,
+        canvasToolMode,
+        onZoomChange: setDisplayZoom,
+        onSelectionMessage: setInfoMessage,
+        onSelectionAuxCleanup: () => {
+          dismissPilotiTutorial();
+          clearTutorialBalloon();
+        },
+        onZoomInteraction: handleZoomTutorialInteraction,
+        onPilotiSelect: handlePilotiSelect,
+        onWallSelect: handleWallSelect,
+        onLinearSelect: handleLinearSelect,
+        onTerrainSelect: handleTerrainSelect,
+        onDelete: handleDelete,
+        onContraventamentoPilotiClick: handleContraventamentoPilotiClick,
+        onContraventamentoCancel: handleCancelContraventamento,
+        onFreeDrawPathCreated: handleFreeDrawPathCreated,
+      }}
+      houseTypeSelector={{
+        familySetupOpen,
+        onFamilySetupClose: () => setFamilySetupOpen(false),
+        onFamilySetupConfirm: handleFamilySetupConfirm,
+        houseTypeSelectorOpen,
+        onHouseTypeSelectorClose: handleHouseTypeSelectorClose,
+        onHouseTypeSelected: handleHouseTypeSelected,
+        tutorialHouseSelectorPreview,
+        nivelDefinitionOpen,
+        onCloseNivelDefinition: handleNivelDefinitionClose,
+        onApplyNiveis: handleNiveisApplied,
+      }}
+      modalEditors={{
+        isMobile,
+        isPilotiEditorOpen,
+        pilotiSelection,
+        selectedPilotiHeights,
+        onPilotiEditorClose: handlePilotiEditorClose,
+        onPilotiHeightChange: handlePilotiHeightChange,
+        onPilotiNavigate: handlePilotiNavigate,
+        contraventamentoEditorState,
+        onContraventamentoSelect: handleContraventamentoSelect,
+        onWallApply: handleWallApply,
+        onWallEditorClose: closeWallEditor,
+        wallSelection,
+        wallEditorColor,
+        isWallEditorOpen,
+        onLinearApply,
+        onLinearEditorClose: closeLinearEditor,
+        linearSelection,
+        linearEditorType: linearSelection?.myType ?? 'line',
+        isLinearEditorOpen,
+        terrainSelection,
+        terrainPilotis,
+        isTerrainEditorOpen,
+        onTerrainEditorClose: handleTerrainEditorClose,
+        onTerrainApply: handleTerrainApply,
+        pendingViewType,
+        sideSelectorOpen,
+        sideSelectorMode,
+        houseSideSlots,
+        onSideSelectorClose: handleSideSelectorClose,
+        onSideSelected: handleSideSelected,
+      }}
+      modals={{
+        isMobile,
+        isSettingsOpen,
+        onSettingsOpenChange: setIsSettingsOpen,
+        onSettingsChange: handleSettingsChange,
+        showRestartConfirm,
+        onConfirmRestartTutorial: confirmRestartTutorial,
+        onCloseRestartConfirm: closeRestartConfirm,
+      }}
+      tutorial={{
+        tutorialStep,
+        onTutorialComplete: handleTutorialComplete,
+        tutorialPilotiPosition,
+        onCloseTutorialPiloti: handleClosePilotiTutorial,
+        tutorialBalloon,
+        onCloseTutorialBalloon: clearTutorialBalloon,
+      }}
+      viewer={{
+        open: is3DViewerOpen,
+        onOpenChange: setIs3DViewerOpen,
+      }}
+    />
+  );
+}

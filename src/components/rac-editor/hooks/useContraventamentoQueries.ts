@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {findTopViewGroupCandidate} from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
   ContraventamentoOrigin,
@@ -26,6 +26,7 @@ export function useContraventamentoQueries({
   contraventamentoFirst,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
+  const houseSnapshot = useHouseSnapshot();
 
   const getTopViewGroup = useCallback((): CanvasGroup | null => {
     const canvas = getCanvas();
@@ -38,8 +39,15 @@ export function useContraventamentoQueries({
   }, [getCanvas]);
 
   const getNonTopViewGroups = useCallback((): CanvasGroup[] => {
-    return houseManager.getAllGroups().filter((g) => g?.houseView !== 'top');
-  }, []);
+    if (!houseSnapshot) return [];
+
+    return [
+      ...houseSnapshot.views.front,
+      ...houseSnapshot.views.back,
+      ...houseSnapshot.views.side1,
+      ...houseSnapshot.views.side2,
+    ].map((view) => view.group);
+  }, [houseSnapshot]);
 
   const getContraventamentoColumnSides =
     useCallback((group: CanvasGroup, col: number) => {
@@ -61,7 +69,7 @@ export function useContraventamentoQueries({
     const columnEnabled = hasEligiblePilotiInContraventamentoColumn({
       col: parsed.col,
       isPilotiEligible: (columnPilotiId) => {
-        const data = houseManager.getPilotiData(columnPilotiId);
+        const data = houseSnapshot?.pilotis[columnPilotiId];
         return isPilotiOutOfProportion(
           Number(data?.height ?? 0),
           Number(data?.nivel ?? 0),
@@ -72,7 +80,7 @@ export function useContraventamentoQueries({
 
     return parsed.col === contraventamentoFirst.col
       && parsed.row !== contraventamentoFirst.row;
-  }, [contraventamentoFirst]);
+  }, [contraventamentoFirst, houseSnapshot]);
 
   const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
     const parsed = parsePilotiGridPosition(pilotiId);
@@ -81,14 +89,14 @@ export function useContraventamentoQueries({
     return hasEligiblePilotiInContraventamentoColumn({
       col: parsed.col,
       isPilotiEligible: (columnPilotiId) => {
-        const data = houseManager.getPilotiData(columnPilotiId);
+        const data = houseSnapshot?.pilotis[columnPilotiId];
         return isPilotiOutOfProportion(
           Number(data?.height ?? 0),
           Number(data?.nivel ?? 0),
         );
       },
     });
-  }, []);
+  }, [houseSnapshot]);
 
   const getContraventamentoEditorState = useCallback(() => {
     const disabled = createContraventamentoEditorState({
