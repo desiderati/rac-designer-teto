@@ -1,6 +1,12 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
-import {CanvasGroup, CanvasObject, PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
+import {
+  CanvasGroup,
+  CanvasObject,
+  ElementStrategyKey,
+  getElementStrategy,
+  PilotiCanvasSelection
+} from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {
   EditorLinearSelection,
@@ -101,6 +107,9 @@ export interface CanvasHandle {
   undo: () => void;
   copy: () => void;
   paste: () => void;
+  createElementObject: (kind: ElementStrategyKey) => CanvasObject | null;
+  addObjectAtVisibleCenter: (object: CanvasObject) => boolean;
+  setDrawingModeEnabled: (enabled: boolean) => boolean;
   resetSurface: () => void;
   renderAll: () => void;
   getActiveObjectCount: () => number;
@@ -248,6 +257,30 @@ export const Canvas =
         undo,
         copy,
         paste,
+        createElementObject: (kind) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return null;
+
+          return getElementStrategy(kind).create(canvas);
+        },
+        addObjectAtVisibleCenter: (object) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return false;
+
+          const center = getVisibleCenter();
+          object.set({left: center.x, top: center.y});
+          canvas.add(object);
+          canvas.setActiveObject(object);
+          return true;
+        },
+        setDrawingModeEnabled: (enabled) => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return false;
+
+          canvas.isDrawingMode = enabled;
+          canvas.selection = !enabled;
+          return true;
+        },
         resetSurface: () => {
           const canvas = fabricCanvasRef.current;
           if (!canvas) return;

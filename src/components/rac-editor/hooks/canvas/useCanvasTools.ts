@@ -1,15 +1,12 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {CanvasObject, getElementStrategy,} from '@/components/rac-editor/lib/canvas';
+import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/lib/canvas';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<CanvasHandle | null>;
-  getCanvas: () => FabricCanvas | null;
-  getVisibleCenter: () => { x: number; y: number };
   addObjectToCanvas: (object: CanvasObject) => void;
   closeAllMenus: () => void;
   disableDrawingMode: () => void;
@@ -26,7 +23,6 @@ interface TutorialConfig {
 
 export function useCanvasTools({
   canvasRef,
-  getCanvas,
   addObjectToCanvas,
   closeAllMenus,
   disableDrawingMode,
@@ -45,14 +41,13 @@ export function useCanvasTools({
     }, [canvasRef, setTutorialBalloon]);
 
   const addCanvasObject = useCallback((
-    factory: (canvas: FabricCanvas) => CanvasObject,
+    kind: ElementStrategyKey,
     tutorial?: TutorialConfig,
   ) => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (!canvas) return null;
+    const object = canvasRef.current?.createElementObject(kind);
+    if (!object) return null;
 
-    const object = factory(canvas);
     addObjectToCanvas(object);
 
     if (tutorial && !isTutorialTipShown(tutorial.key)) {
@@ -61,10 +56,10 @@ export function useCanvasTools({
     }
 
     return object;
-  }, [addObjectToCanvas, closeAllMenus, getCanvas, showTutorialBalloon]);
+  }, [addObjectToCanvas, canvasRef, closeAllMenus, showTutorialBalloon]);
 
   const handleAddWall = useCallback(() => {
-    addCanvasObject(getElementStrategy('wall').create, {
+    addCanvasObject('wall', {
       key: 'wall',
       message: 'Clique duas vezes para definir ou alterar o nome do objeto.',
     });
@@ -72,45 +67,45 @@ export function useCanvasTools({
 
   const handleAddDoor =
     useCallback(() =>
-      addCanvasObject(getElementStrategy('door').create), [addCanvasObject]
+      addCanvasObject('door'), [addCanvasObject]
     );
 
   const handleAddStairs =
     useCallback(() =>
-      addCanvasObject(getElementStrategy('stairs').create), [addCanvasObject]
+      addCanvasObject('stairs'), [addCanvasObject]
     );
 
   const handleAddTree =
     useCallback(() =>
-      addCanvasObject(getElementStrategy('tree').create), [addCanvasObject]
+      addCanvasObject('tree'), [addCanvasObject]
     );
 
   const handleAddWater =
     useCallback(() =>
-      addCanvasObject(getElementStrategy('water').create), [addCanvasObject]
+      addCanvasObject('water'), [addCanvasObject]
     );
 
   const handleAddFossa =
     useCallback(() =>
-      addCanvasObject(getElementStrategy('fossa').create), [addCanvasObject]
+      addCanvasObject('fossa'), [addCanvasObject]
     );
 
   const handleAddLine = useCallback(() => {
-    addCanvasObject(getElementStrategy('line').create, {
+    addCanvasObject('line', {
       key: 'line',
       message: 'Clique duas vezes para definir um texto ou a cor da linha reta.',
     });
   }, [addCanvasObject]);
 
   const handleAddArrow = useCallback(() => {
-    addCanvasObject(getElementStrategy('arrow').create, {
+    addCanvasObject('arrow', {
       key: 'arrow',
       message: 'Clique duas vezes para definir um texto ou a cor da seta simples.',
     });
   }, [addCanvasObject]);
 
   const handleAddDistance = useCallback(() => {
-    addCanvasObject(getElementStrategy('distance').create, {
+    addCanvasObject('distance', {
       key: 'distance',
       message: 'Clique duas vezes para definir um texto ou a cor da distância.',
     });
@@ -118,29 +113,27 @@ export function useCanvasTools({
 
   const handleToggleDrawMode = useCallback(() => {
     closeAllMenus();
-    const canvas = getCanvas();
-    if (!canvas) return;
 
     const nextDrawingState = !isDrawing;
+    if (!canvasRef.current?.setDrawingModeEnabled(nextDrawingState)) return;
+
     setIsDrawing(nextDrawingState);
-    canvas.isDrawingMode = nextDrawingState;
-    canvas.selection = !nextDrawingState;
 
     setInfoMessage(
       nextDrawingState ?
         '<b>Modo Desenho:</b> Risque na tela livremente.' :
         '<b>Dica:</b> Modo desenho desativado.'
     );
-  }, [closeAllMenus, getCanvas, isDrawing, setInfoMessage, setIsDrawing]);
+  }, [canvasRef, closeAllMenus, isDrawing, setInfoMessage, setIsDrawing]);
 
   const handleAddText = useCallback(() => {
     disableDrawingMode();
-    const canvas = getCanvas();
-    if (!canvas) return;
 
-    const text = getElementStrategy('text').create(canvas);
+    const text = canvasRef.current?.createElementObject('text');
+    if (!text) return;
+
     addObjectToCanvas(text);
-  }, [addObjectToCanvas, disableDrawingMode, getCanvas]);
+  }, [addObjectToCanvas, canvasRef, disableDrawingMode]);
 
   return {
     handleAddWall,

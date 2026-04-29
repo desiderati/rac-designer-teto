@@ -26,3 +26,5 @@ export const elementStrategies: Record<ElementStrategyKey, ElementStrategy> = {
 export function getElementStrategy(key: ElementStrategyKey): ElementStrategy {
   return elementStrategies[key];
 }
+
+export type {ElementStrategy, ElementStrategyKey};

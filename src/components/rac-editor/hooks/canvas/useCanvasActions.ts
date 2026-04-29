@@ -42,14 +42,8 @@ export function useCanvasActions({
   }, [canvasRef]);
 
   const addObjectToCanvas = useCallback((obj: CanvasObject) => {
-    const canvas = getCanvas();
-    if (!canvas) return;
-
-    const center = getVisibleCenter();
-    obj.set({left: center.x, top: center.y});
-    canvas.add(obj);
-    canvas.setActiveObject(obj);
-  }, [getCanvas, getVisibleCenter]);
+    canvasRef.current?.addObjectAtVisibleCenter(obj);
+  }, [canvasRef]);
 
   const closeAllMenus = useCallback(() => {
     onCloseSubmenus();
@@ -58,14 +52,11 @@ export function useCanvasActions({
   }, [clearTutorialBalloon, onCloseSubmenus, onDismissPilotiTutorial]);
 
   const disableDrawingMode = useCallback(() => {
-    const canvas = getCanvas();
-    if (isDrawing && canvas) {
+    if (isDrawing && canvasRef.current?.setDrawingModeEnabled(false)) {
       setIsDrawing(false);
-      canvas.isDrawingMode = false;
-      canvas.selection = true;
       setInfoMessage('Dica: Selecione uma ferramenta.');
     }
-  }, [getCanvas, isDrawing, setInfoMessage, setIsDrawing]);
+  }, [canvasRef, isDrawing, setInfoMessage, setIsDrawing]);
 
   const handleDelete = useCallback(() => {
     const canvas = getCanvas();

@@ -292,8 +292,6 @@ function RacEditorContent() {
     handleAddText,
   } = useCanvasTools({
     canvasRef,
-    getCanvas,
-    getVisibleCenter,
     addObjectToCanvas,
     closeAllMenus,
     disableDrawingMode,
