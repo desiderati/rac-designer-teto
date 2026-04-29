@@ -149,7 +149,7 @@ export const DEFAULT_HOUSE_PILOTI: HousePiloti = {
 
 export const ALL_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.2, 2.5, 3.0, 3.2, 3.5] as const;
 
-export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5] as const;
+export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
 export interface HouseSnapshot<TGroup> {
   views: Record<HouseViewType, TGroup[]>;

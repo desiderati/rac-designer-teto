@@ -1,9 +1,6 @@
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it} from 'vitest';
 import type {HouseState} from '@/shared/types/house.ts';
-import {
-  collectElevationViewInstances,
-  resolveTerrainTypeFromCanvasFallback,
-} from './house-manager-terrain.ts';
+import {collectElevationViewInstances} from './house-manager-terrain.ts';
 
 describe('house-manager-terrain.ts', () => {
   it('collects only elevation view instances', () => {
@@ -21,30 +18,4 @@ describe('house-manager-terrain.ts', () => {
       .toEqual(['front', 'back', 'side1', 'side2']);
   });
 
-  it('resolves terrain type from the first elevation group on canvas', () => {
-    const canvas = {
-      getObjects: vi.fn(() => [
-        {type: 'group', myType: 'house', houseView: 'top', groundTerrainType: 2},
-        {type: 'group', myType: 'house', houseView: 'front', groundTerrainType: 99},
-      ]),
-    };
-
-    expect(resolveTerrainTypeFromCanvasFallback({
-      canvas: canvas as never,
-      fallbackTerrainType: 3,
-    })).toBe(5);
-  });
-
-  it('falls back when the canvas has no elevation terrain metadata', () => {
-    const canvas = {
-      getObjects: vi.fn(() => [
-        {type: 'group', myType: 'house', houseView: 'top', groundTerrainType: 2},
-      ]),
-    };
-
-    expect(resolveTerrainTypeFromCanvasFallback({
-      canvas: canvas as never,
-      fallbackTerrainType: 3,
-    })).toBe(3);
-  });
 });

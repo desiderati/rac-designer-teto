@@ -14,7 +14,7 @@ import {
   WallCanvasSelection
 } from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
-import {useContraventamentoEvents} from '@/components/rac-editor/hooks/useContraventamentoEvents.ts';
+import {useContraventamentoEvents} from './useContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {getSettings} from '@/infra/settings.ts';
 

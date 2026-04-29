@@ -1,6 +1,6 @@
 import {RefObject, useEffect} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseRuntimePort} from '@/infra/house/legacy-house-runtime-adapter.ts';
 import {TIMINGS} from '@/shared/config.ts';
 
 interface UseCanvasHouseInitializationArgs {
@@ -14,7 +14,7 @@ export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitiali
     const id = window.setInterval(() => {
       const canvasPort = canvasRef.current?.createHouseManagerCanvasPort();
       if (canvasPort) {
-        houseManager.initialize(canvasPort);
+        legacyHouseRuntimePort.initializeCanvas(canvasPort);
         window.clearInterval(id);
       }
       tries += 1;

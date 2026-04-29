@@ -1,4 +1,3 @@
-import {PILOTI_CORNER_ID} from '@/shared/config.ts';
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
@@ -33,7 +32,7 @@ import {
 } from '@/domain/house/use-cases/house-state.use-case.ts';
 import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
 import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
-import {getRecommendedHeight} from '@/shared/types/piloti.ts';
+import {recalculateRecommendedPilotiData} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 export class HouseAggregate<TGroup> {
 
@@ -66,10 +65,6 @@ export class HouseAggregate<TGroup> {
 
   toState(): HouseState<TGroup> {
     return this.state;
-  }
-
-  private static round2(value: number): number {
-    return Math.round(value * 100) / 100;
   }
 
   getHouseType(): HouseType {
@@ -250,31 +245,12 @@ export class HouseAggregate<TGroup> {
     recalculateHeight: boolean = true,
     availableHeights?: readonly number[],
   ): void {
-    const nextPilotis: Record<string, HousePiloti> = {...this.state.pilotis};
-
-    const a1 = this.state.pilotis[PILOTI_CORNER_ID.topLeft]?.nivel ?? defaultPiloti.nivel;
-    const a4 = this.state.pilotis[PILOTI_CORNER_ID.topRight]?.nivel ?? defaultPiloti.nivel;
-    const c1 = this.state.pilotis[PILOTI_CORNER_ID.bottomLeft]?.nivel ?? defaultPiloti.nivel;
-    const c4 = this.state.pilotis[PILOTI_CORNER_ID.bottomRight]?.nivel ?? defaultPiloti.nivel;
-
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 4; col++) {
-        const id = `piloti_${col}_${row}`;
-        const u = col / 3;
-        const v = row / 2;
-
-        const nivel = (1 - u) * (1 - v) * a1 + u * (1 - v) * a4 + (1 - u) * v * c1 + u * v * c4;
-        const height = getRecommendedHeight(nivel, availableHeights);
-
-        nextPilotis[id] = {
-          ...(nextPilotis[id] ?? defaultPiloti),
-          nivel: HouseAggregate.round2(nivel),
-          ...(recalculateHeight ? {height} : {}),
-        };
-      }
-    }
-
-    this.state.pilotis = nextPilotis;
+    this.state.pilotis = recalculateRecommendedPilotiData({
+      pilotis: this.state.pilotis,
+      defaultPiloti,
+      recalculateHeight,
+      availableHeights,
+    });
   }
 
   collectAllViewGroups<TGroup>(

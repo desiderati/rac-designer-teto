@@ -1,5 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {legacyHouseStatePort} from '@/infra/house/legacy-house-state-adapter.ts';
 
 type Listener = () => void;
 
@@ -14,7 +14,7 @@ function emitChange() {
 
 function ensureBridge() {
   if (unsubscribeHouseManager) return;
-  unsubscribeHouseManager = houseManager.subscribe(() => {
+  unsubscribeHouseManager = legacyHouseStatePort.subscribe(() => {
     emitChange();
   });
 }
@@ -33,7 +33,7 @@ function subscribe(listener: Listener): () => void {
 }
 
 function getHouseSnapshot() {
-  return houseManager.getHouse();
+  return legacyHouseStatePort.getSnapshot();
 }
 
 function getVersionSnapshot() {

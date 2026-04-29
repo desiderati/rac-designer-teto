@@ -1,5 +1,4 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/lib/canvas';
 import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
@@ -28,8 +27,6 @@ export function useCanvasActions({
   onCloseSubmenus,
   onDismissPilotiTutorial,
 }: UseCanvasActionsArgs) {
-
-  const getCanvas = useCallback((): FabricCanvas | null => canvasRef.current?.getRuntimeCanvas() ?? null, [canvasRef]);
 
   const getVisibleCenter = useCallback(() => {
     const handle = canvasRef.current;
@@ -72,7 +69,6 @@ export function useCanvasActions({
   }, [canvasRef, houseWritePort, setInfoMessage]);
 
   return {
-    getCanvas,
     getVisibleCenter,
     addObjectToCanvas,
     closeAllMenus,

@@ -1,13 +1,9 @@
 import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
   CanvasObject,
   ElementStrategyKey,
-  getElementStrategy,
   PilotiCanvasSelection,
-  toCanvasGroup,
-  toCanvasObject,
 } from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {
@@ -16,31 +12,31 @@ import type {
   EditorWallSelection,
 } from '@/components/rac-editor/canvas/types.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
-import {useCanvasClipboard} from '@/components/rac-editor/hooks/canvas/useCanvasClipboard.ts';
+import {useCanvasClipboard} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
-import {useContraventamentoRefs} from '@/components/rac-editor/hooks/useContraventamentoRefs.ts';
-import {useCanvasFabricSetup} from '@/components/rac-editor/hooks/canvas/useCanvasFabricSetup.ts';
-import {useCanvasHistory} from '@/components/rac-editor/hooks/canvas/useCanvasHistory.ts';
-import {useCanvasMinimapObjects} from '@/components/rac-editor/hooks/canvas/useCanvasMinimapObjects.ts';
-import {useCanvasPointerInteractions} from '@/components/rac-editor/hooks/canvas/useCanvasPointerInteractions.ts';
+import {useContraventamentoRefs} from '@/components/rac-editor/ui/canvas/adapters/hooks/useContraventamentoRefs.ts';
+import {useCanvasFabricSetup} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasFabricSetup.ts';
+import {useCanvasHistory} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasHistory.ts';
+import {useCanvasMinimapObjects} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasMinimapObjects.ts';
+import {useCanvasPointerInteractions} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasPointerInteractions.ts';
 import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/useCanvasScreenProjection.ts';
-import {useCanvasHouseSelection} from '@/components/rac-editor/hooks/canvas/useCanvasHouseSelection.ts';
+import {useCanvasHouseSelection} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
-import {createHouseManagerCanvasPort} from '@/components/rac-editor/lib/house-manager-fabric-canvas-adapter.ts';
+import {createHouseManagerCanvasPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-house-manager-canvas-port.ts';
 import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
+import type {CanvasDocumentPort} from '@/components/rac-editor/store/CanvasDocumentPort.ts';
+import type {CanvasDebugPort} from '@/components/rac-editor/store/CanvasDebugPort.ts';
 import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
-import {CANVAS_STYLE} from '@/shared/config.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
 import {
-  applyPilotiEditorCloseVisuals,
-  applyPilotiSelectionVisuals
-} from '@/components/rac-editor/lib/canvas/piloti-visual-feedback.ts';
-import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/lib/canvas/piloti-screen-position.ts';
-import {
   GenericObjectEditorType,
-  getGenericObjectEditorStrategy
 } from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
+import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import {createFabricCanvasDocumentPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-document-port.ts';
+import {createFabricCanvasDebugPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-debug-port.ts';
+import {createFabricCanvasCommandPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-command-port.ts';
+import type {FabricCanvasRuntime} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-runtime.ts';
 
 export interface ContraventamentoCanvasSelection {
   group: CanvasGroup;
@@ -106,18 +102,16 @@ interface CanvasProps {
 }
 
 export interface CanvasHandle {
-  /**
-   * @deprecated Transitional Fabric escape hatch for legacy flows. Prefer
-   * explicit CanvasHandle capabilities or dedicated canvas ports.
-   */
-  getRuntimeCanvas: () => FabricCanvas | null;
   createHouseManagerCanvasPort: () => HouseManagerCanvasPort | null;
+  createDocumentPort: () => CanvasDocumentPort | null;
+  createDebugPort: () => CanvasDebugPort | null;
   saveHistory: () => void;
   clearHistory: () => void;
   undo: () => void;
   copy: () => void;
   paste: () => void;
   createElementObject: (kind: ElementStrategyKey) => CanvasObject | null;
+  createHouseViewGroup: (payload: { viewType: HouseViewType; side?: HouseSide }) => CanvasGroup | null;
   addObjectAtVisibleCenter: (object: CanvasObject) => boolean;
   setDrawingModeEnabled: (enabled: boolean) => boolean;
   resetSurface: () => void;
@@ -181,7 +175,7 @@ export const Canvas =
 
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
-      const fabricCanvasRef = useRef<FabricCanvas | null>(null);
+      const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
 
       const {
         zoom,
@@ -267,133 +261,58 @@ export const Canvas =
         viewportYRef,
       });
 
-      useImperativeHandle(ref, () => ({
-        getRuntimeCanvas: () => fabricCanvasRef.current,
+      useImperativeHandle(ref, () => {
+        const createCommandPort = () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas
+            ? createFabricCanvasCommandPort({
+              canvas,
+              getVisibleCenter,
+              clearHistory,
+              saveHistory,
+            })
+            : null;
+        };
+        return {
         createHouseManagerCanvasPort: () => {
           const canvas = fabricCanvasRef.current;
           return canvas ? createHouseManagerCanvasPort(canvas) : null;
+        },
+        createDocumentPort: () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas ? createFabricCanvasDocumentPort(canvas) : null;
+        },
+        createDebugPort: () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas ? createFabricCanvasDebugPort(canvas) : null;
         },
         saveHistory,
         clearHistory,
         undo,
         copy,
         paste,
-        createElementObject: (kind) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return null;
-
-          return getElementStrategy(kind).create(canvas);
-        },
-        addObjectAtVisibleCenter: (object) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return false;
-
-          const center = getVisibleCenter();
-          object.set({left: center.x, top: center.y});
-          canvas.add(object);
-          canvas.setActiveObject(object);
-          return true;
-        },
-        setDrawingModeEnabled: (enabled) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return false;
-
-          canvas.isDrawingMode = enabled;
-          canvas.selection = !enabled;
-          return true;
-        },
-        resetSurface: () => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return;
-
-          canvas.clear();
-          canvas.backgroundColor = CANVAS_STYLE.backgroundColor;
-          canvas.renderAll();
-          clearHistory();
-          saveHistory();
-        },
-        renderAll: () => {
-          fabricCanvasRef.current?.renderAll();
-        },
-        getActiveObjectCount: () => fabricCanvasRef.current?.getActiveObjects().length ?? 0,
-        deleteActiveObjects: (handlers) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return 'none';
-
-          const activeObjects = canvas.getActiveObjects();
-          if (activeObjects.length === 0) return 'none';
-
-          canvas.discardActiveObject();
-          for (const object of activeObjects) {
-            const typedObject = toCanvasObject(object);
-            if (!typedObject) continue;
-
-            if (typedObject.myType === 'house') {
-              const rawView = typedObject.houseViewType ?? typedObject.houseView;
-              if (rawView === 'top') {
-                if (handlers?.canDeleteTopView && !handlers.canDeleteTopView()) {
-                  handlers.onBlockedTopViewDelete?.();
-                  canvas.setActiveObject(object);
-                  return 'blocked';
-                }
-                handlers?.onTopViewDeleted?.();
-              }
-              handlers?.onHouseViewRemoved?.(toCanvasGroup(object));
-            }
-
-            canvas.remove(object);
-          }
-
-          return 'deleted';
-        },
+        createElementObject: (kind) => createCommandPort()?.createElementObject(kind) ?? null,
+        createHouseViewGroup: (payload) => createCommandPort()?.createHouseViewGroup(payload) ?? null,
+        addObjectAtVisibleCenter: (object) => createCommandPort()?.addObjectAtVisibleCenter(object) ?? false,
+        setDrawingModeEnabled: (enabled) => createCommandPort()?.setDrawingModeEnabled(enabled) ?? false,
+        resetSurface: () => createCommandPort()?.resetSurface(),
+        renderAll: () => createCommandPort()?.renderAll(),
+        getActiveObjectCount: () => createCommandPort()?.getActiveObjectCount() ?? 0,
+        deleteActiveObjects: (handlers) => createCommandPort()?.deleteActiveObjects(handlers) ?? 'none',
         getCanvasPointScreenPosition: (point) => getCurrentScreenPoint(point),
-        getGroupLocalPointScreenPosition: (group, localCanvasPoint) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return null;
-
-          const container = canvas.getElement().parentElement;
-          if (!container) return null;
-
-          return projectCanvasPointToScreenPoint({
-            groupMatrix: group.calcTransformMatrix(),
-            localCanvasPoint,
-            canvasContainer: container.getBoundingClientRect(),
-            viewportTransform: canvas.viewportTransform ?? undefined,
-          });
-        },
-        applyGenericObjectEdit: ({kind, object, color, label}) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return null;
-
-          const strategy = getGenericObjectEditorStrategy(kind);
-          strategy.apply({canvas, object, color, label});
-          saveHistory();
-          return strategy.getInfoMessage();
-        },
-        applyPilotiEditorCloseVisuals: (group) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas || !group) return;
-
-          applyPilotiEditorCloseVisuals({
-            groupObjects: group.getCanvasObjects(),
-            houseStillSelected: canvas.getActiveObject() === group,
-          });
-          canvas.renderAll();
-        },
-        applyPilotiSelectionVisuals: (pilotiId) => {
-          const canvas = fabricCanvasRef.current;
-          if (!canvas) return;
-
-          applyPilotiSelectionVisuals(canvas.getObjects(), pilotiId);
-          canvas.renderAll();
-        },
+        getGroupLocalPointScreenPosition: (group, localCanvasPoint) =>
+          createCommandPort()?.getGroupLocalPointScreenPosition(group, localCanvasPoint) ?? null,
+        applyGenericObjectEdit: (payload) => createCommandPort()?.applyGenericObjectEdit(payload) ?? null,
+        applyPilotiEditorCloseVisuals: (group) => createCommandPort()?.applyPilotiEditorCloseVisuals(group),
+        applyPilotiSelectionVisuals: (pilotiId) => createCommandPort()?.applyPilotiSelectionVisuals(pilotiId),
         getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
         setCanvasPosition: (x: number, y: number) => {
           handleViewportChange(x, y);
         },
         getVisibleCenter,
         fitToView,
-      }), [clearHistory, copy, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+      };
+      }, [clearHistory, copy, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
 
       // Surface zoom changes back to the parent so the top-bar zoom indicator
       // can stay in sync with wheel/pinch interactions.

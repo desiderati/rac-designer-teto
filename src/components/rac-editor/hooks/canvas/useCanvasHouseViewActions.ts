@@ -1,5 +1,4 @@
-import {Dispatch, MutableRefObject, SetStateAction} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
+import {Dispatch, MutableRefObject, RefObject, SetStateAction} from 'react';
 import {toast} from 'sonner';
 import {NivelDefinition} from '@/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx';
 import {
@@ -15,12 +14,13 @@ import {
 } from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/ui/modals/selectors/HouseSideSelector.tsx';
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
-import {createHouseGroupForView, getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
+import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/lib/canvas';
 import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 
 interface UseCanvasHouseViewActionsArgs {
-  getCanvas: () => FabricCanvas | null;
+  canvasRef: RefObject<CanvasHandle | null>;
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;
@@ -40,7 +40,7 @@ interface UseCanvasHouseViewActionsArgs {
 }
 
 export function useCanvasHouseViewActions({
-  getCanvas,
+  canvasRef,
   getVisibleCenter,
   closeAllMenus,
   addObjectToCanvas,
@@ -63,14 +63,11 @@ export function useCanvasHouseViewActions({
     (viewType: HouseViewType, side?: HouseSide) => {
 
       closeAllMenus();
-      const canvas = getCanvas();
-      if (!canvas) return;
-
-      const house = createHouseGroupForView({
-        canvas,
+      const house = canvasRef.current?.createHouseViewGroup({
         viewType,
         side,
       });
+      if (!house) return;
 
       houseWritePort.registerView(viewType, house, side);
       addObjectToCanvas(house);
@@ -189,8 +186,7 @@ export function useCanvasHouseViewActions({
         addViewToCanvas(viewType, side ?? undefined); // Initial view
 
         // Reposition so plant is above and view is below
-        const canvas = getCanvas();
-        if (canvas) {
+        if (canvasRef.current) {
           setTimeout(() => {
             const {topGroup: plantGroup, viewGroup} =
               houseWritePort.getStackedViewGroups(viewType, side ?? undefined);
@@ -212,7 +208,7 @@ export function useCanvasHouseViewActions({
               viewGroup.set({left: center.x, top: layout.bottomY});
               plantGroup.setCoords();
               viewGroup.setCoords();
-              canvas.renderAll();
+              canvasRef.current?.renderAll();
             }
           }, TIMINGS.stackedViewRepositionDelayMs);
         }

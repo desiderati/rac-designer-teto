@@ -1,5 +1,4 @@
 import {Dispatch, RefObject, SetStateAction} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
 import type {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {useContraventamentoQueries} from './useContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useContraventamentoCommands.ts';
@@ -10,7 +9,6 @@ import {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar
 
 interface UseContraventamentoArgs {
   canvasRef: RefObject<CanvasHandle | null>;
-  getCanvas: () => FabricCanvas | null;
   houseVersion: number;
   isContraventamentoMode: boolean;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
@@ -30,7 +28,6 @@ interface UseContraventamentoArgs {
 
 export function useContraventamento({
   canvasRef,
-  getCanvas,
   houseVersion,
   isContraventamentoMode,
   setIsContraventamentoMode,
@@ -48,7 +45,6 @@ export function useContraventamento({
 }: UseContraventamentoArgs) {
 
   const queries = useContraventamentoQueries({
-    getCanvas,
     contraventamentoFirst: contraventamentoFirst
       ? {col: contraventamentoFirst.col, row: contraventamentoFirst.row}
       : null,

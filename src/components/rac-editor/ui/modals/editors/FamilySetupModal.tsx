@@ -16,7 +16,7 @@ interface FamilySetupModalProps {
   onConfirm: (result: FamilySetupResult) => void;
 }
 
-const DEFAULT_SELECTED: Set<number> = new Set([1.0, 1.5, 2.0, 2.5, 3.0, 3.5]);
+const DEFAULT_SELECTED: Set<number> = new Set([1.0, 1.2, 1.5, 2.0, 2.5, 3.0]);
 
 export function FamilySetupModal({isOpen, onClose, onConfirm}: FamilySetupModalProps) {
   const isMobile = useIsMobile();

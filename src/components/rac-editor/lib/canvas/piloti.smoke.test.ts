@@ -48,7 +48,7 @@ describe('piloti.ts', () => {
   it('computes recommended height from nivel', () => {
     expect(getMinimumPilotiHeightForNivel(0.2)).toBeCloseTo(0.6, 6);
     expect(getRecommendedHeight(0.2)).toBe(1.0);
-    expect(getRecommendedHeight(1.75)).toBe(3.5);
+    expect(getRecommendedHeight(1.75)).toBe(3.0);
   });
 
   it('computes recommendation and max nivel from selected family heights', () => {
@@ -62,7 +62,7 @@ describe('piloti.ts', () => {
 
   it('normalizes selected family heights and falls back safely when needed', () => {
     expect(normalizeAvailablePilotiHeights([3.2, 1.5, 3.2, 9] as unknown as number[])).toEqual([1.5, 3.2]);
-    expect(normalizeAvailablePilotiHeights([])).toEqual([1.0, 1.5, 2.0, 2.5, 3.0, 3.5]);
+    expect(normalizeAvailablePilotiHeights([])).toEqual([1.0, 1.2, 1.5, 2.0, 2.5, 3.0]);
   });
 
   it('detects out-of-proportion piloti using the same ratio as recommendation', () => {

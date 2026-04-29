@@ -3,29 +3,13 @@ import {
 } from '@/components/rac-editor/lib/canvas';
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {
-  ALL_HOUSE_VIEW_TYPES,
-  DEFAULT_HOUSE_PILOTI,
   HousePiloti,
   HouseSide,
   HouseState,
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
-import {
-  applyTerrainTypeToElevationViews,
-} from '@/components/rac-editor/lib/house-manager-terrain.ts';
 import {HouseManagerSessionMetadata} from '@/components/rac-editor/lib/house-manager-session.ts';
-import {
-  applyCurrentHouseDataToGroups,
-  rebuildHouseViewsFromCanvas,
-  registerHouseView,
-  removeHouseView,
-} from '@/components/rac-editor/lib/house-manager-views.ts';
-import {
-  calculateRecommendedHousePilotiHeights,
-  updateHousePiloti,
-} from '@/components/rac-editor/lib/house-manager-piloti.ts';
 import {
   refreshAutoContraventamento,
   refreshAutoStairs,
@@ -35,6 +19,8 @@ import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseMa
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
+import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
+import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
 
 export class HouseManagerFacade {
 
@@ -42,6 +28,26 @@ export class HouseManagerFacade {
   private readonly sessionMetadata = new HouseManagerSessionMetadata();
   private readonly canvasRuntime = new HouseManagerCanvasRuntime();
   private readonly notifier = new HouseManagerNotifier();
+  private readonly commands = new HouseManagerCommandService({
+    getHouse: () => this.house,
+    getAggregate: () => this.getHouseAggregate(),
+    getDefaultTerrainType: () => this.getDefaultTerrainType(),
+    getTerrainType: () => this.getTerrainType(),
+    getSelectedPilotiHeights: () => this.sessionMetadata.getSelectedPilotiHeights(),
+    getAllGroups: () => this.getAllGroups(),
+    createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
+    persistHouse: () => this.persistHouse(),
+    syncProjectSession: () => this.syncProjectSession(),
+    requestCanvasRender: () => this.requestCanvasRender(),
+    notify: () => this.notify(),
+    refreshAutoContraventamento: () => this.refreshAutoContraventamento(),
+  });
+  private readonly queries = new HouseManagerQueryService({
+    getHouse: () => this.house,
+    getAggregate: () => this.getHouseAggregate(),
+    getDefaultTerrainType: () => this.getDefaultTerrainType(),
+    cleanupStaleViews: (viewType) => this.cleanupStaleViews(viewType),
+  });
 
   constructor() {
     this.notifier.addInternalListener(() => this.refreshTopDoorMarkers());
@@ -144,79 +150,48 @@ export class HouseManagerFacade {
 
   // Get/Set house type
   getHouseType(): HouseType {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return null;
-
-    return aggregate.getHouseType();
+    return this.queries.getHouseType();
   }
 
   setHouseType(type: HouseType): void {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return;
-
-    aggregate.setHouseType(type);
-    this.persistHouse();
-    this.syncProjectSession();
-    this.notify();
+    this.commands.setHouseType(type);
   }
 
   getTerrainType(): number {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return this.getDefaultTerrainType();
-
-    return normalizeTerrainSolidityLevel(aggregate.getTerrainType());
+    return this.queries.getTerrainType();
   }
 
   setTerrainType(terrainType: number): number {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return this.getDefaultTerrainType();
-
-    const normalized = normalizeTerrainSolidityLevel(terrainType);
-    aggregate.setTerrainType(normalized);
-    this.persistHouse();
-    this.syncProjectSession();
-    applyTerrainTypeToElevationViews(this.house, normalized);
-    this.requestCanvasRender();
-    this.notify();
-    return normalized;
+    return this.commands.setTerrainType(terrainType);
   }
 
   // Get max count for a view type based on current house type
   getMaxHouseViewCount(viewType: HouseViewType): number {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return 0;
-    return aggregate.getMaxViewCount(viewType);
+    return this.queries.getMaxHouseViewCount(viewType);
   }
 
   // Get current count of a view type
   getHouseViewCount(viewType: HouseViewType): number {
-    if (!this.house) return 0;
-    return this.house.views[viewType].length;
+    return this.queries.getHouseViewCount(viewType);
   }
 
   // Check if can add more of this view type
   canAddView(viewType: HouseViewType): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return false;
-    return aggregate.canAddView(viewType);
+    return this.queries.canAddView(viewType);
   }
 
   // Check if plant (top view) can be deleted
   canDeletePlant(): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return false;
-    return aggregate.canDeletePlant();
+    return this.queries.canDeletePlant();
   }
 
   // Check if any non-plant views exist
   hasOtherViews(): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return false;
-    return aggregate.hasOtherViews();
+    return this.queries.hasOtherViews();
   }
 
   getHouse(): HouseState<CanvasGroup> | null {
-    return this.house;
+    return this.queries.getHouse();
   }
 
   private getHouseAggregate(): HouseAggregate<CanvasGroup> | null {
@@ -239,125 +214,41 @@ export class HouseManagerFacade {
 
   // Check if this specific view type has reached its maximum
   isViewAtLimit(viewType: HouseViewType): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return true;
-    this.cleanupStaleViews(viewType);
-    return aggregate.isViewLimitAchieved(viewType);
+    return this.queries.isViewAtLimit(viewType);
   }
 
   getAvailableViews(): HouseViewType[] {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return [];
-
-    ALL_HOUSE_VIEW_TYPES.forEach((viewType) => {
-      this.cleanupStaleViews(viewType);
-    });
-
-    return aggregate.getAvailableViews();
+    return this.queries.getAvailableViews();
   }
 
   // Get which sides are available for a given view type
   getAvailableSides(viewType: HouseViewType): HouseSide[] {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return [];
-    return aggregate.getAvailableSides(viewType);
+    return this.queries.getAvailableSides(viewType);
   }
 
   // Register a view with its group and side
   registerView(viewType: HouseViewType, group: CanvasGroup, side?: HouseSide): void {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate || !this.house) return;
-
-    const result = registerHouseView({
-      aggregate,
-      house: this.house,
-      viewType,
-      group,
-      side,
-      terrainType: this.getTerrainType(),
-    });
-    if (!result.registered) return;
-
-    this.persistHouse();
-
-    if (result.registeredTopView) {
-      this.refreshAutoContraventamento();
-    }
-
-    this.notify();
+    this.commands.registerView(viewType, group, side);
   }
 
   // Rebuild house view registry from current canvas groups (used after undo/import).
   rebuildFromCanvas(): void {
-    const aggregate = this.getHouseAggregate();
-    if (!this.house || !aggregate) return;
-
-    const canvasState = this.canvasRuntime.createRebuildInput({
-      currentPilotis: this.house.pilotis,
-      fallbackTerrainType: this.getTerrainType(),
-    });
-    if (!canvasState) return;
-
-    const rebuild = rebuildHouseViewsFromCanvas({
-      aggregate,
-      house: this.house,
-      canvasGroups: canvasState.canvasGroups,
-      pilotisFromCanvas: canvasState.pilotisFromCanvas,
-      terrainTypeFromCanvas: canvasState.terrainTypeFromCanvas,
-    });
-    this.persistHouse();
-
-    applyCurrentHouseDataToGroups({
-      groups: rebuild.groupsToSync,
-      terrainType: this.getTerrainType(),
-      pilotis: this.house.pilotis,
-    });
-
-    this.notify();
+    this.commands.rebuildFromCanvas();
   }
 
   // Remove a view (when deleted from canvas)
   removeView(group: CanvasGroup): void {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return;
-
-    const result = removeHouseView({
-      aggregate,
-      group,
-    });
-
-    if (result.removedCount > 0) {
-      this.persistHouse();
-      this.notify();
-    }
+    this.commands.removeView(group);
   }
 
   // Update piloti data and sync across all views
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate || !this.house) return;
-
-    const result = updateHousePiloti({
-      aggregate,
-      house: this.house,
-      pilotiId,
-      pilotiData,
-      selectedPilotiHeights: this.sessionMetadata.getSelectedPilotiHeights(),
-      groups: this.getAllGroups(),
-    });
-    if (!result.updated) return;
-
-    this.persistHouse();
-    if (result.shouldRefreshAutoContraventamento) {
-      this.refreshAutoContraventamento();
-    }
-    this.requestCanvasRender();
-    this.notify();
+    this.commands.updatePiloti(pilotiId, pilotiData);
   }
 
   // Get piloti data
   getPilotiData(pilotiId: string): HousePiloti {
-    return this.house?.pilotis[pilotiId] || {...DEFAULT_HOUSE_PILOTI};
+    return this.queries.getPilotiData(pilotiId);
   }
 
   /**
@@ -370,28 +261,17 @@ export class HouseManagerFacade {
    * - If minimum exceeds the available table, cap at the highest available height.
    */
   calculateAndApplyRecommendedHeights(): void {
-    const aggregate = this.getHouseAggregate();
-    if (!this.house || !aggregate) return;
-
-    calculateRecommendedHousePilotiHeights({
-      aggregate,
-      selectedPilotiHeights: this.sessionMetadata.getSelectedPilotiHeights(),
-    });
-    this.persistHouse();
+    this.commands.calculateAndApplyRecommendedHeights();
   }
 
   // Check if any views exist
   hasAnyView(): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate && !this.house) return false;
-    return aggregate.hasAnyViewInstances(this.house.views);
+    return this.queries.hasAnyView();
   }
 
   // Get all registered groups
   getAllGroups(): CanvasGroup[] {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate && !this.house) return [];
-    return aggregate.collectAllViewGroups(this.house.views);
+    return this.queries.getAllGroups();
   }
 
   // Insert a 3D viewer snapshot on the current canvas
@@ -401,28 +281,17 @@ export class HouseManagerFacade {
 
   // Auto-assign all sides based on initial view positioning
   autoAssignAllSides(_initialViewType: HouseViewType, initialSide: HouseSide): void {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return;
-
-    aggregate.autoAssignAllSides(initialSide);
-    this.persistHouse();
-    this.notify();
+    this.commands.autoAssignAllSides(initialSide);
   }
 
   // Get pre-assigned slots for a view type
   getPreAssignedSides(viewType: HouseViewType): { label: string; side: HouseSide; onCanvas: boolean }[] {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return [];
-
-    return aggregate.getPreAssignedSides(viewType);
+    return this.queries.getPreAssignedSides(viewType);
   }
 
   // Check if pre-assigned slots exist
   hasPreAssignedSides(): boolean {
-    const aggregate = this.getHouseAggregate();
-    if (!aggregate) return false;
-
-    return aggregate.hasPreAssignedSides();
+    return this.queries.hasPreAssignedSides();
   }
 
   private getDefaultTerrainType(): number {

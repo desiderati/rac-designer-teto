@@ -1,11 +1,8 @@
 import {useCallback} from 'react';
-import {Canvas as FabricCanvas} from 'fabric';
-import {findTopViewGroupCandidate} from '@/components/rac-editor/lib/canvas/canvas-rebuild.ts';
 import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
   ContraventamentoOrigin,
-  isCanvasGroup,
 } from '@/components/rac-editor/lib/canvas';
 import {
   collectOccupiedContraventamentoSides,
@@ -16,27 +13,19 @@ import {
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 interface UseContraventamentoQueriesArgs {
-  getCanvas: () => FabricCanvas | null;
   contraventamentoFirst: ContraventamentoOrigin | null;
   pilotiIdForEditor: string | null;
 }
 
 export function useContraventamentoQueries({
-  getCanvas,
   contraventamentoFirst,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
   const houseSnapshot = useHouseSnapshot();
 
   const getTopViewGroup = useCallback((): CanvasGroup | null => {
-    const canvas = getCanvas();
-    if (!canvas) return null;
-
-    return findTopViewGroupCandidate(
-      canvas.getObjects().filter(
-        (o) => isCanvasGroup(o)
-      )) as CanvasGroup | null;
-  }, [getCanvas]);
+    return houseSnapshot?.views.top[0]?.group ?? null;
+  }, [houseSnapshot]);
 
   const getNonTopViewGroups = useCallback((): CanvasGroup[] => {
     if (!houseSnapshot) return [];

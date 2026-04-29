@@ -1,0 +1,180 @@
+import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
+import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
+import type {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
+import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
+import {legacyHouseWritePort} from '@/infra/house/legacy-house-write-adapter.ts';
+import {useCanvasActions} from '@/components/rac-editor/hooks/canvas/useCanvasActions.ts';
+import {useRacEditorTerrainActions} from '@/components/rac-editor/hooks/useRacEditorTerrainActions.ts';
+import {useCanvasHouseViewActions} from '@/components/rac-editor/hooks/canvas/useCanvasHouseViewActions.ts';
+import {useCanvasTools} from '@/components/rac-editor/hooks/canvas/useCanvasTools.ts';
+import type {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
+
+type HouseTypeFlowState = Pick<
+  ReturnType<typeof useHouseTypeFlow>,
+  | 'pendingViewType'
+  | 'setPendingViewType'
+  | 'sideSelectorMode'
+  | 'setSideSelectorMode'
+  | 'setHouseSideSlots'
+  | 'pendingNivelSide'
+  | 'setPendingNivelSide'
+  | 'niveisAppliedRef'
+  | 'transitionToNivelRef'
+>;
+
+interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
+  canvasRef: RefObject<CanvasHandle | null>;
+  isDrawing: boolean;
+  setIsDrawing: Dispatch<SetStateAction<boolean>>;
+  setInfoMessage: Dispatch<SetStateAction<string>>;
+  setTutorialBalloon: Dispatch<SetStateAction<TutorialBalloonState>>;
+  clearTutorialBalloon: () => void;
+  setActiveSubmenu: Dispatch<SetStateAction<ToolbarSubmenu>>;
+  dismissPilotiTutorial: () => void;
+  showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
+  setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
+  setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+/**
+ * Coordena a camada de aplicacao que transforma comandos da UI em operacoes do canvas.
+ */
+export function useRacEditorCanvasController({
+  canvasRef,
+  isDrawing,
+  setIsDrawing,
+  setInfoMessage,
+  setTutorialBalloon,
+  clearTutorialBalloon,
+  setActiveSubmenu,
+  dismissPilotiTutorial,
+  showPilotiTutorialIfNeeded,
+  pendingViewType,
+  setPendingViewType,
+  sideSelectorMode,
+  setSideSelectorMode,
+  setHouseSideSlots,
+  pendingNivelSide,
+  setPendingNivelSide,
+  niveisAppliedRef,
+  transitionToNivelRef,
+  setSideSelectorOpen,
+  setNivelDefinitionOpen,
+}: UseRacEditorCanvasControllerArgs) {
+  const editorStore = useEditorStore();
+
+  const {
+    getVisibleCenter,
+    addObjectToCanvas,
+    closeAllMenus,
+    disableDrawingMode,
+    handleDelete,
+  } = useCanvasActions({
+    canvasRef,
+    isDrawing,
+    setIsDrawing,
+    setInfoMessage,
+    houseWritePort: legacyHouseWritePort,
+    clearTutorialBalloon,
+    onCloseSubmenus: () => setActiveSubmenu(null),
+    onDismissPilotiTutorial: dismissPilotiTutorial,
+  });
+
+  const {
+    terrainSelection,
+    isTerrainEditorOpen,
+    handleTerrainSelect,
+    handleTerrainEditorClose,
+    handleTerrainApply,
+  } = useRacEditorTerrainActions({
+    canvasRef,
+    editorStore,
+    setInfoMessage,
+  });
+
+  const handleFreeDrawPathCreated = useCallback(() => {
+    setIsDrawing(false);
+    setInfoMessage('<b>Dica:</b> Modo Lápis desativado após concluir o desenho à mão livre.');
+  }, [setInfoMessage, setIsDrawing]);
+
+  const {
+    handleSideSelected,
+    handleNiveisApplied,
+    handleNivelDefinitionClose,
+    handleSideSelectorClose,
+    handleAddHouseView,
+    handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
+  } = useCanvasHouseViewActions({
+    canvasRef,
+    getVisibleCenter,
+    closeAllMenus,
+    addObjectToCanvas,
+    showPilotiTutorialIfNeeded,
+    houseWritePort: legacyHouseWritePort,
+    pendingViewType,
+    setPendingViewType,
+    sideSelectorMode,
+    setSideSelectorMode,
+    setHouseSideSlots,
+    pendingNivelSide,
+    setPendingNivelSide,
+    niveisAppliedRef,
+    transitionToNivelRef,
+    setSideSelectorOpen,
+    setNivelDefinitionOpen,
+  });
+
+  const {
+    handleAddWall,
+    handleAddDoor,
+    handleAddStairs,
+    handleAddTree,
+    handleAddWater,
+    handleAddFossa,
+    handleAddLine,
+    handleAddArrow,
+    handleAddDistance,
+    handleToggleDrawMode,
+    handleAddText,
+  } = useCanvasTools({
+    canvasRef,
+    addObjectToCanvas,
+    closeAllMenus,
+    disableDrawingMode,
+    isDrawing,
+    setIsDrawing,
+    setInfoMessage,
+    setTutorialBalloon,
+  });
+
+  return {
+    closeAllMenus,
+    disableDrawingMode,
+    handleDelete,
+    terrainSelection,
+    isTerrainEditorOpen,
+    handleTerrainSelect,
+    handleTerrainEditorClose,
+    handleTerrainApply,
+    handleFreeDrawPathCreated,
+    handleSideSelected,
+    handleNiveisApplied,
+    handleNivelDefinitionClose,
+    handleSideSelectorClose,
+    handleAddHouseView,
+    handleHouseTypeSelectedFromFlow,
+    handleAddWall,
+    handleAddDoor,
+    handleAddStairs,
+    handleAddTree,
+    handleAddWater,
+    handleAddFossa,
+    handleAddLine,
+    handleAddArrow,
+    handleAddDistance,
+    handleToggleDrawMode,
+    handleAddText,
+  };
+}

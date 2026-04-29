@@ -1,24 +1,21 @@
-import {useCallback} from 'react';
+import {RefObject, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {Canvas as FabricCanvas} from 'fabric';
+import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface UseRacEditorPdfExportActionArgs {
-  getCanvas: () => FabricCanvas | null;
+  canvasRef: RefObject<CanvasHandle | null>;
 }
 
-export function useRacEditorPdfExportAction({getCanvas}: UseRacEditorPdfExportActionArgs) {
+export function useRacEditorPdfExportAction({canvasRef}: UseRacEditorPdfExportActionArgs) {
 
   const handleSavePDF = useCallback(async () => {
-    const canvas = getCanvas();
-    if (!canvas) return;
+    const imgData = canvasRef.current?.createDocumentPort()?.exportImageDataUrl();
+    if (!imgData) return;
 
     try {
       const {jsPDF} = await import('jspdf');
-      canvas.discardActiveObject();
-      canvas.renderAll();
-      const imgData = canvas.toDataURL();
 
       const pdf = new jsPDF({
         orientation: 'p',
@@ -34,7 +31,7 @@ export function useRacEditorPdfExportAction({getCanvas}: UseRacEditorPdfExportAc
       console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);
       toast.error('Falha ao salvar PDF.');
     }
-  }, [getCanvas]);
+  }, [canvasRef]);
 
   return {handleSavePDF};
 }
