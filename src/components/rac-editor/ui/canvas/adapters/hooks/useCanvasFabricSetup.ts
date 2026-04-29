@@ -12,7 +12,7 @@ import {
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection
-} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {useContraventamentoEvents} from './useContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';

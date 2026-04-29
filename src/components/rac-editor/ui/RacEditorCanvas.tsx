@@ -1,15 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  Canvas,
-  CanvasHandle,
+import {Canvas} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection,
-} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;

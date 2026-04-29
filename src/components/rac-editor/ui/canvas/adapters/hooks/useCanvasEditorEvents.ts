@@ -14,7 +14,7 @@ import {
   LinearCanvasSelectionType,
   TerrainCanvasSelection,
   WallCanvasSelection
-} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
 import {readWallObjectState} from '@/components/rac-editor/ui/modals/editors/generic/helpers/wall-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';

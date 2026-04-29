@@ -1,6 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import {CanvasHandle, ContraventamentoCanvasSelection,} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {
   addContraventamentoBeam,
   CanvasGroup,

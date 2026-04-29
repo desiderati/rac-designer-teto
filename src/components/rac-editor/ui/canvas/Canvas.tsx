@@ -2,15 +2,9 @@ import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'rea
 import {
   CanvasGroup,
   CanvasObject,
-  ElementStrategyKey,
   PilotiCanvasSelection,
 } from '@/components/rac-editor/lib/canvas';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
-import type {
-  EditorLinearSelection,
-  EditorTerrainSelection,
-  EditorWallSelection,
-} from '@/components/rac-editor/canvas/types.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/hooks/canvas/useCanvasContainerLifecycle.ts';
@@ -23,50 +17,20 @@ import {useCanvasScreenProjection} from '@/components/rac-editor/hooks/canvas/us
 import {useCanvasHouseSelection} from '@/components/rac-editor/ui/canvas/adapters/hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/hooks/canvas/useCanvasViewport.ts';
 import {createHouseManagerCanvasPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-house-manager-canvas-port.ts';
-import type {HouseManagerCanvasPort} from '@/components/rac-editor/store/HouseManagerCanvasPort.ts';
-import type {CanvasDocumentPort} from '@/components/rac-editor/store/CanvasDocumentPort.ts';
-import type {CanvasDebugPort} from '@/components/rac-editor/store/CanvasDebugPort.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
-import {
-  GenericObjectEditorType,
-} from '@/components/rac-editor/lib/canvas/generic-object-editor-strategy.ts';
-import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {createFabricCanvasDocumentPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-document-port.ts';
 import {createFabricCanvasDebugPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-debug-port.ts';
 import {createFabricCanvasCommandPort} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-command-port.ts';
 import type {FabricCanvasRuntime} from '@/components/rac-editor/ui/canvas/adapters/fabric-canvas-runtime.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
-
-export interface ContraventamentoCanvasSelection {
-  group: CanvasGroup;
-  contraventamentoId: string;
-}
-
-export interface WallCanvasSelection {
-  object: CanvasGroup;
-  editorSelection: EditorWallSelection;
-  currentLabel: string;
-  screenPosition: { x: number; y: number };
-}
-
-export type LinearCanvasSelectionType = 'line' | 'arrow' | 'distance';
-
-export interface LinearCanvasSelection {
-  object: CanvasGroup;
-  editorSelection: EditorLinearSelection;
-  myType: LinearCanvasSelectionType;
-  currentLabel: string;
-  currentColor: string;
-  screenPosition: { x: number; y: number };
-}
-
-export interface TerrainCanvasSelection {
-  group: CanvasGroup;
-  editorSelection: EditorTerrainSelection;
-  terrainType: number;
-  screenPosition: { x: number; y: number };
-}
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
+import type {
+  ContraventamentoCanvasSelection,
+  LinearCanvasSelection,
+  TerrainCanvasSelection,
+  WallCanvasSelection,
+} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
 
 interface CanvasProps {
   children?: ReactNode;
@@ -99,48 +63,6 @@ interface CanvasProps {
   onContraventamentoPilotiClick?: (col: number, row: number) => void;
   onContraventamentoCancel?: () => void;
   onFreeDrawPathCreated?: () => void;
-}
-
-export interface CanvasHandle {
-  createHouseManagerCanvasPort: () => HouseManagerCanvasPort | null;
-  createDocumentPort: () => CanvasDocumentPort | null;
-  createDebugPort: () => CanvasDebugPort | null;
-  saveHistory: () => void;
-  clearHistory: () => void;
-  undo: () => void;
-  copy: () => void;
-  paste: () => void;
-  createElementObject: (kind: ElementStrategyKey) => CanvasObject | null;
-  createHouseViewGroup: (payload: { viewType: HouseViewType; side?: HouseSide }) => CanvasGroup | null;
-  addObjectAtVisibleCenter: (object: CanvasObject) => boolean;
-  setDrawingModeEnabled: (enabled: boolean) => boolean;
-  resetSurface: () => void;
-  renderAll: () => void;
-  getActiveObjectCount: () => number;
-  deleteActiveObjects: (handlers?: {
-    canDeleteTopView?: () => boolean;
-    onTopViewDeleted?: () => void;
-    onHouseViewRemoved?: (group: CanvasGroup | null) => void;
-    onBlockedTopViewDelete?: () => void;
-  }) => 'deleted' | 'blocked' | 'none';
-  getCanvasPointScreenPosition: (point: { x: number; y: number }) => { x: number; y: number } | null;
-  getGroupLocalPointScreenPosition: (
-    group: CanvasGroup,
-    localCanvasPoint: { x: number; y: number },
-  ) => { x: number; y: number } | null;
-  applyGenericObjectEdit: (payload: {
-    kind: GenericObjectEditorType;
-    object: CanvasObject;
-    color: string;
-    label: string;
-  }) => string | null;
-  applyPilotiEditorCloseVisuals: (group: CanvasGroup | null | undefined) => void;
-  applyPilotiSelectionVisuals: (pilotiId: string) => void;
-  getVisibleCenter: () => { x: number; y: number };
-  getCanvasPosition: () => { x: number; y: number; zoom: number };
-  setCanvasPosition: (x: number, y: number) => void;
-  /** Reset zoom + viewport so the canvas fits the visible container. */
-  fitToView: () => void;
 }
 
 export const Canvas =

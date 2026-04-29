@@ -1,5 +1,6 @@
 import {RefObject, useCallback} from 'react';
-import type {CanvasHandle, WallCanvasSelection} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {WallCanvasSelection} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {isCanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 

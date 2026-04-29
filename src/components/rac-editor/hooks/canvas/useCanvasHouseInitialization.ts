@@ -1,5 +1,5 @@
 import {RefObject, useEffect} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 

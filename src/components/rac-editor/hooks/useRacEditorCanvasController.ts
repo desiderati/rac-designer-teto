@@ -1,5 +1,5 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import type {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import type {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {ToolbarSubmenu} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';

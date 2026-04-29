@@ -1,5 +1,5 @@
 import {useRef} from 'react';
-import {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/hooks/useHouseTypeFlow.ts';
 import {useHotkeys} from '@/components/rac-editor/hooks/useHotkeys.ts';

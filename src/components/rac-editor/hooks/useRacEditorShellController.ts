@@ -4,7 +4,7 @@ import {
   type SetStateAction,
   useCallback,
 } from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/lib/canvas';
 import type {CanvasToolMode} from '@/components/rac-editor/ui/toolbar/helpers/toolbar-types.ts';
 import {useRacEditorDebugBridge} from '@/components/rac-editor/hooks/useRacEditorDebugBridge.ts';

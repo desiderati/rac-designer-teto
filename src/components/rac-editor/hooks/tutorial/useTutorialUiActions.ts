@@ -1,6 +1,6 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {CanvasGroup} from '@/components/rac-editor/lib/canvas';
 import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';

@@ -17,7 +17,7 @@ import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/lib/canvas';
 import type {HouseWritePort} from '@/components/rac-editor/store/HouseWritePort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {
   calculateStackedViewPositions,
   resolveHouseViewInsertion,

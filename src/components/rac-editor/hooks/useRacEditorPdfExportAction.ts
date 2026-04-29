@@ -1,6 +1,6 @@
 import {RefObject, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {CanvasHandle} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+import type {CanvasHandle} from '@/components/rac-editor/store/CanvasInteractionPort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 

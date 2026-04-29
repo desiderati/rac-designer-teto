@@ -2,7 +2,7 @@ import type {
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection
-} from '@/components/rac-editor/ui/canvas/Canvas.tsx';
+} from '@/components/rac-editor/store/CanvasSelectionPort.ts';
 import {PilotiEditor} from '@/components/rac-editor/ui/modals/editors/piloti/PilotiEditor.tsx';
 import {GenericObjectEditor} from '@/components/rac-editor/ui/modals/editors/generic/GenericObjectEditor.tsx';
 import {
