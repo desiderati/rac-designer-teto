@@ -1,8 +1,5 @@
 import {useSyncExternalStore} from 'react';
-import {
-  editorHouseRuntimeSnapshotPort,
-  editorHouseStatePort,
-} from '@/bootstrap/editor-house-ports.ts';
+import {type EditorPorts, useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
@@ -10,12 +7,6 @@ type Listener = () => void;
 
 interface HouseStoreSubscriptionPort {
   subscribe(listener: Listener): () => void;
-}
-
-let version = 0;
-
-function incrementVersion() {
-  version += 1;
 }
 
 function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => void = () => {}) {
@@ -50,31 +41,61 @@ function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => v
   return {emitChange, subscribe};
 }
 
-const stateBridge = createStoreBridge(editorHouseStatePort, incrementVersion);
-const runtimeBridge = createStoreBridge(editorHouseRuntimeSnapshotPort);
+type HouseStorePorts = Pick<EditorPorts, 'houseStatePort' | 'houseRuntimeSnapshotPort'>;
 
-function getHouseRuntimeSnapshot(): HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null {
-  return editorHouseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
+interface HouseStoreBridge {
+  emitChange(): void;
+  getRuntimeSnapshot(): HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
+  getStateSnapshot(): ReturnType<EditorPorts['houseStatePort']['getStateSnapshot']>;
+  getVersionSnapshot(): number;
+  runtimeSubscribe(listener: Listener): () => void;
+  stateSubscribe(listener: Listener): () => void;
 }
 
-function getHouseStateSnapshot() {
-  return editorHouseStatePort.getStateSnapshot();
+const bridgesByPorts = new WeakMap<HouseStorePorts, HouseStoreBridge>();
+
+function createHouseStoreBridge(ports: HouseStorePorts): HouseStoreBridge {
+  let version = 0;
+  const incrementVersion = () => {
+    version += 1;
+  };
+  const stateBridge = createStoreBridge(ports.houseStatePort, incrementVersion);
+  const runtimeBridge = createStoreBridge(ports.houseRuntimeSnapshotPort);
+
+  return {
+    emitChange: () => {
+      stateBridge.emitChange();
+      runtimeBridge.emitChange();
+    },
+    getRuntimeSnapshot: () =>
+      ports.houseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null,
+    getStateSnapshot: () => ports.houseStatePort.getStateSnapshot(),
+    getVersionSnapshot: () => version,
+    runtimeSubscribe: runtimeBridge.subscribe,
+    stateSubscribe: stateBridge.subscribe,
+  };
 }
 
-function getVersionSnapshot() {
-  return version;
+function getHouseStoreBridge(ports: HouseStorePorts): HouseStoreBridge {
+  const existing = bridgesByPorts.get(ports);
+  if (existing) return existing;
+
+  const created = createHouseStoreBridge(ports);
+  bridgesByPorts.set(ports, created);
+  return created;
 }
 
-export function emitHouseStoreChange() {
-  stateBridge.emitChange();
-  runtimeBridge.emitChange();
+function useHouseStoreBridge(): HouseStoreBridge {
+  return getHouseStoreBridge(useEditorPorts());
 }
 
 export function useHouseRuntimeSnapshot<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef>() {
+  const bridge = useHouseStoreBridge();
+
   return useSyncExternalStore(
-    runtimeBridge.subscribe,
-    getHouseRuntimeSnapshot,
-    getHouseRuntimeSnapshot,
+    bridge.runtimeSubscribe,
+    bridge.getRuntimeSnapshot,
+    bridge.getRuntimeSnapshot,
   ) as HouseRuntimeSnapshot<TGroup> | null;
 }
 
@@ -83,9 +104,25 @@ export function useHouseSnapshot<TGroup extends HouseRuntimeGroupRef = HouseRunt
 }
 
 export function useHouseStateSnapshot() {
-  return useSyncExternalStore(stateBridge.subscribe, getHouseStateSnapshot, getHouseStateSnapshot);
+  const bridge = useHouseStoreBridge();
+
+  return useSyncExternalStore(
+    bridge.stateSubscribe,
+    bridge.getStateSnapshot,
+    bridge.getStateSnapshot,
+  );
 }
 
 export function useHouseStoreVersion() {
-  return useSyncExternalStore(stateBridge.subscribe, getVersionSnapshot, getVersionSnapshot);
+  const bridge = useHouseStoreBridge();
+
+  return useSyncExternalStore(
+    bridge.stateSubscribe,
+    bridge.getVersionSnapshot,
+    bridge.getVersionSnapshot,
+  );
+}
+
+export function useHouseStoreEmitter() {
+  return useHouseStoreBridge().emitChange;
 }

@@ -14,7 +14,7 @@ import {
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
 } from '@/components/rac-editor/@canvas/lib';
-import {emitHouseStoreChange, useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import {useHouseSnapshot, useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
 import {
   ContraventamentoOrigin,
@@ -74,6 +74,7 @@ export function useContraventamentoCommands({
   setActiveSubmenu,
 }: UseContraventamentoCommandsArgs) {
   const houseSnapshot = useHouseSnapshot<CanvasGroup>();
+  const emitHouseStoreChange = useHouseStoreEmitter();
 
   const enterSecondContraventamentoSelection = useCallback((
     first: ContraventamentoOrigin,
@@ -277,6 +278,7 @@ export function useContraventamentoCommands({
       getTopViewGroup,
       getContraventamentoColumnSides,
       isPilotiEligibleForContraventamentoColumn,
+      emitHouseStoreChange,
       setActiveSubmenu,
       setIsPilotiEditorOpen,
       pilotiSelection,
