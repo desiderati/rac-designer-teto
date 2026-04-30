@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import {useHouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
 } from '@/components/rac-editor/@canvas/lib';
@@ -21,7 +21,7 @@ export function useContraventamentoQueries({
   contraventamentoFirst,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
-  const houseSnapshot = useHouseSnapshot<CanvasGroup>();
+  const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
 
   const getTopViewGroup = useCallback((): CanvasGroup | null => {
     return houseSnapshot?.views.top[0]?.group ?? null;

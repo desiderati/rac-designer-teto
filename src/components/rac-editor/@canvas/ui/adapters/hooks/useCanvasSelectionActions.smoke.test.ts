@@ -1,7 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
 import {act, renderHook} from '@testing-library/react';
+import {createElement, type ReactNode} from 'react';
 import {useCanvasSelectionActions} from './useCanvasSelectionActions.ts';
 import {TERRAIN_STYLE} from '@/shared/config.ts';
+import {createEditorPorts, type EditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 
 type MockCanvasObject = {
   type?: string;
@@ -30,6 +33,22 @@ function createCanvasObject(initial: Partial<MockCanvasObject>): MockCanvasObjec
   };
 
   return state;
+}
+
+function createWrapper(ports: EditorPorts) {
+  return function wrapper({children}: { children: ReactNode }) {
+    return createElement(RacEditorStoreProvider, {ports, children});
+  };
+}
+
+function createSelectionTestPorts(): EditorPorts {
+  return {
+    ...createEditorPorts(),
+    houseRuntimeSnapshotPort: {
+      subscribe: () => () => undefined,
+      getRuntimeSnapshot: () => null,
+    },
+  };
 }
 
 describe('useCanvasSelectionActions.ts', () => {
@@ -64,7 +83,10 @@ describe('useCanvasSelectionActions.ts', () => {
       requestRenderAll: vi.fn(),
     };
 
-    const {result} = renderHook(() => useCanvasSelectionActions());
+    const {result} = renderHook(
+      () => useCanvasSelectionActions(),
+      {wrapper: createWrapper(createSelectionTestPorts())},
+    );
     result.current.bindSelectionActions({
       canvas: canvas as any,
       onSelectionChange,

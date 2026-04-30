@@ -99,10 +99,6 @@ export function useHouseRuntimeSnapshot<TGroup extends HouseRuntimeGroupRef = Ho
   ) as HouseRuntimeSnapshot<TGroup> | null;
 }
 
-export function useHouseSnapshot<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef>() {
-  return useHouseRuntimeSnapshot<TGroup>();
-}
-
 export function useHouseStateSnapshot() {
   const bridge = useHouseStoreBridge();
 
