@@ -1,5 +1,16 @@
-import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {
+  HousePiloti,
+  HouseSide,
+  HouseType,
+  HouseViewInstanceId,
+  HouseViewType,
+} from '@/shared/types/house.ts';
+import type {HousePilotiPatch} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import type {
+  HouseViewRegistration,
+  HouseViewRegistrationRequest,
+} from '@/components/rac-editor/ports/HouseViewPort.ts';
 
 /**
  * Adapter transitório de escrita sobre o `houseManager`.
@@ -7,34 +18,52 @@ import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.
  * Ele preserva o estado canônico atual, mas impede que componentes e hooks de
  * UI dependam diretamente do singleton de gerenciamento da casa.
  */
-export const houseManagerWritePort: HouseWritePort = {
-  applyHouseSetup: (setup) => {
-    houseManager.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
-    houseManager.setFamilyName(setup.familyName);
-  },
+interface HouseManagerWriteSource {
+  setSelectedPilotiHeights(heights: number[]): void;
+  setFamilyName(name: string): void;
+  refreshAutoStairsForCurrentSettings(): void;
+  setHouseType(type: HouseType): void;
+  reset(): void;
+  rebuildFromCanvas(): void;
+  setTerrainType(terrainType: number): number;
+  removeView(instanceId: HouseViewInstanceId): void;
+  registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null;
+  autoAssignAllSides(initialViewType: HouseViewType, initialSide: HouseSide): void;
+  updatePiloti(pilotiId: string, pilotiData: HousePilotiPatch): void;
+  getPilotiData(pilotiId: string): HousePiloti;
+  calculateAndApplyRecommendedHeights(): void;
+}
 
-  renameFamily: (name) => houseManager.setFamilyName(name),
+export function createHouseManagerWritePort(houseManager: HouseManagerWriteSource): HouseWritePort {
+  return {
+    applyHouseSetup: (setup) => {
+      houseManager.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
+      houseManager.setFamilyName(setup.familyName);
+    },
 
-  refreshAutoStairsForCurrentSettings: () => houseManager.refreshAutoStairsForCurrentSettings(),
+    renameFamily: (name) => houseManager.setFamilyName(name),
 
-  setHouseType: (type) => houseManager.setHouseType(type),
+    refreshAutoStairsForCurrentSettings: () => houseManager.refreshAutoStairsForCurrentSettings(),
 
-  resetHouse: () => houseManager.reset(),
+    setHouseType: (type) => houseManager.setHouseType(type),
 
-  rebuildHouseFromCanvas: () => houseManager.rebuildFromCanvas(),
+    resetHouse: () => houseManager.reset(),
 
-  setTerrainType: (terrainType) => houseManager.setTerrainType(terrainType),
+    rebuildHouseFromCanvas: () => houseManager.rebuildFromCanvas(),
 
-  removeView: (instanceId) => houseManager.removeView(instanceId),
+    setTerrainType: (terrainType) => houseManager.setTerrainType(terrainType),
 
-  registerView: (request) => houseManager.registerView(request),
+    removeView: (instanceId) => houseManager.removeView(instanceId),
 
-  autoAssignAllSides: (initialViewType, initialSide) => houseManager.autoAssignAllSides(initialViewType, initialSide),
+    registerView: (request) => houseManager.registerView(request),
 
-  updatePiloti: (pilotiId, pilotiData) => {
-    houseManager.updatePiloti(pilotiId, pilotiData);
-    return houseManager.getPilotiData(pilotiId);
-  },
+    autoAssignAllSides: (initialViewType, initialSide) => houseManager.autoAssignAllSides(initialViewType, initialSide),
 
-  calculateAndApplyRecommendedHeights: () => houseManager.calculateAndApplyRecommendedHeights(),
-};
+    updatePiloti: (pilotiId, pilotiData) => {
+      houseManager.updatePiloti(pilotiId, pilotiData);
+      return houseManager.getPilotiData(pilotiId);
+    },
+
+    calculateAndApplyRecommendedHeights: () => houseManager.calculateAndApplyRecommendedHeights(),
+  };
+}

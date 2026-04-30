@@ -1,8 +1,8 @@
 import {useSyncExternalStore} from 'react';
 import {
-  houseManagerRuntimeSnapshotPort,
-  houseManagerStatePort,
-} from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
+  editorHouseRuntimeSnapshotPort,
+  editorHouseStatePort,
+} from '@/bootstrap/editor-house-ports.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
@@ -50,15 +50,15 @@ function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => v
   return {emitChange, subscribe};
 }
 
-const stateBridge = createStoreBridge(houseManagerStatePort, incrementVersion);
-const runtimeBridge = createStoreBridge(houseManagerRuntimeSnapshotPort);
+const stateBridge = createStoreBridge(editorHouseStatePort, incrementVersion);
+const runtimeBridge = createStoreBridge(editorHouseRuntimeSnapshotPort);
 
 function getHouseRuntimeSnapshot(): HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null {
-  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
+  return editorHouseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
 }
 
 function getHouseStateSnapshot() {
-  return houseManagerStatePort.getStateSnapshot();
+  return editorHouseStatePort.getStateSnapshot();
 }
 
 function getVersionSnapshot() {

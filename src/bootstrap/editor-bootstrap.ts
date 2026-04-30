@@ -7,14 +7,14 @@ import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
-import {houseManagerReadPort} from '@/components/rac-editor/adapters/house-manager-read-adapter.ts';
-import {houseManagerWritePort} from '@/components/rac-editor/adapters/house-manager-write-adapter.ts';
-import {houseManagerRuntimePort} from '@/components/rac-editor/adapters/house-manager-runtime-adapter.ts';
 import {
-  houseManagerRuntimeSnapshotPort,
-  houseManagerStatePort,
-} from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
-import {house3DProjectionPort} from '@/components/rac-editor/adapters/house-3d-projection-adapter.ts';
+  editorHouse3DProjectionPort,
+  editorHouseReadPort,
+  editorHouseRuntimePort,
+  editorHouseRuntimeSnapshotPort,
+  editorHouseStatePort,
+  editorHouseWritePort,
+} from '@/bootstrap/editor-house-ports.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -42,17 +42,17 @@ export function createEditorStore(): EditorStore {
 /**
  * Compõe as portas atuais do editor.
  *
- * A implementação ainda usa adapters sobre o houseManager, mas o restante da aplicação
+ * A implementação ainda usa adapters compostos no bootstrap, mas o restante da aplicação
  * passa a depender deste ponto de composição em vez de importar singletons.
  */
 export function createEditorPorts(): EditorPorts {
   return {
-    houseReadPort: houseManagerReadPort,
-    houseWritePort: houseManagerWritePort,
-    houseRuntimePort: houseManagerRuntimePort,
-    houseStatePort: houseManagerStatePort,
-    houseRuntimeSnapshotPort: houseManagerRuntimeSnapshotPort,
-    house3DProjectionPort,
+    houseReadPort: editorHouseReadPort,
+    houseWritePort: editorHouseWritePort,
+    houseRuntimePort: editorHouseRuntimePort,
+    houseStatePort: editorHouseStatePort,
+    houseRuntimeSnapshotPort: editorHouseRuntimeSnapshotPort,
+    house3DProjectionPort: editorHouse3DProjectionPort,
   };
 }
 

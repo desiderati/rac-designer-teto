@@ -1,5 +1,11 @@
-import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
+import type {
+  HousePiloti,
+  HousePreAssignedSideDisplay,
+  HouseSide,
+  HouseType,
+  HouseViewType,
+} from '@/shared/types/house.ts';
 
 /**
  * Adapter transitório de leitura sobre o `houseManager`.
@@ -7,31 +13,49 @@ import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts
  * Mantém a UI dependente de uma porta explícita enquanto o estado canônico da
  * casa ainda não foi migrado para uma store/use case sem Fabric.
  */
-export const houseManagerReadPort: HouseReadPort = {
-  getCurrentHouseType: () => houseManager.getHouseType(),
+interface HouseManagerReadSource {
+  getHouseType(): HouseType;
+  getFamilyName(): string;
+  getSelectedPilotiHeights(): readonly number[];
+  getTerrainType(): number;
+  getHouse(): { pilotis: Record<string, HousePiloti> } | null;
+  getPilotiData(pilotiId: string): HousePiloti;
+  getHouseViewCount(viewType: HouseViewType): number;
+  getMaxHouseViewCount(viewType: HouseViewType): number;
+  canDeletePlant(): boolean;
+  isViewAtLimit(viewType: HouseViewType): boolean;
+  getPreAssignedSides(viewType: HouseViewType): HousePreAssignedSideDisplay[];
+  getAvailableSides(viewType: HouseViewType): HouseSide[];
+  hasPreAssignedSides(): boolean;
+}
 
-  getFamilyName: () => houseManager.getFamilyName(),
+export function createHouseManagerReadPort(houseManager: HouseManagerReadSource): HouseReadPort {
+  return {
+    getCurrentHouseType: () => houseManager.getHouseType(),
 
-  getSelectedPilotiHeights: () => houseManager.getSelectedPilotiHeights(),
+    getFamilyName: () => houseManager.getFamilyName(),
 
-  getTerrainType: () => houseManager.getTerrainType(),
+    getSelectedPilotiHeights: () => houseManager.getSelectedPilotiHeights(),
 
-  getPilotis: () => houseManager.getHouse()?.pilotis,
+    getTerrainType: () => houseManager.getTerrainType(),
 
-  getPilotiData: (pilotiId) => houseManager.getPilotiData(pilotiId),
+    getPilotis: () => houseManager.getHouse()?.pilotis,
 
-  getViewCount: (viewType) => ({
-    current: houseManager.getHouseViewCount(viewType),
-    max: houseManager.getMaxHouseViewCount(viewType),
-  }),
+    getPilotiData: (pilotiId) => houseManager.getPilotiData(pilotiId),
 
-  canDeleteTopView: () => houseManager.canDeletePlant(),
+    getViewCount: (viewType) => ({
+      current: houseManager.getHouseViewCount(viewType),
+      max: houseManager.getMaxHouseViewCount(viewType),
+    }),
 
-  isViewAtLimit: (viewType) => houseManager.isViewAtLimit(viewType),
+    canDeleteTopView: () => houseManager.canDeletePlant(),
 
-  getPreAssignedSides: (viewType) => houseManager.getPreAssignedSides(viewType),
+    isViewAtLimit: (viewType) => houseManager.isViewAtLimit(viewType),
 
-  getAvailableSides: (viewType) => houseManager.getAvailableSides(viewType),
+    getPreAssignedSides: (viewType) => houseManager.getPreAssignedSides(viewType),
 
-  hasPreAssignedSides: () => houseManager.hasPreAssignedSides(),
-};
+    getAvailableSides: (viewType) => houseManager.getAvailableSides(viewType),
+
+    hasPreAssignedSides: () => houseManager.hasPreAssignedSides(),
+  };
+}
