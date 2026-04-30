@@ -1,12 +1,20 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasDrawingModeHandle,
+  CanvasObjectCreationHandle,
+  CanvasScreenProjectionHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@canvas/lib';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseCanvasToolsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(
+    CanvasDrawingModeHandle
+    & CanvasObjectCreationHandle
+    & CanvasScreenProjectionHandle
+  ) | null>;
   addObjectToCanvas: (object: CanvasObject) => void;
   closeAllMenus: () => void;
   disableDrawingMode: () => void;

@@ -1,6 +1,6 @@
 import {lazy, Suspense} from 'react';
 import type {RefObject} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
   const module = await import('@/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx');
@@ -10,7 +10,7 @@ const LazyHouse3DViewer = lazy(async () => {
 interface RacEditor3DViewerOverlayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasSnapshotHandle | null>;
 }
 
 export function House3DViewerOverlay({open, onOpenChange, canvasRef}: RacEditor3DViewerOverlayProps) {

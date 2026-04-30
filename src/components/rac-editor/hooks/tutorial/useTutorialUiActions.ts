@@ -1,6 +1,6 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSurfaceResetHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
@@ -8,7 +8,7 @@ import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasSurfaceResetHandle | null>;
   tutorialPilotiPosition: TutorialBalloonPosition | null;
   setTutorialPilotiPosition: Dispatch<SetStateAction<TutorialBalloonPosition | null>>;
   setShowRestartConfirm: Dispatch<SetStateAction<boolean>>;

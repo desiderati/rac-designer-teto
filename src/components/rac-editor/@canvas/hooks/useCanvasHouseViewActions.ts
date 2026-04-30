@@ -19,7 +19,11 @@ import {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib';
 import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasObjectCreationHandle,
+  CanvasRenderHandle,
+  CanvasScreenProjectionHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {createViewInstanceId} from '@/components/rac-editor/lib/house-identity.ts';
 import {
   calculateStackedViewPositions,
@@ -27,7 +31,11 @@ import {
 } from '@/domain/house/use-cases/house-views-layout.use-case.ts';
 
 interface UseCanvasHouseViewActionsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(
+    CanvasObjectCreationHandle
+    & CanvasRenderHandle
+    & CanvasScreenProjectionHandle
+  ) | null>;
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;

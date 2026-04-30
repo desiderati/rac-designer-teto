@@ -1,5 +1,13 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasActiveSelectionHandle,
+  CanvasDrawingModeHandle,
+  CanvasHistoryHandle,
+  CanvasObjectCreationHandle,
+  CanvasRenderHandle,
+  CanvasScreenProjectionHandle,
+  CanvasViewportHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {TutorialBalloonPosition, TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
@@ -22,8 +30,17 @@ type HouseTypeFlowState = Pick<
   | 'transitionToNivelRef'
 >;
 
+export type CanvasControllerHandle =
+  CanvasActiveSelectionHandle
+  & CanvasDrawingModeHandle
+  & CanvasHistoryHandle
+  & CanvasObjectCreationHandle
+  & CanvasRenderHandle
+  & CanvasScreenProjectionHandle
+  & CanvasViewportHandle;
+
 interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasControllerHandle | null>;
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;

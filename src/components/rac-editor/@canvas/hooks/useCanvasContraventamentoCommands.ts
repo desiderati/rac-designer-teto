@@ -4,7 +4,10 @@ import type {
   ContraventamentoCanvasSelection,
   PilotiCanvasSelection,
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasHistoryHandle,
+  CanvasRenderHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {
   addContraventamentoBeam,
   CanvasGroup,
@@ -29,7 +32,7 @@ import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 import {getSettings} from '@/infra/settings.ts';
 
 interface UseContraventamentoCommandsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasHistoryHandle & CanvasRenderHandle) | null>;
   getTopViewGroup: () => CanvasGroup | null;
   getNonTopViewGroups: () => CanvasGroup[];
   getContraventamentoColumnSides: (group: CanvasGroup, col: number) => {

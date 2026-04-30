@@ -1,12 +1,15 @@
 import type {Dispatch, RefObject, SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasHistoryHandle,
+  CanvasRenderHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useRacEditorContraventamentoFlow} from '@/components/rac-editor/hooks/useRacEditorContraventamentoFlow.ts';
 import {useContraventamento} from '@/components/rac-editor/@canvas/hooks/useCanvasContraventamento.ts';
 
 interface UseRacEditorContraventamentoControllerArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasHistoryHandle & CanvasRenderHandle) | null>;
   houseVersion: number;
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;

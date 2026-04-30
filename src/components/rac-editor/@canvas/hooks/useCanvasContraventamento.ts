@@ -3,7 +3,10 @@ import type {
   ContraventamentoCanvasSelection,
   PilotiCanvasSelection,
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasHistoryHandle,
+  CanvasRenderHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {useContraventamentoQueries} from './useCanvasContraventamentoQueries.ts';
 import {useContraventamentoCommands} from './useCanvasContraventamentoCommands.ts';
 import {useContraventamentoEffects} from './useCanvasContraventamentoEffects.ts';
@@ -11,7 +14,7 @@ import {ContraventamentoOrigin, ContraventamentoSide} from '@/shared/types/contr
 import {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 
 interface UseContraventamentoArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasHistoryHandle & CanvasRenderHandle) | null>;
   houseVersion: number;
   isContraventamentoMode: boolean;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;

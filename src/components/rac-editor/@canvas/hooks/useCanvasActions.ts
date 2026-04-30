@@ -1,6 +1,11 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {CanvasObject} from '@/components/rac-editor/@canvas/lib';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasActiveSelectionHandle,
+  CanvasDrawingModeHandle,
+  CanvasObjectCreationHandle,
+  CanvasViewportHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
@@ -8,7 +13,12 @@ import {toast} from 'sonner';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface UseCanvasActionsArgs {
-  canvasRef: React.RefObject<CanvasHandle | null>;
+  canvasRef: React.RefObject<(
+    CanvasActiveSelectionHandle
+    & CanvasDrawingModeHandle
+    & CanvasObjectCreationHandle
+    & CanvasViewportHandle
+  ) | null>;
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
