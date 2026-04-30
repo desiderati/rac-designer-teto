@@ -12,7 +12,7 @@ import type {
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
-import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
+import {HouseManagerVisualRuntime} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
 import {
@@ -49,7 +49,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly state = new HouseManagerState();
 
-  private readonly canvasRuntime = new HouseManagerCanvasRuntime<TGroup>();
+  private readonly visualRuntime = new HouseManagerVisualRuntime<TGroup>();
 
   private readonly notifier = new HouseManagerNotifier();
 
@@ -83,9 +83,9 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
       getTerrainType: () => this.getTerrainType(),
       getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
       getAllGroups: () => this.getAllGroups(),
-      unregisterRuntimeViewGroup: (instanceId) => this.canvasRuntime.unregisterViewGroup(instanceId),
-      replaceRuntimeViewGroups: (entries) => this.canvasRuntime.replaceViewGroups(entries),
-      createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
+      unregisterRuntimeViewGroup: (instanceId) => this.visualRuntime.unregisterViewGroup(instanceId),
+      replaceRuntimeViewGroups: (entries) => this.visualRuntime.replaceViewGroups(entries),
+      createVisualRebuildInput: (params) => this.visualRuntime.createRebuildInput(params),
       viewRuntime: args.viewRuntime,
       persistHouse: () => this.persistHouse(),
       syncProjectSession: () => this.session.syncProjectSession(),
@@ -97,7 +97,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
     this.queries = new HouseManagerQueryService<TGroup>({
       getHouse: () => this.house,
       getAggregate: () => this.getHouseAggregate(),
-      getAllRuntimeGroups: () => this.canvasRuntime.getRegisteredGroups(),
+      getAllRuntimeGroups: () => this.visualRuntime.getRegisteredGroups(),
       getDefaultTerrainType: () => this.getDefaultTerrainType(),
       cleanupStaleViews: (viewType) => this.cleanupStaleViews(viewType),
     });
@@ -117,7 +117,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
 
   private get runtimeHouse(): HouseRuntimeSnapshot<TGroup> | null {
     if (this.runtimeHouseCache === undefined) {
-      this.runtimeHouseCache = this.canvasRuntime.createRuntimeHouseSnapshot(this.house);
+      this.runtimeHouseCache = this.visualRuntime.createRuntimeHouseSnapshot(this.house);
     }
 
     return this.runtimeHouseCache;
@@ -138,7 +138,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
   }
 
   private requestCanvasRender(): void {
-    this.canvasRuntime.requestRender();
+    this.visualRuntime.requestRender();
   }
 
   refreshAutoStairsForCurrentSettings(): void {
@@ -150,13 +150,13 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
   }
 
   initialize(canvas: HouseVisualRuntimePort<TGroup>): void {
-    this.canvasRuntime.initialize(canvas);
+    this.visualRuntime.initialize(canvas);
     this.reset();
   }
 
   reset(): void {
     this.state.reset();
-    this.canvasRuntime.clearViewGroups();
+    this.visualRuntime.clearViewGroups();
     this.invalidateRuntimeHouseCache();
     this.session.reset();
     this.notify();
@@ -227,7 +227,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
   }
 
   private isViewInstanceOnCanvas(instanceId: HouseViewInstanceId): boolean {
-    return this.canvasRuntime.includesViewInstance(instanceId);
+    return this.visualRuntime.includesViewInstance(instanceId);
   }
 
   private cleanupStaleViews(viewType: HouseViewType): void {

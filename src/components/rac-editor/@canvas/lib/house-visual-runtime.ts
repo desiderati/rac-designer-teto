@@ -29,13 +29,13 @@ import {collectElevationViewInstances} from '@/components/rac-editor/lib/house-m
 export function rebuildHouseViewsFromCanvas(params: {
   aggregate: HouseAggregate;
   house: HouseState;
-  canvasGroups: CanvasGroup[];
-  pilotisFromCanvas: Record<string, HousePiloti>;
-  terrainTypeFromCanvas: number;
+  visualGroups: CanvasGroup[];
+  pilotisFromRuntime: Record<string, HousePiloti>;
+  terrainTypeFromRuntime: number;
 }): { groupsToSync: CanvasGroup[]; runtimeViewGroups: Array<{ instanceId: HouseViewInstanceId; group: CanvasGroup }> } {
 
   const rebuildSources =
-    collectHouseGroupRebuildSources(params.canvasGroups).map((source) =>
+    collectHouseGroupRebuildSources(params.visualGroups).map((source) =>
       toRebuildViewSource(source.group),
     );
 
@@ -62,8 +62,8 @@ export function rebuildHouseViewsFromCanvas(params: {
     runtimeGroup.setControlsVisibility(createViewGroupControlsVisibilityPatch());
   });
 
-  params.house.pilotis = params.pilotisFromCanvas;
-  params.house.terrainType = params.terrainTypeFromCanvas;
+  params.house.pilotis = params.pilotisFromRuntime;
+  params.house.terrainType = params.terrainTypeFromRuntime;
 
   if (!params.aggregate.hasAnyViewInstances(rebuilt.views)) {
     params.house.houseType = null;

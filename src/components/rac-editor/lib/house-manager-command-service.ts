@@ -11,8 +11,8 @@ import type {
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 import type {
-  HouseManagerCanvasRebuildInput,
-} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
+  HouseManagerVisualRebuildInput,
+} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 import type {
@@ -24,9 +24,9 @@ export interface HouseManagerViewRuntime<TGroup extends HouseRuntimeGroupRef> {
   rebuildViewsFromRuntime(params: {
     aggregate: HouseAggregate;
     house: HouseState;
-    canvasGroups: TGroup[];
-    pilotisFromCanvas: Record<string, HousePiloti>;
-    terrainTypeFromCanvas: number;
+    visualGroups: TGroup[];
+    pilotisFromRuntime: Record<string, HousePiloti>;
+    terrainTypeFromRuntime: number;
   }): { groupsToSync: TGroup[]; runtimeViewGroups: Array<{ instanceId: HouseViewInstanceId; group: TGroup }> };
 
   applyCurrentHouseDataToGroups(params: {
@@ -58,10 +58,10 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getAllGroups: () => TGroup[];
   unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
   replaceRuntimeViewGroups: (entries: Array<{ instanceId: HouseViewInstanceId; group: TGroup }>) => void;
-  createCanvasRebuildInput: (params: {
+  createVisualRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }) => HouseManagerCanvasRebuildInput<TGroup> | null;
+  }) => HouseManagerVisualRebuildInput<TGroup> | null;
   viewRuntime: HouseManagerViewRuntime<TGroup>;
   persistHouse: () => void;
   syncProjectSession: () => void;
@@ -133,18 +133,18 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
     const house = this.args.getHouse();
     if (!house || !aggregate) return;
 
-    const canvasState = this.args.createCanvasRebuildInput({
+    const visualState = this.args.createVisualRebuildInput({
       currentPilotis: house.pilotis,
       fallbackTerrainType: this.args.getTerrainType(),
     });
-    if (!canvasState) return;
+    if (!visualState) return;
 
     const rebuild = this.args.viewRuntime.rebuildViewsFromRuntime({
       aggregate,
       house,
-      canvasGroups: canvasState.canvasGroups,
-      pilotisFromCanvas: canvasState.pilotisFromCanvas,
-      terrainTypeFromCanvas: canvasState.terrainTypeFromCanvas,
+      visualGroups: visualState.visualGroups,
+      pilotisFromRuntime: visualState.pilotisFromRuntime,
+      terrainTypeFromRuntime: visualState.terrainTypeFromRuntime,
     });
     this.args.replaceRuntimeViewGroups(rebuild.runtimeViewGroups);
     this.args.persistHouse();

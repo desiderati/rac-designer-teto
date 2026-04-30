@@ -13,22 +13,22 @@ import type {
 } from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 import {cloneHousePilotis} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 
-export interface HouseManagerCanvasRebuildInput<TGroup extends HouseRuntimeGroupRef> {
-  canvasGroups: TGroup[];
-  pilotisFromCanvas: Record<string, HousePiloti>;
-  terrainTypeFromCanvas: number;
+export interface HouseManagerVisualRebuildInput<TGroup extends HouseRuntimeGroupRef> {
+  visualGroups: TGroup[];
+  pilotisFromRuntime: Record<string, HousePiloti>;
+  terrainTypeFromRuntime: number;
 }
 
-export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
-  private canvas: HouseVisualRuntimePort<TGroup> | null = null;
+export class HouseManagerVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
+  private visualRuntime: HouseVisualRuntimePort<TGroup> | null = null;
   private readonly viewGroupsById = new Map<HouseViewInstanceId, TGroup>();
 
-  initialize(canvas: HouseVisualRuntimePort<TGroup>): void {
-    this.canvas = canvas;
+  initialize(visualRuntime: HouseVisualRuntimePort<TGroup>): void {
+    this.visualRuntime = visualRuntime;
   }
 
   includesGroup(group: TGroup): boolean {
-    return this.canvas?.includesGroup(group) ?? false;
+    return this.visualRuntime?.includesGroup(group) ?? false;
   }
 
   includesViewInstance(instanceId: HouseViewInstanceId): boolean {
@@ -52,11 +52,11 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
   }
 
   getViewGroup(instanceId: HouseViewInstanceId): TGroup | null {
-    return this.viewGroupsById.get(instanceId) ?? this.findCanvasGroupByInstanceId(instanceId);
+    return this.viewGroupsById.get(instanceId) ?? this.findVisualGroupByInstanceId(instanceId);
   }
 
   getRegisteredGroups(): TGroup[] {
-    return this.canvas?.getHouseGroups() ?? [...this.viewGroupsById.values()];
+    return this.visualRuntime?.getHouseGroups() ?? [...this.viewGroupsById.values()];
   }
 
   createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot<TGroup> | null {
@@ -72,19 +72,19 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
   }
 
   requestRender(): void {
-    this.canvas?.requestRenderAll();
+    this.visualRuntime?.requestRenderAll();
   }
 
   createRebuildInput(params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }): HouseManagerCanvasRebuildInput<TGroup> | null {
-    if (!this.canvas) return null;
+  }): HouseManagerVisualRebuildInput<TGroup> | null {
+    if (!this.visualRuntime) return null;
 
     return {
-      canvasGroups: this.canvas.getHouseGroups(),
-      pilotisFromCanvas: this.canvas.readPilotis(params.currentPilotis),
-      terrainTypeFromCanvas: this.canvas.resolveTerrainType(params.fallbackTerrainType),
+      visualGroups: this.visualRuntime.getHouseGroups(),
+      pilotisFromRuntime: this.visualRuntime.readPilotis(params.currentPilotis),
+      terrainTypeFromRuntime: this.visualRuntime.resolveTerrainType(params.fallbackTerrainType),
     };
   }
 
@@ -107,8 +107,8 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
     return runtimeViews;
   }
 
-  private findCanvasGroupByInstanceId(instanceId: HouseViewInstanceId): TGroup | null {
-    const groups = this.canvas?.getHouseGroups() ?? [];
+  private findVisualGroupByInstanceId(instanceId: HouseViewInstanceId): TGroup | null {
+    const groups = this.visualRuntime?.getHouseGroups() ?? [];
     return groups.find((group) => group.houseInstanceId === instanceId) ?? null;
   }
 }

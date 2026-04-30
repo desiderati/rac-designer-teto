@@ -1,4 +1,7 @@
-import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
+import type {
+  HouseRuntimeGroupRef,
+  HouseVisualRuntimePort,
+} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
 /**
  * Porta de ciclo de vida entre o estado lógico da casa e o runtime visual.
@@ -6,7 +9,7 @@ import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports
  * A implementação atual inicializa o `houseManager` com uma porta de canvas,
  * mas consumidores de alto nível só conhecem esta capacidade de bootstrap.
  */
-export interface HouseRuntimePort {
+export interface HouseRuntimePort<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   /** Inicializa o runtime da casa com as capacidades mínimas do canvas. */
-  initializeCanvas(canvasPort: CanvasHouseRuntimePort): void;
+  initializeCanvas(canvasPort: HouseVisualRuntimePort<TGroup>): void;
 }
