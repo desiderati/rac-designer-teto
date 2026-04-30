@@ -21,7 +21,7 @@ export function useContraventamentoQueries({
   contraventamentoFirst,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
-  const houseSnapshot = useHouseSnapshot();
+  const houseSnapshot = useHouseSnapshot<CanvasGroup>();
 
   const getTopViewGroup = useCallback((): CanvasGroup | null => {
     return houseSnapshot?.views.top[0]?.group ?? null;

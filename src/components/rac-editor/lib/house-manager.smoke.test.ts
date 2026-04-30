@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';

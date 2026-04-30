@@ -4,6 +4,7 @@ import type {
   CanvasScreenProjectionHandle,
   CanvasViewportHandle,
 } from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
@@ -31,7 +32,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
     setPilotiSelection,
     setIsPilotiEditorOpen,
   } = params;
-  const houseSnapshot = useHouseSnapshot();
+  const houseSnapshot = useHouseSnapshot<CanvasGroup>();
   const {houseReadPort, houseWritePort} = useEditorPorts();
 
   useEffect(() => {

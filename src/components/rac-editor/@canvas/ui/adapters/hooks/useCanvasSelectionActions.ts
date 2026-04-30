@@ -30,7 +30,7 @@ interface BindSelectionActionsArgs {
 }
 
 export function useCanvasSelectionActions() {
-  const houseSnapshot = useHouseSnapshot();
+  const houseSnapshot = useHouseSnapshot<CanvasGroup>();
 
   const bindSelectionActions = useCallback(({
     canvas,

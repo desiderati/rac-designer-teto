@@ -70,7 +70,7 @@ export function useContraventamentoCommands({
   setIsPilotiEditorOpen,
   setActiveSubmenu,
 }: UseContraventamentoCommandsArgs) {
-  const houseSnapshot = useHouseSnapshot();
+  const houseSnapshot = useHouseSnapshot<CanvasGroup>();
 
   const enterSecondContraventamentoSelection = useCallback((
     first: ContraventamentoOrigin,

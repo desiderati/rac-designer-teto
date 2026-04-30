@@ -1,4 +1,4 @@
-import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
+import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 

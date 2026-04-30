@@ -3,8 +3,8 @@ import {
   houseManagerRuntimeSnapshotPort,
   houseManagerStatePort,
 } from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
 type Listener = () => void;
 
@@ -53,8 +53,8 @@ function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => v
 const stateBridge = createStoreBridge(houseManagerStatePort, incrementVersion);
 const runtimeBridge = createStoreBridge(houseManagerRuntimeSnapshotPort);
 
-function getHouseRuntimeSnapshot(): HouseRuntimeSnapshot<CanvasGroup> | null {
-  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<CanvasGroup> | null;
+function getHouseRuntimeSnapshot(): HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null {
+  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
 }
 
 function getHouseStateSnapshot() {
@@ -70,12 +70,16 @@ export function emitHouseStoreChange() {
   runtimeBridge.emitChange();
 }
 
-export function useHouseRuntimeSnapshot() {
-  return useSyncExternalStore(runtimeBridge.subscribe, getHouseRuntimeSnapshot, getHouseRuntimeSnapshot);
+export function useHouseRuntimeSnapshot<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef>() {
+  return useSyncExternalStore(
+    runtimeBridge.subscribe,
+    getHouseRuntimeSnapshot,
+    getHouseRuntimeSnapshot,
+  ) as HouseRuntimeSnapshot<TGroup> | null;
 }
 
-export function useHouseSnapshot() {
-  return useHouseRuntimeSnapshot();
+export function useHouseSnapshot<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef>() {
+  return useHouseRuntimeSnapshot<TGroup>();
 }
 
 export function useHouseStateSnapshot() {
