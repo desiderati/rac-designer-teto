@@ -15,28 +15,12 @@ import type {
 } from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {
+  HouseViewRegistration,
+  HouseViewRegistrationRequest,
+} from '@/components/rac-editor/ports/HouseViewPort.ts';
 
 export interface HouseManagerViewRuntime<TGroup extends HouseRuntimeGroupRef> {
-  registerView(params: {
-    aggregate: HouseAggregate;
-    house: HouseState;
-    viewType: HouseViewType;
-    group: TGroup;
-    side?: HouseSide;
-    terrainType: number;
-  }): {
-    registered: boolean;
-    registeredTopView: boolean;
-    instanceId: HouseViewInstanceId | null;
-    group: TGroup | null;
-  };
-
-  removeView(params: {
-    aggregate: HouseAggregate;
-    group: TGroup;
-    instanceId?: HouseViewInstanceId | null;
-  }): { removedCount: number; removedInstanceIds: HouseViewInstanceId[] };
-
   rebuildViewsFromRuntime(params: {
     aggregate: HouseAggregate;
     house: HouseState;
@@ -72,10 +56,8 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getTerrainType: () => number;
   getSelectedPilotiHeights: () => readonly number[];
   getAllGroups: () => TGroup[];
-  registerRuntimeViewGroup: (instanceId: HouseViewInstanceId, group: TGroup) => void;
   unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
   replaceRuntimeViewGroups: (entries: Array<{ instanceId: HouseViewInstanceId; group: TGroup }>) => void;
-  findRuntimeViewInstanceId: (group: TGroup) => HouseViewInstanceId | null;
   createCanvasRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
@@ -121,31 +103,29 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
     return normalized;
   }
 
-  registerView(viewType: HouseViewType, group: TGroup, side?: HouseSide): void {
+  registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {
     const aggregate = this.args.getAggregate();
     const house = this.args.getHouse();
-    if (!aggregate || !house) return;
+    if (!aggregate || !house) return null;
 
-    const result = this.args.viewRuntime.registerView({
-      aggregate,
-      house,
-      viewType,
-      group,
-      side,
-      terrainType: this.args.getTerrainType(),
+    aggregate.registerView({
+      viewType: request.viewType,
+      instanceId: request.instanceId,
+      side: request.side,
     });
-    if (!result.registered) return;
-
-    if (result.instanceId && result.group) {
-      this.args.registerRuntimeViewGroup(result.instanceId, result.group);
-    }
 
     this.args.persistHouse();
-    if (result.registeredTopView) {
+    if (request.viewType === 'top') {
       this.args.refreshAutoContraventamento();
     }
 
     this.args.notify();
+    return {
+      viewType: request.viewType,
+      instanceId: request.instanceId,
+      side: request.side,
+      registeredTopView: request.viewType === 'top',
+    };
   }
 
   rebuildFromCanvas(): void {
@@ -178,20 +158,14 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
     this.args.notify();
   }
 
-  removeView(group: TGroup): void {
+  removeView(instanceId: HouseViewInstanceId): void {
     const aggregate = this.args.getAggregate();
     if (!aggregate) return;
 
-    const result = this.args.viewRuntime.removeView({
-      aggregate,
-      group,
-      instanceId: this.args.findRuntimeViewInstanceId(group),
-    });
+    const result = aggregate.removeView({instanceId});
 
     if (result.removedCount > 0) {
-      result.removedInstanceIds.forEach((instanceId) => {
-        this.args.unregisterRuntimeViewGroup(instanceId);
-      });
+      this.args.unregisterRuntimeViewGroup(instanceId);
       this.args.persistHouse();
       this.args.notify();
     }

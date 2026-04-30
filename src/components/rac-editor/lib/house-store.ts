@@ -3,6 +3,8 @@ import {
   houseManagerRuntimeSnapshotPort,
   houseManagerStatePort,
 } from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 
 type Listener = () => void;
 
@@ -51,8 +53,8 @@ function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => v
 const stateBridge = createStoreBridge(houseManagerStatePort, incrementVersion);
 const runtimeBridge = createStoreBridge(houseManagerRuntimeSnapshotPort);
 
-function getHouseRuntimeSnapshot() {
-  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot();
+function getHouseRuntimeSnapshot(): HouseRuntimeSnapshot<CanvasGroup> | null {
+  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<CanvasGroup> | null;
 }
 
 function getHouseStateSnapshot() {

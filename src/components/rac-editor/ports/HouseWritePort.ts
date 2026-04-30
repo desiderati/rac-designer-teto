@@ -59,10 +59,10 @@ export interface HouseTerrainWritePort {
  * A divisão em subinterfaces é deliberada: ela deixa claro quais métodos são
  * comandos e impede que consultas sejam herdadas por uma porta de escrita.
  */
-export interface HouseWritePort<TGroup = unknown>
+export interface HouseWritePort
   extends HouseSetupWritePort,
     HouseLifecycleWritePort,
     HouseTerrainWritePort,
-    HouseViewWritePort<TGroup>,
+    HouseViewWritePort,
     HousePilotiWritePort {
 }

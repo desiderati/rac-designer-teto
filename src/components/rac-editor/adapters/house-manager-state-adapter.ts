@@ -1,6 +1,5 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 
 export const houseManagerStatePort: HouseStatePort = {
@@ -8,7 +7,7 @@ export const houseManagerStatePort: HouseStatePort = {
   getStateSnapshot: () => houseManager.getHouseState(),
 };
 
-export const houseManagerRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup> = {
+export const houseManagerRuntimeSnapshotPort: HouseRuntimeSnapshotPort = {
   subscribe: (listener) => houseManager.subscribe(listener),
   getRuntimeSnapshot: () => houseManager.getHouse(),
 };

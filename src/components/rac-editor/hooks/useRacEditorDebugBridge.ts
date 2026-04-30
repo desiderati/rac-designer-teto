@@ -116,7 +116,7 @@ export function useRacEditorDebugBridge(params: UseRacEditorDebugBridgeParams): 
         if (!target) return false;
 
         debugPort.removeObject(target.group);
-        houseWritePort.removeView(target.group);
+        houseWritePort.removeView(target.instanceId);
         return true;
       },
 

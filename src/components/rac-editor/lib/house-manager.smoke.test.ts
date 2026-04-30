@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -54,8 +55,29 @@ function initializeHouseManagerCanvas(canvas: any) {
   houseManager.initialize(createCanvasHouseRuntimePort(canvas));
 }
 
+let viewSequence = 0;
+
+function registerMockView(
+  viewType: HouseViewType,
+  group: Record<string, unknown>,
+  side?: HouseSide,
+): HouseViewInstanceId {
+  viewSequence += 1;
+  const instanceId = `${viewType}_${viewSequence}`;
+  Object.assign(group, {
+    houseViewType: viewType,
+    houseView: viewType,
+    houseInstanceId: instanceId,
+    houseSide: side,
+  });
+  const registration = houseManager.registerView({viewType, instanceId, side});
+  expect(registration?.instanceId).toBe(instanceId);
+  return instanceId;
+}
+
 describe('house-manager.ts', () => {
   beforeEach(() => {
+    viewSequence = 0;
     houseManager.reset();
   });
 
@@ -127,18 +149,21 @@ describe('house-manager.ts', () => {
   });
 
   it('registers and removes views while syncing side assignments', () => {
-    houseManager.setHouseType('tipo6');
     const {group} = createMockGroup();
+    const canvasGroups = [group];
+    initializeHouseManagerCanvas(createMockCanvas(canvasGroups));
+    houseManager.setHouseType('tipo6');
     expect(houseManager.hasAnyView()).toBe(false);
 
-    houseManager.registerView('front', group as any, 'top');
+    const instanceId = registerMockView('front', group as any, 'top');
     expect(houseManager.getHouseViewCount('front')).toBe(1);
     expect(houseManager.hasOtherViews()).toBe(true);
     expect(houseManager.hasAnyView()).toBe(true);
     expect(houseManager.getAllGroups()).toHaveLength(1);
     expect(houseManager.getHouse()?.sideMappings.top).toBe('front');
 
-    houseManager.removeView(group as any);
+    houseManager.removeView(instanceId);
+    canvasGroups.splice(0, 1);
     expect(houseManager.getHouseViewCount('front')).toBe(0);
     expect(houseManager.hasAnyView()).toBe(false);
     expect(houseManager.getAllGroups()).toHaveLength(0);
@@ -146,14 +171,15 @@ describe('house-manager.ts', () => {
   });
 
   it('mantém tipo de terreno global e aplica para todas as vistas elevadas', () => {
-    houseManager.setHouseType('tipo6');
     const {group: topGroup} = createMockGroup({houseView: 'top'});
     const {group: frontGroup} = createMockGroup({houseView: 'front'});
     const {group: sideGroup} = createMockGroup({houseView: 'side'});
+    initializeHouseManagerCanvas(createMockCanvas([topGroup, frontGroup, sideGroup]));
+    houseManager.setHouseType('tipo6');
 
-    houseManager.registerView('top', topGroup as any);
-    houseManager.registerView('front', frontGroup as any, 'top');
-    houseManager.registerView('side1', sideGroup as any, 'left');
+    registerMockView('top', topGroup as any);
+    registerMockView('front', frontGroup as any, 'top');
+    registerMockView('side1', sideGroup as any, 'left');
 
     const terrain = houseManager.setTerrainType(4);
     expect(terrain).toBe(4);
@@ -227,8 +253,8 @@ describe('house-manager.ts', () => {
     initializeHouseManagerCanvas(canvas);
     houseManager.setHouseType('tipo6');
 
-    houseManager.registerView('top', topGroup as any);
-    houseManager.registerView('front', frontGroup as any, 'bottom');
+    registerMockView('top', topGroup as any);
+    registerMockView('front', frontGroup as any, 'bottom');
 
     expect(topMarkerBottom.visible).toBe(true);
     expect(topMarkerTop.visible).toBe(false);
@@ -249,12 +275,13 @@ describe('house-manager.ts', () => {
   });
 
   it('aplica auto contraventamento ao inserir a vista superior da casa', () => {
+    const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
+    initializeHouseManagerCanvas(createMockCanvas([topGroup]));
     houseManager.setHouseType('tipo6');
 
     houseManager.updatePiloti('piloti_1_1', {height: 1.0, nivel: 0.5});
 
-    const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
-    houseManager.registerView('top', topGroup as any);
+    registerMockView('top', topGroup as any);
 
     expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(true);
   });

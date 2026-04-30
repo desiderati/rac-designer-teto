@@ -1,5 +1,5 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
-import {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib';
+import {CanvasObject} from '@/components/rac-editor/@canvas/lib';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
@@ -12,8 +12,8 @@ interface UseCanvasActionsArgs {
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
-  houseReadPort: Pick<HouseReadPort<CanvasGroup>, 'canDeleteTopView'>;
-  houseWritePort: Pick<HouseWritePort<CanvasGroup>, 'removeView' | 'setHouseType'>;
+  houseReadPort: Pick<HouseReadPort, 'canDeleteTopView'>;
+  houseWritePort: Pick<HouseWritePort, 'removeView' | 'setHouseType'>;
   clearTutorialBalloon: () => void;
   onCloseSubmenus: () => void;
   onDismissPilotiTutorial: () => void;
@@ -60,8 +60,8 @@ export function useCanvasActions({
     const result = canvasRef.current?.deleteActiveObjects({
       canDeleteTopView: () => houseReadPort.canDeleteTopView(),
       onTopViewDeleted: () => houseWritePort.setHouseType(null),
-      onHouseViewRemoved: (group) => {
-        if (group) houseWritePort.removeView(group);
+      onHouseViewRemoved: (instanceId) => {
+        if (instanceId) houseWritePort.removeView(instanceId);
       },
       onBlockedTopViewDelete: () => toast.error(TOAST_MESSAGES.removeOtherViewsBeforeDeletingTopView),
     });

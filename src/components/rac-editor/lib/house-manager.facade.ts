@@ -10,6 +10,10 @@ import {
   HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
+import type {
+  HouseViewRegistration,
+  HouseViewRegistrationRequest,
+} from '@/components/rac-editor/ports/HouseViewPort.ts';
 import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
@@ -23,8 +27,6 @@ import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-
 import {
   applyCurrentHouseDataToGroups,
   rebuildHouseViewsFromCanvas,
-  registerHouseView,
-  removeHouseView,
 } from '@/components/rac-editor/lib/house-manager-views.ts';
 import {applyTerrainTypeToElevationViews} from '@/components/rac-editor/lib/house-manager-terrain.ts';
 import {updateHousePiloti} from '@/components/rac-editor/lib/house-manager-piloti.ts';
@@ -60,14 +62,10 @@ export class HouseManagerFacade {
     getTerrainType: () => this.getTerrainType(),
     getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
     getAllGroups: () => this.getAllGroups(),
-    registerRuntimeViewGroup: (instanceId, group) => this.canvasRuntime.registerViewGroup(instanceId, group),
     unregisterRuntimeViewGroup: (instanceId) => this.canvasRuntime.unregisterViewGroup(instanceId),
     replaceRuntimeViewGroups: (entries) => this.canvasRuntime.replaceViewGroups(entries),
-    findRuntimeViewInstanceId: (group) => this.canvasRuntime.findViewInstanceId(group),
     createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
     viewRuntime: {
-      registerView: registerHouseView,
-      removeView: removeHouseView,
       rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
       applyCurrentHouseDataToGroups,
       applyTerrainTypeToElevationViews,
@@ -239,16 +237,16 @@ export class HouseManagerFacade {
     return this.queries.getAvailableSides(viewType);
   }
 
-  registerView(viewType: HouseViewType, group: CanvasGroup, side?: HouseSide): void {
-    this.commands.registerView(viewType, group, side);
+  registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {
+    return this.commands.registerView(request);
   }
 
   rebuildFromCanvas(): void {
     this.commands.rebuildFromCanvas();
   }
 
-  removeView(group: CanvasGroup): void {
-    this.commands.removeView(group);
+  removeView(instanceId: HouseViewInstanceId): void {
+    this.commands.removeView(instanceId);
   }
 
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {

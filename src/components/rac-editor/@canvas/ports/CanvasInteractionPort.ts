@@ -1,7 +1,7 @@
 import type {CanvasGroup, CanvasObject, ElementStrategyKey,} from '@/components/rac-editor/@canvas/lib';
 import type {EditorScreenPoint} from '@/components/rac-editor/@canvas/store/types.ts';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 import type {CanvasDebugPort} from '@/components/rac-editor/@canvas/ports/CanvasDebugPort.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
@@ -62,8 +62,14 @@ export interface CanvasObjectCreationHandle {
   /** Cria um objeto visual de elemento sem adicioná-lo automaticamente ao canvas. */
   createElementObject(kind: ElementStrategyKey): CanvasObject | null;
 
-  /** Cria o grupo visual de uma vista da casa sem registrá-lo automaticamente. */
-  createHouseViewGroup(payload: { viewType: HouseViewType; side?: HouseSide }): CanvasGroup | null;
+  /** Cria o grupo visual de uma vista da casa com a identidade lógica já definida. */
+  createHouseViewGroup(payload: {
+    viewType: HouseViewType;
+    instanceId: HouseViewInstanceId;
+    side?: HouseSide;
+    pilotis: Record<string, HousePiloti>;
+    terrainType: number;
+  }): CanvasGroup | null;
 
   /** Adiciona um objeto visual no centro visível do canvas. */
   addObjectAtVisibleCenter(object: CanvasObject): boolean;
@@ -89,7 +95,7 @@ export interface CanvasSurfaceHandle {
   deleteActiveObjects(handlers?: {
     canDeleteTopView?: () => boolean;
     onTopViewDeleted?: () => void;
-    onHouseViewRemoved?: (group: CanvasGroup | null) => void;
+    onHouseViewRemoved?: (instanceId: HouseViewInstanceId | null) => void;
     onBlockedTopViewDelete?: () => void;
   }): 'deleted' | 'blocked' | 'none';
 }

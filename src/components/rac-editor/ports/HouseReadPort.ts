@@ -34,10 +34,10 @@ export interface HouseTerrainReadPort {
  * O contrato não expõe implementações visuais concretas; quando alguma leitura
  * ainda precisa de grupos de runtime, o tipo permanece genérico.
  */
-export interface HouseReadPort<TGroup = unknown>
+export interface HouseReadPort
   extends HouseSetupReadPort,
     HouseLifecycleReadPort,
     HouseTerrainReadPort,
-    HouseViewReadPort<TGroup>,
+    HouseViewReadPort,
     HousePilotiReadPort {
 }

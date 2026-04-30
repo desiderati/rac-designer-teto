@@ -36,10 +36,6 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
     return group ? this.includesGroup(group) : false;
   }
 
-  registerViewGroup(instanceId: HouseViewInstanceId, group: TGroup): void {
-    this.viewGroupsById.set(instanceId, group);
-  }
-
   unregisterViewGroup(instanceId: HouseViewInstanceId): void {
     this.viewGroupsById.delete(instanceId);
   }
@@ -56,19 +52,11 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
   }
 
   getViewGroup(instanceId: HouseViewInstanceId): TGroup | null {
-    return this.viewGroupsById.get(instanceId) ?? null;
-  }
-
-  findViewInstanceId(group: TGroup): HouseViewInstanceId | null {
-    for (const [instanceId, registeredGroup] of this.viewGroupsById.entries()) {
-      if (registeredGroup === group) return instanceId;
-    }
-
-    return typeof group.houseInstanceId === 'string' ? group.houseInstanceId : null;
+    return this.viewGroupsById.get(instanceId) ?? this.findCanvasGroupByInstanceId(instanceId);
   }
 
   getRegisteredGroups(): TGroup[] {
-    return [...this.viewGroupsById.values()];
+    return this.canvas?.getHouseGroups() ?? [...this.viewGroupsById.values()];
   }
 
   createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot<TGroup> | null {
@@ -117,5 +105,10 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
     });
 
     return runtimeViews;
+  }
+
+  private findCanvasGroupByInstanceId(instanceId: HouseViewInstanceId): TGroup | null {
+    const groups = this.canvas?.getHouseGroups() ?? [];
+    return groups.find((group) => group.houseInstanceId === instanceId) ?? null;
   }
 }

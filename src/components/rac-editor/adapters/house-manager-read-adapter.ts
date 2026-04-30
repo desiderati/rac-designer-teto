@@ -1,5 +1,4 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 
 /**
@@ -8,7 +7,7 @@ import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts
  * Mantém a UI dependente de uma porta explícita enquanto o estado canônico da
  * casa ainda não foi migrado para uma store/use case sem Fabric.
  */
-export const houseManagerReadPort: HouseReadPort<CanvasGroup> = {
+export const houseManagerReadPort: HouseReadPort = {
   getCurrentHouseType: () => houseManager.getHouseType(),
 
   getFamilyName: () => houseManager.getFamilyName(),
@@ -35,12 +34,4 @@ export const houseManagerReadPort: HouseReadPort<CanvasGroup> = {
   getAvailableSides: (viewType) => houseManager.getAvailableSides(viewType),
 
   hasPreAssignedSides: () => houseManager.hasPreAssignedSides(),
-
-  getStackedViewGroups: (viewType, side) => {
-    const house = houseManager.getHouse();
-    return {
-      topGroup: house?.views.top?.[0]?.group ?? null,
-      viewGroup: house?.views[viewType]?.find((view) => view.side === side)?.group ?? null,
-    };
-  },
 };

@@ -84,6 +84,7 @@ describe('createFabricCanvasCommandPort', () => {
       type: 'group',
       myType: 'house',
       houseViewType: 'front',
+      houseInstanceId: 'front_1',
       getObjects: () => [],
       set: vi.fn(),
     };
@@ -97,7 +98,7 @@ describe('createFabricCanvasCommandPort', () => {
     const result = createPort(canvas).deleteActiveObjects({onHouseViewRemoved});
 
     expect(result).toBe('deleted');
-    expect(onHouseViewRemoved).toHaveBeenCalledWith(group);
+    expect(onHouseViewRemoved).toHaveBeenCalledWith('front_1');
     expect(canvas.remove).toHaveBeenCalledWith(group);
   });
 });

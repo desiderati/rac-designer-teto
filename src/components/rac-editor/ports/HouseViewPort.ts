@@ -2,6 +2,7 @@ import type {
   HousePreAssignedSideDisplay,
   HouseSide,
   HouseType,
+  HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
 
@@ -14,25 +15,38 @@ export interface HouseViewCountSnapshot {
 }
 
 /**
- * Par de grupos usado enquanto as vistas da casa ainda carregam uma referência
- * visual de runtime.
- *
- * `TGroup` deve permanecer genérico para impedir que os Ports dependam de
- * Fabric ou de outra implementação visual concreta.
+ * Par de instâncias usado para posicionar uma planta e uma vista elevada no canvas.
  */
-export interface HouseStackedViewGroups<TGroup = unknown> {
-  /** Grupo da planta baixa usada como referência para empilhamento. */
-  topGroup: TGroup | null;
+export interface HouseViewRegistrationRequest {
+  /** Tipo da vista que será registrada no estado lógico da casa. */
+  viewType: HouseViewType;
 
-  /** Grupo da vista elevada correspondente ao tipo/lado solicitado. */
-  viewGroup: TGroup | null;
+  /** Identidade lógica já atribuída à instância de vista. */
+  instanceId: HouseViewInstanceId;
+
+  /** Lado da casa associado à vista, quando aplicável. */
+  side?: HouseSide;
+}
+
+export interface HouseViewRegistration {
+  /** Tipo da vista efetivamente registrada. */
+  viewType: HouseViewType;
+
+  /** Identidade lógica da instância registrada. */
+  instanceId: HouseViewInstanceId;
+
+  /** Lado da casa associado à vista, quando aplicável. */
+  side?: HouseSide;
+
+  /** Indica se a vista registrada é a planta baixa. */
+  registeredTopView: boolean;
 }
 
 /**
  * Consultas necessárias para decidir se uma vista pode ser criada, removida ou
  * empilhada no canvas.
  */
-export interface HouseViewReadPort<TGroup = unknown> {
+export interface HouseViewReadPort {
   /** Retorna a contagem atual e o limite para uma vista da casa. */
   getViewCount(viewType: HouseViewType): HouseViewCountSnapshot;
 
@@ -54,19 +68,17 @@ export interface HouseViewReadPort<TGroup = unknown> {
   /** Retorna se ainda existem lados pré-atribuídos pendentes no fluxo atual. */
   hasPreAssignedSides(): boolean;
 
-  /** Retorna os grupos usados para empilhar planta e vista elevada no canvas. */
-  getStackedViewGroups(viewType: HouseViewType, side?: HouseSide): HouseStackedViewGroups<TGroup>;
 }
 
 /**
  * Comandos que alteram o registro lógico de vistas da casa.
  */
-export interface HouseViewWritePort<TGroup = unknown> {
-  /** Remove do estado lógico a vista associada ao grupo informado. */
-  removeView(group: TGroup): void;
+export interface HouseViewWritePort {
+  /** Remove do estado lógico a vista associada à identidade informada. */
+  removeView(instanceId: HouseViewInstanceId): void;
 
   /** Registra uma vista criada no canvas no estado lógico da casa. */
-  registerView(viewType: HouseViewType, group: TGroup, side?: HouseSide): void;
+  registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null;
 
   /** Pré-atribui automaticamente todos os lados a partir da vista inicial. */
   autoAssignAllSides(initialViewType: HouseViewType, initialSide: HouseSide): void;

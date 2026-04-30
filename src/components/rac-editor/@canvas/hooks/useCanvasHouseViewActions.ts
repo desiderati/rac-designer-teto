@@ -20,6 +20,7 @@ import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import {createViewInstanceId} from '@/components/rac-editor/lib/house-identity.ts';
 import {
   calculateStackedViewPositions,
   resolveHouseViewInsertion,
@@ -31,8 +32,8 @@ interface UseCanvasHouseViewActionsArgs {
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;
   showPilotiTutorialIfNeeded: (position: TutorialBalloonPosition | null) => void;
-  houseReadPort: HouseReadPort<CanvasGroup>;
-  houseWritePort: HouseWritePort<CanvasGroup>;
+  houseReadPort: HouseReadPort;
+  houseWritePort: HouseWritePort;
   pendingViewType: HouseViewType | null;
   setPendingViewType: Dispatch<SetStateAction<HouseViewType | null>>;
   sideSelectorMode: HouseSideSelectorMode;
@@ -86,17 +87,26 @@ export function useCanvasHouseViewActions({
     };
 
   const addViewToCanvas =
-    (viewType: HouseViewType, side?: HouseSide) => {
+    (viewType: HouseViewType, side?: HouseSide): CanvasGroup | null => {
 
       closeAllMenus();
+      const instanceId = createViewInstanceId(viewType);
       const house = canvasRef.current?.createHouseViewGroup({
         viewType,
+        instanceId,
+        side,
+        pilotis: houseReadPort.getPilotis() ?? {},
+        terrainType: houseReadPort.getTerrainType(),
+      });
+      if (!house) return null;
+
+      addObjectToCanvas(house);
+      const registration = houseWritePort.registerView({
+        viewType,
+        instanceId,
         side,
       });
-      if (!house) return;
-
-      houseWritePort.registerView(viewType, house, side);
-      addObjectToCanvas(house);
+      if (!registration) return null;
 
       if (viewType === 'top') {
         setTimeout(() => {
@@ -106,6 +116,7 @@ export function useCanvasHouseViewActions({
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));
+      return house;
     };
 
   // Helper to add a view with side selection logic
@@ -210,34 +221,29 @@ export function useCanvasHouseViewActions({
 
       // Adiciona planta e vista inicial.
       if (viewType) {
-        addViewToCanvas('top'); // Planta
-        addViewToCanvas(viewType, side ?? undefined); // Vista inicial
+        const plantGroup = addViewToCanvas('top'); // Planta
+        const viewGroup = addViewToCanvas(viewType, side ?? undefined); // Vista inicial
 
         // Reposiciona para manter a planta acima e a vista abaixo.
-        if (canvasRef.current) {
+        if (canvasRef.current && plantGroup && viewGroup) {
           setTimeout(() => {
-            const {topGroup: plantGroup, viewGroup} =
-              houseReadPort.getStackedViewGroups(viewType, side ?? undefined);
+            const center = getVisibleCenter();
+            const gap = HOUSE_DEFAULTS.viewBetweenGap;
+            const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
+            const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
 
-            if (plantGroup && viewGroup) {
-              const center = getVisibleCenter();
-              const gap = HOUSE_DEFAULTS.viewBetweenGap;
-              const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
-              const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
+            const layout = calculateStackedViewPositions({
+              centerY: center.y,
+              topHeight: ph,
+              bottomHeight: vh,
+              gap,
+            });
 
-              const layout = calculateStackedViewPositions({
-                centerY: center.y,
-                topHeight: ph,
-                bottomHeight: vh,
-                gap,
-              });
-
-              plantGroup.set({left: center.x, top: layout.topY});
-              viewGroup.set({left: center.x, top: layout.bottomY});
-              plantGroup.setCoords();
-              viewGroup.setCoords();
-              canvasRef.current?.renderAll();
-            }
+            plantGroup.set({left: center.x, top: layout.topY});
+            viewGroup.set({left: center.x, top: layout.bottomY});
+            plantGroup.setCoords();
+            viewGroup.setCoords();
+            canvasRef.current?.renderAll();
           }, TIMINGS.stackedViewRepositionDelayMs);
         }
       }

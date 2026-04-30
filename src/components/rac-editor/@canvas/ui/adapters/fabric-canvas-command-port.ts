@@ -9,18 +9,26 @@ import {
   toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
 import {createHouseGroupForView} from '@/components/rac-editor/@canvas/lib/house-view-groups.ts';
+import {applyPilotiDataToGroup} from '@/components/rac-editor/@canvas/lib/piloti-visual.ts';
 import {
   applyPilotiEditorCloseVisuals,
   applyPilotiSelectionVisuals,
 } from '@/components/rac-editor/@canvas/lib/piloti-visual-feedback.ts';
 import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/@canvas/lib/piloti-screen-position.ts';
+import {createViewGroupMetadataPatch} from '@/components/rac-editor/lib/house-view.ts';
 
 export interface FabricCanvasCommandPort {
   createElementObject: (kind: ElementStrategyKey) => CanvasObject | null;
-  createHouseViewGroup: (payload: { viewType: HouseViewType; side?: HouseSide }) => CanvasGroup | null;
+  createHouseViewGroup: (payload: {
+    viewType: HouseViewType;
+    instanceId: HouseViewInstanceId;
+    side?: HouseSide;
+    pilotis: Record<string, HousePiloti>;
+    terrainType: number;
+  }) => CanvasGroup | null;
   addObjectAtVisibleCenter: (object: CanvasObject) => boolean;
   setDrawingModeEnabled: (enabled: boolean) => boolean;
   resetSurface: () => void;
@@ -29,7 +37,7 @@ export interface FabricCanvasCommandPort {
   deleteActiveObjects: (handlers?: {
     canDeleteTopView?: () => boolean;
     onTopViewDeleted?: () => void;
-    onHouseViewRemoved?: (group: CanvasGroup | null) => void;
+    onHouseViewRemoved?: (instanceId: HouseViewInstanceId | null) => void;
     onBlockedTopViewDelete?: () => void;
   }) => 'deleted' | 'blocked' | 'none';
   getGroupLocalPointScreenPosition: (
@@ -74,12 +82,24 @@ export function createFabricCanvasCommandPort({
   return {
     createElementObject: (kind) => getElementStrategy(kind).create(canvas),
 
-    createHouseViewGroup: ({viewType, side}) =>
-      createHouseGroupForView({
+    createHouseViewGroup: ({viewType, instanceId, side, pilotis, terrainType}) => {
+      const group = createHouseGroupForView({
         canvas,
         viewType,
         side,
-      }),
+      });
+      Object.assign(
+        group,
+        createViewGroupMetadataPatch<HouseViewType, HouseSide>({
+          viewType,
+          instanceId,
+          side,
+        }),
+      );
+      group.groundTerrainType = terrainType;
+      applyPilotiDataToGroup(group, pilotis);
+      return group;
+    },
 
     addObjectAtVisibleCenter: (object) => {
       const center = getVisibleCenter();
@@ -128,7 +148,10 @@ export function createFabricCanvasCommandPort({
             }
             handlers?.onTopViewDeleted?.();
           }
-          handlers?.onHouseViewRemoved?.(toCanvasGroup(object));
+          const houseGroup = toCanvasGroup(object);
+          handlers?.onHouseViewRemoved?.(
+            typeof houseGroup?.houseInstanceId === 'string' ? houseGroup.houseInstanceId : null,
+          );
         }
 
         canvas.remove(object);
