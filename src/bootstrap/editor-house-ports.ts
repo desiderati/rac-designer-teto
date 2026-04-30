@@ -1,9 +1,11 @@
 import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
-import {createHouse3DProjectionPort} from '@/components/rac-editor/adapters/house-3d-projection-adapter.ts';
-import {createHouseManagerReadPort} from '@/components/rac-editor/adapters/house-manager-read-adapter.ts';
-import {createHouseManagerRuntimePort} from '@/components/rac-editor/adapters/house-manager-runtime-adapter.ts';
-import {createHouseManagerStatePorts} from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
-import {createHouseManagerWritePort} from '@/components/rac-editor/adapters/house-manager-write-adapter.ts';
+import {
+  createHouse3DProjectionPort,
+  createHouseManagerReadPort,
+  createHouseManagerRuntimePort,
+  createHouseManagerStatePorts,
+  createHouseManagerWritePort,
+} from '@/bootstrap/editor-house-port-adapters.ts';
 
 export const editorHouseReadPort = createHouseManagerReadPort(houseManager);
 export const editorHouseWritePort = createHouseManagerWritePort(houseManager);
