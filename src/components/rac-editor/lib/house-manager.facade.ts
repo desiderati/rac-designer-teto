@@ -26,10 +26,10 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 import {
   applyCurrentHouseDataToGroups,
+  applyTerrainTypeToElevationViews,
   rebuildHouseViewsFromCanvas,
-} from '@/components/rac-editor/lib/house-manager-views.ts';
-import {applyTerrainTypeToElevationViews} from '@/components/rac-editor/lib/house-manager-terrain.ts';
-import {updateHousePiloti} from '@/components/rac-editor/lib/house-manager-piloti.ts';
+  updateHousePiloti,
+} from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
 
 export class HouseManagerFacade {
 
