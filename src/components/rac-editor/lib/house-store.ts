@@ -6,34 +6,50 @@ import {
 
 type Listener = () => void;
 
-const listeners = new Set<Listener>();
-let unsubscribeHouseManager: (() => void) | null = null;
+interface HouseStoreSubscriptionPort {
+  subscribe(listener: Listener): () => void;
+}
+
 let version = 0;
 
-function emitChange() {
+function incrementVersion() {
   version += 1;
-  listeners.forEach((listener) => listener());
 }
 
-function ensureBridge() {
-  if (unsubscribeHouseManager) return;
-  unsubscribeHouseManager = houseManagerRuntimeSnapshotPort.subscribe(() => {
-    emitChange();
-  });
+function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => void = () => {}) {
+  const listeners = new Set<Listener>();
+  let unsubscribePort: (() => void) | null = null;
+
+  function emitChange() {
+    beforeEmit();
+    listeners.forEach((listener) => listener());
+  }
+
+  function ensureBridge() {
+    if (unsubscribePort) return;
+    unsubscribePort = port.subscribe(() => {
+      emitChange();
+    });
+  }
+
+  function subscribe(listener: Listener): () => void {
+    ensureBridge();
+    listeners.add(listener);
+
+    return () => {
+      listeners.delete(listener);
+      if (listeners.size === 0 && unsubscribePort) {
+        unsubscribePort();
+        unsubscribePort = null;
+      }
+    };
+  }
+
+  return {emitChange, subscribe};
 }
 
-function subscribe(listener: Listener): () => void {
-  ensureBridge();
-  listeners.add(listener);
-
-  return () => {
-    listeners.delete(listener);
-    if (listeners.size === 0 && unsubscribeHouseManager) {
-      unsubscribeHouseManager();
-      unsubscribeHouseManager = null;
-    }
-  };
-}
+const stateBridge = createStoreBridge(houseManagerStatePort, incrementVersion);
+const runtimeBridge = createStoreBridge(houseManagerRuntimeSnapshotPort);
 
 function getHouseRuntimeSnapshot() {
   return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot();
@@ -48,11 +64,12 @@ function getVersionSnapshot() {
 }
 
 export function emitHouseStoreChange() {
-  emitChange();
+  stateBridge.emitChange();
+  runtimeBridge.emitChange();
 }
 
 export function useHouseRuntimeSnapshot() {
-  return useSyncExternalStore(subscribe, getHouseRuntimeSnapshot, getHouseRuntimeSnapshot);
+  return useSyncExternalStore(runtimeBridge.subscribe, getHouseRuntimeSnapshot, getHouseRuntimeSnapshot);
 }
 
 export function useHouseSnapshot() {
@@ -60,9 +77,9 @@ export function useHouseSnapshot() {
 }
 
 export function useHouseStateSnapshot() {
-  return useSyncExternalStore(subscribe, getHouseStateSnapshot, getHouseStateSnapshot);
+  return useSyncExternalStore(stateBridge.subscribe, getHouseStateSnapshot, getHouseStateSnapshot);
 }
 
 export function useHouseStoreVersion() {
-  return useSyncExternalStore(subscribe, getVersionSnapshot, getVersionSnapshot);
+  return useSyncExternalStore(stateBridge.subscribe, getVersionSnapshot, getVersionSnapshot);
 }

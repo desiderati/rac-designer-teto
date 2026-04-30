@@ -11,6 +11,7 @@ import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import {cloneHousePilotis} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 
 export interface HouseManagerCanvasRebuildInput<TGroup extends HouseRuntimeGroupRef> {
   canvasGroups: TGroup[];
@@ -75,7 +76,7 @@ export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
 
     return {
       ...house,
-      pilotis: {...house.pilotis},
+      pilotis: cloneHousePilotis(house.pilotis),
       sideMappings: {...house.sideMappings},
       preAssignedSides: {...house.preAssignedSides},
       views: this.createRuntimeViews(house.views),

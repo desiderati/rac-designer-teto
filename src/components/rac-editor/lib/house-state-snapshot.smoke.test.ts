@@ -30,8 +30,16 @@ describe('createHouseStateSnapshot', () => {
     expect(snapshot).toEqual(house);
     expect(snapshot).not.toBe(house);
     expect(snapshot?.pilotis).not.toBe(house.pilotis);
+    expect(snapshot?.pilotis.A1).not.toBe(house.pilotis.A1);
     expect(snapshot?.views.top).not.toBe(house.views.top);
+    expect(snapshot?.views.top[0]).not.toBe(house.views.top[0]);
     expect(snapshot?.sideMappings).not.toBe(house.sideMappings);
     expect(snapshot?.preAssignedSides).not.toBe(house.preAssignedSides);
+
+    snapshot!.pilotis.A1.height = 3;
+    snapshot!.views.top[0].side = 'top';
+
+    expect(house.pilotis.A1.height).toBe(1);
+    expect(house.views.top[0].side).toBeUndefined();
   });
 });
