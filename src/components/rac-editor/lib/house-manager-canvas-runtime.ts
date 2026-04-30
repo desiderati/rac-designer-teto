@@ -1,5 +1,3 @@
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
-import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
 import type {
   HousePiloti,
   HouseRuntimeViews,
@@ -9,22 +7,26 @@ import type {
   HouseViews,
 } from '@/shared/types/house.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
+import type {
+  HouseRuntimeGroupRef,
+  HouseVisualRuntimePort,
+} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
-export interface HouseManagerCanvasRebuildInput {
-  canvasGroups: CanvasGroup[];
+export interface HouseManagerCanvasRebuildInput<TGroup extends HouseRuntimeGroupRef> {
+  canvasGroups: TGroup[];
   pilotisFromCanvas: Record<string, HousePiloti>;
   terrainTypeFromCanvas: number;
 }
 
-export class HouseManagerCanvasRuntime {
-  private canvas: CanvasHouseRuntimePort | null = null;
-  private readonly viewGroupsById = new Map<HouseViewInstanceId, CanvasGroup>();
+export class HouseManagerCanvasRuntime<TGroup extends HouseRuntimeGroupRef> {
+  private canvas: HouseVisualRuntimePort<TGroup> | null = null;
+  private readonly viewGroupsById = new Map<HouseViewInstanceId, TGroup>();
 
-  initialize(canvas: CanvasHouseRuntimePort): void {
+  initialize(canvas: HouseVisualRuntimePort<TGroup>): void {
     this.canvas = canvas;
   }
 
-  includesGroup(group: CanvasGroup): boolean {
+  includesGroup(group: TGroup): boolean {
     return this.canvas?.includesGroup(group) ?? false;
   }
 
@@ -33,7 +35,7 @@ export class HouseManagerCanvasRuntime {
     return group ? this.includesGroup(group) : false;
   }
 
-  registerViewGroup(instanceId: HouseViewInstanceId, group: CanvasGroup): void {
+  registerViewGroup(instanceId: HouseViewInstanceId, group: TGroup): void {
     this.viewGroupsById.set(instanceId, group);
   }
 
@@ -41,7 +43,7 @@ export class HouseManagerCanvasRuntime {
     this.viewGroupsById.delete(instanceId);
   }
 
-  replaceViewGroups(entries: Array<{ instanceId: HouseViewInstanceId; group: CanvasGroup }>): void {
+  replaceViewGroups(entries: Array<{ instanceId: HouseViewInstanceId; group: TGroup }>): void {
     this.viewGroupsById.clear();
     entries.forEach((entry) => {
       this.viewGroupsById.set(entry.instanceId, entry.group);
@@ -52,11 +54,11 @@ export class HouseManagerCanvasRuntime {
     this.viewGroupsById.clear();
   }
 
-  getViewGroup(instanceId: HouseViewInstanceId): CanvasGroup | null {
+  getViewGroup(instanceId: HouseViewInstanceId): TGroup | null {
     return this.viewGroupsById.get(instanceId) ?? null;
   }
 
-  findViewInstanceId(group: CanvasGroup): HouseViewInstanceId | null {
+  findViewInstanceId(group: TGroup): HouseViewInstanceId | null {
     for (const [instanceId, registeredGroup] of this.viewGroupsById.entries()) {
       if (registeredGroup === group) return instanceId;
     }
@@ -64,11 +66,11 @@ export class HouseManagerCanvasRuntime {
     return typeof group.houseInstanceId === 'string' ? group.houseInstanceId : null;
   }
 
-  getRegisteredGroups(): CanvasGroup[] {
+  getRegisteredGroups(): TGroup[] {
     return [...this.viewGroupsById.values()];
   }
 
-  createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot<CanvasGroup> | null {
+  createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot<TGroup> | null {
     if (!house) return null;
 
     return {
@@ -87,7 +89,7 @@ export class HouseManagerCanvasRuntime {
   createRebuildInput(params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }): HouseManagerCanvasRebuildInput | null {
+  }): HouseManagerCanvasRebuildInput<TGroup> | null {
     if (!this.canvas) return null;
 
     return {
@@ -97,8 +99,8 @@ export class HouseManagerCanvasRuntime {
     };
   }
 
-  private createRuntimeViews(views: HouseViews): HouseRuntimeViews<CanvasGroup> {
-    const runtimeViews = {} as HouseRuntimeViews<CanvasGroup>;
+  private createRuntimeViews(views: HouseViews): HouseRuntimeViews<TGroup> {
+    const runtimeViews = {} as HouseRuntimeViews<TGroup>;
 
     (Object.keys(views) as HouseViewType[]).forEach((viewType) => {
       runtimeViews[viewType] = views[viewType]
@@ -110,7 +112,7 @@ export class HouseManagerCanvasRuntime {
             group,
           };
         })
-        .filter((instance): instance is HouseRuntimeViews<CanvasGroup>[HouseViewType][number] => instance !== null);
+        .filter((instance): instance is HouseRuntimeViews<TGroup>[HouseViewType][number] => instance !== null);
     });
 
     return runtimeViews;

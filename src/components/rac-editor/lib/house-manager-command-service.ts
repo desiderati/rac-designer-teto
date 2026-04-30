@@ -44,7 +44,7 @@ interface HouseManagerCommandServiceArgs {
   createCanvasRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }) => HouseManagerCanvasRebuildInput | null;
+  }) => HouseManagerCanvasRebuildInput<CanvasGroup> | null;
   persistHouse: () => void;
   syncProjectSession: () => void;
   requestCanvasRender: () => void;

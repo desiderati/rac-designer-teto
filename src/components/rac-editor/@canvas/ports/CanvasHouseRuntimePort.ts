@@ -1,10 +1,11 @@
 import type {HousePiloti} from '@/shared/types/house.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {HouseVisualRuntimePort} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
 /**
  * Porta mínima do canvas exigida pela projeção visual da casa.
  */
-export interface CanvasHouseRuntimePort {
+export interface CanvasHouseRuntimePort extends HouseVisualRuntimePort<CanvasGroup> {
   /** Solicita uma nova renderização do canvas. */
   requestRenderAll(): void;
 

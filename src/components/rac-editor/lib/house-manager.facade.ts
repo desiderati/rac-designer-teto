@@ -24,7 +24,7 @@ export class HouseManagerFacade {
 
   private readonly state = new HouseManagerState();
 
-  private readonly canvasRuntime = new HouseManagerCanvasRuntime();
+  private readonly canvasRuntime = new HouseManagerCanvasRuntime<CanvasGroup>();
 
   private readonly notifier = new HouseManagerNotifier();
 
@@ -63,7 +63,7 @@ export class HouseManagerFacade {
     refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
   });
 
-  private readonly queries = new HouseManagerQueryService({
+  private readonly queries = new HouseManagerQueryService<CanvasGroup>({
     getHouse: () => this.house,
     getAggregate: () => this.getHouseAggregate(),
     getAllRuntimeGroups: () => this.canvasRuntime.getRegisteredGroups(),

@@ -1,5 +1,4 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {
   ALL_HOUSE_VIEW_TYPES,
   DEFAULT_HOUSE_PILOTI,
@@ -11,16 +10,16 @@ import {
 } from '@/shared/types/house.ts';
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 
-interface HouseManagerQueryServiceArgs {
+interface HouseManagerQueryServiceArgs<TGroup> {
   getHouse: () => HouseState | null;
   getAggregate: () => HouseAggregate | null;
-  getAllRuntimeGroups: () => CanvasGroup[];
+  getAllRuntimeGroups: () => TGroup[];
   getDefaultTerrainType: () => number;
   cleanupStaleViews: (viewType: HouseViewType) => void;
 }
 
-export class HouseManagerQueryService {
-  constructor(private readonly args: HouseManagerQueryServiceArgs) {
+export class HouseManagerQueryService<TGroup = unknown> {
+  constructor(private readonly args: HouseManagerQueryServiceArgs<TGroup>) {
   }
 
   getHouse(): HouseState | null {
@@ -93,7 +92,7 @@ export class HouseManagerQueryService {
     return aggregate.hasAnyViewInstances(house.views);
   }
 
-  getAllGroups(): CanvasGroup[] {
+  getAllGroups(): TGroup[] {
     return this.args.getAllRuntimeGroups();
   }
 
