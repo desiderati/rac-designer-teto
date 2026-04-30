@@ -1,4 +1,4 @@
-import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import {useHouseStateSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {TwoCardSelector} from './TwoCardSelector.tsx';
 import {PilotiGridIcon} from '@/components/rac-editor/@modals/ui/editors/piloti/PilotiGridIcon.tsx';
 import {HousePreAssignedSideDisplay, HouseSide, HouseViewType} from '@/shared/types/house.ts';
@@ -23,7 +23,7 @@ export function HouseSideSelector({
   houseSideSlots
 }: HouseSideSelectorProps) {
 
-  const house = useHouseSnapshot();
+  const house = useHouseStateSnapshot();
   const houseType = house?.houseType ?? null;
   const isLongSide = houseViewType === 'front' || houseViewType === 'back';
   const slots = houseSideSlots || [];

@@ -194,6 +194,25 @@ export class HouseManagerFacade {
     return this.runtimeHouse;
   }
 
+  getHouseState(): HouseState | null {
+    const house = this.queries.getHouse();
+    if (!house) return null;
+
+    return {
+      ...house,
+      pilotis: {...house.pilotis},
+      views: {
+        top: [...house.views.top],
+        front: [...house.views.front],
+        back: [...house.views.back],
+        side1: [...house.views.side1],
+        side2: [...house.views.side2],
+      },
+      sideMappings: {...house.sideMappings},
+      preAssignedSides: {...house.preAssignedSides},
+    };
+  }
+
   private getHouseAggregate(): HouseAggregate | null {
     return this.state.aggregate;
   }

@@ -1,5 +1,8 @@
 import {useSyncExternalStore} from 'react';
-import {houseManagerStatePort} from '@/infra/house/house-manager-state-adapter.ts';
+import {
+  houseManagerRuntimeSnapshotPort,
+  houseManagerStatePort,
+} from '@/infra/house/house-manager-state-adapter.ts';
 
 type Listener = () => void;
 
@@ -14,7 +17,7 @@ function emitChange() {
 
 function ensureBridge() {
   if (unsubscribeHouseManager) return;
-  unsubscribeHouseManager = houseManagerStatePort.subscribe(() => {
+  unsubscribeHouseManager = houseManagerRuntimeSnapshotPort.subscribe(() => {
     emitChange();
   });
 }
@@ -32,8 +35,12 @@ function subscribe(listener: Listener): () => void {
   };
 }
 
-function getHouseSnapshot() {
-  return houseManagerStatePort.getSnapshot();
+function getHouseRuntimeSnapshot() {
+  return houseManagerRuntimeSnapshotPort.getRuntimeSnapshot();
+}
+
+function getHouseStateSnapshot() {
+  return houseManagerStatePort.getStateSnapshot();
 }
 
 function getVersionSnapshot() {
@@ -44,8 +51,16 @@ export function emitHouseStoreChange() {
   emitChange();
 }
 
+export function useHouseRuntimeSnapshot() {
+  return useSyncExternalStore(subscribe, getHouseRuntimeSnapshot, getHouseRuntimeSnapshot);
+}
+
 export function useHouseSnapshot() {
-  return useSyncExternalStore(subscribe, getHouseSnapshot, getHouseSnapshot);
+  return useHouseRuntimeSnapshot();
+}
+
+export function useHouseStateSnapshot() {
+  return useSyncExternalStore(subscribe, getHouseStateSnapshot, getHouseStateSnapshot);
 }
 
 export function useHouseStoreVersion() {
