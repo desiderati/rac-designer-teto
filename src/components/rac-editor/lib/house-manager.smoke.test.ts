@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {createCanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
+import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 type MockObject = {

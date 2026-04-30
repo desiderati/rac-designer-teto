@@ -1,5 +1,5 @@
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {CanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ports/CanvasHouseRuntimePort.ts';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
 import type {
   HousePiloti,
   HouseRuntimeViews,

@@ -85,12 +85,12 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/infra/` implementa persistência em memória, storage local e integrações técnicas
 - `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `canvas/`,
   `menus/`, `modals/`, `viewer3d/`, `house/`, `piloti/`, `ui/`, `hooks/`, `lib/` e `store/`
-- `src/components/rac-editor/canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
+- `src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
   factories e helpers de projeção/renderização do canvas
-- `src/components/rac-editor/menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
+- `src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
   `CanvasToolsMenu`, menus superiores, tipos e configs locais
-- `src/components/rac-editor/modals/` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais
-- `src/components/rac-editor/viewer3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
+- `src/components/rac-editor/@modals/` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais
+- `src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
 - `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
 - `src/components/rac-editor/store/` fica reservado a stores reais, como `EditorStateStore`

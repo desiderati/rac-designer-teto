@@ -1,6 +1,6 @@
 import {
   CanvasGroup,
-} from '@/components/rac-editor/canvas/lib';
+} from '@/components/rac-editor/@canvas/lib';
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {
   HousePiloti,
@@ -10,7 +10,7 @@ import {
   HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import type {CanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ports/CanvasHouseRuntimePort.ts';
+import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';

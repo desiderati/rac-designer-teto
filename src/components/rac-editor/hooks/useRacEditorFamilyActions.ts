@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import type {FamilySetupResult} from '@/components/rac-editor/modals/ui/editors/FamilySetupModal.tsx';
+import type {FamilySetupResult} from '@/components/rac-editor/@modals/ui/editors/FamilySetupModal.tsx';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorFamilyActionsArgs {

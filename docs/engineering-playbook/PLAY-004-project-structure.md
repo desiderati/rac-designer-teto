@@ -33,15 +33,15 @@ Ele existe para evitar dois erros comuns:
 
 - `src/components/rac-editor/lib/house-manager.ts` é hoje a fachada legada do estado compartilhado da casa.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
-- `src/components/rac-editor/canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
+- `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
-- `src/components/rac-editor/menus` concentra a superfície de menus do editor, como `RacEditorMenus`,
+- `src/components/rac-editor/@menus` concentra a superfície de menus do editor, como `RacEditorMenus`,
   `CanvasToolsMenu`, menus superiores, tipos e configs locais.
-- `src/components/rac-editor/modals` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais.
-- `src/components/rac-editor/viewer3d` concentra a visualização 3D, incluindo UI, hooks, parsers, geometria e meshes.
+- `src/components/rac-editor/@modals` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais.
+- `src/components/rac-editor/@viewer-3d` concentra a visualização 3D, incluindo UI, hooks, parsers, geometria e meshes.
 - `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica.
-- `src/components/rac-editor/canvas/ports` concentra os Ports próprios da borda visual 2D.
+- `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - Tipos e objetos de Fabric devem permanecer no slice `canvas`, especialmente em `canvas/ui/adapters` e nos helpers
   visuais de `canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
@@ -89,7 +89,7 @@ Ele existe para evitar dois erros comuns:
 
 - Não criar raízes genéricas de application, services ou store sem decisão arquitetural explícita.
 - Não usar shared como lixeira para regra de negócio.
-- Não espalhar novas integrações de Fabric para fora de `src/components/rac-editor/canvas` sem justificativa clara e
+- Não espalhar novas integrações de Fabric para fora de `src/components/rac-editor/@canvas` sem justificativa clara e
   atualização simultânea deste playbook.
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
 

@@ -1,4 +1,4 @@
-import type {EditorSelection} from '@/components/rac-editor/canvas/store/types.ts';
+import type {EditorSelection} from '@/components/rac-editor/@canvas/store/types.ts';
 
 export interface SelectEditorTargetCommand {
   type: 'SELECT_EDITOR_TARGET';

@@ -20,8 +20,8 @@ componentes é crucial para legibilidade e manutenibilidade.
 
 - Componentes de produto e feature devem usar PascalCase com extensão TSX.
 - Exemplos recomendados: `src/components/rac-editor/ui/RacEditor.tsx`,
-  `src/components/rac-editor/viewer3d/ui/House3DViewer.tsx`,
-  `src/components/rac-editor/modals/ui/selectors/HouseTypeSelector.tsx`.
+  `src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx`,
+  `src/components/rac-editor/@modals/ui/selectors/HouseTypeSelector.tsx`.
 - Exemplos a evitar: nomes como my-component.tsx ou user_profile_card.js.
 - Exceção vigente: primitives base de shadcn/ui em `src/components/ui` preservam o padrão gerado em lowercase ou
   kebab-case, como `src/components/ui/button.tsx` e `src/components/ui/alert-dialog.tsx`.
@@ -32,7 +32,7 @@ componentes é crucial para legibilidade e manutenibilidade.
 - Use camelCase com prefixo `use`.
 - Prefira extensão TS, mas use TSX quando o arquivo realmente precisar de TSX ou de APIs React acopladas a isso.
 - Exemplos recomendados: `src/components/rac-editor/hooks/useHouseTypeFlow.ts`,
-  `src/components/rac-editor/canvas/ui/adapters/hooks/useCanvasHistory.ts`,
+  `src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts`,
   `src/components/rac-editor/lib/use-mobile.tsx`.
 - Exemplos a evitar: nomes como UserDataHook.ts ou use-form-validation.ts.
 
@@ -88,4 +88,4 @@ componentes é crucial para legibilidade e manutenibilidade.
 - Adapter: `{location}-{model}-{concern}.adapter.ts`, como `in-memory-house-persistence.adapter.ts`.
 - Caso de uso: `{action}.use-case.ts`, como `src/domain/house/use-cases/house-state.use-case.ts`.
 - Estratégia: `{element}.strategy.ts`, como
-  `src/components/rac-editor/canvas/lib/factory/elements/door.strategy.ts`.
+  `src/components/rac-editor/@canvas/lib/factory/elements/door.strategy.ts`.

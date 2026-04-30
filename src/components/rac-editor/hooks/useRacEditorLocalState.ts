@@ -1,5 +1,5 @@
 import {useCallback, useState} from 'react';
-import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
+import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 export function useRacEditorLocalState() {

@@ -1,12 +1,12 @@
 import type {ComponentProps, MouseEventHandler} from 'react';
-import {RacEditorMenus} from '@/components/rac-editor/menus/ui/RacEditorMenus.tsx';
+import {RacEditorMenus} from '@/components/rac-editor/@menus/ui/RacEditorMenus.tsx';
 import {RacEditorCanvas} from '@/components/rac-editor/ui/RacEditorCanvas.tsx';
-import {RacEditorHouseTypeSelector} from '@/components/rac-editor/modals/ui/RacEditorHouseTypeSelector.tsx';
-import {RacEditorModalEditors} from '@/components/rac-editor/modals/ui/RacEditorModalEditors.tsx';
-import {RacEditorModals} from '@/components/rac-editor/modals/ui/RacEditorModals.tsx';
+import {RacEditorHouseTypeSelector} from '@/components/rac-editor/@modals/ui/RacEditorHouseTypeSelector.tsx';
+import {RacEditorModalEditors} from '@/components/rac-editor/@modals/ui/RacEditorModalEditors.tsx';
+import {RacEditorModals} from '@/components/rac-editor/@modals/ui/RacEditorModals.tsx';
 import {RacEditorTutorial} from '@/components/rac-editor/ui/RacEditorTutorial.tsx';
-import {House3DViewerOverlay} from '@/components/rac-editor/viewer3d/ui/House3DViewerOverlay.tsx';
-import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/canvas/ui/workspace-style.ts';
+import {House3DViewerOverlay} from '@/components/rac-editor/@viewer-3d/ui/House3DViewerOverlay.tsx';
+import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
 
 type RacEditorMenusProps = ComponentProps<typeof RacEditorMenus>;
 type CanvasProps = ComponentProps<typeof RacEditorCanvas>;

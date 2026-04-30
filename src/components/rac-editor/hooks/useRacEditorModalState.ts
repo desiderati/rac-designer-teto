@@ -1,6 +1,6 @@
 import {Dispatch, SetStateAction, useState} from 'react';
 import {getSettings} from '@/infra/settings.ts';
-import {CanvasToolMode, MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
+import {CanvasToolMode, MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 
 interface UseRacEditorModalStateResult {
   activeSubmenu: MenuSubmenu;

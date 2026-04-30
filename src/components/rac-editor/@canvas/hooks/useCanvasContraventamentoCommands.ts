@@ -1,0 +1,291 @@
+import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
+import {toast} from 'sonner';
+import type {
+  ContraventamentoCanvasSelection,
+  PilotiCanvasSelection,
+} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import {
+  addContraventamentoBeam,
+  CanvasGroup,
+  removeContraventamentosFromTopView,
+  syncContraventamentoElevationViews,
+} from '@/components/rac-editor/@canvas/lib';
+import {emitHouseStoreChange, useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
+import {
+  ContraventamentoOrigin,
+  ContraventamentoSide,
+  getContraventamentoSideLabel,
+  inferContraventamentoSide
+} from '@/shared/types/contraventamento.ts';
+import {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
+import {
+  highlightEligibleContraventamentoPilotis,
+  resetHighlightContraventamentoPilotis
+} from '@/components/rac-editor/@canvas/lib/contraventamento-top-view-highlight.ts';
+import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
+import {getSettings} from '@/infra/settings.ts';
+
+interface UseContraventamentoCommandsArgs {
+  canvasRef: RefObject<CanvasHandle | null>;
+  getTopViewGroup: () => CanvasGroup | null;
+  getNonTopViewGroups: () => CanvasGroup[];
+  getContraventamentoColumnSides: (group: CanvasGroup, col: number) => {
+    left: boolean;
+    right: boolean;
+  };
+  isPilotiEligibleForContraventamentoColumn: (pilotiId: string) => boolean;
+  isPilotiEligibleAsDestination: (pilotiId: string) => boolean;
+  setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
+  setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
+  contraventamentoFirst: ContraventamentoOrigin | null;
+  setContraventamentoFirst: Dispatch<SetStateAction<ContraventamentoOrigin | null>>;
+  contraventamentoSide: ContraventamentoSide | null;
+  setContraventamentoSide: Dispatch<SetStateAction<ContraventamentoSide | null>>;
+  resetContraventamentoFlow: () => void;
+  pilotiSelection: PilotiCanvasSelection | null;
+  setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
+  setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
+  setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
+}
+
+export function useContraventamentoCommands({
+  canvasRef,
+  getTopViewGroup,
+  getNonTopViewGroups,
+  getContraventamentoColumnSides,
+  isPilotiEligibleForContraventamentoColumn,
+  isPilotiEligibleAsDestination,
+  setSelectedContraventamento,
+  setIsContraventamentoMode,
+  contraventamentoFirst,
+  setContraventamentoFirst,
+  contraventamentoSide,
+  setContraventamentoSide,
+  resetContraventamentoFlow,
+  pilotiSelection,
+  setPilotiSelection,
+  setIsPilotiEditorOpen,
+  setActiveSubmenu,
+}: UseContraventamentoCommandsArgs) {
+  const houseSnapshot = useHouseSnapshot();
+
+  const enterSecondContraventamentoSelection = useCallback((
+    first: ContraventamentoOrigin,
+    side: ContraventamentoSide
+  ) => {
+    const topGroup = getTopViewGroup();
+    if (!topGroup) {
+      toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
+      return;
+    }
+
+    setContraventamentoFirst(first);
+    setContraventamentoSide(side);
+    highlightEligibleContraventamentoPilotis(
+      topGroup,
+      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId),
+      first.col,
+      first.pilotiId
+    );
+
+    toast.info(TOAST_MESSAGES.contraventamentoSideSelected(getContraventamentoSideLabel(side)));
+  }, [getTopViewGroup, isPilotiEligibleAsDestination, setContraventamentoFirst, setContraventamentoSide]);
+
+  const syncContraventamentoElevations = useCallback(() => {
+    const topGroup = getTopViewGroup();
+    if (!topGroup) return;
+
+    const targets = getNonTopViewGroups();
+    syncContraventamentoElevationViews(
+      topGroup,
+      targets,
+      (pilotiId) => houseSnapshot?.pilotis[pilotiId]?.nivel ?? 0
+    );
+
+    // Reaplica auto-stairs após o sync do contraventamento para manter
+    // a ordem visual correta das camadas nas vistas elevadas.
+    const house = houseSnapshot;
+    if (!house) return;
+
+    refreshAutoStairsInViews({
+      houseType: house.houseType,
+      sideMappings: house.sideMappings,
+      pilotis: house.pilotis,
+      topView: house.views.top,
+      elevationViews: [
+        ...house.views.front,
+        ...house.views.back,
+        ...house.views.side1,
+        ...house.views.side2,
+      ],
+      showStairsOnTopView: getSettings().showStairsOnTopView,
+    });
+
+    canvasRef.current?.renderAll();
+  }, [canvasRef, getNonTopViewGroups, getTopViewGroup, houseSnapshot]);
+
+  const clearContraventamentoSelection = useCallback((group?: CanvasGroup | null) => {
+    if (group) {
+      resetHighlightContraventamentoPilotis(group);
+    }
+    setSelectedContraventamento(null);
+  }, [setSelectedContraventamento]);
+
+  const handleCancelContraventamento = useCallback(() => {
+    const topGroup = getTopViewGroup();
+    if (topGroup) resetHighlightContraventamentoPilotis(topGroup);
+
+    resetContraventamentoFlow();
+    toast.error(TOAST_MESSAGES.contraventamentoNotSelected);
+  }, [getTopViewGroup, resetContraventamentoFlow]);
+
+  const handleContraventamentoPilotiClick = useCallback((col: number, row: number) => {
+    if (col !== contraventamentoFirst.col) {
+      toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameColumn);
+      return;
+    }
+
+    if (row === contraventamentoFirst.row) {
+      toast.warning(TOAST_MESSAGES.contraventamentoSelectDifferentSecondPiloti);
+      return;
+    }
+
+    const destinationPilotiId = `piloti_${col}_${row}`;
+    if (!isPilotiEligibleAsDestination(destinationPilotiId)) {
+      toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
+      return;
+    }
+
+    const originGroup = getTopViewGroup();
+    if (!originGroup) {
+      toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
+      return;
+    }
+
+    const occupiedSides = getContraventamentoColumnSides(originGroup, col);
+    if (occupiedSides[contraventamentoSide]) {
+      const sideLabel = contraventamentoSide === 'left' ? 'esquerdo' : 'direito';
+      toast.warning(TOAST_MESSAGES.contraventamentoColumnSideAlreadyOccupied(sideLabel));
+
+      setContraventamentoFirst(null);
+      setContraventamentoSide(null);
+      return;
+    }
+
+    const createdId = addContraventamentoBeam(
+      originGroup,
+      {col, row: contraventamentoFirst.row},
+      {col, row},
+      {anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide}
+    );
+
+    if (!createdId) {
+      toast.error(TOAST_MESSAGES.failedToCreateContraventamento);
+      return;
+    }
+
+    setIsContraventamentoMode(false);
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+    clearContraventamentoSelection(originGroup);
+    syncContraventamentoElevations();
+
+    canvasRef.current?.saveHistory();
+    toast.success(TOAST_MESSAGES.contraventamentoAddedSuccessfully);
+  }, [
+    canvasRef,
+    contraventamentoFirst,
+    setContraventamentoFirst,
+    contraventamentoSide,
+    setContraventamentoSide,
+    setIsContraventamentoMode,
+    getContraventamentoColumnSides,
+    getTopViewGroup,
+    isPilotiEligibleAsDestination,
+    clearContraventamentoSelection,
+    syncContraventamentoElevations,
+  ]);
+
+  const handleContraventamentoSelect =
+    useCallback((side: ContraventamentoSide, sourcePilotiId?: string) => {
+      const selectedPilotiId = sourcePilotiId ?? pilotiSelection?.pilotiId;
+      if (!selectedPilotiId) return;
+
+      const topGroup = getTopViewGroup();
+      if (!topGroup) {
+        toast.error(TOAST_MESSAGES.addTopViewBeforeContraventamento);
+        return;
+      }
+
+      const parsed = parsePilotiGridPosition(selectedPilotiId);
+      if (!parsed) return;
+
+      const col = parsed.col;
+      const row = parsed.row;
+      const occupiedSides = getContraventamentoColumnSides(topGroup, col);
+      if (occupiedSides[side]) {
+        const removed =
+          removeContraventamentosFromTopView(topGroup, canvasObj => {
+            if (!canvasObj) return false;
+
+            if (Number(canvasObj.contraventamentoCol) !== col) return false;
+            if (canvasObj.contraventamentoSide === 'left' || canvasObj.contraventamentoSide === 'right') {
+              return canvasObj.contraventamentoSide === side;
+            }
+
+            const inferredSide = inferContraventamentoSide({
+              col,
+              left: Number(canvasObj.left ?? 0),
+              width: Number(canvasObj.width ?? 0),
+              scaleX: Number(canvasObj.scaleX ?? 1),
+            });
+            return inferredSide === side;
+          });
+
+        if (removed > 0) {
+          syncContraventamentoElevations();
+          canvasRef.current?.saveHistory();
+
+          emitHouseStoreChange();
+          toast.success(TOAST_MESSAGES.contraventamentoRemovedFromSide(getContraventamentoSideLabel(side)));
+        }
+        return;
+      }
+
+      // Sem contraventamento existente no lado: daqui em diante é tentativa de inserção.
+      if (!isPilotiEligibleForContraventamentoColumn(selectedPilotiId)) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionColumn);
+        return;
+      }
+
+      const first = {pilotiId: selectedPilotiId, col, row};
+
+      setIsPilotiEditorOpen(false);
+      setPilotiSelection(null);
+      setActiveSubmenu(null);
+      setIsContraventamentoMode(true);
+      enterSecondContraventamentoSelection(first, side);
+    }, [
+      canvasRef,
+      enterSecondContraventamentoSelection,
+      getTopViewGroup,
+      getContraventamentoColumnSides,
+      isPilotiEligibleForContraventamentoColumn,
+      setActiveSubmenu,
+      setIsPilotiEditorOpen,
+      pilotiSelection,
+      setPilotiSelection,
+      setIsContraventamentoMode,
+      syncContraventamentoElevations,
+    ]);
+
+  return {
+    syncContraventamentoElevations,
+    handleCancelContraventamento,
+    handleContraventamentoPilotiClick,
+    handleContraventamentoSelect,
+  };
+}

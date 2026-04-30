@@ -1,8 +1,8 @@
 import {RefObject, useCallback} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
-import {useGenericObjectEditorBindings} from '@/components/rac-editor/modals/hooks/useGenericObjectEditorBindings.ts';
-import {useLinearEditorActions} from '@/components/rac-editor/modals/hooks/useLinearEditorActions.ts';
-import {useWallEditorActions} from '@/components/rac-editor/modals/hooks/useWallEditorActions.ts';
+import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import {useGenericObjectEditorBindings} from '@/components/rac-editor/@modals/hooks/useGenericObjectEditorBindings.ts';
+import {useLinearEditorActions} from '@/components/rac-editor/@modals/hooks/useLinearEditorActions.ts';
+import {useWallEditorActions} from '@/components/rac-editor/@modals/hooks/useWallEditorActions.ts';
 
 interface UseRacEditorObjectEditorActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

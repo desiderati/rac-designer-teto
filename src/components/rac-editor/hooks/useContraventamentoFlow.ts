@@ -1,5 +1,5 @@
 import {Dispatch, SetStateAction, useState} from 'react';
-import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
+import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {ContraventamentoOrigin, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
 interface UseContraventamentoFlowResult {

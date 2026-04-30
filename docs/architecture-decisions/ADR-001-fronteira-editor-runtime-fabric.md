@@ -35,8 +35,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/fabric-boundary-baseline.md`
   - `src/components/rac-editor/lib/house-manager.ts`
-  - `src/components/rac-editor/canvas/ui/Canvas.tsx`
-  - `src/components/rac-editor/canvas/lib/canvas.ts`
+  - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
+  - `src/components/rac-editor/@canvas/lib/canvas.ts`
 
 ## 2. Decisão
 
@@ -158,8 +158,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ## 6. Artefatos e contratos relacionados
 
 - blueprint ou schema relacionado:
-  - `src/components/rac-editor/canvas/store/types/editor-selection.ts`
-  - `src/components/rac-editor/canvas/types/editor-ids.ts`
+  - `src/components/rac-editor/@canvas/store/types/editor-selection.ts`
+  - `src/components/rac-editor/@canvas/types/editor-ids.ts`
 - prompts relacionados:
   - `.agents/prompts/solution-design.prompt.md`
   - `.agents/prompts/implementation-planning.prompt.md`

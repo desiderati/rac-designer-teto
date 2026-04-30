@@ -1,7 +1,7 @@
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import {refreshTopDoorMarkersInViews} from '@/components/rac-editor/canvas/lib/house-top-view-door-marker.ts';
-import {refreshAutoStairsInViews} from '@/components/rac-editor/canvas/lib/house-auto-stairs.ts';
-import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/canvas/lib/house-auto-contraventamento.ts';
+import {refreshTopDoorMarkersInViews} from '@/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts';
+import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
+import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts';
 import {getSettings} from '@/infra/settings.ts';
 import {collectElevationViewInstances} from '@/components/rac-editor/lib/house-manager-terrain.ts';
 

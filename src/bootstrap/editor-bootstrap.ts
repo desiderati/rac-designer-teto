@@ -1,6 +1,6 @@
 import {createContext, useContext} from 'react';
 import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';

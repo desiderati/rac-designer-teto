@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import type {CanvasToolMode} from '@/components/rac-editor/menus/lib/menu-types.ts';
+import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {VIEWPORT} from '@/shared/config.ts';
 
 interface UseHotkeysOptions {

@@ -1,6 +1,6 @@
 import type {Dispatch, RefObject, SetStateAction} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
-import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
+import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import {useTutorialFlow} from '@/components/rac-editor/hooks/tutorial/useTutorialFlow.ts';
 import {useTutorialUiActions} from '@/components/rac-editor/hooks/tutorial/useTutorialUiActions.ts';

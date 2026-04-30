@@ -1,4 +1,4 @@
-import {HouseSideSelectorMode} from '@/components/rac-editor/modals/ui/selectors/HouseSideSelector.tsx';
+import {HouseSideSelectorMode} from '@/components/rac-editor/@modals/ui/selectors/HouseSideSelector.tsx';
 
 export function shouldTransitionToNivelDefinition(params: {
   sideSelectorMode: HouseSideSelectorMode;

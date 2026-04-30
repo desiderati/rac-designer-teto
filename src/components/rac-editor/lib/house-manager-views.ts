@@ -9,18 +9,18 @@ import type {
 import {
   CanvasGroup,
   toCanvasGroup,
-} from '@/components/rac-editor/canvas/lib';
+} from '@/components/rac-editor/@canvas/lib';
 import {createViewInstanceId} from '@/components/rac-editor/lib/house-identity.ts';
 import {
   createViewGroupControlsVisibilityPatch,
   createViewGroupMetadataPatch,
   extractViewGroupRemovalHints,
 } from '@/components/rac-editor/lib/house-view.ts';
-import {applyPilotiDataToGroup} from '@/components/rac-editor/canvas/lib/piloti-visual.ts';
+import {applyPilotiDataToGroup} from '@/components/rac-editor/@canvas/lib/piloti-visual.ts';
 import {
   collectHouseGroupRebuildSources,
   toRebuildViewSource,
-} from '@/components/rac-editor/canvas/lib/canvas-rebuild.ts';
+} from '@/components/rac-editor/@canvas/lib/canvas-rebuild.ts';
 
 export function registerHouseView(params: {
   aggregate: HouseAggregate;
