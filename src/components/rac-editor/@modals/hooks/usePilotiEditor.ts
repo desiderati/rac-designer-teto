@@ -11,6 +11,10 @@ import {
   getPilotiName,
   getRecommendedHeight,
 } from '@/shared/types/piloti.ts';
+import {
+  getPilotiContraventamentoButtonClasses,
+  getPilotiHeightButtonClasses,
+} from '@/components/rac-editor/@modals/lib/piloti-editor-classes.ts';
 
 interface UsePilotiEditorArgs {
   isOpen: boolean;
@@ -206,20 +210,16 @@ export function usePilotiEditor({
   };
 
   const getHeightButtonClasses = (h: number): string => {
-    const isSelected = clickedHeight === h || (clickedHeight === null && tempHeight === h);
-    return isSelected
-      ? 'h-16 w-16 rounded-2xl border border-primary bg-primary text-primary-foreground text-lg font-semibold flex items-center justify-center shadow-sm'
-      : 'h-16 w-16 rounded-2xl border border-transparent bg-primary/10 text-foreground text-lg font-semibold flex items-center justify-center hover:bg-primary/20';
+    return getPilotiHeightButtonClasses({
+      height: h,
+      clickedHeight,
+      tempHeight,
+    });
   };
 
   const getContraventamentoButtonClasses =
     (isActive: boolean, isDisabled: boolean): string => {
-      if (isDisabled) {
-        return 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed';
-      }
-      return isActive
-        ? 'h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90'
-        : 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20';
+      return getPilotiContraventamentoButtonClasses(isActive, isDisabled);
     };
 
   const commitDraftChanges =
@@ -242,12 +242,12 @@ export function usePilotiEditor({
         || nivelToApply !== currentNivel;
       if (!hasChanges) return false;
 
-    const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
-      height: tempHeight,
-      isMaster: resolvedIsMaster,
-      nivel: nivelToApply,
-    });
-    onHeightChange(updatedPiloti.height);
+      const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
+        height: tempHeight,
+        isMaster: resolvedIsMaster,
+        nivel: nivelToApply,
+      });
+      onHeightChange(updatedPiloti.height);
       onNavigate?.(
         pilotiId,
         updatedPiloti.height,
@@ -257,7 +257,7 @@ export function usePilotiEditor({
       return true;
     };
   return {
-   tempHeight,
+    tempHeight,
     setTempHeight,
     tempIsMaster,
     setTempIsMaster,

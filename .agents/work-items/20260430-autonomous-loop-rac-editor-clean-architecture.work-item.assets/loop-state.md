@@ -10,7 +10,7 @@
 - Worktree, if any: nenhum.
 - Loop-state path: `.agents/work-items/20260430-autonomous-loop-rac-editor-clean-architecture.work-item.assets/loop-state.md`
 - Max iterations: 8
-- Completed iterations: 6
+- Completed iterations: 7
 - Stop criteria: oito ciclos concluídos com evidência proporcional, commits locais separados e revisão final dos commits não enviados.
 - Safety policy: sem worktree, sem push, sem merge, sem deploy, sem mutação remota e sem comandos destrutivos fora dos arquivos tocados pela frente.
 - Evidence policy: typecheck, testes focados por ciclo, build/lint quando o blast radius justificar, `git diff --check`, inspeções `rg` para dependências legadas e revisão final dos commits locais não enviados.
@@ -25,6 +25,7 @@
 | 4 | Decompor fluxos do `useRacEditorController` | Extraídos hooks de fluxo para canvas, documentos/hotkeys e editores modais; controlador raiz deixou de importar diretamente hooks internos desses fluxos. | `tsc` passou; teste focado de bootstrap/hooks passou, 1 arquivo e 2 testes; `git diff --check` passou. | Prosseguir. | Reduzir núcleo do `house-manager.facade` e estabilizar adapters. |
 | 5 | Reduzir núcleo do `house-manager.facade` | Extraído `createHouseStateSnapshot` com teste próprio; removidos comentários redundantes da fachada. | `tsc` passou; testes focados de snapshot/house-manager/adapters passaram, 3 arquivos e 13 testes; `git diff --check` passou. | Prosseguir. | Fatiar arquivos grandes de `@canvas`. |
 | 6 | Fatiar `house-auto-stairs.ts` no `@canvas` | Extraído `house-auto-stairs-metrics.ts` com métricas e interpolações puras; arquivo principal ficou focado em manipulação visual do canvas. | `tsc` passou; testes focados de auto-stairs/auto-contraventamento passaram, 2 arquivos e 12 testes; `git diff --check` passou. | Prosseguir. | Consolidar `@viewer-3d` e `@modals`. |
+| 7 | Consolidar regra visual do editor de piloti em `@modals` | Extraído `piloti-editor-classes.ts` com funções puras para classes de botões; adicionado teste focado. | `tsc` passou; teste focado de classes passou, 1 arquivo e 2 testes; `git diff --check` passou. | Prosseguir. | Estabilizar JSDoc/playbook e preparar revisão final. |
 
 ## Failure Signatures
 
