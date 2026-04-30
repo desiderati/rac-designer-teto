@@ -2,25 +2,24 @@ import {useRef} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts';
-import {useRacEditorHotkeys} from '@/components/rac-editor/hooks/useRacEditorHotkeys.ts';
 import {useRacEditorModalState} from '@/components/rac-editor/hooks/useRacEditorModalState.ts';
 import {useRacEditorLocalState} from '@/components/rac-editor/hooks/useRacEditorLocalState.ts';
 import {useRacEditorUiRefs} from '@/components/rac-editor/hooks/useRacEditorUiRefs.ts';
-import {usePilotiEditorActions} from '@/components/rac-editor/@modals/hooks/usePilotiEditorActions.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {useCanvasHouseInitialization} from '@/components/rac-editor/@canvas/hooks/useCanvasHouseInitialization.ts';
 import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
-import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
-import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
 import {useRacEditorMenuController} from '@/components/rac-editor/@menus/hooks/useRacEditorMenuController.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
-import {useCanvasController} from '@/components/rac-editor/@canvas/hooks/useCanvasController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useRacEditorTutorialController} from '@/components/rac-editor/hooks/useRacEditorTutorialController.ts';
 import {useRacEditorShellController} from '@/components/rac-editor/hooks/useRacEditorShellController.ts';
 import {buildRacEditorLayoutProps} from '@/components/rac-editor/hooks/buildRacEditorLayoutProps.ts';
+import {useRacEditorCanvasFlowController} from '@/components/rac-editor/hooks/useRacEditorCanvasFlowController.ts';
+import {
+  useRacEditorDocumentHotkeysController
+} from '@/components/rac-editor/hooks/useRacEditorDocumentHotkeysController.ts';
+import {useRacEditorModalEditorController} from '@/components/rac-editor/hooks/useRacEditorModalEditorController.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -142,8 +141,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setShowRestartConfirm,
   });
 
-  useCanvasHouseInitialization({canvasRef});
-
   const {
     closeAllMenus,
     disableDrawingMode,
@@ -171,7 +168,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleAddDistance,
     handleToggleDrawMode,
     handleAddText,
-  } = useCanvasController({
+  } = useRacEditorCanvasFlowController({
     canvasRef,
     isDrawing,
     setIsDrawing,
@@ -248,14 +245,11 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleExportJSON,
     handleImportJSON,
     handleSavePDF,
-  } = useRacEditorDocumentActions({
+  } = useRacEditorDocumentHotkeysController({
     canvasRef,
     setInfoMessage,
     resetContraventamentoFlow,
     syncContraventamentoElevations,
-  });
-
-  useRacEditorHotkeys({
     onToggleDrawMode: handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
     onSetCanvasToolMode: handleSetCanvasToolMode,
@@ -267,19 +261,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handlePilotiEditorClose,
     handlePilotiHeightChange,
     handlePilotiNavigate,
-  } = usePilotiEditorActions({
-    isContraventamentoMode,
-    hasPilotiTutorial: !!tutorialPilotiPosition,
-    closePilotiTutorial: handleClosePilotiTutorial,
-    canvasRef,
-    pilotiSelection,
-    setPilotiSelection,
-    setIsPilotiEditorOpen,
-    syncContraventamentoElevations,
-    setInfoMessage,
-  });
-
-  const {
     wallSelection,
     isWallEditorOpen,
     handleWallSelect,
@@ -292,10 +273,17 @@ export function useRacEditorController(): RacEditorLayoutProps {
     closeLinearEditor,
     onLinearApply,
     isAnyEditorOpen,
-  } = useRacEditorObjectEditorActions({
+  } = useRacEditorModalEditorController({
+    isContraventamentoMode,
+    hasPilotiTutorial: !!tutorialPilotiPosition,
+    closePilotiTutorial: handleClosePilotiTutorial,
     canvasRef,
-    isPilotiEditorOpen,
+    pilotiSelection,
+    setPilotiSelection,
+    setIsPilotiEditorOpen,
+    syncContraventamentoElevations,
     setInfoMessage,
+    isPilotiEditorOpen,
   });
 
   const {
