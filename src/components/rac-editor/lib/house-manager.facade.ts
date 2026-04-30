@@ -1,6 +1,3 @@
-import {
-  CanvasGroup,
-} from '@/components/rac-editor/@canvas/lib';
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {
   HousePiloti,
@@ -14,32 +11,55 @@ import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
-import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimePort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
-import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
-import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
+import {
+  HouseManagerCommandService,
+  type HouseManagerViewRuntime,
+} from '@/components/rac-editor/lib/house-manager-command-service.ts';
 import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
-import {
-  applyCurrentHouseDataToGroups,
-  applyTerrainTypeToElevationViews,
-  rebuildHouseViewsFromCanvas,
-  updateHousePiloti,
-} from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
+import type {
+  HouseRuntimeGroupRef,
+  HouseVisualRuntimePort,
+} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
-export class HouseManagerFacade {
+interface HouseManagerEffectsPort {
+  refreshTopDoorMarkers(): void;
+
+  refreshAutoStairs(): void;
+
+  refreshAutoContraventamento(): void;
+}
+
+interface HouseManagerEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
+  getHouse: () => HouseRuntimeSnapshot<TGroup> | null;
+  requestCanvasRender: () => void;
+}
+
+interface HouseManagerFacadeArgs<TGroup extends HouseRuntimeGroupRef> {
+  viewRuntime: HouseManagerViewRuntime<TGroup>;
+  createEffects(args: HouseManagerEffectsArgs<TGroup>): HouseManagerEffectsPort;
+}
+
+export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly state = new HouseManagerState();
 
-  private readonly canvasRuntime = new HouseManagerCanvasRuntime<CanvasGroup>();
+  private readonly canvasRuntime = new HouseManagerCanvasRuntime<TGroup>();
 
   private readonly notifier = new HouseManagerNotifier();
 
-  private runtimeHouseCache: HouseRuntimeSnapshot<CanvasGroup> | null | undefined = undefined;
+  private runtimeHouseCache: HouseRuntimeSnapshot<TGroup> | null | undefined = undefined;
+
+  private readonly effects: HouseManagerEffectsPort;
+
+  private readonly commands: HouseManagerCommandService<TGroup>;
+
+  private readonly queries: HouseManagerQueryService<TGroup>;
 
   private readonly session = new HouseManagerSessionService({
     getAggregate: () => this.getHouseAggregate(),
@@ -49,44 +69,39 @@ export class HouseManagerFacade {
     notify: () => this.notify(),
   });
 
-  private readonly effects = new HouseVisualEffects({
-    getHouse: () => this.runtimeHouse,
-    requestCanvasRender: () => this.requestCanvasRender(),
-  });
+  constructor(args: HouseManagerFacadeArgs<TGroup>) {
+    this.effects = args.createEffects({
+      getHouse: () => this.runtimeHouse,
+      requestCanvasRender: () => this.requestCanvasRender(),
+    });
 
-  private readonly commands = new HouseManagerCommandService<CanvasGroup>({
-    getHouse: () => this.house,
-    getRuntimeHouse: () => this.runtimeHouse,
-    getAggregate: () => this.getHouseAggregate(),
-    getDefaultTerrainType: () => this.getDefaultTerrainType(),
-    getTerrainType: () => this.getTerrainType(),
-    getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
-    getAllGroups: () => this.getAllGroups(),
-    unregisterRuntimeViewGroup: (instanceId) => this.canvasRuntime.unregisterViewGroup(instanceId),
-    replaceRuntimeViewGroups: (entries) => this.canvasRuntime.replaceViewGroups(entries),
-    createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
-    viewRuntime: {
-      rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
-      applyCurrentHouseDataToGroups,
-      applyTerrainTypeToElevationViews,
-      updatePiloti: updateHousePiloti,
-    },
-    persistHouse: () => this.persistHouse(),
-    syncProjectSession: () => this.session.syncProjectSession(),
-    requestCanvasRender: () => this.requestCanvasRender(),
-    notify: () => this.notify(),
-    refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
-  });
+    this.commands = new HouseManagerCommandService<TGroup>({
+      getHouse: () => this.house,
+      getRuntimeHouse: () => this.runtimeHouse,
+      getAggregate: () => this.getHouseAggregate(),
+      getDefaultTerrainType: () => this.getDefaultTerrainType(),
+      getTerrainType: () => this.getTerrainType(),
+      getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
+      getAllGroups: () => this.getAllGroups(),
+      unregisterRuntimeViewGroup: (instanceId) => this.canvasRuntime.unregisterViewGroup(instanceId),
+      replaceRuntimeViewGroups: (entries) => this.canvasRuntime.replaceViewGroups(entries),
+      createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
+      viewRuntime: args.viewRuntime,
+      persistHouse: () => this.persistHouse(),
+      syncProjectSession: () => this.session.syncProjectSession(),
+      requestCanvasRender: () => this.requestCanvasRender(),
+      notify: () => this.notify(),
+      refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
+    });
 
-  private readonly queries = new HouseManagerQueryService<CanvasGroup>({
-    getHouse: () => this.house,
-    getAggregate: () => this.getHouseAggregate(),
-    getAllRuntimeGroups: () => this.canvasRuntime.getRegisteredGroups(),
-    getDefaultTerrainType: () => this.getDefaultTerrainType(),
-    cleanupStaleViews: (viewType) => this.cleanupStaleViews(viewType),
-  });
+    this.queries = new HouseManagerQueryService<TGroup>({
+      getHouse: () => this.house,
+      getAggregate: () => this.getHouseAggregate(),
+      getAllRuntimeGroups: () => this.canvasRuntime.getRegisteredGroups(),
+      getDefaultTerrainType: () => this.getDefaultTerrainType(),
+      cleanupStaleViews: (viewType) => this.cleanupStaleViews(viewType),
+    });
 
-  constructor() {
     this.notifier.addInternalListener(() => this.effects.refreshTopDoorMarkers());
     this.notifier.addInternalListener(() => this.effects.refreshAutoStairs());
   }
@@ -100,7 +115,7 @@ export class HouseManagerFacade {
     this.invalidateRuntimeHouseCache();
   }
 
-  private get runtimeHouse(): HouseRuntimeSnapshot<CanvasGroup> | null {
+  private get runtimeHouse(): HouseRuntimeSnapshot<TGroup> | null {
     if (this.runtimeHouseCache === undefined) {
       this.runtimeHouseCache = this.canvasRuntime.createRuntimeHouseSnapshot(this.house);
     }
@@ -134,7 +149,7 @@ export class HouseManagerFacade {
     return this.notifier.subscribe(listener);
   }
 
-  initialize(canvas: CanvasHouseRuntimePort): void {
+  initialize(canvas: HouseVisualRuntimePort<TGroup>): void {
     this.canvasRuntime.initialize(canvas);
     this.reset();
   }
@@ -199,7 +214,7 @@ export class HouseManagerFacade {
     return this.queries.hasOtherViews();
   }
 
-  getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null {
+  getHouse(): HouseRuntimeSnapshot<TGroup> | null {
     return this.runtimeHouse;
   }
 
@@ -275,7 +290,7 @@ export class HouseManagerFacade {
     return this.queries.hasAnyView();
   }
 
-  getAllGroups(): CanvasGroup[] {
+  getAllGroups(): TGroup[] {
     return this.queries.getAllGroups();
   }
 
