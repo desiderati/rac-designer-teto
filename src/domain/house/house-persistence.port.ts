@@ -1,9 +1,9 @@
 import type {HouseState} from '@/shared/types/house.ts';
 
-export interface HousePersistencePort<TGroup = unknown> {
+export interface HousePersistencePort {
   /** Carrega o estado persistido da casa, ou `null` quando não houver estado. */
-  load(): HouseState<TGroup> | null;
+  load(): HouseState | null;
 
   /** Persiste o estado atual da casa, ou limpa a persistência quando recebe `null`. */
-  save(state: HouseState<TGroup> | null): void;
+  save(state: HouseState | null): void;
 }

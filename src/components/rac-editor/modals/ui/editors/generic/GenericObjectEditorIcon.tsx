@@ -1,11 +1,9 @@
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {CANVAS_STYLE, EDITOR_ICON_COLORS} from '@/shared/config.ts';
-import {
-  GenericObjectEditorType
-} from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';
+import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 
 interface GenericObjectEditorIconProps {
-  type: GenericObjectEditorType;
+  type: GenericCanvasObjectEditorType;
   className?: string;
 }
 

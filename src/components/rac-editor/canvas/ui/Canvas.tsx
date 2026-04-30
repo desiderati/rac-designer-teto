@@ -2,7 +2,6 @@ import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'rea
 import {
   CanvasGroup,
   CanvasObject,
-  PilotiCanvasSelection,
 } from '@/components/rac-editor/canvas/lib';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {CanvasToolMode} from '@/components/rac-editor/menus/lib/menu-types.ts';
@@ -29,6 +28,7 @@ import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInte
 import type {
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
+  PilotiCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection,
 } from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
@@ -231,7 +231,7 @@ export const Canvas =
         getGroupLocalPointScreenPosition: (group, localCanvasPoint) =>
           createCommandPort()?.getGroupLocalPointScreenPosition(group, localCanvasPoint) ?? null,
         applyGenericObjectEdit: (payload) => createCommandPort()?.applyGenericObjectEdit(payload) ?? null,
-        applyPilotiEditorCloseVisuals: (group) => createCommandPort()?.applyPilotiEditorCloseVisuals(group),
+        applyPilotiEditorCloseVisuals: () => createCommandPort()?.applyPilotiEditorCloseVisuals(),
         applyPilotiSelectionVisuals: (pilotiId) => createCommandPort()?.applyPilotiSelectionVisuals(pilotiId),
         getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
         setCanvasPosition: (x: number, y: number) => {

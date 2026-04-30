@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
-import {CanvasGroup, ContraventamentoOrigin} from '@/components/rac-editor/canvas/lib';
+import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
+import type {ContraventamentoOrigin} from '@/shared/types/contraventamento.ts';
 import {
   highlightEligibleContraventamentoPilotis
 } from '@/components/rac-editor/canvas/lib/contraventamento-top-view-highlight.ts';

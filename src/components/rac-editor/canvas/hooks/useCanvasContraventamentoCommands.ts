@@ -1,18 +1,20 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
+import type {
+  ContraventamentoCanvasSelection,
+  PilotiCanvasSelection,
+} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {
   addContraventamentoBeam,
   CanvasGroup,
-  ContraventamentoOrigin,
-  PilotiCanvasSelection,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
 } from '@/components/rac-editor/canvas/lib';
 import {emitHouseStoreChange, useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/canvas/lib/house-auto-stairs.ts';
 import {
+  ContraventamentoOrigin,
   ContraventamentoSide,
   getContraventamentoSideLabel,
   inferContraventamentoSide
@@ -74,7 +76,8 @@ export function useContraventamentoCommands({
     first: ContraventamentoOrigin,
     side: ContraventamentoSide
   ) => {
-    if (!first.group) {
+    const topGroup = getTopViewGroup();
+    if (!topGroup) {
       toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
       return;
     }
@@ -82,14 +85,14 @@ export function useContraventamentoCommands({
     setContraventamentoFirst(first);
     setContraventamentoSide(side);
     highlightEligibleContraventamentoPilotis(
-      first.group,
+      topGroup,
       (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId),
       first.col,
       first.pilotiId
     );
 
     toast.info(TOAST_MESSAGES.contraventamentoSideSelected(getContraventamentoSideLabel(side)));
-  }, [isPilotiEligibleAsDestination, setContraventamentoFirst, setContraventamentoSide]);
+  }, [getTopViewGroup, isPilotiEligibleAsDestination, setContraventamentoFirst, setContraventamentoSide]);
 
   const syncContraventamentoElevations = useCallback(() => {
     const topGroup = getTopViewGroup();
@@ -156,7 +159,7 @@ export function useContraventamentoCommands({
       return;
     }
 
-    const originGroup = contraventamentoFirst.group;
+    const originGroup = getTopViewGroup();
     if (!originGroup) {
       toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
       return;
@@ -200,6 +203,7 @@ export function useContraventamentoCommands({
     setContraventamentoSide,
     setIsContraventamentoMode,
     getContraventamentoColumnSides,
+    getTopViewGroup,
     isPilotiEligibleAsDestination,
     clearContraventamentoSelection,
     syncContraventamentoElevations,
@@ -257,7 +261,7 @@ export function useContraventamentoCommands({
         return;
       }
 
-      const first = {pilotiId: selectedPilotiId, col, row, group: topGroup};
+      const first = {pilotiId: selectedPilotiId, col, row};
 
       setIsPilotiEditorOpen(false);
       setPilotiSelection(null);

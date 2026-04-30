@@ -1,6 +1,6 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
-import {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
+import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 
@@ -56,10 +56,10 @@ export function usePilotiEditorActions({
 
   const handlePilotiEditorClose = useCallback(() => {
     setIsPilotiEditorOpen(false);
-    canvasRef.current?.applyPilotiEditorCloseVisuals(pilotiSelection?.group);
+    canvasRef.current?.applyPilotiEditorCloseVisuals();
     setPilotiSelection(null);
     editorStore.dispatch({type: 'CLEAR_EDITOR_SELECTION'});
-  }, [canvasRef, editorStore, pilotiSelection, setIsPilotiEditorOpen, setPilotiSelection]);
+  }, [canvasRef, editorStore, setIsPilotiEditorOpen, setPilotiSelection]);
 
   const handlePilotiHeightChange = useCallback((newHeight: number) => {
     syncContraventamentoElevations();
@@ -74,7 +74,6 @@ export function usePilotiEditorActions({
     isMaster: boolean,
     nivel: number
   ) => {
-    if (!pilotiSelection?.group) return;
     canvasRef.current?.applyPilotiSelectionVisuals(pilotiId);
 
     setPilotiSelection((previous) => previous ? {

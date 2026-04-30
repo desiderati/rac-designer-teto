@@ -11,7 +11,7 @@ import {
 } from '@/components/rac-editor/canvas/lib';
 import {findTopViewGroupCandidate} from '@/components/rac-editor/canvas/lib/canvas-rebuild.ts';
 import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
-import type {HouseSide, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
+import type {HouseRuntimeViewInstance, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {
   HOUSE_2D_STYLE,
   PILOTI_MASTER_STYLE,
@@ -56,7 +56,7 @@ export function useCanvasSelectionActions() {
 
       const instanceId = selectedObject?.houseInstanceId;
       const typedView = viewType as HouseViewType;
-      const viewInstances = (houseSnapshot?.views[typedView] ?? []) as HouseViewInstance<CanvasGroup>[];
+      const viewInstances = (houseSnapshot?.views[typedView] ?? []) as HouseRuntimeViewInstance<CanvasGroup>[];
       if (viewInstances.length === 0) return undefined;
 
       if (instanceId) {

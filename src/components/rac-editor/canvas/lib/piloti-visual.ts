@@ -15,7 +15,7 @@ import {
   updatePilotiHeight,
   updatePilotiMaster
 } from '@/components/rac-editor/canvas/lib/index.ts';
-import {HousePiloti, HouseViews} from '@/shared/types/house.ts';
+import {HousePiloti, HouseRuntimeViews} from '@/shared/types/house.ts';
 import {updateGroundInGroup} from '@/components/rac-editor/canvas/lib/terrain.ts';
 import {
   PILOTI_BASE_HEIGHT_PX,
@@ -331,7 +331,7 @@ export function syncPilotiUpdateAcrossViews(
   pilotiId: string,
   pilotis: Record<string, HousePiloti>,
   pilotiData: Partial<HousePiloti>,
-  views: HouseViews<CanvasGroup>,
+  views: HouseRuntimeViews<CanvasGroup>,
   clearedMasters: string[],
 ): void {
   Object.values(views).forEach((instances) => {

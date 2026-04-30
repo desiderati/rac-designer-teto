@@ -1,15 +1,15 @@
-import type {HouseState} from '@/shared/types/house.ts';
+import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 
 /**
- * Porta de leitura reativa do estado lógico da casa.
+ * Porta de leitura reativa do snapshot da casa exposto ao editor.
  *
- * O tipo de referência visual é genérico para que o contrato não dependa de
- * Fabric. Durante a transição, adapters podem usar grupos de canvas concretos.
+ * O estado canônico permanece lógico; este contrato entrega o snapshot de
+ * runtime porque a UI atual ainda consome grupos concretos em alguns fluxos.
  */
-export interface HouseStatePort<TGroup = unknown> {
-  /** Assina mudanças no snapshot lógico da casa. */
+export interface HouseStatePort {
+  /** Assina mudanças no snapshot da casa. */
   subscribe(listener: () => void): () => void;
 
-  /** Retorna o snapshot lógico atual da casa, quando existir. */
-  getSnapshot(): HouseState<TGroup> | null;
+  /** Retorna o snapshot atual da casa, quando existir. */
+  getSnapshot(): HouseRuntimeSnapshot | null;
 }

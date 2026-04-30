@@ -1,5 +1,4 @@
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseState} from '@/shared/types/house.ts';
+import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {
   refreshAutoContraventamento,
   refreshAutoStairs,
@@ -7,7 +6,7 @@ import {
 } from '@/components/rac-editor/lib/house-manager-auto-effects.ts';
 
 interface HouseManagerEffectsArgs {
-  getHouse: () => HouseState<CanvasGroup> | null;
+  getHouse: () => HouseRuntimeSnapshot | null;
   requestCanvasRender: () => void;
 }
 

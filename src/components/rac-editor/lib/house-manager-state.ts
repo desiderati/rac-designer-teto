@@ -6,25 +6,25 @@ import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.t
 import {DEFAULT_HOUSE_PILOTI, type HouseState} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
-export class HouseManagerState<TGroup> {
+export class HouseManagerState {
 
-  private readonly persistence: HousePersistencePort<TGroup> = new InMemoryHousePersistenceAdapter<TGroup>();
-  private houseAggregate: HouseAggregate<TGroup> | null = null;
+  private readonly persistence: HousePersistencePort = new InMemoryHousePersistenceAdapter();
+  private houseAggregate: HouseAggregate | null = null;
 
   constructor() {
     this.houseAggregate = HouseAggregate.fromState(this.loadInitialHouse());
   }
 
-  get house(): HouseState<TGroup> | null {
+  get house(): HouseState | null {
     return this.houseAggregate?.toState() ?? null;
   }
 
-  set house(nextHouse: HouseState<TGroup> | null) {
+  set house(nextHouse: HouseState | null) {
     this.houseAggregate = nextHouse ? HouseAggregate.fromState(nextHouse) : null;
     this.persistence.save(nextHouse);
   }
 
-  get aggregate(): HouseAggregate<TGroup> | null {
+  get aggregate(): HouseAggregate | null {
     return this.houseAggregate;
   }
 
@@ -33,7 +33,7 @@ export class HouseManagerState<TGroup> {
   }
 
   reset(): void {
-    this.house = HouseAggregate.createInitialHouseState<TGroup>({
+    this.house = HouseAggregate.createInitialHouseState({
       id: createHouseId(),
       pilotiIds: getAllPilotiIds(),
       defaultPiloti: DEFAULT_HOUSE_PILOTI,
@@ -45,11 +45,11 @@ export class HouseManagerState<TGroup> {
     return normalizeTerrainSolidityLevel(TERRAIN_SOLIDITY.defaultLevel);
   }
 
-  private loadInitialHouse(): HouseState<TGroup> {
+  private loadInitialHouse(): HouseState {
     const persisted = this.persistence.load();
 
     if (!persisted) {
-      return HouseAggregate.createInitialHouseState<TGroup>({
+      return HouseAggregate.createInitialHouseState({
         id: createHouseId(),
         pilotiIds: getAllPilotiIds(),
         defaultPiloti: DEFAULT_HOUSE_PILOTI,

@@ -1,5 +1,5 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
-import type {HousePiloti, HouseState} from '@/shared/types/house.ts';
+import type {HousePiloti, HouseRuntimeViews, HouseState} from '@/shared/types/house.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {
@@ -9,8 +9,9 @@ import {
 import {resolvePilotiUpdateEffects} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 export function updateHousePiloti(params: {
-  aggregate: HouseAggregate<CanvasGroup>;
-  house: HouseState<CanvasGroup>;
+  aggregate: HouseAggregate;
+  house: HouseState;
+  runtimeViews: HouseRuntimeViews<CanvasGroup>;
   pilotiId: string;
   pilotiData: Partial<HousePiloti>;
   selectedPilotiHeights: readonly number[];
@@ -56,7 +57,7 @@ export function updateHousePiloti(params: {
     params.pilotiId,
     params.house.pilotis,
     params.pilotiData,
-    params.house.views,
+    params.runtimeViews,
     clearedMasters,
   );
 
@@ -67,7 +68,7 @@ export function updateHousePiloti(params: {
 }
 
 export function calculateRecommendedHousePilotiHeights(params: {
-  aggregate: HouseAggregate<CanvasGroup>;
+  aggregate: HouseAggregate;
   selectedPilotiHeights: readonly number[];
 }): void {
 

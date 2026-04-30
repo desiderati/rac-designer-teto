@@ -5,10 +5,12 @@ import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
+import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import {houseManagerReadPort} from '@/infra/house/house-manager-read-adapter.ts';
 import {houseManagerWritePort} from '@/infra/house/house-manager-write-adapter.ts';
 import {houseManagerRuntimePort} from '@/infra/house/house-manager-runtime-adapter.ts';
 import {houseManagerStatePort} from '@/infra/house/house-manager-state-adapter.ts';
+import {house3DProjectionPort} from '@/infra/house/house-3d-projection-adapter.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -17,6 +19,7 @@ export interface EditorPorts {
   houseWritePort: HouseWritePort<CanvasGroup>;
   houseRuntimePort: HouseRuntimePort;
   houseStatePort: HouseStatePort;
+  house3DProjectionPort: House3DProjectionPort;
 }
 
 export const EditorPortsContext = createContext<EditorPorts | null>(null);
@@ -43,6 +46,7 @@ export function createEditorPorts(): EditorPorts {
     houseWritePort: houseManagerWritePort,
     houseRuntimePort: houseManagerRuntimePort,
     houseStatePort: houseManagerStatePort,
+    house3DProjectionPort,
   };
 }
 

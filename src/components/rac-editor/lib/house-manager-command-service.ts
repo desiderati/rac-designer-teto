@@ -4,6 +4,7 @@ import type {
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {
   HousePiloti,
+  HouseViewInstanceId,
   HouseSide,
   HouseState,
   HouseType,
@@ -26,14 +27,20 @@ import {
 import type {
   HouseManagerCanvasRebuildInput,
 } from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
+import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 
 interface HouseManagerCommandServiceArgs {
-  getHouse: () => HouseState<CanvasGroup> | null;
-  getAggregate: () => HouseAggregate<CanvasGroup> | null;
+  getHouse: () => HouseState | null;
+  getRuntimeHouse: () => HouseRuntimeSnapshot | null;
+  getAggregate: () => HouseAggregate | null;
   getDefaultTerrainType: () => number;
   getTerrainType: () => number;
   getSelectedPilotiHeights: () => readonly number[];
   getAllGroups: () => CanvasGroup[];
+  registerRuntimeViewGroup: (instanceId: HouseViewInstanceId, group: CanvasGroup) => void;
+  unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
+  replaceRuntimeViewGroups: (entries: Array<{ instanceId: HouseViewInstanceId; group: CanvasGroup }>) => void;
+  findRuntimeViewInstanceId: (group: CanvasGroup) => HouseViewInstanceId | null;
   createCanvasRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
@@ -71,7 +78,7 @@ export class HouseManagerCommandService {
 
     this.args.persistHouse();
     this.args.syncProjectSession();
-    applyTerrainTypeToElevationViews(this.args.getHouse(), normalized);
+    applyTerrainTypeToElevationViews(this.args.getRuntimeHouse(), normalized);
 
     this.args.requestCanvasRender();
     this.args.notify();
@@ -92,6 +99,10 @@ export class HouseManagerCommandService {
       terrainType: this.args.getTerrainType(),
     });
     if (!result.registered) return;
+
+    if (result.instanceId && result.group) {
+      this.args.registerRuntimeViewGroup(result.instanceId, result.group);
+    }
 
     this.args.persistHouse();
     if (result.registeredTopView) {
@@ -119,6 +130,7 @@ export class HouseManagerCommandService {
       pilotisFromCanvas: canvasState.pilotisFromCanvas,
       terrainTypeFromCanvas: canvasState.terrainTypeFromCanvas,
     });
+    this.args.replaceRuntimeViewGroups(rebuild.runtimeViewGroups);
     this.args.persistHouse();
 
     applyCurrentHouseDataToGroups({
@@ -137,9 +149,13 @@ export class HouseManagerCommandService {
     const result = removeHouseView({
       aggregate,
       group,
+      instanceId: this.args.findRuntimeViewInstanceId(group),
     });
 
     if (result.removedCount > 0) {
+      result.removedInstanceIds.forEach((instanceId) => {
+        this.args.unregisterRuntimeViewGroup(instanceId);
+      });
       this.args.persistHouse();
       this.args.notify();
     }
@@ -156,6 +172,13 @@ export class HouseManagerCommandService {
       pilotiId,
       pilotiData,
       selectedPilotiHeights: this.args.getSelectedPilotiHeights(),
+      runtimeViews: this.args.getRuntimeHouse()?.views ?? {
+        top: [],
+        front: [],
+        back: [],
+        side1: [],
+        side2: [],
+      },
       groups: this.args.getAllGroups(),
     });
     if (!result.updated) return;

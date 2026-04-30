@@ -3,6 +3,7 @@ import type {
   HousePiloti,
   HouseSide,
   HouseState,
+  HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
 import {
@@ -22,17 +23,22 @@ import {
 } from '@/components/rac-editor/canvas/lib/canvas-rebuild.ts';
 
 export function registerHouseView(params: {
-  aggregate: HouseAggregate<CanvasGroup>;
-  house: HouseState<CanvasGroup>;
+  aggregate: HouseAggregate;
+  house: HouseState;
   viewType: HouseViewType;
   group: CanvasGroup;
   side?: HouseSide;
   terrainType: number;
-}): { registered: boolean; registeredTopView: boolean } {
+}): {
+  registered: boolean;
+  registeredTopView: boolean;
+  instanceId: HouseViewInstanceId | null;
+  group: CanvasGroup | null;
+} {
 
   const canvasGroup = toCanvasGroup(params.group);
   if (!canvasGroup) {
-    return {registered: false, registeredTopView: false};
+    return {registered: false, registeredTopView: false, instanceId: null, group: null};
   }
 
   const instanceId = createViewInstanceId(params.viewType);
@@ -50,7 +56,6 @@ export function registerHouseView(params: {
 
   params.aggregate.registerView({
     viewType: params.viewType,
-    group: canvasGroup,
     instanceId,
     side: params.side,
   });
@@ -58,40 +63,57 @@ export function registerHouseView(params: {
   return {
     registered: true,
     registeredTopView: params.viewType === 'top',
+    instanceId,
+    group: canvasGroup,
   };
 }
 
 export function removeHouseView(params: {
-  aggregate: HouseAggregate<CanvasGroup>;
+  aggregate: HouseAggregate;
   group: CanvasGroup;
-}): { removedCount: number } {
+  instanceId?: HouseViewInstanceId | null;
+}): { removedCount: number; removedInstanceIds: HouseViewInstanceId[] } {
 
   const hints = extractViewGroupRemovalHints<HouseViewType>({
     houseViewType: params.group.houseViewType,
     houseInstanceId: params.group.houseInstanceId,
   });
 
-  const removedWithHint = params.aggregate.removeView({
-    viewType: hints.viewType,
-    instanceId: hints.instanceId,
-    group: params.group,
-  });
+  const removedWithHint = hints.instanceId
+    ? params.aggregate.removeView({
+      viewType: hints.viewType,
+      instanceId: hints.instanceId,
+    })
+    : {removedCount: 0};
 
   if (removedWithHint.removedCount > 0) {
-    return {removedCount: removedWithHint.removedCount};
+    return {
+      removedCount: removedWithHint.removedCount,
+      removedInstanceIds: [
+        hints.instanceId,
+        params.instanceId,
+      ].filter((value): value is string => Boolean(value)),
+    };
   }
 
-  const removedFallback = params.aggregate.removeView({group: params.group});
-  return {removedCount: removedFallback.removedCount};
+  if (!params.instanceId) {
+    return {removedCount: 0, removedInstanceIds: []};
+  }
+
+  const removedFallback = params.aggregate.removeView({instanceId: params.instanceId});
+  return {
+    removedCount: removedFallback.removedCount,
+    removedInstanceIds: removedFallback.removedCount > 0 ? [params.instanceId] : [],
+  };
 }
 
 export function rebuildHouseViewsFromCanvas(params: {
-  aggregate: HouseAggregate<CanvasGroup>;
-  house: HouseState<CanvasGroup>;
+  aggregate: HouseAggregate;
+  house: HouseState;
   canvasGroups: CanvasGroup[];
   pilotisFromCanvas: Record<string, HousePiloti>;
   terrainTypeFromCanvas: number;
-}): { groupsToSync: CanvasGroup[] } {
+}): { groupsToSync: CanvasGroup[]; runtimeViewGroups: Array<{ instanceId: HouseViewInstanceId; group: CanvasGroup }> } {
 
   const rebuildSources =
     collectHouseGroupRebuildSources(params.canvasGroups).map((source) =>
@@ -99,17 +121,26 @@ export function rebuildHouseViewsFromCanvas(params: {
     );
 
   const rebuilt = params.aggregate.rebuildViewsFromCanvasSources(rebuildSources);
+  const runtimeViewGroups =
+    rebuilt.normalizedItems.map((item) => ({
+      instanceId: item.instanceId,
+      group: item.group,
+    }));
 
   rebuilt.normalizedItems.forEach((item) => {
+    const runtimeGroup =
+      runtimeViewGroups.find((entry) => entry.instanceId === item.instanceId)?.group;
+    if (!runtimeGroup) return;
+
     Object.assign(
-      item.group,
+      runtimeGroup,
       createViewGroupMetadataPatch<HouseViewType, HouseSide>({
         viewType: item.viewType as HouseViewType,
         instanceId: item.instanceId,
         side: item.side as HouseSide | undefined,
       }),
     );
-    item.group.setControlsVisibility(createViewGroupControlsVisibilityPatch());
+    runtimeGroup.setControlsVisibility(createViewGroupControlsVisibilityPatch());
   });
 
   params.house.pilotis = params.pilotisFromCanvas;
@@ -121,7 +152,8 @@ export function rebuildHouseViewsFromCanvas(params: {
   }
 
   return {
-    groupsToSync: params.aggregate.collectAllViewGroups(params.house.views),
+    groupsToSync: runtimeViewGroups.map((entry) => entry.group),
+    runtimeViewGroups,
   };
 }
 

@@ -2,8 +2,7 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
-import {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
@@ -16,7 +15,7 @@ interface UseTutorialUiActionsArgs {
   restartTutorialProgress: () => void;
   resetUiAfterRestart: () => void;
   clearTutorialBalloon: () => void;
-  houseWritePort: Pick<HouseWritePort<CanvasGroup>, 'resetHouse'>;
+  houseWritePort: Pick<HouseWritePort, 'resetHouse'>;
 }
 
 export function useTutorialUiActions({
@@ -68,30 +67,13 @@ export function useTutorialUiActions({
     markPilotiTutorialShown();
   }, [setTutorialPilotiPosition]);
 
-  const showPilotiTutorialIfNeeded = useCallback((house: CanvasGroup) => {
+  const showPilotiTutorialIfNeeded = useCallback((position: TutorialBalloonPosition | null) => {
     if (isMobile) return;
     if (isPilotiTutorialShown()) return;
+    if (!position) return;
 
-    setTimeout(() => {
-      const objects = house.getCanvasObjects();
-      const typedPiloti = objects.find((typedObject) => {
-        if (!typedObject) return false;
-        return typedObject.pilotiId === PILOTI_CORNER_ID.topLeft && typedObject.isPilotiCircle === true;
-      });
-
-      if (!typedPiloti) return;
-
-      const pilotiLeft = typedPiloti.left || 0;
-      const pilotiTop = typedPiloti.top || 0;
-      const position = canvasRef.current?.getGroupLocalPointScreenPosition(
-        house,
-        {x: pilotiLeft, y: pilotiTop},
-      );
-      if (!position) return;
-
-      setTutorialPilotiPosition(position);
-    }, TIMINGS.pilotiTutorialDelayMs);
-  }, [canvasRef, isMobile, setTutorialPilotiPosition]);
+    setTutorialPilotiPosition(position);
+  }, [isMobile, setTutorialPilotiPosition]);
 
   return {
     handleRestartTutorial,

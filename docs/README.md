@@ -24,24 +24,24 @@ técnicas e não técnicas.
 
 ## Temas disponíveis
 
-1. `business-rules/`
-    - Regras funcionais do produto, organizadas por ordem canônica em `BUS-00x-*` e indexadas em
+1. `architecture-decisions/`
+    - Registros de decisão arquitetural durável, usando o padrão `ADR-NNN-{slug}.md`.
+
+2. `business-rules/`
+     - Regras funcionais do produto, organizadas por ordem canônica em `BUS-00x-*` e indexadas em
       `business-rules/README.md`.
 
-2. `engineering-playbook/`
-    - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
+3. `engineering-playbook/`
+     - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
       O playbook combina um núcleo comum em `PLAY-001` a `PLAY-005` com módulos específicos de família, hoje
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
-3. `code-scaffolds/`
-    - Scaffolds aprovados com utilidade operacional real, mantidos como referência documental e ponto de partida.
+4. `code-scaffolds/`
+     - Scaffolds aprovados com utilidade operacional real, mantidos como referência documental e ponto de partida.
 
-4. `product-requirements/`
-    - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
+5. `product-requirements/`
+     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
-
-5. `architecture-decisions/`
-    - Registros de decisão arquitetural durável, usando o padrão `ADR-NNN-{slug}.md`.
 
 ## Princípios deste diretório
 

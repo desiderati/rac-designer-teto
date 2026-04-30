@@ -1,24 +1,21 @@
 import {describe, expect, it} from 'vitest';
 import {parseContraventamentosFromTopView} from '@/components/rac-editor/viewer3d/lib/contraventamento-parser.ts';
-import {toCanvasGroup} from '@/components/rac-editor/canvas/lib';
 
 describe('contraventamento-parser.ts', () => {
-  it('parses and normalizes valid contraventamento objects', () => {
-    const topGroup = {
-      getObjects: () => [
+  it('parses and normalizes valid contraventamento projections', () => {
+    const parsed = parseContraventamentosFromTopView({
+      contraventamentos: [
         {
-          isContraventamento: true,
-          contraventamentoId: 'c-1',
-          contraventamentoCol: 2,
-          contraventamentoStartRow: 2,
-          contraventamentoEndRow: 0,
-          contraventamentoSide: 'left',
-          contraventamentoAnchorPilotiId: 'piloti_2_2',
+          id: 'c-1',
+          col: 2,
+          startRow: 2,
+          endRow: 0,
+          side: 'left',
+          anchorPilotiId: 'piloti_2_2',
         },
       ],
-    };
+    });
 
-    const parsed = parseContraventamentosFromTopView(toCanvasGroup(topGroup));
     expect(parsed).toEqual([
       {
         id: 'c-1',
@@ -31,32 +28,28 @@ describe('contraventamento-parser.ts', () => {
     ]);
   });
 
-  it('ignores invalid objects and applies fallbacks', () => {
-    const topGroup = {
-      getObjects: () => [
+  it('ignores invalid projections and applies fallbacks', () => {
+    const parsed = parseContraventamentosFromTopView({
+      contraventamentos: [
         {
-          isContraventamento: true,
-          contraventamentoCol: 4,
-          contraventamentoStartRow: 0,
-          contraventamentoEndRow: 1,
+          col: 4,
+          startRow: 0,
+          endRow: 1,
         },
         {
-          isContraventamento: true,
-          contraventamentoCol: 1,
-          contraventamentoStartRow: 1,
-          contraventamentoEndRow: 1,
+          col: 1,
+          startRow: 1,
+          endRow: 1,
         },
         {
-          isContraventamento: true,
-          contraventamentoCol: 0,
-          contraventamentoStartRow: 0,
-          contraventamentoEndRow: 2,
-          contraventamentoSide: 'unknown',
+          col: 0,
+          startRow: 0,
+          endRow: 2,
+          side: 'unknown',
         },
       ],
-    };
+    });
 
-    const parsed = parseContraventamentosFromTopView(toCanvasGroup(topGroup));
     expect(parsed).toEqual([
       {
         id: 'contrav_3d_2',
@@ -69,4 +62,3 @@ describe('contraventamento-parser.ts', () => {
     ]);
   });
 });
-

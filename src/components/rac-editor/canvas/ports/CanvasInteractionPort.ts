@@ -1,6 +1,6 @@
 import type {CanvasGroup, CanvasObject, ElementStrategyKey,} from '@/components/rac-editor/canvas/lib';
 import type {EditorScreenPoint} from '@/components/rac-editor/canvas/store/types.ts';
-import type {GenericObjectEditorType} from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';
+import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import type {CanvasDebugPort} from '@/components/rac-editor/canvas/ports/CanvasDebugPort.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/canvas/ports/CanvasDocumentPort.ts';
@@ -79,10 +79,10 @@ export interface CanvasInteractionPort {
   /** Aplica alterações de editor genérico em objetos lineares ou paredes. */
   applyGenericObjectEdit(payload: {
     /** Tipo de editor genérico que determina a estratégia de aplicação. */
-    kind: GenericObjectEditorType;
+    kind: GenericCanvasObjectEditorType;
 
-    /** Objeto visual que receberá a alteração. */
-    object: CanvasObject;
+    /** Identidade serializável do objeto visual que receberá a alteração. */
+    objectId: string;
 
     /** Cor final a ser aplicada ao objeto editado. */
     color: string;
@@ -92,7 +92,7 @@ export interface CanvasInteractionPort {
   }): string | null;
 
   /** Restaura visuais temporários aplicados pelo editor de piloti ao fechar. */
-  applyPilotiEditorCloseVisuals(group: CanvasGroup | null | undefined): void;
+  applyPilotiEditorCloseVisuals(): void;
 
   /** Aplica destaque visual ao piloti informado. */
   applyPilotiSelectionVisuals(pilotiId: string): void;

@@ -1,7 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {parseStairsFromElevationViews} from '@/components/rac-editor/viewer3d/lib/stairs-parser.ts';
+import type {House3DElevationViewProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 
-function createGroupWithStairs(params: {
+function createElevationViewWithStairs(params: {
   bodyWidth: number;
   includeBody?: boolean;
   doorWidth?: number;
@@ -10,41 +11,23 @@ function createGroupWithStairs(params: {
   stairHeightMts: number;
   stepCount: number;
   houseInstanceId: string;
-}) {
-  const objects: any[] = [];
-
-  if (params.includeBody ?? true) {
-    objects.push({
-      isHouseBody: true,
-      width: params.bodyWidth,
-      scaleX: 1,
-    });
-  }
-
-  if (Number.isFinite(Number(params.doorWidth))) {
-    objects.push({
-      isHouseDoor: true,
-      width: Number(params.doorWidth),
-      scaleX: 1,
-    });
-  }
-
-  objects.push({
-    isAutoStairs: true,
-    width: params.stairWidth,
-    scaleX: 1,
-    left: params.stairLeft,
-    stairsHeight: params.stairHeightMts,
-    stairsStepCount: params.stepCount,
-  });
-
+  viewType?: House3DElevationViewProjection['viewType'];
+  houseView?: string;
+}): House3DElevationViewProjection {
   return {
-    type: 'group',
-    houseInstanceId: params.houseInstanceId,
-    getCanvasObjects: () => objects,
-    getObjects: () => objects,
-    _objects: objects,
-  } as any;
+    viewType: params.viewType ?? 'front',
+    instanceId: params.houseInstanceId,
+    houseView: params.houseView,
+    groupWidth: 0,
+    bodyWidth: params.includeBody ?? true ? params.bodyWidth : undefined,
+    doorWidth: Number.isFinite(Number(params.doorWidth)) ? Number(params.doorWidth) : undefined,
+    stairs: {
+      width: params.stairWidth,
+      left: params.stairLeft,
+      heightMts: params.stairHeightMts,
+      stepCount: params.stepCount,
+    },
+  };
 }
 
 describe('stairs-parser.ts', () => {
@@ -57,17 +40,14 @@ describe('stairs-parser.ts', () => {
         left: 'side1',
         right: 'side1',
       },
-      elevationViews: [{
-        viewType: 'front',
-        group: createGroupWithStairs({
-          bodyWidth: 300,
-          stairWidth: 40,
-          stairLeft: 80,
-          stairHeightMts: 1.2,
-          stepCount: 4,
-          houseInstanceId: 'front_1',
-        }),
-      }],
+      elevationViews: [createElevationViewWithStairs({
+        bodyWidth: 300,
+        stairWidth: 40,
+        stairLeft: 80,
+        stairHeightMts: 1.2,
+        stepCount: 4,
+        houseInstanceId: 'front_1',
+      })],
     });
 
     expect(parsed).toBeTruthy();
@@ -80,7 +60,7 @@ describe('stairs-parser.ts', () => {
     });
   });
 
-  it('mapeia escada de tipo3 (side2 a esquerda no 2D) para face direita no 3D', () => {
+  it('mapeia escada de tipo3 (side2 à esquerda no 2D) para face direita no 3D', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo3',
       sideMappings: {
@@ -89,24 +69,23 @@ describe('stairs-parser.ts', () => {
         left: 'side2',
         right: 'side1',
       },
-      elevationViews: [{
+      elevationViews: [createElevationViewWithStairs({
         viewType: 'side2',
-        group: createGroupWithStairs({
-          bodyWidth: 150,
-          stairWidth: 40,
-          stairLeft: 20,
-          stairHeightMts: 0.9,
-          stepCount: 3,
-          houseInstanceId: 'side2_1',
-        }),
-      }],
+        houseView: 'side',
+        bodyWidth: 150,
+        stairWidth: 40,
+        stairLeft: 20,
+        stairHeightMts: 0.9,
+        stepCount: 3,
+        houseInstanceId: 'side2_1',
+      })],
     });
 
     expect(parsed).toBeTruthy();
     expect(parsed?.face).toBe('right');
   });
 
-  it('usa fallback da largura da fachada via porta quando nao existe isHouseBody na elevacao', () => {
+  it('usa fallback da largura da fachada via porta quando não existe isHouseBody na elevação', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
       sideMappings: {
@@ -115,19 +94,16 @@ describe('stairs-parser.ts', () => {
         left: 'side1',
         right: 'side1',
       },
-      elevationViews: [{
-        viewType: 'front',
-        group: createGroupWithStairs({
-          bodyWidth: 0,
-          includeBody: false,
-          doorWidth: 40,
-          stairWidth: 40,
-          stairLeft: 80,
-          stairHeightMts: 1.2,
-          stepCount: 4,
-          houseInstanceId: 'front_2',
-        }),
-      }],
+      elevationViews: [createElevationViewWithStairs({
+        bodyWidth: 0,
+        includeBody: false,
+        doorWidth: 40,
+        stairWidth: 40,
+        stairLeft: 80,
+        stairHeightMts: 1.2,
+        stepCount: 4,
+        houseInstanceId: 'front_2',
+      })],
     });
 
     expect(parsed).toBeTruthy();

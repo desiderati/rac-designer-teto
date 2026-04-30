@@ -4,7 +4,7 @@ export interface TutorialBalloonPosition {
 }
 
 export interface TutorialBalloonState {
-  position: { x: number; y: number };
+  position: TutorialBalloonPosition;
   text: string;
 }
 

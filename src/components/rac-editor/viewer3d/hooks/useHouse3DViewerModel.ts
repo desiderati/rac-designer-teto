@@ -1,13 +1,12 @@
-import {useMemo} from 'react';
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {
   HousePiloti,
   HouseSide,
-  HouseState,
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
+import type {House3DProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import {
   type Contraventamento3DData,
   parseContraventamentosFromTopView,
@@ -55,65 +54,41 @@ function resolveTipo3OpenSide(sideMappings: Record<HouseSide, HouseViewType | nu
   return null;
 }
 
-function collectElevationViews(house: HouseState<CanvasGroup>) {
-  return [
-    ...house.views.front.map(
-      (view) =>
-        ({viewType: 'front' as HouseViewType, group: view.group})
-    ),
-    ...house.views.back.map(
-      (view) =>
-        ({viewType: 'back' as HouseViewType, group: view.group})
-    ),
-    ...house.views.side1.map(
-      (view) =>
-        ({viewType: 'side1' as HouseViewType, group: view.group})
-    ),
-    ...house.views.side2.map(
-      (view) =>
-        ({viewType: 'side2' as HouseViewType, group: view.group})
-    ),
-  ];
-}
-
 /**
- * Deriva o modelo de leitura usado pelo visualizador 3D a partir do snapshot da casa.
+ * Deriva o modelo de leitura usado pelo visualizador 3D a partir da projeção da casa.
  *
- * O viewer continua sendo projeção: ele não grava estado canônico e não decide regras
- * de domínio. Ele apenas transforma o snapshot atual em dados de renderização 3D.
+ * O viewer continua sendo projeção: ele não grava estado canônico e não decide
+ * regras de domínio. Ele apenas transforma o snapshot projetado em dados de cena.
  */
-export function buildHouse3DViewerModel(house: HouseState<CanvasGroup> | null): House3DViewerModel {
-  if (!house) return createEmptyModel();
+export function buildHouse3DViewerModel(projection: House3DProjection | null): House3DViewerModel {
+  if (!projection) return createEmptyModel();
 
-  const hasHouseViews = Object.values(house.views).some((instances) => instances.length > 0);
-  if (!hasHouseViews) {
+  if (!projection.hasHouseViews) {
     return {
       ...createEmptyModel(),
-      houseType: house.houseType,
-      pilotis: {...house.pilotis},
+      houseType: projection.houseType,
+      pilotis: {...projection.pilotis},
     };
   }
 
-  const topGroup = house.views.top[0]?.group;
-  const elevationViews = collectElevationViews(house);
-
   return {
-    houseType: house.houseType,
-    hasHouseViews,
-    canRenderHouse: Boolean(house.houseType && hasHouseViews),
-    pilotis: {...house.pilotis},
-    tipo6FrontSide: house.houseType === 'tipo6' ? resolveTipo6FrontSide(house.sideMappings) : null,
-    tipo3OpenSide: house.houseType === 'tipo3' ? resolveTipo3OpenSide(house.sideMappings) : null,
-    contraventamentos: parseContraventamentosFromTopView(topGroup),
+    houseType: projection.houseType,
+    hasHouseViews: projection.hasHouseViews,
+    canRenderHouse: Boolean(projection.houseType && projection.hasHouseViews),
+    pilotis: {...projection.pilotis},
+    tipo6FrontSide: projection.houseType === 'tipo6' ? resolveTipo6FrontSide(projection.sideMappings) : null,
+    tipo3OpenSide: projection.houseType === 'tipo3' ? resolveTipo3OpenSide(projection.sideMappings) : null,
+    contraventamentos: parseContraventamentosFromTopView(projection.topView),
     stairs: parseStairsFromElevationViews({
-      houseType: house.houseType,
-      sideMappings: house.sideMappings,
-      elevationViews,
+      houseType: projection.houseType,
+      sideMappings: projection.sideMappings,
+      elevationViews: projection.elevationViews,
     }),
   };
 }
 
 export function useHouse3DViewerModel(): House3DViewerModel {
-  const houseSnapshot = useHouseSnapshot();
-  return useMemo(() => buildHouse3DViewerModel(houseSnapshot), [houseSnapshot]);
+  const {house3DProjectionPort} = useEditorPorts();
+  useHouseStoreVersion();
+  return buildHouse3DViewerModel(house3DProjectionPort.getProjection());
 }

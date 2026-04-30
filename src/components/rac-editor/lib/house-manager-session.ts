@@ -1,5 +1,4 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
 import type {HouseType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {normalizeAvailablePilotiHeights} from '@/shared/types/piloti.ts';
@@ -18,7 +17,7 @@ export class HouseManagerSessionMetadata {
   }
 
   hydrateFromProjectSession(params: {
-    aggregate: HouseAggregate<CanvasGroup> | null;
+    aggregate: HouseAggregate | null;
     persistHouse: () => void;
   }): void {
     const activeHouse = projectSession.getActiveHouse();

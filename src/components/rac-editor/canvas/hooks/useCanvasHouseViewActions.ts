@@ -13,9 +13,10 @@ import {
   type HouseViewType
 } from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/modals/ui/selectors/HouseSideSelector.tsx';
-import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {HOUSE_DEFAULTS, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/canvas/lib';
+import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
@@ -29,7 +30,7 @@ interface UseCanvasHouseViewActionsArgs {
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;
-  showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
+  showPilotiTutorialIfNeeded: (position: TutorialBalloonPosition | null) => void;
   houseReadPort: HouseReadPort<CanvasGroup>;
   houseWritePort: HouseWritePort<CanvasGroup>;
   pendingViewType: HouseViewType | null;
@@ -66,6 +67,24 @@ export function useCanvasHouseViewActions({
   setNivelDefinitionOpen,
 }: UseCanvasHouseViewActionsArgs) {
 
+  const resolvePilotiTutorialPosition =
+    (house: CanvasGroup): TutorialBalloonPosition | null => {
+      const objects = house.getCanvasObjects();
+
+      const typedPiloti = objects.find((typedObject) => {
+        if (!typedObject) return false;
+        return typedObject.pilotiId === PILOTI_CORNER_ID.topLeft && typedObject.isPilotiCircle === true;
+      });
+      if (!typedPiloti) return null;
+
+      const pilotiLeft = typedPiloti.left || 0;
+      const pilotiTop = typedPiloti.top || 0;
+      return canvasRef.current?.getGroupLocalPointScreenPosition(
+        house,
+        {x: pilotiLeft, y: pilotiTop},
+      ) ?? null;
+    };
+
   const addViewToCanvas =
     (viewType: HouseViewType, side?: HouseSide) => {
 
@@ -80,7 +99,9 @@ export function useCanvasHouseViewActions({
       addObjectToCanvas(house);
 
       if (viewType === 'top') {
-        showPilotiTutorialIfNeeded(house);
+        setTimeout(() => {
+          showPilotiTutorialIfNeeded(resolvePilotiTutorialPosition(house));
+        }, TIMINGS.pilotiTutorialDelayMs);
       }
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());

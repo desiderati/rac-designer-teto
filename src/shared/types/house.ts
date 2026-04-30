@@ -1,13 +1,17 @@
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 
-export interface HouseState<TGroup> {
-  id: string;
+export type HouseId = string;
+
+export type HouseViewInstanceId = string;
+
+export interface HouseState {
+  id: HouseId;
   houseType: HouseType;
   pilotis: Record<string, HousePiloti>;
   terrainType: number;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
-  preAssignedSides: Record<string, HouseSide>;
+  preAssignedSides: HousePreAssignedSides;
 }
 
 export type HouseType = 'tipo6' | 'tipo3' | null;
@@ -97,13 +101,18 @@ export const HOUSE_OPPOSITE_VIEW: Record<HouseViewType, HouseViewType | null> = 
 
 export const ALL_HOUSE_VIEW_TYPES: HouseViewType[] = ['top', 'front', 'back', 'side1', 'side2'];
 
-export interface HouseViewInstance<TGroup> {
-  instanceId: string;
+export interface HouseViewInstance {
+  instanceId: HouseViewInstanceId;
   side?: HouseSide;
+}
+
+export interface HouseRuntimeViewInstance<TGroup> extends HouseViewInstance {
   group: TGroup;
 }
 
-export type HouseViews<TGroup> = Record<HouseViewType, HouseViewInstance<TGroup>[]>;
+export type HouseViews = Record<HouseViewType, HouseViewInstance[]>;
+
+export type HouseRuntimeViews<TGroup> = Record<HouseViewType, HouseRuntimeViewInstance<TGroup>[]>;
 
 export type HouseViewSide = Record<HouseViewType, Array<{ side?: HouseSide; }>>;
 
@@ -151,7 +160,7 @@ export const ALL_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.2, 2.5, 3.0, 3.2, 3.5] 
 
 export const DEFAULT_HOUSE_PILOTI_HEIGHTS = [1.0, 1.2, 1.5, 2.0, 2.5, 3.0] as const;
 
-export interface HouseSnapshot<TGroup> {
-  views: Record<HouseViewType, TGroup[]>;
+export interface HouseSnapshot {
+  views: Record<HouseViewType, HouseViewInstanceId[]>;
   sideMappings: Record<HouseSide, HouseViewType | null>;
 }

@@ -44,6 +44,12 @@ export interface ContraventamentoEditorState {
   rightActive: boolean;
 }
 
+export interface ContraventamentoOrigin {
+  pilotiId?: string;
+  col: number;
+  row: number;
+}
+
 /**
  * Cria o estado visual/funcional dos botões de lado do editor de contraventamento.
  *

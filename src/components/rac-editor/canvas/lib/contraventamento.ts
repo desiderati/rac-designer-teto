@@ -20,13 +20,6 @@ import {
   PILOTI_BASE_HEIGHT_PX
 } from '@/shared/constants';
 
-export interface ContraventamentoOrigin {
-  pilotiId?: string;
-  col: number;
-  row: number;
-  group?: CanvasGroup;
-}
-
 const CONTRAVENTAMENTO_S = HOUSE_DEFAULTS.viewScale;
 const CONTRAVENTAMENTO_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAVENTAMENTO_S;
 const CONTRAVENTAMENTO_BEAM_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth;

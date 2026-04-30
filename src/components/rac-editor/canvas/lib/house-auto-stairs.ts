@@ -1,5 +1,5 @@
 import {FabricObject, Group as FabricGroup, Line, Rect} from 'fabric';
-import {HousePiloti, HouseSide, HouseType, HouseViewInstance, HouseViewType} from '@/shared/types/house.ts';
+import {HousePiloti, HouseRuntimeViewInstance, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_ELEMENT_STYLE, HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
@@ -7,7 +7,7 @@ import {
   calculateTopDoorMarkerBodySize,
   calculateTopDoorPlacement,
   resolveTopDoorMarkerSide
-} from '@/components/rac-editor/lib/house-top-view-door-marker.ts';
+} from '@/components/rac-editor/canvas/lib/house-top-view-door-marker.ts';
 import {
   CanvasGroup,
   CanvasObject,
@@ -55,8 +55,8 @@ export function refreshAutoStairsInViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   pilotis: Record<string, HousePiloti>;
-  topView: HouseViewInstance<CanvasGroup>[];
-  elevationViews: HouseViewInstance<CanvasGroup>[];
+  topView: HouseRuntimeViewInstance<CanvasGroup>[];
+  elevationViews: HouseRuntimeViewInstance<CanvasGroup>[];
   showStairsOnTopView?: boolean;
 }): boolean {
   const showStairsOnTopView = params.showStairsOnTopView ?? true;
@@ -81,7 +81,7 @@ export function refreshAutoStairsInViews(params: {
   return topViewChanged || elevationResult.hasChanges;
 }
 
-function removeAutoStairsFromTopViews(topViews: HouseViewInstance<CanvasGroup>[]): boolean {
+function removeAutoStairsFromTopViews(topViews: HouseRuntimeViewInstance<CanvasGroup>[]): boolean {
   let changed = false;
   for (const topView of topViews) {
     if (removeAutoStairsFromGroup(topView.group)) {
@@ -95,7 +95,7 @@ function removeAutoStairsFromTopViews(topViews: HouseViewInstance<CanvasGroup>[]
 
 function refreshElevationViewsAutoStairs(params: {
   pilotis: Record<string, HousePiloti>;
-  elevationViews: HouseViewInstance<CanvasGroup>[];
+  elevationViews: HouseRuntimeViewInstance<CanvasGroup>[];
 }): ElevationViewsAutoStairsResult {
 
   let hasChanges = false;
@@ -162,7 +162,7 @@ function refreshTopViewAutoStairs(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   pilotis: Record<string, HousePiloti>;
-  topView: HouseViewInstance<CanvasGroup>;
+  topView: HouseRuntimeViewInstance<CanvasGroup>;
   sharedMetricsBySide: Partial<Record<HouseSide, StairMetrics>>;
 }): boolean {
 

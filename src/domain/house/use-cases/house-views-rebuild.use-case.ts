@@ -1,4 +1,10 @@
-import {ALL_HOUSE_VIEW_TYPES, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {
+  ALL_HOUSE_VIEW_TYPES,
+  HouseSide,
+  HouseType,
+  HouseViewInstanceId,
+  HouseViewType
+} from '@/shared/types/house.ts';
 import {
   RebuildGroupMetadata,
   RebuildNormalizedViewInstance,
@@ -7,7 +13,7 @@ import {
   RebuildViewsResult
 } from '@/shared/types/house-rebuild.ts';
 
-export function createEmptyViews<TGroup>(): RebuildViews<TGroup> {
+export function createEmptyViews(): RebuildViews {
   return {
     top: [],
     front: [],
@@ -69,7 +75,7 @@ export function normalizeInstanceId(
   rawInstanceId: string | undefined,
   countForViewType: number,
   usedIds: Set<string>,
-): string {
+): HouseViewInstanceId {
 
   const trimmed = String(rawInstanceId ?? '').trim();
   const instanceIdBase = trimmed || `${viewType}_restored_${countForViewType}`;
@@ -89,7 +95,7 @@ export function rebuildViewsFromSources<TGroup>(params: {
   sources: RebuildViewSource<TGroup>[];
 }): RebuildViewsResult<TGroup> {
 
-  const views = createEmptyViews<TGroup>();
+  const views = createEmptyViews();
   const counts: Record<HouseViewType, number> = {
     top: 0,
     front: 0,
@@ -107,9 +113,9 @@ export function rebuildViewsFromSources<TGroup>(params: {
     const side = inferSideForRebuild(source.metadata, viewType);
     const instanceId = normalizeInstanceId(viewType, source.metadata.houseInstanceId, counts[viewType], usedIds);
 
-    const instance = {group: source.group, side, instanceId};
+    const instance = {side, instanceId};
     views[viewType].push(instance);
-    normalizedItems.push({viewType, ...instance});
+    normalizedItems.push({viewType, ...instance, group: source.group});
     counts[viewType] += 1;
   });
 

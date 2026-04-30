@@ -3,12 +3,12 @@ import {
   type CanvasGroup,
   type CanvasObject,
   type ElementStrategyKey,
-  type GenericObjectEditorType,
   getElementStrategy,
   getGenericObjectEditorStrategy,
   toCanvasGroup,
   toCanvasObject,
 } from '@/components/rac-editor/canvas/lib';
+import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import type {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
 import {createHouseGroupForView} from '@/components/rac-editor/canvas/lib/house-view-groups.ts';
@@ -37,12 +37,12 @@ export interface FabricCanvasCommandPort {
     localCanvasPoint: { x: number; y: number },
   ) => { x: number; y: number } | null;
   applyGenericObjectEdit: (payload: {
-    kind: GenericObjectEditorType;
-    object: CanvasObject;
+    kind: GenericCanvasObjectEditorType;
+    objectId: string;
     color: string;
     label: string;
   }) => string | null;
-  applyPilotiEditorCloseVisuals: (group: CanvasGroup | null | undefined) => void;
+  applyPilotiEditorCloseVisuals: () => void;
   applyPilotiSelectionVisuals: (pilotiId: string) => void;
 }
 
@@ -62,6 +62,14 @@ export function createFabricCanvasCommandPort({
   clearHistory,
   saveHistory,
 }: FabricCanvasCommandPortArgs): FabricCanvasCommandPort {
+  const findObjectByEditorId = (objectId: string): CanvasObject | null => {
+    for (const object of canvas.getObjects()) {
+      const runtime = toCanvasObject(object);
+      if (runtime?.editorObjectId === objectId) return runtime;
+    }
+    return null;
+  };
+
   return {
     createElementObject: (kind) => getElementStrategy(kind).create(canvas),
 
@@ -140,14 +148,18 @@ export function createFabricCanvasCommandPort({
       });
     },
 
-    applyGenericObjectEdit: ({kind, object, color, label}) => {
+    applyGenericObjectEdit: ({kind, objectId, color, label}) => {
+      const object = findObjectByEditorId(objectId);
+      if (!object) return null;
+
       const strategy = getGenericObjectEditorStrategy(kind);
       strategy.apply({canvas, object, color, label});
       saveHistory();
       return strategy.getInfoMessage();
     },
 
-    applyPilotiEditorCloseVisuals: (group) => {
+    applyPilotiEditorCloseVisuals: () => {
+      const group = toCanvasGroup(canvas.getActiveObject());
       if (!group) return;
 
       applyPilotiEditorCloseVisuals({

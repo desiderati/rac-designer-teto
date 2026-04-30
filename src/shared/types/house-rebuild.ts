@@ -1,4 +1,8 @@
-import {HouseViewInstance, HouseViews, HouseViewType} from '@/shared/types/house.ts';
+import {
+  HouseRuntimeViewInstance,
+  HouseViews,
+  HouseViewType
+} from '@/shared/types/house.ts';
 
 export interface RebuildGroupMetadata {
   houseInstanceId?: string;
@@ -14,14 +18,13 @@ export interface RebuildViewSource<TGroup> {
   metadata: RebuildGroupMetadata;
 }
 
-export type RebuildViews<TGroup> = HouseViews<TGroup>;
-export type RebuildViewInstance<TGroup> = HouseViewInstance<TGroup>;
+export type RebuildViews = HouseViews;
 
-export interface RebuildNormalizedViewInstance<TGroup> extends RebuildViewInstance<TGroup> {
+export interface RebuildNormalizedViewInstance<TGroup> extends HouseRuntimeViewInstance<TGroup> {
   viewType: HouseViewType;
 }
 
 export interface RebuildViewsResult<TGroup> {
-  views: RebuildViews<TGroup>;
+  views: RebuildViews;
   normalizedItems: RebuildNormalizedViewInstance<TGroup>[];
 }

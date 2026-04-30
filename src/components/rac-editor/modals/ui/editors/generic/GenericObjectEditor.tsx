@@ -5,14 +5,12 @@ import {Separator} from '@/components/ui/separator.tsx';
 import {X} from 'lucide-react';
 import {GenericObjectEditorIcon} from './GenericObjectEditorIcon.tsx';
 import {FloatingEditor} from '@/components/rac-editor/modals/ui/editors/FloatingEditor.tsx';
-import {
-  GenericObjectEditorType
-} from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';
+import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
 import {useGenericObjectEditorDraft} from '@/components/rac-editor/modals/hooks/useGenericObjectEditorDraft.ts';
 
 interface GenericObjectEditorProps {
-  editorType: GenericObjectEditorType;
+  editorType: GenericCanvasObjectEditorType;
   currentValue: string;
   currentColor: string;
   isOpen: boolean;

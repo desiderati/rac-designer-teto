@@ -2,11 +2,11 @@ import {useCallback} from 'react';
 import {useHouseSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import {
   CanvasGroup,
-  ContraventamentoOrigin,
 } from '@/components/rac-editor/canvas/lib';
 import {
   collectOccupiedContraventamentoSides,
   ContraventamentoCandidate,
+  ContraventamentoOrigin,
   createContraventamentoEditorState,
   hasEligiblePilotiInContraventamentoColumn,
 } from '@/shared/types/contraventamento.ts';

@@ -8,31 +8,7 @@ import {
 import {applyPilotiSelectionVisuals} from '@/components/rac-editor/canvas/lib/piloti-visual-feedback.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
-import type {EditorPilotiSelection} from '@/components/rac-editor/canvas/store/types.ts';
-
-export interface PilotiCanvasSelection {
-  pilotiId: string;
-  currentIsMaster: boolean;
-  currentHeight: number;
-  currentNivel: number;
-  /**
-   * DTO serializável equivalente à seleção de piloti.
-   *
-   * Campo de transição: consumidores antigos ainda usam `group`, mas novos
-   * fluxos devem migrar para `editorSelection` para não depender de Fabric.
-   */
-  editorSelection: EditorPilotiSelection;
-  /**
-   * Ordem navegável dos pilotis visíveis na vista selecionada.
-   *
-   * Campo de transição para permitir que o modal de edição navegue sem receber
-   * o `CanvasGroup` Fabric usado pelo runtime visual.
-   */
-  pilotiIds: string[];
-  group: CanvasGroup;
-  screenPosition: { x: number; y: number };
-  houseView: 'top' | 'front' | 'back' | 'side';
-}
+import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 
 interface BuildPilotiSelectionHandlerArgs {
   canvas: FabricCanvas;
@@ -127,12 +103,11 @@ export function buildPilotiSelectionHandler({
         screenPosition: screenPoint,
       },
       pilotiIds: getPilotiIdsFromGroup(groupRuntime),
-      group: groupRuntime,
       screenPosition: screenPoint,
       houseView: normalizeHouseView(groupRuntime?.houseView),
     });
 
-    emitSelectionChange(`Piloti selecionado – Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
+    emitSelectionChange(`Piloti selecionado - Altura atual: ${formatPilotiHeight(pilotiHeight)} m.`);
   };
 }
 

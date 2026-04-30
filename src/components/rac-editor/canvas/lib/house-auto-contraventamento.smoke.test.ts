@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/lib/house-auto-contraventamento.ts';
+import {refreshAutoContraventamentoInAllViews} from './house-auto-contraventamento.ts';
 
 function createMockGroup(props: Record<string, unknown> = {}) {
   const group: any = {

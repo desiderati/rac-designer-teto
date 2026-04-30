@@ -6,11 +6,11 @@ import {
   registerViewInstance,
   removeAllViewInstancesByType,
   removeViewInstance,
-  removeViewInstanceByGroup,
+  removeViewInstanceById,
 } from './house-views.use-case.ts';
 import type {HouseSideMapping, HouseViewInstance, HouseViews, HouseViewType,} from '@/shared/types/house.ts';
 
-function createViews<TGroup>(): HouseViews<TGroup> {
+function createViews(): HouseViews {
   return {
     top: [],
     front: [],
@@ -31,9 +31,8 @@ function createMappings(): HouseSideMapping {
 
 describe('house-views.use-case.ts', () => {
   it('registers view instances and updates side mappings', () => {
-    const views = createViews<{ id: string }>();
+    const views = createViews();
     const mappings = createMappings();
-    const group = {id: 'g1'};
 
     const result = registerViewInstance({
       instanceId: 'inst-1',
@@ -41,16 +40,15 @@ describe('house-views.use-case.ts', () => {
       sideMappings: mappings,
       viewType: 'front',
       views,
-      group,
     });
 
     expect(result.views.front).toHaveLength(1);
-    expect(result.views.front[0]).toMatchObject({group, side: 'top', instanceId: 'inst-1'});
+    expect(result.views.front[0]).toMatchObject({side: 'top', instanceId: 'inst-1'});
     expect(result.sideMappings.top).toBe('front');
   });
 
   it('removes view instance by id and clears side mapping', () => {
-    const views = createViews<{ id: string }>();
+    const views = createViews();
     const mappings = createMappings();
 
     const {views: withView, sideMappings: withMappings} = registerViewInstance({
@@ -59,7 +57,6 @@ describe('house-views.use-case.ts', () => {
       sideMappings: mappings,
       viewType: 'side1',
       views,
-      group: {id: 'g1'},
     });
 
     const removed = removeViewInstance({
@@ -74,10 +71,9 @@ describe('house-views.use-case.ts', () => {
     expect(removed.sideMappings.left).toBeNull();
   });
 
-  it('removes view instance by group and returns view type', () => {
-    const views = createViews<{ id: string }>();
+  it('removes view instance by id and returns view type', () => {
+    const views = createViews();
     const mappings = createMappings();
-    const group = {id: 'g1'};
 
     const {views: withView, sideMappings: withMappings} = registerViewInstance({
       instanceId: 'inst-1',
@@ -85,13 +81,12 @@ describe('house-views.use-case.ts', () => {
       sideMappings: mappings,
       viewType: 'back',
       views,
-      group,
     });
 
-    const removed = removeViewInstanceByGroup({
+    const removed = removeViewInstanceById({
       sideMappings: withMappings,
       views: withView,
-      group,
+      instanceId: 'inst-1',
     });
 
     expect(removed.removedViewType).toBe('back');
@@ -100,7 +95,7 @@ describe('house-views.use-case.ts', () => {
   });
 
   it('removes all instances by view type and clears related mappings', () => {
-    const views = createViews<{ id: string }>();
+    const views = createViews();
     const mappings = createMappings();
 
     let result = registerViewInstance({
@@ -109,7 +104,6 @@ describe('house-views.use-case.ts', () => {
       sideMappings: mappings,
       viewType: 'front',
       views,
-      group: {id: 'g1'},
     });
 
     result = registerViewInstance({
@@ -118,7 +112,6 @@ describe('house-views.use-case.ts', () => {
       sideMappings: result.sideMappings,
       viewType: 'front',
       views: result.views,
-      group: {id: 'g2'},
     });
 
     const removed = removeAllViewInstancesByType({
@@ -134,7 +127,7 @@ describe('house-views.use-case.ts', () => {
   });
 
   it('cleans up stale view instances based on liveness check', () => {
-    const views = createViews<{ id: string }>();
+    const views = createViews();
     const mappings = createMappings();
 
     let result = registerViewInstance({
@@ -143,7 +136,6 @@ describe('house-views.use-case.ts', () => {
       sideMappings: mappings,
       viewType: 'side1',
       views,
-      group: {id: 'alive'},
     });
 
     result = registerViewInstance({
@@ -152,11 +144,10 @@ describe('house-views.use-case.ts', () => {
       sideMappings: result.sideMappings,
       viewType: 'side1',
       views: result.views,
-      group: {id: 'dead'},
     });
 
     const cleaned = cleanupStaleViewInstances({
-      isAlive: (group) => group.id === 'alive',
+      isAlive: (instanceId) => instanceId === 'inst-1',
       viewType: 'side1',
       views: result.views,
       sideMappings: result.sideMappings,
@@ -164,18 +155,18 @@ describe('house-views.use-case.ts', () => {
 
     expect(cleaned.removedCount).toBe(1);
     expect(cleaned.views.side1).toHaveLength(1);
-    expect(cleaned.views.side1[0]?.group.id).toBe('alive');
+    expect(cleaned.views.side1[0]?.instanceId).toBe('inst-1');
     expect(cleaned.sideMappings.right).toBeNull();
     expect(cleaned.sideMappings.left).toBe('side1');
   });
 
   it('rebuilds side mappings from views without overwriting first assignment', () => {
-    const viewInstances: HouseViewInstance<{ id: string }>[] = [
-      {group: {id: 'g1'}, side: 'left', instanceId: 'inst-1'},
-      {group: {id: 'g2'}, side: 'left', instanceId: 'inst-2'},
+    const viewInstances: HouseViewInstance[] = [
+      {side: 'left', instanceId: 'inst-1'},
+      {side: 'left', instanceId: 'inst-2'},
     ];
 
-    const views: HouseViews<{ id: string }> = {
+    const views: HouseViews = {
       top: [],
       front: [],
       back: [],
@@ -192,10 +183,10 @@ describe('house-views.use-case.ts', () => {
   });
 
   it('counts view instances per type', () => {
-    const views = createViews<{ id: string }>();
-    views.top.push({group: {id: 'g1'}, instanceId: 'inst-1'});
-    views.top.push({group: {id: 'g2'}, instanceId: 'inst-2'});
-    views.side2.push({group: {id: 'g3'}, instanceId: 'inst-3'});
+    const views = createViews();
+    views.top.push({instanceId: 'inst-1'});
+    views.top.push({instanceId: 'inst-2'});
+    views.side2.push({instanceId: 'inst-3'});
 
     const counts = countViewInstances(views);
     const expected: Record<HouseViewType, number> = {

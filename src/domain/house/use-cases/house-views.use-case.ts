@@ -1,9 +1,16 @@
-import {HouseSide, HouseSideMapping, HouseViewInstance, HouseViews, HouseViewType} from '@/shared/types/house.ts';
+import {
+  HouseSide,
+  HouseSideMapping,
+  HouseViewInstance,
+  HouseViewInstanceId,
+  HouseViews,
+  HouseViewType
+} from '@/shared/types/house.ts';
 
-export function cloneViews<TGroup>(
-  views: HouseViews<TGroup>,
-): HouseViews<TGroup> {
-  const next = {} as HouseViews<TGroup>;
+export function cloneViews(
+  views: HouseViews,
+): HouseViews {
+  const next = {} as HouseViews;
   (Object.keys(views) as HouseViewType[]).forEach((viewType) => {
     next[viewType] = [...views[viewType]];
   });
@@ -16,22 +23,20 @@ export function cloneMappings(
   return {...sideMappings};
 }
 
-export function registerViewInstance<TGroup>(params: {
-  instanceId: string;
+export function registerViewInstance(params: {
+  instanceId: HouseViewInstanceId;
   side?: HouseSide;
   sideMappings: HouseSideMapping;
   viewType: HouseViewType;
-  views: HouseViews<TGroup>;
-  group: TGroup;
+  views: HouseViews;
 }): {
-  instance: HouseViewInstance<TGroup>;
-  views: HouseViews<TGroup>;
+  instance: HouseViewInstance;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   const nextViews = cloneViews(params.views);
   const nextMappings = cloneMappings(params.sideMappings);
-  const instance: HouseViewInstance<TGroup> = {
-    group: params.group,
+  const instance: HouseViewInstance = {
     side: params.side,
     instanceId: params.instanceId,
   };
@@ -44,14 +49,14 @@ export function registerViewInstance<TGroup>(params: {
   return {views: nextViews, sideMappings: nextMappings, instance};
 }
 
-export function removeAtIndex<TGroup>(params: {
+export function removeAtIndex(params: {
   index: number;
   sideMappings: HouseSideMapping;
   viewType: HouseViewType;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
 }): {
-  removed: HouseViewInstance<TGroup> | null;
-  views: HouseViews<TGroup>;
+  removed: HouseViewInstance | null;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   const instances = params.views[params.viewType];
@@ -73,22 +78,18 @@ export function removeAtIndex<TGroup>(params: {
   return {views: nextViews, sideMappings: nextMappings, removed: removed ?? null};
 }
 
-export function removeViewInstance<TGroup>(params: {
-  instanceId?: string;
+export function removeViewInstance(params: {
+  instanceId?: HouseViewInstanceId;
   sideMappings: HouseSideMapping;
   viewType: HouseViewType;
-  views: HouseViews<TGroup>;
-  group?: TGroup;
+  views: HouseViews;
 }): {
-  removed: HouseViewInstance<TGroup> | null;
-  views: HouseViews<TGroup>;
+  removed: HouseViewInstance | null;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   const instances = params.views[params.viewType];
-  const index =
-    params.instanceId !== undefined
-      ? instances.findIndex((instance) => instance.instanceId === params.instanceId)
-      : instances.findIndex((instance) => instance.group === params.group);
+  const index = instances.findIndex((instance) => instance.instanceId === params.instanceId);
 
   return removeAtIndex({
     views: params.views,
@@ -98,20 +99,20 @@ export function removeViewInstance<TGroup>(params: {
   });
 }
 
-export function removeViewInstanceByGroup<TGroup>(params: {
+export function removeViewInstanceById(params: {
   sideMappings: HouseSideMapping;
-  views: HouseViews<TGroup>;
-  group: TGroup;
+  views: HouseViews;
+  instanceId: HouseViewInstanceId;
 }): {
-  removed: HouseViewInstance<TGroup> | null;
+  removed: HouseViewInstance | null;
   removedViewType: HouseViewType | null;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   for (const viewType of Object.keys(params.views) as HouseViewType[]) {
     const index =
       params.views[viewType].findIndex(
-        (instance) => instance.group === params.group
+        (instance) => instance.instanceId === params.instanceId
       );
     if (index === -1) continue;
 
@@ -138,13 +139,13 @@ export function removeViewInstanceByGroup<TGroup>(params: {
   };
 }
 
-export function removeAllViewInstancesByType<TGroup>(params: {
+export function removeAllViewInstancesByType(params: {
   sideMappings: HouseSideMapping;
   viewType: HouseViewType;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
 }): {
   removedCount: number;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   const current = params.views[params.viewType];
@@ -169,14 +170,14 @@ export function removeAllViewInstancesByType<TGroup>(params: {
   return {views: nextViews, sideMappings: nextMappings, removedCount};
 }
 
-export function cleanupStaleViewInstances<TGroup>(params: {
-  isAlive: (group: TGroup) => boolean;
+export function cleanupStaleViewInstances(params: {
+  isAlive: (instanceId: HouseViewInstanceId) => boolean;
   viewType: HouseViewType;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 }): {
   removedCount: number;
-  views: HouseViews<TGroup>;
+  views: HouseViews;
   sideMappings: HouseSideMapping;
 } {
   const current = params.views[params.viewType];
@@ -190,11 +191,11 @@ export function cleanupStaleViewInstances<TGroup>(params: {
 
   const nextViews = cloneViews(params.views);
   const nextMappings = cloneMappings(params.sideMappings);
-  const validInstances: HouseViewInstance<TGroup>[] = [];
+  const validInstances: HouseViewInstance[] = [];
   let removedCount = 0;
 
   current.forEach((instance) => {
-    if (params.isAlive(instance.group)) {
+    if (params.isAlive(instance.instanceId)) {
       validInstances.push(instance);
       return;
     }
@@ -209,8 +210,8 @@ export function cleanupStaleViewInstances<TGroup>(params: {
   return {views: nextViews, sideMappings: nextMappings, removedCount};
 }
 
-export function rebuildSideMappingsFromViews<TGroup>(params: {
-  views: HouseViews<TGroup>;
+export function rebuildSideMappingsFromViews(params: {
+  views: HouseViews;
   sideMappingsTemplate: HouseSideMapping;
 }): HouseSideMapping {
   const nextMappings = cloneMappings(params.sideMappingsTemplate);
@@ -231,8 +232,8 @@ export function rebuildSideMappingsFromViews<TGroup>(params: {
   return nextMappings;
 }
 
-export function countViewInstances<TGroup>(
-  views: HouseViews<TGroup>,
+export function countViewInstances(
+  views: HouseViews,
 ): Record<HouseViewType, number> {
   const counts = {} as Record<HouseViewType, number>;
   (Object.keys(views) as HouseViewType[]).forEach((viewType) => {
@@ -240,4 +241,3 @@ export function countViewInstances<TGroup>(
   });
   return counts;
 }
-

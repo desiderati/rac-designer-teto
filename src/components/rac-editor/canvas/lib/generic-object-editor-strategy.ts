@@ -2,8 +2,9 @@ import {Canvas as FabricCanvas, IText} from 'fabric';
 import {CanvasObject} from '@/components/rac-editor/canvas/lib/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/rac-editor/canvas/lib/factory/elements/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
+import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 
-export type GenericObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
+export type GenericObjectEditorType = GenericCanvasObjectEditorType;
 
 export interface GenericObjectEditorApplyPayload {
   canvas: FabricCanvas;

@@ -1,9 +1,9 @@
 import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
-import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
+import type {PilotiCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {useContraventamentoFlow} from '@/components/rac-editor/hooks/useContraventamentoFlow.ts';
-import {useContraventamento} from '@/components/rac-editor/hooks/useContraventamento.ts';
+import {useContraventamento} from '@/components/rac-editor/canvas/hooks/useCanvasContraventamento.ts';
 
 interface UseRacEditorContraventamentoControllerArgs {
   canvasRef: RefObject<CanvasHandle | null>;

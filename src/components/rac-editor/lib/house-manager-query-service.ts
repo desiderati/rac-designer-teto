@@ -12,8 +12,9 @@ import {
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 
 interface HouseManagerQueryServiceArgs {
-  getHouse: () => HouseState<CanvasGroup> | null;
-  getAggregate: () => HouseAggregate<CanvasGroup> | null;
+  getHouse: () => HouseState | null;
+  getAggregate: () => HouseAggregate | null;
+  getAllRuntimeGroups: () => CanvasGroup[];
   getDefaultTerrainType: () => number;
   cleanupStaleViews: (viewType: HouseViewType) => void;
 }
@@ -22,7 +23,7 @@ export class HouseManagerQueryService {
   constructor(private readonly args: HouseManagerQueryServiceArgs) {
   }
 
-  getHouse(): HouseState<CanvasGroup> | null {
+  getHouse(): HouseState | null {
     return this.args.getHouse();
   }
 
@@ -93,11 +94,7 @@ export class HouseManagerQueryService {
   }
 
   getAllGroups(): CanvasGroup[] {
-    const aggregate = this.args.getAggregate();
-    const house = this.args.getHouse();
-    if (!aggregate || !house) return [];
-
-    return aggregate.collectAllViewGroups(house.views);
+    return this.args.getAllRuntimeGroups();
   }
 
   getPreAssignedSides(viewType: HouseViewType): { label: string; side: HouseSide; onCanvas: boolean }[] {

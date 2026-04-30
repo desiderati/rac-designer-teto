@@ -7,7 +7,9 @@ import {
   HouseSide,
   HouseState,
   HouseType,
+  HouseViewInstance,
   HouseViews,
+  HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
 import {
@@ -15,7 +17,7 @@ import {
   rebuildSideMappingsFromViews,
   registerViewInstance,
   removeViewInstance,
-  removeViewInstanceByGroup,
+  removeViewInstanceById,
 } from '@/domain/house/use-cases/house-views.use-case.ts';
 import {
   buildAutoAssignedSides,
@@ -34,17 +36,17 @@ import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-reb
 import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
 import {recalculateRecommendedPilotiData} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
-export class HouseAggregate<TGroup> {
+export class HouseAggregate {
 
-  private constructor(private readonly state: HouseState<TGroup>) {
+  private constructor(private readonly state: HouseState) {
   }
 
-  static createInitialHouseState<TGroup>(params: {
+  static createInitialHouseState(params: {
     id: string;
     pilotiIds: string[];
     defaultPiloti: HousePiloti;
     defaultTerrainType: number;
-  }): HouseState<TGroup> {
+  }): HouseState {
     return {
       id: params.id,
       houseType: null,
@@ -53,17 +55,17 @@ export class HouseAggregate<TGroup> {
         defaultPiloti: params.defaultPiloti,
       }),
       terrainType: params.defaultTerrainType,
-      views: createEmptyViews(),
+      views: createEmptyViews<HouseViewInstance>(),
       sideMappings: createEmptySideMappings(),
       preAssignedSides: {},
     };
   }
 
-  static fromState<TGroup>(state: HouseState<TGroup>): HouseAggregate<TGroup> {
+  static fromState(state: HouseState): HouseAggregate {
     return new HouseAggregate(state);
   }
 
-  toState(): HouseState<TGroup> {
+  toState(): HouseState {
     return this.state;
   }
 
@@ -126,10 +128,9 @@ export class HouseAggregate<TGroup> {
   }
 
   registerView(params: {
-    instanceId: string;
+    instanceId: HouseViewInstanceId;
     side?: HouseSide;
     viewType: HouseViewType;
-    group: TGroup;
   }): void {
     const result = registerViewInstance({
       views: this.state.views,
@@ -142,9 +143,8 @@ export class HouseAggregate<TGroup> {
   }
 
   removeView(params: {
-    instanceId?: string;
+    instanceId: HouseViewInstanceId;
     viewType?: HouseViewType;
-    group: TGroup;
   }): {
     removedViewType: HouseViewType | null;
     removedCount: number;
@@ -155,7 +155,6 @@ export class HouseAggregate<TGroup> {
         sideMappings: this.state.sideMappings,
         viewType: params.viewType,
         instanceId: params.instanceId,
-        group: params.group,
       });
 
       this.state.views = result.views;
@@ -167,10 +166,10 @@ export class HouseAggregate<TGroup> {
       };
     }
 
-    const result = removeViewInstanceByGroup({
+    const result = removeViewInstanceById({
       views: this.state.views,
       sideMappings: this.state.sideMappings,
-      group: params.group,
+      instanceId: params.instanceId,
     });
 
     this.state.views = result.views;
@@ -184,7 +183,7 @@ export class HouseAggregate<TGroup> {
 
   cleanupStaleViews(
     viewType: HouseViewType,
-    isAlive: (group: TGroup) => boolean,
+    isAlive: (instanceId: HouseViewInstanceId) => boolean,
   ): number {
     const result = cleanupStaleViewInstances({
       views: this.state.views,
@@ -253,27 +252,15 @@ export class HouseAggregate<TGroup> {
     });
   }
 
-  collectAllViewGroups<TGroup>(
-    views: HouseViews<TGroup>,
-  ): TGroup[] {
-    const groups: TGroup[] = [];
-    (Object.keys(views) as HouseViewType[]).forEach((viewType) => {
-      views[viewType].forEach((instance) => {
-        groups.push(instance.group);
-      });
-    });
-    return groups;
-  }
-
-  hasAnyViewInstances<TGroup>(
-    views: HouseViews<TGroup>,
+  hasAnyViewInstances(
+    views: HouseViews,
   ): boolean {
     return (Object.keys(views) as HouseViewType[]).some(
       (viewType) => views[viewType].length > 0
     );
   }
 
-  rebuildViewsFromCanvasSources(sources: RebuildViewSource<TGroup>[]): RebuildViewsResult<TGroup> {
+  rebuildViewsFromCanvasSources<TGroup>(sources: RebuildViewSource<TGroup>[]): RebuildViewsResult<TGroup> {
     const rebuilt = rebuildViewsFromSources({
       houseType: this.state.houseType,
       sources,

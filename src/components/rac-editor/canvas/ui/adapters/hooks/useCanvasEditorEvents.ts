@@ -1,6 +1,5 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
-import {readLinearObjectState} from '@/components/rac-editor/modals/ui/editors/generic/helpers/linear-object-state.ts';
 import {
   CanvasGroup,
   CanvasObject,
@@ -15,7 +14,7 @@ import {
   TerrainCanvasSelection,
   WallCanvasSelection
 } from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
-import {readWallObjectState} from '@/components/rac-editor/modals/ui/editors/generic/helpers/wall-object-state.ts';
+import {readLinearObjectState, readWallObjectState} from '@/components/rac-editor/canvas/lib/generic-object-state.ts';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
@@ -51,20 +50,22 @@ export function useCanvasEditorEvents() {
     ) => {
       if (!wallObject) return;
 
-      const {currentLabel} = readWallObjectState(wallObject);
+      const {currentColor, currentLabel} = readWallObjectState(wallObject);
       const center = wallObject.getCenterPoint();
       const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
+      const objectId = ensureCanvasObjectId(wallObject);
 
       onWallSelect({
-        object: wallObject,
+        objectId,
         editorSelection: {
           type: 'wall',
-          objectId: ensureCanvasObjectId(wallObject),
+          objectId,
           currentLabel,
           screenPosition: screenPoint,
         },
-        currentLabel: currentLabel,
+        currentColor,
+        currentLabel,
         screenPosition: screenPoint,
       });
       onSelectionChange('Editando nome do objeto.');
@@ -80,12 +81,13 @@ export function useCanvasEditorEvents() {
       const center = linearObject.getCenterPoint();
       const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
       if (!screenPoint) return;
+      const objectId = ensureCanvasObjectId(linearObject);
 
       onLinearSelect({
-        object: linearObject,
+        objectId,
         editorSelection: {
           type: 'linear',
-          objectId: ensureCanvasObjectId(linearObject),
+          objectId,
           linearType: myType,
           currentColor,
           currentLabel,

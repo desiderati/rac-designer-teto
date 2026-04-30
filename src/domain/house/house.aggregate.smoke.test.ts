@@ -5,7 +5,6 @@ import {HouseState, HouseViewType} from '@/shared/types/house.ts';
 function createViewInstances(viewType: HouseViewType, count: number) {
   return Array.from({length: count}, (_, index) => ({
     instanceId: `${viewType}_${index}`,
-    group: {},
   }));
 }
 
@@ -13,7 +12,7 @@ function createState(seed?: {
   houseType?: 'tipo6' | 'tipo3' | null;
   viewCounts?: Partial<Record<HouseViewType, number>>;
   pilotis?: Record<string, { height: number; isMaster: boolean; nivel: number }>;
-}): HouseState<any> {
+}): HouseState {
   const houseType = seed?.houseType ?? 'tipo6';
   const viewCounts = {
     top: 0,
@@ -50,10 +49,10 @@ function createState(seed?: {
 describe('house.aggregate.ts', () => {
   it('applies layout rules for sides and pre-assigned slots', () => {
     const state = createState({houseType: 'tipo6'});
-    state.views.front.push({instanceId: 'front_1', group: {id: 'g1'}, side: 'top'});
+    state.views.front.push({instanceId: 'front_1', side: 'top'});
     state.sideMappings.top = 'front';
     state.preAssignedSides = {front: 'top'};
-    const aggregate = HouseAggregate.fromState(state as HouseState<{ id: string }>);
+    const aggregate = HouseAggregate.fromState(state);
 
     expect(aggregate.hasOtherViews()).toBe(true);
     expect(aggregate.canDeletePlant()).toBe(false);
@@ -89,12 +88,10 @@ describe('house.aggregate.ts', () => {
   });
 
   it('registers and removes views while syncing side mappings', () => {
-    const aggregate = HouseAggregate.fromState(createState() as HouseState<{ id: string }>);
-    const group = {id: 'g1'};
+    const aggregate = HouseAggregate.fromState(createState());
 
     aggregate.registerView({
       viewType: 'front',
-      group,
       instanceId: 'front_1',
       side: 'top',
     });
@@ -104,7 +101,6 @@ describe('house.aggregate.ts', () => {
     const removed = aggregate.removeView({
       viewType: 'front',
       instanceId: 'front_1',
-      group,
     });
     expect(removed.removedCount).toBe(1);
     expect(aggregate.toState().views.front).toHaveLength(0);
@@ -112,22 +108,20 @@ describe('house.aggregate.ts', () => {
   });
 
   it('cleans stale views and rebuilds side mappings from current views', () => {
-    const aggregate = HouseAggregate.fromState(createState() as HouseState<{ id: string }>);
+    const aggregate = HouseAggregate.fromState(createState());
 
     aggregate.registerView({
       viewType: 'back',
-      group: {id: 'dead'},
       instanceId: 'back_1',
       side: 'top',
     });
     aggregate.registerView({
       viewType: 'back',
-      group: {id: 'alive'},
       instanceId: 'back_2',
       side: 'bottom',
     });
 
-    const removedCount = aggregate.cleanupStaleViews('back', (group) => group.id === 'alive');
+    const removedCount = aggregate.cleanupStaleViews('back', (instanceId) => instanceId === 'back_2');
     expect(removedCount).toBe(1);
     expect(aggregate.toState().views.back).toHaveLength(1);
     expect(aggregate.toState().sideMappings.top).toBeNull();
@@ -136,7 +130,7 @@ describe('house.aggregate.ts', () => {
 
   it('rebuilds views from canvas-like sources and side mappings', () => {
     const aggregate =
-      HouseAggregate.fromState(createState() as HouseState<{ id: string }>);
+      HouseAggregate.fromState(createState());
 
     const rebuilt = aggregate.rebuildViewsFromCanvasSources([
       {group: {id: 'front-a'}, metadata: {houseView: 'front', isFlippedHorizontally: true}},

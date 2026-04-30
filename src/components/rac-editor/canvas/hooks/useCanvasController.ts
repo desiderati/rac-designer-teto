@@ -1,7 +1,6 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
-import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
+import type {TutorialBalloonPosition, TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/menus/lib/menu-types.ts';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {useCanvasActions} from '@/components/rac-editor/canvas/hooks/useCanvasActions.ts';
@@ -32,7 +31,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   clearTutorialBalloon: () => void;
   setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   dismissPilotiTutorial: () => void;
-  showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
+  showPilotiTutorialIfNeeded: (position: TutorialBalloonPosition | null) => void;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
 }

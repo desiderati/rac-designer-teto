@@ -1,4 +1,4 @@
-import {HousePiloti, HouseViewInstance} from '@/shared/types/house.ts';
+import {HousePiloti, HouseRuntimeViewInstance} from '@/shared/types/house.ts';
 import {
   addContraventamentoBeam,
   CanvasGroup,
@@ -29,8 +29,8 @@ const GRID_ROWS = [0, 1, 2] as const;
  */
 export function refreshAutoContraventamentoInAllViews(params: {
   pilotis: Record<string, HousePiloti>;
-  topViews: HouseViewInstance<CanvasGroup>[];
-  elevationViews: HouseViewInstance<CanvasGroup>[];
+  topViews: HouseRuntimeViewInstance<CanvasGroup>[];
+  elevationViews: HouseRuntimeViewInstance<CanvasGroup>[];
 }): boolean {
   let hasChanges = false;
   const targetGroups =

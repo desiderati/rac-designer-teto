@@ -1,6 +1,6 @@
-import {CanvasGroup, CanvasObject, getCanvasGroupObjects} from '@/components/rac-editor/canvas/lib';
 import {House3DFace, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import type {House3DElevationViewProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 
 export interface Stairs3DData {
   id: string;
@@ -14,22 +14,17 @@ export interface Stairs3DData {
 export function parseStairsFromElevationViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
-  elevationViews: Array<{
-    viewType: HouseViewType;
-    group: CanvasGroup;
-  }>;
+  elevationViews: House3DElevationViewProjection[];
 }): Stairs3DData {
   if (!params.houseType) return null;
 
   for (const view of params.elevationViews) {
-    const groupObjects = getCanvasGroupObjects(view.group);
-    const stairObject =
-      groupObjects.find((object) => object?.isAutoStairs === true);
-    if (!stairObject) continue;
+    const stairs = view.stairs;
+    if (!stairs) continue;
 
-    const stairWidth = getObjectWidth(stairObject);
-    const stairHeightMts = stairObject.stairsHeight ?? 0;
-    const stepCount = stairObject.stairsStepCount ?? 0;
+    const stairWidth = Number(stairs.width ?? 0);
+    const stairHeightMts = Number(stairs.heightMts ?? 0);
+    const stepCount = Number(stairs.stepCount ?? 0);
     if (stairWidth <= 0 || stairHeightMts <= 0 || stepCount <= 0) return null;
 
     const face = resolveStairFace({
@@ -39,19 +34,15 @@ export function parseStairsFromElevationViews(params: {
     });
     if (!face) continue;
 
-    const bodyWidth = resolveElevationViewBodyWidth({
-      group: view.group,
-      viewType: view.viewType,
-      objects: groupObjects,
-    });
+    const bodyWidth = resolveElevationViewBodyWidth({view});
     if (bodyWidth <= 0 || stairWidth <= 0) continue;
     if (!Number.isFinite(stairHeightMts) || stairHeightMts <= 0) continue;
 
-    // Escada na elevação está em origem esquerda (left), no mesmo eixo horizontal da fachada.
-    const centerFromLeft = Number(stairObject.left ?? 0) + stairWidth / 2 + bodyWidth / 2;
+    // Escada na elevação está em origem esquerda, no mesmo eixo horizontal da fachada.
+    const centerFromLeft = Number(stairs.left ?? 0) + stairWidth / 2 + bodyWidth / 2;
 
     return {
-      id: `${String(view.group.houseInstanceId ?? view.viewType)}-stairs`,
+      id: `${String(view.instanceId ?? view.viewType)}-stairs`,
       face,
       centerFromLeft,
       stairWidth,
@@ -62,28 +53,22 @@ export function parseStairsFromElevationViews(params: {
 }
 
 function resolveElevationViewBodyWidth(params: {
-  group: CanvasGroup;
-  viewType: HouseViewType;
-  objects: CanvasObject[];
+  view: House3DElevationViewProjection;
 }): number {
-  const body = params.objects.find((object) => object?.isHouseBody);
-  const bodyWidth = getObjectWidth(body);
+  const bodyWidth = getProjectionWidth(params.view.bodyWidth);
   if (bodyWidth > 0) return bodyWidth;
 
-  // Fallback principal: escalar largura estrutural a partir da largura real da porta da vista.
-  const door = params.objects.find((object) => object?.isHouseDoor);
-  const doorWidth = getObjectWidth(door);
+  const doorWidth = getProjectionWidth(params.view.doorWidth);
   if (doorWidth > 0) {
     const scale = doorWidth / HOUSE_DIMENSIONS.elements.common.doorWidth;
     const isSideView =
-      params.viewType === 'side1'
-      || params.viewType === 'side2'
-      || params.group.houseView === 'side';
+      params.view.viewType === 'side1'
+      || params.view.viewType === 'side2'
+      || params.view.houseView === 'side';
     return (isSideView ? HOUSE_DIMENSIONS.footprint.depth : HOUSE_DIMENSIONS.footprint.width) * scale;
   }
 
-  const groupWidth = params.group.width * params.group.scaleX;
-  return groupWidth > 0 ? groupWidth : 0;
+  return getProjectionWidth(params.view.groupWidth);
 }
 
 // Map doorSide to 3D face, accounting for tipo6 front-side flip.
@@ -114,23 +99,7 @@ function resolveStairFace(params: {
   return 'right';
 }
 
-function getObjectWidth(object: CanvasObject): number {
-  if (!object) return 0;
-
-  const widthRuntime = object as CanvasObject & {
-    getScaledWidth?: () => number;
-    getBoundingRect?: (absolute?: boolean, calculate?: boolean) => { width?: number };
-  };
-
-  const widthFromProps = Number(object.width ?? 0) * Number(object.scaleX ?? 1);
-  if (Number.isFinite(widthFromProps) && widthFromProps > 0) return widthFromProps;
-
-  const widthFromScaled = Number(widthRuntime.getScaledWidth?.() ?? 0);
-  if (Number.isFinite(widthFromScaled) && widthFromScaled > 0) return widthFromScaled;
-
-  const bbox = widthRuntime.getBoundingRect?.(false, false);
-  const widthFromBounds = Number(bbox?.width ?? 0);
-  if (Number.isFinite(widthFromBounds) && widthFromBounds > 0) return widthFromBounds;
-
-  return 0;
+function getProjectionWidth(width: number | undefined): number {
+  const parsedWidth = Number(width ?? 0);
+  return Number.isFinite(parsedWidth) && parsedWidth > 0 ? parsedWidth : 0;
 }

@@ -1,5 +1,5 @@
 import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
-import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/canvas/lib';
+import type {House3DTopViewProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 
 export interface Contraventamento3DData {
   id: string;
@@ -11,17 +11,15 @@ export interface Contraventamento3DData {
 }
 
 export function parseContraventamentosFromTopView(
-  topViewGroup: CanvasGroup | null | undefined
+  topView: House3DTopViewProjection | null | undefined
 ): Contraventamento3DData[] {
-  if (!topViewGroup) return [];
+  if (!topView) return [];
 
   const parsedContraventamentos: Contraventamento3DData[] = [];
-  getCanvasGroupObjects(topViewGroup).forEach((obj, index) => {
-    if (!obj?.isContraventamento) return;
-
-    const col = Number(obj.contraventamentoCol);
-    const startRowRaw = Number(obj.contraventamentoStartRow);
-    const endRowRaw = Number(obj.contraventamentoEndRow);
+  topView.contraventamentos.forEach((item, index) => {
+    const col = Number(item.col);
+    const startRowRaw = Number(item.startRow);
+    const endRowRaw = Number(item.endRow);
     if (!Number.isInteger(col) || col < 0 || col > 3) return;
     if (!Number.isInteger(startRowRaw) || !Number.isInteger(endRowRaw)) return;
 
@@ -29,16 +27,16 @@ export function parseContraventamentosFromTopView(
     const endRow = Math.max(startRowRaw, endRowRaw);
     if (startRow === endRow || startRow < 0 || endRow > 2) return;
 
-    const side = obj.contraventamentoSide === 'left' || obj.contraventamentoSide === 'right'
-      ? obj.contraventamentoSide
+    const side = item.side === 'left' || item.side === 'right'
+      ? item.side
       : 'right';
 
     const anchorPilotiId =
-      typeof obj.contraventamentoAnchorPilotiId === 'string' && obj.contraventamentoAnchorPilotiId
-        ? obj.contraventamentoAnchorPilotiId
+      typeof item.anchorPilotiId === 'string' && item.anchorPilotiId
+        ? item.anchorPilotiId
         : `piloti_${col}_${startRow}`;
 
-    const id = String(obj.contraventamentoId ?? `contrav_3d_${index}`);
+    const id = String(item.id ?? `contrav_3d_${index}`);
     parsedContraventamentos.push({id, col, startRow, endRow, side, anchorPilotiId});
   });
 

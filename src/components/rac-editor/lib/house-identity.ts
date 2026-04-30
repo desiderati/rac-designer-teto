@@ -1,13 +1,13 @@
-import {HouseViewType} from '@/shared/types/house.ts';
+import type {HouseId, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 
-export function createHouseId(now: () => number = Date.now): string {
+export function createHouseId(now: () => number = Date.now): HouseId {
   return `house_${now()}`;
 }
 
 export function createViewInstanceId(
   viewType: HouseViewType,
   now: () => number = Date.now,
-): string {
+): HouseViewInstanceId {
   return `${viewType}_${now()}`;
 }
 
