@@ -20,6 +20,14 @@ import {HouseManagerEffects} from '@/components/rac-editor/lib/house-manager-eff
 import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
+import {
+  applyCurrentHouseDataToGroups,
+  rebuildHouseViewsFromCanvas,
+  registerHouseView,
+  removeHouseView,
+} from '@/components/rac-editor/lib/house-manager-views.ts';
+import {applyTerrainTypeToElevationViews} from '@/components/rac-editor/lib/house-manager-terrain.ts';
+import {updateHousePiloti} from '@/components/rac-editor/lib/house-manager-piloti.ts';
 
 export class HouseManagerFacade {
 
@@ -44,7 +52,7 @@ export class HouseManagerFacade {
     requestCanvasRender: () => this.requestCanvasRender(),
   });
 
-  private readonly commands = new HouseManagerCommandService({
+  private readonly commands = new HouseManagerCommandService<CanvasGroup>({
     getHouse: () => this.house,
     getRuntimeHouse: () => this.runtimeHouse,
     getAggregate: () => this.getHouseAggregate(),
@@ -57,6 +65,14 @@ export class HouseManagerFacade {
     replaceRuntimeViewGroups: (entries) => this.canvasRuntime.replaceViewGroups(entries),
     findRuntimeViewInstanceId: (group) => this.canvasRuntime.findViewInstanceId(group),
     createCanvasRebuildInput: (params) => this.canvasRuntime.createRebuildInput(params),
+    viewRuntime: {
+      registerView: registerHouseView,
+      removeView: removeHouseView,
+      rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
+      applyCurrentHouseDataToGroups,
+      applyTerrainTypeToElevationViews,
+      updatePiloti: updateHousePiloti,
+    },
     persistHouse: () => this.persistHouse(),
     syncProjectSession: () => this.session.syncProjectSession(),
     requestCanvasRender: () => this.requestCanvasRender(),
