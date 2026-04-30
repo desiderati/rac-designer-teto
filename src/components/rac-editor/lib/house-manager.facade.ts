@@ -20,7 +20,7 @@ import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manag
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
 import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
-import {HouseManagerEffects} from '@/components/rac-editor/lib/house-manager-effects.ts';
+import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
@@ -49,7 +49,7 @@ export class HouseManagerFacade {
     notify: () => this.notify(),
   });
 
-  private readonly effects = new HouseManagerEffects({
+  private readonly effects = new HouseVisualEffects({
     getHouse: () => this.runtimeHouse,
     requestCanvasRender: () => this.requestCanvasRender(),
   });

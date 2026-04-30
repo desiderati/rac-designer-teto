@@ -62,3 +62,37 @@ export function refreshAutoContraventamento(params: {
     params.requestRender,
   );
 }
+
+interface HouseVisualEffectsArgs {
+  getHouse: () => HouseRuntimeSnapshot<CanvasGroup> | null;
+  requestCanvasRender: () => void;
+}
+
+/**
+ * Coordena efeitos gráficos derivados do estado da casa.
+ */
+export class HouseVisualEffects {
+  constructor(private readonly args: HouseVisualEffectsArgs) {
+  }
+
+  refreshTopDoorMarkers(): void {
+    refreshTopDoorMarkers({
+      house: this.args.getHouse(),
+      requestRender: () => this.args.requestCanvasRender(),
+    });
+  }
+
+  refreshAutoStairs(): void {
+    refreshAutoStairs({
+      house: this.args.getHouse(),
+      requestRender: () => this.args.requestCanvasRender(),
+    });
+  }
+
+  refreshAutoContraventamento(): void {
+    refreshAutoContraventamento({
+      house: this.args.getHouse(),
+      requestRender: () => this.args.requestCanvasRender(),
+    });
+  }
+}
