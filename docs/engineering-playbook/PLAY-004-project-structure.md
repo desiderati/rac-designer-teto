@@ -31,8 +31,12 @@ Ele existe para evitar dois erros comuns:
 
 ## Estado atual do editor
 
-- `src/components/rac-editor/lib/house-manager.ts` é hoje a fachada legada do estado compartilhado da casa.
+- `src/components/rac-editor/lib/house-manager.facade.ts` é hoje a fachada transitória do estado compartilhado da casa.
+- `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts` compõe a fachada da casa com o runtime visual do
+  canvas.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
+- `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem as portas transitórias
+  da casa para o editor.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
 - `src/components/rac-editor/@menus` concentra a superfície de menus do editor, como `RacEditorMenus`,
@@ -41,8 +45,6 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/@viewer-3d` concentra a visualização 3D, incluindo UI, hooks, parsers, geometria e meshes.
 - `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica.
-- `src/components/rac-editor/adapters` concentra adapters transitórios da feature, inclusive os que encapsulam
-  `houseManager` enquanto a migração para ports/use cases não estiver completa.
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
@@ -68,8 +70,9 @@ Ele existe para evitar dois erros comuns:
 - `src/infra/storage` contém integrações com armazenamento local.
 - Novas integrações de persistência, storage local e browser APIs devem preferir `src/infra`.
 - Não mova Fabric para `src/infra` por generalização; a integração atual com canvas é borda da feature editor.
-- Adapters que conhecem `houseManager`, `@canvas` ou ports internos do RAC editor devem ficar em
-  `src/components/rac-editor/adapters`, não em `src/infra`.
+- Fábricas que adaptam `houseManager` para ports internos do RAC editor devem ficar no bootstrap de composição, não em
+  `src/infra`.
+- Adapters Fabric devem ficar no slice `src/components/rac-editor/@canvas`, principalmente em `@canvas/ui/adapters`.
 
 ## Feature editor
 
@@ -79,8 +82,6 @@ Ele existe para evitar dois erros comuns:
 - `@modals/` concentra dialogs, selectors, editors flutuantes e hooks próprios desse fluxo.
 - `@viewer-3d/` concentra a experiência 3D, com subdiretórios `hooks/`, `lib/` e `ui/`.
 - `ports/` concentra contratos internos de casa, vistas, pilotis e runtime que não pertencem exclusivamente ao canvas.
-- `adapters/` concentra implementações transitórias desses contratos quando elas dependem do `houseManager` legado ou
-  da composição local do editor.
 - `ui/` concentra componentes de composição geral da tela e fluxos que ainda não justificam slice próprio.
 - `hooks/` concentra orquestração geral, leitura de estado e comandos que não pertencem diretamente a um slice mais
   específico.
@@ -105,9 +106,8 @@ Ele existe para evitar dois erros comuns:
 ## Direção de evolução
 
 - Refatorações estruturais devem partir do código existente, não de paths imaginários herdados de discussões antigas.
-- Se surgir necessidade real de bootstrap, store injetado ou adapter dedicado de canvas, introduza isso no mesmo change
-  que materializar a nova camada.
-- Até lá, qualquer menção a essas camadas deve aparecer como proposta futura, nunca como estrutura vigente.
+- O bootstrap já é o ponto de composição para store, ports e adapters transitórios; novas composições devem ficar ali
+  quando não pertencerem exclusivamente ao slice `@canvas`.
 - Prefira PRs pequenos que reduzam acoplamento dentro da feature atual antes de abrir novas raízes na árvore.
 
 ## Notas de transição

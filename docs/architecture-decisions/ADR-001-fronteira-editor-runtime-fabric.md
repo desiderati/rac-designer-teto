@@ -5,7 +5,7 @@ adr_number: ADR-001
 decision_mode: previo
 status: proposed
 created: 2026-04-28
-updated: 2026-04-29
+updated: 2026-04-30
 supersedes:
 superseded_by:
 decision_source: ".agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/loop-state.md"
@@ -25,8 +25,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - restrições reais do ambiente:
   - O repositório já trata `src/components/rac-editor` como miniaplicação interna.
   - O playbook vigente não recomenda mover Fabric para `src/infra` por generalização.
-  - O estado atual ainda usa `HouseState<CanvasGroup>` em pontos transitórios, mas o `CanvasHandle` público já não
-    expõe a instância Fabric.
+  - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`; `CanvasGroup` aparece apenas na
+    composição concreta do canvas/bootstrap e no slice `@canvas`.
 - por que a decisão importa agora:
   - A refatoração planejada pretende remover vazamentos de Fabric, reduzir god files e preparar expansão futura do
     editor com commands, store e ports testáveis.
@@ -34,7 +34,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `docs/engineering-playbook/PLAY-004-project-structure.md`
   - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/fabric-boundary-baseline.md`
-  - `src/components/rac-editor/lib/house-manager.ts`
+  - `src/components/rac-editor/lib/house-manager.facade.ts`
+  - `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts`
   - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
 
@@ -63,9 +64,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     concretas do canvas.
   - `HouseVisualRuntimePort<TGroup>` define as capacidades mínimas do runtime visual usadas pelo núcleo transitório do
     editor.
-  - Adapters que conhecem `houseManager`, `@canvas` ou ports internos do editor pertencem a
-    `src/components/rac-editor/adapters`; `src/infra` fica reservado a persistência, storage e integrações técnicas
-    que não dependem da feature editor.
+  - Fábricas que adaptam o `houseManager` para ports do editor pertencem ao bootstrap de composição em
+    `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
+  - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
+    a persistência, storage e integrações técnicas que não dependem da feature editor.
 - fluxo principal:
   - UI -> Command -> Store -> Domain/use-cases -> estado -> listeners -> CanvasRenderPort -> Fabric adapter.
   - Fabric event -> CanvasEventPort -> seleção serializável -> Command -> Store.
@@ -132,14 +134,14 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ### 4.2. Negativas
 
 - A transição terá adapters, mappers e façades temporárias.
-- Algumas áreas continuarão usando `CanvasGroup` até que o modelo serializável esteja completo.
+- Algumas áreas do slice `@canvas` continuarão usando `CanvasGroup` até que o modelo serializável esteja completo.
 - O plano exige disciplina para não criar ports granulares demais.
 
 ### 4.3. Trade-offs aceitos
 
 - Aceitar migração incremental em vez de pureza imediata.
 - Manter Fabric dentro da feature editor durante a transição.
-- Manter adapters transitórios do `houseManager` dentro da feature editor enquanto o núcleo legado existir.
+- Manter fábricas transitórias de ports no bootstrap enquanto o núcleo legado existir.
 - Criar ADR `proposed` antes de aceitar a decisão como estado final.
 
 ### 4.4. Riscos e mitigação
@@ -174,7 +176,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `.agents/prompts/implementation-planning.prompt.md`
   - `.agents/prompts/architecture-decision.prompt.md`
 - contratos de integração:
-  - Canvas ports ainda a materializar nos loops seguintes.
+  - Canvas ports em `src/components/rac-editor/@canvas/ports`.
+  - House ports em `src/components/rac-editor/ports`.
 - layout de artefatos:
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/`
 - superfícies humanas relacionadas:
