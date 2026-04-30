@@ -62,6 +62,7 @@ export function createFabricCanvasCommandPort({
   clearHistory,
   saveHistory,
 }: FabricCanvasCommandPortArgs): FabricCanvasCommandPort {
+
   const findObjectByEditorId = (objectId: string): CanvasObject | null => {
     for (const object of canvas.getObjects()) {
       const runtime = toCanvasObject(object);
