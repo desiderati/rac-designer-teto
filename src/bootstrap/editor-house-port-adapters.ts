@@ -23,12 +23,12 @@ import type {
   HouseViewType,
 } from '@/shared/types/house.ts';
 
-interface HouseManagerReadSource {
+export interface HouseManagerReadSource {
   getHouseType(): HouseType;
   getFamilyName(): string;
   getSelectedPilotiHeights(): readonly number[];
   getTerrainType(): number;
-  getHouse(): { pilotis: Record<string, HousePiloti> } | null;
+  getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null;
   getPilotiData(pilotiId: string): HousePiloti;
   getHouseViewCount(viewType: HouseViewType): number;
   getMaxHouseViewCount(viewType: HouseViewType): number;
@@ -39,7 +39,7 @@ interface HouseManagerReadSource {
   hasPreAssignedSides(): boolean;
 }
 
-interface HouseManagerWriteSource {
+export interface HouseManagerWriteSource {
   setSelectedPilotiHeights(heights: number[]): void;
   setFamilyName(name: string): void;
   refreshAutoStairsForCurrentSettings(): void;
@@ -55,11 +55,11 @@ interface HouseManagerWriteSource {
   calculateAndApplyRecommendedHeights(): void;
 }
 
-interface HouseManagerRuntimeSource {
+export interface HouseManagerRuntimeSource {
   initialize(canvasPort: HouseVisualRuntimePort<CanvasGroup>): void;
 }
 
-interface HouseManagerStateSource {
+export interface HouseManagerStateSource {
   subscribe(listener: () => void): () => void;
   getHouseState(): HouseState | null;
   getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null;

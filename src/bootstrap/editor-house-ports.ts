@@ -5,15 +5,50 @@ import {
   createHouseManagerRuntimePort,
   createHouseManagerStatePorts,
   createHouseManagerWritePort,
+  type HouseManagerReadSource,
+  type HouseManagerRuntimeSource,
+  type HouseManagerStateSource,
+  type HouseManagerWriteSource,
 } from '@/bootstrap/editor-house-port-adapters.ts';
+import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
+import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
+import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
+import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
-export const editorHouseReadPort = createHouseManagerReadPort(houseManager);
-export const editorHouseWritePort = createHouseManagerWritePort(houseManager);
-export const editorHouseRuntimePort = createHouseManagerRuntimePort(houseManager);
+type EditorHousePortsSource =
+  & HouseManagerReadSource
+  & HouseManagerWriteSource
+  & HouseManagerRuntimeSource
+  & HouseManagerStateSource;
 
-export const {
-  houseStatePort: editorHouseStatePort,
-  houseRuntimeSnapshotPort: editorHouseRuntimeSnapshotPort,
-} = createHouseManagerStatePorts(houseManager);
+export interface EditorHousePorts {
+  houseReadPort: HouseReadPort;
+  houseWritePort: HouseWritePort;
+  houseRuntimePort: HouseRuntimePort<CanvasGroup>;
+  houseStatePort: HouseStatePort;
+  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
+  house3DProjectionPort: House3DProjectionPort;
+}
 
-export const editorHouse3DProjectionPort = createHouse3DProjectionPort(() => houseManager.getHouse());
+export function createEditorHousePorts(source: EditorHousePortsSource): EditorHousePorts {
+  const {
+    houseStatePort,
+    houseRuntimeSnapshotPort,
+  } = createHouseManagerStatePorts(source);
+
+  return {
+    houseReadPort: createHouseManagerReadPort(source),
+    houseWritePort: createHouseManagerWritePort(source),
+    houseRuntimePort: createHouseManagerRuntimePort(source),
+    houseStatePort,
+    houseRuntimeSnapshotPort,
+    house3DProjectionPort: createHouse3DProjectionPort(() => source.getHouse()),
+  };
+}
+
+export function createDefaultEditorHousePorts(): EditorHousePorts {
+  return createEditorHousePorts(houseManager);
+}

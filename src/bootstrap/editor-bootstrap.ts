@@ -7,14 +7,7 @@ import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
-import {
-  editorHouse3DProjectionPort,
-  editorHouseReadPort,
-  editorHouseRuntimePort,
-  editorHouseRuntimeSnapshotPort,
-  editorHouseStatePort,
-  editorHouseWritePort,
-} from '@/bootstrap/editor-house-ports.ts';
+import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -46,13 +39,10 @@ export function createEditorStore(): EditorStore {
  * passa a depender deste ponto de composição em vez de importar singletons.
  */
 export function createEditorPorts(): EditorPorts {
+  const housePorts = createDefaultEditorHousePorts();
+
   return {
-    houseReadPort: editorHouseReadPort,
-    houseWritePort: editorHouseWritePort,
-    houseRuntimePort: editorHouseRuntimePort,
-    houseStatePort: editorHouseStatePort,
-    houseRuntimeSnapshotPort: editorHouseRuntimeSnapshotPort,
-    house3DProjectionPort: editorHouse3DProjectionPort,
+    ...housePorts,
   };
 }
 

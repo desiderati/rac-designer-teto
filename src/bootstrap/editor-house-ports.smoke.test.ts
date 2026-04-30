@@ -1,11 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {
-  editorHouseReadPort,
-  editorHouseRuntimePort,
-  editorHouseRuntimeSnapshotPort,
-  editorHouseStatePort,
-  editorHouseWritePort,
-} from '@/bootstrap/editor-house-ports.ts';
+import {createDefaultEditorHousePorts, type EditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
 
 function createCanvasPort() {
   return {
@@ -18,50 +12,53 @@ function createCanvasPort() {
 }
 
 describe('editor house ports', () => {
+  let ports: EditorHousePorts;
+
   beforeEach(() => {
-    editorHouseWritePort.resetHouse();
+    ports = createDefaultEditorHousePorts();
+    ports.houseWritePort.resetHouse();
   });
 
   it('aplica dados de setup pela porta composta', () => {
-    editorHouseWritePort.applyHouseSetup({
+    ports.houseWritePort.applyHouseSetup({
       familyName: 'Familia teste',
       selectedPilotiHeights: [1, 1.5, 2],
     });
 
-    expect(editorHouseReadPort.getFamilyName()).toBe('Familia teste');
-    expect([...editorHouseReadPort.getSelectedPilotiHeights()]).toEqual([1, 1.5, 2]);
+    expect(ports.houseReadPort.getFamilyName()).toBe('Familia teste');
+    expect([...ports.houseReadPort.getSelectedPilotiHeights()]).toEqual([1, 1.5, 2]);
   });
 
   it('normaliza terreno pela porta de escrita', () => {
-    const normalized = editorHouseWritePort.setTerrainType(99);
+    const normalized = ports.houseWritePort.setTerrainType(99);
 
     expect(normalized).toBe(5);
-    expect(editorHouseReadPort.getTerrainType()).toBe(5);
+    expect(ports.houseReadPort.getTerrainType()).toBe(5);
   });
 
   it('expoe leituras de vistas pela porta de leitura', () => {
-    editorHouseWritePort.setHouseType('tipo6');
+    ports.houseWritePort.setHouseType('tipo6');
 
-    expect(editorHouseReadPort.getCurrentHouseType()).toBe('tipo6');
-    expect(editorHouseReadPort.isViewAtLimit('front')).toBe(false);
-    expect(editorHouseReadPort.getAvailableSides('front')).toEqual(['top', 'bottom']);
+    expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');
+    expect(ports.houseReadPort.isViewAtLimit('front')).toBe(false);
+    expect(ports.houseReadPort.getAvailableSides('front')).toEqual(['top', 'bottom']);
   });
 
   it('inicializa o runtime da casa por porta dedicada', () => {
-    editorHouseRuntimePort.initializeCanvas(createCanvasPort());
+    ports.houseRuntimePort.initializeCanvas(createCanvasPort());
 
-    expect(editorHouseRuntimeSnapshotPort.getRuntimeSnapshot()).not.toBeNull();
+    expect(ports.houseRuntimeSnapshotPort.getRuntimeSnapshot()).not.toBeNull();
   });
 
   it('emite alterações de estado sem expor o singleton à UI', () => {
     const listener = vi.fn();
-    const unsubscribe = editorHouseStatePort.subscribe(listener);
+    const unsubscribe = ports.houseStatePort.subscribe(listener);
 
-    editorHouseWritePort.setHouseType('tipo6');
+    ports.houseWritePort.setHouseType('tipo6');
 
     expect(listener).toHaveBeenCalled();
-    expect(editorHouseStatePort.getStateSnapshot()?.houseType).toBe('tipo6');
-    expect(editorHouseRuntimeSnapshotPort.getRuntimeSnapshot()?.houseType).toBe('tipo6');
+    expect(ports.houseStatePort.getStateSnapshot()?.houseType).toBe('tipo6');
+    expect(ports.houseRuntimeSnapshotPort.getRuntimeSnapshot()?.houseType).toBe('tipo6');
     unsubscribe();
   });
 });
