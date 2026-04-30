@@ -172,19 +172,15 @@ Before non-trivial analysis or execution:
 4. Check relevant docs referenced from `OBSIDIAN.md` when that file exists
 5. Check recent `.agents/changelogs/` entries when they help explain current constraints, previous attempts,
    or pending issues
-6. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous defect history or bug
-   continuity
+6. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous defect history or bug continuity
    matters
-7. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident history or case continuity
-   matters
+7. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident history or case continuity matters
 8. Check relevant local `.agents/code-reviews/YYYY-MM/*.code-review.md` records when previous review history or review
    continuity matters
-9. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous refactoring history or
-   front
+9. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous refactoring history or front
    continuity matters
-10. If continuing a task with an active or otherwise relevant `.agents/work-items/YYYY-MM/*.work-item.md`, read it
-    before
-    proceeding
+10. If continuing a task with an active or otherwise relevant `.agents/work-items/YYYY-MM/*.work-item.md`, read it before
+   proceeding
 11. Only then proceed to analysis, planning, or documentation review
 
 Load `.agents/examples/*.example.md` only on demand. They are calibration aids, not mandatory initial context.
@@ -239,8 +235,7 @@ changelog, do not open a work-item by default.
   `ativo`, `bloqueado`, `interrompido`, `concluído`, or `cancelado`
 - Keep entries concise: store canonical summaries and references, not long pasted outputs, raw logs, or large diffs
 - When a work-item needs local files such as screenshots, exports, logs, or diffs, store them in a sidecar directory
-  `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note, not in a shared `.agents/assets/`
-  folder
+  `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note, not in a shared `.agents/assets/` folder
 - When the work front benefits from structured helper artifacts such as task decomposition, validation summaries, or
   review references, keep them as derived files in that same sidecar and treat the work-item as the primary
   source of truth
@@ -300,10 +295,10 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
 - The template is located at `.agents/templates/changelog.template.md`.
 - A daily changelog entry is mandatory in the same session whenever any of these
   happened:
-    - incident diagnosis or operational investigation with non-trivial findings
-    - remote mutation, publish, deploy, restart, activation, import, or rollback
-    - security-relevant decision, drift discovery, or runtime correction
-    - durable documentation updates based on newly established operational facts
+  - incident diagnosis or operational investigation with non-trivial findings
+  - remote mutation, publish, deploy, restart, activation, import, or rollback
+  - security-relevant decision, drift discovery, or runtime correction
+  - durable documentation updates based on newly established operational facts
 - When a session crosses one of the mandatory triggers above, do not postpone
   changelog creation to a vague end-of-session intent. Create or update the
   day's entry at the first stable checkpoint after the relevant facts are known

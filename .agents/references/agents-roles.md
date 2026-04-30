@@ -22,6 +22,7 @@ a downstream specialist delegate.
 | `agents-usage`           | Direct `@Agents Usage` helper for local custom-agent orchestration policy | `.agents/references/agents-usage.md`, `.agents/references/agents-roles.md`                                                                | none                                                                                                                                             |
 | `league-of-agents`       | Direct `@League of Agents` team-mode orchestration entrypoint             | `.agents/prompts/league-of-agents.prompt.md`, `.agents/references/agents-usage.md`, `.agents/references/agents-roles.md`                  | orchestration only; no specialist ownership                                                                                                      |
 | `code-reviewer`          | Code review, regression risk, missing tests, review reports               | `$code-review`                                                                                                                            | `.agents/code-reviews/` and work-item sidecars only                                                                                              |
+| `ui-reviewer`            | UI review, visual QA, accessibility-oriented interface critique           | `$frontend-design`, `$frontend-development`                                                                                               | `.agents/code-reviews/` and work-item sidecars only                                                                                              |
 | `code-explorer`          | Codebase exploration, execution tracing, architecture overview inputs     | `$documentation`                                                                                                                          | chat by default; work-item sidecar only when explicitly delegated                                                                                |
 | `documentation-reviewer` | Read-only documentation review                                            | `$documentation`                                                                                                                          | none                                                                                                                                             |
 | `documentation-curator`  | Bounded documentation curation, consolidation, and repair                 | `$documentation`                                                                                                                          | documentation files explicitly in scope                                                                                                          |
@@ -78,6 +79,9 @@ a downstream specialist delegate.
 - Ask `security-advisor` to run `$security-scan` for broad triage and
   `$security-review` for sensitive flows, then delegate fixes to
   `software-developer` only after findings are consolidated.
+- Ask `ui-reviewer` to review a screen or flow with `$frontend-design` after a
+  frontend implementation is available, then ask `software-developer` to address
+  only approved findings.
 
 ## Consolidation Rule
 

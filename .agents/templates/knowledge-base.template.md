@@ -20,16 +20,16 @@ Descrever onde o problema, decisão ou padrão apareceu.
 ## Proveniência local e recorte
 
 - Artefatos de origem:
-    - changelog(s) relevante(s)
-    - work-item correlato, quando existir
-    - sidecar `.work-item.assets/`, quando existir
-    - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link
+  - changelog(s) relevante(s)
+  - work-item correlato, quando existir
+  - sidecar `.work-item.assets/`, quando existir
+  - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link
 - Fase executada:
-    - descrever a etapa realmente concluída
+  - descrever a etapa realmente concluída
 - Hipótese invalidada:
-    - descrever a hipótese descartada ou refutada
+  - descrever a hipótese descartada ou refutada
 - Desenho futuro ou follow-up:
-    - descrever o que ficou como próximo passo, sem misturar com a fase já executada
+  - descrever o que ficou como próximo passo, sem misturar com a fase já executada
 
 ## Sintomas ou sinais
 

@@ -12,6 +12,7 @@ When a repository uses Graphify:
 
 ---
 
+
 ## Documentation update rules
 
 - Follow the instructions in `.agents/prompts/readme.prompt.md`

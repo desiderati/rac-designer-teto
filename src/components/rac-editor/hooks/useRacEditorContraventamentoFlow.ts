@@ -2,7 +2,7 @@ import {Dispatch, SetStateAction, useState} from 'react';
 import type {ContraventamentoCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {ContraventamentoOrigin, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 
-interface UseContraventamentoFlowResult {
+interface UseRacEditorContraventamentoFlowResult {
   isContraventamentoMode: boolean;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
   selectedContraventamento: ContraventamentoCanvasSelection | null;
@@ -14,7 +14,7 @@ interface UseContraventamentoFlowResult {
   resetContraventamentoFlow: () => void;
 }
 
-export function useContraventamentoFlow(): UseContraventamentoFlowResult {
+export function useRacEditorContraventamentoFlow(): UseRacEditorContraventamentoFlowResult {
 
   const [isContraventamentoMode, setIsContraventamentoMode] = useState(false);
   const [selectedContraventamento, setSelectedContraventamento] =

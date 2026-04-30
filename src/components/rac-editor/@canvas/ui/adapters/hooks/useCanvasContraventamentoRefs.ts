@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas, FabricObject} from 'fabric';
 import {PILOTI_MASTER_STYLE, PILOTI_STYLE} from '@/shared/config.ts';
 import {getCanvasGroupObjects, isCanvasGroup} from '@/components/rac-editor/@canvas/lib';
 
-interface ContraventamentoRefs {
+interface CanvasContraventamentoRefs {
   isContraventamentoMode: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
   onContraventamentoPilotiClick?: (col: number, row: number) => void;
@@ -18,7 +18,7 @@ interface UseCanvasContraventamentoArgs {
   onContraventamentoCancel?: () => void;
 }
 
-export function useContraventamentoRefs({
+export function useCanvasContraventamentoRefs({
   fabricCanvasRef,
   isContraventamentoMode,
   isPilotiEligibleForContraventamento,
@@ -27,7 +27,7 @@ export function useContraventamentoRefs({
 }: UseCanvasContraventamentoArgs) {
 
   // Objeto ref único que mantém todas as props atualizadas sem re-render.
-  const refs = useRef<ContraventamentoRefs>({
+  const refs = useRef<CanvasContraventamentoRefs>({
     isContraventamentoMode,
     isPilotiEligibleForContraventamento,
     onContraventamentoPilotiClick,

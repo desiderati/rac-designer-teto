@@ -7,7 +7,7 @@ import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useCanvasClipboard} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasClipboard.ts';
 import {useCanvasContainerLifecycle} from '@/components/rac-editor/@canvas/hooks/useCanvasContainerLifecycle.ts';
-import {useContraventamentoRefs} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useContraventamentoRefs.ts';
+import {useCanvasContraventamentoRefs} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasContraventamentoRefs.ts';
 import {useCanvasFabricSetup} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasFabricSetup.ts';
 import {useCanvasHistory} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts';
 import {useCanvasMinimapObjects} from '@/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasMinimapObjects.ts';
@@ -137,7 +137,7 @@ export const Canvas =
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,
-      } = useContraventamentoRefs({
+      } = useCanvasContraventamentoRefs({
         fabricCanvasRef,
         isContraventamentoMode,
         isPilotiEligibleForContraventamento,

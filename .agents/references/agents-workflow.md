@@ -24,8 +24,7 @@ Purpose:
 Boundary note:
 
 - this prompt is the local diagnostic entrypoint of the repository
-- if the project persists bug analyses beyond the current session, versioned case records belong in
-  `.agents/bug-analysis/`
+- if the project persists bug analyses beyond the current session, versioned case records belong in `.agents/bug-analysis/`
 - use `.agents/templates/bug-analysis.template.md` when materializing those versioned records
 - do not confuse the prompt with the versioned artifact store
 
@@ -68,8 +67,7 @@ Do not use when:
 
 Purpose:
 
-- decide between `não criar ADR`, `criar ADR proposto`, `criar ADR aceito`, `atualizar ADR existente`, or
-  `consultar ADR existente`
+- decide between `não criar ADR`, `criar ADR proposto`, `criar ADR aceito`, `atualizar ADR existente`, or `consultar ADR existente`
 - use `.agents/templates/architecture-decision.template.md` and the repository ADR convention
 - prevent ADR duplication by scanning existing `docs/architecture-decisions/` records first
 - support both pre-implementation ADRs and post-execution promotion from refactoring or other evidence
@@ -275,8 +273,7 @@ investigation, local artifacts, or material skip/deviation tracking.
 ### For a feature, migration, or refactor
 
 1. `solution-design.prompt.md` when there are multiple viable approaches
-2. `architecture-decision.prompt.md` when the design should be recorded before implementation or promoted after
-   execution
+2. `architecture-decision.prompt.md` when the design should be recorded before implementation or promoted after execution
 3. `implementation-planning.prompt.md`
 4. `test-driven.prompt.md` to specify behavior before implementation
 5. `subagent-execution.prompt.md` only if justified

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Installed from `agents-bootstrap` skill version `0.25.0-beta`.
+Installed from `agents-bootstrap` skill version `0.26.0-beta`.
 
 ## Context
 

@@ -15,7 +15,7 @@ import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/use
 import {useRacEditorObjectEditorActions} from '@/components/rac-editor/hooks/useRacEditorObjectEditorActions.ts';
 import {useRacEditorDocumentActions} from '@/components/rac-editor/hooks/useRacEditorDocumentActions.ts';
 import {useRacEditorMenuController} from '@/components/rac-editor/@menus/hooks/useRacEditorMenuController.ts';
-import {useContraventamentoController} from '@/components/rac-editor/hooks/useContraventamentoController.ts';
+import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useCanvasController} from '@/components/rac-editor/@canvas/hooks/useCanvasController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useRacEditorTutorialController} from '@/components/rac-editor/hooks/useRacEditorTutorialController.ts';
@@ -234,7 +234,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     contraventamentoEditorState,
     handleContraventamentoSelect,
     resetContraventamentoFlow,
-  } = useContraventamentoController({
+  } = useRacEditorContraventamentoController({
     canvasRef,
     houseVersion,
     pilotiSelection,

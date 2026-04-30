@@ -39,6 +39,15 @@ Pode gerar relatório em `.agents/code-reviews/`, mas não corrija os achados.
 Priorize bugs, regressões, falta de testes e drift de contrato.
 ```
 
+## `ui-reviewer`
+
+```text
+Use o subagente `ui-reviewer` para revisar esta interface.
+Use `$frontend-design` e, se necessário, `$frontend-development`.
+Pode gerar relatório em `.agents/code-reviews/`, mas não corrija os achados.
+Priorize tipo de interface, hierarquia, consistência visual, acessibilidade, responsividade e drift de design.
+```
+
 ## `code-explorer`
 
 ```text

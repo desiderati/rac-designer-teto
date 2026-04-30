@@ -12,7 +12,7 @@ import {
   WallCanvasSelection
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
-import {useContraventamentoEvents} from './useContraventamentoEvents.ts';
+import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {getSettings} from '@/infra/settings.ts';
 
@@ -109,7 +109,7 @@ export function useCanvasFabricSetup({
   };
 
   const {bindSelectionActions} = useCanvasSelectionActions();
-  const {bindContraventamentoEvents} = useContraventamentoEvents();
+  const {bindContraventamentoEvents} = useCanvasContraventamentoEvents();
   const {bindKeyboardShortcuts} = useCanvasKeyboardShortcuts();
   const {bindInlineEditorEvents} = useCanvasEditorEvents();
 

@@ -2,7 +2,7 @@ import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
-import {useContraventamentoFlow} from '@/components/rac-editor/hooks/useContraventamentoFlow.ts';
+import {useRacEditorContraventamentoFlow} from '@/components/rac-editor/hooks/useRacEditorContraventamentoFlow.ts';
 import {useContraventamento} from '@/components/rac-editor/@canvas/hooks/useCanvasContraventamento.ts';
 
 interface UseRacEditorContraventamentoControllerArgs {
@@ -18,7 +18,7 @@ interface UseRacEditorContraventamentoControllerArgs {
 /**
  * Encapsula o fluxo de contraventamento e entrega apenas handlers para o editor.
  */
-export function useContraventamentoController({
+export function useRacEditorContraventamentoController({
   canvasRef,
   houseVersion,
   pilotiSelection,
@@ -27,6 +27,7 @@ export function useContraventamentoController({
   setActiveSubmenu,
   setInfoMessage,
 }: UseRacEditorContraventamentoControllerArgs) {
+
   const {
     isContraventamentoMode,
     setIsContraventamentoMode,
@@ -37,7 +38,7 @@ export function useContraventamentoController({
     contraventamentoSide,
     setContraventamentoSide,
     resetContraventamentoFlow,
-  } = useContraventamentoFlow();
+  } = useRacEditorContraventamentoFlow();
 
   const {
     syncContraventamentoElevations,

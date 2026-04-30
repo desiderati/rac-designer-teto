@@ -3,7 +3,7 @@ import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
 import {CanvasObject, CanvasPointerPayload, isCanvasGroup, toCanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
-interface useContraventamentoEventsArgs {
+interface useCanvasContraventamentoEventsArgs {
   canvas: FabricCanvas;
   getEventPayload: (event: unknown) => CanvasPointerPayload;
   handlePilotiSelection: (subTarget: CanvasObject, target: CanvasObject) => void;
@@ -14,7 +14,7 @@ interface useContraventamentoEventsArgs {
   isAnyEditorOpen: () => boolean;
 }
 
-export function useContraventamentoEvents() {
+export function useCanvasContraventamentoEvents() {
 
   const bindContraventamentoEvents = useCallback(({
     canvas,
@@ -24,7 +24,7 @@ export function useContraventamentoEvents() {
     isPilotiEligibleForContraventamento,
     onContraventamentoCancel,
     isAnyEditorOpen,
-  }: useContraventamentoEventsArgs) => {
+  }: useCanvasContraventamentoEventsArgs) => {
 
     const setCanvasCursor = (cursor: string) => {
       if (!canvas.upperCanvasEl) return;
