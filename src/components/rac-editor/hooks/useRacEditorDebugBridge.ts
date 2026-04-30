@@ -1,5 +1,5 @@
 import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';

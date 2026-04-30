@@ -15,16 +15,19 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
+import type {RefObject} from 'react';
 import {HOUSE_3D_WALL_COLOR_OPTIONS} from '@/shared/config.ts';
 import {useHouse3DViewerModel} from '@/components/rac-editor/viewer3d/hooks/useHouse3DViewerModel.ts';
 import {useHouse3DViewerActions} from '@/components/rac-editor/viewer3d/hooks/useHouse3DViewerActions.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 
 interface House3DViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  canvasRef: RefObject<CanvasHandle | null>;
 }
 
-export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
+export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProps) {
   const {
     houseType,
     hasHouseViews,
@@ -54,6 +57,7 @@ export function House3DViewer({open, onOpenChange}: House3DViewerProps) {
     houseType,
     hasHouseViews,
     onOpenChange,
+    canvasRef,
   });
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import {RefObject, useEffect} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
@@ -13,7 +13,7 @@ export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitiali
   useEffect(() => {
     let tries = 0;
     const id = window.setInterval(() => {
-      const canvasPort = canvasRef.current?.createHouseManagerCanvasPort();
+      const canvasPort = canvasRef.current?.createCanvasHouseRuntimePort();
       if (canvasPort) {
         houseRuntimePort.initializeCanvas(canvasPort);
         window.clearInterval(id);

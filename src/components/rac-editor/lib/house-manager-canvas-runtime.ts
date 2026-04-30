@@ -1,5 +1,5 @@
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseManagerCanvasPort} from '@/components/rac-editor/canvas/store/HouseManagerCanvasPort.ts';
+import type {CanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ports/CanvasHouseRuntimePort.ts';
 import type {HousePiloti} from '@/shared/types/house.ts';
 
 export interface HouseManagerCanvasRebuildInput {
@@ -9,9 +9,9 @@ export interface HouseManagerCanvasRebuildInput {
 }
 
 export class HouseManagerCanvasRuntime {
-  private canvas: HouseManagerCanvasPort | null = null;
+  private canvas: CanvasHouseRuntimePort | null = null;
 
-  initialize(canvas: HouseManagerCanvasPort): void {
+  initialize(canvas: CanvasHouseRuntimePort): void {
     this.canvas = canvas;
   }
 
@@ -34,9 +34,5 @@ export class HouseManagerCanvasRuntime {
       pilotisFromCanvas: this.canvas.readPilotis(params.currentPilotis),
       terrainTypeFromCanvas: this.canvas.resolveTerrainType(params.fallbackTerrainType),
     };
-  }
-
-  async insert3DSnapshot(dataUrl: string): Promise<boolean> {
-    return this.canvas?.insert3DSnapshot(dataUrl) ?? false;
   }
 }

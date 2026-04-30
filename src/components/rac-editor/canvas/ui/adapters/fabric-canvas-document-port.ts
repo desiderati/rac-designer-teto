@@ -1,6 +1,6 @@
 import type {Canvas as FabricCanvas} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/canvas/lib';
-import type {CanvasDocumentPort} from '@/components/rac-editor/canvas/store/CanvasDocumentPort.ts';
+import type {CanvasDocumentPort} from '@/components/rac-editor/canvas/ports/CanvasDocumentPort.ts';
 
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {

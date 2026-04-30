@@ -57,10 +57,22 @@ function resolveTipo3OpenSide(sideMappings: Record<HouseSide, HouseViewType | nu
 
 function collectElevationViews(house: HouseState<CanvasGroup>) {
   return [
-    ...house.views.front.map((view) => ({viewType: 'front' as HouseViewType, group: view.group})),
-    ...house.views.back.map((view) => ({viewType: 'back' as HouseViewType, group: view.group})),
-    ...house.views.side1.map((view) => ({viewType: 'side1' as HouseViewType, group: view.group})),
-    ...house.views.side2.map((view) => ({viewType: 'side2' as HouseViewType, group: view.group})),
+    ...house.views.front.map(
+      (view) =>
+        ({viewType: 'front' as HouseViewType, group: view.group})
+    ),
+    ...house.views.back.map(
+      (view) =>
+        ({viewType: 'back' as HouseViewType, group: view.group})
+    ),
+    ...house.views.side1.map(
+      (view) =>
+        ({viewType: 'side1' as HouseViewType, group: view.group})
+    ),
+    ...house.views.side2.map(
+      (view) =>
+        ({viewType: 'side2' as HouseViewType, group: view.group})
+    ),
   ];
 }
 

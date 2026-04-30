@@ -1,6 +1,6 @@
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
 /**
  * Adapter transitório de escrita sobre o `houseManager`.
@@ -26,35 +26,16 @@ export const houseManagerWritePort: HouseWritePort<CanvasGroup> = {
 
   setTerrainType: (terrainType) => houseManager.setTerrainType(terrainType),
 
-  insert3DSnapshotOnCanvas: (dataUrl) => houseManager.insert3DSnapshotOnCanvas(dataUrl),
-
-  canDeleteTopView: () => houseManager.canDeletePlant(),
-
   removeView: (group) => houseManager.removeView(group),
 
   registerView: (viewType, group, side) => houseManager.registerView(viewType, group, side),
 
-  isViewAtLimit: (viewType) => houseManager.isViewAtLimit(viewType),
-
-  getCurrentHouseType: () => houseManager.getHouseType(),
-
-  getPreAssignedSides: (viewType) => houseManager.getPreAssignedSides(viewType),
-
-  getAvailableSides: (viewType) => houseManager.getAvailableSides(viewType),
-
-  hasPreAssignedSides: () => houseManager.hasPreAssignedSides(),
-
   autoAssignAllSides: (initialViewType, initialSide) => houseManager.autoAssignAllSides(initialViewType, initialSide),
 
-  updatePiloti: (pilotiId, pilotiData) => houseManager.updatePiloti(pilotiId, pilotiData),
+  updatePiloti: (pilotiId, pilotiData) => {
+    houseManager.updatePiloti(pilotiId, pilotiData);
+    return houseManager.getPilotiData(pilotiId);
+  },
 
   calculateAndApplyRecommendedHeights: () => houseManager.calculateAndApplyRecommendedHeights(),
-
-  getStackedViewGroups: (viewType, side) => {
-    const house = houseManager.getHouse();
-    return {
-      topGroup: house?.views.top?.[0]?.group ?? null,
-      viewGroup: house?.views[viewType]?.find((view) => view.side === side)?.group ?? null,
-    };
-  },
 };

@@ -1,7 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {houseManager} from '@/components/rac-editor/lib/house-manager.ts';
-import {createHouseManagerCanvasPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-house-manager-canvas-port.ts';
-import {FabricImage} from 'fabric';
+import {createCanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 type MockObject = {
@@ -52,7 +51,7 @@ function createMockCanvas(groups: Array<Record<string, unknown>>) {
 }
 
 function initializeHouseManagerCanvas(canvas: any) {
-  houseManager.initialize(createHouseManagerCanvasPort(canvas));
+  houseManager.initialize(createCanvasHouseRuntimePort(canvas));
 }
 
 describe('house-manager.ts', () => {
@@ -247,76 +246,6 @@ describe('house-manager.ts', () => {
     const expectedBottomLeft = -expectedBodyWidth / 2 + expectedDoorCenter;
 
     expect(topMarkerBottom.left).toBe(expectedBottomLeft);
-  });
-
-  it('inserts 3D snapshot on canvas with centered position and bounded scale', async () => {
-    const image = createMockObject({
-      width: 2000,
-      height: 1000,
-      setControlsVisibility: vi.fn(),
-    });
-    const setSpy = vi.spyOn(image as any, 'set');
-    const fromUrlSpy = vi.spyOn(FabricImage, 'fromURL').mockResolvedValue(image as any);
-
-    const canvas = {
-      getObjects: vi.fn(() => []),
-      getVpCenter: vi.fn(() => ({x: 100, y: 120})),
-      getWidth: vi.fn(() => 1000),
-      getHeight: vi.fn(() => 800),
-      add: vi.fn(),
-      setActiveObject: vi.fn(),
-      requestRenderAll: vi.fn(),
-    };
-    initializeHouseManagerCanvas(canvas);
-
-    const inserted = await houseManager.insert3DSnapshotOnCanvas('data:image/png;base64,abc');
-
-    expect(inserted).toBe(true);
-    expect(fromUrlSpy).toHaveBeenCalled();
-    expect(setSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        left: 100,
-        top: 120,
-        scaleX: 0.225,
-        scaleY: 0.225,
-        lockRotation: true,
-      }),
-    );
-    expect((image as any).left).toBe(100);
-    expect((image as any).top).toBe(120);
-    expect((image as any).scaleX).toBe(0.225);
-    expect((image as any).scaleY).toBe(0.225);
-    expect((image as any).setControlsVisibility).toHaveBeenCalledWith({mtr: false});
-    expect(canvas.add).toHaveBeenCalledWith(image);
-    expect(canvas.setActiveObject).toHaveBeenCalledWith(image);
-    expect(canvas.requestRenderAll).toHaveBeenCalled();
-
-    fromUrlSpy.mockRestore();
-  });
-
-  it('returns false when 3D snapshot loading fails', async () => {
-    const fromUrlSpy = vi.spyOn(FabricImage, 'fromURL').mockRejectedValue(new Error('load failed'));
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-    });
-    const canvas = {
-      getObjects: vi.fn(() => []),
-      getVpCenter: vi.fn(() => ({x: 0, y: 0})),
-      getWidth: vi.fn(() => 1000),
-      getHeight: vi.fn(() => 1000),
-      add: vi.fn(),
-      setActiveObject: vi.fn(),
-      requestRenderAll: vi.fn(),
-    };
-    initializeHouseManagerCanvas(canvas);
-
-    const inserted = await houseManager.insert3DSnapshotOnCanvas('data:image/png;base64,abc');
-
-    expect(inserted).toBe(false);
-    expect(canvas.add).not.toHaveBeenCalled();
-    expect(canvas.setActiveObject).not.toHaveBeenCalled();
-
-    errorSpy.mockRestore();
-    fromUrlSpy.mockRestore();
   });
 
   it('aplica auto contraventamento ao inserir a vista superior da casa', () => {

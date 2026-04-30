@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import type {LinearCanvasSelection, WallCanvasSelection,} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+import type {LinearCanvasSelection, WallCanvasSelection,} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 
 export function useGenericObjectEditor() {

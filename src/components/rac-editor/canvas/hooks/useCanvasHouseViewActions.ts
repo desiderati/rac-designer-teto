@@ -16,8 +16,9 @@ import {HouseSideSelectorMode} from '@/components/rac-editor/modals/ui/selectors
 import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {
   calculateStackedViewPositions,
   resolveHouseViewInsertion,
@@ -29,6 +30,7 @@ interface UseCanvasHouseViewActionsArgs {
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => void;
   showPilotiTutorialIfNeeded: (house: CanvasGroup) => void;
+  houseReadPort: HouseReadPort<CanvasGroup>;
   houseWritePort: HouseWritePort<CanvasGroup>;
   pendingViewType: HouseViewType | null;
   setPendingViewType: Dispatch<SetStateAction<HouseViewType | null>>;
@@ -49,6 +51,7 @@ export function useCanvasHouseViewActions({
   closeAllMenus,
   addObjectToCanvas,
   showPilotiTutorialIfNeeded,
+  houseReadPort,
   houseWritePort,
   pendingViewType,
   setPendingViewType,
@@ -80,7 +83,7 @@ export function useCanvasHouseViewActions({
         showPilotiTutorialIfNeeded(house);
       }
 
-      const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
+      const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));
     };
 
@@ -88,18 +91,18 @@ export function useCanvasHouseViewActions({
   const requestAddView =
     (viewType: HouseViewType) => {
 
-      const slots = houseWritePort.getPreAssignedSides(viewType);
-      const availableSides = houseWritePort.getAvailableSides(viewType);
+      const slots = houseReadPort.getPreAssignedSides(viewType);
+      const availableSides = houseReadPort.getAvailableSides(viewType);
       const decision = resolveHouseViewInsertion({
         viewType,
-        isAtLimit: houseWritePort.isViewAtLimit(viewType),
+        isAtLimit: houseReadPort.isViewAtLimit(viewType),
         preAssignedSides: slots,
         availableSides,
       });
 
       switch (decision.type) {
         case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByViewLimit: {
-          const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
+          const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
           toast.error(TOAST_MESSAGES.houseViewLimitReached(label));
           return;
         }
@@ -109,7 +112,7 @@ export function useCanvasHouseViewActions({
           return;
 
         case HOUSE_VIEW_INSERTION_DECISION_TYPES.blockedByNoFreeInstanceSlots: {
-          const label = getViewLabelForHouseType(viewType, houseWritePort.getCurrentHouseType());
+          const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
           toast.error(TOAST_MESSAGES.houseViewAllInstancesAlreadyOnCanvas(label));
           return;
         }
@@ -142,7 +145,7 @@ export function useCanvasHouseViewActions({
     if (
       shouldTransitionToNivelDefinition({
         sideSelectorMode,
-        hasPreAssignedSides: houseWritePort.hasPreAssignedSides(),
+        hasPreAssignedSides: houseReadPort.hasPreAssignedSides(),
       })
     ) {
       // Initial positioning - open NivelDefinitionEditor instead of adding immediately
@@ -193,7 +196,7 @@ export function useCanvasHouseViewActions({
         if (canvasRef.current) {
           setTimeout(() => {
             const {topGroup: plantGroup, viewGroup} =
-              houseWritePort.getStackedViewGroups(viewType, side ?? undefined);
+              houseReadPort.getStackedViewGroups(viewType, side ?? undefined);
 
             if (plantGroup && viewGroup) {
               const center = getVisibleCenter();
@@ -250,7 +253,7 @@ export function useCanvasHouseViewActions({
     if (
       shouldResetHouseTypeOnSideSelectorCancel({
         sideSelectorMode,
-        hasPreAssignedSides: houseWritePort.hasPreAssignedSides(),
+        hasPreAssignedSides: houseReadPort.hasPreAssignedSides(),
       })
     ) {
       houseWritePort.setHouseType(null);

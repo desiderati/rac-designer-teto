@@ -39,11 +39,10 @@ Ele existe para evitar dois erros comuns:
   `CanvasToolsMenu`, menus superiores, tipos e configs locais.
 - `src/components/rac-editor/modals` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais.
 - `src/components/rac-editor/viewer3d` concentra a visualização 3D, incluindo UI, hooks, parsers, geometria e meshes.
-- `src/components/rac-editor/house` concentra Ports internos da feature ligados ao estado, runtime, leitura e escrita da
-  casa.
-- `src/components/rac-editor/piloti` concentra Ports internos específicos do editor de pilotis.
-- `src/components/rac-editor/store` fica reservado a contratos gerais do editor, especialmente interação e seleção do
-  canvas.
+- `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
+  leitura/escrita lógica.
+- `src/components/rac-editor/canvas/ports` concentra os Ports próprios da borda visual 2D.
+- `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - Tipos e objetos de Fabric devem permanecer no slice `canvas`, especialmente em `canvas/ui/adapters` e nos helpers
   visuais de `canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
 - Esse é o estado real atual e deve ser documentado como tal.
@@ -68,11 +67,11 @@ Ele existe para evitar dois erros comuns:
 ## Feature editor
 
 - O editor é tratado como miniaplicação interna com organização própria e responsabilidades claras.
-- `canvas/` concentra a borda visual 2D, com subdiretórios `hooks/`, `lib/`, `store/` e `ui/`.
+- `canvas/` concentra a borda visual 2D, com subdiretórios `hooks/`, `lib/`, `ports/`, `store/` e `ui/`.
 - `menus/` concentra menus e ferramentas de superfície, com subdiretórios `hooks/`, `lib/` e `ui/`.
 - `modals/` concentra dialogs, selectors, editors flutuantes e hooks próprios desse fluxo.
 - `viewer3d/` concentra a experiência 3D, com subdiretórios `hooks/`, `lib/` e `ui/`.
-- `house/` e `piloti/` concentram contratos internos específicos desses subdomínios da feature.
+- `ports/` concentra contratos internos de casa, vistas, pilotis e runtime que não pertencem exclusivamente ao canvas.
 - `ui/` concentra componentes de composição geral da tela e fluxos que ainda não justificam slice próprio.
 - `hooks/` concentra orquestração geral, leitura de estado e comandos que não pertencem diretamente a um slice mais
   específico.

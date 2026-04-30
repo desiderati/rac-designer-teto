@@ -10,7 +10,6 @@ function createCanvasPort() {
     getHouseGroups: vi.fn(() => []),
     readPilotis: vi.fn((pilotis) => pilotis),
     resolveTerrainType: vi.fn((terrainType) => terrainType),
-    insert3DSnapshot: vi.fn().mockResolvedValue(false),
   };
 }
 

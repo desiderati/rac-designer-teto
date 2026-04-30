@@ -1,5 +1,5 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/canvas/lib';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';

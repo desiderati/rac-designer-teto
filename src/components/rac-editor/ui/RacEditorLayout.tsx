@@ -5,7 +5,7 @@ import {RacEditorHouseTypeSelector} from '@/components/rac-editor/modals/ui/RacE
 import {RacEditorModalEditors} from '@/components/rac-editor/modals/ui/RacEditorModalEditors.tsx';
 import {RacEditorModals} from '@/components/rac-editor/modals/ui/RacEditorModals.tsx';
 import {RacEditorTutorial} from '@/components/rac-editor/ui/RacEditorTutorial.tsx';
-import {RacEditor3DViewerOverlay} from '@/components/rac-editor/viewer3d/ui/RacEditor3DViewerOverlay.tsx';
+import {House3DViewerOverlay} from '@/components/rac-editor/viewer3d/ui/House3DViewerOverlay.tsx';
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/canvas/ui/workspace-style.ts';
 
 type RacEditorMenusProps = ComponentProps<typeof RacEditorMenus>;
@@ -14,7 +14,7 @@ type HouseTypeSelectorProps = ComponentProps<typeof RacEditorHouseTypeSelector>;
 type ModalEditorsProps = ComponentProps<typeof RacEditorModalEditors>;
 type ModalsProps = ComponentProps<typeof RacEditorModals>;
 type TutorialProps = ComponentProps<typeof RacEditorTutorial>;
-type ViewerProps = ComponentProps<typeof RacEditor3DViewerOverlay>;
+type ViewerProps = ComponentProps<typeof House3DViewerOverlay>;
 
 export interface RacEditorLayoutProps {
   root: {
@@ -51,7 +51,7 @@ export function RacEditorLayout({
       <RacEditorModalEditors {...modalEditors}/>
       <RacEditorModals {...modals}/>
       <RacEditorTutorial {...tutorial}/>
-      <RacEditor3DViewerOverlay {...viewer}/>
+      <House3DViewerOverlay {...viewer}/>
     </div>
   );
 }

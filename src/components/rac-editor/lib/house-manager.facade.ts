@@ -9,7 +9,7 @@ import {
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import type {HouseManagerCanvasPort} from '@/components/rac-editor/canvas/store/HouseManagerCanvasPort.ts';
+import type {CanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ports/CanvasHouseRuntimePort.ts';
 import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
 import {HouseManagerCanvasRuntime} from '@/components/rac-editor/lib/house-manager-canvas-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
@@ -94,7 +94,7 @@ export class HouseManagerFacade {
     return this.notifier.subscribe(listener);
   }
 
-  initialize(canvas: HouseManagerCanvasPort): void {
+  initialize(canvas: CanvasHouseRuntimePort): void {
     this.canvasRuntime.initialize(canvas);
     this.reset();
   }
@@ -245,11 +245,6 @@ export class HouseManagerFacade {
   // Obtém todos os grupos registrados.
   getAllGroups(): CanvasGroup[] {
     return this.queries.getAllGroups();
-  }
-
-  // Insert a 3D viewer snapshot on the current canvas
-  async insert3DSnapshotOnCanvas(dataUrl: string): Promise<boolean> {
-    return this.canvasRuntime.insert3DSnapshot(dataUrl);
   }
 
   // Auto-assign all sides based on initial view positioning

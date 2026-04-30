@@ -16,21 +16,22 @@ import {useCanvasPointerInteractions} from '@/components/rac-editor/canvas/ui/ad
 import {useCanvasScreenProjection} from '@/components/rac-editor/canvas/hooks/useCanvasScreenProjection.ts';
 import {useCanvasHouseSelection} from '@/components/rac-editor/canvas/ui/adapters/hooks/useCanvasHouseSelection.ts';
 import {useCanvasViewport} from '@/components/rac-editor/canvas/hooks/useCanvasViewport.ts';
-import {createHouseManagerCanvasPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-house-manager-canvas-port.ts';
+import {createCanvasHouseRuntimePort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {CANVAS_WORKSPACE_STYLE} from './workspace-style.ts';
 import {createFabricCanvasDocumentPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-document-port.ts';
 import {createFabricCanvasDebugPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-debug-port.ts';
 import {createFabricCanvasCommandPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-command-port.ts';
+import {createFabricCanvasSnapshotPort} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-snapshot-port.ts';
 import type {FabricCanvasRuntime} from '@/components/rac-editor/canvas/ui/adapters/fabric-canvas-runtime.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import type {
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection,
-} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 
 interface CanvasProps {
   children?: ReactNode;
@@ -197,9 +198,9 @@ export const Canvas =
             : null;
         };
         return {
-        createHouseManagerCanvasPort: () => {
+        createCanvasHouseRuntimePort: () => {
           const canvas = fabricCanvasRef.current;
-          return canvas ? createHouseManagerCanvasPort(canvas) : null;
+          return canvas ? createCanvasHouseRuntimePort(canvas) : null;
         },
         createDocumentPort: () => {
           const canvas = fabricCanvasRef.current;
@@ -208,6 +209,10 @@ export const Canvas =
         createDebugPort: () => {
           const canvas = fabricCanvasRef.current;
           return canvas ? createFabricCanvasDebugPort(canvas) : null;
+        },
+        createSnapshotPort: () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas ? createFabricCanvasSnapshotPort(canvas) : null;
         },
         saveHistory,
         clearHistory,

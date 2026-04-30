@@ -138,7 +138,7 @@ O fake adapter prova que hooks/store podem ser testados sem Fabric.
 
 **Files:**
 - Modify: `src/components/rac-editor/lib/canvas/piloti-selection.ts`
-- Modify: `src/components/rac-editor/hooks/usePilotiActions.ts`
+- Modify: `src/components/rac-editor/hooks/usePilotiEditorActions.ts`
 - Modify: `src/components/rac-editor/hooks/usePilotiEditor.ts`
 - Modify: `src/components/rac-editor/ui/modals/editors/piloti/PilotiEditor.tsx`
 - Test: testes existentes de piloti e novos testes de contrato quando necessário.

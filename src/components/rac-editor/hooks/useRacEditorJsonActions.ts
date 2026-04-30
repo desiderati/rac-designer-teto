@@ -1,9 +1,9 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {emitHouseStoreChange} from '@/components/rac-editor/lib/house-store.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
-import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
 interface UseRacEditorJsonActionsArgs {
   canvasRef: RefObject<CanvasHandle | null>;

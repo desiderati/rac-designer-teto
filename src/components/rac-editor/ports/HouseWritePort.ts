@@ -1,0 +1,68 @@
+import type {HouseType} from '@/shared/types/house.ts';
+import type {HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import type {HouseViewWritePort} from '@/components/rac-editor/ports/HouseViewPort.ts';
+
+/**
+ * Dados necessários para iniciar ou atualizar a configuração humana da casa.
+ */
+export interface HouseSetup {
+  /** Nome da família associado ao projeto em edição. */
+  familyName: string;
+
+  /** Alturas de piloti habilitadas para essa família. */
+  selectedPilotiHeights: readonly number[];
+}
+
+/**
+ * Comandos de configuração da família e dos parâmetros iniciais da casa.
+ */
+export interface HouseSetupWritePort {
+  /** Aplica os dados iniciais de família e alturas disponíveis ao projeto. */
+  applyHouseSetup(setup: HouseSetup): void;
+
+  /** Renomeia a família associada ao projeto em edição. */
+  renameFamily(name: string): void;
+}
+
+/**
+ * Comandos de ciclo de vida da casa no editor.
+ */
+export interface HouseLifecycleWritePort {
+  /** Define o tipo de casa ativo, ou limpa a seleção quando o valor for `null`. */
+  setHouseType(type: HouseType): void;
+
+  /** Atualiza escadas automáticas conforme as configurações atuais. */
+  refreshAutoStairsForCurrentSettings(): void;
+
+  /** Reinicia o estado lógico da casa e suas projeções de runtime conhecidas. */
+  resetHouse(): void;
+
+  /** Reconstrói o estado lógico da casa a partir dos grupos presentes no canvas. */
+  rebuildHouseFromCanvas(): void;
+}
+
+/**
+ * Comandos ligados ao terreno da casa.
+ */
+export interface HouseTerrainWritePort {
+  /** Define o tipo de terreno e retorna o valor normalizado efetivamente aplicado. */
+  setTerrainType(terrainType: number): number;
+}
+
+/**
+ * Porta agregadora de escrita para os fluxos de casa usados pelo editor.
+ *
+ * Esta porta ainda pode ser implementada por adapters de infraestrutura, mas a
+ * UI passa a depender de comandos explícitos em vez de conhecer diretamente o
+ * `houseManager`.
+ *
+ * A divisão em subinterfaces é deliberada: ela deixa claro quais métodos são
+ * comandos e impede que consultas sejam herdadas por uma porta de escrita.
+ */
+export interface HouseWritePort<TGroup = unknown>
+  extends HouseSetupWritePort,
+    HouseLifecycleWritePort,
+    HouseTerrainWritePort,
+    HouseViewWritePort<TGroup>,
+    HousePilotiWritePort {
+}

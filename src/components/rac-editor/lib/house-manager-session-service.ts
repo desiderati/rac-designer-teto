@@ -12,7 +12,7 @@ interface HouseManagerSessionServiceArgs {
 }
 
 /**
- * Coordena metadados de sessao da casa e sincronizacao com o projeto ativo.
+ * Coordena metadados de sessão da casa e sincronização com o projeto ativo.
  */
 export class HouseManagerSessionService {
   private readonly metadata = new HouseManagerSessionMetadata();

@@ -1,7 +1,8 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/canvas/lib';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {toast} from 'sonner';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
@@ -11,7 +12,8 @@ interface UseCanvasActionsArgs {
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
-  houseWritePort: Pick<HouseWritePort<CanvasGroup>, 'canDeleteTopView' | 'removeView' | 'setHouseType'>;
+  houseReadPort: Pick<HouseReadPort<CanvasGroup>, 'canDeleteTopView'>;
+  houseWritePort: Pick<HouseWritePort<CanvasGroup>, 'removeView' | 'setHouseType'>;
   clearTutorialBalloon: () => void;
   onCloseSubmenus: () => void;
   onDismissPilotiTutorial: () => void;
@@ -22,6 +24,7 @@ export function useCanvasActions({
   isDrawing,
   setIsDrawing,
   setInfoMessage,
+  houseReadPort,
   houseWritePort,
   clearTutorialBalloon,
   onCloseSubmenus,
@@ -55,7 +58,7 @@ export function useCanvasActions({
 
   const handleDelete = useCallback(() => {
     const result = canvasRef.current?.deleteActiveObjects({
-      canDeleteTopView: () => houseWritePort.canDeleteTopView(),
+      canDeleteTopView: () => houseReadPort.canDeleteTopView(),
       onTopViewDeleted: () => houseWritePort.setHouseType(null),
       onHouseViewRemoved: (group) => {
         if (group) houseWritePort.removeView(group);
@@ -66,7 +69,7 @@ export function useCanvasActions({
     if (result === 'deleted') {
       setInfoMessage('Objeto excluído.');
     }
-  }, [canvasRef, houseWritePort, setInfoMessage]);
+  }, [canvasRef, houseReadPort, houseWritePort, setInfoMessage]);
 
   return {
     getVisibleCenter,

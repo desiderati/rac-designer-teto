@@ -1,10 +1,10 @@
 import {createContext, useContext} from 'react';
 import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
 import type {CanvasGroup} from '@/components/rac-editor/canvas/lib';
-import type {HouseReadPort} from '@/components/rac-editor/house/store/HouseReadPort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/house/store/HouseWritePort.ts';
-import type {HouseRuntimePort} from '@/components/rac-editor/house/store/HouseRuntimePort.ts';
-import type {HouseStatePort} from '@/components/rac-editor/house/store/HouseStatePort.ts';
+import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
+import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import {houseManagerReadPort} from '@/infra/house/house-manager-read-adapter.ts';
 import {houseManagerWritePort} from '@/infra/house/house-manager-write-adapter.ts';
 import {houseManagerRuntimePort} from '@/infra/house/house-manager-runtime-adapter.ts';
@@ -13,7 +13,7 @@ import {houseManagerStatePort} from '@/infra/house/house-manager-state-adapter.t
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
 export interface EditorPorts {
-  houseReadPort: HouseReadPort;
+  houseReadPort: HouseReadPort<CanvasGroup>;
   houseWritePort: HouseWritePort<CanvasGroup>;
   houseRuntimePort: HouseRuntimePort;
   houseStatePort: HouseStatePort;

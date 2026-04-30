@@ -204,6 +204,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
     viewer: {
       open: args.is3DViewerOpen,
       onOpenChange: args.setIs3DViewerOpen,
+      canvasRef: args.canvasRef,
     },
   };
 }

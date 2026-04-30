@@ -1,6 +1,6 @@
 import {RefObject, useCallback} from 'react';
-import type {LinearCanvasSelection} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {LinearCanvasSelection} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 import {
   GenericObjectEditorType
 } from '@/components/rac-editor/canvas/lib/generic-object-editor-strategy.ts';

@@ -4,12 +4,12 @@ import type {
   LinearCanvasSelection,
   TerrainCanvasSelection,
   WallCanvasSelection,
-} from '@/components/rac-editor/canvas/store/CanvasSelectionPort.ts';
+} from '@/components/rac-editor/canvas/ports/CanvasSelectionPort.ts';
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import {PilotiCanvasSelection} from '@/components/rac-editor/canvas/lib';
 import type {CanvasToolMode} from '@/components/rac-editor/menus/lib/menu-types.ts';
-import type {CanvasHandle} from '@/components/rac-editor/canvas/store/CanvasInteractionPort.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;

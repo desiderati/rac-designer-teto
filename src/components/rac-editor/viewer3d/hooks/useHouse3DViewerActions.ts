@@ -1,13 +1,15 @@
 import {useCallback, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 import {toast} from 'sonner';
-import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
+import type {CanvasHandle} from '@/components/rac-editor/canvas/ports/CanvasInteractionPort.ts';
 
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;
   hasHouseViews: boolean;
   onOpenChange: (open: boolean) => void;
+  canvasRef: RefObject<CanvasHandle | null>;
 }
 
 /**
@@ -20,8 +22,9 @@ export function useHouse3DViewerActions({
   houseType,
   hasHouseViews,
   onOpenChange,
+  canvasRef,
 }: UseHouse3DViewerActionsArgs) {
-  const {houseWritePort} = useEditorPorts();
+
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
@@ -66,7 +69,7 @@ export function useHouse3DViewerActions({
 
     try {
       const dataUrl = webglCanvas.toDataURL('image/png');
-      const inserted = await houseWritePort.insert3DSnapshotOnCanvas(dataUrl);
+      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(dataUrl) ?? false;
       if (inserted) {
         toast.success(TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {
@@ -76,7 +79,7 @@ export function useHouse3DViewerActions({
       console.error('[House3DViewer] Falha ao capturar screenshot 3D:', error);
       toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
     }
-  }, [hasHouseViews, houseType, houseWritePort]);
+  }, [canvasRef, hasHouseViews, houseType]);
 
   return {
     resetKey,

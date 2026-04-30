@@ -1,6 +1,6 @@
 import type {Canvas as FabricCanvas} from 'fabric';
 import {toCanvasGroup, toCanvasObject} from '@/components/rac-editor/canvas/lib';
-import type {CanvasDebugPort} from '@/components/rac-editor/canvas/store/CanvasDebugPort.ts';
+import type {CanvasDebugPort} from '@/components/rac-editor/canvas/ports/CanvasDebugPort.ts';
 
 export function createFabricCanvasDebugPort(canvas: FabricCanvas): CanvasDebugPort {
   return {
@@ -13,12 +13,14 @@ export function createFabricCanvasDebugPort(canvas: FabricCanvas): CanvasDebugPo
         y: rect.top + rect.height / 2,
       };
     },
+
     removeObject: (object) => {
       canvas.remove(object);
       canvas.discardActiveObject();
       canvas.requestRenderAll();
       return true;
     },
+
     selectObjectByMyType: (myType, fromEnd = true, triggerInlineEditor = false) => {
       const objects =
         canvas.getObjects().filter((object) => {
@@ -43,6 +45,7 @@ export function createFabricCanvasDebugPort(canvas: FabricCanvas): CanvasDebugPo
       canvas.requestRenderAll();
       return true;
     },
+
     getActiveObjectSummary: () => {
       const activeObject = toCanvasGroup(canvas.getActiveObject());
       if (!activeObject) return null;
@@ -63,6 +66,7 @@ export function createFabricCanvasDebugPort(canvas: FabricCanvas): CanvasDebugPo
         color: typeof color === 'string' ? color : null,
       };
     },
+
     getObjectsSummary: () =>
       canvas.getObjects().map((object) => {
         const canvasObject = toCanvasObject(object);

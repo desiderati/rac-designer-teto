@@ -47,6 +47,7 @@ export function CanvasOverlays({
   showTips,
   children,
 }: CanvasOverlaysProps) {
+
   const isZoomTutorialHighlighted = tutorialHighlight === 'zoom-minimap';
   return (
     <>

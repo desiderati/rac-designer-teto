@@ -27,8 +27,8 @@ describe('house-manager-write-adapter.ts', () => {
   it('exposes house view flow decisions without leaking the manager to UI hooks', () => {
     houseManagerWritePort.setHouseType('tipo6');
 
-    expect(houseManagerWritePort.getCurrentHouseType()).toBe('tipo6');
-    expect(houseManagerWritePort.isViewAtLimit('front')).toBe(false);
-    expect(houseManagerWritePort.getAvailableSides('front')).toEqual(['top', 'bottom']);
+    expect(houseManagerReadPort.getCurrentHouseType()).toBe('tipo6');
+    expect(houseManagerReadPort.isViewAtLimit('front')).toBe(false);
+    expect(houseManagerReadPort.getAvailableSides('front')).toEqual(['top', 'bottom']);
   });
 });

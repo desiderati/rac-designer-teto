@@ -29,7 +29,9 @@ function isSide(value: unknown): value is EditorContraventamentoSide {
  */
 export function isEditorContraventamentoDraft(value: unknown): value is EditorContraventamentoDraft {
   if (!isRecord(value)) return false;
+
   if ('group' in value || 'canvas' in value || 'target' in value) return false;
+
   const column = value.column;
   return isString(value.viewId)
     && isSide(value.side)
