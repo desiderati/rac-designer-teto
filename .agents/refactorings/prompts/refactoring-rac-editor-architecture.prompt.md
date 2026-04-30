@@ -63,12 +63,12 @@ heuristics_rejected: []
 
     Mapeamento entre legado e estrutura atual:
     - `src/components/rac-editor/RacEditor.tsx` legado -> `src/components/rac-editor/ui/RacEditor.tsx`
-    - `src/components/rac-editor/Canvas.tsx` legado -> `src/components/rac-editor/ui/canvas/Canvas.tsx`
-      e `src/components/rac-editor/hooks/canvas/*`
+    - `src/components/rac-editor/Canvas.tsx` legado -> `src/components/rac-editor/@canvas/ui/Canvas.tsx`
+      e `src/components/rac-editor/@canvas/hooks/*`
     - `src/components/rac-editor/House3DScene.tsx` e `House3DViewer.tsx` legados ->
-      `src/components/rac-editor/ui/3d/*`
+      `src/components/rac-editor/@viewer-3d/ui/*`
     - `src/lib/house-manager.ts` legado -> `src/components/rac-editor/lib/house-manager.ts`
-    - `src/lib/canvas-utils.ts` legado -> `src/components/rac-editor/lib/canvas/*`
+    - `src/lib/canvas-utils.ts` legado -> `src/components/rac-editor/@canvas/lib/*`
 
     Nunca trate os paths legados como alvo de edição direta; use-os apenas como proveniência.
   </context>
@@ -79,7 +79,7 @@ heuristics_rejected: []
     - A projeção 3D é derivada do estado atual da casa; não deve virar fonte paralela de verdade.
     - O código atual já expõe fronteiras em `src/domain`, `src/infra`, `src/shared` e
       `src/components/rac-editor`; a frente deve aprofundar essa direção, não desfazê-la.
-    - Reestruturações em `hooks/canvas/*`, `lib/canvas/*`, `lib/3d/*`, `house-manager` e
+    - Reestruturações em `@canvas/hooks/*`, `@canvas/lib/*`, `@viewer-3d/*`, `house-manager` e
       `ui/RacEditor.tsx` têm blast radius amplo e exigem baseline verificável.
   </runtime_constraints>
 
@@ -134,9 +134,9 @@ heuristics_rejected: []
 
     <phase name="Fase 1 - Análise e Diagnóstico">
       - reler este prompt, a execução durável da frente, changelog e heurísticas aplicáveis
-      - mapear hotspots atuais em `ui/RacEditor.tsx`, `ui/canvas/Canvas.tsx`,
-        `hooks/canvas/*`, `hooks/useContraventamento*`, `lib/house-manager.ts`,
-        `lib/canvas/*` e `ui/3d/*`
+      - mapear hotspots atuais em `ui/RacEditor.tsx`, `@canvas/ui/Canvas.tsx`,
+        `@canvas/hooks/*`, `hooks/useRacEditorContraventamento*`, `lib/house-manager.ts`,
+        `@canvas/lib/*` e `@viewer-3d/ui/*`
       - registrar o que já foi resolvido desde o legado e o que ainda permanece aberto
     </phase>
 

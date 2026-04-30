@@ -83,8 +83,8 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 - `src/domain/house/` concentra agregado, casos de uso e contratos do domínio
 - `src/infra/` implementa persistência em memória, storage local e integrações técnicas
-- `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `canvas/`,
-  `menus/`, `modals/`, `viewer3d/`, `house/`, `piloti/`, `ui/`, `hooks/`, `lib/` e `store/`
+- `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
+  `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`
 - `src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
   factories e helpers de projeção/renderização do canvas
 - `src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,

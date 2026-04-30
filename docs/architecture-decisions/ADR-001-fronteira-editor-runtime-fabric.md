@@ -159,7 +159,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 
 - blueprint ou schema relacionado:
   - `src/components/rac-editor/@canvas/store/types/editor-selection.ts`
-  - `src/components/rac-editor/@canvas/types/editor-ids.ts`
+  - `src/components/rac-editor/@canvas/store/types/editor-ids.ts`
 - prompts relacionados:
   - `.agents/prompts/solution-design.prompt.md`
   - `.agents/prompts/implementation-planning.prompt.md`

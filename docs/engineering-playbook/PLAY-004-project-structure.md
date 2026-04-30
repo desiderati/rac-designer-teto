@@ -24,7 +24,7 @@ Ele existe para evitar dois erros comuns:
 - `src/domain/house` concentra o agregado e os casos de uso puros do domínio da casa.
 - `src/infra` concentra persistência in-memory, storage local e settings.
 - `src/components/rac-editor` concentra a feature principal como miniaplicação interna, hoje organizada em slices
-  como `canvas/`, `menus/`, `modals/`, `viewer3d/`, `house/`, `piloti/`, `ui/`, `hooks/`, `lib/` e `store/`.
+  como `@canvas/`, `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`.
 - `src/components/ui` concentra componentes base compartilhados.
 - `src/shared` concentra tipos, constantes e utilitários compartilhados.
 - `src/pages`, `src/App.tsx` e `src/main.tsx` montam a aplicação e o roteamento.
@@ -43,8 +43,11 @@ Ele existe para evitar dois erros comuns:
   leitura/escrita lógica.
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
-- Tipos e objetos de Fabric devem permanecer no slice `canvas`, especialmente em `canvas/ui/adapters` e nos helpers
-  visuais de `canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
+- `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
+- `HouseRuntimeSnapshotPort<TGroup>` expõe o snapshot de runtime visual quando a UI precisa observar projeções do canvas.
+- `HouseVisualRuntimePort<TGroup>` representa as capacidades mínimas do runtime visual usadas pelo núcleo do editor.
+- Tipos e objetos de Fabric devem permanecer no slice `@canvas`, especialmente em `@canvas/ui/adapters` e nos helpers
+  visuais de `@canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
 - Esse é o estado real atual e deve ser documentado como tal.
 
 ## Domínio
@@ -67,10 +70,10 @@ Ele existe para evitar dois erros comuns:
 ## Feature editor
 
 - O editor é tratado como miniaplicação interna com organização própria e responsabilidades claras.
-- `canvas/` concentra a borda visual 2D, com subdiretórios `hooks/`, `lib/`, `ports/`, `store/` e `ui/`.
-- `menus/` concentra menus e ferramentas de superfície, com subdiretórios `hooks/`, `lib/` e `ui/`.
-- `modals/` concentra dialogs, selectors, editors flutuantes e hooks próprios desse fluxo.
-- `viewer3d/` concentra a experiência 3D, com subdiretórios `hooks/`, `lib/` e `ui/`.
+- `@canvas/` concentra a borda visual 2D, com subdiretórios `hooks/`, `lib/`, `ports/`, `store/` e `ui/`.
+- `@menus/` concentra menus e ferramentas de superfície, com subdiretórios `hooks/`, `lib/` e `ui/`.
+- `@modals/` concentra dialogs, selectors, editors flutuantes e hooks próprios desse fluxo.
+- `@viewer-3d/` concentra a experiência 3D, com subdiretórios `hooks/`, `lib/` e `ui/`.
 - `ports/` concentra contratos internos de casa, vistas, pilotis e runtime que não pertencem exclusivamente ao canvas.
 - `ui/` concentra componentes de composição geral da tela e fluxos que ainda não justificam slice próprio.
 - `hooks/` concentra orquestração geral, leitura de estado e comandos que não pertencem diretamente a um slice mais

@@ -37,7 +37,11 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
 - O estado compartilhado do editor é coordenado pela própria feature.
 - `houseManager` é o coordenador atual desse estado.
-- `useHouseStoreVersion` e `useHouseSnapshot` expõem reatividade com `useSyncExternalStore`.
+- `useHouseStoreVersion` expõe a versão reativa do estado compartilhado com `useSyncExternalStore`.
+- `useHouseStateSnapshot` expõe o estado lógico atual da casa, sem objetos de runtime visual.
+- `useHouseRuntimeSnapshot` expõe o snapshot de runtime visual quando o consumidor precisa da projeção do canvas.
+- `useHouseSnapshot` permanece como alias transitório de compatibilidade para runtime visual; código novo deve preferir
+  `useHouseStateSnapshot` ou `useHouseRuntimeSnapshot` conforme a intenção.
 - Estados modais, flags visuais e fluxos temporários continuam distribuídos em hooks locais da feature.
 - Não abra automaticamente uma store genérica na raiz.
 
@@ -46,6 +50,8 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 - Evite fontes paralelas de verdade para a mesma informação.
 - O estado estrutural da casa não deve ser duplicado em hooks locais desconectados do `houseManager`.
 - O canvas continua sendo projeção e mecanismo de interação, não a definição única do estado.
+- Leituras lógicas devem preferir `HouseStatePort` e `useHouseStateSnapshot`.
+- Leituras que dependem da projeção visual devem preferir `HouseRuntimeSnapshotPort` e `useHouseRuntimeSnapshot`.
 - Se um novo store surgir no futuro, ele deve substituir explicitamente a coordenação atual no mesmo change.
 
 ## Papel dos hooks na feature editor
