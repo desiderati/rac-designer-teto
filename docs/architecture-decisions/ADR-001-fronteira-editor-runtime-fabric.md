@@ -58,6 +58,14 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Domain valida regras e invariantes.
   - Canvas ports definem capacidades necessárias do canvas.
   - Fabric adapter/factories implementam o runtime visual.
+  - `HouseStatePort` entrega leitura lógica da casa, sem objetos de runtime visual.
+  - `HouseRuntimeSnapshotPort<TGroup>` entrega snapshots de runtime quando um consumidor precisa observar projeções
+    concretas do canvas.
+  - `HouseVisualRuntimePort<TGroup>` define as capacidades mínimas do runtime visual usadas pelo núcleo transitório do
+    editor.
+  - Adapters que conhecem `houseManager`, `@canvas` ou ports internos do editor pertencem a
+    `src/components/rac-editor/adapters`; `src/infra` fica reservado a persistência, storage e integrações técnicas
+    que não dependem da feature editor.
 - fluxo principal:
   - UI -> Command -> Store -> Domain/use-cases -> estado -> listeners -> CanvasRenderPort -> Fabric adapter.
   - Fabric event -> CanvasEventPort -> seleção serializável -> Command -> Store.
@@ -131,6 +139,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 
 - Aceitar migração incremental em vez de pureza imediata.
 - Manter Fabric dentro da feature editor durante a transição.
+- Manter adapters transitórios do `houseManager` dentro da feature editor enquanto o núcleo legado existir.
 - Criar ADR `proposed` antes de aceitar a decisão como estado final.
 
 ### 4.4. Riscos e mitigação

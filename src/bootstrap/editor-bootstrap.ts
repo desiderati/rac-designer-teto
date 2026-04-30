@@ -7,14 +7,14 @@ import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimeP
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
-import {houseManagerReadPort} from '@/infra/house/house-manager-read-adapter.ts';
-import {houseManagerWritePort} from '@/infra/house/house-manager-write-adapter.ts';
-import {houseManagerRuntimePort} from '@/infra/house/house-manager-runtime-adapter.ts';
+import {houseManagerReadPort} from '@/components/rac-editor/adapters/house-manager-read-adapter.ts';
+import {houseManagerWritePort} from '@/components/rac-editor/adapters/house-manager-write-adapter.ts';
+import {houseManagerRuntimePort} from '@/components/rac-editor/adapters/house-manager-runtime-adapter.ts';
 import {
   houseManagerRuntimeSnapshotPort,
   houseManagerStatePort,
-} from '@/infra/house/house-manager-state-adapter.ts';
-import {house3DProjectionPort} from '@/infra/house/house-3d-projection-adapter.ts';
+} from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
+import {house3DProjectionPort} from '@/components/rac-editor/adapters/house-3d-projection-adapter.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 

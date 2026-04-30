@@ -2,7 +2,7 @@ import {useSyncExternalStore} from 'react';
 import {
   houseManagerRuntimeSnapshotPort,
   houseManagerStatePort,
-} from '@/infra/house/house-manager-state-adapter.ts';
+} from '@/components/rac-editor/adapters/house-manager-state-adapter.ts';
 
 type Listener = () => void;
 

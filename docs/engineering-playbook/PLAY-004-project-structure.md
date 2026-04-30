@@ -41,6 +41,8 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/@viewer-3d` concentra a visualização 3D, incluindo UI, hooks, parsers, geometria e meshes.
 - `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica.
+- `src/components/rac-editor/adapters` concentra adapters transitórios da feature, inclusive os que encapsulam
+  `houseManager` enquanto a migração para ports/use cases não estiver completa.
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
@@ -66,6 +68,8 @@ Ele existe para evitar dois erros comuns:
 - `src/infra/storage` contém integrações com armazenamento local.
 - Novas integrações de persistência, storage local e browser APIs devem preferir `src/infra`.
 - Não mova Fabric para `src/infra` por generalização; a integração atual com canvas é borda da feature editor.
+- Adapters que conhecem `houseManager`, `@canvas` ou ports internos do RAC editor devem ficar em
+  `src/components/rac-editor/adapters`, não em `src/infra`.
 
 ## Feature editor
 
@@ -75,6 +79,8 @@ Ele existe para evitar dois erros comuns:
 - `@modals/` concentra dialogs, selectors, editors flutuantes e hooks próprios desse fluxo.
 - `@viewer-3d/` concentra a experiência 3D, com subdiretórios `hooks/`, `lib/` e `ui/`.
 - `ports/` concentra contratos internos de casa, vistas, pilotis e runtime que não pertencem exclusivamente ao canvas.
+- `adapters/` concentra implementações transitórias desses contratos quando elas dependem do `houseManager` legado ou
+  da composição local do editor.
 - `ui/` concentra componentes de composição geral da tela e fluxos que ainda não justificam slice próprio.
 - `hooks/` concentra orquestração geral, leitura de estado e comandos que não pertencem diretamente a um slice mais
   específico.
