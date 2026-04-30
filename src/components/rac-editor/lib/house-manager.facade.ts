@@ -19,6 +19,7 @@ import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-mana
 import {HouseManagerEffects} from '@/components/rac-editor/lib/house-manager-effects.ts';
 import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
+import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 
 export class HouseManagerFacade {
 
@@ -148,7 +149,6 @@ export class HouseManagerFacade {
     this.session.setSelectedPilotiHeights(heights);
   }
 
-  // Get/Set house type
   getHouseType(): HouseType {
     return this.queries.getHouseType();
   }
@@ -165,27 +165,22 @@ export class HouseManagerFacade {
     return this.commands.setTerrainType(terrainType);
   }
 
-  // Get max count for a view type based on current house type
   getMaxHouseViewCount(viewType: HouseViewType): number {
     return this.queries.getMaxHouseViewCount(viewType);
   }
 
-  // Get current count of a view type
   getHouseViewCount(viewType: HouseViewType): number {
     return this.queries.getHouseViewCount(viewType);
   }
 
-  // Check if can add more of this view type
   canAddView(viewType: HouseViewType): boolean {
     return this.queries.canAddView(viewType);
   }
 
-  // Check if plant (top view) can be deleted
   canDeletePlant(): boolean {
     return this.queries.canDeletePlant();
   }
 
-  // Check if any non-plant views exist
   hasOtherViews(): boolean {
     return this.queries.hasOtherViews();
   }
@@ -195,22 +190,7 @@ export class HouseManagerFacade {
   }
 
   getHouseState(): HouseState | null {
-    const house = this.queries.getHouse();
-    if (!house) return null;
-
-    return {
-      ...house,
-      pilotis: {...house.pilotis},
-      views: {
-        top: [...house.views.top],
-        front: [...house.views.front],
-        back: [...house.views.back],
-        side1: [...house.views.side1],
-        side2: [...house.views.side2],
-      },
-      sideMappings: {...house.sideMappings},
-      preAssignedSides: {...house.preAssignedSides},
-    };
+    return createHouseStateSnapshot(this.queries.getHouse());
   }
 
   private getHouseAggregate(): HouseAggregate | null {
@@ -231,7 +211,6 @@ export class HouseManagerFacade {
     }
   }
 
-  // Check if this specific view type has reached its maximum
   isViewAtLimit(viewType: HouseViewType): boolean {
     return this.queries.isViewAtLimit(viewType);
   }
@@ -240,27 +219,22 @@ export class HouseManagerFacade {
     return this.queries.getAvailableViews();
   }
 
-  // Get which sides are available for a given view type
   getAvailableSides(viewType: HouseViewType): HouseSide[] {
     return this.queries.getAvailableSides(viewType);
   }
 
-  // Register a view with its group and side
   registerView(viewType: HouseViewType, group: CanvasGroup, side?: HouseSide): void {
     this.commands.registerView(viewType, group, side);
   }
 
-  // Rebuild house view registry from current canvas groups (used after undo/import).
   rebuildFromCanvas(): void {
     this.commands.rebuildFromCanvas();
   }
 
-  // Remove a view (when deleted from canvas)
   removeView(group: CanvasGroup): void {
     this.commands.removeView(group);
   }
 
-  // Update piloti data and sync across all views
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {
     this.commands.updatePiloti(pilotiId, pilotiData);
   }
@@ -283,27 +257,22 @@ export class HouseManagerFacade {
     this.commands.calculateAndApplyRecommendedHeights();
   }
 
-  // Verifica se há alguma vista registrada.
   hasAnyView(): boolean {
     return this.queries.hasAnyView();
   }
 
-  // Obtém todos os grupos registrados.
   getAllGroups(): CanvasGroup[] {
     return this.queries.getAllGroups();
   }
 
-  // Auto-assign all sides based on initial view positioning
   autoAssignAllSides(_initialViewType: HouseViewType, initialSide: HouseSide): void {
     this.commands.autoAssignAllSides(initialSide);
   }
 
-  // Get pre-assigned slots for a view type
   getPreAssignedSides(viewType: HouseViewType): { label: string; side: HouseSide; onCanvas: boolean }[] {
     return this.queries.getPreAssignedSides(viewType);
   }
 
-  // Check if pre-assigned slots exist
   hasPreAssignedSides(): boolean {
     return this.queries.hasPreAssignedSides();
   }
