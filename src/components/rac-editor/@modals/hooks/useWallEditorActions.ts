@@ -1,10 +1,10 @@
 import {RefObject, useCallback} from 'react';
 import type {WallCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 
 interface UseWallEditorActionsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasEditorVisualHandle | null>;
   wallSelection: WallCanvasSelection | null;
   setInfoMessage: (message: string) => void;
 }

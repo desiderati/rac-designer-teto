@@ -1,5 +1,9 @@
-import {Dispatch, MutableRefObject, SetStateAction, useEffect} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import {Dispatch, RefObject, MutableRefObject, SetStateAction, useEffect} from 'react';
+import type {
+  CanvasDebugHandle,
+  CanvasScreenProjectionHandle,
+  CanvasViewportHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
@@ -8,7 +12,7 @@ import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorDebugBridgeParams {
-  canvasRef: MutableRefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasDebugHandle & CanvasScreenProjectionHandle & CanvasViewportHandle) | null>;
   showTipsRef: MutableRefObject<boolean>;
   showZoomControlsRef: MutableRefObject<boolean>;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;

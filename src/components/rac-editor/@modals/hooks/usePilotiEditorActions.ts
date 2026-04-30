@@ -1,5 +1,9 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasEditorVisualHandle,
+  CanvasHistoryHandle,
+  CanvasSurfaceHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
@@ -8,7 +12,7 @@ interface UsePilotiActionsArgs {
   isContraventamentoMode: boolean;
   hasPilotiTutorial: boolean;
   closePilotiTutorial: () => void;
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasEditorVisualHandle & CanvasHistoryHandle & CanvasSurfaceHandle) | null>;
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;

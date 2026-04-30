@@ -3,12 +3,12 @@ import type {
   GenericCanvasObjectEditorType,
   LinearCanvasSelection,
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 
 export type LinearEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 
 interface UseLinearEditorActionsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasEditorVisualHandle | null>;
   linearSelection: LinearCanvasSelection | null;
   setInfoMessage: (message: string) => void;
 }

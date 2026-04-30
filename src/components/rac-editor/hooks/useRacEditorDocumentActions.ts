@@ -1,11 +1,14 @@
 import {RefObject} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {
+  CanvasDocumentHandle,
+  CanvasHistoryHandle,
+} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorDocumentActionsArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
   setInfoMessage: (message: string) => void;
   resetContraventamentoFlow: () => void;
   syncContraventamentoElevations: () => void;

@@ -3,13 +3,13 @@ import type {RefObject} from 'react';
 import {toast} from 'sonner';
 import type {HouseType} from '@/shared/types/house.ts';
 import {HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;
   hasHouseViews: boolean;
   onOpenChange: (open: boolean) => void;
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasSnapshotHandle | null>;
 }
 
 /**

@@ -1,10 +1,10 @@
 import {RefObject, useEffect} from 'react';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasHouseRuntimeHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseCanvasHouseInitializationArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasHouseRuntimeHandle | null>;
 }
 
 export function useCanvasHouseInitialization({canvasRef}: UseCanvasHouseInitializationArgs) {

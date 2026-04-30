@@ -1,11 +1,11 @@
 import {RefObject, useCallback} from 'react';
 import {toast} from 'sonner';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface UseRacEditorPdfExportActionArgs {
-  canvasRef: RefObject<CanvasHandle | null>;
+  canvasRef: RefObject<CanvasDocumentHandle | null>;
 }
 
 export function useRacEditorPdfExportAction({canvasRef}: UseRacEditorPdfExportActionArgs) {

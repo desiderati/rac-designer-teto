@@ -8,21 +8,37 @@ import type {CanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ports
 import type {CanvasSnapshotPort} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotPort.ts';
 
 /**
- * Porta imperativa exposta pelo canvas para os controladores do editor.
+ * Capacidade de inicializar o runtime visual da casa a partir do canvas atual.
  */
-export interface CanvasInteractionPort {
-  /** Cria a porta de runtime da casa apoiada no canvas atual. */
+export interface CanvasHouseRuntimeHandle {
   createCanvasHouseRuntimePort(): CanvasHouseRuntimePort | null;
+}
 
-  /** Cria a porta documental do canvas para importação/exportação. */
+/**
+ * Capacidade documental do canvas para importação, exportação e imagem.
+ */
+export interface CanvasDocumentHandle {
   createDocumentPort(): CanvasDocumentPort | null;
+}
 
-  /** Cria a porta de diagnóstico do canvas para ferramentas DEV. */
+/**
+ * Capacidade de diagnóstico usada apenas por ferramentas de desenvolvimento.
+ */
+export interface CanvasDebugHandle {
   createDebugPort(): CanvasDebugPort | null;
+}
 
-  /** Cria a porta de inserção de snapshots visuais no canvas. */
+/**
+ * Capacidade de inserir snapshots visuais externos no canvas.
+ */
+export interface CanvasSnapshotHandle {
   createSnapshotPort(): CanvasSnapshotPort | null;
+}
 
+/**
+ * Capacidade de histórico e clipboard do canvas.
+ */
+export interface CanvasHistoryHandle {
   /** Salva o estado atual no histórico de undo do canvas. */
   saveHistory(): void;
 
@@ -37,7 +53,12 @@ export interface CanvasInteractionPort {
 
   /** Cola no canvas os objetos copiados anteriormente. */
   paste(): void;
+}
 
+/**
+ * Capacidade de criar e posicionar objetos visuais no canvas.
+ */
+export interface CanvasObjectCreationHandle {
   /** Cria um objeto visual de elemento sem adicioná-lo automaticamente ao canvas. */
   createElementObject(kind: ElementStrategyKey): CanvasObject | null;
 
@@ -46,7 +67,12 @@ export interface CanvasInteractionPort {
 
   /** Adiciona um objeto visual no centro visível do canvas. */
   addObjectAtVisibleCenter(object: CanvasObject): boolean;
+}
 
+/**
+ * Capacidade de desenho livre e limpeza da superfície visual.
+ */
+export interface CanvasSurfaceHandle {
   /** Ativa ou desativa o modo de desenho livre do canvas. */
   setDrawingModeEnabled(enabled: boolean): boolean;
 
@@ -66,7 +92,12 @@ export interface CanvasInteractionPort {
     onHouseViewRemoved?: (group: CanvasGroup | null) => void;
     onBlockedTopViewDelete?: () => void;
   }): 'deleted' | 'blocked' | 'none';
+}
 
+/**
+ * Capacidade de converter coordenadas do canvas para a tela.
+ */
+export interface CanvasScreenProjectionHandle {
   /** Converte um ponto do canvas para coordenadas de tela. */
   getCanvasPointScreenPosition(point: EditorScreenPoint): EditorScreenPoint | null;
 
@@ -75,7 +106,12 @@ export interface CanvasInteractionPort {
     group: CanvasGroup,
     localCanvasPoint: EditorScreenPoint,
   ): EditorScreenPoint | null;
+}
 
+/**
+ * Capacidade de aplicar alterações dos editores flutuantes.
+ */
+export interface CanvasEditorVisualHandle {
   /** Aplica alterações de editor genérico em objetos lineares ou paredes. */
   applyGenericObjectEdit(payload: {
     /** Tipo de editor genérico que determina a estratégia de aplicação. */
@@ -96,7 +132,12 @@ export interface CanvasInteractionPort {
 
   /** Aplica destaque visual ao piloti informado. */
   applyPilotiSelectionVisuals(pilotiId: string): void;
+}
 
+/**
+ * Capacidade de leitura e controle da viewport do canvas.
+ */
+export interface CanvasViewportHandle {
   /** Retorna o centro visível do canvas em coordenadas lógicas. */
   getVisibleCenter(): EditorScreenPoint;
 
@@ -108,6 +149,25 @@ export interface CanvasInteractionPort {
 
   /** Ajusta a viewport para enquadrar o canvas na área visível. */
   fitToView(): void;
+}
+
+/**
+ * Porta imperativa completa exposta pelo canvas.
+ *
+ * Este tipo permanece como composição transitória para o `forwardRef` do canvas.
+ * Consumidores novos devem depender das capacidades menores acima.
+ */
+export interface CanvasInteractionPort
+  extends CanvasHouseRuntimeHandle,
+    CanvasDocumentHandle,
+    CanvasDebugHandle,
+    CanvasSnapshotHandle,
+    CanvasHistoryHandle,
+    CanvasObjectCreationHandle,
+    CanvasSurfaceHandle,
+    CanvasScreenProjectionHandle,
+    CanvasEditorVisualHandle,
+    CanvasViewportHandle {
 }
 
 export type CanvasHandle = CanvasInteractionPort;
