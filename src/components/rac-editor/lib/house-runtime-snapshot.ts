@@ -1,4 +1,3 @@
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeViews, HouseState} from '@/shared/types/house.ts';
 
 /**
@@ -8,7 +7,7 @@ import type {HouseRuntimeViews, HouseState} from '@/shared/types/house.ts';
  * montado sob demanda para rotinas que ainda precisam operar nos grupos do
  * canvas, como efeitos visuais e sincronizações de runtime.
  */
-export interface HouseRuntimeSnapshot extends Omit<HouseState, 'views'> {
-  /** Vistas resolvidas para grupos concretos do canvas. */
-  views: HouseRuntimeViews<CanvasGroup>;
+export interface HouseRuntimeSnapshot<TGroup = unknown> extends Omit<HouseState, 'views'> {
+  /** Vistas resolvidas para grupos concretos do runtime visual ativo. */
+  views: HouseRuntimeViews<TGroup>;
 }

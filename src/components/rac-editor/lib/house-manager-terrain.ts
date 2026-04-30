@@ -28,7 +28,7 @@ export function collectElevationViewInstances<TGroup>(
  * Aplica o tipo de terreno vigente a todas as vistas elevadas registradas.
  */
 export function applyTerrainTypeToElevationViews(
-  house: Pick<HouseRuntimeSnapshot, 'views'> | null | undefined,
+  house: Pick<HouseRuntimeSnapshot<CanvasGroup>, 'views'> | null | undefined,
   terrainType: number,
 ): void {
   collectElevationViewInstances(house).forEach((instance) => {

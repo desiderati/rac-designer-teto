@@ -31,7 +31,7 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
 
 interface HouseManagerCommandServiceArgs {
   getHouse: () => HouseState | null;
-  getRuntimeHouse: () => HouseRuntimeSnapshot | null;
+  getRuntimeHouse: () => HouseRuntimeSnapshot<CanvasGroup> | null;
   getAggregate: () => HouseAggregate | null;
   getDefaultTerrainType: () => number;
   getTerrainType: () => number;

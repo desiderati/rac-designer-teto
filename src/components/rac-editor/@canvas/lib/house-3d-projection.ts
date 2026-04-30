@@ -17,7 +17,7 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
  * identificadores e metadados de domínio necessários para renderizar a cena.
  */
 export function createHouse3DProjectionFromCanvasHouse(
-  house: HouseRuntimeSnapshot | null,
+  house: HouseRuntimeSnapshot<CanvasGroup> | null,
 ): House3DProjection | null {
   if (!house) return null;
 
@@ -54,7 +54,7 @@ function createTopViewProjection(group: CanvasGroup): House3DProjection['topView
   };
 }
 
-function collectElevationViews(house: HouseRuntimeSnapshot): Array<{
+function collectElevationViews(house: HouseRuntimeSnapshot<CanvasGroup>): Array<{
   viewType: HouseViewType;
   view: HouseRuntimeViewInstance<CanvasGroup>;
 }> {

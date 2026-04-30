@@ -6,10 +6,10 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
  * O estado canônico permanece lógico; este contrato entrega o snapshot de
  * runtime porque a UI atual ainda consome grupos concretos em alguns fluxos.
  */
-export interface HouseStatePort {
+export interface HouseStatePort<TGroup = unknown> {
   /** Assina mudanças no snapshot da casa. */
   subscribe(listener: () => void): () => void;
 
   /** Retorna o snapshot atual da casa, quando existir. */
-  getSnapshot(): HouseRuntimeSnapshot | null;
+  getSnapshot(): HouseRuntimeSnapshot<TGroup> | null;
 }

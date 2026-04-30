@@ -68,7 +68,7 @@ export class HouseManagerCanvasRuntime {
     return [...this.viewGroupsById.values()];
   }
 
-  createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot | null {
+  createRuntimeHouseSnapshot(house: HouseState | null): HouseRuntimeSnapshot<CanvasGroup> | null {
     if (!house) return null;
 
     return {

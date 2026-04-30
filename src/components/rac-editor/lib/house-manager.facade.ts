@@ -28,7 +28,7 @@ export class HouseManagerFacade {
 
   private readonly notifier = new HouseManagerNotifier();
 
-  private runtimeHouseCache: HouseRuntimeSnapshot | null | undefined = undefined;
+  private runtimeHouseCache: HouseRuntimeSnapshot<CanvasGroup> | null | undefined = undefined;
 
   private readonly session = new HouseManagerSessionService({
     getAggregate: () => this.getHouseAggregate(),
@@ -85,7 +85,7 @@ export class HouseManagerFacade {
     this.invalidateRuntimeHouseCache();
   }
 
-  private get runtimeHouse(): HouseRuntimeSnapshot | null {
+  private get runtimeHouse(): HouseRuntimeSnapshot<CanvasGroup> | null {
     if (this.runtimeHouseCache === undefined) {
       this.runtimeHouseCache = this.canvasRuntime.createRuntimeHouseSnapshot(this.house);
     }
@@ -190,7 +190,7 @@ export class HouseManagerFacade {
     return this.queries.hasOtherViews();
   }
 
-  getHouse(): HouseRuntimeSnapshot | null {
+  getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null {
     return this.runtimeHouse;
   }
 
