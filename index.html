@@ -28,7 +28,52 @@
 </head>
 
 <body>
-<div id="root"></div>
+<div id="root">
+    <div id="app-loading-fallback" style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; color: #1f2937; background: #f9fafb;">
+        <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: app-spin 0.9s linear infinite; margin-bottom: 16px;"></div>
+        <p style="margin: 0; font-size: 14px; color: #6b7280;">Carregando o Editor de RAC…</p>
+        <style>@keyframes app-spin { to { transform: rotate(360deg); } }</style>
+    </div>
+</div>
+<script>
+    // Detecta falhas de carregamento de assets (script/link 404) e exibe
+    // uma máscara de erro útil em vez de uma tela branca silenciosa.
+    (function () {
+        var assetFailed = false;
+
+        function showAssetError(detail) {
+            if (assetFailed) return;
+            assetFailed = true;
+            var root = document.getElementById('root');
+            if (!root) return;
+            root.innerHTML =
+                '<div style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; color: #1f2937; background: #f9fafb;">' +
+                '  <div style="max-width: 480px;">' +
+                '    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>' +
+                '    <h1 style="font-size: 20px; margin: 0 0 8px; font-weight: 600;">Não foi possível carregar a aplicação</h1>' +
+                '    <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px;">Um ou mais arquivos da aplicação retornaram erro. Isso normalmente indica configuração incorreta de caminho base no deploy.</p>' +
+                '    <p style="font-size: 12px; color: #9ca3af; margin: 0 0 20px; word-break: break-all;">Recurso: ' + (detail || 'desconhecido') + '</p>' +
+                '    <button onclick="location.reload()" style="background: #2563eb; color: white; border: 0; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer;">Recarregar</button>' +
+                '  </div>' +
+                '</div>';
+        }
+
+        window.addEventListener('error', function (event) {
+            var target = event.target;
+            if (target && target !== window && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
+                showAssetError(target.src || target.href);
+            }
+        }, true);
+
+        // Se após 10s o React ainda não montou (fallback ainda presente),
+        // assume falha silenciosa de bootstrap e mostra erro.
+        setTimeout(function () {
+            if (document.getElementById('app-loading-fallback')) {
+                showAssetError('timeout no carregamento do bundle principal');
+            }
+        }, 10000);
+    })();
+</script>
 <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

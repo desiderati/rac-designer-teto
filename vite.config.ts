@@ -23,7 +23,10 @@ export default defineConfig(async ({mode}) => {
   }
 
   return {
-    base: process.env.GITHUB_PAGES === 'true' ? '/rac-designer-teto/' : '/',
+    // Caminhos relativos garantem que os assets carreguem em qualquer subpath
+    // (Lovable na raiz, GitHub Pages em /rac-designer-teto/, etc.) sem
+    // gerar 404 e tela branca.
+    base: process.env.GITHUB_PAGES === 'true' ? '/rac-designer-teto/' : './',
     server: {
       host: '::',
       port: 8080,
