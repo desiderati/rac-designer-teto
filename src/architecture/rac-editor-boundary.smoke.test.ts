@@ -38,6 +38,9 @@ const allowedCanvasInteractionPortConsumers = new Set([
 const canvasInteractionPortImportPattern =
   /(?:from\s+['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]|import\s*\(\s*['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]\s*\))/;
 
+const houseManagerSingletonPattern =
+  /(?:export\s+const\s+houseManager\b|import\s*\{\s*houseManager\s*\}\s*from\s+['"][^'"]*canvas-house-manager(?:\.ts)?['"])/;
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -92,6 +95,19 @@ describe('fronteira arquitetural do editor RAC', () => {
       if (allowedCanvasInteractionPortConsumers.has(fileLabel)) return [];
 
       return [`${fileLabel}: import direto de CanvasInteractionPort`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('impede reintrodução do singleton global da casa', () => {
+    const rootPath = resolve(projectRoot, 'src');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!houseManagerSingletonPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      return [`${fileLabel}: singleton global houseManager`];
     });
 
     expect(violations).toEqual([]);
