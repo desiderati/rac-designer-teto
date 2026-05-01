@@ -31,8 +31,6 @@ const forbiddenPatterns = [
 
 const allowedCanvasInteractionPortConsumers = new Set([
   'src/components/rac-editor/@canvas/ui/Canvas.tsx',
-  'src/components/rac-editor/hooks/useRacEditorController.ts',
-  'src/components/rac-editor/ui/RacEditorCanvas.tsx',
 ]);
 
 const canvasInteractionPortImportPattern =

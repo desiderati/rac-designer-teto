@@ -85,6 +85,10 @@ central da aplicação.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
   `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime visual.
 - `CanvasInteractionPort` é composição transitória do ref do canvas. Consumidores novos devem escolher handles menores.
+- `src/components/rac-editor/hooks/useRacEditorController.ts` e
+  `src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `RacEditorCanvasHandle`, um composite explícito de
+  capacidades menores; `CanvasInteractionPort` fica restrito ao `forwardRef` de
+  `src/components/rac-editor/@canvas/ui/Canvas.tsx`.
 
 ## Mapa de fronteiras
 

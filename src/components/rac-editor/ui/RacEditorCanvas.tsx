@@ -9,10 +9,10 @@ import type {
 import {InfoBar} from './InfoBar.tsx';
 import {TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
 
 interface RacEditorCanvasProps {
-  canvasRef: React.RefObject<CanvasHandle | null>;
+  canvasRef: React.RefObject<RacEditorCanvasHandle | null>;
   tutorialStep: TutorialStepId | null;
   showTips: boolean;
   showZoomControls: boolean;
