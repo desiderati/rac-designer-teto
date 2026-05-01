@@ -4,9 +4,12 @@ import {canvasObjectProps} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+  isHouseDrawingCanvasDocument,
+  isHouseDrawingElementShape,
   type HouseDrawingCanvasDocument,
   type HouseDrawingElementDocument,
   type HouseDrawingElementGeometry,
+  type HouseDrawingPoint,
   type JsonObject,
   type JsonValue,
 } from '@/shared/types/house-drawing-document.ts';
@@ -47,6 +50,24 @@ const styleKeys = [
   'visible',
   'selectable',
   'evented',
+  'strokeUniform',
+  'objectCaching',
+  'originX',
+  'originY',
+  'hasControls',
+  'hasBorders',
+  'lockMovementX',
+  'lockMovementY',
+  'lockScalingX',
+  'lockScalingY',
+  'lockRotation',
+] as const;
+
+const resourceKeys = [
+  'src',
+  'crossOrigin',
+  'cropX',
+  'cropY',
 ] as const;
 
 const metadataKeys = canvasObjectProps.filter((key) => key !== 'myType' && key !== 'editorObjectId');
@@ -83,6 +104,14 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+function normalizeFabricShape(value: unknown): HouseDrawingElementDocument['shape'] | null {
+  const shape = readString(value)?.toLowerCase();
+  if (!shape) return null;
+
+  const normalized = shape === 'i-text' ? 'itext' : shape;
+  return isHouseDrawingElementShape(normalized) ? normalized : null;
+}
+
 function pickNumberRecord<TKeys extends readonly string[]>(
   source: Record<string, unknown>,
   keys: TKeys,
@@ -95,6 +124,33 @@ function pickNumberRecord<TKeys extends readonly string[]>(
     }
   });
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+function pickPoints(value: unknown): HouseDrawingPoint[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const points = value
+    .map((point) => {
+      if (!isRecord(point)) return null;
+      if (typeof point.x !== 'number' || typeof point.y !== 'number') return null;
+      return {x: point.x, y: point.y};
+    })
+    .filter((point): point is HouseDrawingPoint => point !== null);
+
+  return points.length > 0 ? points : undefined;
+}
+
+function pickGeometry(source: Record<string, unknown>): HouseDrawingElementGeometry | undefined {
+  const geometry: HouseDrawingElementGeometry = {
+    ...pickNumberRecord(source, geometryKeys),
+  };
+  const points = pickPoints(source.points);
+  const path = toJsonValue(source.path);
+
+  if (points) geometry.points = points;
+  if (path !== undefined) geometry.path = path;
+
+  return Object.keys(geometry).length > 0 ? geometry : undefined;
 }
 
 function pickJsonObject(source: Record<string, unknown>, keys: readonly string[]): JsonObject | undefined {
@@ -111,7 +167,9 @@ function pickJsonObject(source: Record<string, unknown>, keys: readonly string[]
 function toDrawingElement(source: unknown, index: number, path = `${index}`): HouseDrawingElementDocument | null {
   if (!isRecord(source)) return null;
 
-  const shape = readString(source.type) ?? 'object';
+  const shape = normalizeFabricShape(source.type);
+  if (!shape) return null;
+
   const kind = readString(source.myType) ?? shape;
   const id = readString(source.editorObjectId) ?? `${kind}-${path}`;
   const children = Array.isArray(source.objects)
@@ -124,10 +182,11 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
     id,
     kind,
     shape,
-    geometry: pickNumberRecord(source, geometryKeys),
+    geometry: pickGeometry(source),
     style: pickJsonObject(source, styleKeys),
     text: readString(source.text) ?? undefined,
     metadata: pickJsonObject(source, metadataKeys),
+    resource: pickJsonObject(source, resourceKeys),
     children: children && children.length > 0 ? children : undefined,
   };
 }
@@ -138,6 +197,7 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
     ...document.geometry,
     ...document.style,
     ...document.metadata,
+    ...document.resource,
     myType: document.kind,
     editorObjectId: document.id,
     ...(document.text ? {text: document.text} : {}),
@@ -145,6 +205,12 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
   };
 }
 
+/**
+ * Cria a borda documental do Fabric.
+ *
+ * Esta é a única camada que traduz entre serialização Fabric e o documento
+ * visual canônico consumido pelos hooks do editor.
+ */
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {
     exportCanvasDocument: () => {
@@ -160,6 +226,8 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
     },
 
     loadCanvasDocument: async (document: HouseDrawingCanvasDocument) => {
+      if (!isHouseDrawingCanvasDocument(document)) return false;
+
       canvas.clear();
       await canvas.loadFromJSON({
         objects: document.objects.map(toRuntimePayload),

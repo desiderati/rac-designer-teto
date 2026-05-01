@@ -49,6 +49,13 @@ const globalHouseControllerSingletonPattern =
 const concreteInfraImportPattern =
   /from\s+['"]@\/infra\//;
 
+const fabricSerializationPattern =
+  /\b(?:toJSON|loadFromJSON)\s*\(/;
+
+const allowedFabricSerializationRoots = [
+  'src/components/rac-editor/@canvas',
+];
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -160,6 +167,21 @@ describe('fronteira arquitetural do editor RAC', () => {
 
       const fileLabel = toPosixPath(relative(projectRoot, filePath));
       return [`${fileLabel}: import direto de adapter concreto de infra`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('confina APIs de serialização Fabric ao slice de canvas', () => {
+    const rootPath = resolve(projectRoot, 'src');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!fabricSerializationPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      if (allowedFabricSerializationRoots.some((root) => fileLabel.startsWith(`${root}/`))) return [];
+
+      return [`${fileLabel}: API de serialização Fabric fora do slice @canvas`];
     });
 
     expect(violations).toEqual([]);

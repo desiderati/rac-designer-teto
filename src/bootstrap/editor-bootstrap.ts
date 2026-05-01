@@ -1,7 +1,10 @@
 import {createContext, useContext} from 'react';
 import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {
+  HouseCanvasReconciliationPort,
+  HouseWritePort,
+} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
@@ -17,6 +20,7 @@ export const EditorStoreContext = createContext<EditorStore | null>(null);
 export interface EditorPorts {
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
+  houseCanvasReconciliationPort: HouseCanvasReconciliationPort;
   houseRuntimePort: HouseRuntimePort;
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort;

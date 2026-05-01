@@ -1,7 +1,7 @@
 import {RefObject} from 'react';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
-import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
+import {useHouseDrawingDocumentActions} from '@/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
 
 interface UseRacEditorDocumentActionsArgs {
@@ -12,7 +12,7 @@ interface UseRacEditorDocumentActionsArgs {
 }
 
 /**
- * Compõe ações documentais transitórias do canvas: JSON e PDF.
+ * Compõe ações documentais do editor: documento RAC e PDF.
  */
 export function useRacEditorDocumentActions({
   canvasRef,
@@ -21,9 +21,9 @@ export function useRacEditorDocumentActions({
   syncContraventamentoElevations,
 }: UseRacEditorDocumentActionsArgs) {
   const {
-    handleExportJSON,
-    handleImportJSON,
-  } = useRacEditorJsonActions({
+    handleExportHouseDrawingDocument,
+    handleImportHouseDrawingDocument,
+  } = useHouseDrawingDocumentActions({
     canvasRef,
     setInfoMessage,
     resetContraventamentoFlow,
@@ -35,8 +35,8 @@ export function useRacEditorDocumentActions({
   });
 
   return {
-    handleExportJSON,
-    handleImportJSON,
+    handleExportJSON: handleExportHouseDrawingDocument,
+    handleImportJSON: handleImportHouseDrawingDocument,
     handleSavePDF,
   };
 }

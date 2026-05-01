@@ -467,6 +467,6 @@ IndexedDB schema, and UI flow**, and then start implementing the first milestone
 
 [3]: ../../../../src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
 
-[4]: ../../../../src/components/rac-editor/hooks/useRacEditorJsonActions.ts "Current canvas-only JSON import/export flow"
+[4]: ../../../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts "Current HouseDrawingDocument import/export flow"
 
 [5]: https://docs.google.com/spreadsheets/d/16ZYrcTcABqMJAK7_URahCg_h2ZfC_yYWJvZyeRBhbm8/edit?gid=0#gid=0 "Reference Google Sheet used to infer house data groups and persistent entities"

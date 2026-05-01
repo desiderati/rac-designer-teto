@@ -2,18 +2,30 @@ import {describe, expect, it, vi} from 'vitest';
 import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
 import {createFabricCanvasDocumentPort} from './fabric-canvas-document-port.ts';
 
+function createHouseGroup() {
+  return {
+    type: 'group',
+    myType: 'house',
+    objectCaching: true,
+    getObjects: vi.fn(() => []),
+    getCanvasObjects: vi.fn(() => []),
+    setControlsVisibility: vi.fn(),
+    setCoords: vi.fn(),
+  };
+}
+
 describe('fabric-canvas-document-port.ts', () => {
   it('serializa o canvas como documento visual canônico', () => {
     const canvas = {
       toJSON: vi.fn(() => ({
         objects: [{
-          type: 'group',
+          type: 'Group',
           myType: 'house',
           editorObjectId: 'house-top-1',
           houseInstanceId: 'view-top-1',
           left: 10,
           top: 20,
-          objects: [{type: 'rect', myType: 'wallBody', width: 30, height: 40}],
+          objects: [{type: 'Rect', myType: 'wallBody', width: 30, height: 40}],
         }],
       })),
     };
@@ -30,6 +42,7 @@ describe('fabric-canvas-document-port.ts', () => {
         style: undefined,
         text: undefined,
         metadata: {houseInstanceId: 'view-top-1'},
+        resource: undefined,
         children: [{
           id: 'wallBody-0-0',
           kind: 'wallBody',
@@ -38,6 +51,7 @@ describe('fabric-canvas-document-port.ts', () => {
           style: undefined,
           text: undefined,
           metadata: undefined,
+          resource: undefined,
           children: undefined,
         }],
       }],
@@ -45,15 +59,7 @@ describe('fabric-canvas-document-port.ts', () => {
   });
 
   it('carrega documento visual, atualiza grupos de casa e renderiza novamente', async () => {
-    const houseGroup = {
-      type: 'group',
-      myType: 'house',
-      objectCaching: true,
-      getObjects: vi.fn(() => []),
-      getCanvasObjects: vi.fn(() => []),
-      setControlsVisibility: vi.fn(),
-      setCoords: vi.fn(),
-    };
+    const houseGroup = createHouseGroup();
     const canvas = {
       clear: vi.fn(),
       loadFromJSON: vi.fn().mockResolvedValue(undefined),
@@ -87,6 +93,182 @@ describe('fabric-canvas-document-port.ts', () => {
     });
     expect(houseGroup.setControlsVisibility).toHaveBeenCalledWith({mt: false, mb: false, ml: false, mr: false});
     expect(canvas.renderAll).toHaveBeenCalled();
+  });
+
+  it('preserva identidade e metadados no round trip documental do canvas', async () => {
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Group',
+          myType: 'house',
+          editorObjectId: 'house-front-1',
+          houseInstanceId: 'view-front-1',
+          houseViewType: 'front',
+          houseSide: 'top',
+          left: 100,
+          top: 200,
+          fill: '#ffffff',
+          objects: [{
+            type: 'Polygon',
+            myType: 'wallShape',
+            editorObjectId: 'wall-polygon-1',
+            points: [
+              {x: 0, y: 20},
+              {x: 20, y: 0},
+              {x: 40, y: 20},
+            ],
+            left: 10,
+            top: 15,
+            fill: '#222222',
+          }],
+        }],
+      })),
+    };
+    const targetCanvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => [createHouseGroup()]),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+    const loaded = await createFabricCanvasDocumentPort(targetCanvas as any).loadCanvasDocument(exported!);
+
+    expect(loaded).toBe(true);
+    expect(exported?.objects[0]).toMatchObject({
+      id: 'house-front-1',
+      kind: 'house',
+      shape: 'group',
+      geometry: {left: 100, top: 200},
+      style: {fill: '#ffffff'},
+      metadata: {
+        houseInstanceId: 'view-front-1',
+        houseViewType: 'front',
+        houseSide: 'top',
+      },
+    });
+    expect(exported?.objects[0].children?.[0]).toMatchObject({
+      id: 'wall-polygon-1',
+      kind: 'wallShape',
+      shape: 'polygon',
+      geometry: {
+        left: 10,
+        top: 15,
+        points: [
+          {x: 0, y: 20},
+          {x: 20, y: 0},
+          {x: 40, y: 20},
+        ],
+      },
+    });
+    expect(targetCanvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'group',
+        left: 100,
+        top: 200,
+        fill: '#ffffff',
+        houseInstanceId: 'view-front-1',
+        houseViewType: 'front',
+        houseSide: 'top',
+        myType: 'house',
+        editorObjectId: 'house-front-1',
+        objects: [{
+          type: 'polygon',
+          points: [
+            {x: 0, y: 20},
+            {x: 20, y: 0},
+            {x: 40, y: 20},
+          ],
+          left: 10,
+          top: 15,
+          fill: '#222222',
+          myType: 'wallShape',
+          editorObjectId: 'wall-polygon-1',
+        }],
+      }],
+    });
+  });
+
+  it('recusa documento visual com payload opaco antes de tocar o canvas', async () => {
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn(),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const port = createFabricCanvasDocumentPort(canvas as any);
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{
+        id: 'house-top-1',
+        kind: 'house',
+        shape: 'group',
+        payload: {type: 'group'},
+      }],
+    } as any)).resolves.toBe(false);
+
+    expect(canvas.clear).not.toHaveBeenCalled();
+    expect(canvas.loadFromJSON).not.toHaveBeenCalled();
+  });
+
+  it('preserva recurso de imagem usado por snapshot 3D', async () => {
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Image',
+          myType: 'snapshot3d',
+          editorObjectId: 'snapshot-1',
+          src: 'data:image/png;base64,abc',
+          crossOrigin: 'anonymous',
+          left: 200,
+          top: 120,
+          width: 640,
+          height: 480,
+          scaleX: 0.5,
+          scaleY: 0.5,
+        }],
+      })),
+    };
+    const targetCanvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+    const loaded = await createFabricCanvasDocumentPort(targetCanvas as any).loadCanvasDocument(exported!);
+
+    expect(loaded).toBe(true);
+    expect(exported?.objects[0]).toMatchObject({
+      id: 'snapshot-1',
+      kind: 'snapshot3d',
+      shape: 'image',
+      resource: {
+        src: 'data:image/png;base64,abc',
+        crossOrigin: 'anonymous',
+      },
+    });
+    expect(targetCanvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'image',
+        left: 200,
+        top: 120,
+        width: 640,
+        height: 480,
+        scaleX: 0.5,
+        scaleY: 0.5,
+        src: 'data:image/png;base64,abc',
+        crossOrigin: 'anonymous',
+        myType: 'snapshot3d',
+        editorObjectId: 'snapshot-1',
+      }],
+    });
   });
 
   it('captura imagem descartando seleção ativa antes de exportar', () => {

@@ -54,6 +54,10 @@ central da aplicação.
   importação/exportação da casa ativa.
 - `src/components/rac-editor/ports/HouseDrawingDocumentPort.ts` compõe o documento lógico da casa sem expor JSON Fabric
   aos hooks gerais do editor.
+- `src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts` representa documento visual serializável, não dump do
+  runtime Fabric.
+- `src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts` é o hook de aplicação para importar/exportar o
+  arquivo RAC canônico da casa ativa.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
   `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de `src/infra` no código
   produtivo do editor.
@@ -108,6 +112,10 @@ central da aplicação.
   ports do editor e bootstrap não devem depender de `canvas.toJSON()` ou `canvas.loadFromJSON()` como contrato público.
 - `rebuildHouseFromCanvas` não deve participar do fluxo de importação do documento canônico; reconstrução a partir do
   canvas é mecanismo transitório para outros fluxos até existir projeção documental mais completa.
+- `rebuildHouseFromCanvas` fica fora do `HouseWritePort` geral. Quando ainda for necessário, deve ser exposto por
+  `HouseCanvasReconciliationPort`, uma porta transitória de reconciliação canvas -> casa.
+- O parser de `HouseDrawingDocument` deve rejeitar payload visual opaco, `HouseState` incompleto, geometrias inválidas e
+  metadados que não sejam JSON.
 
 ## Mapa de fronteiras
 
@@ -277,6 +285,9 @@ Critério de corte:
 - Import/export têm teste que preserva identidade lógica de casa e rejeita JSON Fabric bruto.
 - O documento visual pode ser reconstruído pelo adapter Fabric, mas o contrato do editor permanece estruturado e
   versionado.
+- O round trip mínimo `canvas -> HouseDrawingDocument.canvas -> canvas` preserva identidade de elemento e metadados
+  editoriais.
+- `canvas.toJSON()` e `canvas.loadFromJSON()` permanecem confinados ao slice `@canvas`.
 
 ### 6. Remover pontes transitórias apenas quando ficarem ocas
 
@@ -314,7 +325,9 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
 5. Import/export, rebuild de vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.
 6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas`.
-7. Novos ciclos de refatoração só entram se apontarem um acoplamento real, uma dor de teste ou um risco funcional.
+7. `HouseDrawingDocument` possui validação estrutural e round trip mínimo coberto por teste.
+8. `rebuildHouseFromCanvas` não faz parte do `HouseWritePort` geral nem do fluxo canônico de importação.
+9. Novos ciclos de refatoração só entram se apontarem um acoplamento real, uma dor de teste ou um risco funcional.
 
 Se esses critérios forem satisfeitos, continuar mexendo apenas para deixar a arquitetura "mais pura" é vaidade técnica.
 Elegante, talvez; útil, nem sempre.

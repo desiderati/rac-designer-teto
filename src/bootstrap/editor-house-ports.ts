@@ -3,6 +3,7 @@ import {createCanvasHouse3DProjectionPort} from '@/components/rac-editor/@canvas
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {readProjectsStorage, writeProjectsStorage} from '@/infra/storage/projects.storage.ts';
 import {
+  createEditorHouseCanvasReconciliationPort,
   createEditorHouseDrawingDocumentPort,
   createEditorHouseReadPort,
   createEditorHouseRuntimePort,
@@ -21,7 +22,10 @@ import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
-import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {
+  HouseCanvasReconciliationPort,
+  HouseWritePort,
+} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
@@ -36,6 +40,7 @@ type EditorHousePortsSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGr
 export interface EditorHousePorts<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
+  houseCanvasReconciliationPort: HouseCanvasReconciliationPort;
   houseRuntimePort: HouseRuntimePort<TGroup>;
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<TGroup>;
@@ -59,6 +64,7 @@ export function createEditorHousePorts<TGroup extends HouseRuntimeGroupRef>(
   return {
     houseReadPort: createEditorHouseReadPort(source),
     houseWritePort: createEditorHouseWritePort(source),
+    houseCanvasReconciliationPort: createEditorHouseCanvasReconciliationPort(source),
     houseRuntimePort: createEditorHouseRuntimePort(source),
     houseStatePort,
     houseRuntimeSnapshotPort,

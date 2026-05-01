@@ -7,7 +7,7 @@ import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
-import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
+import {useHouseDrawingDocumentActions} from '@/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 import {
@@ -107,7 +107,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('useRacEditorJsonActions.ts', () => {
+describe('useHouseDrawingDocumentActions.ts', () => {
   it('exporta documento RAC canônico sem expor Fabric ao hook', () => {
     const canvasDocument: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
@@ -130,7 +130,7 @@ describe('useRacEditorJsonActions.ts', () => {
     });
 
     const {result} = renderHook(
-      () => useRacEditorJsonActions({
+      () => useHouseDrawingDocumentActions({
         canvasRef: ref,
         setInfoMessage,
         resetContraventamentoFlow: vi.fn(),
@@ -140,7 +140,7 @@ describe('useRacEditorJsonActions.ts', () => {
     );
 
     act(() => {
-      result.current.handleExportJSON();
+      result.current.handleExportHouseDrawingDocument();
     });
 
     expect(documentPort.exportCanvasDocument).toHaveBeenCalled();
@@ -162,6 +162,9 @@ describe('useRacEditorJsonActions.ts', () => {
       exportHouseDrawingDocument: vi.fn(),
       importHouseDrawingDocument: vi.fn(),
     };
+    const houseCanvasReconciliationPort = {
+      rebuildHouseFromCanvas: vi.fn(),
+    };
     const {canvas, ref} = createCanvasRef(documentPort);
     const setInfoMessage = vi.fn();
     const resetContraventamentoFlow = vi.fn();
@@ -170,17 +173,17 @@ describe('useRacEditorJsonActions.ts', () => {
     stubFileReaderWithText(JSON.stringify(projectDocument));
 
     const {result} = renderHook(
-      () => useRacEditorJsonActions({
+      () => useHouseDrawingDocumentActions({
         canvasRef: ref,
         setInfoMessage,
         resetContraventamentoFlow,
         syncContraventamentoElevations,
       }),
-      {wrapper: createWrapper({houseDrawingDocumentPort})},
+      {wrapper: createWrapper({houseDrawingDocumentPort, houseCanvasReconciliationPort})},
     );
 
     act(() => {
-      result.current.handleImportJSON(new File([JSON.stringify(projectDocument)], 'projeto.json', {
+      result.current.handleImportHouseDrawingDocument(new File([JSON.stringify(projectDocument)], 'projeto.json', {
         type: 'application/json',
       }));
     });
@@ -188,6 +191,7 @@ describe('useRacEditorJsonActions.ts', () => {
     await waitFor(() => expect(documentPort.loadCanvasDocument).toHaveBeenCalledWith(projectDocument.canvas));
 
     expect(resetContraventamentoFlow).toHaveBeenCalled();
+    expect(houseCanvasReconciliationPort.rebuildHouseFromCanvas).not.toHaveBeenCalled();
     expect(houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(projectDocument);
     expect(syncContraventamentoElevations).toHaveBeenCalled();
     expect(canvas.saveHistory).toHaveBeenCalled();
@@ -206,7 +210,7 @@ describe('useRacEditorJsonActions.ts', () => {
     stubFileReaderWithText('{"objects":[]}');
 
     const {result} = renderHook(
-      () => useRacEditorJsonActions({
+      () => useHouseDrawingDocumentActions({
         canvasRef: ref,
         setInfoMessage: vi.fn(),
         resetContraventamentoFlow: vi.fn(),
@@ -216,7 +220,9 @@ describe('useRacEditorJsonActions.ts', () => {
     );
 
     act(() => {
-      result.current.handleImportJSON(new File(['{"objects":[]}'], 'projeto.json', {type: 'application/json'}));
+      result.current.handleImportHouseDrawingDocument(new File(['{"objects":[]}'], 'projeto.json', {
+        type: 'application/json',
+      }));
     });
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith(TOAST_MESSAGES.invalidJsonFile));

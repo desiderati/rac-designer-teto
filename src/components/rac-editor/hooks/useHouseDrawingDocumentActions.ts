@@ -1,4 +1,4 @@
-import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
+import {RefObject, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
@@ -7,33 +7,39 @@ import {useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
 import {parseHouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 
-interface UseRacEditorJsonActionsArgs {
+interface UseHouseDrawingDocumentActionsArgs {
   canvasRef: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
-  setInfoMessage: Dispatch<SetStateAction<string>>;
+  setInfoMessage: (message: string) => void;
   resetContraventamentoFlow: () => void;
   syncContraventamentoElevations: () => void;
 }
 
-export function useRacEditorJsonActions({
+/**
+ * Orquestra importação/exportação do documento RAC canônico da casa ativa.
+ *
+ * O hook não conhece JSON Fabric: ele combina o documento visual do canvas com
+ * `HouseDrawingDocumentPort` e rejeita formatos antigos no parser documental.
+ */
+export function useHouseDrawingDocumentActions({
   canvasRef,
   setInfoMessage,
   resetContraventamentoFlow,
   syncContraventamentoElevations,
-}: UseRacEditorJsonActionsArgs) {
+}: UseHouseDrawingDocumentActionsArgs) {
   const emitHouseStoreChange = useHouseStoreEmitter();
   const {houseDrawingDocumentPort} = useEditorPorts();
 
-  const handleExportJSON = useCallback(() => {
+  const handleExportHouseDrawingDocument = useCallback(() => {
     const canvasDocument = canvasRef.current?.createDocumentPort()?.exportCanvasDocument();
     if (!canvasDocument) return;
 
     const projectDocument = houseDrawingDocumentPort.exportHouseDrawingDocument(canvasDocument);
     if (!projectDocument) return;
 
-    const projectJson = JSON.stringify(projectDocument, null, 2);
-    if (!projectJson) return;
+    const documentJson = JSON.stringify(projectDocument, null, 2);
+    if (!documentJson) return;
 
-    const blob = new Blob([projectJson], {type: 'application/json'});
+    const blob = new Blob([documentJson], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
@@ -48,7 +54,7 @@ export function useRacEditorJsonActions({
     toast.success(TOAST_MESSAGES.projectExportedSuccessfully);
   }, [canvasRef, houseDrawingDocumentPort, setInfoMessage]);
 
-  const handleImportJSON = useCallback((file: File) => {
+  const handleImportHouseDrawingDocument = useCallback((file: File) => {
     const documentPort = canvasRef.current?.createDocumentPort();
     if (!documentPort) return;
 
@@ -87,8 +93,7 @@ export function useRacEditorJsonActions({
   ]);
 
   return {
-    handleExportJSON,
-    handleImportJSON,
+    handleExportHouseDrawingDocument,
+    handleImportHouseDrawingDocument,
   };
 }
-

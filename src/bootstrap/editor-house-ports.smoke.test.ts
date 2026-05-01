@@ -51,7 +51,12 @@ describe('editor house ports', () => {
     expect(ports.houseRuntimeSnapshotPort.getRuntimeSnapshot()).not.toBeNull();
   });
 
-  it('emite alterações de estado sem expor o singleton à UI', () => {
+  it('mantem rebuild canvas -> casa em porta transitoria separada', () => {
+    expect('rebuildHouseFromCanvas' in ports.houseWritePort).toBe(false);
+    expect(typeof ports.houseCanvasReconciliationPort.rebuildHouseFromCanvas).toBe('function');
+  });
+
+  it('emite alteracoes de estado sem expor o singleton a UI', () => {
     const listener = vi.fn();
     const unsubscribe = ports.houseStatePort.subscribe(listener);
 
@@ -63,7 +68,7 @@ describe('editor house ports', () => {
     unsubscribe();
   });
 
-  it('cria instâncias isoladas para providers diferentes', () => {
+  it('cria instancias isoladas para providers diferentes', () => {
     const firstPorts = createDefaultEditorHousePorts();
     const secondPorts = createDefaultEditorHousePorts();
 
@@ -73,7 +78,7 @@ describe('editor house ports', () => {
     expect(secondPorts.houseReadPort.getCurrentHouseType()).toBeNull();
   });
 
-  it('exporta e importa documento canônico da casa ativa', () => {
+  it('exporta e importa documento canonico da casa ativa', () => {
     ports.houseWritePort.setHouseType('tipo6');
     const document = ports.houseDrawingDocumentPort.exportHouseDrawingDocument({
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,

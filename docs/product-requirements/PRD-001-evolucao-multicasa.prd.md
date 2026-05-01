@@ -180,7 +180,7 @@ restaurar o trabalho sem perda de informações.
   - [editor-house-controller.ts](../../src/components/rac-editor/lib/editor-house-controller.ts)
   - [house.ts](../../src/shared/types/house.ts)
   - [house-persistence.port.ts](../../src/domain/house/house-persistence.port.ts)
-  - [useRacEditorJsonActions.ts](../../src/components/rac-editor/hooks/useRacEditorJsonActions.ts)
+  - [useHouseDrawingDocumentActions.ts](../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts)
 - Evidências e material auxiliar:
   - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
   - [Diagrama de arquitetura](./PRD-001-evolucao-multicasa.prd.assets/diagrams/multi_house_persistence_architecture.mmd)

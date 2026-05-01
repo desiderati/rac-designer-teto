@@ -99,7 +99,7 @@ export const Canvas =
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
       const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
-      const {houseWritePort} = useEditorPorts();
+      const {houseCanvasReconciliationPort} = useEditorPorts();
 
       const {
         zoom,
@@ -164,7 +164,7 @@ export const Canvas =
         updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
         onHistorySave,
         onSelectionChange,
-        houseWritePort,
+        houseCanvasReconciliationPort,
       });
 
       const {copy, paste} = useCanvasClipboard({

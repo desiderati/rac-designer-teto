@@ -1,14 +1,14 @@
 import {RefObject, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
-import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {HouseCanvasReconciliationPort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
 interface UseCanvasHistoryArgs {
   fabricCanvasRef: RefObject<FabricCanvas | null>;
   updateMinimapObjects: () => void;
   onHistorySave: () => void;
   onSelectionChange: (hint: string) => void;
-  houseWritePort: Pick<HouseWritePort, 'rebuildHouseFromCanvas'>;
+  houseCanvasReconciliationPort: HouseCanvasReconciliationPort;
 }
 
 export function useCanvasHistory({
@@ -16,7 +16,7 @@ export function useCanvasHistory({
   updateMinimapObjects,
   onHistorySave,
   onSelectionChange,
-  houseWritePort,
+  houseCanvasReconciliationPort,
 }: UseCanvasHistoryArgs) {
 
   const historyRef = useRef<string[]>([]);
@@ -45,7 +45,7 @@ export function useCanvasHistory({
       fabricCanvasRef.current.clear();
       fabricCanvasRef.current.loadFromJSON(prevState).then(() => {
         refreshHouseGroupsOnCanvas(fabricCanvasRef.current!);
-        houseWritePort.rebuildHouseFromCanvas();
+        houseCanvasReconciliationPort.rebuildHouseFromCanvas();
 
         fabricCanvasRef.current?.renderAll();
         updateMinimapObjects();
