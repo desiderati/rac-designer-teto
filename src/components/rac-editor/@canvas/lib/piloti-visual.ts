@@ -43,6 +43,10 @@ export interface PilotiVisualDataPatch {
   strokeWidth?: number;
 }
 
+export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
+  return PILOTI_BASE_HEIGHT_PX * pilotiHeight * scale;
+}
+
 
 export function createPilotiVisualDataPatch(params: {
   height: number;

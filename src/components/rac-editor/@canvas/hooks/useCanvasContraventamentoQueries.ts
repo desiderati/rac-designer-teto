@@ -8,9 +8,12 @@ import {
   ContraventamentoCandidate,
   ContraventamentoOrigin,
   createContraventamentoEditorState,
-  hasEligiblePilotiInContraventamentoColumn,
 } from '@/shared/types/contraventamento.ts';
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
+import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
+import {
+  hasEligiblePilotiForContraventamentoInColumn,
+  isHouseContraventamentoDestinationEligible,
+} from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
 
 interface UseContraventamentoQueriesArgs {
   contraventamentoFirst: ContraventamentoOrigin | null;
@@ -55,35 +58,20 @@ export function useContraventamentoQueries({
     const parsed = parsePilotiGridPosition(pilotiId);
     if (!parsed) return false;
 
-    const columnEnabled = hasEligiblePilotiInContraventamentoColumn({
-      col: parsed.col,
-      isPilotiEligible: (columnPilotiId) => {
-        const data = houseSnapshot?.pilotis[columnPilotiId];
-        return isPilotiOutOfProportion(
-          Number(data?.height ?? 0),
-          Number(data?.nivel ?? 0),
-        );
-      },
+    return isHouseContraventamentoDestinationEligible({
+      first: contraventamentoFirst,
+      candidate: parsed,
+      pilotis: houseSnapshot?.pilotis ?? {},
     });
-    if (!columnEnabled) return false;
-
-    return parsed.col === contraventamentoFirst.col
-      && parsed.row !== contraventamentoFirst.row;
   }, [contraventamentoFirst, houseSnapshot]);
 
   const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
     const parsed = parsePilotiGridPosition(pilotiId);
     if (!parsed) return false;
 
-    return hasEligiblePilotiInContraventamentoColumn({
+    return hasEligiblePilotiForContraventamentoInColumn({
       col: parsed.col,
-      isPilotiEligible: (columnPilotiId) => {
-        const data = houseSnapshot?.pilotis[columnPilotiId];
-        return isPilotiOutOfProportion(
-          Number(data?.height ?? 0),
-          Number(data?.nivel ?? 0),
-        );
-      },
+      pilotis: houseSnapshot?.pilotis ?? {},
     });
   }, [houseSnapshot]);
 

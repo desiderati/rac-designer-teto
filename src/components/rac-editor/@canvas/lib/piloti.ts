@@ -15,13 +15,14 @@ import {
   toCanvasGroup,
   toCanvasObject
 } from '@/components/rac-editor/@canvas/lib/canvas.ts'
-import {formatNivel, formatPilotiHeight, getAllPilotiIds, getPilotiVisualHeight} from '@/shared/types/piloti.ts';
+import {formatNivel, formatPilotiHeight, getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {
   PILOTI_BASE_HEIGHT_PX, PILOTI_BASE_HEIGHT_PX_WITH_SCALE,
   PILOTI_DEFAULT_NIVEL,
   PILOTI_MASTER_FILL_COLOR,
   PILOTI_MASTER_STROKE_COLOR
 } from '@/shared/constants.ts';
+import {getPilotiVisualHeight} from '@/components/rac-editor/@canvas/lib/piloti-visual.ts';
 
 export function createPilotis(
   elements: CanvasObject[],

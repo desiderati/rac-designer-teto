@@ -4,7 +4,6 @@ import {
   HOUSE_2D_STYLE,
   HOUSE_DEFAULTS,
   normalizeTerrainSolidityLevel,
-  PILOTI_CORNER_ID,
   PILOTI_STYLE,
   TERRAIN_SOLIDITY,
   TERRAIN_STYLE,
@@ -20,6 +19,7 @@ import {
   PILOTI_DEFAULT_NIVEL
 } from '@/shared/constants.ts';
 import {formatNivel} from '@/shared/types/piloti.ts';
+import {resolveHouseElevationCornerPilotiIds} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
 
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 export function createGroundElements(
@@ -625,23 +625,5 @@ function getPilotiRectVisualBounds(
 
 // Get corner piloti IDs for a given elevation view
 function getViewCornerPilotiIds(group: CanvasGroup): { leftId: string; rightId: string } | null {
-  const houseView = group.houseView;
-
-  if (houseView === 'front' || houseView === 'back') {
-    const isFlipped = group.isFlippedHorizontally;
-    if (isFlipped) {
-      return {leftId: PILOTI_CORNER_ID.topRight, rightId: PILOTI_CORNER_ID.topLeft};
-    }
-    return {leftId: PILOTI_CORNER_ID.bottomLeft, rightId: PILOTI_CORNER_ID.bottomRight};
-  }
-
-  if (houseView === 'side') {
-    const isRight = group.isRightSide;
-    if (isRight) {
-      return {leftId: PILOTI_CORNER_ID.bottomRight, rightId: PILOTI_CORNER_ID.topRight};
-    }
-    return {leftId: PILOTI_CORNER_ID.topLeft, rightId: PILOTI_CORNER_ID.bottomLeft};
-  }
-
-  return null;
+  return resolveHouseElevationCornerPilotiIds(group);
 }

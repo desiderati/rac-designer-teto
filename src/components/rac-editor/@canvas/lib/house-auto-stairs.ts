@@ -28,6 +28,7 @@ import {
   resolveTopStairMetrics,
   StairMetrics,
 } from '@/components/rac-editor/@canvas/lib/house-auto-stairs-metrics.ts';
+import {resolveHouseElevationAxisContext} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
 
 interface ElevationViewsAutoStairsResult {
   hasChanges: boolean;
@@ -96,7 +97,7 @@ function refreshElevationViewsAutoStairs(params: {
     const doorWidth = Number(runtimeDoor.width ?? 0) * Number(runtimeDoor.scaleX ?? 1);
     const doorHeight = Number(runtimeDoor.height ?? 0) * Number(runtimeDoor.scaleY ?? 1);
     if (doorWidth <= 0 || doorHeight <= 0) continue;
-    const axisContext = resolveDoorSideAxisContextFromElevationGroup(group);
+    const axisContext = resolveHouseElevationAxisContext(group);
     if (!axisContext) continue;
 
     const scale = doorWidth / HOUSE_DIMENSIONS.elements.common.doorWidth;
@@ -269,22 +270,6 @@ function applyStairMetrics(canvasGroup: CanvasGroup, metrics: StairMetrics): voi
   canvasGroup.stairsHeight = metrics.stairHeight;
   canvasGroup.stairsNivelLeft = metrics.leftNivel;
   canvasGroup.stairsNivelRight = metrics.rightNivel;
-}
-
-function resolveDoorSideAxisContextFromElevationGroup(group: CanvasGroup): DoorSideAxisContext | null {
-  const houseView = String(group.houseView ?? '');
-
-  if (houseView === 'front' || houseView === 'back') {
-    const isFlipped = Boolean(group.isFlippedHorizontally);
-    return {side: isFlipped ? 'top' : 'bottom', reverseAxis: isFlipped};
-  }
-
-  if (houseView === 'side') {
-    const isRight = Boolean(group.isRightSide);
-    return {side: isRight ? 'right' : 'left', reverseAxis: isRight};
-  }
-
-  return null;
 }
 
 function resolveElevationStairMetrics(params: {

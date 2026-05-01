@@ -1,5 +1,5 @@
 import {ALL_PILOTI_HEIGHTS, DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseSide} from '@/shared/types/house.ts';
-import {NUMERIC_EPSILON, PILOTI_BASE_HEIGHT_PX, PILOTI_DEFAULT_NIVEL} from '../constants';
+import {NUMERIC_EPSILON, PILOTI_DEFAULT_NIVEL} from '../constants';
 
 export const getPilotiIdsForSide =
   (side: HouseSide): string[] => {
@@ -130,7 +130,3 @@ export function getAllPilotiIds(): string[] {
   return ids;
 }
 
-// Calculate piloti visual height based on pilotiHeight value
-export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
-  return PILOTI_BASE_HEIGHT_PX * pilotiHeight * scale;
-}

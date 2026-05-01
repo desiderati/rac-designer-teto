@@ -8,15 +8,16 @@ import {
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/@canvas/lib';
 import {
-  canCreateContraventamentoForNivel,
   collectOccupiedContraventamentoSides,
-  ContraventamentoSide,
+  type ContraventamentoSide,
   getContraventamentoColumnCenterX
 } from '@/shared/types/contraventamento.ts';
-import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
-
-const GRID_COLUMNS = [0, 1, 2, 3] as const;
-const GRID_ROWS = [0, 1, 2] as const;
+import {
+  collectAutoContraventamentoRowsByColumn,
+  HOUSE_CONTRAVENTAMENTO_COLUMNS,
+  resolveAutoContraventamentoRows,
+  resolveNextContraventamentoSide,
+} from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
 
 /**
  * Recalcula e sincroniza contraventamentos automáticos em todas as vistas da casa.
@@ -63,10 +64,10 @@ function refreshAutoContraventamentoOnTopView(
   runtimeTopGroup: CanvasGroup,
   pilotis: Record<string, HousePiloti>,
 ): boolean {
-  const rowsByCol = collectRowsRequiringAutoContraventamentoByColumn(pilotis);
+  const rowsByCol = collectAutoContraventamentoRowsByColumn(pilotis);
   let hasChanges = false;
 
-  GRID_COLUMNS.forEach((col) => {
+  HOUSE_CONTRAVENTAMENTO_COLUMNS.forEach((col) => {
     const requiredRows = rowsByCol.get(col) ?? [];
     const existingInColumn = getColumnContraventamentos(runtimeTopGroup, col);
 
@@ -114,39 +115,6 @@ function refreshAutoContraventamentoOnTopView(
 }
 
 /**
- * Coleta, por coluna, as linhas que exigem contraventamento automático.
- *
- * Critérios:
- * - nível elegível para contraventamento;
- * - piloti fora da proporção esperada.
- *
- * @param pilotis Mapa de pilotis da casa.
- * @returns Mapa `coluna -> linhas` que demandam contraventamento automático.
- */
-function collectRowsRequiringAutoContraventamentoByColumn(
-  pilotis: Record<string, HousePiloti>,
-): Map<number, number[]> {
-  const rowsByCol = new Map<number, number[]>();
-
-  Object.entries(pilotis).forEach(([pilotiId, pilotiData]) => {
-    const parsed = parsePilotiGridPosition(pilotiId);
-    if (!parsed) return;
-
-    const nivel = Number(pilotiData?.nivel ?? 0);
-    const height = Number(pilotiData?.height ?? 0);
-
-    if (!canCreateContraventamentoForNivel(nivel)) return;
-    if (!isPilotiOutOfProportion(height, nivel)) return;
-
-    const rows = rowsByCol.get(parsed.col) ?? [];
-    if (!rows.includes(parsed.row)) rows.push(parsed.row);
-    rowsByCol.set(parsed.col, rows);
-  });
-
-  return rowsByCol;
-}
-
-/**
  * Retorna os objetos de contraventamento existentes em uma coluna da vista superior.
  *
  * @param group Grupo da vista superior.
@@ -181,7 +149,7 @@ function resolveContraventamentoColumn(object: CanvasObject): number | null {
 
   let closestCol = 0;
   let closestDistance = Number.POSITIVE_INFINITY;
-  GRID_COLUMNS.forEach((col) => {
+  HOUSE_CONTRAVENTAMENTO_COLUMNS.forEach((col) => {
     const distance = Math.abs(centerX - getContraventamentoColumnCenterX(col));
     if (distance < closestDistance) {
       closestDistance = distance;
@@ -208,67 +176,5 @@ function resolveAutoContraventamentoSide(group: CanvasGroup, col: number): Contr
     },
   });
 
-  if (!occupied.left) return 'left';
-  if (!occupied.right) return 'right';
-  return null;
-}
-
-/**
- * Resolve o par de linhas (origem e destino) para criação automática.
- *
- * Regras:
- * - origem: menor nível da coluna;
- * - destino: maior nível da coluna;
- * - em empate, escolhe o par com maior distância vertical possível.
- *
- * @param params Coluna, estado dos pilotis e linhas elegíveis da coluna.
- * @returns Linhas de ancoragem e destino.
- */
-function resolveAutoContraventamentoRows(params: {
-  col: number;
-  pilotis: Record<string, HousePiloti>;
-  requiredRows: number[];
-}): { anchorRow: number; targetRow: number } {
-
-  const rowsWithNivel = GRID_ROWS
-    .map((row) => ({
-      row,
-      nivel: Number(params.pilotis[`piloti_${params.col}_${row}`]?.nivel),
-    }))
-    .filter((item) => Number.isFinite(item.nivel));
-
-  const uniqueRequiredRows =
-    [...new Set(params.requiredRows)].sort((a, b) => a - b);
-
-  const fallbackAnchor = uniqueRequiredRows[0] ?? 0;
-  const fallbackTarget = [...GRID_ROWS]
-    .filter((row) => row !== fallbackAnchor)
-    .sort((a, b) => Math.abs(b - fallbackAnchor) - Math.abs(a - fallbackAnchor))[0] ?? 2;
-
-  if (rowsWithNivel.length < 2) {
-    return {anchorRow: fallbackAnchor, targetRow: fallbackTarget};
-  }
-
-  // Regra de distância máxima: sempre usar os pilotis de ponta a ponta na coluna.
-  const extremeRows = rowsWithNivel
-    .map((item) => item.row)
-    .sort((a, b) => a - b);
-
-  const firstExtremeRow = extremeRows[0] ?? fallbackAnchor;
-  const lastExtremeRow = extremeRows[extremeRows.length - 1] ?? fallbackTarget;
-  if (firstExtremeRow !== lastExtremeRow) {
-    const firstExtremeNivel =
-      Number(params.pilotis[`piloti_${params.col}_${firstExtremeRow}`]?.nivel ?? 0);
-
-    const lastExtremeNivel =
-      Number(params.pilotis[`piloti_${params.col}_${lastExtremeRow}`]?.nivel ?? 0);
-
-    // Entre os extremos, a origem deve ser o menor nível.
-    if (firstExtremeNivel <= lastExtremeNivel) {
-      return {anchorRow: firstExtremeRow, targetRow: lastExtremeRow};
-    }
-    return {anchorRow: lastExtremeRow, targetRow: firstExtremeRow};
-  }
-
-  return {anchorRow: fallbackAnchor, targetRow: fallbackTarget};
+  return resolveNextContraventamentoSide(occupied);
 }

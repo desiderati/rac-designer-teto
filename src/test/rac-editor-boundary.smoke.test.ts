@@ -56,6 +56,9 @@ const allowedFabricSerializationRoots = [
   'src/components/rac-editor/@canvas',
 ];
 
+const removedCanvasRebuildPattern =
+  /\b(?:HouseCanvasReconciliationPort|houseCanvasReconciliationPort|rebuildHouseFromCanvas|rebuildViewsFromCanvasSources)\b/;
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -83,7 +86,7 @@ function collectSourceFiles(directory: string): string[] {
 }
 
 describe('fronteira arquitetural do editor RAC', () => {
-  it('mantém Fabric e canvas fora do núcleo lógico testável', () => {
+  it('mantem Fabric e canvas fora do nucleo logico testavel', () => {
     const violations = guardedRoots.flatMap((root) => {
       const rootPath = resolve(projectRoot, root);
 
@@ -100,7 +103,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('não reintroduz CanvasInteractionPort como handle amplo do canvas', () => {
+  it('nao reintroduz CanvasInteractionPort como handle amplo do canvas', () => {
     const rootPath = resolve(projectRoot, 'src/components/rac-editor');
     const violations = [
       ...(existsSync(resolve(projectRoot, canvasInteractionPortPath))
@@ -133,7 +136,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('mantém o viewer 3D dependente da projeção serializável, não do runtime visual', () => {
+  it('mantem o viewer 3D dependente da projecao serializavel, nao do runtime visual', () => {
     const rootPath = resolve(projectRoot, 'src/components/rac-editor/@viewer-3d');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
@@ -146,7 +149,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('impede reintrodução do singleton global da casa', () => {
+  it('impede reintroducao do singleton global da casa', () => {
     const rootPath = resolve(projectRoot, 'src');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
@@ -159,7 +162,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('mantém adapters concretos de infra fora do código produtivo do editor', () => {
+  it('mantem adapters concretos de infra fora do codigo produtivo do editor', () => {
     const rootPath = resolve(projectRoot, 'src/components/rac-editor');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
@@ -172,7 +175,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('confina APIs de serialização Fabric ao slice de canvas', () => {
+  it('confina APIs de serializacao Fabric ao slice de canvas', () => {
     const rootPath = resolve(projectRoot, 'src');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
@@ -181,8 +184,62 @@ describe('fronteira arquitetural do editor RAC', () => {
       const fileLabel = toPosixPath(relative(projectRoot, filePath));
       if (allowedFabricSerializationRoots.some((root) => fileLabel.startsWith(`${root}/`))) return [];
 
-      return [`${fileLabel}: API de serialização Fabric fora do slice @canvas`];
+      return [`${fileLabel}: API de serializacao Fabric fora do slice @canvas`];
     });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('impede reintroducao do rebuild canvas para o estado logico da casa', () => {
+    const rootPath = resolve(projectRoot, 'src');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!removedCanvasRebuildPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      return [`${fileLabel}: rebuild canvas -> casa reintroduzido`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantem a politica pura de contraventamento fora do slice visual', () => {
+    const filePath = resolve(
+      projectRoot,
+      'src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts',
+    );
+    const content = readFileSync(filePath, 'utf8');
+
+    const violations = [
+      /function\s+collectRowsRequiringAutoContraventamentoByColumn\b/.test(content)
+        ? 'house-auto-contraventamento.ts: regra de coleta automatica local ao canvas'
+        : null,
+      /function\s+resolveAutoContraventamentoRows\b/.test(content)
+        ? 'house-auto-contraventamento.ts: regra de origem/destino local ao canvas'
+        : null,
+      /\bisPilotiOutOfProportion\b/.test(content)
+        ? 'house-auto-contraventamento.ts: regra de proporcao do piloti vazando no canvas'
+        : null,
+      /\bcanCreateContraventamentoForNivel\b/.test(content)
+        ? 'house-auto-contraventamento.ts: regra de nivel de contraventamento vazando no canvas'
+        : null,
+    ].filter(Boolean);
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantem helpers visuais de piloti fora de shared/types', () => {
+    const filePath = resolve(projectRoot, 'src/shared/types/piloti.ts');
+    const content = readFileSync(filePath, 'utf8');
+
+    const violations = [
+      /\bgetPilotiVisualHeight\b/.test(content)
+        ? 'src/shared/types/piloti.ts: helper visual de piloti fora do slice @canvas'
+        : null,
+      /\bPILOTI_BASE_HEIGHT_PX\b/.test(content)
+        ? 'src/shared/types/piloti.ts: constante visual de piloti fora do slice @canvas'
+        : null,
+    ].filter(Boolean);
 
     expect(violations).toEqual([]);
   });
