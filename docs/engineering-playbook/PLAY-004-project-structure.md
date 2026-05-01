@@ -60,7 +60,7 @@ Ele existe para evitar dois erros comuns:
 - `HouseVisualRuntimePort<TGroup>` representa as capacidades mínimas do runtime visual usadas pelo núcleo do editor.
 - Tipos e objetos de Fabric devem permanecer no slice `@canvas`, especialmente em `@canvas/ui/adapters` e nos helpers
   visuais de `@canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
-- `src/architecture/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos de Fabric,
+- `src/test/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos de Fabric,
   `@canvas`, tipos concretos `CanvasGroup`/`CanvasObject` e reintrodução de `CanvasInteractionPort`.
 - Esse é o estado real atual e deve ser documentado como tal.
 

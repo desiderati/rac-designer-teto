@@ -7,10 +7,9 @@ import type {
   HouseType,
 } from '@/shared/types/house.ts';
 import type {
-  EditorHouseVisualRebuildInput,
-} from '@/components/rac-editor/lib/editor-house-visual-runtime.ts';
+  HouseRuntimeGroupRef,
+} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
@@ -26,15 +25,9 @@ interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   getAggregate: () => HouseAggregate | null;
   getDefaultTerrainType: () => number;
-  getTerrainType: () => number;
   getSelectedPilotiHeights: () => readonly number[];
   getAllGroups: () => TGroup[];
   unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
-  replaceRuntimeViewGroups: (entries: Array<{ instanceId: HouseViewInstanceId; group: TGroup }>) => void;
-  createVisualRebuildInput: (params: {
-    currentPilotis: Record<string, HousePiloti>;
-    fallbackTerrainType: number;
-  }) => EditorHouseVisualRebuildInput<TGroup> | null;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   persistHouse: () => void;
   syncProjectSession: () => void;
@@ -72,12 +65,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
     this.viewCommands = new EditorHouseViewCommandService<TGroup>({
       getHouse: args.getHouse,
       getAggregate: args.getAggregate,
-      getTerrainType: args.getTerrainType,
-      getAllGroups: args.getAllGroups,
       unregisterRuntimeViewGroup: args.unregisterRuntimeViewGroup,
-      replaceRuntimeViewGroups: args.replaceRuntimeViewGroups,
-      createVisualRebuildInput: args.createVisualRebuildInput,
-      viewRuntime: args.viewRuntime,
       persistHouse: args.persistHouse,
       notify: args.notify,
       refreshAutoContraventamento: args.refreshAutoContraventamento,
@@ -106,10 +94,6 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
 
   registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {
     return this.viewCommands.registerView(request);
-  }
-
-  rebuildFromCanvas(): void {
-    this.viewCommands.rebuildFromCanvas();
   }
 
   removeView(instanceId: HouseViewInstanceId): void {

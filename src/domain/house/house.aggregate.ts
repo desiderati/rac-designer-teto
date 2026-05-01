@@ -14,7 +14,6 @@ import {
 } from '@/shared/types/house.ts';
 import {
   cleanupStaleViewInstances,
-  rebuildSideMappingsFromViews,
   registerViewInstance,
   removeViewInstance,
   removeViewInstanceById,
@@ -32,8 +31,6 @@ import {
   createEmptySideMappings,
   createEmptyViews
 } from '@/domain/house/use-cases/house-state.use-case.ts';
-import {rebuildViewsFromSources,} from '@/domain/house/use-cases/house-views-rebuild.use-case.ts';
-import {RebuildViewSource, RebuildViewsResult} from '@/shared/types/house-rebuild.ts';
 import {recalculateRecommendedPilotiData} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 export class HouseAggregate {
@@ -252,25 +249,9 @@ export class HouseAggregate {
     });
   }
 
-  hasAnyViewInstances(
-    views: HouseViews,
-  ): boolean {
+  hasAnyViewInstances(views: HouseViews): boolean {
     return (Object.keys(views) as HouseViewType[]).some(
       (viewType) => views[viewType].length > 0
     );
-  }
-
-  rebuildViewsFromCanvasSources<TGroup>(sources: RebuildViewSource<TGroup>[]): RebuildViewsResult<TGroup> {
-    const rebuilt = rebuildViewsFromSources({
-      houseType: this.state.houseType,
-      sources,
-    });
-    this.state.views = rebuilt.views;
-    this.state.sideMappings = rebuildSideMappingsFromViews({
-      views: rebuilt.views,
-      sideMappingsTemplate: this.state.sideMappings,
-    });
-
-    return rebuilt;
   }
 }

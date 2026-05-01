@@ -43,9 +43,8 @@ O JSON Fabric bruto não é mais formato aceito para importação de projeto. O 
 entre o runtime visual e o documento visual, mas hooks de aplicação, ports do editor, bootstrap e documentos de domínio
 não conhecem `canvas.toJSON()`, `canvas.loadFromJSON()` nem tipos concretos do canvas.
 
-`rebuildHouseFromCanvas` permanece como mecanismo transitório de reconciliação para fluxos ainda presos ao snapshot
-visual, como undo do canvas. Ele não pertence ao `HouseWritePort` geral e não participa do caminho canônico de
-importação documental.
+O histórico do canvas também deve restaurar o estado lógico por documento explícito quando a casa existir. Recriar
+estado de casa a partir de grupos visuais deixa de ser mecanismo de aplicação aceito nesta fase.
 
 ## 3. Fronteira
 
@@ -58,7 +57,6 @@ flowchart LR
     CanvasDocument["Documento visual serializável"]
     FabricAdapter["Adapter Fabric em @canvas"]
     Fabric["Fabric.js"]
-    Reconciliation["HouseCanvasReconciliationPort"]
     History["Histórico do canvas"]
 
     Hook --> HouseDocumentPort
@@ -67,8 +65,8 @@ flowchart LR
     CanvasDocumentPort --> CanvasDocument
     CanvasDocumentPort --> FabricAdapter
     FabricAdapter --> Fabric
-    History --> Reconciliation
-    Reconciliation -. "transitório" .-> HouseState
+    History --> CanvasDocumentPort
+    History --> HouseDocumentPort
 ```
 
 ## 4. Critério de aceite
@@ -83,7 +81,7 @@ A decisão está aceita quando:
 6. O parser documental valida `HouseState`, setup, geometria, metadados JSON e elementos visuais sem aceitar payload
    opaco.
 7. Existe round trip mínimo `canvas -> HouseDrawingDocument.canvas -> canvas` preservando identidade e metadados visuais.
-8. `rebuildHouseFromCanvas` fica fora do `HouseWritePort` geral e exposto apenas por porta transitória de reconciliação.
+8. Não existe porta pública de aplicação para `rebuildHouseFromCanvas`.
 9. Testes de fronteira, ports, parser documental, adapter Fabric e import/export caracterizam o novo contrato.
 
 ## 5. Alternativas rejeitadas
@@ -109,8 +107,8 @@ ativa e o fluxo de importação/exportação do editor.
 - O arquivo exportado deixa de ser compatível com JSON Fabric antigo.
 - O documento visual ainda é reconstruído pelo adapter Fabric dentro de `@canvas`; isso é borda legítima, não contrato de
   aplicação.
-- `HouseCanvasReconciliationPort` explicita a dívida transitória de rebuild canvas -> casa sem contaminar o port geral de
-  escrita.
+- O histórico deixa de depender de rebuild canvas -> casa e passa a armazenar documento visual mais documento lógico
+  quando a casa já existe.
 - O próximo ciclo relacionado a persistência só deve promover `ProjectDocument` multicasa quando a camada de projeto
   estiver pronta para persistência real.
 

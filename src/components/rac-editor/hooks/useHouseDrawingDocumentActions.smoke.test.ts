@@ -162,9 +162,6 @@ describe('useHouseDrawingDocumentActions.ts', () => {
       exportHouseDrawingDocument: vi.fn(),
       importHouseDrawingDocument: vi.fn(),
     };
-    const houseCanvasReconciliationPort = {
-      rebuildHouseFromCanvas: vi.fn(),
-    };
     const {canvas, ref} = createCanvasRef(documentPort);
     const setInfoMessage = vi.fn();
     const resetContraventamentoFlow = vi.fn();
@@ -179,7 +176,7 @@ describe('useHouseDrawingDocumentActions.ts', () => {
         resetContraventamentoFlow,
         syncContraventamentoElevations,
       }),
-      {wrapper: createWrapper({houseDrawingDocumentPort, houseCanvasReconciliationPort})},
+      {wrapper: createWrapper({houseDrawingDocumentPort})},
     );
 
     act(() => {
@@ -191,7 +188,6 @@ describe('useHouseDrawingDocumentActions.ts', () => {
     await waitFor(() => expect(documentPort.loadCanvasDocument).toHaveBeenCalledWith(projectDocument.canvas));
 
     expect(resetContraventamentoFlow).toHaveBeenCalled();
-    expect(houseCanvasReconciliationPort.rebuildHouseFromCanvas).not.toHaveBeenCalled();
     expect(houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(projectDocument);
     expect(syncContraventamentoElevations).toHaveBeenCalled();
     expect(canvas.saveHistory).toHaveBeenCalled();

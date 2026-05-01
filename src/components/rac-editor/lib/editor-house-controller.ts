@@ -87,12 +87,9 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       getRuntimeHouse: () => this.runtimeHouse,
       getAggregate: () => this.getHouseAggregate(),
       getDefaultTerrainType: () => this.getDefaultTerrainType(),
-      getTerrainType: () => this.getTerrainType(),
       getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
       getAllGroups: () => this.getAllGroups(),
       unregisterRuntimeViewGroup: (instanceId) => this.visualRuntime.unregisterViewGroup(instanceId),
-      replaceRuntimeViewGroups: (entries) => this.visualRuntime.replaceViewGroups(entries),
-      createVisualRebuildInput: (params) => this.visualRuntime.createRebuildInput(params),
       viewRuntime: args.viewRuntime,
       persistHouse: () => this.persistHouse(),
       syncProjectSession: () => this.session.syncProjectSession(),
@@ -270,10 +267,6 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {
     return this.commands.registerView(request);
-  }
-
-  rebuildFromCanvas(): void {
-    this.commands.rebuildFromCanvas();
   }
 
   removeView(instanceId: HouseViewInstanceId): void {

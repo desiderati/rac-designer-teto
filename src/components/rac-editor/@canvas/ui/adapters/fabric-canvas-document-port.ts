@@ -4,12 +4,12 @@ import {canvasObjectProps} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-  isHouseDrawingCanvasDocument,
-  isHouseDrawingElementShape,
   type HouseDrawingCanvasDocument,
   type HouseDrawingElementDocument,
   type HouseDrawingElementGeometry,
   type HouseDrawingPoint,
+  isHouseDrawingCanvasDocument,
+  isHouseDrawingElementShape,
   type JsonObject,
   type JsonValue,
 } from '@/shared/types/house-drawing-document.ts';
@@ -82,10 +82,9 @@ function toJsonValue(value: unknown): JsonValue | undefined {
   }
 
   if (Array.isArray(value)) {
-    const items = value
+    return value
       .map((item) => toJsonValue(item))
       .filter((item): item is JsonValue => item !== undefined);
-    return items;
   }
 
   if (!isRecord(value)) return undefined;

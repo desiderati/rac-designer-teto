@@ -18,15 +18,16 @@ At the moment, the application is structurally constrained to a **single active 
 `HouseState<TGroup>`, which models only one house and has no `familyId`, no project root, and no multi-house
 container.[2] The central manager instantiates exactly one aggregate, uses an **in-memory adapter**, and keeps
 `familyName` plus selected piloti heights outside the persisted `HouseState`, which is why that information is not
-durable today.[1] The current import/export flow also serializes only `canvas.toJSON()` and rebuilds house state from
-Fabric objects afterwards, which means persistence is still **canvas-centric**, not domain-centric.[4]
+durable today.[1] The current import/export flow already uses an initial `HouseDrawingDocument` for the active house,
+combining logical `HouseState`, setup data and a serializable visual document. That is a better bridge than raw Fabric
+JSON, but it is still **single-house**, not a persisted multi-house project document.[4]
 
 | Current limitation                      | Why it matters                                                        |
 |-----------------------------------------|-----------------------------------------------------------------------|
 | One `HouseState` only                   | You cannot manage multiple houses inside one construction project.    |
 | In-memory persistence                   | Data disappears between sessions unless exported manually.            |
 | Family metadata outside persisted state | A house cannot be durably associated with a family.                   |
-| Raw Fabric JSON export                  | The file stores drawing structure, not a normalized project document. |
+| Active-house document only              | The file is not yet a normalized multi-house project document.        |
 
 ## What the spreadsheet is really modeling
 
@@ -191,9 +192,10 @@ The `total-piloti-*` columns should **not** be stored as canonical data. They ar
 
 ### 7. `HouseDrawingDocument`
 
-This is the missing bridge between the current editor and the persisted model. Today, the app exports raw Fabric JSON
-only.[4] In the new architecture, each house should own a **drawing document** that stores serializable views, objects,
-and editor metadata — without using live Fabric groups as persisted state.[1] [2]
+This is the bridge between the current editor and the future persisted model. The app now exports an initial
+`HouseDrawingDocument` for the active house instead of raw Fabric JSON.[4] In the multi-house architecture, each house
+should own a **drawing document** that stores serializable views, objects, and editor metadata — without using live
+Fabric groups as persisted state.[1] [2]
 
 | Field           | Type           | Notes                                |
 |-----------------|----------------|--------------------------------------|
@@ -329,10 +331,10 @@ A cleaner breakdown is:
 | `_familyName`            | `Family.name`                                                                       |
 | `_selectedPilotiHeights` | `HouseDesignSettings.availablePilotiHeightsCm` or `PilotiLayout.availableHeightsCm` |
 
-### Step 6 — Replace raw JSON export/import with project document export/import
+### Step 6 — Promote active-house document export/import into project document export/import
 
-Today `handleExportJSON()` exports only `canvas.toJSON()`.[4] I would replace that with a versioned project document,
-for example:
+Today the editor exports a versioned `HouseDrawingDocument` for one active house.[4] The next persistence step is not to
+return to Fabric JSON; it is to wrap the same documentary direction in a versioned project document, for example:
 
 ```json
 {

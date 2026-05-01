@@ -1,4 +1,3 @@
-import type {HousePiloti} from '@/shared/types/house.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseVisualRuntimePort} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
@@ -14,10 +13,4 @@ export interface CanvasHouseRuntimePort extends HouseVisualRuntimePort<CanvasGro
 
   /** Retorna todos os grupos de casa atualmente presentes no canvas. */
   getHouseGroups(): CanvasGroup[];
-
-  /** Lê os pilotis projetados no canvas e combina com o estado lógico atual. */
-  readPilotis(currentPilotis: Record<string, HousePiloti>): Record<string, HousePiloti>;
-
-  /** Resolve o tipo de terreno a partir das vistas no canvas ou usa o fallback. */
-  resolveTerrainType(fallbackTerrainType: number): number;
 }

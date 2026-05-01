@@ -23,7 +23,9 @@ export const HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION = 1;
 export const HOUSE_DRAWING_CANVAS_SCHEMA_VERSION = 1;
 
 const HOUSE_TYPES = ['tipo6', 'tipo3'] as const satisfies readonly Exclude<HouseType, null>[];
+
 const HOUSE_SIDES = ['top', 'bottom', 'left', 'right'] as const satisfies readonly HouseSide[];
+
 const HOUSE_STATE_KEYS = [
   'id',
   'houseType',
@@ -33,6 +35,7 @@ const HOUSE_STATE_KEYS = [
   'sideMappings',
   'preAssignedSides',
 ] as const;
+
 const HOUSE_DRAWING_DOCUMENT_KEYS = [
   'documentType',
   'schemaVersion',
@@ -40,14 +43,17 @@ const HOUSE_DRAWING_DOCUMENT_KEYS = [
   'house',
   'canvas',
 ] as const;
+
 const HOUSE_DRAWING_SETUP_KEYS = [
   'familyName',
   'selectedPilotiHeights',
 ] as const;
+
 const HOUSE_DRAWING_CANVAS_DOCUMENT_KEYS = [
   'schemaVersion',
   'objects',
 ] as const;
+
 const HOUSE_DRAWING_ELEMENT_SHAPES = [
   'circle',
   'group',
@@ -62,6 +68,7 @@ const HOUSE_DRAWING_ELEMENT_SHAPES = [
   'textbox',
   'triangle',
 ] as const;
+
 const HOUSE_DRAWING_ELEMENT_KEYS = [
   'id',
   'kind',
@@ -73,6 +80,7 @@ const HOUSE_DRAWING_ELEMENT_KEYS = [
   'resource',
   'children',
 ] as const;
+
 const HOUSE_DRAWING_ELEMENT_SCALAR_GEOMETRY_KEYS = [
   'left',
   'top',
@@ -87,6 +95,7 @@ const HOUSE_DRAWING_ELEMENT_SCALAR_GEOMETRY_KEYS = [
   'x2',
   'y2',
 ] as const satisfies readonly (keyof HouseDrawingElementGeometry)[];
+
 const HOUSE_DRAWING_ELEMENT_GEOMETRY_KEYS = [
   ...HOUSE_DRAWING_ELEMENT_SCALAR_GEOMETRY_KEYS,
   'points',

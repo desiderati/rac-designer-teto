@@ -7,8 +7,6 @@ function createCanvasPort() {
     requestRenderAll: vi.fn(),
     includesGroup: vi.fn(() => true),
     getHouseGroups: vi.fn(() => []),
-    readPilotis: vi.fn((pilotis) => pilotis),
-    resolveTerrainType: vi.fn((terrainType) => terrainType),
   };
 }
 
@@ -51,9 +49,9 @@ describe('editor house ports', () => {
     expect(ports.houseRuntimeSnapshotPort.getRuntimeSnapshot()).not.toBeNull();
   });
 
-  it('mantem rebuild canvas -> casa em porta transitoria separada', () => {
+  it('nao expoe rebuild canvas -> casa como porta de aplicacao', () => {
     expect('rebuildHouseFromCanvas' in ports.houseWritePort).toBe(false);
-    expect(typeof ports.houseCanvasReconciliationPort.rebuildHouseFromCanvas).toBe('function');
+    expect('houseCanvasReconciliationPort' in ports).toBe(false);
   });
 
   it('emite alteracoes de estado sem expor o singleton a UI', () => {

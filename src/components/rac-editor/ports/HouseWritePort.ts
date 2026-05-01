@@ -39,18 +39,6 @@ export interface HouseLifecycleWritePort {
 }
 
 /**
- * Porta transitória de reconciliação canvas -> casa.
- *
- * Use apenas em fluxos ainda presos ao snapshot visual, como undo de histórico
- * dentro de `@canvas`. Importação documental e fluxos de aplicação devem aplicar
- * `HouseDrawingDocument` diretamente ao estado lógico.
- */
-export interface HouseCanvasReconciliationPort {
-  /** Reconstrói o estado lógico da casa a partir dos grupos presentes no canvas. */
-  rebuildHouseFromCanvas(): void;
-}
-
-/**
  * Comandos ligados ao terreno da casa.
  */
 export interface HouseTerrainWritePort {

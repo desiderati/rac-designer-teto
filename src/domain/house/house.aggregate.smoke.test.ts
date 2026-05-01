@@ -128,21 +128,6 @@ describe('house.aggregate.ts', () => {
     expect(aggregate.toState().sideMappings.bottom).toBe('back');
   });
 
-  it('rebuilds views from canvas-like sources and side mappings', () => {
-    const aggregate =
-      HouseAggregate.fromState(createState());
-
-    const rebuilt = aggregate.rebuildViewsFromCanvasSources([
-      {group: {id: 'front-a'}, metadata: {houseView: 'front', isFlippedHorizontally: true}},
-      {group: {id: 'side-a'}, metadata: {houseView: 'side', isRightSide: true}},
-    ]);
-
-    expect(rebuilt.views.front).toHaveLength(1);
-    expect(rebuilt.views.side1).toHaveLength(1);
-    expect(aggregate.toState().sideMappings.top).toBe('front');
-    expect(aggregate.toState().sideMappings.right).toBe('side1');
-  });
-
   it('gets max view count from current house type', () => {
     const aggregate = HouseAggregate.fromState(createState({houseType: 'tipo3'}));
     expect(aggregate.getMaxViewCount('front')).toBe(0);

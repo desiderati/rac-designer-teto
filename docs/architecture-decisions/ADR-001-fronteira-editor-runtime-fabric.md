@@ -42,7 +42,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `src/bootstrap/editor-infra-ports.ts`
   - `src/components/rac-editor/ports/EditorSettingsPort.ts`
   - `src/components/rac-editor/ports/TutorialProgressPort.ts`
-  - `src/architecture/rac-editor-boundary.smoke.test.ts`
+  - `src/test/rac-editor-boundary.smoke.test.ts`
 
 ## 2. Decisão
 
@@ -87,7 +87,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica. O handle amplo
     `CanvasInteractionPort` foi removido; `Canvas` expõe `RacEditorCanvasHandle` apenas como composição de tela.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
-    terreno, vistas/rebuild e pilotis.
+    terreno, vistas e pilotis.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
     a persistência, storage e integrações técnicas que não dependem da feature editor.
   - Bridges de debug que conhecem grupos visuais concretos pertencem ao slice `@canvas`, não aos hooks gerais do editor.
@@ -124,7 +124,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Resultado conceitualmente limpo mais rapidamente.
   - Menos código transitório.
 - custos ou riscos:
-  - Alto risco de regressão em histórico, import/export, rebuild, piloti, contraventamento e viewer 3D.
+  - Alto risco de regressão em histórico, import/export, piloti, contraventamento e viewer 3D.
   - Dificulta revisar e validar comportamento incrementalmente.
   - Contraria o playbook local ao abrir camadas por reflexo.
 - por que não foi escolhida:
@@ -134,7 +134,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 
 - descrição:
   - Criar contratos serializáveis e migrar por loops: seleção, store/commands, canvas ports, piloti, vistas/terreno,
-    contraventamento, histórico/rebuild e factories/adapters Fabric.
+    contraventamento, histórico/import-export e factories/adapters Fabric.
 - benefícios:
   - Melhor equilíbrio entre testabilidade, reversibilidade e alinhamento com o playbook.
   - Permite preservar comportamento enquanto reduz vazamentos medidos.
@@ -172,7 +172,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - Risco: criar uma store paralela ao controller transitório da casa.
   - Mitigação: usar façade transitória e substituir responsabilidades explicitamente.
 - Risco: quebrar import/export e undo.
-  - Mitigação: caracterizar round trip JSON e rebuild antes de migrar essa frente.
+  - Mitigação: caracterizar round trip documental e restauração de histórico antes de migrar essa frente.
 - Risco: ports virarem wrappers de Fabric.
   - Mitigação: ports devem representar capacidades do editor, não métodos da biblioteca.
 
@@ -201,7 +201,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - contratos de integração:
   - Canvas ports em `src/components/rac-editor/@canvas/ports`.
   - House ports em `src/components/rac-editor/ports`.
-  - Guarda arquitetural em `src/architecture/rac-editor-boundary.smoke.test.ts`.
+  - Guarda arquitetural em `src/test/rac-editor-boundary.smoke.test.ts`.
 - layout de artefatos:
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/`
 - superfícies humanas relacionadas:

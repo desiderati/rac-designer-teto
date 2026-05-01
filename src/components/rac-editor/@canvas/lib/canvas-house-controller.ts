@@ -7,7 +7,6 @@ import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visu
 import {
   applyCurrentHouseDataToGroups,
   applyTerrainTypeToElevationViews,
-  rebuildHouseViewsFromCanvas,
   updateHousePiloti,
 } from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
 
@@ -26,7 +25,6 @@ export function createCanvasHouseController(args: CanvasHouseControllerArgs): Ed
       settingsPort: args.settingsPort,
     }),
     viewRuntime: {
-      rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
       applyCurrentHouseDataToGroups,
       applyTerrainTypeToElevationViews,
       updatePiloti: updateHousePiloti,

@@ -9,7 +9,7 @@ import {
   toCanvasGroup,
   toCanvasObject
 } from '@/components/rac-editor/@canvas/lib';
-import {findTopViewGroupCandidate} from '@/components/rac-editor/@canvas/lib/canvas-rebuild.ts';
+import {findTopViewGroupCandidate} from '@/components/rac-editor/@canvas/lib/house-group-candidates.ts';
 import {useHouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseRuntimeViewInstance, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {

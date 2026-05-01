@@ -3,20 +3,11 @@ import type {
   HousePiloti,
   HouseRuntimeViews,
   HouseState,
-  HouseViewInstanceId,
 } from '@/shared/types/house.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
 export interface EditorHouseViewRuntime<TGroup extends HouseRuntimeGroupRef> {
-  rebuildViewsFromRuntime(params: {
-    aggregate: HouseAggregate;
-    house: HouseState;
-    visualGroups: TGroup[];
-    pilotisFromRuntime: Record<string, HousePiloti>;
-    terrainTypeFromRuntime: number;
-  }): { groupsToSync: TGroup[]; runtimeViewGroups: Array<{ instanceId: HouseViewInstanceId; group: TGroup }> };
-
   applyCurrentHouseDataToGroups(params: {
     groups: TGroup[];
     pilotis: Record<string, HousePiloti>;

@@ -1,5 +1,4 @@
 import type {
-  HousePiloti,
   HouseRuntimeViews,
   HouseState,
   HouseViewInstanceId,
@@ -12,12 +11,6 @@ import type {
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import {cloneHousePilotis} from '@/components/rac-editor/lib/house-state-snapshot.ts';
-
-export interface EditorHouseVisualRebuildInput<TGroup extends HouseRuntimeGroupRef> {
-  visualGroups: TGroup[];
-  pilotisFromRuntime: Record<string, HousePiloti>;
-  terrainTypeFromRuntime: number;
-}
 
 export class EditorHouseVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
   private visualRuntime: HouseVisualRuntimePort<TGroup> | null = null;
@@ -73,19 +66,6 @@ export class EditorHouseVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
 
   requestRender(): void {
     this.visualRuntime?.requestRenderAll();
-  }
-
-  createRebuildInput(params: {
-    currentPilotis: Record<string, HousePiloti>;
-    fallbackTerrainType: number;
-  }): EditorHouseVisualRebuildInput<TGroup> | null {
-    if (!this.visualRuntime) return null;
-
-    return {
-      visualGroups: this.visualRuntime.getHouseGroups(),
-      pilotisFromRuntime: this.visualRuntime.readPilotis(params.currentPilotis),
-      terrainTypeFromRuntime: this.visualRuntime.resolveTerrainType(params.fallbackTerrainType),
-    };
   }
 
   private createRuntimeViews(views: HouseViews): HouseRuntimeViews<TGroup> {

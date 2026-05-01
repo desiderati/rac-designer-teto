@@ -58,7 +58,7 @@ central da aplicação.
   runtime Fabric.
 - `src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts` é o hook de aplicação para importar/exportar o
   arquivo RAC canônico da casa ativa.
-- `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
+- `src/test/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
   `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de `src/infra` no código
   produtivo do editor.
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md` já aceita a fronteira do editor com o runtime
@@ -110,10 +110,9 @@ central da aplicação.
   e documento visual serializável.
 - JSON Fabric bruto não é formato de projeto. O adapter Fabric pode converter internamente o documento visual, mas hooks,
   ports do editor e bootstrap não devem depender de `canvas.toJSON()` ou `canvas.loadFromJSON()` como contrato público.
-- `rebuildHouseFromCanvas` não deve participar do fluxo de importação do documento canônico; reconstrução a partir do
-  canvas é mecanismo transitório para outros fluxos até existir projeção documental mais completa.
-- `rebuildHouseFromCanvas` fica fora do `HouseWritePort` geral. Quando ainda for necessário, deve ser exposto por
-  `HouseCanvasReconciliationPort`, uma porta transitória de reconciliação canvas -> casa.
+- `HouseCanvasReconciliationPort` foi removido. Histórico, importação e restauração devem aplicar documento lógico
+  explícito quando houver casa ativa, não reconstruir estado a partir de grupos visuais.
+- `rebuildHouseFromCanvas` não deve voltar como caminho de aplicação sem nova decisão arquitetural explícita.
 - O parser de `HouseDrawingDocument` deve rejeitar payload visual opaco, `HouseState` incompleto, geometrias inválidas e
   metadados que não sejam JSON.
 
@@ -261,7 +260,7 @@ Objetivo: transformar o manager em composição transitória até que sua exist�
 
 Resultado esperado:
 
-- Comandos de setup, terreno, vistas, rebuild e pilotis continuam isolados.
+- Comandos de setup, terreno, vistas e pilotis continuam isolados.
 - Regras puras migram para use cases ou domínio quando não dependem de runtime visual.
 - Efeitos visuais permanecem em adapters de canvas.
 
@@ -322,11 +321,11 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
 3. Fluxos de casa leem estado lógico por `HouseStatePort` quando não precisam de runtime visual.
 4. O controller da casa não concentra regras puras que deveriam estar no domínio nem efeitos visuais que deveriam estar no
    canvas.
-5. Import/export, rebuild de vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
+5. Import/export, vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.
 6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas`.
 7. `HouseDrawingDocument` possui validação estrutural e round trip mínimo coberto por teste.
-8. `rebuildHouseFromCanvas` não faz parte do `HouseWritePort` geral nem do fluxo canônico de importação.
+8. `rebuildHouseFromCanvas` não existe como porta pública nem como fluxo produtivo de aplicação.
 9. Novos ciclos de refatoração só entram se apontarem um acoplamento real, uma dor de teste ou um risco funcional.
 
 Se esses critérios forem satisfeitos, continuar mexendo apenas para deixar a arquitetura "mais pura" é vaidade técnica.

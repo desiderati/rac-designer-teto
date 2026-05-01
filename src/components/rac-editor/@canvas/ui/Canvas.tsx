@@ -25,6 +25,7 @@ import {createFabricCanvasSnapshotPort} from '@/components/rac-editor/@canvas/ui
 import type {FabricCanvasRuntime} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-runtime.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
+import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
 import type {
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
@@ -99,7 +100,7 @@ export const Canvas =
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
       const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
-      const {houseCanvasReconciliationPort} = useEditorPorts();
+      const {houseDrawingDocumentPort} = useEditorPorts();
 
       const {
         zoom,
@@ -160,11 +161,20 @@ export const Canvas =
         clearHistory,
         undo,
       } = useCanvasHistory({
-        fabricCanvasRef,
+        createCanvasDocumentPort: () => {
+          const canvas = fabricCanvasRef.current;
+          return canvas ? createFabricCanvasDocumentPort(canvas) : null;
+        },
+        houseDrawingDocumentPort,
         updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
         onHistorySave,
         onSelectionChange,
-        houseCanvasReconciliationPort,
+        onCanvasDocumentLoaded: () => {
+          const canvas = fabricCanvasRef.current;
+          if (!canvas) return;
+          refreshHouseGroupsOnCanvas(canvas);
+          canvas.renderAll();
+        },
       });
 
       const {copy, paste} = useCanvasClipboard({

@@ -1,5 +1,3 @@
-import type {HousePiloti} from '@/shared/types/house.ts';
-
 /**
  * Referência mínima que o runtime da casa precisa conhecer sobre um grupo visual.
  */
@@ -20,10 +18,4 @@ export interface HouseVisualRuntimePort<TGroup extends HouseRuntimeGroupRef> {
 
   /** Retorna os grupos de casa atualmente presentes no runtime visual. */
   getHouseGroups(): TGroup[];
-
-  /** Lê os pilotis projetados visualmente e combina com o estado lógico atual. */
-  readPilotis(currentPilotis: Record<string, HousePiloti>): Record<string, HousePiloti>;
-
-  /** Resolve o tipo de terreno a partir das vistas visuais ou usa o fallback. */
-  resolveTerrainType(fallbackTerrainType: number): number;
 }

@@ -212,49 +212,6 @@ describe('editor house controller', () => {
     expect((sideGroup as any).groundTerrainType).toBe(4);
   });
 
-  it('rebuilds views and piloti data from current canvas objects (import-like flow)', () => {
-    const pilotiCircle = createMockObject({
-      pilotiId: 'piloti_0_0',
-      isPilotiCircle: true,
-      pilotiHeight: 2.5,
-      pilotiIsMaster: true,
-      pilotiNivel: 0.8,
-      left: 10,
-      top: 10,
-      radius: 9,
-    });
-
-    const {group, objects} = createMockGroup({
-      houseViewType: 'top',
-      houseInstanceId: 'top_1',
-      houseView: 'top',
-    });
-    objects.push(pilotiCircle);
-
-    const canvas = createMockCanvas([group]);
-    initializeHouseControllerCanvas(canvas);
-    houseController.setHouseType('tipo6');
-    houseController.rebuildFromCanvas();
-
-    expect(houseController.getHouseViewCount('top')).toBe(1);
-    expect(houseController.getHouse()?.views.top[0]?.instanceId).toBe('top_1');
-    expect(houseController.getPilotiData('piloti_0_0')).toMatchObject({
-      height: 2.5,
-      isMaster: true,
-      nivel: 0.8,
-    });
-  });
-
-  it('clears house type when rebuild finds no house groups on canvas', () => {
-    const canvas = createMockCanvas([]);
-    initializeHouseControllerCanvas(canvas);
-    houseController.setHouseType('tipo6');
-
-    houseController.rebuildFromCanvas();
-
-    expect(houseController.getHouseType()).toBeNull();
-  });
-
   it('positions top door marker using rendered door geometry instead of stored door coordinates', () => {
     const topMarkerTop = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'top', visible: false});
     const topMarkerBottom = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'bottom', visible: false});

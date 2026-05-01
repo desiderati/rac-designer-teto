@@ -40,7 +40,7 @@ componentes é crucial para legibilidade e manutenibilidade.
 
 - Use kebab-case.
 - Admita sufixos semânticos com ponto quando o padrão do repositório pedir isso.
-- Exemplos recomendados: `src/shared/types/house-rebuild.ts`, `src/infra/storage/settings.storage.ts`,
+- Exemplos recomendados: `src/shared/types/house-drawing-document.ts`, `src/infra/storage/settings.storage.ts`,
   `src/domain/house/house.aggregate.ts`.
 - Exemplos a evitar: nomes como apiClient.ts ou StringUtils.ts.
 

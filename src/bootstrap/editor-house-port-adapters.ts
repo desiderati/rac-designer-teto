@@ -13,10 +13,7 @@ import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
-import type {
-  HouseCanvasReconciliationPort,
-  HouseWritePort,
-} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {
   HousePiloti,
   HousePreAssignedSideDisplay,
@@ -55,7 +52,6 @@ export interface EditorHouseWriteSource {
   refreshAutoStairsForCurrentSettings(): void;
   setHouseType(type: HouseType): void;
   reset(): void;
-  rebuildFromCanvas(): void;
   setTerrainType(terrainType: number): number;
   removeView(instanceId: HouseViewInstanceId): void;
   registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null;
@@ -123,14 +119,6 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
       return source.getPilotiData(pilotiId);
     },
     calculateAndApplyRecommendedHeights: () => source.calculateAndApplyRecommendedHeights(),
-  };
-}
-
-export function createEditorHouseCanvasReconciliationPort(
-  source: Pick<EditorHouseWriteSource, 'rebuildFromCanvas'>,
-): HouseCanvasReconciliationPort {
-  return {
-    rebuildHouseFromCanvas: () => source.rebuildFromCanvas(),
   };
 }
 
