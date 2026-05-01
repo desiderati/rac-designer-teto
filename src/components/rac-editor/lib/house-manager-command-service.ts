@@ -8,7 +8,6 @@ import type {
   HouseType,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 import type {
   HouseManagerVisualRebuildInput,
@@ -19,6 +18,7 @@ import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
+import {HouseManagerPilotiCommandService} from '@/components/rac-editor/lib/house-manager-piloti-command-service.ts';
 
 export interface HouseManagerViewRuntime<TGroup extends HouseRuntimeGroupRef> {
   rebuildViewsFromRuntime(params: {
@@ -74,7 +74,21 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
  * Centraliza comandos de mutação da casa mantendo a fachada pública fina.
  */
 export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
+  private readonly pilotiCommands: HouseManagerPilotiCommandService<TGroup>;
+
   constructor(private readonly args: HouseManagerCommandServiceArgs<TGroup>) {
+    this.pilotiCommands = new HouseManagerPilotiCommandService<TGroup>({
+      getHouse: args.getHouse,
+      getRuntimeHouse: args.getRuntimeHouse,
+      getAggregate: args.getAggregate,
+      getSelectedPilotiHeights: args.getSelectedPilotiHeights,
+      getAllGroups: args.getAllGroups,
+      updateRuntimePiloti: (params) => args.viewRuntime.updatePiloti(params),
+      persistHouse: args.persistHouse,
+      requestCanvasRender: args.requestCanvasRender,
+      notify: args.notify,
+      refreshAutoContraventamento: args.refreshAutoContraventamento,
+    });
   }
 
   setHouseType(type: HouseType): void {
@@ -172,46 +186,11 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
   }
 
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {
-    const aggregate = this.args.getAggregate();
-    const house = this.args.getHouse();
-    if (!aggregate || !house) return;
-
-    const result = this.args.viewRuntime.updatePiloti({
-      aggregate,
-      house,
-      pilotiId,
-      pilotiData,
-      selectedPilotiHeights: this.args.getSelectedPilotiHeights(),
-      runtimeViews: this.args.getRuntimeHouse()?.views ?? {
-        top: [],
-        front: [],
-        back: [],
-        side1: [],
-        side2: [],
-      },
-      groups: this.args.getAllGroups(),
-    });
-    if (!result.updated) return;
-
-    this.args.persistHouse();
-    if (result.shouldRefreshAutoContraventamento) {
-      this.args.refreshAutoContraventamento();
-    }
-    this.args.requestCanvasRender();
-    this.args.notify();
+    this.pilotiCommands.updatePiloti(pilotiId, pilotiData);
   }
 
   calculateAndApplyRecommendedHeights(): void {
-    const aggregate = this.args.getAggregate();
-    const house = this.args.getHouse();
-    if (!house || !aggregate) return;
-
-    aggregate.recalculateRecommendedPilotiData(
-      DEFAULT_HOUSE_PILOTI,
-      true,
-      this.args.getSelectedPilotiHeights(),
-    );
-    this.args.persistHouse();
+    this.pilotiCommands.calculateAndApplyRecommendedHeights();
   }
 
   autoAssignAllSides(initialSide: HouseSide): void {
