@@ -29,6 +29,15 @@ const forbiddenPatterns = [
   },
 ];
 
+const allowedCanvasInteractionPortConsumers = new Set([
+  'src/components/rac-editor/@canvas/ui/Canvas.tsx',
+  'src/components/rac-editor/hooks/useRacEditorController.ts',
+  'src/components/rac-editor/ui/RacEditorCanvas.tsx',
+]);
+
+const canvasInteractionPortImportPattern =
+  /from\s+['"]@\/components\/rac-editor\/@canvas\/ports\/CanvasInteractionPort\.ts['"]/;
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -68,6 +77,21 @@ describe('fronteira arquitetural do editor RAC', () => {
           .filter(({pattern}) => pattern.test(content))
           .map(({label}) => `${fileLabel}: ${label}`);
       });
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantém CanvasInteractionPort restrito ao ref composto do canvas', () => {
+    const rootPath = resolve(projectRoot, 'src/components/rac-editor');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!canvasInteractionPortImportPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      if (allowedCanvasInteractionPortConsumers.has(fileLabel)) return [];
+
+      return [`${fileLabel}: import direto de CanvasInteractionPort`];
     });
 
     expect(violations).toEqual([]);
