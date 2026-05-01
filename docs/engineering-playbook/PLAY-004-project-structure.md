@@ -37,6 +37,8 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
 - `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as
   portas transitórias da casa para o editor.
+- `src/components/rac-editor/lib/house-manager-*-command-service.ts` separa comandos de setup, terreno, vistas e piloti,
+  deixando `HouseManagerCommandService` como roteador transitório.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
 - `src/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts` e
@@ -49,6 +51,9 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica.
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
+- Handles imperativos do canvas devem ser importados por capacidade específica, como `CanvasDocumentHandle`,
+  `CanvasHistoryHandle`, `CanvasSnapshotHandle` ou `CanvasEditorVisualHandle`. `CanvasInteractionPort`/`CanvasHandle`
+  é apenas composição transitória do `forwardRef` do canvas e não deve virar dependência comum de hooks.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
 - `HouseRuntimeSnapshotPort<TGroup>` expõe o snapshot de runtime visual quando a UI precisa observar projeções do canvas.
@@ -56,7 +61,7 @@ Ele existe para evitar dois erros comuns:
 - Tipos e objetos de Fabric devem permanecer no slice `@canvas`, especialmente em `@canvas/ui/adapters` e nos helpers
   visuais de `@canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos de Fabric,
-  `@canvas` e tipos concretos `CanvasGroup`/`CanvasObject`.
+  `@canvas`, tipos concretos `CanvasGroup`/`CanvasObject` e uso amplo de `CanvasInteractionPort`.
 - Esse é o estado real atual e deve ser documentado como tal.
 
 ## Domínio
@@ -108,6 +113,8 @@ Ele existe para evitar dois erros comuns:
   atualização simultânea deste playbook.
 - Não introduzir `CanvasGroup` ou `CanvasObject` em `domain`, `shared`, `infra`, `rac-editor/ports` ou `rac-editor/lib`;
   se uma rotina precisar desses tipos, ela pertence ao slice `@canvas` ou ao bootstrap de composição.
+- Não importar `CanvasInteractionPort` como atalho para evitar escolher uma capacidade do canvas. O uso permitido é
+  restrito ao `Canvas`, ao componente que repassa o ref e ao controlador raiz que cria esse ref.
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
 
 ## Direção de evolução

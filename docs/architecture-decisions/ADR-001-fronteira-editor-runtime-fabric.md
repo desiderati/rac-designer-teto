@@ -3,9 +3,9 @@ title: "ADR-001 — Fronteira do Editor RAC com o Runtime Fabric"
 doc_role: architecture-decision-record
 adr_number: ADR-001
 decision_mode: previo
-status: proposed
+status: accepted
 created: 2026-04-28
-updated: 2026-04-30
+updated: 2026-05-01
 supersedes:
 superseded_by:
 decision_source: ".agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/loop-state.md"
@@ -28,6 +28,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`.
   - Tipos concretos de canvas, como `CanvasGroup` e `CanvasObject`, devem ficar no slice `@canvas` ou no bootstrap de
     composição.
+  - A fronteira possui guarda automatizada para impedir retorno de imports amplos no núcleo lógico.
 - por que a decisão importa agora:
   - A refatoração planejada pretende remover vazamentos de Fabric, reduzir god files e preparar expansão futura do
     editor com commands, store e ports testáveis.
@@ -70,6 +71,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
   - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
     como contrato público do editor.
+  - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
+    permanece apenas como composição transitória do `forwardRef`.
+  - Comandos do `houseManager` devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
+    terreno, vistas/rebuild e pilotis.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
     a persistência, storage e integrações técnicas que não dependem da feature editor.
   - Bridges de debug que conhecem grupos visuais concretos pertencem ao slice `@canvas`, não aos hooks gerais do editor.
