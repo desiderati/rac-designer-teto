@@ -8,7 +8,30 @@ import {
   type PersistedHouseRecord,
   type ProjectState,
 } from '@/shared/types/project.ts';
-import {readProjectsStorage, writeProjectsStorage} from '@/infra/storage/projects.storage.ts';
+
+export interface StoredProjectsDocument {
+  version: number;
+  projects: ProjectState[];
+}
+
+export interface ProjectSessionStoragePort {
+  read(): StoredProjectsDocument;
+  write(projects: ProjectState[]): void;
+}
+
+export interface ProjectSessionPort {
+  getProject(): ProjectState;
+  getActiveHouse(): PersistedHouseRecord;
+  getActiveFamily(): FamilyRecord;
+  setActiveFamilyName(name: string): void;
+  setActiveHouseSelectedPilotiHeights(heights: number[]): void;
+  syncActiveHouseMetadata(input: {
+    houseType: HouseType;
+    terrainType: number;
+    familyName: string;
+    selectedPilotiHeights: number[];
+  }): void;
+}
 
 function createId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -71,11 +94,11 @@ function createDefaultProjectState(): ProjectState {
   return state;
 }
 
-class ProjectSession {
+class ProjectSession implements ProjectSessionPort {
   private state: ProjectState;
 
-  constructor() {
-    const stored = readProjectsStorage().projects[0] ?? null;
+  constructor(private readonly storage: ProjectSessionStoragePort) {
+    const stored = this.storage.read().projects[0] ?? null;
     this.state = stored ?? createDefaultProjectState();
     this.persist();
   }
@@ -154,8 +177,10 @@ class ProjectSession {
   }
 
   private persist(): void {
-    writeProjectsStorage([this.state]);
+    this.storage.write([this.state]);
   }
 }
 
-export const projectSession = new ProjectSession();
+export function createProjectSession(storage: ProjectSessionStoragePort): ProjectSessionPort {
+  return new ProjectSession(storage);
+}

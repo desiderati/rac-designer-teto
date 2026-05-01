@@ -41,6 +41,9 @@ const canvasInteractionPortImportPattern =
 const globalHouseControllerSingletonPattern =
   /(?:export\s+const\s+houseManager\b|import\s*\{\s*houseManager\s*\}\s*from\s+['"][^'"]*canvas-house-(?:manager|controller)(?:\.ts)?['"])/;
 
+const concreteInfraImportPattern =
+  /from\s+['"]@\/infra\//;
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -108,6 +111,19 @@ describe('fronteira arquitetural do editor RAC', () => {
 
       const fileLabel = toPosixPath(relative(projectRoot, filePath));
       return [`${fileLabel}: singleton global da casa`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantém adapters concretos de infra fora da lib lógica do editor', () => {
+    const rootPath = resolve(projectRoot, 'src/components/rac-editor/lib');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!concreteInfraImportPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      return [`${fileLabel}: import direto de adapter concreto de infra`];
     });
 
     expect(violations).toEqual([]);

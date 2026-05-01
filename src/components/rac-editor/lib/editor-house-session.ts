@@ -2,7 +2,7 @@ import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {normalizeAvailablePilotiHeights} from '@/shared/types/piloti.ts';
-import {projectSession} from '@/components/rac-editor/lib/project-session.ts';
+import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
 
 /**
  * Mantém metadados do projeto ativo usados pelo editor de casa.
@@ -10,6 +10,9 @@ import {projectSession} from '@/components/rac-editor/lib/project-session.ts';
 export class EditorHouseSessionMetadata {
   private familyName: string = '';
   private selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
+
+  constructor(private readonly projectSession: ProjectSessionPort) {
+  }
 
   reset(): void {
     this.familyName = '';
@@ -20,8 +23,8 @@ export class EditorHouseSessionMetadata {
     aggregate: HouseAggregate | null;
     persistHouse: () => void;
   }): void {
-    const activeHouse = projectSession.getActiveHouse();
-    const activeFamily = projectSession.getActiveFamily();
+    const activeHouse = this.projectSession.getActiveHouse();
+    const activeFamily = this.projectSession.getActiveFamily();
 
     this.familyName = activeFamily.name;
     this.selectedPilotiHeights = normalizeAvailablePilotiHeights(
@@ -39,7 +42,7 @@ export class EditorHouseSessionMetadata {
     houseType: HouseType;
     terrainType: number;
   }): void {
-    projectSession.syncActiveHouseMetadata({
+    this.projectSession.syncActiveHouseMetadata({
       houseType: params.houseType,
       terrainType: params.terrainType,
       familyName: this.familyName,

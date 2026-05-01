@@ -73,6 +73,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     como contrato público do editor.
   - O estado lógico do editor deve receber `HousePersistencePort`; adapters concretos de persistência são compostos no
     bootstrap ou em `src/infra`, não instanciados dentro do núcleo do editor.
+  - Sessão de projeto e storage local seguem a mesma regra: o núcleo do editor recebe portas/funções de storage, e o
+    acesso concreto a `localStorage` fica em `src/infra` ou no bootstrap de composição.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
     permanece apenas como composição transitória do `forwardRef`.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,

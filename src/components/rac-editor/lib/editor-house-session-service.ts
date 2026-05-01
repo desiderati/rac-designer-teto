@@ -1,8 +1,10 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {EditorHouseSessionMetadata} from '@/components/rac-editor/lib/editor-house-session.ts';
+import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
 
 interface EditorHouseSessionServiceArgs {
+  projectSession: ProjectSessionPort;
   getAggregate: () => HouseAggregate | null;
   getHouseType: () => HouseType;
   getTerrainType: () => number;
@@ -14,9 +16,10 @@ interface EditorHouseSessionServiceArgs {
  * Coordena metadados de sessão da casa e sincronização com o projeto ativo.
  */
 export class EditorHouseSessionService {
-  private readonly metadata = new EditorHouseSessionMetadata();
+  private readonly metadata: EditorHouseSessionMetadata;
 
   constructor(private readonly args: EditorHouseSessionServiceArgs) {
+    this.metadata = new EditorHouseSessionMetadata(args.projectSession);
   }
 
   reset(): void {

@@ -19,6 +19,7 @@ import {EditorHouseQueryService} from '@/components/rac-editor/lib/editor-house-
 import {EditorHouseCommandService} from '@/components/rac-editor/lib/editor-house-command-service.ts';
 import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 import {EditorHouseSessionService} from '@/components/rac-editor/lib/editor-house-session-service.ts';
+import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 import type {
@@ -41,6 +42,7 @@ interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
 
 interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
   persistence: HousePersistencePort;
+  projectSession: ProjectSessionPort;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
 }
@@ -66,6 +68,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   constructor(args: EditorHouseControllerArgs<TGroup>) {
     this.state = new EditorHouseState(args.persistence);
     this.session = new EditorHouseSessionService({
+      projectSession: args.projectSession,
       getAggregate: () => this.getHouseAggregate(),
       getHouseType: () => this.getHouseType(),
       getTerrainType: () => this.getTerrainType(),

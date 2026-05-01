@@ -2,6 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
+import {createProjectSession} from '@/components/rac-editor/lib/project-session.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 
@@ -81,6 +82,10 @@ describe('editor house controller', () => {
   beforeEach(() => {
     houseController = createCanvasHouseController({
       persistence: new InMemoryHousePersistenceAdapter(),
+      projectSession: createProjectSession({
+        read: () => ({version: 1, projects: []}),
+        write: vi.fn(),
+      }),
     });
     viewSequence = 0;
   });

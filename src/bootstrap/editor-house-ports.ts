@@ -1,5 +1,6 @@
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
+import {readProjectsStorage, writeProjectsStorage} from '@/infra/storage/projects.storage.ts';
 import {
   createHouse3DProjectionPort,
   createEditorHouseReadPort,
@@ -11,6 +12,7 @@ import {
   type EditorHouseStateSource,
   type EditorHouseWriteSource,
 } from '@/bootstrap/editor-house-port-adapters.ts';
+import {createProjectSession} from '@/components/rac-editor/lib/project-session.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
@@ -53,5 +55,9 @@ export function createEditorHousePorts(source: EditorHousePortsSource): EditorHo
 export function createDefaultEditorHousePorts(): EditorHousePorts {
   return createEditorHousePorts(createCanvasHouseController({
     persistence: new InMemoryHousePersistenceAdapter(),
+    projectSession: createProjectSession({
+      read: readProjectsStorage,
+      write: writeProjectsStorage,
+    }),
   }));
 }
