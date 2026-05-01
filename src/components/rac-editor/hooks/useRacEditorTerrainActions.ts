@@ -2,7 +2,7 @@ import {RefObject, useCallback, useState} from 'react';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import type {TerrainCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 
 interface UseRacEditorTerrainActionsArgs {
   canvasRef: RefObject<CanvasHistoryHandle | null>;

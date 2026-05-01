@@ -5,11 +5,9 @@ import {
   type SetStateAction,
   useCallback,
 } from 'react';
-import type {
-  CanvasDebugHandle,
-  CanvasScreenProjectionHandle,
-  CanvasViewportHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasDebugHandle} from '@/components/rac-editor/@canvas/ports/CanvasDebugHandle.ts';
+import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
+import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/CanvasViewportHandle.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useCanvasDebugBridge} from '@/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts';

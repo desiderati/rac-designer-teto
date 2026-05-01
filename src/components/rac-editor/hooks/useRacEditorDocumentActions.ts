@@ -1,8 +1,6 @@
 import {RefObject} from 'react';
-import type {
-  CanvasDocumentHandle,
-  CanvasHistoryHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
+import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';

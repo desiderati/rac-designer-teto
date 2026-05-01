@@ -19,11 +19,9 @@ import {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib';
 import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
-import type {
-  CanvasObjectCreationHandle,
-  CanvasRenderHandle,
-  CanvasScreenProjectionHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
+import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
+import type {CanvasRenderHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import {createViewInstanceId} from '@/components/rac-editor/lib/house-identity.ts';
 import {
   calculateStackedViewPositions,

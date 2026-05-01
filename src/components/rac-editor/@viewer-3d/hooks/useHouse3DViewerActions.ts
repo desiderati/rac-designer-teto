@@ -3,7 +3,7 @@ import type {RefObject} from 'react';
 import {toast} from 'sonner';
 import type {HouseType} from '@/shared/types/house.ts';
 import {HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
-import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;

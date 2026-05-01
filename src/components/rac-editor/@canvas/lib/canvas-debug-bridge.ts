@@ -1,8 +1,6 @@
-import type {
-  CanvasDebugHandle,
-  CanvasScreenProjectionHandle,
-  CanvasViewportHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasDebugHandle} from '@/components/rac-editor/@canvas/ports/CanvasDebugHandle.ts';
+import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
+import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/CanvasViewportHandle.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';

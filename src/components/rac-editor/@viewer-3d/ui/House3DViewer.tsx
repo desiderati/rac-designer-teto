@@ -19,7 +19,7 @@ import type {RefObject} from 'react';
 import {HOUSE_3D_WALL_COLOR_OPTIONS} from '@/shared/config.ts';
 import {useHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
 import {useHouse3DViewerActions} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerActions.ts';
-import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 
 interface House3DViewerProps {
   open: boolean;

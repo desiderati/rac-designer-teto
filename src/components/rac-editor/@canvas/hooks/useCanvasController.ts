@@ -1,13 +1,13 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
+import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
+import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
+import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
 import type {
   CanvasActiveSelectionHandle,
   CanvasDrawingModeHandle,
-  CanvasHistoryHandle,
-  CanvasObjectCreationHandle,
   CanvasRenderHandle,
-  CanvasScreenProjectionHandle,
-  CanvasViewportHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
+import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/CanvasViewportHandle.ts';
 import type {TutorialBalloonPosition, TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';

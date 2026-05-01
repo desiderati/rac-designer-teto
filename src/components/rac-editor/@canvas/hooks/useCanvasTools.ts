@@ -1,9 +1,7 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import type {
-  CanvasDrawingModeHandle,
-  CanvasObjectCreationHandle,
-  CanvasScreenProjectionHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
+import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
+import type {CanvasDrawingModeHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@canvas/lib';
 import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';

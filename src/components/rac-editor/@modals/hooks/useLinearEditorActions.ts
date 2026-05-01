@@ -3,7 +3,7 @@ import type {
   GenericCanvasObjectEditorType,
   LinearCanvasSelection,
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasEditorVisualHandle.ts';
 
 export type LinearEditorType = 'wall' | 'line' | 'arrow' | 'distance';
 

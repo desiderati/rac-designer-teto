@@ -3,7 +3,7 @@ import {
   type CanvasControllerHandle,
   useCanvasController,
 } from '@/components/rac-editor/@canvas/hooks/useCanvasController.ts';
-import type {CanvasHouseRuntimeHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasHouseRuntimeHandle} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimeHandle.ts';
 import type {RefObject} from 'react';
 
 type CanvasControllerArgs = Parameters<typeof useCanvasController>[0];

@@ -1,6 +1,6 @@
 import {lazy, Suspense} from 'react';
 import type {RefObject} from 'react';
-import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
   const module = await import('@/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx');

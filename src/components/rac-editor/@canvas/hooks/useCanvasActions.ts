@@ -1,11 +1,11 @@
 import React, {Dispatch, SetStateAction, useCallback} from 'react';
 import {CanvasObject} from '@/components/rac-editor/@canvas/lib';
+import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
 import type {
   CanvasActiveSelectionHandle,
   CanvasDrawingModeHandle,
-  CanvasObjectCreationHandle,
-  CanvasViewportHandle,
-} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
+import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/CanvasViewportHandle.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';

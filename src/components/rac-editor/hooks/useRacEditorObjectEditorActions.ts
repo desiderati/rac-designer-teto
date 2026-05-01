@@ -1,5 +1,5 @@
 import {RefObject, useCallback} from 'react';
-import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {CanvasEditorVisualHandle} from '@/components/rac-editor/@canvas/ports/CanvasEditorVisualHandle.ts';
 import {useGenericObjectEditorBindings} from '@/components/rac-editor/@modals/hooks/useGenericObjectEditorBindings.ts';
 import {useLinearEditorActions} from '@/components/rac-editor/@modals/hooks/useLinearEditorActions.ts';
 import {useWallEditorActions} from '@/components/rac-editor/@modals/hooks/useWallEditorActions.ts';
