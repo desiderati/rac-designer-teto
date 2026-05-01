@@ -1,4 +1,4 @@
-export class HouseManagerNotifier {
+export class EditorHouseNotifier {
   private listeners = new Set<() => void>();
 
   addInternalListener(listener: () => void): void {

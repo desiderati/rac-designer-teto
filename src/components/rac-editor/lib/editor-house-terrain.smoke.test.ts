@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import type {HouseRuntimeViews} from '@/shared/types/house.ts';
-import {collectElevationViewInstances} from './house-manager-terrain.ts';
+import {collectElevationViewInstances} from './editor-house-terrain.ts';
 
-describe('house-manager-terrain.ts', () => {
+describe('editor-house-terrain.ts', () => {
   it('collects only elevation view instances', () => {
     const house = {
       views: {

@@ -37,8 +37,8 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
 - `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as
   portas transitórias da casa para o editor.
-- `src/components/rac-editor/lib/house-manager-*-command-service.ts` separa comandos de setup, terreno, vistas e piloti,
-  deixando `HouseManagerCommandService` como roteador transitório.
+- `src/components/rac-editor/lib/editor-house-*-command-service.ts` separa comandos de setup, terreno, vistas e piloti,
+  deixando `EditorHouseCommandService` como roteador transitório.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
 - `src/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts` e

@@ -4,7 +4,7 @@ import {refreshTopDoorMarkersInViews} from '@/components/rac-editor/@canvas/lib/
 import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts';
 import {getSettings} from '@/infra/settings.ts';
-import {collectElevationViewInstances} from '@/components/rac-editor/lib/house-manager-terrain.ts';
+import {collectElevationViewInstances} from '@/components/rac-editor/lib/editor-house-terrain.ts';
 
 function renderWhenChanged(changed: boolean, requestRender: () => void): void {
   if (changed) {

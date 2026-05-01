@@ -7,7 +7,7 @@ import {projectSession} from '@/components/rac-editor/lib/project-session.ts';
 /**
  * Mantém metadados do projeto ativo usados pelo editor de casa.
  */
-export class HouseManagerSessionMetadata {
+export class EditorHouseSessionMetadata {
   private familyName: string = '';
   private selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
 

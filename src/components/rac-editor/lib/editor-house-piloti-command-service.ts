@@ -6,9 +6,9 @@ import {
   type HouseState,
 } from '@/shared/types/house.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
-interface HouseManagerPilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHousePilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   getAggregate: () => HouseAggregate | null;
@@ -33,8 +33,8 @@ interface HouseManagerPilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupR
  * Centraliza comandos de piloti, mantendo regras de interpolação e efeitos
  * visuais fora do serviço geral de comandos da casa.
  */
-export class HouseManagerPilotiCommandService<TGroup extends HouseRuntimeGroupRef> {
-  constructor(private readonly args: HouseManagerPilotiCommandServiceArgs<TGroup>) {
+export class EditorHousePilotiCommandService<TGroup extends HouseRuntimeGroupRef> {
+  constructor(private readonly args: EditorHousePilotiCommandServiceArgs<TGroup>) {
   }
 
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {

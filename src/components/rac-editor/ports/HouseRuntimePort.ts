@@ -1,7 +1,7 @@
 import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
-} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
 /**
  * Porta de ciclo de vida entre o estado lógico da casa e o runtime visual.

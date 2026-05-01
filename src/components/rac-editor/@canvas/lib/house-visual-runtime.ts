@@ -24,7 +24,7 @@ import {
 import {resolvePilotiUpdateEffects} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 import {updateGroundTerrainType} from '@/components/rac-editor/@canvas/lib/terrain.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import {collectElevationViewInstances} from '@/components/rac-editor/lib/house-manager-terrain.ts';
+import {collectElevationViewInstances} from '@/components/rac-editor/lib/editor-house-terrain.ts';
 
 export function rebuildHouseViewsFromCanvas(params: {
   aggregate: HouseAggregate;

@@ -1,7 +1,7 @@
 import {useSyncExternalStore} from 'react';
 import {type EditorPorts, useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
 type Listener = () => void;
 

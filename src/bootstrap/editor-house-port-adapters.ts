@@ -1,7 +1,7 @@
 import {createHouse3DProjectionFromCanvasHouse} from '@/components/rac-editor/@canvas/lib/house-3d-projection.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseVisualRuntimePort} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {HouseVisualRuntimePort} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {HousePilotiPatch} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';

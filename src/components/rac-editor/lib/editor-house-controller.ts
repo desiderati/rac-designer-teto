@@ -11,19 +11,19 @@ import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
-import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state.ts';
-import {HouseManagerVisualRuntime} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
-import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
-import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
-import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
-import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
-import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
+import {EditorHouseState} from '@/components/rac-editor/lib/editor-house-state.ts';
+import {EditorHouseVisualRuntime} from '@/components/rac-editor/lib/editor-house-visual-runtime.ts';
+import {EditorHouseNotifier} from '@/components/rac-editor/lib/editor-house-notifier.ts';
+import {EditorHouseQueryService} from '@/components/rac-editor/lib/editor-house-query-service.ts';
+import {EditorHouseCommandService} from '@/components/rac-editor/lib/editor-house-command-service.ts';
+import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
+import {EditorHouseSessionService} from '@/components/rac-editor/lib/editor-house-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
-} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
 interface EditorHouseEffectsPort {
   refreshTopDoorMarkers(): void;
@@ -39,27 +39,27 @@ interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
 }
 
 interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
-  viewRuntime: HouseManagerViewRuntime<TGroup>;
+  viewRuntime: EditorHouseViewRuntime<TGroup>;
   createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
 }
 
 export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
-  private readonly state = new HouseManagerState();
+  private readonly state = new EditorHouseState();
 
-  private readonly visualRuntime = new HouseManagerVisualRuntime<TGroup>();
+  private readonly visualRuntime = new EditorHouseVisualRuntime<TGroup>();
 
-  private readonly notifier = new HouseManagerNotifier();
+  private readonly notifier = new EditorHouseNotifier();
 
   private runtimeHouseCache: HouseRuntimeSnapshot<TGroup> | null | undefined = undefined;
 
   private readonly effects: EditorHouseEffectsPort;
 
-  private readonly commands: HouseManagerCommandService<TGroup>;
+  private readonly commands: EditorHouseCommandService<TGroup>;
 
-  private readonly queries: HouseManagerQueryService<TGroup>;
+  private readonly queries: EditorHouseQueryService<TGroup>;
 
-  private readonly session = new HouseManagerSessionService({
+  private readonly session = new EditorHouseSessionService({
     getAggregate: () => this.getHouseAggregate(),
     getHouseType: () => this.getHouseType(),
     getTerrainType: () => this.getTerrainType(),
@@ -73,7 +73,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       requestCanvasRender: () => this.requestCanvasRender(),
     });
 
-    this.commands = new HouseManagerCommandService<TGroup>({
+    this.commands = new EditorHouseCommandService<TGroup>({
       getHouse: () => this.house,
       getRuntimeHouse: () => this.runtimeHouse,
       getAggregate: () => this.getHouseAggregate(),
@@ -92,7 +92,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
     });
 
-    this.queries = new HouseManagerQueryService<TGroup>({
+    this.queries = new EditorHouseQueryService<TGroup>({
       getHouse: () => this.house,
       getAggregate: () => this.getHouseAggregate(),
       getAllRuntimeGroups: () => this.visualRuntime.getRegisteredGroups(),

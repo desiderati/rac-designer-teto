@@ -9,11 +9,11 @@ import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
-import type {HouseManagerVisualRebuildInput} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
-import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
+import type {EditorHouseVisualRebuildInput} from '@/components/rac-editor/lib/editor-house-visual-runtime.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
+import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 
-interface HouseManagerViewCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHouseViewCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
   getAggregate: () => HouseAggregate | null;
   getTerrainType: () => number;
@@ -23,8 +23,8 @@ interface HouseManagerViewCommandServiceArgs<TGroup extends HouseRuntimeGroupRef
   createVisualRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }) => HouseManagerVisualRebuildInput<TGroup> | null;
-  viewRuntime: Pick<HouseManagerViewRuntime<TGroup>, 'applyCurrentHouseDataToGroups' | 'rebuildViewsFromRuntime'>;
+  }) => EditorHouseVisualRebuildInput<TGroup> | null;
+  viewRuntime: Pick<EditorHouseViewRuntime<TGroup>, 'applyCurrentHouseDataToGroups' | 'rebuildViewsFromRuntime'>;
   persistHouse: () => void;
   notify: () => void;
   refreshAutoContraventamento: () => void;
@@ -33,8 +33,8 @@ interface HouseManagerViewCommandServiceArgs<TGroup extends HouseRuntimeGroupRef
 /**
  * Centraliza comandos de vistas e reconstrução a partir do runtime visual.
  */
-export class HouseManagerViewCommandService<TGroup extends HouseRuntimeGroupRef> {
-  constructor(private readonly args: HouseManagerViewCommandServiceArgs<TGroup>) {
+export class EditorHouseViewCommandService<TGroup extends HouseRuntimeGroupRef> {
+  constructor(private readonly args: EditorHouseViewCommandServiceArgs<TGroup>) {
   }
 
   registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {

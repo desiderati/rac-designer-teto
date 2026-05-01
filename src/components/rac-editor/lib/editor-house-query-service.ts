@@ -10,7 +10,7 @@ import {
 } from '@/shared/types/house.ts';
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 
-interface HouseManagerQueryServiceArgs<TGroup> {
+interface EditorHouseQueryServiceArgs<TGroup> {
   getHouse: () => HouseState | null;
   getAggregate: () => HouseAggregate | null;
   getAllRuntimeGroups: () => TGroup[];
@@ -18,8 +18,8 @@ interface HouseManagerQueryServiceArgs<TGroup> {
   cleanupStaleViews: (viewType: HouseViewType) => void;
 }
 
-export class HouseManagerQueryService<TGroup = unknown> {
-  constructor(private readonly args: HouseManagerQueryServiceArgs<TGroup>) {
+export class EditorHouseQueryService<TGroup = unknown> {
+  constructor(private readonly args: EditorHouseQueryServiceArgs<TGroup>) {
   }
 
   getHouse(): HouseState | null {

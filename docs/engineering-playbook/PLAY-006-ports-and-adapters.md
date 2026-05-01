@@ -41,7 +41,7 @@ central da aplicação.
 - `src/bootstrap/editor-bootstrap.ts`, `src/bootstrap/editor-house-ports.ts` e
   `src/bootstrap/editor-house-port-adapters.ts` já funcionam como pontos de composição de store e ports.
 - `src/components/rac-editor/lib/editor-house-controller.ts` ainda é o controller transitório do estado compartilhado da casa.
-- `src/components/rac-editor/lib/house-manager-*-command-service.ts` já separa comandos por responsabilidade.
+- `src/components/rac-editor/lib/editor-house-*-command-service.ts` já separa comandos por responsabilidade.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,

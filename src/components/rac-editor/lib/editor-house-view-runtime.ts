@@ -6,9 +6,9 @@ import type {
   HouseViewInstanceId,
 } from '@/shared/types/house.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 
-export interface HouseManagerViewRuntime<TGroup extends HouseRuntimeGroupRef> {
+export interface EditorHouseViewRuntime<TGroup extends HouseRuntimeGroupRef> {
   rebuildViewsFromRuntime(params: {
     aggregate: HouseAggregate;
     house: HouseState;

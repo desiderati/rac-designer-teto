@@ -10,16 +10,16 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
 import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
-} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import {cloneHousePilotis} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 
-export interface HouseManagerVisualRebuildInput<TGroup extends HouseRuntimeGroupRef> {
+export interface EditorHouseVisualRebuildInput<TGroup extends HouseRuntimeGroupRef> {
   visualGroups: TGroup[];
   pilotisFromRuntime: Record<string, HousePiloti>;
   terrainTypeFromRuntime: number;
 }
 
-export class HouseManagerVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
+export class EditorHouseVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
   private visualRuntime: HouseVisualRuntimePort<TGroup> | null = null;
   private readonly viewGroupsById = new Map<HouseViewInstanceId, TGroup>();
 
@@ -78,7 +78,7 @@ export class HouseManagerVisualRuntime<TGroup extends HouseRuntimeGroupRef> {
   createRebuildInput(params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }): HouseManagerVisualRebuildInput<TGroup> | null {
+  }): EditorHouseVisualRebuildInput<TGroup> | null {
     if (!this.visualRuntime) return null;
 
     return {

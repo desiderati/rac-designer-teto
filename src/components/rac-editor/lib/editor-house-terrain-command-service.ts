@@ -1,14 +1,14 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
-import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
+import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 
-interface HouseManagerTerrainCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHouseTerrainCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getAggregate: () => HouseAggregate | null;
   getDefaultTerrainType: () => number;
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
-  viewRuntime: Pick<HouseManagerViewRuntime<TGroup>, 'applyTerrainTypeToElevationViews'>;
+  viewRuntime: Pick<EditorHouseViewRuntime<TGroup>, 'applyTerrainTypeToElevationViews'>;
   persistHouse: () => void;
   syncProjectSession: () => void;
   requestCanvasRender: () => void;
@@ -18,8 +18,8 @@ interface HouseManagerTerrainCommandServiceArgs<TGroup extends HouseRuntimeGroup
 /**
  * Centraliza comandos de terreno e sincronização visual de elevações.
  */
-export class HouseManagerTerrainCommandService<TGroup extends HouseRuntimeGroupRef> {
-  constructor(private readonly args: HouseManagerTerrainCommandServiceArgs<TGroup>) {
+export class EditorHouseTerrainCommandService<TGroup extends HouseRuntimeGroupRef> {
+  constructor(private readonly args: EditorHouseTerrainCommandServiceArgs<TGroup>) {
   }
 
   setTerrainType(terrainType: number): number {

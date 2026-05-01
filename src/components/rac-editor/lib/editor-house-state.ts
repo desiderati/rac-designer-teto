@@ -6,7 +6,7 @@ import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.t
 import {DEFAULT_HOUSE_PILOTI, type HouseState} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
-export class HouseManagerState {
+export class EditorHouseState {
 
   private readonly persistence: HousePersistencePort = new InMemoryHousePersistenceAdapter();
   private houseAggregate: HouseAggregate | null = null;

@@ -1,7 +1,7 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 
-interface HouseManagerSetupCommandServiceArgs {
+interface EditorHouseSetupCommandServiceArgs {
   getAggregate: () => HouseAggregate | null;
   persistHouse: () => void;
   syncProjectSession: () => void;
@@ -11,8 +11,8 @@ interface HouseManagerSetupCommandServiceArgs {
 /**
  * Centraliza comandos de configuração estrutural da casa.
  */
-export class HouseManagerSetupCommandService {
-  constructor(private readonly args: HouseManagerSetupCommandServiceArgs) {
+export class EditorHouseSetupCommandService {
+  constructor(private readonly args: EditorHouseSetupCommandServiceArgs) {
   }
 
   setHouseType(type: HouseType): void {

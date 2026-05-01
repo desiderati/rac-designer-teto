@@ -7,21 +7,21 @@ import type {
   HouseType,
 } from '@/shared/types/house.ts';
 import type {
-  HouseManagerVisualRebuildInput,
-} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
+  EditorHouseVisualRebuildInput,
+} from '@/components/rac-editor/lib/editor-house-visual-runtime.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
-import {HouseManagerPilotiCommandService} from '@/components/rac-editor/lib/house-manager-piloti-command-service.ts';
-import {HouseManagerSetupCommandService} from '@/components/rac-editor/lib/house-manager-setup-command-service.ts';
-import {HouseManagerTerrainCommandService} from '@/components/rac-editor/lib/house-manager-terrain-command-service.ts';
-import {HouseManagerViewCommandService} from '@/components/rac-editor/lib/house-manager-view-command-service.ts';
-import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
+import {EditorHousePilotiCommandService} from '@/components/rac-editor/lib/editor-house-piloti-command-service.ts';
+import {EditorHouseSetupCommandService} from '@/components/rac-editor/lib/editor-house-setup-command-service.ts';
+import {EditorHouseTerrainCommandService} from '@/components/rac-editor/lib/editor-house-terrain-command-service.ts';
+import {EditorHouseViewCommandService} from '@/components/rac-editor/lib/editor-house-view-command-service.ts';
+import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 
-interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   getAggregate: () => HouseAggregate | null;
@@ -34,8 +34,8 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   createVisualRebuildInput: (params: {
     currentPilotis: Record<string, HousePiloti>;
     fallbackTerrainType: number;
-  }) => HouseManagerVisualRebuildInput<TGroup> | null;
-  viewRuntime: HouseManagerViewRuntime<TGroup>;
+  }) => EditorHouseVisualRebuildInput<TGroup> | null;
+  viewRuntime: EditorHouseViewRuntime<TGroup>;
   persistHouse: () => void;
   syncProjectSession: () => void;
   requestCanvasRender: () => void;
@@ -46,20 +46,20 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
 /**
  * Centraliza comandos de mutação da casa mantendo a fachada pública fina.
  */
-export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
-  private readonly pilotiCommands: HouseManagerPilotiCommandService<TGroup>;
-  private readonly setupCommands: HouseManagerSetupCommandService;
-  private readonly terrainCommands: HouseManagerTerrainCommandService<TGroup>;
-  private readonly viewCommands: HouseManagerViewCommandService<TGroup>;
+export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
+  private readonly pilotiCommands: EditorHousePilotiCommandService<TGroup>;
+  private readonly setupCommands: EditorHouseSetupCommandService;
+  private readonly terrainCommands: EditorHouseTerrainCommandService<TGroup>;
+  private readonly viewCommands: EditorHouseViewCommandService<TGroup>;
 
-  constructor(private readonly args: HouseManagerCommandServiceArgs<TGroup>) {
-    this.setupCommands = new HouseManagerSetupCommandService({
+  constructor(private readonly args: EditorHouseCommandServiceArgs<TGroup>) {
+    this.setupCommands = new EditorHouseSetupCommandService({
       getAggregate: args.getAggregate,
       persistHouse: args.persistHouse,
       syncProjectSession: args.syncProjectSession,
       notify: args.notify,
     });
-    this.terrainCommands = new HouseManagerTerrainCommandService<TGroup>({
+    this.terrainCommands = new EditorHouseTerrainCommandService<TGroup>({
       getAggregate: args.getAggregate,
       getDefaultTerrainType: args.getDefaultTerrainType,
       getRuntimeHouse: args.getRuntimeHouse,
@@ -69,7 +69,7 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
       requestCanvasRender: args.requestCanvasRender,
       notify: args.notify,
     });
-    this.viewCommands = new HouseManagerViewCommandService<TGroup>({
+    this.viewCommands = new EditorHouseViewCommandService<TGroup>({
       getHouse: args.getHouse,
       getAggregate: args.getAggregate,
       getTerrainType: args.getTerrainType,
@@ -82,7 +82,7 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
       notify: args.notify,
       refreshAutoContraventamento: args.refreshAutoContraventamento,
     });
-    this.pilotiCommands = new HouseManagerPilotiCommandService<TGroup>({
+    this.pilotiCommands = new EditorHousePilotiCommandService<TGroup>({
       getHouse: args.getHouse,
       getRuntimeHouse: args.getRuntimeHouse,
       getAggregate: args.getAggregate,
