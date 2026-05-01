@@ -111,10 +111,12 @@ Ele existe para evitar dois erros comuns:
 - Não usar shared como lixeira para regra de negócio.
 - Não espalhar novas integrações de Fabric para fora de `src/components/rac-editor/@canvas` sem justificativa clara e
   atualização simultânea deste playbook.
-- Não introduzir `CanvasGroup` ou `CanvasObject` em `domain`, `shared`, `infra`, `rac-editor/ports` ou `rac-editor/lib`;
-  se uma rotina precisar desses tipos, ela pertence ao slice `@canvas` ou ao bootstrap de composição.
+- Não introduzir `CanvasGroup` ou `CanvasObject` fora de `src/components/rac-editor/@canvas`; se uma rotina precisar
+  desses tipos, ela pertence ao slice `@canvas`.
 - Não reintroduzir `CanvasInteractionPort` como atalho para evitar escolher uma capacidade do canvas.
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
+- Não aceitar JSON Fabric bruto como formato canônico de projeto; o contrato de importação/exportação deve passar por
+  documento RAC versionado.
 
 ## Direção de evolução
 

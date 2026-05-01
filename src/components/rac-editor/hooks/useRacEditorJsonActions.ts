@@ -2,16 +2,16 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 import {EDITOR_INFO_MESSAGES, TOAST_MESSAGES} from '@/shared/config.ts';
-import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import {parseHouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 
 interface UseRacEditorJsonActionsArgs {
   canvasRef: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
   resetContraventamentoFlow: () => void;
   syncContraventamentoElevations: () => void;
-  houseWritePort: Pick<HouseWritePort, 'rebuildHouseFromCanvas'>;
 }
 
 export function useRacEditorJsonActions({
@@ -19,12 +19,18 @@ export function useRacEditorJsonActions({
   setInfoMessage,
   resetContraventamentoFlow,
   syncContraventamentoElevations,
-  houseWritePort,
 }: UseRacEditorJsonActionsArgs) {
   const emitHouseStoreChange = useHouseStoreEmitter();
+  const {houseDrawingDocumentPort} = useEditorPorts();
 
   const handleExportJSON = useCallback(() => {
-    const projectJson = canvasRef.current?.createDocumentPort()?.exportProjectJson();
+    const canvasDocument = canvasRef.current?.createDocumentPort()?.exportCanvasDocument();
+    if (!canvasDocument) return;
+
+    const projectDocument = houseDrawingDocumentPort.exportHouseDrawingDocument(canvasDocument);
+    if (!projectDocument) return;
+
+    const projectJson = JSON.stringify(projectDocument, null, 2);
     if (!projectJson) return;
 
     const blob = new Blob([projectJson], {type: 'application/json'});
@@ -40,7 +46,7 @@ export function useRacEditorJsonActions({
 
     setInfoMessage(EDITOR_INFO_MESSAGES.projectSavedAsJson);
     toast.success(TOAST_MESSAGES.projectExportedSuccessfully);
-  }, [canvasRef, setInfoMessage]);
+  }, [canvasRef, houseDrawingDocumentPort, setInfoMessage]);
 
   const handleImportJSON = useCallback((file: File) => {
     const documentPort = canvasRef.current?.createDocumentPort();
@@ -55,11 +61,12 @@ export function useRacEditorJsonActions({
       }
 
       try {
-        const loaded = await documentPort.loadProjectJson(rawContent);
+        const projectDocument = parseHouseDrawingDocument(rawContent);
+        const loaded = await documentPort.loadCanvasDocument(projectDocument.canvas);
         if (!loaded) return;
 
         resetContraventamentoFlow();
-        houseWritePort.rebuildHouseFromCanvas();
+        houseDrawingDocumentPort.importHouseDrawingDocument(projectDocument);
         syncContraventamentoElevations();
         emitHouseStoreChange();
         canvasRef.current?.saveHistory();
@@ -73,7 +80,7 @@ export function useRacEditorJsonActions({
   }, [
     canvasRef,
     emitHouseStoreChange,
-    houseWritePort,
+    houseDrawingDocumentPort,
     resetContraventamentoFlow,
     setInfoMessage,
     syncContraventamentoElevations,

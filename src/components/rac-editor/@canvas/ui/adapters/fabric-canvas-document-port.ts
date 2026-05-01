@@ -1,14 +1,169 @@
 import type {Canvas as FabricCanvas} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
+import {canvasObjectProps} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
+import {
+  HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+  type HouseDrawingCanvasDocument,
+  type HouseDrawingElementDocument,
+  type HouseDrawingElementGeometry,
+  type JsonObject,
+  type JsonValue,
+} from '@/shared/types/house-drawing-document.ts';
+
+const geometryKeys = [
+  'left',
+  'top',
+  'width',
+  'height',
+  'scaleX',
+  'scaleY',
+  'angle',
+  'radius',
+  'x1',
+  'y1',
+  'x2',
+  'y2',
+] as const satisfies readonly (keyof HouseDrawingElementGeometry)[];
+
+const styleKeys = [
+  'fill',
+  'stroke',
+  'strokeWidth',
+  'strokeDashArray',
+  'strokeLineCap',
+  'strokeLineJoin',
+  'opacity',
+  'fontFamily',
+  'fontSize',
+  'fontWeight',
+  'fontStyle',
+  'textAlign',
+  'underline',
+  'overline',
+  'linethrough',
+  'charSpacing',
+  'backgroundColor',
+  'visible',
+  'selectable',
+  'evented',
+] as const;
+
+const metadataKeys = canvasObjectProps.filter((key) => key !== 'myType' && key !== 'editorObjectId');
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function toJsonValue(value: unknown): JsonValue | undefined {
+  if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
+    return value as JsonValue;
+  }
+
+  if (Array.isArray(value)) {
+    const items = value
+      .map((item) => toJsonValue(item))
+      .filter((item): item is JsonValue => item !== undefined);
+    return items;
+  }
+
+  if (!isRecord(value)) return undefined;
+
+  const jsonObject: JsonObject = {};
+  Object.entries(value).forEach(([key, nested]) => {
+    const jsonValue = toJsonValue(nested);
+    if (jsonValue !== undefined) {
+      jsonObject[key] = jsonValue;
+    }
+  });
+  return jsonObject;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function pickNumberRecord<TKeys extends readonly string[]>(
+  source: Record<string, unknown>,
+  keys: TKeys,
+): Partial<Record<TKeys[number], number>> | undefined {
+  const result: Partial<Record<TKeys[number], number>> = {};
+  keys.forEach((key) => {
+    const value = source[key];
+    if (typeof value === 'number') {
+      result[key] = value;
+    }
+  });
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+function pickJsonObject(source: Record<string, unknown>, keys: readonly string[]): JsonObject | undefined {
+  const result: JsonObject = {};
+  keys.forEach((key) => {
+    const value = toJsonValue(source[key]);
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  });
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+function toDrawingElement(source: unknown, index: number, path = `${index}`): HouseDrawingElementDocument | null {
+  if (!isRecord(source)) return null;
+
+  const shape = readString(source.type) ?? 'object';
+  const kind = readString(source.myType) ?? shape;
+  const id = readString(source.editorObjectId) ?? `${kind}-${path}`;
+  const children = Array.isArray(source.objects)
+    ? source.objects
+      .map((child, childIndex) => toDrawingElement(child, childIndex, `${path}-${childIndex}`))
+      .filter((child): child is HouseDrawingElementDocument => child !== null)
+    : undefined;
+
+  return {
+    id,
+    kind,
+    shape,
+    geometry: pickNumberRecord(source, geometryKeys),
+    style: pickJsonObject(source, styleKeys),
+    text: readString(source.text) ?? undefined,
+    metadata: pickJsonObject(source, metadataKeys),
+    children: children && children.length > 0 ? children : undefined,
+  };
+}
+
+function toRuntimePayload(document: HouseDrawingElementDocument): Record<string, unknown> {
+  return {
+    type: document.shape,
+    ...document.geometry,
+    ...document.style,
+    ...document.metadata,
+    myType: document.kind,
+    editorObjectId: document.id,
+    ...(document.text ? {text: document.text} : {}),
+    ...(document.children ? {objects: document.children.map(toRuntimePayload)} : {}),
+  };
+}
 
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {
-    exportProjectJson: () => JSON.stringify(canvas.toJSON()),
+    exportCanvasDocument: () => {
+      const rawDocument = canvas.toJSON() as { objects?: unknown[] };
+      const objects = Array.isArray(rawDocument.objects) ? rawDocument.objects : [];
 
-    loadProjectJson: async (rawContent) => {
+      return {
+        schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+        objects: objects
+          .map((object, index) => toDrawingElement(object, index))
+          .filter((object): object is HouseDrawingElementDocument => object !== null),
+      };
+    },
+
+    loadCanvasDocument: async (document: HouseDrawingCanvasDocument) => {
       canvas.clear();
-      await canvas.loadFromJSON(rawContent);
+      await canvas.loadFromJSON({
+        objects: document.objects.map(toRuntimePayload),
+      });
       refreshHouseGroupsOnCanvas(canvas);
 
       canvas.renderAll();

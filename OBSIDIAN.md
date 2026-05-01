@@ -26,6 +26,8 @@ estabelecida.
 - `docs/architecture-decisions/`, quando houver decisões arquiteturais duráveis registradas
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md`, para a decisão vigente de fronteira do
   editor RAC com o runtime Fabric
+- `docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md`, para a decisão vigente sobre o formato
+  canônico inicial de importação/exportação do projeto RAC
 - `docs/engineering-playbook/PLAY-006-ports-and-adapters.md`, para a disciplina de continuidade de Ports and Adapters
   no editor RAC
 - quando o repositório adotar acervos versionados de bug analysis ou incidentes em `.agents`, referenciar

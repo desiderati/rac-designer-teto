@@ -26,6 +26,7 @@ import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
+import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 
 interface EditorHouseEffectsPort {
   refreshTopDoorMarkers(): void;
@@ -227,6 +228,14 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   getHouseState(): HouseState | null {
     return createHouseStateSnapshot(this.queries.getHouse());
+  }
+
+  loadHouseDrawingDocument(document: HouseDrawingDocument): void {
+    this.house = createHouseStateSnapshot(document.house);
+    this.session.setSelectedPilotiHeights(document.setup.selectedPilotiHeights);
+    this.session.setFamilyName(document.setup.familyName);
+    this.session.syncProjectSession();
+    this.notify();
   }
 
   private getHouseAggregate(): HouseAggregate | null {

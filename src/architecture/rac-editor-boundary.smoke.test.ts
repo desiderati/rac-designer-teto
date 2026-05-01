@@ -37,7 +37,6 @@ const canvasInteractionPortPath = 'src/components/rac-editor/@canvas/ports/Canva
 const concreteCanvasTypePattern = /\bCanvas(?:Group|Object)\b/;
 
 const allowedConcreteCanvasTypeRoots = [
-  'src/bootstrap',
   'src/components/rac-editor/@canvas',
 ];
 
@@ -112,7 +111,7 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('confina CanvasGroup e CanvasObject ao slice de canvas e ao bootstrap de composição', () => {
+  it('confina CanvasGroup e CanvasObject ao slice de canvas', () => {
     const rootPath = resolve(projectRoot, 'src');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');

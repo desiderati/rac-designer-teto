@@ -1,28 +1,19 @@
-export const CANVAS_DOCUMENT_VERSION = 1;
+import {
+  HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+  type HouseDrawingCanvasDocument,
+  type HouseDrawingElementDocument,
+} from '@/shared/types/house-drawing-document.ts';
 
-export interface SerializedCanvasDocumentObject {
-  /** Identificador estável do objeto serializado. */
-  id: string;
+export const CANVAS_DOCUMENT_VERSION = HOUSE_DRAWING_CANVAS_SCHEMA_VERSION;
 
-  /** Tipo lógico do objeto serializado. */
-  kind: string;
+export type SerializedCanvasDocumentObject = HouseDrawingElementDocument;
 
-  /** Dados específicos do objeto, sem instâncias vivas do runtime gráfico. */
-  payload: Record<string, unknown>;
-}
-
-export interface SerializedCanvasDocument {
-  /** Versão do contrato documental do canvas. */
-  version: typeof CANVAS_DOCUMENT_VERSION;
-
-  /** Objetos serializados que compõem o documento. */
-  objects: SerializedCanvasDocumentObject[];
-}
+export type SerializedCanvasDocument = HouseDrawingCanvasDocument;
 
 /**
  * Porta documental do canvas para histórico, importação e exportação.
  *
- * O documento pode ser produzido a partir de Fabric JSON durante a transição,
+ * O documento pode ser produzido a partir do runtime Fabric durante a transição,
  * mas o contrato público não transporta instâncias vivas do runtime gráfico.
  */
 export interface CanvasSerializedDocumentPort {

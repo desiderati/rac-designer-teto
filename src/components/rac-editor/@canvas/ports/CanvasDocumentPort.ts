@@ -1,15 +1,17 @@
+import type {HouseDrawingCanvasDocument} from '@/shared/types/house-drawing-document.ts';
+
 /**
  * Porta documental do canvas.
  *
- * Expõe serialização, importação e captura visual sem vazar a instância
- * concreta do runtime de renderização para hooks de aplicação.
+ * Expõe captura e projeção visual sem vazar a instância concreta do runtime de
+ * renderização para hooks de aplicação.
  */
 export interface CanvasDocumentPort {
-  /** Carrega um JSON de projeto no canvas e informa se a importação foi aceita. */
-  loadProjectJson(rawContent: string): Promise<boolean>;
+  /** Carrega o documento visual canônico no canvas e informa se a importação foi aceita. */
+  loadCanvasDocument(document: HouseDrawingCanvasDocument): Promise<boolean>;
 
-  /** Exporta o projeto atual como JSON serializado, ou `null` se não houver canvas. */
-  exportProjectJson(): string | null;
+  /** Exporta o documento visual canônico do canvas, ou `null` se não houver canvas. */
+  exportCanvasDocument(): HouseDrawingCanvasDocument | null;
 
   /** Exporta a imagem atual do canvas como data URL, ou `null` se indisponível. */
   exportImageDataUrl(): string | null;

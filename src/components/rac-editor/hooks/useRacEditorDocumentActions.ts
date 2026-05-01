@@ -3,7 +3,6 @@ import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/C
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 import {useRacEditorJsonActions} from '@/components/rac-editor/hooks/useRacEditorJsonActions.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
-import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseRacEditorDocumentActionsArgs {
   canvasRef: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -21,8 +20,6 @@ export function useRacEditorDocumentActions({
   resetContraventamentoFlow,
   syncContraventamentoElevations,
 }: UseRacEditorDocumentActionsArgs) {
-  const {houseWritePort} = useEditorPorts();
-
   const {
     handleExportJSON,
     handleImportJSON,
@@ -31,7 +28,6 @@ export function useRacEditorDocumentActions({
     setInfoMessage,
     resetContraventamentoFlow,
     syncContraventamentoElevations,
-    houseWritePort,
   });
 
   const {handleSavePDF} = useRacEditorPdfExportAction({

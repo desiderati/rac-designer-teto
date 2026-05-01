@@ -6,6 +6,7 @@ import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimeP
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
+import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import type {TutorialProgressPort} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
@@ -20,6 +21,7 @@ export interface EditorPorts {
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort;
   house3DProjectionPort: House3DProjectionPort;
+  houseDrawingDocumentPort: HouseDrawingDocumentPort;
   settingsPort: EditorSettingsPort;
   tutorialProgressPort: TutorialProgressPort;
 }

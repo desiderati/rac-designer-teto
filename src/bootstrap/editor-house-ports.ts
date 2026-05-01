@@ -3,10 +3,12 @@ import {createCanvasHouse3DProjectionPort} from '@/components/rac-editor/@canvas
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {readProjectsStorage, writeProjectsStorage} from '@/infra/storage/projects.storage.ts';
 import {
+  createEditorHouseDrawingDocumentPort,
   createEditorHouseReadPort,
   createEditorHouseRuntimePort,
   createEditorHouseStatePorts,
   createEditorHouseWritePort,
+  type EditorHouseDocumentSource,
   type EditorHouseReadSource,
   type EditorHouseRuntimeSource,
   type EditorHouseStateSource,
@@ -22,12 +24,14 @@ import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
+import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 
 type EditorHousePortsSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> =
   & EditorHouseReadSource<TGroup>
   & EditorHouseWriteSource
   & EditorHouseRuntimeSource<TGroup>
-  & EditorHouseStateSource<TGroup>;
+  & EditorHouseStateSource<TGroup>
+  & EditorHouseDocumentSource;
 
 export interface EditorHousePorts<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   houseReadPort: HouseReadPort;
@@ -36,6 +40,7 @@ export interface EditorHousePorts<TGroup extends HouseRuntimeGroupRef = HouseRun
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<TGroup>;
   house3DProjectionPort: House3DProjectionPort;
+  houseDrawingDocumentPort: HouseDrawingDocumentPort;
 }
 
 interface CreateDefaultEditorHousePortsArgs {
@@ -58,6 +63,7 @@ export function createEditorHousePorts<TGroup extends HouseRuntimeGroupRef>(
     houseStatePort,
     houseRuntimeSnapshotPort,
     house3DProjectionPort,
+    houseDrawingDocumentPort: createEditorHouseDrawingDocumentPort(source),
   };
 }
 

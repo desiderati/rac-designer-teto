@@ -50,6 +50,10 @@ central da aplicação.
   composição concreta em `src/bootstrap/editor-infra-ports.ts`.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
+- `src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato canônico inicial de
+  importação/exportação da casa ativa.
+- `src/components/rac-editor/ports/HouseDrawingDocumentPort.ts` compõe o documento lógico da casa sem expor JSON Fabric
+  aos hooks gerais do editor.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
   `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de `src/infra` no código
   produtivo do editor.
@@ -98,6 +102,12 @@ central da aplicação.
   precisam interpretar `CanvasGroup`, como a projeção 3D concreta, pertencem ao slice `@canvas`.
 - `House3DProjectionPort` é a fronteira do viewer 3D. O viewer recebe projeção serializável e não deve depender de
   `HouseRuntimeSnapshot<TGroup>`, `CanvasGroup`, `CanvasObject` ou `useHouseRuntimeSnapshot`.
+- `HouseDrawingDocument` é o contrato canônico inicial de arquivo do editor. Ele junta `HouseState`, setup da casa ativa
+  e documento visual serializável.
+- JSON Fabric bruto não é formato de projeto. O adapter Fabric pode converter internamente o documento visual, mas hooks,
+  ports do editor e bootstrap não devem depender de `canvas.toJSON()` ou `canvas.loadFromJSON()` como contrato público.
+- `rebuildHouseFromCanvas` não deve participar do fluxo de importação do documento canônico; reconstrução a partir do
+  canvas é mecanismo transitório para outros fluxos até existir projeção documental mais completa.
 
 ## Mapa de fronteiras
 
@@ -113,6 +123,8 @@ flowchart LR
     Fabric["Fabric.js"]
     Projection3D["House3DProjectionPort"]
     Viewer3D["Viewer 3D"]
+    HouseDocument["HouseDrawingDocument"]
+    DocumentPort["HouseDrawingDocumentPort"]
     InfraPorts["Ports de persistência e storage"]
     Infra["Infra: persistência e storage"]
     UI --> Ports
@@ -126,6 +138,8 @@ flowchart LR
     Store --> InfraPorts
     InfraPorts --> Infra
     Ports --> Projection3D
+    Ports --> DocumentPort
+    DocumentPort --> HouseDocument
     Projection3D --> Viewer3D
     Projection3D -.->|"adapter concreto em @canvas"| FabricAdapters
     Fabric -- " eventos visuais " --> FabricAdapters
@@ -253,13 +267,16 @@ Objetivo: reduzir a dependência de reconstrução lógica a partir do canvas.
 
 Resultado esperado:
 
-- Forma inicial de documento serializável para casa, vistas, pilotis, terreno e elementos desenhados.
+- Forma inicial de documento serializável para casa, setup da casa ativa e elementos desenhados.
 - Round trip mínimo de exportação/importação caracterizado por teste.
 - Rebuild visual tratado como projeção, não como fonte primária de verdade.
+- JSON Fabric antigo rejeitado como formato de projeto.
 
 Critério de corte:
 
-- Import/export e rebuild têm teste que preserva identidade lógica de casa e vistas.
+- Import/export têm teste que preserva identidade lógica de casa e rejeita JSON Fabric bruto.
+- O documento visual pode ser reconstruído pelo adapter Fabric, mas o contrato do editor permanece estruturado e
+  versionado.
 
 ### 6. Remover pontes transitórias apenas quando ficarem ocas
 
@@ -296,7 +313,7 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
    canvas.
 5. Import/export, rebuild de vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.
-6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas` ou documentado como transição.
+6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas`.
 7. Novos ciclos de refatoração só entram se apontarem um acoplamento real, uma dor de teste ou um risco funcional.
 
 Se esses critérios forem satisfeitos, continuar mexendo apenas para deixar a arquitetura "mais pura" é vaidade técnica.

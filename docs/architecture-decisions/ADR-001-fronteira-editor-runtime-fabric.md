@@ -26,8 +26,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - O repositório já trata `src/components/rac-editor` como miniaplicação interna.
   - O playbook vigente não recomenda mover Fabric para `src/infra` por generalização.
   - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`.
-  - Tipos concretos de canvas, como `CanvasGroup` e `CanvasObject`, devem ficar no slice `@canvas` ou no bootstrap de
-    composição.
+  - Tipos concretos de canvas, como `CanvasGroup` e `CanvasObject`, devem ficar somente no slice `@canvas`.
   - A fronteira possui guarda automatizada para impedir retorno de imports amplos no núcleo lógico.
 - por que a decisão importa agora:
   - A refatoração planejada pretende remover vazamentos de Fabric, reduzir god files e preparar expansão futura do
@@ -215,9 +214,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ## 7. Evoluções deliberadamente adiadas
 
 - item adiado:
-  - Modelo final de `HouseDrawingDocument`.
+  - Modelo multicasa completo de `ProjectDocument`.
 - motivo do adiamento:
-  - Depende da caracterização de import/export, rebuild e persistência.
+  - O contrato inicial de `HouseDrawingDocument` foi aceito em `ADR-002`; a persistência multicasa completa depende de
+    ciclos próprios de produto.
 - item adiado:
   - Substituição completa do controller transitório da casa.
 - motivo do adiamento:
@@ -244,4 +244,4 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - changelog relacionado:
   - `.agents/changelogs/2026-04/20260428.changelog.md`
 - outros ADRs relacionados:
-  - Nenhum.
+  - `docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md`

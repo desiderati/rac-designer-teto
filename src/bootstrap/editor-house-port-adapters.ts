@@ -4,6 +4,7 @@ import type {
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {HousePilotiPatch} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
@@ -22,6 +23,12 @@ import type {
   HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
+import {
+  HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+  HOUSE_DRAWING_DOCUMENT_TYPE,
+  type HouseDrawingDocument,
+  type HouseDrawingCanvasDocument,
+} from '@/shared/types/house-drawing-document.ts';
 
 export interface EditorHouseReadSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   getHouseType(): HouseType;
@@ -63,6 +70,13 @@ export interface EditorHouseStateSource<TGroup extends HouseRuntimeGroupRef = Ho
   subscribe(listener: () => void): () => void;
   getHouseState(): HouseState | null;
   getHouse(): HouseRuntimeSnapshot<TGroup> | null;
+}
+
+export interface EditorHouseDocumentSource {
+  getFamilyName(): string;
+  getSelectedPilotiHeights(): readonly number[];
+  getHouseState(): HouseState | null;
+  loadHouseDrawingDocument(document: HouseDrawingDocument): void;
 }
 
 export function createEditorHouseReadPort<TGroup extends HouseRuntimeGroupRef>(
@@ -133,5 +147,28 @@ export function createEditorHouseStatePorts<TGroup extends HouseRuntimeGroupRef>
       subscribe: (listener) => source.subscribe(listener),
       getRuntimeSnapshot: () => source.getHouse(),
     },
+  };
+}
+
+export function createEditorHouseDrawingDocumentPort(
+  source: EditorHouseDocumentSource,
+): HouseDrawingDocumentPort {
+  return {
+    exportHouseDrawingDocument: (canvas: HouseDrawingCanvasDocument) => {
+      const house = source.getHouseState();
+      if (!house) return null;
+
+      return {
+        documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
+        schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+        setup: {
+          familyName: source.getFamilyName(),
+          selectedPilotiHeights: [...source.getSelectedPilotiHeights()],
+        },
+        house,
+        canvas,
+      };
+    },
+    importHouseDrawingDocument: (document) => source.loadHouseDrawingDocument(document),
   };
 }

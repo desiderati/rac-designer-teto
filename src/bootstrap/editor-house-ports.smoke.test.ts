@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createDefaultEditorHousePorts, type EditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
+import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
 
 function createCanvasPort() {
   return {
@@ -70,5 +71,20 @@ describe('editor house ports', () => {
 
     expect(firstPorts.houseReadPort.getCurrentHouseType()).toBe('tipo6');
     expect(secondPorts.houseReadPort.getCurrentHouseType()).toBeNull();
+  });
+
+  it('exporta e importa documento canônico da casa ativa', () => {
+    ports.houseWritePort.setHouseType('tipo6');
+    const document = ports.houseDrawingDocumentPort.exportHouseDrawingDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [],
+    });
+
+    expect(document?.house?.houseType).toBe('tipo6');
+
+    ports.houseWritePort.setHouseType('tipo3');
+    ports.houseDrawingDocumentPort.importHouseDrawingDocument(document!);
+
+    expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');
   });
 });

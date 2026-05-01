@@ -12,7 +12,7 @@ import type {CanvasRenderPort} from './CanvasRenderPort.ts';
 class FakeCanvasAdapter implements CanvasEventPort, CanvasRenderPort, CanvasSerializedDocumentPort {
   private selectionHandlers = new Set<(selection: EditorSelection | null) => void>();
   private document: SerializedCanvasDocument = {
-    version: CANVAS_DOCUMENT_VERSION,
+    schemaVersion: CANVAS_DOCUMENT_VERSION,
     objects: [],
   };
 
@@ -69,12 +69,13 @@ describe('canvas ports', () => {
   it('moves canvas documents through serializable snapshots', async () => {
     const adapter = new FakeCanvasAdapter();
     const document: SerializedCanvasDocument = {
-      version: CANVAS_DOCUMENT_VERSION,
+      schemaVersion: CANVAS_DOCUMENT_VERSION,
       objects: [
         {
           id: 'object_1',
           kind: 'house-view',
-          payload: {houseView: 'top'},
+          shape: 'group',
+          metadata: {houseView: 'top'},
         },
       ],
     };
@@ -83,7 +84,7 @@ describe('canvas ports', () => {
     const exported = await adapter.exportDocument();
 
     expect(exported).toEqual(document);
-    expect(exported.version).toBe(CANVAS_DOCUMENT_VERSION);
+    expect(exported.schemaVersion).toBe(CANVAS_DOCUMENT_VERSION);
     expect(JSON.parse(JSON.stringify(exported))).toEqual(document);
   });
 });
