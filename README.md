@@ -94,7 +94,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
 - `src/components/rac-editor/store/` fica reservado a stores reais, como `EditorStateStore`
-- `src/components/rac-editor/lib/house-manager.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
+- `src/components/rac-editor/lib/house-manager.facade.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
 - O projeto usa alias `@/` para imports absolutos
@@ -103,7 +103,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - O TypeScript roda hoje em modo não estrito, mas o código deve continuar explícito e defensivo
 - O playbook em `docs/engineering-playbook/` continua sendo a fonte canônica para arquitetura, convenções e critérios de
   refatoração, com qualquer direção futura marcada explicitamente como transição
-- A taxonomia atual do playbook separa núcleo comum em `PLAY-001` a `PLAY-005` e módulos frontend em
+- A taxonomia atual do playbook separa núcleo comum em `PLAY-001` a `PLAY-006` e módulos frontend em
   `PLAY-101` a `PLAY-105`
 
 ---

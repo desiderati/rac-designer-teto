@@ -33,7 +33,7 @@ técnicas e não técnicas.
 
 3. `engineering-playbook/`
      - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
-      O playbook combina um núcleo comum em `PLAY-001` a `PLAY-005` com módulos específicos de família, hoje
+      O playbook combina um núcleo comum em `PLAY-001` a `PLAY-006` com módulos específicos de família, hoje
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
 4. `code-scaffolds/`

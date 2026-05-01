@@ -24,11 +24,15 @@ estabelecida.
 
 - `docs/`, quando esse diretório existir
 - `docs/architecture-decisions/`, quando houver decisões arquiteturais duráveis registradas
-- quando o repositório adotar `.agents/bug-analysis/` ou `.agents/incidents/` como acervos versionados, referenciar
+- `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md`, para a decisão vigente de fronteira do
+  editor RAC com o runtime Fabric
+- `docs/engineering-playbook/PLAY-006-ports-and-adapters.md`, para a disciplina de continuidade de Ports and Adapters
+  no editor RAC
+- quando o repositório adotar acervos versionados de bug analysis ou incidentes em `.agents`, referenciar
   aqui os casos relevantes ou índices curados desses acervos
 - quando o repositório adotar `.agents/refactorings/` como acervo versionado seletivo de frentes duráveis de
   refatoração, referenciar aqui os casos relevantes ou índices curados desse acervo
-- `.agents/code-reviews/`, quando existir, permanece local e não deve entrar neste índice
+- registros locais de code review, quando existirem, permanecem locais e não devem entrar neste índice
 - adicionar runbooks, decisões técnicas e notas recorrentes relevantes quando o repositório mantiver uma base de
   conhecimento versionada
 - apontar para `README.md` quando ele for um complemento útil para leitores humanos
@@ -38,8 +42,8 @@ estabelecida.
 - manter links para documentos versionados
 - preferir notas curadas a histórico bruto
 - evitar duplicar texto de changelog
-- não indexar a camada operacional efêmera de `.agents/`, incluindo `.agents/code-reviews/`, mas permitir referências
-  seletivas a `.agents/bug-analysis/`, `.agents/incidents/` e `.agents/refactorings/` quando o repositório tratar
+- não indexar a camada operacional efêmera de `.agents`, incluindo registros locais de code review, mas permitir
+  referências seletivas a bug analysis, incidentes e `.agents/refactorings/` quando o repositório tratar
   esses registros como fontes documentais duráveis, com `.agents/refactorings/` restrito às frentes fechadas como
   `durável`
 - manter o índice pequeno, estável e navegável

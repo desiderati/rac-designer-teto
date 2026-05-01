@@ -461,7 +461,7 @@ IndexedDB schema, and UI flow**, and then start implementing the first milestone
 
 ## References
 
-[1]: ../../../../src/components/rac-editor/lib/house-manager.ts "Current single-house manager with in-memory persistence and non-persisted family fields"
+[1]: ../../../../src/components/rac-editor/lib/house-manager.facade.ts "Current single-house manager with in-memory persistence and non-persisted family fields"
 
 [2]: ../../../../src/shared/types/house.ts "Current HouseState type used by the editor"
 

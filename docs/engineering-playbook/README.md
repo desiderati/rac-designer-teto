@@ -23,7 +23,7 @@ decisão que orientam tanto humanos quanto agentes de codificação.
 
 ## Taxonomia atual
 
-- `PLAY-001` a `PLAY-005`
+- `PLAY-001` a `PLAY-006`
     - Núcleo comum do playbook: persona, princípios, stack, estrutura e convenções gerais.
 
 - `PLAY-101` a `PLAY-199`
@@ -48,6 +48,9 @@ decisão que orientam tanto humanos quanto agentes de codificação.
 
 - `PLAY-005-naming-conventions.md`
     - Convenções de nomenclatura para arquivos, funções e tipos.
+
+- `PLAY-006-ports-and-adapters.md`
+    - Disciplina de Ports and Adapters no editor RAC, com fronteiras, riscos, critérios de corte e plano de continuidade.
 
 - `PLAY-101-frontend-component-patterns.md`
     - Padrões de composição e responsabilidades dos componentes.

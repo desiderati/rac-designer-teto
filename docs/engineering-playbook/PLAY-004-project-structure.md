@@ -120,6 +120,8 @@ Ele existe para evitar dois erros comuns:
 ## Direção de evolução
 
 - Refatorações estruturais devem partir do código existente, não de paths imaginários herdados de discussões antigas.
+- Refatorações com Ports and Adapters no editor devem seguir `PLAY-006-ports-and-adapters.md`, separando fatos,
+  hipóteses, decisões, riscos e critérios de corte.
 - O bootstrap já é o ponto de composição para store, ports e adapters transitórios; novas composições devem ficar ali
   quando não pertencerem exclusivamente ao slice `@canvas`.
 - Prefira PRs pequenos que reduzam acoplamento dentro da feature atual antes de abrir novas raízes na árvore.

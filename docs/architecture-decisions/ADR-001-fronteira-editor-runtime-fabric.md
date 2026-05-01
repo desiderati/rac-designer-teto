@@ -91,7 +91,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ### Alternativa A: Manter arquitetura atual e extrair helpers pontuais
 
 - descrição:
-  - Continuar usando `houseManager`, `CanvasHandle.canvas`, `CanvasGroup` e Fabric em hooks, extraindo apenas helpers
+  - Continuar usando `houseManager`, acesso direto ao canvas pelo handle, `CanvasGroup` e Fabric em hooks, extraindo apenas helpers
     locais para reduzir tamanho de arquivos.
 - benefícios:
   - Menor risco imediato.
@@ -152,7 +152,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - Aceitar migração incremental em vez de pureza imediata.
 - Manter Fabric dentro da feature editor durante a transição.
 - Manter fábricas transitórias de ports no bootstrap enquanto o núcleo legado existir.
-- Criar ADR `proposed` antes de aceitar a decisão como estado final.
+- Registrar a decisão antes de tratar a fronteira como estado final.
 
 ### 4.4. Riscos e mitigação
 
@@ -174,7 +174,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Reescrita completa em big bang.
   - Mover Fabric para `src/infra` por generalização antes de existir adapter concreto.
   - Trocar Fabric por outro runtime gráfico.
-  - Criar `src/application`, `src/services` ou store global raiz.
+  - Criar raízes genéricas de application, services ou store global.
 
 ## 6. Artefatos e contratos relacionados
 
@@ -193,6 +193,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/`
 - superfícies humanas relacionadas:
   - `docs/engineering-playbook/PLAY-004-project-structure.md`
+  - `docs/engineering-playbook/PLAY-006-ports-and-adapters.md`
   - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
 - runbook humano canônico:
   - Não aplicável nesta etapa.
