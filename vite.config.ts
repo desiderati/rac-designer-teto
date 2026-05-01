@@ -23,11 +23,11 @@ export default defineConfig(async ({mode}) => {
   }
 
   return {
-    base: mode === 'production' ? '/rac-designer-teto/' : '/',
+    base: process.env.GITHUB_PAGES === 'true' ? '/rac-designer-teto/' : '/',
     server: {
       host: '::',
       port: 8080,
-      allowedHosts: true,
+      allowedHosts: true as const,
     },
     build: {
       chunkSizeWarningLimit: 1000,
