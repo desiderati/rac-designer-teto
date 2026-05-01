@@ -15,10 +15,8 @@ import {HouseManagerState} from '@/components/rac-editor/lib/house-manager-state
 import {HouseManagerVisualRuntime} from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
 import {HouseManagerNotifier} from '@/components/rac-editor/lib/house-manager-notifier.ts';
 import {HouseManagerQueryService} from '@/components/rac-editor/lib/house-manager-query-service.ts';
-import {
-  HouseManagerCommandService,
-  type HouseManagerViewRuntime,
-} from '@/components/rac-editor/lib/house-manager-command-service.ts';
+import {HouseManagerCommandService} from '@/components/rac-editor/lib/house-manager-command-service.ts';
+import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
 import {HouseManagerSessionService} from '@/components/rac-editor/lib/house-manager-session-service.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';

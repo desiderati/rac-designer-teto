@@ -1,14 +1,11 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {
   HousePiloti,
-  HouseRuntimeViews,
   HouseViewInstanceId,
   HouseSide,
   HouseState,
   HouseType,
-  HouseViewType,
 } from '@/shared/types/house.ts';
-import {normalizeTerrainSolidityLevel} from '@/shared/config.ts';
 import type {
   HouseManagerVisualRebuildInput,
 } from '@/components/rac-editor/lib/house-manager-visual-runtime.ts';
@@ -19,34 +16,10 @@ import type {
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
 import {HouseManagerPilotiCommandService} from '@/components/rac-editor/lib/house-manager-piloti-command-service.ts';
-
-export interface HouseManagerViewRuntime<TGroup extends HouseRuntimeGroupRef> {
-  rebuildViewsFromRuntime(params: {
-    aggregate: HouseAggregate;
-    house: HouseState;
-    visualGroups: TGroup[];
-    pilotisFromRuntime: Record<string, HousePiloti>;
-    terrainTypeFromRuntime: number;
-  }): { groupsToSync: TGroup[]; runtimeViewGroups: Array<{ instanceId: HouseViewInstanceId; group: TGroup }> };
-
-  applyCurrentHouseDataToGroups(params: {
-    groups: TGroup[];
-    pilotis: Record<string, HousePiloti>;
-    terrainType: number;
-  }): void;
-
-  applyTerrainTypeToElevationViews(house: HouseRuntimeSnapshot<TGroup> | null, terrainType: number): void;
-
-  updatePiloti(params: {
-    aggregate: HouseAggregate;
-    house: HouseState;
-    runtimeViews: HouseRuntimeViews<TGroup>;
-    pilotiId: string;
-    pilotiData: Partial<HousePiloti>;
-    selectedPilotiHeights: readonly number[];
-    groups: TGroup[];
-  }): { updated: boolean; shouldRefreshAutoContraventamento: boolean };
-}
+import {HouseManagerSetupCommandService} from '@/components/rac-editor/lib/house-manager-setup-command-service.ts';
+import {HouseManagerTerrainCommandService} from '@/components/rac-editor/lib/house-manager-terrain-command-service.ts';
+import {HouseManagerViewCommandService} from '@/components/rac-editor/lib/house-manager-view-command-service.ts';
+import type {HouseManagerViewRuntime} from '@/components/rac-editor/lib/house-manager-view-runtime.ts';
 
 interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
@@ -75,8 +48,40 @@ interface HouseManagerCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
  */
 export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
   private readonly pilotiCommands: HouseManagerPilotiCommandService<TGroup>;
+  private readonly setupCommands: HouseManagerSetupCommandService;
+  private readonly terrainCommands: HouseManagerTerrainCommandService<TGroup>;
+  private readonly viewCommands: HouseManagerViewCommandService<TGroup>;
 
   constructor(private readonly args: HouseManagerCommandServiceArgs<TGroup>) {
+    this.setupCommands = new HouseManagerSetupCommandService({
+      getAggregate: args.getAggregate,
+      persistHouse: args.persistHouse,
+      syncProjectSession: args.syncProjectSession,
+      notify: args.notify,
+    });
+    this.terrainCommands = new HouseManagerTerrainCommandService<TGroup>({
+      getAggregate: args.getAggregate,
+      getDefaultTerrainType: args.getDefaultTerrainType,
+      getRuntimeHouse: args.getRuntimeHouse,
+      viewRuntime: args.viewRuntime,
+      persistHouse: args.persistHouse,
+      syncProjectSession: args.syncProjectSession,
+      requestCanvasRender: args.requestCanvasRender,
+      notify: args.notify,
+    });
+    this.viewCommands = new HouseManagerViewCommandService<TGroup>({
+      getHouse: args.getHouse,
+      getAggregate: args.getAggregate,
+      getTerrainType: args.getTerrainType,
+      getAllGroups: args.getAllGroups,
+      unregisterRuntimeViewGroup: args.unregisterRuntimeViewGroup,
+      replaceRuntimeViewGroups: args.replaceRuntimeViewGroups,
+      createVisualRebuildInput: args.createVisualRebuildInput,
+      viewRuntime: args.viewRuntime,
+      persistHouse: args.persistHouse,
+      notify: args.notify,
+      refreshAutoContraventamento: args.refreshAutoContraventamento,
+    });
     this.pilotiCommands = new HouseManagerPilotiCommandService<TGroup>({
       getHouse: args.getHouse,
       getRuntimeHouse: args.getRuntimeHouse,
@@ -92,97 +97,23 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
   }
 
   setHouseType(type: HouseType): void {
-    const aggregate = this.args.getAggregate();
-    if (!aggregate) return;
-
-    aggregate.setHouseType(type);
-    this.args.persistHouse();
-    this.args.syncProjectSession();
-    this.args.notify();
+    this.setupCommands.setHouseType(type);
   }
 
   setTerrainType(terrainType: number): number {
-    const aggregate = this.args.getAggregate();
-    if (!aggregate) return this.args.getDefaultTerrainType();
-
-    const normalized = normalizeTerrainSolidityLevel(terrainType);
-    aggregate.setTerrainType(normalized);
-
-    this.args.persistHouse();
-    this.args.syncProjectSession();
-    this.args.viewRuntime.applyTerrainTypeToElevationViews(this.args.getRuntimeHouse(), normalized);
-
-    this.args.requestCanvasRender();
-    this.args.notify();
-    return normalized;
+    return this.terrainCommands.setTerrainType(terrainType);
   }
 
   registerView(request: HouseViewRegistrationRequest): HouseViewRegistration | null {
-    const aggregate = this.args.getAggregate();
-    const house = this.args.getHouse();
-    if (!aggregate || !house) return null;
-
-    aggregate.registerView({
-      viewType: request.viewType,
-      instanceId: request.instanceId,
-      side: request.side,
-    });
-
-    this.args.persistHouse();
-    if (request.viewType === 'top') {
-      this.args.refreshAutoContraventamento();
-    }
-
-    this.args.notify();
-    return {
-      viewType: request.viewType,
-      instanceId: request.instanceId,
-      side: request.side,
-      registeredTopView: request.viewType === 'top',
-    };
+    return this.viewCommands.registerView(request);
   }
 
   rebuildFromCanvas(): void {
-    const aggregate = this.args.getAggregate();
-    const house = this.args.getHouse();
-    if (!house || !aggregate) return;
-
-    const visualState = this.args.createVisualRebuildInput({
-      currentPilotis: house.pilotis,
-      fallbackTerrainType: this.args.getTerrainType(),
-    });
-    if (!visualState) return;
-
-    const rebuild = this.args.viewRuntime.rebuildViewsFromRuntime({
-      aggregate,
-      house,
-      visualGroups: visualState.visualGroups,
-      pilotisFromRuntime: visualState.pilotisFromRuntime,
-      terrainTypeFromRuntime: visualState.terrainTypeFromRuntime,
-    });
-    this.args.replaceRuntimeViewGroups(rebuild.runtimeViewGroups);
-    this.args.persistHouse();
-
-    this.args.viewRuntime.applyCurrentHouseDataToGroups({
-      groups: rebuild.groupsToSync,
-      terrainType: this.args.getTerrainType(),
-      pilotis: house.pilotis,
-    });
-
-    this.args.notify();
+    this.viewCommands.rebuildFromCanvas();
   }
 
   removeView(instanceId: HouseViewInstanceId): void {
-    const aggregate = this.args.getAggregate();
-    if (!aggregate) return;
-
-    const result = aggregate.removeView({instanceId});
-
-    if (result.removedCount > 0) {
-      this.args.unregisterRuntimeViewGroup(instanceId);
-      this.args.persistHouse();
-      this.args.notify();
-    }
+    this.viewCommands.removeView(instanceId);
   }
 
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {
@@ -194,11 +125,6 @@ export class HouseManagerCommandService<TGroup extends HouseRuntimeGroupRef> {
   }
 
   autoAssignAllSides(initialSide: HouseSide): void {
-    const aggregate = this.args.getAggregate();
-    if (!aggregate) return;
-
-    aggregate.autoAssignAllSides(initialSide);
-    this.args.persistHouse();
-    this.args.notify();
+    this.viewCommands.autoAssignAllSides(initialSide);
   }
 }
