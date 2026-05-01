@@ -2,8 +2,9 @@ import {useEffect, useState} from 'react';
 import {Switch} from '@/components/ui/switch.tsx';
 import {Label} from '@/components/ui/label.tsx';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
-import {getSettings, updateSetting} from '@/infra/settings.ts';
 import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import type {AppSettingKey} from '@/shared/types/settings.ts';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,37 +14,31 @@ interface SettingsModalProps {
 
 export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: SettingsModalProps) {
   const isMobile = useIsMobile();
-  const [tempSettings, setTempSettings] = useState(getSettings);
+  const {settingsPort} = useEditorPorts();
+  const [tempSettings, setTempSettings] = useState(() => settingsPort.getSettings());
 
   useEffect(() => {
     if (isOpen) {
-      setTempSettings(getSettings());
+      setTempSettings(settingsPort.getSettings());
     }
-  }, [isOpen]);
+  }, [isOpen, settingsPort]);
 
-  const handleToggle = (
-    key: 'autoNavigatePiloti'
-      | 'zoomEnabledByDefault'
-      | 'openEditorsAtFixedPosition'
-      | 'disableDrawModeAfterFreehand'
-      | 'showStairsOnTopView',
-    value: boolean
-  ) => {
+  const handleToggle = (key: AppSettingKey, value: boolean) => {
     setTempSettings((prev) => ({...prev, [key]: value}));
   };
 
   const handleConfirm = () => {
-    updateSetting('autoNavigatePiloti', tempSettings.autoNavigatePiloti);
-    updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
-    updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
-    updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
-    updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
+    settingsPort.updateSetting('autoNavigatePiloti', tempSettings.autoNavigatePiloti);
+    settingsPort.updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
+    settingsPort.updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
+    settingsPort.updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
+    settingsPort.updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
     onSettingsChange?.();
     onOpenChange(false);
   };
 
   const handleCancel = () => {
-    setTempSettings(getSettings());
+    setTempSettings(settingsPort.getSettings());
     onOpenChange(false);
   };
 

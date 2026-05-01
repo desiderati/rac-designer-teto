@@ -6,8 +6,11 @@ import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimeP
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
+import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
+import type {TutorialProgressPort} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
+import {createDefaultEditorSettingsPort, createDefaultTutorialProgressPort} from '@/bootstrap/editor-infra-ports.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -18,6 +21,8 @@ export interface EditorPorts {
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
   house3DProjectionPort: House3DProjectionPort;
+  settingsPort: EditorSettingsPort;
+  tutorialProgressPort: TutorialProgressPort;
 }
 
 export const EditorPortsContext = createContext<EditorPorts | null>(null);
@@ -39,10 +44,14 @@ export function createEditorStore(): EditorStore {
  * passa a depender deste ponto de composição em vez de importar singletons.
  */
 export function createEditorPorts(): EditorPorts {
-  const housePorts = createDefaultEditorHousePorts();
+  const settingsPort = createDefaultEditorSettingsPort();
+  const tutorialProgressPort = createDefaultTutorialProgressPort();
+  const housePorts = createDefaultEditorHousePorts({settingsPort});
 
   return {
     ...housePorts,
+    settingsPort,
+    tutorialProgressPort,
   };
 }
 

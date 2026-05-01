@@ -3,8 +3,8 @@ import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {refreshTopDoorMarkersInViews} from '@/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts';
-import {getSettings} from '@/infra/settings.ts';
 import {collectElevationViewInstances} from '@/components/rac-editor/lib/editor-house-terrain.ts';
+import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 
 function renderWhenChanged(changed: boolean, requestRender: () => void): void {
   if (changed) {
@@ -31,6 +31,7 @@ export function refreshTopDoorMarkers(params: {
 export function refreshAutoStairs(params: {
   house: HouseRuntimeSnapshot<CanvasGroup> | null;
   requestRender: () => void;
+  settingsPort: EditorSettingsPort;
 }): void {
   if (!params.house) return;
 
@@ -41,7 +42,7 @@ export function refreshAutoStairs(params: {
       pilotis: params.house.pilotis,
       topView: params.house.views.top,
       elevationViews: collectElevationViewInstances(params.house),
-      showStairsOnTopView: getSettings().showStairsOnTopView,
+      showStairsOnTopView: params.settingsPort.getSettings().showStairsOnTopView,
     }),
     params.requestRender,
   );
@@ -66,6 +67,7 @@ export function refreshAutoContraventamento(params: {
 interface HouseVisualEffectsArgs {
   getHouse: () => HouseRuntimeSnapshot<CanvasGroup> | null;
   requestCanvasRender: () => void;
+  settingsPort: EditorSettingsPort;
 }
 
 /**
@@ -86,6 +88,7 @@ export class HouseVisualEffects {
     refreshAutoStairs({
       house: this.args.getHouse(),
       requestRender: () => this.args.requestCanvasRender(),
+      settingsPort: this.args.settingsPort,
     });
   }
 

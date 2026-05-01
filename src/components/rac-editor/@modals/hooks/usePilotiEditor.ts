@@ -1,6 +1,5 @@
 import {useContext, useEffect, useMemo, useState} from 'react';
 import {EditorPortsContext} from '@/bootstrap/editor-bootstrap.ts';
-import {getSettings} from '@/infra/settings.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
@@ -47,8 +46,11 @@ export function usePilotiEditor({
   const editorPorts = useContext(EditorPortsContext);
   const resolvedPilotiReadPort = pilotiReadPort ?? editorPorts?.houseReadPort;
   const resolvedPilotiWritePort = pilotiWritePort ?? editorPorts?.houseWritePort;
-  if (!resolvedPilotiReadPort || !resolvedPilotiWritePort) {
-    throw new Error('usePilotiEditor requires HousePilotiReadPort, HousePilotiWritePort or RacEditorStoreProvider.');
+  const resolvedSettingsPort = editorPorts?.settingsPort;
+  if (!resolvedPilotiReadPort || !resolvedPilotiWritePort || !resolvedSettingsPort) {
+    throw new Error(
+      'usePilotiEditor requires HousePilotiReadPort, HousePilotiWritePort, EditorSettingsPort or RacEditorStoreProvider.'
+    );
   }
 
   const [tempHeight, setTempHeight] = useState(() => currentHeight);
@@ -163,7 +165,7 @@ export function usePilotiEditor({
   const handleHeightClick = (h: number) => {
     setTempHeight(h);
 
-    const {autoNavigatePiloti} = getSettings();
+    const {autoNavigatePiloti} = resolvedSettingsPort.getSettings();
     const nivelToApply = clampNivelByHeight(tempNivel, h);
 
     // Ao reduzir altura, ajusta imediatamente o slider para não ultrapassar o novo máximo.

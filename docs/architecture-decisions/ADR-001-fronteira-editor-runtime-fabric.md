@@ -40,6 +40,9 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts`
   - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
+  - `src/bootstrap/editor-infra-ports.ts`
+  - `src/components/rac-editor/ports/EditorSettingsPort.ts`
+  - `src/components/rac-editor/ports/TutorialProgressPort.ts`
   - `src/architecture/rac-editor-boundary.smoke.test.ts`
 
 ## 2. Decisão
@@ -75,6 +78,9 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     bootstrap ou em `src/infra`, não instanciados dentro do núcleo do editor.
   - Sessão de projeto e storage local seguem a mesma regra: o núcleo do editor recebe portas/funções de storage, e o
     acesso concreto a `localStorage` fica em `src/infra` ou no bootstrap de composição.
+  - Configurações do editor e progresso do tutorial seguem a mesma fronteira: UI, hooks e canvas consomem
+    `EditorSettingsPort` e `TutorialProgressPort`; as implementações baseadas em storage local são compostas no
+    bootstrap.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
     permanece apenas como composição transitória do `forwardRef`.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,

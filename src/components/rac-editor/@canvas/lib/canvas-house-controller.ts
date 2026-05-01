@@ -1,6 +1,7 @@
 import {EditorHouseController} from '@/components/rac-editor/lib/editor-house-controller.ts';
 import type {HousePersistencePort} from '@/domain/house/house-persistence.port.ts';
 import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
+import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import {
@@ -12,6 +13,7 @@ import {
 
 interface CanvasHouseControllerArgs {
   persistence: HousePersistencePort;
+  settingsPort: EditorSettingsPort;
   projectSession: ProjectSessionPort;
 }
 
@@ -19,7 +21,10 @@ export function createCanvasHouseController(args: CanvasHouseControllerArgs): Ed
   return new EditorHouseController<CanvasGroup>({
     persistence: args.persistence,
     projectSession: args.projectSession,
-    createEffects: (args) => new HouseVisualEffects(args),
+    createEffects: (effectsArgs) => new HouseVisualEffects({
+      ...effectsArgs,
+      settingsPort: args.settingsPort,
+    }),
     viewRuntime: {
       rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
       applyCurrentHouseDataToGroups,

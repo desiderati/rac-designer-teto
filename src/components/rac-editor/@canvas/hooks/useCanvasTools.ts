@@ -3,9 +3,10 @@ import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/p
 import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
 import type {CanvasDrawingModeHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@canvas/lib';
-import {isTutorialTipShown, markTutorialTipShown} from '@/infra/storage/tutorial.storage.ts';
 import {TIMINGS} from '@/shared/config.ts';
 import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import type {TutorialTipKey} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<(
@@ -23,7 +24,7 @@ interface UseCanvasToolsArgs {
 }
 
 interface TutorialConfig {
-  key: 'wall' | 'line' | 'arrow' | 'distance';
+  key: TutorialTipKey;
   message: string;
 }
 
@@ -37,6 +38,7 @@ export function useCanvasTools({
   setInfoMessage,
   setTutorialBalloon,
 }: UseCanvasToolsArgs) {
+  const {tutorialProgressPort} = useEditorPorts();
 
   const showTutorialBalloon =
     useCallback((object: CanvasObject, text: string) => {
@@ -56,13 +58,13 @@ export function useCanvasTools({
 
     addObjectToCanvas(object);
 
-    if (tutorial && !isTutorialTipShown(tutorial.key)) {
-      markTutorialTipShown(tutorial.key);
+    if (tutorial && !tutorialProgressPort.isTutorialTipShown(tutorial.key)) {
+      tutorialProgressPort.markTutorialTipShown(tutorial.key);
       setTimeout(() => showTutorialBalloon(object, tutorial.message), TIMINGS.tutorialBalloonDelayMs);
     }
 
     return object;
-  }, [addObjectToCanvas, canvasRef, closeAllMenus, showTutorialBalloon]);
+  }, [addObjectToCanvas, canvasRef, closeAllMenus, showTutorialBalloon, tutorialProgressPort]);
 
   const handleAddWall = useCallback(() => {
     addCanvasObject('wall', {

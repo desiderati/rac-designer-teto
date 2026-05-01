@@ -27,7 +27,7 @@ import {
   resetHighlightContraventamentoPilotis
 } from '@/components/rac-editor/@canvas/lib/contraventamento-top-view-highlight.ts';
 import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
-import {getSettings} from '@/infra/settings.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseContraventamentoCommandsArgs {
   canvasRef: RefObject<(CanvasHistoryHandle & CanvasRenderHandle) | null>;
@@ -71,6 +71,7 @@ export function useContraventamentoCommands({
   setIsPilotiEditorOpen,
   setActiveSubmenu,
 }: UseContraventamentoCommandsArgs) {
+  const {settingsPort} = useEditorPorts();
   const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
   const emitHouseStoreChange = useHouseStoreEmitter();
 
@@ -123,11 +124,11 @@ export function useContraventamentoCommands({
         ...house.views.side1,
         ...house.views.side2,
       ],
-      showStairsOnTopView: getSettings().showStairsOnTopView,
+      showStairsOnTopView: settingsPort.getSettings().showStairsOnTopView,
     });
 
     canvasRef.current?.renderAll();
-  }, [canvasRef, getNonTopViewGroups, getTopViewGroup, houseSnapshot]);
+  }, [canvasRef, getNonTopViewGroups, getTopViewGroup, houseSnapshot, settingsPort]);
 
   const clearContraventamentoSelection = useCallback((group?: CanvasGroup | null) => {
     if (group) {

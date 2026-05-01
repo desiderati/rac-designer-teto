@@ -114,8 +114,8 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('mantém adapters concretos de infra fora da lib lógica do editor', () => {
-    const rootPath = resolve(projectRoot, 'src/components/rac-editor/lib');
+  it('mantém adapters concretos de infra fora do código produtivo do editor', () => {
+    const rootPath = resolve(projectRoot, 'src/components/rac-editor');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
       if (!concreteInfraImportPattern.test(content)) return [];

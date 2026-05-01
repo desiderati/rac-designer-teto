@@ -1,5 +1,5 @@
 import {Dispatch, SetStateAction, useState} from 'react';
-import {getSettings} from '@/infra/settings.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {CanvasToolMode, MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 
 interface UseRacEditorModalStateResult {
@@ -34,10 +34,11 @@ interface UseRacEditorModalStateResult {
 }
 
 export function useRacEditorModalState(): UseRacEditorModalStateResult {
+  const {settingsPort} = useEditorPorts();
 
   const [activeSubmenu, setActiveSubmenu] = useState<MenuSubmenu>(null);
   const [showTips, setShowTips] = useState(false);
-  const [showZoomControls, setShowZoomControls] = useState(() => getSettings().zoomEnabledByDefault);
+  const [showZoomControls, setShowZoomControls] = useState(() => settingsPort.getSettings().zoomEnabledByDefault);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);

@@ -1,4 +1,5 @@
 import {STORAGE_KEYS} from '@/shared/config.ts';
+import type {TutorialTipKey} from '@/shared/types/tutorial-progress.ts';
 
 const KEYS = {
   tutorialCompleted: STORAGE_KEYS.tutorialCompleted,
@@ -9,9 +10,7 @@ const KEYS = {
   distanceTipShown: STORAGE_KEYS.distanceTipShown,
 } as const;
 
-type TipKey = 'wall' | 'line' | 'arrow' | 'distance';
-
-const TIP_TO_KEY: Record<TipKey, string> = {
+const TIP_TO_KEY: Record<TutorialTipKey, string> = {
   wall: KEYS.wallTipShown,
   line: KEYS.lineTipShown,
   arrow: KEYS.arrowTipShown,
@@ -54,11 +53,11 @@ export function markPilotiTutorialShown(): void {
   setFlag(KEYS.pilotiTipShown, true);
 }
 
-export function isTutorialTipShown(tip: TipKey): boolean {
+export function isTutorialTipShown(tip: TutorialTipKey): boolean {
   return getFlag(TIP_TO_KEY[tip]);
 }
 
-export function markTutorialTipShown(tip: TipKey): void {
+export function markTutorialTipShown(tip: TutorialTipKey): void {
   setFlag(TIP_TO_KEY[tip], true);
 }
 

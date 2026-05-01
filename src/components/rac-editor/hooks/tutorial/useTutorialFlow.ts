@@ -1,5 +1,5 @@
 import {Dispatch, SetStateAction, useEffect, useState} from 'react';
-import {isTutorialCompleted, markTutorialCompleted, resetTutorialProgress} from '@/infra/storage/tutorial.storage.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {getTutorialStepIds, TutorialStepId} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface UseTutorialFlowResult {
@@ -13,19 +13,20 @@ interface UseTutorialFlowResult {
 }
 
 export function useTutorialFlow(onComplete?: () => void): UseTutorialFlowResult {
+  const {tutorialProgressPort} = useEditorPorts();
   const [tutorialStep, setTutorialStep] = useState<TutorialStepId | null>(null);
   const [tutorialHouseSelectorPreview, setTutorialHouseSelectorPreview] = useState(false);
 
   useEffect(() => {
-    if (!isTutorialCompleted()) {
+    if (!tutorialProgressPort.isTutorialCompleted()) {
       setTutorialStep('main-fab');
     }
-  }, []);
+  }, [tutorialProgressPort]);
 
   const completeTutorial = () => {
     setTutorialStep(null);
     setTutorialHouseSelectorPreview(false);
-    markTutorialCompleted();
+    tutorialProgressPort.markTutorialCompleted();
     onComplete?.();
   };
 
@@ -41,7 +42,7 @@ export function useTutorialFlow(onComplete?: () => void): UseTutorialFlowResult 
   };
 
   const restartTutorialProgress = () => {
-    resetTutorialProgress();
+    tutorialProgressPort.resetTutorialProgress();
     setTutorialStep('main-fab');
     setTutorialHouseSelectorPreview(false);
   };

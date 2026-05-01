@@ -1,13 +1,6 @@
 import {readSettingsStorage, writeSettingsStorage} from '@/infra/storage/settings.storage.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
-
-export interface AppSettings {
-  autoNavigatePiloti: boolean;
-  zoomEnabledByDefault: boolean;
-  openEditorsAtFixedPosition: boolean;
-  disableDrawModeAfterFreehand: boolean;
-  showStairsOnTopView: boolean;
-}
+import type {AppSettings} from '@/shared/types/settings.ts';
 
 const DEFAULT_SETTINGS: AppSettings = {...APP_SETTINGS_DEFAULTS};
 

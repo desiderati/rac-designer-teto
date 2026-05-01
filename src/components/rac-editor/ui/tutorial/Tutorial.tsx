@@ -1,6 +1,5 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faXmark} from '@fortawesome/free-solid-svg-icons';
-import {markTutorialCompleted} from '@/infra/storage/tutorial.storage.ts';
 import {tutorialSteps} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface TutorialProps {
@@ -16,7 +15,6 @@ export function Tutorial({onComplete, currentStepId}: TutorialProps) {
   const step = tutorialSteps[currentStepIndex];
 
   const handleComplete = () => {
-    markTutorialCompleted();
     onComplete();
   };
 

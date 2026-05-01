@@ -46,10 +46,13 @@ central da aplicação.
   composto em `src/bootstrap/editor-house-ports.ts`.
 - `src/components/rac-editor/lib/project-session.ts` recebe storage por porta; a composição com `localStorage` ocorre no
   bootstrap.
+- Configurações do editor e progresso do tutorial são expostos por `EditorSettingsPort` e `TutorialProgressPort`, com
+  composição concreta em `src/bootstrap/editor-infra-ports.ts`.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
-  `CanvasGroup`, `CanvasObject` e uso amplo de `CanvasInteractionPort`.
+  `CanvasGroup`, `CanvasObject`, uso amplo de `CanvasInteractionPort` e imports concretos de `src/infra` no código
+  produtivo do editor.
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md` já aceita a fronteira do editor com o runtime
   Fabric como decisão arquitetural vigente.
 - O relatório estrutural em `graphify-out/GRAPH_REPORT.md` apontava `HouseManagerFacade`, `HouseAggregate`,
@@ -82,6 +85,8 @@ central da aplicação.
   persistência.
 - Serviços de sessão/projeto no núcleo do editor podem depender de portas de storage, mas não devem importar
   `src/infra/storage` diretamente.
+- Hooks, UI e adapters visuais do editor podem depender de `EditorSettingsPort` e `TutorialProgressPort`, mas não devem
+  importar `src/infra/settings` nem `src/infra/storage/tutorial.storage` diretamente.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
   `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime visual.
 - `CanvasInteractionPort` é composição transitória do ref do canvas. Consumidores novos devem escolher handles menores.

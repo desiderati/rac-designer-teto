@@ -1,10 +1,10 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import {toast} from 'sonner';
 import type {CanvasSurfaceResetHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
-import {isPilotiTutorialShown, markPilotiTutorialShown} from '@/infra/storage/tutorial.storage.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseTutorialUiActionsArgs {
   isMobile: boolean;
@@ -29,6 +29,7 @@ export function useTutorialUiActions({
   clearTutorialBalloon,
   houseWritePort,
 }: UseTutorialUiActionsArgs) {
+  const {tutorialProgressPort} = useEditorPorts();
 
   const handleRestartTutorial = useCallback(() => {
     setShowRestartConfirm(true);
@@ -59,21 +60,21 @@ export function useTutorialUiActions({
   const dismissPilotiTutorial = useCallback(() => {
     if (!tutorialPilotiPosition) return;
     setTutorialPilotiPosition(null);
-    markPilotiTutorialShown();
-  }, [tutorialPilotiPosition, setTutorialPilotiPosition]);
+    tutorialProgressPort.markPilotiTutorialShown();
+  }, [tutorialPilotiPosition, setTutorialPilotiPosition, tutorialProgressPort]);
 
   const handleClosePilotiTutorial = useCallback(() => {
     setTutorialPilotiPosition(null);
-    markPilotiTutorialShown();
-  }, [setTutorialPilotiPosition]);
+    tutorialProgressPort.markPilotiTutorialShown();
+  }, [setTutorialPilotiPosition, tutorialProgressPort]);
 
   const showPilotiTutorialIfNeeded = useCallback((position: TutorialBalloonPosition | null) => {
     if (isMobile) return;
-    if (isPilotiTutorialShown()) return;
+    if (tutorialProgressPort.isPilotiTutorialShown()) return;
     if (!position) return;
 
     setTutorialPilotiPosition(position);
-  }, [isMobile, setTutorialPilotiPosition]);
+  }, [isMobile, setTutorialPilotiPosition, tutorialProgressPort]);
 
   return {
     handleRestartTutorial,

@@ -14,7 +14,7 @@ import {
 import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
-import {getSettings} from '@/infra/settings.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -61,6 +61,7 @@ export function useCanvasFabricSetup({
   onContraventamentoCancelRef,
   onFreeDrawPathCreated,
 }: UseCanvasFabricSetupArgs) {
+  const {settingsPort} = useEditorPorts();
 
   const latestArgsRef = useRef<UseCanvasFabricSetupArgs>({
     canvasRef,
@@ -159,7 +160,7 @@ export function useCanvasFabricSetup({
       (selection: TerrainCanvasSelection | null) => latestArgsRef.current.onTerrainSelect?.(selection);
 
     const handlePathCreated = () => {
-      if (!getSettings().disableDrawModeAfterFreehand || !canvas.isDrawingMode) return;
+      if (!settingsPort.getSettings().disableDrawModeAfterFreehand || !canvas.isDrawingMode) return;
       canvas.isDrawingMode = false;
       canvas.selection = true;
       latestArgsRef.current.onFreeDrawPathCreated?.();
@@ -260,5 +261,5 @@ export function useCanvasFabricSetup({
         /*/ Do nothing! */
       });
     };
-  }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionActions]);
+  }, [bindContraventamentoEvents, bindInlineEditorEvents, bindKeyboardShortcuts, bindSelectionActions, settingsPort]);
 }

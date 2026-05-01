@@ -1,5 +1,5 @@
 import {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState} from 'react';
-import {getSettings} from '@/infra/settings.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 const INTERACTIVE_SELECTOR = '[data-no-drag], button, input, textarea, select, a';
 const FIXED_EDITOR_POSITION = {x: 88, y: 24} as const;
@@ -22,7 +22,8 @@ export function useFloatingEditor({
 }: UseFloatingEditorArgs): UseFloatingEditorResult {
 
   const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(null);
-  const {openEditorsAtFixedPosition} = getSettings();
+  const {settingsPort} = useEditorPorts();
+  const {openEditorsAtFixedPosition} = settingsPort.getSettings();
   const wasOpenRef = useRef(false);
   const isDraggingRef = useRef(false);
   const dragOffsetRef = useRef({x: 0, y: 0});
