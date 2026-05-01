@@ -52,6 +52,45 @@ function createSelectionTestPorts(): EditorPorts {
 }
 
 describe('useCanvasSelectionActions.ts', () => {
+  it('mantém o binding estável quando o snapshot da casa muda', () => {
+    let listener: (() => void) | null = null;
+    let snapshot: ReturnType<EditorPorts['houseRuntimeSnapshotPort']['getRuntimeSnapshot']> = null;
+    const ports = {
+      ...createSelectionTestPorts(),
+      houseRuntimeSnapshotPort: {
+        subscribe: (nextListener: () => void) => {
+          listener = nextListener;
+          return () => {
+            listener = null;
+          };
+        },
+        getRuntimeSnapshot: () => snapshot,
+      },
+    };
+
+    const {result} = renderHook(
+      () => useCanvasSelectionActions(),
+      {wrapper: createWrapper(ports)},
+    );
+
+    const initialBinding = result.current.bindSelectionActions;
+
+    act(() => {
+      snapshot = {
+        id: 'house_test',
+        houseType: 'tipo6',
+        pilotis: {},
+        terrainType: 1,
+        views: {top: [], front: [], back: [], side1: [], side2: []},
+        sideMappings: {top: null, bottom: null, left: null, right: null},
+        preAssignedSides: {},
+      };
+      listener?.();
+    });
+
+    expect(result.current.bindSelectionActions).toBe(initialBinding);
+  });
+
   it('highlights terrain when an elevation house group is selected', () => {
     const groundFill = createCanvasObject({
       isGroundFill: true,

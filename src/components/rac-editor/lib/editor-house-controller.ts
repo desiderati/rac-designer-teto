@@ -157,7 +157,8 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   initialize(canvas: HouseVisualRuntimePort<TGroup>): void {
     this.visualRuntime.initialize(canvas);
-    this.reset();
+    this.invalidateRuntimeHouseCache();
+    this.notify();
   }
 
   reset(): void {

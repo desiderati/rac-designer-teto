@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useRef} from 'react';
 import {Canvas as FabricCanvas} from 'fabric';
 import {
   CanvasGroup,
@@ -31,6 +31,8 @@ interface BindSelectionActionsArgs {
 
 export function useCanvasSelectionActions() {
   const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
+  const houseSnapshotRef = useRef(houseSnapshot);
+  houseSnapshotRef.current = houseSnapshot;
 
   const bindSelectionActions = useCallback(({
     canvas,
@@ -54,9 +56,10 @@ export function useCanvasSelectionActions() {
       selectedObject: CanvasObject | null,
     ): HouseSide | undefined => {
 
+      const currentHouseSnapshot = houseSnapshotRef.current;
       const instanceId = selectedObject?.houseInstanceId;
       const typedView = viewType as HouseViewType;
-      const viewInstances = (houseSnapshot?.views[typedView] ?? []) as HouseRuntimeViewInstance<CanvasGroup>[];
+      const viewInstances = (currentHouseSnapshot?.views[typedView] ?? []) as HouseRuntimeViewInstance<CanvasGroup>[];
       if (viewInstances.length === 0) return undefined;
 
       if (instanceId) {
@@ -297,7 +300,7 @@ export function useCanvasSelectionActions() {
       canvas.off('selection:updated', updateHint);
       canvas.off('selection:cleared', updateHint);
     };
-  }, [houseSnapshot]);
+  }, []);
 
   return {bindSelectionActions};
 }

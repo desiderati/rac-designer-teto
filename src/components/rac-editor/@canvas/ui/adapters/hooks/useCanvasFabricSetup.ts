@@ -1,4 +1,4 @@
-import {MutableRefObject, useEffect, useRef} from 'react';
+import {MutableRefObject, useLayoutEffect, useRef} from 'react';
 import {Canvas as FabricCanvas, PencilBrush} from 'fabric';
 import {buildPilotiSelectionHandler} from '@/components/rac-editor/@canvas/lib';
 import {CanvasObject, CanvasPointerPayload} from '@/components/rac-editor/@canvas/lib/canvas.ts';
@@ -115,7 +115,7 @@ export function useCanvasFabricSetup({
   const {bindInlineEditorEvents} = useCanvasEditorEvents();
 
   // Fabric events are registered once and read latest values from refs.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const {
       canvasRef: currentCanvasRef,
       containerRef: currentContainerRef,
@@ -257,6 +257,7 @@ export function useCanvasFabricSetup({
       unbindContraventamentoEvents();
       unbindSelectionActions();
       canvas.off('path:created', handlePathCreated);
+      currentFabricCanvasRef.current = null;
       canvas.dispose().then(_ => {
         /*/ Do nothing! */
       });

@@ -181,6 +181,18 @@ describe('editor house controller', () => {
     expect(houseController.getHouse()?.sideMappings.top).toBeNull();
   });
 
+  it('não descarta estado existente quando o runtime visual é inicializado', () => {
+    const {group} = createMockGroup();
+    houseController.setHouseType('tipo6');
+    registerMockView('front', group as any, 'top');
+
+    initializeHouseControllerCanvas(createMockCanvas([group]));
+
+    expect(houseController.getHouseType()).toBe('tipo6');
+    expect(houseController.getHouseViewCount('front')).toBe(1);
+    expect(houseController.getHouse()?.sideMappings.top).toBe('front');
+  });
+
   it('mantém tipo de terreno global e aplica para todas as vistas elevadas', () => {
     const {group: topGroup} = createMockGroup({houseView: 'top'});
     const {group: frontGroup} = createMockGroup({houseView: 'front'});

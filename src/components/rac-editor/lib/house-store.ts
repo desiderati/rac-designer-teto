@@ -9,7 +9,11 @@ interface HouseStoreSubscriptionPort {
   subscribe(listener: Listener): () => void;
 }
 
-function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => void = () => {}) {
+function createStoreBridge(
+  port: HouseStoreSubscriptionPort,
+  beforeEmit: () => void = () => {},
+  beforeSubscribe: () => void = beforeEmit,
+) {
   const listeners = new Set<Listener>();
   let unsubscribePort: (() => void) | null = null;
 
@@ -27,7 +31,9 @@ function createStoreBridge(port: HouseStoreSubscriptionPort, beforeEmit: () => v
 
   function subscribe(listener: Listener): () => void {
     ensureBridge();
+    beforeSubscribe();
     listeners.add(listener);
+    listener();
 
     return () => {
       listeners.delete(listener);
@@ -56,20 +62,39 @@ const bridgesByPorts = new WeakMap<HouseStorePorts, HouseStoreBridge>();
 
 function createHouseStoreBridge(ports: HouseStorePorts): HouseStoreBridge {
   let version = 0;
-  const incrementVersion = () => {
+  let stateSnapshot = ports.houseStatePort.getStateSnapshot();
+  let runtimeSnapshot =
+    ports.houseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
+
+  const refreshStateSnapshot = () => {
     version += 1;
+    stateSnapshot = ports.houseStatePort.getStateSnapshot();
   };
-  const stateBridge = createStoreBridge(ports.houseStatePort, incrementVersion);
-  const runtimeBridge = createStoreBridge(ports.houseRuntimeSnapshotPort);
+  const refreshRuntimeSnapshot = () => {
+    runtimeSnapshot =
+      ports.houseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null;
+  };
+
+  const stateBridge = createStoreBridge(
+    ports.houseStatePort,
+    refreshStateSnapshot,
+    () => {
+      stateSnapshot = ports.houseStatePort.getStateSnapshot();
+    },
+  );
+  const runtimeBridge = createStoreBridge(
+    ports.houseRuntimeSnapshotPort,
+    refreshRuntimeSnapshot,
+    refreshRuntimeSnapshot,
+  );
 
   return {
     emitChange: () => {
       stateBridge.emitChange();
       runtimeBridge.emitChange();
     },
-    getRuntimeSnapshot: () =>
-      ports.houseRuntimeSnapshotPort.getRuntimeSnapshot() as HouseRuntimeSnapshot<HouseRuntimeGroupRef> | null,
-    getStateSnapshot: () => ports.houseStatePort.getStateSnapshot(),
+    getRuntimeSnapshot: () => runtimeSnapshot,
+    getStateSnapshot: () => stateSnapshot,
     getVersionSnapshot: () => version,
     runtimeSubscribe: runtimeBridge.subscribe,
     stateSubscribe: stateBridge.subscribe,
