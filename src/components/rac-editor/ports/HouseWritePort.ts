@@ -53,8 +53,8 @@ export interface HouseTerrainWritePort {
  * Porta agregadora de escrita para os fluxos de casa usados pelo editor.
  *
  * Esta porta ainda pode ser implementada por adapters de infraestrutura, mas a
- * UI passa a depender de comandos explícitos em vez de conhecer diretamente o
- * `houseManager`.
+ * UI passa a depender de comandos explícitos em vez de conhecer diretamente a
+ * implementação transitória de estado.
  *
  * A divisão em subinterfaces é deliberada: ela deixa claro quais métodos são
  * comandos e impede que consultas sejam herdadas por uma porta de escrita.

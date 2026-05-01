@@ -23,7 +23,7 @@ import type {
   HouseViewType,
 } from '@/shared/types/house.ts';
 
-export interface HouseManagerReadSource {
+export interface EditorHouseReadSource {
   getHouseType(): HouseType;
   getFamilyName(): string;
   getSelectedPilotiHeights(): readonly number[];
@@ -39,7 +39,7 @@ export interface HouseManagerReadSource {
   hasPreAssignedSides(): boolean;
 }
 
-export interface HouseManagerWriteSource {
+export interface EditorHouseWriteSource {
   setSelectedPilotiHeights(heights: number[]): void;
   setFamilyName(name: string): void;
   refreshAutoStairsForCurrentSettings(): void;
@@ -55,77 +55,77 @@ export interface HouseManagerWriteSource {
   calculateAndApplyRecommendedHeights(): void;
 }
 
-export interface HouseManagerRuntimeSource {
+export interface EditorHouseRuntimeSource {
   initialize(canvasPort: HouseVisualRuntimePort<CanvasGroup>): void;
 }
 
-export interface HouseManagerStateSource {
+export interface EditorHouseStateSource {
   subscribe(listener: () => void): () => void;
   getHouseState(): HouseState | null;
   getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null;
 }
 
-export function createHouseManagerReadPort(houseManager: HouseManagerReadSource): HouseReadPort {
+export function createEditorHouseReadPort(source: EditorHouseReadSource): HouseReadPort {
   return {
-    getCurrentHouseType: () => houseManager.getHouseType(),
-    getFamilyName: () => houseManager.getFamilyName(),
-    getSelectedPilotiHeights: () => houseManager.getSelectedPilotiHeights(),
-    getTerrainType: () => houseManager.getTerrainType(),
-    getPilotis: () => houseManager.getHouse()?.pilotis,
-    getPilotiData: (pilotiId) => houseManager.getPilotiData(pilotiId),
+    getCurrentHouseType: () => source.getHouseType(),
+    getFamilyName: () => source.getFamilyName(),
+    getSelectedPilotiHeights: () => source.getSelectedPilotiHeights(),
+    getTerrainType: () => source.getTerrainType(),
+    getPilotis: () => source.getHouse()?.pilotis,
+    getPilotiData: (pilotiId) => source.getPilotiData(pilotiId),
     getViewCount: (viewType) => ({
-      current: houseManager.getHouseViewCount(viewType),
-      max: houseManager.getMaxHouseViewCount(viewType),
+      current: source.getHouseViewCount(viewType),
+      max: source.getMaxHouseViewCount(viewType),
     }),
-    canDeleteTopView: () => houseManager.canDeletePlant(),
-    isViewAtLimit: (viewType) => houseManager.isViewAtLimit(viewType),
-    getPreAssignedSides: (viewType) => houseManager.getPreAssignedSides(viewType),
-    getAvailableSides: (viewType) => houseManager.getAvailableSides(viewType),
-    hasPreAssignedSides: () => houseManager.hasPreAssignedSides(),
+    canDeleteTopView: () => source.canDeletePlant(),
+    isViewAtLimit: (viewType) => source.isViewAtLimit(viewType),
+    getPreAssignedSides: (viewType) => source.getPreAssignedSides(viewType),
+    getAvailableSides: (viewType) => source.getAvailableSides(viewType),
+    hasPreAssignedSides: () => source.hasPreAssignedSides(),
   };
 }
 
-export function createHouseManagerWritePort(houseManager: HouseManagerWriteSource): HouseWritePort {
+export function createEditorHouseWritePort(source: EditorHouseWriteSource): HouseWritePort {
   return {
     applyHouseSetup: (setup) => {
-      houseManager.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
-      houseManager.setFamilyName(setup.familyName);
+      source.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
+      source.setFamilyName(setup.familyName);
     },
-    renameFamily: (name) => houseManager.setFamilyName(name),
-    refreshAutoStairsForCurrentSettings: () => houseManager.refreshAutoStairsForCurrentSettings(),
-    setHouseType: (type) => houseManager.setHouseType(type),
-    resetHouse: () => houseManager.reset(),
-    rebuildHouseFromCanvas: () => houseManager.rebuildFromCanvas(),
-    setTerrainType: (terrainType) => houseManager.setTerrainType(terrainType),
-    removeView: (instanceId) => houseManager.removeView(instanceId),
-    registerView: (request) => houseManager.registerView(request),
-    autoAssignAllSides: (initialViewType, initialSide) => houseManager.autoAssignAllSides(initialViewType, initialSide),
+    renameFamily: (name) => source.setFamilyName(name),
+    refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),
+    setHouseType: (type) => source.setHouseType(type),
+    resetHouse: () => source.reset(),
+    rebuildHouseFromCanvas: () => source.rebuildFromCanvas(),
+    setTerrainType: (terrainType) => source.setTerrainType(terrainType),
+    removeView: (instanceId) => source.removeView(instanceId),
+    registerView: (request) => source.registerView(request),
+    autoAssignAllSides: (initialViewType, initialSide) => source.autoAssignAllSides(initialViewType, initialSide),
     updatePiloti: (pilotiId, pilotiData) => {
-      houseManager.updatePiloti(pilotiId, pilotiData);
-      return houseManager.getPilotiData(pilotiId);
+      source.updatePiloti(pilotiId, pilotiData);
+      return source.getPilotiData(pilotiId);
     },
-    calculateAndApplyRecommendedHeights: () => houseManager.calculateAndApplyRecommendedHeights(),
+    calculateAndApplyRecommendedHeights: () => source.calculateAndApplyRecommendedHeights(),
   };
 }
 
-export function createHouseManagerRuntimePort(houseManager: HouseManagerRuntimeSource): HouseRuntimePort<CanvasGroup> {
+export function createEditorHouseRuntimePort(source: EditorHouseRuntimeSource): HouseRuntimePort<CanvasGroup> {
   return {
-    initializeCanvas: (canvasPort) => houseManager.initialize(canvasPort),
+    initializeCanvas: (canvasPort) => source.initialize(canvasPort),
   };
 }
 
-export function createHouseManagerStatePorts(houseManager: HouseManagerStateSource): {
+export function createEditorHouseStatePorts(source: EditorHouseStateSource): {
   houseStatePort: HouseStatePort;
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
 } {
   return {
     houseStatePort: {
-      subscribe: (listener) => houseManager.subscribe(listener),
-      getStateSnapshot: () => houseManager.getHouseState(),
+      subscribe: (listener) => source.subscribe(listener),
+      getStateSnapshot: () => source.getHouseState(),
     },
     houseRuntimeSnapshotPort: {
-      subscribe: (listener) => houseManager.subscribe(listener),
-      getRuntimeSnapshot: () => houseManager.getHouse(),
+      subscribe: (listener) => source.subscribe(listener),
+      getRuntimeSnapshot: () => source.getHouse(),
     },
   };
 }

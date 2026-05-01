@@ -1,14 +1,14 @@
 import {createCanvasHouseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import {
   createHouse3DProjectionPort,
-  createHouseManagerReadPort,
-  createHouseManagerRuntimePort,
-  createHouseManagerStatePorts,
-  createHouseManagerWritePort,
-  type HouseManagerReadSource,
-  type HouseManagerRuntimeSource,
-  type HouseManagerStateSource,
-  type HouseManagerWriteSource,
+  createEditorHouseReadPort,
+  createEditorHouseRuntimePort,
+  createEditorHouseStatePorts,
+  createEditorHouseWritePort,
+  type EditorHouseReadSource,
+  type EditorHouseRuntimeSource,
+  type EditorHouseStateSource,
+  type EditorHouseWriteSource,
 } from '@/bootstrap/editor-house-port-adapters.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
@@ -19,10 +19,10 @@ import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 
 type EditorHousePortsSource =
-  & HouseManagerReadSource
-  & HouseManagerWriteSource
-  & HouseManagerRuntimeSource
-  & HouseManagerStateSource;
+  & EditorHouseReadSource
+  & EditorHouseWriteSource
+  & EditorHouseRuntimeSource
+  & EditorHouseStateSource;
 
 export interface EditorHousePorts {
   houseReadPort: HouseReadPort;
@@ -37,12 +37,12 @@ export function createEditorHousePorts(source: EditorHousePortsSource): EditorHo
   const {
     houseStatePort,
     houseRuntimeSnapshotPort,
-  } = createHouseManagerStatePorts(source);
+  } = createEditorHouseStatePorts(source);
 
   return {
-    houseReadPort: createHouseManagerReadPort(source),
-    houseWritePort: createHouseManagerWritePort(source),
-    houseRuntimePort: createHouseManagerRuntimePort(source),
+    houseReadPort: createEditorHouseReadPort(source),
+    houseWritePort: createEditorHouseWritePort(source),
+    houseRuntimePort: createEditorHouseRuntimePort(source),
     houseStatePort,
     houseRuntimeSnapshotPort,
     house3DProjectionPort: createHouse3DProjectionPort(() => source.getHouse()),
