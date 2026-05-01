@@ -1,8 +1,8 @@
-import {createHouse3DProjectionFromCanvasHouse} from '@/components/rac-editor/@canvas/lib/house-3d-projection.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
-import type {HouseVisualRuntimePort} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
-import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
+import type {
+  HouseRuntimeGroupRef,
+  HouseVisualRuntimePort,
+} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {HousePilotiPatch} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
@@ -23,12 +23,12 @@ import type {
   HouseViewType,
 } from '@/shared/types/house.ts';
 
-export interface EditorHouseReadSource {
+export interface EditorHouseReadSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   getHouseType(): HouseType;
   getFamilyName(): string;
   getSelectedPilotiHeights(): readonly number[];
   getTerrainType(): number;
-  getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null;
+  getHouse(): HouseRuntimeSnapshot<TGroup> | null;
   getPilotiData(pilotiId: string): HousePiloti;
   getHouseViewCount(viewType: HouseViewType): number;
   getMaxHouseViewCount(viewType: HouseViewType): number;
@@ -55,17 +55,19 @@ export interface EditorHouseWriteSource {
   calculateAndApplyRecommendedHeights(): void;
 }
 
-export interface EditorHouseRuntimeSource {
-  initialize(canvasPort: HouseVisualRuntimePort<CanvasGroup>): void;
+export interface EditorHouseRuntimeSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
+  initialize(canvasPort: HouseVisualRuntimePort<TGroup>): void;
 }
 
-export interface EditorHouseStateSource {
+export interface EditorHouseStateSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   subscribe(listener: () => void): () => void;
   getHouseState(): HouseState | null;
-  getHouse(): HouseRuntimeSnapshot<CanvasGroup> | null;
+  getHouse(): HouseRuntimeSnapshot<TGroup> | null;
 }
 
-export function createEditorHouseReadPort(source: EditorHouseReadSource): HouseReadPort {
+export function createEditorHouseReadPort<TGroup extends HouseRuntimeGroupRef>(
+  source: EditorHouseReadSource<TGroup>,
+): HouseReadPort {
   return {
     getCurrentHouseType: () => source.getHouseType(),
     getFamilyName: () => source.getFamilyName(),
@@ -108,15 +110,19 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
   };
 }
 
-export function createEditorHouseRuntimePort(source: EditorHouseRuntimeSource): HouseRuntimePort<CanvasGroup> {
+export function createEditorHouseRuntimePort<TGroup extends HouseRuntimeGroupRef>(
+  source: EditorHouseRuntimeSource<TGroup>,
+): HouseRuntimePort<TGroup> {
   return {
     initializeCanvas: (canvasPort) => source.initialize(canvasPort),
   };
 }
 
-export function createEditorHouseStatePorts(source: EditorHouseStateSource): {
+export function createEditorHouseStatePorts<TGroup extends HouseRuntimeGroupRef>(
+  source: EditorHouseStateSource<TGroup>,
+): {
   houseStatePort: HouseStatePort;
-  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
+  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<TGroup>;
 } {
   return {
     houseStatePort: {
@@ -127,13 +133,5 @@ export function createEditorHouseStatePorts(source: EditorHouseStateSource): {
       subscribe: (listener) => source.subscribe(listener),
       getRuntimeSnapshot: () => source.getHouse(),
     },
-  };
-}
-
-export function createHouse3DProjectionPort(
-  getHouse: () => HouseRuntimeSnapshot<CanvasGroup> | null,
-): House3DProjectionPort {
-  return {
-    getProjection: () => createHouse3DProjectionFromCanvasHouse(getHouse()),
   };
 }

@@ -51,7 +51,7 @@ central da aplicação.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
 - `src/architecture/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
-  `CanvasGroup`, `CanvasObject`, uso amplo de `CanvasInteractionPort` e imports concretos de `src/infra` no código
+  `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de `src/infra` no código
   produtivo do editor.
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md` já aceita a fronteira do editor com o runtime
   Fabric como decisão arquitetural vigente.
@@ -89,11 +89,15 @@ central da aplicação.
   importar `src/infra/settings` nem `src/infra/storage/tutorial.storage` diretamente.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
   `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime visual.
-- `CanvasInteractionPort` é composição transitória do ref do canvas. Consumidores novos devem escolher handles menores.
+- `CanvasInteractionPort` foi removido. O componente `Canvas` expõe `RacEditorCanvasHandle` como composição de tela, e
+  consumidores novos devem escolher handles menores.
 - `src/components/rac-editor/hooks/useRacEditorController.ts` e
   `src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `RacEditorCanvasHandle`, um composite explícito de
-  capacidades menores; `CanvasInteractionPort` fica restrito ao `forwardRef` de
-  `src/components/rac-editor/@canvas/ui/Canvas.tsx`.
+  capacidades menores.
+- `src/bootstrap/editor-house-port-adapters.ts` deve permanecer genérico sobre `HouseRuntimeGroupRef`; adapters que
+  precisam interpretar `CanvasGroup`, como a projeção 3D concreta, pertencem ao slice `@canvas`.
+- `House3DProjectionPort` é a fronteira do viewer 3D. O viewer recebe projeção serializável e não deve depender de
+  `HouseRuntimeSnapshot<TGroup>`, `CanvasGroup`, `CanvasObject` ou `useHouseRuntimeSnapshot`.
 
 ## Mapa de fronteiras
 
@@ -107,15 +111,23 @@ flowchart LR
     CanvasPorts["Ports do canvas"]
     FabricAdapters["Adapters e factories Fabric"]
     Fabric["Fabric.js"]
+    Projection3D["House3DProjectionPort"]
+    Viewer3D["Viewer 3D"]
+    InfraPorts["Ports de persistência e storage"]
     Infra["Infra: persistência e storage"]
     UI --> Ports
     Ports --> Store
     Store --> Domain
     Bootstrap --> Ports
     Bootstrap --> CanvasPorts
+    Bootstrap --> InfraPorts
     CanvasPorts --> FabricAdapters
     FabricAdapters --> Fabric
-    Store --> Infra
+    Store --> InfraPorts
+    InfraPorts --> Infra
+    Ports --> Projection3D
+    Projection3D --> Viewer3D
+    Projection3D -.->|"adapter concreto em @canvas"| FabricAdapters
     Fabric -- " eventos visuais " --> FabricAdapters
     FabricAdapters -- " seleção e snapshots serializáveis " --> CanvasPorts
     CanvasPorts --> UI
@@ -182,7 +194,8 @@ Objetivo: saber exatamente o que ainda cruza fronteiras.
 
 Resultado esperado:
 
-- Lista atualizada de imports de `CanvasGroup`, `CanvasObject`, Fabric e `CanvasInteractionPort`.
+- Lista atualizada de imports de `CanvasGroup`, `CanvasObject`, Fabric e qualquer tentativa de reintroduzir
+  `CanvasInteractionPort`.
 - Classificação por local legítimo, tolerado temporariamente ou proibido.
 - Teste arquitetural ajustado quando uma regra virar decisão.
 
@@ -197,12 +210,13 @@ Objetivo: impedir que hooks e componentes usem o handle completo do canvas por c
 Resultado esperado:
 
 - Consumidores dependendo de handles específicos.
-- `CanvasInteractionPort` restrito ao ref composto do canvas.
+- `CanvasInteractionPort` removido e substituído por handles específicos ou por `RacEditorCanvasHandle` na composição
+  de tela.
 - Novas capacidades criadas apenas quando houver consumidor real.
 
 Critério de corte:
 
-- Nenhum consumidor novo fora dos pontos permitidos importa `CanvasInteractionPort`.
+- Nenhum arquivo produtivo reintroduz ou importa `CanvasInteractionPort`.
 
 ### 3. Separar estado lógico de runtime visual
 

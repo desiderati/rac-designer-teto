@@ -72,6 +72,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     editor.
   - Fábricas que adaptam o controller transitório da casa para ports do editor pertencem ao bootstrap de composição em
     `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
+  - Adapters do bootstrap devem ser genéricos sobre `HouseRuntimeGroupRef`; quando a implementação precisa interpretar
+    `CanvasGroup`, ela pertence ao slice `@canvas`.
+  - `House3DProjectionPort` entrega projeção serializável ao viewer 3D; o adapter concreto que lê grupos do canvas fica
+    em `src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts`.
   - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
     como contrato público do editor.
   - O estado lógico do editor deve receber `HousePersistencePort`; adapters concretos de persistência são compostos no
@@ -81,8 +85,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Configurações do editor e progresso do tutorial seguem a mesma fronteira: UI, hooks e canvas consomem
     `EditorSettingsPort` e `TutorialProgressPort`; as implementações baseadas em storage local são compostas no
     bootstrap.
-  - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
-    permanece apenas como composição transitória do `forwardRef`.
+  - Handles imperativos do canvas devem ser consumidos por capacidade específica. O handle amplo
+    `CanvasInteractionPort` foi removido; `Canvas` expõe `RacEditorCanvasHandle` apenas como composição de tela.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
     terreno, vistas/rebuild e pilotis.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado

@@ -24,7 +24,7 @@ import {createFabricCanvasCommandPort} from '@/components/rac-editor/@canvas/ui/
 import {createFabricCanvasSnapshotPort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-snapshot-port.ts';
 import type {FabricCanvasRuntime} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-runtime.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
-import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
 import type {
   ContraventamentoCanvasSelection,
   LinearCanvasSelection,
@@ -67,7 +67,7 @@ interface CanvasProps {
 }
 
 export const Canvas =
-  forwardRef<CanvasHandle, CanvasProps>(
+  forwardRef<RacEditorCanvasHandle, CanvasProps>(
     ({
       children,
       isAnyEditorOpen = false,

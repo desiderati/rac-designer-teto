@@ -8,7 +8,6 @@ import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/House
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import type {TutorialProgressPort} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
 import {createDefaultEditorSettingsPort, createDefaultTutorialProgressPort} from '@/bootstrap/editor-infra-ports.ts';
 
@@ -17,9 +16,9 @@ export const EditorStoreContext = createContext<EditorStore | null>(null);
 export interface EditorPorts {
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
-  houseRuntimePort: HouseRuntimePort<CanvasGroup>;
+  houseRuntimePort: HouseRuntimePort;
   houseStatePort: HouseStatePort;
-  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
+  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort;
   house3DProjectionPort: House3DProjectionPort;
   settingsPort: EditorSettingsPort;
   tutorialProgressPort: TutorialProgressPort;

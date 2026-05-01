@@ -1,8 +1,8 @@
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
+import {createCanvasHouse3DProjectionPort} from '@/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {readProjectsStorage, writeProjectsStorage} from '@/infra/storage/projects.storage.ts';
 import {
-  createHouse3DProjectionPort,
   createEditorHouseReadPort,
   createEditorHouseRuntimePort,
   createEditorHouseStatePorts,
@@ -13,7 +13,7 @@ import {
   type EditorHouseWriteSource,
 } from '@/bootstrap/editor-house-port-adapters.ts';
 import {createProjectSession} from '@/components/rac-editor/lib/project-session.ts';
-import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
@@ -23,18 +23,18 @@ import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
 import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 
-type EditorHousePortsSource =
-  & EditorHouseReadSource
+type EditorHousePortsSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> =
+  & EditorHouseReadSource<TGroup>
   & EditorHouseWriteSource
-  & EditorHouseRuntimeSource
-  & EditorHouseStateSource;
+  & EditorHouseRuntimeSource<TGroup>
+  & EditorHouseStateSource<TGroup>;
 
-export interface EditorHousePorts {
+export interface EditorHousePorts<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
-  houseRuntimePort: HouseRuntimePort<CanvasGroup>;
+  houseRuntimePort: HouseRuntimePort<TGroup>;
   houseStatePort: HouseStatePort;
-  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<CanvasGroup>;
+  houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort<TGroup>;
   house3DProjectionPort: House3DProjectionPort;
 }
 
@@ -42,7 +42,10 @@ interface CreateDefaultEditorHousePortsArgs {
   settingsPort?: EditorSettingsPort;
 }
 
-export function createEditorHousePorts(source: EditorHousePortsSource): EditorHousePorts {
+export function createEditorHousePorts<TGroup extends HouseRuntimeGroupRef>(
+  source: EditorHousePortsSource<TGroup>,
+  house3DProjectionPort: House3DProjectionPort,
+): EditorHousePorts<TGroup> {
   const {
     houseStatePort,
     houseRuntimeSnapshotPort,
@@ -54,19 +57,24 @@ export function createEditorHousePorts(source: EditorHousePortsSource): EditorHo
     houseRuntimePort: createEditorHouseRuntimePort(source),
     houseStatePort,
     houseRuntimeSnapshotPort,
-    house3DProjectionPort: createHouse3DProjectionPort(() => source.getHouse()),
+    house3DProjectionPort,
   };
 }
 
 export function createDefaultEditorHousePorts({
   settingsPort = createDefaultEditorSettingsPort(),
 }: CreateDefaultEditorHousePortsArgs = {}): EditorHousePorts {
-  return createEditorHousePorts(createCanvasHouseController({
+  const controller = createCanvasHouseController({
     persistence: new InMemoryHousePersistenceAdapter(),
     settingsPort,
     projectSession: createProjectSession({
       read: readProjectsStorage,
       write: writeProjectsStorage,
     }),
-  }));
+  });
+
+  return createEditorHousePorts(
+    controller,
+    createCanvasHouse3DProjectionPort(() => controller.getHouse()),
+  );
 }

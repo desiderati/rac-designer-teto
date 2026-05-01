@@ -70,8 +70,8 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
   instâncias Fabric ou grupos concretos do canvas.
 - Quando um hook precisar acessar o canvas por ref, ele deve depender do menor handle necessário, importado do arquivo
   de capacidade específico em `@canvas/ports`.
-- `CanvasInteractionPort`/`CanvasHandle` não deve ser usado como atalho em hooks de fluxo; ele é composição transitória
-  do ref do componente `Canvas`.
+- `CanvasInteractionPort`/`CanvasHandle` não deve ser reintroduzido como atalho em hooks de fluxo; a composição de tela
+  atual usa `RacEditorCanvasHandle` e os demais consumidores devem escolher handles específicos.
 - Não espalhe Fabric para hooks genéricos, `shared`, `domain`, `infra` ou componentes fora do slice `canvas`.
 
 ## Debug bridge

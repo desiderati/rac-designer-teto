@@ -29,12 +29,20 @@ const forbiddenPatterns = [
   },
 ];
 
-const allowedCanvasInteractionPortConsumers = new Set([
-  'src/components/rac-editor/@canvas/ui/Canvas.tsx',
-]);
-
 const canvasInteractionPortImportPattern =
   /(?:from\s+['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]|import\s*\(\s*['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]\s*\))/;
+
+const canvasInteractionPortPath = 'src/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
+
+const concreteCanvasTypePattern = /\bCanvas(?:Group|Object)\b/;
+
+const allowedConcreteCanvasTypeRoots = [
+  'src/bootstrap',
+  'src/components/rac-editor/@canvas',
+];
+
+const viewerRuntimeLeakPattern =
+  /(?:\bCanvas(?:Group|Object)\b|\bHouseRuntimeSnapshot\b|useHouseRuntimeSnapshot)/;
 
 const globalHouseControllerSingletonPattern =
   /(?:export\s+const\s+houseManager\b|import\s*\{\s*houseManager\s*\}\s*from\s+['"][^'"]*canvas-house-(?:manager|controller)(?:\.ts)?['"])/;
@@ -86,16 +94,47 @@ describe('fronteira arquitetural do editor RAC', () => {
     expect(violations).toEqual([]);
   });
 
-  it('mantém CanvasInteractionPort restrito ao ref composto do canvas', () => {
+  it('não reintroduz CanvasInteractionPort como handle amplo do canvas', () => {
     const rootPath = resolve(projectRoot, 'src/components/rac-editor');
+    const violations = [
+      ...(existsSync(resolve(projectRoot, canvasInteractionPortPath))
+        ? [`${canvasInteractionPortPath}: port amplo do canvas reintroduzido`]
+        : []),
+      ...collectSourceFiles(rootPath).flatMap((filePath) => {
+        const content = readFileSync(filePath, 'utf8');
+        if (!canvasInteractionPortImportPattern.test(content)) return [];
+
+        const fileLabel = toPosixPath(relative(projectRoot, filePath));
+        return [`${fileLabel}: import direto de CanvasInteractionPort`];
+      }),
+    ];
+
+    expect(violations).toEqual([]);
+  });
+
+  it('confina CanvasGroup e CanvasObject ao slice de canvas e ao bootstrap de composição', () => {
+    const rootPath = resolve(projectRoot, 'src');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
-      if (!canvasInteractionPortImportPattern.test(content)) return [];
+      if (!concreteCanvasTypePattern.test(content)) return [];
 
       const fileLabel = toPosixPath(relative(projectRoot, filePath));
-      if (allowedCanvasInteractionPortConsumers.has(fileLabel)) return [];
+      if (allowedConcreteCanvasTypeRoots.some((root) => fileLabel.startsWith(`${root}/`))) return [];
 
-      return [`${fileLabel}: import direto de CanvasInteractionPort`];
+      return [`${fileLabel}: tipo concreto de canvas fora da fronteira permitida`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantém o viewer 3D dependente da projeção serializável, não do runtime visual', () => {
+    const rootPath = resolve(projectRoot, 'src/components/rac-editor/@viewer-3d');
+    const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
+      const content = readFileSync(filePath, 'utf8');
+      if (!viewerRuntimeLeakPattern.test(content)) return [];
+
+      const fileLabel = toPosixPath(relative(projectRoot, filePath));
+      return [`${fileLabel}: vazamento de runtime visual no viewer 3D`];
     });
 
     expect(violations).toEqual([]);
