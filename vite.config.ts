@@ -27,7 +27,7 @@ export default defineConfig(async ({mode}) => {
     server: {
       host: '::',
       port: 8080,
-      allowedHosts: true,
+      allowedHosts: true as const,
     },
     build: {
       chunkSizeWarningLimit: 1000,
