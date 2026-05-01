@@ -1,8 +1,6 @@
 import {useCanvasHouseInitialization} from '@/components/rac-editor/@canvas/hooks/useCanvasHouseInitialization.ts';
-import {
-  type CanvasControllerHandle,
-  useCanvasController,
-} from '@/components/rac-editor/@canvas/hooks/useCanvasController.ts';
+import {useCanvasController} from '@/components/rac-editor/@canvas/hooks/useCanvasController.ts';
+import type {CanvasControllerHandle} from '@/components/rac-editor/@canvas/ports/CanvasControllerHandle.ts';
 import type {CanvasHouseRuntimeHandle} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimeHandle.ts';
 import type {RefObject} from 'react';
 
