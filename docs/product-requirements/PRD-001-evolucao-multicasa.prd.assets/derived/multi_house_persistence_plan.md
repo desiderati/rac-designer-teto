@@ -319,7 +319,7 @@ redesign the application state so the active canvas is a projection of `project.
 
 ### Step 5 — Move family data into persisted state
 
-The current `_familyName` and `_selectedPilotiHeights` fields in `houseManager` should disappear as loose manager fields
+The current `_familyName` and `_selectedPilotiHeights` fields in the transient house controller should disappear as loose fields
 and become persisted properties under `Family` and `PilotiLayout`/`HouseDesignSettings`.[1]
 
 A cleaner breakdown is:
@@ -451,7 +451,7 @@ I recommend that the next execution task be:
 | Priority | Task                                                                         |
 |----------|------------------------------------------------------------------------------|
 | 1        | create the `ProjectState` / `PersistedHouse` / `Family` TypeScript contracts |
-| 2        | refactor `houseManager` into a project-aware service with `activeHouseId`    |
+| 2        | refactor the transient house controller into a project-aware service with `activeHouseId` |
 | 3        | add IndexedDB persistence for projects                                       |
 | 4        | add a left sidebar listing houses and linked families                        |
 | 5        | replace current JSON import/export with versioned project documents          |
@@ -461,7 +461,7 @@ IndexedDB schema, and UI flow**, and then start implementing the first milestone
 
 ## References
 
-[1]: ../../../../src/components/rac-editor/lib/house-manager.facade.ts "Current single-house manager with in-memory persistence and non-persisted family fields"
+[1]: ../../../../src/components/rac-editor/lib/editor-house-controller.ts "Current single-house controller with in-memory persistence and non-persisted family fields"
 
 [2]: ../../../../src/shared/types/house.ts "Current HouseState type used by the editor"
 

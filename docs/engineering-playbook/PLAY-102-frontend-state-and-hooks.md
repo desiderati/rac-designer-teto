@@ -36,7 +36,7 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
 - O estado compartilhado do editor é coordenado pela própria feature.
-- `houseManager` é o coordenador atual desse estado.
+- `editor-house-controller` é o coordenador transitório atual desse estado.
 - `useHouseStoreVersion` expõe a versão reativa do estado compartilhado com `useSyncExternalStore`.
 - `useHouseStateSnapshot` expõe o estado lógico atual da casa, sem objetos de runtime visual.
 - `useHouseRuntimeSnapshot` expõe o snapshot de runtime visual quando o consumidor precisa da projeção do canvas.
@@ -48,7 +48,7 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 ## Fontes de verdade
 
 - Evite fontes paralelas de verdade para a mesma informação.
-- O estado estrutural da casa não deve ser duplicado em hooks locais desconectados do `houseManager`.
+- O estado estrutural da casa não deve ser duplicado em hooks locais desconectados do controller/ports da casa.
 - O canvas continua sendo projeção e mecanismo de interação, não a definição única do estado.
 - Leituras lógicas devem preferir `HouseStatePort` e `useHouseStateSnapshot`.
 - Leituras que dependem da projeção visual devem preferir `HouseRuntimeSnapshotPort` e `useHouseRuntimeSnapshot`.
@@ -57,7 +57,7 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 ## Papel dos hooks na feature editor
 
 - Ler dados compartilhados do editor.
-- Disparar comandos e atualizações sobre `houseManager` ou abstrações equivalentes que existirem de fato.
+- Disparar comandos e atualizações sobre ports da casa ou abstrações equivalentes que existirem de fato.
 - Registrar listeners, bindings do canvas e sincronizações com a UI.
 - Manter fronteiras legíveis entre leitura, comando e binding.
 
@@ -85,7 +85,7 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 ## O que hooks não podem fazer
 
 - Conter regra de domínio que deveria morar em `src/domain` ou em utilitário dedicado da feature.
-- Abrir uma segunda fonte compartilhada de estado paralela ao `houseManager` sem plano explícito.
+- Abrir uma segunda fonte compartilhada de estado paralela ao controller/ports da casa sem plano explícito.
 - Virar um god-hook sem fronteira legível entre leitura, comando e binding.
 
 ## Evolução futura

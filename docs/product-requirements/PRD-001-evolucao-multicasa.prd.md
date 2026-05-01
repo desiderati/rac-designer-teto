@@ -177,7 +177,7 @@ restaurar o trabalho sem perda de informações.
 ## 11. Referências e artefatos auxiliares
 
 - Código atual relacionado:
-  - [house-manager.facade.ts](../../src/components/rac-editor/lib/house-manager.facade.ts)
+  - [editor-house-controller.ts](../../src/components/rac-editor/lib/editor-house-controller.ts)
   - [house.ts](../../src/shared/types/house.ts)
   - [house-persistence.port.ts](../../src/domain/house/house-persistence.port.ts)
   - [useRacEditorJsonActions.ts](../../src/components/rac-editor/hooks/useRacEditorJsonActions.ts)

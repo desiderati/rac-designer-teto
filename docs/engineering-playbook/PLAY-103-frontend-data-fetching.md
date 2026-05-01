@@ -78,7 +78,7 @@ Esse exemplo é um template para integração remota futura. Ele não descreve o
 ## Separação entre estado local e estado remoto
 
 - TanStack Query gerencia dados remotos.
-- `houseManager` e a bridge reativa em `src/components/rac-editor/lib/house-store.ts` coordenam hoje o estado
+- `editor-house-controller` e a bridge reativa em `src/components/rac-editor/lib/house-store.ts` coordenam hoje o estado
   compartilhado da casa.
 - O canvas continua sendo projeção do estado, não fonte de verdade.
 

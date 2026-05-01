@@ -36,8 +36,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `docs/engineering-playbook/PLAY-004-project-structure.md`
   - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/fabric-boundary-baseline.md`
-  - `src/components/rac-editor/lib/house-manager.facade.ts`
-  - `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts`
+  - `src/components/rac-editor/lib/editor-house-controller.ts`
+  - `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts`
   - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
   - `src/architecture/rac-editor-boundary.smoke.test.ts`
@@ -67,13 +67,13 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     concretas do canvas.
   - `HouseVisualRuntimePort<TGroup>` define as capacidades mínimas do runtime visual usadas pelo núcleo transitório do
     editor.
-  - Fábricas que adaptam o `houseManager` para ports do editor pertencem ao bootstrap de composição em
+  - Fábricas que adaptam o controller transitório da casa para ports do editor pertencem ao bootstrap de composição em
     `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
   - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
     como contrato público do editor.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
     permanece apenas como composição transitória do `forwardRef`.
-  - Comandos do `houseManager` devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
+  - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
     terreno, vistas/rebuild e pilotis.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
     a persistência, storage e integrações técnicas que não dependem da feature editor.
@@ -83,7 +83,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Fabric event -> CanvasEventPort -> seleção serializável -> Command -> Store.
 - modo da decisão: prévio
 - custo de reversão:
-  - Médio a alto após migração de commands/store e substituição gradual de `houseManager`, pois a decisão passa a
+  - Médio a alto após migração de commands/store e substituição gradual do controller transitório da casa, pois a decisão passa a
     orientar contratos públicos internos e testes.
 
 ## 3. Alternativas consideradas
@@ -91,7 +91,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ### Alternativa A: Manter arquitetura atual e extrair helpers pontuais
 
 - descrição:
-  - Continuar usando `houseManager`, acesso direto ao canvas pelo handle, `CanvasGroup` e Fabric em hooks, extraindo apenas helpers
+  - Continuar usando o controller transitório da casa, acesso direto ao canvas pelo handle, `CanvasGroup` e Fabric em hooks, extraindo apenas helpers
     locais para reduzir tamanho de arquivos.
 - benefícios:
   - Menor risco imediato.
@@ -156,7 +156,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 
 ### 4.4. Riscos e mitigação
 
-- Risco: criar uma store paralela ao `houseManager`.
+- Risco: criar uma store paralela ao controller transitório da casa.
   - Mitigação: usar façade transitória e substituir responsabilidades explicitamente.
 - Risco: quebrar import/export e undo.
   - Mitigação: caracterizar round trip JSON e rebuild antes de migrar essa frente.
@@ -205,7 +205,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - motivo do adiamento:
   - Depende da caracterização de import/export, rebuild e persistência.
 - item adiado:
-  - Substituição completa do `houseManager`.
+  - Substituição completa do controller transitório da casa.
 - motivo do adiamento:
   - Deve ocorrer apenas depois que commands/store e ports estiverem estabilizados.
 

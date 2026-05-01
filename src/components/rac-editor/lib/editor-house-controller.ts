@@ -25,7 +25,7 @@ import type {
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/house-manager-runtime-port.ts';
 
-interface HouseManagerEffectsPort {
+interface EditorHouseEffectsPort {
   refreshTopDoorMarkers(): void;
 
   refreshAutoStairs(): void;
@@ -33,17 +33,17 @@ interface HouseManagerEffectsPort {
   refreshAutoContraventamento(): void;
 }
 
-interface HouseManagerEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   requestCanvasRender: () => void;
 }
 
-interface HouseManagerFacadeArgs<TGroup extends HouseRuntimeGroupRef> {
+interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
   viewRuntime: HouseManagerViewRuntime<TGroup>;
-  createEffects(args: HouseManagerEffectsArgs<TGroup>): HouseManagerEffectsPort;
+  createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
 }
 
-export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
+export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly state = new HouseManagerState();
 
@@ -53,7 +53,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
 
   private runtimeHouseCache: HouseRuntimeSnapshot<TGroup> | null | undefined = undefined;
 
-  private readonly effects: HouseManagerEffectsPort;
+  private readonly effects: EditorHouseEffectsPort;
 
   private readonly commands: HouseManagerCommandService<TGroup>;
 
@@ -67,7 +67,7 @@ export class HouseManagerFacade<TGroup extends HouseRuntimeGroupRef> {
     notify: () => this.notify(),
   });
 
-  constructor(args: HouseManagerFacadeArgs<TGroup>) {
+  constructor(args: EditorHouseControllerArgs<TGroup>) {
     this.effects = args.createEffects({
       getHouse: () => this.runtimeHouse,
       requestCanvasRender: () => this.requestCanvasRender(),

@@ -38,8 +38,8 @@ const allowedCanvasInteractionPortConsumers = new Set([
 const canvasInteractionPortImportPattern =
   /(?:from\s+['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]|import\s*\(\s*['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]\s*\))/;
 
-const houseManagerSingletonPattern =
-  /(?:export\s+const\s+houseManager\b|import\s*\{\s*houseManager\s*\}\s*from\s+['"][^'"]*canvas-house-manager(?:\.ts)?['"])/;
+const globalHouseControllerSingletonPattern =
+  /(?:export\s+const\s+houseManager\b|import\s*\{\s*houseManager\s*\}\s*from\s+['"][^'"]*canvas-house-(?:manager|controller)(?:\.ts)?['"])/;
 
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
@@ -104,10 +104,10 @@ describe('fronteira arquitetural do editor RAC', () => {
     const rootPath = resolve(projectRoot, 'src');
     const violations = collectSourceFiles(rootPath).flatMap((filePath) => {
       const content = readFileSync(filePath, 'utf8');
-      if (!houseManagerSingletonPattern.test(content)) return [];
+      if (!globalHouseControllerSingletonPattern.test(content)) return [];
 
       const fileLabel = toPosixPath(relative(projectRoot, filePath));
-      return [`${fileLabel}: singleton global houseManager`];
+      return [`${fileLabel}: singleton global da casa`];
     });
 
     expect(violations).toEqual([]);

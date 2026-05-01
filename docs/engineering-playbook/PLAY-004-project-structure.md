@@ -31,8 +31,8 @@ Ele existe para evitar dois erros comuns:
 
 ## Estado atual do editor
 
-- `src/components/rac-editor/lib/house-manager.facade.ts` é hoje a fachada transitória do estado compartilhado da casa.
-- `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts` compõe a fachada da casa com o runtime visual do
+- `src/components/rac-editor/lib/editor-house-controller.ts` é hoje o controller transitório do estado compartilhado da casa.
+- `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts` compõe o controller da casa com o runtime visual do
   canvas.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
 - `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as
@@ -80,7 +80,7 @@ Ele existe para evitar dois erros comuns:
 - `src/infra/storage` contém integrações com armazenamento local.
 - Novas integrações de persistência, storage local e browser APIs devem preferir `src/infra`.
 - Não mova Fabric para `src/infra` por generalização; a integração atual com canvas é borda da feature editor.
-- Fábricas que adaptam `houseManager` para ports internos do RAC editor devem ficar no bootstrap de composição, não em
+- Fábricas que adaptam o controller transitório da casa para ports internos do RAC editor devem ficar no bootstrap de composição, não em
   `src/infra`.
 - Adapters Fabric devem ficar no slice `src/components/rac-editor/@canvas`, principalmente em `@canvas/ui/adapters`.
 

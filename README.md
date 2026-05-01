@@ -94,7 +94,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
 - `src/components/rac-editor/store/` fica reservado a stores reais, como `EditorStateStore`
-- `src/components/rac-editor/lib/house-manager.facade.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
+- `src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
 - O projeto usa alias `@/` para imports absolutos

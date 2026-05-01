@@ -1,4 +1,4 @@
-import {HouseManagerFacade} from '@/components/rac-editor/lib/house-manager.facade.ts';
+import {EditorHouseController} from '@/components/rac-editor/lib/editor-house-controller.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import {
@@ -8,8 +8,8 @@ import {
   updateHousePiloti,
 } from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
 
-export function createCanvasHouseManager(): HouseManagerFacade<CanvasGroup> {
-  return new HouseManagerFacade<CanvasGroup>({
+export function createCanvasHouseController(): EditorHouseController<CanvasGroup> {
+  return new EditorHouseController<CanvasGroup>({
     createEffects: (args) => new HouseVisualEffects(args),
     viewRuntime: {
       rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,

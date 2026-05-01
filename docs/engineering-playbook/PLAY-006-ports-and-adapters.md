@@ -40,7 +40,7 @@ central da aplicação.
   lógica.
 - `src/bootstrap/editor-bootstrap.ts`, `src/bootstrap/editor-house-ports.ts` e
   `src/bootstrap/editor-house-port-adapters.ts` já funcionam como pontos de composição de store e ports.
-- `src/components/rac-editor/lib/house-manager.facade.ts` ainda é a fachada transitória do estado compartilhado da casa.
+- `src/components/rac-editor/lib/editor-house-controller.ts` ainda é o controller transitório do estado compartilhado da casa.
 - `src/components/rac-editor/lib/house-manager-*-command-service.ts` já separa comandos por responsabilidade.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
@@ -48,13 +48,13 @@ central da aplicação.
   `CanvasGroup`, `CanvasObject` e uso amplo de `CanvasInteractionPort`.
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md` já aceita a fronteira do editor com o runtime
   Fabric como decisão arquitetural vigente.
-- O relatório estrutural em `graphify-out/GRAPH_REPORT.md` aponta `HouseManagerFacade`, `HouseAggregate`,
+- O relatório estrutural em `graphify-out/GRAPH_REPORT.md` apontava `HouseManagerFacade`, `HouseAggregate`,
   `useRacEditorController` e `RacEditor` como nós de alto acoplamento. Esse relatório é índice derivado, não fonte
   canônica.
 
 ## Hipóteses de trabalho
 
-- `houseManager` pode deixar de ser o centro permanente do editor, mas deve ser reduzido por responsabilidades, não
+- O controller transitório da casa pode deixar de ser o centro permanente do editor, mas deve ser reduzido por responsabilidades, não
   removido em big bang.
 - Um modelo serializável de documento da casa deve diminuir a necessidade de reconstruir estado lógico a partir de
   grupos visuais.
@@ -71,7 +71,7 @@ central da aplicação.
   importar Fabric nem tipos concretos do canvas.
 - Ports devem representar capacidades semânticas do editor, não a API da biblioteca usada por baixo.
 - Adapters Fabric ficam em `src/components/rac-editor/@canvas`, principalmente em `@canvas/ui/adapters`.
-- Adapters transitórios que compõem `houseManager` com ports do editor ficam no bootstrap, enquanto o manager ainda for
+- Adapters transitórios que compõem o controller da casa com ports do editor ficam no bootstrap, enquanto ele ainda for
   a fonte de coordenação.
 - Persistência, storage local e integrações técnicas não visuais pertencem a `src/infra`.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
@@ -136,7 +136,7 @@ O contrato fala de terreno, não de canvas. A normalização é efeito esperado 
 ### Adapter transitório
 
 ```ts
-export function createHouseManagerTerrainPort(source: {
+export function createEditorHouseTerrainPort(source: {
     setTerrainType(terrainType: number): number;
 }): HouseTerrainWritePort {
     return {
@@ -146,7 +146,7 @@ export function createHouseManagerTerrainPort(source: {
 ```
 
 Esse tipo de adapter é aceitável como ponte temporária quando o código consumidor já pode depender do port e o
-`houseManager` ainda é a implementação real.
+controller transitório da casa ainda é a implementação real.
 
 ### Guarda arquitetural
 
@@ -202,7 +202,7 @@ Critério de corte:
 
 - Uma mudança de teste consegue trocar os ports do provider sem tocar no singleton padrão.
 
-### 4. Reduzir o `houseManager` por responsabilidade
+### 4. Reduzir o controller da casa por responsabilidade
 
 Objetivo: transformar o manager em composição transitória até que sua existência deixe de ser necessária.
 
@@ -237,7 +237,7 @@ Objetivo: evitar tanto o apego ao legado quanto a remoção teatral.
 Resultado esperado:
 
 - Adapters transitórios do bootstrap removidos somente quando não tiverem mais comportamento.
-- `houseManager` removido ou renomeado apenas se virar simples fachada sem estado próprio relevante.
+- O controller da casa removido apenas se virar simples fachada sem estado próprio relevante.
 - ADR-001 revisado se a fronteira final mudar de fato.
 
 Critério de corte:
@@ -249,7 +249,7 @@ Critério de corte:
 | Risco                                | Impacto                                                   | Mitigação                                                                 |
 |--------------------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------|
 | Criar ports demais                   | Aumenta cerimônia e dificulta navegação                   | Exigir consumidor, adapter e ganho de teste                               |
-| Remover `houseManager` cedo demais   | Quebra fluxos de casa, vistas, terreno e contraventamento | Migrar por responsabilidade, com teste por fatia                          |
+| Remover o controller cedo demais      | Quebra fluxos de casa, vistas, terreno e contraventamento | Migrar por responsabilidade, com teste por fatia                          |
 | Tratar canvas como estado canônico   | Import/export e viewer 3D ficam frágeis                   | Separar estado lógico, runtime snapshot e projeção visual                 |
 | Duplicar fontes de verdade           | UI e canvas passam a divergir silenciosamente             | Um ciclo só pode criar store nova se remover ou substituir a fonte antiga |
 | Transformar documentação em promessa | O repositório passa a documentar arquitetura imaginária   | Documentar sempre como fato, hipótese ou decisão                          |
@@ -261,7 +261,7 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
 1. As fronteiras protegidas continuam verdes no teste arquitetural.
 2. Hooks gerais e UI de alto nível não conhecem Fabric nem tipos concretos do canvas.
 3. Fluxos de casa leem estado lógico por `HouseStatePort` quando não precisam de runtime visual.
-4. `houseManager` não concentra regras puras que deveriam estar no domínio nem efeitos visuais que deveriam estar no
+4. O controller da casa não concentra regras puras que deveriam estar no domínio nem efeitos visuais que deveriam estar no
    canvas.
 5. Import/export, rebuild de vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.

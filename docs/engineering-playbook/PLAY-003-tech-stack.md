@@ -57,7 +57,7 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 ## Estado e arquitetura
 
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
-- O estado compartilhado do editor é coordenado pela própria feature, principalmente por `houseManager`,
+- O estado compartilhado do editor é coordenado pela própria feature, principalmente por `editor-house-controller`,
   `useSyncExternalStore` e hooks locais.
 - Estados simples devem continuar em `useState` ou `useReducer`.
 - Não abra automaticamente uma camada genérica de store na raiz nem uma segunda fonte de verdade para a casa.

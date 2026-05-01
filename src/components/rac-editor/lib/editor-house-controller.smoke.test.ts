@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {createCanvasHouseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
+import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
@@ -51,11 +51,11 @@ function createMockCanvas(groups: Array<Record<string, unknown>>) {
   };
 }
 
-function initializeHouseManagerCanvas(canvas: any) {
-  houseManager.initialize(createCanvasHouseRuntimePort(canvas));
+function initializeHouseControllerCanvas(canvas: any) {
+  houseController.initialize(createCanvasHouseRuntimePort(canvas));
 }
 
-let houseManager: ReturnType<typeof createCanvasHouseManager>;
+let houseController: ReturnType<typeof createCanvasHouseController>;
 let viewSequence = 0;
 
 function registerMockView(
@@ -71,121 +71,121 @@ function registerMockView(
     houseInstanceId: instanceId,
     houseSide: side,
   });
-  const registration = houseManager.registerView({viewType, instanceId, side});
+  const registration = houseController.registerView({viewType, instanceId, side});
   expect(registration?.instanceId).toBe(instanceId);
   return instanceId;
 }
 
-describe('house-manager facade', () => {
+describe('editor house controller', () => {
   beforeEach(() => {
-    houseManager = createCanvasHouseManager();
+    houseController = createCanvasHouseController();
     viewSequence = 0;
   });
 
   it('creates house state for tipo6 and tipo3 with expected view limits', () => {
-    houseManager.setHouseType('tipo6');
+    houseController.setHouseType('tipo6');
 
-    expect(houseManager.getMaxHouseViewCount('top')).toBe(1);
-    expect(houseManager.getMaxHouseViewCount('front')).toBe(1);
-    expect(houseManager.getMaxHouseViewCount('back')).toBe(1);
-    expect(houseManager.getMaxHouseViewCount('side1')).toBe(2);
-    expect(houseManager.getMaxHouseViewCount('side2')).toBe(0);
-    expect(houseManager.canAddView('side2')).toBe(false);
-    expect(houseManager.getAvailableViews()).toEqual(['top', 'front', 'back', 'side1']);
+    expect(houseController.getMaxHouseViewCount('top')).toBe(1);
+    expect(houseController.getMaxHouseViewCount('front')).toBe(1);
+    expect(houseController.getMaxHouseViewCount('back')).toBe(1);
+    expect(houseController.getMaxHouseViewCount('side1')).toBe(2);
+    expect(houseController.getMaxHouseViewCount('side2')).toBe(0);
+    expect(houseController.canAddView('side2')).toBe(false);
+    expect(houseController.getAvailableViews()).toEqual(['top', 'front', 'back', 'side1']);
 
-    houseManager.setHouseType('tipo3');
+    houseController.setHouseType('tipo3');
 
-    expect(houseManager.getMaxHouseViewCount('top')).toBe(1);
-    expect(houseManager.getMaxHouseViewCount('front')).toBe(0);
-    expect(houseManager.getMaxHouseViewCount('back')).toBe(2);
-    expect(houseManager.getMaxHouseViewCount('side1')).toBe(1);
-    expect(houseManager.getMaxHouseViewCount('side2')).toBe(1);
-    expect(houseManager.canAddView('front')).toBe(false);
-    expect(houseManager.getAvailableViews()).toEqual(['top', 'back', 'side1', 'side2']);
+    expect(houseController.getMaxHouseViewCount('top')).toBe(1);
+    expect(houseController.getMaxHouseViewCount('front')).toBe(0);
+    expect(houseController.getMaxHouseViewCount('back')).toBe(2);
+    expect(houseController.getMaxHouseViewCount('side1')).toBe(1);
+    expect(houseController.getMaxHouseViewCount('side2')).toBe(1);
+    expect(houseController.canAddView('front')).toBe(false);
+    expect(houseController.getAvailableViews()).toEqual(['top', 'back', 'side1', 'side2']);
   });
 
   it('updates piloti data and keeps single master globally', () => {
-    houseManager.setHouseType('tipo6');
+    houseController.setHouseType('tipo6');
 
-    houseManager.updatePiloti('piloti_0_0', {height: 2.0, nivel: 0.5, isMaster: true});
-    houseManager.updatePiloti('piloti_3_2', {isMaster: true});
+    houseController.updatePiloti('piloti_0_0', {height: 2.0, nivel: 0.5, isMaster: true});
+    houseController.updatePiloti('piloti_3_2', {isMaster: true});
 
-    expect(houseManager.getPilotiData('piloti_3_2').isMaster).toBe(true);
-    expect(houseManager.getPilotiData('piloti_0_0').isMaster).toBe(false);
+    expect(houseController.getPilotiData('piloti_3_2').isMaster).toBe(true);
+    expect(houseController.getPilotiData('piloti_0_0').isMaster).toBe(false);
     // Precedência: quando o caller passa uma altura explícita junto com o novo nível,
     // a altura escolhida não é sobrescrita pelo recálculo global. Recálculo continua
     // propagando níveis e alturas para os demais pilotis.
-    expect(houseManager.getPilotiData('piloti_0_0').height).toBe(2.0);
-    expect(houseManager.getPilotiData('piloti_0_0').nivel).toBe(0.5);
+    expect(houseController.getPilotiData('piloti_0_0').height).toBe(2.0);
+    expect(houseController.getPilotiData('piloti_0_0').nivel).toBe(0.5);
   });
 
   it('notifies subscribers when the family name changes', () => {
     const listener = vi.fn();
-    const unsubscribe = houseManager.subscribe(listener);
+    const unsubscribe = houseController.subscribe(listener);
 
-    houseManager.setFamilyName('Família Nova');
+    houseController.setFamilyName('Família Nova');
 
-    expect(houseManager.getFamilyName()).toBe('Família Nova');
+    expect(houseController.getFamilyName()).toBe('Família Nova');
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });
 
   it('recalcula níveis intermediários e alturas recomendadas quando um nível de canto é alterado', () => {
-    houseManager.setHouseType('tipo6');
+    houseController.setHouseType('tipo6');
 
-    houseManager.updatePiloti('piloti_0_0', {nivel: 0.2});
-    houseManager.updatePiloti('piloti_3_0', {nivel: 1.0});
-    houseManager.updatePiloti('piloti_0_2', {nivel: 0.2});
-    houseManager.updatePiloti('piloti_3_2', {nivel: 1.0});
+    houseController.updatePiloti('piloti_0_0', {nivel: 0.2});
+    houseController.updatePiloti('piloti_3_0', {nivel: 1.0});
+    houseController.updatePiloti('piloti_0_2', {nivel: 0.2});
+    houseController.updatePiloti('piloti_3_2', {nivel: 1.0});
 
-    expect(houseManager.getPilotiData('piloti_1_1').nivel).toBe(0.47);
-    expect(houseManager.getPilotiData('piloti_2_1').nivel).toBe(0.73);
+    expect(houseController.getPilotiData('piloti_1_1').nivel).toBe(0.47);
+    expect(houseController.getPilotiData('piloti_2_1').nivel).toBe(0.73);
 
     // Mudança de nível em canto afeta toda a casa: alturas recomendadas são
     // recalculadas em todos os 12 pilotis via regra de ouro (altura = menor ≥ nivel*3).
     // piloti_1_1 @ nivel=0.47 → minHeight=1.41 → recommended=1.5.
-    expect(houseManager.getPilotiData('piloti_1_1').height).toBe(1.5);
+    expect(houseController.getPilotiData('piloti_1_1').height).toBe(1.5);
     // piloti_2_1 @ nivel=0.73 → minHeight=2.19 → recommended=2.5.
-    expect(houseManager.getPilotiData('piloti_2_1').height).toBe(2.5);
+    expect(houseController.getPilotiData('piloti_2_1').height).toBe(2.5);
   });
 
   it('registers and removes views while syncing side assignments', () => {
     const {group} = createMockGroup();
     const canvasGroups = [group];
-    initializeHouseManagerCanvas(createMockCanvas(canvasGroups));
-    houseManager.setHouseType('tipo6');
-    expect(houseManager.hasAnyView()).toBe(false);
+    initializeHouseControllerCanvas(createMockCanvas(canvasGroups));
+    houseController.setHouseType('tipo6');
+    expect(houseController.hasAnyView()).toBe(false);
 
     const instanceId = registerMockView('front', group as any, 'top');
-    expect(houseManager.getHouseViewCount('front')).toBe(1);
-    expect(houseManager.hasOtherViews()).toBe(true);
-    expect(houseManager.hasAnyView()).toBe(true);
-    expect(houseManager.getAllGroups()).toHaveLength(1);
-    expect(houseManager.getHouse()?.sideMappings.top).toBe('front');
+    expect(houseController.getHouseViewCount('front')).toBe(1);
+    expect(houseController.hasOtherViews()).toBe(true);
+    expect(houseController.hasAnyView()).toBe(true);
+    expect(houseController.getAllGroups()).toHaveLength(1);
+    expect(houseController.getHouse()?.sideMappings.top).toBe('front');
 
-    houseManager.removeView(instanceId);
+    houseController.removeView(instanceId);
     canvasGroups.splice(0, 1);
-    expect(houseManager.getHouseViewCount('front')).toBe(0);
-    expect(houseManager.hasAnyView()).toBe(false);
-    expect(houseManager.getAllGroups()).toHaveLength(0);
-    expect(houseManager.getHouse()?.sideMappings.top).toBeNull();
+    expect(houseController.getHouseViewCount('front')).toBe(0);
+    expect(houseController.hasAnyView()).toBe(false);
+    expect(houseController.getAllGroups()).toHaveLength(0);
+    expect(houseController.getHouse()?.sideMappings.top).toBeNull();
   });
 
   it('mantém tipo de terreno global e aplica para todas as vistas elevadas', () => {
     const {group: topGroup} = createMockGroup({houseView: 'top'});
     const {group: frontGroup} = createMockGroup({houseView: 'front'});
     const {group: sideGroup} = createMockGroup({houseView: 'side'});
-    initializeHouseManagerCanvas(createMockCanvas([topGroup, frontGroup, sideGroup]));
-    houseManager.setHouseType('tipo6');
+    initializeHouseControllerCanvas(createMockCanvas([topGroup, frontGroup, sideGroup]));
+    houseController.setHouseType('tipo6');
 
     registerMockView('top', topGroup as any);
     registerMockView('front', frontGroup as any, 'top');
     registerMockView('side1', sideGroup as any, 'left');
 
-    const terrain = houseManager.setTerrainType(4);
+    const terrain = houseController.setTerrainType(4);
     expect(terrain).toBe(4);
-    expect(houseManager.getTerrainType()).toBe(4);
-    expect(houseManager.getHouse()?.terrainType).toBe(4);
+    expect(houseController.getTerrainType()).toBe(4);
+    expect(houseController.getHouse()?.terrainType).toBe(4);
     expect((frontGroup as any).groundTerrainType).toBe(4);
     expect((sideGroup as any).groundTerrainType).toBe(4);
   });
@@ -210,13 +210,13 @@ describe('house-manager facade', () => {
     objects.push(pilotiCircle);
 
     const canvas = createMockCanvas([group]);
-    initializeHouseManagerCanvas(canvas);
-    houseManager.setHouseType('tipo6');
-    houseManager.rebuildFromCanvas();
+    initializeHouseControllerCanvas(canvas);
+    houseController.setHouseType('tipo6');
+    houseController.rebuildFromCanvas();
 
-    expect(houseManager.getHouseViewCount('top')).toBe(1);
-    expect(houseManager.getHouse()?.views.top[0]?.instanceId).toBe('top_1');
-    expect(houseManager.getPilotiData('piloti_0_0')).toMatchObject({
+    expect(houseController.getHouseViewCount('top')).toBe(1);
+    expect(houseController.getHouse()?.views.top[0]?.instanceId).toBe('top_1');
+    expect(houseController.getPilotiData('piloti_0_0')).toMatchObject({
       height: 2.5,
       isMaster: true,
       nivel: 0.8,
@@ -225,12 +225,12 @@ describe('house-manager facade', () => {
 
   it('clears house type when rebuild finds no house groups on canvas', () => {
     const canvas = createMockCanvas([]);
-    initializeHouseManagerCanvas(canvas);
-    houseManager.setHouseType('tipo6');
+    initializeHouseControllerCanvas(canvas);
+    houseController.setHouseType('tipo6');
 
-    houseManager.rebuildFromCanvas();
+    houseController.rebuildFromCanvas();
 
-    expect(houseManager.getHouseType()).toBeNull();
+    expect(houseController.getHouseType()).toBeNull();
   });
 
   it('positions top door marker using rendered door geometry instead of stored door coordinates', () => {
@@ -251,8 +251,8 @@ describe('house-manager facade', () => {
 
     const {group: frontGroup} = createMockGroup();
     const canvas = createMockCanvas([topGroup, frontGroup]);
-    initializeHouseManagerCanvas(canvas);
-    houseManager.setHouseType('tipo6');
+    initializeHouseControllerCanvas(canvas);
+    houseController.setHouseType('tipo6');
 
     registerMockView('top', topGroup as any);
     registerMockView('front', frontGroup as any, 'bottom');
@@ -277,10 +277,10 @@ describe('house-manager facade', () => {
 
   it('aplica auto contraventamento ao inserir a vista superior da casa', () => {
     const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
-    initializeHouseManagerCanvas(createMockCanvas([topGroup]));
-    houseManager.setHouseType('tipo6');
+    initializeHouseControllerCanvas(createMockCanvas([topGroup]));
+    houseController.setHouseType('tipo6');
 
-    houseManager.updatePiloti('piloti_1_1', {height: 1.0, nivel: 0.5});
+    houseController.updatePiloti('piloti_1_1', {height: 1.0, nivel: 0.5});
 
     registerMockView('top', topGroup as any);
 
