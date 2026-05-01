@@ -71,6 +71,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
   - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
     como contrato público do editor.
+  - O estado lógico do editor deve receber `HousePersistencePort`; adapters concretos de persistência são compostos no
+    bootstrap ou em `src/infra`, não instanciados dentro do núcleo do editor.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica; `CanvasInteractionPort`/`CanvasHandle`
     permanece apenas como composição transitória do `forwardRef`.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,

@@ -1,4 +1,5 @@
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
+import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {
   createHouse3DProjectionPort,
   createEditorHouseReadPort,
@@ -50,5 +51,7 @@ export function createEditorHousePorts(source: EditorHousePortsSource): EditorHo
 }
 
 export function createDefaultEditorHousePorts(): EditorHousePorts {
-  return createEditorHousePorts(createCanvasHouseController());
+  return createEditorHousePorts(createCanvasHouseController({
+    persistence: new InMemoryHousePersistenceAdapter(),
+  }));
 }

@@ -1,4 +1,5 @@
 import {EditorHouseController} from '@/components/rac-editor/lib/editor-house-controller.ts';
+import type {HousePersistencePort} from '@/domain/house/house-persistence.port.ts';
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
 import {HouseVisualEffects} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import {
@@ -8,8 +9,13 @@ import {
   updateHousePiloti,
 } from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
 
-export function createCanvasHouseController(): EditorHouseController<CanvasGroup> {
+interface CanvasHouseControllerArgs {
+  persistence: HousePersistencePort;
+}
+
+export function createCanvasHouseController(args: CanvasHouseControllerArgs): EditorHouseController<CanvasGroup> {
   return new EditorHouseController<CanvasGroup>({
+    persistence: args.persistence,
     createEffects: (args) => new HouseVisualEffects(args),
     viewRuntime: {
       rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,

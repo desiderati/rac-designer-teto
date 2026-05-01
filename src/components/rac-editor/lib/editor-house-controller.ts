@@ -1,4 +1,5 @@
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
+import type {HousePersistencePort} from '@/domain/house/house-persistence.port.ts';
 import {
   HousePiloti,
   HouseSide,
@@ -39,13 +40,14 @@ interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
 }
 
 interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
+  persistence: HousePersistencePort;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
 }
 
 export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
-  private readonly state = new EditorHouseState();
+  private readonly state: EditorHouseState;
 
   private readonly visualRuntime = new EditorHouseVisualRuntime<TGroup>();
 
@@ -59,15 +61,18 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly queries: EditorHouseQueryService<TGroup>;
 
-  private readonly session = new EditorHouseSessionService({
-    getAggregate: () => this.getHouseAggregate(),
-    getHouseType: () => this.getHouseType(),
-    getTerrainType: () => this.getTerrainType(),
-    persistHouse: () => this.persistHouse(),
-    notify: () => this.notify(),
-  });
+  private readonly session: EditorHouseSessionService;
 
   constructor(args: EditorHouseControllerArgs<TGroup>) {
+    this.state = new EditorHouseState(args.persistence);
+    this.session = new EditorHouseSessionService({
+      getAggregate: () => this.getHouseAggregate(),
+      getHouseType: () => this.getHouseType(),
+      getTerrainType: () => this.getTerrainType(),
+      persistHouse: () => this.persistHouse(),
+      notify: () => this.notify(),
+    });
+
     this.effects = args.createEffects({
       getHouse: () => this.runtimeHouse,
       requestCanvasRender: () => this.requestCanvasRender(),
