@@ -14,7 +14,7 @@ import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runti
  * Monta uma projeção serializável da casa para o viewer 3D.
  *
  * A leitura de Fabric fica confinada aqui: o viewer recebe apenas números,
- * identificadores e metadados de domínio necessários para renderizar a cena.
+ * identificadores e metadados de domínio necessário para renderizar a cena.
  */
 export function createHouse3DProjectionFromCanvasHouse(
   house: HouseRuntimeSnapshot<CanvasGroup> | null,

@@ -19,9 +19,9 @@ interface TopBarProps {
 /**
  * Floating top bar with three zones (Stitch refined-canvas reference):
  *
- *   ┌─────────────────────────────────────────────────────────────────────┐
- *   │  ☰  TADEU E ODETE       🔍  50%             ⌖  3D  ↑ Exportar  👤  │
- *   └─────────────────────────────────────────────────────────────────────┘
+ *   ┌---------------------------------------------------------------------┐
+ *   |  ☰  TADEU E ODETE       🔍  50%             ⌖  3D  ↑ Exportar  👤  │
+ *   └---------------------------------------------------------------------┘
  *
  * - Left:   Hamburger menu + family-name (hover-edit)
  * - Center: Zoom indicator with S/P/F submenu

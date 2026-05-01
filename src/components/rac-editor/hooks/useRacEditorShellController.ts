@@ -12,7 +12,7 @@ import type {
 } from '@/components/rac-editor/@canvas/ports/CanvasInteractionPort.ts';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
-import {useRacEditorDebugBridge} from '@/components/rac-editor/hooks/useRacEditorDebugBridge.ts';
+import {useCanvasDebugBridge} from '@/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts';
 import {useRacEditorFamilyActions} from '@/components/rac-editor/hooks/useRacEditorFamilyActions.ts';
 import {useRacEditorSettingsActions} from '@/components/rac-editor/hooks/useRacEditorSettingsActions.ts';
 
@@ -68,7 +68,7 @@ export function useRacEditorShellController({
     console.info('[RacEditor] exit clicked - no sign-out flow wired yet.');
   }, []);
 
-  useRacEditorDebugBridge({
+  useCanvasDebugBridge({
     canvasRef,
     showTipsRef,
     showZoomControlsRef,

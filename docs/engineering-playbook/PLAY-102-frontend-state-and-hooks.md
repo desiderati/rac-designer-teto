@@ -40,8 +40,8 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 - `useHouseStoreVersion` expõe a versão reativa do estado compartilhado com `useSyncExternalStore`.
 - `useHouseStateSnapshot` expõe o estado lógico atual da casa, sem objetos de runtime visual.
 - `useHouseRuntimeSnapshot` expõe o snapshot de runtime visual quando o consumidor precisa da projeção do canvas.
-- `useHouseSnapshot` permanece como alias transitório de compatibilidade para runtime visual; código novo deve preferir
-  `useHouseStateSnapshot` ou `useHouseRuntimeSnapshot` conforme a intenção.
+- O alias ambíguo `useHouseSnapshot` foi removido; código novo deve escolher explicitamente entre
+  `useHouseStateSnapshot` e `useHouseRuntimeSnapshot`.
 - Estados modais, flags visuais e fluxos temporários continuam distribuídos em hooks locais da feature.
 - Não abra automaticamente uma store genérica na raiz.
 
@@ -64,9 +64,19 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 ## Uso de Fabric em hooks
 
 - É aceitável importar Fabric em hooks de adapter dentro de `src/components/rac-editor/@canvas/ui/adapters/hooks`.
+- Hooks do slice `@canvas` podem conhecer `CanvasGroup`/`CanvasObject` quando estiverem coordenando runtime visual
+  concreto.
 - Hooks gerais em `src/components/rac-editor/hooks` devem falar com ports, callbacks e tipos serializáveis, não com
-  instâncias Fabric.
+  instâncias Fabric ou grupos concretos do canvas.
 - Não espalhe Fabric para hooks genéricos, `shared`, `domain`, `infra` ou componentes fora do slice `canvas`.
+
+## Debug bridge
+
+- Pontes globais de debug devem ficar isoladas no slice que conhece o runtime concreto.
+- No editor RAC, a API `window.__racDebug` é instalada por `@canvas/hooks/useCanvasDebugBridge.ts` e montada em
+  `@canvas/lib/canvas-debug-bridge.ts`.
+- Hooks gerais podem acionar essa ponte, mas não devem reconstruir diretamente a API global nem importar tipos concretos
+  do canvas para isso.
 
 ## O que hooks não podem fazer
 

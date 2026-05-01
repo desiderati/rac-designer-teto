@@ -25,8 +25,9 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - restrições reais do ambiente:
   - O repositório já trata `src/components/rac-editor` como miniaplicação interna.
   - O playbook vigente não recomenda mover Fabric para `src/infra` por generalização.
-  - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`; `CanvasGroup` aparece apenas na
-    composição concreta do canvas/bootstrap e no slice `@canvas`.
+  - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`.
+  - Tipos concretos de canvas, como `CanvasGroup` e `CanvasObject`, devem ficar no slice `@canvas` ou no bootstrap de
+    composição.
 - por que a decisão importa agora:
   - A refatoração planejada pretende remover vazamentos de Fabric, reduzir god files e preparar expansão futura do
     editor com commands, store e ports testáveis.
@@ -38,6 +39,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts`
   - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
+  - `src/architecture/rac-editor-boundary.smoke.test.ts`
 
 ## 2. Decisão
 
@@ -66,8 +68,11 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     editor.
   - Fábricas que adaptam o `houseManager` para ports do editor pertencem ao bootstrap de composição em
     `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
+  - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
+    como contrato público do editor.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
     a persistência, storage e integrações técnicas que não dependem da feature editor.
+  - Bridges de debug que conhecem grupos visuais concretos pertencem ao slice `@canvas`, não aos hooks gerais do editor.
 - fluxo principal:
   - UI -> Command -> Store -> Domain/use-cases -> estado -> listeners -> CanvasRenderPort -> Fabric adapter.
   - Fabric event -> CanvasEventPort -> seleção serializável -> Command -> Store.
@@ -178,6 +183,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 - contratos de integração:
   - Canvas ports em `src/components/rac-editor/@canvas/ports`.
   - House ports em `src/components/rac-editor/ports`.
+  - Guarda arquitetural em `src/architecture/rac-editor-boundary.smoke.test.ts`.
 - layout de artefatos:
   - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/`
 - superfícies humanas relacionadas:

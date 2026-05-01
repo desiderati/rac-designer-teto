@@ -35,10 +35,13 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/@canvas/lib/canvas-house-manager.ts` compõe a fachada da casa com o runtime visual do
   canvas.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
-- `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem as portas transitórias
-  da casa para o editor.
+- `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as
+  portas transitórias da casa para o editor.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
+- `src/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts` e
+  `src/components/rac-editor/@canvas/lib/canvas-debug-bridge.ts` concentram a ponte global de debug que conhece runtime
+  visual concreto.
 - `src/components/rac-editor/@menus` concentra a superfície de menus do editor, como `RacEditorMenus`,
   `CanvasToolsMenu`, menus superiores, tipos e configs locais.
 - `src/components/rac-editor/@modals` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais.
@@ -52,6 +55,8 @@ Ele existe para evitar dois erros comuns:
 - `HouseVisualRuntimePort<TGroup>` representa as capacidades mínimas do runtime visual usadas pelo núcleo do editor.
 - Tipos e objetos de Fabric devem permanecer no slice `@canvas`, especialmente em `@canvas/ui/adapters` e nos helpers
   visuais de `@canvas/lib`. Código de domínio, infra e hooks gerais do editor não deve importar Fabric diretamente.
+- `src/architecture/rac-editor-boundary.smoke.test.ts` protege o núcleo lógico contra imports diretos de Fabric,
+  `@canvas` e tipos concretos `CanvasGroup`/`CanvasObject`.
 - Esse é o estado real atual e deve ser documentado como tal.
 
 ## Domínio
@@ -101,6 +106,8 @@ Ele existe para evitar dois erros comuns:
 - Não usar shared como lixeira para regra de negócio.
 - Não espalhar novas integrações de Fabric para fora de `src/components/rac-editor/@canvas` sem justificativa clara e
   atualização simultânea deste playbook.
+- Não introduzir `CanvasGroup` ou `CanvasObject` em `domain`, `shared`, `infra`, `rac-editor/ports` ou `rac-editor/lib`;
+  se uma rotina precisar desses tipos, ela pertence ao slice `@canvas` ou ao bootstrap de composição.
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
 
 ## Direção de evolução

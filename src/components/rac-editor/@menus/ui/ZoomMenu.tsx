@@ -7,12 +7,16 @@ import type {CanvasToolMode} from '../lib/menu-types.ts';
 interface ZoomMenuProps {
   /** Zoom atual do canvas (1 = 100%). */
   zoom: number;
+
   /** Modo atual da ferramenta do canvas. */
   canvasToolMode: CanvasToolMode;
+
   /** Alterna o modo da ferramenta do canvas. */
   onSetToolMode: (mode: CanvasToolMode) => void;
+
   /** Reposiciona a viewport para encaixar o canvas no contêiner visível. */
   onFitToView: () => void;
+
   /** Modo mobile mantém controles compactos com nomes acessíveis. */
   isMobile: boolean;
 }
