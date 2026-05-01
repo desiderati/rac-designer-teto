@@ -19,5 +19,3 @@ export function createCanvasHouseManager(): HouseManagerFacade<CanvasGroup> {
     },
   });
 }
-
-export const houseManager = createCanvasHouseManager();
