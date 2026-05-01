@@ -36,7 +36,7 @@ const allowedCanvasInteractionPortConsumers = new Set([
 ]);
 
 const canvasInteractionPortImportPattern =
-  /from\s+['"]@\/components\/rac-editor\/@canvas\/ports\/CanvasInteractionPort\.ts['"]/;
+  /(?:from\s+['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]|import\s*\(\s*['"][^'"]*CanvasInteractionPort(?:\.ts)?['"]\s*\))/;
 
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
