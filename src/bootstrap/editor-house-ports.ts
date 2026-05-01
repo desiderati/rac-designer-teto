@@ -1,4 +1,4 @@
-import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
+import {createCanvasHouseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import {
   createHouse3DProjectionPort,
   createHouseManagerReadPort,
@@ -50,5 +50,5 @@ export function createEditorHousePorts(source: EditorHousePortsSource): EditorHo
 }
 
 export function createDefaultEditorHousePorts(): EditorHousePorts {
-  return createEditorHousePorts(houseManager);
+  return createEditorHousePorts(createCanvasHouseManager());
 }

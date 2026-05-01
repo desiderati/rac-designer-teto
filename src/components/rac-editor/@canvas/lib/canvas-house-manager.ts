@@ -8,12 +8,16 @@ import {
   updateHousePiloti,
 } from '@/components/rac-editor/@canvas/lib/house-visual-runtime.ts';
 
-export const houseManager = new HouseManagerFacade<CanvasGroup>({
-  createEffects: (args) => new HouseVisualEffects(args),
-  viewRuntime: {
-    rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
-    applyCurrentHouseDataToGroups,
-    applyTerrainTypeToElevationViews,
-    updatePiloti: updateHousePiloti,
-  },
-});
+export function createCanvasHouseManager(): HouseManagerFacade<CanvasGroup> {
+  return new HouseManagerFacade<CanvasGroup>({
+    createEffects: (args) => new HouseVisualEffects(args),
+    viewRuntime: {
+      rebuildViewsFromRuntime: rebuildHouseViewsFromCanvas,
+      applyCurrentHouseDataToGroups,
+      applyTerrainTypeToElevationViews,
+      updatePiloti: updateHousePiloti,
+    },
+  });
+}
+
+export const houseManager = createCanvasHouseManager();

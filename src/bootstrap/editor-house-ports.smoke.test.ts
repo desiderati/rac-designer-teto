@@ -61,4 +61,14 @@ describe('editor house ports', () => {
     expect(ports.houseRuntimeSnapshotPort.getRuntimeSnapshot()?.houseType).toBe('tipo6');
     unsubscribe();
   });
+
+  it('cria instâncias isoladas para providers diferentes', () => {
+    const firstPorts = createDefaultEditorHousePorts();
+    const secondPorts = createDefaultEditorHousePorts();
+
+    firstPorts.houseWritePort.setHouseType('tipo6');
+
+    expect(firstPorts.houseReadPort.getCurrentHouseType()).toBe('tipo6');
+    expect(secondPorts.houseReadPort.getCurrentHouseType()).toBeNull();
+  });
 });

@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {houseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
+import {createCanvasHouseManager} from '@/components/rac-editor/@canvas/lib/canvas-house-manager.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
@@ -55,6 +55,7 @@ function initializeHouseManagerCanvas(canvas: any) {
   houseManager.initialize(createCanvasHouseRuntimePort(canvas));
 }
 
+let houseManager: ReturnType<typeof createCanvasHouseManager>;
 let viewSequence = 0;
 
 function registerMockView(
@@ -75,10 +76,10 @@ function registerMockView(
   return instanceId;
 }
 
-describe('house-manager.ts', () => {
+describe('house-manager facade', () => {
   beforeEach(() => {
+    houseManager = createCanvasHouseManager();
     viewSequence = 0;
-    houseManager.reset();
   });
 
   it('creates house state for tipo6 and tipo3 with expected view limits', () => {
