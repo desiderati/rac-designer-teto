@@ -46,7 +46,7 @@ central da aplicação.
   composto em `src/bootstrap/editor-house-ports.ts`.
 - `src/components/rac-editor/lib/project-session.ts` recebe storage por porta; a composição com `localStorage` ocorre no
   bootstrap.
-- Configurações do editor e progresso do tutorial são expostos por `EditorSettingsPort` e `TutorialProgressPort`, com
+- Configurações do editor e progresso do tutorial são expostos por `SettingsPort` e `TutorialProgressPort`, com
   composição concreta em `src/bootstrap/editor-infra-ports.ts`.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
@@ -93,14 +93,14 @@ central da aplicação.
   persistência.
 - Serviços de sessão/projeto no núcleo do editor podem depender de portas de storage, mas não devem importar
   `src/infra/storage` diretamente.
-- Hooks, UI e adapters visuais do editor podem depender de `EditorSettingsPort` e `TutorialProgressPort`, mas não devem
+- Hooks, UI e adapters visuais do editor podem depender de `SettingsPort` e `TutorialProgressPort`, mas não devem
   importar `src/infra/settings` nem `src/infra/storage/tutorial.storage` diretamente.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
   `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime visual.
-- `CanvasInteractionPort` foi removido. O componente `Canvas` expõe `RacEditorCanvasHandle` como composição de tela, e
+- `CanvasInteractionPort` foi removido. O componente `Canvas` expõe `CanvasHandle` como composição de tela, e
   consumidores novos devem escolher handles menores.
 - `src/components/rac-editor/hooks/useRacEditorController.ts` e
-  `src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `RacEditorCanvasHandle`, um composite explícito de
+  `src/components/rac-editor/ui/RacEditorCanvas.tsx` usam `CanvasHandle`, um composite explícito de
   capacidades menores.
 - `src/bootstrap/editor-house-port-adapters.ts` deve permanecer genérico sobre `HouseRuntimeGroupRef`; adapters que
   precisam interpretar `CanvasGroup`, como a projeção 3D concreta, pertencem ao slice `@canvas`.
@@ -231,7 +231,7 @@ Objetivo: impedir que hooks e componentes usem o handle completo do canvas por c
 Resultado esperado:
 
 - Consumidores dependendo de handles específicos.
-- `CanvasInteractionPort` removido e substituído por handles específicos ou por `RacEditorCanvasHandle` na composição
+- `CanvasInteractionPort` removido e substituído por handles específicos ou por `CanvasHandle` na composição
   de tela.
 - Novas capacidades criadas apenas quando houver consumidor real.
 

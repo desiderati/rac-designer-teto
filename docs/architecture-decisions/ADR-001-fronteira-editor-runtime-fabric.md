@@ -40,7 +40,7 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
   - `src/bootstrap/editor-infra-ports.ts`
-  - `src/components/rac-editor/ports/EditorSettingsPort.ts`
+  - `src/components/rac-editor/ports/SettingsPort.ts`
   - `src/components/rac-editor/ports/TutorialProgressPort.ts`
   - `src/test/rac-editor-boundary.smoke.test.ts`
 
@@ -82,10 +82,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - Sessão de projeto e storage local seguem a mesma regra: o núcleo do editor recebe portas/funções de storage, e o
     acesso concreto a `localStorage` fica em `src/infra` ou no bootstrap de composição.
   - Configurações do editor e progresso do tutorial seguem a mesma fronteira: UI, hooks e canvas consomem
-    `EditorSettingsPort` e `TutorialProgressPort`; as implementações baseadas em storage local são compostas no
+    `SettingsPort` e `TutorialProgressPort`; as implementações baseadas em storage local são compostas no
     bootstrap.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica. O handle amplo
-    `CanvasInteractionPort` foi removido; `Canvas` expõe `RacEditorCanvasHandle` apenas como composição de tela.
+    `CanvasInteractionPort` foi removido; `Canvas` expõe `CanvasHandle` apenas como composição de tela.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,
     terreno, vistas e pilotis.
   - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
@@ -192,8 +192,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 ## 6. Artefatos e contratos relacionados
 
 - blueprint ou schema relacionado:
-  - `src/components/rac-editor/@canvas/store/types/editor-selection.ts`
-  - `src/components/rac-editor/@canvas/store/types/editor-ids.ts`
+  - `src/components/rac-editor/@canvas/store/editor-selection.ts`
+  - `src/components/rac-editor/@canvas/store/editor-ids.ts`
 - prompts relacionados:
   - `.agents/prompts/solution-design.prompt.md`
   - `.agents/prompts/implementation-planning.prompt.md`

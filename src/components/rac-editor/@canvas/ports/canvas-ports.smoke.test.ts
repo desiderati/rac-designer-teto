@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {EditorSelection} from '@/components/rac-editor/@canvas/store/types.ts';
-import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
+import {EditorStore} from '@/components/rac-editor/store/editor-state-store.ts';
 import {
   CANVAS_DOCUMENT_VERSION,
   type CanvasSerializedDocumentPort,

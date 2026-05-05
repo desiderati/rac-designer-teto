@@ -1,5 +1,5 @@
 import type {EditorSelection} from '@/components/rac-editor/@canvas/store/types.ts';
-import type {EditorState} from '@/components/rac-editor/store/EditorStateStore.ts';
+import type {EditorState} from '@/components/rac-editor/store/editor-state-store.ts';
 
 /**
  * Porta de renderização do canvas.

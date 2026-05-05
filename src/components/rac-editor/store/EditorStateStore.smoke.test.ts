@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {EditorSelection} from '@/components/rac-editor/@canvas/store/types.ts';
-import {EditorStore} from './EditorStateStore.ts';
+import {EditorStore} from './editor-state-store.ts';
 
 const pilotiSelection: EditorSelection = {
   type: 'piloti',
@@ -9,7 +9,7 @@ const pilotiSelection: EditorSelection = {
   screenPosition: {x: 10, y: 20},
 };
 
-describe('EditorStateStore.ts', () => {
+describe('editor-state-store.ts', () => {
   it('dispatches serializable selection commands and notifies subscribers with snapshots', () => {
     const store = new EditorStore();
     const listener = vi.fn();

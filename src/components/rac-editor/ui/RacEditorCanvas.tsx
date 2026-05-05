@@ -8,10 +8,10 @@ import type {
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {InfoBar} from './InfoBar.tsx';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
-import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
+import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 
 interface RacEditorCanvasProps {
-  canvasRef: React.RefObject<RacEditorCanvasHandle | null>;
+  canvasRef: React.RefObject<CanvasHandle | null>;
   showTips: boolean;
   showZoomControls: boolean;
   infoMessage: string;

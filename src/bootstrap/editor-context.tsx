@@ -6,7 +6,7 @@ import {
   EditorPortsContext,
   EditorStoreContext,
 } from '@/bootstrap/editor-bootstrap.ts';
-import type {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
+import type {EditorStore} from '@/components/rac-editor/store/editor-state-store.ts';
 
 interface RacEditorStoreProviderProps {
   children: ReactNode;

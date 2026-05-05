@@ -22,8 +22,8 @@ import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimeP
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
-import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
-import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
+import type {SettingsPort} from '@/components/rac-editor/ports/SettingsPort.ts';
+import {createDefaultSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 
 type EditorHousePortsSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> =
@@ -44,7 +44,7 @@ export interface EditorHousePorts<TGroup extends HouseRuntimeGroupRef = HouseRun
 }
 
 interface CreateDefaultEditorHousePortsArgs {
-  settingsPort?: EditorSettingsPort;
+  settingsPort?: SettingsPort;
 }
 
 export function createEditorHousePorts<TGroup extends HouseRuntimeGroupRef>(
@@ -68,7 +68,7 @@ export function createEditorHousePorts<TGroup extends HouseRuntimeGroupRef>(
 }
 
 export function createDefaultEditorHousePorts({
-  settingsPort = createDefaultEditorSettingsPort(),
+  settingsPort = createDefaultSettingsPort(),
 }: CreateDefaultEditorHousePortsArgs = {}): EditorHousePorts {
   const controller = createCanvasHouseController({
     persistence: new InMemoryHousePersistenceAdapter(),

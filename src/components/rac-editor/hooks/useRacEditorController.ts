@@ -1,6 +1,6 @@
 import {MouseEvent as ReactMouseEvent, useCallback, useRef} from 'react';
 import {toast} from 'sonner';
-import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
+import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts';
 import {useRacEditorModalState} from '@/components/rac-editor/hooks/useRacEditorModalState.ts';
@@ -59,7 +59,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setIsDrawing,
   } = useRacEditorLocalState();
 
-  const canvasRef = useRef<RacEditorCanvasHandle>(null);
+  const canvasRef = useRef<CanvasHandle>(null);
 
   const {
     isMenuOpen,

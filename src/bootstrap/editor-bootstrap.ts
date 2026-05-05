@@ -1,5 +1,5 @@
 import {createContext, useContext} from 'react';
-import {EditorStore} from '@/components/rac-editor/store/EditorStateStore.ts';
+import {EditorStore} from '@/components/rac-editor/store/editor-state-store.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
@@ -7,9 +7,9 @@ import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
-import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
+import type {SettingsPort} from '@/components/rac-editor/ports/SettingsPort.ts';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
-import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
+import {createDefaultSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -21,7 +21,7 @@ export interface EditorPorts {
   houseRuntimeSnapshotPort: HouseRuntimeSnapshotPort;
   house3DProjectionPort: House3DProjectionPort;
   houseDrawingDocumentPort: HouseDrawingDocumentPort;
-  settingsPort: EditorSettingsPort;
+  settingsPort: SettingsPort;
 }
 
 export const EditorPortsContext = createContext<EditorPorts | null>(null);
@@ -43,7 +43,7 @@ export function createEditorStore(): EditorStore {
  * passa a depender deste ponto de composição em vez de importar singletons.
  */
 export function createEditorPorts(): EditorPorts {
-  const settingsPort = createDefaultEditorSettingsPort();
+  const settingsPort = createDefaultSettingsPort();
   const housePorts = createDefaultEditorHousePorts({settingsPort});
 
   return {

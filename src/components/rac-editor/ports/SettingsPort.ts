@@ -3,7 +3,7 @@ import type {AppSettingKey, AppSettings} from '@/shared/types/settings.ts';
 /**
  * Porta de leitura e escrita das configurações do editor.
  */
-export interface EditorSettingsPort {
+export interface SettingsPort {
   /** Retorna as configurações atuais aplicando defaults quando necessário. */
   getSettings(): AppSettings;
 

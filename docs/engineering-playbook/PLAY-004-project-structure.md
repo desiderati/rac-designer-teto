@@ -53,7 +53,7 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
 - Handles imperativos do canvas devem ser importados por capacidade específica, como `CanvasDocumentHandle`,
   `CanvasHistoryHandle`, `CanvasSnapshotHandle` ou `CanvasEditorVisualHandle`. O handle amplo
-  `CanvasInteractionPort` foi removido; a composição de tela usa `RacEditorCanvasHandle`.
+  `CanvasInteractionPort` foi removido; a composição de tela usa `CanvasHandle`.
 - `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
 - `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
 - `HouseRuntimeSnapshotPort<TGroup>` expõe o snapshot de runtime visual quando a UI precisa observar projeções do canvas.

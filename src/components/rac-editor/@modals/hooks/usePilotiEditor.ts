@@ -49,7 +49,7 @@ export function usePilotiEditor({
   const resolvedSettingsPort = editorPorts?.settingsPort;
   if (!resolvedPilotiReadPort || !resolvedPilotiWritePort || !resolvedSettingsPort) {
     throw new Error(
-      'usePilotiEditor requires HousePilotiReadPort, HousePilotiWritePort, EditorSettingsPort or RacEditorStoreProvider.'
+      'usePilotiEditor requires HousePilotiReadPort, HousePilotiWritePort, SettingsPort or RacEditorStoreProvider.'
     );
   }
 

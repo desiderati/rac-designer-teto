@@ -9,7 +9,7 @@ import type {CanvasSurfaceResetHandle} from '@/components/rac-editor/@canvas/por
 /**
  * Capacidades do canvas efetivamente consumidas pela tela do RAC editor.
  */
-export type RacEditorCanvasHandle =
+export type CanvasHandle =
   & CanvasControllerHandle
   & CanvasHouseRuntimeHandle
   & CanvasDebugHandle

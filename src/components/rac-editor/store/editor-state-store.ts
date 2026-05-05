@@ -2,7 +2,7 @@ import {
   isEditorSelection,
   type EditorSelection,
 } from '@/components/rac-editor/@canvas/store/types.ts';
-import type {EditorCommand} from './commands/types.ts';
+import type {EditorCommand} from './types.ts';
 
 export interface EditorState {
   selection: EditorSelection | null;
