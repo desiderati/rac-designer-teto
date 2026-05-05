@@ -1,4 +1,4 @@
-import {PointerEvent, useRef, useState} from 'react';
+import {PointerEvent, ReactElement, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.tsx';
@@ -16,14 +16,11 @@ import type {
   MenuViewCount,
 } from '../lib/menu-types.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {TutorialHighlight} from '@/components/rac-editor/lib/tutorial.ts';
 
 interface CanvasToolsMenuProps {
   actions: MenuActionMap;
   isDrawing: boolean;
   activeSubmenu: MenuSubmenu;
-  isTutorialActive: boolean;
-  tutorialHighlight: TutorialHighlight;
   houseType: HouseType;
   frontViewCount: MenuViewCount;
   backViewCount: MenuViewCount;
@@ -32,18 +29,10 @@ interface CanvasToolsMenuProps {
   isMobile: boolean;
 }
 
-/**
- * Menu vertical de ferramentas do canvas no estilo glass-pill.
- *
- * On mobile, a thin left-edge handle lets the user collapse or reveal the rail
- * by click/tap or by the expected horizontal drag gesture.
- */
 export function CanvasToolsMenu({
   actions,
   isDrawing,
   activeSubmenu,
-  isTutorialActive,
-  tutorialHighlight,
   houseType,
   frontViewCount,
   backViewCount,
@@ -121,6 +110,7 @@ export function CanvasToolsMenu({
           'border border-slate-200 shadow-lg',
         )}
         aria-label='Barra de ferramentas principal'
+        data-guided-tour-id='rac-toolbar'
       >
         <RailItemWithSubmenu
           anchorOpen={isHouseMenuOpen}
@@ -130,8 +120,7 @@ export function CanvasToolsMenu({
               title='Casa TETO (Opções)'
               onClick={() => (houseType ? actions.toggleHouseMenu() : actions.openHouseTypeSelector())}
               isActive={activeSubmenu === 'house'}
-              isPulsing={tutorialHighlight === 'house'}
-              hideTooltip={activeSubmenu === 'house' || isTutorialActive}
+              hideTooltip={activeSubmenu === 'house'}
             />
           )}
           items={houseMenuItems.map((item) => ({
@@ -145,7 +134,6 @@ export function CanvasToolsMenu({
               side2ViewCount,
             }),
           }))}
-          isTutorialActive={isTutorialActive}
         />
 
         <RailItemWithSubmenu
@@ -156,8 +144,7 @@ export function CanvasToolsMenu({
               title='Elementos'
               onClick={actions.toggleElementsMenu}
               isActive={activeSubmenu === 'elements'}
-              isPulsing={tutorialHighlight === 'elements'}
-              hideTooltip={activeSubmenu === 'elements' || isTutorialActive}
+              hideTooltip={activeSubmenu === 'elements'}
             />
           )}
           items={ELEMENTS_MENU_CONFIG.map((item) => ({
@@ -165,8 +152,8 @@ export function CanvasToolsMenu({
             title: item.title,
             onClick: actions[item.action],
             isDisabled: item.disabled,
+            guidedTourId: item.guidedTourId,
           }))}
-          isTutorialActive={isTutorialActive}
         />
 
         <RailItemWithSubmenu
@@ -177,15 +164,15 @@ export function CanvasToolsMenu({
               title='Linhas'
               onClick={actions.toggleLinesMenu}
               isActive={activeSubmenu === 'lines'}
-              hideTooltip={activeSubmenu === 'lines' || isTutorialActive}
+              hideTooltip={activeSubmenu === 'lines'}
             />
           )}
           items={LINES_MENU_CONFIG.map((item) => ({
             icon: item.icon,
             title: item.title,
             onClick: actions[item.action],
+            guidedTourId: item.guidedTourId,
           }))}
-          isTutorialActive={isTutorialActive}
         />
 
         <RailButton
@@ -193,14 +180,12 @@ export function CanvasToolsMenu({
           title='Lápis'
           onClick={actions.toggleDrawMode}
           isActive={isDrawing}
-          hideTooltip={isTutorialActive}
         />
 
         <RailButton
           icon={MAIN_MENU_ICONS.text}
           title='Texto Livre'
           onClick={actions.addText}
-          hideTooltip={isTutorialActive}
         />
 
         <RailDivider/>
@@ -210,7 +195,6 @@ export function CanvasToolsMenu({
           title='Excluir Item'
           onClick={actions.deleteSelection}
           isDestructive
-          hideTooltip={isTutorialActive}
         />
       </aside>
     </>
@@ -224,9 +208,9 @@ interface RailButtonProps {
   isActive?: boolean;
   isDisabled?: boolean;
   isDestructive?: boolean;
-  isPulsing?: boolean;
   isAtLimit?: boolean;
   hideTooltip?: boolean;
+  guidedTourId?: string;
 }
 
 export function RailButton({
@@ -236,9 +220,9 @@ export function RailButton({
   isActive = false,
   isDisabled = false,
   isDestructive = false,
-  isPulsing = false,
   isAtLimit = false,
   hideTooltip = false,
+  guidedTourId,
 }: RailButtonProps) {
   const button = (
     <button
@@ -246,6 +230,7 @@ export function RailButton({
       onClick={isDisabled ? undefined : onClick}
       aria-label={title}
       disabled={isDisabled}
+      data-guided-tour-id={guidedTourId}
       className={cn(
         'relative flex items-center justify-center w-10 h-10 rounded-full',
         'transition-colors text-sm',
@@ -257,7 +242,6 @@ export function RailButton({
         !isDisabled && isDestructive
         && 'text-red-500 hover:text-red-600 hover:bg-red-50',
         isAtLimit && !isDisabled && 'opacity-60',
-        isPulsing && 'animate-[pulse_3s_ease-in-out_infinite] ring-4 ring-amber-400 ring-opacity-75 z-50',
       )}
     >
       <FontAwesomeIcon icon={icon}/>
@@ -278,22 +262,21 @@ export function RailButton({
 
 interface RailItemWithSubmenuProps {
   anchorOpen: boolean;
-  anchor: React.ReactElement;
+  anchor: ReactElement;
   items: Array<{
     icon: IconDefinition;
     title: string;
     onClick: () => void;
     isDisabled?: boolean;
     isAtLimit?: boolean;
+    guidedTourId?: string;
   }>;
-  isTutorialActive: boolean;
 }
 
 function RailItemWithSubmenu({
   anchorOpen,
   anchor,
   items,
-  isTutorialActive,
 }: RailItemWithSubmenuProps) {
   return (
     <div className='relative'>
@@ -316,7 +299,7 @@ function RailItemWithSubmenu({
               onClick={item.onClick}
               isDisabled={item.isDisabled}
               isAtLimit={item.isAtLimit}
-              hideTooltip={isTutorialActive}
+              guidedTourId={item.guidedTourId}
             />
           ))}
         </div>

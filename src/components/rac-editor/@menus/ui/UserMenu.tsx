@@ -10,7 +10,6 @@ interface UserMenuProps {
   onOpen3DViewer: () => void;
   onSavePDF: () => void;
   onToggleTips: () => void;
-  onOpenTutorial: () => void;
   onOpenSettings: () => void;
   onExit: () => void;
 }
@@ -35,7 +34,6 @@ export function UserMenu({
   onOpen3DViewer,
   onSavePDF,
   onToggleTips,
-  onOpenTutorial,
   onOpenSettings,
   onExit,
 }: UserMenuProps) {
@@ -46,6 +44,8 @@ export function UserMenu({
           type='button'
           title='Conta'
           aria-label='Abrir menu da conta'
+          data-guided-tour-id='rac-user-menu'
+          data-guided-tour-aliases={isMobile ? 'rac-export-pdf rac-view-3d' : undefined}
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center',
             'bg-white/90 border-2 border-white shadow-sm overflow-hidden',
@@ -65,8 +65,18 @@ export function UserMenu({
         <Divider/>
         {isMobile ? (
           <>
-            <Item icon={TOP_BAR_ICONS.view3d} label='Visualização 3D' onClick={onOpen3DViewer}/>
-            <Item icon={TOP_BAR_ICONS.export} label='Exportar RAC em PDF' onClick={onSavePDF}/>
+            <Item
+              icon={TOP_BAR_ICONS.view3d}
+              label='Visualização 3D'
+              onClick={onOpen3DViewer}
+              dataGuidedTourId='rac-view-3d'
+            />
+            <Item
+              icon={TOP_BAR_ICONS.export}
+              label='Exportar RAC em PDF'
+              onClick={onSavePDF}
+              dataGuidedTourId='rac-export-pdf'
+            />
             <Divider/>
           </>
         ) : null}
@@ -76,7 +86,11 @@ export function UserMenu({
           onClick={onToggleTips}
           rightSlot={showTips ? <ActiveDot/> : undefined}
         />
-        <Item icon={TOP_BAR_ICONS.tutorial} label='Abrir Tutorial' onClick={onOpenTutorial}/>
+        <Item
+          icon={TOP_BAR_ICONS.guidedTour}
+          label='Abrir Tutorial'
+          dataGuidedTourStart='rac-editor-intro'
+        />
         <Divider/>
         <Item icon={TOP_BAR_ICONS.settings} label='Configurações' onClick={onOpenSettings}/>
         <Divider/>
@@ -89,16 +103,20 @@ export function UserMenu({
 interface ItemProps {
   icon: typeof TOP_BAR_ICONS[keyof typeof TOP_BAR_ICONS];
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   destructive?: boolean;
   rightSlot?: React.ReactNode;
+  dataGuidedTourStart?: string;
+  dataGuidedTourId?: string;
 }
 
-function Item({icon, label, onClick, destructive = false, rightSlot}: ItemProps) {
+function Item({icon, label, onClick, destructive = false, rightSlot, dataGuidedTourStart, dataGuidedTourId}: ItemProps) {
   return (
     <button
       type='button'
       onClick={onClick}
+      data-guided-tour-id={dataGuidedTourId}
+      data-guided-tour-start={dataGuidedTourStart}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium',
         'transition-colors',

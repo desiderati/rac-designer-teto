@@ -28,6 +28,10 @@ interface RacEditorDebugApi {
   getUiState?: () => RacEditorUiState | null;
 }
 
+interface CreateHouseOptions {
+  dismissInitialHouseTour?: boolean;
+}
+
 const pageConsoleErrors = new WeakMap<Page, string[]>();
 const IGNORED_CONSOLE_ERROR_PATTERNS = [
   '`DialogContent` requires a `DialogTitle`',
@@ -58,12 +62,14 @@ export function expectNoConsoleErrors(page: Page): void {
 
 export async function setupRacEditorPage(page: Page) {
   await page.addInitScript(() => {
-    localStorage.setItem('rac-tutorial-completed', 'true');
-    localStorage.setItem('rac-piloti-tip-shown', 'true');
-    localStorage.setItem('rac-wall-tip-shown', 'true');
-    localStorage.setItem('rac-line-tip-shown', 'true');
-    localStorage.setItem('rac-arrow-tip-shown', 'true');
-    localStorage.setItem('rac-distance-tip-shown', 'true');
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-initial-views:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-initial-views:completed:revision', 'top-view');
+    localStorage.setItem('guided-tour:rac-tip:piloti', 'true');
+    localStorage.setItem('guided-tour:rac-tip:wall', 'true');
+    localStorage.setItem('guided-tour:rac-tip:line', 'true');
+    localStorage.setItem('guided-tour:rac-tip:arrow', 'true');
+    localStorage.setItem('guided-tour:rac-tip:distance', 'true');
     localStorage.setItem('rac-settings', JSON.stringify({
       autoNavigatePiloti: false,
       zoomEnabledByDefault: true,
@@ -107,7 +113,20 @@ async function completeNivelDefinition(page: Page) {
   await expect(page.getByRole('button', {name: 'Inserir'})).toBeHidden();
 }
 
-export async function createHouse(page: Page, houseType: HouseType) {
+export async function dismissInitialHouseGuidedTourIfVisible(page: Page): Promise<void> {
+  const topViewDialog = page.getByRole('dialog').filter({hasText: 'Vista Planta'});
+  if (!(await topViewDialog.isVisible({timeout: 1500}).catch(() => false))) {
+    return;
+  }
+
+  await topViewDialog.getByRole('button', {name: 'OK'}).click({force: true});
+  const elevationDialog = page.getByRole('dialog').filter({hasText: 'Vista Elevada'});
+  await expect(elevationDialog).toBeVisible({timeout: 3000});
+  await elevationDialog.getByRole('button', {name: 'OK'}).click({force: true});
+  await expect(elevationDialog).toBeHidden({timeout: 3000});
+}
+
+export async function createHouse(page: Page, houseType: HouseType, options: CreateHouseOptions = {}) {
   await ensureMainMenuOpen(page);
   await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
 
@@ -120,6 +139,9 @@ export async function createHouse(page: Page, houseType: HouseType) {
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Casa Tipo 6' : 'Casa Tipo 3'}).click();
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Superior' : 'Esquerdo'}).click();
   await completeNivelDefinition(page);
+  if (options.dismissInitialHouseTour ?? true) {
+    await dismissInitialHouseGuidedTourIfVisible(page);
+  }
 }
 
 export async function triggerHouseAction(

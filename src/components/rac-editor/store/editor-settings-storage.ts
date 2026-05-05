@@ -4,7 +4,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function readSettingsStorage<T extends object>(defaults: T): T {
+export function readEditorSettingsStorage<T extends object>(defaults: T): T {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.settings);
     if (!raw) return {...defaults};
@@ -16,6 +16,6 @@ export function readSettingsStorage<T extends object>(defaults: T): T {
   }
 }
 
-export function writeSettingsStorage<T extends object>(value: T): void {
+export function writeEditorSettingsStorage<T extends object>(value: T): void {
   localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(value));
 }

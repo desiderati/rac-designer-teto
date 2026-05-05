@@ -56,12 +56,14 @@ test.describe('RAC 3D viewer', () => {
   test('viewer 3D: não renderiza casa quando o tipo foi escolhido mas nenhuma vista foi inserida', async ({page}) => {
     const now = new Date().toISOString();
     await page.addInitScript((timestamp) => {
-      localStorage.setItem('rac-tutorial-completed', 'true');
-      localStorage.setItem('rac-piloti-tip-shown', 'true');
-      localStorage.setItem('rac-wall-tip-shown', 'true');
-      localStorage.setItem('rac-line-tip-shown', 'true');
-      localStorage.setItem('rac-arrow-tip-shown', 'true');
-      localStorage.setItem('rac-distance-tip-shown', 'true');
+      localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+      localStorage.setItem('guided-tour:rac-house-initial-views:completed', 'true');
+      localStorage.setItem('guided-tour:rac-house-initial-views:completed:revision', 'top-view');
+      localStorage.setItem('guided-tour:rac-tip:piloti', 'true');
+      localStorage.setItem('guided-tour:rac-tip:wall', 'true');
+      localStorage.setItem('guided-tour:rac-tip:line', 'true');
+      localStorage.setItem('guided-tour:rac-tip:arrow', 'true');
+      localStorage.setItem('guided-tour:rac-tip:distance', 'true');
       localStorage.setItem('rac-settings', JSON.stringify({
         autoNavigatePiloti: false,
         zoomEnabledByDefault: true,

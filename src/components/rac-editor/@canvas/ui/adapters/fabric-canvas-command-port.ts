@@ -8,7 +8,10 @@ import {
   toCanvasGroup,
   toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib';
-import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
+import type {
+  GenericCanvasObjectEditorType,
+  PilotiCanvasSelection,
+} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {HousePiloti, HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
 import {createHouseGroupForView} from '@/components/rac-editor/@canvas/lib/house-view-groups.ts';
@@ -52,6 +55,10 @@ export interface FabricCanvasCommandPort {
   }) => string | null;
   applyPilotiEditorCloseVisuals: () => void;
   applyPilotiSelectionVisuals: (pilotiId: string) => void;
+  getPilotiScreenPosition: (
+    pilotiId: string,
+    houseView?: PilotiCanvasSelection['houseView'],
+  ) => { x: number; y: number } | null;
 }
 
 interface FabricCanvasCommandPortArgs {
@@ -77,6 +84,33 @@ export function createFabricCanvasCommandPort({
       if (runtime?.editorObjectId === objectId) return runtime;
     }
     return null;
+  };
+
+  const getPilotiLocalCenterPoint = (piloti: CanvasObject): { x: number; y: number } => {
+    const left = Number(piloti.left ?? 0);
+    const top = Number(piloti.top ?? 0);
+
+    if (piloti.isPilotiRect) {
+      return {
+        x: left + Number(piloti.width ?? 0) / 2,
+        y: top + Number(piloti.height ?? 0) / 2,
+      };
+    }
+
+    return {x: left, y: top};
+  };
+
+  const getHouseGroups = (houseView?: PilotiCanvasSelection['houseView']): CanvasGroup[] => {
+    const groups = canvas.getObjects()
+      .map((object) => toCanvasGroup(object))
+      .filter((group): group is CanvasGroup => group?.myType === 'house');
+
+    if (!houseView) return groups;
+
+    return [
+      ...groups.filter((group) => group.houseView === houseView),
+      ...groups.filter((group) => group.houseView !== houseView),
+    ];
   };
 
   return {
@@ -196,6 +230,27 @@ export function createFabricCanvasCommandPort({
     applyPilotiSelectionVisuals: (pilotiId) => {
       applyPilotiSelectionVisuals(canvas.getObjects(), pilotiId);
       canvas.renderAll();
+    },
+
+    getPilotiScreenPosition: (pilotiId, houseView) => {
+      const container = canvas.getElement().parentElement;
+      if (!container) return null;
+
+      for (const group of getHouseGroups(houseView)) {
+        const piloti = group.getCanvasObjects().find((object) =>
+          object.pilotiId === pilotiId && (object.isPilotiCircle || object.isPilotiRect),
+        );
+        if (!piloti) continue;
+
+        return projectCanvasPointToScreenPoint({
+          groupMatrix: group.calcTransformMatrix(),
+          localCanvasPoint: getPilotiLocalCenterPoint(piloti),
+          canvasContainer: container.getBoundingClientRect(),
+          viewportTransform: canvas.viewportTransform ?? undefined,
+        });
+      }
+
+      return null;
     },
   };
 }

@@ -1,6 +1,5 @@
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
-import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 
 export function useRacEditorLocalState() {
 
@@ -11,14 +10,6 @@ export function useRacEditorLocalState() {
   const [isPilotiEditorOpen, setIsPilotiEditorOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const [tutorialBalloon, setTutorialBalloon] = useState<TutorialBalloonState>(null);
-  const [tutorialPilotiPosition, setTutorialPilotiPosition] =
-    useState<{ x: number; y: number; } | null>(null);
-
-  const clearTutorialBalloon = useCallback(() => {
-    setTutorialBalloon(null);
-  }, []);
-
   return {
     infoMessage,
     setInfoMessage,
@@ -28,10 +19,5 @@ export function useRacEditorLocalState() {
     setIsPilotiEditorOpen,
     isDrawing,
     setIsDrawing,
-    tutorialBalloon,
-    setTutorialBalloon,
-    clearTutorialBalloon,
-    tutorialPilotiPosition,
-    setTutorialPilotiPosition,
   };
 }

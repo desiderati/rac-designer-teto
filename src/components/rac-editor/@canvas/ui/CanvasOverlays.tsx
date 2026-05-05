@@ -4,7 +4,6 @@ import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;
-  tutorialHighlight: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null | undefined;
   isPinching: boolean;
   zoom: number;
   onZoomChange: (value: number) => void;
@@ -34,7 +33,6 @@ interface CanvasOverlaysProps {
  */
 export function CanvasOverlays({
   showZoomControls,
-  tutorialHighlight,
   isPinching,
   zoom,
   onZoomChange: _onZoomChange,
@@ -48,7 +46,6 @@ export function CanvasOverlays({
   children,
 }: CanvasOverlaysProps) {
 
-  const isZoomTutorialHighlighted = tutorialHighlight === 'zoom-minimap';
   return (
     <>
       {/* Indicador de feedback do pinch zoom */}
@@ -64,7 +61,7 @@ export function CanvasOverlays({
       {/* Desktop: minimapa em posição fixa */}
       {showZoomControls && (
         <div
-          className={`absolute left-2.5 bottom-2.5 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
+          className='absolute left-2.5 bottom-2.5 z-10 flex-col items-start gap-1 transition-all duration-200 hidden sm:flex'>
           <Minimap
             canvasWidth={CANVAS_WIDTH}
             canvasHeight={CANVAS_HEIGHT}
@@ -75,14 +72,14 @@ export function CanvasOverlays({
             zoom={zoom}
             onViewportChange={onViewportChange}
             objects={minimapObjects}
-            highlight={isZoomTutorialHighlighted}
+            highlight={false}
           />
         </div>
       )}
 
       {/* Mobile: minimapa e InfoBar empilhados no contêiner flex */}
       <div
-        className={`absolute left-2.5 bottom-2.5 right-2.5 flex flex-col items-start gap-2 sm:hidden ${isZoomTutorialHighlighted ? 'z-50' : 'z-10'}`}>
+        className='absolute left-2.5 bottom-2.5 right-2.5 z-10 flex flex-col items-start gap-2 sm:hidden'>
         {showZoomControls && (
           <Minimap
             canvasWidth={CANVAS_WIDTH}
@@ -94,7 +91,7 @@ export function CanvasOverlays({
             zoom={zoom}
             onViewportChange={onViewportChange}
             objects={minimapObjects}
-            highlight={isZoomTutorialHighlighted}
+            highlight={false}
           />
         )}
         {/* InfoBar mobile renderizado aqui */}

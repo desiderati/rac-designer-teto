@@ -13,10 +13,9 @@ import {
   type HouseViewType
 } from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/@modals/ui/selectors/HouseSideSelector.tsx';
-import {HOUSE_DEFAULTS, PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib';
-import type {TutorialBalloonPosition} from '@/components/rac-editor/lib/tutorial.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
@@ -27,6 +26,10 @@ import {
   calculateStackedViewPositions,
   resolveHouseViewInsertion,
 } from '@/domain/house/use-cases/house-views-layout.use-case.ts';
+import {
+  dispatchRacCanvasObjectEvent,
+  RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT,
+} from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 
 interface UseCanvasHouseViewActionsArgs {
   canvasRef: RefObject<(
@@ -36,8 +39,7 @@ interface UseCanvasHouseViewActionsArgs {
   ) | null>;
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
-  addObjectToCanvas: (obj: CanvasObject) => void;
-  showPilotiTutorialIfNeeded: (position: TutorialBalloonPosition | null) => void;
+  addObjectToCanvas: (obj: CanvasObject) => boolean;
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
   pendingViewType: HouseViewType | null;
@@ -53,12 +55,76 @@ interface UseCanvasHouseViewActionsArgs {
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
 }
 
+const HOUSE_INITIAL_TOUR_KIND = 'house-initial-views';
+const HOUSE_TOP_VIEW_TARGET = 'house-top-view';
+const HOUSE_ELEVATION_VIEW_TARGET = 'house-elevation-view';
+
+interface CanvasEventRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+function toCanvasEventRect(rect: DOMRect): CanvasEventRect {
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function projectCanvasRect(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  rect: CanvasEventRect,
+): DOMRect | null {
+  const topLeft = canvasRef.current?.getCanvasPointScreenPosition({x: rect.left, y: rect.top});
+  const bottomRight = canvasRef.current?.getCanvasPointScreenPosition({
+    x: rect.left + rect.width,
+    y: rect.top + rect.height,
+  });
+  if (!topLeft || !bottomRight) return null;
+
+  const left = Math.min(topLeft.x, bottomRight.x);
+  const top = Math.min(topLeft.y, bottomRight.y);
+  const width = Math.abs(bottomRight.x - topLeft.x);
+  const height = Math.abs(bottomRight.y - topLeft.y);
+  return width > 0 && height > 0 ? new DOMRect(left, top, width, height) : null;
+}
+
+function getGroupScreenRect(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  group: CanvasGroup,
+): DOMRect | null {
+  group.setCoords();
+  const bounds = group.getBoundingRect();
+  return projectCanvasRect(canvasRef, bounds);
+}
+
+function dispatchInitialHouseViewsInsertedEvent(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  plantGroup: CanvasGroup,
+  elevationGroup: CanvasGroup,
+): void {
+  const topViewRect = getGroupScreenRect(canvasRef, plantGroup);
+  const elevationViewRect = getGroupScreenRect(canvasRef, elevationGroup);
+  if (!topViewRect || !elevationViewRect) return;
+
+  dispatchRacCanvasObjectEvent(RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT, {
+    kind: HOUSE_INITIAL_TOUR_KIND,
+    targets: {
+      [HOUSE_TOP_VIEW_TARGET]: toCanvasEventRect(topViewRect),
+      [HOUSE_ELEVATION_VIEW_TARGET]: toCanvasEventRect(elevationViewRect),
+    },
+  });
+}
+
 export function useCanvasHouseViewActions({
   canvasRef,
   getVisibleCenter,
   closeAllMenus,
   addObjectToCanvas,
-  showPilotiTutorialIfNeeded,
   houseReadPort,
   houseWritePort,
   pendingViewType,
@@ -73,24 +139,6 @@ export function useCanvasHouseViewActions({
   setSideSelectorOpen,
   setNivelDefinitionOpen,
 }: UseCanvasHouseViewActionsArgs) {
-
-  const resolvePilotiTutorialPosition =
-    (house: CanvasGroup): TutorialBalloonPosition | null => {
-      const objects = house.getCanvasObjects();
-
-      const typedPiloti = objects.find((typedObject) => {
-        if (!typedObject) return false;
-        return typedObject.pilotiId === PILOTI_CORNER_ID.topLeft && typedObject.isPilotiCircle === true;
-      });
-      if (!typedPiloti) return null;
-
-      const pilotiLeft = typedPiloti.left || 0;
-      const pilotiTop = typedPiloti.top || 0;
-      return canvasRef.current?.getGroupLocalPointScreenPosition(
-        house,
-        {x: pilotiLeft, y: pilotiTop},
-      ) ?? null;
-    };
 
   const addViewToCanvas =
     (viewType: HouseViewType, side?: HouseSide): CanvasGroup | null => {
@@ -113,12 +161,6 @@ export function useCanvasHouseViewActions({
         side,
       });
       if (!registration) return null;
-
-      if (viewType === 'top') {
-        setTimeout(() => {
-          showPilotiTutorialIfNeeded(resolvePilotiTutorialPosition(house));
-        }, TIMINGS.pilotiTutorialDelayMs);
-      }
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));
@@ -250,6 +292,7 @@ export function useCanvasHouseViewActions({
             plantGroup.setCoords();
             viewGroup.setCoords();
             canvasRef.current?.renderAll();
+            dispatchInitialHouseViewsInsertedEvent(canvasRef, plantGroup, viewGroup);
           }, TIMINGS.stackedViewRepositionDelayMs);
         }
       }

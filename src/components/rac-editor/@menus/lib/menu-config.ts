@@ -54,7 +54,7 @@ export type OverflowActionKey =
   'exportJSON'
   | 'savePDF'
   | 'open3DViewer'
-  | 'restartTutorial'
+  | 'restartDrawing'
   | 'toggleTips'
   | 'openSettings';
 
@@ -64,6 +64,7 @@ export interface MenuCommandConfig {
   title: string;
   color?: string;
   disabled?: boolean;
+  guidedTourId?: string;
 }
 
 export interface HouseMenuCommandConfig extends MenuCommandConfig {
@@ -120,7 +121,7 @@ export const TOP_BAR_ICONS = {
   // Avatar dropdown
   restart: faRotateLeft,
   tips: faLightbulb,
-  tutorial: faGraduationCap,
+  guidedTour: faGraduationCap,
   settings: faGear,
   exit: faRightFromBracket,
   // Hamburger dropdown
@@ -144,7 +145,12 @@ export const HOUSE_MENU_CONFIG: Record<'tipo6' | 'tipo3', HouseMenuCommandConfig
 };
 
 export const ELEMENTS_MENU_CONFIG: MenuCommandConfig[] = [
-  {action: 'addWall', icon: faTrowelBricks, title: 'Objeto / Muro'},
+  {
+    action: 'addWall',
+    icon: faTrowelBricks,
+    title: 'Objeto / Muro',
+    guidedTourId: 'rac-tool-wall',
+  },
   {action: 'addDoor', icon: faDoorOpen, title: 'Porta - Out Of Service', disabled: true},
   {action: 'addStairs', icon: faStairs, title: 'Escada - Out Of Service', disabled: true},
   {action: 'addTree', icon: faTree, title: 'Árvore'},
@@ -153,9 +159,24 @@ export const ELEMENTS_MENU_CONFIG: MenuCommandConfig[] = [
 ];
 
 export const LINES_MENU_CONFIG: MenuCommandConfig[] = [
-  {action: 'addLine', icon: faSlash, title: 'Linha Reta'},
-  {action: 'addArrow', icon: faArrowRightLong, title: 'Seta Simples'},
-  {action: 'addDistance', icon: faArrowsLeftRight, title: 'Distância'},
+  {
+    action: 'addLine',
+    icon: faSlash,
+    title: 'Linha Reta',
+    guidedTourId: 'rac-tool-line',
+  },
+  {
+    action: 'addArrow',
+    icon: faArrowRightLong,
+    title: 'Seta Simples',
+    guidedTourId: 'rac-tool-arrow',
+  },
+  {
+    action: 'addDistance',
+    icon: faArrowsLeftRight,
+    title: 'Distância',
+    guidedTourId: 'rac-tool-distance',
+  },
 ];
 
 export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [
@@ -188,7 +209,7 @@ export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [
   },
   {
     kind: 'action',
-    action: 'restartTutorial',
+    action: 'restartDrawing',
     icon: faRotateLeft,
     title: 'Reiniciar Canvas',
     color: TOOLBAR_THEME.overflowViewerActionIconColor,

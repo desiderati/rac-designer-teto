@@ -101,4 +101,52 @@ describe('createFabricCanvasCommandPort', () => {
     expect(onHouseViewRemoved).toHaveBeenCalledWith('front_1');
     expect(canvas.remove).toHaveBeenCalledWith(group);
   });
+
+  it('projects the requested piloti screen position from the matching house view', () => {
+    const frontGroup = {
+      type: 'group',
+      myType: 'house',
+      houseView: 'front',
+      calcTransformMatrix: () => [1, 0, 0, 1, 30, 40],
+      getObjects: () => [
+        {
+          pilotiId: 'piloti_3_2',
+          isPilotiRect: true,
+          left: 10,
+          top: 20,
+          width: 8,
+          height: 12,
+          set: vi.fn(),
+        },
+      ],
+    };
+    const topGroup = {
+      type: 'group',
+      myType: 'house',
+      houseView: 'top',
+      calcTransformMatrix: () => [1, 0, 0, 1, 0, 0],
+      getObjects: () => [
+        {
+          pilotiId: 'piloti_3_2',
+          isPilotiCircle: true,
+          left: 1,
+          top: 2,
+          set: vi.fn(),
+        },
+      ],
+    };
+    const canvas = {
+      getObjects: () => [topGroup, frontGroup],
+      getElement: () => ({
+        parentElement: {
+          getBoundingClientRect: () => ({left: 100, top: 50}),
+        },
+      }),
+      viewportTransform: [2, 0, 0, 2, 10, 20],
+    };
+
+    const position = createPort(canvas).getPilotiScreenPosition('piloti_3_2', 'front');
+
+    expect(position).toEqual({x: 198, y: 202});
+  });
 });

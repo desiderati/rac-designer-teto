@@ -8,9 +8,8 @@ import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/House
 import type {House3DProjectionPort} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 import type {EditorSettingsPort} from '@/components/rac-editor/ports/EditorSettingsPort.ts';
-import type {TutorialProgressPort} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
-import {createDefaultEditorSettingsPort, createDefaultTutorialProgressPort} from '@/bootstrap/editor-infra-ports.ts';
+import {createDefaultEditorSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 
 export const EditorStoreContext = createContext<EditorStore | null>(null);
 
@@ -23,7 +22,6 @@ export interface EditorPorts {
   house3DProjectionPort: House3DProjectionPort;
   houseDrawingDocumentPort: HouseDrawingDocumentPort;
   settingsPort: EditorSettingsPort;
-  tutorialProgressPort: TutorialProgressPort;
 }
 
 export const EditorPortsContext = createContext<EditorPorts | null>(null);
@@ -46,13 +44,11 @@ export function createEditorStore(): EditorStore {
  */
 export function createEditorPorts(): EditorPorts {
   const settingsPort = createDefaultEditorSettingsPort();
-  const tutorialProgressPort = createDefaultTutorialProgressPort();
   const housePorts = createDefaultEditorHousePorts({settingsPort});
 
   return {
     ...housePorts,
     settingsPort,
-    tutorialProgressPort,
   };
 }
 

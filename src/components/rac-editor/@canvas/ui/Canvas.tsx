@@ -57,8 +57,6 @@ interface CanvasProps {
   /** Notifica o componente pai sempre que o zoom interno muda. */
   onZoomChange?: (zoom: number) => void;
 
-  tutorialHighlight?: 'main-fab' | 'house' | 'elements' | 'zoom-minimap' | 'more-options' | null;
-
   // Contraventamento
   isContraventamentoMode?: boolean;
   isPilotiEligibleForContraventamento?: (pilotiId: string) => boolean;
@@ -88,7 +86,6 @@ export const Canvas =
       showTips = false,
       canvasToolMode = 'select',
       onZoomChange,
-      tutorialHighlight,
 
       isContraventamentoMode = false,
       isPilotiEligibleForContraventamento,
@@ -243,6 +240,8 @@ export const Canvas =
         applyGenericObjectEdit: (payload) => createCommandPort()?.applyGenericObjectEdit(payload) ?? null,
         applyPilotiEditorCloseVisuals: () => createCommandPort()?.applyPilotiEditorCloseVisuals(),
         applyPilotiSelectionVisuals: (pilotiId) => createCommandPort()?.applyPilotiSelectionVisuals(pilotiId),
+        getPilotiScreenPosition: (pilotiId, houseView) =>
+          createCommandPort()?.getPilotiScreenPosition(pilotiId, houseView) ?? null,
         getCanvasPosition: () => ({x: viewportX, y: viewportY, zoom}),
         setCanvasPosition: (x: number, y: number) => {
           handleViewportChange(x, y);
@@ -370,6 +369,7 @@ export const Canvas =
         <div
           ref={containerRef}
           data-testid='rac-canvas-container'
+          data-guided-tour-id='rac-canvas'
           className='w-full h-full overflow-hidden relative touch-none'
           style={{
             ...CANVAS_WORKSPACE_STYLE,
@@ -414,7 +414,6 @@ export const Canvas =
             onViewportChange={handleViewportChange}
 
             showTips={showTips}
-            tutorialHighlight={tutorialHighlight}
           >
             {children}
           </CanvasOverlays>

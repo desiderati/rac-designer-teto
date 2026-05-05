@@ -1,6 +1,5 @@
 import {useCallback, type Dispatch, type RefObject, type SetStateAction} from 'react';
 import type {CanvasControllerHandle} from '@/components/rac-editor/@canvas/ports/CanvasControllerHandle.ts';
-import type {TutorialBalloonPosition, TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
 import type {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {useEditorPorts, useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
 import {useCanvasActions} from '@/components/rac-editor/@canvas/hooks/useCanvasActions.ts';
@@ -27,11 +26,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
-  setTutorialBalloon: Dispatch<SetStateAction<TutorialBalloonState>>;
-  clearTutorialBalloon: () => void;
   setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
-  dismissPilotiTutorial: () => void;
-  showPilotiTutorialIfNeeded: (position: TutorialBalloonPosition | null) => void;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -44,11 +39,7 @@ export function useCanvasController({
   isDrawing,
   setIsDrawing,
   setInfoMessage,
-  setTutorialBalloon,
-  clearTutorialBalloon,
   setActiveSubmenu,
-  dismissPilotiTutorial,
-  showPilotiTutorialIfNeeded,
   pendingViewType,
   setPendingViewType,
   sideSelectorMode,
@@ -77,9 +68,7 @@ export function useCanvasController({
     setInfoMessage,
     houseReadPort,
     houseWritePort,
-    clearTutorialBalloon,
     onCloseSubmenus: () => setActiveSubmenu(null),
-    onDismissPilotiTutorial: dismissPilotiTutorial,
   });
 
   const {
@@ -111,7 +100,6 @@ export function useCanvasController({
     getVisibleCenter,
     closeAllMenus,
     addObjectToCanvas,
-    showPilotiTutorialIfNeeded,
     houseReadPort,
     houseWritePort,
     pendingViewType,
@@ -147,7 +135,6 @@ export function useCanvasController({
     isDrawing,
     setIsDrawing,
     setInfoMessage,
-    setTutorialBalloon,
   });
 
   return {

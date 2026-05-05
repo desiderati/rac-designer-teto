@@ -1,7 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {getSettings, updateSetting} from '@/infra/settings.ts';
+import {getSettings, updateSetting} from '@/components/rac-editor/store/editor-settings.ts';
 
-describe('settings.ts', () => {
+describe('editor-settings.ts', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -46,4 +46,3 @@ describe('settings.ts', () => {
     });
   });
 });
-

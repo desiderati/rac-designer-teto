@@ -18,8 +18,6 @@ export function RacEditorMenus({
   isDrawing,
   activeSubmenu,
   showTips,
-  tutorialHighlight = null,
-  isTutorialActive = false,
   houseType,
   frontViewCount = {current: 0, max: 0},
   backViewCount = {current: 0, max: 0},
@@ -45,8 +43,6 @@ export function RacEditorMenus({
         actions={actions}
         isDrawing={isDrawing}
         activeSubmenu={activeSubmenu}
-        isTutorialActive={isTutorialActive}
-        tutorialHighlight={tutorialHighlight}
         houseType={houseType}
         frontViewCount={frontViewCount}
         backViewCount={backViewCount}

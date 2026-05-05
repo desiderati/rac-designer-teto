@@ -5,11 +5,14 @@ import type {CanvasRenderHandle} from '@/components/rac-editor/@canvas/ports/Can
 import type {PilotiCanvasSelection} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 import {useEditorStore} from '@/bootstrap/editor-bootstrap.ts';
+import {
+  dispatchRacCanvasObjectEvent,
+  type RacCanvasObjectEventKind,
+  RAC_CANVAS_OBJECT_SELECTED_EVENT,
+} from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 
 interface UsePilotiActionsArgs {
   isContraventamentoMode: boolean;
-  hasPilotiTutorial: boolean;
-  closePilotiTutorial: () => void;
   canvasRef: RefObject<(CanvasEditorVisualHandle & CanvasHistoryHandle & CanvasRenderHandle) | null>;
   pilotiSelection: PilotiCanvasSelection | null;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
@@ -18,10 +21,24 @@ interface UsePilotiActionsArgs {
   setInfoMessage: Dispatch<SetStateAction<string>>;
 }
 
+function dispatchPilotiSelectedEvent(
+  selection: Pick<PilotiCanvasSelection, 'screenPosition'>,
+  kind: Extract<RacCanvasObjectEventKind, 'piloti' | 'piloti-master'>,
+): void {
+  const size = 36;
+  dispatchRacCanvasObjectEvent(RAC_CANVAS_OBJECT_SELECTED_EVENT, {
+    kind,
+    rect: {
+      left: selection.screenPosition.x - size / 2,
+      top: selection.screenPosition.y - size / 2,
+      width: size,
+      height: size,
+    },
+  });
+}
+
 export function usePilotiEditorActions({
   isContraventamentoMode,
-  hasPilotiTutorial,
-  closePilotiTutorial,
   canvasRef,
   pilotiSelection,
   setPilotiSelection,
@@ -42,14 +59,10 @@ export function usePilotiEditorActions({
 
       setPilotiSelection(selection);
       if (selection) {
+        dispatchPilotiSelectedEvent(selection, selection.currentIsMaster ? 'piloti-master' : 'piloti');
         setIsPilotiEditorOpen(true);
-        if (hasPilotiTutorial) {
-          closePilotiTutorial();
-        }
       }
     }, [
-      closePilotiTutorial,
-      hasPilotiTutorial,
       editorStore,
       isContraventamentoMode,
       setIsPilotiEditorOpen,
@@ -76,7 +89,15 @@ export function usePilotiEditorActions({
     isMaster: boolean,
     nivel: number
   ) => {
+    const nextScreenPosition =
+      isMaster
+        ? canvasRef.current?.getPilotiScreenPosition(pilotiId, pilotiSelection?.houseView) ?? null
+        : null;
+
     canvasRef.current?.applyPilotiSelectionVisuals(pilotiId);
+    if (nextScreenPosition) {
+      dispatchPilotiSelectedEvent({screenPosition: nextScreenPosition}, 'piloti-master');
+    }
 
     setPilotiSelection((previous) => previous ? {
       ...previous,
@@ -87,15 +108,18 @@ export function usePilotiEditorActions({
       editorSelection: {
         ...previous.editorSelection,
         pilotiId,
+        screenPosition: nextScreenPosition ?? previous.editorSelection.screenPosition,
       },
+      screenPosition: nextScreenPosition ?? previous.screenPosition,
     } : null);
 
-    if (pilotiSelection.editorSelection) {
+    if (pilotiSelection?.editorSelection) {
       editorStore.dispatch({
         type: 'SELECT_EDITOR_TARGET',
         selection: {
           ...pilotiSelection.editorSelection,
           pilotiId,
+          screenPosition: nextScreenPosition ?? pilotiSelection.editorSelection.screenPosition,
         },
       });
     }

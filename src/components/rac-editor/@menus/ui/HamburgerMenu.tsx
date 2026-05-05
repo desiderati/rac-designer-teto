@@ -40,6 +40,7 @@ export function HamburgerMenu({actions}: HamburgerMenuProps) {
             type='button'
             title='Menu principal'
             aria-label='Abrir menu principal'
+            data-guided-tour-id='rac-hamburger'
             className={cn(
               'w-12 h-12 flex items-center justify-center rounded-full',
               'bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm',

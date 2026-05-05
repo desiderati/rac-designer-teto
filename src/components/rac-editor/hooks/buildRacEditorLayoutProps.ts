@@ -9,7 +9,6 @@ interface BuildRacEditorLayoutPropsArgs {
   activeSubmenu: LayoutProps['menus']['activeSubmenu'];
   showTips: LayoutProps['menus']['showTips'];
   showZoomControls: LayoutProps['menus']['showZoomControls'];
-  tutorialStep: LayoutProps['menus']['tutorialHighlight'];
   isMenuOpen: LayoutProps['menus']['isMenuOpen'];
   currentHouseType: LayoutProps['menus']['houseType'];
   frontViewCount: LayoutProps['menus']['frontViewCount'];
@@ -27,9 +26,7 @@ interface BuildRacEditorLayoutPropsArgs {
   isPilotiEligibleAsDestination: LayoutProps['canvas']['isPilotiEligibleForContraventamento'];
   setDisplayZoom: LayoutProps['canvas']['onZoomChange'];
   setInfoMessage: LayoutProps['canvas']['onSelectionMessage'];
-  dismissPilotiTutorial: () => void;
-  clearTutorialBalloon: () => void;
-  handleZoomTutorialInteraction: LayoutProps['canvas']['onZoomInteraction'];
+  handleZoomInteraction: LayoutProps['canvas']['onZoomInteraction'];
   handlePilotiSelect: LayoutProps['canvas']['onPilotiSelect'];
   handleWallSelect: LayoutProps['canvas']['onWallSelect'];
   handleLinearSelect: LayoutProps['canvas']['onLinearSelect'];
@@ -44,7 +41,6 @@ interface BuildRacEditorLayoutPropsArgs {
   houseTypeSelectorOpen: LayoutProps['houseTypeSelector']['houseTypeSelectorOpen'];
   handleHouseTypeSelectorClose: LayoutProps['houseTypeSelector']['onHouseTypeSelectorClose'];
   handleHouseTypeSelected: LayoutProps['houseTypeSelector']['onHouseTypeSelected'];
-  tutorialHouseSelectorPreview: LayoutProps['houseTypeSelector']['tutorialHouseSelectorPreview'];
   nivelDefinitionOpen: LayoutProps['houseTypeSelector']['nivelDefinitionOpen'];
   handleNivelDefinitionClose: LayoutProps['houseTypeSelector']['onCloseNivelDefinition'];
   handleNiveisApplied: LayoutProps['houseTypeSelector']['onApplyNiveis'];
@@ -80,12 +76,8 @@ interface BuildRacEditorLayoutPropsArgs {
   setIsSettingsOpen: LayoutProps['modals']['onSettingsOpenChange'];
   handleSettingsChange: LayoutProps['modals']['onSettingsChange'];
   showRestartConfirm: LayoutProps['modals']['showRestartConfirm'];
-  confirmRestartTutorial: LayoutProps['modals']['onConfirmRestartTutorial'];
+  confirmRestartDrawing: LayoutProps['modals']['onConfirmRestartDrawing'];
   closeRestartConfirm: LayoutProps['modals']['onCloseRestartConfirm'];
-  handleTutorialComplete: LayoutProps['tutorial']['onTutorialComplete'];
-  tutorialPilotiPosition: LayoutProps['tutorial']['tutorialPilotiPosition'];
-  handleClosePilotiTutorial: LayoutProps['tutorial']['onCloseTutorialPiloti'];
-  tutorialBalloon: LayoutProps['tutorial']['tutorialBalloon'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
 }
@@ -101,9 +93,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       activeSubmenu: args.activeSubmenu,
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
-      tutorialHighlight: args.tutorialStep,
       isMenuOpen: args.isMenuOpen,
-      isTutorialActive: args.tutorialStep !== null,
       houseType: args.currentHouseType,
       frontViewCount: args.frontViewCount,
       backViewCount: args.backViewCount,
@@ -116,7 +106,6 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
     },
     canvas: {
       canvasRef: args.canvasRef,
-      tutorialStep: args.tutorialStep,
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
       infoMessage: args.infoMessage,
@@ -126,11 +115,8 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       canvasToolMode: args.canvasToolMode,
       onZoomChange: args.setDisplayZoom,
       onSelectionMessage: args.setInfoMessage,
-      onSelectionAuxCleanup: () => {
-        args.dismissPilotiTutorial();
-        args.clearTutorialBalloon();
-      },
-      onZoomInteraction: args.handleZoomTutorialInteraction,
+      onSelectionAuxCleanup: () => {},
+      onZoomInteraction: args.handleZoomInteraction,
       onPilotiSelect: args.handlePilotiSelect,
       onWallSelect: args.handleWallSelect,
       onLinearSelect: args.handleLinearSelect,
@@ -147,7 +133,6 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       houseTypeSelectorOpen: args.houseTypeSelectorOpen,
       onHouseTypeSelectorClose: args.handleHouseTypeSelectorClose,
       onHouseTypeSelected: args.handleHouseTypeSelected,
-      tutorialHouseSelectorPreview: args.tutorialHouseSelectorPreview,
       nivelDefinitionOpen: args.nivelDefinitionOpen,
       onCloseNivelDefinition: args.handleNivelDefinitionClose,
       onApplyNiveis: args.handleNiveisApplied,
@@ -190,16 +175,8 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onSettingsOpenChange: args.setIsSettingsOpen,
       onSettingsChange: args.handleSettingsChange,
       showRestartConfirm: args.showRestartConfirm,
-      onConfirmRestartTutorial: args.confirmRestartTutorial,
+      onConfirmRestartDrawing: args.confirmRestartDrawing,
       onCloseRestartConfirm: args.closeRestartConfirm,
-    },
-    tutorial: {
-      tutorialStep: args.tutorialStep,
-      onTutorialComplete: args.handleTutorialComplete,
-      tutorialPilotiPosition: args.tutorialPilotiPosition,
-      onCloseTutorialPiloti: args.handleClosePilotiTutorial,
-      tutorialBalloon: args.tutorialBalloon,
-      onCloseTutorialBalloon: args.clearTutorialBalloon,
     },
     viewer: {
       open: args.is3DViewerOpen,

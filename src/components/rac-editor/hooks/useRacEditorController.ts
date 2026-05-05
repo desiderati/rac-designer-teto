@@ -1,4 +1,5 @@
-import {useRef} from 'react';
+import {MouseEvent as ReactMouseEvent, useCallback, useRef} from 'react';
+import {toast} from 'sonner';
 import type {RacEditorCanvasHandle} from '@/components/rac-editor/@canvas/ports/RacEditorCanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts';
@@ -8,11 +9,9 @@ import {useRacEditorUiRefs} from '@/components/rac-editor/hooks/useRacEditorUiRe
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
 import type {HouseType} from '@/shared/types/house.ts';
-import {useTutorialMenuActions} from '@/components/rac-editor/hooks/tutorial/useTutorialMenuActions.ts';
 import {useRacEditorMenuController} from '@/components/rac-editor/@menus/hooks/useRacEditorMenuController.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
-import {useRacEditorTutorialController} from '@/components/rac-editor/hooks/useRacEditorTutorialController.ts';
 import {useRacEditorShellController} from '@/components/rac-editor/hooks/useRacEditorShellController.ts';
 import {buildRacEditorLayoutProps} from '@/components/rac-editor/hooks/buildRacEditorLayoutProps.ts';
 import {useRacEditorCanvasFlowController} from '@/components/rac-editor/hooks/useRacEditorCanvasFlowController.ts';
@@ -20,13 +19,14 @@ import {
   useRacEditorDocumentHotkeysController
 } from '@/components/rac-editor/hooks/useRacEditorDocumentHotkeysController.ts';
 import {useRacEditorModalEditorController} from '@/components/rac-editor/hooks/useRacEditorModalEditorController.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
  */
 export function useRacEditorController(): RacEditorLayoutProps {
   const isMobile = useIsMobile();
-  const {houseReadPort} = useEditorPorts();
+  const {houseReadPort, houseWritePort} = useEditorPorts();
 
   const {
     pendingViewType,
@@ -57,11 +57,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setIsPilotiEditorOpen,
     isDrawing,
     setIsDrawing,
-    tutorialBalloon,
-    setTutorialBalloon,
-    clearTutorialBalloon,
-    tutorialPilotiPosition,
-    setTutorialPilotiPosition,
   } = useRacEditorLocalState();
 
   const canvasRef = useRef<RacEditorCanvasHandle>(null);
@@ -116,30 +111,30 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setCanvasToolMode,
   });
 
-  const {
-    tutorialStep,
-    tutorialHouseSelectorPreview,
-    setTutorialHouseSelectorPreview,
-    advanceTutorial,
-    completeTutorial,
-    restartTutorialProgress,
-    handleRestartTutorial,
-    confirmRestartTutorial,
-    closeRestartConfirm,
-    dismissPilotiTutorial,
-    handleClosePilotiTutorial,
-    showPilotiTutorialIfNeeded,
-  } = useRacEditorTutorialController({
-    isMobile,
+  const handleRestartDrawing = useCallback(() => {
+    setShowRestartConfirm(true);
+  }, [setShowRestartConfirm]);
+
+  const closeRestartConfirm = useCallback(() => {
+    setShowRestartConfirm(false);
+  }, [setShowRestartConfirm]);
+
+  const confirmRestartDrawing = useCallback(() => {
+    canvasRef.current?.resetSurface();
+    houseWritePort.resetHouse();
+    setActiveSubmenu(null);
+    setIsMenuOpen(false);
+    setHouseTypeSelectorOpen(false);
+    setShowRestartConfirm(false);
+    toast.success(TOAST_MESSAGES.canvasRestartedSuccessfully);
+  }, [
     canvasRef,
-    tutorialPilotiPosition,
-    setTutorialPilotiPosition,
-    clearTutorialBalloon,
+    houseWritePort,
     setActiveSubmenu,
-    setIsMenuOpen,
     setHouseTypeSelectorOpen,
+    setIsMenuOpen,
     setShowRestartConfirm,
-  });
+  ]);
 
   const {
     closeAllMenus,
@@ -173,11 +168,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isDrawing,
     setIsDrawing,
     setInfoMessage,
-    setTutorialBalloon,
-    clearTutorialBalloon,
     setActiveSubmenu,
-    dismissPilotiTutorial,
-    showPilotiTutorialIfNeeded,
     pendingViewType,
     setPendingViewType,
     sideSelectorMode,
@@ -191,36 +182,55 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setNivelDefinitionOpen,
   });
 
-  const {
-    handleToggleMenu,
-    handleOpenHouseTypeSelector,
-    handleHouseTypeSelectorClose,
-    handleToggleHouseMenu,
-    handleToggleElementsMenu,
-    handleToggleLinesMenu,
-    handleToggleOverflowMenu,
-    handleToggleTips,
-    handleContainerClick,
-    handleTutorialComplete,
-    handleZoomTutorialInteraction,
-    handleToggleZoomControls,
-  } = useTutorialMenuActions({
-    tutorialStep,
-    advanceTutorial,
-    completeTutorial,
-    isMenuOpen,
-    setIsMenuOpen,
-    setActiveSubmenu,
-    setShowTips,
-    setShowZoomControls,
-    setFamilySetupOpen,
-    setHouseTypeSelectorOpen,
-    setTutorialHouseSelectorPreview,
-    closeAllMenus,
-    dismissPilotiTutorial,
-    disableDrawingMode,
-    isHouseTypeSelected: () => !!houseReadPort.getCurrentHouseType(),
-  });
+  const handleOpenHouseTypeSelector = useCallback(() => {
+    closeAllMenus();
+    setFamilySetupOpen(true);
+  }, [closeAllMenus, setFamilySetupOpen]);
+
+  const handleHouseTypeSelectorClose = useCallback(() => {
+    setHouseTypeSelectorOpen(false);
+  }, [setHouseTypeSelectorOpen]);
+
+  const handleToggleMenu = useCallback(() => {
+    const newIsOpen = !isMenuOpen;
+    setIsMenuOpen(newIsOpen);
+    if (!newIsOpen) {
+      setActiveSubmenu(null);
+    }
+  }, [isMenuOpen, setActiveSubmenu, setIsMenuOpen]);
+
+  const handleToggleHouseMenu = useCallback(() => {
+    disableDrawingMode();
+    if (houseReadPort.getCurrentHouseType()) {
+      setActiveSubmenu((current) => current === 'house' ? null : 'house');
+      return;
+    }
+    handleOpenHouseTypeSelector();
+  }, [disableDrawingMode, handleOpenHouseTypeSelector, houseReadPort, setActiveSubmenu]);
+
+  const toggleSubmenu = useCallback((submenu: 'elements' | 'lines' | 'overflow') => {
+    disableDrawingMode();
+    setActiveSubmenu((current) => current === submenu ? null : submenu);
+  }, [disableDrawingMode, setActiveSubmenu]);
+
+  const handleToggleElementsMenu = useCallback(() => toggleSubmenu('elements'), [toggleSubmenu]);
+  const handleToggleLinesMenu = useCallback(() => toggleSubmenu('lines'), [toggleSubmenu]);
+  const handleToggleOverflowMenu = useCallback(() => toggleSubmenu('overflow'), [toggleSubmenu]);
+  const handleToggleTips = useCallback(() => setShowTips((current) => !current), [setShowTips]);
+  const handleToggleZoomControls = useCallback(
+    () => setShowZoomControls((current) => !current),
+    [setShowZoomControls],
+  );
+
+  const handleContainerClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.submenu') && !target.closest('button')) {
+      closeAllMenus();
+    }
+  }, [closeAllMenus]);
+
+  const handleZoomInteraction = useCallback(() => {
+  }, []);
 
   const {
     isContraventamentoMode,
@@ -275,8 +285,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isAnyEditorOpen,
   } = useRacEditorModalEditorController({
     isContraventamentoMode,
-    hasPilotiTutorial: !!tutorialPilotiPosition,
-    closePilotiTutorial: handleClosePilotiTutorial,
     canvasRef,
     pilotiSelection,
     setPilotiSelection,
@@ -323,8 +331,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
       handleToggleTips,
       handleToggleZoomControls,
       handleToggleMenu,
-      handleRestartTutorial,
-      handleOpenTutorial: restartTutorialProgress,
+      handleRestartDrawing,
       handleExit,
       handleRenameFamily,
       handleSetCanvasToolMode,
@@ -342,7 +349,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     activeSubmenu,
     showTips,
     showZoomControls,
-    tutorialStep,
     isMenuOpen,
     currentHouseType,
     frontViewCount,
@@ -360,9 +366,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isPilotiEligibleAsDestination,
     setDisplayZoom,
     setInfoMessage,
-    dismissPilotiTutorial,
-    clearTutorialBalloon,
-    handleZoomTutorialInteraction,
+    handleZoomInteraction,
     handlePilotiSelect,
     handleWallSelect,
     handleLinearSelect,
@@ -377,7 +381,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     houseTypeSelectorOpen,
     handleHouseTypeSelectorClose,
     handleHouseTypeSelected,
-    tutorialHouseSelectorPreview,
     nivelDefinitionOpen,
     handleNivelDefinitionClose,
     handleNiveisApplied,
@@ -413,12 +416,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setIsSettingsOpen,
     handleSettingsChange,
     showRestartConfirm,
-    confirmRestartTutorial,
+    confirmRestartDrawing,
     closeRestartConfirm,
-    handleTutorialComplete,
-    tutorialPilotiPosition,
-    handleClosePilotiTutorial,
-    tutorialBalloon,
     is3DViewerOpen,
     setIs3DViewerOpen,
   });

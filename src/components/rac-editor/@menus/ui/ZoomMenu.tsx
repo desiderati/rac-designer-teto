@@ -37,6 +37,7 @@ export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, isMo
           type='button'
           title='Ferramentas de canvas'
           aria-label={`Zoom atual ${zoomPercent}%. Abrir ferramentas de canvas.`}
+          data-guided-tour-id='rac-zoom-menu'
           className={cn(
             'flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium',
             'bg-white/85 backdrop-blur-xl border border-slate-200 shadow-sm',

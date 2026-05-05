@@ -11,12 +11,6 @@ export const APP_SETTINGS_DEFAULTS = {
 export const STORAGE_KEYS = {
   settings: 'rac-settings',
   projects: 'rac-projects',
-  tutorialCompleted: 'rac-tutorial-completed',
-  pilotiTipShown: 'rac-piloti-tip-shown',
-  wallTipShown: 'rac-wall-tip-shown',
-  lineTipShown: 'rac-line-tip-shown',
-  arrowTipShown: 'rac-arrow-tip-shown',
-  distanceTipShown: 'rac-distance-tip-shown',
 } as const;
 
 export const VIEWPORT = {
@@ -217,8 +211,6 @@ export const MINIMAP = {
 export const TIMINGS = {
   mobileTapToEditDelayMs: 300,
   mobilePilotiTapDelayMs: 50,
-  tutorialBalloonDelayMs: 100,
-  pilotiTutorialDelayMs: 100,
   pilotiAutoNavigateDelayMs: 150,
   stackedViewRepositionDelayMs: 50,
   pinchEndDebounceMs: 450,

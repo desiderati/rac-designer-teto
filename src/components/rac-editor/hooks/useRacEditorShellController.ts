@@ -28,7 +28,7 @@ interface UseRacEditorShellControllerArgs {
 
 /**
  * Agrupa comandos globais da shell do editor que nao pertencem ao canvas,
- * tutorial ou aos editores modais.
+ * nem aos editores modais.
  */
 export function useRacEditorShellController({
   canvasRef,

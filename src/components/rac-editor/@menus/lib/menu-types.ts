@@ -1,5 +1,4 @@
 import {HouseType} from '@/shared/types/house.ts';
-import {TutorialHighlight} from '@/components/rac-editor/lib/tutorial.ts';
 
 export type CanvasToolMode = 'select' | 'pan';
 
@@ -32,10 +31,8 @@ export interface MenuActionMap {
   toggleZoomControls: () => void;
   open3DViewer: () => void;
   toggleMenu: () => void;
-  restartTutorial: () => void;
+  restartDrawing: () => void;
   openSettings?: () => void;
-  /** Opens the project tutorial without resetting the canvas. */
-  openTutorial: () => void;
   /** User exit / sign-out hook. Currently a no-op stub. */
   exit: () => void;
   /** Persists a new family name from the inline top-bar editor. */
@@ -59,9 +56,7 @@ export interface RacEditorMenusProps {
   activeSubmenu: MenuSubmenu;
   showTips: boolean;
   showZoomControls: boolean;
-  tutorialHighlight?: TutorialHighlight;
   isMenuOpen: boolean;
-  isTutorialActive?: boolean;
   houseType: HouseType;
   frontViewCount?: MenuViewCount;
   backViewCount?: MenuViewCount;

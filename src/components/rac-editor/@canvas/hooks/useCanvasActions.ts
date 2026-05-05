@@ -24,9 +24,7 @@ interface UseCanvasActionsArgs {
   setInfoMessage: Dispatch<SetStateAction<string>>;
   houseReadPort: Pick<HouseReadPort, 'canDeleteTopView'>;
   houseWritePort: Pick<HouseWritePort, 'removeView' | 'setHouseType'>;
-  clearTutorialBalloon: () => void;
   onCloseSubmenus: () => void;
-  onDismissPilotiTutorial: () => void;
 }
 
 export function useCanvasActions({
@@ -36,9 +34,7 @@ export function useCanvasActions({
   setInfoMessage,
   houseReadPort,
   houseWritePort,
-  clearTutorialBalloon,
   onCloseSubmenus,
-  onDismissPilotiTutorial,
 }: UseCanvasActionsArgs) {
 
   const getVisibleCenter = useCallback(() => {
@@ -50,14 +46,12 @@ export function useCanvasActions({
   }, [canvasRef]);
 
   const addObjectToCanvas = useCallback((obj: CanvasObject) => {
-    canvasRef.current?.addObjectAtVisibleCenter(obj);
+    return canvasRef.current?.addObjectAtVisibleCenter(obj) ?? false;
   }, [canvasRef]);
 
   const closeAllMenus = useCallback(() => {
     onCloseSubmenus();
-    onDismissPilotiTutorial();
-    clearTutorialBalloon();
-  }, [clearTutorialBalloon, onCloseSubmenus, onDismissPilotiTutorial]);
+  }, [onCloseSubmenus]);
 
   const disableDrawingMode = useCallback(() => {
     if (isDrawing && canvasRef.current?.setDrawingModeEnabled(false)) {

@@ -13,6 +13,7 @@ interface FloatingEditorProps {
   confirmLabel: string;
   cancelLabel?: string;
   isConfirmDisabled?: boolean;
+  dataGuidedTourId?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -26,6 +27,7 @@ export function FloatingEditor({
   confirmLabel,
   cancelLabel = 'Cancelar',
   isConfirmDisabled = false,
+  dataGuidedTourId,
   onConfirm,
   onCancel,
 }: FloatingEditorProps) {
@@ -74,7 +76,10 @@ export function FloatingEditor({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && onCancel()}>
         <DrawerContent>
-          <div className='px-4 pb-4'>
+          <div
+            className='px-4 pb-4'
+            data-guided-tour-id={dataGuidedTourId}
+          >
             {editorBody}
           </div>
         </DrawerContent>
@@ -86,6 +91,7 @@ export function FloatingEditor({
       <div className='fixed inset-0 z-40' onClick={onCancel}/>
       <div
         className='fixed z-50 bg-background rounded-xl border shadow-md p-6 min-w-[280px] select-none'
+        data-guided-tour-id={dataGuidedTourId}
         style={
           panelPos
             ? {position: 'fixed', left: panelPos.x, top: panelPos.y}

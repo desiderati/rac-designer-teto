@@ -52,6 +52,7 @@ export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isM
         <button
           type='button'
           onClick={actions.open3DViewer}
+          data-guided-tour-id='rac-view-3d'
           className={cn(
             'hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium',
             'bg-white/85 backdrop-blur-md border border-slate-200 shadow-sm',
@@ -67,6 +68,7 @@ export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isM
         <button
           type='button'
           onClick={actions.savePDF}
+          data-guided-tour-id='rac-export-pdf'
           className={cn(
             'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white',
             'bg-gradient-to-tr from-blue-500 to-blue-300 shadow-md border border-blue-200',
@@ -82,11 +84,10 @@ export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isM
         <UserMenu
           isMobile={isMobile}
           showTips={showTips}
-          onRestartDrawing={actions.restartTutorial}
+          onRestartDrawing={actions.restartDrawing}
           onOpen3DViewer={actions.open3DViewer}
           onSavePDF={actions.savePDF}
           onToggleTips={actions.toggleTips}
-          onOpenTutorial={actions.openTutorial}
           onOpenSettings={() => actions.openSettings?.()}
           onExit={actions.exit}
         />

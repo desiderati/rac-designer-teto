@@ -227,6 +227,7 @@ export function PilotiEditor({
       isMobile={isMobile}
       anchorPosition={anchorPosition}
       confirmLabel='Confirmar'
+      dataGuidedTourId='rac-piloti-editor'
       onConfirm={handleApply}
       onCancel={handleCancel}
     />

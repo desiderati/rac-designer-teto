@@ -2,11 +2,12 @@ import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
 import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
 import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
 import type {CanvasDrawingModeHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
-import {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@canvas/lib';
-import {TIMINGS} from '@/shared/config.ts';
-import {TutorialBalloonState} from '@/components/rac-editor/lib/tutorial.ts';
-import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
-import type {TutorialTipKey} from '@/components/rac-editor/ports/TutorialProgressPort.ts';
+import type {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@canvas/lib';
+import {
+  dispatchRacCanvasObjectEvent,
+  RAC_CANVAS_OBJECT_INSERTED_EVENT,
+  type RacCanvasObjectEventKind,
+} from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 
 interface UseCanvasToolsArgs {
   canvasRef: RefObject<(
@@ -14,18 +15,57 @@ interface UseCanvasToolsArgs {
     & CanvasObjectCreationHandle
     & CanvasScreenProjectionHandle
   ) | null>;
-  addObjectToCanvas: (object: CanvasObject) => void;
+  addObjectToCanvas: (object: CanvasObject) => boolean;
   closeAllMenus: () => void;
   disableDrawingMode: () => void;
   isDrawing: boolean;
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
-  setTutorialBalloon: Dispatch<SetStateAction<TutorialBalloonState | null>>;
 }
 
-interface TutorialConfig {
-  key: TutorialTipKey;
-  message: string;
+type CanvasInsertedObjectKind = Extract<RacCanvasObjectEventKind, ElementStrategyKey>;
+
+const GUIDED_TIP_OBJECT_KINDS = new Set<ElementStrategyKey>(['wall', 'line', 'arrow', 'distance']);
+
+function isGuidedTipObjectKind(kind: ElementStrategyKey): kind is CanvasInsertedObjectKind {
+  return GUIDED_TIP_OBJECT_KINDS.has(kind);
+}
+
+function getObjectScreenRect(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  object: CanvasObject,
+): DOMRect | null {
+  object.setCoords();
+  const bounds = object.getBoundingRect();
+  const topLeft = canvasRef.current?.getCanvasPointScreenPosition({x: bounds.left, y: bounds.top});
+  const bottomRight = canvasRef.current?.getCanvasPointScreenPosition({
+    x: bounds.left + bounds.width,
+    y: bounds.top + bounds.height,
+  });
+  if (topLeft && bottomRight) {
+    const left = Math.min(topLeft.x, bottomRight.x);
+    const top = Math.min(topLeft.y, bottomRight.y);
+    const width = Math.abs(bottomRight.x - topLeft.x);
+    const height = Math.abs(bottomRight.y - topLeft.y);
+    if (width > 0 && height > 0) return new DOMRect(left, top, width, height);
+  }
+
+  const center = canvasRef.current?.getCanvasPointScreenPosition(object.getCenterPoint());
+  return center ? new DOMRect(center.x - 24, center.y - 24, 48, 48) : null;
+}
+
+function dispatchObjectInsertedEvent(kind: ElementStrategyKey, rect: DOMRect | null): void {
+  if (!rect || !isGuidedTipObjectKind(kind)) return;
+
+  dispatchRacCanvasObjectEvent(RAC_CANVAS_OBJECT_INSERTED_EVENT, {
+    kind,
+    rect: {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    },
+  });
 }
 
 export function useCanvasTools({
@@ -36,41 +76,22 @@ export function useCanvasTools({
   isDrawing,
   setIsDrawing,
   setInfoMessage,
-  setTutorialBalloon,
 }: UseCanvasToolsArgs) {
-  const {tutorialProgressPort} = useEditorPorts();
 
-  const showTutorialBalloon =
-    useCallback((object: CanvasObject, text: string) => {
-      const point = canvasRef.current?.getCanvasPointScreenPosition(object.getCenterPoint());
-      if (!point) return;
-
-      setTutorialBalloon({position: point, text});
-    }, [canvasRef, setTutorialBalloon]);
-
-  const addCanvasObject = useCallback((
-    kind: ElementStrategyKey,
-    tutorial?: TutorialConfig,
-  ) => {
+  const addCanvasObject = useCallback((kind: ElementStrategyKey) => {
     closeAllMenus();
     const object = canvasRef.current?.createElementObject(kind);
     if (!object) return null;
 
-    addObjectToCanvas(object);
-
-    if (tutorial && !tutorialProgressPort.isTutorialTipShown(tutorial.key)) {
-      tutorialProgressPort.markTutorialTipShown(tutorial.key);
-      setTimeout(() => showTutorialBalloon(object, tutorial.message), TIMINGS.tutorialBalloonDelayMs);
-    }
-
+    if (!addObjectToCanvas(object)) return null;
+    window.setTimeout(() => {
+      dispatchObjectInsertedEvent(kind, getObjectScreenRect(canvasRef, object));
+    }, 0);
     return object;
-  }, [addObjectToCanvas, canvasRef, closeAllMenus, showTutorialBalloon, tutorialProgressPort]);
+  }, [addObjectToCanvas, canvasRef, closeAllMenus]);
 
   const handleAddWall = useCallback(() => {
-    addCanvasObject('wall', {
-      key: 'wall',
-      message: 'Clique duas vezes para definir ou alterar o nome do objeto.',
-    });
+    addCanvasObject('wall');
   }, [addCanvasObject]);
 
   const handleAddDoor =
@@ -99,24 +120,15 @@ export function useCanvasTools({
     );
 
   const handleAddLine = useCallback(() => {
-    addCanvasObject('line', {
-      key: 'line',
-      message: 'Clique duas vezes para definir um texto ou a cor da linha reta.',
-    });
+    addCanvasObject('line');
   }, [addCanvasObject]);
 
   const handleAddArrow = useCallback(() => {
-    addCanvasObject('arrow', {
-      key: 'arrow',
-      message: 'Clique duas vezes para definir um texto ou a cor da seta simples.',
-    });
+    addCanvasObject('arrow');
   }, [addCanvasObject]);
 
   const handleAddDistance = useCallback(() => {
-    addCanvasObject('distance', {
-      key: 'distance',
-      message: 'Clique duas vezes para definir um texto ou a cor da distância.',
-    });
+    addCanvasObject('distance');
   }, [addCanvasObject]);
 
   const handleToggleDrawMode = useCallback(() => {
@@ -136,12 +148,8 @@ export function useCanvasTools({
 
   const handleAddText = useCallback(() => {
     disableDrawingMode();
-
-    const text = canvasRef.current?.createElementObject('text');
-    if (!text) return;
-
-    addObjectToCanvas(text);
-  }, [addObjectToCanvas, canvasRef, disableDrawingMode]);
+    addCanvasObject('text');
+  }, [addCanvasObject, disableDrawingMode]);
 
   return {
     handleAddWall,

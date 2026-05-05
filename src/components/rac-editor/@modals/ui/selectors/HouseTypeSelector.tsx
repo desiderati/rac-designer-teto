@@ -7,10 +7,9 @@ interface HouseTypeSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectType: (type: HouseType) => void;
-  tutorialLocked?: boolean;
 }
 
-export function HouseTypeSelector({isOpen, onClose, onSelectType, tutorialLocked = false}: HouseTypeSelectorProps) {
+export function HouseTypeSelector({isOpen, onClose, onSelectType}: HouseTypeSelectorProps) {
   const handleSelect = (type: HouseType) => {
     onSelectType(type);
     onClose();
@@ -31,7 +30,6 @@ export function HouseTypeSelector({isOpen, onClose, onSelectType, tutorialLocked
         icon: <FontAwesomeIcon icon={faDoorOpen} className='text-4xl text-primary'/>,
         onClick: () => handleSelect('tipo3'),
       }}
-      tutorialLocked={tutorialLocked}
     />
   );
 }

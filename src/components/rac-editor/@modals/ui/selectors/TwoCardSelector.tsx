@@ -18,7 +18,6 @@ interface TwoCardSelectorProps {
   title: string;
   left: TwoCardConfig;
   right: TwoCardConfig;
-  tutorialLocked?: boolean;
 }
 
 function TwoCardButton({label, icon, onClick, disabled, subtext}: TwoCardConfig) {
@@ -45,7 +44,7 @@ function TwoCardButton({label, icon, onClick, disabled, subtext}: TwoCardConfig)
   );
 }
 
-export function TwoCardSelector({isOpen, onClose, title, left, right, tutorialLocked = false}: TwoCardSelectorProps) {
+export function TwoCardSelector({isOpen, onClose, title, left, right}: TwoCardSelectorProps) {
   const isMobile = useIsMobile();
 
   const content = (
@@ -54,23 +53,6 @@ export function TwoCardSelector({isOpen, onClose, title, left, right, tutorialLo
       <TwoCardButton {...right} />
     </div>
   );
-
-  if (tutorialLocked) {
-    if (!isOpen) return null;
-
-    return (
-      <div className='fixed inset-0 z-30 pointer-events-none'>
-        <div className='absolute inset-0 bg-black/40'/>
-        <div
-          className='absolute left-1/2 top-1/2 w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg'>
-          <div className='text-center'>
-            <h2 className='text-center text-2xl font-semibold leading-none tracking-tight'>{title}</h2>
-          </div>
-          {content}
-        </div>
-      </div>
-    );
-  }
 
   if (!isMobile) {
     return (

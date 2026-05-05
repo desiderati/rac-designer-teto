@@ -12,7 +12,6 @@ function renderMenu({isMobile = false} = {}) {
     showTips: false,
     onRestartDrawing: vi.fn(),
     onToggleTips: vi.fn(),
-    onOpenTutorial: vi.fn(),
     onOpenSettings: vi.fn(),
     onOpen3DViewer: vi.fn(),
     onSavePDF: vi.fn(),
@@ -43,5 +42,14 @@ describe('UserMenu.tsx', () => {
 
     expect(props.onOpen3DViewer).toHaveBeenCalledTimes(1);
     expect(props.onSavePDF).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts the tutorial through a passive guided-tour attribute', async () => {
+    const {user} = renderMenu({isMobile: false});
+
+    await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+
+    expect(screen.getByRole('button', {name: 'Abrir Tutorial'}))
+      .toHaveAttribute('data-guided-tour-start', 'rac-editor-intro');
   });
 });

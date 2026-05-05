@@ -1,4 +1,7 @@
-import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
+import type {
+  GenericCanvasObjectEditorType,
+  PilotiCanvasSelection,
+} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 
 /**
  * Capacidade de aplicar alterações dos editores flutuantes.
@@ -24,4 +27,10 @@ export interface CanvasEditorVisualHandle {
 
   /** Aplica destaque visual ao piloti informado. */
   applyPilotiSelectionVisuals(pilotiId: string): void;
+
+  /** Lê a posição atual de tela do piloti informado, quando ele existe no runtime visual. */
+  getPilotiScreenPosition(
+    pilotiId: string,
+    houseView?: PilotiCanvasSelection['houseView'],
+  ): { x: number; y: number } | null;
 }

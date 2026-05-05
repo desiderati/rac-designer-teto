@@ -7,7 +7,7 @@ interface RacEditorOverlaysProps {
   onSettingsOpenChange: (open: boolean) => void;
   onSettingsChange: () => void;
   showRestartConfirm: boolean;
-  onConfirmRestartTutorial: () => void;
+  onConfirmRestartDrawing: () => void;
   onCloseRestartConfirm: () => void;
 }
 
@@ -17,7 +17,7 @@ export function RacEditorModals({
   onSettingsOpenChange,
   onSettingsChange,
   showRestartConfirm,
-  onConfirmRestartTutorial,
+  onConfirmRestartDrawing,
   onCloseRestartConfirm,
 }: RacEditorOverlaysProps) {
   return (
@@ -31,9 +31,9 @@ export function RacEditorModals({
         isMobile={isMobile}
         isOpen={showRestartConfirm}
         title='Reiniciar Canvas'
-        description='Isso irá limpar todo o conteúdo do canvas e iniciar o tutorial novamente. Deseja continuar?'
+        description='Isso irá limpar todo o conteúdo do canvas. Deseja continuar?'
         confirmLabel='Confirmar'
-        handleConfirm={onConfirmRestartTutorial}
+        handleConfirm={onConfirmRestartDrawing}
         handleCancel={onCloseRestartConfirm}
       />
     </>

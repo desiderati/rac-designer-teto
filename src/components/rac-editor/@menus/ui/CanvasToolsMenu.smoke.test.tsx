@@ -35,8 +35,7 @@ const actions = {
   toggleZoomControls: vi.fn(),
   open3DViewer: vi.fn(),
   toggleMenu: vi.fn(),
-  restartTutorial: vi.fn(),
-  openTutorial: vi.fn(),
+  restartDrawing: vi.fn(),
   exit: vi.fn(),
   renameFamily: vi.fn(),
   setCanvasToolMode: vi.fn(),
@@ -52,8 +51,6 @@ function renderCanvasToolsMenu() {
         actions={actions}
         isDrawing={false}
         activeSubmenu='elements'
-        isTutorialActive={false}
-        tutorialHighlight={null}
         houseType='tipo6'
         frontViewCount={{current: 0, max: 1}}
         backViewCount={{current: 0, max: 1}}
@@ -99,5 +96,14 @@ describe('CanvasToolsMenu.tsx', () => {
     expect(wallButton).toHaveClass('w-10', 'h-10');
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toHaveClass('p-1');
     expect(screen.getByTestId('rac-side-rail-submenu')).toHaveClass('px-1');
+  });
+
+  it('exposes the passive guided-tour anchor on the toolbar without menu tip targets', () => {
+    renderCanvasToolsMenu();
+
+    expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'}))
+      .toHaveAttribute('data-guided-tour-id', 'rac-toolbar');
+    expect(screen.getByRole('button', {name: 'Objeto / Muro'}))
+      .not.toHaveAttribute('data-guided-tour-tip');
   });
 });
