@@ -5,7 +5,7 @@ doc_type: prd
 doc_set: product-requirements
 status: review
 version: "0.1.0"
-owners: []
+owners: [ ]
 lang: pt-BR
 ---
 
@@ -100,7 +100,7 @@ restaurar o trabalho sem perda de informações.
 **Critérios de aceitação:**
 
 - [ ] O sistema exporta um documento versionado contendo projeto, casas, famílias, avaliações, layout de piloti e
-      desenho.
+  desenho.
 - [ ] O sistema reimporta o documento exportado preservando as associações entre entidades.
 - [ ] O sistema mantém caminho futuro para exportação consolidada em planilha e PDF.
 
@@ -148,17 +148,17 @@ restaurar o trabalho sem perda de informações.
 
 ## 8. Conceitos de dados
 
-| Conceito | Papel no domínio |
-|----------|------------------|
-| `ConstructionProject` | Raiz do projeto de construção, contendo metadados, comunidade e coleção de casas. |
-| `Community` | Lookup compartilhado para a comunidade do projeto. |
-| `Family` | Beneficiário vinculado a uma ou mais casas do projeto. |
-| `House` | Unidade editável principal, pertencente a um projeto e vinculada a uma família. |
-| `SiteAssessment` | Avaliação do local por casa, com desnível, solo e obstáculos. |
-| `PilotiLayout` | Configuração geral do piloti da casa, com mestre, alturas e regras agregadas. |
-| `PilotiPoint` | Ponto individual de piloti, com código, altura e nível. |
-| `HouseDrawingDocument` | Documento serializável do desenho da casa, separado do runtime do canvas. |
-| `Person` e atribuições | Entidades reaproveitáveis para líderes, monitores e vínculos operacionais. |
+| Conceito               | Papel no domínio                                                                  |
+|------------------------|-----------------------------------------------------------------------------------|
+| `ConstructionProject`  | Raiz do projeto de construção, contendo metadados, comunidade e coleção de casas. |
+| `Community`            | Lookup compartilhado para a comunidade do projeto.                                |
+| `Family`               | Beneficiário vinculado a uma ou mais casas do projeto.                            |
+| `House`                | Unidade editável principal, pertencente a um projeto e vinculada a uma família.   |
+| `SiteAssessment`       | Avaliação do local por casa, com desnível, solo e obstáculos.                     |
+| `PilotiLayout`         | Configuração geral do piloti da casa, com mestre, alturas e regras agregadas.     |
+| `PilotiPoint`          | Ponto individual de piloti, com código, altura e nível.                           |
+| `HouseDrawingDocument` | Documento serializável do desenho da casa, separado do runtime do canvas.         |
+| `Person` e atribuições | Entidades reaproveitáveis para líderes, monitores e vínculos operacionais.        |
 
 ## 9. Métricas de sucesso
 
@@ -177,12 +177,12 @@ restaurar o trabalho sem perda de informações.
 ## 11. Referências e artefatos auxiliares
 
 - Código atual relacionado:
-  - [editor-house-controller.ts](../../src/components/rac-editor/lib/editor-house-controller.ts)
-  - [house.ts](../../src/shared/types/house.ts)
-  - [house-persistence.port.ts](../../src/domain/house/house-persistence.port.ts)
-  - [useHouseDrawingDocumentActions.ts](../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts)
+    - [editor-house-controller.ts](../../src/components/rac-editor/lib/editor-house-controller.ts)
+    - [house.ts](../../src/shared/types/house.ts)
+    - [house-persistence.port.ts](../../src/domain/house/house-persistence.port.ts)
+    - [useHouseDrawingDocumentActions.ts](../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts)
 - Evidências e material auxiliar:
-  - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
-  - [Diagrama de arquitetura](./PRD-001-evolucao-multicasa.prd.assets/diagrams/multi_house_persistence_architecture.mmd)
-  - [Planilha RACS exportada em JSON](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_grid.json)
-  - [Planilha RACS exportada em TSV](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_values.tsv)
+    - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
+    - [Diagrama de arquitetura](./PRD-001-evolucao-multicasa.prd.assets/diagrams/multi_house_persistence_architecture.mmd)
+    - [Planilha RACS exportada em JSON](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_grid.json)
+    - [Planilha RACS exportada em TSV](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_values.tsv)

@@ -37,7 +37,8 @@ técnicas e não técnicas.
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
 4. `code-scaffolds/`
-     - Scaffolds aprovados com utilidade operacional real, mantidos como referência documental e ponto de partida.
+     - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
+      persistência e testes.
 
 5. `product-requirements/`
      - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
