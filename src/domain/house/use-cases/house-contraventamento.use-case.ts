@@ -1,6 +1,6 @@
 import type {HousePiloti} from '@/shared/types/house.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {
-  canCreateContraventamentoForNivel,
   type ContraventamentoSide,
   type ContraventamentoSidesOccupation,
 } from '@/shared/types/contraventamento.ts';
@@ -16,6 +16,13 @@ export interface HouseContraventamentoGridPoint {
 
 type HouseContraventamentoPilotiInput =
   Pick<HousePiloti, 'height' | 'nivel'> | null | undefined;
+
+/**
+ * Verifica se o nível do piloti permite contraventamento no modelo da casa.
+ */
+export function canCreateContraventamentoForNivel(nivel: number): boolean {
+  return nivel >= HOUSE_DEFAULTS.pilotiNivel;
+}
 
 /**
  * Valida a regra lógica de elegibilidade de um piloti para contraventamento.

@@ -24,9 +24,11 @@ rigor técnico, pragmatismo e responsabilidade arquitetural.
 - TailwindCSS v3+ e shadcn/ui.
 - TanStack Query v5+ disponível para integrações remotas; o fluxo local do editor não usa `useQuery` ou `useMutation`.
 - React Hook Form v7+ disponível via componentes base; Zod v3+ está instalado, mas não possui uso ativo em `src`.
+- Store e ports injetados via `RacEditorStoreProvider`, sem substituir ainda o controller transitório da casa.
 - Vitest v3+ e React Testing Library v16+ para testes unitários e de integração.
 - Playwright v1+ para testes E2E.
 - Fabric.js v6+, Three.js e jsPDF no domínio do editor.
+- Guided tour próprio em `src/components/guided-tour`, com registry do editor em `src/components/rac-editor/lib`.
 
 ## Estilo de trabalho
 
@@ -46,11 +48,12 @@ regras, o arquivo `PLAY-*` de menor precedência numérica continua sendo a font
 2. `PLAY-003-tech-stack.md`
 3. `PLAY-004-project-structure.md`
 4. `PLAY-005-naming-conventions.md`
-5. `PLAY-101-frontend-component-patterns.md`
-6. `PLAY-102-frontend-state-and-hooks.md`
-7. `PLAY-103-frontend-data-fetching.md`
-8. `PLAY-104-frontend-testing.md`
-9. `PLAY-105-frontend-security-and-a11y.md`
+5. `PLAY-006-ports-and-adapters.md`
+6. `PLAY-101-frontend-component-patterns.md`
+7. `PLAY-102-frontend-state-and-hooks.md`
+8. `PLAY-103-frontend-data-fetching.md`
+9. `PLAY-104-frontend-testing.md`
+10. `PLAY-105-frontend-security-and-a11y.md`
 
 ## Regra operacional
 

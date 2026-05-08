@@ -21,6 +21,7 @@ necessidade real.
 
 - A aplicação é uma SPA construída com Vite e React.
 - O roteamento é client-side com React Router DOM.
+- Os perfis frontend detectados são `frontend-react-vite` e `frontend-react-router-spa`.
 - O estado real do projeto deve prevalecer sobre qualquer diagrama antigo ou expectativa herdada.
 
 ## Linguagem
@@ -30,6 +31,13 @@ necessidade real.
 - `tsconfig.json` também mantém opções permissivas como `noImplicitAny: false` e `strictNullChecks: false`.
 - Isso deve ser tratado como estado atual do repositório, não como diretriz arquitetural permanente.
 - O código novo deve continuar explícito, defensivo e com tipagem útil.
+
+## Build e gerenciador de pacotes
+
+- O perfil operacional detectado é `build-npm`.
+- `package-lock.json`, scripts em `package.json` e comandos oficiais do `README.md` padronizam o uso de npm.
+- `bun.lock` existe no repositório, mas não há documentação operacional vigente que padronize Bun para este projeto.
+- Não troque o gerenciador de pacotes nem reescreva lockfiles sem decisão explícita.
 
 ## Estilização
 
@@ -57,8 +65,11 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 ## Estado e arquitetura
 
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
+- `RacEditorStoreProvider` injeta `EditorStore` e ports do editor por contexto.
+- `EditorStore` é uma store serializável de interação do editor, hoje centrada em seleção pública e commands.
 - O estado compartilhado do editor é coordenado pela própria feature, principalmente por `editor-house-controller`,
   `useSyncExternalStore` e hooks locais.
+- A store injetada não substitui ainda o estado lógico da casa nem autoriza uma store genérica na raiz.
 - Estados simples devem continuar em `useState` ou `useReducer`.
 - Não abra automaticamente uma camada genérica de store na raiz nem uma segunda fonte de verdade para a casa.
 
@@ -82,6 +93,7 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 - Testes unitários e de integração usam Vitest e React Testing Library.
 - Fluxos E2E usam Playwright.
 - Smoke tests coexistem com a suíte principal para lógica crítica do domínio e da feature.
+- `npm run test:architecture` executa a guarda arquitetural de fronteira do editor RAC.
 
 ## Bibliotecas específicas do domínio
 

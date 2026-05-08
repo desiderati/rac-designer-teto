@@ -14,7 +14,7 @@ lang: pt-BR
 ## Objetivo
 
 Descrever como hooks e estado estão organizados hoje no repositório e quais guardrails valem para evoluções futuras.
-Este documento não existe para fingir que uma store injetada já existe.
+Este documento distingue a store injetada que existe hoje da coordenação lógica da casa, que ainda não foi substituída.
 
 ## Quando criar um hook customizado
 
@@ -36,6 +36,11 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
 - O estado compartilhado do editor é coordenado pela própria feature.
+- `RacEditorStoreProvider` injeta `EditorStore` e `EditorPorts` por contexto React.
+- `EditorStore` concentra estado serializável de interação do editor, hoje começando por seleção pública e commands.
+- `EditorStore` não é a fonte de verdade da casa e não substitui o controller transitório.
+- `useEditorPorts` expõe ports compostos no bootstrap para leitura/escrita de casa, runtime, documento, projeção 3D e
+  settings.
 - `editor-house-controller` é o coordenador transitório atual desse estado.
 - `useHouseStoreVersion` expõe a versão reativa do estado compartilhado com `useSyncExternalStore`.
 - `useHouseStateSnapshot` expõe o estado lógico atual da casa, sem objetos de runtime visual.
@@ -43,6 +48,8 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 - O alias ambíguo `useHouseSnapshot` foi removido; código novo deve escolher explicitamente entre
   `useHouseStateSnapshot` e `useHouseRuntimeSnapshot`.
 - Estados modais, flags visuais e fluxos temporários continuam distribuídos em hooks locais da feature.
+- O guided tour usa runtime próprio em `src/components/guided-tour` e progresso em storage local próprio; ele não faz
+  parte da coordenação da casa.
 - Não abra automaticamente uma store genérica na raiz.
 
 ## Fontes de verdade
@@ -52,7 +59,8 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 - O canvas continua sendo projeção e mecanismo de interação, não a definição única do estado.
 - Leituras lógicas devem preferir `HouseStatePort` e `useHouseStateSnapshot`.
 - Leituras que dependem da projeção visual devem preferir `HouseRuntimeSnapshotPort` e `useHouseRuntimeSnapshot`.
-- Se um novo store surgir no futuro, ele deve substituir explicitamente a coordenação atual no mesmo change.
+- Qualquer migração de responsabilidade para `EditorStore` deve remover ou substituir explicitamente a responsabilidade
+  equivalente no controller/ports, evitando duas fontes de verdade.
 
 ## Papel dos hooks na feature editor
 
@@ -90,8 +98,7 @@ Prefira retornar objeto em vez de array. Isso deixa o contrato mais explícito e
 
 ## Evolução futura
 
-- Se no futuro o repositório migrar para store injetado via Context ou composition root dedicado, isso só entra aqui
-  quando o código existir.
-- Não documente `HouseStateStore` ou camadas de bootstrap como presentes antes da implementação real.
+- A store injetada já existe, mas seu escopo atual é limitado e serializável.
+- Não documente `HouseStateStore` ou substituição completa do controller da casa antes da implementação real.
 - Toda transição de coordenação de estado deve ser explícita, incremental e acompanhada de atualização simultânea deste
   playbook.

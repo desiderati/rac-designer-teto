@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
+  canCreateContraventamentoForNivel,
   collectAutoContraventamentoRowsByColumn,
   hasEligiblePilotiForContraventamentoInColumn,
   isHouseContraventamentoDestinationEligible,
@@ -10,6 +11,8 @@ import {
 
 describe('house-contraventamento.use-case.ts', () => {
   it('exige nível mínimo e desproporção de altura para elegibilidade', () => {
+    expect(canCreateContraventamentoForNivel(0.1)).toBe(false);
+    expect(canCreateContraventamentoForNivel(0.2)).toBe(true);
     expect(isHousePilotiEligibleForContraventamento({height: 0.1, nivel: 0.1})).toBe(false);
     expect(isHousePilotiEligibleForContraventamento({height: 2.0, nivel: 0.4})).toBe(false);
     expect(isHousePilotiEligibleForContraventamento({height: 0.5, nivel: 0.4})).toBe(true);

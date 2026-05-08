@@ -18,8 +18,8 @@ import {
   ContraventamentoOrigin,
   ContraventamentoSide,
   getContraventamentoSideLabel,
-  inferContraventamentoSide
 } from '@/shared/types/contraventamento.ts';
+import {inferContraventamentoSide} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {

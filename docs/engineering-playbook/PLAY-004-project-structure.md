@@ -22,7 +22,10 @@ Ele existe para evitar dois erros comuns:
 ## Estrutura atual
 
 - `src/domain/house` concentra o agregado e os casos de uso puros do domínio da casa.
-- `src/infra` concentra persistência in-memory, storage local e settings.
+- `src/domain/project` concentra o contrato de repositório de projeto.
+- `src/infra` concentra persistência in-memory, repositório local de projetos, storage local e settings.
+- `src/components/guided-tour` concentra o runtime reutilizável do tour guiado, incluindo hooks, UI, ports e storage
+  local de progresso.
 - `src/components/rac-editor` concentra a feature principal como miniaplicação interna, hoje organizada em slices
   como `@canvas/`, `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`.
 - `src/components/ui` concentra componentes base compartilhados.
@@ -35,12 +38,18 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts` compõe o controller da casa com o runtime visual do
   canvas.
 - `src/components/rac-editor/lib/house-store.ts` funciona como bridge reativa baseada em `useSyncExternalStore`.
+- `src/bootstrap/editor-bootstrap.ts` e `src/bootstrap/editor-context.tsx` compõem `EditorStore`, ports e providers por
+  contexto React.
 - `src/bootstrap/editor-house-ports.ts` e `src/bootstrap/editor-house-port-adapters.ts` compõem, por factory, as
   portas transitórias da casa para o editor.
 - `src/components/rac-editor/lib/editor-house-*-command-service.ts` separa comandos de setup, terreno, vistas e piloti,
   deixando `EditorHouseCommandService` como roteador transitório.
+- `src/components/rac-editor/store/editor-state-store.ts` concentra estado serializável de interação do editor,
+  começando pela seleção pública; ele não substitui o controller da casa.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
+- `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra a geometria visual de
+  contraventamento, como coordenadas e inferência visual de lado.
 - `src/components/rac-editor/@canvas/hooks/useCanvasDebugBridge.ts` e
   `src/components/rac-editor/@canvas/lib/canvas-debug-bridge.ts` concentram a ponte global de debug que conhece runtime
   visual concreto.
@@ -51,6 +60,8 @@ Ele existe para evitar dois erros comuns:
 - `src/components/rac-editor/ports` concentra Ports internos da feature ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica.
 - `src/components/rac-editor/@canvas/ports` concentra os Ports próprios da borda visual 2D.
+- `src/components/rac-editor/lib/rac-editor-guided-tour.ts` registra tours e dicas específicos do editor; o runtime
+  genérico permanece em `src/components/guided-tour`.
 - Handles imperativos do canvas devem ser importados por capacidade específica, como `CanvasDocumentHandle`,
   `CanvasHistoryHandle`, `CanvasSnapshotHandle` ou `CanvasEditorVisualHandle`. O handle amplo
   `CanvasInteractionPort` foi removido; a composição de tela usa `CanvasHandle`.
@@ -71,13 +82,16 @@ Ele existe para evitar dois erros comuns:
 - `src/domain/house/house.aggregate.ts` representa o agregado central.
 - `src/domain/house/house-persistence.port.ts` define o contrato de persistência do agregado.
 - `src/domain/house/use-cases/*.use-case.ts` concentra regras e transformações do domínio.
-- O domínio não deve importar React, Fabric ou componentes visuais.
+- Regras puras de contraventamento e orientação de vistas/lados vivem em `src/domain/house/use-cases`, não no canvas nem
+  em `src/shared/types`.
+- `src/domain/project/project-repository.port.ts` define o contrato assíncrono de persistência de projetos.
+- O domínio não deve importar React, Fabric, componentes visuais nem adapters concretos de storage.
 
 ## Infraestrutura
 
 - A infraestrutura implementa contratos e detalhes técnicos concretos.
-- `src/infra/persistence` implementa persistência concreta.
-- `src/infra/storage` contém integrações com armazenamento local.
+- `src/infra/persistence` implementa persistência concreta de casa e projeto.
+- `src/infra/storage` contém integrações com armazenamento local, incluindo projetos.
 - Novas integrações de persistência, storage local e browser APIs devem preferir `src/infra`.
 - Não mova Fabric para `src/infra` por generalização; a integração atual com canvas é borda da feature editor.
 - Fábricas que adaptam o controller transitório da casa para ports internos do RAC editor devem ficar no bootstrap de composição, não em
@@ -97,6 +111,8 @@ Ele existe para evitar dois erros comuns:
   específico.
 - `lib/` concentra coordenação compartilhada e lógica local do editor que ainda não pertence a `canvas`, `menus` ou
   `domain`.
+- O guided tour não é sub-slice do editor; ele é componente transversal em `src/components/guided-tour`, enquanto o
+  editor fornece registry, eventos e anchors `data-guided-tour-*`.
 
 ## Fluxo de dependência
 
@@ -104,6 +120,7 @@ Ele existe para evitar dois erros comuns:
 - Infra pode depender de contratos definidos fora dela para implementar persistência e storage.
 - Domain não deve depender de components, React, Fabric ou detalhes concretos de infra.
 - Pages e `src/App.tsx` devem continuar como composição de UI, sem absorver regra de domínio.
+- `src/App.tsx` monta providers globais, roteamento e `GuidedTourHost`; não deve virar camada de regra do editor.
 
 ## Restrições estruturais
 
@@ -117,6 +134,8 @@ Ele existe para evitar dois erros comuns:
 - Não tratar o JSON do canvas como única fonte de verdade do estado.
 - Não aceitar JSON Fabric bruto como formato canônico de projeto; o contrato de importação/exportação deve passar por
   documento RAC versionado.
+- Não usar `EditorStore` como segunda fonte de verdade para a casa; ela só deve absorver estado serializável quando o
+  ciclo também remover ou substituir a responsabilidade equivalente.
 
 ## Direção de evolução
 
@@ -124,7 +143,7 @@ Ele existe para evitar dois erros comuns:
 - Refatorações com Ports and Adapters no editor devem seguir `PLAY-006-ports-and-adapters.md`, separando fatos,
   hipóteses, decisões, riscos e critérios de corte.
 - O bootstrap já é o ponto de composição para store, ports e adapters transitórios; novas composições devem ficar ali
-  quando não pertencerem exclusivamente ao slice `@canvas`.
+  quando não pertencerem exclusivamente ao slice `@canvas` ou ao runtime próprio de `guided-tour`.
 - Prefira PRs pequenos que reduzam acoplamento dentro da feature atual antes de abrir novas raízes na árvore.
 
 ## Notas de transição

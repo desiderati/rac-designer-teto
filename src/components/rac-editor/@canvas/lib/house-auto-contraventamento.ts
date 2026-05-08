@@ -8,9 +8,7 @@ import {
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/@canvas/lib';
 import {
-  collectOccupiedContraventamentoSides,
   type ContraventamentoSide,
-  getContraventamentoColumnCenterX
 } from '@/shared/types/contraventamento.ts';
 import {
   collectAutoContraventamentoRowsByColumn,
@@ -18,6 +16,10 @@ import {
   resolveAutoContraventamentoRows,
   resolveNextContraventamentoSide,
 } from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
+import {
+  collectOccupiedContraventamentoSides,
+  getContraventamentoColumnCenterX,
+} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 
 /**
  * Recalcula e sincroniza contraventamentos automáticos em todas as vistas da casa.

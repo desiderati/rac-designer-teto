@@ -4,11 +4,13 @@ import {
   CanvasGroup,
 } from '@/components/rac-editor/@canvas/lib';
 import {
-  collectOccupiedContraventamentoSides,
-  ContraventamentoCandidate,
   ContraventamentoOrigin,
   createContraventamentoEditorState,
 } from '@/shared/types/contraventamento.ts';
+import {
+  collectOccupiedContraventamentoSides,
+  ContraventamentoCandidate,
+} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 import {
   hasEligiblePilotiForContraventamentoInColumn,

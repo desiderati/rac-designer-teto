@@ -46,8 +46,10 @@ central da aplicação.
   composto em `src/bootstrap/editor-house-ports.ts`.
 - `src/components/rac-editor/lib/project-session.ts` recebe storage por porta; a composição com `localStorage` ocorre no
   bootstrap.
-- Configurações do editor e progresso do tutorial são expostos por `SettingsPort` e `TutorialProgressPort`, com
-  composição concreta em `src/bootstrap/editor-infra-ports.ts`.
+- Configurações do editor são expostas por `SettingsPort`, com composição concreta em
+  `src/bootstrap/editor-infra-ports.ts`.
+- O tour guiado possui runtime próprio em `src/components/guided-tour`; o editor fornece registry em
+  `src/components/rac-editor/lib/rac-editor-guided-tour.ts` e anchors/eventos `data-guided-tour-*`.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
 - `src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato canônico inicial de
@@ -58,6 +60,12 @@ central da aplicação.
   runtime Fabric.
 - `src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts` é o hook de aplicação para importar/exportar o
   arquivo RAC canônico da casa ativa.
+- `src/domain/house/use-cases/house-contraventamento.use-case.ts` concentra regras puras de contraventamento, como nível
+  permitido, piloti elegível, origem/destino e coluna/linha.
+- `src/domain/house/use-cases/house-view-orientation.use-case.ts` concentra a semântica de orientação entre
+  `HouseViewType`, `HouseSide` e metadados legados de vista.
+- `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra geometria visual de contraventamento,
+  mantendo coordenadas e inferência de lado fora de `src/shared/types`.
 - `src/test/rac-editor-boundary.smoke.test.ts` já protege o núcleo lógico contra Fabric, `@canvas`,
   `CanvasGroup`, `CanvasObject`, reintrodução de `CanvasInteractionPort` e imports concretos de `src/infra` no código
   produtivo do editor.
@@ -93,8 +101,10 @@ central da aplicação.
   persistência.
 - Serviços de sessão/projeto no núcleo do editor podem depender de portas de storage, mas não devem importar
   `src/infra/storage` diretamente.
-- Hooks, UI e adapters visuais do editor podem depender de `SettingsPort` e `TutorialProgressPort`, mas não devem
-  importar `src/infra/settings` nem `src/infra/storage/tutorial.storage` diretamente.
+- Hooks, UI e adapters visuais do editor podem depender de `SettingsPort`, mas não devem importar storage concreto de
+  settings diretamente.
+- O progresso do guided tour é responsabilidade atual de `src/components/guided-tour/store/guided-tour-storage.ts`;
+  não existe `TutorialProgressPort` vigente no código.
 - `HouseStatePort` representa estado lógico; `HouseRuntimeSnapshotPort<TGroup>` representa projeção visual observável;
   `HouseVisualRuntimePort<TGroup>` representa capacidades mínimas do runtime visual.
 - `CanvasInteractionPort` foi removido. O componente `Canvas` expõe `CanvasHandle` como composição de tela, e
@@ -320,7 +330,8 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
 2. Hooks gerais e UI de alto nível não conhecem Fabric nem tipos concretos do canvas.
 3. Fluxos de casa leem estado lógico por `HouseStatePort` quando não precisam de runtime visual.
 4. O controller da casa não concentra regras puras que deveriam estar no domínio nem efeitos visuais que deveriam estar no
-   canvas.
+   canvas. Regras puras de contraventamento e orientação ficam em `src/domain/house/use-cases`; geometria visual fica no
+   slice `@canvas`.
 5. Import/export, vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.
 6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas`.

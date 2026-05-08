@@ -81,8 +81,10 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 ## 🏗️ Arquitetura Atual
 
-- `src/domain/house/` concentra agregado, casos de uso e contratos do domínio
-- `src/infra/` implementa persistência em memória, storage local e integrações técnicas
+- `src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
+- `src/domain/project/` concentra o contrato de repositório de projeto
+- `src/infra/` implementa persistência em memória, repositório local de projetos, storage local e integrações técnicas
+- `src/components/guided-tour/` concentra o runtime reutilizável do tour guiado
 - `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
   `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`
 - `src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
@@ -93,10 +95,12 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
 - `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
-- `src/components/rac-editor/store/` fica reservado a stores reais, como `EditorStateStore`
+- `src/components/rac-editor/store/` concentra stores reais da feature, hoje com `EditorStateStore` para estado
+  serializável de interação
 - `src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
+- `src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, projeto e documento RAC
 - O projeto usa alias `@/` para imports absolutos
 - O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor permanece concentrado na
   própria feature
@@ -262,7 +266,7 @@ trabalho.
 - **Índice documental do projeto:** `docs/README.md`
 - **Regras de negócio:** `docs/business-rules/README.md`
 - **PRDs e sidecars:** `docs/product-requirements/README.md`
-- **Engineering Playbook:** `docs/engineering-playbook/README.md` (núcleo comum `PLAY-001` a `PLAY-005` e frente
+- **Engineering Playbook:** `docs/engineering-playbook/README.md` (núcleo comum `PLAY-001` a `PLAY-006` e frente
   frontend `PLAY-101` a `PLAY-105`)
 - **Code Scaffolds aprovados:** `docs/code-scaffolds/README.md`
 - **Prompts duráveis de refatoração:** `.agents/prompts/refactoring-*.prompt.md`

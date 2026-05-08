@@ -59,6 +59,12 @@ const allowedFabricSerializationRoots = [
 const removedCanvasRebuildPattern =
   /\b(?:HouseCanvasReconciliationPort|houseCanvasReconciliationPort|rebuildHouseFromCanvas|rebuildViewsFromCanvasSources)\b/;
 
+const orientationConsumerPaths = [
+  'src/components/rac-editor/@canvas/lib/terrain.ts',
+  'src/components/rac-editor/@canvas/lib/house-auto-stairs.ts',
+  'src/components/rac-editor/@canvas/lib/contraventamento.ts',
+];
+
 function toPosixPath(value: string) {
   return value.split('\\').join('/');
 }
@@ -224,6 +230,89 @@ describe('fronteira arquitetural do editor RAC', () => {
         ? 'house-auto-contraventamento.ts: regra de nivel de contraventamento vazando no canvas'
         : null,
     ].filter(Boolean);
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantem regras puras de contraventamento concentradas no dominio', () => {
+    const sharedFilePath = resolve(projectRoot, 'src/shared/types/contraventamento.ts');
+    const sharedContent = readFileSync(sharedFilePath, 'utf8');
+    const domainFilePath = resolve(projectRoot, 'src/domain/house/use-cases/house-contraventamento.use-case.ts');
+    const domainContent = readFileSync(domainFilePath, 'utf8');
+
+    const violations = [
+      /export function canCreateContraventamentoForNivel\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: regra de nivel deve ficar no dominio'
+        : null,
+      /export function isContraventamentoDestinationEligible\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: regra de destino deve ficar no dominio'
+        : null,
+      /export function hasEligiblePilotiInContraventamentoColumn\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: regra de coluna deve ficar no dominio'
+        : null,
+      !/export function canCreateContraventamentoForNivel\b/.test(domainContent)
+        ? 'house-contraventamento.use-case.ts: regra de nivel ausente do dominio'
+        : null,
+      !/export function isHouseContraventamentoDestinationEligible\b/.test(domainContent)
+        ? 'house-contraventamento.use-case.ts: regra de destino ausente do dominio'
+        : null,
+      !/export function hasEligiblePilotiForContraventamentoInColumn\b/.test(domainContent)
+        ? 'house-contraventamento.use-case.ts: regra de coluna ausente do dominio'
+        : null,
+    ].filter(Boolean);
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantem geometria visual de contraventamento fora de shared/types', () => {
+    const sharedFilePath = resolve(projectRoot, 'src/shared/types/contraventamento.ts');
+    const sharedContent = readFileSync(sharedFilePath, 'utf8');
+    const geometryFilePath = resolve(
+      projectRoot,
+      'src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts',
+    );
+    const geometryContent = readFileSync(geometryFilePath, 'utf8');
+
+    const violations = [
+      /\bCONTRAVENTAMENTO_COLUMN_X\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: coordenadas visuais de coluna fora do @canvas'
+        : null,
+      /\bCONTRAVENTAMENTO_ROW_Y\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: coordenadas visuais de linha fora do @canvas'
+        : null,
+      /export function inferContraventamentoSide\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: inferencia geometrica fora do @canvas'
+        : null,
+      /export function collectOccupiedContraventamentoSides\b/.test(sharedContent)
+        ? 'src/shared/types/contraventamento.ts: leitura geometrica de ocupacao fora do @canvas'
+        : null,
+      !/\bCONTRAVENTAMENTO_COLUMN_X\b/.test(geometryContent)
+        ? 'contraventamento-geometry.ts: geometria de coluna ausente no @canvas'
+        : null,
+      !/export function collectOccupiedContraventamentoSides\b/.test(geometryContent)
+        ? 'contraventamento-geometry.ts: ocupacao geometrica ausente no @canvas'
+        : null,
+    ].filter(Boolean);
+
+    expect(violations).toEqual([]);
+  });
+
+  it('mantem consumidores de orientacao usando o use case central', () => {
+    const violations = orientationConsumerPaths.flatMap((filePath) => {
+      const absolutePath = resolve(projectRoot, filePath);
+      const content = readFileSync(absolutePath, 'utf8');
+      const localViolations = [
+        /\bgroup\.(?:isRightSide|isFlippedHorizontally)\b/.test(content)
+          ? `${filePath}: interpretacao direta de flag visual de orientacao`
+          : null,
+        /\bhouseView\s*===\s*['"](?:front|back|side)['"]/.test(content)
+          ? `${filePath}: interpretacao local de houseView`
+          : null,
+      ].filter(Boolean);
+
+      if (!localViolations.length) return [];
+      return localViolations;
+    });
 
     expect(violations).toEqual([]);
   });

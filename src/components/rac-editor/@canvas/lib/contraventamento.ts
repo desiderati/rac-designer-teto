@@ -1,11 +1,13 @@
 import {FabricObject, Line, Rect} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
-  CONTRAVENTAMENTO_COLUMN_X,
-  CONTRAVENTAMENTO_ROW_Y,
   ContraventamentoSide,
   resolveContraventamentoOffsetFromNivel
 } from '@/shared/types/contraventamento.ts';
+import {
+  CONTRAVENTAMENTO_COLUMN_X,
+  CONTRAVENTAMENTO_ROW_Y,
+} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {HOUSE_DEFAULTS,} from '@/shared/config.ts';
 import {
   CanvasGroup,
@@ -19,6 +21,7 @@ import {
   CONTRAVENTAMENTO_STROKE_WIDTH,
   PILOTI_BASE_HEIGHT_PX
 } from '@/shared/constants';
+import {resolveHouseElevationAxisContext} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
 
 const CONTRAVENTAMENTO_S = HOUSE_DEFAULTS.viewScale;
 const CONTRAVENTAMENTO_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAVENTAMENTO_S;
@@ -350,8 +353,8 @@ export function syncContraventamentoElevationViews(
   }
 
   for (const group of targetGroups) {
-    const houseView = String(group.houseView ?? '');
-    if (houseView !== 'side') continue;
+    const axisContext = resolveHouseElevationAxisContext(group);
+    if (axisContext?.side !== 'left' && axisContext?.side !== 'right') continue;
 
     const pilotiRects =
       getCanvasGroupObjects(group).filter(obj => obj.isPilotiRect && obj.pilotiId);
@@ -362,7 +365,7 @@ export function syncContraventamentoElevationViews(
 
     const internalObjects = group._objects as FabricObject[];
 
-    const isRightSideView = group.isRightSide === true;
+    const isRightSideView = axisContext.side === 'right';
     const visibleCol = isRightSideView ? 3 : 0;
     const externalSide: ContraventamentoSide = isRightSideView ? 'right' : 'left';
     const oppositeSide: ContraventamentoSide = isRightSideView ? 'left' : 'right';

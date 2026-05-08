@@ -5,7 +5,7 @@ adr_number: ADR-001
 decision_mode: previo
 status: accepted
 created: 2026-04-28
-updated: 2026-05-01
+updated: 2026-05-07
 supersedes:
 superseded_by:
 decision_source: ".agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/loop-state.md"
@@ -16,6 +16,13 @@ aliases: [ ADR-001, Fronteira do Editor RAC com o Runtime Fabric ]
 # ADR-001 — Fronteira do Editor RAC com o Runtime Fabric
 
 Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
+
+## Nota de revisão — 2026-05-07
+
+Esta ADR continua `accepted`. A revisão não altera a decisão central sobre a fronteira entre o editor RAC e o runtime
+Fabric. Ela apenas corrige um detalhe operacional que driftou: `TutorialProgressPort` não existe mais como port vigente
+em `src`. O progresso do tour guiado fica hoje no runtime próprio em `src/components/guided-tour`, enquanto o editor
+fornece registry, anchors e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 
 ## 1. Contexto
 
@@ -41,7 +48,9 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
   - `src/components/rac-editor/@canvas/lib/canvas.ts`
   - `src/bootstrap/editor-infra-ports.ts`
   - `src/components/rac-editor/ports/SettingsPort.ts`
-  - `src/components/rac-editor/ports/TutorialProgressPort.ts`
+  - `src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
+  - `src/components/guided-tour/store/guided-tour-storage.ts`
+  - `src/components/rac-editor/lib/rac-editor-guided-tour.ts`
   - `src/test/rac-editor-boundary.smoke.test.ts`
 
 ## 2. Decisão
@@ -81,9 +90,10 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     bootstrap ou em `src/infra`, não instanciados dentro do núcleo do editor.
   - Sessão de projeto e storage local seguem a mesma regra: o núcleo do editor recebe portas/funções de storage, e o
     acesso concreto a `localStorage` fica em `src/infra` ou no bootstrap de composição.
-  - Configurações do editor e progresso do tutorial seguem a mesma fronteira: UI, hooks e canvas consomem
-    `SettingsPort` e `TutorialProgressPort`; as implementações baseadas em storage local são compostas no
-    bootstrap.
+  - Configurações do editor seguem a mesma fronteira: UI, hooks e canvas consomem `SettingsPort`, com implementação
+    concreta composta no bootstrap.
+  - O progresso do tour guiado não é port vigente do editor neste estado. Ele pertence ao runtime transversal em
+    `src/components/guided-tour`, enquanto o editor fornece registry, anchors e eventos específicos do RAC editor.
   - Handles imperativos do canvas devem ser consumidos por capacidade específica. O handle amplo
     `CanvasInteractionPort` foi removido; `Canvas` expõe `CanvasHandle` apenas como composição de tela.
   - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples delegação: setup,

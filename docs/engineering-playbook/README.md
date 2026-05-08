@@ -21,6 +21,22 @@ decisão que orientam tanto humanos quanto agentes de codificação.
 4. Trate este diretório como a fonte canônica para decisões de engenharia locais do repositório.
 5. Use `.agents/prompts/` apenas quando a frente exigir um prompt operacional especializado.
 
+## Perfis detectados
+
+- `frontend-react-vite`
+    - Evidenciado por `vite.config.ts`, dependências React, scripts Vite e entrypoint `src/main.tsx`.
+- `frontend-react-router-spa`
+    - Evidenciado por `react-router-dom`, `BrowserRouter`, `Routes` e rotas em `src/App.tsx`.
+- `architecture-ports-adapters`
+    - Evidenciado por ports do editor, adapters Fabric no slice `@canvas`, composição em `src/bootstrap/` e guards em
+      `src/test/rac-editor-boundary.smoke.test.ts`.
+- `build-npm`
+    - Evidenciado por `package-lock.json`, scripts npm em `package.json` e comandos oficiais no `README.md`.
+- `backend`
+    - Não detectado neste repositório.
+- `api`
+    - Não detectada como superfície externa versionada.
+
 ## Taxonomia atual
 
 - `PLAY-001` a `PLAY-006`
@@ -30,7 +46,7 @@ decisão que orientam tanto humanos quanto agentes de codificação.
     - Módulos específicos da família frontend.
 
 - `PLAY-201` em diante
-    - Reservado para uma família backend futura, ainda não materializada neste repositório.
+    - Reservado para famílias backend, arquitetura separada e API futura, ainda não materializadas neste repositório.
 
 ## Índice
 

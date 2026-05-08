@@ -1,23 +1,52 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {
-  canCreateContraventamentoForNivel,
-  collectOccupiedContraventamentoSides,
+  syncContraventamentoElevationViews
+} from '@/components/rac-editor/@canvas/lib/contraventamento.ts';
+import {
   createContraventamentoEditorState,
-  getContraventamentoColumnCenterX,
   getContraventamentoSideLabel,
-  hasEligiblePilotiInContraventamentoColumn,
-  inferContraventamentoSide,
-  isContraventamentoDestinationEligible,
   resolveContraventamentoOffsetFromNivel
 } from '@/shared/types/contraventamento.ts';
+import {
+  collectOccupiedContraventamentoSides,
+  getContraventamentoColumnCenterX,
+  inferContraventamentoSide,
+} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
+function createMockGroup(props: Record<string, unknown> = {}) {
+  const group: any = {
+    type: 'group',
+    _objects: [] as any[],
+    getObjects() {
+      return this._objects;
+    },
+    getCanvasObjects() {
+      return this._objects;
+    },
+    setCoords: vi.fn(),
+    ...props,
+  };
+
+  return group;
+}
+
+function createPilotiRect(pilotiId: string, left: number, top: number) {
+  return {
+    isPilotiRect: true,
+    pilotiId,
+    left,
+    top,
+    width: 12,
+    scaleX: 1,
+    pilotiBaseHeight: 100,
+  };
+}
+
 describe('contraventamento.ts', () => {
-  it('parses piloti ids and validates nivel', () => {
+  it('parses piloti ids', () => {
     expect(parsePilotiGridPosition('piloti_2_1')).toEqual({col: 2, row: 1});
     expect(parsePilotiGridPosition('invalid')).toBeNull();
-    expect(canCreateContraventamentoForNivel(0.5)).toBe(true);
-    expect(canCreateContraventamentoForNivel(0.2)).toBe(true);
   });
 
   it('resolves dynamic offsets from nivel', () => {
@@ -32,16 +61,6 @@ describe('contraventamento.ts', () => {
     expect(inferContraventamentoSide({col: 0, left: center - 40, width: 10})).toBe('left');
     expect(getContraventamentoSideLabel('left')).toBe('esquerdo');
     expect(getContraventamentoSideLabel('right')).toBe('direito');
-  });
-
-  it('validates destination eligibility', () => {
-    expect(
-      isContraventamentoDestinationEligible({
-        first: {col: 1, row: 0},
-        candidate: {col: 1, row: 2},
-        nivel: 0.6,
-      }),
-    ).toBe(true);
   });
 
   it('detects piloti outside contraventamento proportion', () => {
@@ -70,20 +89,72 @@ describe('contraventamento.ts', () => {
     ).toEqual({leftDisabled: true, rightDisabled: true, leftActive: false, rightActive: false});
   });
 
-  it('enables column when at least one piloti is eligible', () => {
-    expect(
-      hasEligiblePilotiInContraventamentoColumn({
-        col: 2,
-        isPilotiEligible: (pilotiId) => pilotiId === 'piloti_2_1',
-      }),
-    ).toBe(true);
+  it('projects contraventamento in side views using legacy and houseSide metadata', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_left',
+          contraventamentoCol: 0,
+          contraventamentoStartRow: 0,
+          contraventamentoEndRow: 2,
+          contraventamentoSide: 'left',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_right',
+          contraventamentoCol: 3,
+          contraventamentoStartRow: 0,
+          contraventamentoEndRow: 2,
+          contraventamentoSide: 'right',
+          contraventamentoAnchorPilotiId: 'piloti_3_0',
+        },
+      ],
+    });
 
-    expect(
-      hasEligiblePilotiInContraventamentoColumn({
-        col: 2,
-        isPilotiEligible: () => false,
-      }),
-    ).toBe(false);
+    const legacyLeftGroup = createMockGroup({
+      houseView: 'side',
+      isRightSide: false,
+      _objects: [
+        createPilotiRect('piloti_0_0', 10, 100),
+        createPilotiRect('piloti_0_2', 10, 250),
+      ],
+    });
+
+    const modernRightGroup = createMockGroup({
+      houseSide: 'right',
+      _objects: [
+        createPilotiRect('piloti_3_0', 20, 100),
+        createPilotiRect('piloti_3_2', 20, 250),
+      ],
+    });
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [legacyLeftGroup, modernRightGroup],
+      () => 0.4,
+    );
+
+    const legacyLeftProjections = legacyLeftGroup._objects.filter(
+      (object: any) => object?.isContraventamentoElevation === true,
+    );
+    const modernRightProjections = modernRightGroup._objects.filter(
+      (object: any) => object?.isContraventamentoElevation === true,
+    );
+
+    expect(legacyLeftProjections).toHaveLength(2);
+    expect(legacyLeftProjections.map((object: any) => object.contraventamentoId)).toEqual([
+      'contrav_left',
+      'contrav_left',
+    ]);
+    expect(modernRightProjections).toHaveLength(2);
+    expect(modernRightProjections.map((object: any) => object.contraventamentoId)).toEqual([
+      'contrav_right',
+      'contrav_right',
+    ]);
+    expect(legacyLeftGroup.setCoords).toHaveBeenCalled();
+    expect(modernRightGroup.setCoords).toHaveBeenCalled();
   });
 });
 
