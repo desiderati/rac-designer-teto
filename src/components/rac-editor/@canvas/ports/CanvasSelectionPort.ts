@@ -4,7 +4,7 @@ import type {
   EditorLinearSelection,
   EditorTerrainSelection,
   EditorWallSelection,
-} from '@/components/rac-editor/@canvas/store/types.ts';
+} from '@/components/rac-editor/store/types.ts';
 
 export interface ContraventamentoCanvasSelection {
   /** Identificador lógico do contraventamento selecionado. */

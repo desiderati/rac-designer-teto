@@ -12,6 +12,7 @@ const guardedRoots = [
   'src/infra',
   'src/components/rac-editor/ports',
   'src/components/rac-editor/lib',
+  'src/components/rac-editor/store',
 ];
 
 const forbiddenPatterns = [

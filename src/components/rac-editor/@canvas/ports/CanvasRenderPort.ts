@@ -1,4 +1,4 @@
-import type {EditorSelection} from '@/components/rac-editor/@canvas/store/types.ts';
+import type {EditorSelection} from '@/components/rac-editor/store/types.ts';
 import type {EditorState} from '@/components/rac-editor/store/editor-state-store.ts';
 
 /**

@@ -202,8 +202,8 @@ fornece registry, anchors e eventos em `src/components/rac-editor/lib/rac-editor
 ## 6. Artefatos e contratos relacionados
 
 - blueprint ou schema relacionado:
-  - `src/components/rac-editor/@canvas/store/editor-selection.ts`
-  - `src/components/rac-editor/@canvas/store/editor-ids.ts`
+  - `src/components/rac-editor/store/editor-selection.ts`
+  - `src/components/rac-editor/store/editor-ids.ts`
 - prompts relacionados:
   - `.agents/prompts/solution-design.prompt.md`
   - `.agents/prompts/implementation-planning.prompt.md`

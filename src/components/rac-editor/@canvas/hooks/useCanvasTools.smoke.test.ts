@@ -6,7 +6,7 @@ import type {CanvasObject, ElementStrategyKey} from '@/components/rac-editor/@ca
 import type {CanvasDrawingModeHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/ports/CanvasObjectCreationHandle.ts';
 import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
-import type {EditorScreenPoint} from '@/components/rac-editor/@canvas/store/types.ts';
+import type {EditorScreenPoint} from '@/components/rac-editor/store/types.ts';
 
 const INSERTED_EVENT = 'rac:canvas-object-inserted';
 

@@ -95,8 +95,8 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
 - `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
-- `src/components/rac-editor/store/` concentra stores reais da feature, hoje com `EditorStateStore` para estado
-  serializável de interação
+- `src/components/rac-editor/store/` concentra stores reais e modelos serializáveis de interação da feature, hoje com
+  `EditorStateStore` e `EditorSelection`
 - `src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas

@@ -46,6 +46,8 @@ Ele existe para evitar dois erros comuns:
   deixando `EditorHouseCommandService` como roteador transitório.
 - `src/components/rac-editor/store/editor-state-store.ts` concentra estado serializável de interação do editor,
   começando pela seleção pública; ele não substitui o controller da casa.
+- `src/components/rac-editor/store/editor-selection.ts`, `editor-ids.ts`, `editor-view.ts` e
+  `editor-contraventamento.ts` concentram modelos serializáveis de interação do editor sem depender do canvas.
 - `src/components/rac-editor/@canvas` concentra a borda visual 2D: contratos do canvas, hooks de canvas, helpers,
   factories e adapters Fabric.
 - `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts` concentra a geometria visual de
@@ -65,7 +67,8 @@ Ele existe para evitar dois erros comuns:
 - Handles imperativos do canvas devem ser importados por capacidade específica, como `CanvasDocumentHandle`,
   `CanvasHistoryHandle`, `CanvasSnapshotHandle` ou `CanvasEditorVisualHandle`. O handle amplo
   `CanvasInteractionPort` foi removido; a composição de tela usa `CanvasHandle`.
-- `src/components/rac-editor/store` fica reservado a stores reais, como `EditorStateStore`.
+- `src/components/rac-editor/store` fica reservado a stores reais e modelos serializáveis de interação do editor, como
+  `EditorStateStore` e `EditorSelection`.
 - `HouseStatePort` expõe leitura reativa do estado lógico da casa, sem objetos de runtime visual.
 - `HouseRuntimeSnapshotPort<TGroup>` expõe o snapshot de runtime visual quando a UI precisa observar projeções do canvas.
 - `HouseVisualRuntimePort<TGroup>` representa as capacidades mínimas do runtime visual usadas pelo núcleo do editor.

@@ -1,5 +1,5 @@
 import type {CanvasGroup} from '@/components/rac-editor/@canvas/lib';
-import type {EditorScreenPoint} from '@/components/rac-editor/@canvas/store/types.ts';
+import type {EditorScreenPoint} from '@/components/rac-editor/store/types.ts';
 
 /**
  * Capacidade de converter coordenadas do canvas para a tela.

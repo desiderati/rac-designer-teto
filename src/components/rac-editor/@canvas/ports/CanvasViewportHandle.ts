@@ -1,4 +1,4 @@
-import type {EditorScreenPoint} from '@/components/rac-editor/@canvas/store/types.ts';
+import type {EditorScreenPoint} from '@/components/rac-editor/store/types.ts';
 
 /**
  * Capacidade de leitura e controle da viewport do canvas.
