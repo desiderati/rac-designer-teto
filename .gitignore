@@ -38,6 +38,7 @@ coverage/
 .agents/work-items/
 .claude/
 .codex/hooks/codex-resolution-time-state/
+.codex/napkin.md
 .obsidian/
 .tmp/
 

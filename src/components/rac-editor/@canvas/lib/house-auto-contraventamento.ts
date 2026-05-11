@@ -42,14 +42,13 @@ export function refreshAutoContraventamentoInAllViews(params: {
   params.topViews.forEach((topView) => {
     const topGroup = topView.group;
     const topChanged = refreshAutoContraventamentoOnTopView(topGroup, params.pilotis);
-    if (!topChanged) return;
 
-    syncContraventamentoElevationViews(
+    const elevationsChanged = syncContraventamentoElevationViews(
       topGroup,
       targetGroups,
       (pilotiId) => Number(params.pilotis[pilotiId]?.nivel ?? 0),
     );
-    hasChanges = true;
+    if (topChanged || elevationsChanged) hasChanges = true;
   });
 
   return hasChanges;

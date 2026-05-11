@@ -25,6 +25,8 @@ interface UseRacEditorModalStateResult {
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
   familySetupOpen: boolean;
   setFamilySetupOpen: Dispatch<SetStateAction<boolean>>;
+  constructionSiteManagementOpen: boolean;
+  setConstructionSiteManagementOpen: Dispatch<SetStateAction<boolean>>;
   /** Modo ativo da ferramenta do canvas (seleção / pan), controlado pelo submenu de zoom. */
   canvasToolMode: CanvasToolMode;
   setCanvasToolMode: Dispatch<SetStateAction<CanvasToolMode>>;
@@ -47,6 +49,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [is3DViewerOpen, setIs3DViewerOpen] = useState(false);
   const [nivelDefinitionOpen, setNivelDefinitionOpen] = useState(false);
   const [familySetupOpen, setFamilySetupOpen] = useState(false);
+  const [constructionSiteManagementOpen, setConstructionSiteManagementOpen] = useState(false);
   const [canvasToolMode, setCanvasToolMode] = useState<CanvasToolMode>('select');
   const [displayZoom, setDisplayZoom] = useState(1);
 
@@ -73,6 +76,8 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setNivelDefinitionOpen,
     familySetupOpen,
     setFamilySetupOpen,
+    constructionSiteManagementOpen,
+    setConstructionSiteManagementOpen,
     canvasToolMode,
     setCanvasToolMode,
     displayZoom,

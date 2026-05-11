@@ -37,6 +37,7 @@ const styleKeys = [
   'strokeLineCap',
   'strokeLineJoin',
   'opacity',
+  'paintFirst',
   'fontFamily',
   'fontSize',
   'fontWeight',
@@ -109,6 +110,10 @@ function normalizeFabricShape(value: unknown): HouseDrawingElementDocument['shap
 
   const normalized = shape === 'i-text' ? 'itext' : shape;
   return isHouseDrawingElementShape(normalized) ? normalized : null;
+}
+
+function isTextShape(shape: HouseDrawingElementDocument['shape']): boolean {
+  return shape === 'itext' || shape === 'text' || shape === 'textbox';
 }
 
 function pickNumberRecord<TKeys extends readonly string[]>(
@@ -191,6 +196,12 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
 }
 
 function toRuntimePayload(document: HouseDrawingElementDocument): Record<string, unknown> {
+  const text = document.text !== undefined
+    ? document.text
+    : isTextShape(document.shape)
+      ? ''
+      : undefined;
+
   return {
     type: document.shape,
     ...document.geometry,
@@ -199,7 +210,7 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
     ...document.resource,
     myType: document.kind,
     editorObjectId: document.id,
-    ...(document.text ? {text: document.text} : {}),
+    ...(text !== undefined ? {text} : {}),
     ...(document.children ? {objects: document.children.map(toRuntimePayload)} : {}),
   };
 }

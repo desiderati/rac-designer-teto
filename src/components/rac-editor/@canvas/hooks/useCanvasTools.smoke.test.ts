@@ -23,7 +23,7 @@ function createCanvasObject(
 
 function renderCanvasTools(
   object: CanvasObject,
-  project: (point: EditorScreenPoint) => EditorScreenPoint | null = (point) => ({
+  constructionSite: (point: EditorScreenPoint) => EditorScreenPoint | null = (point) => ({
     x: point.x + 100,
     y: point.y + 200,
   }),
@@ -33,7 +33,7 @@ function renderCanvasTools(
       createElementObject: vi.fn((_kind: ElementStrategyKey) => object),
       createHouseViewGroup: vi.fn(),
       addObjectAtVisibleCenter: vi.fn(),
-      getCanvasPointScreenPosition: vi.fn(project),
+      getCanvasPointScreenPosition: vi.fn(constructionSite),
       getGroupLocalPointScreenPosition: vi.fn(),
       setDrawingModeEnabled: vi.fn(),
     },
@@ -94,11 +94,11 @@ describe('useCanvasTools guided tour events', () => {
   it('uses a centered fallback rect when the object bounds are not projectable', () => {
     const listener = vi.fn();
     const object = createCanvasObject({left: 10, top: 20, width: 0, height: 0}, {x: 35, y: 55});
-    const project = vi.fn()
+    const constructionSite = vi.fn()
       .mockReturnValueOnce(null)
       .mockReturnValueOnce(null)
       .mockReturnValueOnce({x: 300, y: 400});
-    const {result} = renderCanvasTools(object, project);
+    const {result} = renderCanvasTools(object, constructionSite);
     document.addEventListener(INSERTED_EVENT, listener as EventListener);
 
     try {

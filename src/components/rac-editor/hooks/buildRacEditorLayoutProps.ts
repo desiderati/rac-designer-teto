@@ -5,6 +5,7 @@ type LayoutProps = RacEditorLayoutProps;
 interface BuildRacEditorLayoutPropsArgs {
   handleContainerClick: LayoutProps['root']['onClick'];
   menuActions: LayoutProps['menus']['actions'];
+  constructionGroups: LayoutProps['menus']['constructionGroups'];
   isDrawing: LayoutProps['menus']['isDrawing'];
   activeSubmenu: LayoutProps['menus']['activeSubmenu'];
   showTips: LayoutProps['menus']['showTips'];
@@ -19,6 +20,8 @@ interface BuildRacEditorLayoutPropsArgs {
   displayZoom: LayoutProps['menus']['zoom'];
   canvasToolMode: LayoutProps['menus']['canvasToolMode'];
   isMobile: LayoutProps['menus']['isMobile'];
+  documentSaveStatus: LayoutProps['menus']['documentSaveStatus'];
+  documentTransitioning: LayoutProps['menus']['documentTransitioning'];
   canvasRef: LayoutProps['canvas']['canvasRef'];
   infoMessage: LayoutProps['canvas']['infoMessage'];
   isAnyEditorOpen: LayoutProps['canvas']['isAnyEditorOpen'];
@@ -35,6 +38,7 @@ interface BuildRacEditorLayoutPropsArgs {
   handleContraventamentoPilotiClick: LayoutProps['canvas']['onContraventamentoPilotiClick'];
   handleCancelContraventamento: LayoutProps['canvas']['onContraventamentoCancel'];
   handleFreeDrawPathCreated: LayoutProps['canvas']['onFreeDrawPathCreated'];
+  onCanvasDocumentChange: LayoutProps['canvas']['onCanvasDocumentChange'];
   familySetupOpen: LayoutProps['houseTypeSelector']['familySetupOpen'];
   setFamilySetupOpen: (open: boolean) => void;
   handleFamilySetupConfirm: LayoutProps['houseTypeSelector']['onFamilySetupConfirm'];
@@ -80,6 +84,9 @@ interface BuildRacEditorLayoutPropsArgs {
   closeRestartConfirm: LayoutProps['modals']['onCloseRestartConfirm'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
+  constructionSiteManagementOpen: LayoutProps['workspace']['open'];
+  closeConstructionSiteManagement: LayoutProps['workspace']['onClose'];
+  constructionSiteManagementPanel: LayoutProps['workspace']['panel'];
 }
 
 export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): RacEditorLayoutProps {
@@ -89,6 +96,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
     },
     menus: {
       actions: args.menuActions,
+      constructionGroups: args.constructionGroups,
       isDrawing: args.isDrawing,
       activeSubmenu: args.activeSubmenu,
       showTips: args.showTips,
@@ -103,6 +111,8 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       zoom: args.displayZoom,
       canvasToolMode: args.canvasToolMode,
       isMobile: args.isMobile,
+      documentSaveStatus: args.documentSaveStatus,
+      documentTransitioning: args.documentTransitioning,
     },
     canvas: {
       canvasRef: args.canvasRef,
@@ -125,6 +135,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onContraventamentoPilotiClick: args.handleContraventamentoPilotiClick,
       onContraventamentoCancel: args.handleCancelContraventamento,
       onFreeDrawPathCreated: args.handleFreeDrawPathCreated,
+      onCanvasDocumentChange: args.onCanvasDocumentChange,
     },
     houseTypeSelector: {
       familySetupOpen: args.familySetupOpen,
@@ -182,6 +193,11 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       open: args.is3DViewerOpen,
       onOpenChange: args.setIs3DViewerOpen,
       canvasRef: args.canvasRef,
+    },
+    workspace: {
+      open: args.constructionSiteManagementOpen,
+      onClose: args.closeConstructionSiteManagement,
+      panel: args.constructionSiteManagementPanel,
     },
   };
 }

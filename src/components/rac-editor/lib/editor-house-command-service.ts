@@ -30,7 +30,7 @@ interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   persistHouse: () => void;
-  syncProjectSession: () => void;
+  syncConstructionSiteSession: () => void;
   requestCanvasRender: () => void;
   notify: () => void;
   refreshAutoContraventamento: () => void;
@@ -49,7 +49,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
     this.setupCommands = new EditorHouseSetupCommandService({
       getAggregate: args.getAggregate,
       persistHouse: args.persistHouse,
-      syncProjectSession: args.syncProjectSession,
+      syncConstructionSiteSession: args.syncConstructionSiteSession,
       notify: args.notify,
     });
     this.terrainCommands = new EditorHouseTerrainCommandService<TGroup>({
@@ -58,7 +58,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
       getRuntimeHouse: args.getRuntimeHouse,
       viewRuntime: args.viewRuntime,
       persistHouse: args.persistHouse,
-      syncProjectSession: args.syncProjectSession,
+      syncConstructionSiteSession: args.syncConstructionSiteSession,
       requestCanvasRender: args.requestCanvasRender,
       notify: args.notify,
     });

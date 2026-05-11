@@ -2,16 +2,16 @@ import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {normalizeAvailablePilotiHeights} from '@/shared/types/piloti.ts';
-import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
+import type {ConstructionSiteSessionPort} from '@/components/rac-editor/lib/construction-site-session.ts';
 
 /**
- * Mantém metadados do projeto ativo usados pelo editor de casa.
+ * Mantém metadados da Construção TETO ativa usados pelo editor de casa.
  */
 export class EditorHouseSessionMetadata {
   private familyName: string = '';
   private selectedPilotiHeights: number[] = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
 
-  constructor(private readonly projectSession: ProjectSessionPort) {
+  constructor(private readonly constructionSiteSession: ConstructionSiteSessionPort) {
   }
 
   reset(): void {
@@ -19,12 +19,12 @@ export class EditorHouseSessionMetadata {
     this.selectedPilotiHeights = [...DEFAULT_HOUSE_PILOTI_HEIGHTS];
   }
 
-  hydrateFromProjectSession(params: {
+  hydrateFromConstructionSiteSession(params: {
     aggregate: HouseAggregate | null;
     persistHouse: () => void;
   }): void {
-    const activeHouse = this.projectSession.getActiveHouse();
-    const activeFamily = this.projectSession.getActiveFamily();
+    const activeHouse = this.constructionSiteSession.getActiveHouse();
+    const activeFamily = this.constructionSiteSession.getActiveFamily();
 
     this.familyName = activeFamily.name;
     this.selectedPilotiHeights = normalizeAvailablePilotiHeights(
@@ -38,11 +38,11 @@ export class EditorHouseSessionMetadata {
     params.persistHouse();
   }
 
-  syncProjectSession(params: {
+  syncConstructionSiteSession(params: {
     houseType: HouseType;
     terrainType: number;
   }): void {
-    this.projectSession.syncActiveHouseMetadata({
+    this.constructionSiteSession.syncActiveHouseMetadata({
       houseType: params.houseType,
       terrainType: params.terrainType,
       familyName: this.familyName,

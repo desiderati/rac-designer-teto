@@ -118,7 +118,7 @@ describe('useCanvasHistory.ts', () => {
     expect(houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(firstHouseDocument);
     expect(onCanvasDocumentLoaded).toHaveBeenCalledOnce();
     expect(updateMinimapObjects).toHaveBeenCalledTimes(3);
-    expect(onHistorySave).toHaveBeenCalledTimes(2);
+    expect(onHistorySave).toHaveBeenCalledTimes(3);
     expect(onSelectionChange).toHaveBeenCalledWith('Desfazer realizado.');
   });
 
@@ -152,5 +152,33 @@ describe('useCanvasHistory.ts', () => {
     await waitFor(() => expect(documentPort.loadCanvasDocument).toHaveBeenCalledWith(firstCanvasDocument));
 
     expect(houseDrawingDocumentPort.importHouseDrawingDocument).not.toHaveBeenCalled();
+  });
+
+  it('semeia histórico sem notificar persistência documental', () => {
+    const firstCanvasDocument = createCanvasDocument('view-top-1');
+    const documentPort = createDocumentPort([firstCanvasDocument]);
+    const houseDrawingDocumentPort: HouseDrawingDocumentPort = {
+      exportHouseDrawingDocument: vi.fn((canvas) => createHouseDocument(canvas, 1)),
+      importHouseDrawingDocument: vi.fn(),
+    };
+    const updateMinimapObjects = vi.fn();
+    const onHistorySave = vi.fn();
+
+    const {result} = renderHook(() => useCanvasHistory({
+      createCanvasDocumentPort: () => documentPort,
+      houseDrawingDocumentPort,
+      updateMinimapObjects,
+      onHistorySave,
+      onSelectionChange: vi.fn(),
+      onCanvasDocumentLoaded: vi.fn(),
+    }));
+
+    act(() => {
+      result.current.saveHistory({notifyDocumentChange: false});
+    });
+
+    expect(updateMinimapObjects).toHaveBeenCalledOnce();
+    expect(houseDrawingDocumentPort.exportHouseDrawingDocument).toHaveBeenCalledWith(firstCanvasDocument);
+    expect(onHistorySave).not.toHaveBeenCalled();
   });
 });

@@ -169,7 +169,7 @@ export interface HouseDrawingSetupDocument {
   selectedPilotiHeights: number[];
 }
 
-/** Documento canônico inicial para importação/exportação da casa ativa no editor RAC. */
+/** Documento canônico para persistir e restaurar a casa ativa no editor RAC. */
 export interface HouseDrawingDocument {
   documentType: typeof HOUSE_DRAWING_DOCUMENT_TYPE;
   schemaVersion: typeof HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION;
@@ -351,7 +351,7 @@ export function isHouseDrawingDocument(value: unknown): value is HouseDrawingDoc
 export function parseHouseDrawingDocument(rawContent: string): HouseDrawingDocument {
   const parsed: unknown = JSON.parse(rawContent);
   if (!isHouseDrawingDocument(parsed)) {
-    throw new Error('Arquivo de projeto RAC inválido.');
+    throw new Error('Arquivo RAC inválido.');
   }
   return parsed;
 }

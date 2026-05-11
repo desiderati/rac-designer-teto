@@ -39,12 +39,12 @@
     // Detecta falhas de carregamento de assets (script/link 404) e exibe
     // uma máscara de erro útil em vez de uma tela branca silenciosa.
     (function () {
-        var assetFailed = false;
+        let assetFailed = false;
 
         function showAssetError(detail) {
             if (assetFailed) return;
             assetFailed = true;
-            var root = document.getElementById('root');
+            const root = document.getElementById('root');
             if (!root) return;
             root.innerHTML =
                 '<div style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; color: #1f2937; background: #f9fafb;">' +
@@ -59,7 +59,7 @@
         }
 
         window.addEventListener('error', function (event) {
-            var target = event.target;
+            const target = event.target;
             if (target && target !== window && (target.tagName === 'SCRIPT' || target.tagName === 'LINK')) {
                 showAssetError(target.src || target.href);
             }

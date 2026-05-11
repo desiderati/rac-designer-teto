@@ -60,4 +60,16 @@ describe('house-piloti.use-case.ts', () => {
       shouldRecalculateInterpolatedNiveis: true,
     });
   });
+
+  it('resolve recalculo de contraventamento quando a altura muda sem alterar o nível', () => {
+    const effects = resolvePilotiUpdateEffects({
+      pilotiId: 'piloti_1_1',
+      pilotiData: {height: 1.0},
+      previousPiloti: {...DEFAULT_HOUSE_PILOTI, height: 1.5, nivel: 0.5},
+      hasTopView: true,
+    });
+
+    expect(effects.shouldRefreshAutoContraventamento).toBe(true);
+    expect(effects.shouldRecalculateInterpolatedNiveis).toBe(false);
+  });
 });

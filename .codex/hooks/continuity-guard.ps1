@@ -674,6 +674,119 @@ function Test-WorkItemUpdatedToday
     return $false
 }
 
+function Test-ChangelogArtifactsExist
+{
+    param(
+        [string]$RepoRoot
+    )
+
+    $changelogRoot = Join-Path $RepoRoot '.agents/changelogs'
+    if (-not (Test-Path -LiteralPath $changelogRoot))
+    {
+        return $false
+    }
+
+    $files = @(Get-ChildItem -LiteralPath $changelogRoot -Recurse -File -Filter '*.md' -ErrorAction SilentlyContinue)
+    return $files.Count -gt 0
+}
+
+function Get-PythonInvocation
+{
+    $python = Get-Command python -ErrorAction SilentlyContinue
+    if ($null -ne $python)
+    {
+        return @{
+            command = [string]$python.Source
+            arguments = @()
+        }
+    }
+
+    $py = Get-Command py -ErrorAction SilentlyContinue
+    if ($null -ne $py)
+    {
+        return @{
+            command = [string]$py.Source
+            arguments = @('-3')
+        }
+    }
+
+    return $null
+}
+
+function Format-ValidationOutput
+{
+    param(
+        [object[]]$Output
+    )
+
+    $text = (@($Output) | ForEach-Object { [string]$_ }) -join "`n"
+    $text = $text.Trim()
+    if ([string]::IsNullOrWhiteSpace($text))
+    {
+        return 'sem detalhes de saída.'
+    }
+
+    $text = [System.Text.RegularExpressions.Regex]::Replace($text, '\s+', ' ')
+    if ($text.Length -gt 360)
+    {
+        return $text.Substring(0, 357) + '...'
+    }
+
+    return $text
+}
+
+function Invoke-ChangelogContractValidation
+{
+    param(
+        [string]$RepoRoot,
+        $Config
+    )
+
+    if ($null -ne $Config -and $Config.PSObject.Properties.Name -contains 'validate_changelog_contract')
+    {
+        if ($Config.validate_changelog_contract -eq $false)
+        {
+            return ''
+        }
+    }
+
+    $validatorPath = Join-Path $RepoRoot '.agents/scripts/validate_changelog_contract.py'
+    if (-not (Test-Path -LiteralPath $validatorPath))
+    {
+        return ''
+    }
+
+    if (-not (Test-ChangelogArtifactsExist -RepoRoot $RepoRoot))
+    {
+        return ''
+    }
+
+    $python = Get-PythonInvocation
+    if ($null -eq $python)
+    {
+        return 'Validação estrutural do changelog não executada: Python não encontrado.'
+    }
+
+    $output = @()
+    try
+    {
+        $arguments = @($python.arguments) + @($validatorPath, $RepoRoot)
+        $output = & $python.command @arguments 2>&1
+        $exitCode = $LASTEXITCODE
+    }
+    catch
+    {
+        return 'Validação estrutural do changelog falhou: ' + $_.Exception.Message
+    }
+
+    if ($exitCode -eq 0)
+    {
+        return ''
+    }
+
+    return 'Validação estrutural do changelog falhou: ' + (Format-ValidationOutput -Output $output)
+}
+
 function Build-GuardMessage
 {
     param(
@@ -821,12 +934,18 @@ try
         }
     }
 
+    $changelogContractWarning = Invoke-ChangelogContractValidation -RepoRoot $repoRoot -Config $config
+
     $message = Build-GuardMessage `
         -MatchCount $matchedCommands.Count `
         -MissingArtifacts @($missingArtifacts) `
         -HasLocalMaterialChange:$hasLocalMaterialChange `
         -HasDailyChangelog:$hasDailyChangelog `
         -HasChangelogEvidence:$hasChangelogEvidence
+    if (-not [string]::IsNullOrWhiteSpace($changelogContractWarning))
+    {
+        $message = ($message.TrimEnd() + ' ' + $changelogContractWarning)
+    }
     Write-HookResponse -Message $message
 }
 catch

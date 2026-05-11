@@ -10,7 +10,7 @@ interface EditorHouseTerrainCommandServiceArgs<TGroup extends HouseRuntimeGroupR
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   viewRuntime: Pick<EditorHouseViewRuntime<TGroup>, 'applyTerrainTypeToElevationViews'>;
   persistHouse: () => void;
-  syncProjectSession: () => void;
+  syncConstructionSiteSession: () => void;
   requestCanvasRender: () => void;
   notify: () => void;
 }
@@ -30,7 +30,7 @@ export class EditorHouseTerrainCommandService<TGroup extends HouseRuntimeGroupRe
     aggregate.setTerrainType(normalized);
 
     this.args.persistHouse();
-    this.args.syncProjectSession();
+    this.args.syncConstructionSiteSession();
     this.args.viewRuntime.applyTerrainTypeToElevationViews(this.args.getRuntimeHouse(), normalized);
 
     this.args.requestCanvasRender();

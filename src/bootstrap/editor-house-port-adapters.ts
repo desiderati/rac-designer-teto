@@ -9,11 +9,19 @@ import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
 import type {HouseRuntimeSnapshotPort} from '@/components/rac-editor/ports/HouseRuntimeSnapshotPort.ts';
 import type {HouseStatePort} from '@/components/rac-editor/ports/HouseStatePort.ts';
+import type {ConstructionSiteManagementPort} from '@/components/construction-site/ports/ConstructionSiteManagementPort.ts';
 import type {
   HouseViewRegistration,
   HouseViewRegistrationRequest,
 } from '@/components/rac-editor/ports/HouseViewPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
+import type {
+  CreateHouseInput,
+  CreateConstructionSiteInput,
+  UpdateFamilyInput,
+  UpdateHouseConfigurationInput,
+  UpdateConstructionSiteInput,
+} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
   HousePiloti,
   HousePreAssignedSideDisplay,
@@ -29,6 +37,12 @@ import {
   type HouseDrawingDocument,
   type HouseDrawingCanvasDocument,
 } from '@/shared/types/house-drawing-document.ts';
+import type {
+  PersistedHouseRecord,
+  ConstructionSiteState,
+  ConstructionSiteSummary,
+  SiteAssessment,
+} from '@/shared/types/construction-site.ts';
 
 export interface EditorHouseReadSource<TGroup extends HouseRuntimeGroupRef = HouseRuntimeGroupRef> {
   getHouseType(): HouseType;
@@ -50,6 +64,7 @@ export interface EditorHouseWriteSource {
   setSelectedPilotiHeights(heights: number[]): void;
   setFamilyName(name: string): void;
   refreshAutoStairsForCurrentSettings(): void;
+  refreshAutoContraventamentoForCurrentHouse(): void;
   setHouseType(type: HouseType): void;
   reset(): void;
   setTerrainType(terrainType: number): number;
@@ -76,6 +91,31 @@ export interface EditorHouseDocumentSource {
   getSelectedPilotiHeights(): readonly number[];
   getHouseState(): HouseState | null;
   loadHouseDrawingDocument(document: HouseDrawingDocument): void;
+}
+
+export interface EditorConstructionSiteManagementSource {
+  subscribe(listener: () => void): () => void;
+  getConstructionSiteSummaries(): ConstructionSiteSummary[];
+  getConstructionSiteSnapshots(): ConstructionSiteState[];
+  getConstructionSiteSnapshot(): ConstructionSiteState | null;
+  canOpenRacEditor(): boolean;
+  createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState;
+  updateActiveConstructionSite(input: UpdateConstructionSiteInput): void;
+  archiveActiveConstructionSite(): void;
+  archiveConstructionSite(constructionSiteId: string): void;
+  unarchiveConstructionSite(constructionSiteId: string): void;
+  activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
+  createHouse(input: CreateHouseInput): PersistedHouseRecord;
+  duplicateActiveHouse(): PersistedHouseRecord;
+  archiveActiveHouse(): void;
+  archiveHouse(houseId: string): void;
+  unarchiveHouse(houseId: string): void;
+  activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
+  updateActiveFamily(input: UpdateFamilyInput): void;
+  updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
+  updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void;
+  saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void;
+  getActiveHouseDrawingDocument(): HouseDrawingDocument | null;
 }
 
 export function createEditorHouseReadPort<TGroup extends HouseRuntimeGroupRef>(
@@ -108,6 +148,7 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
     },
     renameFamily: (name) => source.setFamilyName(name),
     refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),
+    refreshAutoContraventamentoForCurrentHouse: () => source.refreshAutoContraventamentoForCurrentHouse(),
     setHouseType: (type) => source.setHouseType(type),
     resetHouse: () => source.reset(),
     setTerrainType: (terrainType) => source.setTerrainType(terrainType),
@@ -169,4 +210,37 @@ export function createEditorHouseDrawingDocumentPort(
     },
     importHouseDrawingDocument: (document) => source.loadHouseDrawingDocument(document),
   };
+}
+
+export function createEditorConstructionSiteManagementPort(
+  source: EditorConstructionSiteManagementSource,
+): ConstructionSiteManagementPort {
+  return {
+    subscribe: (listener) => source.subscribe(listener),
+    getConstructionSiteSummaries: () => source.getConstructionSiteSummaries(),
+    getConstructionSiteSnapshots: () => clonePortValue(source.getConstructionSiteSnapshots()),
+    getConstructionSiteSnapshot: () => clonePortValue(source.getConstructionSiteSnapshot()),
+    canOpenRacEditor: () => source.canOpenRacEditor(),
+    createConstructionSite: (input) => clonePortValue(source.createConstructionSite(input)),
+    updateActiveConstructionSite: (input) => source.updateActiveConstructionSite(input),
+    archiveActiveConstructionSite: () => source.archiveActiveConstructionSite(),
+    archiveConstructionSite: (constructionSiteId) => source.archiveConstructionSite(constructionSiteId),
+    unarchiveConstructionSite: (constructionSiteId) => source.unarchiveConstructionSite(constructionSiteId),
+    activateConstructionSite: (constructionSiteId) => source.activateConstructionSite(constructionSiteId),
+    createHouse: (input) => clonePortValue(source.createHouse(input)),
+    duplicateActiveHouse: () => clonePortValue(source.duplicateActiveHouse()),
+    archiveActiveHouse: () => source.archiveActiveHouse(),
+    archiveHouse: (houseId) => source.archiveHouse(houseId),
+    unarchiveHouse: (houseId) => source.unarchiveHouse(houseId),
+    activateHouse: (constructionSiteId, houseId) => source.activateHouse(constructionSiteId, houseId),
+    updateActiveFamily: (input) => source.updateActiveFamily(input),
+    updateActiveHouseSiteAssessment: (input) => source.updateActiveHouseSiteAssessment(input),
+    updateActiveHouseConfiguration: (input) => source.updateActiveHouseConfiguration(input),
+    saveActiveHouseDrawingDocument: (document) => source.saveActiveHouseDrawingDocument(document),
+    getActiveHouseDrawingDocument: () => source.getActiveHouseDrawingDocument(),
+  };
+}
+
+function clonePortValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }

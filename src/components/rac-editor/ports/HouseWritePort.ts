@@ -6,7 +6,7 @@ import type {HouseViewWritePort} from '@/components/rac-editor/ports/HouseViewPo
  * Dados necessários para iniciar ou atualizar a configuração humana da casa.
  */
 export interface HouseSetup {
-  /** Nome da família associado ao projeto em edição. */
+  /** Nome da família associado à casa em edição. */
   familyName: string;
 
   /** Alturas de piloti habilitadas para essa família. */
@@ -17,10 +17,10 @@ export interface HouseSetup {
  * Comandos de configuração da família e dos parâmetros iniciais da casa.
  */
 export interface HouseSetupWritePort {
-  /** Aplica os dados iniciais de família e alturas disponíveis ao projeto. */
+  /** Aplica os dados iniciais de família e alturas disponíveis à casa. */
   applyHouseSetup(setup: HouseSetup): void;
 
-  /** Renomeia a família associada ao projeto em edição. */
+  /** Renomeia a família associada à casa em edição. */
   renameFamily(name: string): void;
 }
 
@@ -33,6 +33,9 @@ export interface HouseLifecycleWritePort {
 
   /** Atualiza escadas automáticas conforme as configurações atuais. */
   refreshAutoStairsForCurrentSettings(): void;
+
+  /** Recalcula o contraventamento automático para as vistas atualmente no canvas. */
+  refreshAutoContraventamentoForCurrentHouse(): void;
 
   /** Reinicia o estado lógico da casa e suas projeções de runtime conhecidas. */
   resetHouse(): void;

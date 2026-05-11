@@ -52,4 +52,13 @@ describe('UserMenu.tsx', () => {
     expect(screen.getByRole('button', {name: 'Abrir Tutorial'}))
       .toHaveAttribute('data-guided-tour-start', 'rac-editor-intro');
   });
+
+  it('não exibe Construções TETO no menu do avatar', async () => {
+    const {user} = renderMenu({isMobile: false});
+
+    await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+
+    expect(screen.queryByRole('button', {name: 'Construções TETO'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Reiniciar Desenho'})).toBeVisible();
+  });
 });

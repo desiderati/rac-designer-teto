@@ -17,6 +17,18 @@ function createMockGroup(props: Record<string, unknown> = {}) {
   return {group};
 }
 
+function createPilotiRect(pilotiId: string, left: number) {
+  return {
+    isPilotiRect: true,
+    pilotiId,
+    left,
+    top: 100,
+    width: 10,
+    scaleX: 1,
+    pilotiBaseHeight: 20,
+  };
+}
+
 describe('house-auto-contraventamento.ts', () => {
   it('cria contraventamento automático quando piloti está fora da proporção', () => {
     const {group} = createMockGroup();
@@ -100,6 +112,45 @@ describe('house-auto-contraventamento.ts', () => {
     expect(changed).toBe(false);
     expect(group.getCanvasObjects()).toHaveLength(1);
     expect(group.getCanvasObjects()[0]?.isAutoContraventamento).not.toBe(true);
+  });
+
+  it('sincroniza elevacao adicionada depois que a planta ja tem contraventamento automatico', () => {
+    const {group: topGroup} = createMockGroup();
+    const {group: elevationGroup} = createMockGroup({
+      houseSide: 'left',
+      houseViewType: 'side1',
+      canvas: {requestRenderAll: vi.fn()},
+    });
+
+    elevationGroup.getCanvasObjects().push(
+      createPilotiRect('piloti_0_0', 10),
+      createPilotiRect('piloti_0_2', 110),
+    );
+
+    const pilotis = {
+      piloti_0_0: {height: 1.0, isMaster: false, nivel: 0.5},
+      piloti_0_2: {height: 2.0, isMaster: false, nivel: 0.2},
+    } as any;
+
+    const firstRun = refreshAutoContraventamentoInAllViews({
+      pilotis,
+      topViews: [{instanceId: 'top_1', group: topGroup} as any],
+      elevationViews: [],
+    });
+
+    expect(firstRun).toBe(true);
+    expect(topGroup.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
+
+    const secondRun = refreshAutoContraventamentoInAllViews({
+      pilotis,
+      topViews: [{instanceId: 'top_1', group: topGroup} as any],
+      elevationViews: [{instanceId: 'side_1', group: elevationGroup} as any],
+    });
+
+    expect(secondRun).toBe(true);
+    expect(
+      elevationGroup.getCanvasObjects().filter((object: any) => object?.isContraventamentoElevation === true),
+    ).toHaveLength(2);
   });
 
   it('usa menor nível como origem, maior nível como destino e maior distância possível', () => {

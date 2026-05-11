@@ -10,8 +10,9 @@ lang: pt-BR
 
 ## Objetivo
 
-Este diretório reúne documentação durável do produto e da governança técnica do repositório, para leitura de pessoas
-técnicas e não técnicas.
+Este diretório reúne documentação versionada do produto e da governança técnica do repositório, para leitura de pessoas
+técnicas e não técnicas. A maior parte do conteúdo é durável; documentos transitórios devem declarar explicitamente seu
+ciclo de vida.
 
 ## Como usar estes documentos
 
@@ -36,11 +37,15 @@ técnicas e não técnicas.
       O playbook combina um núcleo comum em `PLAY-001` a `PLAY-006` com módulos específicos de família, hoje
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
-4. `code-scaffolds/`
+4. `refactoring-backlog/`
+     - Backlogs técnicos transitórios de refatoração, organizados por arquivos `BACK-00x-*`, com critério explícito de
+      ativação, descarte, promoção ou encerramento.
+
+5. `code-scaffolds/`
      - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
       persistência e testes.
 
-5. `product-requirements/`
+6. `product-requirements/`
      - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 
@@ -51,6 +56,7 @@ técnicas e não técnicas.
 3. Atualização contínua conforme o produto evolui.
 4. Coerência entre documentos (sem regras conflitantes).
 5. PRDs versionados e rastreáveis para iniciativas que precisem de especificação durável.
+6. Backlogs técnicos transitórios devem ter critério claro de saída para não virarem documentação permanente por inércia.
 
 ## Quando atualizar
 

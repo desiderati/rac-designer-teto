@@ -19,7 +19,14 @@ import {EditorHouseQueryService} from '@/components/rac-editor/lib/editor-house-
 import {EditorHouseCommandService} from '@/components/rac-editor/lib/editor-house-command-service.ts';
 import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 import {EditorHouseSessionService} from '@/components/rac-editor/lib/editor-house-session-service.ts';
-import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
+import type {
+  CreateHouseInput,
+  CreateConstructionSiteInput,
+  ConstructionSiteSessionPort,
+  UpdateFamilyInput,
+  UpdateHouseConfigurationInput,
+  UpdateConstructionSiteInput,
+} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
 import type {
@@ -27,6 +34,12 @@ import type {
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
+import type {
+  PersistedHouseRecord,
+  ConstructionSiteState,
+  ConstructionSiteSummary,
+  SiteAssessment,
+} from '@/shared/types/construction-site.ts';
 
 interface EditorHouseEffectsPort {
   refreshTopDoorMarkers(): void;
@@ -43,7 +56,7 @@ interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
 
 interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
   persistence: HousePersistencePort;
-  projectSession: ProjectSessionPort;
+  constructionSiteSession: ConstructionSiteSessionPort;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
 }
@@ -66,10 +79,13 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly session: EditorHouseSessionService;
 
+  private readonly constructionSiteSession: ConstructionSiteSessionPort;
+
   constructor(args: EditorHouseControllerArgs<TGroup>) {
+    this.constructionSiteSession = args.constructionSiteSession;
     this.state = new EditorHouseState(args.persistence);
     this.session = new EditorHouseSessionService({
-      projectSession: args.projectSession,
+      constructionSiteSession: this.constructionSiteSession,
       getAggregate: () => this.getHouseAggregate(),
       getHouseType: () => this.getHouseType(),
       getTerrainType: () => this.getTerrainType(),
@@ -92,7 +108,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       unregisterRuntimeViewGroup: (instanceId) => this.visualRuntime.unregisterViewGroup(instanceId),
       viewRuntime: args.viewRuntime,
       persistHouse: () => this.persistHouse(),
-      syncProjectSession: () => this.session.syncProjectSession(),
+      syncConstructionSiteSession: () => this.session.syncConstructionSiteSession(),
       requestCanvasRender: () => this.requestCanvasRender(),
       notify: () => this.notify(),
       refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
@@ -147,6 +163,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   refreshAutoStairsForCurrentSettings(): void {
     this.effects.refreshAutoStairs();
+  }
+
+  refreshAutoContraventamentoForCurrentHouse(): void {
+    this.effects.refreshAutoContraventamento();
   }
 
   subscribe(listener: () => void): () => void {
@@ -231,8 +251,125 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.house = createHouseStateSnapshot(document.house);
     this.session.setSelectedPilotiHeights(document.setup.selectedPilotiHeights);
     this.session.setFamilyName(document.setup.familyName);
-    this.session.syncProjectSession();
+    this.session.syncConstructionSiteSession();
     this.notify();
+  }
+
+  getConstructionSiteSummaries(): ConstructionSiteSummary[] {
+    return this.constructionSiteSession.getConstructionSiteSummaries();
+  }
+
+  getConstructionSiteSnapshots(): ConstructionSiteState[] {
+    return this.constructionSiteSession.getConstructionSiteSnapshots();
+  }
+
+  getConstructionSiteSnapshot(): ConstructionSiteState | null {
+    return this.constructionSiteSession.getConstructionSite();
+  }
+
+  createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState {
+    const constructionSite = this.constructionSiteSession.createConstructionSite(input);
+    this.house = null;
+    this.notify();
+    return constructionSite;
+  }
+
+  updateActiveConstructionSite(input: UpdateConstructionSiteInput): void {
+    this.constructionSiteSession.updateActiveConstructionSite(input);
+    this.notify();
+  }
+
+  archiveActiveConstructionSite(): void {
+    this.constructionSiteSession.archiveActiveConstructionSite();
+    this.house = null;
+    this.notify();
+  }
+
+  archiveConstructionSite(constructionSiteId: string): void {
+    this.constructionSiteSession.archiveConstructionSite(constructionSiteId);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  unarchiveConstructionSite(constructionSiteId: string): void {
+    this.constructionSiteSession.unarchiveConstructionSite(constructionSiteId);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
+    const document = this.constructionSiteSession.activateConstructionSite(constructionSiteId);
+    this.loadNullableHouseDrawingDocument(document);
+    return document;
+  }
+
+  createHouse(input: CreateHouseInput): PersistedHouseRecord {
+    const house = this.constructionSiteSession.createHouse(input);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    return house;
+  }
+
+  duplicateActiveHouse(): PersistedHouseRecord {
+    const house = this.constructionSiteSession.duplicateActiveHouse();
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    return house;
+  }
+
+  archiveActiveHouse(): void {
+    this.constructionSiteSession.archiveActiveHouse();
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  archiveHouse(houseId: string): void {
+    this.constructionSiteSession.archiveHouse(houseId);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  unarchiveHouse(houseId: string): void {
+    this.constructionSiteSession.unarchiveHouse(houseId);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {
+    const document = this.constructionSiteSession.activateHouse(constructionSiteId, houseId);
+    this.loadNullableHouseDrawingDocument(document);
+    return document;
+  }
+
+  updateActiveFamily(input: UpdateFamilyInput): void {
+    this.constructionSiteSession.updateActiveFamily(input);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void {
+    this.constructionSiteSession.updateActiveHouseSiteAssessment(input);
+    this.notify();
+  }
+
+  updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
+    this.constructionSiteSession.updateActiveHouseConfiguration(input);
+    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void {
+    this.constructionSiteSession.saveActiveHouseDrawingDocument(document);
+    this.notify();
+  }
+
+  getActiveHouseDrawingDocument(): HouseDrawingDocument | null {
+    return this.constructionSiteSession.getActiveHouseDrawingDocument();
+  }
+
+  canOpenRacEditor(): boolean {
+    return this.constructionSiteSession.canOpenRacEditor();
+  }
+
+  private loadNullableHouseDrawingDocument(document: HouseDrawingDocument | null): void {
+    if (!document) {
+      this.house = null;
+      this.notify();
+      return;
+    }
+
+    this.loadHouseDrawingDocument(document);
   }
 
   private getHouseAggregate(): HouseAggregate | null {

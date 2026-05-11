@@ -82,8 +82,8 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 ## 🏗️ Arquitetura Atual
 
 - `src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
-- `src/domain/project/` concentra o contrato de repositório de projeto
-- `src/infra/` implementa persistência em memória, repositório local de projetos, storage local e integrações técnicas
+- `src/domain/construction-site/` concentra o contrato de repositório de Construções TETO
+- `src/infra/` implementa persistência em memória, repositório local de Construções TETO, storage local e integrações técnicas
 - `src/components/guided-tour/` concentra o runtime reutilizável do tour guiado
 - `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
   `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`
@@ -100,7 +100,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - `src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
   `src/components/rac-editor/lib/house-store.ts`
 - `src/shared/config.ts` concentra constantes operacionais compartilhadas
-- `src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, projeto e documento RAC
+- `src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, Construção TETO e documento RAC
 - O projeto usa alias `@/` para imports absolutos
 - O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor permanece concentrado na
   própria feature
@@ -128,6 +128,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 │   ├── business-rules/       # Regras funcionais do produto, numeradas em ordem canônica
 │   ├── engineering-playbook/ # Constituição técnica e guias locais de engenharia
 │   ├── code-scaffolds/       # Scaffolds aprovados quando houver uso operacional real
+│   ├── refactoring-backlog/  # Backlogs técnicos transitórios de refatoração
 │   └── product-requirements/ # PRDs canônicos e sidecars associados
 ├── e2e/                      # Testes E2E (Playwright)
 ├── public/                   # Assets estáticos

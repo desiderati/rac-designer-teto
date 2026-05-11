@@ -63,10 +63,13 @@ export function resolvePilotiUpdateEffects(params: {
   const hasNivelChange =
     params.pilotiData.nivel !== undefined
     && params.previousPiloti?.nivel !== Number(params.pilotiData.nivel);
+  const hasHeightChange =
+    params.pilotiData.height !== undefined
+    && params.previousPiloti?.height !== Number(params.pilotiData.height);
 
   return {
     hasNivelChange,
-    shouldRefreshAutoContraventamento: hasNivelChange && params.hasTopView,
+    shouldRefreshAutoContraventamento: (hasNivelChange || hasHeightChange) && params.hasTopView,
     shouldRecalculateInterpolatedNiveis:
       PILOTI_CORNER_IDS.includes(params.pilotiId)
       && hasNivelChange,

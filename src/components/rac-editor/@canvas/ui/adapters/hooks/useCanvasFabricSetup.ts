@@ -15,12 +15,15 @@ import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {useCanvasContraventamentoEvents} from './useCanvasContraventamentoEvents.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import type {SaveCanvasHistoryOptions} from './useCanvasHistory.ts';
+import {bindEmptyFreeTextCleanup} from '@/components/rac-editor/@canvas/lib/free-text-cleanup.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   fabricCanvasRef: MutableRefObject<FabricCanvas | null>;
-  saveHistory: () => void;
+  saveHistory: (options?: SaveCanvasHistoryOptions) => void;
+  documentRestoringRef: MutableRefObject<boolean>;
   onSelectionChange: (hint: string) => void;
   onPilotiSelect?: (selection: PilotiCanvasSelection | null) => void;
   onWallSelect?: (selection: WallCanvasSelection | null) => void;
@@ -44,6 +47,7 @@ export function useCanvasFabricSetup({
   containerRef,
   fabricCanvasRef,
   saveHistory,
+  documentRestoringRef,
   onSelectionChange,
   onPilotiSelect,
   onWallSelect,
@@ -68,6 +72,7 @@ export function useCanvasFabricSetup({
     containerRef,
     fabricCanvasRef,
     saveHistory,
+    documentRestoringRef,
     onSelectionChange,
     onPilotiSelect,
     onWallSelect,
@@ -91,6 +96,7 @@ export function useCanvasFabricSetup({
     containerRef,
     fabricCanvasRef,
     saveHistory,
+    documentRestoringRef,
     onSelectionChange,
     onPilotiSelect,
     onWallSelect,
@@ -142,7 +148,11 @@ export function useCanvasFabricSetup({
         return object.isPilotiCircle === true || object.isPilotiRect === true;
       };
 
-    const runSaveHistory = () => latestArgsRef.current.saveHistory();
+    const runSaveHistory = (options?: SaveCanvasHistoryOptions) => {
+      if (latestArgsRef.current.documentRestoringRef.current) return;
+      latestArgsRef.current.saveHistory(options);
+    };
+    const handleCanvasMutation = () => runSaveHistory();
 
     const emitSelectionChange =
       (hint: string) => latestArgsRef.current.onSelectionChange(hint);
@@ -174,12 +184,13 @@ export function useCanvasFabricSetup({
     brushWithDecimate.decimate = 8;
 
     // Save initial history
-    runSaveHistory();
+    runSaveHistory({notifyDocumentChange: false});
 
     // Event listeners
-    canvas.on('object:added', runSaveHistory);
-    canvas.on('object:modified', runSaveHistory);
-    canvas.on('object:removed', runSaveHistory);
+    const unbindEmptyFreeTextCleanup = bindEmptyFreeTextCleanup(canvas);
+    canvas.on('object:added', handleCanvasMutation);
+    canvas.on('object:modified', handleCanvasMutation);
+    canvas.on('object:removed', handleCanvasMutation);
     canvas.on('path:created', handlePathCreated);
 
     const handlePilotiSelection = buildPilotiSelectionHandler({
@@ -256,6 +267,10 @@ export function useCanvasFabricSetup({
       unbindKeyboardShortcuts();
       unbindContraventamentoEvents();
       unbindSelectionActions();
+      unbindEmptyFreeTextCleanup();
+      canvas.off('object:added', handleCanvasMutation);
+      canvas.off('object:modified', handleCanvasMutation);
+      canvas.off('object:removed', handleCanvasMutation);
       canvas.off('path:created', handlePathCreated);
       currentFabricCanvasRef.current = null;
       canvas.dispose().then(_ => {

@@ -1,56 +1,53 @@
 ---
-title: "ADR-002 — Formato Canônico Inicial do Arquivo RAC"
+title: "ADR-002 - Documento Canônico da Casa RAC"
 doc_role: architecture-decision-record
 adr_number: ADR-002
 decision_mode: previo
 status: accepted
 created: 2026-05-01
-updated: 2026-05-01
+updated: 2026-05-09
 supersedes:
 superseded_by:
-decision_source: "conversa de refatoração com league-of-agents e solutions-architect em 2026-05-01"
+decision_source: "conversa de refatoração com league-of-agents e evolução da PRD-001 em 2026-05-09"
 tags: [ adr, architecture, decision, rac-editor, document, ports ]
-aliases: [ ADR-002, Formato Canônico do Projeto RAC ]
+aliases: [ ADR-002, Documento Canônico da Casa RAC ]
 ---
 
-# ADR-002 — Formato Canônico Inicial do Arquivo RAC
+# ADR-002 - Documento Canônico da Casa RAC
 
 ## 1. Contexto
 
-O editor RAC ainda tinha importação e exportação orientadas pelo JSON do canvas. Isso mantinha o Fabric como contrato
-operacional do arquivo exportado, mesmo depois da separação entre `HouseStatePort`,
-`HouseRuntimeSnapshotPort<TGroup>` e `HouseVisualRuntimePort<TGroup>`.
+O editor RAC já teve importação e exportação orientadas pelo JSON do canvas. Isso mantinha o Fabric como contrato
+operacional, mesmo depois da separação entre `HouseStatePort`, `HouseRuntimeSnapshotPort<TGroup>` e
+`HouseVisualRuntimePort<TGroup>`.
 
-A decisão de produto para esta fase é tratar o arquivo exportado como documento RAC versionado, não como dump do runtime
-visual. Como não há requisito de compatibilidade com arquivos JSON Fabric antigos, a migração pode rejeitar esse formato
-e começar com um contrato novo.
+A evolução multicasa da PRD-001 removeu importação/exportação JSON da navegação principal. O documento da casa continua
+necessário, mas agora como contrato interno de persistência e restauração do último estado da casa ativa no banco local.
 
-Esta ADR não implementa `ProjectDocument` multicasa. O escopo aceito é o documento inicial da casa ativa, suficiente
-para remover o JSON Fabric bruto do contrato público de importação/exportação.
+Esta ADR não define um documento completo de Construção TETO. O escopo aceito é o documento da casa ativa, suficiente
+para persistir estado lógico e visual sem transformar JSON Fabric bruto em fonte de verdade.
 
 ## 2. Decisão
 
-O formato canônico inicial do editor passa a ser `HouseDrawingDocument`.
+O formato canônico interno do editor é `HouseDrawingDocument`.
 
 Ele contém:
 
-- `documentType` e `schemaVersion`, para identificar o contrato do arquivo.
+- `documentType` e `schemaVersion`, para identificar o contrato.
 - `setup`, com metadados editáveis da casa ativa.
 - `house`, com o `HouseState` lógico validado estruturalmente.
 - `canvas`, com um documento visual serializável composto por elementos, formas, geometria, estilo e metadados JSON.
 
-O JSON Fabric bruto não é mais formato aceito para importação de projeto. O adapter Fabric pode converter internamente
-entre o runtime visual e o documento visual, mas hooks de aplicação, ports do editor, bootstrap e documentos de domínio
-não conhecem `canvas.toJSON()`, `canvas.loadFromJSON()` nem tipos concretos do canvas.
-
-O histórico do canvas também deve restaurar o estado lógico por documento explícito quando a casa existir. Recriar
-estado de casa a partir de grupos visuais deixa de ser mecanismo de aplicação aceito nesta fase.
+O JSON Fabric bruto não é formato de persistência da aplicação. O adapter Fabric pode converter internamente entre o
+runtime visual e o documento visual, mas hooks de aplicação, ports do editor, bootstrap e documentos de domínio não
+devem conhecer `canvas.toJSON()`, `canvas.loadFromJSON()` nem tipos concretos do canvas.
 
 ## 3. Fronteira
 
 ```mermaid
 flowchart LR
-    Hook["Import/export do editor"]
+    Management["Gerenciamento de Construção TETO"]
+    Session["Sessão e persistência local"]
     HouseDocumentPort["HouseDrawingDocumentPort"]
     HouseState["HouseState lógico"]
     CanvasDocumentPort["CanvasDocumentPort"]
@@ -59,34 +56,32 @@ flowchart LR
     Fabric["Fabric.js"]
     History["Histórico do canvas"]
 
-    Hook --> HouseDocumentPort
-    Hook --> CanvasDocumentPort
+    Management --> Session
+    Session --> HouseDocumentPort
     HouseDocumentPort --> HouseState
+    HouseDocumentPort --> CanvasDocument
     CanvasDocumentPort --> CanvasDocument
     CanvasDocumentPort --> FabricAdapter
     FabricAdapter --> Fabric
     History --> CanvasDocumentPort
-    History --> HouseDocumentPort
 ```
 
-## 4. Critério de aceite
+## 4. Critério De Aceite
 
 A decisão está aceita quando:
 
-1. A exportação gera documento com `documentType: "rac-house-drawing"` e versão explícita.
-2. A importação rejeita JSON Fabric antigo, como `{ "objects": [] }`.
-3. O fluxo de importação aplica `HouseDrawingDocument` ao estado lógico sem chamar rebuild lógico a partir do canvas.
-4. `CanvasGroup` e `CanvasObject` permanecem confinados a `src/components/rac-editor/@canvas`.
-5. `canvas.toJSON()` e `canvas.loadFromJSON()` não vazam para hooks de aplicação, bootstrap, ports gerais ou domínio.
-6. O parser documental valida `HouseState`, setup, geometria, metadados JSON e elementos visuais sem aceitar payload
+1. O estado da casa ativa é persistido como `HouseDrawingDocument` versionado.
+2. A restauração aplica `HouseDrawingDocument` ao estado lógico sem chamar rebuild lógico a partir do canvas.
+3. `CanvasGroup` e `CanvasObject` permanecem confinados a `src/components/rac-editor/@canvas`.
+4. `canvas.toJSON()` e `canvas.loadFromJSON()` não vazam para hooks de aplicação, bootstrap, ports gerais ou domínio.
+5. O parser documental valida `HouseState`, setup, geometria, metadados JSON e elementos visuais sem aceitar payload
    opaco.
-7. Existe round trip mínimo `canvas -> HouseDrawingDocument.canvas -> canvas` preservando identidade e metadados visuais.
-8. Não existe porta pública de aplicação para `rebuildHouseFromCanvas`.
-9. Testes de fronteira, ports, parser documental, adapter Fabric e import/export caracterizam o novo contrato.
+6. Existe round trip mínimo `canvas -> HouseDrawingDocument.canvas -> canvas` preservando identidade e metadados visuais.
+7. Não existe porta pública de aplicação para `rebuildHouseFromCanvas`.
 
-## 5. Alternativas rejeitadas
+## 5. Alternativas Rejeitadas
 
-### Manter JSON Fabric como contrato do projeto
+### Manter JSON Fabric como contrato de persistência
 
 Foi rejeitada porque perpetua o problema original: o canvas continua sendo a fonte canônica e o documento fica acoplado
 ao runtime gráfico.
@@ -94,23 +89,21 @@ ao runtime gráfico.
 ### Empacotar JSON Fabric dentro de um campo opaco
 
 Foi rejeitada como solução final porque troca o nome do acoplamento, mas não sua natureza. Durante a transição, o adapter
-Fabric ainda pode reconstruir formas visuais, mas o contrato público deve permanecer estruturado por elementos,
+Fabric ainda pode reconstruir formas visuais, mas o contrato da aplicação deve permanecer estruturado por elementos,
 geometria, estilo e metadados serializáveis.
 
-### Implementar `ProjectDocument` multicasa completo agora
+### Reintroduzir importação/exportação JSON como navegação principal
 
-Foi adiada. O PRD multicasa aponta nessa direção, mas o corte atual precisa estabilizar primeiro o documento da casa
-ativa e o fluxo de importação/exportação do editor.
+Foi rejeitada pela PRD-001. O compartilhamento futuro pode existir, mas não deve ser o mecanismo principal para salvar o
+estado da casa nem para alternar Construções TETO.
 
 ## 6. Consequências
 
-- O arquivo exportado deixa de ser compatível com JSON Fabric antigo.
 - O documento visual ainda é reconstruído pelo adapter Fabric dentro de `@canvas`; isso é borda legítima, não contrato de
   aplicação.
-- O histórico deixa de depender de rebuild canvas -> casa e passa a armazenar documento visual mais documento lógico
-  quando a casa já existe.
-- O próximo ciclo relacionado a persistência só deve promover `ProjectDocument` multicasa quando a camada de projeto
-  estiver pronta para persistência real.
+- A persistência da casa ativa passa pela sessão da Construção TETO e pelo `HouseDrawingDocument`.
+- O histórico não deve depender de rebuild canvas -> casa.
+- Um formato futuro de exportação consolidada deve ser desenhado como fluxo próprio, não como retorno do JSON Fabric.
 
 ## 7. Referências
 
@@ -120,4 +113,3 @@ ativa e o fluxo de importação/exportação do editor.
 - `src/shared/types/house-drawing-document.ts`
 - `src/components/rac-editor/ports/HouseDrawingDocumentPort.ts`
 - `src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts`
-- `src/components/rac-editor/ports/HouseWritePort.ts`

@@ -1,4 +1,4 @@
-import {forwardRef, ReactNode, useEffect, useImperativeHandle, useRef} from 'react';
+import {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
 import {
   CanvasGroup,
   CanvasObject,
@@ -97,6 +97,7 @@ export const Canvas =
       const containerRef = useRef<HTMLDivElement>(null);
       const canvasRef = useRef<HTMLCanvasElement>(null);
       const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
+      const documentRestoringRef = useRef(false);
       const {houseDrawingDocumentPort} = useEditorPorts();
 
       const {
@@ -153,15 +154,30 @@ export const Canvas =
         isAnyEditorOpenRef.current = isAnyEditorOpen;
       }, [isAnyEditorOpen]);
 
+      const createCanvasDocumentPort = useCallback(() => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) return null;
+
+        const documentPort = createFabricCanvasDocumentPort(canvas);
+        return {
+          ...documentPort,
+          loadCanvasDocument: async (...args: Parameters<typeof documentPort.loadCanvasDocument>) => {
+            documentRestoringRef.current = true;
+            try {
+              return await documentPort.loadCanvasDocument(...args);
+            } finally {
+              documentRestoringRef.current = false;
+            }
+          },
+        };
+      }, []);
+
       const {
         saveHistory,
         clearHistory,
         undo,
       } = useCanvasHistory({
-        createCanvasDocumentPort: () => {
-          const canvas = fabricCanvasRef.current;
-          return canvas ? createFabricCanvasDocumentPort(canvas) : null;
-        },
+        createCanvasDocumentPort,
         houseDrawingDocumentPort,
         updateMinimapObjects: () => updateMinimapObjects(fabricCanvasRef.current),
         onHistorySave,
@@ -210,8 +226,7 @@ export const Canvas =
           return canvas ? createCanvasHouseRuntimePort(canvas) : null;
         },
         createDocumentPort: () => {
-          const canvas = fabricCanvasRef.current;
-          return canvas ? createFabricCanvasDocumentPort(canvas) : null;
+          return createCanvasDocumentPort();
         },
         createDebugPort: () => {
           const canvas = fabricCanvasRef.current;
@@ -249,7 +264,7 @@ export const Canvas =
         getVisibleCenter,
         fitToView,
       };
-      }, [clearHistory, copy, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+      }, [clearHistory, copy, createCanvasDocumentPort, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
 
       // Surface zoom changes back to the parent so the top-bar zoom indicator
       // can stay in sync with wheel/pinch interactions.
@@ -304,6 +319,7 @@ export const Canvas =
         paste,
         undo,
         saveHistory,
+        documentRestoringRef,
         getCurrentScreenPoint,
 
         isContraventamentoModeRef,

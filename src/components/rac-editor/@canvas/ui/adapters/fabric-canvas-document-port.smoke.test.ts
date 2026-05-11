@@ -95,6 +95,46 @@ describe('fabric-canvas-document-port.ts', () => {
     expect(canvas.renderAll).toHaveBeenCalled();
   });
 
+  it('reidrata textos sem conteÃºdo como string vazia para o Fabric', async () => {
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const port = createFabricCanvasDocumentPort(canvas as any);
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{
+        id: 'house-top-1',
+        kind: 'house',
+        shape: 'group',
+        children: [{
+          id: 'empty-label-1',
+          kind: 'pilotiNivelText',
+          shape: 'itext',
+        }],
+      }],
+    })).resolves.toBe(true);
+
+    expect(canvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'group',
+        myType: 'house',
+        editorObjectId: 'house-top-1',
+        objects: [{
+          type: 'itext',
+          text: '',
+          myType: 'pilotiNivelText',
+          editorObjectId: 'empty-label-1',
+        }],
+      }],
+    });
+  });
+
   it('preserva identidade e metadados no round trip documental do canvas', async () => {
     const sourceCanvas = {
       toJSON: vi.fn(() => ({
@@ -185,6 +225,66 @@ describe('fabric-canvas-document-port.ts', () => {
           fill: '#222222',
           myType: 'wallShape',
           editorObjectId: 'wall-polygon-1',
+        }],
+      }],
+    });
+  });
+
+  it('preserva ordem de pintura de texto para rótulos com contorno', async () => {
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Group',
+          myType: 'water',
+          editorObjectId: 'water-1',
+          objects: [{
+            type: 'Text',
+            myType: 'waterLabel',
+            editorObjectId: 'water-label-1',
+            text: 'Água',
+            fill: '#0092dd',
+            stroke: 'white',
+            strokeWidth: 2,
+            paintFirst: 'stroke',
+          }],
+        }],
+      })),
+    };
+    const targetCanvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+    const loaded = await createFabricCanvasDocumentPort(targetCanvas as any).loadCanvasDocument(exported!);
+
+    expect(loaded).toBe(true);
+    expect(exported?.objects[0].children?.[0]).toMatchObject({
+      kind: 'waterLabel',
+      style: {
+        fill: '#0092dd',
+        stroke: 'white',
+        strokeWidth: 2,
+        paintFirst: 'stroke',
+      },
+    });
+    expect(targetCanvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'group',
+        myType: 'water',
+        editorObjectId: 'water-1',
+        objects: [{
+          type: 'text',
+          fill: '#0092dd',
+          stroke: 'white',
+          strokeWidth: 2,
+          paintFirst: 'stroke',
+          myType: 'waterLabel',
+          editorObjectId: 'water-label-1',
+          text: 'Água',
         }],
       }],
     });

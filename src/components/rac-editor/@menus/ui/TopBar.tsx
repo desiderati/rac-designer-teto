@@ -1,19 +1,24 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {CircleAlert, CircleCheck, Loader2} from 'lucide-react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
 import {UserMenu} from './UserMenu.tsx';
 import {ZoomMenu} from './ZoomMenu.tsx';
-import type {CanvasToolMode, MenuActionMap} from '../lib/menu-types.ts';
+import type {CanvasToolMode, MenuActionMap, MenuConstructionGroup} from '../lib/menu-types.ts';
+import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 
 interface TopBarProps {
   actions: MenuActionMap;
+  constructionGroups: MenuConstructionGroup[];
   familyName: string;
   showTips: boolean;
   zoom: number;
   canvasToolMode: CanvasToolMode;
   isMobile: boolean;
+  documentSaveStatus: HouseDocumentSaveStatus;
+  documentTransitioning: boolean;
 }
 
 /**
@@ -27,12 +32,26 @@ interface TopBarProps {
  * - Center: Zoom indicator with S/P/F submenu
  * - Right:  3D button + Exportar (PDF) button + Avatar dropdown
  */
-export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isMobile}: TopBarProps) {
+export function TopBar({
+  actions,
+  constructionGroups,
+  familyName,
+  showTips,
+  zoom,
+  canvasToolMode,
+  isMobile,
+  documentSaveStatus,
+  documentTransitioning,
+}: TopBarProps) {
   return (
     <>
       {/* Left: Menu + Family */}
       <div className='fixed top-4 left-4 z-50 flex items-center gap-3'>
-        <HamburgerMenu actions={actions}/>
+        <HamburgerMenu
+          actions={actions}
+          constructionGroups={constructionGroups}
+          documentTransitioning={documentTransitioning}
+        />
         <FamilyName familyName={familyName} onRename={actions.renameFamily}/>
       </div>
 
@@ -49,6 +68,8 @@ export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isM
 
       {/* Right: 3D / Exportar / Avatar */}
       <div className='fixed top-4 right-4 z-50 flex items-center gap-2'>
+        <DocumentSaveStatusIndicator status={documentSaveStatus}/>
+
         <button
           type='button'
           onClick={actions.open3DViewer}
@@ -93,5 +114,54 @@ export function TopBar({actions, familyName, showTips, zoom, canvasToolMode, isM
         />
       </div>
     </>
+  );
+}
+
+function DocumentSaveStatusIndicator({status}: { status: HouseDocumentSaveStatus }) {
+  const labelByStatus: Record<HouseDocumentSaveStatus, string> = {
+    saved: 'Casa salva',
+    dirty: 'Salvando alterações',
+    saving: 'Salvando alterações',
+    error: 'Falha ao salvar alterações',
+  };
+
+  const toneByStatus: Record<HouseDocumentSaveStatus, string> = {
+    saved: 'text-emerald-600',
+    dirty: 'text-slate-500',
+    saving: 'text-slate-500',
+    error: 'text-red-600',
+  };
+
+  return (
+    <span
+      role='status'
+      aria-label={labelByStatus[status]}
+      title={labelByStatus[status]}
+      className={cn(
+        'hidden sm:inline-flex h-7 w-7 shrink-0 items-center justify-center',
+        'pointer-events-none relative',
+        toneByStatus[status],
+      )}
+    >
+      {status === 'saved' ? (
+        <CircleCheck
+          data-testid='document-save-check'
+          className='h-5 w-5'
+          aria-hidden='true'
+        />
+      ) : null}
+
+      {status === 'saving' || status === 'dirty' ? (
+        <Loader2
+          data-testid='document-save-spinner'
+          className='h-5 w-5 animate-spin'
+          aria-hidden='true'
+        />
+      ) : null}
+
+      {status === 'error' ? (
+        <CircleAlert className='h-5 w-5' aria-hidden='true'/>
+      ) : null}
+    </span>
   );
 }

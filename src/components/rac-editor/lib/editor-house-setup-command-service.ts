@@ -4,7 +4,7 @@ import type {HouseType} from '@/shared/types/house.ts';
 interface EditorHouseSetupCommandServiceArgs {
   getAggregate: () => HouseAggregate | null;
   persistHouse: () => void;
-  syncProjectSession: () => void;
+  syncConstructionSiteSession: () => void;
   notify: () => void;
 }
 
@@ -21,7 +21,7 @@ export class EditorHouseSetupCommandService {
 
     aggregate.setHouseType(type);
     this.args.persistHouse();
-    this.args.syncProjectSession();
+    this.args.syncConstructionSiteSession();
     this.args.notify();
   }
 }

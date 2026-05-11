@@ -1,5 +1,5 @@
 ---
-title: "Bug Analysis — <título curto do caso>"
+title: "Bug Analysis - <título curto do caso>"
 doc_role: bug-analysis
 status: confirmed
 created: AAAA-MM-DD
@@ -29,6 +29,8 @@ aliases: [ <título curto do caso> ]
 - ambiente:
 - status analítico: confirmado | provável | inconclusivo | descartado
 - estado da correção: não aplicada | recomendada | aplicada | validada
+- status de evidência: reproduced | root-cause-confirmed | fixed-in-test | validated-at-original-boundary | partial |
+  blocked
 
 ## 2. Contexto e Sintoma Observado
 
@@ -37,26 +39,40 @@ aliases: [ <título curto do caso> ]
 - impacto percebido:
 - limitações ou incertezas iniciais:
 
-## 3. Escopo Afetado
+## 3. Contrato de Falha Observável
+
+- cenário original reportado:
+- fronteira observável do relato:
+- reprodução mínima que deve falhar antes da correção:
+- cenário de controle que deve continuar passando:
+- evidência necessária para considerar resolvido:
+
+## 4. Escopo Afetado
 
 - fluxos afetados:
 - regras de negócio afetadas:
 - módulos, componentes ou serviços envolvidos:
 - contratos, schemas ou interfaces envolvidos:
 
-## 4. Fluxo Esperado vs. Fluxo Real
+## 5. Mapa de Camadas e Fronteiras
+
+| Camada ou fronteira | Responsabilidade | Evidência disponível | Status                                                   |
+|---------------------|------------------|----------------------|----------------------------------------------------------|
+|                     |                  |                      | observado \| inferido \| não aplicável \| não verificado |
+
+## 6. Fluxo Esperado vs. Fluxo Real
 
 - fluxo esperado:
 - fluxo real:
 - ponto de divergência identificado:
 
-## 5. Hipóteses Causais
+## 7. Hipóteses Causais
 
-| Hipótese | Evidências a favor | Evidências contra | Status                                               |
-|----------|--------------------|-------------------|------------------------------------------------------|
-|          |                    |                   | confirmada \| provável \| inconclusiva \| descartada |
+| Hipótese | Evidências a favor | Evidências contra | O que ainda falta saber | Como validar | Status                                               |
+|----------|--------------------|-------------------|-------------------------|--------------|------------------------------------------------------|
+|          |                    |                   |                         |              | confirmada \| provável \| inconclusiva \| descartada |
 
-## 6. Evidências e Pontos Envolvidos
+## 8. Evidências e Pontos Envolvidos
 
 ### Evidências observadas
 
@@ -68,30 +84,40 @@ aliases: [ <título curto do caso> ]
 - arquivo, módulo ou contrato:
 - responsabilidade no defeito:
 
-## 7. Classe do Defeito ou Regressão
+## 9. Classe do Defeito ou Regressão
 
 - classe:
 - por que esta classificação se aplica:
 
-## 8. Correção Aplicada ou Recomendada
+## 10. Correção Aplicada ou Recomendada
 
 - menor mudança coerente:
 - por que resolve a causa:
 - riscos e impactos laterais:
 
-## 9. Validação Executada
+## 11. Validação Executada
 
+- validação de camada:
+- validação de integração:
+- validação na fronteira original:
 - testes executados:
-- validação manual:
+- validação manual ou operacional:
 - build, lint ou smoke relevante:
 - critério de sucesso observado:
+- limitações ou validações bloqueadas:
 
-## 10. Dúvidas Residuais de Regra de Negócio
+## 12. Status de Evidência
+
+- status final:
+- por que este status se aplica:
+- o que ainda ficaria necessário para elevar o status, se parcial ou bloqueado:
+
+## 13. Dúvidas Residuais de Regra de Negócio
 
 - dúvida:
 - por que ainda importa:
 
-## 11. Artefatos Relacionados
+## 14. Artefatos Relacionados
 
 - incidente correlato:
 - PR, commit ou diff relacionado:

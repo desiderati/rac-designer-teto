@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createDefaultEditorHousePorts, type EditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
+import type {StoredConstructionSitesDocument} from '@/components/rac-editor/lib/construction-site-session.ts';
 import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
 
 function createCanvasPort() {
@@ -10,12 +11,40 @@ function createCanvasPort() {
   };
 }
 
+function createConstructionSiteSessionStorage(initialConstructionSites: StoredConstructionSitesDocument['constructionSites'] = []) {
+  let constructionSites = initialConstructionSites;
+
+  return {
+    read: vi.fn(() => ({version: 1, constructionSites})),
+    write: vi.fn((nextConstructionSites: StoredConstructionSitesDocument['constructionSites']) => {
+      constructionSites = nextConstructionSites;
+    }),
+  };
+}
+
+function createEditorHousePortsWithActiveHouse() {
+  const ports = createDefaultEditorHousePorts({
+    constructionSiteSessionStorage: createConstructionSiteSessionStorage(),
+  });
+
+  ports.constructionSiteManagementPort.createConstructionSite({
+    externalCode: 'CC2603',
+    constructionDate: '2026-05-11',
+    communityName: 'Tiradentes',
+  });
+  ports.constructionSiteManagementPort.createHouse({
+    familyName: 'Familia teste',
+  });
+  ports.houseWritePort.resetHouse();
+
+  return ports;
+}
+
 describe('editor house ports', () => {
   let ports: EditorHousePorts;
 
   beforeEach(() => {
-    ports = createDefaultEditorHousePorts();
-    ports.houseWritePort.resetHouse();
+    ports = createEditorHousePortsWithActiveHouse();
   });
 
   it('aplica dados de setup pela porta composta', () => {
@@ -67,8 +96,8 @@ describe('editor house ports', () => {
   });
 
   it('cria instancias isoladas para providers diferentes', () => {
-    const firstPorts = createDefaultEditorHousePorts();
-    const secondPorts = createDefaultEditorHousePorts();
+    const firstPorts = createEditorHousePortsWithActiveHouse();
+    const secondPorts = createEditorHousePortsWithActiveHouse();
 
     firstPorts.houseWritePort.setHouseType('tipo6');
 
@@ -89,5 +118,38 @@ describe('editor house ports', () => {
     ports.houseDrawingDocumentPort.importHouseDrawingDocument(document!);
 
     expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');
+  });
+
+  it('expõe gerenciamento de Construção TETO sem acessar a sessão concreta', () => {
+    const ports = createDefaultEditorHousePorts({
+      constructionSiteSessionStorage: createConstructionSiteSessionStorage(),
+    });
+    const listener = vi.fn();
+    const unsubscribe = ports.constructionSiteManagementPort.subscribe(listener);
+
+    ports.constructionSiteManagementPort.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    const createdHouse = ports.constructionSiteManagementPort.createHouse({
+      familyName: 'Família 02',
+      houseType: 'tipo6',
+    });
+
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.constructionSite.activeHouseId).toBe(createdHouse.id);
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.houses[0]?.houseType).toBe('tipo6');
+    expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSummaries()).toHaveLength(1);
+    ports.constructionSiteManagementPort.archiveHouse(createdHouse.id);
+    expect(ports.constructionSiteManagementPort.canOpenRacEditor()).toBe(false);
+    ports.constructionSiteManagementPort.unarchiveHouse(createdHouse.id);
+    expect(ports.constructionSiteManagementPort.canOpenRacEditor()).toBe(true);
+    expect(listener.mock.calls.length).toBeGreaterThan(1);
+
+    unsubscribe();
   });
 });

@@ -19,8 +19,8 @@ export interface UseMenuActionsArgs {
   handleAddDistance: () => void;
   handleToggleDrawMode: () => void;
   handleAddText: () => void;
-  handleExportJSON: () => void;
-  handleImportJSON: (file: File) => void;
+  handleOpenConstructionSites: () => void;
+  handleActivateHouse: (constructionId: string, houseId: string) => Promise<void>;
   handleDelete: () => void;
   handleSavePDF: () => void;
   handleToggleHouseMenu: () => void;
@@ -54,8 +54,8 @@ export function useRacEditorMenuActions({
   handleAddDistance,
   handleToggleDrawMode,
   handleAddText,
-  handleExportJSON,
-  handleImportJSON,
+  handleOpenConstructionSites,
+  handleActivateHouse,
   handleDelete,
   handleSavePDF,
   handleToggleHouseMenu,
@@ -92,8 +92,8 @@ export function useRacEditorMenuActions({
     addDistance: handleAddDistance,
     toggleDrawMode: handleToggleDrawMode,
     addText: handleAddText,
-    exportJSON: handleExportJSON,
-    importJSON: handleImportJSON,
+    openConstructionSites: handleOpenConstructionSites,
+    activateHouse: handleActivateHouse,
     deleteSelection: handleDelete,
     savePDF: handleSavePDF,
     toggleHouseMenu: handleToggleHouseMenu,
@@ -127,9 +127,9 @@ export function useRacEditorMenuActions({
     handleAddWater,
     handleDelete,
     handleExit,
-    handleExportJSON,
     handleFitToView,
-    handleImportJSON,
+    handleOpenConstructionSites,
+    handleActivateHouse,
     handleOpenHouseTypeSelector,
     handleRenameFamily,
     handleRestartDrawing,

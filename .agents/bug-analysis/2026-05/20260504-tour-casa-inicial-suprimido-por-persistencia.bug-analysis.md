@@ -97,7 +97,7 @@ aliases: [ tour inicial da casa não aparece ]
 - testes executados:
     - `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
     -
-    `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
+  `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
     - `npm run test`
 - validação E2E:
     - `npx playwright test e2e/guided-tour.spec.ts --project=chromium`

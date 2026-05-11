@@ -9,8 +9,8 @@
     ]
   },
   "context": {
-    "problem": "O editor atual opera sobre uma única casa, com persistência centrada em localStorage e sem um modelo durável de projeto, famílias e múltiplas casas.",
-    "goal": "Evoluir o RAC Designer TETO para um editor de projetos multi-casas, com persistência durável, associações explícitas entre famílias e casas e capacidade de importação, exportação e gestão de projeto.",
+    "problem": "O editor atual opera sobre uma única casa, com persistência centrada em localStorage e sem um modelo durável de Construção TETO, famílias e múltiplas casas.",
+    "goal": "Evoluir o RAC Designer TETO para um editor multi-casas, com persistência durável, associações explícitas entre famílias e casas e gestão local-first de Construções TETO.",
     "actors": [
       "Monitor voluntário",
       "Líder voluntário",
@@ -37,23 +37,25 @@
   "requirements": [
     {
       "id": "FR-1",
-      "title": "Gestão de projetos",
+      "title": "Gestão de Construções TETO",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero criar e abrir projetos de construção para organizar minhas atividades por campanha ou comunidade.",
+      "user_story": "Como monitor voluntário, quero criar e abrir Construções TETO para organizar minhas atividades por Código da CC e comunidade.",
       "acceptance_criteria": [
-        "O sistema permite criar projeto com código externo, nome, comunidade e status.",
-        "O sistema lista projetos existentes com filtros básicos.",
-        "Ao abrir um projeto, o sistema carrega casas e dados associados sem reconstrução manual."
+        "O sistema permite criar Construção TETO com Código da CC e Comunidade.",
+        "O sistema lista e troca Construções TETO existentes.",
+        "O sistema permite arquivar e desarquivar Construção TETO de forma lógica.",
+        "Ao abrir uma Construção TETO, o sistema carrega casas e dados associados sem reconstrução manual."
       ]
     },
     {
       "id": "FR-2",
-      "title": "CRUD de casas dentro do projeto",
+      "title": "CRUD de casas dentro da Construção TETO",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero criar, renomear, duplicar e excluir casas dentro de um projeto para administrar múltiplas unidades habitacionais.",
+      "user_story": "Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma Construção TETO para administrar múltiplas unidades habitacionais.",
       "acceptance_criteria": [
-        "O sistema permite criar casa vinculada ao projeto ativo.",
-        "O sistema permite renomear, duplicar e excluir casas com confirmação apropriada.",
+        "O sistema permite criar casa vinculada à Construção TETO ativa.",
+        "A casa não possui nome próprio persistido; seu rótulo deriva da família associada.",
+        "O sistema permite arquivar e desarquivar casas com confirmação apropriada.",
         "A alternância entre casas restaura desenho e dados da casa correta."
       ]
     },
@@ -61,22 +63,23 @@
       "id": "FR-3",
       "title": "Associação durável entre casa e família",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero associar uma família a cada casa para manter a relação entre beneficiários e projeto construída de forma durável.",
+      "user_story": "Como monitor voluntário, quero associar uma família a cada casa para manter a relação entre beneficiários e Construção TETO de forma durável.",
       "acceptance_criteria": [
         "O sistema permite criar e editar dados essenciais da família.",
         "Cada casa pode ser vinculada a uma família existente ou recém-criada.",
-        "A associação entre casa e família permanece consistente após recarregar ou reimportar o projeto."
+        "A associação entre casa e família permanece consistente após recarregar a Construção TETO."
       ]
     },
     {
       "id": "FR-4",
       "title": "Avaliação do local por casa",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero registrar desnível, obstáculos e condições do solo para orientar o desenho e a montagem do piloti.",
+      "user_story": "Como monitor voluntário, quero registrar obstáculos e condições do solo para orientar o desenho e a montagem do piloti.",
       "acceptance_criteria": [
         "O sistema oferece interface dedicada para avaliação do local por casa.",
         "Os dados de solo e obstáculos ficam persistidos separadamente do desenho.",
-        "Alterações na avaliação do local podem ser recuperadas após nova abertura do projeto."
+        "A avaliação do local não inclui informação de desnível nesta etapa.",
+        "Alterações na avaliação do local podem ser recuperadas após nova abertura da Construção TETO."
       ]
     },
     {
@@ -106,13 +109,13 @@
     },
     {
       "id": "FR-7",
-      "title": "Importação e exportação versionada",
+      "title": "Importação e exportação versionada do projeto da casa",
       "priority": "must",
-      "user_story": "Como líder voluntário, quero exportar e reimportar um projeto completo para compartilhar, arquivar e restaurar o trabalho sem perda de informações.",
+      "user_story": "Como líder voluntário, quero exportar e reimportar o projeto da casa ativa para compartilhar, arquivar e restaurar o desenho sem perda de informações.",
       "acceptance_criteria": [
-        "O sistema exporta um documento versionado com projeto, casas, famílias, avaliações, piloti e desenho.",
-        "O sistema reimporta o documento exportado preservando associações entre entidades.",
-        "O fluxo de exportação e importação não depende de reconstrução manual dos dados."
+        "O sistema exporta um documento versionado da casa ativa com setup, estado da casa e desenho.",
+        "O sistema reimporta o documento exportado preservando a família e o desenho da casa ativa.",
+        "Importação e exportação JSON não representam a entidade Construção TETO."
       ]
     },
     {
@@ -121,26 +124,25 @@
       "priority": "should",
       "user_story": "Como líder voluntário, quero preparar relatórios e exportações consolidadas para análise externa e apresentação.",
       "acceptance_criteria": [
-        "A modelagem do projeto permite derivar exportações consolidadas em planilha.",
-        "A modelagem do projeto permite geração futura de relatórios PDF sem remodelagem total do domínio.",
+        "A modelagem da Construção TETO permite derivar exportações consolidadas em planilha.",
+        "A modelagem da Construção TETO permite geração futura de relatórios PDF sem remodelagem total do domínio.",
         "As entidades persistidas fornecem base suficiente para agregações operacionais e estruturais."
       ]
     }
   ],
   "data_concepts": [
     {
-      "name": "ConstructionProject",
-      "description": "Raiz do projeto de construção, contendo metadados, comunidade e coleção de casas.",
+      "name": "ConstructionTeto",
+      "description": "Raiz da Construção TETO, contendo Código da CC, comunidade e coleção de casas.",
       "attributes": [
         "externalCode",
-        "name",
         "communityId",
         "status"
       ]
     },
     {
       "name": "Family",
-      "description": "Família beneficiária vinculada a uma ou mais casas do projeto.",
+      "description": "Família beneficiária vinculada à casa dentro de uma Construção TETO.",
       "attributes": [
         "name",
         "primaryContactName",
@@ -150,7 +152,7 @@
     },
     {
       "name": "House",
-      "description": "Unidade editável principal pertencente ao projeto e associada a uma família.",
+      "description": "Unidade editável principal pertencente à Construção TETO e associada a uma única família.",
       "attributes": [
         "projectId",
         "familyId",
@@ -161,9 +163,8 @@
     },
     {
       "name": "SiteAssessment",
-      "description": "Avaliação do local por casa, com desnível, solo e obstáculos.",
+      "description": "Avaliação do local por casa, com solo e obstáculos.",
       "attributes": [
-        "desnivelCm",
         "hasConcreteGross",
         "hasConcreteFine",
         "hasStone",
@@ -211,9 +212,9 @@
   ],
   "interfaces": [
     {
-      "name": "Dashboard de projetos",
+      "name": "Workspace de Construções TETO",
       "consumer": "Monitor voluntário e líder voluntário",
-      "contract_summary": "Permite criar, listar, abrir, renomear, arquivar e excluir projetos e casas com seus dados associados."
+      "contract_summary": "Permite criar, listar, trocar, arquivar e desarquivar Construções TETO, além de acessar a listagem de casas."
     },
     {
       "name": "Editor de casa",
@@ -221,15 +222,15 @@
       "contract_summary": "Abre a casa ativa, restaura desenho e dados persistidos e permite editar desenho, família, avaliação do local e piloti."
     },
     {
-      "name": "Importação e exportação versionada",
+      "name": "Importação e exportação do projeto da casa",
       "consumer": "Líder voluntário e equipe operacional",
-      "contract_summary": "Exporta e reimporta um documento versionado de projeto completo, preservando relações e desenho."
+      "contract_summary": "Exporta e reimporta um documento versionado da casa ativa, preservando setup e desenho."
     }
   ],
   "non_functional": {
     "performance": [
-      "Alternância entre casas dentro de um projeto deve ocorrer com resposta inferior a 2 segundos em cenários usuais.",
-      "Persistência e recuperação do projeto devem minimizar impacto perceptível na experiência do usuário."
+      "Alternância entre casas dentro de uma Construção TETO deve ocorrer com resposta inferior a 2 segundos em cenários usuais.",
+      "Persistência e recuperação da Construção TETO devem minimizar impacto perceptível na experiência do usuário."
     ],
     "security": [
       "Autenticação e autorização permanecem fora da fase inicial, mas a arquitetura deve permitir introdução posterior.",
@@ -240,34 +241,34 @@
       "O sistema deve fornecer feedback claro sobre carregamento, salvamento e recuperação de contexto."
     ],
     "reliability": [
-      "Projetos precisam sobreviver a recarregamentos e reabertura do navegador sem perda de dados.",
-      "Exportação e reimportação devem preservar integridade estrutural do projeto."
+      "Construções TETO precisam sobreviver a recarregamentos e reabertura do navegador sem perda de dados.",
+      "Exportação e reimportação do projeto da casa devem preservar integridade estrutural do desenho."
     ]
   },
   "test_strategy": {
     "behavioral_checks": [
-      "Criar projeto, criar casa, associar família e reabrir o projeto mantendo todos os vínculos.",
+      "Criar Construção TETO, criar casa, associar família e reabrir a construção mantendo todos os vínculos.",
       "Alternar entre duas casas e verificar restauração do desenho e dos dados corretos.",
       "Editar avaliação do local e layout de piloti e confirmar persistência após nova abertura."
     ],
     "integration_checks": [
-      "Exportar um projeto completo e reimportá-lo validando integridade das associações.",
+      "Exportar o projeto da casa ativa e reimportá-lo validando integridade do setup e do desenho.",
       "Validar compatibilidade do documento de desenho com a nova modelagem sem depender de objetos Fabric vivos."
     ],
     "user_journeys": [
-      "Monitor cria projeto, adiciona múltiplas casas, associa famílias e retoma a edição em sessão posterior.",
-      "Líder abre projeto existente, revisa casas e exporta o documento consolidado para compartilhamento."
+      "Monitor cria Construção TETO, adiciona múltiplas casas, associa famílias e retoma a edição em sessão posterior.",
+      "Líder abre Construção TETO existente, revisa casas e exporta o projeto da casa quando necessário."
     ]
   },
   "success_metrics": [
-    "Usuários conseguem criar, abrir e editar múltiplos projetos sem perda de dados entre sessões.",
-    "Alternância entre casas do mesmo projeto ocorre em menos de 2 segundos em cenários usuais.",
-    "Exportação e reimportação preservam integridade das entidades e do desenho.",
+    "Usuários conseguem criar, abrir e editar múltiplas Construções TETO sem perda de dados entre sessões.",
+    "Alternância entre casas da mesma Construção TETO ocorre em menos de 2 segundos em cenários usuais.",
+    "Exportação e reimportação preservam integridade do projeto da casa ativa.",
     "Famílias, avaliações de local e layout de piloti deixam de depender de campos transitórios fora do estado persistido."
   ],
   "open_questions": [
     "Qual provedor de autenticação faz mais sentido quando a fase cloud-ready começar?",
-    "Haverá necessidade de colaboração em tempo real ou apenas compartilhamento assíncrono de projetos?",
+    "Haverá necessidade de colaboração em tempo real ou apenas compartilhamento assíncrono de Construções TETO?",
     "O documento de desenho precisará suportar versionamento histórico por casa ou apenas a última versão consolidada?",
     "Como migrar dados já existentes em localStorage para a nova persistência sem surpreender usuários atuais?"
   ]

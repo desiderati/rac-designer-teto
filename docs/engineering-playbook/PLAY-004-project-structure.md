@@ -22,8 +22,8 @@ Ele existe para evitar dois erros comuns:
 ## Estrutura atual
 
 - `src/domain/house` concentra o agregado e os casos de uso puros do domínio da casa.
-- `src/domain/project` concentra o contrato de repositório de projeto.
-- `src/infra` concentra persistência in-memory, repositório local de projetos, storage local e settings.
+- `src/domain/construction-site` concentra o contrato de repositório de Construções TETO.
+- `src/infra` concentra persistência in-memory, repositório local de Construções TETO, storage local e settings.
 - `src/components/guided-tour` concentra o runtime reutilizável do tour guiado, incluindo hooks, UI, ports e storage
   local de progresso.
 - `src/components/rac-editor` concentra a feature principal como miniaplicação interna, hoje organizada em slices
@@ -87,14 +87,14 @@ Ele existe para evitar dois erros comuns:
 - `src/domain/house/use-cases/*.use-case.ts` concentra regras e transformações do domínio.
 - Regras puras de contraventamento e orientação de vistas/lados vivem em `src/domain/house/use-cases`, não no canvas nem
   em `src/shared/types`.
-- `src/domain/project/project-repository.port.ts` define o contrato assíncrono de persistência de projetos.
+- `src/domain/construction-site/construction-site-repository.port.ts` define o contrato assíncrono de persistência de Construções TETO.
 - O domínio não deve importar React, Fabric, componentes visuais nem adapters concretos de storage.
 
 ## Infraestrutura
 
 - A infraestrutura implementa contratos e detalhes técnicos concretos.
-- `src/infra/persistence` implementa persistência concreta de casa e projeto.
-- `src/infra/storage` contém integrações com armazenamento local, incluindo projetos.
+- `src/infra/persistence` implementa persistência concreta de casa e Construção TETO.
+- `src/infra/storage` contém integrações com armazenamento local, incluindo Construções TETO.
 - Novas integrações de persistência, storage local e browser APIs devem preferir `src/infra`.
 - Não mova Fabric para `src/infra` por generalização; a integração atual com canvas é borda da feature editor.
 - Fábricas que adaptam o controller transitório da casa para ports internos do RAC editor devem ficar no bootstrap de composição, não em

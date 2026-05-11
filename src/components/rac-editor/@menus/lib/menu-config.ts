@@ -1,5 +1,6 @@
 import {
   faArrowPointer,
+  faArrowLeft,
   faArrowRightLong,
   faArrowsLeftRight,
   faBars,
@@ -12,6 +13,7 @@ import {
   faFileDownload,
   faFileExport,
   faFilePdf,
+  faFolder,
   faFolderOpen,
   faFont,
   faGear,
@@ -51,8 +53,7 @@ export type MenuVoidActionKey = NonNullable<{
 }[keyof MenuActionMap]>;
 
 export type OverflowActionKey =
-  'exportJSON'
-  | 'savePDF'
+  'savePDF'
   | 'open3DViewer'
   | 'restartDrawing'
   | 'toggleTips'
@@ -125,6 +126,11 @@ export const TOP_BAR_ICONS = {
   settings: faGear,
   exit: faRightFromBracket,
   // Hamburger dropdown
+  constructionSites: faTrowelBricks,
+  workspace: faFolderOpen,
+  workspaceOpen: faFolderOpen,
+  workspaceClosed: faFolder,
+  backToCanvas: faArrowLeft,
   importJson: faFolderOpen,
   exportJson: faFileDownload,
   savePdf: faFilePdf,
@@ -180,19 +186,6 @@ export const LINES_MENU_CONFIG: MenuCommandConfig[] = [
 ];
 
 export const OVERFLOW_MENU_CONFIG: OverflowMenuCommandConfig[] = [
-  {
-    kind: 'import',
-    icon: faFolderOpen,
-    title: 'Abrir Projeto (JSON)',
-    color: TOOLBAR_THEME.overflowFileActionIconColor,
-  },
-  {
-    kind: 'action',
-    action: 'exportJSON',
-    icon: faFileDownload,
-    title: 'Exportar Projeto (JSON)',
-    color: TOOLBAR_THEME.overflowFileActionIconColor,
-  },
   {
     kind: 'action',
     action: 'savePDF',

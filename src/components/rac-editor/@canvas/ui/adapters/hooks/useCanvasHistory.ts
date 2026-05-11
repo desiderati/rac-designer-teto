@@ -11,6 +11,10 @@ interface CanvasHistoryEntry {
   houseDocument: HouseDrawingDocument | null;
 }
 
+export interface SaveCanvasHistoryOptions {
+  notifyDocumentChange?: boolean;
+}
+
 interface UseCanvasHistoryArgs {
   createCanvasDocumentPort: () => CanvasDocumentPort | null;
   houseDrawingDocumentPort: HouseDrawingDocumentPort;
@@ -32,7 +36,7 @@ export function useCanvasHistory({
   const historyRef = useRef<CanvasHistoryEntry[]>([]);
   const historyProcessingRef = useRef(false);
 
-  const saveHistory = () => {
+  const saveHistory = (options: SaveCanvasHistoryOptions = {}) => {
     if (historyProcessingRef.current) return;
 
     const canvasDocument =
@@ -48,7 +52,9 @@ export function useCanvasHistory({
       houseDocument,
     });
     updateMinimapObjects();
-    onHistorySave();
+    if (options.notifyDocumentChange !== false) {
+      onHistorySave();
+    }
   };
 
   const clearHistory = () => {
@@ -77,6 +83,7 @@ export function useCanvasHistory({
       }
 
       updateMinimapObjects();
+      onHistorySave();
       historyProcessingRef.current = false;
       onSelectionChange('Desfazer realizado.');
     }).catch(() => {

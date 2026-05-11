@@ -44,7 +44,7 @@ central da aplicação.
 - `src/components/rac-editor/lib/editor-house-*-command-service.ts` já separa comandos por responsabilidade.
 - `src/components/rac-editor/lib/editor-house-state.ts` recebe `HousePersistencePort`; o adapter concreto padrão é
   composto em `src/bootstrap/editor-house-ports.ts`.
-- `src/components/rac-editor/lib/project-session.ts` recebe storage por porta; a composição com `localStorage` ocorre no
+- `src/components/rac-editor/lib/construction-site-session.ts` recebe storage por porta; a composição com `localStorage` ocorre no
   bootstrap.
 - Configurações do editor são expostas por `SettingsPort`, com composição concreta em
   `src/bootstrap/editor-infra-ports.ts`.
@@ -52,14 +52,14 @@ central da aplicação.
   `src/components/rac-editor/lib/rac-editor-guided-tour.ts` e anchors/eventos `data-guided-tour-*`.
 - `src/components/rac-editor/lib/house-store.ts` já assina ports injetados e separa snapshot lógico de snapshot de
   runtime visual.
-- `src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato canônico inicial de
-  importação/exportação da casa ativa.
+- `src/shared/types/house-drawing-document.ts` define o `HouseDrawingDocument`, contrato canônico interno para persistir
+  o estado lógico e visual da casa ativa.
 - `src/components/rac-editor/ports/HouseDrawingDocumentPort.ts` compõe o documento lógico da casa sem expor JSON Fabric
   aos hooks gerais do editor.
 - `src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts` representa documento visual serializável, não dump do
   runtime Fabric.
-- `src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts` é o hook de aplicação para importar/exportar o
-  arquivo RAC canônico da casa ativa.
+- O salvamento do documento da casa ativa ocorre pela porta de gerenciamento de Construção TETO, sem fluxo produtivo de
+  importação/exportação JSON na navegação principal.
 - `src/domain/house/use-cases/house-contraventamento.use-case.ts` concentra regras puras de contraventamento, como nível
   permitido, piloti elegível, origem/destino e coluna/linha.
 - `src/domain/house/use-cases/house-view-orientation.use-case.ts` concentra a semântica de orientação entre
@@ -99,7 +99,7 @@ central da aplicação.
 - Persistência, storage local e integrações técnicas não visuais pertencem a `src/infra`.
 - Código de estado do editor pode depender de `HousePersistencePort`, mas não deve instanciar adapters concretos de
   persistência.
-- Serviços de sessão/projeto no núcleo do editor podem depender de portas de storage, mas não devem importar
+- Serviços de sessão de Construções TETO no núcleo do editor podem depender de portas de storage, mas não devem importar
   `src/infra/storage` diretamente.
 - Hooks, UI e adapters visuais do editor podem depender de `SettingsPort`, mas não devem importar storage concreto de
   settings diretamente.
@@ -116,12 +116,12 @@ central da aplicação.
   precisam interpretar `CanvasGroup`, como a projeção 3D concreta, pertencem ao slice `@canvas`.
 - `House3DProjectionPort` é a fronteira do viewer 3D. O viewer recebe projeção serializável e não deve depender de
   `HouseRuntimeSnapshot<TGroup>`, `CanvasGroup`, `CanvasObject` ou `useHouseRuntimeSnapshot`.
-- `HouseDrawingDocument` é o contrato canônico inicial de arquivo do editor. Ele junta `HouseState`, setup da casa ativa
-  e documento visual serializável.
-- JSON Fabric bruto não é formato de projeto. O adapter Fabric pode converter internamente o documento visual, mas hooks,
+- `HouseDrawingDocument` é o contrato canônico interno do editor para persistência da casa ativa. Ele junta `HouseState`,
+  setup da casa ativa e documento visual serializável.
+- JSON Fabric bruto não é formato de desenho da casa. O adapter Fabric pode converter internamente o documento visual, mas hooks,
   ports do editor e bootstrap não devem depender de `canvas.toJSON()` ou `canvas.loadFromJSON()` como contrato público.
-- `HouseCanvasReconciliationPort` foi removido. Histórico, importação e restauração devem aplicar documento lógico
-  explícito quando houver casa ativa, não reconstruir estado a partir de grupos visuais.
+- `HouseCanvasReconciliationPort` foi removido. Histórico e restauração devem aplicar documento lógico explícito quando
+  houver casa ativa, não reconstruir estado a partir de grupos visuais.
 - `rebuildHouseFromCanvas` não deve voltar como caminho de aplicação sem nova decisão arquitetural explícita.
 - O parser de `HouseDrawingDocument` deve rejeitar payload visual opaco, `HouseState` incompleto, geometrias inválidas e
   metadados que não sejam JSON.
@@ -285,13 +285,13 @@ Objetivo: reduzir a dependência de reconstrução lógica a partir do canvas.
 Resultado esperado:
 
 - Forma inicial de documento serializável para casa, setup da casa ativa e elementos desenhados.
-- Round trip mínimo de exportação/importação caracterizado por teste.
+- Round trip mínimo de persistência/restauração caracterizado por teste.
 - Rebuild visual tratado como projeção, não como fonte primária de verdade.
-- JSON Fabric antigo rejeitado como formato de projeto.
+- JSON Fabric antigo rejeitado como formato de desenho da casa.
 
 Critério de corte:
 
-- Import/export têm teste que preserva identidade lógica de casa e rejeita JSON Fabric bruto.
+- Persistência/restauração têm teste que preserva identidade lógica de casa e rejeita JSON Fabric bruto.
 - O documento visual pode ser reconstruído pelo adapter Fabric, mas o contrato do editor permanece estruturado e
   versionado.
 - O round trip mínimo `canvas -> HouseDrawingDocument.canvas -> canvas` preserva identidade de elemento e metadados
@@ -318,7 +318,7 @@ Critério de corte:
 |--------------------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------|
 | Criar ports demais                   | Aumenta cerimônia e dificulta navegação                   | Exigir consumidor, adapter e ganho de teste                               |
 | Remover o controller cedo demais      | Quebra fluxos de casa, vistas, terreno e contraventamento | Migrar por responsabilidade, com teste por fatia                          |
-| Tratar canvas como estado canônico   | Import/export e viewer 3D ficam frágeis                   | Separar estado lógico, runtime snapshot e projeção visual                 |
+| Tratar canvas como estado canônico   | Persistência e viewer 3D ficam frágeis                    | Separar estado lógico, runtime snapshot e projeção visual                 |
 | Duplicar fontes de verdade           | UI e canvas passam a divergir silenciosamente             | Um ciclo só pode criar store nova se remover ou substituir a fonte antiga |
 | Transformar documentação em promessa | O repositório passa a documentar arquitetura imaginária   | Documentar sempre como fato, hipótese ou decisão                          |
 
@@ -332,7 +332,7 @@ Esta refatoração deve parar quando todos os itens abaixo forem verdadeiros:
 4. O controller da casa não concentra regras puras que deveriam estar no domínio nem efeitos visuais que deveriam estar no
    canvas. Regras puras de contraventamento e orientação ficam em `src/domain/house/use-cases`; geometria visual fica no
    slice `@canvas`.
-5. Import/export, vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
+5. Persistência/restauração, vistas, piloti, terreno, contraventamento e viewer 3D têm testes suficientes para impedir
    regressão nos fluxos críticos.
 6. O uso remanescente de `CanvasGroup` está confinado ao slice `@canvas`.
 7. `HouseDrawingDocument` possui validação estrutural e round trip mínimo coberto por teste.

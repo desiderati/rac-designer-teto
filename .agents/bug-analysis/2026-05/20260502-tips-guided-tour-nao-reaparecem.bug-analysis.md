@@ -90,8 +90,8 @@ aliases: [ tips do guided-tour não reaparecem ]
 ## 9. Validação Executada
 
 - testes executados:
-    -
-    `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts`
+  -
+  `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts`
     - `npm run test`
 - build, lint ou smoke relevante:
     - `npm run lint`

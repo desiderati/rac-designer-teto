@@ -89,7 +89,7 @@ describe('contraventamento.ts', () => {
     ).toEqual({leftDisabled: true, rightDisabled: true, leftActive: false, rightActive: false});
   });
 
-  it('projects contraventamento in side views using legacy and houseSide metadata', () => {
+  it('constructionSites contraventamento in side views using legacy and houseSide metadata', () => {
     const topGroup = createMockGroup({
       _objects: [
         {

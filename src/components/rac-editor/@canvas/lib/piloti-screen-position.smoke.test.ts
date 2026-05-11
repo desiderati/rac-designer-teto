@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {projectCanvasPointToScreenPoint} from './piloti-screen-position.ts';
 
 describe('piloti-screen-position.ts', () => {
-  it('projects local point with explicit viewport transform', () => {
+  it('constructionSites local point with explicit viewport transform', () => {
     expect(
       projectCanvasPointToScreenPoint({
         groupMatrix: [2, 0, 0, 3, 100, 50],

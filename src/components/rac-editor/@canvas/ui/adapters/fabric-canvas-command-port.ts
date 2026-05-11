@@ -191,6 +191,8 @@ export function createFabricCanvasCommandPort({
         canvas.remove(object);
       }
 
+      canvas.requestRenderAll?.();
+      saveHistory();
       return 'deleted';
     },
 

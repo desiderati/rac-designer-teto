@@ -40,6 +40,7 @@ interface UseCanvasHouseViewActionsArgs {
   getVisibleCenter: () => { x: number; y: number };
   closeAllMenus: () => void;
   addObjectToCanvas: (obj: CanvasObject) => boolean;
+  onHouseDrawingChange: () => void;
   houseReadPort: HouseReadPort;
   houseWritePort: HouseWritePort;
   pendingViewType: HouseViewType | null;
@@ -125,6 +126,7 @@ export function useCanvasHouseViewActions({
   getVisibleCenter,
   closeAllMenus,
   addObjectToCanvas,
+  onHouseDrawingChange,
   houseReadPort,
   houseWritePort,
   pendingViewType,
@@ -154,13 +156,21 @@ export function useCanvasHouseViewActions({
       });
       if (!house) return null;
 
-      addObjectToCanvas(house);
       const registration = houseWritePort.registerView({
         viewType,
         instanceId,
         side,
       });
       if (!registration) return null;
+
+      const inserted = addObjectToCanvas(house);
+      if (!inserted) {
+        houseWritePort.removeView(instanceId);
+        return null;
+      }
+      houseWritePort.refreshAutoContraventamentoForCurrentHouse();
+
+      onHouseDrawingChange();
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));

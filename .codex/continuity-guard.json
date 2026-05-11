@@ -35,5 +35,6 @@
       "label": "docker restart",
       "regex": "(?i)\\bdocker\\s+restart\\b"
     }
-  ]
+  ],
+  "validate_changelog_contract": true
 }

@@ -11,9 +11,6 @@ type UseRacEditorDocumentHotkeysControllerArgs = DocumentActionsArgs & HotkeysAr
  */
 export function useRacEditorDocumentHotkeysController({
   canvasRef,
-  setInfoMessage,
-  resetContraventamentoFlow,
-  syncContraventamentoElevations,
   onToggleDrawMode,
   onToggleZoomControls,
   onSetCanvasToolMode,
@@ -21,9 +18,6 @@ export function useRacEditorDocumentHotkeysController({
 }: UseRacEditorDocumentHotkeysControllerArgs) {
   const actions = useRacEditorDocumentActions({
     canvasRef,
-    setInfoMessage,
-    resetContraventamentoFlow,
-    syncContraventamentoElevations,
   });
 
   useRacEditorHotkeys({

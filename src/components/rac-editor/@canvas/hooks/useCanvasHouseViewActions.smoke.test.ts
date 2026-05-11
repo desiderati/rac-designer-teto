@@ -72,6 +72,7 @@ function createHouseWritePort(): HouseWritePort {
     renameFamily: vi.fn(),
     setHouseType: vi.fn(),
     refreshAutoStairsForCurrentSettings: vi.fn(),
+    refreshAutoContraventamentoForCurrentHouse: vi.fn(),
     resetHouse: vi.fn(),
     setTerrainType: vi.fn((terrainType: number) => terrainType),
     removeView: vi.fn(),
@@ -153,6 +154,7 @@ describe('useCanvasHouseViewActions house insertion events', () => {
       getVisibleCenter: () => ({x: 300, y: 300}),
       closeAllMenus: vi.fn(),
       addObjectToCanvas: vi.fn(() => true),
+      onHouseDrawingChange: vi.fn(),
       houseReadPort: createHouseReadPort(),
       houseWritePort: createHouseWritePort(),
       pendingViewType: 'front',
@@ -198,5 +200,186 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     } finally {
       document.removeEventListener(HOUSE_INITIAL_EVENT, listener as EventListener);
     }
+  });
+
+  it('persiste o desenho depois que a vista inicial é registrada no estado lógico', () => {
+    const plantGroup = createGroup({
+      height: 100,
+      bounds: {left: 100, top: 100, width: 320, height: 100},
+      objects: [],
+    });
+    const elevationGroup = createGroup({
+      height: 200,
+      bounds: {left: 160, top: 250, width: 360, height: 260},
+      objects: [],
+    });
+    const canvasRef = {
+      current: {
+        createHouseViewGroup: vi.fn()
+          .mockReturnValueOnce(plantGroup)
+          .mockReturnValueOnce(elevationGroup),
+        renderAll: vi.fn(),
+        getCanvasPointScreenPosition: vi.fn((point) => point),
+      },
+    } as unknown as RefObject<
+      CanvasObjectCreationHandle
+      & CanvasRenderHandle
+      & CanvasScreenProjectionHandle
+    >;
+    const houseWritePort = createHouseWritePort();
+    const onHouseDrawingChange = vi.fn();
+    const result = renderHook(() => useCanvasHouseViewActions({
+      canvasRef,
+      getVisibleCenter: () => ({x: 300, y: 300}),
+      closeAllMenus: vi.fn(),
+      addObjectToCanvas: vi.fn(() => true),
+      onHouseDrawingChange,
+      houseReadPort: createHouseReadPort(),
+      houseWritePort,
+      pendingViewType: 'front',
+      setPendingViewType: vi.fn(),
+      sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(),
+      setHouseSideSlots: vi.fn(),
+      pendingNivelSide: 'top',
+      setPendingNivelSide: vi.fn(),
+      niveisAppliedRef: {current: false},
+      transitionToNivelRef: {current: false},
+      setSideSelectorOpen: vi.fn(),
+      setNivelDefinitionOpen: vi.fn(),
+    }));
+
+    act(() => {
+      result.result.current.handleNiveisApplied({
+        piloti_0_0: {nivel: 0.2, isMaster: true},
+      });
+    });
+
+    const registerView = vi.mocked(houseWritePort.registerView);
+
+    expect(registerView).toHaveBeenCalledTimes(2);
+    expect(onHouseDrawingChange).toHaveBeenCalledTimes(2);
+    expect(registerView.mock.invocationCallOrder[0])
+      .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
+    expect(registerView.mock.invocationCallOrder[1])
+      .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[1]);
+  });
+
+  it('registra a vista antes de inseri-la no canvas para o autosave observar estado lógico atual', () => {
+    const group = createGroup({
+      height: 200,
+      bounds: {left: 160, top: 250, width: 360, height: 260},
+      objects: [],
+    });
+    const canvasRef = {
+      current: {
+        createHouseViewGroup: vi.fn(() => group),
+        renderAll: vi.fn(),
+        getCanvasPointScreenPosition: vi.fn((point) => point),
+      },
+    } as unknown as RefObject<
+      CanvasObjectCreationHandle
+      & CanvasRenderHandle
+      & CanvasScreenProjectionHandle
+    >;
+    const houseWritePort = createHouseWritePort();
+    const addObjectToCanvas = vi.fn(() => true);
+    const result = renderHook(() => useCanvasHouseViewActions({
+      canvasRef,
+      getVisibleCenter: () => ({x: 300, y: 300}),
+      closeAllMenus: vi.fn(),
+      addObjectToCanvas,
+      onHouseDrawingChange: vi.fn(),
+      houseReadPort: createHouseReadPort(),
+      houseWritePort,
+      pendingViewType: null,
+      setPendingViewType: vi.fn(),
+      sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(),
+      setHouseSideSlots: vi.fn(),
+      pendingNivelSide: null,
+      setPendingNivelSide: vi.fn(),
+      niveisAppliedRef: {current: false},
+      transitionToNivelRef: {current: false},
+      setSideSelectorOpen: vi.fn(),
+      setNivelDefinitionOpen: vi.fn(),
+    }));
+
+    act(() => {
+      result.result.current.addViewToCanvas('front', 'top');
+    });
+
+    const registerView = vi.mocked(houseWritePort.registerView);
+    const refreshAutoContraventamento =
+      vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+
+    expect(registerView).toHaveBeenCalledTimes(1);
+    expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
+    expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
+    expect(registerView.mock.invocationCallOrder[0])
+      .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
+    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
+  });
+
+  it('recalcula auto contraventamento da planta depois que a vista entra no canvas', () => {
+    const group = createGroup({
+      height: 200,
+      bounds: {left: 160, top: 250, width: 360, height: 260},
+      objects: [],
+    });
+    const canvasRef = {
+      current: {
+        createHouseViewGroup: vi.fn(() => group),
+        renderAll: vi.fn(),
+        getCanvasPointScreenPosition: vi.fn((point) => point),
+      },
+    } as unknown as RefObject<
+      CanvasObjectCreationHandle
+      & CanvasRenderHandle
+      & CanvasScreenProjectionHandle
+    >;
+    const houseWritePort = createHouseWritePort();
+    const addObjectToCanvas = vi.fn(() => true);
+    const onHouseDrawingChange = vi.fn();
+    const result = renderHook(() => useCanvasHouseViewActions({
+      canvasRef,
+      getVisibleCenter: () => ({x: 300, y: 300}),
+      closeAllMenus: vi.fn(),
+      addObjectToCanvas,
+      onHouseDrawingChange,
+      houseReadPort: createHouseReadPort(),
+      houseWritePort,
+      pendingViewType: null,
+      setPendingViewType: vi.fn(),
+      sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(),
+      setHouseSideSlots: vi.fn(),
+      pendingNivelSide: null,
+      setPendingNivelSide: vi.fn(),
+      niveisAppliedRef: {current: false},
+      transitionToNivelRef: {current: false},
+      setSideSelectorOpen: vi.fn(),
+      setNivelDefinitionOpen: vi.fn(),
+    }));
+
+    act(() => {
+      result.result.current.addViewToCanvas('top');
+    });
+
+    const registerView = vi.mocked(houseWritePort.registerView);
+    const refreshAutoContraventamento =
+      vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+
+    expect(registerView).toHaveBeenCalledTimes(1);
+    expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
+    expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
+    expect(onHouseDrawingChange).toHaveBeenCalledTimes(1);
+    expect(registerView.mock.invocationCallOrder[0])
+      .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
+    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
+    expect(refreshAutoContraventamento.mock.invocationCallOrder[0])
+      .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
   });
 });

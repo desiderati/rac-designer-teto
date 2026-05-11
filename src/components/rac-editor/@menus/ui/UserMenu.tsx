@@ -140,5 +140,5 @@ function ActiveDot() {
 }
 
 function Divider() {
-  return <div className='h-px bg-slate-100 my-1 mx-2' aria-hidden/>;
+  return <div role='separator' className='h-px bg-slate-100 my-1 mx-2'/>;
 }

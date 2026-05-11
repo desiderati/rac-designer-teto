@@ -34,8 +34,20 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
     - Em telas móveis, os submenus laterais devem manter proporção visual com a largura do menu principal.
 
 3. Overflow (mais opções)
-    - Reúne ações de projeto e utilidades gerais.
-    - O menu hamburger reúne apenas ações de projeto em JSON; exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
+    - No Canvas, o FAB hamburger exibe "Construções TETO" como primeira opção e, depois de um separador, lista
+      Construções TETO ativas agrupadas por código da construção.
+    - Cada construção ativa exibe suas casas como submenu, usando como rótulo o nome da família associada à casa.
+    - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
+    - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
+    - A ação "Construções TETO" não fica no menu do usuário/avatar.
+    - A ação "Construções TETO" abre uma área CRUD dedicada. Nessa área, canvas, toolbar, submenus e opções de desenho
+      ficam temporariamente ocultos.
+    - Na área CRUD, a navegação volta pelo cabeçalho; o retorno ao Canvas só fica disponível quando houver Construção
+      TETO com pelo menos uma casa ativa.
+    - A área central separa a gestão de Construções TETO da listagem de casas e do detalhe da casa.
+    - Construção TETO possui Código da CC, Data da Construção, Comunidade única e foto opcional, com ações de criar,
+      arquivar, desarquivar, listar e trocar construção.
+    - Cada casa é identificada pela família associada; não há nome próprio de casa.
 
 4. Menu do usuário no mobile
     - Em telas móveis, ações de visualização 3D e exportação de RAC em PDF ficam no menu aberto pelo avatar do usuário.
@@ -54,7 +66,9 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
     - Inserção de linha, seta e distância deve manter consistência de edição posterior.
 
 4. Ações gerais
-    - Importar, exportar, PDF, abrir 3D, configurações, reinício e dicas.
+    - PDF, abrir 3D, configurações, reinício e dicas permanecem como ações gerais.
+    - Importação e exportação JSON não fazem parte da navegação principal.
+    - O documento versionado da casa ativa é usado internamente para persistir o último estado do canvas no banco local.
     - No mobile, PDF e 3D podem ser acionados pelo menu do usuário para reduzir a densidade da barra superior.
 
 5. Zoom
@@ -66,7 +80,7 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 1. Ações destrutivas com maior impacto contextual, como reiniciar o canvas/tutorial ou desagrupar, devem pedir confirmação.
 2. Exclusão simples da seleção atua diretamente, mas deve respeitar bloqueios de segurança do projeto.
 3. Ações bloqueadas por regra devem informar motivo de forma explícita.
-4. Importação deve reconstruir estado da casa sem deixar dados inconsistentes.
+4. Arquivamento de Construção TETO ou casa exige confirmação e deve ser lógico, preservando o registro como inativo/arquivado.
 
 ## Regras de feedback
 

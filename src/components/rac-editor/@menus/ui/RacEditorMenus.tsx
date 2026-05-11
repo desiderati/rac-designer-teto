@@ -15,6 +15,7 @@ import type {RacEditorMenusProps} from '../lib/menu-types.ts';
  */
 export function RacEditorMenus({
   actions,
+  constructionGroups,
   isDrawing,
   activeSubmenu,
   showTips,
@@ -27,16 +28,21 @@ export function RacEditorMenus({
   zoom,
   canvasToolMode,
   isMobile,
+  documentSaveStatus,
+  documentTransitioning,
 }: RacEditorMenusProps) {
   return (
     <>
       <TopBar
         actions={actions}
+        constructionGroups={constructionGroups}
         familyName={familyName}
         showTips={showTips}
         zoom={zoom}
         canvasToolMode={canvasToolMode}
         isMobile={isMobile}
+        documentSaveStatus={documentSaveStatus}
+        documentTransitioning={documentTransitioning}
       />
 
       <CanvasToolsMenu

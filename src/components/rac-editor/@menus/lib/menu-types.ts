@@ -1,4 +1,5 @@
 import {HouseType} from '@/shared/types/house.ts';
+import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 
 export type CanvasToolMode = 'select' | 'pan';
 
@@ -19,8 +20,8 @@ export interface MenuActionMap {
   addDistance: () => void;
   toggleDrawMode: () => void;
   addText: () => void;
-  exportJSON: () => void;
-  importJSON: (file: File) => void;
+  openConstructionSites: () => void;
+  activateHouse: (constructionId: string, houseId: string) => Promise<void>;
   deleteSelection: () => void;
   savePDF: () => void;
   toggleHouseMenu: () => void;
@@ -50,8 +51,23 @@ export interface MenuViewCount {
   max: number;
 }
 
+export interface MenuHouseOption {
+  id: string;
+  label: string;
+  active: boolean;
+}
+
+export interface MenuConstructionGroup {
+  id: string;
+  code: string;
+  communityName?: string;
+  active: boolean;
+  houses: MenuHouseOption[];
+}
+
 export interface RacEditorMenusProps {
   actions: MenuActionMap;
+  constructionGroups: MenuConstructionGroup[];
   isDrawing: boolean;
   activeSubmenu: MenuSubmenu;
   showTips: boolean;
@@ -70,4 +86,8 @@ export interface RacEditorMenusProps {
   canvasToolMode: CanvasToolMode;
   /** Indica se o editor está renderizado no layout mobile. */
   isMobile: boolean;
+  /** Estado de persistência do documento visual da casa ativa. */
+  documentSaveStatus: HouseDocumentSaveStatus;
+  /** Indica se uma troca/hidratação de documento de casa está em andamento. */
+  documentTransitioning: boolean;
 }

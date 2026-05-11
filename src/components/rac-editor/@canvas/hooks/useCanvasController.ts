@@ -29,6 +29,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
+  onHouseDrawingChange: () => void;
 }
 
 /**
@@ -51,6 +52,7 @@ export function useCanvasController({
   transitionToNivelRef,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
+  onHouseDrawingChange,
 }: UseRacEditorCanvasControllerArgs) {
   const editorStore = useEditorStore();
   const {houseReadPort, houseWritePort} = useEditorPorts();
@@ -100,6 +102,7 @@ export function useCanvasController({
     getVisibleCenter,
     closeAllMenus,
     addObjectToCanvas,
+    onHouseDrawingChange,
     houseReadPort,
     houseWritePort,
     pendingViewType,

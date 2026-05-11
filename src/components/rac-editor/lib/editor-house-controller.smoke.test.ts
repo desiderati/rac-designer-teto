@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
-import {createProjectSession} from '@/components/rac-editor/lib/project-session.ts';
+import {createConstructionSiteSession} from '@/components/rac-editor/lib/construction-site-session.ts';
 import {createDefaultSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
@@ -81,13 +81,23 @@ function registerMockView(
 
 describe('editor house controller', () => {
   beforeEach(() => {
+    const constructionSiteSession = createConstructionSiteSession({
+      read: () => ({version: 1, constructionSites: []}),
+      write: vi.fn(),
+    });
+    constructionSiteSession.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+    constructionSiteSession.createHouse({
+      familyName: 'Familia teste',
+    });
+
     houseController = createCanvasHouseController({
       persistence: new InMemoryHousePersistenceAdapter(),
       settingsPort: createDefaultSettingsPort(),
-      projectSession: createProjectSession({
-        read: () => ({version: 1, projects: []}),
-        write: vi.fn(),
-      }),
+      constructionSiteSession,
     });
     viewSequence = 0;
   });
@@ -262,6 +272,20 @@ describe('editor house controller', () => {
     houseController.updatePiloti('piloti_1_1', {height: 1.0, nivel: 0.5});
 
     registerMockView('top', topGroup as any);
+
+    expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(true);
+  });
+
+  it('recalcula auto contraventamento quando a altura muda sem alterar o nível', () => {
+    const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
+    initializeHouseControllerCanvas(createMockCanvas([topGroup]));
+    houseController.setHouseType('tipo6');
+
+    houseController.updatePiloti('piloti_1_1', {height: 1.5, nivel: 0.5});
+    registerMockView('top', topGroup as any);
+    expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(false);
+
+    houseController.updatePiloti('piloti_1_1', {height: 1.0});
 
     expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(true);
   });

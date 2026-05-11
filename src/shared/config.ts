@@ -10,7 +10,7 @@ export const APP_SETTINGS_DEFAULTS = {
 
 export const STORAGE_KEYS = {
   settings: 'rac-settings',
-  projects: 'rac-projects',
+  constructionSites: 'rac-construction-sites',
 } as const;
 
 export const VIEWPORT = {
@@ -229,9 +229,7 @@ export const TOAST_MESSAGES = {
     `Todas as instâncias de ${viewLabel} já estão no canvas.`,
 
   houseViewHasNoAvailableSide: 'Nenhum lado disponível para esta vista.',
-  projectExportedSuccessfully: 'Projeto exportado com sucesso!',
   invalidJsonFile: 'Arquivo JSON inválido.',
-  projectLoadedSuccessfully: 'Projeto carregado com sucesso!',
   contraventamentoRemovedSuccessfully: 'Contraventamento removido!',
   removeOtherViewsBeforeDeletingTopView: 'Remova todas as outras vistas antes de apagar a planta.',
   pdfSavedSuccessfully: 'PDF salvo com sucesso!',
@@ -277,8 +275,6 @@ export const TOAST_MESSAGES = {
 } as const;
 
 export const EDITOR_INFO_MESSAGES = {
-  projectSavedAsJson: 'Projeto salvo como JSON!',
-  projectLoaded: 'Projeto carregado!',
   contraventamentoRemoved: 'Contraventamento removido.',
 } as const;
 

@@ -1,10 +1,10 @@
 import type {HouseAggregate} from '@/domain/house/house.aggregate.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 import {EditorHouseSessionMetadata} from '@/components/rac-editor/lib/editor-house-session.ts';
-import type {ProjectSessionPort} from '@/components/rac-editor/lib/project-session.ts';
+import type {ConstructionSiteSessionPort} from '@/components/rac-editor/lib/construction-site-session.ts';
 
 interface EditorHouseSessionServiceArgs {
-  projectSession: ProjectSessionPort;
+  constructionSiteSession: ConstructionSiteSessionPort;
   getAggregate: () => HouseAggregate | null;
   getHouseType: () => HouseType;
   getTerrainType: () => number;
@@ -13,22 +13,22 @@ interface EditorHouseSessionServiceArgs {
 }
 
 /**
- * Coordena metadados de sessão da casa e sincronização com o projeto ativo.
+ * Coordena metadados de sessão da casa e sincronização com a Construção TETO ativa.
  */
 export class EditorHouseSessionService {
   private readonly metadata: EditorHouseSessionMetadata;
 
   constructor(private readonly args: EditorHouseSessionServiceArgs) {
-    this.metadata = new EditorHouseSessionMetadata(args.projectSession);
+    this.metadata = new EditorHouseSessionMetadata(args.constructionSiteSession);
   }
 
   reset(): void {
     this.metadata.reset();
-    this.hydrateFromProjectSession();
+    this.hydrateFromConstructionSiteSession();
   }
 
-  syncProjectSession(): void {
-    this.metadata.syncProjectSession({
+  syncConstructionSiteSession(): void {
+    this.metadata.syncConstructionSiteSession({
       houseType: this.args.getHouseType(),
       terrainType: this.args.getTerrainType(),
     });
@@ -40,7 +40,7 @@ export class EditorHouseSessionService {
 
   setFamilyName(name: string): void {
     this.metadata.setFamilyName(name);
-    this.syncProjectSession();
+    this.syncConstructionSiteSession();
     this.args.notify();
   }
 
@@ -50,11 +50,11 @@ export class EditorHouseSessionService {
 
   setSelectedPilotiHeights(heights: readonly number[]): void {
     this.metadata.setSelectedPilotiHeights(heights);
-    this.syncProjectSession();
+    this.syncConstructionSiteSession();
   }
 
-  private hydrateFromProjectSession(): void {
-    this.metadata.hydrateFromProjectSession({
+  private hydrateFromConstructionSiteSession(): void {
+    this.metadata.hydrateFromConstructionSiteSession({
       aggregate: this.args.getAggregate(),
       persistHouse: () => this.args.persistHouse(),
     });

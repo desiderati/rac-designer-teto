@@ -23,8 +23,6 @@ const actions = {
   addDistance: vi.fn(),
   toggleDrawMode: vi.fn(),
   addText: vi.fn(),
-  exportJSON: vi.fn(),
-  importJSON: vi.fn(),
   deleteSelection: vi.fn(),
   savePDF: vi.fn(),
   toggleHouseMenu: vi.fn(),

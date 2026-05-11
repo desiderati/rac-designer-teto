@@ -14,7 +14,7 @@ describe('canvas-screen-position.ts', () => {
     expect(offset).toEqual({canvasX: 100, canvasY: 150});
   });
 
-  it('projects canvas point to screen coordinates', () => {
+  it('constructionSites canvas point to screen coordinates', () => {
     const point = toCanvasScreenPoint({
       canvasPosition: {x: 20, y: 10, zoom: 2},
       containerRect: {left: 100, top: 50, width: 400, height: 300},

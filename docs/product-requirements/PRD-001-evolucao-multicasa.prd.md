@@ -3,8 +3,8 @@ title: Evolução Multicasa do RAC Designer TETO
 id: PRD-001
 doc_type: prd
 doc_set: product-requirements
-status: review
-version: "0.1.0"
+status: implemented
+version: "1.0.0"
 owners: [ ]
 lang: pt-BR
 ---
@@ -15,174 +15,148 @@ lang: pt-BR
 > sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas, exportações brutas e material
 > auxiliar.
 
-## 1. Visão geral
+## 1. Visão Geral
 
 - problema:
-  O editor atual opera sobre uma única casa, com persistência centrada em `localStorage` e sem um modelo durável de
-  projeto, famílias e múltiplas casas.
+  O editor operava sobre uma única casa e não distinguia a gestão operacional da Construção TETO do estado de desenho
+  da casa.
 - objetivo da iniciativa:
-  Evoluir o RAC Designer TETO para um editor de projetos multi-casas, com persistência durável, associações explícitas
-  entre famílias e casas e capacidade de importação, exportação e gestão de projeto.
-- contexto relevante:
-  A aplicação já possui editor 2D/3D funcional, usa React 18, Vite, Tailwind CSS e Fabric.js, e já dispõe de sinais
-  fortes de domínio extraídos da planilha de referência da operação.
+  Evoluir o RAC Designer TETO para um editor local-first com Construções TETO, múltiplas casas por construção,
+  associação explícita entre casa e família e persistência durável do último estado do canvas por casa.
+- decisão de nomenclatura:
+  O código interno usa `ConstructionSite*`; a UI usa “Construção TETO”.
 
 ## 2. Metas
 
-- Permitir gestão de múltiplos projetos e múltiplas casas dentro de cada projeto.
-- Tornar duráveis as associações entre projeto, casa, família, avaliação de local, layout de piloti e desenho.
-- Remover a dependência de `localStorage` como mecanismo principal de persistência.
-- Permitir exportação e reimportação de documentos versionados de projeto.
-- Preservar a experiência de edição atual enquanto o estado deixa de ser centrado no canvas.
+- Permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
+- Registrar Código da CC, Data da Construção, Comunidade e foto opcional por Construção TETO.
+- Permitir criar, arquivar, desarquivar, listar e editar casas dentro da Construção TETO ativa.
+- Identificar cada casa pelo nome da família associada, sem nome próprio de casa.
+- Persistir o último documento de desenho da casa no banco local.
+- Abrir o RAC Editor somente quando houver Construção TETO ativa com pelo menos uma casa ativa.
+- Restaurar no boot a casa não arquivada com maior `updatedAt`, considerando todas as Construções TETO.
 
-## 3. Histórias de usuário
+## 3. Histórias De Usuário
 
-### US-001: Criar e abrir projetos
+### US-001: Criar e trocar Construções TETO
 
-**Descrição:** Como monitor voluntário, quero criar e abrir projetos de construção para organizar minhas atividades por
-campanha ou comunidade.
-
-**Critérios de aceitação:**
-
-- [ ] O sistema permite criar um projeto com identificação externa, nome e comunidade associada.
-- [ ] O sistema exibe a lista de projetos existentes com filtros básicos.
-- [ ] Ao abrir um projeto, o sistema carrega as casas e dados associados sem exigir reconstrução manual.
-
-### US-002: Gerenciar casas dentro do projeto
-
-**Descrição:** Como monitor voluntário, quero criar, renomear, duplicar e excluir casas dentro de um projeto para
-administrar múltiplas unidades habitacionais com agilidade.
+**Descrição:** Como monitor voluntário, quero criar e abrir Construções TETO para organizar minhas atividades por Código
+da CC e comunidade.
 
 **Critérios de aceitação:**
 
-- [ ] O sistema permite criar uma nova casa vinculada ao projeto ativo.
-- [ ] O sistema permite renomear, duplicar e excluir casas com confirmação apropriada.
-- [ ] O sistema restaura o desenho correto ao alternar entre casas do mesmo projeto.
+- [x] O sistema permite criar Construção TETO com Código da CC, Data da Construção e Comunidade.
+- [x] O sistema lista e troca Construções TETO existentes.
+- [x] O sistema permite arquivar e desarquivar Construção TETO de forma lógica e com confirmação.
+- [x] Ao abrir uma Construção TETO, o sistema carrega suas casas e dados associados.
+
+### US-002: Gerenciar casas da construção
+
+**Descrição:** Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma Construção TETO para
+administrar múltiplas unidades habitacionais.
+
+**Critérios de aceitação:**
+
+- [x] O sistema permite criar casa vinculada à Construção TETO ativa.
+- [x] O sistema identifica a casa pelo nome da família designada.
+- [x] O sistema permite arquivar e desarquivar casas com confirmação apropriada.
+- [x] O sistema restaura o desenho correto ao alternar entre casas da mesma Construção TETO.
 
 ### US-003: Vincular famílias às casas
 
 **Descrição:** Como monitor voluntário, quero associar uma família a cada casa para manter a relação entre beneficiários
-e projeto construída de forma durável.
+e Construção TETO de forma durável.
 
 **Critérios de aceitação:**
 
-- [ ] O sistema permite criar e editar dados essenciais da família.
-- [ ] Cada casa pode ser vinculada a uma família existente ou recém-criada.
-- [ ] A associação entre casa e família permanece consistente após recarregar ou reimportar o projeto.
+- [x] Cada casa está associada a uma única família.
+- [x] A seção inicial do detalhe da casa contém os dados da família.
+- [x] Alterar o nome da família altera o rótulo da casa no FAB e nas listagens.
+- [x] A associação entre casa e família permanece consistente após recarregar a aplicação.
 
-### US-004: Registrar avaliação do local
+### US-004: Registrar informações de local
 
-**Descrição:** Como monitor voluntário, quero registrar desnível, obstáculos e condições do solo para orientar o desenho
-e a montagem do piloti.
-
-**Critérios de aceitação:**
-
-- [ ] O sistema oferece interface dedicada para avaliação do local por casa.
-- [ ] Os dados de solo e obstáculos permanecem persistidos separadamente do desenho.
-- [ ] Alterações na avaliação do local podem ser recuperadas após nova abertura do projeto.
-
-### US-005: Configurar layout de piloti
-
-**Descrição:** Como monitor voluntário, quero definir piloti mestre, alturas e pontos de piloti para manter a coerência
-estrutural da casa.
+**Descrição:** Como monitor voluntário, quero registrar condições do local da casa para orientar o desenho e a montagem.
 
 **Critérios de aceitação:**
 
-- [ ] O sistema permite definir o piloti mestre e a altura mestre por casa.
-- [ ] O sistema permite editar pontos individuais de piloti sem perder coerência com o layout geral.
-- [ ] O resumo de pilotis deriva dos pontos persistidos, e não de campos manuais independentes.
+- [x] O sistema oferece interface dedicada para informações de local por casa.
+- [x] Os dados de solo e obstáculos permanecem persistidos separadamente do desenho.
+- [x] Desnível não faz parte desta etapa.
 
-### US-006: Exportar e restaurar projetos
+### US-005: Alternar entre gerenciamento e RAC Editor
 
-**Descrição:** Como líder voluntário, quero exportar e reimportar um projeto completo para compartilhar, arquivar e
-restaurar o trabalho sem perda de informações.
+**Descrição:** Como monitor voluntário, quero alternar entre gestão de Construções TETO e Canvas sem perder o estado da
+casa ativa.
 
 **Critérios de aceitação:**
 
-- [ ] O sistema exporta um documento versionado contendo projeto, casas, famílias, avaliações, layout de piloti e
-  desenho.
-- [ ] O sistema reimporta o documento exportado preservando as associações entre entidades.
-- [ ] O sistema mantém caminho futuro para exportação consolidada em planilha e PDF.
+- [x] Sem Construção TETO com casa ativa, a aplicação abre diretamente no gerenciamento.
+- [x] A seta contextual do gerenciamento só retorna ao Canvas quando houver uma casa ativa válida.
+- [x] No Canvas, o FAB hamburger exibe “Construções TETO” primeiro e agrupa casas por código da construção.
+- [x] O menu do usuário não contém “Construções TETO”.
 
-## 4. Requisitos funcionais
+## 4. Requisitos Funcionais
 
-- `FR-1:` O sistema deve permitir CRUD de projetos de construção com código externo, nome, comunidade e status.
-- `FR-2:` O sistema deve permitir CRUD de casas dentro do projeto ativo, incluindo duplicação e exclusão com
-  confirmação.
-- `FR-3:` O sistema deve persistir o estado do desenho por casa, sem tratar o canvas como fonte canônica única de
-  verdade.
-- `FR-4:` O sistema deve permitir CRUD de famílias e associação explícita entre família e casa.
-- `FR-5:` O sistema deve capturar e persistir a avaliação do local por casa, incluindo desnível, condições de solo e
-  obstáculos.
-- `FR-6:` O sistema deve capturar e persistir layout de piloti por casa, incluindo piloti mestre, altura mestre e
-  pontos individuais.
-- `FR-7:` O sistema deve permitir exportação e importação de um documento versionado de projeto completo.
-- `FR-8:` O sistema deve preparar o domínio para relatórios e exportação consolidada em formatos de planilha e PDF.
-- `FR-9:` O sistema deve suportar alternância rápida entre casas dentro do projeto, restaurando desenho e dados
-  associados.
+- `FR-1:` O sistema deve persistir Construções TETO em IndexedDB.
+- `FR-2:` Construção TETO deve possuir Código da CC, Data da Construção, Comunidade, foto opcional, status e metadados
+  técnicos.
+- `FR-3:` O sistema deve permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
+- `FR-4:` O sistema deve permitir criar, arquivar, desarquivar, listar e editar casas dentro da Construção TETO ativa.
+- `FR-5:` Casa deve pertencer a uma única Construção TETO e estar associada a uma única família.
+- `FR-6:` O rótulo da casa na UI deve ser derivado do nome da família associada.
+- `FR-7:` O sistema deve persistir e restaurar o `HouseDrawingDocument` da casa ativa.
+- `FR-8:` O RAC Editor não deve montar quando não houver Construção TETO ativa com casa ativa.
+- `FR-9:` O boot deve restaurar a casa não arquivada com maior `updatedAt`, considerando todas as construções.
+- `FR-10:` Importação e exportação JSON não devem fazer parte da navegação principal.
 
-## 5. Não objetivos
+## 5. Não Objetivos
 
-- Implementar autenticação e autorização na fase inicial.
-- Entregar colaboração em tempo real nesta rodada.
-- Fixar uma stack definitiva de backend antes da validação da fase local-first.
-- Transformar objetos Fabric em contrato durável de persistência.
+- Implementar autenticação e autorização nesta fase.
+- Entregar colaboração em tempo real nesta fase.
+- Implementar backend remoto nesta fase.
+- Reintroduzir importação/exportação JSON como fluxo principal de navegação.
+- Tratar objetos Fabric brutos como contrato durável de persistência.
 
-## 6. Considerações de design
+## 6. Considerações De Design
 
-- A experiência atual do editor deve ser preservada; a mudança principal é a evolução do modelo de estado e da
-  persistência.
-- O editor não deve obrigar o usuário a entender conceitos técnicos de projeto, família ou piloti além do necessário
-  para operar o fluxo.
-- A interface deve manter feedback claro ao alternar entre casas, salvar dados e recuperar contexto previamente editado.
-- A estrutura de dados deve permitir expansão futura para dashboard de projeto, formulários de família e relatórios sem
-  exigir remodelagem total do domínio.
+- O Canvas continua sendo a experiência principal quando há casa válida para edição.
+- O gerenciamento é um módulo separado de `src/components/rac-editor`, localizado em `src/components/construction-site`.
+- No modo de gerenciamento, canvas, toolbar e submenus ficam ocultos.
+- No modo de gerenciamento, a seta contextual do cabeçalho substitui o retorno flutuante.
+- A tela de gerenciamento prioriza CRUD de Construções TETO e casas, não composição visual de desenho.
 
-## 7. Restrições e considerações relevantes
+## 7. Conceitos De Dados
 
-- A aplicação existente já usa React 18, Vite, Tailwind CSS e Fabric.js; a evolução deve respeitar essas dependências
-  existentes no curto prazo.
-- O documento de desenho deve ser persistido como payload serializável da casa, e não como grupo Fabric vivo.
-- A primeira fase deve privilegiar persistência local durável e preparo para sincronização futura entre dispositivos.
-- A modelagem do domínio deve refletir os agrupamentos observados na planilha de referência da operação da TETO.
+| Conceito               | Papel no domínio                                                               |
+|------------------------|--------------------------------------------------------------------------------|
+| `ConstructionSite`     | Raiz da Construção TETO, com Código da CC, Data da Construção, Comunidade, foto opcional e coleção de casas. |
+| `Community`            | Comunidade associada à Construção TETO.                                        |
+| `Family`               | Família beneficiária vinculada a uma única casa nesta etapa.                   |
+| `House`                | Unidade editável pertencente à Construção TETO e associada a uma família.       |
+| `SiteAssessment`       | Informações de local da casa, sem desnível nesta etapa.                        |
+| `HouseDrawingDocument` | Documento serializável do estado lógico e visual da casa ativa.                |
 
-## 8. Conceitos de dados
+## 8. Métricas De Sucesso
 
-| Conceito               | Papel no domínio                                                                  |
-|------------------------|-----------------------------------------------------------------------------------|
-| `ConstructionProject`  | Raiz do projeto de construção, contendo metadados, comunidade e coleção de casas. |
-| `Community`            | Lookup compartilhado para a comunidade do projeto.                                |
-| `Family`               | Beneficiário vinculado a uma ou mais casas do projeto.                            |
-| `House`                | Unidade editável principal, pertencente a um projeto e vinculada a uma família.   |
-| `SiteAssessment`       | Avaliação do local por casa, com desnível, solo e obstáculos.                     |
-| `PilotiLayout`         | Configuração geral do piloti da casa, com mestre, alturas e regras agregadas.     |
-| `PilotiPoint`          | Ponto individual de piloti, com código, altura e nível.                           |
-| `HouseDrawingDocument` | Documento serializável do desenho da casa, separado do runtime do canvas.         |
-| `Person` e atribuições | Entidades reaproveitáveis para líderes, monitores e vínculos operacionais.        |
+- Usuários conseguem criar Construção TETO, criar casas e retornar ao Canvas sem perda de estado.
+- Alternância entre casas da mesma Construção TETO restaura o desenho correto.
+- Recarregar a aplicação abre a última casa editada quando houver casa ativa válida.
+- Boot sem dados ou com construção sem casa abre gerenciamento com Back desabilitado.
 
-## 9. Métricas de sucesso
+## 9. Questões Em Aberto
 
-- Usuários conseguem criar, abrir e editar múltiplos projetos sem perda de dados entre sessões.
-- Alternância entre casas do mesmo projeto ocorre com resposta inferior a 2 segundos em cenários usuais.
-- Exportação e reimportação de um projeto preservam integridade das entidades e do desenho.
-- Famílias, avaliações de local e layout de piloti deixam de depender de campos transitórios fora do estado persistido.
+- Como será feita a sincronização futura entre dispositivos?
+- Haverá versionamento histórico por casa ou apenas a última versão consolidada?
+- Qual formato será usado para exportações futuras consolidadas, como planilha ou relatório?
 
-## 10. Questões em aberto
-
-- Qual provedor de autenticação faz mais sentido quando a fase cloud-ready começar?
-- Haverá necessidade de colaboração em tempo real ou apenas compartilhamento assíncrono de projetos?
-- O documento de desenho precisará suportar versionamento histórico por casa ou apenas a última versão consolidada?
-- Como migrar dados já existentes em `localStorage` para a nova persistência sem surpreender usuários atuais?
-
-## 11. Referências e artefatos auxiliares
+## 10. Referências E Artefatos Auxiliares
 
 - Código atual relacionado:
-    - [editor-house-controller.ts](../../src/components/rac-editor/lib/editor-house-controller.ts)
-    - [house.ts](../../src/shared/types/house.ts)
-    - [house-persistence.port.ts](../../src/domain/house/house-persistence.port.ts)
-    - [useHouseDrawingDocumentActions.ts](../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts)
+    - [construction-site-session.ts](../../src/components/rac-editor/lib/construction-site-session.ts)
+    - [ConstructionSiteManagementPanel.tsx](../../src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
+    - [ConstructionSiteManagementPort.ts](../../src/components/construction-site/ports/ConstructionSiteManagementPort.ts)
+    - [house-drawing-document.ts](../../src/shared/types/house-drawing-document.ts)
 - Evidências e material auxiliar:
     - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
     - [Diagrama de arquitetura](./PRD-001-evolucao-multicasa.prd.assets/diagrams/multi_house_persistence_architecture.mmd)
-    - [Planilha RACS exportada em JSON](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_grid.json)
-    - [Planilha RACS exportada em TSV](./PRD-001-evolucao-multicasa.prd.assets/sources/racs_sheet_values.tsv)

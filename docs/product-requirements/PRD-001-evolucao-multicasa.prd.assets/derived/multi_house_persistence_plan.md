@@ -9,6 +9,10 @@ parent_id: PRD-001
 
 # RAC Designer TETO — Multi-house Persistence Evolution Plan
 
+> Semantic update: PRD-001 now defines the internal domain entity as `ConstructionSite*`
+> (“Construção TETO” in the UI). Generic “project” wording in this sidecar remains as historical
+> research context, not as the current implementation contract.
+
 The application can be transformed into a **complete persisted project editor** without discarding the current drawing
 engine. The right move is not to “persist the canvas as the source of truth”, but to **promote the domain model** so
 that a construction project contains multiple houses, each house is linked to one family, and the drawing becomes a
@@ -43,13 +47,13 @@ groups, while family names vary row by row.[5] In other words, the row is not a 
 | Spreadsheet group             | Representative columns                                                                                                                | Recommended entity meaning                                              |
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 | Family identity               | `familia`                                                                                                                             | `Family`                                                                |
-| Project/construction grouping | `cc`, `comunidade`, `lideres`                                                                                                         | `ConstructionProject`, `Community`, `Person`, `ProjectLeaderAssignment` |
+| Project/construction grouping | `cc`, `comunidade`, `lideres`                                                                                                         | `ConstructionSite`, `Community`, `Person`, `ConstructionSiteLeaderAssignment` |
 | House classification          | `casa`, `tipo`                                                                                                                        | `House`, `HouseTemplate` or `HouseType`                                 |
 | Site conditions               | `desnivel`, `concreto-grosso`, `concreto-fino`, `pedra`, `água`, `raízes`, `solo-outro`, `cano`, `galhos`, `fios`, `obstaculos-outro` | `SiteAssessment` + optional `SiteObstacle` / `SoilCondition`            |
 | Piloti layout                 | `piloti-mestre`, `piloti-a1 ... piloti-c4`, `altura-mestre`                                                                           | `HousePilotiLayout` + `PilotiPoint`                                     |
 | Derived counts                | `total-piloti-1`, `15`, `2`, `25`, `3`, `35`                                                                                          | computed fields, not primary entities                                   |
-| Notes                         | `observações`                                                                                                                         | `HouseNotes` or `ProjectNote`                                           |
-| Monitor assignments           | `monitor-1 ... monitor-6`, phone columns                                                                                              | `Person` + `HouseMonitorAssignment` or `ProjectMonitorAssignment`       |
+| Notes                         | `observações`                                                                                                                         | `HouseNotes` or `ConstructionSiteNote`                                           |
+| Monitor assignments           | `monitor-1 ... monitor-6`, phone columns                                                                                              | `Person` + `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment`       |
 
 ## Entity decomposition I would adopt
 
@@ -57,7 +61,7 @@ I would introduce a **project root** and then normalize the row into entities wi
 hierarchy is:
 
 ```text
-ConstructionProject
+ConstructionSite
   ├── Community
   ├── Families
   ├── Houses
@@ -72,7 +76,7 @@ ConstructionProject
 This matters because some information belongs to the **project**, some belongs to the **family**, and some belongs to
 the **house instance**. If you store everything inside one flattened record, editing becomes fragile very quickly.
 
-### 1. `ConstructionProject`
+### 1. `ConstructionSite`
 
 This becomes the top-level saved document. In your case, a project corresponds to the construction batch or mission, and
 `cc` is a strong candidate for the external project code. A project should contain many houses.[5]
@@ -124,7 +128,7 @@ entity the editor opens.[2]
 | Field                     | Type          | Notes                                      |
 |---------------------------|---------------|--------------------------------------------|
 | `id`                      | UUID          | Primary key                                |
-| `projectId`               | UUID          | Parent project                             |
+| `constructionSiteId`               | UUID          | Parent project                             |
 | `familyId`                | UUID          | Required association                       |
 | `communityId`             | UUID nullable | Denormalized for convenience if useful     |
 | `houseSize`               | enum/string   | From `casa`, e.g. `Grande`                 |
@@ -220,8 +224,8 @@ the model should include reusable people instead of copying names and phones int
 | Entity                                                 | Why it exists                                            |
 |--------------------------------------------------------|----------------------------------------------------------|
 | `Person`                                               | reusable identity for monitors, leaders, volunteers      |
-| `ProjectLeaderAssignment`                              | links a person to a project as leader                    |
-| `HouseMonitorAssignment` or `ProjectMonitorAssignment` | links a person to a house or project with role and phone |
+| `ConstructionSiteLeaderAssignment`                              | links a person to a project as leader                    |
+| `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment` | links a person to a house or project with role and phone |
 
 For the first implementation, you can keep leaders as plain text if you want speed. But monitors already look like a
 repeatable team, so they are strong candidates for normalization.
@@ -258,7 +262,7 @@ state from persisted project state**, because today those layers are entangled.[
 
 ### Step 1 — Introduce a new project-level domain model
 
-Create new types such as `ProjectState`, `PersistedHouse`, `Family`, `SiteAssessment`, `PilotiLayout`, and
+Create new types such as `ConstructionSiteState`, `PersistedHouse`, `Family`, `SiteAssessment`, `PilotiLayout`, and
 `HouseDrawingDocument`. Keep the current `HouseAggregate` if possible, but make it operate on a **serializable house
 payload**, not on a payload that embeds Fabric `group` references.[1] [2]
 
@@ -271,21 +275,21 @@ Suggested ports:
 
 | Port                        | Responsibility                                                             |
 |-----------------------------|----------------------------------------------------------------------------|
-| `ProjectRepository`         | create, list, load, save, archive projects                                 |
+| `ConstructionSiteRepository`         | create, list, load, save, archive projects                                 |
 | `HouseRepository`           | optional if you split by aggregate, otherwise project repository is enough |
 | `DrawingDocumentRepository` | save/load house drawing payloads                                           |
 
 A practical contract would be:
 
 ```ts
-interface ProjectRepository {
-    listProjects(): Promise<ProjectSummary[]>;
+interface ConstructionSiteRepository {
+    listConstructionSites(): Promise<ConstructionSiteSummary[]>;
 
-    getProject(projectId: string): Promise<ProjectState | null>;
+    getConstructionSite(constructionSiteId: string): Promise<ConstructionSiteState | null>;
 
-    saveProject(project: ProjectState): Promise<void>;
+    saveConstructionSite(project: ConstructionSiteState): Promise<void>;
 
-    createProject(input: CreateProjectInput): Promise<ProjectState>;
+    createConstructionSite(input: CreateConstructionSiteInput): Promise<ConstructionSiteState>;
 }
 ```
 
@@ -379,7 +383,7 @@ My recommendation is a **two-stage persistence strategy**.
 
 ### Phase A — Local-first
 
-Use **IndexedDB** to store `ProjectState` and `HouseDrawingDocument` locally. This gives you durable persistence
+Use **IndexedDB** to store `ConstructionSiteState` and `HouseDrawingDocument` locally. This gives you durable persistence
 immediately, no server required, and enough storage for many houses plus serialized views.
 
 ### Phase B — Cloud-ready
@@ -421,7 +425,7 @@ The right order is to de-risk the model first and the infrastructure second.
 
 If you want the **fastest credible implementation**, I would do this first:
 
-1. Introduce `ProjectState` with many houses.
+1. Introduce `ConstructionSiteState` with many houses.
 2. Keep only one house open in canvas at a time.
 3. Store projects in IndexedDB.
 4. Add a sidebar with house list and family name.
@@ -452,7 +456,7 @@ I recommend that the next execution task be:
 
 | Priority | Task                                                                         |
 |----------|------------------------------------------------------------------------------|
-| 1        | create the `ProjectState` / `PersistedHouse` / `Family` TypeScript contracts |
+| 1        | create the `ConstructionSiteState` / `PersistedHouse` / `Family` TypeScript contracts |
 | 2        | refactor the transient house controller into a project-aware service with `activeHouseId` |
 | 3        | add IndexedDB persistence for projects                                       |
 | 4        | add a left sidebar listing houses and linked families                        |
@@ -469,6 +473,6 @@ IndexedDB schema, and UI flow**, and then start implementing the first milestone
 
 [3]: ../../../../src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
 
-[4]: ../../../../src/components/rac-editor/hooks/useHouseDrawingDocumentActions.ts "Current HouseDrawingDocument import/export flow"
+[4]: ../../../../src/components/rac-editor/ports/HouseDrawingDocumentPort.ts "Current HouseDrawingDocument composition port"
 
 [5]: https://docs.google.com/spreadsheets/d/16ZYrcTcABqMJAK7_URahCg_h2ZfC_yYWJvZyeRBhbm8/edit?gid=0#gid=0 "Reference Google Sheet used to infer house data groups and persistent entities"

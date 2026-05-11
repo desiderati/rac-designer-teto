@@ -102,7 +102,29 @@ describe('createFabricCanvasCommandPort', () => {
     expect(canvas.remove).toHaveBeenCalledWith(group);
   });
 
-  it('projects the requested piloti screen position from the matching house view', () => {
+  it('renders and records history after deleting active objects', () => {
+    const object = {
+      type: 'rect',
+      myType: 'wall',
+      set: vi.fn(),
+    };
+    const canvas = {
+      getActiveObjects: () => [object],
+      discardActiveObject: vi.fn(),
+      remove: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+    const saveHistory = vi.fn();
+
+    const result = createPort(canvas, {saveHistory}).deleteActiveObjects();
+
+    expect(result).toBe('deleted');
+    expect(canvas.remove).toHaveBeenCalledWith(object);
+    expect(canvas.requestRenderAll).toHaveBeenCalledOnce();
+    expect(saveHistory).toHaveBeenCalledOnce();
+  });
+
+  it('constructionSites the requested piloti screen position from the matching house view', () => {
     const frontGroup = {
       type: 'group',
       myType: 'house',

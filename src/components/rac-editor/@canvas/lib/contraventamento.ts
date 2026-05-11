@@ -298,7 +298,7 @@ export function syncContraventamentoElevationViews(
   topGroup: CanvasGroup | null,
   targetGroups: CanvasGroup[],
   getPilotiNivel: (pilotiId: string) => number,
-): void {
+): boolean {
 
   const getPilotiRow = (pilotiId: string): number | null => {
     const match = pilotiId.match(/^piloti_\d+_(\d+)$/);
@@ -334,13 +334,17 @@ export function syncContraventamentoElevationViews(
       return top + offsetFromBeam * base;
     };
 
+  let hasChanges = false;
+
   targetGroups.forEach((group) => {
-    removeContraventamentoFromElevationViews(group);
+    if (removeContraventamentoFromElevationViews(group) > 0) {
+      hasChanges = true;
+    }
   });
 
   if (!topGroup) {
     targetGroups[0]?.canvas?.requestRenderAll();
-    return;
+    return hasChanges;
   }
 
   const contraventamentos = getCanvasGroupObjects(topGroup)
@@ -349,7 +353,7 @@ export function syncContraventamentoElevationViews(
 
   if (contraventamentos.length === 0) {
     targetGroups[0]?.canvas?.requestRenderAll();
-    return;
+    return hasChanges;
   }
 
   for (const group of targetGroups) {
@@ -454,6 +458,8 @@ export function syncContraventamentoElevationViews(
         internalObjects.push(line);
         lineCanvasObject.group = group;
       }
+
+      hasChanges = true;
     }
 
     group.dirty = true;
@@ -461,4 +467,5 @@ export function syncContraventamentoElevationViews(
   }
 
   topGroup.canvas?.requestRenderAll();
+  return hasChanges;
 }

@@ -31,6 +31,7 @@ interface RacEditorCanvasProps {
   onContraventamentoPilotiClick: (col: number, row: number) => void;
   onContraventamentoCancel: () => void;
   onFreeDrawPathCreated: () => void;
+  onCanvasDocumentChange: () => void;
 }
 
 export function RacEditorCanvas({
@@ -54,6 +55,7 @@ export function RacEditorCanvas({
   onContraventamentoPilotiClick,
   onContraventamentoCancel,
   onFreeDrawPathCreated,
+  onCanvasDocumentChange,
 }: RacEditorCanvasProps) {
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
 
@@ -76,8 +78,7 @@ export function RacEditorCanvas({
       <Canvas
         ref={canvasRef}
         onSelectionChange={handleSelectionChange}
-        onHistorySave={() => {
-        }}
+        onHistorySave={onCanvasDocumentChange}
         onZoomInteraction={onZoomInteraction}
         onMinimapInteraction={onZoomInteraction}
         onZoomChange={onZoomChange}

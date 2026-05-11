@@ -7,7 +7,7 @@ import type {
  * Porta documental da casa ativa no editor.
  *
  * O contrato compõe estado lógico da casa e documento visual serializável sem
- * expor JSON Fabric como formato canônico do projeto. Ele representa a fronteira
+ * expor JSON Fabric como formato canônico do desenho. Ele representa a fronteira
  * entre arquivo RAC e estado de editor, não a API do canvas.
  */
 export interface HouseDrawingDocumentPort {

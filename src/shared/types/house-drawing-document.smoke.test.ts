@@ -82,7 +82,7 @@ describe('house-drawing-document.ts', () => {
 
   it('rejeita JSON Fabric antigo como documento RAC', () => {
     expect(isHouseDrawingDocument({objects: []})).toBe(false);
-    expect(() => parseHouseDrawingDocument('{"objects":[]}')).toThrow('Arquivo de projeto RAC inválido.');
+    expect(() => parseHouseDrawingDocument('{"objects":[]}')).toThrow('Arquivo RAC inválido.');
   });
 
   it('rejeita estado lógico da casa incompleto ou inconsistente', () => {

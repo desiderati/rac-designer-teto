@@ -20,6 +20,10 @@ import {
 } from '@/components/rac-editor/hooks/useRacEditorDocumentHotkeysController.ts';
 import {useRacEditorModalEditorController} from '@/components/rac-editor/hooks/useRacEditorModalEditorController.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
+import {
+  useConstructionSiteManagementController,
+} from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
+import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -84,6 +88,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setNivelDefinitionOpen,
     familySetupOpen,
     setFamilySetupOpen,
+    constructionSiteManagementOpen,
+    setConstructionSiteManagementOpen,
     canvasToolMode,
     setCanvasToolMode,
     displayZoom,
@@ -91,6 +97,10 @@ export function useRacEditorController(): RacEditorLayoutProps {
   } = useRacEditorModalState();
 
   const {showTipsRef, showZoomControlsRef} = useRacEditorUiRefs(showTips, showZoomControls);
+
+  const constructionSiteManagement = useConstructionSiteManagementController({
+    canvasRef,
+  });
 
   const {
     handleFamilySetupConfirm,
@@ -115,25 +125,74 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setShowRestartConfirm(true);
   }, [setShowRestartConfirm]);
 
+  const handleOpenConstructionSites = useCallback(() => {
+    void constructionSiteManagement.flushActiveHouseDocumentSave({force: true})
+      .catch(() => undefined)
+      .finally(() => {
+        setActiveSubmenu(null);
+        setIsMenuOpen(false);
+        setConstructionSiteManagementOpen(true);
+      });
+  }, [constructionSiteManagement, setActiveSubmenu, setIsMenuOpen, setConstructionSiteManagementOpen]);
+
+  const handleCanvasDocumentChange = useCallback(() => {
+    void constructionSiteManagement.notifyActiveHouseDocumentChanged();
+  }, [constructionSiteManagement]);
+
+  const handleActivateHouse = useCallback((constructionId: string, houseId: string) => {
+    const activation = constructionSiteManagement.actions.activateHouse(constructionId, houseId);
+    setActiveSubmenu(null);
+    setIsMenuOpen(false);
+    return activation;
+  }, [constructionSiteManagement, setActiveSubmenu, setIsMenuOpen]);
+
+  const closeConstructionSiteManagement = useCallback(() => {
+    if (!constructionSiteManagement.canOpenRacEditor) return;
+    setConstructionSiteManagementOpen(false);
+    constructionSiteManagement.hydrateActiveHouseDocument();
+  }, [constructionSiteManagement, setConstructionSiteManagementOpen]);
+
   const closeRestartConfirm = useCallback(() => {
     setShowRestartConfirm(false);
   }, [setShowRestartConfirm]);
 
   const confirmRestartDrawing = useCallback(() => {
-    canvasRef.current?.resetSurface();
-    houseWritePort.resetHouse();
+    restartActiveHouseDrawing({
+      canvasRef,
+      houseWritePort,
+      resetInsertionFlow: () => {
+        setPendingViewType(null);
+        setSideSelectorMode('position');
+        setHouseSideSlots([]);
+        setPendingNivelSide(null);
+        niveisAppliedRef.current = false;
+        transitionToNivelRef.current = false;
+        setSideSelectorOpen(false);
+        setNivelDefinitionOpen(false);
+        setHouseTypeSelectorOpen(false);
+        setFamilySetupOpen(false);
+      },
+    });
     setActiveSubmenu(null);
     setIsMenuOpen(false);
-    setHouseTypeSelectorOpen(false);
     setShowRestartConfirm(false);
     toast.success(TOAST_MESSAGES.canvasRestartedSuccessfully);
   }, [
     canvasRef,
     houseWritePort,
+    niveisAppliedRef,
     setActiveSubmenu,
+    setFamilySetupOpen,
+    setHouseSideSlots,
     setHouseTypeSelectorOpen,
     setIsMenuOpen,
+    setNivelDefinitionOpen,
+    setPendingNivelSide,
+    setPendingViewType,
     setShowRestartConfirm,
+    setSideSelectorMode,
+    setSideSelectorOpen,
+    transitionToNivelRef,
   ]);
 
   const {
@@ -180,6 +239,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     transitionToNivelRef,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
+    onHouseDrawingChange: handleCanvasDocumentChange,
   });
 
   const handleOpenHouseTypeSelector = useCallback(() => {
@@ -252,14 +312,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
   });
 
   const {
-    handleExportJSON,
-    handleImportJSON,
     handleSavePDF,
   } = useRacEditorDocumentHotkeysController({
     canvasRef,
-    setInfoMessage,
-    resetContraventamentoFlow,
-    syncContraventamentoElevations,
     onToggleDrawMode: handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
     onSetCanvasToolMode: handleSetCanvasToolMode,
@@ -320,8 +375,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
       handleAddDistance,
       handleToggleDrawMode,
       handleAddText,
-      handleExportJSON,
-      handleImportJSON,
+      handleOpenConstructionSites,
+      handleActivateHouse,
       handleDelete,
       handleSavePDF,
       handleToggleHouseMenu,
@@ -345,6 +400,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
   return buildRacEditorLayoutProps({
     handleContainerClick,
     menuActions,
+    constructionGroups: constructionSiteManagement.constructionGroups,
     isDrawing,
     activeSubmenu,
     showTips,
@@ -359,6 +415,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     displayZoom,
     canvasToolMode,
     isMobile,
+    documentSaveStatus: constructionSiteManagement.documentSaveStatus,
+    documentTransitioning: constructionSiteManagement.isDocumentTransitioning,
     canvasRef,
     infoMessage,
     isAnyEditorOpen,
@@ -375,6 +433,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleContraventamentoPilotiClick,
     handleCancelContraventamento,
     handleFreeDrawPathCreated,
+    onCanvasDocumentChange: handleCanvasDocumentChange,
     familySetupOpen,
     setFamilySetupOpen,
     handleFamilySetupConfirm,
@@ -420,5 +479,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     closeRestartConfirm,
     is3DViewerOpen,
     setIs3DViewerOpen,
+    constructionSiteManagementOpen,
+    closeConstructionSiteManagement,
+    constructionSiteManagementPanel: constructionSiteManagement,
   });
 }

@@ -91,10 +91,10 @@ aliases: [ tip do piloti após inserir casa ]
 ## 9. Validação Executada
 
 - testes executados:
-    -
-    `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
-    -
-    `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+  -
+  `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+  -
+  `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
     - `npm run test -- src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx`
 - build, lint ou smoke relevante:
     - `npm run lint`
