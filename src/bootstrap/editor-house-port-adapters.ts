@@ -142,9 +142,8 @@ export function createEditorHouseReadPort<TGroup extends HouseRuntimeGroupRef>(
 
 export function createEditorHouseWritePort(source: EditorHouseWriteSource): HouseWritePort {
   return {
-    applyHouseSetup: (setup) => {
+    applyPilotisSetup: (setup) => {
       source.setSelectedPilotiHeights([...setup.selectedPilotiHeights]);
-      source.setFamilyName(setup.familyName);
     },
     renameFamily: (name) => source.setFamilyName(name),
     refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),

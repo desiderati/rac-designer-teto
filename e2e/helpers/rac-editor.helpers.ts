@@ -130,10 +130,9 @@ export async function createHouse(page: Page, houseType: HouseType, options: Cre
   await ensureMainMenuOpen(page);
   await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
 
-  const familyNameInput = page.getByPlaceholder('Nome da Família');
-  if (await familyNameInput.isVisible({timeout: 1000}).catch(() => false)) {
-    await familyNameInput.fill('Família E2E');
-    await page.getByRole('button', {name: 'Confirmar'}).click();
+  const pilotisConfirmButton = page.getByRole('button', {name: 'Confirmar'});
+  if (await pilotisConfirmButton.isVisible({timeout: 1000}).catch(() => false)) {
+    await pilotisConfirmButton.click();
   }
 
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Casa Tipo 6' : 'Casa Tipo 3'}).click();

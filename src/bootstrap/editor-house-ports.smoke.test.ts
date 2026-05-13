@@ -47,9 +47,8 @@ describe('editor house ports', () => {
     ports = createEditorHousePortsWithActiveHouse();
   });
 
-  it('aplica dados de setup pela porta composta', () => {
-    ports.houseWritePort.applyHouseSetup({
-      familyName: 'Familia teste',
+  it('aplica setup de pilotis sem alterar a família associada à casa ativa', () => {
+    ports.houseWritePort.applyPilotisSetup({
       selectedPilotiHeights: [1, 1.5, 2],
     });
 

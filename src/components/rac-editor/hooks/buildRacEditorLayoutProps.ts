@@ -39,9 +39,9 @@ interface BuildRacEditorLayoutPropsArgs {
   handleCancelContraventamento: LayoutProps['canvas']['onContraventamentoCancel'];
   handleFreeDrawPathCreated: LayoutProps['canvas']['onFreeDrawPathCreated'];
   onCanvasDocumentChange: LayoutProps['canvas']['onCanvasDocumentChange'];
-  familySetupOpen: LayoutProps['houseTypeSelector']['familySetupOpen'];
-  setFamilySetupOpen: (open: boolean) => void;
-  handleFamilySetupConfirm: LayoutProps['houseTypeSelector']['onFamilySetupConfirm'];
+  pilotisSetupOpen: LayoutProps['houseTypeSelector']['pilotisSetupOpen'];
+  setPilotisSetupOpen: (open: boolean) => void;
+  handlePilotisSetupConfirm: LayoutProps['houseTypeSelector']['onPilotisSetupConfirm'];
   houseTypeSelectorOpen: LayoutProps['houseTypeSelector']['houseTypeSelectorOpen'];
   handleHouseTypeSelectorClose: LayoutProps['houseTypeSelector']['onHouseTypeSelectorClose'];
   handleHouseTypeSelected: LayoutProps['houseTypeSelector']['onHouseTypeSelected'];
@@ -138,9 +138,9 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onCanvasDocumentChange: args.onCanvasDocumentChange,
     },
     houseTypeSelector: {
-      familySetupOpen: args.familySetupOpen,
-      onFamilySetupClose: () => args.setFamilySetupOpen(false),
-      onFamilySetupConfirm: args.handleFamilySetupConfirm,
+      pilotisSetupOpen: args.pilotisSetupOpen,
+      onPilotisSetupClose: () => args.setPilotisSetupOpen(false),
+      onPilotisSetupConfirm: args.handlePilotisSetupConfirm,
       houseTypeSelectorOpen: args.houseTypeSelectorOpen,
       onHouseTypeSelectorClose: args.handleHouseTypeSelectorClose,
       onHouseTypeSelected: args.handleHouseTypeSelected,

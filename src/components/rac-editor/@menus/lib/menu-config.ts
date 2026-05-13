@@ -28,6 +28,7 @@ import {
   faMagnifyingGlass,
   faPenNib,
   faPenToSquare,
+  faPeopleRoof,
   faPlus,
   faRightFromBracket,
   faRotateLeft,
@@ -126,7 +127,7 @@ export const TOP_BAR_ICONS = {
   settings: faGear,
   exit: faRightFromBracket,
   // Hamburger dropdown
-  constructionSites: faTrowelBricks,
+  constructionSites: faPeopleRoof,
   workspace: faFolderOpen,
   workspaceOpen: faFolderOpen,
   workspaceClosed: faFolder,

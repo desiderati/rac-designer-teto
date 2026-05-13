@@ -56,7 +56,7 @@ describe('HamburgerMenu.tsx', () => {
     const constructionSitesButton = screen.getByRole('button', {name: 'Construções TETO'});
     expect(constructionSitesButton).toBeVisible();
     expect(within(constructionSitesButton).getByTestId('construction-sites-menu-icon'))
-      .toHaveAttribute('data-icon', 'trowel-bricks');
+      .toHaveAttribute('data-icon', 'people-roof');
 
     const activeConstructionButton = screen.getByRole('button', {name: 'CC2603 - Tiradentes'});
     const collapsedConstructionButton = screen.getByRole('button', {name: 'CC2604 - Heliópolis'});

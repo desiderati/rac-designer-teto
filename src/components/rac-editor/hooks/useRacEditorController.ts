@@ -86,8 +86,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setIs3DViewerOpen,
     nivelDefinitionOpen,
     setNivelDefinitionOpen,
-    familySetupOpen,
-    setFamilySetupOpen,
+    pilotisSetupOpen,
+    setPilotisSetupOpen,
     constructionSiteManagementOpen,
     setConstructionSiteManagementOpen,
     canvasToolMode,
@@ -103,7 +103,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
   });
 
   const {
-    handleFamilySetupConfirm,
+    handlePilotisSetupConfirm,
     handleRenameFamily,
     handleSettingsChange,
     handleSetCanvasToolMode,
@@ -115,7 +115,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     showZoomControlsRef,
     setPilotiSelection,
     setIsPilotiEditorOpen,
-    setFamilySetupOpen,
+    setPilotisSetupOpen,
     setHouseTypeSelectorOpen,
     setShowZoomControls,
     setCanvasToolMode,
@@ -170,7 +170,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
         setSideSelectorOpen(false);
         setNivelDefinitionOpen(false);
         setHouseTypeSelectorOpen(false);
-        setFamilySetupOpen(false);
+        setPilotisSetupOpen(false);
       },
     });
     setActiveSubmenu(null);
@@ -182,7 +182,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     houseWritePort,
     niveisAppliedRef,
     setActiveSubmenu,
-    setFamilySetupOpen,
+    setPilotisSetupOpen,
     setHouseSideSlots,
     setHouseTypeSelectorOpen,
     setIsMenuOpen,
@@ -244,8 +244,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
 
   const handleOpenHouseTypeSelector = useCallback(() => {
     closeAllMenus();
-    setFamilySetupOpen(true);
-  }, [closeAllMenus, setFamilySetupOpen]);
+    setPilotisSetupOpen(true);
+  }, [closeAllMenus, setPilotisSetupOpen]);
 
   const handleHouseTypeSelectorClose = useCallback(() => {
     setHouseTypeSelectorOpen(false);
@@ -434,9 +434,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleCancelContraventamento,
     handleFreeDrawPathCreated,
     onCanvasDocumentChange: handleCanvasDocumentChange,
-    familySetupOpen,
-    setFamilySetupOpen,
-    handleFamilySetupConfirm,
+    pilotisSetupOpen,
+    setPilotisSetupOpen,
+    handlePilotisSetupConfirm,
     houseTypeSelectorOpen,
     handleHouseTypeSelectorClose,
     handleHouseTypeSelected,

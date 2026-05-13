@@ -3,22 +3,19 @@ import type {HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilo
 import type {HouseViewWritePort} from '@/components/rac-editor/ports/HouseViewPort.ts';
 
 /**
- * Dados necessários para iniciar ou atualizar a configuração humana da casa.
+ * Dados necessários para configurar as alturas de piloti disponíveis na casa.
  */
-export interface HouseSetup {
-  /** Nome da família associado à casa em edição. */
-  familyName: string;
-
-  /** Alturas de piloti habilitadas para essa família. */
+export interface PilotisSetup {
+  /** Alturas de piloti habilitadas para essa casa. */
   selectedPilotiHeights: readonly number[];
 }
 
 /**
- * Comandos de configuração da família e dos parâmetros iniciais da casa.
+ * Comandos de configuração inicial da casa e da família associada.
  */
 export interface HouseSetupWritePort {
-  /** Aplica os dados iniciais de família e alturas disponíveis à casa. */
-  applyHouseSetup(setup: HouseSetup): void;
+  /** Aplica as alturas de piloti disponíveis à casa ativa. */
+  applyPilotisSetup(setup: PilotisSetup): void;
 
   /** Renomeia a família associada à casa em edição. */
   renameFamily(name: string): void;

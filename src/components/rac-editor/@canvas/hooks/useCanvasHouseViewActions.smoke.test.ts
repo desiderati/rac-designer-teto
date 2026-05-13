@@ -68,7 +68,7 @@ function createHouseReadPort(): HouseReadPort {
 
 function createHouseWritePort(): HouseWritePort {
   return {
-    applyHouseSetup: vi.fn(),
+    applyPilotisSetup: vi.fn(),
     renameFamily: vi.fn(),
     setHouseType: vi.fn(),
     refreshAutoStairsForCurrentSettings: vi.fn(),

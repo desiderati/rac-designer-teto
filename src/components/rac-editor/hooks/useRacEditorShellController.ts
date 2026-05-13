@@ -20,7 +20,7 @@ interface UseRacEditorShellControllerArgs {
   showZoomControlsRef: MutableRefObject<boolean>;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
   setIsPilotiEditorOpen: Dispatch<SetStateAction<boolean>>;
-  setFamilySetupOpen: Dispatch<SetStateAction<boolean>>;
+  setPilotisSetupOpen: Dispatch<SetStateAction<boolean>>;
   setHouseTypeSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setShowZoomControls: Dispatch<SetStateAction<boolean>>;
   setCanvasToolMode: Dispatch<SetStateAction<CanvasToolMode>>;
@@ -36,16 +36,16 @@ export function useRacEditorShellController({
   showZoomControlsRef,
   setPilotiSelection,
   setIsPilotiEditorOpen,
-  setFamilySetupOpen,
+  setPilotisSetupOpen,
   setHouseTypeSelectorOpen,
   setShowZoomControls,
   setCanvasToolMode,
 }: UseRacEditorShellControllerArgs) {
   const {
-    handleFamilySetupConfirm,
+    handlePilotisSetupConfirm,
     handleRenameFamily,
   } = useRacEditorFamilyActions({
-    setFamilySetupOpen,
+    setPilotisSetupOpen,
     setHouseTypeSelectorOpen,
   });
 
@@ -75,7 +75,7 @@ export function useRacEditorShellController({
   });
 
   return {
-    handleFamilySetupConfirm,
+    handlePilotisSetupConfirm,
     handleRenameFamily,
     handleSettingsChange,
     handleSetCanvasToolMode,

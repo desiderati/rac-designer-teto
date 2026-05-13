@@ -3,7 +3,7 @@ title: Roadmap do RAC Designer TETO
 doc_type: roadmap
 status: active
 lang: pt-BR
-last_updated: 2026-05-12
+last_updated: 2026-05-13
 ---
 
 # Roadmap do RAC Designer TETO
@@ -21,7 +21,7 @@ prováveis de impacto, mas não substitui PRDs canônicos quando uma frente prec
 - `docs/business-rules/BUS-004-piloti-nivel.md`: regras de nível, altura e consistência visual dos pilotis.
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`: gestão de Construções TETO, casas e famílias.
 - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
-- `src/components/rac-editor/@modals/ui/editors/FamilySetupModal.tsx`: modal inicial de designação e seleção de pilotis.
+- `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`: modal inicial de seleção de pilotis.
 - `src/components/rac-editor/lib/terrain-volume.ts`: cálculo atual de volumes de rachão e brita.
 - `index.html`: loader inicial exibido antes da montagem do React.
 - `src/components/rac-editor/ui/RacEditor.tsx`: loader interno enquanto o storage local do editor é preparado.
@@ -58,33 +58,41 @@ destino antes do download.
 
 ### RD-002 - Remover nome da família da modal inicial de nova casa
 
+**Status:** concluído em 2026-05-13.
+
 **Necessidade:** ao inserir uma nova casa para uma família, a primeira modal do editor deve pedir apenas os pilotis
 daquela casa. O nome da família já pertence ao módulo de gestão de casas.
 
-**Estado atual:** `FamilySetupModal` ainda contém o campo `Nome da Família` e só permite confirmar quando há nome
+**Estado anterior:** `FamilySetupModal` ainda continha o campo `Nome da Família` e só permitia confirmar quando havia nome
 preenchido e seis alturas de piloti selecionadas.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Remover o campo de nome da família da modal inicial do editor.
-2. Fazer a confirmação depender apenas da seleção válida de seis alturas de piloti.
-3. Usar o nome da família já associado à casa ativa no módulo de gestão.
-4. Revisar nomes internos remanescentes de `FamilySetup*`, pois a modal deixará de configurar família e passará a
-   configurar apenas pilotis da casa.
+1. `PilotisSetupModal` substituiu `FamilySetupModal` e não exibe mais campo de nome da família.
+2. A confirmação depende apenas da seleção válida de seis alturas de piloti.
+3. O setup inicial aplica somente `selectedPilotiHeights`, preservando o nome da família já associado à casa ativa.
+4. Nomes internos do fluxo foram migrados de `FamilySetup*` para `PilotisSetup*`.
+5. O contador de pilotis selecionados aparece entre parênteses junto ao título da modal, e a grade mobile segue o mesmo
+   formato compacto do editor de piloti aberto pelo canvas.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - A modal inicial não exibe campo de nome da família.
 - O fluxo continua abrindo a seleção de tipo da casa depois da confirmação dos pilotis.
 - O rótulo da casa continua vindo da família associada no módulo de gestão.
+- O card branco da modal não repete o título/contador de pilotis.
+- A grade mobile usa botões quadrados compactos alinhados ao editor de piloti do canvas.
 - Testes cobrem a confirmação sem digitação de nome.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
-- `src/components/rac-editor/@modals/ui/editors/FamilySetupModal.tsx`
+- `src/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx`
+- `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`
 - `src/components/rac-editor/hooks/useRacEditorFamilyActions.ts`
 - `src/components/rac-editor/hooks/buildRacEditorLayoutProps.ts`
 - `src/bootstrap/editor-house-port-adapters.ts`
+- `src/components/rac-editor/ports/HouseWritePort.ts`
+- `e2e/helpers/rac-editor.helpers.ts`
 
 ### RD-003 - Labels nas vistas elevadas e no lado correspondente da planta
 
@@ -265,7 +273,7 @@ o React monta e remove o fallback.
 ## Ordem sugerida de execução
 
 1. **RD-006**: fechar a regra de cálculo de pedras, porque ela influencia o gauge e pode afetar materiais exportados.
-2. **RD-002**: remover redundância do fluxo de nova casa, alinhando o editor ao módulo de gestão.
+2. **RD-002**: concluído em 2026-05-13.
 3. **RD-003** e **RD-004**: implementar labels de vistas e pilotis na mesma frente visual do canvas.
 4. **RD-001**: melhorar exportação PDF com nome configurável e fallback de download.
 5. **RD-007**: qualificar os loaders, por ser uma melhoria isolada de UX com baixo acoplamento.

@@ -8,6 +8,7 @@ interface ConfirmDialogModalProps {
   isMobile: boolean;
   isOpen: boolean;
   title?: string;
+  titleAccessory?: ReactNode;
   description?: string;
   content?: ReactNode;
   confirmLabel: string;
@@ -24,6 +25,7 @@ export function ConfirmDialogModal({
   isMobile,
   isOpen,
   title,
+  titleAccessory,
   description,
   content,
   confirmLabel,
@@ -70,8 +72,17 @@ export function ConfirmDialogModal({
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
         <DialogContent className={dialogContentClassName} hideCloseButton>
           <DialogHeader className={hasTitle ? 'text-center' : 'sr-only'}>
-            <DialogTitle className={hasTitle ? 'text-center text-2xl' : 'sr-only'}>
-              {resolvedTitle}
+            <DialogTitle
+              className={cn(
+                hasTitle ? 'text-center text-2xl' : 'sr-only',
+                hasTitle && titleAccessory ? 'flex items-baseline justify-center gap-2' : undefined,
+              )}>
+              <span>{resolvedTitle}</span>
+              {hasTitle && titleAccessory ?
+                <span className='text-xs font-medium tracking-normal text-muted-foreground'>
+                  {titleAccessory}
+                </span> :
+                null}
             </DialogTitle>
             <DialogDescription className='sr-only'>
               {dialogDescription}
@@ -87,8 +98,17 @@ export function ConfirmDialogModal({
     <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <DrawerContent>
         <DrawerHeader className={hasTitle ? 'text-center pb-2' : 'sr-only'}>
-          <DrawerTitle className={hasTitle ? 'text-center text-2xl' : 'sr-only'}>
-            {resolvedTitle}
+          <DrawerTitle
+            className={cn(
+              hasTitle ? 'text-center text-2xl' : 'sr-only',
+              hasTitle && titleAccessory ? 'flex items-baseline justify-center gap-2' : undefined,
+            )}>
+            <span>{resolvedTitle}</span>
+            {hasTitle && titleAccessory ?
+              <span className='text-xs font-medium tracking-normal text-muted-foreground'>
+                {titleAccessory}
+              </span> :
+              null}
           </DrawerTitle>
           <DrawerDescription className='sr-only'>
             {dialogDescription}

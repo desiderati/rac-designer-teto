@@ -4,12 +4,12 @@ import {
   NivelDefinition,
   NivelDefinitionEditor
 } from '@/components/rac-editor/@modals/ui/editors/NivelDefinitionEditor.tsx';
-import {FamilySetupModal, FamilySetupResult} from '@/components/rac-editor/@modals/ui/editors/FamilySetupModal.tsx';
+import {PilotisSetupModal, PilotisSetupResult} from '@/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx';
 
 interface RacEditorHouseTypeSelectorProps {
-  familySetupOpen: boolean;
-  onFamilySetupClose: () => void;
-  onFamilySetupConfirm: (result: FamilySetupResult) => void;
+  pilotisSetupOpen: boolean;
+  onPilotisSetupClose: () => void;
+  onPilotisSetupConfirm: (result: PilotisSetupResult) => void;
   houseTypeSelectorOpen: boolean;
   onHouseTypeSelectorClose: () => void;
   onHouseTypeSelected: (type: HouseType) => void;
@@ -19,9 +19,9 @@ interface RacEditorHouseTypeSelectorProps {
 }
 
 export function RacEditorHouseTypeSelector({
-  familySetupOpen,
-  onFamilySetupClose,
-  onFamilySetupConfirm,
+  pilotisSetupOpen,
+  onPilotisSetupClose,
+  onPilotisSetupConfirm,
   houseTypeSelectorOpen,
   onHouseTypeSelectorClose,
   onHouseTypeSelected,
@@ -31,10 +31,10 @@ export function RacEditorHouseTypeSelector({
 }: RacEditorHouseTypeSelectorProps) {
   return (
     <>
-      <FamilySetupModal
-        isOpen={familySetupOpen}
-        onClose={onFamilySetupClose}
-        onConfirm={onFamilySetupConfirm}
+      <PilotisSetupModal
+        isOpen={pilotisSetupOpen}
+        onClose={onPilotisSetupClose}
+        onConfirm={onPilotisSetupConfirm}
       />
 
       <HouseTypeSelector
