@@ -25,14 +25,155 @@
           content="Editor de RAC para a ONG TETO. Crie e edite plantas de casas com visualizações superior, frontal, traseira e laterais. Exporte para PDF ou JSON.">
     <meta name="twitter:description"
           content="Editor de RAC para a ONG TETO. Crie e edite plantas de casas com visualizações superior, frontal, traseira e laterais. Exporte para PDF ou JSON.">
+
+    <style id="app-loading-style">
+        #app-loading {
+            min-height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f2937;
+            background-color: #f1f5f9;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.95) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 1px, transparent 1px);
+            background-size: 40px 40px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            text-align: center;
+
+            .fallback {
+                width: min(100%, 360px);
+            }
+
+            .brand {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                margin: 0 auto 18px;
+                color: #0f172a;
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0;
+
+                .mark {
+                    display: inline-grid;
+                    width: 34px;
+                    height: 34px;
+                    place-items: center;
+                    border-radius: 8px;
+                    background: #0f172a;
+                    color: #ffffff;
+                    font-size: 13px;
+                }
+            }
+
+            .title {
+                margin: 0 0 8px;
+                color: #1f2937;
+                font-size: 18px;
+                font-weight: 650;
+                line-height: 1.25;
+            }
+
+            .message {
+                margin: 0 0 18px;
+                color: #64748b;
+                font-size: 14px;
+                line-height: 1.45;
+            }
+
+            .progress {
+                height: 6px;
+                overflow: hidden;
+                border-radius: 999px;
+                background: #dbe3ee;
+
+                .bar {
+                    width: 45%;
+                    height: 100%;
+                    border-radius: inherit;
+                    background: #2563eb;
+                    animation: app-loading-progress 1.6s ease-in-out infinite;
+                }
+            }
+
+            .error {
+                width: min(100%, 480px);
+
+                .mark {
+                    display: grid;
+                    width: 42px;
+                    height: 42px;
+                    place-items: center;
+                    margin: 0 auto 16px;
+                    border-radius: 10px;
+                    background: #fee2e2;
+                    color: #991b1b;
+                    font-size: 22px;
+                    font-weight: 700;
+                }
+
+                .title {
+                    font-size: 20px;
+                }
+
+                .detail {
+                    margin: 0 0 20px;
+                    color: #94a3b8;
+                    font-size: 12px;
+                    word-break: break-all;
+                }
+
+                .reload {
+                    border: 0;
+                    border-radius: 6px;
+                    padding: 10px 20px;
+                    background: #2563eb;
+                    color: #ffffff;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        @keyframes app-loading-progress {
+            0% {
+                transform: translateX(-110%);
+            }
+            55% {
+                transform: translateX(55%);
+            }
+            100% {
+                transform: translateX(230%);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #app-loading {
+                .bar {
+                    animation: none !important;
+                    transform: translateX(55%);
+                }
+            }
+        }
+    </style>
 </head>
 
 <body>
 <div id="root">
-    <div id="app-loading-fallback" style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; color: #1f2937; background: #f9fafb;">
-        <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: app-spin 0.9s linear infinite; margin-bottom: 16px;"></div>
-        <p style="margin: 0; font-size: 14px; color: #6b7280;">Carregando o Editor de RAC…</p>
-        <style>@keyframes app-spin { to { transform: rotate(360deg); } }</style>
+    <div id="app-loading" role="status" aria-live="polite">
+        <div class="fallback">
+            <div class="brand">
+                <span class="mark">RAC</span>
+                <span>TETO</span>
+            </div>
+            <h1 class="title">Carregando o Editor de RAC...</h1>
+            <p class="message">Preparando o ambiente de desenho.</p>
+            <div class="progress" aria-hidden="true">
+                <div class="bar"></div>
+            </div>
+        </div>
     </div>
 </div>
 <script>
@@ -47,13 +188,13 @@
             const root = document.getElementById('root');
             if (!root) return;
             root.innerHTML =
-                '<div style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; text-align: center; color: #1f2937; background: #f9fafb;">' +
-                '  <div style="max-width: 480px;">' +
-                '    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>' +
-                '    <h1 style="font-size: 20px; margin: 0 0 8px; font-weight: 600;">Não foi possível carregar a aplicação</h1>' +
-                '    <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px;">Um ou mais arquivos da aplicação retornaram erro. Isso normalmente indica configuração incorreta de caminho base no deploy.</p>' +
-                '    <p style="font-size: 12px; color: #9ca3af; margin: 0 0 20px; word-break: break-all;">Recurso: ' + (detail || 'desconhecido') + '</p>' +
-                '    <button onclick="location.reload()" style="background: #2563eb; color: white; border: 0; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer;">Recarregar</button>' +
+                '<div id="app-loading" role="alert">' +
+                '  <div class="error">' +
+                '    <div class="mark">!</div>' +
+                '    <h1 class="title">Não foi possível carregar a aplicação</h1>' +
+                '    <p class="message">Um ou mais arquivos da aplicação retornaram erro. Isso normalmente indica configuração incorreta de caminho base no deploy.</p>' +
+                '    <p class="detail">Recurso: ' + (detail || 'desconhecido') + '</p>' +
+                '    <button class="reload" onclick="location.reload()">Recarregar</button>' +
                 '  </div>' +
                 '</div>';
         }
@@ -68,7 +209,7 @@
         // Se após 10s o React ainda não montou (fallback ainda presente),
         // assume falha silenciosa de bootstrap e mostra erro.
         setTimeout(function () {
-            if (document.getElementById('app-loading-fallback')) {
+            if (document.getElementById('app-loading')) {
                 showAssetError('timeout no carregamento do bundle principal');
             }
         }, 10000);

@@ -1,4 +1,4 @@
-import {ReactNode, createRef} from 'react';
+import type {MutableRefObject, ReactNode} from 'react';
 import {act, renderHook} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {
@@ -37,12 +37,13 @@ function Wrapper({children}: { children: ReactNode }) {
 
 describe('usePilotiEditorActions', () => {
   it('emits the master-piloti tip at the navigated piloti screen position', () => {
-    const canvasRef = createRef<any>();
-    canvasRef.current = {
-      applyPilotiSelectionVisuals: vi.fn(),
-      getPilotiScreenPosition: vi.fn(() => ({x: 300, y: 400})),
-      renderAll: vi.fn(),
-      saveHistory: vi.fn(),
+    const canvasRef: MutableRefObject<any> = {
+      current: {
+        applyPilotiSelectionVisuals: vi.fn(),
+        getPilotiScreenPosition: vi.fn(() => ({x: 300, y: 400})),
+        renderAll: vi.fn(),
+        saveHistory: vi.fn(),
+      },
     };
     const events: CustomEvent[] = [];
     const listener = (event: Event) => events.push(event as CustomEvent);

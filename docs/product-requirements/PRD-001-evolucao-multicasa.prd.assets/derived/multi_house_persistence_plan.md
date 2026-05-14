@@ -26,12 +26,12 @@ durable today.[1] The current import/export flow already uses an initial `HouseD
 combining logical `HouseState`, setup data and a serializable visual document. That is a better bridge than raw Fabric
 JSON, but it is still **single-house**, not a persisted multi-house project document.[4]
 
-| Current limitation                      | Why it matters                                                        |
-|-----------------------------------------|-----------------------------------------------------------------------|
-| One `HouseState` only                   | You cannot manage multiple houses inside one construction project.    |
-| In-memory persistence                   | Data disappears between sessions unless exported manually.            |
-| Family metadata outside persisted state | A house cannot be durably associated with a family.                   |
-| Active-house document only              | The file is not yet a normalized multi-house project document.        |
+| Current limitation                      | Why it matters                                                     |
+|-----------------------------------------|--------------------------------------------------------------------|
+| One `HouseState` only                   | You cannot manage multiple houses inside one construction project. |
+| In-memory persistence                   | Data disappears between sessions unless exported manually.         |
+| Family metadata outside persisted state | A house cannot be durably associated with a family.                |
+| Active-house document only              | The file is not yet a normalized multi-house project document.     |
 
 ## What the spreadsheet is really modeling
 
@@ -44,16 +44,16 @@ execution context. The values show repeated `cc` and community values, repeated 
 groups, while family names vary row by row.[5] In other words, the row is not a pure “family” entity and not a pure
 “house template” entity either; it is a **house-in-project record**.
 
-| Spreadsheet group             | Representative columns                                                                                                                | Recommended entity meaning                                              |
-|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| Family identity               | `familia`                                                                                                                             | `Family`                                                                |
+| Spreadsheet group             | Representative columns                                                                                                                | Recommended entity meaning                                                    |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| Family identity               | `familia`                                                                                                                             | `Family`                                                                      |
 | Project/construction grouping | `cc`, `comunidade`, `lideres`                                                                                                         | `ConstructionSite`, `Community`, `Person`, `ConstructionSiteLeaderAssignment` |
-| House classification          | `casa`, `tipo`                                                                                                                        | `House`, `HouseTemplate` or `HouseType`                                 |
-| Site conditions               | `desnivel`, `concreto-grosso`, `concreto-fino`, `pedra`, `água`, `raízes`, `solo-outro`, `cano`, `galhos`, `fios`, `obstaculos-outro` | `SiteAssessment` + optional `SiteObstacle` / `SoilCondition`            |
-| Piloti layout                 | `piloti-mestre`, `piloti-a1 ... piloti-c4`, `altura-mestre`                                                                           | `HousePilotiLayout` + `PilotiPoint`                                     |
-| Derived counts                | `total-piloti-1`, `15`, `2`, `25`, `3`, `35`                                                                                          | computed fields, not primary entities                                   |
-| Notes                         | `observações`                                                                                                                         | `HouseNotes` or `ConstructionSiteNote`                                           |
-| Monitor assignments           | `monitor-1 ... monitor-6`, phone columns                                                                                              | `Person` + `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment`       |
+| House classification          | `casa`, `tipo`                                                                                                                        | `House`, `HouseTemplate` or `HouseType`                                       |
+| Site conditions               | `desnivel`, `concreto-grosso`, `concreto-fino`, `pedra`, `água`, `raízes`, `solo-outro`, `cano`, `galhos`, `fios`, `obstaculos-outro` | `SiteAssessment` + optional `SiteObstacle` / `SoilCondition`                  |
+| Piloti layout                 | `piloti-mestre`, `piloti-a1 ... piloti-c4`, `altura-mestre`                                                                           | `HousePilotiLayout` + `PilotiPoint`                                           |
+| Derived counts                | `total-piloti-1`, `15`, `2`, `25`, `3`, `35`                                                                                          | computed fields, not primary entities                                         |
+| Notes                         | `observações`                                                                                                                         | `HouseNotes` or `ConstructionSiteNote`                                        |
+| Monitor assignments           | `monitor-1 ... monitor-6`, phone columns                                                                                              | `Person` + `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment`    |
 
 ## Entity decomposition I would adopt
 
@@ -128,7 +128,7 @@ entity the editor opens.[2]
 | Field                     | Type          | Notes                                      |
 |---------------------------|---------------|--------------------------------------------|
 | `id`                      | UUID          | Primary key                                |
-| `constructionSiteId`               | UUID          | Parent project                             |
+| `constructionSiteId`      | UUID          | Parent project                             |
 | `familyId`                | UUID          | Required association                       |
 | `communityId`             | UUID nullable | Denormalized for convenience if useful     |
 | `houseSize`               | enum/string   | From `casa`, e.g. `Grande`                 |
@@ -221,9 +221,9 @@ contract.[2]
 The sheet repeats monitors across many records, and leaders appear as concatenated text in one cell.[5] That is a sign
 the model should include reusable people instead of copying names and phones into every house forever.
 
-| Entity                                                 | Why it exists                                            |
-|--------------------------------------------------------|----------------------------------------------------------|
-| `Person`                                               | reusable identity for monitors, leaders, volunteers      |
+| Entity                                                          | Why it exists                                            |
+|-----------------------------------------------------------------|----------------------------------------------------------|
+| `Person`                                                        | reusable identity for monitors, leaders, volunteers      |
 | `ConstructionSiteLeaderAssignment`                              | links a person to a project as leader                    |
 | `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment` | links a person to a house or project with role and phone |
 
@@ -273,11 +273,11 @@ something like a project repository with list/load/save semantics and async beha
 
 Suggested ports:
 
-| Port                        | Responsibility                                                             |
-|-----------------------------|----------------------------------------------------------------------------|
-| `ConstructionSiteRepository`         | create, list, load, save, archive projects                                 |
-| `HouseRepository`           | optional if you split by aggregate, otherwise project repository is enough |
-| `DrawingDocumentRepository` | save/load house drawing payloads                                           |
+| Port                         | Responsibility                                                             |
+|------------------------------|----------------------------------------------------------------------------|
+| `ConstructionSiteRepository` | create, list, load, save, archive projects                                 |
+| `HouseRepository`            | optional if you split by aggregate, otherwise project repository is enough |
+| `DrawingDocumentRepository`  | save/load house drawing payloads                                           |
 
 A practical contract would be:
 
@@ -325,7 +325,8 @@ redesign the application state so the active canvas is a projection of `project.
 
 ### Step 5 — Move family data into persisted state
 
-The current `_familyName` and `_selectedPilotiHeights` fields in the transient house controller should disappear as loose fields
+The current `_familyName` and `_selectedPilotiHeights` fields in the transient house controller should disappear as
+loose fields
 and become persisted properties under `Family` and `PilotiLayout`/`HouseDesignSettings`.[1]
 
 A cleaner breakdown is:
@@ -383,7 +384,8 @@ My recommendation is a **two-stage persistence strategy**.
 
 ### Phase A — Local-first
 
-Use **IndexedDB** to store `ConstructionSiteState` and `HouseDrawingDocument` locally. This gives you durable persistence
+Use **IndexedDB** to store `ConstructionSiteState` and `HouseDrawingDocument` locally. This gives you durable
+persistence
 immediately, no server required, and enough storage for many houses plus serialized views.
 
 ### Phase B — Cloud-ready
@@ -454,13 +456,13 @@ local-persistence milestone.
 
 I recommend that the next execution task be:
 
-| Priority | Task                                                                         |
-|----------|------------------------------------------------------------------------------|
-| 1        | create the `ConstructionSiteState` / `PersistedHouse` / `Family` TypeScript contracts |
+| Priority | Task                                                                                      |
+|----------|-------------------------------------------------------------------------------------------|
+| 1        | create the `ConstructionSiteState` / `PersistedHouse` / `Family` TypeScript contracts     |
 | 2        | refactor the transient house controller into a project-aware service with `activeHouseId` |
-| 3        | add IndexedDB persistence for projects                                       |
-| 4        | add a left sidebar listing houses and linked families                        |
-| 5        | replace current JSON import/export with versioned project documents          |
+| 3        | add IndexedDB persistence for projects                                                    |
+| 4        | add a left sidebar listing houses and linked families                                     |
+| 5        | replace current JSON import/export with versioned project documents                       |
 
 If you want, I can do the next step end-to-end: I can **design the exact TypeScript interfaces, repository contracts,
 IndexedDB schema, and UI flow**, and then start implementing the first milestone in this repository.

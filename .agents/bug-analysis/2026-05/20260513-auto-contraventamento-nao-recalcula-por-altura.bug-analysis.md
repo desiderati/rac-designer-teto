@@ -99,8 +99,7 @@ aliases: [ auto-contraventamento por altura do piloti ]
 ## 9. Validação Executada
 
 - testes executados:
-    -
-    `rtk npm run test -- src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-contraventamento.smoke.test.ts`
+  - `rtk npm run test -- src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-contraventamento.smoke.test.ts`
     - `rtk npm run test -- --testTimeout 20000`
 - validação manual:
     - navegador local em `http://127.0.0.1:5200/`; `debug.updatePiloti('piloti_1_1', {height: 1.0})` produziu

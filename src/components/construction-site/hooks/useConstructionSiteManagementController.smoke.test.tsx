@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {act, renderHook, waitFor} from '@testing-library/react';
-import type {ReactNode, RefObject} from 'react';
+import type {MutableRefObject, ReactNode} from 'react';
 import {
   EditorPortsContext,
   type EditorPorts,
@@ -17,6 +17,7 @@ import {
   HOUSE_DRAWING_DOCUMENT_TYPE,
   type HouseDrawingCanvasDocument,
   type HouseDrawingDocument,
+  type HouseDrawingElementDocument,
 } from '@/shared/types/house-drawing-document.ts';
 
 type CanvasHandle = CanvasDocumentHandle & CanvasHistoryHandle;
@@ -34,12 +35,12 @@ describe('useConstructionSiteManagementController.ts', () => {
 
     const savedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_a'}],
+      objects: [createCanvasObject('object_a')],
     };
     const savedDocument = createDrawingDocument('house_a', 'Família A', savedCanvas);
     const restoredCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_b'}],
+      objects: [createCanvasObject('object_b')],
     };
     const restoredDocument = createDrawingDocument('house_b', 'Família B', restoredCanvas);
     let activeDocument: HouseDrawingDocument | null = null;
@@ -53,7 +54,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       }),
       saveHistory: vi.fn(),
     } as unknown as CanvasHandle;
-    const canvasRef: RefObject<CanvasHandle | null> = {current: canvasHandle};
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
     const constructionSiteManagementPort = createConstructionSiteManagementPort({
       activateHouse: vi.fn(() => {
         activeDocument = restoredDocument;
@@ -112,15 +113,15 @@ describe('useConstructionSiteManagementController.ts', () => {
 
     const initialCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_a'}],
+      objects: [createCanvasObject('object_a')],
     };
     const switchedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_b'}],
+      objects: [createCanvasObject('object_b')],
     };
     const savedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_current'}],
+      objects: [createCanvasObject('object_current')],
     };
     const initialDocument = createDrawingDocument('house_a', 'Família A', initialCanvas);
     const switchedDocument = createDrawingDocument('house_b', 'Família B', switchedCanvas);
@@ -136,7 +137,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       }),
       saveHistory: vi.fn(),
     } as unknown as CanvasHandle;
-    const canvasRef: RefObject<CanvasHandle | null> = {current: canvasHandle};
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
     const constructionSiteManagementPort = createConstructionSiteManagementPort({
       activateHouse: vi.fn(() => {
         activeDocument = switchedDocument;
@@ -180,15 +181,15 @@ describe('useConstructionSiteManagementController.ts', () => {
   it('serializa trocas rápidas de casa para não salvar canvas antigo com estado lógico novo', async () => {
     const savedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_current'}],
+      objects: [createCanvasObject('object_current')],
     };
     const firstTargetCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_b'}],
+      objects: [createCanvasObject('object_b')],
     };
     const secondTargetCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_c'}],
+      objects: [createCanvasObject('object_c')],
     };
     const savedDocument = createDrawingDocument('house_a', 'Família A', savedCanvas);
     const firstTargetDocument = createDrawingDocument('house_b', 'Família B', firstTargetCanvas);
@@ -196,7 +197,7 @@ describe('useConstructionSiteManagementController.ts', () => {
     const loadResolvers: Array<(loaded: boolean) => void> = [];
 
     const exportCanvasDocument = vi.fn(() => savedCanvas);
-    const loadCanvasDocument = vi.fn(() => new Promise<boolean>((resolve) => {
+    const loadCanvasDocument = vi.fn((_canvas: HouseDrawingCanvasDocument) => new Promise<boolean>((resolve) => {
       loadResolvers.push(resolve);
     }));
     const canvasHandle = {
@@ -206,7 +207,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       }),
       saveHistory: vi.fn(),
     } as unknown as CanvasHandle;
-    const canvasRef: RefObject<CanvasHandle | null> = {current: canvasHandle};
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
     const activateHouse = vi.fn((_constructionSiteId: string, houseId: string) =>
       houseId === 'house_b' ? firstTargetDocument : secondTargetDocument);
     const constructionSiteManagementPort = createConstructionSiteManagementPort({activateHouse});
@@ -261,7 +262,7 @@ describe('useConstructionSiteManagementController.ts', () => {
 
     const changedCanvas: HouseDrawingCanvasDocument = {
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'object_changed'}],
+      objects: [createCanvasObject('object_changed')],
     };
     const changedDocument = createDrawingDocument('house_a', 'Família A', changedCanvas);
     const exportCanvasDocument = vi.fn(() => changedCanvas);
@@ -272,7 +273,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       }),
       saveHistory: vi.fn(),
     } as unknown as CanvasHandle;
-    const canvasRef: RefObject<CanvasHandle | null> = {current: canvasHandle};
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
     const constructionSiteManagementPort = createConstructionSiteManagementPort();
     const ports = createEditorPorts({
       constructionSiteManagementPort,
@@ -322,6 +323,14 @@ function createWrapper(ports: EditorPorts) {
         {children}
       </EditorPortsContext.Provider>
     );
+  };
+}
+
+function createCanvasObject(id: string): HouseDrawingElementDocument {
+  return {
+    id,
+    kind: 'test',
+    shape: 'rect',
   };
 }
 

@@ -545,6 +545,22 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     }));
   });
 
+  it('não abre edição ao clicar em casa arquivada na listagem', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await user.click(screen.getByRole('row', {name: /CC2603.*Em andamento/i}));
+    await user.click(await screen.findByRole('button', {name: 'Gerenciar Casas'}));
+    await user.click(screen.getByRole('row', {name: /Família Arquivada.*Tipo 6.*Arquivada/i}));
+
+    expect(actions.activateHouse).not.toHaveBeenCalled();
+    expect(actions.updateActiveHouseConfiguration).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', {name: 'Casas da Construção', hidden: true})).toBeInTheDocument();
+    expect(screen.queryByRole('heading', {name: 'Configuração da Casa'})).not.toBeInTheDocument();
+  });
+
   it('arquiva casa diretamente da listagem com confirmação sem abrir a edição', async () => {
     const user = userEvent.setup();
     const actions = createActions();

@@ -106,8 +106,7 @@ aliases: [ Texto da água branco após recarregar canvas ]
 
 - validação de camada:
     - `rtk npm run test -- fabric-canvas-document-port.smoke.test.ts --testTimeout 20000`
-    -
-    `rtk npm run test -- water.strategy.smoke.test.ts fabric-canvas-document-port.smoke.test.ts house-drawing-document.smoke.test.ts --testTimeout 20000`
+    - `rtk npm run test -- water.strategy.smoke.test.ts fabric-canvas-document-port.smoke.test.ts house-drawing-document.smoke.test.ts --testTimeout 20000`
 - validação de integração:
     - `rtk npm run test:architecture`
     - `rtk npm run lint`

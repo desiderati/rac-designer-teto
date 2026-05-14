@@ -105,7 +105,7 @@ describe('house-drawing-document.ts', () => {
     const opaquePayloadDocument = createDocument();
     const nonJsonMetadataDocument = createDocument();
 
-    (opaquePayloadDocument.canvas.objects[0] as Record<string, unknown>).payload = {
+    (opaquePayloadDocument.canvas.objects[0] as unknown as Record<string, unknown>).payload = {
       type: 'group',
       objects: [],
     };

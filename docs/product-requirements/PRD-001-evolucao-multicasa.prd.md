@@ -128,14 +128,14 @@ casa ativa.
 
 ## 7. Conceitos De Dados
 
-| Conceito               | Papel no domínio                                                               |
-|------------------------|--------------------------------------------------------------------------------|
+| Conceito               | Papel no domínio                                                                                             |
+|------------------------|--------------------------------------------------------------------------------------------------------------|
 | `ConstructionSite`     | Raiz da Construção TETO, com Código da CC, Data da Construção, Comunidade, foto opcional e coleção de casas. |
-| `Community`            | Comunidade associada à Construção TETO.                                        |
-| `Family`               | Família beneficiária vinculada a uma única casa nesta etapa.                   |
-| `House`                | Unidade editável pertencente à Construção TETO e associada a uma família.       |
-| `SiteAssessment`       | Informações de local da casa, sem desnível nesta etapa.                        |
-| `HouseDrawingDocument` | Documento serializável do estado lógico e visual da casa ativa.                |
+| `Community`            | Comunidade associada à Construção TETO.                                                                      |
+| `Family`               | Família beneficiária vinculada a uma única casa nesta etapa.                                                 |
+| `House`                | Unidade editável pertencente à Construção TETO e associada a uma família.                                    |
+| `SiteAssessment`       | Informações de local da casa, sem desnível nesta etapa.                                                      |
+| `HouseDrawingDocument` | Documento serializável do estado lógico e visual da casa ativa.                                              |
 
 ## 8. Métricas De Sucesso
 

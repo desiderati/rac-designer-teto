@@ -158,25 +158,17 @@ aliases: [ troca de casa no canvas, canvas não carrega casa selecionada ]
 ## 9. Validação Executada
 
 - testes executados:
-  -
-  `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
+  - `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
     - `rtk npm run test -- src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx`
     - `rtk npm run test -- src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
     - `rtk npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
-    -
-    `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/lib/construction-site-session.smoke.test.ts src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts --testTimeout 20000`
-    -
-  `rtk npm run test -- src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/CanvasToolsMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx --testTimeout 15000`
+    - `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/lib/construction-site-session.smoke.test.ts src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts --testTimeout 20000`
+  - `rtk npm run test -- src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/CanvasToolsMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx --testTimeout 15000`
     - `rtk npm run test -- src/test/rac-editor-boundary.smoke.test.ts --testTimeout 60000`
     - `rtk npm run test -- --testTimeout 20000`: 102 arquivos, 316 testes.
-    -
-    `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts --testTimeout 20000`
-    -
-    `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx --testTimeout 20000`:
-    16 testes.
-    -
-    `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-command-port.smoke.test.ts src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --testTimeout 20000`:
-    9 testes.
+    - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts --testTimeout 20000`
+  - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx --testTimeout 20000`: 16 testes.
+    - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-command-port.smoke.test.ts src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --testTimeout 20000`: 9 testes.
     - `rtk npm run test -- --testTimeout 20000`: 103 arquivos, 324 testes.
 - validação manual:
     - Playwright MCP em `http://127.0.0.1:5200/`: duas casas limpas; inserção da casa A; troca para B vazia; retorno
