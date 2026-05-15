@@ -1,4 +1,5 @@
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
+import {Home, UsersRound} from 'lucide-react';
 import type {ConstructionSiteStatus, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
@@ -19,17 +20,27 @@ import {
   getConstructionCode,
   getConstructionInitials,
 } from '@/components/construction-site/ui/lib/view-model.ts';
-import {EmptyState, PaginationButton, StatusActionButton, VisualSelect} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {
+  EmptyState,
+  PaginationButton,
+  RoundIconActionButton,
+  StatusActionButton,
+  VisualSelect,
+} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 
 export function ConstructionListScreen({
   summaries,
   activeConstructionId,
   onOpenConstruction,
+  onOpenConstructionHouses,
+  onOpenConstructionMonitors,
   onRequestStatusChange,
 }: {
   summaries: ConstructionSiteSummary[];
   activeConstructionId?: string;
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
   const [statusFilter, setStatusFilter] = useState<ConstructionStatusFilter>('all');
@@ -108,6 +119,9 @@ export function ConstructionListScreen({
             <th scope='col' className='px-3 pb-1'>Construções</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Data da Construção</th>
+            <th scope='col' className='w-[7.75rem] px-3 pb-1 text-center'>
+              <span className='sr-only'>Ações</span>
+            </th>
           </tr>
           </thead>
           <tbody>
@@ -117,6 +131,8 @@ export function ConstructionListScreen({
               summary={summary}
               active={summary.id === activeConstructionId}
               onOpenConstruction={onOpenConstruction}
+              onOpenConstructionHouses={onOpenConstructionHouses}
+              onOpenConstructionMonitors={onOpenConstructionMonitors}
               onRequestStatusChange={onRequestStatusChange}
             />
           ))}
@@ -131,6 +147,8 @@ export function ConstructionListScreen({
             summary={summary}
             active={summary.id === activeConstructionId}
             onOpenConstruction={onOpenConstruction}
+            onOpenConstructionHouses={onOpenConstructionHouses}
+            onOpenConstructionMonitors={onOpenConstructionMonitors}
             onRequestStatusChange={onRequestStatusChange}
           />
         ))}
@@ -173,22 +191,38 @@ export function ConstructionMobileCard({
   summary,
   active,
   onOpenConstruction,
+  onOpenConstructionHouses,
+  onOpenConstructionMonitors,
   onRequestStatusChange,
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
+
   const constructionCode = getConstructionCode(summary);
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
   const openConstruction = () => {
     void onOpenConstruction(summary);
   };
+
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const openMonitors = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenConstructionMonitors(summary);
+  };
+
+  const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenConstructionHouses(summary);
   };
 
   return (
@@ -232,13 +266,27 @@ export function ConstructionMobileCard({
             <span className='mt-0.5 block'>{constructionDateLabel}</span>
           )}
         </div>
-        <StatusActionButton
-          action={summary.status === 'archived' ? 'unarchive' : 'archive'}
-          label={summary.status === 'archived'
-            ? `Desarquivar construção ${constructionCode}`
-            : `Arquivar construção ${constructionCode}`}
-          onClick={requestStatusChange}
-        />
+        <div className='flex shrink-0 items-center gap-1'>
+          <RoundIconActionButton
+            label={`Gerenciar monitores da construção ${constructionCode}`}
+            onClick={openMonitors}
+          >
+            <UsersRound className='h-4 w-4'/>
+          </RoundIconActionButton>
+          <RoundIconActionButton
+            label={`Gerenciar casas da construção ${constructionCode}`}
+            onClick={openHouses}
+          >
+            <Home className='h-4 w-4'/>
+          </RoundIconActionButton>
+          <StatusActionButton
+            action={summary.status === 'archived' ? 'unarchive' : 'archive'}
+            label={summary.status === 'archived'
+              ? `Desarquivar construção ${constructionCode}`
+              : `Arquivar construção ${constructionCode}`}
+            onClick={requestStatusChange}
+          />
+        </div>
       </div>
     </article>
   );
@@ -248,22 +296,38 @@ export function ConstructionTableRow({
   summary,
   active,
   onOpenConstruction,
+  onOpenConstructionHouses,
+  onOpenConstructionMonitors,
   onRequestStatusChange,
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
+  onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
+
   const constructionCode = getConstructionCode(summary);
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
   const openConstruction = () => {
     void onOpenConstruction(summary);
   };
+
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const openMonitors = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenConstructionMonitors(summary);
+  };
+
+  const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenConstructionHouses(summary);
   };
 
   return (
@@ -294,16 +358,27 @@ export function ConstructionTableRow({
       <td className='px-3 py-3 text-center align-middle'>
         <StatusBadge status={summary.status}/>
       </td>
-      <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-3'>
-          <span aria-hidden='true'/>
-          <span className='text-center'>
-            {summary.constructionDate ? (
-              <time dateTime={summary.constructionDate} className='block'>{constructionDateLabel}</time>
-            ) : (
-              <span className='block'>{constructionDateLabel}</span>
-            )}
-          </span>
+      <td className='px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
+        {summary.constructionDate ? (
+          <time dateTime={summary.constructionDate} className='block'>{constructionDateLabel}</time>
+        ) : (
+          <span className='block'>{constructionDateLabel}</span>
+        )}
+      </td>
+      <td className='w-[7.75rem] rounded-r-lg px-3 py-3 align-middle'>
+        <div className='flex items-center justify-end gap-2'>
+          <RoundIconActionButton
+            label={`Gerenciar monitores da construção ${constructionCode}`}
+            onClick={openMonitors}
+          >
+            <UsersRound className='h-4 w-4'/>
+          </RoundIconActionButton>
+          <RoundIconActionButton
+            label={`Gerenciar casas da construção ${constructionCode}`}
+            onClick={openHouses}
+          >
+            <Home className='h-4 w-4'/>
+          </RoundIconActionButton>
           <StatusActionButton
             action={summary.status === 'archived' ? 'unarchive' : 'archive'}
             label={summary.status === 'archived'

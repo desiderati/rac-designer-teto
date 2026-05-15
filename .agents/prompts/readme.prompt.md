@@ -66,6 +66,20 @@
     <constraint>Minimal change over broad rewrite.</constraint>
     <constraint>No speculative documentation.</constraint>
     <constraint>No invented commands, paths, or behavior.</constraint>
+    <constraint>
+      Remember the artifact boundary: SKILL.md is agent-facing operational instruction; README.md is human-facing
+      documentation. Do not make both artifacts share the same prose style merely for consistency.
+    </constraint>
+    <constraint>
+      Preserve contractual literals when improving README readability: filenames, globs, commands, flags, fields,
+      slugs, statuses, paths, environment variables, external IDs, model names, and observable output values must stay
+      explicit when they are part of the observed contract.
+    </constraint>
+    <constraint>
+      Add human context around exact literals instead of replacing them with generic paraphrases. A validation heuristic
+      is not a reason to remove precision; clarify whether the literal is a repository path, runtime value, placeholder,
+      or external contract value.
+    </constraint>
     <constraint>No contradictions with current implementation.</constraint>
     <constraint>Preserve the existing structure when possible.</constraint>
     <constraint>Update only what the technical change actually affects.</constraint>

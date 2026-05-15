@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import type {
   ConstructionSiteState,
   ConstructionSiteSummary,
@@ -22,6 +22,7 @@ export interface UseConstructionSiteManagementNavigationInput {
   canOpenRacEditor: boolean;
   onBackToCanvas?: () => void;
   actions: ConstructionSiteManagementActions;
+  initialScreen?: ConstructionSiteManagementScreen;
 }
 
 export function useConstructionSiteManagementNavigation({
@@ -30,18 +31,25 @@ export function useConstructionSiteManagementNavigation({
   canOpenRacEditor,
   onBackToCanvas,
   actions,
+  initialScreen = 'construction-list',
 }: UseConstructionSiteManagementNavigationInput) {
 
-  const [screen, setScreen] = useState<ConstructionSiteManagementScreen>('construction-list');
+  const [screen, setScreen] = useState<ConstructionSiteManagementScreen>(initialScreen);
 
   const [selectedConstructionId, setSelectedConstructionId] = useState<string | null>(
     constructionSite?.constructionSite.id ?? null,
   );
 
   const [selectedHouseId, setSelectedHouseId] = useState<string | null>(null);
+  const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(null);
 
   const [pendingHouseStatusChange, setPendingHouseStatusChange] = useState<{
     houseId: string;
+    action: StatusChangeAction;
+  } | null>(null);
+
+  const [pendingMonitorStatusChange, setPendingMonitorStatusChange] = useState<{
+    monitorId: string;
     action: StatusChangeAction;
   } | null>(null);
 
@@ -56,6 +64,11 @@ export function useConstructionSiteManagementNavigation({
     if (!constructionSite) return null;
     return constructionSite.houses.find((house) => house.id === selectedHouseId) ?? activeHouse;
   }, [activeHouse, constructionSite, selectedHouseId]);
+
+  const selectedMonitor = useMemo(() => {
+    if (!constructionSite || !selectedMonitorId) return null;
+    return constructionSite.monitors.find((monitor) => monitor.id === selectedMonitorId) ?? null;
+  }, [constructionSite, selectedMonitorId]);
 
   const activeCommunityName = constructionSite ? getConstructionSiteCommunityName(constructionSite) : undefined;
 
@@ -72,6 +85,9 @@ export function useConstructionSiteManagementNavigation({
   const housePendingStatusChange = constructionSite?.houses.find((house) => house.id === pendingHouseStatusChange?.houseId)
     ?? null;
 
+  const monitorPendingStatusChange = constructionSite?.monitors.find((monitor) => monitor.id === pendingMonitorStatusChange?.monitorId)
+    ?? null;
+
   const canNavigateBack = screen !== 'construction-list' || Boolean(canOpenRacEditor && onBackToCanvas);
 
   const pendingConstructionCode = pendingConstructionStatusChange
@@ -82,20 +98,32 @@ export function useConstructionSiteManagementNavigation({
     ? getHouseFamilyName(constructionSite, housePendingStatusChange)
     : '';
 
-  const openConstructionDetail = async (summary: ConstructionSiteSummary) => {
+  const pendingMonitorName = monitorPendingStatusChange?.name ?? '';
+
+  useEffect(() => {
+    setScreen(initialScreen);
+  }, [initialScreen]);
+
+  const activateConstructionSummary = async (summary: ConstructionSiteSummary) => {
     setSelectedConstructionId(summary.id);
     await actions.activateConstructionSite(summary.id);
+  };
+
+  const openConstructionDetail = async (summary: ConstructionSiteSummary) => {
+    await activateConstructionSummary(summary);
     setScreen('construction-detail');
   };
 
-  const openHouses = async () => {
-    const constructionSiteId = selectedConstructionId ?? selectedSummary?.id ?? constructionSite?.constructionSite.id;
-    if (constructionSiteId) {
-      await actions.activateConstructionSite(constructionSiteId);
-      setSelectedConstructionId(constructionSiteId);
-    }
+  const openConstructionHouses = async (summary: ConstructionSiteSummary) => {
+    await activateConstructionSummary(summary);
     setSelectedHouseId(null);
     setScreen('houses');
+  };
+
+  const openConstructionMonitors = async (summary: ConstructionSiteSummary) => {
+    await activateConstructionSummary(summary);
+    setSelectedMonitorId(null);
+    setScreen('monitors');
   };
 
   const showConstructionList = () => {
@@ -108,9 +136,19 @@ export function useConstructionSiteManagementNavigation({
     setScreen('houses');
   };
 
+  const showMonitors = () => {
+    setSelectedMonitorId(null);
+    setScreen('monitors');
+  };
+
   const openHouseCreate = () => {
     setSelectedHouseId(null);
     setScreen('house-create');
+  };
+
+  const openMonitorCreate = () => {
+    setSelectedMonitorId(null);
+    setScreen('monitor-create');
   };
 
   const openHouseDetail = async (houseId: string) => {
@@ -124,6 +162,15 @@ export function useConstructionSiteManagementNavigation({
     setScreen('house-detail');
   };
 
+  const openMonitorDetail = (monitorId: string) => {
+    if (!constructionSite) return;
+    const monitor = constructionSite.monitors.find((entry) => entry.id === monitorId);
+    if (!monitor) return;
+
+    setSelectedMonitorId(monitorId);
+    setScreen('monitor-detail');
+  };
+
   const navigateBack = () => {
     if (screen === 'construction-list') {
       if (canOpenRacEditor) onBackToCanvas?.();
@@ -135,8 +182,13 @@ export function useConstructionSiteManagementNavigation({
       return;
     }
 
-    if (screen === 'houses') {
-      setScreen(selectedConstructionId ? 'construction-detail' : 'construction-list');
+    if (screen === 'houses' || screen === 'monitors') {
+      setScreen('construction-list');
+      return;
+    }
+
+    if (screen === 'monitor-create' || screen === 'monitor-detail') {
+      setScreen('monitors');
       return;
     }
 
@@ -156,6 +208,19 @@ export function useConstructionSiteManagementNavigation({
     setPendingHouseStatusChange(null);
   };
 
+  const confirmMonitorStatusChange = () => {
+    if (!monitorPendingStatusChange || !pendingMonitorStatusChange) return;
+    if (pendingMonitorStatusChange.action === 'archive') {
+      actions.inactivateMonitor(monitorPendingStatusChange.id);
+    } else {
+      actions.reactivateMonitor(monitorPendingStatusChange.id);
+    }
+    if (selectedMonitorId === monitorPendingStatusChange.id) {
+      setSelectedMonitorId(null);
+    }
+    setPendingMonitorStatusChange(null);
+  };
+
   const confirmConstructionStatusChange = async () => {
     if (!pendingConstructionStatusChange) return;
     if (pendingConstructionStatusChange.action === 'archive') {
@@ -173,22 +238,30 @@ export function useConstructionSiteManagementNavigation({
     screen,
     activeHouse,
     selectedHouse,
+    selectedMonitor,
     selectedSummary,
     selectedConstructionFields,
     constructionLabel,
     canNavigateBack,
     pendingConstructionStatusChange,
     pendingHouseStatusChange,
+    pendingMonitorStatusChange,
     housePendingStatusChange,
+    monitorPendingStatusChange,
     pendingConstructionCode,
     pendingHouseFamilyName,
+    pendingMonitorName,
     setScreen,
     openConstructionDetail,
-    openHouses,
+    openConstructionHouses,
+    openConstructionMonitors,
     openHouseCreate,
+    openMonitorCreate,
     openHouseDetail,
+    openMonitorDetail,
     showConstructionList,
     showHouses,
+    showMonitors,
     navigateBack,
     requestConstructionStatusChange: (summary: ConstructionSiteSummary, action: StatusChangeAction) => {
       setPendingConstructionStatusChange({summary, action});
@@ -196,9 +269,14 @@ export function useConstructionSiteManagementNavigation({
     requestHouseStatusChange: (houseId: string, action: StatusChangeAction) => {
       setPendingHouseStatusChange({houseId, action});
     },
+    requestMonitorStatusChange: (monitorId: string, action: StatusChangeAction) => {
+      setPendingMonitorStatusChange({monitorId, action});
+    },
     cancelConstructionStatusChange: () => setPendingConstructionStatusChange(null),
     cancelHouseStatusChange: () => setPendingHouseStatusChange(null),
+    cancelMonitorStatusChange: () => setPendingMonitorStatusChange(null),
     confirmConstructionStatusChange,
     confirmHouseStatusChange,
+    confirmMonitorStatusChange,
   };
 }

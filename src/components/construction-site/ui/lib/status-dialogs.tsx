@@ -93,3 +93,44 @@ export function HouseStatusDialog({
     </AlertDialog>
   );
 }
+
+export function MonitorStatusDialog({
+  open,
+  monitorName,
+  action,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  monitorName: string;
+  action: StatusChangeAction;
+  onCancel(): void;
+  onConfirm(): void;
+}) {
+  const isReactivate = action === 'unarchive';
+  return (
+    <AlertDialog open={open} onOpenChange={(nextOpen) => {
+      if (!nextOpen) onCancel();
+    }}>
+      <AlertDialogContent className='bg-white'>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{isReactivate ? 'Reativar monitor?' : 'Inativar monitor?'}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {isReactivate
+              ? `O monitor ${monitorName || 'sem nome'} voltará a aparecer na listagem ativa.`
+              : `O monitor ${monitorName || 'sem nome'} será inativado e ficará disponível pelo filtro de status.`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className={isReactivate ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-600 text-white hover:bg-red-700'}
+          >
+            {isReactivate ? 'Reativar monitor' : 'Inativar monitor'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}

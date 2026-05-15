@@ -249,6 +249,15 @@ changelog, do not open a work-item by default.
   the filesystem explicitly when continuity matters
 - Before ending a session with the task still open, update the handoff section with current state, next step,
   blockers, recent decisions, and any skips or deviations that still matter
+- Before the final response of a session that used an active work-item, reconcile
+  that item. If the task finished, mark it as `concluído` or `cancelado` and
+  fill the closure fields. If the task did not finish, mark it as
+  `interrompido` or keep it `ativo` with a concrete next step and retention
+  reason. Do not depend on the user asking explicitly to close the item
+- The repo-local `Stop` continuity guard may warn about contract gaps only for
+  work-items created or changed in the current session. Treat that warning as a
+  reminder to reconcile the touched item, not as housekeeping or automatic
+  closure
 - If the task pauses without completion, mark the work-item as `interrompido`; if it is abandoned by decision, mark it
   as `cancelado`
 - When the task ends, promote only the relevant facts, decisions, validations, risks, and pending items to changelog or

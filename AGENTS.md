@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Installed from `agents-bootstrap` skill version `0.26.0-beta`.
+Installed from `agents-bootstrap` skill version `0.31.1-beta`.
 
 ## Context
 
@@ -180,14 +180,7 @@ Before final delivery, confirm that the result is grounded in repository
 evidence, preserves existing local contracts, includes appropriate validation,
 and records operational continuity when the workflow requires it.
 
----
-
-## Knowledge graph interoperability
-
-When a repository uses Graphify:
-
-- If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture or context searches across raw files.
-- Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the canonical source of
-  truth.
-- If Graphify output conflicts with source code, versioned docs, or explicit technical decisions, prefer those primary
-  sources.
+If the session used an active `.agents/work-items/` record and the task has
+ended, reconcile that work-item before the final response: mark it concluded,
+canceled, interrupted, or leave it active with a concrete handoff and retention
+reason. Do not wait for the user to ask for this close-out explicitly.

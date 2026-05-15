@@ -95,6 +95,7 @@ function createConstructionSiteState(
       },
     ],
     families: [],
+    monitors: [],
     houses: [],
   };
 }

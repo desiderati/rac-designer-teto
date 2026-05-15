@@ -8,6 +8,8 @@ import {
 } from '@/shared/types/house-drawing-document.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
+const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
+
 function createStorage(initialConstructionSites: StoredConstructionSitesDocument['constructionSites'] = []) {
   const writes: StoredConstructionSitesDocument['constructionSites'][] = [];
 
@@ -232,6 +234,9 @@ describe('constructionSite-session.ts', () => {
       primaryContactEmail: 'maria@example.com',
       familyPhotoDataUrl: 'data:image/png;base64,family',
       houseType: 'tipo3',
+      houseSize: 'large',
+      leaders: 'Ana e Bruno',
+      notes: 'Nota inicial da casa',
       siteAssessment: {
         soilProfile: 'loose_clay',
         hasUndergroundObstacles: true,
@@ -244,6 +249,9 @@ describe('constructionSite-session.ts', () => {
 
     expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe('data:image/png;base64,site');
     expect(createdHouse.houseType).toBe('tipo3');
+    expect(createdHouse.houseSize).toBe('large');
+    expect(createdHouse.leaders).toBe('Ana e Bruno');
+    expect(createdHouse.notes).toBe('Nota inicial da casa');
     expect(createdHouse.siteAssessment).toEqual({
       soilProfile: 'loose_clay',
       hasUndergroundObstacles: true,
@@ -259,6 +267,7 @@ describe('constructionSite-session.ts', () => {
       primaryContactEmail: 'maria@example.com',
       photoDataUrl: 'data:image/png;base64,family',
     });
+    expect(session.getActiveFamily().notes).toBeUndefined();
     expect('hasWater' in session.getActiveHouse().siteAssessment).toBe(false);
     expect('soilNotes' in session.getActiveHouse().siteAssessment).toBe(false);
 
@@ -270,6 +279,9 @@ describe('constructionSite-session.ts', () => {
       primaryContactPhone: '(11) 98888-0000',
       primaryContactEmail: 'joao@example.com',
       familyPhotoDataUrl: 'data:image/png;base64,family2',
+      houseSize: 'small',
+      leaders: 'Carla e João',
+      notes: 'Nota atualizada da casa',
       siteAssessment: {
         soilProfile: 'stable',
         hasUndergroundObstacles: false,
@@ -281,17 +293,89 @@ describe('constructionSite-session.ts', () => {
     });
 
     expect(session.getActiveHouse().houseType).toBe('tipo3');
+    expect(session.getActiveHouse().houseSize).toBe('small');
+    expect(session.getActiveHouse().leaders).toBe('Carla e João');
+    expect(session.getActiveHouse().notes).toBe('Nota atualizada da casa');
     expect(session.getActiveHouse().siteAssessment.terrainComplexity).toBe('extreme');
     expect(session.getActiveFamily().name).toBe('Família Local Atualizada');
     expect(session.getActiveFamily().photoDataUrl).toBe('data:image/png;base64,family2');
+    expect(session.getActiveFamily().notes).toBeUndefined();
 
     (session as unknown as {
       updateActiveHouseConfiguration(input: unknown): void;
     }).updateActiveHouseConfiguration({
       familyPhotoDataUrl: undefined,
+      houseSize: undefined,
+      leaders: '',
+      notes: '',
     });
 
     expect(session.getActiveFamily().photoDataUrl).toBeUndefined();
+    expect(session.getActiveHouse().houseSize).toBeUndefined();
+    expect(session.getActiveHouse().leaders).toBeUndefined();
+    expect(session.getActiveHouse().notes).toBeUndefined();
+  });
+
+  it('permite apagar notas legadas da família após migrar o campo para a casa', () => {
+    const now = '2026-05-09T12:00:00.000Z';
+    const {storage, writes} = createStorage([{
+      constructionSite: {
+        id: 'construction_site_1',
+        externalCode: 'CC2603',
+        constructionDate: '2026-05-11',
+        communityId: 'community_1',
+        status: 'in_progress',
+        activeHouseId: 'house_1',
+        createdAt: now,
+        updatedAt: now,
+      },
+      communities: [{id: 'community_1', name: 'Tiradentes'}],
+      families: [{
+        id: 'family_1',
+        constructionSiteId: 'construction_site_1',
+        communityId: 'community_1',
+        name: 'Família Legada',
+        notes: 'Nota antiga da família',
+      }],
+      monitors: [],
+      houses: [{
+        id: 'house_1',
+        constructionSiteId: 'construction_site_1',
+        familyId: 'family_1',
+        communityId: 'community_1',
+        houseType: null,
+        terrainType: 1,
+        status: 'draft',
+        designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
+        siteAssessment: {terrainComplexity: 'flat'},
+        pilotiLayout: {points: []},
+        drawingDocument: {
+          schemaVersion: 1,
+          house: null,
+          canvas: {schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, objects: []},
+          views: {},
+        },
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+      }],
+    } as never]);
+    const session = createConstructionSiteSession(storage);
+
+    expect(session.getActiveHouse().notes).toBe('Nota antiga da família');
+
+    (session as unknown as {
+      updateActiveHouseConfiguration(input: unknown): void;
+    }).updateActiveHouseConfiguration({notes: ''});
+
+    expect(session.getActiveHouse().notes).toBeUndefined();
+    expect(session.getActiveFamily().notes).toBeUndefined();
+
+    const persistedConstructionSites = writes.at(-1) ?? [];
+    const reloadedSession = createConstructionSiteSession(createStorage(persistedConstructionSites).storage);
+
+    expect(reloadedSession.getActiveHouse().notes).toBeUndefined();
+    expect(reloadedSession.getActiveFamily().notes).toBeUndefined();
   });
 
   it('alterna casas entre construções diferentes restaurando o documento salvo', () => {
@@ -326,6 +410,133 @@ describe('constructionSite-session.ts', () => {
     expect(restoredSecondDocument?.setup.familyName).toBe('Família Documento 02');
     expect(restoredSecondDocument?.house.houseType).toBe('tipo3');
     expect(session.getConstructionSite()?.constructionSite.externalCode).toBe('CC2604');
+  });
+
+  it('gerencia monitores por construção com inativação lógica e sem duplicar na edição', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const firstConstructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
+
+    const monitor = session.createMonitor({
+      name: 'Ana Monitoria',
+      phone: '(11) 99999-0000',
+      email: 'ana@example.com',
+      photoDataUrl: VALID_PNG_DATA_URL,
+    });
+
+    expect(monitor.status).toBe('active');
+    expect(session.getConstructionSite()?.monitors).toHaveLength(1);
+
+    session.updateMonitor(monitor.id, {
+      name: 'Ana Monitoria Atualizada',
+      phone: '(11) 98888-0000',
+      email: undefined,
+      photoDataUrl: undefined,
+    });
+
+    expect(session.getConstructionSite()?.monitors).toHaveLength(1);
+    expect(session.getConstructionSite()?.monitors[0]).toMatchObject({
+      id: monitor.id,
+      name: 'Ana Monitoria Atualizada',
+      phone: '(11) 98888-0000',
+      status: 'active',
+    });
+    expect(session.getConstructionSite()?.monitors[0]?.email).toBeUndefined();
+    expect(session.getConstructionSite()?.monitors[0]?.photoDataUrl).toBeUndefined();
+
+    session.inactivateMonitor(monitor.id);
+    expect(session.getConstructionSite()?.monitors[0]?.status).toBe('inactive');
+
+    session.reactivateMonitor(monitor.id);
+    expect(session.getConstructionSite()?.monitors[0]?.status).toBe('active');
+
+    session.createConstructionSite({externalCode: 'CC2604', constructionDate: '2026-05-12', communityName: 'Heliópolis'});
+    const secondMonitor = session.createMonitor({
+      name: 'Bruno Monitor',
+      phone: '(11) 97777-0000',
+    });
+
+    expect(session.getConstructionSite()?.monitors.map((entry) => entry.id)).toEqual([secondMonitor.id]);
+
+    session.activateConstructionSite(firstConstructionSiteId);
+
+    expect(session.getConstructionSite()?.monitors.map((entry) => entry.id)).toEqual([monitor.id]);
+  });
+
+  it('bloqueia telefone, e-mail e foto inválidos no contrato de monitores', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+
+    expect(() => session.createMonitor({
+      name: 'Ana Monitoria',
+      phone: '(11) 9999-0000',
+    })).toThrow('Telefone do monitor deve ter 11 dígitos com DDD.');
+
+    expect(() => session.createMonitor({
+      name: 'Ana Monitoria',
+      phone: '(11) 99999-0000',
+      email: 'email inválido',
+    })).toThrow('E-mail do monitor inválido.');
+
+    expect(() => session.createMonitor({
+      name: 'Ana Monitoria',
+      phone: '(11) 99999-0000',
+      photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+    })).toThrow('Foto do monitor inválida.');
+  });
+
+  it('normaliza monitores persistidos mantendo vínculo com a construção que contém a coleção', () => {
+    const now = '2026-05-09T12:00:00.000Z';
+    const session = createConstructionSiteSession(createStorage([{
+      constructionSite: {
+        id: 'construction_site_1',
+        externalCode: 'CC2603',
+        constructionDate: '2026-05-11',
+        communityId: '',
+        status: 'in_progress',
+        createdAt: now,
+        updatedAt: now,
+      },
+      communities: [],
+      families: [],
+      monitors: [
+        {
+          id: 'monitor_valid',
+          constructionSiteId: 'construction_site_errada',
+          name: 'Ana Monitoria',
+          phone: '(11) 99999-0000',
+          email: 'email inválido',
+          photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+          status: 'status_antigo',
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: 'monitor_sem_telefone',
+          constructionSiteId: 'construction_site_1',
+          name: 'Monitor sem telefone',
+          phone: '',
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      houses: [],
+    } as never]).storage);
+
+    expect(session.getConstructionSite()?.monitors).toEqual([{
+      id: 'monitor_valid',
+      constructionSiteId: 'construction_site_1',
+      name: 'Ana Monitoria',
+      phone: '(11) 99999-0000',
+      photoDataUrl: undefined,
+      email: undefined,
+      status: 'active',
+      createdAt: now,
+      updatedAt: now,
+    }]);
   });
 
   it('arquiva e desarquiva construção por ID restaurando status como em andamento', () => {
@@ -381,7 +592,12 @@ describe('constructionSite-session.ts', () => {
         updatedAt: now,
       },
       communities: [{id: 'community_1', name: 'Tiradentes'}],
-      families: [{id: 'family_legacy', constructionSiteId: 'construction_site_legacy', name: 'Família Legada'}],
+      families: [{
+        id: 'family_legacy',
+        constructionSiteId: 'construction_site_legacy',
+        name: 'Família Legada',
+        notes: 'Nota antiga da família',
+      }],
       people: [],
       houses: [{
         id: 'house_legacy',
@@ -422,8 +638,10 @@ describe('constructionSite-session.ts', () => {
     expect('leaderAssignments' in constructionSiteRecord).toBe(false);
     expect('monitorAssignments' in constructionSiteRecord).toBe(false);
     expect('communityIds' in constructionSiteRecord).toBe(false);
+    expect(session.getConstructionSite()?.monitors).toEqual([]);
     expect(constructionSiteRecord.constructionDate).toBe('2026-05-09');
-    expect('houseSize' in houseRecord).toBe(false);
+    expect(houseRecord.houseSize).toBe('large');
+    expect(houseRecord.notes).toBe('Nota antiga da família');
     expect(houseRecord.siteAssessment).toEqual({terrainComplexity: 'flat'});
   });
 });

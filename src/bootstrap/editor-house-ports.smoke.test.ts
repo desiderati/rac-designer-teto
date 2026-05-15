@@ -134,11 +134,28 @@ describe('editor house ports', () => {
 
     expect(listener).toHaveBeenCalledTimes(1);
 
+    const createdMonitor = ports.constructionSiteManagementPort.createMonitor({
+      name: 'Ana Monitoria',
+      phone: '(11) 99999-0000',
+    });
+    ports.constructionSiteManagementPort.inactivateMonitor(createdMonitor.id);
+
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.monitors[0]).toMatchObject({
+      id: createdMonitor.id,
+      status: 'inactive',
+    });
+
+    ports.constructionSiteManagementPort.reactivateMonitor(createdMonitor.id);
+
     const createdHouse = ports.constructionSiteManagementPort.createHouse({
       familyName: 'Família 02',
       houseType: 'tipo6',
     });
 
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.monitors[0]).toMatchObject({
+      id: createdMonitor.id,
+      status: 'active',
+    });
     expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.constructionSite.activeHouseId).toBe(createdHouse.id);
     expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.houses[0]?.houseType).toBe('tipo6');
     expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');

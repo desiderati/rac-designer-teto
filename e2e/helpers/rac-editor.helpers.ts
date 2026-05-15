@@ -2,6 +2,7 @@ import {expect, Page} from '@playwright/test';
 import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house';
 import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../src/components/rac-editor/lib/canvas';
 import {RacEditorUiState} from '../../src/components/rac-editor/lib/rac-editor';
+import {seedConstructionSiteDocument} from './construction-site-storage.helpers';
 
 interface ActiveCanvasObjectSummary {
   type: string | null;
@@ -36,6 +37,7 @@ const pageConsoleErrors = new WeakMap<Page, string[]>();
 const IGNORED_CONSOLE_ERROR_PATTERNS = [
   '`DialogContent` requires a `DialogTitle`',
   'Unable to preventDefault inside passive event listener invocation',
+  'Failed to load resource: net::ERR_NETWORK_CHANGED',
 ];
 
 export function startConsoleErrorCapture(page: Page): void {
@@ -60,7 +62,7 @@ export function expectNoConsoleErrors(page: Page): void {
   expect(errors, errors.join('\n')).toEqual([]);
 }
 
-export async function setupRacEditorPage(page: Page) {
+export async function applyRacEditorInitScript(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
     localStorage.setItem('guided-tour:rac-house-initial-views:completed', 'true');
@@ -79,10 +81,16 @@ export async function setupRacEditorPage(page: Page) {
     }));
     localStorage.removeItem('rac-projects');
   });
+}
+
+export async function setupRacEditorPage(page: Page) {
+  await applyRacEditorInitScript(page);
 
   const houseButton = page.getByRole('button', {name: 'Casa TETO (Opções)'});
   for (let attempt = 0; attempt < 2; attempt += 1) {
     await page.goto('/', {waitUntil: 'domcontentloaded'});
+    await seedConstructionSiteDocument(page, {houseType: null, primaryContactName: 'Maria E2E'});
+    await page.reload({waitUntil: 'domcontentloaded'});
     await page.waitForLoadState('networkidle', {timeout: 8000}).catch(() => undefined);
 
     if (await houseButton.isVisible({timeout: 8000}).catch(() => false)) {
@@ -138,9 +146,26 @@ export async function createHouse(page: Page, houseType: HouseType, options: Cre
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Casa Tipo 6' : 'Casa Tipo 3'}).click();
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Superior' : 'Esquerdo'}).click();
   await completeNivelDefinition(page);
+  await waitForInitialHouseViews(page, houseType);
   if (options.dismissInitialHouseTour ?? true) {
     await dismissInitialHouseGuidedTourIfVisible(page);
   }
+}
+
+async function waitForInitialHouseViews(page: Page, houseType: HouseType) {
+  await expect
+    .poll(async () => {
+      const snapshot = await getHouseSnapshot(page);
+      if (!snapshot || snapshot.houseType !== houseType || snapshot.views.top.length !== 1) return false;
+      if (houseType === 'tipo6') {
+        return snapshot.views.front.length === 1 && snapshot.sideMappings.top === 'front';
+      }
+      if (houseType === 'tipo3') {
+        return snapshot.views.side2.length === 1;
+      }
+      return false;
+    })
+    .toBe(true);
 }
 
 export async function triggerHouseAction(

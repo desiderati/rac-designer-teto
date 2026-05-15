@@ -13,7 +13,7 @@ tags: [ refactoring, regression-checklist ]
 
 ## 1. Identificação da Rodada
 
-- prompt durável de origem:
+- prompt local da frente:
 - documento principal de refactoring:
 - review de origem:
 - slugs de candidatos selecionados:

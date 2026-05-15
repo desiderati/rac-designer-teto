@@ -36,6 +36,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 3. Overflow (mais opções)
     - No Canvas, o FAB hamburger exibe "Construções TETO" como primeira opção e, depois de um separador, lista
       Construções TETO ativas agrupadas por código da construção.
+    - O FAB hamburger não exibe `Monitores` como subopção de `Construções TETO`; monitores pertencem a uma construção
+      específica e são acessados pela listagem de Construções TETO.
     - Cada construção ativa exibe suas casas como submenu, usando como rótulo o nome da família associada à casa.
     - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
     - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
@@ -44,9 +46,13 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
       ficam temporariamente ocultos.
     - Na área CRUD, a navegação volta pelo cabeçalho; o retorno ao Canvas só fica disponível quando houver Construção
       TETO com pelo menos uma casa ativa.
-    - A área central separa a gestão de Construções TETO da listagem de casas e do detalhe da casa.
+    - A área central separa a gestão de Construções TETO da listagem de casas, da listagem de monitores e dos detalhes.
     - Construção TETO possui Código da CC, Data da Construção, Comunidade única e foto opcional, com ações de criar,
       arquivar, desarquivar, listar e trocar construção.
+    - Cada item da listagem de Construções TETO expõe ações por ícone para gerenciar monitores e casas daquela
+      construção, posicionadas antes da ação de arquivar ou desarquivar.
+    - Monitores pertencem somente à Construção TETO em foco, são listados como ativos por padrão e usam inativação
+      lógica para preservação histórica.
     - Cada casa é identificada pela família associada; não há nome próprio de casa.
 
 4. Menu do usuário no mobile
@@ -81,6 +87,7 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 2. Exclusão simples da seleção atua diretamente, mas deve respeitar bloqueios de segurança do projeto.
 3. Ações bloqueadas por regra devem informar motivo de forma explícita.
 4. Arquivamento de Construção TETO ou casa exige confirmação e deve ser lógico, preservando o registro como inativo/arquivado.
+5. Inativação ou reativação de monitor exige confirmação e não deve remover fisicamente o registro.
 
 ## Regras de feedback
 

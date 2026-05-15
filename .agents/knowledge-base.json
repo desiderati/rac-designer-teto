@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "bootstrapVersion": "0.1.0",
+  "enabled": true,
+  "kbPath": "C:/Users/felipe.desiderati_sa/.codex/knowledge-base",
+  "kbRepo": "git@bitbucket.org:satsistemadeapontamentos/sat-knowledge-base.git",
+  "expectedStacks": ["react", "typescript", "vite"],
+  "pinnedEntries": [],
+  "excludedEntries": [],
+  "maxEntriesPerType": 10,
+  "language": "pt-BR"
+}

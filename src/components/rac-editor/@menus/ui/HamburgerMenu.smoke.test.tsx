@@ -55,6 +55,7 @@ describe('HamburgerMenu.tsx', () => {
     expect(screen.getByRole('separator')).toBeVisible();
     const constructionSitesButton = screen.getByRole('button', {name: 'Construções TETO'});
     expect(constructionSitesButton).toBeVisible();
+    expect(screen.queryByRole('button', {name: 'Monitores'})).not.toBeInTheDocument();
     expect(within(constructionSitesButton).getByTestId('construction-sites-menu-icon'))
       .toHaveAttribute('data-icon', 'people-roof');
 

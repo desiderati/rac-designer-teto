@@ -1,4 +1,4 @@
-import {MouseEvent as ReactMouseEvent, useCallback, useRef} from 'react';
+import {MouseEvent as ReactMouseEvent, useCallback, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
@@ -24,6 +24,7 @@ import {
   useConstructionSiteManagementController,
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
+import type {ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -101,6 +102,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
   const constructionSiteManagement = useConstructionSiteManagementController({
     canvasRef,
   });
+  const [constructionSiteManagementInitialScreen, setConstructionSiteManagementInitialScreen] =
+    useState<ConstructionSiteManagementScreen>('construction-list');
 
   const {
     handlePilotisSetupConfirm,
@@ -125,15 +128,20 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setShowRestartConfirm(true);
   }, [setShowRestartConfirm]);
 
-  const handleOpenConstructionSites = useCallback(() => {
+  const openConstructionSiteManagement = useCallback((initialScreen: ConstructionSiteManagementScreen) => {
     void constructionSiteManagement.flushActiveHouseDocumentSave({force: true})
       .catch(() => undefined)
       .finally(() => {
+        setConstructionSiteManagementInitialScreen(initialScreen);
         setActiveSubmenu(null);
         setIsMenuOpen(false);
         setConstructionSiteManagementOpen(true);
       });
   }, [constructionSiteManagement, setActiveSubmenu, setIsMenuOpen, setConstructionSiteManagementOpen]);
+
+  const handleOpenConstructionSites = useCallback(() => {
+    openConstructionSiteManagement('construction-list');
+  }, [openConstructionSiteManagement]);
 
   const handleCanvasDocumentChange = useCallback(() => {
     void constructionSiteManagement.notifyActiveHouseDocumentChanged();
@@ -481,6 +489,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setIs3DViewerOpen,
     constructionSiteManagementOpen,
     closeConstructionSiteManagement,
-    constructionSiteManagementPanel: constructionSiteManagement,
+    constructionSiteManagementPanel: {
+      ...constructionSiteManagement,
+      initialScreen: constructionSiteManagementInitialScreen,
+    },
   });
 }

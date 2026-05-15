@@ -7,6 +7,8 @@
 > Quando a tarefa terminar e o conteúdo relevante já tiver sido promovido, colapse este
 > arquivo para um stub curto ou arquive-o localmente; não mantenha uma narrativa paralela
 > sem valor operacional residual.
+> Antes da resposta final de uma sessão que usou este item, reconcilie o status:
+> feche, cancele, interrompa ou deixe ativo com handoff concreto.
 
 ## 1. Metadados
 

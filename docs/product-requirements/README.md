@@ -27,3 +27,5 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 ## Índice atual
 
 - [PRD-001-evolucao-multicasa.prd.md](./PRD-001-evolucao-multicasa.prd.md)
+- [PRD-002-gerenciamento-de-monitores.prd.md](./PRD-002-gerenciamento-de-monitores.prd.md)
+- [PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md](./PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md)

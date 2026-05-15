@@ -12,13 +12,14 @@ import {getConstructionSiteCommunityName} from '@/shared/types/construction-site
 import {
   formatPhoneInput,
   HOUSE_FAMILY_NAME_MAX_LENGTH,
+  HOUSE_LEADERS_MAX_LENGTH,
   HOUSE_NOTES_MAX_LENGTH,
   HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH,
   houseConfigurationFormSchema,
   PHONE_MASK_MAX_LENGTH,
   type HouseConfigurationFormValues,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
-import {TERRAIN_COMPLEXITY_OPTIONS} from '@/components/construction-site/ui/lib/constants.ts';
+import {HOUSE_SIZE_OPTIONS, TERRAIN_COMPLEXITY_OPTIONS} from '@/components/construction-site/ui/lib/constants.ts';
 import {
   CheckboxField,
   PhotoUploadField,
@@ -155,25 +156,61 @@ export function HouseConfigurationScreen({
                 />
               </div>
             </div>
+          </div>
+        </HouseFormSection>
+
+        <HouseFormSection number='02' title='Sobre a Casa'>
+          <div data-testid='about-house-grid' className='grid gap-4 md:grid-cols-2'>
             <Controller
               control={form.control}
-              name='notes'
+              name='houseSize'
               render={({field, fieldState}) => (
-                <TextArea
-                  label='Notas'
-                  placeholder='Requisitos específicos de estilo de vida, necessidades de acessibilidade ou mudanças estruturais no projeto...'
+                <VisualSelectField
+                  label='Tamanho da Casa'
+                  ariaLabel='Tamanho da Casa'
                   value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  maxLength={HOUSE_NOTES_MAX_LENGTH}
+                  options={HOUSE_SIZE_OPTIONS}
+                  onChange={(houseSize) => field.onChange(houseSize)}
                   error={fieldState.error?.message}
                 />
               )}
             />
+            <Controller
+              control={form.control}
+              name='leaders'
+              render={({field, fieldState}) => (
+                <TextField
+                  label='Líderes'
+                  placeholder='Nomes dos líderes da casa'
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  maxLength={HOUSE_LEADERS_MAX_LENGTH}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+            <div className='md:col-span-2'>
+              <Controller
+                control={form.control}
+                name='notes'
+                render={({field, fieldState}) => (
+                  <TextArea
+                    label='Notas'
+                    placeholder='Observações da casa, implantação, acessibilidade ou decisões combinadas com a família...'
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    maxLength={HOUSE_NOTES_MAX_LENGTH}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            </div>
           </div>
         </HouseFormSection>
 
-        <HouseFormSection number='02' title='Restrições Locais'>
+        <HouseFormSection number='03' title='Restrições Locais'>
           <div data-testid='local-restrictions-grid' className='grid gap-6 md:grid-cols-2'>
             <Controller
               control={form.control}
@@ -255,7 +292,7 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
 
-        <HouseFormSection number='03' title='Características do Local'>
+        <HouseFormSection number='04' title='Características do Local'>
           <div data-testid='site-characteristics-grid' className='grid gap-4 md:grid-cols-2'>
             <Controller
               control={form.control}

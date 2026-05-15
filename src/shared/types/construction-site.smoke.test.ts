@@ -85,6 +85,7 @@ function createConstructionSiteState(): ConstructionSiteState {
         name: 'Família Teste',
       },
     ],
+    monitors: [],
     houses: [],
   } as unknown as ConstructionSiteState;
 }

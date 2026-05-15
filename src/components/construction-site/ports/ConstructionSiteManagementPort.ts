@@ -1,12 +1,15 @@
 import type {
+  CreateMonitorInput,
   CreateHouseInput,
   CreateConstructionSiteInput,
+  UpdateMonitorInput,
   UpdateFamilyInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 import type {
+  MonitorRecord,
   PersistedHouseRecord,
   ConstructionSiteState,
   ConstructionSiteSummary,
@@ -25,6 +28,10 @@ export interface ConstructionSiteManagementPort {
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
+  createMonitor(input: CreateMonitorInput): MonitorRecord;
+  updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
+  inactivateMonitor(monitorId: string): void;
+  reactivateMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): PersistedHouseRecord;
   duplicateActiveHouse(): PersistedHouseRecord;
   archiveActiveHouse(): void;

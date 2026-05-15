@@ -23,9 +23,11 @@ import type {
   CreateHouseInput,
   CreateConstructionSiteInput,
   ConstructionSiteSessionPort,
+  CreateMonitorInput,
   UpdateFamilyInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
+  UpdateMonitorInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {createHouseStateSnapshot} from '@/components/rac-editor/lib/house-state-snapshot.ts';
@@ -35,6 +37,7 @@ import type {
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
 import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 import type {
+  MonitorRecord,
   PersistedHouseRecord,
   ConstructionSiteState,
   ConstructionSiteSummary,
@@ -299,6 +302,27 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     const document = this.constructionSiteSession.activateConstructionSite(constructionSiteId);
     this.loadNullableHouseDrawingDocument(document);
     return document;
+  }
+
+  createMonitor(input: CreateMonitorInput): MonitorRecord {
+    const monitor = this.constructionSiteSession.createMonitor(input);
+    this.notify();
+    return monitor;
+  }
+
+  updateMonitor(monitorId: string, input: UpdateMonitorInput): void {
+    this.constructionSiteSession.updateMonitor(monitorId, input);
+    this.notify();
+  }
+
+  inactivateMonitor(monitorId: string): void {
+    this.constructionSiteSession.inactivateMonitor(monitorId);
+    this.notify();
+  }
+
+  reactivateMonitor(monitorId: string): void {
+    this.constructionSiteSession.reactivateMonitor(monitorId);
+    this.notify();
   }
 
   createHouse(input: CreateHouseInput): PersistedHouseRecord {

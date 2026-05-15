@@ -57,7 +57,7 @@ tags: [ refactoring ]
 
 ### 2.5 Continuidade da Frente
 
-- prompt durável anterior consultado:
+- prompt local anterior consultado:
 - execuções anteriores consultadas:
 - o que já foi resolvido:
 - regressões ou falhas ainda abertas:
@@ -175,6 +175,8 @@ tags: [ refactoring ]
 - justificativa da classificação:
 - registro durável destino:
 - referência do changelog:
+- recomendação de ADR no fechamento: `sim | não`
+- justificativa curta da recomendação de ADR:
 - desvios decididos:
 - riscos residuais:
 

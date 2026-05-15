@@ -7,9 +7,11 @@ import {useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 import type {
   CreateHouseInput,
   CreateConstructionSiteInput,
+  CreateMonitorInput,
   UpdateFamilyInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
+  UpdateMonitorInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
 import type {ConstructionSiteState, SiteAssessment} from '@/shared/types/construction-site.ts';
@@ -30,10 +32,12 @@ interface PendingDocumentSaveWaiter {
 export function useConstructionSiteManagementController({
   canvasRef,
 }: UseConstructionSiteManagementControllerArgs) {
+
   const {
     houseDrawingDocumentPort,
     constructionSiteManagementPort,
   } = useEditorPorts();
+
   const emitHouseStoreChange = useHouseStoreEmitter();
   const [version, setVersion] = useState(0);
   const [documentSaveStatus, setDocumentSaveStatus] = useState<HouseDocumentSaveStatus>('saved');
@@ -385,6 +389,11 @@ export function useConstructionSiteManagementController({
       archiveConstructionSite,
       unarchiveConstructionSite,
       activateConstructionSite,
+      createMonitor: (input: CreateMonitorInput) => constructionSiteManagementPort.createMonitor(input),
+      updateMonitor: (monitorId: string, input: UpdateMonitorInput) =>
+        constructionSiteManagementPort.updateMonitor(monitorId, input),
+      inactivateMonitor: (monitorId: string) => constructionSiteManagementPort.inactivateMonitor(monitorId),
+      reactivateMonitor: (monitorId: string) => constructionSiteManagementPort.reactivateMonitor(monitorId),
       createHouse,
       duplicateActiveHouse,
       archiveActiveHouse,

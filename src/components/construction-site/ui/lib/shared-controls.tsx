@@ -22,6 +22,12 @@ import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.t
 import {getPhotoOrientation, type PhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {parseMapCoordinates} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {
+  isSupportedPhotoDataUrl,
+  PHOTO_UPLOAD_ACCEPT,
+  PHOTO_UPLOAD_ERROR_MESSAGE,
+  validatePhotoFile,
+} from '@/shared/lib/photo-data-url.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {StatusChangeAction, VisualSelectOption} from './types.ts';
 import {buildGoogleMapsEmbedUrl} from './view-model.ts';
@@ -36,6 +42,28 @@ export function StatusActionButton({
   onClick(event: MouseEvent<HTMLButtonElement>): void;
 }) {
   return (
+    <RoundIconActionButton
+      label={label}
+      tone={action === 'unarchive' ? 'unarchive' : 'archive'}
+      onClick={onClick}
+    >
+      {action === 'unarchive' ? <ArchiveRestore className='h-4 w-4'/> : <Archive className='h-4 w-4'/>}
+    </RoundIconActionButton>
+  );
+}
+
+export function RoundIconActionButton({
+  label,
+  onClick,
+  children,
+  tone = 'neutral',
+}: {
+  label: string;
+  onClick(event: MouseEvent<HTMLButtonElement>): void;
+  children: ReactNode;
+  tone?: 'neutral' | 'archive' | 'unarchive';
+}) {
+  return (
     <button
       type='button'
       aria-label={label}
@@ -43,12 +71,12 @@ export function StatusActionButton({
       onClick={onClick}
       className={cn(
         'grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full text-slate-400 transition-colors focus:outline-none focus:ring-2',
-        action === 'unarchive'
-          ? 'hover:bg-blue-50 hover:text-blue-600 focus:ring-blue-100'
-          : 'hover:bg-red-50 hover:text-red-600 focus:ring-red-100',
+        tone === 'archive' ? 'hover:bg-red-50 hover:text-red-600 focus:ring-red-100' : null,
+        tone === 'unarchive' ? 'hover:bg-blue-50 hover:text-blue-600 focus:ring-blue-100' : null,
+        tone === 'neutral' ? 'hover:bg-blue-50 hover:text-blue-600 focus:ring-blue-100' : null,
       )}
     >
-      {action === 'unarchive' ? <ArchiveRestore className='h-4 w-4'/> : <Archive className='h-4 w-4'/>}
+      {children}
     </button>
   );
 }
@@ -72,16 +100,35 @@ export function PhotoUploadField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!value) setPhotoOrientation(undefined);
+    if (value) setUploadError(null);
   }, [value]);
 
-  const updatePhoto = (file: File) => {
+  const updatePhoto = async (file: File) => {
+    const validationError = await validatePhotoFile(file);
+    if (validationError) {
+      setUploadError(validationError);
+      return;
+    }
+
     const reader = new FileReader();
     reader.addEventListener('load', () => {
-      onChange(typeof reader.result === 'string' ? reader.result : '');
+      const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+      if (!isSupportedPhotoDataUrl(dataUrl)) {
+        setUploadError(PHOTO_UPLOAD_ERROR_MESSAGE);
+        return;
+      }
+      setUploadError(null);
+      onChange(dataUrl);
     });
+
+    reader.addEventListener('error', () => {
+      setUploadError('Não foi possível ler a foto selecionada.');
+    });
+
     reader.readAsDataURL(file);
   };
 
@@ -92,7 +139,7 @@ export function PhotoUploadField({
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    updatePhoto(file);
+    void updatePhoto(file);
     event.target.value = '';
   };
 
@@ -100,7 +147,7 @@ export function PhotoUploadField({
     event.preventDefault();
     const file = event.dataTransfer.files?.[0];
     if (!file) return;
-    updatePhoto(file);
+    void updatePhoto(file);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -112,6 +159,7 @@ export function PhotoUploadField({
   const clearPhoto = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    setUploadError(null);
     onChange('');
   };
 
@@ -129,6 +177,7 @@ export function PhotoUploadField({
         onDrop={handleDrop}
         className={cn(
           'relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-blue-200 bg-blue-50/80 px-3 py-4 text-center text-sm font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200',
+          uploadError ? 'border-red-300 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 focus:ring-red-100' : null,
           dropZoneClassName,
           value ? cn('p-0', loadedDropZoneClassName) : null,
         )}
@@ -165,12 +214,15 @@ export function PhotoUploadField({
           ref={inputRef}
           aria-label={`${label} arquivo`}
           type='file'
-          accept='image/*'
+          accept={PHOTO_UPLOAD_ACCEPT}
           className='sr-only'
           onClick={(event) => event.stopPropagation()}
           onChange={handleChange}
         />
       </div>
+      {uploadError ? (
+        <p role='alert' className='text-xs font-semibold text-red-600'>{uploadError}</p>
+      ) : null}
     </div>
   );
 }
@@ -457,7 +509,7 @@ export function VisualSelectMenu<T extends string>({
           )}
         >
           <span className='min-w-0 flex-1 truncate text-left normal-case tracking-normal'>
-            {selectedOption?.label ?? 'Selecionar'}
+            {selectedOption?.triggerLabel ?? selectedOption?.label ?? 'Selecionar'}
           </span>
           <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open ? 'rotate-180' : null)}/>
         </button>
@@ -477,6 +529,7 @@ export function VisualSelectMenu<T extends string>({
               type='button'
               role='menuitemradio'
               aria-checked={selected}
+              aria-label={option.ariaLabel}
               onClick={() => selectOption(option.value)}
               className={cn(
                 'flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',

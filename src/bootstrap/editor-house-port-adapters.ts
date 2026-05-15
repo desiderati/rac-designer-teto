@@ -18,9 +18,11 @@ import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.
 import type {
   CreateHouseInput,
   CreateConstructionSiteInput,
+  CreateMonitorInput,
   UpdateFamilyInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
+  UpdateMonitorInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
   HousePiloti,
@@ -38,6 +40,7 @@ import {
   type HouseDrawingCanvasDocument,
 } from '@/shared/types/house-drawing-document.ts';
 import type {
+  MonitorRecord,
   PersistedHouseRecord,
   ConstructionSiteState,
   ConstructionSiteSummary,
@@ -105,6 +108,10 @@ export interface EditorConstructionSiteManagementSource {
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
+  createMonitor(input: CreateMonitorInput): MonitorRecord;
+  updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
+  inactivateMonitor(monitorId: string): void;
+  reactivateMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): PersistedHouseRecord;
   duplicateActiveHouse(): PersistedHouseRecord;
   archiveActiveHouse(): void;
@@ -226,6 +233,10 @@ export function createEditorConstructionSiteManagementPort(
     archiveConstructionSite: (constructionSiteId) => source.archiveConstructionSite(constructionSiteId),
     unarchiveConstructionSite: (constructionSiteId) => source.unarchiveConstructionSite(constructionSiteId),
     activateConstructionSite: (constructionSiteId) => source.activateConstructionSite(constructionSiteId),
+    createMonitor: (input) => clonePortValue(source.createMonitor(input)),
+    updateMonitor: (monitorId, input) => source.updateMonitor(monitorId, input),
+    inactivateMonitor: (monitorId) => source.inactivateMonitor(monitorId),
+    reactivateMonitor: (monitorId) => source.reactivateMonitor(monitorId),
     createHouse: (input) => clonePortValue(source.createHouse(input)),
     duplicateActiveHouse: () => clonePortValue(source.duplicateActiveHouse()),
     archiveActiveHouse: () => source.archiveActiveHouse(),

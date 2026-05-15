@@ -1,9 +1,14 @@
-import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
-import type {HouseConfigurationFormValues} from '@/components/construction-site/lib/construction-site-form-validation.ts';
+import type {CreateHouseInput, CreateMonitorInput} from '@/components/rac-editor/lib/construction-site-session.ts';
+import type {
+  HouseConfigurationFormValues,
+  MonitorFormValues,
+} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import type {
   ConstructionSiteState,
   ConstructionSiteSummary,
   FamilyRecord,
+  HouseSize,
+  MonitorRecord,
   PersistedHouseRecord,
   SoilProfile,
   TerrainComplexity,
@@ -13,17 +18,22 @@ import type {HouseType} from '@/shared/types/house.ts';
 import {
   CONSTRUCTION_SITE_STATUS_LABELS,
   HOUSE_STATUS_LABELS,
+  MONITOR_STATUS_LABELS,
 } from './constants.ts';
 import type {
   ConstructionSiteManagementScreen,
   ConstructionSortKey,
   HouseSortKey,
+  MonitorSortKey,
 } from './types.ts';
 
 export function getScreenTitle(screen: ConstructionSiteManagementScreen, constructionLabel: string): string {
   if (screen === 'construction-list') return 'Construções TETO';
   if (screen === 'construction-create') return 'Adicionar Construção TETO';
   if (screen === 'construction-detail') return 'Editar Construção TETO';
+  if (screen === 'monitors') return `Monitores - ${constructionLabel}`;
+  if (screen === 'monitor-create') return 'Cadastrar Monitor';
+  if (screen === 'monitor-detail') return 'Editar Monitor';
   if (screen === 'houses') return 'Casas da Construção';
   if (screen === 'house-create' || screen === 'house-detail') return 'Configuração da Casa';
   return constructionLabel;
@@ -33,6 +43,9 @@ export function getScreenSubtitle(screen: ConstructionSiteManagementScreen): str
   if (screen === 'construction-list') return 'Criar, arquivar, listar e trocar construções.';
   if (screen === 'construction-create') return 'Cadastrar código da CC, data e comunidade associada.';
   if (screen === 'construction-detail') return 'Atualizar os dados da construção selecionada.';
+  if (screen === 'monitors') return 'Monitores vinculados à construção ativa.';
+  if (screen === 'monitor-create') return 'Cadastrar dados de contato do monitor.';
+  if (screen === 'monitor-detail') return 'Atualizar dados do monitor sem duplicar o registro.';
   if (screen === 'houses') return 'Casas vinculadas à construção ativa.';
   return 'Família, restrições e características do local da casa.';
 }
@@ -174,6 +187,8 @@ export interface HouseConfigurationFormState {
   primaryContactPhone: string;
   primaryContactEmail: string;
   familyPhotoDataUrl: string;
+  houseSize: HouseSize | '';
+  leaders: string;
   notes: string;
   soilProfile: SoilProfile | '';
   hasUndergroundObstacles: boolean;
@@ -196,7 +211,9 @@ export function getHouseConfigurationInitialState(
     primaryContactPhone: family?.primaryContactPhone ?? '',
     primaryContactEmail: family?.primaryContactEmail ?? '',
     familyPhotoDataUrl: family?.photoDataUrl ?? '',
-    notes: family?.notes ?? '',
+    houseSize: house?.houseSize ?? '',
+    leaders: house?.leaders ?? '',
+    notes: house?.notes ?? family?.notes ?? '',
     soilProfile: assessment?.soilProfile ?? '',
     hasUndergroundObstacles: assessment?.hasUndergroundObstacles ?? false,
     hasElevatedObstacles: assessment?.hasElevatedObstacles ?? false,
@@ -213,6 +230,8 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
     primaryContactPhone: form.primaryContactPhone?.trim() || undefined,
     primaryContactEmail: form.primaryContactEmail?.trim() || undefined,
     familyPhotoDataUrl: form.familyPhotoDataUrl || undefined,
+    houseSize: form.houseSize || undefined,
+    leaders: form.leaders?.trim() || undefined,
     notes: form.notes ?? '',
     siteAssessment: {
       soilProfile: form.soilProfile || undefined,
@@ -223,6 +242,46 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
       terrainComplexity: form.terrainComplexity ?? 'flat',
     },
   };
+}
+
+export interface MonitorFormState {
+  name: string;
+  phone: string;
+  email: string;
+  photoDataUrl: string;
+}
+
+export function getMonitorInitialState(monitor: MonitorRecord | null): MonitorFormState {
+  return {
+    name: monitor?.name ?? '',
+    phone: monitor?.phone ?? '',
+    email: monitor?.email ?? '',
+    photoDataUrl: monitor?.photoDataUrl ?? '',
+  };
+}
+
+export function toMonitorInput(form: MonitorFormValues): CreateMonitorInput {
+  return {
+    name: form.name.trim(),
+    phone: form.phone.trim(),
+    email: form.email.trim() || undefined,
+    photoDataUrl: form.photoDataUrl || undefined,
+  };
+}
+
+export function compareMonitors(a: MonitorRecord, b: MonitorRecord, sortKey: MonitorSortKey): number {
+  if (sortKey === 'updatedAt') return b.updatedAt.localeCompare(a.updatedAt);
+  if (sortKey === 'status') return MONITOR_STATUS_LABELS[a.status].localeCompare(MONITOR_STATUS_LABELS[b.status], 'pt-BR');
+  return a.name.localeCompare(b.name, 'pt-BR');
+}
+
+export function getMonitorInitials(label: string): string {
+  const words = label
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  const initials = words.slice(0, 2).map((word) => word[0]?.toUpperCase()).join('');
+  return initials || 'MO';
 }
 
 export function compareHouses(

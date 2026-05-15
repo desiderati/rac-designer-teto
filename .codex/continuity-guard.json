@@ -2,6 +2,8 @@
   "mode": "warn",
   "require_daily_changelog": true,
   "require_work_item_updated_today": true,
+  "validate_changelog_contract": true,
+  "validate_session_work_item_contract": true,
   "command_patterns": [
     {
       "label": "Apps Script publish",
@@ -35,6 +37,5 @@
       "label": "docker restart",
       "regex": "(?i)\\bdocker\\s+restart\\b"
     }
-  ],
-  "validate_changelog_contract": true
+  ]
 }

@@ -1,16 +1,27 @@
 import {z} from 'zod';
+import {
+  hasValidOptionalEmail,
+  hasValidOptionalPhone,
+  hasValidRequiredPhone,
+} from '@/shared/lib/contact-validation.ts';
+import {hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE} from '@/shared/lib/photo-data-url.ts';
 import type {TerrainComplexity} from '@/shared/types/construction-site.ts';
 
 const CONSTRUCTION_CODE_PATTERN = /^CC\d{4}$/;
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_DIGIT_COUNT = 11;
 
 export const CONSTRUCTION_COMMUNITY_MAX_LENGTH = 50;
 export const HOUSE_FAMILY_NAME_MAX_LENGTH = 50;
 export const HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH = 50;
+export const HOUSE_LEADERS_MAX_LENGTH = 120;
 export const HOUSE_NOTES_MAX_LENGTH = 300;
-export const PHONE_MASK_MAX_LENGTH = 15;
+export const MONITOR_NAME_MAX_LENGTH = 50;
+
+export {
+  formatPhoneInput,
+  getPhoneDigits,
+  PHONE_MASK_MAX_LENGTH,
+} from '@/shared/lib/contact-validation.ts';
 
 export const constructionFormSchema = z.object({
   externalCode: z.string()
@@ -37,15 +48,17 @@ export const houseConfigurationFormSchema = z.object({
     .min(1, 'Informe o contato principal.')
     .max(HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH, `Máximo de ${HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH} caracteres.`),
   primaryContactPhone: z.string()
-    .refine((value) => {
-      const digits = getPhoneDigits(value);
-      return digits.length === 0 || digits.length === PHONE_DIGIT_COUNT;
-    }, 'Informe 11 dígitos com DDD.'),
+    .refine(hasValidOptionalPhone, 'Informe 11 dígitos com DDD.'),
   primaryContactEmail: z.string()
     .trim()
-    .refine((value) => value.length === 0 || EMAIL_PATTERN.test(value), 'Informe um e-mail válido.'),
+    .refine(hasValidOptionalEmail, 'Informe um e-mail válido.'),
   familyPhotoDataUrl: z.string().optional(),
+  houseSize: z.enum(['large', 'small']).or(z.literal('')),
+  leaders: z.string()
+    .trim()
+    .max(HOUSE_LEADERS_MAX_LENGTH, `Máximo de ${HOUSE_LEADERS_MAX_LENGTH} caracteres.`),
   notes: z.string()
+    .trim()
     .max(HOUSE_NOTES_MAX_LENGTH, `Máximo de ${HOUSE_NOTES_MAX_LENGTH} caracteres.`),
   soilProfile: z.enum(['stable', 'loose_clay', 'water_table']).or(z.literal('')),
   hasUndergroundObstacles: z.boolean(),
@@ -61,25 +74,30 @@ export const houseConfigurationFormSchema = z.object({
   }),
 });
 
+export const monitorFormSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, 'Informe o nome do monitor.')
+    .max(MONITOR_NAME_MAX_LENGTH, `Máximo de ${MONITOR_NAME_MAX_LENGTH} caracteres.`),
+  phone: z.string()
+    .refine(hasValidRequiredPhone, 'Informe 11 dígitos com DDD.'),
+  email: z.string()
+    .trim()
+    .refine(hasValidOptionalEmail, 'Informe um e-mail válido.'),
+  photoDataUrl: z.string()
+    .refine(hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE)
+    .optional(),
+});
+
 export type ConstructionFormValues = z.infer<typeof constructionFormSchema>;
 export type HouseConfigurationFormValues = z.infer<typeof houseConfigurationFormSchema>;
+export type MonitorFormValues = z.infer<typeof monitorFormSchema>;
 
 export function normalizeConstructionCodeDraft(value: string): string {
   return value
     .toUpperCase()
     .replace(/[^C0-9]/g, '')
     .slice(0, 6);
-}
-
-export function formatPhoneInput(value: string): string {
-  const digits = getPhoneDigits(value).slice(0, PHONE_DIGIT_COUNT);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
-export function getPhoneDigits(value: string): string {
-  return value.replace(/\D/g, '');
 }
 
 export function isDateOnly(value: string): boolean {

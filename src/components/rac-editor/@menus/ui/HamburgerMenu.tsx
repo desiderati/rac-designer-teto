@@ -71,7 +71,6 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
             setOpen(false);
           }}
         />
-
         <div role='separator' className='mx-2 my-1 h-px bg-slate-100'/>
 
         {constructionGroups.length ? constructionGroups.map((construction) => {

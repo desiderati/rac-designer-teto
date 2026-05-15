@@ -12,6 +12,10 @@ export type PersistedHouseStatus =
   | 'built'
   | 'archived';
 
+export type MonitorStatus = 'active' | 'inactive';
+
+export type HouseSize = 'large' | 'small';
+
 export type PilotiCode =
   | 'a1' | 'a2' | 'a3' | 'a4'
   | 'b1' | 'b2' | 'b3' | 'b4'
@@ -38,6 +42,18 @@ export interface FamilyRecord {
   primaryContactEmail?: string;
   photoDataUrl?: string;
   notes?: string;
+}
+
+export interface MonitorRecord {
+  id: string;
+  constructionSiteId: string;
+  name: string;
+  phone: string;
+  photoDataUrl?: string;
+  email?: string;
+  status: MonitorStatus;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SiteAssessment {
@@ -96,6 +112,8 @@ export interface PersistedHouseRecord {
   houseType: HouseType;
   terrainType: number;
   status: PersistedHouseStatus;
+  houseSize?: HouseSize;
+  leaders?: string;
   designSettings: HouseDesignSettings;
   siteAssessment: SiteAssessment;
   pilotiLayout: PersistedPilotiLayout;
@@ -122,6 +140,7 @@ export interface ConstructionSiteState {
   constructionSite: ConstructionSiteRecord;
   communities: CommunityRecord[];
   families: FamilyRecord[];
+  monitors: MonitorRecord[];
   houses: PersistedHouseRecord[];
 }
 
@@ -160,6 +179,7 @@ export function createEmptyConstructionSiteState(constructionSite: ConstructionS
     constructionSite,
     communities: [],
     families: [],
+    monitors: [],
     houses: [],
   };
 }

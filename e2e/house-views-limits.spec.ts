@@ -65,8 +65,11 @@ test.describe('RAC views and limits', () => {
     await page.getByRole('button', {name: 'Visão Lateral'}).click();
     await expect(page.getByRole('heading', {name: 'Qual das laterais deseja mostrar?'})).toBeHidden();
 
+    await expect
+      .poll(async () => (await getHouseSnapshot(page))?.views.back.length ?? 0)
+      .toBe(2);
+
     const snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(2);
     expect(snapshot?.sideMappings.top).toBe('back');
     expect(snapshot?.sideMappings.bottom).toBe('back');
 
@@ -78,18 +81,18 @@ test.describe('RAC views and limits', () => {
     await createHouse(page, 'tipo6');
 
     await triggerHouseAction(page, 'Visão Traseira');
+    await expectViewCount(page, 'back', 1);
     let snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(1);
 
     const removed = await removeViewByDebug(page, 'back');
     expect(removed).toBe(true);
+    await expectViewCount(page, 'back', 0);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(0);
     expect(Object.values(snapshot?.sideMappings ?? {})).not.toContain('back');
 
     await triggerHouseAction(page, 'Visão Traseira');
+    await expectViewCount(page, 'back', 1);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(1);
   });
 
   test('vistas tipo6: quadrado fechado libera novamente após remoção', async ({page}) => {
@@ -100,17 +103,17 @@ test.describe('RAC views and limits', () => {
     await triggerHouseAction(page, 'Quadrado Fechado');
     await expect(page.getByText('Limite de Quadrado Fechado atingido para este tipo de casa.')).toBeVisible();
 
+    await expectViewCount(page, 'side1', 2);
     let snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.side1.length).toBe(2);
 
     const removed = await removeViewByDebug(page, 'side1');
     expect(removed).toBe(true);
+    await expectViewCount(page, 'side1', 1);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.side1.length).toBe(1);
 
     await triggerHouseAction(page, 'Quadrado Fechado');
+    await expectViewCount(page, 'side1', 2);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.side1.length).toBe(2);
   });
 
   test('vistas tipo3: lateral libera novamente após remoção', async ({page}) => {
@@ -121,18 +124,18 @@ test.describe('RAC views and limits', () => {
     await triggerHouseAction(page, 'Visão Lateral');
     await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
 
+    await expectViewCount(page, 'back', 2);
     let snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(2);
 
     const removed = await removeViewByDebug(page, 'back', 'top');
     expect(removed).toBe(true);
+    await expectViewCount(page, 'back', 1);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(1);
     expect(snapshot?.sideMappings.top).toBeNull();
 
     await triggerHouseAction(page, 'Visão Lateral', 'Superior');
+    await expectViewCount(page, 'back', 2);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.back.length).toBe(2);
     expect(snapshot?.sideMappings.top).toBe('back');
   });
 
@@ -145,12 +148,22 @@ test.describe('RAC views and limits', () => {
     const removed = await removeViewByDebug(page, 'side2');
     expect(removed).toBe(true);
 
+    await expectViewCount(page, 'side2', 0);
     let snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.side2.length).toBe(0);
 
     await triggerHouseAction(page, 'Quadrado Aberto');
+    await expectViewCount(page, 'side2', 1);
     snapshot = await getHouseSnapshot(page);
-    expect(snapshot?.views.side2.length).toBe(1);
   });
 });
+
+async function expectViewCount(
+  page: Parameters<typeof getHouseSnapshot>[0],
+  viewType: 'top' | 'front' | 'back' | 'side1' | 'side2',
+  expectedCount: number,
+) {
+  await expect
+    .poll(async () => (await getHouseSnapshot(page))?.views[viewType].length ?? 0)
+    .toBe(expectedCount);
+}
 

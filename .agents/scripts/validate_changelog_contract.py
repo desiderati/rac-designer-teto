@@ -19,11 +19,16 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 FILENAME_RE = re.compile(r"^(\d{4})(\d{2})(\d{2})\.changelog\.md$")
 TITLE_RE = re.compile(r"^#\s+Changelog\s+-\s+(\d{4})-(\d{2})-(\d{2})\s*$", re.MULTILINE)
 ENTRY_HEADER_RE = re.compile(r"^##\s+\[(\d{2}):(\d{2})\]\s+\S.*$", re.MULTILINE)
+ENTRY_VIOLATION_RE = re.compile(r"\bentry\s+(\d+):")
+CANONICAL_ERROR_RE = re.compile(r"^(?P<path>.+?\.changelog\.md):\s+(?P<detail>.+)$")
+LOOSE_ERROR_RE = re.compile(
+    r"^loose changelog file outside monthly directory:\s+(?P<path>.+?\.md)$"
+)
 
 MANDATORY_ENTRY_SECTIONS = [
     "### Contexto",
@@ -143,9 +148,65 @@ def validate(path: Path) -> list[str]:
     return validate_file(path)
 
 
+def _basename(path_text: str) -> str:
+    clean_path = path_text.strip().strip("'\"")
+    name = Path(clean_path).name
+    if name == clean_path and "\\" in clean_path:
+        name = PureWindowsPath(clean_path).name
+    return name or clean_path
+
+
+def _summary_location(path: Path, error: str) -> tuple[str, str]:
+    canonical_match = CANONICAL_ERROR_RE.match(error)
+    if canonical_match:
+        return _basename(canonical_match.group("path")), canonical_match.group("detail")
+
+    loose_match = LOOSE_ERROR_RE.match(error)
+    if loose_match:
+        return _basename(loose_match.group("path")), error
+
+    return _basename(path.as_posix()), error
+
+
+def format_error_summary(path: Path, errors: list[str]) -> str:
+    grouped: dict[str, dict[str, object]] = {}
+    for error in errors:
+        file_name, detail = _summary_location(path, error)
+        if file_name not in grouped:
+            grouped[file_name] = {"violations": 0, "entries": set()}
+        grouped[file_name]["violations"] = int(grouped[file_name]["violations"]) + 1
+        entry_match = ENTRY_VIOLATION_RE.search(detail)
+        if entry_match:
+            entries = grouped[file_name]["entries"]
+            assert isinstance(entries, set)
+            entries.add(int(entry_match.group(1)))
+
+    parts: list[str] = []
+    for file_name, data in grouped.items():
+        entries = data["entries"]
+        violations = int(data["violations"])
+        if isinstance(entries, set) and entries:
+            parts.append(f"{file_name} (entries = {len(entries)})")
+        else:
+            parts.append(f"{file_name} (violations = {violations})")
+
+    max_parts = 5
+    visible_parts = parts[:max_parts]
+    if len(parts) > max_parts:
+        visible_parts.append(f"+{len(parts) - max_parts} files")
+
+    target = ", ".join(visible_parts) if visible_parts else _basename(path.as_posix())
+    return f"changelog contract violations in: {target}."
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate daily operational changelog files against the scaffold contract."
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="emit a concise grouped error summary instead of every violation",
     )
     parser.add_argument(
         "path",
@@ -159,9 +220,12 @@ def main() -> int:
         print(str(error), file=sys.stderr)
         return 2
     if errors:
-        print(f"changelog contract violations in {args.path}:", file=sys.stderr)
-        for error in errors:
-            print(f"  - {error}", file=sys.stderr)
+        if args.summary:
+            print(format_error_summary(args.path, errors), file=sys.stderr)
+        else:
+            print(f"changelog contract violations in {args.path}:", file=sys.stderr)
+            for error in errors:
+                print(f"  - {error}", file=sys.stderr)
         return 1
     print(f"ok: {args.path}")
     return 0

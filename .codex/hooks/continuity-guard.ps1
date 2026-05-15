@@ -519,6 +519,289 @@ function Get-ChangelogEvidencePaths
     return @($evidencePaths)
 }
 
+function Test-SessionWorkItemPath
+{
+    param(
+        [string]$Path
+    )
+
+    $normalizedPath = Get-NormalizedRelativePath -Path $Path
+    if ([string]::IsNullOrWhiteSpace($normalizedPath))
+    {
+        return $false
+    }
+
+    if ($normalizedPath -match '(^|/)\.\.(/|$)')
+    {
+        return $false
+    }
+
+    if ($normalizedPath -match '(^|/)\.archived(/|$)')
+    {
+        return $false
+    }
+
+    return $normalizedPath -match '(?i)^\.agents/work-items/.+\.work-item\.md$'
+}
+
+function Get-SessionWorkItemPaths
+{
+    param(
+        [string[]]$Paths
+    )
+
+    $workItemPaths = New-Object System.Collections.Generic.List[string]
+    foreach ($path in @($Paths))
+    {
+        if (-not (Test-SessionWorkItemPath -Path $path))
+        {
+            continue
+        }
+
+        $normalizedPath = Get-NormalizedRelativePath -Path $path
+        if (-not $workItemPaths.Contains($normalizedPath))
+        {
+            $workItemPaths.Add($normalizedPath)
+        }
+    }
+
+    return @($workItemPaths)
+}
+
+function Normalize-ContractToken
+{
+    param(
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value))
+    {
+        return ''
+    }
+
+    $normalized = $Value.Trim().ToLowerInvariant().Normalize([System.Text.NormalizationForm]::FormD)
+    $builder = [System.Text.StringBuilder]::new()
+    foreach ($char in $normalized.ToCharArray())
+    {
+        $category = [System.Globalization.CharUnicodeInfo]::GetUnicodeCategory($char)
+        if ($category -ne [System.Globalization.UnicodeCategory]::NonSpacingMark)
+        {
+            [void]$builder.Append($char)
+        }
+    }
+
+    $token = $builder.ToString().Normalize([System.Text.NormalizationForm]::FormC)
+    $token = [System.Text.RegularExpressions.Regex]::Replace($token, '[^\p{L}\p{Nd}]+', ' ')
+    return $token.Trim()
+}
+
+function Get-WorkItemFields
+{
+    param(
+        [string]$Content
+    )
+
+    $fields = @{}
+    if ([string]::IsNullOrWhiteSpace($Content))
+    {
+        return $fields
+    }
+
+    foreach ($line in ($Content -split "`r?`n"))
+    {
+        $rawKey = ''
+        $value = ''
+        $colonMatch = [System.Text.RegularExpressions.Regex]::Match($line, '^\s*-\s*([^:]+):\s*(.*)$')
+        if ($colonMatch.Success)
+        {
+            $rawKey = [string]$colonMatch.Groups[1].Value
+            $value = [string]$colonMatch.Groups[2].Value.Trim()
+        }
+        else
+        {
+            $questionMatch = [System.Text.RegularExpressions.Regex]::Match($line, '^\s*-\s*(.+?\?)\s+(.+)$')
+            if ($questionMatch.Success)
+            {
+                $rawKey = [string]$questionMatch.Groups[1].Value
+                $value = [string]$questionMatch.Groups[2].Value.Trim()
+            }
+        }
+
+        $key = Normalize-ContractToken -Value ($rawKey -replace '\?', '')
+        if (-not [string]::IsNullOrWhiteSpace($key) -and -not $fields.ContainsKey($key))
+        {
+            $fields[$key] = $value
+        }
+    }
+
+    return $fields
+}
+
+function Get-WorkItemField
+{
+    param(
+        $Fields,
+        [string]$Pattern
+    )
+
+    foreach ($key in $Fields.Keys)
+    {
+        if ($key -match $Pattern)
+        {
+            return [string]$Fields[$key]
+        }
+    }
+
+    return ''
+}
+
+function Test-ConcreteFieldValue
+{
+    param(
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value))
+    {
+        return $false
+    }
+
+    $token = Normalize-ContractToken -Value $Value
+    if ([string]::IsNullOrWhiteSpace($token))
+    {
+        return $false
+    }
+
+    if ($token -in @('ausente', 'n a', 'na', 'nenhum', 'nenhuma', 'tbd', 'todo', 'pendente'))
+    {
+        return $false
+    }
+
+    return $Value -notmatch '\|'
+}
+
+function Get-SessionWorkItemContractFindings
+{
+    param(
+        [string]$RepoRoot,
+        [string[]]$Paths
+    )
+
+    $findings = New-Object System.Collections.Generic.List[string]
+    foreach ($relativePath in (Get-SessionWorkItemPaths -Paths $Paths))
+    {
+        $fullPath = Join-Path $RepoRoot $relativePath
+        if (-not (Test-Path -LiteralPath $fullPath))
+        {
+            $findings.Add(('{0}: work-item tocado na sessão não foi encontrado' -f $relativePath))
+            continue
+        }
+
+        try
+        {
+            $content = Get-Content -LiteralPath $fullPath -Raw -ErrorAction Stop
+        }
+        catch
+        {
+            $findings.Add(('{0}: não foi possível ler o work-item' -f $relativePath))
+            continue
+        }
+
+        $fields = Get-WorkItemFields -Content $content
+        $status = Get-WorkItemField -Fields $fields -Pattern '^status$'
+        $statusToken = Normalize-ContractToken -Value $status
+        if ([string]::IsNullOrWhiteSpace($statusToken))
+        {
+            $findings.Add(('{0}: status ausente' -f $relativePath))
+            continue
+        }
+
+        if ($statusToken -notin @('ativo', 'bloqueado', 'interrompido', 'concluido', 'cancelado'))
+        {
+            $findings.Add(('{0}: status fora do contrato' -f $relativePath))
+            continue
+        }
+
+        if ($statusToken -in @('ativo', 'bloqueado', 'interrompido'))
+        {
+            $currentState = Get-WorkItemField -Fields $fields -Pattern '^estado atual$'
+            $nextStep = Get-WorkItemField -Fields $fields -Pattern '^proximo passo$'
+            $resumeWhen = Get-WorkItemField -Fields $fields -Pattern '^pronto para retomar quando$'
+            if (-not (Test-ConcreteFieldValue -Value $currentState) -and
+                -not (Test-ConcreteFieldValue -Value $nextStep) -and
+                -not (Test-ConcreteFieldValue -Value $resumeWhen))
+            {
+                $findings.Add(('{0}: work-item aberto sem handoff concreto' -f $relativePath))
+            }
+        }
+
+        if ($statusToken -in @('concluido', 'cancelado'))
+        {
+            $collapse = Get-WorkItemField -Fields $fields -Pattern '^elegivel para colapso apos promocao$'
+            $collapseToken = Normalize-ContractToken -Value $collapse
+            if ($collapseToken -notin @('sim', 'nao', 'ainda nao'))
+            {
+                $findings.Add(('{0}: decisão de colapso ausente' -f $relativePath))
+            }
+
+            $durableRef = Get-WorkItemField -Fields $fields -Pattern '^referencia do changelog artefato duravel$'
+            if (-not (Test-ConcreteFieldValue -Value $durableRef))
+            {
+                $findings.Add(('{0}: referência durável ausente' -f $relativePath))
+            }
+        }
+
+        $retainLocal = Get-WorkItemField -Fields $fields -Pattern '^reter localmente$'
+        if ((Normalize-ContractToken -Value $retainLocal) -eq 'sim')
+        {
+            $retainReason = Get-WorkItemField -Fields $fields -Pattern '^motivo da retencao local$'
+            if (-not (Test-ConcreteFieldValue -Value $retainReason))
+            {
+                $findings.Add(('{0}: retenção local sem motivo' -f $relativePath))
+            }
+        }
+    }
+
+    return @($findings)
+}
+
+function Invoke-SessionWorkItemContractValidation
+{
+    param(
+        [string]$RepoRoot,
+        $Config,
+        [string[]]$Paths
+    )
+
+    if ($null -ne $Config -and $Config.PSObject.Properties.Name -contains 'validate_session_work_item_contract')
+    {
+        if ($Config.validate_session_work_item_contract -eq $false)
+        {
+            return ''
+        }
+    }
+
+    $workItemPaths = @(Get-SessionWorkItemPaths -Paths $Paths)
+    if ($workItemPaths.Count -eq 0)
+    {
+        return ''
+    }
+
+    $findings = @(Get-SessionWorkItemContractFindings -RepoRoot $RepoRoot -Paths $workItemPaths)
+    if ($findings.Count -eq 0)
+    {
+        return ''
+    }
+
+    $details = ($findings | Select-Object -First 4) -join '; '
+    if ($findings.Count -gt 4)
+    {
+        $details = $details + ('; +{0} outro(s)' -f ($findings.Count - 4))
+    }
+
+    return 'Validação estrutural do work-item da sessão falhou: ' + $details
+}
+
 function Test-ChangelogMentionsPaths
 {
     param(
@@ -770,7 +1053,7 @@ function Invoke-ChangelogContractValidation
     $output = @()
     try
     {
-        $arguments = @($python.arguments) + @($validatorPath, $RepoRoot)
+        $arguments = @($python.arguments) + @($validatorPath, '--summary', $RepoRoot)
         $output = & $python.command @arguments 2>&1
         $exitCode = $LASTEXITCODE
     }
@@ -935,6 +1218,10 @@ try
     }
 
     $changelogContractWarning = Invoke-ChangelogContractValidation -RepoRoot $repoRoot -Config $config
+    $workItemContractWarning = Invoke-SessionWorkItemContractValidation `
+        -RepoRoot $repoRoot `
+        -Config $config `
+        -Paths $localChangedPaths
 
     $message = Build-GuardMessage `
         -MatchCount $matchedCommands.Count `
@@ -945,6 +1232,10 @@ try
     if (-not [string]::IsNullOrWhiteSpace($changelogContractWarning))
     {
         $message = ($message.TrimEnd() + ' ' + $changelogContractWarning)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($workItemContractWarning))
+    {
+        $message = ($message.TrimEnd() + ' ' + $workItemContractWarning)
     }
     Write-HookResponse -Message $message
 }

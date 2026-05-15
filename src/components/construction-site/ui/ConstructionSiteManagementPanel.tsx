@@ -7,7 +7,13 @@ import {ConstructionFormScreen} from './ConstructionFormScreen.tsx';
 import {ConstructionListScreen} from './ConstructionListScreen.tsx';
 import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
 import {HousesScreen} from './HousesScreen.tsx';
-import {ConstructionStatusDialog, HouseStatusDialog} from '@/components/construction-site/ui/lib/status-dialogs.tsx';
+import {MonitorFormScreen} from './MonitorFormScreen.tsx';
+import {MonitorsScreen} from './MonitorsScreen.tsx';
+import {
+  ConstructionStatusDialog,
+  HouseStatusDialog,
+  MonitorStatusDialog,
+} from '@/components/construction-site/ui/lib/status-dialogs.tsx';
 import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
@@ -18,6 +24,7 @@ export interface ConstructionSiteManagementPanelProps {
   canOpenRacEditor?: boolean;
   onBackToCanvas?: () => void;
   actions: ConstructionSiteManagementActions;
+  initialScreen?: ConstructionSiteManagementScreen;
 }
 
 export function ConstructionSiteManagementPanel({
@@ -26,6 +33,7 @@ export function ConstructionSiteManagementPanel({
   canOpenRacEditor = false,
   onBackToCanvas,
   actions,
+  initialScreen,
 }: ConstructionSiteManagementPanelProps) {
 
   const navigation = useConstructionSiteManagementNavigation({
@@ -34,6 +42,7 @@ export function ConstructionSiteManagementPanel({
     canOpenRacEditor,
     onBackToCanvas,
     actions,
+    initialScreen,
   });
 
   return (
@@ -74,8 +83,8 @@ export function ConstructionSiteManagementPanel({
             <HeaderAction
               screen={navigation.screen}
               onAddConstruction={() => navigation.setScreen('construction-create')}
-              onManageHouses={navigation.openHouses}
               onAddHouse={navigation.openHouseCreate}
+              onAddMonitor={navigation.openMonitorCreate}
             />
           </div>
         </header>
@@ -85,6 +94,8 @@ export function ConstructionSiteManagementPanel({
             summaries={summaries}
             activeConstructionId={constructionSite?.constructionSite.id}
             onOpenConstruction={navigation.openConstructionDetail}
+            onOpenConstructionHouses={navigation.openConstructionHouses}
+            onOpenConstructionMonitors={navigation.openConstructionMonitors}
             onRequestStatusChange={navigation.requestConstructionStatusChange}
           />
         ) : null}
@@ -122,6 +133,43 @@ export function ConstructionSiteManagementPanel({
               description='Selecione uma Construção TETO na listagem para editar.'
             />
           )
+        ) : null}
+
+        {navigation.screen === 'monitors' ? (
+          constructionSite ? (
+            <MonitorsScreen
+              constructionSite={constructionSite}
+              onEditMonitor={navigation.openMonitorDetail}
+              onRequestMonitorStatusChange={navigation.requestMonitorStatusChange}
+            />
+          ) : (
+            <EmptyState title='Nenhuma construção ativa' description='Crie uma Construção TETO antes de cadastrar monitores.'/>
+          )
+        ) : null}
+
+        {navigation.screen === 'monitor-create' && constructionSite ? (
+          <MonitorFormScreen
+            mode='create'
+            constructionSite={constructionSite}
+            monitor={null}
+            onSave={async (input) => {
+              await actions.createMonitor(input);
+              navigation.showMonitors();
+            }}
+          />
+        ) : null}
+
+        {navigation.screen === 'monitor-detail' && constructionSite && navigation.selectedMonitor ? (
+          <MonitorFormScreen
+            mode='edit'
+            constructionSite={constructionSite}
+            monitor={navigation.selectedMonitor}
+            onSave={(input) => {
+              if (!navigation.selectedMonitor) return;
+              actions.updateMonitor(navigation.selectedMonitor.id, input);
+              navigation.showMonitors();
+            }}
+          />
         ) : null}
 
         {navigation.screen === 'houses' ? (
@@ -176,6 +224,14 @@ export function ConstructionSiteManagementPanel({
           onCancel={navigation.cancelHouseStatusChange}
           onConfirm={() => void navigation.confirmHouseStatusChange()}
         />
+
+        <MonitorStatusDialog
+          open={Boolean(navigation.monitorPendingStatusChange)}
+          monitorName={navigation.pendingMonitorName}
+          action={navigation.pendingMonitorStatusChange?.action ?? 'archive'}
+          onCancel={navigation.cancelMonitorStatusChange}
+          onConfirm={navigation.confirmMonitorStatusChange}
+        />
       </div>
     </main>
   );
@@ -184,13 +240,13 @@ export function ConstructionSiteManagementPanel({
 function HeaderAction({
   screen,
   onAddConstruction,
-  onManageHouses,
   onAddHouse,
+  onAddMonitor,
 }: {
   screen: ConstructionSiteManagementScreen;
   onAddConstruction(): void;
-  onManageHouses(): void | Promise<void>;
   onAddHouse(): void;
+  onAddMonitor(): void;
 }) {
   if (screen === 'construction-list') {
     return (
@@ -200,14 +256,10 @@ function HeaderAction({
     );
   }
 
-  if (screen === 'construction-detail') {
+  if (screen === 'monitors') {
     return (
-      <PrimaryButton
-        type='button'
-        className={HEADER_ACTION_BUTTON_CLASS}
-        onClick={() => void onManageHouses()}
-      >
-        Gerenciar Casas
+      <PrimaryButton type='button' className={HEADER_ACTION_BUTTON_CLASS} onClick={onAddMonitor}>
+        + Adicionar Monitor
       </PrimaryButton>
     );
   }

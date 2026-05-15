@@ -15,7 +15,7 @@ tags: [ refactoring, regression-run ]
 
 ## 1. Identificação e Vínculos
 
-- prompt durável de origem:
+- prompt local da frente:
 - documento principal de refactoring:
 - regression checklist de origem:
 - review de origem:

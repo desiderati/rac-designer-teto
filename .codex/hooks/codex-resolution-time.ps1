@@ -251,7 +251,8 @@ function Handle-SessionStart {
     }
 
     Write-SessionState -Payload $Payload
-    Write-HookResponse
+    $message = 'Contador de tempo de resolu{0}{1}o iniciado.' -f [char]0x00E7, [char]0x00E3
+    Write-HookResponse -Message $message
 }
 
 function Handle-Stop {
