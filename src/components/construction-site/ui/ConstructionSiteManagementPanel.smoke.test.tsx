@@ -86,6 +86,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByRole('combobox', {name: 'Filtrar por status'})).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Ordenar por'})).not.toBeInTheDocument();
     expect(within(constructionMobilePagination).getByText('Mostrando 1-3 de 3 construções')).toBeVisible();
+    expect(within(constructionMobilePagination).queryAllByRole('button')).toHaveLength(0);
+    expect(constructionMobilePagination).toHaveClass('justify-center', 'text-center');
     expect(screen.getAllByRole('button', {name: 'Arquivar construção CC2603'})).toHaveLength(2);
     expect(screen.getAllByRole('button', {name: 'Desarquivar construção CC2605'})).toHaveLength(2);
 
@@ -110,6 +112,85 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByTestId('Filtrar por status-menu')).not.toBeInTheDocument();
     expect(within(screen.getByTestId('construction-mobile-pagination'))
       .getByText('Mostrando 1-1 de 1 construções')).toBeVisible();
+    expect(screen.getByTestId('construction-mobile-pagination')).toHaveClass('justify-center', 'text-center');
+  });
+
+  it('usa paginação mobile numérica compacta na listagem de construções', async () => {
+    const user = userEvent.setup();
+
+    renderPanel({summaries: createPaginatedSummaries(61)});
+
+    const pagination = screen.getByTestId('construction-mobile-pagination');
+    expect(pagination).toHaveClass('justify-between');
+    expect(pagination).not.toHaveClass('justify-center');
+    expect(within(pagination).getByText('Mostrando 1-10 de 61 construções')).toBeVisible();
+    expect(within(pagination).getByRole('navigation', {name: 'Paginação de construções'})).toBeVisible();
+    expect(within(pagination).getByRole('button', {name: 'Página anterior de construções'})).toBeDisabled();
+    expect(within(pagination).getByRole('button', {name: 'Próxima página de construções'})).toBeEnabled();
+    expect(within(pagination).getByRole('button', {name: 'Ir para página 1 de construções'}))
+      .toHaveAttribute('aria-current', 'page');
+    expect(within(pagination).getByRole('button', {name: 'Ir para página 7 de construções'})).toBeVisible();
+    expect(within(pagination).getAllByText('...')).toHaveLength(1);
+
+    await user.click(within(pagination).getByRole('button', {name: 'Ir para página 4 de construções'}));
+
+    const updatedPagination = screen.getByTestId('construction-mobile-pagination');
+    expect(within(updatedPagination).getByText('Mostrando 31-40 de 61 construções')).toBeVisible();
+    expect(within(updatedPagination).getByRole('button', {name: 'Ir para página 4 de construções'}))
+      .toHaveAttribute('aria-current', 'page');
+    expect(within(updatedPagination).getAllByText('...')).toHaveLength(2);
+  });
+
+  it('usa paginação mobile numérica completa na listagem de casas', async () => {
+    const user = userEvent.setup();
+
+    renderPanel({constructionSite: createConstructionSiteWithManyRecords({houseCount: 50})});
+
+    await openConstructionHouses(user);
+
+    const pagination = screen.getByTestId('house-mobile-pagination');
+    expect(within(pagination).getByText('Mostrando 1-10 de 50 casas')).toBeVisible();
+    expect(within(pagination).getByRole('navigation', {name: 'Paginação de casas'})).toBeVisible();
+    expect(within(pagination).getByRole('button', {name: 'Página anterior de casas'})).toBeDisabled();
+    expect(within(pagination).getByRole('button', {name: 'Próxima página de casas'})).toBeEnabled();
+    expect(within(pagination).queryByText('...')).not.toBeInTheDocument();
+
+    for (const pageNumber of [1, 2, 3, 4, 5]) {
+      expect(within(pagination).getByRole('button', {name: `Ir para página ${pageNumber} de casas`})).toBeVisible();
+    }
+
+    await user.click(within(pagination).getByRole('button', {name: 'Ir para página 5 de casas'}));
+
+    const updatedPagination = screen.getByTestId('house-mobile-pagination');
+    expect(within(updatedPagination).getByText('Mostrando 41-50 de 50 casas')).toBeVisible();
+    expect(within(updatedPagination).getByRole('button', {name: 'Ir para página 5 de casas'}))
+      .toHaveAttribute('aria-current', 'page');
+    expect(within(updatedPagination).getByRole('button', {name: 'Próxima página de casas'})).toBeDisabled();
+  });
+
+  it('navega por setas na paginação mobile de monitores', async () => {
+    const user = userEvent.setup();
+
+    renderPanel({constructionSite: createConstructionSiteWithManyRecords({activeMonitorCount: 12})});
+
+    await openConstructionMonitors(user);
+
+    const pagination = screen.getByTestId('monitor-mobile-pagination');
+    expect(within(pagination).getByText('Mostrando 1-10 de 12 monitores')).toBeVisible();
+    expect(within(pagination).getByRole('navigation', {name: 'Paginação de monitores'})).toBeVisible();
+    expect(within(pagination).getByRole('button', {name: 'Página anterior de monitores'})).toBeDisabled();
+    expect(within(pagination).getByRole('button', {name: 'Próxima página de monitores'})).toBeEnabled();
+    expect(within(pagination).getByRole('button', {name: 'Ir para página 1 de monitores'}))
+      .toHaveAttribute('aria-current', 'page');
+
+    await user.click(within(pagination).getByRole('button', {name: 'Próxima página de monitores'}));
+
+    const updatedPagination = screen.getByTestId('monitor-mobile-pagination');
+    expect(within(updatedPagination).getByText('Mostrando 11-12 de 12 monitores')).toBeVisible();
+    expect(within(updatedPagination).getByRole('button', {name: 'Página anterior de monitores'})).toBeEnabled();
+    expect(within(updatedPagination).getByRole('button', {name: 'Próxima página de monitores'})).toBeDisabled();
+    expect(within(updatedPagination).getByRole('button', {name: 'Ir para página 2 de monitores'}))
+      .toHaveAttribute('aria-current', 'page');
   });
 
   it('abre edição pelos cards mobile de construções sem adicionar navegação mobile', async () => {
@@ -301,6 +382,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(houseMobileList).getByText('Família Souza')).toBeVisible();
     expect(within(houseMobileList).getAllByText('Tipo 6')[0]).toBeVisible();
     expect(within(houseMobilePagination).getByText('Mostrando 1-3 de 3 casas')).toBeVisible();
+    expect(within(houseMobilePagination).queryAllByRole('button')).toHaveLength(0);
+    expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
     expect(screen.getAllByText('Família Arquivada')[0]).toBeVisible();
     const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*RAC Impressa/i});
     expect(within(houseRow).getByText('RAC Impressa').closest('td')).toHaveClass('text-center');
@@ -324,6 +407,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.queryByTestId('Filtrar casas por status-menu')).not.toBeInTheDocument();
     expect(within(houseMobilePagination).getByText('Mostrando 1-1 de 1 casas')).toBeVisible();
+    expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
   });
 
   it('lista monitores ativos por padrão e reativa inativos pelo filtro de status', async () => {
@@ -337,6 +421,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: 'Monitores - CC2603 · Tiradentes'})).toBeVisible();
     expect(screen.getByRole('button', {name: '+ Adicionar Monitor'})).toBeVisible();
     expect(screen.queryByText('No. Monitores')).not.toBeInTheDocument();
+    const monitorMobilePagination = screen.getByTestId('monitor-mobile-pagination');
+    expect(within(monitorMobilePagination).queryAllByRole('button')).toHaveLength(0);
+    expect(monitorMobilePagination).toHaveClass('justify-center', 'text-center');
     expect(screen.getByRole('row', {name: /Ana Monitoria.*Ativo.*\(11\) 99999-0000/i})).toBeVisible();
     expect(screen.queryByText('Bruno Inativo')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Filtrar monitores por status'})).not.toBeInTheDocument();
@@ -889,6 +976,83 @@ function createSummaries(): ConstructionSiteSummary[] {
       updatedAt: '2026-05-07T18:30:00.000Z',
     },
   ];
+}
+
+function createPaginatedSummaries(count: number): ConstructionSiteSummary[] {
+  return Array.from({length: count}, (_, index) => {
+    const pageNumber = index + 1;
+    const date = new Date(Date.UTC(2026, 0, count - index, 12)).toISOString().slice(0, 10);
+    const code = `CC${String(3000 + pageNumber).padStart(4, '0')}`;
+
+    return {
+      id: `construction_site_page_${pageNumber}`,
+      label: `${code} · Comunidade ${pageNumber}`,
+      externalCode: code,
+      constructionDate: date,
+      communityName: `Comunidade ${pageNumber}`,
+      status: 'in_progress',
+      activeHouseId: `house_page_${pageNumber}`,
+      houseCount: 1,
+      familyCount: 1,
+      updatedAt: `${date}T12:00:00.000Z`,
+    };
+  });
+}
+
+function createConstructionSiteWithManyRecords({
+  houseCount = 3,
+  activeMonitorCount = 1,
+}: {
+  houseCount?: number;
+  activeMonitorCount?: number;
+}): ConstructionSiteState {
+  const state = createConstructionSite();
+  const now = '2026-05-09T12:00:00.000Z';
+
+  state.families = Array.from({length: houseCount}, (_, index) => {
+    const number = String(index + 1).padStart(2, '0');
+    return {
+      ...state.families[index % state.families.length],
+      id: `family_page_${number}`,
+      constructionSiteId: state.constructionSite.id,
+      communityId: 'community_1',
+      name: `Família ${number}`,
+      primaryContactName: `Contato ${number}`,
+      photoDataUrl: undefined,
+    };
+  });
+  state.houses = Array.from({length: houseCount}, (_, index) => {
+    const number = String(index + 1).padStart(2, '0');
+    return {
+      ...state.houses[index % state.houses.length],
+      id: `house_page_${number}`,
+      constructionSiteId: state.constructionSite.id,
+      familyId: `family_page_${number}`,
+      communityId: 'community_1',
+      houseType: index % 2 === 0 ? 'tipo6' : 'tipo3',
+      status: 'draft',
+      createdAt: now,
+      updatedAt: new Date(Date.UTC(2026, 0, houseCount - index, 12)).toISOString(),
+    };
+  });
+  state.constructionSite.activeHouseId = 'house_page_01';
+  state.monitors = Array.from({length: activeMonitorCount}, (_, index) => {
+    const number = String(index + 1).padStart(2, '0');
+    return {
+      ...state.monitors[0],
+      id: `monitor_page_${number}`,
+      constructionSiteId: state.constructionSite.id,
+      name: `Monitor ${number}`,
+      phone: `(11) 99999-${String(index).padStart(4, '0')}`,
+      email: index % 2 === 0 ? `monitor${number}@example.com` : undefined,
+      photoDataUrl: undefined,
+      status: 'active',
+      createdAt: now,
+      updatedAt: new Date(Date.UTC(2026, 0, activeMonitorCount - index, 12)).toISOString(),
+    };
+  });
+
+  return state;
 }
 
 function createConstructionSite(): ConstructionSiteState {

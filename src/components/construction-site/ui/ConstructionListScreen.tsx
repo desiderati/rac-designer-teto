@@ -22,6 +22,7 @@ import {
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {
   EmptyState,
+  MobilePagination,
   PaginationButton,
   RoundIconActionButton,
   StatusActionButton,
@@ -154,28 +155,14 @@ export function ConstructionListScreen({
         ))}
       </div>
 
-      <div
-        data-testid='construction-mobile-pagination'
-        className='flex items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:hidden'
-      >
-        <span>{formatPaginationText(firstIndex, lastIndex, filteredSummaries.length)}</span>
-        <div className='flex items-center gap-1'>
-          <PaginationButton
-            aria-label='Página anterior'
-            disabled={normalizedPage <= 1}
-            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-          >
-            ‹
-          </PaginationButton>
-          <PaginationButton
-            aria-label='Próxima página'
-            disabled={normalizedPage >= pageCount}
-            onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
-          >
-            ›
-          </PaginationButton>
-        </div>
-      </div>
+      <MobilePagination
+        testId='construction-mobile-pagination'
+        text={formatPaginationText(firstIndex, lastIndex, filteredSummaries.length)}
+        page={normalizedPage}
+        pageCount={pageCount}
+        entityLabel='construções'
+        onPageChange={setPage}
+      />
 
       {!filteredSummaries.length ? (
         <EmptyState

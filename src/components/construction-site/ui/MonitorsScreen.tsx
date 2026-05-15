@@ -27,6 +27,7 @@ import {
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {
   EmptyState,
+  MobilePagination,
   PaginationButton,
   StatusActionButton,
   VisualSelect,
@@ -143,28 +144,14 @@ export function MonitorsScreen({
         ))}
       </div>
 
-      <div
-        data-testid='monitor-mobile-pagination'
-        className='flex items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:hidden'
-      >
-        <span>{formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}</span>
-        <div className='flex items-center gap-1'>
-          <PaginationButton
-            aria-label='Página anterior de monitores'
-            disabled={normalizedPage <= 1}
-            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-          >
-            ‹
-          </PaginationButton>
-          <PaginationButton
-            aria-label='Próxima página de monitores'
-            disabled={normalizedPage >= pageCount}
-            onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
-          >
-            ›
-          </PaginationButton>
-        </div>
-      </div>
+      <MobilePagination
+        testId='monitor-mobile-pagination'
+        text={formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}
+        page={normalizedPage}
+        pageCount={pageCount}
+        entityLabel='monitores'
+        onPageChange={setPage}
+      />
 
       {!filteredMonitors.length ? (
         <EmptyState

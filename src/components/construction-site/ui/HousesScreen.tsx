@@ -25,7 +25,13 @@ import {
   getHouseFamilyName,
   getHouseInitials,
 } from '@/components/construction-site/ui/lib/view-model.ts';
-import {EmptyState, PaginationButton, StatusActionButton, VisualSelect} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {
+  EmptyState,
+  MobilePagination,
+  PaginationButton,
+  StatusActionButton,
+  VisualSelect,
+} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 
 export function HousesScreen({
   constructionSite,
@@ -155,28 +161,14 @@ export function HousesScreen({
         ))}
       </div>
 
-      <div
-        data-testid='house-mobile-pagination'
-        className='flex items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:hidden'
-      >
-        <span>{formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}</span>
-        <div className='flex items-center gap-1'>
-          <PaginationButton
-            aria-label='Página anterior de casas'
-            disabled={normalizedPage <= 1}
-            onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-          >
-            ‹
-          </PaginationButton>
-          <PaginationButton
-            aria-label='Próxima página de casas'
-            disabled={normalizedPage >= pageCount}
-            onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
-          >
-            ›
-          </PaginationButton>
-        </div>
-      </div>
+      <MobilePagination
+        testId='house-mobile-pagination'
+        text={formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}
+        page={normalizedPage}
+        pageCount={pageCount}
+        entityLabel='casas'
+        onPageChange={setPage}
+      />
 
       {!filteredHouses.length ? (
         <EmptyState

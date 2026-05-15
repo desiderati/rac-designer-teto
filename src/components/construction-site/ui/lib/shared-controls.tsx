@@ -336,6 +336,149 @@ export function PaginationButton(props: ButtonHTMLAttributes<HTMLButtonElement>)
   );
 }
 
+export function MobilePagination({
+  text,
+  page,
+  pageCount,
+  entityLabel,
+  onPageChange,
+  testId,
+}: {
+  text: string;
+  page: number;
+  pageCount: number;
+  entityLabel: string;
+  onPageChange(page: number): void;
+  testId?: string;
+}) {
+  const paginationItems = pageCount > 1 ? getMobilePaginationItems(page, pageCount) : [];
+  const hasPagination = paginationItems.length > 0;
+
+  return (
+    <div
+      data-testid={testId}
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-slate-500 sm:hidden',
+        hasPagination ? 'justify-between' : 'justify-center text-center',
+      )}
+    >
+      <span className={cn('min-w-fit', hasPagination ? null : 'w-full')}>{text}</span>
+      {hasPagination ? (
+        <nav aria-label={`Paginação de ${entityLabel}`} className='flex shrink-0 items-center gap-1'>
+          <MobilePaginationArrow
+            label={`Página anterior de ${entityLabel}`}
+            disabled={page <= 1}
+            onClick={() => onPageChange(Math.max(1, page - 1))}
+          >
+            ‹
+          </MobilePaginationArrow>
+          {paginationItems.map((item) => item.kind === 'ellipsis' ? (
+            <span
+              key={item.key}
+              aria-hidden='true'
+              className='grid h-7 w-4 place-items-center text-xs font-bold text-slate-300'
+            >
+              ...
+            </span>
+          ) : (
+            <button
+              key={item.page}
+              type='button'
+              aria-label={`Ir para página ${item.page} de ${entityLabel}`}
+              aria-current={item.page === page ? 'page' : undefined}
+              onClick={() => onPageChange(item.page)}
+              className={cn(
+                'grid h-7 w-7 cursor-pointer place-items-center rounded-full text-xs font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+                item.page === page
+                  ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
+                  : 'bg-blue-50 text-slate-600 hover:bg-blue-100 hover:text-blue-700',
+              )}
+            >
+              {item.page}
+            </button>
+          ))}
+          <MobilePaginationArrow
+            label={`Próxima página de ${entityLabel}`}
+            disabled={page >= pageCount}
+            onClick={() => onPageChange(Math.min(pageCount, page + 1))}
+          >
+            ›
+          </MobilePaginationArrow>
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
+type MobilePaginationItem =
+  | {kind: 'page'; page: number}
+  | {kind: 'ellipsis'; key: string};
+
+function getMobilePaginationItems(page: number, pageCount: number): MobilePaginationItem[] {
+  if (pageCount <= 5) {
+    return Array.from({length: pageCount}, (_, index) => ({kind: 'page', page: index + 1}));
+  }
+
+  if (page <= 3) {
+    return [
+      {kind: 'page', page: 1},
+      {kind: 'page', page: 2},
+      {kind: 'page', page: 3},
+      {kind: 'page', page: 4},
+      {kind: 'ellipsis', key: 'end'},
+      {kind: 'page', page: pageCount},
+    ];
+  }
+
+  if (page >= pageCount - 2) {
+    return [
+      {kind: 'page', page: 1},
+      {kind: 'ellipsis', key: 'start'},
+      {kind: 'page', page: pageCount - 3},
+      {kind: 'page', page: pageCount - 2},
+      {kind: 'page', page: pageCount - 1},
+      {kind: 'page', page: pageCount},
+    ];
+  }
+
+  return [
+    {kind: 'page', page: 1},
+    {kind: 'ellipsis', key: 'start'},
+    {kind: 'page', page: page - 1},
+    {kind: 'page', page},
+    {kind: 'page', page: page + 1},
+    {kind: 'ellipsis', key: 'end'},
+    {kind: 'page', page: pageCount},
+  ];
+}
+
+function MobilePaginationArrow({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick(): void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type='button'
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        'grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-blue-50 text-base font-bold text-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        disabled ? 'cursor-not-allowed bg-blue-50/60 text-slate-300' : 'hover:bg-blue-100',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function EmptyState({title, description}: { title: string; description: string }) {
   return (
     <section className='mt-4 rounded-lg border border-dashed border-slate-300 bg-white/70 p-8 text-center'>
