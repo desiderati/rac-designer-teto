@@ -439,7 +439,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState {
-    this.state = createConstructionSiteState(input);
+    const externalCode = requireConstructionCode(input.externalCode);
+    if (this.hasConstructionCode(externalCode)) {
+      throw new Error('Já existe uma Construção TETO com este código.');
+    }
+
+    this.state = createConstructionSiteState({...input, externalCode});
     this.constructionSites.push(this.state);
     this.persist();
     return this.state;
@@ -797,6 +802,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     }
 
     this.storage.write(this.constructionSites);
+  }
+
+  private hasConstructionCode(externalCode: string): boolean {
+    return this.constructionSites.some((constructionSite) => (
+      normalizeConstructionCode(constructionSite.constructionSite.externalCode) === externalCode
+    ));
   }
 
   private resolveInitialConstructionSite(): ConstructionSiteState | null {

@@ -104,6 +104,7 @@ export function ConstructionSiteManagementPanel({
           <ConstructionFormScreen
             mode='create'
             externalCode=''
+            unavailableExternalCodes={summaries.map((summary) => summary.externalCode.trim().toUpperCase())}
             photoDataUrl=''
             constructionDate=''
             communityName=''

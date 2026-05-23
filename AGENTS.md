@@ -184,3 +184,9 @@ If the session used an active `.agents/work-items/` record and the task has
 ended, reconcile that work-item before the final response: mark it concluded,
 canceled, interrupted, or leave it active with a concrete handoff and retention
 reason. Do not wait for the user to ask for this close-out explicitly.
+
+<!-- knowledge-base:start -->
+## Knowledge Base
+
+@KNOWLEDGE_BASE.md
+<!-- knowledge-base:end -->

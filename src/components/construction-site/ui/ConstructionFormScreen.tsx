@@ -28,6 +28,7 @@ import {formatDateOnly, parseDateOnly, toDateOnly} from '@/components/constructi
 export function ConstructionFormScreen({
   mode,
   externalCode,
+  unavailableExternalCodes = [],
   photoDataUrl,
   constructionDate,
   communityName,
@@ -35,6 +36,7 @@ export function ConstructionFormScreen({
 }: {
   mode: 'create' | 'edit';
   externalCode: string;
+  unavailableExternalCodes?: string[];
   photoDataUrl: string;
   constructionDate: string;
   communityName: string;
@@ -62,8 +64,17 @@ export function ConstructionFormScreen({
   }, [communityName, constructionDate, externalCode, form, photoDataUrl]);
 
   const submitForm = form.handleSubmit(async (values) => {
+    const normalizedExternalCode = values.externalCode.trim().toUpperCase();
+    if (mode === 'create' && unavailableExternalCodes.includes(normalizedExternalCode)) {
+      form.setError('externalCode', {
+        type: 'validate',
+        message: 'Já existe uma Construção TETO com este código.',
+      });
+      return;
+    }
+
     const input: CreateConstructionSiteInput & UpdateConstructionSiteInput = {
-      externalCode: values.externalCode.trim().toUpperCase(),
+      externalCode: normalizedExternalCode,
       photoDataUrl: values.photoDataUrl || undefined,
       constructionDate: values.constructionDate,
       communityName: values.communityName.trim(),

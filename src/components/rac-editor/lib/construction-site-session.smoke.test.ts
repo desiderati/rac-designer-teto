@@ -122,6 +122,24 @@ describe('constructionSite-session.ts', () => {
     expect(session.getConstructionSiteSummaries()[0].constructionDate).toBe('2026-05-11');
   });
 
+  it('bloqueia criação de construção com código da CC já cadastrado', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+
+    session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+
+    expect(() => session.createConstructionSite({
+      externalCode: ' cc2603 ',
+      constructionDate: '2026-05-12',
+      communityName: 'Nova Comunidade',
+    })).toThrow('Já existe uma Construção TETO com este código.');
+    expect(session.getConstructionSiteSummaries()).toHaveLength(1);
+  });
+
   it('rotula casas pela família associada, sem nome próprio persistido', () => {
     const {storage} = createStorage();
     const session = createConstructionSiteSession(storage);

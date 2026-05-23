@@ -224,7 +224,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('construction-form-grid').className).toContain('md:grid-cols-2');
     expect(screen.getByLabelText('Data da Construção')).toBeVisible();
 
-    fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'CC2605'}});
+    fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'CC2606'}});
     fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'Tiradentes'}});
     await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
 
@@ -240,7 +240,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
 
     expect(actions.createConstructionSite).toHaveBeenCalledWith({
-      externalCode: 'CC2605',
+      externalCode: 'CC2606',
       photoDataUrl: undefined,
       constructionDate: '2026-05-15',
       communityName: 'Tiradentes',
@@ -265,6 +265,30 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('Informe o código no formato CC0000.')).toBeVisible();
     expect(screen.getByText('Informe a data da construção.')).toBeVisible();
     expect(screen.getByText('Máximo de 50 caracteres.')).toBeVisible();
+  });
+
+  it('bloqueia criação de construção com código já cadastrado', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+
+    fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'cc2603'}});
+    fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'Nova Comunidade'}});
+    fireEvent.click(screen.getByLabelText('Data da Construção'));
+    const calendar = await screen.findByTestId('construction-date-picker-calendar');
+    const day15 = within(calendar).queryByRole('button', {name: /15/})
+      ?? within(calendar).queryByRole('gridcell', {name: /15/});
+    expect(day15).toBeDefined();
+    fireEvent.click(day15 as HTMLElement);
+
+    await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
+
+    expect(actions.createConstructionSite).not.toHaveBeenCalled();
+    expect(screen.getByText('Já existe uma Construção TETO com este código.')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
   });
 
   it('seleciona Data da Construção pelo Date Picker e salva a edição', async () => {
