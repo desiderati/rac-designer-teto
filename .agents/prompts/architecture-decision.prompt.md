@@ -76,7 +76,8 @@
       - ADR naming: ADR-NNN-{slug}.md
       - ADR template: `.agents/templates/architecture-decision.template.md`
       - status values: `proposed`, `accepted`, `deprecated`, `superseded`
-      - optional validator: `documentation/scripts/validate_adr_records.py`
+      - architecture decision validator: `.agents/scripts/validate_architecture_decisions.py`
+      - fallback validator: `documentation/scripts/validate_architecture_decisions.py` when the repo-local validator is absent
 
     Materialize `docs/architecture-decisions/` only when creating the first ADR.
     If local docs define a stricter ADR convention, follow the local convention.
@@ -104,7 +105,7 @@
          related artifacts, deferred evolutions, review conditions, and references.
       7. Update `OBSIDIAN.md` only with a localized index link when the repository uses it as the knowledge-base index.
       8. Record the documentation work in the changelog when repository policy requires it.
-      9. Validate path-like claims and ADR structure when validators exist.
+      9. Validate path-like claims and ADR structure when validators exist, preferring the repo-local ADR validator.
   </process>
 
   <output_format>

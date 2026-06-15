@@ -23,3 +23,11 @@ vendor/
 AGENTS.md
 CLAUDE.md
 OBSIDIAN.md
+.agents/councils/
+.agents/council-sessions/
+.agents/pruning-reports/
+.agents/releases/
+.agents/scripts/
+.agents/worktrees/
+.agents/errors.md
+.worktrees/

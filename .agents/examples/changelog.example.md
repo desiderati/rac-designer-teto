@@ -1,7 +1,7 @@
 # Worked Examples for `changelog.prompt.md`
 
 > Installed by `agents-bootstrap` as `.agents/examples/changelog.example.md`.
-> In standalone `changelog` skill mode, this file lives at `scaffold/examples/changelog.example.md`.
+> In standalone `changelog` skill mode, this file lives at `scaffold/dot-agents/examples/changelog.example.md`.
 > Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
 > Do not load this file by default during normal prompt execution.
 

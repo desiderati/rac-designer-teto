@@ -55,7 +55,7 @@
         ## Regra de fonte de verdade
 
         - o `work-item` continua sendo a âncora primária de continuidade local
-        - changelog continua sendo o registro factual versionado quando aplicável
+        - changelog continua sendo o registro factual local quando aplicável
         - review e refactoring continuam com artefatos próprios, fora dos JSONs auxiliares
         - os JSONs do sidecar são auxiliares e derivados
         - `task-plan.json` não nasce por reflexo; ele só existe quando vale a pena

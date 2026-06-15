@@ -1,7 +1,7 @@
 # Worked Examples for `readme.prompt.md`
 
 > Use this file only when you need calibration for tone, structure, anti-patterns, or output shape.
-> In the standalone skill, this file lives under `scaffold/examples/readme.example.md`.
+> In the standalone skill, this file lives under `scaffold/dot-agents/examples/readme.example.md`.
 > When installed by `agents-bootstrap`, it is copied to `.agents/examples/readme.example.md`.
 
   <examples>
@@ -95,9 +95,7 @@
         Se no futuro a separação read/write exigir configuração adicional (ex: connection
         strings separadas para réplica de leitura), o README deverá ser revisado nesse momento.
 
-        ## 6. Destino Alternativo
-
-        Se houver necessidade de documentar a motivação da refatoração, o local adequado
+        Destino alternativo: se houver necessidade de documentar a motivação da refatoração, o local adequado
         é o changelog ou uma nota na knowledge base — não o README.
       </content>
       <why>

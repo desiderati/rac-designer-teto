@@ -48,3 +48,10 @@ graphify-out/
 
 /tmp/
 /output/
+.agents/council-sessions/
+.agents/pruning-reports/
+.agents/releases/
+.agents/worktrees/
+.agents/errors.md
+.codex/hooks/resolution-time/state/
+.codex/hooks/self-improvement-observer/state/

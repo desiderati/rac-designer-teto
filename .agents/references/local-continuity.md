@@ -9,11 +9,12 @@
 ├── prompts/
 ├── references/
 ├── templates/
-└── work-items/
-CONTRIBUTING.md
-OBSIDIAN.md
+├── work-items/
+└── errors.md (optional local-only; created lazily)
 docs/
 └── architecture-decisions/
+CONTRIBUTING.md
+OBSIDIAN.md
 README.md
 ```
 
@@ -22,16 +23,25 @@ Optional durable directories when the repository adopts those conventions:
 ```text
 .agents/bug-analysis/
 .agents/incidents/
+.agents/production-changes/
 .agents/security-analysis/
 .agents/security-scans/
 .agents/security-reviews/
+.agents/superpowers/
 ```
 
 Optional local-only directories when the repository adopts those conventions:
 
 ```text
 .agents/code-reviews/
+.agents/council-sessions/
 .agents/refactorings/
+```
+
+Optional local-only file:
+
+```text
+.agents/errors.md
 ```
 
 ### Directory purposes
@@ -39,66 +49,9 @@ Optional local-only directories when the repository adopts those conventions:
 - `.agents/changelogs/`
     - factual daily record of relevant technical work, decisions, evidence, validations, and pending items
 
-- `.agents/bug-analysis/`
-    - optional, versioned records of bug analyses, regressions and technical defect investigations
-    - durable operational memory for context, expected versus actual flow, ranked hypotheses, validation and
-      recommended or applied correction
-    - if the analysis needs supporting files, keep them in a sidecar such as
-      `yyyyMMdd-{bug-slug}.bug-analysis.assets/` beside the main document
-    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
-    - reusable learning should later be consolidated into `docs/`, guidelines or tests without deleting the original
-      case record
-
-- `.agents/incidents/`
-    - optional, versioned incident records and concrete postmortems
-    - durable operational memory for specific cases, preserving timeline, evidence, hypotheses, validation, and
-      follow-up
-    - if the incident needs non-Markdown evidence files, keep them in a sidecar such as
-      `yyyyMMdd-{incident-slug}.incident.assets/` beside the main document
-    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
-    - reusable learning extracted from these cases should later be consolidated into `docs/`, runbooks, guidelines, or
-      other canonical notes without deleting the case record
-
-- `.agents/security-analysis/`, `.agents/security-scans/`, `.agents/security-reviews/`
-    - optional, versioned and sanitized records for security advisor findings, broad security scans, and contextual
-      security reviews
-    - durable operational memory for concrete security investigations, preserving scope, masked evidence, severity,
-      limits of analysis, false positives, and follow-up decisions
-    - if the security record needs supporting files, keep them in a sidecar such as
-      `yyyyMMdd-hhmm-{security-slug}.security-analysis.assets/` beside the main document
-    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
-    - must never contain complete secrets, private keys, session cookies, sensitive personal data, or intact financial
-      payloads
-    - reusable learning should later be consolidated into `docs/security/`, runbooks, guardrails, or tests without
-      deleting the original case record
-
-- `.agents/code-reviews/`
-    - optional, local, gitignored records of structured code reviews kept beyond the current session
-    - local diagnostic memory for findings, severity, scope, and recommendations tied to a concrete review pass
-    - if the review needs supporting files, keep them in a sidecar such as
-      `yyyyMMdd-hhmm-{review-slug}.code-review.assets/` beside the main document
-    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
-    - reusable conclusions should later be consolidated into `docs/`, guidelines, or follow-up implementation work
-      without treating the original local review as a documentary source
-
-- `.agents/refactorings/`
-    - optional, local, gitignored workspace for refactoring fronts, prompts, heuristics, execution records, and
-      regression artifacts
-    - local operational memory for what was planned, executed, validated, and which ADR recommendation remained at
-      close-out
-    - `prompts/` stores per-front prompts as `refactoring-{resource-slug}.prompt.md`
-    - `prompts/.archived/YYYY-MM/` stores aged prompts retired by local retention policy
-    - `heuristics/` stores reusable local heuristics with no TTL by default
-    - `YYYY-MM/` stores execution records, regression artifacts, and sidecars when the round keeps local continuity
-    - if the local refactoring record needs supporting files, keep them in a sidecar such as
-      `yyyyMMdd-hhmm-{refactoring-slug}.refactoring.assets/` beside the main document
-    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
-    - reusable lessons should later be consolidated into `docs/`, promoted to
-      `docs/architecture-decisions/` as ADRs when they encode architectural decisions, or captured as guidelines
-      without treating the local record itself as canonical documentation
-
-- `.agents/templates/`
-    - reusable templates for changelogs, work-items, knowledge-base notes, and other structured outputs
+- `.agents/examples/`
+    - versioned worked examples for prompts
+    - read only on demand, when the agent needs calibration for depth, structure, anti-patterns, or output shape
 
 - `.agents/prompts/`
     - specialized prompts for execution by task type
@@ -108,9 +61,8 @@ Optional local-only directories when the repository adopts those conventions:
     - source of detailed workflow contracts that would make the root
       `AGENTS.md` too large
 
-- `.agents/examples/`
-    - versioned worked examples for prompts
-    - read only on demand, when the agent needs calibration for depth, structure, anti-patterns, or output shape
+- `.agents/templates/`
+    - reusable templates for changelogs, work-items, knowledge-base notes, and other structured outputs
 
 - `.agents/work-items/`
     - local, gitignored operational workspace for tasks that carry real continuity risk or local-only operational
@@ -132,18 +84,123 @@ Optional local-only directories when the repository adopts those conventions:
       the primary continuity anchor
     - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
 
+- `.agents/errors.md`
+    - optional, local, gitignored memory for clear agent execution errors evidenced by the user or transcript
+    - create lazily only when there is a real agent error to record; do not create it as a routine startup artifact
+    - use for mistakes such as acting without required confirmation, corrupting user-authored content, fabricating a
+      fact, using the wrong target, or repeating an execution path after the user showed it was wrong
+    - do not use for normal debugging attempts, failing tests in a TDD cycle, external service instability, or
+      well-reasoned approaches that were discarded after new evidence
+    - entries should be short and factual: date, agent/tool when known, what was done wrong, evidence, correction,
+      prevention note, and optional plain local paths to related work-items or changelogs
+    - Do not index `.agents/errors.md` in `OBSIDIAN.md`; promote only sanitized, recurring learning into `docs/` or
+      repository guardrails when it becomes durable knowledge
+
+- `.agents/bug-analysis/`
+    - optional, versioned records of bug analyses, regressions and technical defect investigations
+    - durable operational memory for context, expected versus actual flow, ranked hypotheses, validation and
+      recommended or applied correction
+    - if the analysis needs supporting files, keep them in a sidecar such as
+      `yyyyMMdd-{bug-slug}.bug-analysis.assets/` beside the main document
+    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
+    - reusable learning should later be consolidated into `docs/`, guidelines or tests without deleting the original
+      case record
+
+- `.agents/incidents/`
+    - optional, versioned incident records and concrete postmortems
+    - durable operational memory for specific cases, preserving timeline, evidence, hypotheses, validation, and
+      follow-up
+    - if the incident needs non-Markdown evidence files, keep them in a sidecar such as
+      `yyyyMMdd-{incident-slug}.incident.assets/` beside the main document
+    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
+    - reusable learning extracted from these cases should later be consolidated into `docs/`, runbooks, guidelines, or
+      other canonical notes without deleting the case record
+
+- `.agents/production-changes/`
+    - optional, versioned production change records created after explicitly authorized state-changing production
+      actions
+    - use `.agents/templates/production-changes.template.md` and write records under
+      `.agents/production-changes/YYYY-MM/YYYYMMDD-{slug}.production-change.md`
+    - record what actually happened after execution, including authorization, affected resources/files/configuration,
+      evidence, validation, risk, rollback, and pending follow-up
+    - must never contain complete secrets, tokens, cookies, private keys, sensitive personal data, intact financial
+      payloads, or raw logs containing credentials
+    - mask credential-like values and keep only the minimum non-sensitive evidence needed to support the audit
+    - include the compact `Production audit:` section in the final chat response for the same mutation, with bullets
+      written in the final response language and one item per executed action, affected target, and observed result;
+      those bullets must also be sanitized and must not paste raw command output
+    - do not create the production change record before the mutation, because it is an audit record, not an approval
+      request
+    - when `.agents/scripts/validate_production_changes.py` is available, run it before final close-out whenever
+      the record contains command, log, link, screenshot, payload, or configuration evidence
+    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
+    - reusable learning should later be consolidated into `docs/`, runbooks, guidelines, or other canonical notes
+      without deleting the original change record
+
+- `.agents/security-analysis/`, `.agents/security-scans/`, `.agents/security-reviews/`
+    - optional, versioned and sanitized records for security advisor findings, broad security scans, and contextual
+      security reviews
+    - durable operational memory for concrete security investigations, preserving scope, masked evidence, severity,
+      limits of analysis, false positives, and follow-up decisions
+    - if the security record needs supporting files, keep them in a sidecar such as
+      `yyyyMMdd-hhmm-{security-slug}.security-analysis.assets/` beside the main document
+    - may be indexed from `OBSIDIAN.md` when the repository treats those records as durable documentary sources
+    - must never contain complete secrets, private keys, session cookies, sensitive personal data, or intact financial
+      payloads
+    - reusable learning should later be consolidated into `docs/security/`, runbooks, guardrails, or tests without
+      deleting the original case record
+
+- `.agents/superpowers/`
+    - optional, versioned operational workspace for artifacts produced by the Superpowers skill suite
+    - when using Superpowers Skill in this repository, override the upstream default path and write files under
+      `.agents/superpowers/<subdir>/`
+    - preserve the upstream subdirectory intent below that root, such as `specs/`, `plans/`, or any future
+      Superpowers-specific output class
+    - promote to `docs/` only when the file becomes durable repository knowledge, policy, ADR, or runbook material
+
+- `.agents/code-reviews/`
+    - optional, local, gitignored records of structured code reviews kept beyond the current session
+    - local diagnostic memory for findings, severity, scope, and recommendations tied to a concrete review pass
+    - if the review needs supporting files, keep them in a sidecar such as
+      `yyyyMMdd-hhmm-{review-slug}.code-review.assets/` beside the main document
+    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
+    - reusable conclusions should later be consolidated into `docs/`, guidelines, or follow-up implementation work
+      without treating the original local review as a documentary source
+
+- `.agents/council-sessions/`
+    - optional, local, gitignored workspace for Council of Agents outputs
+    - stores `council-report-[timestamp].html` and
+      `council-transcript-[timestamp].md`, usually under `YYYY-MM/`
+    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
+    - reusable decisions should be promoted separately to `docs/`, ADRs, PRDs,
+      plans, or changelogs when they become durable project knowledge
+
+- `.agents/refactorings/`
+    - optional, local, gitignored workspace for refactoring fronts, prompts, heuristics, execution records, and
+      regression artifacts
+    - local operational memory for what was planned, executed, validated, and which ADR recommendation remained at
+      close-out
+    - `prompts/` stores per-front prompts as `refactoring-{resource-slug}.prompt.md`
+    - `prompts/.archived/YYYY-MM/` stores aged prompts retired by local retention policy
+    - `heuristics/` stores reusable local heuristics with no TTL by default
+    - `YYYY-MM/` stores execution records, regression artifacts, and sidecars when the round keeps local continuity
+    - if the local refactoring record needs supporting files, keep them in a sidecar such as
+      `yyyyMMdd-hhmm-{refactoring-slug}.refactoring.assets/` beside the main document
+    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
+    - reusable lessons should later be consolidated into `docs/`, promoted to
+      `docs/architecture-decisions/` as ADRs when they encode architectural decisions, or captured as guidelines
+      without treating the local record itself as canonical documentation
+
+- `.obsidian/`
+    - optional local metadata for the Obsidian app; personal, local, and not versioned
+
 - `OBSIDIAN.md`
     - optional versioned entrypoint for the navigable knowledge base of the repository
     - must not index `AGENTS.md`, `CLAUDE.md`, or the ephemeral operational layer under `.agents/`, such as
-      `prompts/`, `references/`, `templates/`, `examples/`, `changelogs/`, and `work-items/`
+      `prompts/`, `references/`, `templates/`, `examples/`, `changelogs/`, `errors.md`, and `work-items/`
     - `.agents/bug-analysis/`, `.agents/incidents/`, `.agents/security-analysis/`, `.agents/security-scans/`, and
       `.agents/security-reviews/`, when adopted as versioned documentary sources for concrete cases, are allowed
       exceptions
-
-- `CONTRIBUTING.md`
-    - optional versioned baseline for contribution rules and commit message conventions
-    - should stay portable and minimal when distributed by bootstrap
-    - when the repository has more specific contribution rules elsewhere, the local canonical contract should prevail
 
 - versioned knowledge base
     - usually lives under `docs/` by default when the repository keeps a versioned knowledge base
@@ -154,8 +211,10 @@ Optional local-only directories when the repository adopts those conventions:
     - naming convention: `ADR-NNN-{slug}.md`
     - if an ADR needs supporting files, keep them beside the document in `ADR-NNN-{slug}.assets/`
 
-- `.obsidian/`
-    - optional local metadata for the Obsidian app; personal, local, and not versioned
+- `CONTRIBUTING.md`
+    - optional versioned baseline for contribution rules and commit message conventions
+    - should stay portable and minimal when distributed by bootstrap
+    - when the repository has more specific contribution rules elsewhere, the local canonical contract should prevail
 
 - `README.md`
     - file containing the project description and setup instructions
@@ -169,19 +228,21 @@ Before non-trivial analysis or execution:
 1. Read `README.md` if it exists
 2. Read `CONTRIBUTING.md` if it exists
 3. Read `OBSIDIAN.md` if it exists
-4. Check relevant docs referenced from `OBSIDIAN.md` when that file exists
-5. Check recent `.agents/changelogs/` entries when they help explain current constraints, previous attempts,
-   or pending issues
-6. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous defect history or bug continuity
-   matters
-7. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident history or case continuity matters
-8. Check relevant local `.agents/code-reviews/YYYY-MM/*.code-review.md` records when previous review history or review
-   continuity matters
-9. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous refactoring history or front
-   continuity matters
-10. If continuing a task with an active or otherwise relevant `.agents/work-items/YYYY-MM/*.work-item.md`, read it before
-   proceeding
-11. Only then proceed to analysis, planning, or documentation review
+4. Read `.agents/errors.md` if it exists; do not create it as a routine startup artifact
+5. Check relevant docs referenced from `OBSIDIAN.md` when that file exists
+6. Check recent `.agents/changelogs/` entries when they help explain current constraints,
+   previous attempts, or pending issues
+7. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous
+   defect history or bug continuity matters
+8. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident
+   history or case continuity matters
+9. Check relevant local `.agents/code-reviews/YYYY-MM/*.code-review.md` records when previous
+   review history or review continuity matters
+10. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous
+    refactoring history or front continuity matters
+11. If continuing a task with an active or otherwise relevant `.agents/work-items/YYYY-MM/*.work-item.md`,
+    read it before proceeding
+12. Only then proceed to analysis, planning, or documentation review
 
 Load `.agents/examples/*.example.md` only on demand. They are calibration aids, not mandatory initial context.
 
@@ -235,7 +296,8 @@ changelog, do not open a work-item by default.
   `ativo`, `bloqueado`, `interrompido`, `concluído`, or `cancelado`
 - Keep entries concise: store canonical summaries and references, not long pasted outputs, raw logs, or large diffs
 - When a work-item needs local files such as screenshots, exports, logs, or diffs, store them in a sidecar directory
-  `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note, not in a shared `.agents/assets/` folder
+  `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note, not in a shared `.agents/assets/`
+  folder
 - When the work front benefits from structured helper artifacts such as task decomposition, validation summaries, or
   review references, keep them as derived files in that same sidecar and treat the work-item as the primary
   source of truth
@@ -254,10 +316,10 @@ changelog, do not open a work-item by default.
   fill the closure fields. If the task did not finish, mark it as
   `interrompido` or keep it `ativo` with a concrete next step and retention
   reason. Do not depend on the user asking explicitly to close the item
-- The repo-local `Stop` continuity guard may warn about contract gaps only for
-  work-items created or changed in the current session. Treat that warning as a
-  reminder to reconcile the touched item, not as housekeeping or automatic
-  closure
+- Chat archival, compaction, or silence is not enough evidence by itself. Do
+  not wait for a final operator phrase when repository evidence proves
+  completion; otherwise preserve the item as `interrompido` or `ativo` with
+  handoff
 - If the task pauses without completion, mark the work-item as `interrompido`; if it is abandoned by decision, mark it
   as `cancelado`
 - When the task ends, promote only the relevant facts, decisions, validations, risks, and pending items to changelog or
@@ -304,10 +366,14 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
 - The template is located at `.agents/templates/changelog.template.md`.
 - A daily changelog entry is mandatory in the same session whenever any of these
   happened:
-  - incident diagnosis or operational investigation with non-trivial findings
-  - remote mutation, publish, deploy, restart, activation, import, or rollback
-  - security-relevant decision, drift discovery, or runtime correction
-  - durable documentation updates based on newly established operational facts
+    - material technical work, implementation, review, or validation with decisions
+      or evidence worth preserving
+    - incident diagnosis or operational investigation with non-trivial findings
+    - remote mutation, publish, deploy, restart, activation, import,
+      migration/schema change, or rollback
+    - security-relevant decision, drift discovery, or runtime correction
+    - durable documentation updates based on newly established operational facts
+    - evidence-backed technical decision that affects future repository behavior
 - When a session crosses one of the mandatory triggers above, do not postpone
   changelog creation to a vague end-of-session intent. Create or update the
   day's entry at the first stable checkpoint after the relevant facts are known
@@ -325,4 +391,3 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
   entry.
 
 ---
-

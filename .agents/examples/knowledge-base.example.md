@@ -1,7 +1,7 @@
 # Worked Examples for `knowledge-base.prompt.md`
 
 > Use this file only when you need calibration for tone, structure, anti-patterns, or output shape.
-> In the standalone skill, this file lives under `scaffold/examples/knowledge-base.example.md`.
+> In the standalone skill, this file lives under `scaffold/dot-agents/examples/knowledge-base.example.md`.
 > When installed by `agents-bootstrap`, it is copied to `.agents/examples/knowledge-base.example.md`.
 
   <examples>

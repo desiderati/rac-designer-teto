@@ -8,6 +8,8 @@
 > arquivo para um stub curto ou arquive-o localmente; não mantenha uma segunda narrativa completa.
 > Antes da resposta final de uma sessão que usou este item, reconcilie o status:
 > feche, cancele, interrompa ou deixe ativo com handoff concreto.
+> Não espere uma frase final do operador; se o chat for arquivado ou silenciar,
+> use evidência local. Sem evidência suficiente, preserve como interrompido ou ativo.
 
 ## 1. Metadados
 
@@ -115,5 +117,6 @@
 - motivo para manter localmente:
 - reter localmente? não | sim
 - motivo da retenção local:
+- critério de liberação da retenção local:
 - referência do changelog / artefato durável:
 - sidecar promovido para artefato durável:

@@ -33,10 +33,6 @@
         ## 4. Riscos e Controles
         - **Risco:** o null handling pode ser necessário em outros métodos além de `applyDiscount()`
         - **Controle:** após a correção, buscar por outros usos de `discount` no mesmo serviço
-
-        ## 5. Implicações no Changelog
-        Registrar como entrada única de correção. Não há decisão de decomposição que justifique
-        registro separado.
       </content>
       <why>
         This example demonstrates that the simplicity of the problem is sufficient to reject
@@ -115,11 +111,6 @@
           a latência, sinalizar no output para o contexto principal cruzar com o output de B
         - **Risco:** overhead de coordenação desproporcional ao ganho
         - **Controle:** apenas dois subagentes com domínios disjuntos; consolidação simples
-
-        ## 5. Implicações no Changelog
-        Registrar a decisão de decomposição e os resultados dos dois subagentes como um único
-        bloco consolidado no changelog diário. Incluir: justificativa da decomposição, conclusão
-        de cada subagente, e decisões tomadas na consolidação.
       </content>
       <why>
         This example demonstrates the expected level of detail when using subagents:

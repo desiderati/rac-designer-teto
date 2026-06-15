@@ -100,13 +100,13 @@
       8. If any technical detail or decision is unclear, ask the user for clarification.
          Do not fill gaps with assumptions.
       9. Only then write the entry using the structure in `.agents/templates/changelog.template.md`
-         when present, or `scaffold/templates/changelog.template.md` when running directly from
+         when present, or `scaffold/dot-agents/templates/changelog.template.md` when running directly from
          the `changelog` skill.
   </process>
 
   <template_fallback>
     Use this structure if and only if neither `.agents/templates/changelog.template.md`
-    nor `scaffold/templates/changelog.template.md` can be located. This is a fallback
+    nor `scaffold/dot-agents/templates/changelog.template.md` can be located. This is a fallback
     of last resort, not a simplified alternative.
 
     ```
@@ -186,7 +186,7 @@
 
   <output_format>
     Use the structure defined in `.agents/templates/changelog.template.md`
-    or, in standalone skill mode, `scaffold/templates/changelog.template.md`.
+    or, in standalone skill mode, `scaffold/dot-agents/templates/changelog.template.md`.
     If neither template is available, use the structure in <template_fallback>.
 
     Each entry must be preceded by a horizontal rule (---) to visually
@@ -204,7 +204,7 @@
 
   <examples_reference>
     Worked examples live in `.agents/examples/changelog.example.md` when installed
-    by `agents-bootstrap`, or `scaffold/examples/changelog.example.md` in standalone
+    by `agents-bootstrap`, or `scaffold/dot-agents/examples/changelog.example.md` in standalone
     skill mode. Read that file only when you need calibrated examples,
     anti-pattern comparisons, or formatting anchors.
     Do not load it by default.

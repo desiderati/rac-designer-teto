@@ -27,7 +27,16 @@
         - schema de migração do banco (testado separadamente)
         - monitoramento e alertas
 
-        ## 2. Convenções do Repositório
+        ## 2. Avaliação de Testabilidade
+
+        **Tipo de código:** greenfield com contrato de design aprovado.
+        **Estratégia escolhida:** testes unitários behavior-first para o worker e teste
+        de integração mínimo para persistência idempotente.
+        **Justificativa:** as dependências externas podem ser mockadas com segurança, enquanto o
+        contrato de upsert precisa de evidência contra o banco de teste para não virar um
+        falso positivo de unidade.
+
+        ## 3. Convenções do Repositório
 
         - Framework: Jest (já utilizado em `src/__tests__/`)
         - Convenção de nomes: `describe('ComponentName')` → `it('should [behavior]')`
@@ -35,7 +44,7 @@
         - Fixtures: `src/__tests__/fixtures/` para dados de teste
         - Estrutura: testes espelham a estrutura de `src/` sob `src/__tests__/`
 
-        ## 3. Especificações por Componente
+        ## 4. Especificações por Componente
 
         ### AssetSyncJob — Lógica de sincronização principal
 
@@ -127,7 +136,7 @@
         - **Então:** campos atualizados refletem novos dados; `updated_at > T1`; `created_at == T1`
         - **Notas:** confirmar que `created_at` é preservado — indicador de integridade do upsert
 
-        ## 4. Matriz de Cobertura
+        ## 5. Matriz de Cobertura
 
         | Comportamento                   | Unit | Integration | Contract | Acceptance | Gaps                              |
         |---------------------------------|------|-------------|----------|------------|-----------------------------------|
@@ -142,7 +151,7 @@
         | Execução completa end-to-end    | -    | -           | -        | -          | Não especificado (requer staging) |
 
 
-        ## 5. Perguntas em Aberto
+        ## 6. Perguntas em Aberto
 
         - **Comportamento com dados parciais:** se a API retorna 200 mas com campos obrigatórios
           faltando, o ativo deve ser salvo com dados parciais ou marcado como `sync_failed`?
@@ -152,7 +161,7 @@
         - **Limite de falhas:** se mais de X% dos ativos falham, o job deve abortar ou continuar?
           Impacta: teste de threshold de falha
 
-        ## 6. Ordem de Implementação Sugerida
+        ## 7. Ordem de Implementação Sugerida
 
         1. `AssetRepository.upsert()` — testes de integração (fundação: sem persistência
            correta, nada funciona)
@@ -168,6 +177,7 @@
             not from imagined requirements
           - each test follows the Given-When-Then structure with concrete values, not vague descriptions
           - categories (happy path, edge case, error handling) make the coverage intent explicit
+          - the testability assessment explains why the persistence contract needs integration coverage
           - the coverage matrix reveals a deliberate gap (no acceptance test) with a reason
             (requires staging), rather than pretending full coverage exists
           - open questions identify genuine ambiguities that would lead to wrong tests if assumed

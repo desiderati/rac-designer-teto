@@ -86,7 +86,8 @@
            - Objetivo: provisionar tópico `notifications-dlq` e subscription
            - Resultado: tópico disponível para receber eventos dead-letter
            - Arquivos: `infra/pubsub.tf`
-           - Nota: aplicar via Terraform em staging primeiro; produção requer confirmação
+           - Nota: aplicar Terraform em staging ou produção somente após confirmação explícita na sessão atual;
+             produção mantém gate adicional de segurança
 
         2. **Criar migration para coluna `retry_count`**
            - Objetivo: rastrear tentativas por notificação

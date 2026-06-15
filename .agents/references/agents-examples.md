@@ -2,8 +2,8 @@
 
 Use this file when the user asks `Agents Examples`.
 
-Do not spawn subagents just to show these examples. Return concise examples
-for each installed custom agent.
+Do not spawn subagents just to show these examples. Return concise examples for each installed
+custom agent.
 
 ## `agents-examples`
 
@@ -11,8 +11,8 @@ for each installed custom agent.
 @Agents Examples
 ```
 
-Use este atalho apenas para mostrar exemplos locais de agentes. Não execute os
-exemplos e não acione subagentes.
+Use este atalho apenas para mostrar exemplos locais de agentes. Não execute os exemplos e não acione
+subagentes.
 
 ## `agents-usage`
 
@@ -20,8 +20,32 @@ exemplos e não acione subagentes.
 @Agents Usage
 ```
 
-Use este atalho apenas para explicar a política local de orquestração de
-agentes. Não acione subagentes.
+Use este atalho apenas para explicar a política local de orquestração de agentes. Não acione
+subagentes.
+
+## `agents-shortcuts`
+
+```text
+@Agents Shortcuts
+```
+
+Use este atalho apenas para listar os atalhos compactos `!` aceitos pelo contrato local. Não execute
+os atalhos e não acione subagentes.
+
+## `council-of-agents`
+
+```text
+@Council of Agents pressure test this decision before I commit to the plan.
+Load `.agents/prompts/council-of-agents.prompt.md` and run the full five-advisor council when the question has real stakes.
+Accepted Council triggers are `council this`, `pressure test this`, `stress test this`, `war room this`,
+`premortem this`, `debate this`, `council of agents`, `fellowship of agents`, `@Council of Agents`,
+and `@Fellowship of Agents`.
+Do not delegate to `council-of-agents`; the parent acts as Chairman.
+```
+
+```text
+@Fellowship of Agents debate this: I'm torn between these two approaches. Give me the council verdict and the one thing to do first.
+```
 
 ## `league-of-agents`
 
@@ -39,6 +63,15 @@ Pode gerar relatório em `.agents/code-reviews/`, mas não corrija os achados.
 Priorize bugs, regressões, falta de testes e drift de contrato.
 ```
 
+## `ui-designer`
+
+```text
+Use o subagente `ui-designer` para definir a direção visual desta interface.
+Use `$frontend-design`, atualize `DESIGN.md` somente se houver decisão durável e não implemente código.
+Retorne decisões de design system: cores, tipografia, espaçamento, padrões reutilizáveis,
+critérios de aceite, perguntas abertas e riscos.
+```
+
 ## `ui-reviewer`
 
 ```text
@@ -46,6 +79,18 @@ Use o subagente `ui-reviewer` para revisar esta interface.
 Use `$frontend-design` e, se necessário, `$frontend-development`.
 Pode gerar relatório em `.agents/code-reviews/`, mas não corrija os achados.
 Priorize tipo de interface, hierarquia, consistência visual, acessibilidade, responsividade e drift de design.
+Se a correção exigir Impeccable craft, polish, audit ou extract, recomende `ui-impeccable-specialist` quando disponível.
+```
+
+## `ui-impeccable-specialist` (opcional)
+
+Disponível quando `.codex/agents/ui-impeccable-specialist.toml` foi instalado pelo
+`$impeccable-installer`.
+
+```text
+Use o subagente `ui-impeccable-specialist` para executar Impeccable polish/audit nesta tela.
+Use `$impeccable`, declare `IMPECCABLE_PREFLIGHT` antes de editar e respeite PRODUCT.md/DESIGN.md.
+Edite apenas o escopo delegado; se surgir padrão reutilizável, recomende atualização do `DESIGN.md` com `ui-designer`.
 ```
 
 ## `code-explorer`
@@ -92,15 +137,15 @@ Não implemente nada. Produza apenas o contrato de solução e os riscos.
 ## `product-owner`
 
 ```text
-Use o subagente `product-owner` com `$prd-generator` para transformar esta ideia em um PRD.
-Escreva o artefato em `docs/product/`.
+Use o subagente `product-owner` com `$prd-generation` para transformar esta ideia em um PRD.
+Escreva o artefato em `docs/product-requirements/`.
 Não tome decisões técnicas; se houver trade-off de arquitetura, marque como pergunta aberta.
 ```
 
 ## `software-developer`
 
 ```text
-Use o subagente `software-developer` para implementar somente o plano aprovado em `docs/solution-x.md`.
+Use o subagente `software-developer` para implementar somente o plano aprovado em `docs/implementation-plans/`.
 Não altere arquitetura, escopo de produto ou arquivos fora da área delegada.
 Inclua testes quando viável e reporte validação executada.
 ```
@@ -129,16 +174,18 @@ Se algo precisar virar documento durável, promova versão sanitizada para `docs
 league of agents: use subagentes para esta feature.
 1. `product-owner`: refinar requisitos e critérios de aceite.
 2. `code-explorer`: mapear o fluxo existente se a área ainda não estiver clara.
-3. `solutions-architect`: desenhar a solução técnica a partir dos critérios aprovados.
-4. `quality-analyst`: derivar os testes esperados.
-5. `software-developer`: implementar apenas o plano aprovado.
-6. `security-advisor`: revisar superfícies sensíveis, se houver.
-7. `code-reviewer`: revisar o resultado final sem corrigir nada.
+3. `ui-designer`: consolidar direção visual e `DESIGN.md` quando houver frente de UI.
+4. `solutions-architect`: desenhar a solução técnica a partir dos critérios aprovados.
+5. `quality-analyst`: derivar os testes esperados.
+6. `software-developer`: implementar apenas o plano aprovado.
+7. `security-advisor`: revisar superfícies sensíveis, se houver.
+8. `code-reviewer`: revisar o resultado final sem corrigir nada.
+9. `ui-impeccable-specialist` opcional: executar craft/polish Impeccable se instalado e aprovado.
 
 Consolide tudo ao final antes de me responder.
 ```
 
 ```text
-liga dos agentes: investigue este problema e use os agentes adequados automaticamente.
+league of agents: investigue este problema e use os agentes adequados automaticamente.
 Use apenas os subagentes que realmente agregarem valor e consolide o resultado.
 ```

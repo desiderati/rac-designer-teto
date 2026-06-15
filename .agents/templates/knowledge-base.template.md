@@ -1,6 +1,6 @@
 ---
-tags: [classificação, módulo, docs]
-aliases: [Título Alternativo]
+tags: [ classificação, módulo, docs ]
+aliases: [ Título Alternativo ]
 created: AAAA-MM-DD
 updated: AAAA-MM-DD
 source_changelogs:
@@ -9,6 +9,8 @@ source_work_items:
   - .agents/work-items/AAAAMMDD-tarefa.work-item.md
 source_assets:
   - .agents/work-items/AAAAMMDD-tarefa.work-item.assets/
+source_errors:
+  - .agents/errors.md
 ---
 
 # Título da nota
@@ -20,16 +22,21 @@ Descrever onde o problema, decisão ou padrão apareceu.
 ## Proveniência local e recorte
 
 - Artefatos de origem:
-  - changelog(s) relevante(s)
-  - work-item correlato, quando existir
-  - sidecar `.work-item.assets/`, quando existir
-  - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link
+    - changelog(s) relevante(s)
+    - work-item correlato, quando existir
+    - `.agents/errors.md`, quando existir erro recorrente de agente sanitizável e relevante para
+      workflow ou guardrail
+    - sidecar `.work-item.assets/`, quando existir
+    - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link
+
 - Fase executada:
-  - descrever a etapa realmente concluída
+    - descrever a etapa realmente concluída
+
 - Hipótese invalidada:
-  - descrever a hipótese descartada ou refutada
+    - descrever a hipótese descartada ou refutada
+
 - Desenho futuro ou follow-up:
-  - descrever o que ficou como próximo passo, sem misturar com a fase já executada
+    - descrever o que ficou como próximo passo, sem misturar com a fase já executada
 
 ## Sintomas ou sinais
 

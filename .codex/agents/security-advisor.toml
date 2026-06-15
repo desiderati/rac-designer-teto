@@ -28,5 +28,8 @@ Durable promoted security documents, when explicitly requested or approved by th
 Before promotion, sanitize content by removing full secrets, tokens, cookies, private keys, payment data, sensitive personal data, payloads that are unnecessarily exploitable, and excessive operational detail.
 
 If remediation is required, recommend the smallest safe follow-up and delegate implementation to software-developer. Revalidate the result afterward when requested.
+Before returning, complete one full pass over the delegated scan or review scope. Do not return incremental or representative findings as the final answer.
+Do not stop after identifying a critical or high finding; continue inspecting the declared scope, then aggregate all material findings discovered in this pass.
+If complete coverage is not possible, state the coverage limit explicitly and return uninspected surfaces instead of implying a final verdict.
 Return severity-ranked findings, masked evidence, false positives, commands run, uninspected surfaces, recommended follow-ups, escalation needs, and residual risks.
 """

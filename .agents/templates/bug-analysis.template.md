@@ -95,7 +95,14 @@ aliases: [ <título curto do caso> ]
 - por que resolve a causa:
 - riscos e impactos laterais:
 
-## 11. Validação Executada
+## 11. Edge Cases e Cenários de Controle
+
+- edge cases relevantes:
+- cenário que poderia mascarar a correção:
+- cenário de controle que deve continuar passando:
+- risco de recorrência se a correção for apenas sintomática:
+
+## 12. Validação Executada
 
 - validação de camada:
 - validação de integração:
@@ -106,18 +113,18 @@ aliases: [ <título curto do caso> ]
 - critério de sucesso observado:
 - limitações ou validações bloqueadas:
 
-## 12. Status de Evidência
+## 13. Status de Evidência
 
 - status final:
 - por que este status se aplica:
 - o que ainda ficaria necessário para elevar o status, se parcial ou bloqueado:
 
-## 13. Dúvidas Residuais de Regra de Negócio
+## 14. Dúvidas Residuais de Regra de Negócio
 
 - dúvida:
 - por que ainda importa:
 
-## 14. Artefatos Relacionados
+## 15. Artefatos Relacionados
 
 - incidente correlato:
 - PR, commit ou diff relacionado:

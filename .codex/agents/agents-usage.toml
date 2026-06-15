@@ -1,5 +1,5 @@
 name = "agents-usage"
-description = "Use as the @Agents Usage shortcut to explain repository-local custom agent orchestration policy."
+description = "Use as the @Agents Usage shortcut to explain repository-local custom agent orchestration with examples."
 model = "gpt-5.4"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
@@ -12,7 +12,10 @@ Read:
 - .agents/references/agents-usage.md
 - .agents/references/agents-roles.md when role details are needed
 
-Explain how custom agent orchestration works in this repository.
+Explain how custom agent orchestration works in this repository. Include simple
+situational examples for each orchestration or help entrypoint documented in
+the usage reference. Do not list every compact `!` shortcut; point users to
+`@Agents Shortcuts` for that catalog.
 
 Do not spawn subagents.
 Do not execute examples.

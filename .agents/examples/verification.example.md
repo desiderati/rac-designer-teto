@@ -60,12 +60,19 @@
           sem impacto na atomicidade
         - nenhuma regressão identificada
 
-        ## 5. Veredito
+        ## 5. Disciplina de Implementação
+
+        - menor mudança coesa: mantida — retry, DLQ e rastreabilidade foram alterados no mesmo fluxo funcional
+        - refatoração ampla: não executada — nenhum módulo fora do dispatcher foi reestruturado
+        - alteração de conteúdo autoral: não aplicável
+        - mutação externa: Terraform aplicado somente após confirmação registrada na sessão de execução
+
+        ## 6. Veredito
         **partial** — implementação satisfaz o objetivo principal (retry + DLQ + rastreabilidade).
         O alerta de monitoramento é uma pendência justificada por impedimento de permissão,
         não por falha de design ou execução. O trabalho restante está rastreado em INFRA-342.
 
-        ## 6. Próximo Passo
+        ## 7. Próximo Passo
         Prosseguir para `changelog.prompt.md`. Registrar:
         - o que foi implementado e validado
         - o desvio do passo 5 com referência a INFRA-342

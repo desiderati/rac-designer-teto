@@ -111,6 +111,15 @@
       If evidence is missing, say so explicitly and lower confidence in the assessment instead of asserting
       compliance by intuition.
     </constraint>
+    <constraint>
+      When the implementation claims a simple or minimal approach, verify that this did not introduce
+      avoidable duplication, fragile shortcuts, or inconsistency with local patterns.
+    </constraint>
+    <constraint>
+      If refactoring was performed inside the implementation, verify that it was necessary for coherence,
+      duplication control, or the touched code's contract. If it broadened scope or touched unrelated behavior,
+      classify it as a deviation.
+    </constraint>
     <constraint>Respond in Portuguese, following the language rules of this repository.</constraint>
     <constraint>
       When verification involves production-critical GCP targets, confirm that production guardrails
@@ -145,7 +154,11 @@
     8. Identify probable regressions:
        - Based on the change surface, what existing behavior is most likely to break?
        - Was this checked?
-    9. Produce the verdict:
+    9. Check implementation discipline:
+       - Did the implementation use the smallest cohesive change that satisfies the objective?
+       - Did it avoid new duplication, fragile shortcuts, and inconsistent local patterns?
+       - Was any in-cycle refactoring necessary and bounded?
+    10. Produce the verdict:
        - cite the strongest evidence that sustains it
        - state the main limitation when evidence is incomplete
 
@@ -156,6 +169,7 @@
       - Am I treating "the implementation matches the plan" as equivalent to "the implementation
         is correct"? These are different claims — a plan can be followed precisely while still
         failing to solve the original problem.
+      - Did I mistake a small diff for a coherent implementation, ignoring duplication or local inconsistency?
       - Is there a failure mode I have not checked?
   </process>
 
@@ -214,7 +228,14 @@
     Baseado na superfície de mudança, listar os comportamentos existentes com maior
     probabilidade de quebra, se foram verificados, e qual evidência sustenta essa conclusão.
 
-    ## 5. Veredito
+    ## 5. Disciplina de Implementação
+    - a mudança foi a menor alteração coesa que satisfaz o objetivo?
+    - a implementação evitou duplicação nova, atalhos frágeis e inconsistências locais?
+    - houve refatoração dentro do ciclo? se sim, ela foi necessária e limitada?
+    - evidência concreta
+    - avaliação: ✅ coesa | ⚠️ aceitável com ressalvas | ❌ atalho ou escopo indevido
+
+    ## 6. Veredito
     Escolher um:
       - **pass** — implementação satisfaz objetivo, design, plano e testes. Prosseguir
         para changelog.
@@ -226,7 +247,7 @@
       - as evidências principais que sustentam o veredito
       - a principal limitação remanescente, se houver
 
-    ## 6. Próximo Passo
+    ## 7. Próximo Passo
     Se pass ou partial: declarar que o fluxo segue para `changelog.prompt.md`.
     Se fail: listar as correções específicas necessárias antes de re-verificar.
   </output_format>

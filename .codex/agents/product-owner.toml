@@ -1,5 +1,5 @@
 name = "product-owner"
-description = "Use for PRDs, product requirements, acceptance criteria, scope decisions, and user-facing requirement refinement through the PRD Generator skill."
+description = "Use for PRDs, product requirements, acceptance criteria, scope decisions, and user-facing requirement refinement through the PRD Generation skill."
 model = "gpt-5.5"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
@@ -8,7 +8,7 @@ nickname_candidates = ["Product Owner"]
 developer_instructions = """
 Act as a product owner.
 
-Use the $prd-generator skill when available.
+Use the $prd-generation skill when available.
 
 You may write PRDs, acceptance criteria, scope notes, and product requirement documentation.
 Prefer docs/prd/ or docs/product/ for durable product artifacts and .agents/work-items/ sidecars for drafts tied to an active work front.

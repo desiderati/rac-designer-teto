@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Council Report - {{decision_title}}</title>
+  <style>
+    :root {
+      --ink: #18202b;
+      --muted: #5f6b7a;
+      --line: #d9e1ea;
+      --soft: #f6f8fb;
+      --blue: #1f5fbf;
+      --green: #1d7a54;
+      --amber: #a35f00;
+      --red: #b42318;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #ffffff;
+      line-height: 1.48;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; line-height: 1.18; }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.35rem; margin-top: 28px; }
+    h3 { font-size: 1.05rem; }
+    p { margin: 0 0 12px; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; }
+    .eyebrow {
+      color: var(--blue);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-size: .78rem;
+      margin-bottom: 8px;
+    }
+    .hero {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+      margin-bottom: 24px;
+    }
+    .verdict {
+      border: 1px solid {{verdict_border_color}};
+      border-left: 6px solid {{verdict_accent_color}};
+      background: {{verdict_background_color}};
+      padding: 18px 18px 16px;
+      border-radius: 6px;
+      margin: 18px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 16px 0 8px;
+    }
+    .tile {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 14px;
+      background: var(--soft);
+      min-height: 132px;
+    }
+    .tile strong { display: block; margin-bottom: 8px; }
+    .status { font-weight: 800; }
+    .status.no { color: var(--red); }
+    .status.cond { color: var(--amber); }
+    .status.ok { color: var(--green); }
+    .alignment {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: .95rem;
+    }
+    .alignment th, .alignment td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    .alignment th { background: #eef3f9; }
+    .mark { font-weight: 800; }
+    .mark.no { color: var(--red); }
+    .mark.yes { color: var(--green); }
+    .mark.warn { color: var(--amber); }
+    details {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      background: #fff;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+    ul { margin: 8px 0 0 20px; padding: 0; }
+    li { margin: 6px 0; }
+    .sources a { color: var(--blue); }
+    footer {
+      margin-top: 32px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    @media (max-width: 760px) {
+      main { padding: 24px 16px 36px; }
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.55rem; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="eyebrow">Council of Agents · {{timestamp_local}}</div>
+    <h1>{{decision_title}}</h1>
+    <p>{{question_summary}}</p>
+    <div class="verdict">
+      <h2>Veredito do Chairman</h2>
+      <p><strong>{{verdict_headline}}</strong></p>
+      <p>{{verdict_rationale}}</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Resumo Executivo</h2>
+    <div class="grid">
+      <div class="tile">
+        <strong class="status {{tile_1_status_class}}">{{tile_1_label}}</strong>
+        {{tile_1_text}}
+      </div>
+      <div class="tile">
+        <strong class="status {{tile_2_status_class}}">{{tile_2_label}}</strong>
+        {{tile_2_text}}
+      </div>
+      <div class="tile">
+        <strong class="status {{tile_3_status_class}}">{{tile_3_label}}</strong>
+        {{tile_3_text}}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Alinhamento dos Advisors</h2>
+    <table class="alignment">
+      <thead>
+        <tr>
+          <th>Advisor</th>
+          <th>{{alignment_decision_column_label}}</th>
+          <th>Posição central</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Contrarian</td>
+          <td><span class="mark {{contrarian_mark_class}}">{{contrarian_mark_label}}</span></td>
+          <td>{{contrarian_summary}}</td>
+        </tr>
+        <tr>
+          <td>First Principles</td>
+          <td><span class="mark {{first_principles_mark_class}}">{{first_principles_mark_label}}</span></td>
+          <td>{{first_principles_summary}}</td>
+        </tr>
+        <tr>
+          <td>Expansionist</td>
+          <td><span class="mark {{expansionist_mark_class}}">{{expansionist_mark_label}}</span></td>
+          <td>{{expansionist_summary}}</td>
+        </tr>
+        <tr>
+          <td>Outsider</td>
+          <td><span class="mark {{outsider_mark_class}}">{{outsider_mark_label}}</span></td>
+          <td>{{outsider_summary}}</td>
+        </tr>
+        <tr>
+          <td>Executor</td>
+          <td><span class="mark {{executor_mark_class}}">{{executor_mark_label}}</span></td>
+          <td>{{executor_summary}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Blind Spots Capturados</h2>
+    <ul>
+      <li><strong>{{blind_spot_1_label}}:</strong> {{blind_spot_1_text}}</li>
+      <li><strong>{{blind_spot_2_label}}:</strong> {{blind_spot_2_text}}</li>
+      <li><strong>{{blind_spot_3_label}}:</strong> {{blind_spot_3_text}}</li>
+      <li><strong>{{blind_spot_4_label}}:</strong> {{blind_spot_4_text}}</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Advisor Responses</h2>
+    <details>
+      <summary>The Contrarian</summary>
+      <p>{{contrarian_response_summary_or_full}}</p>
+    </details>
+    <details>
+      <summary>The First Principles Thinker</summary>
+      <p>{{first_principles_response_summary_or_full}}</p>
+    </details>
+    <details>
+      <summary>The Expansionist</summary>
+      <p>{{expansionist_response_summary_or_full}}</p>
+    </details>
+    <details>
+      <summary>The Outsider</summary>
+      <p>{{outsider_response_summary_or_full}}</p>
+    </details>
+    <details>
+      <summary>The Executor</summary>
+      <p>{{executor_response_summary_or_full}}</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>Peer Review Highlights</h2>
+    <details>
+      <summary>Resultado da revisão anônima</summary>
+      <p>{{peer_review_highlight_1}}</p>
+      <p>{{peer_review_highlight_2}}</p>
+      <p>{{peer_review_highlight_3}}</p>
+    </details>
+  </section>
+
+  <section class="sources">
+    <h2>Fontes</h2>
+    <!--
+      Decision sources only: use authoritative external sources or durable repository documentation.
+      Do not list .agents/prompts, .agents/templates, .agents/examples, .agents/references,
+      AGENTS.md, CLAUDE.md, RTK.md, changelogs, work-items, gitignore files, or generated
+      council session artifacts here. Put scaffold/process files in Scaffold usage or validation notes.
+    -->
+    <p>{{sources_absence_note_or_empty}}</p>
+    <ul>
+      {{decision_source_list_items}}
+    </ul>
+  </section>
+
+  <footer>
+    Relatório gerado pelo Council of Agents para {{decision_title}}.
+    Transcrição completa: {{transcript_filename}}.
+    Nota de fidelidade: {{fidelity_limitation_note}}.
+    Golden example: `.agents/council-sessions/2026-05/council-report-20260525-102235.html`.
+  </footer>
+</main>
+</body>
+</html>

@@ -5,6 +5,10 @@ param(
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
+# Windows PowerShell 5 may misread UTF-8-without-BOM scripts as ANSI.
+# Compose Portuguese accents from codepoints to keep hook output stable.
+$C_CEDILLA = [string][char]0x00E7
+$A_TILDE = [string][char]0x00E3
 
 function Write-HookResponse {
     param(
@@ -18,6 +22,23 @@ function Write-HookResponse {
     }
 
     '{' + ($responseParts -join ',') + '}'
+    exit 0
+}
+
+function Write-UserPromptContextResponse {
+    param(
+        [string]$Message
+    )
+
+    $response = @{
+        continue = $true
+        hookSpecificOutput = @{
+            hookEventName = 'UserPromptSubmit'
+            additionalContext = $Message
+        }
+    }
+
+    $response | ConvertTo-Json -Depth 8 -Compress
     exit 0
 }
 
@@ -77,7 +98,7 @@ function Get-PayloadObject {
 
 function Get-StateDirectory {
     $scriptDirectory = Split-Path -Parent $PSCommandPath
-    return Join-Path $scriptDirectory 'codex-resolution-time-state'
+    return Join-Path $scriptDirectory 'state'
 }
 
 function Get-SafeSessionKey {
@@ -241,6 +262,122 @@ function Format-DurationCompact {
     return ($segments -join ' ')
 }
 
+function Get-SafeContextIdentifier {
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+
+    $trimmedValue = $Value.Trim()
+    if ($trimmedValue.Length -gt 160) {
+        return $null
+    }
+
+    if ($trimmedValue -notmatch '^[a-zA-Z0-9._:-]+$') {
+        return $null
+    }
+
+    return $trimmedValue
+}
+
+function Get-SafeTranscriptFileName {
+    param(
+        [AllowNull()]
+        [string]$TranscriptPath
+    )
+
+    if ([string]::IsNullOrWhiteSpace($TranscriptPath)) {
+        return $null
+    }
+
+    try {
+        $fileName = [System.IO.Path]::GetFileName($TranscriptPath)
+    } catch {
+        return $null
+    }
+
+    if ([string]::IsNullOrWhiteSpace($fileName)) {
+        return $null
+    }
+
+    if ($fileName.Length -gt 220) {
+        return $null
+    }
+
+    if ($fileName -notmatch '^[a-zA-Z0-9._-]+$') {
+        return $null
+    }
+
+    return $fileName
+}
+
+function Get-SessionIdFromText {
+    param(
+        [AllowNull()]
+        [string]$Value
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+
+    $match = [regex]::Match(
+        $Value,
+        '(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    )
+    if (-not $match.Success) {
+        return $null
+    }
+
+    return $match.Value.ToLowerInvariant()
+}
+
+function Get-SessionCorrelationContext {
+    param(
+        $Payload
+    )
+
+    if ($null -eq $Payload) {
+        return @()
+    }
+
+    $sessionId = Get-SafeContextIdentifier -Value ([string]$Payload.session_id)
+    if ([string]::IsNullOrWhiteSpace($sessionId)) {
+        $sessionId = Get-SafeContextIdentifier -Value ([string]$Payload.id)
+    }
+
+    $sessionFile = Get-SafeTranscriptFileName -TranscriptPath ([string]$Payload.transcript_path)
+    if ([string]::IsNullOrWhiteSpace($sessionId)) {
+        $sessionId = Get-SessionIdFromText -Value $sessionFile
+    }
+
+    $contextParts = @()
+    if (-not [string]::IsNullOrWhiteSpace($sessionId)) {
+        $contextParts += "session id $sessionId"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($sessionFile)) {
+        $contextParts += "session file $sessionFile"
+    }
+
+    if ($contextParts.Count -eq 0) {
+        return @()
+    }
+
+    $lines = @(
+        'Session correlation: ' + ($contextParts -join '; ') + '.'
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($sessionId)) {
+        $lines += 'Use this session id to correlate current chat usage before falling back to lastActivity/date heuristics.'
+    }
+
+    return $lines
+}
+
 function Handle-SessionStart {
     param(
         $Payload
@@ -251,7 +388,7 @@ function Handle-SessionStart {
     }
 
     Write-SessionState -Payload $Payload
-    $message = 'Contador de tempo de resolu{0}{1}o iniciado.' -f [char]0x00E7, [char]0x00E3
+    $message = "Contador de tempo de resolu${C_CEDILLA}${A_TILDE}o iniciado."
     Write-HookResponse -Message $message
 }
 
@@ -294,8 +431,23 @@ function Handle-Stop {
         Remove-SessionState -SessionId $sessionId
     }
 
-    $message = 'Tempo de Resolu{0}{1}o: {2}' -f [char]0x00E7, [char]0x00E3, (Format-DurationCompact -Duration $duration)
+    $message = "Resolution Time: $(Format-DurationCompact -Duration $duration)"
     Write-HookResponse -Message $message
+}
+
+function Handle-UserPromptSubmit {
+    param(
+        $Payload
+    )
+
+    $messageLines = @(
+        'Resolution Time: codex-resolution-time is installed; final duration is computed after the assistant response by the Stop hook.'
+        'Do not claim current-turn Stop results before Stop hooks run.'
+    )
+    $messageLines += Get-SessionCorrelationContext -Payload $Payload
+    $message = $messageLines -join [Environment]::NewLine
+
+    Write-UserPromptContextResponse -Message $message
 }
 
 try {
@@ -305,6 +457,7 @@ try {
     switch ($Event) {
         'SessionStart' { Handle-SessionStart -Payload $payload }
         'Stop' { Handle-Stop -Payload $payload }
+        'UserPromptSubmit' { Handle-UserPromptSubmit -Payload $payload }
         default { Write-HookResponse }
     }
 } catch {

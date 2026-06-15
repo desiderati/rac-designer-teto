@@ -162,7 +162,7 @@
 
   <examples_reference>
     Worked examples live in a companion `readme.example.md` file.
-    In the standalone skill, load `scaffold/examples/readme.example.md`.
+    In the standalone skill, load `scaffold/dot-agents/examples/readme.example.md`.
     When this prompt was installed by `agents-bootstrap`, load `.agents/examples/readme.example.md`.
     Do not load examples by default.
   </examples_reference>

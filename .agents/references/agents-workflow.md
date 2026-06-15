@@ -11,6 +11,7 @@ Use when:
 - there is a bug
 - behavior diverges from expectation
 - an incident or failure needs root cause analysis
+- a critical, live, or production-like failure needs disciplined technical debugging
 - a correction should only be proposed after diagnosis
 
 Purpose:
@@ -19,13 +20,18 @@ Purpose:
 - compare expected flow versus actual flow
 - rank hypotheses
 - validate before proposing a fix
+- identify hidden edge cases and control scenarios
 - recommend the minimal effective correction
 
 Boundary note:
 
 - this prompt is the local diagnostic entrypoint of the repository
-- if the project persists bug analyses beyond the current session, versioned case records belong in `.agents/bug-analysis/`
+
+- if the project persists bug analyses beyond the current session, versioned case records belong in
+  `.agents/bug-analysis/`
+
 - use `.agents/templates/bug-analysis.template.md` when materializing those versioned records
+
 - do not confuse the prompt with the versioned artifact store
 
 ### 2. `solution-design.prompt.md`
@@ -55,8 +61,12 @@ Purpose:
 Use when:
 
 - the user asks to create, update, review, or consult an ADR
+
 - a decision should be recorded before implementation as a proposed ADR
-- a refactoring, incident, bug analysis, code review, or changelog surfaced a durable architectural decision
+
+- a refactoring, incident, bug analysis, code review, or changelog surfaced a durable architectural
+  decision
+
 - an existing ADR may need to be updated instead of creating a duplicate
 
 Do not use when:
@@ -67,10 +77,42 @@ Do not use when:
 
 Purpose:
 
-- decide between `não criar ADR`, `criar ADR proposto`, `criar ADR aceito`, `atualizar ADR existente`, or `consultar ADR existente`
+- decide between `não criar ADR`, `criar ADR proposto`, `criar ADR aceito`, `atualizar ADR
+  existente`, or `consultar ADR existente`
+
 - use `.agents/templates/architecture-decision.template.md` and the repository ADR convention
+
 - prevent ADR duplication by scanning existing `docs/architecture-decisions/` records first
-- support both pre-implementation ADRs and post-execution promotion from refactoring or other evidence
+
+- support both pre-implementation ADRs and post-execution promotion from refactoring or other
+  evidence
+
+### 2b. `council-of-agents.prompt.md`
+
+Use when:
+
+- the user asks for `council this`, `pressure test this`, `stress test this`, `war room this`,
+  `premortem this`, `debate this`, `council of agents`, `fellowship of agents`, or directly invokes
+  `@Council of Agents` or `@Fellowship of Agents`
+
+- there is a genuine decision with stakes, uncertainty, and competing options
+
+- independent perspectives and anonymous peer review would materially improve the final
+  recommendation
+
+Do not use when:
+
+- the question has one factual answer
+- the task is ordinary implementation or content generation
+- the user asks for team-mode execution rather than decision pressure testing
+
+Purpose:
+
+- frame the decision with relevant workspace context
+- run five advisor lenses independently
+- anonymize advisor outputs for peer review
+- synthesize a clear Chairman verdict and one first action
+- produce `council-report-[timestamp].html` and `council-transcript-[timestamp].md`
 
 ### 3. `implementation-planning.prompt.md`
 
@@ -92,14 +134,18 @@ Purpose:
 
 Operational rule:
 
-- whenever entering or activating planning mode, use `.agents/prompts/implementation-planning.prompt.md` as the output
-  contract!
+- whenever entering or activating planning mode, use
+  `.agents/prompts/implementation-planning.prompt.md` as the output contract!
+
 - when the workflow enters the planning phase for a non-trivial task, read
   `.agents/prompts/implementation-planning.prompt.md` before producing the plan
+
 - if the environment provides a native Planning Mode, use that mode as execution posture, but treat
-  `.agents/prompts/implementation-planning.prompt.md` as the repository-specific contract for planning scope, structure,
-  constraints, and output
-- do not assume native Planning Mode alone satisfies this requirement; the local planning prompt must still be consumed
+  `.agents/prompts/implementation-planning.prompt.md` as the repository-specific contract for
+  planning scope, structure, constraints, and output
+
+- do not assume native Planning Mode alone satisfies this requirement; the local planning prompt
+  must still be consumed
 
 ### 4. `test-driven.prompt.md`
 
@@ -121,14 +167,20 @@ Do not use when:
 Purpose:
 
 - specify expected behavior before code is written
-- define test cases as the contract the implementation must satisfy
-- identify edge cases, failure modes, and boundary conditions upfront
-- produce a coverage matrix that highlights intentional gaps
-- flag open questions where behavior cannot be specified without clarification
-- for legacy code: assess testability and adapt strategy (characterization, boundary, or change-only testing)
 
-Tests are design artifacts, not verification artifacts.
-For legacy code with low testability, the prompt adapts its strategy rather than forcing classical test-first.
+- define test cases as the contract the implementation must satisfy
+
+- identify edge cases, failure modes, and boundary conditions upfront
+
+- produce a coverage matrix that highlights intentional gaps
+
+- flag open questions where behavior cannot be specified without clarification
+
+- for legacy code: assess testability and adapt strategy (characterization, boundary, or change-only
+  testing)
+
+Tests are design artifacts, not verification artifacts. For legacy code with low testability, the
+prompt adapts its strategy rather than forcing classical test-first.
 
 ### 5. `verification.prompt.md`
 
@@ -148,10 +200,15 @@ Do not use when:
 
 Purpose:
 
-- compare the implemented result against the original objective, design contract, plan, and test specs
+- compare the implemented result against the original objective, design contract, plan, and test
+  specs
+
 - identify scope deviations, validation gaps, and probable regressions
+
 - classify deviations as decided (justified, documented) or silent (unjustified)
+
 - emit a verdict: pass | partial | fail
+
 - determine whether the workflow proceeds to documentation or returns to execution
 
 Passing tests proves conformance with specifications. Verification proves alignment with intent.
@@ -220,9 +277,12 @@ Purpose:
 Use when:
 
 - changelogs should be consolidated into durable knowledge
-- notes should be created, updated, or merged in the versioned knowledge base referenced by `OBSIDIAN.md` when present,
-  or in the repository's canonical documentation location
+
+- notes should be created, updated, or merged in the versioned knowledge base referenced by
+  `OBSIDIAN.md` when present, or in the repository's canonical documentation location
+
 - the curated `OBSIDIAN.md`, when used by the repository, needs localized updates
+
 - recurring patterns, decisions, or runbooks should be promoted
 
 Purpose:
@@ -237,52 +297,81 @@ Purpose:
 Use when:
 
 - a non-technical audience needs to understand what the repository delivers
+
 - `REPOSITORY-OVERVIEW.md` should be created, reviewed, or refreshed
-- a functional, business-oriented repository description is needed without turning `README.md` or `OBSIDIAN.md`
-  into the wrong document
+
+- a functional, business-oriented repository description is needed without turning `README.md` or
+  `OBSIDIAN.md` into the wrong document
 
 Purpose:
 
 - produce or update `REPOSITORY-OVERVIEW.md`
+
 - keep `OBSIDIAN.md` as a localized navigational index, not as the overview itself
-- preserve a clear distinction between repository description, knowledge base, and functional overview
+
+- preserve a clear distinction between repository description, knowledge base, and functional
+  overview
 
 ---
 
 ## Typical prompt sequence
 
-For non-trivial tasks with real local continuity risk, create or resume a local work item in `.agents/work-items/`
-before entering the sequence below. Typical triggers: context compaction risk, pause or handoff, observational
-investigation, local artifacts, or material skip/deviation tracking.
+For non-trivial tasks with real local continuity risk, create or resume a local work item in
+`.agents/work-items/` before entering the sequence below. Typical triggers: context compaction risk,
+pause or handoff, observational investigation, local artifacts, or material skip/deviation tracking.
 
 ### For a complex bug
 
 1. `bug-analysis.prompt.md`
+
 2. `solution-design.prompt.md` if the fix requires choosing between approaches
-3. `architecture-decision.prompt.md` if the chosen fix introduces or changes an architectural decision worth recording
+
+3. `architecture-decision.prompt.md` if the chosen fix introduces or changes an architectural
+   decision worth recording
+
 4. `implementation-planning.prompt.md` if the fix is non-trivial
+
 5. `test-driven.prompt.md` to specify expected behavior before coding the fix
+
 6. `subagent-execution.prompt.md` only if parallel decomposition adds value
+
 7. execute the work
+
 8. `verification.prompt.md` to confirm the result satisfies the objective, design, and specs
+
 9. `changelog.prompt.md`
+
 10. `readme.prompt.md` if technical behavior may affect `README.md`
+
 11. `knowledge-base.prompt.md` later, during consolidation
+
 12. `repository-overview.prompt.md` only if the non-technical repository explanation needs to change
 
 ### For a feature, migration, or refactor
 
 1. `solution-design.prompt.md` when there are multiple viable approaches
-2. `architecture-decision.prompt.md` when the design should be recorded before implementation or promoted after execution
+
+2. `architecture-decision.prompt.md` when the design should be recorded before implementation or
+   promoted after execution
+
 3. `implementation-planning.prompt.md`
+
 4. `test-driven.prompt.md` to specify behavior before implementation
+
 5. `subagent-execution.prompt.md` only if justified
+
 6. execute the work
+
 7. `verification.prompt.md` to confirm the result satisfies the objective, design, and specs
+
 8. `changelog.prompt.md`
+
 9. `readme.prompt.md`
+
 10. `knowledge-base.prompt.md` later, if the change generates durable knowledge
-11. `repository-overview.prompt.md` when the functional, non-technical description of the repository changes materially
+
+11. `repository-overview.prompt.md` when the functional, non-technical description of the repository
+    changes materially
 
 ### Workflow visual
 
@@ -335,10 +424,10 @@ flowchart TD
     style RO fill: #fce7f3, stroke: #be185d, color: #000
 ```
 
-**Legend:** the labeled edges between prompts (`ADR decision`, `execution plan`, `test specs`) represent
-explicit chaining — the output of one prompt is the input for the next. The verification step has two exits:
-`pass` or `partial` proceeds to changelog; `fail` loops back to execution with corrections.
-Diamond nodes are decision gates — the agent evaluates the condition and may skip the step entirely.
+**Legend:** the labeled edges between prompts (`ADR decision`, `execution plan`, `test specs`)
+represent explicit chaining — the output of one prompt is the input for the next. The verification
+step has two exits: `pass` or `partial` proceeds to changelog; `fail` loops back to execution with
+corrections. Diamond nodes are decision gates — the agent evaluates the condition and may skip the
+step entirely.
 
 ---
-

@@ -61,6 +61,12 @@
       When repository evidence is ambiguous, contradictory, or insufficient, ask the requester
       for clarification before writing. Do not substitute a speculative paragraph for a direct question.
     </constraint>
+    <constraint>
+      Before substantially rewriting, removing, restructuring, or changing the
+      tone of existing user-authored content in `REPOSITORY-OVERVIEW.md` or
+      `OBSIDIAN.md`, describe the exact intended change and wait for explicit
+      confirmation in the current session.
+    </constraint>
   </constraints>
 
   <document_contract>
@@ -106,6 +112,8 @@
     <step number="4">
       ESCRITA OU ATUALIZAÇÃO DE `REPOSITORY-OVERVIEW.md`
       - Create or rewrite the note using the structure in `<output_format>`.
+      - If an existing note would be substantially rewritten, removed,
+        restructured, or changed in tone, stop and request confirmation first.
       - Keep it durable, non-technical, and evidence-based.
       - Do not convert it into architecture or setup documentation.
     </step>
@@ -113,6 +121,8 @@
     <step number="5">
       ATUALIZAÇÃO DO `OBSIDIAN.md`
       - If it exists, add or adjust only the localized links needed to include `REPOSITORY-OVERVIEW.md`.
+      - If the localized update would become a substantial rewrite, removal,
+        restructuring, or tone change, stop and request confirmation first.
       - If it does not exist, create a minimal `OBSIDIAN.md` that:
         - states it is the repository knowledge-base entrypoint
         - points to `docs/` only when the repository has a knowledge base there
@@ -163,7 +173,7 @@
 
   <examples_reference>
     Worked examples live in a companion `repository-overview.example.md` file.
-    In the standalone skill, load `scaffold/examples/repository-overview.example.md`.
+    In the standalone skill, load `scaffold/dot-agents/examples/repository-overview.example.md`.
     When this prompt was installed by `agents-bootstrap`, load `.agents/examples/repository-overview.example.md`.
     Do not load examples by default.
   </examples_reference>

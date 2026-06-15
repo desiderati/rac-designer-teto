@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Installed from `agents-bootstrap` skill version `0.31.1-beta`.
+Installed from `agents-bootstrap` skill version `0.59.1-beta`.
 
 This file exists only for compatibility with tools that look for `CLAUDE.md` at the repository root.
 
