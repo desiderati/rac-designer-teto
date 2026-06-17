@@ -21,6 +21,7 @@ describe('piloti editor classes', () => {
 
   it('prioriza estado desabilitado em botão de contraventamento', () => {
     expect(getPilotiContraventamentoButtonClasses(true, true)).toContain('cursor-not-allowed');
+    expect(getPilotiContraventamentoButtonClasses(true, true)).toContain('h-12 w-12');
     expect(getPilotiContraventamentoButtonClasses(true, false)).toContain('bg-primary text-primary-foreground');
   });
 });

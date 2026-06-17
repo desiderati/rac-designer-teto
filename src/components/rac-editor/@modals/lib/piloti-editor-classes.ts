@@ -22,11 +22,14 @@ export function getPilotiHeightButtonClasses({
  * Resolve classes do botão de contraventamento do editor de piloti.
  */
 export function getPilotiContraventamentoButtonClasses(isActive: boolean, isDisabled: boolean): string {
+  const baseClasses =
+    'h-12 w-12 shrink-0 rounded-lg border border-transparent p-0 flex items-center justify-center transition-colors';
+
   if (isDisabled) {
-    return 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed';
+    return `${baseClasses} bg-primary/10 text-muted-foreground opacity-50 cursor-not-allowed`;
   }
 
   return isActive
-    ? 'h-[86px] rounded-xl border border-transparent bg-primary text-primary-foreground hover:bg-primary/90'
-    : 'h-[86px] rounded-xl border border-transparent bg-primary/10 text-foreground hover:bg-primary/20';
+    ? `${baseClasses} bg-primary text-primary-foreground hover:bg-primary/90`
+    : `${baseClasses} bg-primary/10 text-foreground hover:bg-primary/20`;
 }

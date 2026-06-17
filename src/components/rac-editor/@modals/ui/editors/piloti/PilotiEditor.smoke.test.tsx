@@ -158,5 +158,7 @@ describe('PilotiEditor.tsx', () => {
 
     expect(screen.getByRole('button', {name: 'Superior'})).toBeDisabled();
     expect(screen.getByRole('button', {name: 'Inferior'})).toBeEnabled();
+    expect(screen.queryByText('Superior')).not.toBeInTheDocument();
+    expect(screen.queryByText('Inferior')).not.toBeInTheDocument();
   });
 });

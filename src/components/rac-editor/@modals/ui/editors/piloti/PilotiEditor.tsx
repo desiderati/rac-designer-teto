@@ -202,9 +202,11 @@ export function PilotiEditor({
 
           <div className='space-y-3'>
             <p className='text-sm font-medium text-center'>Contraventamento</p>
-            <div className='grid grid-cols-2 gap-2'>
+            <div className='grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'>
               <button
                 type='button'
+                aria-label='Esquerdo'
+                title='Esquerdo'
                 disabled={contraventamentoLeftDisabled}
                 onClick={() => {
                   commitDraftChanges();
@@ -215,14 +217,15 @@ export function PilotiEditor({
                     contraventamentoLeftActive, contraventamentoLeftDisabled
                   )
                 }>
-                <span className='flex flex-col items-center gap-1.5'>
-                  <ContraventamentoSideIcon side='left' size={40}/>
-                  <span className='text-xs font-semibold'>Esquerdo</span>
+                <span aria-hidden='true' className='flex items-center justify-center'>
+                  <ContraventamentoSideIcon side='left' size={34}/>
                 </span>
               </button>
 
               <button
                 type='button'
+                aria-label='Direito'
+                title='Direito'
                 disabled={contraventamentoRightDisabled}
                 onClick={() => {
                   commitDraftChanges();
@@ -234,14 +237,15 @@ export function PilotiEditor({
                     contraventamentoRightDisabled
                   )
                 }>
-                <span className='flex flex-col items-center gap-1.5'>
-                  <ContraventamentoSideIcon side='right' size={40}/>
-                  <span className='text-xs font-semibold'>Direito</span>
+                <span aria-hidden='true' className='flex items-center justify-center'>
+                  <ContraventamentoSideIcon side='right' size={34}/>
                 </span>
               </button>
 
               <button
                 type='button'
+                aria-label='Superior'
+                title='Superior'
                 disabled={contraventamentoTopDisabled}
                 onClick={() => {
                   commitDraftChanges();
@@ -253,14 +257,15 @@ export function PilotiEditor({
                     contraventamentoTopDisabled
                   )
                 }>
-                <span className='flex flex-col items-center gap-1.5'>
-                  <ContraventamentoHorizontalSideIcon side='top' size={40}/>
-                  <span className='text-xs font-semibold'>Superior</span>
+                <span aria-hidden='true' className='flex items-center justify-center'>
+                  <ContraventamentoHorizontalSideIcon side='top' size={34}/>
                 </span>
               </button>
 
               <button
                 type='button'
+                aria-label='Inferior'
+                title='Inferior'
                 disabled={contraventamentoBottomDisabled}
                 onClick={() => {
                   commitDraftChanges();
@@ -272,9 +277,8 @@ export function PilotiEditor({
                     contraventamentoBottomDisabled
                   )
                 }>
-                <span className='flex flex-col items-center gap-1.5'>
-                  <ContraventamentoHorizontalSideIcon side='bottom' size={40}/>
-                  <span className='text-xs font-semibold'>Inferior</span>
+                <span aria-hidden='true' className='flex items-center justify-center'>
+                  <ContraventamentoHorizontalSideIcon side='bottom' size={34}/>
                 </span>
               </button>
             </div>

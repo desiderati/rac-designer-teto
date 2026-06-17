@@ -48,7 +48,7 @@ function createPilotiRect(pilotiId: string, left: number, top: number) {
 }
 
 describe('contraventamento.ts', () => {
-  const defaultElevationWidth = HOUSE_DIMENSIONS.contraventamento.squareWidth / 2;
+  const defaultElevationWidth = HOUSE_DIMENSIONS.contraventamento.squareWidth;
 
   it('parses piloti ids', () => {
     expect(parsePilotiGridPosition('piloti_2_1')).toEqual({col: 2, row: 1});
@@ -291,12 +291,12 @@ describe('contraventamento.ts', () => {
       'contrav_right',
     ]);
     expect(legacyLeftProjections.map((object: any) => object.strokeWidth)).toEqual([
-      defaultElevationWidth * 2 + 2,
-      defaultElevationWidth * 2,
+      defaultElevationWidth + 2,
+      defaultElevationWidth,
     ]);
     expect(modernRightProjections.map((object: any) => object.strokeWidth)).toEqual([
-      defaultElevationWidth * 2 + 2,
-      defaultElevationWidth * 2,
+      defaultElevationWidth + 2,
+      defaultElevationWidth,
     ]);
     expect(legacyLeftGroup.setCoords).toHaveBeenCalled();
     expect(modernRightGroup.setCoords).toHaveBeenCalled();

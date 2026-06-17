@@ -169,8 +169,8 @@ Ao cancelar:
 1. Pilotis elegíveis ficam visualmente destacados.
 2. Pilotis não elegíveis ficam com aparência neutra.
 3. Cursor e destaque devem deixar claro o que é clicável.
-4. Nas vistas elevadas dos lados menores da casa, a espessura visual do contraventamento deve ser o dobro da espessura
-   usada nas vistas do lado de 6 m.
+4. Nas vistas elevadas, a espessura visual do contraventamento deve permanecer consistente entre frontal, posterior e
+   laterais, sem dobrar a espessura nos lados menores.
 
 ## Regras de consistência com 3D
 
