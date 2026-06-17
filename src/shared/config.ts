@@ -11,6 +11,7 @@ export const APP_SETTINGS_DEFAULTS = {
 export const STORAGE_KEYS = {
   settings: 'rac-settings',
   constructionSites: 'rac-construction-sites',
+  canvasViewport: 'rac-canvas-viewport:v1',
 } as const;
 
 export const VIEWPORT = {
@@ -19,7 +20,8 @@ export const VIEWPORT = {
 } as const;
 
 export const CANVAS_DEFAULTS = {
-  width: 1300,
+  // Mantem a superficie editavel proporcional a area do canvas no PDF A4 paisagem.
+  width: 1667,
   height: 1300,
 } as const;
 
@@ -232,6 +234,7 @@ export const TOAST_MESSAGES = {
   invalidJsonFile: 'Arquivo JSON inválido.',
   contraventamentoRemovedSuccessfully: 'Contraventamento removido!',
   removeOtherViewsBeforeDeletingTopView: 'Remova todas as outras vistas antes de apagar a planta.',
+  addHouseBeforePdfExport: 'Insira uma casa no canvas antes de exportar o PDF.',
   pdfSavedSuccessfully: 'PDF salvo com sucesso!',
   canvasRestartedSuccessfully: 'Canvas reiniciado!',
   noHouse3DToInsert: 'Nenhuma casa 3D para inserir.',
@@ -239,6 +242,8 @@ export const TOAST_MESSAGES = {
   house3DInsertedSuccessfully: 'Visão 3D inserida no canvas.',
   failedToInsertHouse3DOnCanvas: 'Não foi possível inserir no canvas.',
   failedToCaptureHouse3DImage: 'Falha ao capturar a imagem 3D.',
+  imageInsertedSuccessfully: 'Imagem inserida no canvas.',
+  failedToInsertImageOnCanvas: 'Não foi possível inserir a imagem no canvas.',
   topViewUnavailableForContraventamento: 'Não foi possível identificar a vista planta para contraventamento.',
 
   contraventamentoSideSelected: (sideLabel: string): string =>

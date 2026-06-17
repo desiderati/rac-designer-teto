@@ -9,6 +9,7 @@ import type {
   CreateConstructionSiteInput,
   CreateMonitorInput,
   UpdateFamilyInput,
+  UpdateHouseExtraMaterialsInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
   UpdateMonitorInput,
@@ -302,6 +303,19 @@ export function useConstructionSiteManagementController({
     });
   }, [loadOrQueueHouseDocument, constructionSiteManagementPort, runDocumentTransition, flushActiveHouseDocumentSave]);
 
+  const updateActiveHouseConfiguration = useCallback(async (input: UpdateHouseConfigurationInput) => {
+    await runDocumentTransition(async () => {
+      await flushActiveHouseDocumentSave({force: true});
+      constructionSiteManagementPort.updateActiveHouseConfiguration(input);
+      await loadOrQueueHouseDocument(constructionSiteManagementPort.getActiveHouseDrawingDocument());
+    });
+  }, [
+    constructionSiteManagementPort,
+    flushActiveHouseDocumentSave,
+    loadOrQueueHouseDocument,
+    runDocumentTransition,
+  ]);
+
   const duplicateActiveHouse = useCallback(async () => {
     await runDocumentTransition(async () => {
       await flushActiveHouseDocumentSave({force: true});
@@ -403,8 +417,9 @@ export function useConstructionSiteManagementController({
       updateActiveFamily: (input: UpdateFamilyInput) => constructionSiteManagementPort.updateActiveFamily(input),
       updateActiveHouseSiteAssessment: (input: Partial<SiteAssessment>) =>
         constructionSiteManagementPort.updateActiveHouseSiteAssessment(input),
-      updateActiveHouseConfiguration: (input: UpdateHouseConfigurationInput) =>
-        constructionSiteManagementPort.updateActiveHouseConfiguration(input),
+      updateActiveHouseConfiguration,
+      updateActiveHouseExtraMaterials: (input: UpdateHouseExtraMaterialsInput) =>
+        constructionSiteManagementPort.updateActiveHouseExtraMaterials(input),
     },
   };
 }

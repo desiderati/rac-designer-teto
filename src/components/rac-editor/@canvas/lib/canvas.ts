@@ -66,6 +66,10 @@ type CanvasProperties = {
   isHouseDoor?: boolean;
   isTopDoorMarker?: boolean;
   doorMarkerSide?: HouseSide;
+  isHouseViewReferenceMarker?: boolean;
+  houseViewReferenceMarkerCode?: string;
+  houseViewReferenceMarkerLabel?: string;
+  houseViewReferenceMarkerSide?: HouseSide;
 
   isGroundElement?: boolean;
   isGroundLine?: boolean;
@@ -207,6 +211,10 @@ export const canvasObjectProps = [
   'isHouseDoor',
   'isTopDoorMarker',
   'doorMarkerSide',
+  'isHouseViewReferenceMarker',
+  'houseViewReferenceMarkerCode',
+  'houseViewReferenceMarkerLabel',
+  'houseViewReferenceMarkerSide',
 
   'isGroundElement',
   'isGroundLine',

@@ -3,6 +3,7 @@ import {
   createViewGroupControlsVisibilityPatch,
   createViewGroupMetadataPatch,
   extractViewGroupRemovalHints,
+  getElevationViewLabelForHouseType,
   getViewLabelForHouseType,
 } from './house-view.ts';
 
@@ -25,7 +26,31 @@ describe('house-view.ts', () => {
 
   it('maps view labels according to house type', () => {
     expect(getViewLabelForHouseType('back', 'tipo3')).toBe('Lateral');
-    expect(getViewLabelForHouseType('back', 'tipo6')).toBe('Traseira');
+    expect(getViewLabelForHouseType('back', 'tipo6')).toBe('Posterior');
+    expect(getViewLabelForHouseType('side1', 'tipo6')).toBe('Lateral');
+  });
+
+  it('maps elevation labels using house type and plant side', () => {
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'front',
+      side: 'bottom',
+    })).toBe('Frontal');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'side1',
+      side: 'left',
+    })).toBe('Lateral Esquerda');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'side2',
+      side: 'right',
+    })).toBe('Quadrado Aberto');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'back',
+      side: 'bottom',
+    })).toBe('Lateral Direita');
   });
 
 });

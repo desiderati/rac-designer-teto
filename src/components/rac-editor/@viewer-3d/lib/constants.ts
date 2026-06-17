@@ -55,6 +55,13 @@ export const TERRAIN_MARGIN = 100 * HOUSE_3D_FINAL_SCALE; // 100 cm
 export const TERRAIN_SEGMENTS = HOUSE_DIMENSIONS.terrain.segments;
 export const TERRAIN_THICKNESS = 0.80 * 100 * HOUSE_3D_FINAL_SCALE; // 80 cm
 
+export const HOUSE_3D_CAMERA_POSITION = [180, 140, 250] as const;
+export const HOUSE_3D_CAMERA_TARGET = [0, 28, 0] as const;
+export const HOUSE_3D_CAMERA_FOV = 40;
+export const HOUSE_3D_COMPACT_CAMERA_POSITION = [220, 150, 305] as const;
+export const HOUSE_3D_COMPACT_CAMERA_FOV = 48;
+export const HOUSE_3D_COMPACT_CAMERA_MAX_WIDTH = 520;
+
 export const COLORS = {
   roof: '#a8b8c4',
   piloti: '#d8d8d8',

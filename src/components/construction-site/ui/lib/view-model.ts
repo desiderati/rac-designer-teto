@@ -1,5 +1,6 @@
 import type {CreateHouseInput, CreateMonitorInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
+  HouseExtraMaterialsFormValues,
   HouseConfigurationFormValues,
   MonitorFormValues,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
@@ -7,6 +8,7 @@ import type {
   ConstructionSiteState,
   ConstructionSiteSummary,
   FamilyRecord,
+  HouseExtraMaterials,
   HouseSize,
   MonitorRecord,
   PersistedHouseRecord,
@@ -34,8 +36,11 @@ export function getScreenTitle(screen: ConstructionSiteManagementScreen, constru
   if (screen === 'monitors') return `Monitores - ${constructionLabel}`;
   if (screen === 'monitor-create') return 'Cadastrar Monitor';
   if (screen === 'monitor-detail') return 'Editar Monitor';
-  if (screen === 'houses') return 'Casas da Construção';
+  if (screen === 'houses') {
+    return constructionLabel ? `Casas - ${constructionLabel}` : 'Casas';
+  }
   if (screen === 'house-create' || screen === 'house-detail') return 'Configuração da Casa';
+  if (screen === 'house-extra-materials') return 'Materiais Extras';
   return constructionLabel;
 }
 
@@ -47,6 +52,7 @@ export function getScreenSubtitle(screen: ConstructionSiteManagementScreen): str
   if (screen === 'monitor-create') return 'Cadastrar dados de contato do monitor.';
   if (screen === 'monitor-detail') return 'Atualizar dados do monitor sem duplicar o registro.';
   if (screen === 'houses') return 'Casas vinculadas à construção ativa.';
+  if (screen === 'house-extra-materials') return 'Quantitativos e justificativas adicionais vinculados à casa.';
   return 'Família, restrições e características do local da casa.';
 }
 
@@ -219,8 +225,16 @@ export function getHouseConfigurationInitialState(
     hasElevatedObstacles: assessment?.hasElevatedObstacles ?? false,
     hasNeighborSetbacks: assessment?.hasNeighborSetbacks ?? false,
     locationQuery: assessment?.locationQuery ?? '',
-    terrainComplexity: assessment?.terrainComplexity ?? 'flat',
+    terrainComplexity: toEditableTerrainComplexity(assessment?.terrainComplexity),
   };
+}
+
+function toEditableTerrainComplexity(terrainComplexity?: TerrainComplexity): TerrainComplexity {
+  if (terrainComplexity === 'extreme') {
+    return 'very_steep';
+  }
+
+  return terrainComplexity ?? 'flat';
 }
 
 export function toHouseConfigurationInput(form: HouseConfigurationFormValues): CreateHouseInput {
@@ -241,6 +255,36 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
       locationQuery: form.locationQuery?.trim() || undefined,
       terrainComplexity: form.terrainComplexity ?? 'flat',
     },
+  };
+}
+
+export interface HouseExtraMaterialsFormState {
+  floorBeams: string;
+  rafters: string;
+  secondaryBeams: string;
+  gutters: string;
+  justification: string;
+}
+
+export function getHouseExtraMaterialsInitialState(house: PersistedHouseRecord | null): HouseExtraMaterialsFormState {
+  const extraMaterials = house?.extraMaterials;
+
+  return {
+    floorBeams: formatOptionalInteger(extraMaterials?.floorBeams),
+    rafters: formatOptionalInteger(extraMaterials?.rafters),
+    secondaryBeams: formatOptionalInteger(extraMaterials?.secondaryBeams),
+    gutters: formatOptionalInteger(extraMaterials?.gutters),
+    justification: extraMaterials?.justification ?? '',
+  };
+}
+
+export function toHouseExtraMaterialsInput(form: HouseExtraMaterialsFormValues): HouseExtraMaterials {
+  return {
+    floorBeams: parseOptionalInteger(form.floorBeams),
+    rafters: parseOptionalInteger(form.rafters),
+    secondaryBeams: parseOptionalInteger(form.secondaryBeams),
+    gutters: parseOptionalInteger(form.gutters),
+    justification: form.justification?.trim() || undefined,
   };
 }
 
@@ -325,4 +369,15 @@ export function getHouseFamily(constructionSite: ConstructionSiteState, house: P
 
 export function getHouseFamilyName(constructionSite: ConstructionSiteState, house: PersistedHouseRecord): string {
   return getHouseFamily(constructionSite, house)?.name ?? 'Família sem nome';
+}
+
+function formatOptionalInteger(value: number | undefined): string {
+  return Number.isInteger(value) && value >= 0 ? String(value) : '';
+}
+
+function parseOptionalInteger(value: string): number | undefined {
+  const normalized = value.trim();
+  if (!normalized) return undefined;
+  const parsed = Number(normalized);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
 }

@@ -245,7 +245,7 @@ export function RadioField({
   return (
     <label
       className={cn(
-        'flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border px-4 text-sm font-semibold transition-colors focus-within:ring-2 focus-within:ring-blue-200',
+        'relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border px-4 text-sm font-semibold transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-200',
         checked ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-transparent bg-slate-50 text-slate-950 hover:bg-slate-100',
       )}
     >
@@ -256,7 +256,7 @@ export function RadioField({
         value={value}
         checked={checked}
         onChange={(event) => onChange(event.target.value)}
-        className='sr-only'
+        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0'
       />
       <span className={cn('shrink-0', checked ? 'text-blue-600' : 'text-slate-500')}>{icon}</span>
       <span className='min-w-0 flex-1'>{label}</span>
@@ -495,6 +495,7 @@ export function TextField({
   value,
   onChange,
   onBlur,
+  onKeyDown,
   required,
   maxLength,
   pattern,
@@ -507,6 +508,7 @@ export function TextField({
   value: string;
   onChange(value: string): void;
   onBlur?: () => void;
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
   required?: boolean;
   maxLength?: number;
   pattern?: string;
@@ -532,6 +534,7 @@ export function TextField({
         aria-describedby={error ? errorId : undefined}
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}
+        onKeyDown={onKeyDown}
         className={inputClassName}
       />
       {error ? (
@@ -745,13 +748,13 @@ export function CheckboxField({
   onChange(value: boolean): void;
 }) {
   return (
-    <label className='flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-slate-50 px-4 text-sm transition-colors hover:bg-slate-100 focus-within:ring-2 focus-within:ring-blue-200'>
+    <label className='relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-slate-50 px-4 text-sm transition-colors hover:bg-slate-100 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-200'>
       <input
         type='checkbox'
         aria-label={label}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className='sr-only'
+        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0'
       />
       <span
         aria-hidden='true'

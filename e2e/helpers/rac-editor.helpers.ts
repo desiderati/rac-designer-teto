@@ -146,10 +146,10 @@ export async function createHouse(page: Page, houseType: HouseType, options: Cre
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Casa Tipo 6' : 'Casa Tipo 3'}).click();
   await page.getByRole('button', {name: houseType === 'tipo6' ? 'Superior' : 'Esquerdo'}).click();
   await completeNivelDefinition(page);
-  await waitForInitialHouseViews(page, houseType);
   if (options.dismissInitialHouseTour ?? true) {
     await dismissInitialHouseGuidedTourIfVisible(page);
   }
+  await waitForInitialHouseViews(page, houseType);
 }
 
 async function waitForInitialHouseViews(page: Page, houseType: HouseType) {

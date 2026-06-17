@@ -169,6 +169,7 @@ export function useCanvasHouseViewActions({
         return null;
       }
       houseWritePort.refreshAutoContraventamentoForCurrentHouse();
+      houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse();
 
       onHouseDrawingChange();
 

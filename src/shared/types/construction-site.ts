@@ -65,6 +65,14 @@ export interface SiteAssessment {
   terrainComplexity: TerrainComplexity;
 }
 
+export interface HouseExtraMaterials {
+  floorBeams?: number;
+  rafters?: number;
+  secondaryBeams?: number;
+  gutters?: number;
+  justification?: string;
+}
+
 export interface HouseDesignSettings {
   selectedPilotiHeights: number[];
 }
@@ -114,6 +122,7 @@ export interface PersistedHouseRecord {
   status: PersistedHouseStatus;
   houseSize?: HouseSize;
   leaders?: string;
+  extraMaterials?: HouseExtraMaterials;
   designSettings: HouseDesignSettings;
   siteAssessment: SiteAssessment;
   pilotiLayout: PersistedPilotiLayout;

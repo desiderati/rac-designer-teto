@@ -6,6 +6,7 @@ export const CANVAS_HEIGHT = CANVAS_DEFAULTS.height;
 // Tolerância padrão para comparações numéricas com ponto flutuante.
 export const NUMERIC_EPSILON = 1e-4;
 export const AUTO_STAIR_HEIGHT_EXTRA_MTS = 0.3;
+export const HOUSE_FAMILY_NAME_MAX_LENGTH = 25;
 
 export const HOUSE_BASE_WIDTH = HOUSE_DEFAULTS.width;
 export const HOUSE_BASE_HEIGHT = HOUSE_DEFAULTS.height;

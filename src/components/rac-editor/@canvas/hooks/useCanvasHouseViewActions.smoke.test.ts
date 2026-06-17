@@ -73,6 +73,7 @@ function createHouseWritePort(): HouseWritePort {
     setHouseType: vi.fn(),
     refreshAutoStairsForCurrentSettings: vi.fn(),
     refreshAutoContraventamentoForCurrentHouse: vi.fn(),
+    refreshHouseViewReferenceMarkersForCurrentHouse: vi.fn(),
     resetHouse: vi.fn(),
     setTerrainType: vi.fn((terrainType: number) => terrainType),
     removeView: vi.fn(),
@@ -312,17 +313,22 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     const registerView = vi.mocked(houseWritePort.registerView);
     const refreshAutoContraventamento =
       vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+    const refreshReferenceMarkers =
+      vi.mocked(houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse);
 
     expect(registerView).toHaveBeenCalledTimes(1);
     expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
     expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
+    expect(refreshReferenceMarkers).toHaveBeenCalledTimes(1);
     expect(registerView.mock.invocationCallOrder[0])
       .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
     expect(addObjectToCanvas.mock.invocationCallOrder[0])
       .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
+    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshReferenceMarkers.mock.invocationCallOrder[0]);
   });
 
-  it('recalcula auto contraventamento da planta depois que a vista entra no canvas', () => {
+  it('recalcula efeitos derivados da planta depois que a vista entra no canvas', () => {
     const group = createGroup({
       height: 200,
       bounds: {left: 160, top: 250, width: 360, height: 260},
@@ -370,16 +376,23 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     const registerView = vi.mocked(houseWritePort.registerView);
     const refreshAutoContraventamento =
       vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+    const refreshReferenceMarkers =
+      vi.mocked(houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse);
 
     expect(registerView).toHaveBeenCalledTimes(1);
     expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
     expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
+    expect(refreshReferenceMarkers).toHaveBeenCalledTimes(1);
     expect(onHouseDrawingChange).toHaveBeenCalledTimes(1);
     expect(registerView.mock.invocationCallOrder[0])
       .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
     expect(addObjectToCanvas.mock.invocationCallOrder[0])
       .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
+    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshReferenceMarkers.mock.invocationCallOrder[0]);
     expect(refreshAutoContraventamento.mock.invocationCallOrder[0])
+      .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
+    expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
   });
 });

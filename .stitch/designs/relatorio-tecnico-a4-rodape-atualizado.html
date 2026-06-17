@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="pt-br" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RAC - Relatório de Acompanhamento Construtivo - Minimalist</title>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style data-purpose="typography">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .label-text {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .value-text {
+      font-size: 0.875rem;
+      color: #111827;
+      font-weight: 500;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+<style data-purpose="page-layout">
+    /* A4 Landscape Dimensions */
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      width: 297mm;
+      height: 210mm;
+      background-color: #ffffff;
+      overflow: hidden;
+    }
+
+    .page-container {
+      width: 297mm;
+      height: 210mm;
+      padding: 15mm;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 2rem;
+    }
+
+    .sidebar {
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .main-canvas {
+      grid-row: 2;
+      background-color: #f9fafb;
+      border-radius: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+  </style>
+<link data-snapdom="injected-import" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"></head>
+<body>
+<!-- BEGIN: PageContent -->
+<div class="page-container">
+<!-- BEGIN: MinimalHeader -->
+<header class="col-span-2 flex justify-between items-end pb-4 border-b border-gray-100" data-purpose="header">
+<div class="flex items-baseline gap-4">
+<h1 class="text-3xl font-light text-gray-900 tracking-tight">Tadeu e Odete</h1>
+<span class="text-gray-400 font-light text-sm">Carioca e Isa Fava<br></span>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-right"><p class="label-text">Complexidade</p><p class="value-text">Moderado</p></div><div class="text-right">
+<p class="label-text">Comunidade</p>
+<p class="value-text">Dona Cida</p>
+</div>
+<div class="text-right">
+<p class="label-text">CC</p>
+<p class="value-text"></p><div><span class="" style="font-size: 0.875rem;">2603</span></div><p class=""></p>
+</div>
+<!-- Logo Placement -->
+<div class="h-10 w-24 flex items-center justify-center">
+<svg height="30" viewBox="0 0 100 40" width="80" xmlns="http://www.w3.org/2000/svg">
+<text fill="#003366" font-family="Arial, sans-serif" font-size="28" font-weight="900" x="0" y="30">TETO<tspan fill="#003366">.</tspan></text>
+<text fill="#003366" font-family="Arial, sans-serif" font-size="8" font-weight="700" x="75" y="35">BRASIL</text>
+</svg>
+</div>
+</div>
+</header>
+<!-- END: MinimalHeader -->
+<!-- BEGIN: SidebarData -->
+<aside class="sidebar">
+<!-- Section: Casa -->
+<section data-purpose="house-data">
+<h2 class="section-title">Casa</h2>
+<div class="grid grid-cols-[120px_1fr] gap-y-3" style="grid-template-columns: 132px 1fr;">
+<div>
+<p class="label-text">Tamanho</p>
+<p class="value-text">Grande</p>
+</div>
+<div>
+<p class="label-text">Tipo</p>
+<p class="value-text">Tipo 6</p>
+</div>
+</div>
+</section>
+<!-- Section: Terreno -->
+<section data-purpose="land-data">
+<h2 class="section-title">Terreno</h2>
+<div class="grid grid-cols-[120px_1fr] gap-y-3" style="grid-template-columns: 132px 1fr;">
+<div class="">
+<p class="label-text">Desnível</p>
+<p class="value-text">0 cm</p>
+</div>
+<div class="">
+<p class="label-text">Solo</p>
+<p class="value-text">Firme</p>
+</div>
+<div class="col-span-2">
+<p class="label-text">Obstáculos</p>
+<div class="flex flex-wrap gap-1 mt-1"><span class="flex-1 text-center px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] rounded border border-blue-100">Subterrâneos</span><span class="flex-1 text-center px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] rounded border border-blue-100">Elevados</span><span class="flex-1 text-center px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] rounded border border-blue-100">Recuos vizinhos</span></div>
+</div>
+</div>
+</section>
+<!-- Section: Monitoria -->
+<section class="" data-purpose="extra-materials">
+<h2 class="section-title">Material Extra</h2>
+<div class="grid grid-cols-[120px_1fr] gap-y-3" style="grid-template-columns: 132px 1fr;">
+<div>
+<p class="label-text">Viga de Piso</p>
+<p class="value-text">12</p>
+</div>
+<div>
+<p class="label-text">Caibros</p>
+<p class="value-text">24</p>
+</div>
+<div>
+<p class="label-text">Vigas Secundárias</p>
+<p class="value-text">8</p>
+</div>
+<div>
+<p class="label-text">Calhas</p>
+<p class="value-text">4</p>
+</div>
+<div class="col-span-2">
+<p class="label-text">Outros/Justificativa</p>
+<p class="text-xs text-gray-400 italic mt-1">Nenhuma observação adicional.</p>
+</div>
+</div>
+</section><section data-purpose="monitoring-data">
+<h2 class="section-title">MonitoriA</h2>
+<div class="space-y-3">
+<div>
+</div>
+<div class="flex flex-wrap gap-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">C</div>
+<div>
+<p class="value-text">Carioca</p>
+<p class="label-text text-[9px]">(41) 98889-7269</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">J</div>
+<div>
+<p class="value-text">John</p>
+<p class="label-text text-[9px]">(41) 98765-4321</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Observações -->
+<section class="mt-auto" data-purpose="observations">
+<h2 class="section-title">Observações</h2>
+<p class="text-xs text-gray-600 leading-relaxed italic">
+          "Teste do teste. Verificado as condições do solo antes do início da perfuração."
+        </p>
+</section>
+</aside>
+<!-- END: SidebarData -->
+<!-- BEGIN: CanvasSection -->
+<main class="main-canvas" data-purpose="visualization">
+<!-- Layout Diagram Simulation -->
+<div class="w-full h-full flex flex-col items-center justify-center space-y-12">
+<!-- Top View Representation -->
+<div class="relative w-4/5 aspect-[2/1] border-2 border-gray-300 bg-white shadow-sm flex items-center justify-center">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full pb-2">
+<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold border border-amber-200">PORTA</span>
+</div>
+<!-- Grid of Points -->
+<div class="grid grid-cols-4 grid-rows-3 gap-8 p-6 w-full h-full">
+<!-- Simplified point representation -->
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+<div class="flex flex-col items-center justify-center"><div class="w-4 h-4 rounded-full bg-yellow-400 border-2 border-white ring-1 ring-yellow-200"></div><span class="text-[8px] text-gray-400 mt-1">1,0m</span></div>
+</div>
+<div class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 text-[9px] text-gray-400 font-mono">Nivel = 0,20</div>
+<div class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 text-[9px] text-gray-400 font-mono">Nivel = 0,20</div>
+<div class="absolute bottom-0 left-0 -translate-x-1/2 translate-y-1/2 text-[9px] text-gray-400 font-mono">Nivel = - 0,20</div>
+<div class="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 text-[9px] text-gray-400 font-mono">Nivel = - 0,20</div>
+</div>
+<!-- Elevation View Representation -->
+<div class="relative w-full h-40 flex flex-col items-center">
+<!-- House Silhouette -->
+<div class="relative w-64 h-32 border-x-2 border-t-2 border-gray-400 bg-white">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 w-72 h-12 border-t-2 border-x-2 border-gray-400" style="clip-path: polygon(0 100%, 50% 0, 100% 100%); background: white;"></div>
+<div class="absolute top-4 left-4 w-8 h-8 border border-gray-300"></div>
+<div class="absolute top-4 right-4 w-8 h-8 border border-gray-300"></div>
+<div class="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-20 border-x border-t border-gray-300"></div>
+</div>
+<!-- Foundation/Pilotis -->
+<div class="w-full h-8 bg-[#8B7355] border-t-2 border-gray-600 flex justify-around items-end px-12">
+<div class="w-3 h-10 bg-white border border-gray-400"></div>
+<div class="w-3 h-10 bg-white border border-gray-400"></div>
+<div class="w-3 h-10 bg-white border border-gray-400"></div>
+<div class="w-3 h-10 bg-white border border-gray-400"></div>
+<div class="w-3 h-10 bg-white border border-gray-400"></div>
+</div>
+<div class="w-full h-12 bg-[#F3F4F6] mt-auto"></div>
+</div>
+</div>
+</main>
+<!-- END: CanvasSection -->
+<!-- BEGIN: PilotisTechnicalData -->
+<footer class="col-span-2 grid gap-2 pt-4 border-gray-100 grid-cols-7" data-purpose="technical-footer"><div class="p-2 border border-gray-100 rounded text-center bg-gray-100">
+<span class="label-text block">PILOTIS MESTRE</span>
+<span class="text-xs font-bold">A1 / 1,0 m</span>
+</div>
+<div class="p-2 border border-gray-100 rounded text-center">
+<span class="label-text block">PILOTIS 1,0 M</span>
+<span class="text-xs font-bold">12</span>
+</div>
+<div class="p-2 text-gray-400 rounded text-center">
+<span class="label-text block">PILOTIS 1,2 M</span>
+<span class="text-xs font-bold">0</span>
+</div>
+<div class="p-2 text-gray-400 rounded text-center">
+<span class="label-text block">PILOTIS 1,5 M</span>
+<span class="text-xs font-bold">0</span>
+</div>
+<div class="p-2 text-gray-400 rounded text-center">
+<span class="label-text block">PILOTIS 2,0 M</span>
+<span class="text-xs font-bold">0</span>
+</div>
+<div class="p-2 text-gray-400 rounded text-center">
+<span class="label-text block">PILOTIS 2,5 M</span>
+<span class="text-xs font-bold">0</span>
+</div>
+<div class="p-2 text-gray-400 rounded text-center">
+<span class="label-text block">PILOTIS 3,0 M</span>
+<span class="text-xs font-bold">0</span>
+</div></footer>
+<!-- END: PilotisTechnicalData -->
+</div>
+<!-- END: PageContent -->
+
+
+
+
+</body></html>

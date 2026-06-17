@@ -8,7 +8,58 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog.tsx';
+import {AlertTriangle} from 'lucide-react';
 import type {StatusChangeAction} from './types.ts';
+
+export function UnsavedChangesDialog({
+  open,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  onCancel(): void;
+  onConfirm(): void;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={(nextOpen) => {
+      if (!nextOpen) onCancel();
+    }}>
+      <AlertDialogContent className='w-[calc(100vw-2rem)] max-w-md rounded-2xl border-slate-200 bg-white p-5 shadow-xl sm:p-6'>
+        <AlertDialogHeader className='space-y-3 text-left'>
+          <div className='flex items-center gap-3'>
+            <span
+              data-testid='unsaved-changes-icon-badge'
+              className='inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 leading-none'
+            >
+              <AlertTriangle
+                aria-hidden='true'
+                data-testid='unsaved-changes-icon'
+                className='block h-5 w-5 -translate-y-px'
+              />
+            </span>
+            <AlertDialogTitle className='text-xl font-semibold text-slate-950'>
+              Sair sem salvar?
+            </AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className='text-sm leading-6 text-slate-600'>
+            Você está saindo da página sem salvar as alterações atuais. Se continuar, as alterações serão perdidas.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
+          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+            Continuar editando
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className='w-full bg-red-600 text-white hover:bg-red-700 sm:w-auto'
+          >
+            Sair sem salvar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export function ConstructionStatusDialog({
   open,

@@ -33,25 +33,32 @@ coverage/
 # Claude AI agent — específico do desenvolvedor
 .agents/changelogs/
 .agents/code-reviews/
+.agents/councils/
+.agents/council-sessions/
+.agents/pruning-reports/
 .agents/refactorings/
+.agents/releases/
 .agents/skill-evaluations/
 .agents/work-items/
-.claude/
+.agents/worktrees/
+.agents/errors.md
 .codex/hooks/codex-resolution-time-state/
+.codex/hooks/resolution-time/state/
+.codex/hooks/self-improvement-observer/state/
+.codex/tmp/
 .codex/napkin.md
+.claude/
 .obsidian/
 .tmp/
+.playwright-mcp/
+.worktrees/
 
 # Diretórios do Graphify
 .graphify_*
 graphify-out/
 
-/tmp/
 /output/
-.agents/council-sessions/
-.agents/pruning-reports/
-.agents/releases/
-.agents/worktrees/
-.agents/errors.md
-.codex/hooks/resolution-time/state/
-.codex/hooks/self-improvement-observer/state/
+/tmp/
+/product-requirements/
+/nanobanana-output/
+/openai-image-output/

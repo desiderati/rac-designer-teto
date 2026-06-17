@@ -1,6 +1,7 @@
 ---
 title: Documentação do Diretório docs
 doc_type: index
+doc_role: index
 doc_set: docs
 status: active
 lang: pt-BR
@@ -10,16 +11,22 @@ lang: pt-BR
 
 ## Objetivo
 
-Este diretório reúne documentação versionada do produto e da governança técnica do repositório, para leitura de pessoas
-técnicas e não técnicas. A maior parte do conteúdo é durável; documentos transitórios devem declarar explicitamente seu
-ciclo de vida.
+Este diretório reúne documentação versionada do produto e da governança técnica do repositório, para
+leitura de pessoas técnicas e não técnicas. A maior parte do conteúdo é durável; documentos
+transitórios devem declarar explicitamente seu ciclo de vida.
 
 ## Como usar estes documentos
 
 1. Ler primeiro este arquivo para entender a organização.
+
 2. Depois abrir o tema específico que deseja validar.
-3. Em discussões de produto, priorizar `business-rules/README.md` como porta de entrada das regras funcionais.
-4. Quando a discussão for de escopo, especificação ou evolução de iniciativa, consultar `product-requirements/`.
+
+3. Em discussões de produto, priorizar `business-rules/README.md` como porta de entrada das regras
+   funcionais.
+
+4. Quando a discussão for de escopo, especificação ou evolução de iniciativa, consultar
+   `product-requirements/`.
+
 5. Quando a discussão for de arquitetura local, convenções ou critérios de implementação, consultar
    `engineering-playbook/`.
 
@@ -45,18 +52,27 @@ ciclo de vida.
      - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
       persistência e testes.
 
-6. `product-requirements/`
+6. `ui-definitions/`
+     - Definições duráveis de comportamento visual para superfícies operacionais, áreas dimensionadas e exportações.
+
+7. `product-requirements/`
      - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 
 ## Princípios deste diretório
 
 1. Linguagem clara e orientada a comportamento de produto.
+
 2. Foco em regra funcional e, quando aplicável, em governança técnica durável.
+
 3. Atualização contínua conforme o produto evolui.
+
 4. Coerência entre documentos (sem regras conflitantes).
+
 5. PRDs versionados e rastreáveis para iniciativas que precisem de especificação durável.
-6. Backlogs técnicos transitórios devem ter critério claro de saída para não virarem documentação permanente por inércia.
+
+6. Backlogs técnicos transitórios devem ter critério claro de saída para não virarem documentação
+   permanente por inércia.
 
 ## Quando atualizar
 

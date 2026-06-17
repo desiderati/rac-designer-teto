@@ -11,6 +11,9 @@ type UseRacEditorDocumentHotkeysControllerArgs = DocumentActionsArgs & HotkeysAr
  */
 export function useRacEditorDocumentHotkeysController({
   canvasRef,
+  house3DPdfSnapshotRef,
+  canExportPdf,
+  onBeforeExportPdf,
   onToggleDrawMode,
   onToggleZoomControls,
   onSetCanvasToolMode,
@@ -18,6 +21,9 @@ export function useRacEditorDocumentHotkeysController({
 }: UseRacEditorDocumentHotkeysControllerArgs) {
   const actions = useRacEditorDocumentActions({
     canvasRef,
+    house3DPdfSnapshotRef,
+    canExportPdf,
+    onBeforeExportPdf,
   });
 
   useRacEditorHotkeys({

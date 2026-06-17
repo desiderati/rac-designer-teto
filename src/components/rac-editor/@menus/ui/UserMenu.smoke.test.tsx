@@ -5,7 +5,7 @@ import {UserMenu} from './UserMenu.tsx';
 
 const Menu = UserMenu as React.ComponentType<any>;
 
-function renderMenu({isMobile = false} = {}) {
+function renderMenu({isMobile = false, canExportPDF = true} = {}) {
   const user = userEvent.setup();
   const props = {
     isMobile,
@@ -15,6 +15,7 @@ function renderMenu({isMobile = false} = {}) {
     onOpenSettings: vi.fn(),
     onOpen3DViewer: vi.fn(),
     onSavePDF: vi.fn(),
+    canExportPDF,
     onExit: vi.fn(),
   };
 
@@ -42,6 +43,19 @@ describe('UserMenu.tsx', () => {
 
     expect(props.onOpen3DViewer).toHaveBeenCalledTimes(1);
     expect(props.onSavePDF).toHaveBeenCalledTimes(1);
+  });
+
+  it('desabilita exportação mobile quando nenhuma casa foi inserida no canvas', async () => {
+    const {user, props} = renderMenu({isMobile: true, canExportPDF: false});
+
+    await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+
+    const exportItem = screen.getByRole('button', {name: 'Exportar RAC em PDF'});
+    expect(exportItem).toBeDisabled();
+
+    await user.click(exportItem);
+
+    expect(props.onSavePDF).not.toHaveBeenCalled();
   });
 
   it('starts the tutorial through a passive guided-tour attribute', async () => {

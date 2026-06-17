@@ -17,26 +17,25 @@ Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inse
 ## Tipos de vista
 
 1. Planta.
-2. Visão frontal.
-3. Visão traseira/lateral (dependendo do tipo).
-4. Quadrado fechado.
-5. Quadrado aberto.
+2. Vista frontal/posterior/lateral, conforme o tipo de casa.
+3. Quadrado fechado.
+4. Quadrado aberto.
 
 ## Regras de limite por tipo de casa
 
 ### Tipo 6
 
 1. Planta: 1
-2. Visão frontal: 1
-3. Visão traseira: 1
-4. Quadrado fechado: 2
+2. Frontal: 1
+3. Posterior: 1
+4. Lateral: 2, diferenciadas no canvas como `Lateral Esquerda` e `Lateral Direita`
 5. Quadrado aberto: 0
 
 ### Tipo 3
 
 1. Planta: 1
-2. Visão frontal: 0
-3. Visão lateral: 2
+2. Frontal: 0
+3. Lateral: 2, diferenciadas no canvas como `Lateral Esquerda` e `Lateral Direita`
 4. Quadrado fechado: 1
 5. Quadrado aberto: 1
 
@@ -73,3 +72,19 @@ Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inse
 1. Importação, desfazer/refazer e reconstrução não podem violar limites por tipo.
 2. Contagem de vistas deve permanecer correta após qualquer operação.
 3. Rótulos e comportamento devem continuar coerentes com o tipo de casa ativo.
+
+## Regras de identificação no canvas
+
+1. Cada vista elevada recebe um número sequencial pela ordem de inserção no canvas.
+2. A vista elevada exibe apenas uma etiqueta inferior no formato `{Nome} #{número}`.
+    - Exemplo: `Frontal #1`.
+3. A planta exibe o marcador triangular correspondente a cada vista elevada inserida.
+4. O marcador triangular fica pareado com o lado da planta associado à vista.
+5. A base do triângulo deve ficar paralela ao lado da planta.
+6. A ponta do triângulo deve apontar para o lado da planta correspondente.
+7. O texto do número e do nome deve ficar paralelo à base do triângulo.
+8. O nome da vista deve ficar do lado externo da base:
+    - Superior: acima da base.
+    - Inferior: abaixo da base.
+    - Esquerdo: à esquerda da base.
+    - Direito: à direita da base.

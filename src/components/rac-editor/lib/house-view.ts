@@ -1,4 +1,4 @@
-import {HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;
@@ -53,12 +53,38 @@ export function getViewLabelForHouseType(viewType: HouseViewType, houseType: Hou
       return 'Frontal';
 
     case 'back':
-      return houseType === 'tipo3' ? 'Lateral' : 'Traseira';
+      return houseType === 'tipo3' ? 'Lateral' : 'Posterior';
 
     case 'side1':
-      return 'Quadrado Fechado';
+      return houseType === 'tipo6' ? 'Lateral' : 'Quadrado Fechado';
 
     case 'side2':
       return 'Quadrado Aberto';
   }
+}
+
+export function getElevationViewLabelForHouseType(params: {
+  houseType: HouseType;
+  side?: HouseSide;
+  viewType: Exclude<HouseViewType, 'top'>;
+}): string {
+  if (params.houseType === 'tipo6') {
+    if (params.viewType === 'front') return 'Frontal';
+    if (params.viewType === 'back') return 'Posterior';
+    if (params.viewType === 'side1') return getLateralLabel(params.side);
+  }
+
+  if (params.houseType === 'tipo3') {
+    if (params.viewType === 'side2') return 'Quadrado Aberto';
+    if (params.viewType === 'side1') return 'Quadrado Fechado';
+    if (params.viewType === 'back') return getLateralLabel(params.side);
+  }
+
+  return getViewLabelForHouseType(params.viewType, params.houseType);
+}
+
+function getLateralLabel(side?: HouseSide): string {
+  if (side === 'left' || side === 'top') return 'Lateral Esquerda';
+  if (side === 'right' || side === 'bottom') return 'Lateral Direita';
+  return 'Lateral';
 }

@@ -30,6 +30,7 @@ export function RacEditorMenus({
   isMobile,
   documentSaveStatus,
   documentTransitioning,
+  canExportPDF,
 }: RacEditorMenusProps) {
   return (
     <>
@@ -43,6 +44,7 @@ export function RacEditorMenus({
         isMobile={isMobile}
         documentSaveStatus={documentSaveStatus}
         documentTransitioning={documentTransitioning}
+        canExportPDF={canExportPDF}
       />
 
       <CanvasToolsMenu

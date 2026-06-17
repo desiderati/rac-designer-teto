@@ -23,6 +23,7 @@ const actions = {
   addDistance: vi.fn(),
   toggleDrawMode: vi.fn(),
   addText: vi.fn(),
+  openImageUpload: vi.fn(),
   deleteSelection: vi.fn(),
   savePDF: vi.fn(),
   toggleHouseMenu: vi.fn(),
@@ -85,13 +86,16 @@ describe('CanvasToolsMenu.tsx', () => {
     const houseButton = screen.getByRole('button', {name: 'Casa TETO (Opções)'});
     const elementsButton = screen.getByRole('button', {name: 'Elementos'});
     const wallButton = screen.getByRole('button', {name: 'Objeto / Muro'});
+    const uploadButton = screen.getByRole('button', {name: 'Upload de Imagem'});
 
     expect(houseButton).not.toHaveAttribute('title');
     expect(elementsButton).not.toHaveAttribute('title');
     expect(wallButton).not.toHaveAttribute('title');
+    expect(uploadButton).not.toHaveAttribute('title');
     expect(houseButton).toHaveClass('w-10', 'h-10');
     expect(elementsButton).toHaveClass('w-10', 'h-10');
     expect(wallButton).toHaveClass('w-10', 'h-10');
+    expect(uploadButton).toHaveClass('w-10', 'h-10');
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toHaveClass('p-1');
     expect(screen.getByTestId('rac-side-rail-submenu')).toHaveClass('px-1');
   });

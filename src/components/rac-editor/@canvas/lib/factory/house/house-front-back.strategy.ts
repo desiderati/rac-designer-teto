@@ -6,11 +6,13 @@ import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
 import {setCanvasGroupMyType} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
+import type {HouseSide} from '@/shared/types/house.ts';
 
 export function createHouseFrontBack(
   canvas: FabricCanvas,
   isFront: boolean,
-  flipHorizontal: boolean = false
+  flipHorizontal: boolean = false,
+  side?: HouseSide,
 ): CanvasGroup {
   const factors = getHouseScaleFactors(canvas);
 
@@ -195,6 +197,7 @@ export function createHouseFrontBack(
 
   // Não precisamos adicionar o terreno, pois o mesmo será criado pelo House Manager.
   createPilotis(elements, bodyW, s, flipHorizontal);
+  const viewType = isFront ? 'front' : 'back';
 
   const group = new FabricGroup(elements, {
     left: canvas.width! / 2,
@@ -207,7 +210,7 @@ export function createHouseFrontBack(
   group.setControlsVisibility({mt: false, mb: false, ml: false, mr: false});
 
   const groupObj = setCanvasGroupMyType(group, 'house');
-  groupObj.houseView = isFront ? 'front' : 'back';
+  groupObj.houseView = viewType;
   groupObj.isFlippedHorizontally = flipHorizontal;
   return groupObj;
 }

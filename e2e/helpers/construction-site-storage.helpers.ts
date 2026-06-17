@@ -1,15 +1,31 @@
 import type {Page} from '@playwright/test';
+import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../src/shared/types/construction-site';
+import type {HousePiloti} from '../../src/shared/types/house';
+import {getAllPilotiIds} from '../../src/shared/types/piloti';
 
 type SeedHouseType = 'tipo6' | 'tipo3' | null;
 type SeedHouseSize = 'large' | 'small';
 
-interface SeedConstructionSiteDocumentOptions {
+interface SeedConstructionSiteMonitor {
+  id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  status?: MonitorStatus;
+}
+
+export interface SeedConstructionSiteDocumentOptions {
   houseType?: SeedHouseType;
   houseSize?: SeedHouseSize;
   leaders?: string;
+  extraMaterials?: HouseExtraMaterials;
   notes?: string;
   familyNotes?: string;
   primaryContactName?: string;
+  monitors?: SeedConstructionSiteMonitor[];
+  siteAssessment?: Partial<SiteAssessment>;
+  selectedPilotiHeights?: number[];
+  pilotis?: Record<string, Partial<HousePiloti>>;
 }
 
 export async function seedConstructionSiteDocument(
@@ -48,6 +64,19 @@ export async function seedConstructionSiteDocument(
 function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
   const now = '2026-05-11T12:00:00.000Z';
   const houseType = options.houseType === undefined ? 'tipo6' : options.houseType;
+  const pilotis = options.pilotis
+    ? Object.fromEntries(
+      getAllPilotiIds().map((pilotiId) => [
+        pilotiId,
+        {
+          height: 1.5,
+          nivel: 0.4,
+          isMaster: false,
+          ...options.pilotis?.[pilotiId],
+        },
+      ]),
+    )
+    : {};
 
   return {
     version: 1,
@@ -71,7 +100,16 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
         primaryContactName: options.primaryContactName,
         ...(options.familyNotes ? {notes: options.familyNotes} : {}),
       }],
-      monitors: [],
+      monitors: (options.monitors ?? []).map((monitor, index) => ({
+        id: monitor.id ?? `monitor_e2e_${index + 1}`,
+        constructionSiteId: 'construction_site_e2e',
+        name: monitor.name,
+        phone: monitor.phone,
+        email: monitor.email,
+        status: monitor.status ?? 'active',
+        createdAt: now,
+        updatedAt: now,
+      })),
       houses: [{
         id: 'house_e2e',
         constructionSiteId: 'construction_site_e2e',
@@ -80,17 +118,21 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
         houseType,
         ...(options.houseSize ? {houseSize: options.houseSize} : {}),
         ...(options.leaders ? {leaders: options.leaders} : {}),
+        ...(options.extraMaterials ? {extraMaterials: options.extraMaterials} : {}),
         terrainType: 1,
         status: 'draft',
-        designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
-        siteAssessment: {terrainComplexity: 'flat'},
+        designSettings: {selectedPilotiHeights: options.selectedPilotiHeights ?? [1, 1.5, 2]},
+        siteAssessment: {
+          terrainComplexity: 'flat',
+          ...options.siteAssessment,
+        },
         pilotiLayout: {points: []},
         drawingDocument: {
           schemaVersion: 1,
           house: {
             id: 'house_e2e',
             houseType,
-            pilotis: {},
+            pilotis,
             terrainType: 1,
             views: {top: [], front: [], back: [], side1: [], side2: []},
             sideMappings: {top: null, bottom: null, left: null, right: null},

@@ -123,5 +123,4 @@ export const TERRAIN_COMPLEXITY_OPTIONS: VisualSelectOption<TerrainComplexity>[]
   {value: 'moderate', label: TERRAIN_COMPLEXITY_LABELS.moderate},
   {value: 'steep', label: TERRAIN_COMPLEXITY_LABELS.steep},
   {value: 'very_steep', label: TERRAIN_COMPLEXITY_LABELS.very_steep},
-  {value: 'extreme', label: TERRAIN_COMPLEXITY_LABELS.extreme},
 ];

@@ -112,12 +112,22 @@ export function MonitorsScreen({
       </div>
 
       <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto sm:block'>
-        <table className='min-w-full border-separate border-spacing-y-3'>
+        <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
+          <colgroup>
+            <col className='w-[52%]'/>
+            <col className='w-[16%]'/>
+            <col className='w-[32%]'/>
+          </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Monitores</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
-            <th scope='col' className='px-3 pb-1 text-center'>Contato</th>
+            <th scope='col' className='px-3 pb-1 text-center'>
+              <span className='grid grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3'>
+                <span className='justify-self-center'>Contato</span>
+                <span aria-hidden='true'/>
+              </span>
+            </th>
           </tr>
           </thead>
           <tbody>
@@ -260,12 +270,24 @@ function MonitorTableRow({
         monitor.status === 'inactive' ? 'opacity-55' : null,
       )}
     >
-      <td className='rounded-l-lg px-3 py-3'>
-        <div className='flex min-h-14 w-full items-center gap-3 rounded-lg text-left'>
+      <td className='max-w-0 rounded-l-lg px-3 py-3'>
+        <div className='flex min-h-14 min-w-0 w-full items-center gap-3 rounded-lg text-left'>
           <MonitorAvatar monitor={monitor}/>
-          <span className='min-w-0'>
-            <span className='block truncate font-semibold text-slate-950'>{monitor.name}</span>
-            <span className='mt-0.5 block truncate text-xs font-medium text-slate-500'>{monitor.email || 'Sem e-mail'}</span>
+          <span data-testid='monitor-table-identity' className='min-w-0 flex-1'>
+            <span
+              data-testid='monitor-table-name'
+              title={monitor.name}
+              className='block truncate font-semibold text-slate-950'
+            >
+              {monitor.name}
+            </span>
+            <span
+              data-testid='monitor-table-email'
+              title={monitor.email || 'Sem e-mail'}
+              className='mt-0.5 block truncate text-xs font-medium text-slate-500'
+            >
+              {monitor.email || 'Sem e-mail'}
+            </span>
           </span>
         </div>
       </td>
@@ -273,9 +295,8 @@ function MonitorTableRow({
         <MonitorStatusBadge status={monitor.status}/>
       </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-3'>
-          <span aria-hidden='true'/>
-          <span className='text-center'>{monitor.phone}</span>
+        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3'>
+          <span className='justify-self-center whitespace-nowrap text-center'>{monitor.phone}</span>
           <StatusActionButton
             action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
             label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}

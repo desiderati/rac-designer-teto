@@ -19,6 +19,7 @@ interface TopBarProps {
   isMobile: boolean;
   documentSaveStatus: HouseDocumentSaveStatus;
   documentTransitioning: boolean;
+  canExportPDF: boolean;
 }
 
 /**
@@ -42,7 +43,12 @@ export function TopBar({
   isMobile,
   documentSaveStatus,
   documentTransitioning,
+  canExportPDF,
 }: TopBarProps) {
+  const exportPDFTitle = canExportPDF
+    ? 'Exportar RAC em PDF'
+    : 'Insira uma casa no canvas para exportar o RAC em PDF';
+
   return (
     <>
       {/* Left: Menu + Family */}
@@ -89,13 +95,16 @@ export function TopBar({
         <button
           type='button'
           onClick={actions.savePDF}
+          disabled={!canExportPDF}
           data-guided-tour-id='rac-export-pdf'
           className={cn(
-            'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white',
-            'bg-gradient-to-tr from-blue-500 to-blue-300 shadow-md border border-blue-200',
-            'hover:scale-[1.03] active:scale-95 transition-transform',
+            'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold',
+            'border transition-transform',
+            canExportPDF
+              ? 'text-white bg-gradient-to-tr from-blue-500 to-blue-300 shadow-md border-blue-200 hover:scale-[1.03] active:scale-95'
+              : 'text-slate-400 bg-slate-200 border-slate-200 shadow-none cursor-not-allowed',
           )}
-          title='Exportar RAC em PDF'
+          title={exportPDFTitle}
           aria-label='Exportar RAC em PDF'
         >
           <FontAwesomeIcon icon={TOP_BAR_ICONS.export} className='text-base'/>
@@ -108,6 +117,7 @@ export function TopBar({
           onRestartDrawing={actions.restartDrawing}
           onOpen3DViewer={actions.open3DViewer}
           onSavePDF={actions.savePDF}
+          canExportPDF={canExportPDF}
           onToggleTips={actions.toggleTips}
           onOpenSettings={() => actions.openSettings?.()}
           onExit={actions.exit}

@@ -23,6 +23,7 @@ import {
   PrimaryButton,
   TextField,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {formatDateOnly, parseDateOnly, toDateOnly} from '@/components/construction-site/ui/lib/view-model.ts';
 
 export function ConstructionFormScreen({
@@ -33,6 +34,7 @@ export function ConstructionFormScreen({
   constructionDate,
   communityName,
   onSubmit,
+  onDirtyChange,
 }: {
   mode: 'create' | 'edit';
   externalCode: string;
@@ -41,6 +43,7 @@ export function ConstructionFormScreen({
   constructionDate: string;
   communityName: string;
   onSubmit(input: CreateConstructionSiteInput & UpdateConstructionSiteInput): void | Promise<void>;
+  onDirtyChange?: (isDirty: boolean) => void;
 }) {
   const form = useForm<ConstructionFormValues>({
     resolver: zodResolver(constructionFormSchema),
@@ -62,6 +65,7 @@ export function ConstructionFormScreen({
       communityName,
     });
   }, [communityName, constructionDate, externalCode, form, photoDataUrl]);
+  useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
     const normalizedExternalCode = values.externalCode.trim().toUpperCase();

@@ -19,6 +19,7 @@ export interface UseMenuActionsArgs {
   handleAddDistance: () => void;
   handleToggleDrawMode: () => void;
   handleAddText: () => void;
+  handleOpenImageUpload: () => void;
   handleOpenConstructionSites: () => void;
   handleActivateHouse: (constructionId: string, houseId: string) => Promise<void>;
   handleDelete: () => void;
@@ -54,6 +55,7 @@ export function useRacEditorMenuActions({
   handleAddDistance,
   handleToggleDrawMode,
   handleAddText,
+  handleOpenImageUpload,
   handleOpenConstructionSites,
   handleActivateHouse,
   handleDelete,
@@ -92,6 +94,7 @@ export function useRacEditorMenuActions({
     addDistance: handleAddDistance,
     toggleDrawMode: handleToggleDrawMode,
     addText: handleAddText,
+    openImageUpload: handleOpenImageUpload,
     openConstructionSites: handleOpenConstructionSites,
     activateHouse: handleActivateHouse,
     deleteSelection: handleDelete,
@@ -128,6 +131,7 @@ export function useRacEditorMenuActions({
     handleDelete,
     handleExit,
     handleFitToView,
+    handleOpenImageUpload,
     handleOpenConstructionSites,
     handleActivateHouse,
     handleOpenHouseTypeSelector,

@@ -1,13 +1,29 @@
 import {describe, expect, it} from 'vitest';
 import {
+  constructionFormSchema,
   formatPhoneInput,
   houseConfigurationFormSchema,
+  houseExtraMaterialsFormSchema,
   monitorFormSchema,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
 
 const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
 
 describe('construction-site-form-validation.ts', () => {
+  it('aplica os limites de texto definidos para construção', () => {
+    expect(constructionFormSchema.safeParse({
+      externalCode: 'CC2603',
+      constructionDate: '2026-06-16',
+      communityName: 'A'.repeat(30),
+    }).success).toBe(true);
+
+    expect(constructionFormSchema.safeParse({
+      externalCode: 'CC2603',
+      constructionDate: '2026-06-16',
+      communityName: 'A'.repeat(31),
+    }).success).toBe(false);
+  });
+
   it('valida cadastro de monitor com nome e telefone obrigatórios', () => {
     expect(monitorFormSchema.safeParse({
       name: 'Ana Monitoria',
@@ -52,6 +68,20 @@ describe('construction-site-form-validation.ts', () => {
       name: 'Ana Monitoria',
       phone: '(41) 99999-8888',
       email: 'email inválido',
+      photoDataUrl: '',
+    }).success).toBe(false);
+
+    expect(monitorFormSchema.safeParse({
+      name: 'A'.repeat(26),
+      phone: '(41) 99999-8888',
+      email: '',
+      photoDataUrl: '',
+    }).success).toBe(false);
+
+    expect(monitorFormSchema.safeParse({
+      name: 'Ana Monitoria',
+      phone: '(41) 99999-8888',
+      email: `${'a'.repeat(43)}@example.com`,
       photoDataUrl: '',
     }).success).toBe(false);
   });
@@ -107,5 +137,88 @@ describe('construction-site-form-validation.ts', () => {
       leaders: '',
       notes: '',
     }).success).toBe(false);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      ...baseHouseConfiguration,
+      familyName: 'A'.repeat(26),
+      houseSize: '',
+      leaders: '',
+      notes: '',
+    }).success).toBe(false);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      ...baseHouseConfiguration,
+      primaryContactName: 'A'.repeat(26),
+      houseSize: '',
+      leaders: '',
+      notes: '',
+    }).success).toBe(false);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      ...baseHouseConfiguration,
+      primaryContactEmail: `${'a'.repeat(43)}@example.com`,
+      houseSize: '',
+      leaders: '',
+      notes: '',
+    }).success).toBe(false);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      ...baseHouseConfiguration,
+      houseSize: '',
+      leaders: 'A'.repeat(51),
+      notes: '',
+    }).success).toBe(false);
+  });
+
+  it('aceita coordenadas geográficas com precisão de GPS e rejeita limites inválidos', () => {
+    const baseHouseConfiguration = {
+      familyName: 'Família Souza',
+      primaryContactName: 'Maria',
+      primaryContactPhone: '',
+      primaryContactEmail: '',
+      familyPhotoDataUrl: '',
+      houseSize: '',
+      leaders: '',
+      notes: '',
+      soilProfile: '',
+      hasUndergroundObstacles: false,
+      hasElevatedObstacles: false,
+      hasNeighborSetbacks: false,
+      terrainComplexity: 'flat',
+    };
+
+    for (const locationQuery of ['-25.4284567, -49.2733123', '-90, -180', '90, 180']) {
+      expect(houseConfigurationFormSchema.safeParse({
+        ...baseHouseConfiguration,
+        locationQuery,
+      }).success).toBe(true);
+    }
+
+    for (const locationQuery of ['-90.0001, 0', '90.0001, 0', '0, -180.0001', '0, 180.0001']) {
+      expect(houseConfigurationFormSchema.safeParse({
+        ...baseHouseConfiguration,
+        locationQuery,
+      }).success).toBe(false);
+    }
+  });
+
+  it('aceita apenas inteiros opcionais em materiais extras', () => {
+    expect(houseExtraMaterialsFormSchema.safeParse({
+      floorBeams: '',
+      rafters: '24',
+      secondaryBeams: '8',
+      gutters: '4',
+      justification: 'Reforço combinado com a liderança.',
+    }).success).toBe(true);
+
+    for (const invalidValue of ['1.5', '-2', '1e3', '12a']) {
+      expect(houseExtraMaterialsFormSchema.safeParse({
+        floorBeams: invalidValue,
+        rafters: '',
+        secondaryBeams: '',
+        gutters: '',
+        justification: '',
+      }).success).toBe(false);
+    }
   });
 });

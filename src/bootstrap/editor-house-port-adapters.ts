@@ -20,6 +20,7 @@ import type {
   CreateConstructionSiteInput,
   CreateMonitorInput,
   UpdateFamilyInput,
+  UpdateHouseExtraMaterialsInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
   UpdateMonitorInput,
@@ -68,6 +69,7 @@ export interface EditorHouseWriteSource {
   setFamilyName(name: string): void;
   refreshAutoStairsForCurrentSettings(): void;
   refreshAutoContraventamentoForCurrentHouse(): void;
+  refreshHouseViewReferenceMarkersForCurrentHouse(): void;
   setHouseType(type: HouseType): void;
   reset(): void;
   setTerrainType(terrainType: number): number;
@@ -121,6 +123,7 @@ export interface EditorConstructionSiteManagementSource {
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void;
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void;
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null;
 }
@@ -155,6 +158,7 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
     renameFamily: (name) => source.setFamilyName(name),
     refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),
     refreshAutoContraventamentoForCurrentHouse: () => source.refreshAutoContraventamentoForCurrentHouse(),
+    refreshHouseViewReferenceMarkersForCurrentHouse: () => source.refreshHouseViewReferenceMarkersForCurrentHouse(),
     setHouseType: (type) => source.setHouseType(type),
     resetHouse: () => source.reset(),
     setTerrainType: (terrainType) => source.setTerrainType(terrainType),
@@ -246,6 +250,7 @@ export function createEditorConstructionSiteManagementPort(
     updateActiveFamily: (input) => source.updateActiveFamily(input),
     updateActiveHouseSiteAssessment: (input) => source.updateActiveHouseSiteAssessment(input),
     updateActiveHouseConfiguration: (input) => source.updateActiveHouseConfiguration(input),
+    updateActiveHouseExtraMaterials: (input) => source.updateActiveHouseExtraMaterials(input),
     saveActiveHouseDrawingDocument: (document) => source.saveActiveHouseDrawingDocument(document),
     getActiveHouseDrawingDocument: () => source.getActiveHouseDrawingDocument(),
   };

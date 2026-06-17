@@ -25,6 +25,7 @@ import type {
   ConstructionSiteSessionPort,
   CreateMonitorInput,
   UpdateFamilyInput,
+  UpdateHouseExtraMaterialsInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
   UpdateMonitorInput,
@@ -50,6 +51,8 @@ interface EditorHouseEffectsPort {
   refreshAutoStairs(): void;
 
   refreshAutoContraventamento(): void;
+
+  refreshHouseViewReferenceMarkers(): void;
 }
 
 interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
@@ -127,6 +130,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
     this.notifier.addInternalListener(() => this.effects.refreshTopDoorMarkers());
     this.notifier.addInternalListener(() => this.effects.refreshAutoStairs());
+    this.notifier.addInternalListener(() => this.effects.refreshHouseViewReferenceMarkers());
   }
 
   private get house(): HouseState | null {
@@ -170,6 +174,11 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   refreshAutoContraventamentoForCurrentHouse(): void {
     this.effects.refreshAutoContraventamento();
+  }
+
+  refreshHouseViewReferenceMarkersForCurrentHouse(): void {
+    this.invalidateRuntimeHouseCache();
+    this.effects.refreshHouseViewReferenceMarkers();
   }
 
   subscribe(listener: () => void): () => void {
@@ -371,6 +380,11 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
     this.constructionSiteSession.updateActiveHouseConfiguration(input);
     this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+  }
+
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void {
+    this.constructionSiteSession.updateActiveHouseExtraMaterials(input);
+    this.notify();
   }
 
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void {

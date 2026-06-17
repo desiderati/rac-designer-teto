@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx';
@@ -7,10 +7,35 @@ import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/type
 
 const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
 const VALID_PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const TEST_CURRENT_DATE = new Date(2026, 4, 1, 12);
+const SLOW_UI_TEST_TIMEOUT_MS = 10_000;
+const RealDate = Date;
 
 describe('ConstructionSiteManagementPanel.tsx', () => {
+  beforeEach(() => {
+    vi.stubGlobal('Date', class extends RealDate {
+      constructor(...args: ConstructorParameters<typeof Date>) {
+        super(...(args.length > 0 ? args : [TEST_CURRENT_DATE]));
+      }
+
+      static now() {
+        return TEST_CURRENT_DATE.getTime();
+      }
+
+      static parse(value: string) {
+        return RealDate.parse(value);
+      }
+
+      static UTC(...args: Parameters<typeof RealDate.UTC>) {
+        return RealDate.UTC(...args);
+      }
+    });
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    mockNavigatorGeolocation(undefined);
   });
 
   it('detecta orientação de foto por dimensões naturais', () => {
@@ -53,6 +78,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByTestId('construction-desktop-table').className).toContain('hidden');
     expect(screen.getByTestId('construction-desktop-table').className).toContain('sm:block');
+    const constructionDesktopTable = within(screen.getByTestId('construction-desktop-table')).getByRole('table');
+    expect(constructionDesktopTable).toHaveClass('table-fixed');
+    expect(constructionDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[1]).toHaveClass('w-[17%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[2]).toHaveClass('w-[18%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[3]).toHaveClass('w-[17%]');
     const constructionMobileList = screen.getByTestId('construction-mobile-list');
     const constructionMobilePagination = screen.getByTestId('construction-mobile-pagination');
 
@@ -113,6 +144,34 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(screen.getByTestId('construction-mobile-pagination'))
       .getByText('Mostrando 1-1 de 1 construções')).toBeVisible();
     expect(screen.getByTestId('construction-mobile-pagination')).toHaveClass('justify-center', 'text-center');
+  });
+
+  it('trunca comunidade longa na listagem desktop de construções sem deslocar colunas', () => {
+    const summaries = createSummaries();
+    const longCommunityName = 'M'.repeat(30);
+    summaries[0] = {
+      ...summaries[0],
+      label: `CC2603 · ${longCommunityName}`,
+      communityName: longCommunityName,
+    };
+
+    renderPanel({summaries});
+
+    const table = screen.getByTestId('construction-desktop-table');
+    const desktopTable = within(table).getByRole('table');
+    const row = within(table).getByRole('row', {name: /CC2603/i});
+    const identity = within(row).getByTestId('construction-table-identity');
+    const community = within(row).getByTestId('construction-table-community');
+    const date = within(row).getByText('11/05/2026');
+
+    expect(desktopTable).toHaveClass('table-fixed');
+    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
+    expect(identity.closest('td')).toHaveClass('max-w-0');
+    expect(identity).toHaveClass('min-w-0', 'flex-1');
+    expect(community).toHaveTextContent(longCommunityName);
+    expect(community).toHaveAttribute('title', longCommunityName);
+    expect(community).toHaveClass('block', 'truncate');
+    expect(date.closest('td')).toHaveClass('text-center');
   });
 
   it('usa paginação mobile numérica compacta na listagem de construções', async () => {
@@ -255,16 +314,16 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
 
-    expect(screen.getByLabelText('Comunidade')).toHaveAttribute('maxlength', '50');
+    expect(screen.getByLabelText('Comunidade')).toHaveAttribute('maxlength', '30');
 
     fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'CC26'}});
-    fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'A'.repeat(51)}});
+    fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'A'.repeat(31)}});
     await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
 
     expect(actions.createConstructionSite).not.toHaveBeenCalled();
     expect(screen.getByText('Informe o código no formato CC0000.')).toBeVisible();
     expect(screen.getByText('Informe a data da construção.')).toBeVisible();
-    expect(screen.getByText('Máximo de 50 caracteres.')).toBeVisible();
+    expect(screen.getByText('Máximo de 30 caracteres.')).toBeVisible();
   });
 
   it('bloqueia criação de construção com código já cadastrado', async () => {
@@ -289,6 +348,25 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.createConstructionSite).not.toHaveBeenCalled();
     expect(screen.getByText('Já existe uma Construção TETO com este código.')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
+  });
+
+  it('avisa antes de sair do formulário de construção com alterações não salvas', async () => {
+    const user = userEvent.setup();
+
+    renderPanel();
+
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+    await user.type(screen.getByLabelText('Comunidade'), 'Comunidade sem salvar');
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+
+    await expectUnsavedChangesDialog(user);
+    expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+    await confirmUnsavedChangesExit(user);
+
+    expect(screen.getByRole('heading', {name: 'Construções TETO'})).toBeVisible();
   });
 
   it('seleciona Data da Construção pelo Date Picker e salva a edição', async () => {
@@ -366,7 +444,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(within(screen.getByRole('row', {name: /CC2603.*Em andamento/i}))
       .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
 
-    expect(screen.getByRole('heading', {name: 'Casas da Construção', hidden: true})).toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: 'Casas - CC2603 · Tiradentes', hidden: true}))
+      .toBeInTheDocument();
     expect(screen.getByRole('button', {name: '+ Adicionar Casa'})).toBeVisible();
     expect(screen.getAllByRole('button', {name: '+ Adicionar Casa'})).toHaveLength(1);
     const totalMetric = screen.getByText('No. Casas').closest('article');
@@ -390,9 +469,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('columnheader', {name: 'Status'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Última Modificação'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Status'})).toHaveClass('text-center');
-    expect(screen.getByRole('columnheader', {name: 'Última Modificação'})).toHaveClass('text-center');
+    expect(screen.getByTestId('house-updated-header-grid'))
+      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem]', 'text-center');
     expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
     expect(screen.getByTestId('house-desktop-table').className).toContain('sm:block');
+    const houseDesktopTable = within(screen.getByTestId('house-desktop-table')).getByRole('table');
+    expect(houseDesktopTable).toHaveClass('table-fixed');
+    expect(houseDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
+    expect(houseDesktopTable.querySelectorAll('col')[1]).toHaveClass('w-[16%]');
+    expect(houseDesktopTable.querySelectorAll('col')[2]).toHaveClass('w-[36%]');
     const houseMobileList = screen.getByTestId('house-mobile-list');
     const houseMobilePagination = screen.getByTestId('house-mobile-pagination');
 
@@ -412,8 +497,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*RAC Impressa/i});
     expect(within(houseRow).getByText('RAC Impressa').closest('td')).toHaveClass('text-center');
     expect(within(houseRow).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
+    expect(within(houseRow).getByTestId('house-table-updated-at').parentElement)
+      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem]');
     expect(within(houseRow).getByRole('button', {name: 'Arquivar casa Família Santos'}).parentElement)
-      .toHaveClass('grid-cols-[2.25rem_minmax(0,1fr)_2.25rem]');
+      .toHaveClass('min-h-14', 'grid-cols-[minmax(0,1fr)_2.25rem_2.25rem]', 'items-center');
     expect(screen.queryByRole('combobox', {name: 'Filtrar casas por status'})).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
@@ -432,6 +519,36 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByTestId('Filtrar casas por status-menu')).not.toBeInTheDocument();
     expect(within(houseMobilePagination).getByText('Mostrando 1-1 de 1 casas')).toBeVisible();
     expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
+  });
+
+  it('trunca nome longo na listagem desktop de casas sem deslocar status e data', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const longFamilyName = 'M'.repeat(30);
+    constructionSite.families[0].name = longFamilyName;
+
+    renderPanel({constructionSite});
+
+    await openConstructionHouses(user);
+
+    const houseTable = screen.getByTestId('house-desktop-table');
+    const row = within(houseTable).getByRole('row', {
+      name: new RegExp(`${longFamilyName}.*Tipo 6.*Rascunho`),
+    });
+    const identity = within(row).getByTestId('house-table-identity');
+    const familyName = within(row).getByTestId('house-table-family-name');
+    const houseType = within(row).getByTestId('house-table-type');
+
+    expect(identity.closest('td')).toHaveClass('max-w-0');
+    expect(identity).toHaveClass('min-w-0', 'flex-1');
+    expect(familyName).toHaveTextContent(longFamilyName);
+    expect(familyName).toHaveAttribute('title', longFamilyName);
+    expect(familyName).toHaveClass('block', 'truncate');
+    expect(houseType).toHaveTextContent('Tipo 6');
+    expect(houseType).toHaveAttribute('title', 'Tipo 6');
+    expect(houseType).toHaveClass('block', 'truncate');
+    expect(within(row).getByText('Rascunho').closest('td')).toHaveClass('text-center');
+    expect(within(row).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
   });
 
   it('lista monitores ativos por padrão e reativa inativos pelo filtro de status', async () => {
@@ -468,6 +585,68 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(actions.reactivateMonitor).toHaveBeenCalledWith('monitor_2');
     expect(actions.inactivateMonitor).not.toHaveBeenCalled();
+  }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('trunca título longo da tela de monitores sem invadir a ação principal', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const longCommunityName = 'M'.repeat(30);
+    constructionSite.communities[0].name = longCommunityName;
+
+    renderPanel({constructionSite});
+
+    await openConstructionMonitors(user);
+
+    const title = screen.getByTestId('construction-management-title');
+    const expectedTitle = `Monitores - CC2603 · ${longCommunityName}`;
+
+    expect(title).toHaveTextContent(expectedTitle);
+    expect(title).toHaveAttribute('title', expectedTitle);
+    expect(title).toHaveClass('truncate');
+    expect(title.parentElement).toHaveClass('min-w-0', 'flex-1');
+    expect(screen.getByRole('button', {name: '+ Adicionar Monitor'})).toHaveClass('sm:shrink-0');
+  });
+
+  it('trunca nome e e-mail longos na listagem desktop de monitores sem deslocar status', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const longMonitorName = 'M'.repeat(30);
+    const longMonitorEmail = `${'M'.repeat(43)}@MMM.MM`;
+    constructionSite.monitors[0].name = longMonitorName;
+    constructionSite.monitors[0].email = longMonitorEmail;
+
+    renderPanel({constructionSite});
+
+    await openConstructionMonitors(user);
+
+    const monitorTable = screen.getByTestId('monitor-desktop-table');
+    const desktopTable = within(monitorTable).getByRole('table');
+    const identity = within(monitorTable).getByTestId('monitor-table-identity');
+    const monitorName = within(monitorTable).getByTestId('monitor-table-name');
+    const monitorEmail = within(monitorTable).getByTestId('monitor-table-email');
+    const phone = within(monitorTable).getByText('(11) 99999-0000');
+    const statusHeader = within(monitorTable).getByRole('columnheader', {name: 'Status'});
+    const contactHeader = within(monitorTable).getByRole('columnheader', {name: 'Contato'});
+
+    expect(desktopTable).toHaveClass('table-fixed');
+    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[52%]');
+    expect(desktopTable.querySelectorAll('col')[1]).toHaveClass('w-[16%]');
+    expect(desktopTable.querySelectorAll('col')[2]).toHaveClass('w-[32%]');
+    expect(statusHeader).toHaveClass('text-center');
+    expect(contactHeader).toHaveClass('text-center');
+    expect(contactHeader.firstElementChild)
+      .toHaveClass('grid', 'grid-cols-[minmax(0,1fr)_2.25rem]', 'items-center');
+    expect(identity.closest('td')).toHaveClass('max-w-0');
+    expect(identity).toHaveClass('min-w-0', 'flex-1');
+    expect(monitorName).toHaveTextContent(longMonitorName);
+    expect(monitorName).toHaveAttribute('title', longMonitorName);
+    expect(monitorName).toHaveClass('block', 'truncate');
+    expect(monitorEmail).toHaveTextContent(longMonitorEmail);
+    expect(monitorEmail).toHaveAttribute('title', longMonitorEmail);
+    expect(monitorEmail).toHaveClass('block', 'truncate');
+    expect(phone).toHaveClass('justify-self-center', 'whitespace-nowrap', 'text-center');
+    expect(phone.closest('td')).toHaveClass('text-center', 'align-middle');
+    expect(phone.parentElement).toHaveClass('min-h-14', 'grid-cols-[minmax(0,1fr)_2.25rem]', 'items-center');
   });
 
   it('cadastra monitor com nome e telefone válidos e bloqueia campos inválidos', async () => {
@@ -480,17 +659,22 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
 
     expect(screen.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
-    expect(screen.getByLabelText('Nome do Monitor')).toHaveAttribute('maxlength', '50');
+    expect(screen.getByLabelText('Nome do Monitor')).toHaveAttribute('maxlength', '25');
+    expect(screen.getByLabelText('E-mail')).toHaveAttribute('maxlength', '50');
     expect(screen.getByTestId('monitor-photo-field')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Código da CC')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('CC2603')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Comunidade')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Tiradentes')).toBeVisible();
     expect(screen.queryByRole('heading', {name: 'Dados do Monitor'})).not.toBeInTheDocument();
-    expect(screen.getByTestId('monitor-form-layout')).toHaveClass('items-stretch');
-    expect(screen.getByTestId('monitor-fields-column')).toHaveClass('grid-cols-1');
+    expect(screen.getByTestId('monitor-form')).toHaveClass('items-stretch');
+    expect(screen.getByTestId('monitor-form-layout')).toHaveClass('h-full', 'items-stretch');
+    expect(screen.getByTestId('monitor-fields-column'))
+      .toHaveClass('h-full', 'grid-cols-1', 'md:grid-rows-[auto_auto_auto_minmax(0,1fr)]');
+    expect(within(screen.getByTestId('monitor-fields-column')).getByRole('button', {name: 'Cadastrar Monitor'}))
+      .toHaveClass('w-full', 'md:self-end');
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
-      .toHaveClass('h-full');
+      .toHaveClass('flex-1', 'min-h-[16rem]');
 
     await user.click(screen.getByRole('button', {name: 'Cadastrar Monitor'}));
 
@@ -518,6 +702,45 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       email: 'carla@example.com',
       photoDataUrl: undefined,
     });
+  });
+
+  it('avisa antes de sair do formulário de monitor com alterações não salvas', async () => {
+    const user = userEvent.setup();
+
+    renderPanel();
+
+    await openConstructionMonitors(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
+    await user.type(screen.getByLabelText('Nome do Monitor'), 'Monitor sem salvar');
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+
+    await expectUnsavedChangesDialog(user);
+    expect(screen.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+    await confirmUnsavedChangesExit(user);
+
+    expect(screen.getByRole('heading', {name: /Monitores - CC2603/i, hidden: true})).toBeInTheDocument();
+  });
+
+  it('trunca comunidade longa no resumo lateral do formulário de monitor', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const longCommunityName = 'M'.repeat(30);
+    constructionSite.communities[0].name = longCommunityName;
+
+    renderPanel({constructionSite});
+
+    await openConstructionMonitors(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
+
+    const sidebarCommunity = within(screen.getByTestId('monitor-form'))
+      .getByTestId('construction-sidebar-community');
+
+    expect(sidebarCommunity).toHaveTextContent(longCommunityName);
+    expect(sidebarCommunity).toHaveAttribute('title', longCommunityName);
+    expect(sidebarCommunity).toHaveClass('block', 'max-w-full', 'truncate');
   });
 
   it('edita monitor existente sem criar duplicidade', async () => {
@@ -560,6 +783,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('CC2603')).toBeVisible();
     expect(screen.getByText('Tiradentes')).toBeVisible();
     expect(screen.getByText('11/05/2026')).toBeVisible();
+    expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-hidden');
     expect(screen.getByRole('img', {name: 'Foto da construção CC2603'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Detalhes da Família'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Sobre a Casa'})).toBeVisible();
@@ -592,19 +816,29 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(aboutHouseSection).getByLabelText('Notas')).toBeVisible();
     expect(screen.getByPlaceholderText('Nomes dos líderes da casa')).toBeVisible();
     expect(screen.getByPlaceholderText('Observações da casa, implantação, acessibilidade ou decisões combinadas com a família...')).toBeVisible();
-    expect(screen.getByTestId('local-restrictions-grid').className).toContain('md:grid-cols-2');
+    expect(screen.getByTestId('local-restrictions-grid').className)
+      .toContain('md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]');
     expect(screen.getByText('Perfil do Solo')).toBeVisible();
     expect(screen.getByText('Obstáculos no Local')).toBeVisible();
     expect(screen.getByText('Canos, raízes ou caliças (entulhos e concretos)')).toBeVisible();
     expect(screen.getByText('Árvores ou fios de tensão')).toBeVisible();
-    expect(screen.getByText('Recuos rígidos de limites')).toBeVisible();
+    expect(screen.getByText('Recuos rígidos de limites (esquadro apertado)')).toBeVisible();
     expect(screen.getByTestId('site-characteristics-grid').className).toContain('md:grid-cols-2');
+    expect(screen.getByTestId('location-geography-row'))
+      .toHaveClass('gap-4', 'md:grid-cols-2', 'md:items-start');
     expect(screen.getByPlaceholderText('Carregar a partir de coordenadas')).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Usar localização atual'})).toHaveClass('w-full');
+    expect(screen.getByRole('button', {name: 'Usar localização atual'})).toHaveClass('md:mt-[1.45rem]');
+    expect(screen.getByRole('button', {name: 'Usar localização atual'})).not.toHaveClass('sm:w-auto');
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', {name: 'Salvar Configurações'}).className).toContain('w-full');
-    expect(screen.getByRole('button', {name: 'Salvar Configurações'}).className).toContain('md:col-start-2');
+    expect(screen.getByTestId('site-actions-grid'))
+      .toHaveClass('md:col-span-2', 'md:grid-cols-2', 'md:items-end');
+    expect(within(screen.getByTestId('site-actions-grid')).getByLabelText('Complexidade do Terreno'))
+      .toBeVisible();
+    expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
+      .toHaveClass('w-full', 'md:self-end');
 
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
@@ -617,8 +851,18 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await chooseVisualOption(user, 'Tamanho da Casa', 'Grande');
     fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Ana e Bruno'}});
     fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Casa precisa ficar próxima ao acesso lateral.'}});
-    fireEvent.click(screen.getByRole('radio', {name: /Solo Aluvial Solto/i}));
-    fireEvent.click(screen.getByLabelText('Obstáculos Elevados'));
+    const looseClayOption = screen.getByRole('radio', {name: /Solo Aluvial Solto/i});
+    const elevatedObstaclesOption = screen.getByLabelText('Obstáculos Elevados');
+    expect(looseClayOption.closest('label')?.className).toContain('focus-within:ring-inset');
+    expect(looseClayOption.closest('label')?.className).toContain('relative');
+    expect(looseClayOption).toHaveClass('absolute', 'inset-0', 'opacity-0');
+    expect(looseClayOption).not.toHaveClass('sr-only');
+    expect(elevatedObstaclesOption.closest('label')?.className).toContain('focus-within:ring-inset');
+    expect(elevatedObstaclesOption.closest('label')?.className).toContain('relative');
+    expect(elevatedObstaclesOption).toHaveClass('absolute', 'inset-0', 'opacity-0');
+    expect(elevatedObstaclesOption).not.toHaveClass('sr-only');
+    fireEvent.click(looseClayOption);
+    fireEvent.click(elevatedObstaclesOption);
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '-25.4284, -49.2733'}});
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
     expect(screen.getByText('Configure a chave do Google Maps')).toBeVisible();
@@ -641,7 +885,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
         terrainComplexity: 'very_steep',
       }),
     }));
-  });
+  }, SLOW_UI_TEST_TIMEOUT_MS);
 
   it('valida campos obrigatórios, máscara e formatos da configuração de casa', async () => {
     const user = userEvent.setup();
@@ -652,9 +896,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await openConstructionHouses(user);
     await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
 
-    expect(screen.getByLabelText('Nome da Família')).toHaveAttribute('maxlength', '50');
-    expect(screen.getByLabelText('Contato Principal')).toHaveAttribute('maxlength', '50');
-    expect(screen.getByLabelText('Líderes')).toHaveAttribute('maxlength', '120');
+    expect(screen.getByLabelText('Nome da Família')).toHaveAttribute('maxlength', '25');
+    expect(screen.getByLabelText('Contato Principal')).toHaveAttribute('maxlength', '25');
+    expect(screen.getByLabelText('E-mail')).toHaveAttribute('maxlength', '50');
+    expect(screen.getByLabelText('Líderes')).toHaveAttribute('maxlength', '50');
     expect(screen.getByLabelText('Notas')).toHaveAttribute('maxlength', '300');
 
     await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
@@ -668,7 +913,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('Telefone'), {target: {value: 'abc41999998888xyz'}});
     fireEvent.change(screen.getByLabelText('E-mail'), {target: {value: 'email inválido'}});
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '1000, 2000'}});
-    fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'L'.repeat(121)}});
+    fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'L'.repeat(51)}});
     fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'N'.repeat(301)}});
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
@@ -678,8 +923,28 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.createHouse).not.toHaveBeenCalled();
     expect(screen.getByText('Informe um e-mail válido.')).toBeVisible();
     expect(screen.getByText('Use latitude e longitude, por exemplo: -25.4284, -49.2733.')).toBeVisible();
-    expect(screen.getByText('Máximo de 120 caracteres.')).toBeVisible();
+    expect(screen.getByText('Máximo de 50 caracteres.')).toBeVisible();
     expect(screen.getByText('Máximo de 300 caracteres.')).toBeVisible();
+  });
+
+  it('avisa antes de sair do formulário de casa com alterações não salvas', async () => {
+    const user = userEvent.setup();
+
+    renderPanel();
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    await user.type(screen.getByLabelText('Nome da Família'), 'Família sem salvar');
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+
+    await expectUnsavedChangesDialog(user);
+    expect(screen.getByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+    await confirmUnsavedChangesExit(user);
+
+    expect(screen.getByRole('heading', {name: /Casas - CC2603/i, hidden: true})).toBeInTheDocument();
   });
 
   it('carrega Google Maps por coordenadas quando a chave está configurada', async () => {
@@ -707,6 +972,110 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
     expect(screen.getByText('Coordenadas inválidas')).toBeVisible();
+  });
+
+  it('carrega o mapa com Enter no campo de coordenadas sem salvar configurações', async () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key');
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+
+    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Enter'}});
+    fireEvent.change(screen.getByLabelText('Contato Principal'), {target: {value: 'Maria'}});
+
+    await user.type(screen.getByLabelText('Localização Geográfica'), '-25.4284, -49.2733{Enter}');
+
+    expect(screen.getByTestId('google-maps-embed')).toHaveAttribute(
+      'src',
+      'https://www.google.com/maps/embed/v1/place?key=test-key&q=-25.4284%2C-49.2733&zoom=17',
+    );
+    expect(actions.createHouse).not.toHaveBeenCalled();
+  });
+
+  it('usa a localização atual do navegador para preencher coordenadas e atualizar o Google Maps', async () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', 'test-key');
+    const user = userEvent.setup();
+    const getCurrentPosition = vi.fn((
+      success: PositionCallback,
+      _error?: PositionErrorCallback | null,
+      _options?: PositionOptions,
+    ) => {
+      success(createGeolocationPosition(-25.4284123, -49.2733123));
+    });
+    mockNavigatorGeolocation({getCurrentPosition});
+
+    renderPanel();
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
+
+    expect(getCurrentPosition).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      {
+        enableHighAccuracy: true,
+        maximumAge: 60_000,
+        timeout: 10_000,
+      },
+    );
+    expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428412, -49.273312');
+    expect(screen.getByRole('status')).toHaveTextContent('Localização atual aplicada ao mapa.');
+    expect(screen.getByTestId('google-maps-embed')).toHaveAttribute(
+      'src',
+      'https://www.google.com/maps/embed/v1/place?key=test-key&q=-25.428412%2C-49.273312&zoom=17',
+    );
+  });
+
+  it('mantém fallback do mapa quando a localização atual é aplicada sem chave do Google Maps', async () => {
+    vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '');
+    const user = userEvent.setup();
+    const getCurrentPosition = vi.fn((success: PositionCallback) => {
+      success(createGeolocationPosition(-25.4284, -49.2733));
+    });
+    mockNavigatorGeolocation({getCurrentPosition});
+
+    renderPanel();
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
+
+    expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428400, -49.273300');
+    expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
+    expect(screen.getByText('Configure a chave do Google Maps')).toBeVisible();
+  });
+
+  it('exibe feedback quando a localização atual não está disponível ou é negada', async () => {
+    const user = userEvent.setup();
+
+    renderPanel();
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
+
+    expect(screen.getByRole('alert'))
+      .toHaveTextContent('Localização do navegador indisponível neste dispositivo.');
+    expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('');
+
+    const getCurrentPosition = vi.fn((
+      _success: PositionCallback,
+      error?: PositionErrorCallback | null,
+    ) => {
+      error?.(createGeolocationError(1, 'User denied Geolocation'));
+    });
+    mockNavigatorGeolocation({getCurrentPosition});
+
+    await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
+
+    expect(screen.getByRole('alert'))
+      .toHaveTextContent('Permita o acesso à localização do navegador para usar a posição atual.');
+    expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('');
   });
 
   it('mantém foto existente ao clicar no overlay e só remove pelo X', async () => {
@@ -785,7 +1154,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await chooseVisualOption(user, 'Tamanho da Casa', 'Grande');
     fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Carla e João'}});
     fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Atualizar implantação nos fundos.'}});
-    await chooseVisualOption(user, 'Complexidade do Terreno', 'Extremo');
+    await chooseVisualOption(user, 'Complexidade do Terreno', 'Muito íngreme');
     await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
 
     expect(actions.updateActiveHouseConfiguration).toHaveBeenCalledWith(expect.not.objectContaining({houseType: expect.anything()}));
@@ -796,9 +1165,123 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       leaders: 'Carla e João',
       notes: 'Atualizar implantação nos fundos.',
       siteAssessment: expect.objectContaining({
-        terrainComplexity: 'extreme',
+        terrainComplexity: 'very_steep',
       }),
     }));
+  });
+
+  it('remove Extremo do seletor e normaliza valor legado para Muito íngreme', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    constructionSite.houses[0].siteAssessment = {
+      ...constructionSite.houses[0].siteAssessment,
+      terrainComplexity: 'extreme',
+    };
+
+    renderPanel({constructionSite});
+
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+
+    expect(screen.getByLabelText('Complexidade do Terreno')).toHaveTextContent('Muito íngreme');
+
+    await user.click(screen.getByLabelText('Complexidade do Terreno'));
+    const terrainComplexityMenu = await screen.findByTestId('Complexidade do Terreno-menu');
+
+    expect(within(terrainComplexityMenu).queryByRole('menuitemradio', {name: 'Extremo'})).not.toBeInTheDocument();
+    expect(within(terrainComplexityMenu).getByRole('menuitemradio', {name: 'Muito íngreme'})).toBeVisible();
+  });
+
+  it('abre e salva materiais extras a partir da listagem de casas', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await openConstructionHouses(user);
+    const housesTable = screen.getByTestId('house-desktop-table');
+    await user.click(within(housesTable).getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
+
+    expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
+    expect(await screen.findByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    expect(screen.getAllByRole('heading', {name: 'Materiais Extras'})).toHaveLength(1);
+    expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
+    expect(within(screen.getByTestId('house-extra-materials-form')).queryByText('01')).not.toBeInTheDocument();
+    expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();
+    expect(screen.getByText('Família Souza')).toBeVisible();
+    expect(screen.getByText('Ana e Bruno')).toBeVisible();
+    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('12');
+    expect(screen.getByLabelText('Caibros')).toHaveValue('24');
+    expect(screen.getByLabelText('Vigas Secundárias')).toHaveValue('8');
+    expect(screen.getByLabelText('Calhas')).toHaveValue('4');
+
+    fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
+    fireEvent.change(screen.getByLabelText('Calhas'), {target: {value: '2.5'}});
+    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
+    expect(screen.getByLabelText('Calhas')).toHaveValue('4');
+    fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {
+      target: {value: 'Reforço revisado com a monitoria.'},
+    });
+    await user.click(screen.getByRole('button', {name: 'Salvar Materiais Extras'}));
+
+    expect(actions.updateActiveHouseExtraMaterials).toHaveBeenCalledWith({
+      floorBeams: 15,
+      rafters: 24,
+      secondaryBeams: 8,
+      gutters: 4,
+      justification: 'Reforço revisado com a monitoria.',
+    });
+  });
+
+  it('avisa antes de sair do formulário de materiais extras com alterações não salvas', async () => {
+    const user = userEvent.setup();
+
+    renderPanel();
+
+    await openConstructionHouses(user);
+    await user.click(within(screen.getByTestId('house-desktop-table'))
+      .getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
+    await user.clear(screen.getByLabelText('Vigas de Piso'));
+    await user.type(screen.getByLabelText('Vigas de Piso'), '20');
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+
+    await expectUnsavedChangesDialog(user);
+    expect(screen.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+    await confirmUnsavedChangesExit(user);
+
+    expect(screen.getByRole('heading', {name: /Casas - CC2603/i, hidden: true})).toBeInTheDocument();
+  });
+
+  it('trunca família e líderes longos no resumo lateral de materiais extras', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const longFamilyName = 'M'.repeat(25);
+    const longLeaders = 'L'.repeat(50);
+    constructionSite.families[0].name = longFamilyName;
+    constructionSite.houses[0].leaders = longLeaders;
+
+    renderPanel({constructionSite});
+
+    await openConstructionHouses(user);
+    await user.click(within(screen.getByTestId('house-desktop-table'))
+      .getByRole('button', {name: `Abrir materiais extras da casa ${longFamilyName}`}));
+
+    expect(await screen.findByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    const form = screen.getByTestId('house-extra-materials-form');
+    const family = within(form).getByTestId('house-extra-materials-sidebar-family');
+    const leaders = within(form).getByTestId('house-extra-materials-sidebar-leaders');
+
+    expect(family).toHaveTextContent(longFamilyName);
+    expect(family).toHaveAttribute('title', longFamilyName);
+    expect(family).toHaveClass('block', 'max-w-full', 'truncate');
+    expect(family.closest('dd')).toHaveClass('min-w-0');
+    expect(leaders).toHaveTextContent(longLeaders);
+    expect(leaders).toHaveAttribute('title', longLeaders);
+    expect(leaders).toHaveClass('block', 'max-w-full', 'truncate');
+    expect(leaders.closest('dd')).toHaveClass('min-w-0');
   });
 
   it('não abre edição ao clicar em casa arquivada na listagem', async () => {
@@ -812,7 +1295,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(actions.activateHouse).not.toHaveBeenCalled();
     expect(actions.updateActiveHouseConfiguration).not.toHaveBeenCalled();
-    expect(screen.getByRole('heading', {name: 'Casas da Construção', hidden: true})).toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: 'Casas - CC2603 · Tiradentes', hidden: true}))
+      .toBeInTheDocument();
     expect(screen.queryByRole('heading', {name: 'Configuração da Casa'})).not.toBeInTheDocument();
   });
 
@@ -832,7 +1316,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(archiveHouseButton);
 
     expect(actions.activateHouse).not.toHaveBeenCalled();
-    expect(screen.getByText('Casas da Construção')).toBeInTheDocument();
+    expect(screen.getByText('Casas - CC2603 · Tiradentes')).toBeInTheDocument();
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Arquivar casa?'})).toBeVisible();
     expect(screen.getByText(/A casa de Família Souza será arquivada/i)).toBeVisible();
@@ -908,6 +1392,29 @@ async function chooseVisualOption(
   await user.click(within(menu).getByRole('menuitemradio', {name: optionName}));
 }
 
+async function expectUnsavedChangesDialog(user: ReturnType<typeof userEvent.setup>) {
+  const dialog = await screen.findByRole('alertdialog');
+
+  expect(dialog).toHaveClass('w-[calc(100vw-2rem)]', 'max-w-md');
+  expect(within(dialog).getByTestId('unsaved-changes-icon-badge'))
+    .toHaveClass('inline-flex', 'items-center', 'justify-center', 'leading-none');
+  expect(within(dialog).getByTestId('unsaved-changes-icon'))
+    .toHaveClass('block', '-translate-y-px');
+  expect(within(dialog).getByRole('heading', {name: 'Sair sem salvar?'})).toBeVisible();
+  expect(within(dialog).getByText(/sem salvar as alterações atuais/i)).toBeVisible();
+  expect(within(dialog).getByRole('button', {name: 'Sair sem salvar'})).toBeVisible();
+
+  await user.click(within(dialog).getByRole('button', {name: 'Continuar editando'}));
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+}
+
+async function confirmUnsavedChangesExit(user: ReturnType<typeof userEvent.setup>) {
+  const dialog = await screen.findByRole('alertdialog');
+
+  await user.click(within(dialog).getByRole('button', {name: 'Sair sem salvar'}));
+  await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+}
+
 async function openConstructionHouses(user: ReturnType<typeof userEvent.setup>) {
   await user.click(within(screen.getByRole('row', {name: /CC2603.*Em andamento/i}))
     .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
@@ -957,6 +1464,7 @@ function createActions() {
     updateActiveFamily: vi.fn(),
     updateActiveHouseSiteAssessment: vi.fn(),
     updateActiveHouseConfiguration: vi.fn(),
+    updateActiveHouseExtraMaterials: vi.fn(),
   };
 }
 
@@ -1079,6 +1587,38 @@ function createConstructionSiteWithManyRecords({
   return state;
 }
 
+function mockNavigatorGeolocation(geolocation: Pick<Geolocation, 'getCurrentPosition'> | undefined) {
+  Object.defineProperty(window.navigator, 'geolocation', {
+    configurable: true,
+    value: geolocation,
+  });
+}
+
+function createGeolocationPosition(latitude: number, longitude: number): GeolocationPosition {
+  return {
+    coords: {
+      latitude,
+      longitude,
+      accuracy: 12,
+      altitude: null,
+      altitudeAccuracy: null,
+      heading: null,
+      speed: null,
+    },
+    timestamp: TEST_CURRENT_DATE.getTime(),
+  } as GeolocationPosition;
+}
+
+function createGeolocationError(code: number, message: string): GeolocationPositionError {
+  return {
+    code,
+    message,
+    PERMISSION_DENIED: 1,
+    POSITION_UNAVAILABLE: 2,
+    TIMEOUT: 3,
+  } as GeolocationPositionError;
+}
+
 function createConstructionSite(): ConstructionSiteState {
   const now = '2026-05-09T12:00:00.000Z';
 
@@ -1159,6 +1699,13 @@ function createConstructionSite(): ConstructionSiteState {
         status: 'draft',
         houseSize: 'small',
         leaders: 'Ana e Bruno',
+        extraMaterials: {
+          floorBeams: 12,
+          rafters: 24,
+          secondaryBeams: 8,
+          gutters: 4,
+          justification: 'Reforço inicial.',
+        },
         designSettings: {
           selectedPilotiHeights: [1, 1.5, 2],
         },

@@ -150,6 +150,19 @@ describe('editor house controller', () => {
     unsubscribe();
   });
 
+  it('atualiza o nome da família do editor ao salvar configuração da casa', () => {
+    const listener = vi.fn();
+    const unsubscribe = houseController.subscribe(listener);
+
+    houseController.updateActiveHouseConfiguration({
+      familyName: 'Família Formulário',
+    });
+
+    expect(houseController.getFamilyName()).toBe('Família Formulário');
+    expect(listener).toHaveBeenCalled();
+    unsubscribe();
+  });
+
   it('recalcula níveis intermediários e alturas recomendadas quando um nível de canto é alterado', () => {
     houseController.setHouseType('tipo6');
 

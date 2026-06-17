@@ -41,6 +41,7 @@ import {
   faTrash,
   faTree,
   faTrowelBricks,
+  faUpload,
   faWater,
 } from '@fortawesome/free-solid-svg-icons';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
@@ -100,6 +101,7 @@ export const MAIN_MENU_ICONS = {
   lines: faBars,
   pencil: faPenNib,
   text: faFont,
+  upload: faUpload,
   zoom: faMagnifyingGlass,
   delete: faTrash,
   overflow: faEllipsisVertical,
@@ -140,13 +142,13 @@ export const TOP_BAR_ICONS = {
 
 export const HOUSE_MENU_CONFIG: Record<'tipo6' | 'tipo3', HouseMenuCommandConfig[]> = {
   tipo6: [
-    {action: 'addHouseFront', icon: faHouseChimney, title: 'Visão Frontal', limitKey: 'front'},
-    {action: 'addHouseSide1', icon: faSquareFull, title: 'Quadrado Fechado', limitKey: 'side1'},
-    {action: 'addHouseBack', icon: faHouseChimneyWindow, title: 'Visão Traseira', limitKey: 'back'},
+    {action: 'addHouseFront', icon: faHouseChimney, title: 'Frontal', limitKey: 'front'},
+    {action: 'addHouseSide1', icon: faSquareFull, title: 'Lateral', limitKey: 'side1'},
+    {action: 'addHouseBack', icon: faHouseChimneyWindow, title: 'Posterior', limitKey: 'back'},
   ],
   tipo3: [
     {action: 'addHouseSide2', icon: faDoorOpen, title: 'Quadrado Aberto', limitKey: 'side2'},
-    {action: 'addHouseBack', icon: faHouseChimneyWindow, title: 'Visão Lateral', limitKey: 'back'},
+    {action: 'addHouseBack', icon: faHouseChimneyWindow, title: 'Lateral', limitKey: 'back'},
     {action: 'addHouseSide1', icon: faSquareFull, title: 'Quadrado Fechado', limitKey: 'side1'},
   ],
 };

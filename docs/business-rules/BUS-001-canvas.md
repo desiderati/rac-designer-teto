@@ -52,6 +52,7 @@ Nele, a pessoa consegue:
 2. Edição contextual
     - Piloti abre edição de piloti.
     - Parede, linha, seta e distância abrem seus editores correspondentes.
+    - Imagens enviadas pelo usuário são inseridas como objetos selecionáveis e redimensionáveis no canvas.
     - Quando aplicável, o sistema já abre o editor correto com os dados atuais.
 
 3. Edição de objetos lineares
@@ -88,6 +89,7 @@ Nele, a pessoa consegue:
 
 1. Histórico
     - Mudanças importantes devem ser registradas para permitir desfazer.
+    - Inserção de imagem enviada pelo usuário deve ser registrada no histórico.
 
 2. Exclusão da planta
     - A planta só pode ser removida quando não existir nenhuma outra vista da casa.

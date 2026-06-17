@@ -9,6 +9,7 @@ interface UserMenuProps {
   onRestartDrawing: () => void;
   onOpen3DViewer: () => void;
   onSavePDF: () => void;
+  canExportPDF: boolean;
   onToggleTips: () => void;
   onOpenSettings: () => void;
   onExit: () => void;
@@ -33,6 +34,7 @@ export function UserMenu({
   onRestartDrawing,
   onOpen3DViewer,
   onSavePDF,
+  canExportPDF,
   onToggleTips,
   onOpenSettings,
   onExit,
@@ -75,6 +77,7 @@ export function UserMenu({
               icon={TOP_BAR_ICONS.export}
               label='Exportar RAC em PDF'
               onClick={onSavePDF}
+              disabled={!canExportPDF}
               dataGuidedTourId='rac-export-pdf'
             />
             <Divider/>
@@ -105,29 +108,45 @@ interface ItemProps {
   label: string;
   onClick?: () => void;
   destructive?: boolean;
+  disabled?: boolean;
   rightSlot?: React.ReactNode;
   dataGuidedTourStart?: string;
   dataGuidedTourId?: string;
 }
 
-function Item({icon, label, onClick, destructive = false, rightSlot, dataGuidedTourStart, dataGuidedTourId}: ItemProps) {
+function Item({
+  icon,
+  label,
+  onClick,
+  destructive = false,
+  disabled = false,
+  rightSlot,
+  dataGuidedTourStart,
+  dataGuidedTourId,
+}: ItemProps) {
   return (
     <button
       type='button'
       onClick={onClick}
+      disabled={disabled}
       data-guided-tour-id={dataGuidedTourId}
       data-guided-tour-start={dataGuidedTourStart}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium',
         'transition-colors',
-        destructive
-          ? 'text-red-600 hover:bg-red-50'
-          : 'text-slate-700 hover:bg-slate-100',
+        disabled
+          ? 'text-slate-400 cursor-not-allowed'
+          : destructive
+            ? 'text-red-600 hover:bg-red-50'
+            : 'text-slate-700 hover:bg-slate-100',
       )}
     >
       <FontAwesomeIcon
         icon={icon}
-        className={cn('w-4', destructive ? 'text-red-500' : 'text-slate-500')}
+        className={cn(
+          'w-4',
+          disabled ? 'text-slate-300' : destructive ? 'text-red-500' : 'text-slate-500',
+        )}
       />
       <span className='flex-1 text-left'>{label}</span>
       {rightSlot}

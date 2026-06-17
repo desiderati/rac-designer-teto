@@ -20,22 +20,22 @@ export function getHouseViewStrategy(
     },
     front: {
       create(canvas: FabricCanvas, options?: HouseViewStrategyOptions): CanvasGroup {
-        return createHouseFrontBack(canvas, true, options?.side === 'top');
+        return createHouseFrontBack(canvas, true, options?.side === 'top', options?.side);
       },
     },
     back: {
       create(canvas: FabricCanvas, options?: HouseViewStrategyOptions): CanvasGroup {
-        return createHouseFrontBack(canvas, false, options?.side === 'top');
+        return createHouseFrontBack(canvas, false, options?.side === 'top', options?.side);
       },
     },
     side1: {
       create(canvas: FabricCanvas, options?: HouseViewStrategyOptions): CanvasGroup {
-        return createHouseSide(canvas, false, options?.side === 'right');
+        return createHouseSide(canvas, false, options?.side === 'right', options?.side);
       },
     },
     side2: {
       create(canvas: FabricCanvas, options?: HouseViewStrategyOptions): CanvasGroup {
-        return createHouseSide(canvas, true, options?.side === 'right');
+        return createHouseSide(canvas, true, options?.side === 'right', options?.side);
       },
     },
   }[strategyKey];

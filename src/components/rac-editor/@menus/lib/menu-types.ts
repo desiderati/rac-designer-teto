@@ -20,6 +20,7 @@ export interface MenuActionMap {
   addDistance: () => void;
   toggleDrawMode: () => void;
   addText: () => void;
+  openImageUpload: () => void;
   openConstructionSites: () => void;
   activateHouse: (constructionId: string, houseId: string) => Promise<void>;
   deleteSelection: () => void;
@@ -90,4 +91,6 @@ export interface RacEditorMenusProps {
   documentSaveStatus: HouseDocumentSaveStatus;
   /** Indica se uma troca/hidratação de documento de casa está em andamento. */
   documentTransitioning: boolean;
+  /** Indica se já existe ao menos uma vista de casa inserida no canvas para exportar em PDF. */
+  canExportPDF: boolean;
 }

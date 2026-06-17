@@ -3,6 +3,7 @@ import type {
   CreateHouseInput,
   CreateMonitorInput,
   UpdateConstructionSiteInput,
+  UpdateHouseExtraMaterialsInput,
   UpdateHouseConfigurationInput,
   UpdateMonitorInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -22,7 +23,8 @@ export type ConstructionSiteManagementScreen =
   | 'monitor-detail'
   | 'houses'
   | 'house-create'
-  | 'house-detail';
+  | 'house-detail'
+  | 'house-extra-materials';
 
 export type ConstructionStatusFilter = 'all' | ConstructionSiteStatus;
 export type ConstructionSortKey = 'constructionDate' | 'externalCode' | 'status';
@@ -57,5 +59,6 @@ export interface ConstructionSiteManagementActions {
   unarchiveHouse(houseId: string): Promise<void>;
   activateHouse(constructionSiteId: string, houseId: string): Promise<void>;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
-  updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void;
+  updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): Promise<void>;
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;
 }

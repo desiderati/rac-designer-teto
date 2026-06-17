@@ -1,37 +1,77 @@
 import {RefObject, useCallback} from 'react';
 import {toast} from 'sonner';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
+import {buildRacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
+import {createRacPdfReportDocument} from '@/components/rac-editor/lib/rac-pdf-report-renderer.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
 
 interface UseRacEditorPdfExportActionArgs {
   canvasRef: RefObject<CanvasDocumentHandle | null>;
+  house3DPdfSnapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
+  canExportPdf?: () => boolean;
+  onBeforeExportPdf?: () => Promise<unknown>;
 }
 
-export function useRacEditorPdfExportAction({canvasRef}: UseRacEditorPdfExportActionArgs) {
+export function useRacEditorPdfExportAction({
+  canvasRef,
+  house3DPdfSnapshotRef,
+  canExportPdf,
+  onBeforeExportPdf,
+}: UseRacEditorPdfExportActionArgs) {
+  const {constructionSiteManagementPort} = useEditorPorts();
 
   const handleSavePDF = useCallback(async () => {
-    const imgData = canvasRef.current?.createDocumentPort()?.exportImageDataUrl();
-    if (!imgData) return;
-
     try {
-      const {jsPDF} = await import('jspdf');
+      if (canExportPdf && !canExportPdf()) {
+        toast.error(TOAST_MESSAGES.addHouseBeforePdfExport);
+        return;
+      }
 
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'px',
-        format: [CANVAS_WIDTH, CANVAS_HEIGHT],
+      await onBeforeExportPdf?.();
+
+      const canvasImageDataUrl = canvasRef.current?.createDocumentPort()?.exportImageDataUrl();
+      if (!canvasImageDataUrl) {
+        toast.error('Falha ao capturar o canvas para o PDF.');
+        return;
+      }
+
+      const constructionSite = constructionSiteManagementPort.getConstructionSiteSnapshot();
+      if (!constructionSite) {
+        toast.error('Nenhuma construção ativa para gerar o PDF.');
+        return;
+      }
+
+      const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      const report = buildRacPdfReportModel({
+        constructionSite,
+        canvasImageDataUrl,
+        canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+        house3DImageDataUrl,
+        house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
       });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      pdf.save('RAC-TETO.pdf');
+      if (!report) {
+        toast.error('Nenhuma casa ativa para gerar o PDF.');
+        return;
+      }
+
+      const {jsPDF} = await import('jspdf');
+
+      const pdf = createRacPdfReportDocument({
+        report,
+        jsPDF,
+      });
+      pdf.save(report.fileName);
       toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
 
     } catch (error) {
       console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);
       toast.error('Falha ao salvar PDF.');
     }
-  }, [canvasRef]);
+  }, [canExportPdf, canvasRef, constructionSiteManagementPort, house3DPdfSnapshotRef, onBeforeExportPdf]);
 
   return {handleSavePDF};
 }

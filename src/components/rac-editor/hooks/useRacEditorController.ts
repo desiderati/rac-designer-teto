@@ -25,6 +25,8 @@ import {
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
 import type {ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
+import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
+import {hasHouseViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -65,6 +67,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
   } = useRacEditorLocalState();
 
   const canvasRef = useRef<CanvasHandle>(null);
+  const house3DPdfSnapshotRef = useRef<House3DPdfSnapshotHandle>(null);
 
   const {
     isMenuOpen,
@@ -77,6 +80,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setShowZoomControls,
     isSettingsOpen,
     setIsSettingsOpen,
+    isImageUploadOpen,
+    setIsImageUploadOpen,
     showRestartConfirm,
     setShowRestartConfirm,
     sideSelectorOpen,
@@ -255,6 +260,25 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setPilotisSetupOpen(true);
   }, [closeAllMenus, setPilotisSetupOpen]);
 
+  const handleOpenImageUpload = useCallback(() => {
+    disableDrawingMode();
+    closeAllMenus();
+    setIsImageUploadOpen(true);
+  }, [closeAllMenus, disableDrawingMode, setIsImageUploadOpen]);
+
+  const handleInsertUploadedImage = useCallback(async (dataUrl: string) => {
+    const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(dataUrl) ?? false;
+
+    if (inserted) {
+      canvasRef.current?.saveHistory();
+      toast.success(TOAST_MESSAGES.imageInsertedSuccessfully);
+      return true;
+    }
+
+    toast.error(TOAST_MESSAGES.failedToInsertImageOnCanvas);
+    return false;
+  }, [canvasRef]);
+
   const handleHouseTypeSelectorClose = useCallback(() => {
     setHouseTypeSelectorOpen(false);
   }, [setHouseTypeSelectorOpen]);
@@ -323,6 +347,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleSavePDF,
   } = useRacEditorDocumentHotkeysController({
     canvasRef,
+    house3DPdfSnapshotRef,
+    canExportPdf: () => hasHouseViewInsertedInCanvas(houseReadPort),
+    onBeforeExportPdf: () => constructionSiteManagement.flushActiveHouseDocumentSave({force: true}),
     onToggleDrawMode: handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
     onSetCanvasToolMode: handleSetCanvasToolMode,
@@ -364,6 +391,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     backViewCount,
     side1ViewCount,
     side2ViewCount,
+    canExportPDF,
     currentFamilyName,
     selectedPilotiHeights,
     terrainPilotis,
@@ -383,6 +411,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
       handleAddDistance,
       handleToggleDrawMode,
       handleAddText,
+      handleOpenImageUpload,
       handleOpenConstructionSites,
       handleActivateHouse,
       handleDelete,
@@ -425,6 +454,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isMobile,
     documentSaveStatus: constructionSiteManagement.documentSaveStatus,
     documentTransitioning: constructionSiteManagement.isDocumentTransitioning,
+    canExportPDF,
     canvasRef,
     infoMessage,
     isAnyEditorOpen,
@@ -482,11 +512,15 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isSettingsOpen,
     setIsSettingsOpen,
     handleSettingsChange,
+    isImageUploadOpen,
+    setIsImageUploadOpen,
+    handleInsertUploadedImage,
     showRestartConfirm,
     confirmRestartDrawing,
     closeRestartConfirm,
     is3DViewerOpen,
     setIs3DViewerOpen,
+    house3DPdfSnapshotRef,
     constructionSiteManagementOpen,
     closeConstructionSiteManagement,
     constructionSiteManagementPanel: {

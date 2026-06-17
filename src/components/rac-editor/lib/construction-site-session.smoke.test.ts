@@ -254,6 +254,13 @@ describe('constructionSite-session.ts', () => {
       houseType: 'tipo3',
       houseSize: 'large',
       leaders: 'Ana e Bruno',
+      extraMaterials: {
+        floorBeams: 12,
+        rafters: 24,
+        secondaryBeams: 8,
+        gutters: 4,
+        justification: 'Reforço inicial.',
+      },
       notes: 'Nota inicial da casa',
       siteAssessment: {
         soilProfile: 'loose_clay',
@@ -269,6 +276,13 @@ describe('constructionSite-session.ts', () => {
     expect(createdHouse.houseType).toBe('tipo3');
     expect(createdHouse.houseSize).toBe('large');
     expect(createdHouse.leaders).toBe('Ana e Bruno');
+    expect(createdHouse.extraMaterials).toEqual({
+      floorBeams: 12,
+      rafters: 24,
+      secondaryBeams: 8,
+      gutters: 4,
+      justification: 'Reforço inicial.',
+    });
     expect(createdHouse.notes).toBe('Nota inicial da casa');
     expect(createdHouse.siteAssessment).toEqual({
       soilProfile: 'loose_clay',
@@ -332,6 +346,39 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().houseSize).toBeUndefined();
     expect(session.getActiveHouse().leaders).toBeUndefined();
     expect(session.getActiveHouse().notes).toBeUndefined();
+  });
+
+  it('salva materiais extras da casa ativa com inteiros normalizados', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    session.createHouse({familyName: 'Família Materiais'});
+
+    session.updateActiveHouseExtraMaterials({
+      floorBeams: 12,
+      rafters: 24,
+      secondaryBeams: 8,
+      gutters: 4,
+      justification: 'Material extra por desnível e acesso lateral.',
+    });
+
+    expect(session.getActiveHouse().extraMaterials).toEqual({
+      floorBeams: 12,
+      rafters: 24,
+      secondaryBeams: 8,
+      gutters: 4,
+      justification: 'Material extra por desnível e acesso lateral.',
+    });
+
+    session.updateActiveHouseExtraMaterials({
+      floorBeams: -1,
+      rafters: 1.5,
+      secondaryBeams: Number.NaN,
+      gutters: 10000,
+      justification: '',
+    });
+
+    expect(session.getActiveHouse().extraMaterials).toBeUndefined();
   });
 
   it('permite apagar notas legadas da família após migrar o campo para a casa', () => {

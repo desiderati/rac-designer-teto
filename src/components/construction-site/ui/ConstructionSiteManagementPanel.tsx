@@ -1,4 +1,5 @@
 import {ArrowLeft} from 'lucide-react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useConstructionSiteManagementNavigation} from '@/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
@@ -6,6 +7,7 @@ import {HEADER_ACTION_BUTTON_CLASS} from '@/components/construction-site/ui/lib/
 import {ConstructionFormScreen} from './ConstructionFormScreen.tsx';
 import {ConstructionListScreen} from './ConstructionListScreen.tsx';
 import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
+import {HouseExtraMaterialsScreen} from './HouseExtraMaterialsScreen.tsx';
 import {HousesScreen} from './HousesScreen.tsx';
 import {MonitorFormScreen} from './MonitorFormScreen.tsx';
 import {MonitorsScreen} from './MonitorsScreen.tsx';
@@ -13,6 +15,7 @@ import {
   ConstructionStatusDialog,
   HouseStatusDialog,
   MonitorStatusDialog,
+  UnsavedChangesDialog,
 } from '@/components/construction-site/ui/lib/status-dialogs.tsx';
 import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
@@ -26,6 +29,8 @@ export interface ConstructionSiteManagementPanelProps {
   actions: ConstructionSiteManagementActions;
   initialScreen?: ConstructionSiteManagementScreen;
 }
+
+type PendingNavigation = () => void | Promise<void>;
 
 export function ConstructionSiteManagementPanel({
   constructionSite,
@@ -44,11 +49,62 @@ export function ConstructionSiteManagementPanel({
     actions,
     initialScreen,
   });
+  const screenTitle = getScreenTitle(navigation.screen, navigation.constructionLabel);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
+  const hasUnsavedChangesRef = useRef(false);
+
+  const updateUnsavedChanges = useCallback((isDirty: boolean) => {
+    hasUnsavedChangesRef.current = isDirty;
+    setHasUnsavedChanges(isDirty);
+  }, []);
+
+  const clearUnsavedChanges = useCallback(() => {
+    hasUnsavedChangesRef.current = false;
+    setHasUnsavedChanges(false);
+    setPendingUnsavedNavigation(null);
+  }, []);
+
+  const requestNavigation = useCallback((action: PendingNavigation) => {
+    if (hasUnsavedChangesRef.current) {
+      setPendingUnsavedNavigation(() => action);
+      return;
+    }
+
+    void action();
+  }, []);
+
+  const finishFormNavigation = useCallback((action: PendingNavigation) => {
+    clearUnsavedChanges();
+    void action();
+  }, [clearUnsavedChanges]);
+
+  const cancelUnsavedNavigation = useCallback(() => {
+    setPendingUnsavedNavigation(null);
+  }, []);
+
+  const confirmUnsavedNavigation = useCallback(() => {
+    const action = pendingUnsavedNavigation;
+    clearUnsavedChanges();
+    if (action) void action();
+  }, [clearUnsavedChanges, pendingUnsavedNavigation]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChangesRef.current) return;
+
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   return (
     <main
       data-testid='construction-management-shell'
-      className='h-full overflow-y-auto px-4 py-10 sm:px-6 lg:px-10'
+      className='h-full overflow-x-hidden overflow-y-auto px-4 py-10 sm:px-6 lg:px-10'
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div
@@ -64,16 +120,20 @@ export function ConstructionSiteManagementPanel({
               {navigation.canNavigateBack ? (
                 <button
                   type='button'
-                  onClick={navigation.navigateBack}
+                  onClick={() => requestNavigation(navigation.navigateBack)}
                   aria-label='Voltar'
-                  className='grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200'
+                  className='grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200'
                 >
                   <ArrowLeft className='h-5 w-5'/>
                 </button>
               ) : null}
-              <div className='min-w-0'>
-                <h1 className='text-2xl font-semibold text-slate-950'>
-                  {getScreenTitle(navigation.screen, navigation.constructionLabel)}
+              <div className='min-w-0 flex-1'>
+                <h1
+                  data-testid='construction-management-title'
+                  title={screenTitle}
+                  className='truncate text-2xl font-semibold text-slate-950'
+                >
+                  {screenTitle}
                 </h1>
                 <p className='mt-1 max-w-2xl text-sm leading-6 text-slate-600'>
                   {getScreenSubtitle(navigation.screen)}
@@ -110,8 +170,9 @@ export function ConstructionSiteManagementPanel({
             communityName=''
             onSubmit={async (input) => {
               await actions.createConstructionSite(input);
-              navigation.showConstructionList();
+              finishFormNavigation(navigation.showConstructionList);
             }}
+            onDirtyChange={updateUnsavedChanges}
           />
         ) : null}
 
@@ -125,8 +186,9 @@ export function ConstructionSiteManagementPanel({
               communityName={navigation.selectedConstructionFields.communityName}
               onSubmit={(input) => {
                 actions.updateActiveConstructionSite(input);
-                navigation.showConstructionList();
+                finishFormNavigation(navigation.showConstructionList);
               }}
+              onDirtyChange={updateUnsavedChanges}
             />
           ) : (
             <EmptyState
@@ -155,8 +217,9 @@ export function ConstructionSiteManagementPanel({
             monitor={null}
             onSave={async (input) => {
               await actions.createMonitor(input);
-              navigation.showMonitors();
+              finishFormNavigation(navigation.showMonitors);
             }}
+            onDirtyChange={updateUnsavedChanges}
           />
         ) : null}
 
@@ -168,8 +231,9 @@ export function ConstructionSiteManagementPanel({
             onSave={(input) => {
               if (!navigation.selectedMonitor) return;
               actions.updateMonitor(navigation.selectedMonitor.id, input);
-              navigation.showMonitors();
+              finishFormNavigation(navigation.showMonitors);
             }}
+            onDirtyChange={updateUnsavedChanges}
           />
         ) : null}
 
@@ -179,6 +243,7 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
+              onOpenHouseExtraMaterials={navigation.openHouseExtraMaterials}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}
             />
           ) : (
@@ -193,8 +258,9 @@ export function ConstructionSiteManagementPanel({
             house={null}
             onSave={async (input) => {
               await actions.createHouse(input);
-              navigation.showHouses();
+              finishFormNavigation(navigation.showHouses);
             }}
+            onDirtyChange={updateUnsavedChanges}
           />
         ) : null}
 
@@ -203,12 +269,31 @@ export function ConstructionSiteManagementPanel({
             mode='edit'
             constructionSite={constructionSite}
             house={navigation.selectedHouse}
-            onSave={(input) => {
-              actions.updateActiveHouseConfiguration(input);
-              navigation.showHouses();
+            onSave={async (input) => {
+              await actions.updateActiveHouseConfiguration(input);
+              finishFormNavigation(navigation.showHouses);
             }}
+            onDirtyChange={updateUnsavedChanges}
           />
         ) : null}
+
+        {navigation.screen === 'house-extra-materials' && constructionSite && navigation.selectedHouse ? (
+          <HouseExtraMaterialsScreen
+            constructionSite={constructionSite}
+            house={navigation.selectedHouse}
+            onSave={(input) => {
+              actions.updateActiveHouseExtraMaterials(input);
+              finishFormNavigation(navigation.showHouses);
+            }}
+            onDirtyChange={updateUnsavedChanges}
+          />
+        ) : null}
+
+        <UnsavedChangesDialog
+          open={hasUnsavedChanges && Boolean(pendingUnsavedNavigation)}
+          onCancel={cancelUnsavedNavigation}
+          onConfirm={confirmUnsavedNavigation}
+        />
 
         <ConstructionStatusDialog
           open={Boolean(navigation.pendingConstructionStatusChange)}

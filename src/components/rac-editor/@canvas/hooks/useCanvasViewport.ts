@@ -1,6 +1,10 @@
 import {SetStateAction, useCallback, useEffect, useReducer, useRef} from 'react';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {ZOOM_LIMITS} from '@/shared/config.ts';
+import {
+  readCanvasViewportStorage,
+  writeCanvasViewportStorage,
+} from '@/components/rac-editor/@canvas/lib/canvas-viewport-storage.ts';
 
 /** Margin kept around the canvas when fitting to the visible container. */
 const FIT_TO_VIEW_MARGIN = 0.95;
@@ -24,6 +28,16 @@ const initialCanvasViewPortState: CanvasViewportState = {
   isPinching: false,
   isSingleFingerPanning: false,
 };
+
+function createInitialCanvasViewPortState(): CanvasViewportState {
+  const storedViewport = readCanvasViewportStorage();
+  return {
+    ...initialCanvasViewPortState,
+    zoom: storedViewport.zoom,
+    viewportX: storedViewport.viewportX,
+    viewportY: storedViewport.viewportY,
+  };
+}
 
 type CanvasViewportAction =
   | { type: 'setZoom'; value: number }
@@ -76,7 +90,7 @@ export function useCanvasViewport({
   onZoomInteraction
 }: UseCanvasViewportArgs) {
 
-  const [state, dispatch] = useReducer(reducer, initialCanvasViewPortState);
+  const [state, dispatch] = useReducer(reducer, initialCanvasViewPortState, createInitialCanvasViewPortState);
 
   const lastPanPoint = useRef({x: 0, y: 0});
   const lastPinchDistance = useRef<number | null>(null);
@@ -96,6 +110,14 @@ export function useCanvasViewport({
     viewportYRef.current = state.viewportY;
     containerSizeRef.current = state.containerSize;
   }, [state]);
+
+  useEffect(() => {
+    writeCanvasViewportStorage({
+      zoom: state.zoom,
+      viewportX: state.viewportX,
+      viewportY: state.viewportY,
+    });
+  }, [state.zoom, state.viewportX, state.viewportY]);
 
   const handleViewportChange = useCallback((x: number, y: number) => {
     dispatch({type: 'setViewport', value: {x, y}});

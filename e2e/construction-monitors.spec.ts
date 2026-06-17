@@ -29,4 +29,32 @@ test.describe('Gerenciamento de monitores', () => {
     await expect(page.getByRole('heading', {name: 'Monitores - CC2603 · Tiradentes'})).toBeVisible();
     await expect(page.getByText('No. Monitores')).toHaveCount(0);
   });
+
+  test('alinha foto e salvar monitor ao rodapé do resumo da construção', async ({page}) => {
+    await page.getByRole('button', {name: 'Abrir menu principal'}).click();
+    await page.getByRole('button', {name: 'Construções TETO'}).click();
+    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+      .getByRole('button', {name: 'Gerenciar monitores da construção CC2603'})
+      .click();
+    await page.getByRole('button', {name: '+ Adicionar Monitor'}).click();
+
+    await expect(page.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
+
+    const constructionSummaryBox = await page.getByTestId('monitor-form').locator('aside').boundingBox();
+    const photoBox = await page.getByTestId('monitor-photo-field')
+      .getByRole('button', {name: 'Foto do Monitor', exact: true})
+      .boundingBox();
+    const saveButtonBox = await page.getByRole('button', {name: 'Cadastrar Monitor'}).boundingBox();
+
+    expect(constructionSummaryBox).not.toBeNull();
+    expect(photoBox).not.toBeNull();
+    expect(saveButtonBox).not.toBeNull();
+
+    const constructionSummaryBottom = constructionSummaryBox!.y + constructionSummaryBox!.height;
+    const photoBottom = photoBox!.y + photoBox!.height;
+    const saveButtonBottom = saveButtonBox!.y + saveButtonBox!.height;
+
+    expect(Math.abs(photoBottom - constructionSummaryBottom)).toBeLessThanOrEqual(1);
+    expect(Math.abs(saveButtonBottom - constructionSummaryBottom)).toBeLessThanOrEqual(1);
+  });
 });

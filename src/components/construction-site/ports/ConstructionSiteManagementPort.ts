@@ -4,6 +4,7 @@ import type {
   CreateConstructionSiteInput,
   UpdateMonitorInput,
   UpdateFamilyInput,
+  UpdateHouseExtraMaterialsInput,
   UpdateHouseConfigurationInput,
   UpdateConstructionSiteInput,
 } from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -41,6 +42,7 @@ export interface ConstructionSiteManagementPort {
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void;
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void;
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null;
 }

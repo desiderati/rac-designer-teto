@@ -1,7 +1,7 @@
-import {type ReactNode, useEffect} from 'react';
+import {type KeyboardEvent, type ReactNode, useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Droplets, Mountain, Waves} from 'lucide-react';
+import {Droplets, LoaderCircle, LocateFixed, Mountain, Waves} from 'lucide-react';
 import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
   ConstructionSiteState,
@@ -14,6 +14,7 @@ import {
   HOUSE_FAMILY_NAME_MAX_LENGTH,
   HOUSE_LEADERS_MAX_LENGTH,
   HOUSE_NOTES_MAX_LENGTH,
+  HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH,
   HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH,
   houseConfigurationFormSchema,
   PHONE_MASK_MAX_LENGTH,
@@ -29,24 +30,34 @@ import {
   TextArea,
   TextField,
   VisualSelectField,
+  buttonClassName,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
   formatDateOnly,
   getConstructionInitials,
   getHouseConfigurationInitialState,
   toHouseConfigurationInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
+import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 
 export function HouseConfigurationScreen({
   constructionSite,
   house,
   onSave,
+  onDirtyChange,
 }: {
   mode: 'create' | 'edit';
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord | null;
   onSave(input: CreateHouseInput): void | Promise<void>;
+  onDirtyChange?: (isDirty: boolean) => void;
 }) {
+  const [locationLookupStatus, setLocationLookupStatus] = useState<'idle' | 'loading'>('idle');
+  const [locationLookupMessage, setLocationLookupMessage] = useState<{
+    tone: 'success' | 'error';
+    text: string;
+  } | null>(null);
   const form = useForm<HouseConfigurationFormValues>({
     resolver: zodResolver(houseConfigurationFormSchema),
     mode: 'onBlur',
@@ -57,11 +68,71 @@ export function HouseConfigurationScreen({
 
   useEffect(() => {
     form.reset(getHouseConfigurationInitialState(constructionSite, house));
+    setLocationLookupStatus('idle');
+    setLocationLookupMessage(null);
   }, [house, constructionSite, form]);
+  useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
     await onSave(toHouseConfigurationInput(values));
   });
+
+  const useCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationLookupMessage({
+        tone: 'error',
+        text: 'Localização do navegador indisponível neste dispositivo.',
+      });
+      return;
+    }
+
+    setLocationLookupStatus('loading');
+    setLocationLookupMessage(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coordinates = [
+          formatGeolocationCoordinate(position.coords.latitude),
+          formatGeolocationCoordinate(position.coords.longitude),
+        ].join(', ');
+
+        form.setValue('locationQuery', coordinates, {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        });
+        form.clearErrors('locationQuery');
+        setLocationLookupStatus('idle');
+        setLocationLookupMessage({
+          tone: 'success',
+          text: 'Localização atual aplicada ao mapa.',
+        });
+      },
+      (error) => {
+        setLocationLookupStatus('idle');
+        setLocationLookupMessage({
+          tone: 'error',
+          text: getGeolocationErrorMessage(error),
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 60_000,
+        timeout: 10_000,
+      },
+    );
+  };
+
+  const loadMapFromLocationQuery = () => {
+    setLocationLookupMessage(null);
+    void form.trigger('locationQuery');
+  };
+
+  const handleLocationQueryKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    event.stopPropagation();
+    loadMapFromLocationQuery();
+  };
 
   return (
     <form
@@ -150,6 +221,7 @@ export function HouseConfigurationScreen({
                       value={field.value}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
+                      maxLength={HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH}
                       error={fieldState.error?.message}
                     />
                   )}
@@ -211,12 +283,12 @@ export function HouseConfigurationScreen({
         </HouseFormSection>
 
         <HouseFormSection number='03' title='Restrições Locais'>
-          <div data-testid='local-restrictions-grid' className='grid gap-6 md:grid-cols-2'>
+          <div data-testid='local-restrictions-grid' className='grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'>
             <Controller
               control={form.control}
               name='soilProfile'
               render={({field}) => (
-                <fieldset className='space-y-3'>
+                <fieldset className='min-w-0 space-y-3'>
                   <legend className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>Perfil do Solo</legend>
                   <div className='space-y-3'>
                     <RadioField
@@ -248,7 +320,7 @@ export function HouseConfigurationScreen({
               )}
             />
 
-            <fieldset className='space-y-3'>
+            <fieldset className='min-w-0 space-y-3'>
               <legend className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>Obstáculos no Local</legend>
               <div className='space-y-3'>
                 <Controller
@@ -281,7 +353,7 @@ export function HouseConfigurationScreen({
                   render={({field}) => (
                     <CheckboxField
                       label='Servidões Vizinhas'
-                      description='Recuos rígidos de limites'
+                      description='Recuos rígidos de limites (esquadro apertado)'
                       checked={field.value}
                       onChange={field.onChange}
                     />
@@ -298,39 +370,76 @@ export function HouseConfigurationScreen({
               control={form.control}
               name='locationQuery'
               render={({field, fieldState}) => (
-                <TextField
-                  label='Localização Geográfica'
-                  placeholder='Carregar a partir de coordenadas'
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <Controller
-              control={form.control}
-              name='terrainComplexity'
-              render={({field, fieldState}) => (
-                <VisualSelectField
-                  label='Complexidade do Terreno'
-                  ariaLabel='Complexidade do Terreno'
-                  value={field.value}
-                  options={TERRAIN_COMPLEXITY_OPTIONS}
-                  onChange={(terrainComplexity) => field.onChange(terrainComplexity)}
-                  error={fieldState.error?.message}
-                />
+                <div className='space-y-2 md:col-span-2'>
+                  <div
+                    data-testid='location-geography-row'
+                    className='grid gap-4 md:grid-cols-2 md:items-start'
+                  >
+                    <TextField
+                      label='Localização Geográfica'
+                      placeholder='Carregar a partir de coordenadas'
+                      value={field.value}
+                      onChange={(value) => {
+                        setLocationLookupMessage(null);
+                        field.onChange(value);
+                      }}
+                      onBlur={field.onBlur}
+                      onKeyDown={handleLocationQueryKeyDown}
+                      error={fieldState.error?.message}
+                    />
+                    <button
+                      type='button'
+                      aria-describedby={locationLookupMessage ? 'current-location-feedback' : undefined}
+                      className={cn(
+                        buttonClassName,
+                        'w-full gap-2 border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 md:mt-[1.45rem]',
+                      )}
+                      onClick={useCurrentLocation}
+                      disabled={locationLookupStatus === 'loading'}
+                    >
+                      {locationLookupStatus === 'loading'
+                        ? <LoaderCircle className='h-4 w-4 animate-spin'/>
+                        : <LocateFixed className='h-4 w-4'/>}
+                      {locationLookupStatus === 'loading' ? 'Obtendo localização...' : 'Usar localização atual'}
+                    </button>
+                  </div>
+                  {locationLookupMessage ? (
+                    <p
+                      id='current-location-feedback'
+                      role={locationLookupMessage.tone === 'error' ? 'alert' : 'status'}
+                      className={cn(
+                        'text-xs font-medium',
+                        locationLookupMessage.tone === 'error' ? 'text-red-600' : 'text-blue-700',
+                      )}
+                    >
+                      {locationLookupMessage.text}
+                    </p>
+                  ) : null}
+                </div>
               )}
             />
             <div data-testid='static-map-wrapper' className='md:col-span-2'>
               <StaticMapPreview locationQuery={locationQuery}/>
             </div>
+            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2 md:items-end'>
+              <Controller
+                control={form.control}
+                name='terrainComplexity'
+                render={({field, fieldState}) => (
+                  <VisualSelectField
+                    label='Complexidade do Terreno'
+                    ariaLabel='Complexidade do Terreno'
+                    value={field.value}
+                    options={TERRAIN_COMPLEXITY_OPTIONS}
+                    onChange={(terrainComplexity) => field.onChange(terrainComplexity)}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <PrimaryButton type='submit' className='w-full md:self-end'>Salvar Configurações</PrimaryButton>
+            </div>
           </div>
         </HouseFormSection>
-
-        <div className='grid gap-4 md:grid-cols-2'>
-          <PrimaryButton type='submit' className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
-        </div>
       </div>
     </form>
   );
@@ -365,7 +474,13 @@ export function HouseConfigurationSidebar({constructionSite}: { constructionSite
         </div>
         <div>
           <dt className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400'>Comunidade</dt>
-          <dd className='mt-1 text-sm font-medium leading-5 text-slate-600'>{communityLabel}</dd>
+          <dd
+            data-testid='construction-sidebar-community'
+            title={communityLabel}
+            className='mt-1 block max-w-full truncate text-sm font-medium leading-5 text-slate-600'
+          >
+            {communityLabel}
+          </dd>
         </div>
         <div>
           <dt className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400'>Data da Construção</dt>
@@ -396,4 +511,24 @@ export function HouseFormSection({
       <div className='space-y-4'>{children}</div>
     </section>
   );
+}
+
+function formatGeolocationCoordinate(value: number): string {
+  return value.toFixed(6);
+}
+
+function getGeolocationErrorMessage(error: GeolocationPositionError): string {
+  if (error.code === error.PERMISSION_DENIED) {
+    return 'Permita o acesso à localização do navegador para usar a posição atual.';
+  }
+
+  if (error.code === error.POSITION_UNAVAILABLE) {
+    return 'Não foi possível obter a localização atual do dispositivo.';
+  }
+
+  if (error.code === error.TIMEOUT) {
+    return 'A localização demorou para responder. Tente novamente em um local com melhor sinal.';
+  }
+
+  return 'Não foi possível carregar a localização atual.';
 }

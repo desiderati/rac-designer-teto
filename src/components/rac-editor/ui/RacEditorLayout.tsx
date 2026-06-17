@@ -1,4 +1,4 @@
-import type {ComponentProps, MouseEventHandler} from 'react';
+import type {ComponentProps, MouseEventHandler, RefObject} from 'react';
 import {RacEditorMenus} from '@/components/rac-editor/@menus/ui/RacEditorMenus.tsx';
 import {RacEditorCanvas} from '@/components/rac-editor/ui/RacEditorCanvas.tsx';
 import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx';
@@ -6,7 +6,9 @@ import {RacEditorHouseTypeSelector} from '@/components/rac-editor/@modals/ui/Rac
 import {RacEditorModalEditors} from '@/components/rac-editor/@modals/ui/RacEditorModalEditors.tsx';
 import {RacEditorModals} from '@/components/rac-editor/@modals/ui/RacEditorModals.tsx';
 import {House3DViewerOverlay} from '@/components/rac-editor/@viewer-3d/ui/House3DViewerOverlay.tsx';
+import {House3DPdfSnapshot} from '@/components/rac-editor/@viewer-3d/ui/House3DPdfSnapshot.tsx';
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
+import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
 
 type RacEditorMenusProps = ComponentProps<typeof RacEditorMenus>;
 type CanvasProps = ComponentProps<typeof RacEditorCanvas>;
@@ -26,6 +28,9 @@ export interface RacEditorLayoutProps {
   modalEditors: ModalEditorsProps;
   modals: ModalsProps;
   viewer: ViewerProps;
+  house3DPdfSnapshot: {
+    snapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
+  };
   workspace: {
     open: boolean;
     onClose: () => void;
@@ -41,6 +46,7 @@ export function RacEditorLayout({
   modalEditors,
   modals,
   viewer,
+  house3DPdfSnapshot,
   workspace,
 }: RacEditorLayoutProps) {
   return (
@@ -58,6 +64,7 @@ export function RacEditorLayout({
           <RacEditorHouseTypeSelector {...houseTypeSelector}/>
           <RacEditorModalEditors {...modalEditors}/>
           <RacEditorModals {...modals}/>
+          <House3DPdfSnapshot ref={house3DPdfSnapshot.snapshotRef}/>
           <House3DViewerOverlay {...viewer}/>
         </>
       )}

@@ -162,6 +162,17 @@ export function useConstructionSiteManagementNavigation({
     setScreen('house-detail');
   };
 
+  const openHouseExtraMaterials = async (houseId: string) => {
+    if (!constructionSite) return;
+
+    const house = constructionSite.houses.find((entry) => entry.id === houseId);
+    if (!house || house.status === 'archived') return;
+
+    await actions.activateHouse(constructionSite.constructionSite.id, houseId);
+    setSelectedHouseId(houseId);
+    setScreen('house-extra-materials');
+  };
+
   const openMonitorDetail = (monitorId: string) => {
     if (!constructionSite) return;
     const monitor = constructionSite.monitors.find((entry) => entry.id === monitorId);
@@ -258,6 +269,7 @@ export function useConstructionSiteManagementNavigation({
     openHouseCreate,
     openMonitorCreate,
     openHouseDetail,
+    openHouseExtraMaterials,
     openMonitorDetail,
     showConstructionList,
     showHouses,

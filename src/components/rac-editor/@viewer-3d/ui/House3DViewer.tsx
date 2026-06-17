@@ -1,6 +1,6 @@
 import {Suspense, useEffect} from 'react';
 import {Canvas} from '@react-three/fiber';
-import {OrbitControls, PerspectiveCamera} from '@react-three/drei';
+import {OrbitControls} from '@react-three/drei';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
@@ -15,11 +15,15 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
+import {House3DDefaultCamera} from '@/components/rac-editor/@viewer-3d/ui/House3DDefaultCamera.tsx';
 import type {RefObject} from 'react';
 import {HOUSE_3D_WALL_COLOR_OPTIONS} from '@/shared/config.ts';
 import {useHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
 import {useHouse3DViewerActions} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerActions.ts';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
+import {
+  HOUSE_3D_CAMERA_TARGET,
+} from '@/components/rac-editor/@viewer-3d/lib/constants.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -178,11 +182,7 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
                   handleCanvasCreated(gl.domElement);
                 }}
               >
-                <PerspectiveCamera
-                  makeDefault
-                  position={[200, 180, 280]}
-                  fov={45}
-                />
+                <House3DDefaultCamera/>
 
                 <ambientLight intensity={0.6}/>
                 <directionalLight
@@ -221,7 +221,7 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
                   enableRotate
                   minDistance={80}
                   maxDistance={700}
-                  target={[0, 60, 0]}
+                  target={HOUSE_3D_CAMERA_TARGET}
                 />
               </Canvas>
             </Suspense>

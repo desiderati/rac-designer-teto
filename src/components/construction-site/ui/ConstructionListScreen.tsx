@@ -114,7 +114,13 @@ export function ConstructionListScreen({
       </div>
 
       <div data-testid='construction-desktop-table' className='hidden overflow-x-auto sm:block'>
-        <table className='min-w-full border-separate border-spacing-y-3'>
+        <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
+          <colgroup>
+            <col className='w-[48%]'/>
+            <col className='w-[17%]'/>
+            <col className='w-[18%]'/>
+            <col className='w-[17%]'/>
+          </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Construções</th>
@@ -333,12 +339,24 @@ export function ConstructionTableRow({
         summary.status === 'archived' ? 'opacity-60' : null,
       )}
     >
-      <td className='rounded-l-lg px-3 py-3'>
-        <div className='flex min-h-14 w-full items-center gap-3 rounded-lg text-left'>
+      <td className='max-w-0 rounded-l-lg px-3 py-3'>
+        <div className='flex min-h-14 min-w-0 w-full items-center gap-3 rounded-lg text-left'>
           <ConstructionAvatar label={constructionCode} photoDataUrl={summary.photoDataUrl}/>
-          <span className='min-w-0'>
-            <span className='block truncate font-semibold text-slate-950'>{constructionCode}</span>
-            <span className='mt-0.5 block truncate text-xs font-medium text-slate-500'>{communityLabel}</span>
+          <span data-testid='construction-table-identity' className='min-w-0 flex-1'>
+            <span
+              data-testid='construction-table-code'
+              title={constructionCode}
+              className='block truncate font-semibold text-slate-950'
+            >
+              {constructionCode}
+            </span>
+            <span
+              data-testid='construction-table-community'
+              title={communityLabel}
+              className='mt-0.5 block truncate text-xs font-medium text-slate-500'
+            >
+              {communityLabel}
+            </span>
           </span>
         </div>
       </td>

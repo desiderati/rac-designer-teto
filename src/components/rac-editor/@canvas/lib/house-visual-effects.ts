@@ -5,6 +5,7 @@ import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/hous
 import {refreshAutoContraventamentoInAllViews} from '@/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts';
 import {collectElevationViewInstances} from '@/components/rac-editor/lib/editor-house-terrain.ts';
 import type {SettingsPort} from '@/components/rac-editor/ports/SettingsPort.ts';
+import {refreshHouseViewReferenceMarkersInViews} from '@/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts';
 
 function renderWhenChanged(changed: boolean, requestRender: () => void): void {
   if (changed) {
@@ -64,6 +65,27 @@ export function refreshAutoContraventamento(params: {
   );
 }
 
+export function refreshHouseViewReferenceMarkers(params: {
+  house: HouseRuntimeSnapshot<CanvasGroup> | null;
+  requestRender: () => void;
+}): void {
+  if (!params.house) return;
+
+  renderWhenChanged(
+    refreshHouseViewReferenceMarkersInViews({
+      houseType: params.house.houseType,
+      topViews: params.house.views.top,
+      elevationViews: {
+        front: params.house.views.front,
+        back: params.house.views.back,
+        side1: params.house.views.side1,
+        side2: params.house.views.side2,
+      },
+    }),
+    params.requestRender,
+  );
+}
+
 interface HouseVisualEffectsArgs {
   getHouse: () => HouseRuntimeSnapshot<CanvasGroup> | null;
   requestCanvasRender: () => void;
@@ -94,6 +116,13 @@ export class HouseVisualEffects {
 
   refreshAutoContraventamento(): void {
     refreshAutoContraventamento({
+      house: this.args.getHouse(),
+      requestRender: () => this.args.requestCanvasRender(),
+    });
+  }
+
+  refreshHouseViewReferenceMarkers(): void {
+    refreshHouseViewReferenceMarkers({
       house: this.args.getHouse(),
       requestRender: () => this.args.requestCanvasRender(),
     });

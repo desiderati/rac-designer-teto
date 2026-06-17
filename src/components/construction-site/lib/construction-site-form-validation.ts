@@ -5,23 +5,30 @@ import {
   hasValidRequiredPhone,
 } from '@/shared/lib/contact-validation.ts';
 import {hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE} from '@/shared/lib/photo-data-url.ts';
+import {HOUSE_FAMILY_NAME_MAX_LENGTH} from '@/shared/constants.ts';
 import type {TerrainComplexity} from '@/shared/types/construction-site.ts';
 
 const CONSTRUCTION_CODE_PATTERN = /^CC\d{4}$/;
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-export const CONSTRUCTION_COMMUNITY_MAX_LENGTH = 50;
-export const HOUSE_FAMILY_NAME_MAX_LENGTH = 50;
-export const HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH = 50;
-export const HOUSE_LEADERS_MAX_LENGTH = 120;
+export const CONSTRUCTION_COMMUNITY_MAX_LENGTH = 30;
+export const HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH = 25;
+export const HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH = 50;
+export const HOUSE_LEADERS_MAX_LENGTH = 50;
 export const HOUSE_NOTES_MAX_LENGTH = 300;
-export const MONITOR_NAME_MAX_LENGTH = 50;
+export const HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH = 4;
+export const HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH = 300;
+export const MONITOR_NAME_MAX_LENGTH = 25;
+export const MONITOR_EMAIL_MAX_LENGTH = 50;
 
 export {
   formatPhoneInput,
   getPhoneDigits,
   PHONE_MASK_MAX_LENGTH,
 } from '@/shared/lib/contact-validation.ts';
+export {
+  HOUSE_FAMILY_NAME_MAX_LENGTH,
+} from '@/shared/constants.ts';
 
 export const constructionFormSchema = z.object({
   externalCode: z.string()
@@ -51,6 +58,7 @@ export const houseConfigurationFormSchema = z.object({
     .refine(hasValidOptionalPhone, 'Informe 11 dígitos com DDD.'),
   primaryContactEmail: z.string()
     .trim()
+    .max(HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH, `Máximo de ${HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH} caracteres.`)
     .refine(hasValidOptionalEmail, 'Informe um e-mail válido.'),
   familyPhotoDataUrl: z.string().optional(),
   houseSize: z.enum(['large', 'small']).or(z.literal('')),
@@ -74,6 +82,24 @@ export const houseConfigurationFormSchema = z.object({
   }),
 });
 
+const optionalIntegerDraftSchema = z.string()
+  .trim()
+  .max(HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH, `Máximo de ${HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH} dígitos.`)
+  .refine((value) => value === '' || /^\d+$/.test(value), 'Use apenas números inteiros.');
+
+export const houseExtraMaterialsFormSchema = z.object({
+  floorBeams: optionalIntegerDraftSchema,
+  rafters: optionalIntegerDraftSchema,
+  secondaryBeams: optionalIntegerDraftSchema,
+  gutters: optionalIntegerDraftSchema,
+  justification: z.string()
+    .trim()
+    .max(
+      HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH,
+      `Máximo de ${HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH} caracteres.`,
+    ),
+});
+
 export const monitorFormSchema = z.object({
   name: z.string()
     .trim()
@@ -83,6 +109,7 @@ export const monitorFormSchema = z.object({
     .refine(hasValidRequiredPhone, 'Informe 11 dígitos com DDD.'),
   email: z.string()
     .trim()
+    .max(MONITOR_EMAIL_MAX_LENGTH, `Máximo de ${MONITOR_EMAIL_MAX_LENGTH} caracteres.`)
     .refine(hasValidOptionalEmail, 'Informe um e-mail válido.'),
   photoDataUrl: z.string()
     .refine(hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE)
@@ -90,6 +117,7 @@ export const monitorFormSchema = z.object({
 });
 
 export type ConstructionFormValues = z.infer<typeof constructionFormSchema>;
+export type HouseExtraMaterialsFormValues = z.infer<typeof houseExtraMaterialsFormSchema>;
 export type HouseConfigurationFormValues = z.infer<typeof houseConfigurationFormSchema>;
 export type MonitorFormValues = z.infer<typeof monitorFormSchema>;
 

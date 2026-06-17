@@ -188,6 +188,12 @@ export function CanvasToolsMenu({
           onClick={actions.addText}
         />
 
+        <RailButton
+          icon={MAIN_MENU_ICONS.upload}
+          title='Upload de Imagem'
+          onClick={actions.openImageUpload}
+        />
+
         <RailDivider/>
 
         <RailButton

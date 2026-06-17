@@ -11,6 +11,8 @@ interface UseRacEditorModalStateResult {
   setShowZoomControls: Dispatch<SetStateAction<boolean>>;
   isSettingsOpen: boolean;
   setIsSettingsOpen: Dispatch<SetStateAction<boolean>>;
+  isImageUploadOpen: boolean;
+  setIsImageUploadOpen: Dispatch<SetStateAction<boolean>>;
   isMenuOpen: boolean;
   setIsMenuOpen: Dispatch<SetStateAction<boolean>>;
   showRestartConfirm: boolean;
@@ -42,6 +44,7 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
   const [showTips, setShowTips] = useState(false);
   const [showZoomControls, setShowZoomControls] = useState(() => settingsPort.getSettings().zoomEnabledByDefault);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const [sideSelectorOpen, setSideSelectorOpen] = useState(false);
@@ -62,6 +65,8 @@ export function useRacEditorModalState(): UseRacEditorModalStateResult {
     setShowZoomControls,
     isSettingsOpen,
     setIsSettingsOpen,
+    isImageUploadOpen,
+    setIsImageUploadOpen,
     isMenuOpen,
     setIsMenuOpen,
     showRestartConfirm,

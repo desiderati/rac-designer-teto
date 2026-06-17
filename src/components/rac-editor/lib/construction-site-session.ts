@@ -27,6 +27,7 @@ import {
   type ConstructionSiteStatus,
   type ConstructionSiteSummary,
   type ConstructionSiteState,
+  type HouseExtraMaterials,
   type HouseSize,
   type SiteAssessment,
   type SoilProfile,
@@ -76,6 +77,7 @@ export interface ConstructionSiteSessionPort {
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void;
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void;
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null;
   setActiveFamilyName(name: string): void;
@@ -125,6 +127,7 @@ export interface CreateHouseInput {
   houseType?: HouseType;
   houseSize?: HouseSize;
   leaders?: string;
+  extraMaterials?: HouseExtraMaterials;
   siteAssessment?: Partial<SiteAssessment>;
   notes?: string;
 }
@@ -150,6 +153,8 @@ export interface UpdateHouseConfigurationInput {
   notes?: string;
 }
 
+export type UpdateHouseExtraMaterialsInput = HouseExtraMaterials;
+
 function createId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -165,6 +170,7 @@ function createInitialHouseState(houseId: string): HouseState {
 
 const DEFAULT_CONSTRUCTION_CODE = 'CC0000';
 const DEFAULT_COMMUNITY_NAME = 'Comunidade não informada';
+const HOUSE_EXTRA_MATERIAL_MAX_COUNT = 9999;
 
 function createConstructionSiteRecord(now: string, input: CreateConstructionSiteInput, communityId: string): ConstructionSiteRecord {
   return {
@@ -234,7 +240,7 @@ function createHouseRecord(
   constructionSiteId: string,
   familyId: string,
   now: string,
-  input: Pick<CreateHouseInput, 'houseType' | 'houseSize' | 'leaders' | 'siteAssessment' | 'notes'> = {},
+  input: Pick<CreateHouseInput, 'houseType' | 'houseSize' | 'leaders' | 'extraMaterials' | 'siteAssessment' | 'notes'> = {},
 ): PersistedHouseRecord {
 
   const id = createId('house');
@@ -250,6 +256,7 @@ function createHouseRecord(
     status: 'draft',
     houseSize: normalizeHouseSize(input.houseSize),
     leaders: normalizeOptionalText(input.leaders),
+    extraMaterials: sanitizeHouseExtraMaterials(input.extraMaterials),
     designSettings: {
       selectedPilotiHeights: [...DEFAULT_HOUSE_PILOTI_HEIGHTS],
     },
@@ -341,6 +348,7 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
         status: isPersistedHouseStatus(house.status) ? house.status : 'draft',
         houseSize: normalizeHouseSize(house.houseSize),
         leaders: normalizeOptionalText(house.leaders),
+        extraMaterials: sanitizeHouseExtraMaterials(house.extraMaterials),
         designSettings: {
           selectedPilotiHeights: normalizeNumberArray(house.designSettings?.selectedPilotiHeights)
             ?? [...DEFAULT_HOUSE_PILOTI_HEIGHTS],
@@ -599,6 +607,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     house.familyId = family.id;
     house.status = 'draft';
     house.siteAssessment = sanitizeSiteAssessment(house.siteAssessment);
+    house.extraMaterials = sanitizeHouseExtraMaterials(house.extraMaterials);
     house.version = 1;
     house.createdAt = now;
     house.updatedAt = now;
@@ -728,6 +737,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       });
     }
 
+    this.touchActiveHouse();
+  }
+
+  updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void {
+    const house = this.getActiveHouse();
+    house.extraMaterials = sanitizeHouseExtraMaterials(input);
     this.touchActiveHouse();
   }
 
@@ -985,6 +1000,32 @@ function sanitizeSiteAssessment(input: Partial<SiteAssessment>): SiteAssessment 
   }
 
   return assessment;
+}
+
+function sanitizeHouseExtraMaterials(input: Partial<HouseExtraMaterials> | undefined): HouseExtraMaterials | undefined {
+  if (!input) return undefined;
+
+  const extraMaterials: HouseExtraMaterials = {};
+  const floorBeams = normalizeOptionalNonNegativeInteger(input.floorBeams);
+  const rafters = normalizeOptionalNonNegativeInteger(input.rafters);
+  const secondaryBeams = normalizeOptionalNonNegativeInteger(input.secondaryBeams);
+  const gutters = normalizeOptionalNonNegativeInteger(input.gutters);
+  const justification = normalizeOptionalText(input.justification);
+
+  if (floorBeams !== undefined) extraMaterials.floorBeams = floorBeams;
+  if (rafters !== undefined) extraMaterials.rafters = rafters;
+  if (secondaryBeams !== undefined) extraMaterials.secondaryBeams = secondaryBeams;
+  if (gutters !== undefined) extraMaterials.gutters = gutters;
+  if (justification !== undefined) extraMaterials.justification = justification;
+
+  return Object.keys(extraMaterials).length > 0 ? extraMaterials : undefined;
+}
+
+function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  const parsed = typeof value === 'number' ? value : Number(String(value).trim());
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > HOUSE_EXTRA_MATERIAL_MAX_COUNT) return undefined;
+  return parsed;
 }
 
 function normalizeNumberArray(value: number[] | undefined): number[] | null {

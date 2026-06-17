@@ -3,7 +3,7 @@ title: Roadmap do RAC Designer TETO
 doc_type: roadmap
 status: active
 lang: pt-BR
-last_updated: 2026-05-15
+last_updated: 2026-06-16
 ---
 
 # Roadmap do RAC Designer TETO
@@ -19,24 +19,33 @@ prováveis de impacto, mas não substitui PRDs canônicos quando uma frente prec
 - `docs/business-rules/BUS-002-toolbar.md`: regras da toolbar, exportação PDF e navegação de Construções TETO.
 - `docs/business-rules/BUS-003-vistas-por-tipo.md`: limites e nomes das vistas por tipo de casa.
 - `docs/business-rules/BUS-004-piloti-nivel.md`: regras de nível, altura e consistência visual dos pilotis.
+- `docs/business-rules/BUS-006-contraventamento.md`: regras de criação, remoção e elegibilidade de contraventamentos.
+- `docs/business-rules/BUS-008-indicador-risco-terreno-pdf.md`: regra do indicador de risco do terreno no PDF.
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`: gestão de Construções TETO, casas e famílias.
 - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
 - `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`: modal inicial de seleção de pilotis.
+- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`: edição atual de altura, nível e contraventamento do piloti.
+- `src/components/rac-editor/@modals/ui/SettingsModal.tsx`: preferências globais do editor RAC.
+- `src/domain/house/use-cases/house-piloti.use-case.ts`: regras puras de interpolação de níveis e recomendação de alturas.
+- `src/domain/house/use-cases/house-contraventamento.use-case.ts`: regras puras de elegibilidade de contraventamento.
 - `src/components/rac-editor/lib/terrain-volume.ts`: cálculo atual de volumes de rachão e brita.
 - `index.html`: loader inicial exibido antes da montagem do React.
 - `src/components/rac-editor/ui/RacEditor.tsx`: loader interno enquanto o storage local do editor é preparado.
-- `src/shared/types/construction-site.ts`: modelo persistido atual de Construções TETO, ainda sem coleção própria de
-  monitores.
+- `src/shared/types/construction-site.ts`: modelo persistido atual de Construções TETO, com coleção própria de monitores.
 - `src/components/construction-site/ui/HouseConfigurationScreen.tsx`: tela atual de edição/configuração da casa.
 
 ## Itens
 
 ### RD-001 - Exportação PDF com nome e destino definidos pelo usuário
 
+**Status:** parcialmente implementado.
+
 **Necessidade:** ao exportar para PDF, permitir que o usuário defina o nome do arquivo e, idealmente, o diretório de
 destino antes do download.
 
-**Estado atual:** a exportação usa `jsPDF` e salva sempre como `RAC-TETO.pdf`.
+**Estado atual:** a exportação usa `jsPDF`, gera relatório estruturado e salva com nome derivado da Construção TETO e
+da família ativa, no formato `RAC-{construcao}-{familia}.pdf`. O usuário ainda não consegue definir manualmente o nome
+nem escolher o diretório de destino.
 
 **Direção proposta:**
 
@@ -99,33 +108,38 @@ preenchido e seis alturas de piloti selecionadas.
 
 ### RD-003 - Labels nas vistas elevadas e no lado correspondente da planta
 
+**Status:** concluído em 2026-06-16.
+
 **Necessidade:** cada vista elevada deve exibir uma label com seu nome. A planta deve exibir a mesma label no lado
 correspondente.
 
-**Estado atual:** o sistema já resolve nomes de vista em `getViewLabelForHouseType`, mas a renderização do grupo da
-casa ainda não materializa labels permanentes para cada vista e para o lado correspondente na planta.
+**Estado anterior:** o sistema já resolvia nomes de vista em `getViewLabelForHouseType`, mas a renderização do grupo da
+casa ainda não materializava labels permanentes para cada vista e para o lado correspondente na planta.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Reutilizar a nomenclatura existente de vistas por tipo de casa.
-2. Adicionar label visual em cada grupo de vista elevada.
-3. Adicionar label correspondente na borda da planta, respeitando o lado associado à vista.
-4. Garantir atualização quando vistas forem adicionadas, removidas, reconstruídas, importadas ou restauradas.
+1. As vistas elevadas exibem etiqueta inferior no formato `{Nome} #{número}`.
+2. A planta exibe marcadores triangulares pareados ao lado correspondente de cada vista elevada.
+3. A numeração segue a ordem de inserção das vistas no canvas.
+4. Os marcadores são não selecionáveis, serializáveis e atualizados por efeito visual da casa.
+5. A regra foi consolidada em `docs/business-rules/BUS-003-vistas-por-tipo.md`.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - Toda vista elevada visível exibe uma label legível com o nome da vista.
 - A planta exibe a mesma label no lado correspondente.
 - Labels não interferem em seleção, edição de pilotis, porta, escada ou contraventamento.
 - Labels são preservadas em undo/redo, persistência e restauração.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `src/components/rac-editor/lib/house-view.ts`
 - `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
 - `src/components/rac-editor/@canvas/lib/factory/house/house-front-back.strategy.ts`
 - `src/components/rac-editor/@canvas/lib/factory/house/house-side.strategy.ts`
-- `src/components/rac-editor/lib/editor-house-view-runtime.ts`
+- `src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
+- `src/components/rac-editor/@canvas/lib/house-visual-effects.ts`
+- `src/components/rac-editor/lib/editor-house-controller.ts`
 
 ### RD-004 - Labels de identificação dos pilotis na planta
 
@@ -158,26 +172,31 @@ canto. A função `getPilotiName` já resolve códigos como `A1`, `B2` e `C4` a 
 
 ### RD-005 - Inserir componente visual de gauge pela toolbar
 
+**Status:** parcialmente desbloqueado; ainda não implementado no canvas.
+
 **Necessidade:** criar uma opção no menu da toolbar para inserir um componente visual do tipo gauge. O gauge indicará a
-dificuldade do terreno, calculada com base em fatores ainda a definir.
+dificuldade do terreno. Para o PDF, a regra de risco já foi definida em
+`docs/business-rules/BUS-008-indicador-risco-terreno-pdf.md`; ainda falta decidir se o gauge inserível no canvas deve
+reutilizar essa mesma regra ou representar outro indicador visual.
 
 **Estado atual:** a toolbar já possui menus para elementos, linhas, texto livre e ações gerais. Objetos de canvas são
-criados por estratégias em `@canvas/lib/factory/elements`.
+criados por estratégias em `@canvas/lib/factory/elements`. O PDF já renderiza um gauge de risco do terreno, mas não há
+tipo `gauge` serializável nem ação de inserção pela toolbar do canvas.
 
 **Direção proposta:**
 
 1. Criar um novo tipo de objeto visual `gauge` no mecanismo de estratégias do canvas.
 2. Adicionar ação correspondente na toolbar, preferencialmente no menu de elementos ou em um grupo visual dedicado.
 3. Tornar o gauge serializável e restaurável com o documento da casa.
-4. Separar a camada visual da regra de cálculo, pois os fatores de dificuldade ainda não foram definidos.
-5. Quando a regra existir, conectar o gauge aos dados da casa/terreno em vez de manter valor manual ou estático.
+4. Separar a camada visual da regra de cálculo.
+5. Se a regra do canvas for a mesma do PDF, conectar o gauge aos dados de casa/terreno definidos em `BUS-008`.
 
 **Critérios de aceite:**
 
 - O usuário consegue inserir um gauge no canvas pela toolbar.
 - O gauge é movível, selecionável, exportável em PDF e persistido junto com o desenho.
-- O componente tem estado visual coerente mesmo antes da regra final de cálculo.
-- A fórmula de dificuldade fica isolada em função testável quando os fatores forem definidos.
+- O componente tem estado visual coerente enquanto os dados necessários são carregados ou ficam indisponíveis.
+- A fórmula de dificuldade fica isolada em função testável quando a semântica do gauge do canvas for confirmada.
 
 **Pontos prováveis de impacto:**
 
@@ -187,9 +206,12 @@ criados por estratégias em `@canvas/lib/factory/elements`.
 - `src/components/rac-editor/@canvas/hooks/useCanvasTools.ts`
 - `src/components/rac-editor/@canvas/lib/factory/elements/`
 
-**Bloqueio funcional:** faltam os fatores e pesos que definem a dificuldade do terreno.
+**Pendência funcional:** confirmar se o gauge inserível no canvas usa a mesma semântica do indicador de risco do PDF
+ou se representa um indicador visual independente.
 
 ### RD-006 - Corrigir cálculo de pedras por casa
+
+**Status:** desbloqueado; definição funcional confirmada.
 
 **Necessidade:** corrigir o cálculo de pedras para uma casa e identificar com precisão como esse cálculo é feito
 atualmente.
@@ -208,16 +230,17 @@ atualmente.
   - fator de vazio de brita `1.20`.
 - A UI apresenta `Qtd. de Rachão Aprox.`, `Qtd. de Brita Aprox.` e `Total`.
 
-**Ambiguidade a resolver:** o termo "pedras" pode significar o total `rachão + brita`, apenas `rachão`, apenas `brita`,
-ou uma regra operacional distinta usada fora do sistema. Essa definição precisa ser confirmada antes da correção.
+**Definição funcional:** "pedras" corresponde à soma de `rachão + brita`. O item não depende mais de definição
+conceitual; a implementação deve validar se o `Total` atual já representa essa soma em todos os fluxos e ajustar
+fórmula, nomenclatura ou exportações onde houver divergência.
 
 **Direção proposta:**
 
-1. Validar a regra real esperada para "pedras" com os responsáveis do processo construtivo.
-2. Comparar a fórmula esperada com `terrain-volume.ts`.
-3. Corrigir fórmula, constantes, arredondamento e nomenclatura de UI conforme a regra confirmada.
+1. Comparar a definição `pedras = rachão + brita` com `terrain-volume.ts` e com todos os pontos de exibição.
+2. Corrigir fórmula, constantes, arredondamento e nomenclatura de UI quando houver divergência.
+3. Garantir que PDF, UI e eventuais relatórios usem a mesma semântica de pedras.
 4. Adicionar testes unitários com exemplos reais de casas.
-5. Atualizar regra de negócio quando a fórmula correta for consolidada.
+5. Atualizar regra de negócio consolidando a definição funcional.
 
 **Critérios de aceite:**
 
@@ -236,26 +259,27 @@ ou uma regra operacional distinta usada fora do sistema. Essa definição precis
 
 ### RD-007 - Unificar e qualificar os loaders da aplicação
 
+**Status:** concluído em 2026-06-16.
+
 **Necessidade:** melhorar a experiência de carregamento inicial e do carregamento interno do editor. Hoje existem dois
 loaders: um fallback estático em `index.html`, antes da montagem do React, e outro em `RacEditor` durante a preparação
 do storage local e dos ports do editor.
 
-**Estado atual:**
+**Estado anterior:**
 
 - `index.html` exibe um spinner simples com o texto `Carregando o Editor de RAC...`.
 - `RacEditor.tsx` exibe apenas um spinner visual enquanto `useIndexedDbConstructionSiteSessionStorage` está em
   `loading`; o texto `Carregando o Canvas...` existe como `aria-label`, mas não aparece visualmente.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Criar um loader inicial inspirado no Gmail no `index.html`, com marca visual simples, barra/indicador de progresso e
-   texto de carregamento.
-2. Usar progresso por marcos conhecidos ou progresso estimado até a montagem do React.
-3. Não prometer percentual real de bytes carregados sem instrumentação adicional dos assets, chunks e cache.
-4. Substituir o fallback visual atual por uma experiência mais informativa e consistente com a identidade do produto.
-5. No loader interno do `RacEditor`, manter o spinner e exibir também o texto visível `Carregando o Canvas...`.
+1. `index.html` usa fallback autocontido com marca `RAC/TETO`, mensagem de preparação e barra de progresso animada.
+2. O fallback continua tratando erro de assets e timeout de montagem do React.
+3. O progresso é perceptivo/animado, sem prometer percentual real de bytes carregados.
+4. `RacEditor` exibe o texto visível `Carregando o Canvas...` junto ao spinner interno.
+5. Smoke tests cobrem o fallback do `index.html` e o estado visual de carregamento do editor.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - O carregamento inicial da aplicação mostra um indicador de progresso antes da montagem do React.
 - O progresso não trava visualmente em estados intermediários quando o bundle demora.
@@ -267,7 +291,8 @@ do storage local e dos ports do editor.
 
 - `index.html`
 - `src/components/rac-editor/ui/RacEditor.tsx`
-- testes de carregamento ou smoke tests visuais, se forem adicionados para cobrir a experiência.
+- `src/bootstrap/app-loading-fallback.smoke.test.ts`
+- `src/components/rac-editor/ui/RacEditor.smoke.test.tsx`
 
 **Observação técnica:** um percentual exato de carregamento no `index.html` só é confiável se o carregamento dos assets
 for instrumentado. Sem isso, o caminho mais pragmático é uma barra progressiva por etapas ou estimada, encerrada quando
@@ -276,6 +301,8 @@ o React monta e remove o fallback.
 ### RD-008 - Gerenciamento de monitores
 
 **PRD canônico:** `docs/product-requirements/PRD-002-gerenciamento-de-monitores.prd.md`.
+
+**Status:** concluído.
 
 **Necessidade:** permitir cadastrar, editar e listar monitores por Construção TETO. Cada construção terá seu próprio
 grupo de monitores, e cada monitor deve ter nome e telefone obrigatórios, com foto e e-mail opcionais.
@@ -385,28 +412,146 @@ da família. Os novos campos são opcionais.
 **Status de implementação:** implementada no produto com seção própria, persistência em `PersistedHouseRecord`,
 compatibilidade para notas legadas de família e cobertura por testes de UI, persistência e E2E.
 
+### RD-010 - Modo manual de alturas ao alterar níveis
+
+**Status:** proposto.
+
+**Necessidade:** permitir uma preferência global do editor para desativar a recomendação automática de novas alturas de
+pilotis quando níveis forem alterados.
+
+**Estado atual:** ao alterar o nível pelo editor de piloti, a aplicação mantém o nível escolhido e recalcula a altura do
+piloti com a menor altura disponível que satisfaça a proporção estrutural `altura >= nível * 3`. Alterações de nível nos
+cantos também podem recalcular níveis intermediários e alturas recomendadas dos 12 pilotis.
+
+**Direção proposta:**
+
+1. Criar uma preferência global no editor para alternar entre modo automático e modo manual de alturas.
+2. Manter o modo automático como comportamento atual: alterações de nível podem recalcular alturas recomendadas.
+3. No modo manual, alterações de nível não devem sugerir nem aplicar novas alturas para o piloti editado ou para pilotis
+   afetados por interpolação.
+4. No modo manual, níveis continuam obrigatoriamente limitados ao mínimo `0,20 m` e ao máximo permitido pela altura atual
+   de cada piloti (`altura / 2`).
+5. A preferência deve ser persistida junto às configurações globais do editor, não no modelo da casa.
+6. O usuário deve perceber claramente qual modo está ativo antes de editar níveis.
+
+**Critérios de aceite:**
+
+- O usuário consegue alternar entre modo automático e modo manual nas configurações globais do editor.
+- No modo automático, o fluxo de recomendação de alturas permanece compatível com o comportamento atual.
+- No modo manual, alterar nível não altera alturas de pilotis automaticamente.
+- No modo manual, níveis inválidos são bloqueados ou ajustados para o intervalo permitido por cada altura atual.
+- Persistência, restauração, desfazer/refazer, visual 2D, visual 3D, escadas e contraventamentos continuam coerentes com
+  os níveis efetivamente aplicados.
+
+**Pontos prováveis de impacto:**
+
+- `src/shared/types/settings.ts`
+- `src/shared/config.ts`
+- `src/components/rac-editor/store/editor-settings.ts`
+- `src/components/rac-editor/@modals/ui/SettingsModal.tsx`
+- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
+- `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+- `src/domain/house/use-cases/house-piloti.use-case.ts`
+- `src/components/rac-editor/@canvas/lib/house-visual-runtime.ts`
+- `docs/business-rules/BUS-004-piloti-nivel.md`
+
+### RD-011 - Contraventamento horizontal manual
+
+**Status:** proposto.
+
+**Necessidade:** criar contraventamento horizontal usando as mesmas bases funcionais já definidas para o
+contraventamento vertical, mas com inserção exclusivamente manual.
+
+**Estado atual:** o contraventamento existente é controlado por coluna, possui lados esquerdo/direito, usa elegibilidade
+por nível e proporção estrutural, e pode ser recalculado automaticamente quando uma coluna exige contraventamento.
+
+**Direção proposta:**
+
+1. Adicionar suporte a contraventamento horizontal como orientação distinta do contraventamento vertical atual.
+2. Permitir que o contraventamento horizontal envolva os quatro pilotis de uma mesma linha/faixa da planta quando a linha
+   atender às regras de elegibilidade.
+3. Reutilizar as mesmas regras de nível, altura e proporção estrutural usadas para decidir se o contraventamento vertical
+   é permitido.
+4. Garantir que contraventamento horizontal nunca seja criado por rotina automática.
+5. Tratar criação e remoção do contraventamento horizontal como ação manual explícita.
+6. Preservar persistência, histórico, restauração, projeção visual e sincronização com o 3D.
+
+**Critérios de aceite:**
+
+- O usuário consegue criar e remover contraventamento horizontal manualmente.
+- A criação só é habilitada quando a linha/faixa respeita as regras de elegibilidade de contraventamento.
+- Nenhum fluxo automático cria contraventamento horizontal.
+- Contraventamentos verticais automáticos continuam funcionando sem criar, remover ou sobrescrever horizontais manuais.
+- Contraventamentos horizontais são persistidos, restaurados e refletidos nas vistas e no 3D.
+
+**Pontos prováveis de impacto:**
+
+- `docs/business-rules/BUS-006-contraventamento.md`
+- `src/shared/types/contraventamento.ts`
+- `src/domain/house/use-cases/house-contraventamento.use-case.ts`
+- `src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
+- `src/components/rac-editor/@canvas/hooks/useCanvasContraventamentoCommands.ts`
+- `src/components/rac-editor/@canvas/lib/contraventamento.ts`
+- `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts`
+- `src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
+- `src/components/rac-editor/@viewer-3d/lib/parsers/contraventamento-parser.ts`
+
+### RD-012 - Digitação de nível na modal de pilotis desktop
+
+**Status:** proposto.
+
+**Necessidade:** no modo desktop, permitir que o nível do piloti também seja editado por digitação na modal de edição de
+pilotis, mantendo as mesmas regras usadas pelos controles atuais.
+
+**Estado atual:** o nível é exibido em formato `N,NN m` e pode ser alterado por botões de incremento/decremento e slider.
+A edição por digitação ainda não existe na modal de piloti.
+
+**Direção proposta:**
+
+1. Adicionar campo digitável de nível apenas na experiência desktop da modal de piloti.
+2. Aceitar somente números digitados pelo operador.
+3. Aplicar máscara visual `N,NN`, usando vírgula decimal e duas casas.
+4. Reutilizar as mesmas regras de mínimo, máximo global e máximo por altura atual do piloti.
+5. Integrar a digitação ao mesmo fluxo de commit usado pelo slider e pelos botões de nível.
+6. Manter a experiência mobile inalterada, salvo se uma etapa futura decidir o contrário.
+
+**Critérios de aceite:**
+
+- Em desktop, o usuário consegue editar o nível digitando apenas números.
+- A UI formata o valor digitado como `N,NN`.
+- Valores abaixo do mínimo ou acima do máximo permitido são impedidos ou normalizados de forma previsível.
+- O valor confirmado dispara os mesmos efeitos de nível já aplicados pelos controles existentes.
+- O campo não quebra navegação entre pilotis, confirmação/cancelamento da modal nem acessibilidade básica por teclado.
+
+**Pontos prováveis de impacto:**
+
+- `src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
+- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
+- `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+- `src/shared/types/piloti.ts`
+- `docs/business-rules/BUS-004-piloti-nivel.md`
+
 ## Ordem sugerida de execução
 
-1. **RD-006**: fechar a regra de cálculo de pedras, porque ela influencia o gauge e pode afetar materiais exportados.
-2. **RD-002**: concluído em 2026-05-13.
-3. **RD-003** e **RD-004**: implementar labels de vistas e pilotis na mesma frente visual do canvas.
-4. **RD-001**: melhorar exportação PDF com nome configurável e fallback de download.
-5. **RD-007**: qualificar os loaders, por ser uma melhoria isolada de UX com baixo acoplamento.
-6. **RD-008**: modelar e implementar gestão de monitores por Construção TETO.
-7. **RD-009**: concluído em 2026-05-15.
-8. **RD-005**: inserir gauge visual; conectar cálculo automático apenas depois da definição dos fatores.
+1. **RD-006**: validar e implementar a definição confirmada de pedras como `rachão + brita`.
+2. **RD-010**: definir e implementar a preferência global de modo manual/automático para alturas ao alterar níveis.
+3. **RD-012**: adicionar digitação de nível no desktop depois que a semântica de modo manual estiver consolidada.
+4. **RD-011**: implementar contraventamento horizontal manual com base nas regras já consolidadas de elegibilidade.
+5. **RD-004**: implementar labels de identificação dos pilotis na planta.
+6. **RD-001**: melhorar exportação PDF com nome configurável e fallback de download.
+7. **RD-005**: inserir gauge visual; decidir se o canvas reutiliza a regra de risco já definida em `BUS-008`.
+8. **RD-002**: concluído em 2026-05-13.
+9. **RD-003**: concluído em 2026-06-16.
+10. **RD-007**: concluído em 2026-06-16.
+11. **RD-008**: concluído.
+12. **RD-009**: concluído em 2026-05-15.
 
 ## Perguntas em aberto
 
-1. Qual é a fórmula operacional correta para "pedras"?
-2. "Pedras" corresponde a rachão, brita, soma de ambos ou outro insumo?
-3. Quais fatores entram na dificuldade do terreno para o gauge?
-4. A dificuldade do terreno deve usar dados já persistidos em `siteAssessment`, níveis dos pilotis, tipo de solo do
-   editor, obstáculos, ou uma combinação desses fatores?
-5. O destino configurável do PDF deve mirar apenas navegadores Chromium ou precisa de fallback equivalente para todos
+1. O gauge inserível no canvas deve reutilizar a regra de risco definida em `BUS-008` ou representar outro indicador
+   visual?
+2. O destino configurável do PDF deve mirar apenas navegadores Chromium ou precisa de fallback equivalente para todos
    os navegadores suportados?
-6. O indicador do loader inicial deve representar progresso real instrumentado ou progresso estimado por percepção de
-   carregamento?
-7. Monitores da Construção TETO devem registrar função ou período de atuação em iniciativa futura?
-8. Monitores devem aparecer em exportações, relatórios ou impressão da RAC em iniciativa futura? Em caso positivo, em
+3. Monitores da Construção TETO devem registrar função ou período de atuação em iniciativa futura?
+4. Monitores devem aparecer em exportações, relatórios ou impressão da RAC em iniciativa futura? Em caso positivo, em
    qual seção?

@@ -5,6 +5,7 @@ import type {CreateMonitorInput} from '@/components/rac-editor/lib/construction-
 import type {ConstructionSiteState, MonitorRecord} from '@/shared/types/construction-site.ts';
 import {
   formatPhoneInput,
+  MONITOR_EMAIL_MAX_LENGTH,
   MONITOR_NAME_MAX_LENGTH,
   monitorFormSchema,
   PHONE_MASK_MAX_LENGTH,
@@ -19,6 +20,7 @@ import {
   getMonitorInitialState,
   toMonitorInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
+import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {HouseConfigurationSidebar} from './HouseConfigurationScreen.tsx';
 
 export function MonitorFormScreen({
@@ -26,11 +28,13 @@ export function MonitorFormScreen({
   constructionSite,
   monitor,
   onSave,
+  onDirtyChange,
 }: {
   mode: 'create' | 'edit';
   constructionSite: ConstructionSiteState;
   monitor: MonitorRecord | null;
   onSave(input: CreateMonitorInput): void | Promise<void>;
+  onDirtyChange?: (isDirty: boolean) => void;
 }) {
   const form = useForm<MonitorFormValues>({
     resolver: zodResolver(monitorFormSchema),
@@ -42,6 +46,7 @@ export function MonitorFormScreen({
   useEffect(() => {
     form.reset(getMonitorInitialState(monitor));
   }, [form, monitor]);
+  useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
     await onSave(toMonitorInput(values));
@@ -56,16 +61,16 @@ export function MonitorFormScreen({
   return (
     <form
       data-testid='monitor-form'
-      className='grid gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
+      className='grid items-stretch gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
       onSubmit={submitForm}
       noValidate
     >
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
 
-      <div className='space-y-6'>
+      <div className='h-full'>
         <div
           data-testid='monitor-form-layout'
-          className='grid items-stretch gap-5 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'
+          className='grid h-full items-stretch gap-5 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'
         >
           <Controller
             control={form.control}
@@ -77,12 +82,12 @@ export function MonitorFormScreen({
                 onChange={field.onChange}
                 testId='monitor-photo-field'
                 className='h-full'
-                dropZoneClassName='h-full min-h-[13.5rem]'
-                loadedDropZoneClassName='h-full min-h-[13.5rem]'
+                dropZoneClassName='min-h-[16rem] flex-1'
+                loadedDropZoneClassName='min-h-[16rem] flex-1'
               />
             )}
           />
-          <div data-testid='monitor-fields-column' className='grid grid-cols-1 gap-4'>
+          <div data-testid='monitor-fields-column' className='grid h-full grid-cols-1 gap-4 md:grid-rows-[auto_auto_auto_minmax(0,1fr)]'>
             <Controller
               control={form.control}
               name='name'
@@ -127,17 +132,15 @@ export function MonitorFormScreen({
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
+                  maxLength={MONITOR_EMAIL_MAX_LENGTH}
                   error={fieldState.error?.message}
                 />
               )}
             />
+            <PrimaryButton type='submit' className='w-full md:self-end' disabled={isSubmitting}>
+              {submitLabel}
+            </PrimaryButton>
           </div>
-        </div>
-
-        <div className='grid gap-4 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
-          <PrimaryButton type='submit' className='w-full md:col-start-2' disabled={isSubmitting}>
-            {submitLabel}
-          </PrimaryButton>
         </div>
       </div>
     </form>

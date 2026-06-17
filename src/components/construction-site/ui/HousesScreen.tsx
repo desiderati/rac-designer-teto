@@ -1,4 +1,5 @@
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
+import {PackagePlus} from 'lucide-react';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -29,6 +30,7 @@ import {
   EmptyState,
   MobilePagination,
   PaginationButton,
+  RoundIconActionButton,
   StatusActionButton,
   VisualSelect,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
@@ -37,11 +39,13 @@ export function HousesScreen({
   constructionSite,
   activeHouse,
   onEditHouse,
+  onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
 }: {
   constructionSite: ConstructionSiteState;
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
+  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
 }) {
   const [statusFilter, setStatusFilter] = useState<HouseStatusFilter>('all');
@@ -125,12 +129,26 @@ export function HousesScreen({
       </div>
 
       <div data-testid='house-desktop-table' className='hidden overflow-x-auto sm:block'>
-        <table className='min-w-full border-separate border-spacing-y-3'>
+        <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
+          <colgroup>
+            <col className='w-[48%]'/>
+            <col className='w-[16%]'/>
+            <col className='w-[36%]'/>
+          </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Casas</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
-            <th scope='col' className='px-3 pb-1 text-center'>Última Modificação</th>
+            <th scope='col' className='px-3 pb-1'>
+              <span
+                data-testid='house-updated-header-grid'
+                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-center gap-2 text-center'
+              >
+                <span>Última Modificação</span>
+                <span aria-hidden='true'/>
+                <span aria-hidden='true'/>
+              </span>
+            </th>
           </tr>
           </thead>
           <tbody>
@@ -141,6 +159,7 @@ export function HousesScreen({
               house={house}
               active={activeHouse?.id === house.id}
               onOpenHouse={onEditHouse}
+              onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
             />
           ))}
@@ -156,6 +175,7 @@ export function HousesScreen({
             house={house}
             active={activeHouse?.id === house.id}
             onOpenHouse={onEditHouse}
+            onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
           />
         ))}
@@ -185,12 +205,14 @@ export function HouseMobileCard({
   house,
   active,
   onOpenHouse,
+  onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
 }: {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
   active: boolean;
   onOpenHouse(houseId: string): Promise<void>;
+  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
 }) {
   const family = getHouseFamily(constructionSite, house);
@@ -204,6 +226,10 @@ export function HouseMobileCard({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenHouseExtraMaterials(house.id);
   };
 
   return (
@@ -244,11 +270,21 @@ export function HouseMobileCard({
           <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
           <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
         </div>
-        <StatusActionButton
-          action={house.status === 'archived' ? 'unarchive' : 'archive'}
-          label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
-          onClick={requestStatusChange}
-        />
+        <div className='flex shrink-0 items-center gap-1'>
+          {house.status !== 'archived' ? (
+            <RoundIconActionButton
+              label={`Abrir materiais extras da casa ${familyName}`}
+              onClick={openExtraMaterials}
+            >
+              <PackagePlus className='h-4 w-4'/>
+            </RoundIconActionButton>
+          ) : null}
+          <StatusActionButton
+            action={house.status === 'archived' ? 'unarchive' : 'archive'}
+            label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
+            onClick={requestStatusChange}
+          />
+        </div>
       </div>
     </article>
   );
@@ -259,12 +295,14 @@ export function HouseTableRow({
   house,
   active,
   onOpenHouse,
+  onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
 }: {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
   active: boolean;
   onOpenHouse(houseId: string): Promise<void>;
+  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
 }) {
   const family = getHouseFamily(constructionSite, house);
@@ -278,6 +316,10 @@ export function HouseTableRow({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    void onOpenHouseExtraMaterials(house.id);
   };
 
   return (
@@ -296,12 +338,24 @@ export function HouseTableRow({
         house.status === 'archived' ? 'opacity-55' : null,
       )}
     >
-      <td className='rounded-l-lg px-3 py-3'>
-        <div className='flex min-h-14 w-full items-center gap-3 rounded-lg text-left'>
+      <td className='max-w-0 rounded-l-lg px-3 py-3'>
+        <div className='flex min-h-14 min-w-0 w-full items-center gap-3 rounded-lg text-left'>
           <HouseThumbnail familyName={familyName} photoDataUrl={family?.photoDataUrl}/>
-          <span className='min-w-0'>
-            <span className='block truncate font-semibold text-slate-950'>{familyName}</span>
-            <span className='mt-0.5 block truncate text-xs font-medium text-slate-500'>{houseTypeLabel}</span>
+          <span data-testid='house-table-identity' className='min-w-0 flex-1'>
+            <span
+              data-testid='house-table-family-name'
+              title={familyName}
+              className='block truncate font-semibold text-slate-950'
+            >
+              {familyName}
+            </span>
+            <span
+              data-testid='house-table-type'
+              title={houseTypeLabel}
+              className='mt-0.5 block truncate text-xs font-medium text-slate-500'
+            >
+              {houseTypeLabel}
+            </span>
           </span>
         </div>
       </td>
@@ -309,12 +363,21 @@ export function HouseTableRow({
         <HouseStatusBadge status={house.status}/>
       </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-3'>
-          <span aria-hidden='true'/>
-          <span className='text-center'>
+        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-center gap-2'>
+          <span data-testid='house-table-updated-at' className='text-center'>
             <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
             <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
           </span>
+          {house.status !== 'archived' ? (
+            <RoundIconActionButton
+              label={`Abrir materiais extras da casa ${familyName}`}
+              onClick={openExtraMaterials}
+            >
+              <PackagePlus className='h-4 w-4'/>
+            </RoundIconActionButton>
+          ) : (
+            <span aria-hidden='true'/>
+          )}
           <StatusActionButton
             action={house.status === 'archived' ? 'unarchive' : 'archive'}
             label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}

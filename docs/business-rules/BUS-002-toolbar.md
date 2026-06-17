@@ -67,12 +67,15 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 2. Elementos
     - Inserção cria objeto no canvas com comportamento padrão esperado.
+    - Upload de imagem é uma ação direta do menu lateral e abre seleção/drag-and-drop antes de inserir a imagem no canvas.
+    - Upload de imagem aceita somente PNG, JPG ou WEBP dentro do limite de tamanho definido pela aplicação.
 
 3. Linhas e medidas
     - Inserção de linha, seta e distância deve manter consistência de edição posterior.
 
 4. Ações gerais
     - PDF, abrir 3D, configurações, reinício e dicas permanecem como ações gerais.
+    - Exportação em PDF só fica disponível quando existe ao menos uma vista de casa inserida no canvas.
     - Importação e exportação JSON não fazem parte da navegação principal.
     - O documento versionado da casa ativa é usado internamente para persistir o último estado do canvas no banco local.
     - No mobile, PDF e 3D podem ser acionados pelo menu do usuário para reduzir a densidade da barra superior.

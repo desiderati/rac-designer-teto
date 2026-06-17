@@ -314,6 +314,69 @@ describe('useConstructionSiteManagementController.ts', () => {
 
     expect(result.current.documentSaveStatus).toBe('saved');
   });
+
+  it('salva o documento pendente antes de atualizar a configuração da casa e hidrata o nome salvo', async () => {
+    const currentCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_current')],
+    };
+    const savedDocument = createDrawingDocument('house_a', 'Família Antiga', currentCanvas);
+    const updatedCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_updated')],
+    };
+    const updatedDocument = createDrawingDocument('house_a', 'Família Nova', updatedCanvas);
+    let activeDocument: HouseDrawingDocument | null = savedDocument;
+
+    const exportCanvasDocument = vi.fn(() => currentCanvas);
+    const loadCanvasDocument = vi.fn(async () => true);
+    const canvasHandle = {
+      createDocumentPort: () => ({
+        exportCanvasDocument,
+        loadCanvasDocument,
+      }),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      updateActiveHouseConfiguration: vi.fn(() => {
+        activeDocument = updatedDocument;
+      }),
+      getActiveHouseDrawingDocument: vi.fn(() => activeDocument),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+      houseDrawingDocumentPort: {
+        exportHouseDrawingDocument: vi.fn(() => savedDocument),
+        importHouseDrawingDocument: vi.fn(),
+      },
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    let pendingSave!: Promise<void>;
+    await act(async () => {
+      pendingSave = result.current.notifyActiveHouseDocumentChanged();
+      await result.current.actions.updateActiveHouseConfiguration({familyName: 'Família Nova'});
+      await pendingSave;
+    });
+
+    expect(constructionSiteManagementPort.saveActiveHouseDrawingDocument).toHaveBeenCalledWith(savedDocument);
+    expect(constructionSiteManagementPort.updateActiveHouseConfiguration).toHaveBeenCalledWith({
+      familyName: 'Família Nova',
+    });
+    expect(
+      constructionSiteManagementPort.saveActiveHouseDrawingDocument.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      constructionSiteManagementPort.updateActiveHouseConfiguration.mock.invocationCallOrder[0],
+    );
+    expect(loadCanvasDocument).toHaveBeenCalledWith(updatedCanvas);
+    expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(updatedDocument);
+    expect(canvasHandle.saveHistory).toHaveBeenCalled();
+  });
 });
 
 function createWrapper(ports: EditorPorts) {
@@ -380,6 +443,7 @@ function createConstructionSiteManagementPort(overrides: Partial<EditorPorts['co
     updateActiveFamily: vi.fn(),
     updateActiveHouseSiteAssessment: vi.fn(),
     updateActiveHouseConfiguration: vi.fn(),
+    updateActiveHouseExtraMaterials: vi.fn(),
     saveActiveHouseDrawingDocument: vi.fn(),
     getActiveHouseDrawingDocument: vi.fn(() => null),
     ...overrides,

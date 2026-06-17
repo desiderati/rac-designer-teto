@@ -23,7 +23,7 @@ interface UseCanvasActionsArgs {
   setIsDrawing: Dispatch<SetStateAction<boolean>>;
   setInfoMessage: Dispatch<SetStateAction<string>>;
   houseReadPort: Pick<HouseReadPort, 'canDeleteTopView'>;
-  houseWritePort: Pick<HouseWritePort, 'removeView' | 'setHouseType'>;
+  houseWritePort: Pick<HouseWritePort, 'refreshHouseViewReferenceMarkersForCurrentHouse' | 'removeView' | 'setHouseType'>;
   onCloseSubmenus: () => void;
 }
 
@@ -71,6 +71,7 @@ export function useCanvasActions({
     });
 
     if (result === 'deleted') {
+      houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse();
       setInfoMessage('Objeto excluído.');
     }
   }, [canvasRef, houseReadPort, houseWritePort, setInfoMessage]);

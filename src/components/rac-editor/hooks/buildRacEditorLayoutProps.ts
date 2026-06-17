@@ -22,6 +22,7 @@ interface BuildRacEditorLayoutPropsArgs {
   isMobile: LayoutProps['menus']['isMobile'];
   documentSaveStatus: LayoutProps['menus']['documentSaveStatus'];
   documentTransitioning: LayoutProps['menus']['documentTransitioning'];
+  canExportPDF: LayoutProps['menus']['canExportPDF'];
   canvasRef: LayoutProps['canvas']['canvasRef'];
   infoMessage: LayoutProps['canvas']['infoMessage'];
   isAnyEditorOpen: LayoutProps['canvas']['isAnyEditorOpen'];
@@ -79,11 +80,15 @@ interface BuildRacEditorLayoutPropsArgs {
   isSettingsOpen: LayoutProps['modals']['isSettingsOpen'];
   setIsSettingsOpen: LayoutProps['modals']['onSettingsOpenChange'];
   handleSettingsChange: LayoutProps['modals']['onSettingsChange'];
+  isImageUploadOpen: LayoutProps['modals']['isImageUploadOpen'];
+  setIsImageUploadOpen: LayoutProps['modals']['onImageUploadOpenChange'];
+  handleInsertUploadedImage: LayoutProps['modals']['onInsertUploadedImage'];
   showRestartConfirm: LayoutProps['modals']['showRestartConfirm'];
   confirmRestartDrawing: LayoutProps['modals']['onConfirmRestartDrawing'];
   closeRestartConfirm: LayoutProps['modals']['onCloseRestartConfirm'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
+  house3DPdfSnapshotRef: LayoutProps['house3DPdfSnapshot']['snapshotRef'];
   constructionSiteManagementOpen: LayoutProps['workspace']['open'];
   closeConstructionSiteManagement: LayoutProps['workspace']['onClose'];
   constructionSiteManagementPanel: LayoutProps['workspace']['panel'];
@@ -113,6 +118,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       isMobile: args.isMobile,
       documentSaveStatus: args.documentSaveStatus,
       documentTransitioning: args.documentTransitioning,
+      canExportPDF: args.canExportPDF,
     },
     canvas: {
       canvasRef: args.canvasRef,
@@ -185,6 +191,9 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       isSettingsOpen: args.isSettingsOpen,
       onSettingsOpenChange: args.setIsSettingsOpen,
       onSettingsChange: args.handleSettingsChange,
+      isImageUploadOpen: args.isImageUploadOpen,
+      onImageUploadOpenChange: args.setIsImageUploadOpen,
+      onInsertUploadedImage: args.handleInsertUploadedImage,
       showRestartConfirm: args.showRestartConfirm,
       onConfirmRestartDrawing: args.confirmRestartDrawing,
       onCloseRestartConfirm: args.closeRestartConfirm,
@@ -193,6 +202,9 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       open: args.is3DViewerOpen,
       onOpenChange: args.setIs3DViewerOpen,
       canvasRef: args.canvasRef,
+    },
+    house3DPdfSnapshot: {
+      snapshotRef: args.house3DPdfSnapshotRef,
     },
     workspace: {
       open: args.constructionSiteManagementOpen,
