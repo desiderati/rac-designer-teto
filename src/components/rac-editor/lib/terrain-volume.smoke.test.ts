@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import {calculateBritaVolume, calculateRachaoVolume, calculateTotalVolumes} from './terrain-volume.ts';
+import {
+  calculateBritaVolume,
+  calculatePedrasVolume,
+  calculateRachaoVolume,
+  calculateTotalVolumes,
+} from './terrain-volume.ts';
 import type {HousePiloti} from '@/shared/types/house.ts';
 import {TERRAIN_SOLIDITY} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
@@ -14,6 +19,14 @@ function cylinderVolumeM3(diameterCm: number, heightCm: number): number {
 }
 
 describe('terrain-volume.ts', () => {
+  it('mantém a tabela de cama de rachão por tipo de solo alinhada entre UI e cálculo', () => {
+    expect(TERRAIN_SOLIDITY.levels[1]).toMatchObject({rachao: 10, rachaoMt3: 10});
+    expect(TERRAIN_SOLIDITY.levels[2]).toMatchObject({rachao: 15, rachaoMt3: 15});
+    expect(TERRAIN_SOLIDITY.levels[3]).toMatchObject({rachao: 20, rachaoMt3: 20});
+    expect(TERRAIN_SOLIDITY.levels[4]).toMatchObject({rachao: 25, rachaoMt3: 25});
+    expect(TERRAIN_SOLIDITY.levels[5]).toMatchObject({rachao: 30, rachaoMt3: 30});
+  });
+
   it('calculates rachão volume for level 1 with 12 pilotis', () => {
     const vol = calculateRachaoVolume(1, 12);
     const expected =
@@ -49,13 +62,18 @@ describe('terrain-volume.ts', () => {
     expect(calculateBritaVolume(pilotis)).toBe(0);
   });
 
-  it('calculateTotalVolumes returns both values', () => {
+  it('calcula pedras como soma de rachão e brita', () => {
+    expect(calculatePedrasVolume(1.25, 0.75)).toBe(2);
+  });
+
+  it('calculateTotalVolumes returns material values with semantic total', () => {
     const pilotis: Record<string, HousePiloti> = {
       p1: {height: 1.0, isMaster: false, nivel: 0.20},
     };
     const result = calculateTotalVolumes(3, pilotis);
     expect(result.rachaoM3).toBeGreaterThan(0);
     expect(result.britaM3).toBeGreaterThan(0);
+    expect(result.pedrasM3).toBeCloseTo(result.rachaoM3 + result.britaM3, 6);
   });
 });
 

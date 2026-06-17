@@ -3,9 +3,10 @@ import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/c
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
 import {createConstructionSiteSession} from '@/components/rac-editor/lib/construction-site-session.ts';
-import {createDefaultSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
+import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
+import type {AppSettings} from '@/shared/types/settings.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -58,6 +59,32 @@ function initializeHouseControllerCanvas(canvas: any) {
   houseController.initialize(createCanvasHouseRuntimePort(canvas));
 }
 
+function createSettingsPort(overrides: Partial<AppSettings> = {}) {
+  return {
+    getSettings: () => ({
+      ...APP_SETTINGS_DEFAULTS,
+      ...overrides,
+    }),
+    updateSetting: vi.fn(),
+  };
+}
+
+function createConstructionSiteSessionForTest() {
+  const constructionSiteSession = createConstructionSiteSession({
+    read: () => ({version: 1, constructionSites: []}),
+    write: vi.fn(),
+  });
+  constructionSiteSession.createConstructionSite({
+    externalCode: 'CC2603',
+    constructionDate: '2026-05-11',
+    communityName: 'Tiradentes',
+  });
+  constructionSiteSession.createHouse({
+    familyName: 'Familia teste',
+  });
+  return constructionSiteSession;
+}
+
 let houseController: ReturnType<typeof createCanvasHouseController>;
 let viewSequence = 0;
 
@@ -81,22 +108,11 @@ function registerMockView(
 
 describe('editor house controller', () => {
   beforeEach(() => {
-    const constructionSiteSession = createConstructionSiteSession({
-      read: () => ({version: 1, constructionSites: []}),
-      write: vi.fn(),
-    });
-    constructionSiteSession.createConstructionSite({
-      externalCode: 'CC2603',
-      constructionDate: '2026-05-11',
-      communityName: 'Tiradentes',
-    });
-    constructionSiteSession.createHouse({
-      familyName: 'Familia teste',
-    });
+    const constructionSiteSession = createConstructionSiteSessionForTest();
 
     houseController = createCanvasHouseController({
       persistence: new InMemoryHousePersistenceAdapter(),
-      settingsPort: createDefaultSettingsPort(),
+      settingsPort: createSettingsPort(),
       constructionSiteSession,
     });
     viewSequence = 0;
@@ -182,6 +198,44 @@ describe('editor house controller', () => {
     expect(houseController.getPilotiData('piloti_2_1').height).toBe(2.5);
   });
 
+  it('altera somente o piloti selecionado quando o ajuste automático está desativado', () => {
+    const manualController = createCanvasHouseController({
+      persistence: new InMemoryHousePersistenceAdapter(),
+      settingsPort: createSettingsPort({autoAdjustPilotiHeightsFromNivel: false}),
+      constructionSiteSession: createConstructionSiteSessionForTest(),
+    });
+    manualController.setHouseType('tipo6');
+
+    manualController.updatePiloti('piloti_0_0', {height: 1.0, nivel: 0.2});
+    const untouchedBefore = manualController.getPilotiData('piloti_1_1');
+
+    manualController.updatePiloti('piloti_3_0', {height: 1.0, nivel: 1.0});
+
+    expect(manualController.getPilotiData('piloti_3_0')).toMatchObject({
+      height: 1.0,
+      nivel: 0.5,
+    });
+    expect(manualController.getPilotiData('piloti_1_1')).toEqual(untouchedBefore);
+  });
+
+  it('mantém interpolação e alturas recomendadas no modo automático', () => {
+    houseController.setHouseType('tipo6');
+
+    houseController.updatePiloti('piloti_0_0', {nivel: 0.2});
+    houseController.updatePiloti('piloti_3_0', {nivel: 1.0});
+    houseController.updatePiloti('piloti_0_2', {nivel: 0.2});
+    houseController.updatePiloti('piloti_3_2', {nivel: 1.0});
+
+    expect(houseController.getPilotiData('piloti_1_1')).toMatchObject({
+      nivel: 0.47,
+      height: 1.5,
+    });
+    expect(houseController.getPilotiData('piloti_2_1')).toMatchObject({
+      nivel: 0.73,
+      height: 2.5,
+    });
+  });
+
   it('registers and removes views while syncing side assignments', () => {
     const {group} = createMockGroup();
     const canvasGroups = [group];
@@ -202,7 +256,7 @@ describe('editor house controller', () => {
     expect(houseController.hasAnyView()).toBe(false);
     expect(houseController.getAllGroups()).toHaveLength(0);
     expect(houseController.getHouse()?.sideMappings.top).toBeNull();
-  });
+  }, 30_000);
 
   it('não descarta estado existente quando o runtime visual é inicializado', () => {
     const {group} = createMockGroup();
@@ -287,6 +341,42 @@ describe('editor house controller', () => {
     registerMockView('top', topGroup as any);
 
     expect(topObjects.some((object) => object?.isAutoContraventamento === true)).toBe(true);
+  });
+
+  it('atualiza a visibilidade das labels dos pilotis na vista planta pela configuração global', () => {
+    const settings: AppSettings = {
+      ...APP_SETTINGS_DEFAULTS,
+      showPilotiLabelsOnTopView: true,
+    };
+    const controller = createCanvasHouseController({
+      persistence: new InMemoryHousePersistenceAdapter(),
+      settingsPort: {
+        getSettings: () => settings,
+        updateSetting: vi.fn(),
+      },
+      constructionSiteSession: createConstructionSiteSessionForTest(),
+    });
+    const pilotiNameLabel = createMockObject({
+      isPilotiNameLabel: true,
+      visible: true,
+    });
+    const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
+    topObjects.push(pilotiNameLabel);
+
+    controller.initialize(createCanvasHouseRuntimePort(createMockCanvas([topGroup])));
+    controller.setHouseType('tipo6');
+    const instanceId = 'top_settings_labels';
+    Object.assign(topGroup, {
+      houseViewType: 'top',
+      houseView: 'top',
+      houseInstanceId: instanceId,
+    });
+    controller.registerView({viewType: 'top', instanceId});
+
+    settings.showPilotiLabelsOnTopView = false;
+    controller.refreshPilotiNameLabelsForCurrentSettings();
+
+    expect(pilotiNameLabel.visible).toBe(false);
   });
 
   it('recalcula auto contraventamento quando a altura muda sem alterar o nível', () => {

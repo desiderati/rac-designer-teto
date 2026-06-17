@@ -49,6 +49,11 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
     - Devem seguir métricas derivadas do projeto.
     - Quantidade e posicionamento de degraus devem ser coerentes com dados recebidos.
 
+7. Contraventamentos 3D
+    - Devem respeitar orientação vertical ou horizontal.
+    - Devem respeitar o lado escolhido na planta: esquerdo, direito, superior ou inferior.
+    - Devem usar os níveis dos pilotis de origem e destino para definir altura inicial e final.
+
 ## Regras de interação no modal
 
 1. Reset de câmera deve retornar para enquadramento padrão.

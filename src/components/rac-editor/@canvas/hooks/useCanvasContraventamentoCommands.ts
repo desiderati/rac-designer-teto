@@ -8,18 +8,31 @@ import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/Ca
 import type {CanvasRenderHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import {
   addContraventamentoBeam,
+  addHorizontalContraventamentoBeam,
   CanvasGroup,
   removeContraventamentosFromTopView,
   syncContraventamentoElevationViews,
 } from '@/components/rac-editor/@canvas/lib';
 import {useHouseRuntimeSnapshot, useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 import {refreshAutoStairsInViews} from '@/components/rac-editor/@canvas/lib/house-auto-stairs.ts';
-import {
+import type {
   ContraventamentoOrigin,
+  ContraventamentoHorizontalSide,
   ContraventamentoSide,
-  getContraventamentoSideLabel,
+  ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
-import {inferContraventamentoSide} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
+import {
+  getContraventamentoSideLabel,
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
+import {
+  getContraventamentoOrientation,
+} from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
+import {
+  canUseHorizontalContraventamentoSideInRow,
+  getContraventamentoOrientationBySide,
+} from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
 import {MenuSubmenu} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {
@@ -37,8 +50,17 @@ interface UseContraventamentoCommandsArgs {
     left: boolean;
     right: boolean;
   };
+  getContraventamentoHorizontalSides: (group: CanvasGroup, row: number) => {
+    top: boolean;
+    bottom: boolean;
+  };
   isPilotiEligibleForContraventamentoColumn: (pilotiId: string) => boolean;
-  isPilotiEligibleAsDestination: (pilotiId: string) => boolean;
+  isPilotiEligibleForContraventamentoRow: (pilotiId: string) => boolean;
+  isPilotiEligibleAsDestination: (
+    pilotiId: string,
+    first?: { col: number; row: number } | null,
+    side?: ContraventamentoSide | null,
+  ) => boolean;
   setSelectedContraventamento: Dispatch<SetStateAction<ContraventamentoCanvasSelection | null>>;
   setIsContraventamentoMode: Dispatch<SetStateAction<boolean>>;
   contraventamentoFirst: ContraventamentoOrigin | null;
@@ -57,7 +79,9 @@ export function useContraventamentoCommands({
   getTopViewGroup,
   getNonTopViewGroups,
   getContraventamentoColumnSides,
+  getContraventamentoHorizontalSides,
   isPilotiEligibleForContraventamentoColumn,
+  isPilotiEligibleForContraventamentoRow,
   isPilotiEligibleAsDestination,
   setSelectedContraventamento,
   setIsContraventamentoMode,
@@ -87,14 +111,21 @@ export function useContraventamentoCommands({
 
     setContraventamentoFirst(first);
     setContraventamentoSide(side);
+    const orientation = getContraventamentoOrientationBySide(side);
     highlightEligibleContraventamentoPilotis(
       topGroup,
-      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId),
-      first.col,
-      first.pilotiId
+      (candidatePilotiId) => isPilotiEligibleAsDestination(candidatePilotiId, first, side),
+      orientation === 'vertical' ? first.col : undefined,
+      first.pilotiId,
+      orientation === 'horizontal' ? first.row : undefined,
     );
 
-    toast.info(TOAST_MESSAGES.contraventamentoSideSelected(getContraventamentoSideLabel(side)));
+    const sideLabel = getContraventamentoSideLabel(side);
+    toast.info(
+      orientation === 'horizontal'
+        ? TOAST_MESSAGES.horizontalContraventamentoSideSelected(sideLabel)
+        : TOAST_MESSAGES.contraventamentoSideSelected(sideLabel)
+    );
   }, [getTopViewGroup, isPilotiEligibleAsDestination, setContraventamentoFirst, setContraventamentoSide]);
 
   const syncContraventamentoElevations = useCallback(() => {
@@ -146,6 +177,72 @@ export function useContraventamentoCommands({
   }, [getTopViewGroup, resetContraventamentoFlow]);
 
   const handleContraventamentoPilotiClick = useCallback((col: number, row: number) => {
+    if (!contraventamentoFirst || !contraventamentoSide) return;
+
+    const orientation = getContraventamentoOrientationBySide(contraventamentoSide);
+    if (orientation === 'horizontal') {
+      if (!isContraventamentoHorizontalSide(contraventamentoSide)) return;
+
+      if (row !== contraventamentoFirst.row) {
+        toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameRow);
+        return;
+      }
+
+      if (col === contraventamentoFirst.col) {
+        toast.warning(TOAST_MESSAGES.contraventamentoSelectDifferentSecondPiloti);
+        return;
+      }
+
+      const destinationPilotiId = `piloti_${col}_${row}`;
+      if (!isPilotiEligibleAsDestination(destinationPilotiId)) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionRow);
+        return;
+      }
+
+      const originGroup = getTopViewGroup();
+      if (!originGroup) {
+        toast.error(TOAST_MESSAGES.topViewUnavailableForContraventamento);
+        return;
+      }
+
+      const occupiedSides = getContraventamentoHorizontalSides(originGroup, row);
+      if (occupiedSides[contraventamentoSide]) {
+        toast.warning(
+          TOAST_MESSAGES.contraventamentoRowSideAlreadyOccupied(
+            getContraventamentoSideLabel(contraventamentoSide)
+          )
+        );
+
+        setContraventamentoFirst(null);
+        setContraventamentoSide(null);
+        return;
+      }
+
+      const createdId = addHorizontalContraventamentoBeam(
+        originGroup,
+        {col: contraventamentoFirst.col, row},
+        {col, row},
+        {anchorPilotiId: contraventamentoFirst.pilotiId, side: contraventamentoSide},
+      );
+
+      if (!createdId) {
+        toast.error(TOAST_MESSAGES.failedToCreateContraventamento);
+        return;
+      }
+
+      setIsContraventamentoMode(false);
+      setContraventamentoFirst(null);
+      setContraventamentoSide(null);
+      clearContraventamentoSelection(originGroup);
+      syncContraventamentoElevations();
+
+      canvasRef.current?.saveHistory();
+      toast.success(TOAST_MESSAGES.contraventamentoHorizontalAdded);
+      return;
+    }
+
+    if (!isContraventamentoVerticalSide(contraventamentoSide)) return;
+
     if (col !== contraventamentoFirst.col) {
       toast.warning(TOAST_MESSAGES.contraventamentoSelectSecondPilotiInSameColumn);
       return;
@@ -170,8 +267,11 @@ export function useContraventamentoCommands({
 
     const occupiedSides = getContraventamentoColumnSides(originGroup, col);
     if (occupiedSides[contraventamentoSide]) {
-      const sideLabel = contraventamentoSide === 'left' ? 'esquerdo' : 'direito';
-      toast.warning(TOAST_MESSAGES.contraventamentoColumnSideAlreadyOccupied(sideLabel));
+      toast.warning(
+        TOAST_MESSAGES.contraventamentoColumnSideAlreadyOccupied(
+          getContraventamentoSideLabel(contraventamentoSide)
+        )
+      );
 
       setContraventamentoFirst(null);
       setContraventamentoSide(null);
@@ -206,6 +306,7 @@ export function useContraventamentoCommands({
     setContraventamentoSide,
     setIsContraventamentoMode,
     getContraventamentoColumnSides,
+    getContraventamentoHorizontalSides,
     getTopViewGroup,
     isPilotiEligibleAsDestination,
     clearContraventamentoSelection,
@@ -213,7 +314,7 @@ export function useContraventamentoCommands({
   ]);
 
   const handleContraventamentoSelect =
-    useCallback((side: ContraventamentoSide, sourcePilotiId?: string) => {
+    useCallback((side: ContraventamentoVerticalSide, sourcePilotiId?: string) => {
       const selectedPilotiId = sourcePilotiId ?? pilotiSelection?.pilotiId;
       if (!selectedPilotiId) return;
 
@@ -239,13 +340,7 @@ export function useContraventamentoCommands({
               return canvasObj.contraventamentoSide === side;
             }
 
-            const inferredSide = inferContraventamentoSide({
-              col,
-              left: Number(canvasObj.left ?? 0),
-              width: Number(canvasObj.width ?? 0),
-              scaleX: Number(canvasObj.scaleX ?? 1),
-            });
-            return inferredSide === side;
+            return false;
           });
 
         if (removed > 0) {
@@ -286,10 +381,76 @@ export function useContraventamentoCommands({
       syncContraventamentoElevations,
     ]);
 
+  const handleHorizontalContraventamentoSelect =
+    useCallback((side: ContraventamentoHorizontalSide, sourcePilotiId?: string) => {
+      const selectedPilotiId = sourcePilotiId ?? pilotiSelection?.pilotiId;
+      if (!selectedPilotiId) return;
+
+      const topGroup = getTopViewGroup();
+      if (!topGroup) {
+        toast.error(TOAST_MESSAGES.addTopViewBeforeContraventamento);
+        return;
+      }
+
+      const parsed = parsePilotiGridPosition(selectedPilotiId);
+      if (!parsed) return;
+
+      const row = parsed.row;
+      if (!canUseHorizontalContraventamentoSideInRow({row, side})) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionRow);
+        return;
+      }
+
+      const occupiedSides = getContraventamentoHorizontalSides(topGroup, row);
+      if (occupiedSides[side]) {
+        const removed =
+          removeContraventamentosFromTopView(topGroup, canvasObj => (
+            getContraventamentoOrientation(canvasObj) === 'horizontal'
+            && Number(canvasObj.contraventamentoRow) === row
+            && canvasObj.contraventamentoSide === side
+          ));
+
+        if (removed > 0) {
+          syncContraventamentoElevations();
+          canvasRef.current?.saveHistory();
+          emitHouseStoreChange();
+          toast.success(TOAST_MESSAGES.contraventamentoHorizontalRemoved);
+        }
+        return;
+      }
+
+      if (!isPilotiEligibleForContraventamentoRow(selectedPilotiId)) {
+        toast.warning(TOAST_MESSAGES.contraventamentoRequiresOutOfProportionRow);
+        return;
+      }
+
+      const first = {pilotiId: selectedPilotiId, col: parsed.col, row};
+
+      setIsPilotiEditorOpen(false);
+      setPilotiSelection(null);
+      setActiveSubmenu(null);
+      setIsContraventamentoMode(true);
+      enterSecondContraventamentoSelection(first, side);
+    }, [
+      canvasRef,
+      emitHouseStoreChange,
+      enterSecondContraventamentoSelection,
+      getContraventamentoHorizontalSides,
+      getTopViewGroup,
+      isPilotiEligibleForContraventamentoRow,
+      pilotiSelection,
+      setActiveSubmenu,
+      setIsPilotiEditorOpen,
+      setIsContraventamentoMode,
+      setPilotiSelection,
+      syncContraventamentoElevations,
+    ]);
+
   return {
     syncContraventamentoElevations,
     handleCancelContraventamento,
     handleContraventamentoPilotiClick,
     handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect,
   };
 }

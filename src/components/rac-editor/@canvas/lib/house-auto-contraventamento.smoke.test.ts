@@ -114,6 +114,30 @@ describe('house-auto-contraventamento.ts', () => {
     expect(group.getCanvasObjects()[0]?.isAutoContraventamento).not.toBe(true);
   });
 
+  it('ignora contraventamento horizontal manual no fluxo automático vertical', () => {
+    const {group} = createMockGroup();
+    group.getCanvasObjects().push({
+      isContraventamento: true,
+      contraventamentoId: 'manual_row1',
+      contraventamentoOrientation: 'horizontal',
+      contraventamentoRow: 1,
+      contraventamentoStartCol: 0,
+      contraventamentoEndCol: 3,
+    });
+
+    const changed = refreshAutoContraventamentoInAllViews({
+      pilotis: {
+        piloti_2_0: {height: 1.0, isMaster: false, nivel: 0.5},
+      } as any,
+      topViews: [{instanceId: 'top_1', group} as any],
+      elevationViews: [],
+    });
+
+    expect(changed).toBe(true);
+    expect(group.getCanvasObjects().some((object: any) => object?.contraventamentoId === 'manual_row1')).toBe(true);
+    expect(group.getCanvasObjects().some((object: any) => object?.isAutoContraventamento === true)).toBe(true);
+  });
+
   it('sincroniza elevacao adicionada depois que a planta ja tem contraventamento automatico', () => {
     const {group: topGroup} = createMockGroup();
     const {group: elevationGroup} = createMockGroup({
@@ -220,6 +244,32 @@ describe('house-auto-contraventamento.ts', () => {
 
     expect(changed).toBe(true);
     expect(group.getCanvasObjects().some((object: any) => object?.isContraventamento === true)).toBe(false);
+  });
+
+  it('não remove horizontal manual quando a coluna vertical não exige mais contraventamento', () => {
+    const {group} = createMockGroup();
+    group.getCanvasObjects().push({
+      isContraventamento: true,
+      contraventamentoId: 'manual_row2',
+      contraventamentoOrientation: 'horizontal',
+      contraventamentoRow: 2,
+      contraventamentoStartCol: 0,
+      contraventamentoEndCol: 3,
+    });
+
+    const changed = refreshAutoContraventamentoInAllViews({
+      pilotis: {
+        piloti_2_0: {height: 2.0, isMaster: false, nivel: 0.2},
+        piloti_2_1: {height: 2.0, isMaster: false, nivel: 0.2},
+        piloti_2_2: {height: 2.0, isMaster: false, nivel: 0.2},
+      } as any,
+      topViews: [{instanceId: 'top_1', group} as any],
+      elevationViews: [],
+    });
+
+    expect(changed).toBe(false);
+    expect(group.getCanvasObjects()).toHaveLength(1);
+    expect(group.getCanvasObjects()[0]?.contraventamentoId).toBe('manual_row2');
   });
 
 });

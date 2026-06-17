@@ -1,12 +1,17 @@
 import type {EditorPilotiId, EditorViewId} from './editor-ids.ts';
 import type {EditorContraventamentoSide} from './editor-selection.ts';
+import {
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 
 export interface EditorContraventamentoDraft {
   viewId: EditorViewId;
   side: EditorContraventamentoSide;
   originPilotiId: EditorPilotiId;
   destinationPilotiId: EditorPilotiId | null;
-  column: number;
+  column?: number;
+  row?: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -18,7 +23,7 @@ function isString(value: unknown): value is string {
 }
 
 function isSide(value: unknown): value is EditorContraventamentoSide {
-  return value === 'left' || value === 'right';
+  return isContraventamentoVerticalSide(value) || isContraventamentoHorizontalSide(value);
 }
 
 /**
@@ -33,11 +38,13 @@ export function isEditorContraventamentoDraft(value: unknown): value is EditorCo
   if ('group' in value || 'canvas' in value || 'target' in value) return false;
 
   const column = value.column;
+  const row = value.row;
+  const hasValidColumn = Number.isInteger(column) && typeof column === 'number' && column >= 0;
+  const hasValidRow = Number.isInteger(row) && typeof row === 'number' && row >= 0;
+
   return isString(value.viewId)
     && isSide(value.side)
     && isString(value.originPilotiId)
     && (value.destinationPilotiId === null || isString(value.destinationPilotiId))
-    && Number.isInteger(column)
-    && typeof column === 'number'
-    && column >= 0;
+    && (isContraventamentoVerticalSide(value.side) ? hasValidColumn : hasValidRow);
 }

@@ -57,6 +57,7 @@ interface BuildRacEditorLayoutPropsArgs {
   handlePilotiNavigate: LayoutProps['modalEditors']['onPilotiNavigate'];
   contraventamentoEditorState: LayoutProps['modalEditors']['contraventamentoEditorState'];
   handleContraventamentoSelect: LayoutProps['modalEditors']['onContraventamentoSelect'];
+  handleHorizontalContraventamentoSelect: LayoutProps['modalEditors']['onHorizontalContraventamentoSelect'];
   handleWallApply: LayoutProps['modalEditors']['onWallApply'];
   closeWallEditor: LayoutProps['modalEditors']['onWallEditorClose'];
   wallSelection: LayoutProps['modalEditors']['wallSelection'];
@@ -164,6 +165,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onPilotiNavigate: args.handlePilotiNavigate,
       contraventamentoEditorState: args.contraventamentoEditorState,
       onContraventamentoSelect: args.handleContraventamentoSelect,
+      onHorizontalContraventamentoSelect: args.handleHorizontalContraventamentoSelect,
       onWallApply: args.handleWallApply,
       onWallEditorClose: args.closeWallEditor,
       wallSelection: args.wallSelection,

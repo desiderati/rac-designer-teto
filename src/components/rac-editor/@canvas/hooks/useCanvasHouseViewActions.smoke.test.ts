@@ -395,4 +395,55 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
   });
+
+  it('repassa o modo manual para a criação visual da vista elevada', () => {
+    const group = createGroup({
+      height: 200,
+      bounds: {left: 160, top: 250, width: 360, height: 260},
+      objects: [],
+    });
+    const createHouseViewGroup = vi.fn(() => group);
+    const canvasRef = {
+      current: {
+        createHouseViewGroup,
+        renderAll: vi.fn(),
+        getCanvasPointScreenPosition: vi.fn((point) => point),
+      },
+    } as unknown as RefObject<
+      CanvasObjectCreationHandle
+      & CanvasRenderHandle
+      & CanvasScreenProjectionHandle
+    >;
+
+    const result = renderHook(() => useCanvasHouseViewActions({
+      canvasRef,
+      getVisibleCenter: () => ({x: 300, y: 300}),
+      closeAllMenus: vi.fn(),
+      addObjectToCanvas: vi.fn(() => true),
+      onHouseDrawingChange: vi.fn(),
+      houseReadPort: createHouseReadPort(),
+      houseWritePort: createHouseWritePort(),
+      pendingViewType: null,
+      setPendingViewType: vi.fn(),
+      sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(),
+      setHouseSideSlots: vi.fn(),
+      pendingNivelSide: null,
+      setPendingNivelSide: vi.fn(),
+      niveisAppliedRef: {current: false},
+      transitionToNivelRef: {current: false},
+      shouldShowAllElevationNivelLabels: () => true,
+      setSideSelectorOpen: vi.fn(),
+      setNivelDefinitionOpen: vi.fn(),
+    }));
+
+    act(() => {
+      result.result.current.addViewToCanvas('front', 'top');
+    });
+
+    expect(createHouseViewGroup).toHaveBeenCalledWith(expect.objectContaining({
+      viewType: 'front',
+      showAllElevationNivelLabels: true,
+    }));
+  });
 });

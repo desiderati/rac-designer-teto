@@ -70,6 +70,8 @@ export interface EditorHouseWriteSource {
   refreshAutoStairsForCurrentSettings(): void;
   refreshAutoContraventamentoForCurrentHouse(): void;
   refreshHouseViewReferenceMarkersForCurrentHouse(): void;
+  refreshPilotiNameLabelsForCurrentSettings(): void;
+  refreshElevationNivelLabelsForCurrentSettings(): void;
   setHouseType(type: HouseType): void;
   reset(): void;
   setTerrainType(terrainType: number): number;
@@ -159,6 +161,8 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
     refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),
     refreshAutoContraventamentoForCurrentHouse: () => source.refreshAutoContraventamentoForCurrentHouse(),
     refreshHouseViewReferenceMarkersForCurrentHouse: () => source.refreshHouseViewReferenceMarkersForCurrentHouse(),
+    refreshPilotiNameLabelsForCurrentSettings: () => source.refreshPilotiNameLabelsForCurrentSettings(),
+    refreshElevationNivelLabelsForCurrentSettings: () => source.refreshElevationNivelLabelsForCurrentSettings(),
     setHouseType: (type) => source.setHouseType(type),
     resetHouse: () => source.reset(),
     setTerrainType: (terrainType) => source.setTerrainType(terrainType),

@@ -53,6 +53,10 @@ interface EditorHouseEffectsPort {
   refreshAutoContraventamento(): void;
 
   refreshHouseViewReferenceMarkers(): void;
+
+  refreshPilotiNameLabels(): void;
+
+  refreshElevationNivelLabels(): void;
 }
 
 interface EditorHouseEffectsArgs<TGroup extends HouseRuntimeGroupRef> {
@@ -65,6 +69,7 @@ interface EditorHouseControllerArgs<TGroup extends HouseRuntimeGroupRef> {
   constructionSiteSession: ConstructionSiteSessionPort;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
   createEffects(args: EditorHouseEffectsArgs<TGroup>): EditorHouseEffectsPort;
+  shouldAutoAdjustPilotiHeightsFromNivel?: () => boolean;
 }
 
 export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
@@ -110,6 +115,8 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       getAggregate: () => this.getHouseAggregate(),
       getDefaultTerrainType: () => this.getDefaultTerrainType(),
       getSelectedPilotiHeights: () => this.session.getSelectedPilotiHeights(),
+      shouldAutoAdjustPilotiHeightsFromNivel:
+        () => args.shouldAutoAdjustPilotiHeightsFromNivel?.() ?? true,
       getAllGroups: () => this.getAllGroups(),
       unregisterRuntimeViewGroup: (instanceId) => this.visualRuntime.unregisterViewGroup(instanceId),
       viewRuntime: args.viewRuntime,
@@ -131,6 +138,8 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.notifier.addInternalListener(() => this.effects.refreshTopDoorMarkers());
     this.notifier.addInternalListener(() => this.effects.refreshAutoStairs());
     this.notifier.addInternalListener(() => this.effects.refreshHouseViewReferenceMarkers());
+    this.notifier.addInternalListener(() => this.effects.refreshPilotiNameLabels());
+    this.notifier.addInternalListener(() => this.effects.refreshElevationNivelLabels());
   }
 
   private get house(): HouseState | null {
@@ -179,6 +188,16 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   refreshHouseViewReferenceMarkersForCurrentHouse(): void {
     this.invalidateRuntimeHouseCache();
     this.effects.refreshHouseViewReferenceMarkers();
+  }
+
+  refreshPilotiNameLabelsForCurrentSettings(): void {
+    this.invalidateRuntimeHouseCache();
+    this.effects.refreshPilotiNameLabels();
+  }
+
+  refreshElevationNivelLabelsForCurrentSettings(): void {
+    this.invalidateRuntimeHouseCache();
+    this.effects.refreshElevationNivelLabels();
   }
 
   subscribe(listener: () => void): () => void {

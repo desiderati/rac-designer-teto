@@ -5,7 +5,9 @@ import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
 import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 import {
   clampNivelByHeight,
+  clampNivel,
   getAllPilotiIds,
+  getMaxNivelForPilotiHeight,
   getMaxNivelForAvailableHeights,
   getPilotiName,
   getRecommendedHeight,
@@ -65,7 +67,10 @@ export function usePilotiEditor({
   }, [pilotiIds]);
 
   const selectedHeights = resolvedPilotiReadPort.getSelectedPilotiHeights();
-  const maxNivel = getMaxNivelForAvailableHeights(selectedHeights);
+  const {autoAdjustPilotiHeightsFromNivel} = resolvedSettingsPort.getSettings();
+  const maxNivel = autoAdjustPilotiHeightsFromNivel
+    ? getMaxNivelForAvailableHeights(selectedHeights)
+    : getMaxNivelForPilotiHeight(tempHeight);
 
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
@@ -136,21 +141,25 @@ export function usePilotiEditor({
   // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
   // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
-    setTempNivel(Math.round(Math.min(value, maxNivel) * 100) / 100);
+    setTempNivel(clampNivel(value, PILOTI_DEFAULT_NIVEL, maxNivel));
   };
 
   const handleNivelCommit = (value: number) => {
     if (!pilotiId) return;
 
-    // Regra: ao soltar o drag do slider, a altura é sempre recalculada com base no nível escolhido.
-    const recommendedHeight = getRecommendedHeight(value, selectedHeights);
-    setTempHeight(recommendedHeight);
-    setTempNivel(value);
+    const nivelToApply = autoAdjustPilotiHeightsFromNivel
+      ? clampNivel(value, PILOTI_DEFAULT_NIVEL, maxNivel)
+      : clampNivelByHeight(value, tempHeight);
+    const heightToApply = autoAdjustPilotiHeightsFromNivel
+      ? getRecommendedHeight(nivelToApply, selectedHeights)
+      : tempHeight;
+    setTempHeight(heightToApply);
+    setTempNivel(nivelToApply);
 
     const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
-      height: recommendedHeight,
+      height: heightToApply,
       isMaster: tempIsMaster,
-      nivel: value,
+      nivel: nivelToApply,
     });
     onHeightChange(updatedPiloti.height);
     onNavigate?.(pilotiId, updatedPiloti.height, updatedPiloti.isMaster, updatedPiloti.nivel);
@@ -273,6 +282,7 @@ export function usePilotiEditor({
     isCornerPiloti,
     masterPilotiName,
     maxNivel,
+    autoAdjustPilotiHeightsFromNivel,
     handleNavigate,
     handleApply,
     handleCancel,

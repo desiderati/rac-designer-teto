@@ -82,6 +82,12 @@ describe('editor house ports', () => {
     expect('houseCanvasReconciliationPort' in ports).toBe(false);
   });
 
+  it('expoe os efeitos visuais derivados de configuracoes pela porta de escrita', () => {
+    expect(typeof ports.houseWritePort.refreshAutoStairsForCurrentSettings).toBe('function');
+    expect(typeof ports.houseWritePort.refreshPilotiNameLabelsForCurrentSettings).toBe('function');
+    expect(typeof ports.houseWritePort.refreshElevationNivelLabelsForCurrentSettings).toBe('function');
+  });
+
   it('emite alteracoes de estado sem expor o singleton a UI', () => {
     const listener = vi.fn();
     const unsubscribe = ports.houseStatePort.subscribe(listener);

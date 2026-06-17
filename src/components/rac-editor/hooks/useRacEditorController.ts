@@ -332,6 +332,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     isPilotiEligibleAsDestination,
     contraventamentoEditorState,
     handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect,
     resetContraventamentoFlow,
   } = useRacEditorContraventamentoController({
     canvasRef,
@@ -489,6 +490,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handlePilotiNavigate,
     contraventamentoEditorState,
     handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect,
     handleWallApply,
     closeWallEditor,
     wallSelection,

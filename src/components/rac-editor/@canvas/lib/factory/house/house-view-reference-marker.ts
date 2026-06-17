@@ -35,11 +35,9 @@ export interface HouseViewReferenceEntry {
 
 const PLAN_MARKER_WIDTH = 42;
 const PLAN_MARKER_HEIGHT = 18;
-const PLAN_MARKER_CODE_TOP = 3;
 const PLAN_MARKER_EDGE_GAP = 12;
 const PLAN_MARKER_LABEL_GAP = 9;
 const ELEVATION_LABEL_OFFSET = 40;
-const PLAN_MARKER_CODE_FONT_SIZE = 12;
 const PLAN_MARKER_LABEL_FONT_SIZE = 10.5;
 const ELEVATION_LABEL_FONT_SIZE = 16;
 const ELEVATION_LABEL_SCALE = HOUSE_DEFAULTS.viewScale;
@@ -80,7 +78,7 @@ export function createHouseElevationReferenceLabel({
   top,
   scale,
 }: HouseViewReferenceMarkerArgs): CanvasObject {
-  const text = new Text(`${label} #${sequence}`, {
+  const text = new Text(label, {
     fontSize: ELEVATION_LABEL_FONT_SIZE * scale,
     fontFamily: CANVAS_STYLE.fontFamily,
     fontWeight: 'bold',
@@ -144,20 +142,6 @@ export function createHousePlanReferenceMarker({
     evented: false,
   });
 
-  const codeText = new Text(String(sequence), {
-    fontSize: PLAN_MARKER_CODE_FONT_SIZE * scale,
-    fontFamily: CANVAS_STYLE.fontFamily,
-    fontWeight: 'bold',
-    fill: HOUSE_2D_STYLE.outlineStrokeColor,
-    originX: 'center',
-    originY: 'center',
-    angle: markerLayout.textAngle,
-    left: markerLayout.codeLeft,
-    top: markerLayout.codeTop,
-    selectable: false,
-    evented: false,
-  });
-
   const labelText = new Text(label, {
     fontSize: PLAN_MARKER_LABEL_FONT_SIZE * scale,
     fontFamily: CANVAS_STYLE.fontFamily,
@@ -172,7 +156,7 @@ export function createHousePlanReferenceMarker({
     evented: false,
   });
 
-  const marker = new FabricGroup([bounds, triangle, codeText, labelText], {
+  const marker = new FabricGroup([bounds, triangle, labelText], {
     left,
     top,
     originX: 'center',
@@ -231,14 +215,15 @@ export function refreshHouseViewReferenceMarkersInViews(params: {
     hasChanges = removeHouseViewReferenceMarkersFromGroup(group) || hasChanges;
 
     const bounds = calculateObjectBounds(getCanvasGroupObjects(group));
+    const scale = calculateElevationReferenceScale(reference.viewType, bounds.width);
     addObjectToGroup(
       group,
       createHouseElevationReferenceLabel({
         label: reference.label,
         left: bounds.left + bounds.width / 2,
         sequence: reference.sequence,
-        top: bounds.top + bounds.height + ELEVATION_LABEL_OFFSET * ELEVATION_LABEL_SCALE,
-        scale: ELEVATION_LABEL_SCALE,
+        top: bounds.top - ELEVATION_LABEL_OFFSET * scale,
+        scale,
       }),
     );
     refreshGroupBounds(group);
@@ -277,6 +262,18 @@ function calculateReferenceScale(width: number, height: number): number {
   const heightScale = height / HOUSE_DIMENSIONS.footprint.depth;
   const scale = Math.min(widthScale, heightScale);
   return Number.isFinite(scale) && scale > 0 ? scale : HOUSE_DEFAULTS.viewScale;
+}
+
+function calculateElevationReferenceScale(
+  viewType: Exclude<HouseViewType, 'top'>,
+  width: number,
+): number {
+  const baseWidth =
+    viewType === 'front' || viewType === 'back'
+      ? HOUSE_DIMENSIONS.footprint.width
+      : HOUSE_DIMENSIONS.footprint.depth;
+  const scale = width / baseWidth;
+  return Number.isFinite(scale) && scale > 0 ? scale : ELEVATION_LABEL_SCALE;
 }
 
 function calculateObjectBounds(objects: CanvasObject[]): {
@@ -352,20 +349,15 @@ function getPlanMarkerTextLayout(params: {
   scale: number;
   side: HouseSide;
 }): {
-  codeLeft: number;
-  codeTop: number;
   labelLeft: number;
   labelTop: number;
   textAngle: number;
 } {
   const labelGap = PLAN_MARKER_LABEL_GAP * params.scale;
-  const codeOffset = PLAN_MARKER_CODE_TOP * params.scale;
   const labelOffset = params.markerHeight / 2 + labelGap;
 
   if (params.side === 'top') {
     return {
-      codeLeft: 0,
-      codeTop: -codeOffset,
       labelLeft: 0,
       labelTop: -labelOffset,
       textAngle: 0,
@@ -374,8 +366,6 @@ function getPlanMarkerTextLayout(params: {
 
   if (params.side === 'bottom') {
     return {
-      codeLeft: 0,
-      codeTop: codeOffset,
       labelLeft: 0,
       labelTop: labelOffset,
       textAngle: 0,
@@ -384,8 +374,6 @@ function getPlanMarkerTextLayout(params: {
 
   if (params.side === 'left') {
     return {
-      codeLeft: -codeOffset,
-      codeTop: 0,
       labelLeft: -labelOffset,
       labelTop: 0,
       textAngle: 90,
@@ -393,8 +381,6 @@ function getPlanMarkerTextLayout(params: {
   }
 
   return {
-    codeLeft: codeOffset,
-    codeTop: 0,
     labelLeft: labelOffset,
     labelTop: 0,
     textAngle: 90,

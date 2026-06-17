@@ -105,6 +105,13 @@ Nele, a pessoa consegue:
     - A grade da área de trabalho deve encostar nos limites da página, sem margem cinza ao redor.
     - A superfície editável do desenho deve ter quinas arredondadas e recortar seu conteúdo dentro desse limite.
 
+2. Identificação de pilotis na planta
+    - A planta deve exibir por padrão o código de todos os 12 pilotis.
+    - A exibição desses códigos pode ser ativada ou desativada na modal de configurações do editor.
+    - Os pilotis das linhas `A*` e `B*` exibem o código abaixo do círculo.
+    - Os pilotis da linha `C*` exibem o código acima do círculo.
+    - A identificação não deve ser selecionável nem interferir na edição de altura, nível, mestre ou contraventamento.
+
 ## Regras de experiência no mobile
 
 1. Toques

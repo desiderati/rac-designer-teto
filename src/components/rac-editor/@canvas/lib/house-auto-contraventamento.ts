@@ -8,7 +8,7 @@ import {
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/@canvas/lib';
 import {
-  type ContraventamentoSide,
+  type ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 import {
   collectAutoContraventamentoRowsByColumn,
@@ -19,6 +19,7 @@ import {
 import {
   collectOccupiedContraventamentoSides,
   getContraventamentoColumnCenterX,
+  getContraventamentoOrientation,
 } from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 
 /**
@@ -76,7 +77,9 @@ function refreshAutoContraventamentoOnTopView(
       if (existingInColumn.length === 0) return;
       const removed = removeContraventamentosFromTopView(
         runtimeTopGroup,
-        (object) => resolveContraventamentoColumn(object) === col,
+        (object) =>
+          getContraventamentoOrientation(object) === 'vertical'
+          && resolveContraventamentoColumn(object) === col,
       );
 
       if (removed > 0) hasChanges = true;
@@ -125,6 +128,7 @@ function refreshAutoContraventamentoOnTopView(
 function getColumnContraventamentos(group: CanvasGroup, col: number): CanvasObject[] {
   return getCanvasGroupObjects(group).filter(object => {
     if (!object?.isContraventamento) return false;
+    if (getContraventamentoOrientation(object) !== 'vertical') return false;
     return resolveContraventamentoColumn(object) === col;
   });
 }
@@ -168,7 +172,7 @@ function resolveContraventamentoColumn(object: CanvasObject): number | null {
  * @param col Coluna alvo.
  * @returns `left`, `right` ou `null` quando ambos os lados já estão ocupados.
  */
-function resolveAutoContraventamentoSide(group: CanvasGroup, col: number): ContraventamentoSide | null {
+function resolveAutoContraventamentoSide(group: CanvasGroup, col: number): ContraventamentoVerticalSide | null {
   const occupied = collectOccupiedContraventamentoSides({
     objects: getCanvasGroupObjects(group),
     col,

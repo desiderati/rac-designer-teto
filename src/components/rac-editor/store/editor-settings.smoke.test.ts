@@ -13,10 +13,12 @@ describe('editor-settings.ts', () => {
   it('returns defaults when storage is empty', () => {
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
+      autoAdjustPilotiHeightsFromNivel: true,
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,
+      showPilotiLabelsOnTopView: true,
     });
   });
 
@@ -24,10 +26,12 @@ describe('editor-settings.ts', () => {
     updateSetting('autoNavigatePiloti', true);
     expect(getSettings()).toEqual({
       autoNavigatePiloti: true,
+      autoAdjustPilotiHeightsFromNivel: true,
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,
+      showPilotiLabelsOnTopView: true,
     });
   });
 
@@ -39,10 +43,12 @@ describe('editor-settings.ts', () => {
     expect(() => updateSetting('autoNavigatePiloti', true)).not.toThrow();
     expect(getSettings()).toEqual({
       autoNavigatePiloti: false,
+      autoAdjustPilotiHeightsFromNivel: true,
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
       showStairsOnTopView: false,
+      showPilotiLabelsOnTopView: true,
     });
   });
 });

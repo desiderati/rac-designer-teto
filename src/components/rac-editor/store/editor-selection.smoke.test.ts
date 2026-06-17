@@ -44,6 +44,12 @@ describe('editor-selection.ts', () => {
         contraventamentoId: 'contraventamento_1',
         side: 'left',
       },
+      {
+        type: 'contraventamento',
+        viewId: 'top_1',
+        contraventamentoId: 'contraventamento_2',
+        side: 'bottom',
+      },
     ];
 
     expect(EDITOR_SELECTION_KINDS).toEqual([

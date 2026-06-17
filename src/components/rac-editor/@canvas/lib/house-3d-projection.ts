@@ -43,9 +43,13 @@ function createTopViewProjection(group: CanvasGroup): House3DProjection['topView
         id: typeof object.contraventamentoId === 'string'
           ? object.contraventamentoId
           : undefined,
+        orientation: object.contraventamentoOrientation,
         col: object.contraventamentoCol,
+        row: object.contraventamentoRow,
         startRow: object.contraventamentoStartRow,
         endRow: object.contraventamentoEndRow,
+        startCol: object.contraventamentoStartCol,
+        endCol: object.contraventamentoEndCol,
         side: object.contraventamentoSide,
         anchorPilotiId: typeof object.contraventamentoAnchorPilotiId === 'string'
           ? object.contraventamentoAnchorPilotiId

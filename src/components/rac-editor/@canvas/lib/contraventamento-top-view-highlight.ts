@@ -13,12 +13,14 @@ import {CanvasGroup} from '@/components/rac-editor/@canvas/lib/canvas.ts';
  * @param getIsEligible Callback que informa se um `pilotiId` pode ser selecionado.
  * @param selectedCol Coluna opcional para restringir os candidatos (0 a 3).
  * @param skipPilotiId ID opcional do piloti que deve ser ignorado no destaque.
+ * @param selectedRow Linha opcional para restringir os candidatos (0 a 2).
  */
 export function highlightEligibleContraventamentoPilotis(
   group: CanvasGroup,
   getIsEligible: (pilotiId: string) => boolean,
   selectedCol?: number,
   skipPilotiId?: string,
+  selectedRow?: number,
 ): void {
   group.getCanvasObjects().forEach((obj) => {
     if (!obj.isPilotiCircle) return;
@@ -28,11 +30,13 @@ export function highlightEligibleContraventamentoPilotis(
     if (!match) return;
 
     const col = parseInt(match[1], 10);
+    const row = parseInt(match[2], 10);
     const eligible = getIsEligible(id);
     const inColumn = selectedCol === undefined || col === selectedCol;
+    const inRow = selectedRow === undefined || row === selectedRow;
     const isSkipped = id === skipPilotiId;
 
-    if (eligible && inColumn && !isSkipped) {
+    if (eligible && inColumn && inRow && !isSkipped) {
       // Available - yellow border highlight (same visual language as top-view selection).
       obj.set({
         stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,

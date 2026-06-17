@@ -5,9 +5,15 @@ import {Switch} from '@/components/ui/switch.tsx';
 import {Label} from '@/components/ui/label.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
 import {PilotiGridIcon} from './PilotiGridIcon.tsx';
-import {ContraventamentoSideIcon} from '@/components/rac-editor/@modals/ui/editors/piloti/ContraventamentoSideIcon.tsx';
+import {
+  ContraventamentoHorizontalSideIcon,
+  ContraventamentoSideIcon,
+} from '@/components/rac-editor/@modals/ui/editors/piloti/ContraventamentoSideIcon.tsx';
 import {usePilotiEditor} from '../../../hooks/usePilotiEditor.ts';
-import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import type {
+  ContraventamentoHorizontalSide,
+  ContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 import React from 'react';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlider.tsx';
@@ -30,9 +36,14 @@ interface PilotiEditorProps {
   onNavigate?: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
   contraventamentoLeftDisabled?: boolean;
   contraventamentoRightDisabled?: boolean;
+  contraventamentoTopDisabled?: boolean;
+  contraventamentoBottomDisabled?: boolean;
   contraventamentoLeftActive?: boolean;
   contraventamentoRightActive?: boolean;
-  onContraventamentoSelect?: (side: ContraventamentoSide, pilotiId?: string) => void;
+  contraventamentoTopActive?: boolean;
+  contraventamentoBottomActive?: boolean;
+  onContraventamentoSelect?: (side: ContraventamentoVerticalSide, pilotiId?: string) => void;
+  onHorizontalContraventamentoSelect?: (side: ContraventamentoHorizontalSide, pilotiId?: string) => void;
 }
 
 export function PilotiEditor({
@@ -50,9 +61,14 @@ export function PilotiEditor({
   onNavigate,
   contraventamentoLeftDisabled = true,
   contraventamentoRightDisabled = true,
+  contraventamentoTopDisabled = true,
+  contraventamentoBottomDisabled = true,
   contraventamentoLeftActive = false,
   contraventamentoRightActive = false,
-  onContraventamentoSelect
+  contraventamentoTopActive = false,
+  contraventamentoBottomActive = false,
+  onContraventamentoSelect,
+  onHorizontalContraventamentoSelect
 }: PilotiEditorProps) {
 
   const {
@@ -66,6 +82,7 @@ export function PilotiEditor({
     isCornerPiloti,
     masterPilotiName,
     maxNivel,
+    autoAdjustPilotiHeightsFromNivel,
     handleNavigate,
     handleApply,
     handleCancel,
@@ -89,6 +106,11 @@ export function PilotiEditor({
   });
 
   if (!isOpen) return null;
+
+  const pilotiRowMatch = pilotiId?.match(/^piloti_\d+_(\d+)$/);
+  const pilotiRow = pilotiRowMatch ? Number(pilotiRowMatch[1]) : null;
+  const canShowTopContraventamento = pilotiRow === 1 || pilotiRow === 2;
+  const canShowBottomContraventamento = pilotiRow === 0 || pilotiRow === 1;
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
 
@@ -156,6 +178,8 @@ export function PilotiEditor({
                 onNivelIncrement={handleNivelIncrement}
                 onNivelChange={handleNivelChange}
                 onNivelCommit={handleNivelCommit}
+                enableInput={!isMobile}
+                modeLabel={autoAdjustPilotiHeightsFromNivel ? 'Auto' : 'Manual'}
               />
 
               <Separator/>
@@ -219,6 +243,48 @@ export function PilotiEditor({
                   <span className='text-xs font-semibold'>Direito</span>
                 </span>
               </button>
+
+              {canShowTopContraventamento ? (
+                <button
+                  type='button'
+                  disabled={contraventamentoTopDisabled}
+                  onClick={() => {
+                    commitDraftChanges();
+                    onHorizontalContraventamentoSelect?.('top', pilotiId ?? undefined);
+                  }}
+                  className={
+                    getContraventamentoButtonClasses(
+                      contraventamentoTopActive,
+                      contraventamentoTopDisabled
+                    )
+                  }>
+                  <span className='flex flex-col items-center gap-1.5'>
+                    <ContraventamentoHorizontalSideIcon side='top' size={40}/>
+                    <span className='text-xs font-semibold'>Superior</span>
+                  </span>
+                </button>
+              ) : <span aria-hidden='true'/>}
+
+              {canShowBottomContraventamento ? (
+                <button
+                  type='button'
+                  disabled={contraventamentoBottomDisabled}
+                  onClick={() => {
+                    commitDraftChanges();
+                    onHorizontalContraventamentoSelect?.('bottom', pilotiId ?? undefined);
+                  }}
+                  className={
+                    getContraventamentoButtonClasses(
+                      contraventamentoBottomActive,
+                      contraventamentoBottomDisabled
+                    )
+                  }>
+                  <span className='flex flex-col items-center gap-1.5'>
+                    <ContraventamentoHorizontalSideIcon side='bottom' size={40}/>
+                    <span className='text-xs font-semibold'>Inferior</span>
+                  </span>
+                </button>
+              ) : <span aria-hidden='true'/>}
             </div>
           </div>
         </>

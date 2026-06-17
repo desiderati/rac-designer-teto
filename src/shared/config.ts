@@ -2,10 +2,12 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 export const APP_SETTINGS_DEFAULTS = {
   autoNavigatePiloti: false,
+  autoAdjustPilotiHeightsFromNivel: true,
   zoomEnabledByDefault: false,
   openEditorsAtFixedPosition: false,
   disableDrawModeAfterFreehand: false,
   showStairsOnTopView: false,
+  showPilotiLabelsOnTopView: true,
 } as const;
 
 export const STORAGE_KEYS = {
@@ -111,8 +113,11 @@ export const PILOTI_STYLE = {
   heightFontSize: 20,
   nivelFontSizeTopView: 12,
   heightFontSizeTopView: CANVAS_STYLE.fontSize,
+  nameFontSizeTopView: 12,
+  nameLabelOffsetTopView: 24,
 
   heightFontColor: '#888',
+  nameFontColor: CANVAS_STYLE.fontColor,
 } as const;
 
 export const PILOTI_MASTER_STYLE = {
@@ -174,11 +179,11 @@ export const TERRAIN_SOLIDITY = {
   voidFactorGravel: 1.20,
   voidFactorRachao: 1.40,
   levels: {
-    1: {label: 'Seco', rachao: 20, rachaoMt3: 20},
-    2: {label: 'Argiloso', rachao: 30, rachaoMt3: 30},
-    3: {label: 'Água no fundo', rachao: 40, rachaoMt3: 40},
-    4: {label: 'Bastante água', rachao: 50, rachaoMt3: 50},
-    5: {label: 'Submerso', rachao: 60, rachaoMt3: 60},
+    1: {label: 'Seco', rachao: 10, rachaoMt3: 10},
+    2: {label: 'Argiloso', rachao: 15, rachaoMt3: 15},
+    3: {label: 'Água no fundo', rachao: 20, rachaoMt3: 20},
+    4: {label: 'Bastante água', rachao: 25, rachaoMt3: 25},
+    5: {label: 'Submerso', rachao: 30, rachaoMt3: 30},
   },
 } as const;
 
@@ -249,6 +254,9 @@ export const TOAST_MESSAGES = {
   contraventamentoSideSelected: (sideLabel: string): string =>
     `Lado ${sideLabel} selecionado. Selecione o piloti final na mesma coluna.`,
 
+  horizontalContraventamentoSideSelected: (sideLabel: string): string =>
+    `Lado ${sideLabel} selecionado. Selecione o piloti final na mesma linha.`,
+
   contraventamentoColumnAlreadyUsesBothSides:
     'Esta coluna já possui contraventamentos nos lados esquerdo e direito.',
 
@@ -261,11 +269,17 @@ export const TOAST_MESSAGES = {
   contraventamentoSelectSecondPilotiInSameColumn:
     'Selecione o piloti final na mesma coluna do primeiro.',
 
+  contraventamentoSelectSecondPilotiInSameRow:
+    'Selecione o piloti final na mesma linha do primeiro.',
+
   contraventamentoSelectDifferentSecondPiloti:
     'Selecione um piloti final diferente do primeiro.',
 
   contraventamentoColumnSideAlreadyOccupied: (sideLabel: string): string =>
     `A coluna já possui contraventamento no lado ${sideLabel}.`,
+
+  contraventamentoRowSideAlreadyOccupied: (sideLabel: string): string =>
+    `A linha já possui contraventamento no lado ${sideLabel}.`,
 
   failedToCreateContraventamento: 'Não foi possível criar o contraventamento.',
   contraventamentoAddedSuccessfully: 'Contraventamento adicionado!',
@@ -275,8 +289,14 @@ export const TOAST_MESSAGES = {
   contraventamentoRequiresOutOfProportionColumn:
     'A coluna só permite contraventamento quando pelo menos um piloti está fora de proporção.',
 
+  contraventamentoRequiresOutOfProportionRow:
+    'A linha só permite contraventamento horizontal quando pelo menos um piloti está fora de proporção.',
+
   contraventamentoRemovedFromSide: (sideLabel: string): string =>
     `Contraventamento do lado ${sideLabel} removido.`,
+
+  contraventamentoHorizontalAdded: 'Contraventamento horizontal adicionado!',
+  contraventamentoHorizontalRemoved: 'Contraventamento horizontal removido.',
 } as const;
 
 export const EDITOR_INFO_MESSAGES = {

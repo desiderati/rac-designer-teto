@@ -52,6 +52,7 @@ interface UseCanvasHouseViewActionsArgs {
   setPendingNivelSide: Dispatch<SetStateAction<HouseSide | null>>;
   niveisAppliedRef: MutableRefObject<boolean>;
   transitionToNivelRef: MutableRefObject<boolean>;
+  shouldShowAllElevationNivelLabels?: () => boolean;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
 }
@@ -138,6 +139,7 @@ export function useCanvasHouseViewActions({
   setPendingNivelSide,
   niveisAppliedRef,
   transitionToNivelRef,
+  shouldShowAllElevationNivelLabels,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
 }: UseCanvasHouseViewActionsArgs) {
@@ -153,6 +155,7 @@ export function useCanvasHouseViewActions({
         side,
         pilotis: houseReadPort.getPilotis() ?? {},
         terrainType: houseReadPort.getTerrainType(),
+        showAllElevationNivelLabels: shouldShowAllElevationNivelLabels?.() ?? false,
       });
       if (!house) return null;
 

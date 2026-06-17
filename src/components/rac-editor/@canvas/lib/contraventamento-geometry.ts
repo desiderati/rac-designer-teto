@@ -1,8 +1,15 @@
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
+import {
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 import type {
-  ContraventamentoSide,
+  ContraventamentoOrientation,
+  ContraventamentoHorizontalSide,
+  ContraventamentoHorizontalSidesOccupation,
   ContraventamentoSidesOccupation,
+  ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 
 export const CONTRAVENTAMENTO_COLUMN_SPACING =
@@ -24,11 +31,24 @@ export const CONTRAVENTAMENTO_ROW_Y = [-CONTRAVENTAMENTO_ROW_SPACING, 0, CONTRAV
 
 export interface ContraventamentoCandidate {
   isContraventamento?: boolean;
+  contraventamentoOrientation?: unknown;
   contraventamentoCol?: unknown;
+  contraventamentoRow?: unknown;
   contraventamentoSide?: unknown;
   left?: unknown;
+  top?: unknown;
   width?: unknown;
+  height?: unknown;
   scaleX?: unknown;
+  scaleY?: unknown;
+}
+
+export function getContraventamentoOrientation(
+  object: Pick<ContraventamentoCandidate, 'contraventamentoOrientation'>,
+): ContraventamentoOrientation {
+  return object.contraventamentoOrientation === 'horizontal'
+    ? 'horizontal'
+    : 'vertical';
 }
 
 /**
@@ -42,9 +62,25 @@ export function inferContraventamentoSide(params: {
   left: number;
   width: number;
   scaleX?: number;
-}): ContraventamentoSide {
+}): ContraventamentoVerticalSide {
   const centerX = params.left + params.width * (params.scaleX ?? 1) / 2;
   return centerX < getContraventamentoColumnCenterX(params.col) ? 'left' : 'right';
+}
+
+/**
+ * Infere o lado (`top`/`bottom`) do contraventamento horizontal pela geometria.
+ *
+ * @param params Parâmetros geométricos do objeto.
+ * @returns Lado inferido.
+ */
+export function inferHorizontalContraventamentoSide(params: {
+  row: number;
+  top: number;
+  height: number;
+  scaleY?: number;
+}): ContraventamentoHorizontalSide {
+  const centerY = params.top + params.height * (params.scaleY ?? 1) / 2;
+  return centerY < getContraventamentoRowCenterY(params.row) ? 'top' : 'bottom';
 }
 
 /**
@@ -58,6 +94,16 @@ export function getContraventamentoColumnCenterX(col: number): number {
 }
 
 /**
+ * Retorna a coordenada Y do centro da linha de contraventamento.
+ *
+ * @param row Índice da linha.
+ * @returns Coordenada Y da linha ou 0 quando inválida.
+ */
+export function getContraventamentoRowCenterY(row: number): number {
+  return CONTRAVENTAMENTO_ROW_Y[row] ?? 0;
+}
+
+/**
  * Coleta os lados ocupados por contraventamentos em uma coluna.
  *
  * @param params Lista de objetos e coluna alvo.
@@ -66,16 +112,17 @@ export function getContraventamentoColumnCenterX(col: number): number {
 export function collectOccupiedContraventamentoSides(params: {
   objects: ContraventamentoCandidate[];
   col: number;
-  onResolvedSide?: (object: ContraventamentoCandidate, side: ContraventamentoSide) => void;
+  onResolvedSide?: (object: ContraventamentoCandidate, side: ContraventamentoVerticalSide) => void;
 }): ContraventamentoSidesOccupation {
   const occupied: ContraventamentoSidesOccupation = {left: false, right: false};
 
   params.objects.forEach((object) => {
     if (!object.isContraventamento) return;
+    if (getContraventamentoOrientation(object) !== 'vertical') return;
     if (Number(object.contraventamentoCol) !== params.col) return;
 
-    let side: ContraventamentoSide;
-    if (object.contraventamentoSide === 'left' || object.contraventamentoSide === 'right') {
+    let side: ContraventamentoVerticalSide;
+    if (isContraventamentoVerticalSide(object.contraventamentoSide)) {
       side = object.contraventamentoSide;
     } else {
       side = inferContraventamentoSide({
@@ -83,6 +130,43 @@ export function collectOccupiedContraventamentoSides(params: {
         left: Number(object.left ?? 0),
         width: Number(object.width ?? 0),
         scaleX: Number(object.scaleX ?? 1),
+      });
+      params.onResolvedSide?.(object, side);
+    }
+
+    occupied[side] = true;
+  });
+
+  return occupied;
+}
+
+/**
+ * Coleta os lados ocupados por contraventamentos horizontais em uma linha.
+ *
+ * @param params Lista de objetos e linha alvo.
+ * @returns Mapa booleano de ocupação (`top`/`bottom`).
+ */
+export function collectOccupiedHorizontalContraventamentoSides(params: {
+  objects: ContraventamentoCandidate[];
+  row: number;
+  onResolvedSide?: (object: ContraventamentoCandidate, side: ContraventamentoHorizontalSide) => void;
+}): ContraventamentoHorizontalSidesOccupation {
+  const occupied: ContraventamentoHorizontalSidesOccupation = {top: false, bottom: false};
+
+  params.objects.forEach((object) => {
+    if (!object.isContraventamento) return;
+    if (getContraventamentoOrientation(object) !== 'horizontal') return;
+    if (Number(object.contraventamentoRow) !== params.row) return;
+
+    let side: ContraventamentoHorizontalSide;
+    if (isContraventamentoHorizontalSide(object.contraventamentoSide)) {
+      side = object.contraventamentoSide;
+    } else {
+      side = inferHorizontalContraventamentoSide({
+        row: params.row,
+        top: Number(object.top ?? 0),
+        height: Number(object.height ?? 0),
+        scaleY: Number(object.scaleY ?? 1),
       });
       params.onResolvedSide?.(object, side);
     }

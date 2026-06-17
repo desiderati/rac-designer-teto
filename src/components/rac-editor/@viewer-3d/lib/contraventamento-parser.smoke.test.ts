@@ -7,6 +7,7 @@ describe('contraventamento-parser.ts', () => {
       contraventamentos: [
         {
           id: 'c-1',
+          orientation: 'vertical',
           col: 2,
           startRow: 2,
           endRow: 0,
@@ -19,6 +20,7 @@ describe('contraventamento-parser.ts', () => {
     expect(parsed).toEqual([
       {
         id: 'c-1',
+        orientation: 'vertical',
         col: 2,
         startRow: 0,
         endRow: 2,
@@ -53,10 +55,66 @@ describe('contraventamento-parser.ts', () => {
     expect(parsed).toEqual([
       {
         id: 'contrav_3d_2',
+        orientation: 'vertical',
         col: 0,
         startRow: 0,
         endRow: 2,
         side: 'right',
+        anchorPilotiId: 'piloti_0_0',
+      },
+    ]);
+  });
+
+  it('parses horizontal contraventamento projections', () => {
+    const parsed = parseContraventamentosFromTopView({
+      contraventamentos: [
+        {
+          id: 'h-1',
+          orientation: 'horizontal',
+          row: 1,
+          startCol: 3,
+          endCol: 0,
+          side: 'bottom',
+          anchorPilotiId: 'piloti_3_1',
+        },
+      ],
+    });
+
+    expect(parsed).toEqual([
+      {
+        id: 'h-1',
+        orientation: 'horizontal',
+        row: 1,
+        startCol: 0,
+        endCol: 3,
+        side: 'bottom',
+        anchorPilotiId: 'piloti_3_1',
+      },
+    ]);
+  });
+
+  it('aplica fallback de lado horizontal permitido pela linha', () => {
+    const parsed = parseContraventamentosFromTopView({
+      contraventamentos: [
+        {
+          id: 'h-2',
+          orientation: 'horizontal',
+          row: 0,
+          startCol: 0,
+          endCol: 3,
+          side: 'top',
+        },
+      ],
+    });
+
+    expect(parsed).toEqual([
+      {
+        id: 'h-2',
+        orientation: 'horizontal',
+        row: 0,
+        startCol: 0,
+        endCol: 3,
+        side: 'bottom',
         anchorPilotiId: 'piloti_0_0',
       },
     ]);

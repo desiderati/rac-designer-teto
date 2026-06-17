@@ -133,6 +133,10 @@ export function ContraventamentoMesh({
   contraventamento: Contraventamento3DData;
   pilotis: Record<string, HousePiloti>;
 }) {
+  if (contraventamento.orientation === 'horizontal') {
+    return <HorizontalContraventamentoMesh contraventamento={contraventamento} pilotis={pilotis}/>;
+  }
+
   const {col, startRow, endRow, side, anchorPilotiId} = contraventamento;
   if (!Number.isInteger(col) || col < 0 || col > 3) return null;
   if (!Number.isInteger(startRow) || !Number.isInteger(endRow)) return null;
@@ -162,8 +166,74 @@ export function ContraventamentoMesh({
   const destinationY =
     PILOTI_TOP_Y - resolveContraventamentoOffsetFromNivel(destinationNivel, false) * PILOTI_BASE_HEIGHT_PX;
 
-  const startPoint = new Vector3(beamCenterX, originY, originZ);
-  const endPoint = new Vector3(beamCenterX, destinationY, targetZ);
+  return (
+    <ContraventamentoBeamMesh
+      startPoint={new Vector3(beamCenterX, originY, originZ)}
+      endPoint={new Vector3(beamCenterX, destinationY, targetZ)}
+      width={CONTRAVENTAMENTO_TOP_WIDTH}
+      depth={CONTRAVENTAMENTO_SQUARE_WIDTH}
+    />
+  );
+}
+
+function HorizontalContraventamentoMesh({
+  contraventamento,
+  pilotis,
+}: {
+  contraventamento: Extract<Contraventamento3DData, { orientation: 'horizontal' }>;
+  pilotis: Record<string, HousePiloti>;
+}) {
+  const {row, startCol, endCol, side, anchorPilotiId} = contraventamento;
+  if (!Number.isInteger(row) || row < 0 || row > 2) return null;
+  if (!Number.isInteger(startCol) || !Number.isInteger(endCol)) return null;
+
+  const firstCol = Math.min(startCol, endCol);
+  const lastCol = Math.max(startCol, endCol);
+  if (firstCol < 0 || lastCol > 3 || firstCol === lastCol) return null;
+
+  const anchorGrid = parsePilotiId(anchorPilotiId);
+  const originCol = anchorGrid?.col ?? firstCol;
+  const originPilotiId = anchorGrid ? anchorPilotiId : `piloti_${originCol}_${row}`;
+  const targetCol = originCol === firstCol ? lastCol : firstCol;
+  if (originCol < firstCol || originCol > lastCol || targetCol < firstCol || targetCol > lastCol) return null;
+
+  const [originX, rowCenterZ] = getPilotiTopXZ(originCol, row);
+  const [targetX] = getPilotiTopXZ(targetCol, row);
+
+  const sideSign = side === 'top' ? 1 : -1;
+  const tangentZ = rowCenterZ + sideSign * PILOTI_RADIUS;
+  const beamCenterZ = tangentZ + sideSign * (CONTRAVENTAMENTO_TOP_WIDTH / 2);
+
+  const originNivel = Number(pilotis[originPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
+  const originY =
+    PILOTI_TOP_Y - (originNivel - resolveContraventamentoOffsetFromNivel(originNivel, true)) * PILOTI_BASE_HEIGHT_PX;
+
+  const targetPilotiId = `piloti_${targetCol}_${row}`;
+  const targetNivel = Number(pilotis[targetPilotiId]?.nivel ?? DEFAULT_HOUSE_PILOTI.nivel);
+  const targetY =
+    PILOTI_TOP_Y - resolveContraventamentoOffsetFromNivel(targetNivel, false) * PILOTI_BASE_HEIGHT_PX;
+
+  return (
+    <ContraventamentoBeamMesh
+      startPoint={new Vector3(originX, originY, beamCenterZ)}
+      endPoint={new Vector3(targetX, targetY, beamCenterZ)}
+      width={CONTRAVENTAMENTO_SQUARE_WIDTH}
+      depth={CONTRAVENTAMENTO_TOP_WIDTH}
+    />
+  );
+}
+
+function ContraventamentoBeamMesh({
+  startPoint,
+  endPoint,
+  width,
+  depth,
+}: {
+  startPoint: Vector3;
+  endPoint: Vector3;
+  width: number;
+  depth: number;
+}) {
   const direction = endPoint.clone().sub(startPoint);
   const length = direction.length();
   if (!Number.isFinite(length) || length <= 0.01) return null;
@@ -179,7 +249,7 @@ export function ContraventamentoMesh({
       castShadow
       receiveShadow
     >
-      <boxGeometry args={[CONTRAVENTAMENTO_TOP_WIDTH, length, CONTRAVENTAMENTO_SQUARE_WIDTH]}/>
+      <boxGeometry args={[width, length, depth]}/>
       <meshStandardMaterial color={COLORS.contraventamento} roughness={0.65}/>
     </mesh>
   );

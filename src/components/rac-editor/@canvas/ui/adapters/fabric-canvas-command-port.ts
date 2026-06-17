@@ -31,6 +31,7 @@ export interface FabricCanvasCommandPort {
     side?: HouseSide;
     pilotis: Record<string, HousePiloti>;
     terrainType: number;
+    showAllElevationNivelLabels?: boolean;
   }) => CanvasGroup | null;
   addObjectAtVisibleCenter: (object: CanvasObject) => boolean;
   setDrawingModeEnabled: (enabled: boolean) => boolean;
@@ -116,7 +117,7 @@ export function createFabricCanvasCommandPort({
   return {
     createElementObject: (kind) => getElementStrategy(kind).create(canvas),
 
-    createHouseViewGroup: ({viewType, instanceId, side, pilotis, terrainType}) => {
+    createHouseViewGroup: ({viewType, instanceId, side, pilotis, terrainType, showAllElevationNivelLabels}) => {
       const group = createHouseGroupForView({
         canvas,
         viewType,
@@ -131,7 +132,7 @@ export function createFabricCanvasCommandPort({
         }),
       );
       group.groundTerrainType = terrainType;
-      applyPilotiDataToGroup(group, pilotis);
+      applyPilotiDataToGroup(group, pilotis, {showAllElevationNivelLabels});
       return group;
     },
 

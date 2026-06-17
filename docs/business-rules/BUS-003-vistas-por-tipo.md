@@ -75,15 +75,16 @@ Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inse
 
 ## Regras de identificação no canvas
 
-1. Cada vista elevada recebe um número sequencial pela ordem de inserção no canvas.
-2. A vista elevada exibe apenas uma etiqueta inferior no formato `{Nome} #{número}`.
-    - Exemplo: `Frontal #1`.
+1. Cada vista elevada mantém referência interna pela ordem de inserção no canvas.
+2. A vista elevada exibe apenas uma etiqueta superior com o nome da vista, logo acima da própria vista.
+    - Exemplo: `Frontal`.
 3. A planta exibe o marcador triangular correspondente a cada vista elevada inserida.
 4. O marcador triangular fica pareado com o lado da planta associado à vista.
 5. A base do triângulo deve ficar paralela ao lado da planta.
 6. A ponta do triângulo deve apontar para o lado da planta correspondente.
-7. O texto do número e do nome deve ficar paralelo à base do triângulo.
-8. O nome da vista deve ficar do lado externo da base:
+7. O triângulo não deve exibir número interno.
+8. O texto do nome deve ficar paralelo à base do triângulo.
+9. O nome da vista deve ficar do lado externo da base:
     - Superior: acima da base.
     - Inferior: abaixo da base.
     - Esquerdo: à esquerda da base.

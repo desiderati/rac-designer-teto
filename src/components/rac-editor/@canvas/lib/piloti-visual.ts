@@ -121,7 +121,26 @@ export function createNivelLabelBackgroundPatch(): { backgroundColor: string } {
 }
 
 // Apply current piloti data to a group (when creating a new view)
-export function applyPilotiDataToGroup(group: CanvasGroup, pilotis: Record<string, HousePiloti>): void {
+export interface PilotiDataVisualOptions {
+  showAllElevationNivelLabels?: boolean;
+}
+
+function isElevationHouseGroup(group: CanvasGroup): boolean {
+  const houseView = group.houseViewType ?? group.houseView;
+  return typeof houseView === 'string' && houseView !== 'top';
+}
+
+function applyElevationNivelLabelMode(group: CanvasGroup, options?: PilotiDataVisualOptions): void {
+  group.showAllPilotiNivelLabels =
+    isElevationHouseGroup(group) && Boolean(options?.showAllElevationNivelLabels);
+}
+
+export function applyPilotiDataToGroup(
+  group: CanvasGroup,
+  pilotis: Record<string, HousePiloti>,
+  options: PilotiDataVisualOptions = {},
+): void {
+  applyElevationNivelLabelMode(group, options);
   const canvasObjects = getCanvasGroupObjects(group);
   const pilotiObjectIndex = buildPilotiObjectIndex(canvasObjects);
 
@@ -309,7 +328,10 @@ function syncPilotiUpdateOnGroup(
   pilotis: Record<string, HousePiloti>,
   pilotiData: Partial<HousePiloti>,
   clearedMasters: string[],
+  options: PilotiDataVisualOptions,
 ): void {
+  applyElevationNivelLabelMode(group, options);
+
   if (clearedMasters.length) {
     clearedMasters.forEach((id) => {
       const p = pilotis[id];
@@ -337,11 +359,12 @@ export function syncPilotiUpdateAcrossViews(
   pilotiData: Partial<HousePiloti>,
   views: HouseRuntimeViews<CanvasGroup>,
   clearedMasters: string[],
+  options: PilotiDataVisualOptions = {},
 ): void {
   Object.values(views).forEach((instances) => {
     if (!instances || instances.length === 0) return;
     for (const instance of instances) {
-      syncPilotiUpdateOnGroup(instance.group, pilotiId, pilotis, pilotiData, clearedMasters);
+      syncPilotiUpdateOnGroup(instance.group, pilotiId, pilotis, pilotiData, clearedMasters, options);
     }
   });
 }

@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
+  addHorizontalContraventamentoBeam,
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/@canvas/lib/contraventamento.ts';
 import {
@@ -8,6 +9,7 @@ import {
   resolveContraventamentoOffsetFromNivel
 } from '@/shared/types/contraventamento.ts';
 import {
+  collectOccupiedHorizontalContraventamentoSides,
   collectOccupiedContraventamentoSides,
   getContraventamentoColumnCenterX,
   inferContraventamentoSide,
@@ -79,14 +81,72 @@ describe('contraventamento.ts', () => {
 
     expect(
       createContraventamentoEditorState({canReceiveContraventamento: false, occupiedSides: occupied}),
-    ).toEqual({leftDisabled: false, rightDisabled: true, leftActive: true, rightActive: false});
+    ).toEqual({
+      leftDisabled: false,
+      rightDisabled: true,
+      leftActive: true,
+      rightActive: false,
+      topDisabled: true,
+      bottomDisabled: true,
+      topActive: false,
+      bottomActive: false,
+    });
 
     expect(
       createContraventamentoEditorState({
         canReceiveContraventamento: false,
         occupiedSides: {left: false, right: false},
       }),
-    ).toEqual({leftDisabled: true, rightDisabled: true, leftActive: false, rightActive: false});
+    ).toEqual({
+      leftDisabled: true,
+      rightDisabled: true,
+      leftActive: false,
+      rightActive: false,
+      topDisabled: true,
+      bottomDisabled: true,
+      topActive: false,
+      bottomActive: false,
+    });
+
+    expect(
+      createContraventamentoEditorState({
+        canReceiveContraventamento: false,
+        occupiedSides: {left: false, right: false},
+        canReceiveHorizontalContraventamento: true,
+        occupiedHorizontalSides: {top: false, bottom: true},
+        allowedHorizontalSides: ['bottom'],
+      }),
+    ).toMatchObject({
+      topDisabled: true,
+      bottomDisabled: false,
+      topActive: false,
+      bottomActive: true,
+    });
+  });
+
+  it('cria contraventamento horizontal tangente ao lado informado', () => {
+    const topGroup = createMockGroup();
+    const createdId = addHorizontalContraventamentoBeam(
+      topGroup,
+      {col: 0, row: 1},
+      {col: 3, row: 1},
+      {side: 'top', anchorPilotiId: 'piloti_0_1'},
+    );
+
+    expect(createdId).toEqual(expect.any(String));
+    const beam = topGroup._objects[0];
+    expect(beam.contraventamentoOrientation).toBe('horizontal');
+    expect(beam.contraventamentoSide).toBe('top');
+    expect(beam.contraventamentoStartCol).toBe(0);
+    expect(beam.contraventamentoEndCol).toBe(3);
+    expect(beam.contraventamentoAnchorPilotiId).toBe('piloti_0_1');
+
+    expect(
+      collectOccupiedHorizontalContraventamentoSides({
+        row: 1,
+        objects: topGroup.getCanvasObjects(),
+      }),
+    ).toEqual({top: true, bottom: false});
   });
 
   it('constructionSites contraventamento in side views using legacy and houseSide metadata', () => {
@@ -155,6 +215,48 @@ describe('contraventamento.ts', () => {
     ]);
     expect(legacyLeftGroup.setCoords).toHaveBeenCalled();
     expect(modernRightGroup.setCoords).toHaveBeenCalled();
+  });
+
+  it('projeta contraventamento horizontal nas elevações de 6m', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_horizontal',
+          contraventamentoOrientation: 'horizontal',
+          contraventamentoRow: 0,
+          contraventamentoStartCol: 0,
+          contraventamentoEndCol: 3,
+          contraventamentoSide: 'bottom',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+      ],
+    });
+
+    const frontGroup = createMockGroup({
+      houseSide: 'top',
+      _objects: [
+        createPilotiRect('piloti_0_0', 10, 100),
+        createPilotiRect('piloti_3_0', 210, 250),
+      ],
+    });
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [frontGroup],
+      () => 0.4,
+    );
+
+    const projections = frontGroup._objects.filter(
+      (object: any) => object?.isContraventamentoElevation === true,
+    );
+
+    expect(projections).toHaveLength(2);
+    expect(projections.map((object: any) => object.contraventamentoId)).toEqual([
+      'contrav_horizontal',
+      'contrav_horizontal',
+    ]);
+    expect(frontGroup.setCoords).toHaveBeenCalled();
   });
 });
 

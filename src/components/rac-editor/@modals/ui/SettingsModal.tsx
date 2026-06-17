@@ -29,10 +29,15 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
 
   const handleConfirm = () => {
     settingsPort.updateSetting('autoNavigatePiloti', tempSettings.autoNavigatePiloti);
+    settingsPort.updateSetting(
+      'autoAdjustPilotiHeightsFromNivel',
+      tempSettings.autoAdjustPilotiHeightsFromNivel,
+    );
     settingsPort.updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
     settingsPort.updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
     settingsPort.updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
     settingsPort.updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
+    settingsPort.updateSetting('showPilotiLabelsOnTopView', tempSettings.showPilotiLabelsOnTopView);
     onSettingsChange?.();
     onOpenChange(false);
   };
@@ -43,7 +48,17 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
   };
 
   const content =
-    <>
+    <div className='space-y-4'>
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='auto-adjust-piloti-heights' className='text-sm leading-snug cursor-pointer flex-1'>
+          Recalcular alturas automaticamente ao alterar níveis
+        </Label>
+        <Switch
+          id='auto-adjust-piloti-heights'
+          checked={tempSettings.autoAdjustPilotiHeightsFromNivel}
+          onCheckedChange={(v) => handleToggle('autoAdjustPilotiHeightsFromNivel', v)}/>
+      </div>
+
       <div className='flex items-start justify-between gap-4'>
         <Label htmlFor='auto-navigate' className='text-sm leading-snug cursor-pointer flex-1'>
           Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado
@@ -97,7 +112,17 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
           checked={tempSettings.showStairsOnTopView}
           onCheckedChange={(v) => handleToggle('showStairsOnTopView', v)}/>
       </div>
-    </>;
+
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='show-piloti-labels-top-view' className='text-sm leading-snug cursor-pointer flex-1'>
+          Mostrar labels dos pilotis na vista planta
+        </Label>
+        <Switch
+          id='show-piloti-labels-top-view'
+          checked={tempSettings.showPilotiLabelsOnTopView}
+          onCheckedChange={(v) => handleToggle('showPilotiLabelsOnTopView', v)}/>
+      </div>
+    </div>;
 
   return (
     <ConfirmDialogModal

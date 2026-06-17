@@ -48,6 +48,9 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 8. `BUS-008-indicador-risco-terreno-pdf.md`
     - Regra do indicador de risco do terreno no PDF, calculado por solo, complexidade, obstáculos e pilotis.
 
+9. `BUS-009-materiais-terreno.md`
+    - Regra de materiais de base do terreno e definição de pedras como rachão + brita.
+
 ## Quando atualizar
 
 Atualize estes documentos quando houver mudança em:

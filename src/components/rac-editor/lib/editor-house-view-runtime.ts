@@ -12,6 +12,7 @@ export interface EditorHouseViewRuntime<TGroup extends HouseRuntimeGroupRef> {
     groups: TGroup[];
     pilotis: Record<string, HousePiloti>;
     terrainType: number;
+    showAllElevationNivelLabels?: boolean;
   }): void;
 
   applyTerrainTypeToElevationViews(house: HouseRuntimeSnapshot<TGroup> | null, terrainType: number): void;
@@ -24,5 +25,6 @@ export interface EditorHouseViewRuntime<TGroup extends HouseRuntimeGroupRef> {
     pilotiData: Partial<HousePiloti>;
     selectedPilotiHeights: readonly number[];
     groups: TGroup[];
+    recalculateHeightOnNivelChange: boolean;
   }): { updated: boolean; shouldRefreshAutoContraventamento: boolean };
 }

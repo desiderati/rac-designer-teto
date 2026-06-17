@@ -12,7 +12,11 @@ import {
 } from '@/components/rac-editor/@modals/ui/selectors/HouseSideSelector.tsx';
 import type {HousePreAssignedSideDisplay, HousePiloti, HouseSide, HouseViewType} from '@/shared/types/house.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
-import {ContraventamentoEditorState, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import type {
+  ContraventamentoEditorState,
+  ContraventamentoHorizontalSide,
+  ContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import {TerrainEditor} from '@/components/rac-editor/@modals/ui/editors/terrain/TerrainEditor.tsx';
 import {LinearEditorType} from '@/components/rac-editor/@modals/hooks/useLinearEditorActions.ts';
@@ -36,7 +40,8 @@ interface RacEditorModalEditorsProps {
   onPilotiNavigate: (pilotiId: string, height: number, isMaster: boolean, nivel: number) => void;
 
   contraventamentoEditorState: ContraventamentoEditorState;
-  onContraventamentoSelect: (side: ContraventamentoSide, pilotiId?: string) => void;
+  onContraventamentoSelect: (side: ContraventamentoVerticalSide, pilotiId?: string) => void;
+  onHorizontalContraventamentoSelect: (side: ContraventamentoHorizontalSide, pilotiId?: string) => void;
 
   // Wall Object
   onWallApply: (newValue: string, newColor: string) => void;
@@ -79,6 +84,7 @@ export function RacEditorModalEditors({
 
   contraventamentoEditorState,
   onContraventamentoSelect,
+  onHorizontalContraventamentoSelect,
 
   onWallApply,
   wallSelection,
@@ -133,7 +139,12 @@ export function RacEditorModalEditors({
         contraventamentoRightDisabled={contraventamentoEditorState.rightDisabled}
         contraventamentoLeftActive={contraventamentoEditorState.leftActive}
         contraventamentoRightActive={contraventamentoEditorState.rightActive}
+        contraventamentoTopDisabled={contraventamentoEditorState.topDisabled}
+        contraventamentoBottomDisabled={contraventamentoEditorState.bottomDisabled}
+        contraventamentoTopActive={contraventamentoEditorState.topActive}
+        contraventamentoBottomActive={contraventamentoEditorState.bottomActive}
         onContraventamentoSelect={onContraventamentoSelect}
+        onHorizontalContraventamentoSelect={onHorizontalContraventamentoSelect}
       />
 
       <GenericObjectEditor

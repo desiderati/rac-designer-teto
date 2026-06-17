@@ -4,6 +4,11 @@ import type {
   EditorScreenPoint,
   EditorViewId,
 } from './editor-ids.ts';
+import type {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 
 export const EDITOR_SELECTION_KINDS = [
   'piloti',
@@ -19,7 +24,7 @@ export type EditorHouseViewKind = 'top' | 'front' | 'back' | 'side';
 
 export type EditorLinearSelectionKind = 'line' | 'arrow' | 'distance';
 
-export type EditorContraventamentoSide = 'left' | 'right';
+export type EditorContraventamentoSide = ContraventamentoSide;
 
 export interface EditorPilotiSelection {
   type: 'piloti';
@@ -106,7 +111,7 @@ function isLinearSelectionKind(value: unknown): value is EditorLinearSelectionKi
 }
 
 function isContraventamentoSide(value: unknown): value is EditorContraventamentoSide {
-  return value === 'left' || value === 'right';
+  return isContraventamentoVerticalSide(value) || isContraventamentoHorizontalSide(value);
 }
 
 /**

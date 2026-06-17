@@ -12,6 +12,7 @@ import {getConstructionSiteCommunityName} from '@/shared/types/construction-site
 import {ALL_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import type {HousePiloti, HouseState, HouseType} from '@/shared/types/house.ts';
 import {formatNivel, formatPilotiHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
+import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
 
 export interface RacPdfReportField {
   label: string;
@@ -47,6 +48,12 @@ export interface RacPdfReportExtraMaterials {
   justification: string;
 }
 
+export interface RacPdfReportTerrainVolumes {
+  rachaoM3: number;
+  britaM3: number;
+  pedrasM3: number;
+}
+
 export type RacPdfTerrainRiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
 export interface RacPdfTerrainRiskIndicator {
@@ -79,6 +86,7 @@ export interface RacPdfReportModel {
   extraMaterials: RacPdfReportExtraMaterials;
   terrain: {
     desnivelCm: number | null;
+    volumes: RacPdfReportTerrainVolumes | null;
     riskIndicator: RacPdfTerrainRiskIndicator;
     optionGroups: RacPdfReportOptionGroup[];
   };
@@ -203,6 +211,7 @@ export function buildRacPdfReportModel({
     },
     terrain: {
       desnivelCm: calculateDesnivelCm(houseState),
+      volumes: houseState ? calculateTotalVolumes(houseState.terrainType, pilotis) : null,
       riskIndicator: calculateTerrainRiskIndicator(activeHouse.siteAssessment, pilotis),
       optionGroups: buildTerrainOptionGroups(activeHouse.siteAssessment),
     },

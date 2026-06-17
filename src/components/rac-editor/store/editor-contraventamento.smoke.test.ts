@@ -30,4 +30,22 @@ describe('editor-contraventamento.ts', () => {
     expect(isEditorContraventamentoDraft({viewId: 'top_1', side: 'left', group: {}})).toBe(false);
     expect(isEditorContraventamentoDraft({viewId: 'top_1', side: 'middle'})).toBe(false);
   });
+
+  it('describes horizontal contraventamento draft by row', () => {
+    expect(isEditorContraventamentoDraft({
+      viewId: 'top_1',
+      side: 'bottom',
+      originPilotiId: 'piloti_0_1',
+      destinationPilotiId: null,
+      row: 1,
+    })).toBe(true);
+
+    expect(isEditorContraventamentoDraft({
+      viewId: 'top_1',
+      side: 'bottom',
+      originPilotiId: 'piloti_0_1',
+      destinationPilotiId: null,
+      column: 0,
+    })).toBe(false);
+  });
 });

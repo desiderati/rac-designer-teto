@@ -1,6 +1,6 @@
 import {FabricObject, Group as FabricGroup} from 'fabric';
 import {HouseSide} from '@/shared/types/house.ts';
-import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import {ContraventamentoOrientation, ContraventamentoSide} from '@/shared/types/contraventamento.ts';
 import {createElementId} from '@/components/rac-editor/lib/house-identity.ts';
 
 type CanvasProperties = {
@@ -46,6 +46,7 @@ type CanvasProperties = {
   houseSide?: HouseSide;
   isFlippedHorizontally?: boolean;
   isRightSide?: boolean;
+  showAllPilotiNivelLabels?: boolean;
   isHouseBody?: boolean;
   isHouseBorderEdge?: boolean;
   edgeSide?: HouseSide;
@@ -55,6 +56,7 @@ type CanvasProperties = {
   isPilotiText?: boolean;
   isPilotiHitArea?: boolean;
   isPilotiNivelText?: boolean;
+  isPilotiNameLabel?: boolean;
   isPilotiSizeLabel?: boolean;
   isPilotiStripe?: boolean;
   pilotiId?: string;
@@ -93,9 +95,13 @@ type CanvasProperties = {
   isAutoContraventamento?: boolean;
   isContraventamentoElevation?: boolean;
   contraventamentoId?: string;
+  contraventamentoOrientation?: ContraventamentoOrientation;
   contraventamentoCol?: number | string;
+  contraventamentoRow?: number | string;
   contraventamentoStartRow?: number;
   contraventamentoEndRow?: number;
+  contraventamentoStartCol?: number;
+  contraventamentoEndCol?: number;
   contraventamentoAnchorPilotiId?: string;
   contraventamentoSourcePilotiId?: string;
   contraventamentoSide?: ContraventamentoSide;
@@ -191,6 +197,7 @@ export const canvasObjectProps = [
   'houseSide',
   'isFlippedHorizontally',
   'isRightSide',
+  'showAllPilotiNivelLabels',
   'isHouseBody',
   'isHouseBorderEdge',
   'edgeSide',
@@ -200,6 +207,7 @@ export const canvasObjectProps = [
   'isPilotiText',
   'isPilotiHitArea',
   'isPilotiNivelText',
+  'isPilotiNameLabel',
   'isPilotiSizeLabel',
   'isPilotiStripe',
   'pilotiId',
@@ -238,9 +246,13 @@ export const canvasObjectProps = [
   'isAutoContraventamento',
   'isContraventamentoElevation',
   'contraventamentoId',
+  'contraventamentoOrientation',
   'contraventamentoCol',
+  'contraventamentoRow',
   'contraventamentoStartRow',
   'contraventamentoEndRow',
+  'contraventamentoStartCol',
+  'contraventamentoEndCol',
   'contraventamentoAnchorPilotiId',
   'contraventamentoSourcePilotiId',
   'contraventamentoSide',

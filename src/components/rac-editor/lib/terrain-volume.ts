@@ -14,15 +14,28 @@ const EXTERNAL_DIAMETER_CM = PILOTI_DIAMETER_CM + (2 * SIDE_GRAVEL_CM);
 /**
  * Retorna ambos os volumes calculados.
  */
+export interface TerrainMaterialVolumes {
+  rachaoM3: number;
+  britaM3: number;
+  pedrasM3: number;
+}
+
 export function calculateTotalVolumes(
   terrainLevel: number,
   pilotis: Record<string, HousePiloti>,
-): { rachaoM3: number; britaM3: number } {
+): TerrainMaterialVolumes {
   const pilotiCount = Object.keys(pilotis).length || 12;
+  const rachaoM3 = calculateRachaoVolume(terrainLevel, pilotiCount);
+  const britaM3 = calculateBritaVolume(pilotis);
   return {
-    rachaoM3: calculateRachaoVolume(terrainLevel, pilotiCount),
-    britaM3: calculateBritaVolume(pilotis),
+    rachaoM3,
+    britaM3,
+    pedrasM3: calculatePedrasVolume(rachaoM3, britaM3),
   };
+}
+
+export function calculatePedrasVolume(rachaoM3: number, britaM3: number): number {
+  return rachaoM3 + britaM3;
 }
 
 /**

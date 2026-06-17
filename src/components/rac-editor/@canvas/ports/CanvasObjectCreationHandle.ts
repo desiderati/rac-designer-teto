@@ -15,6 +15,7 @@ export interface CanvasObjectCreationHandle {
     side?: HouseSide;
     pilotis: Record<string, HousePiloti>;
     terrainType: number;
+    showAllElevationNivelLabels?: boolean;
   }): CanvasGroup | null;
 
   /** Adiciona um objeto visual no centro visível do canvas. */

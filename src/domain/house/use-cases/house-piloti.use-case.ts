@@ -1,6 +1,6 @@
 import type {HousePiloti} from '@/shared/types/house.ts';
 import {PILOTI_CORNER_ID, PILOTI_CORNER_IDS} from '@/shared/config.ts';
-import {getRecommendedHeight} from '@/shared/types/piloti.ts';
+import {clampNivelByHeight, getRecommendedHeight} from '@/shared/types/piloti.ts';
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
@@ -31,11 +31,15 @@ export function recalculateRecommendedPilotiData(params: {
       const v = row / 2;
 
       const nivel = (1 - u) * (1 - v) * a1 + u * (1 - v) * a4 + (1 - u) * v * c1 + u * v * c4;
-      const height = getRecommendedHeight(nivel, params.availableHeights);
+      const currentPiloti = nextPilotis[id] ?? params.defaultPiloti;
+      const nextNivel = recalculateHeight
+        ? round2(nivel)
+        : clampNivelByHeight(round2(nivel), currentPiloti.height);
+      const height = getRecommendedHeight(nextNivel, params.availableHeights);
 
       nextPilotis[id] = {
-        ...(nextPilotis[id] ?? params.defaultPiloti),
-        nivel: round2(nivel),
+        ...currentPiloti,
+        nivel: nextNivel,
         ...(recalculateHeight ? {height} : {}),
       };
     }

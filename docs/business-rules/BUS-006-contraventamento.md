@@ -16,67 +16,129 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 
 ## Conceitos principais
 
-1. Piloti de origem
+1. Orientação
+    - O contraventamento pode ser vertical ou horizontal.
+    - Vertical é a orientação existente por coluna e lado.
+    - Horizontal é uma orientação manual por linha/faixa da planta.
+
+2. Piloti de origem
     - Primeiro piloti escolhido para iniciar o contraventamento.
 
-2. Piloti de destino
+3. Piloti de destino
     - Segundo piloti escolhido para concluir o contraventamento.
 
-3. Lado
+4. Lado vertical
     - Esquerdo ou direito da coluna de pilotis.
 
-4. Coluna
-    - Contraventamento sempre é controlado por coluna.
+5. Lado horizontal
+    - Superior ou inferior da linha de pilotis.
+
+6. Coluna
+    - Contraventamento vertical é controlado por coluna.
+
+7. Linha/faixa
+    - Contraventamento horizontal é controlado por linha/faixa e pode ligar dois pilotis dessa linha.
 
 ## Regras de capacidade por coluna
 
-1. Uma coluna pode ter até dois contraventamentos:
+1. Uma coluna pode ter até dois contraventamentos verticais:
     - Um no lado esquerdo.
     - Um no lado direito.
 
-2. Não pode repetir o mesmo lado na mesma coluna.
+2. Não pode repetir o mesmo lado vertical na mesma coluna.
 
-3. Se os dois lados já estiverem ocupados, não é possível criar novo contraventamento nessa coluna.
+3. Se os dois lados verticais já estiverem ocupados, não é possível criar novo contraventamento vertical nessa coluna.
+
+## Regras de capacidade por linha
+
+1. Uma linha/faixa pode ter até dois contraventamentos horizontais:
+    - Um no lado superior.
+    - Um no lado inferior.
+
+2. Não pode repetir o mesmo lado horizontal na mesma linha.
+
+3. A linha A (`A1` a `A4`) permite apenas contraventamento inferior, quando elegível.
+
+4. A linha B (`B1` a `B4`) permite contraventamento superior e inferior, quando elegível.
+
+5. A linha C (`C1` a `C4`) permite apenas contraventamento superior, quando elegível.
+
+6. Contraventamentos horizontais não consomem capacidade de lado vertical da coluna.
 
 ## Onde o fluxo começa
 
 1. Pelo editor de piloti, na seção de contraventamento.
-2. A pessoa escolhe lado esquerdo ou direito.
+2. Para contraventamento vertical, a pessoa escolhe lado esquerdo ou direito.
+3. Para contraventamento horizontal, a pessoa escolhe lado superior ou inferior.
 
 ## Regras de habilitação dos botões
 
-1. Se o lado já estiver ocupado
+1. Se o lado vertical já estiver ocupado
     - Botão permanece habilitado para permitir remoção.
 
-2. Se o lado estiver livre
+2. Se o lado vertical estiver livre
     - Só habilita quando as regras de elegibilidade da coluna forem atendidas.
 
 3. Se a coluna estiver inelegível para novo contraventamento
     - Inserção é bloqueada.
     - Remoção de lado já existente continua permitida.
 
-## Fluxo de criação
+4. Se o lado horizontal permitido para a linha já estiver ocupado
+    - O botão desse lado permanece habilitado para permitir remoção.
 
-1. Selecionar lado no piloti de origem.
+5. Se o lado horizontal permitido para a linha estiver livre
+    - Só habilita quando a linha/faixa atender às mesmas regras de elegibilidade estrutural usadas pelo
+      contraventamento vertical.
+
+6. Lados horizontais não permitidos para a linha do piloti não aparecem como ação disponível.
+
+## Fluxo de criação vertical
+
+1. Selecionar lado vertical no piloti de origem.
 2. Entrar no modo de seleção do segundo piloti.
 3. Escolher destino válido na mesma coluna.
-4. Sistema cria o contraventamento e sai do modo.
+4. Sistema cria o contraventamento vertical e sai do modo.
 5. Visualizações relacionadas são sincronizadas.
 6. Mudança é salva no histórico.
 
+## Fluxo de criação horizontal
+
+1. Selecionar lado superior ou inferior no piloti de origem.
+2. Entrar no modo de seleção do segundo piloti.
+3. Escolher destino válido na mesma linha.
+4. Sistema cria o contraventamento horizontal entre origem e destino e sai do modo.
+5. Visualizações relacionadas são sincronizadas.
+6. Mudança é salva no histórico.
+7. Nenhuma rotina automática pode criar contraventamento horizontal.
+
 ## Regras de seleção do destino
 
-1. Deve estar na mesma coluna do piloti de origem.
-2. Deve ser diferente da linha de origem.
-3. Deve respeitar elegibilidade da coluna no momento da criação.
+1. Para contraventamento vertical:
+    - O destino deve estar na mesma coluna do piloti de origem.
+    - O destino deve ser diferente da linha de origem.
+    - Deve respeitar elegibilidade da coluna no momento da criação.
+
+2. Para contraventamento horizontal:
+    - O destino deve estar na mesma linha do piloti de origem.
+    - O destino deve ser diferente da coluna de origem.
+    - Deve respeitar elegibilidade da linha no momento da criação.
+    - Deve respeitar os lados permitidos para a linha A, B ou C.
 
 ## Regras de remoção
 
-1. Clicar no lado já ativo remove o contraventamento desse lado.
-2. Após remoção:
+1. Clicar no lado vertical já ativo remove o contraventamento desse lado.
+2. Clicar no lado horizontal já ativo remove o contraventamento desse lado naquela linha/faixa.
+3. Após remoção:
     - O estado visual é atualizado.
     - As vistas são sincronizadas.
     - O histórico é atualizado.
+
+## Regras de automação
+
+1. Rotinas automáticas podem propor, criar, remover ou substituir contraventamentos verticais conforme a regra de
+   proporção estrutural.
+2. Rotinas automáticas nunca criam contraventamento horizontal.
+3. Rotinas automáticas de vertical não devem remover nem sobrescrever contraventamentos horizontais manuais.
 
 ## Regras de cancelamento
 
@@ -99,5 +161,8 @@ Ao cancelar:
 
 ## Regras de consistência com 3D
 
-1. Contraventamento criado/removido na planta deve refletir no 3D.
-2. Em importação, desfazer e reconstrução, as regras devem permanecer consistentes.
+1. Contraventamento vertical criado/removido na planta deve refletir nas vistas compatíveis e no 3D.
+2. Contraventamento horizontal criado/removido na planta deve refletir nas vistas compatíveis e no 3D.
+3. A posição superior/inferior ou esquerda/direita deve respeitar tangenciamento ao piloti.
+4. As alturas inicial e final do contraventamento são derivadas dos níveis dos pilotis de origem e destino.
+5. Em importação, desfazer e reconstrução, as regras devem permanecer consistentes.

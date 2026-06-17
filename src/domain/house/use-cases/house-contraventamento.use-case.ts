@@ -1,13 +1,22 @@
 import type {HousePiloti} from '@/shared/types/house.ts';
 import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {
+  type ContraventamentoHorizontalSide,
   type ContraventamentoSide,
   type ContraventamentoSidesOccupation,
+  type ContraventamentoVerticalSide,
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 
 export const HOUSE_CONTRAVENTAMENTO_COLUMNS = [0, 1, 2, 3] as const;
 export const HOUSE_CONTRAVENTAMENTO_ROWS = [0, 1, 2] as const;
+const HOUSE_HORIZONTAL_CONTRAVENTAMENTO_SIDES_BY_ROW = {
+  0: ['bottom'],
+  1: ['top', 'bottom'],
+  2: ['top'],
+} as const satisfies Record<number, readonly ContraventamentoHorizontalSide[]>;
 
 export interface HouseContraventamentoGridPoint {
   col: number;
@@ -56,6 +65,41 @@ export function hasEligiblePilotiForContraventamentoInColumn(params: {
 }
 
 /**
+ * Verifica se uma linha tem ao menos um piloti que exige contraventamento.
+ *
+ * O contraventamento horizontal usa a mesma regra de elegibilidade do vertical,
+ * mas a ação manual cobre a faixa dos quatro pilotis da linha.
+ */
+export function hasEligiblePilotiForContraventamentoInRow(params: {
+  row: number;
+  pilotis: Record<string, HouseContraventamentoPilotiInput>;
+}): boolean {
+  return HOUSE_CONTRAVENTAMENTO_COLUMNS.some((col) =>
+    isHousePilotiEligibleForContraventamento(params.pilotis[`piloti_${col}_${params.row}`]),
+  );
+}
+
+/**
+ * Retorna os lados horizontais permitidos para uma linha de pilotis.
+ *
+ * Linha A (0) recebe apenas inferior, linha B (1) recebe superior e inferior,
+ * e linha C (2) recebe apenas superior.
+ */
+export function getAllowedHorizontalContraventamentoSidesForRow(
+  row: number,
+): readonly ContraventamentoHorizontalSide[] {
+  return HOUSE_HORIZONTAL_CONTRAVENTAMENTO_SIDES_BY_ROW[row] ?? [];
+}
+
+export function canUseHorizontalContraventamentoSideInRow(params: {
+  row: number;
+  side: ContraventamentoSide | null | undefined;
+}): params is { row: number; side: ContraventamentoHorizontalSide } {
+  return isContraventamentoHorizontalSide(params.side)
+    && getAllowedHorizontalContraventamentoSidesForRow(params.row).includes(params.side);
+}
+
+/**
  * Decide se o piloti candidato pode ser destino no fluxo manual de seleção.
  */
 export function isHouseContraventamentoDestinationEligible(params: {
@@ -71,6 +115,36 @@ export function isHouseContraventamentoDestinationEligible(params: {
     col: params.candidate.col,
     pilotis: params.pilotis,
   });
+}
+
+/**
+ * Decide se o piloti candidato pode ser destino no fluxo manual horizontal.
+ */
+export function isHouseHorizontalContraventamentoDestinationEligible(params: {
+  first: HouseContraventamentoGridPoint | null;
+  candidate: HouseContraventamentoGridPoint;
+  side: ContraventamentoSide | null | undefined;
+  pilotis: Record<string, HouseContraventamentoPilotiInput>;
+}): boolean {
+  if (!params.first) return false;
+  if (!canUseHorizontalContraventamentoSideInRow({row: params.first.row, side: params.side})) {
+    return false;
+  }
+  if (params.candidate.row !== params.first.row) return false;
+  if (params.candidate.col === params.first.col) return false;
+
+  return hasEligiblePilotiForContraventamentoInRow({
+    row: params.candidate.row,
+    pilotis: params.pilotis,
+  });
+}
+
+export function getContraventamentoOrientationBySide(
+  side: ContraventamentoSide | null | undefined,
+): 'vertical' | 'horizontal' | null {
+  if (isContraventamentoVerticalSide(side)) return 'vertical';
+  if (isContraventamentoHorizontalSide(side)) return 'horizontal';
+  return null;
 }
 
 /**
@@ -99,7 +173,7 @@ export function collectAutoContraventamentoRowsByColumn(
  */
 export function resolveNextContraventamentoSide(
   occupied: ContraventamentoSidesOccupation,
-): ContraventamentoSide | null {
+): ContraventamentoVerticalSide | null {
   if (!occupied.left) return 'left';
   if (!occupied.right) return 'right';
   return null;

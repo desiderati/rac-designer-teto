@@ -48,6 +48,7 @@ export function useRacEditorContraventamentoController({
     isPilotiEligibleAsDestination,
     getContraventamentoEditorState,
     handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect,
   } = useContraventamento({
     canvasRef,
     houseVersion,
@@ -75,6 +76,7 @@ export function useRacEditorContraventamentoController({
     isPilotiEligibleAsDestination,
     contraventamentoEditorState: getContraventamentoEditorState(),
     handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect,
     resetContraventamentoFlow,
   };
 }

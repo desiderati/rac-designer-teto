@@ -5,25 +5,33 @@ import {
 } from '@/components/rac-editor/@canvas/lib';
 import {
   ContraventamentoOrigin,
+  ContraventamentoSide,
   createContraventamentoEditorState,
 } from '@/shared/types/contraventamento.ts';
 import {
+  collectOccupiedHorizontalContraventamentoSides,
   collectOccupiedContraventamentoSides,
   ContraventamentoCandidate,
 } from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {parsePilotiGridPosition} from '@/shared/types/piloti.ts';
 import {
+  getAllowedHorizontalContraventamentoSidesForRow,
+  getContraventamentoOrientationBySide,
   hasEligiblePilotiForContraventamentoInColumn,
+  hasEligiblePilotiForContraventamentoInRow,
   isHouseContraventamentoDestinationEligible,
+  isHouseHorizontalContraventamentoDestinationEligible,
 } from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
 
 interface UseContraventamentoQueriesArgs {
   contraventamentoFirst: ContraventamentoOrigin | null;
+  contraventamentoSide: ContraventamentoSide | null;
   pilotiIdForEditor: string | null;
 }
 
 export function useContraventamentoQueries({
   contraventamentoFirst,
+  contraventamentoSide,
   pilotiIdForEditor,
 }: UseContraventamentoQueriesArgs) {
   const houseSnapshot = useHouseRuntimeSnapshot<CanvasGroup>();
@@ -54,18 +62,49 @@ export function useContraventamentoQueries({
       });
     }, []);
 
-  const isPilotiEligibleAsDestination = useCallback((pilotiId: string): boolean => {
-    if (!contraventamentoFirst) return false;
+  const getContraventamentoHorizontalSides =
+    useCallback((group: CanvasGroup, row: number) => {
+      return collectOccupiedHorizontalContraventamentoSides({
+        objects: group.getCanvasObjects(),
+        row,
+        onResolvedSide: (object, side) => {
+          (object as ContraventamentoCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;
+        },
+      });
+    }, []);
+
+  const isPilotiEligibleAsDestination = useCallback((
+    pilotiId: string,
+    firstOverride?: { col: number; row: number } | null,
+    sideOverride?: ContraventamentoSide | null,
+  ): boolean => {
+    const first = firstOverride ?? contraventamentoFirst;
+    const side = sideOverride ?? contraventamentoSide;
+    if (!first) return false;
 
     const parsed = parsePilotiGridPosition(pilotiId);
     if (!parsed) return false;
 
-    return isHouseContraventamentoDestinationEligible({
-      first: contraventamentoFirst,
-      candidate: parsed,
-      pilotis: houseSnapshot?.pilotis ?? {},
-    });
-  }, [contraventamentoFirst, houseSnapshot]);
+    const orientation = getContraventamentoOrientationBySide(side);
+    if (orientation === 'vertical') {
+      return isHouseContraventamentoDestinationEligible({
+        first,
+        candidate: parsed,
+        pilotis: houseSnapshot?.pilotis ?? {},
+      });
+    }
+
+    if (orientation === 'horizontal') {
+      return isHouseHorizontalContraventamentoDestinationEligible({
+        first,
+        candidate: parsed,
+        side,
+        pilotis: houseSnapshot?.pilotis ?? {},
+      });
+    }
+
+    return false;
+  }, [contraventamentoFirst, contraventamentoSide, houseSnapshot]);
 
   const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
     const parsed = parsePilotiGridPosition(pilotiId);
@@ -73,6 +112,16 @@ export function useContraventamentoQueries({
 
     return hasEligiblePilotiForContraventamentoInColumn({
       col: parsed.col,
+      pilotis: houseSnapshot?.pilotis ?? {},
+    });
+  }, [houseSnapshot]);
+
+  const isPilotiEligibleForContraventamentoRow = useCallback((pilotiId: string): boolean => {
+    const parsed = parsePilotiGridPosition(pilotiId);
+    if (!parsed) return false;
+
+    return hasEligiblePilotiForContraventamentoInRow({
+      row: parsed.row,
       pilotis: houseSnapshot?.pilotis ?? {},
     });
   }, [houseSnapshot]);
@@ -92,16 +141,25 @@ export function useContraventamentoQueries({
     if (!parsed) return disabled;
 
     const occupiedSides = getContraventamentoColumnSides(topGroup, parsed.col);
+    const occupiedHorizontalSides = getContraventamentoHorizontalSides(topGroup, parsed.row);
     const canReceiveContraventamento = isPilotiEligibleForContraventamentoColumn(pilotiIdForEditor);
+    const canReceiveHorizontalContraventamento =
+      isPilotiEligibleForContraventamentoRow(pilotiIdForEditor);
+    const allowedHorizontalSides = getAllowedHorizontalContraventamentoSidesForRow(parsed.row);
 
     return createContraventamentoEditorState({
       canReceiveContraventamento,
       occupiedSides,
+      canReceiveHorizontalContraventamento,
+      occupiedHorizontalSides,
+      allowedHorizontalSides,
     });
   }, [
     getContraventamentoColumnSides,
+    getContraventamentoHorizontalSides,
     getTopViewGroup,
     isPilotiEligibleForContraventamentoColumn,
+    isPilotiEligibleForContraventamentoRow,
     pilotiIdForEditor,
   ]);
 
@@ -109,7 +167,9 @@ export function useContraventamentoQueries({
     getTopViewGroup,
     getNonTopViewGroups,
     getContraventamentoColumnSides,
+    getContraventamentoHorizontalSides,
     isPilotiEligibleForContraventamentoColumn,
+    isPilotiEligibleForContraventamentoRow,
     isPilotiEligibleAsDestination,
     getContraventamentoEditorState,
   };

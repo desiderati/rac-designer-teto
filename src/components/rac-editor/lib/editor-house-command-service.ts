@@ -26,6 +26,7 @@ interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getAggregate: () => HouseAggregate | null;
   getDefaultTerrainType: () => number;
   getSelectedPilotiHeights: () => readonly number[];
+  shouldAutoAdjustPilotiHeightsFromNivel: () => boolean;
   getAllGroups: () => TGroup[];
   unregisterRuntimeViewGroup: (instanceId: HouseViewInstanceId) => void;
   viewRuntime: EditorHouseViewRuntime<TGroup>;
@@ -75,6 +76,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
       getRuntimeHouse: args.getRuntimeHouse,
       getAggregate: args.getAggregate,
       getSelectedPilotiHeights: args.getSelectedPilotiHeights,
+      shouldAutoAdjustPilotiHeightsFromNivel: args.shouldAutoAdjustPilotiHeightsFromNivel,
       getAllGroups: args.getAllGroups,
       updateRuntimePiloti: (params) => args.viewRuntime.updatePiloti(params),
       persistHouse: args.persistHouse,

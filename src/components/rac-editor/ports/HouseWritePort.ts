@@ -37,6 +37,12 @@ export interface HouseLifecycleWritePort {
   /** Atualiza os marcadores de referência entre planta e vistas elevadas. */
   refreshHouseViewReferenceMarkersForCurrentHouse(): void;
 
+  /** Atualiza a visibilidade das labels dos pilotis na vista planta conforme as configurações atuais. */
+  refreshPilotiNameLabelsForCurrentSettings(): void;
+
+  /** Atualiza a visibilidade dos níveis intermediários nas vistas elevadas conforme o modo manual/automático. */
+  refreshElevationNivelLabelsForCurrentSettings(): void;
+
   /** Reinicia o estado lógico da casa e suas projeções de runtime conhecidas. */
   resetHouse(): void;
 }

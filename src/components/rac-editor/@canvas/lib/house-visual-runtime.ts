@@ -14,15 +14,19 @@ import {resolvePilotiUpdateEffects} from '@/domain/house/use-cases/house-piloti.
 import {updateGroundTerrainType} from '@/components/rac-editor/@canvas/lib/terrain.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import {collectElevationViewInstances} from '@/components/rac-editor/lib/editor-house-terrain.ts';
+import {clampNivelByHeight} from '@/shared/types/piloti.ts';
 
 export function applyCurrentHouseDataToGroups(params: {
   groups: CanvasGroup[];
   pilotis: Record<string, HousePiloti>;
   terrainType: number;
+  showAllElevationNivelLabels?: boolean;
 }): void {
   params.groups.forEach((group) => {
     group.groundTerrainType = params.terrainType;
-    applyPilotiDataToGroup(group, params.pilotis);
+    applyPilotiDataToGroup(group, params.pilotis, {
+      showAllElevationNivelLabels: params.showAllElevationNivelLabels,
+    });
   });
 }
 
@@ -43,35 +47,47 @@ export function updateHousePiloti(params: {
   pilotiData: Partial<HousePiloti>;
   selectedPilotiHeights: readonly number[];
   groups: CanvasGroup[];
+  recalculateHeightOnNivelChange: boolean;
 }): { updated: boolean; shouldRefreshAutoContraventamento: boolean } {
 
   const previousPiloti = params.house.pilotis?.[params.pilotiId] ?? null;
+  const showAllElevationNivelLabels = !params.recalculateHeightOnNivelChange;
+
+  const nextPilotiData = {...params.pilotiData};
+  if (!params.recalculateHeightOnNivelChange && nextPilotiData.nivel !== undefined) {
+    const referenceHeight = Number(
+      nextPilotiData.height ?? previousPiloti?.height ?? DEFAULT_HOUSE_PILOTI.height,
+    );
+    nextPilotiData.nivel = clampNivelByHeight(Number(nextPilotiData.nivel), referenceHeight);
+  }
 
   const {
     shouldRefreshAutoContraventamento,
     shouldRecalculateInterpolatedNiveis,
   } = resolvePilotiUpdateEffects({
     pilotiId: params.pilotiId,
-    pilotiData: params.pilotiData,
+    pilotiData: nextPilotiData,
     previousPiloti,
     hasTopView: (params.house.views?.top?.length ?? 0) > 0,
   });
 
-  const {clearedMasters} = params.aggregate.applyPilotiPatch(params.pilotiId, params.pilotiData);
+  const {clearedMasters} = params.aggregate.applyPilotiPatch(params.pilotiId, nextPilotiData);
 
-  if (shouldRecalculateInterpolatedNiveis) {
+  if (shouldRecalculateInterpolatedNiveis && params.recalculateHeightOnNivelChange) {
     params.aggregate.recalculateRecommendedPilotiData(
       DEFAULT_HOUSE_PILOTI,
-      true,
+      params.recalculateHeightOnNivelChange,
       params.selectedPilotiHeights,
     );
 
-    if (params.pilotiData.height !== undefined) {
-      params.aggregate.applyPilotiPatch(params.pilotiId, {height: params.pilotiData.height});
+    if (nextPilotiData.height !== undefined) {
+      params.aggregate.applyPilotiPatch(params.pilotiId, {height: nextPilotiData.height});
     }
 
     params.groups.forEach((group) => {
-      applyPilotiDataToGroup(group, params.house.pilotis);
+      applyPilotiDataToGroup(group, params.house.pilotis, {
+        showAllElevationNivelLabels,
+      });
     });
 
     return {
@@ -83,9 +99,10 @@ export function updateHousePiloti(params: {
   syncPilotiUpdateAcrossViews(
     params.pilotiId,
     params.house.pilotis,
-    params.pilotiData,
+    nextPilotiData,
     params.runtimeViews,
     clearedMasters,
+    {showAllElevationNivelLabels},
   );
 
   return {

@@ -112,7 +112,7 @@ describe('house-view-reference-marker.ts', () => {
     });
 
     expect(marker.type).toBeUndefined();
-    expect(marker.text).toBe('Frontal #1');
+    expect(marker.text).toBe('Frontal');
     expect(marker.fontSize).toBe(8);
     expect(marker.myType).toBe('houseViewReferenceMarker');
     expect(marker.isHouseViewReferenceMarker).toBe(true);
@@ -132,8 +132,8 @@ describe('house-view-reference-marker.ts', () => {
         top: 20,
         scale: 1,
       }) as any;
-      const [, triangle, codeText, labelText] = marker.getObjects();
-      return {marker, triangle, codeText, labelText};
+      const [, triangle, labelText] = marker.getObjects();
+      return {marker, triangle, labelText};
     };
 
     const top = createMarkerObjects('top');
@@ -145,31 +145,27 @@ describe('house-view-reference-marker.ts', () => {
     expect(bottom.marker.houseViewReferenceMarkerCode).toBe('1');
     expect(bottom.marker.houseViewReferenceMarkerLabel).toBe('Frontal');
     expect(bottom.marker.houseViewReferenceMarkerSide).toBe('bottom');
-    expect(bottom.codeText.fontSize).toBe(12);
+    expect(bottom.marker.getObjects().some((object: any) => object.text === '1')).toBe(false);
     expect(bottom.labelText.fontSize).toBe(10.5);
 
     expect(top.triangle.angle).toBe(180);
-    expect(top.codeText.angle).toBe(0);
     expect(top.labelText.angle).toBe(0);
     expect(top.labelText.top).toBeLessThan(-top.triangle.height / 2);
 
     expect(bottom.triangle.angle).toBe(0);
-    expect(bottom.codeText.angle).toBe(0);
     expect(bottom.labelText.angle).toBe(0);
     expect(bottom.labelText.top).toBeGreaterThan(bottom.triangle.height / 2);
 
     expect(left.triangle.angle).toBe(90);
-    expect(left.codeText.angle).toBe(90);
     expect(left.labelText.angle).toBe(90);
     expect(left.labelText.left).toBeLessThan(-left.triangle.height / 2);
 
     expect(right.triangle.angle).toBe(-90);
-    expect(right.codeText.angle).toBe(90);
     expect(right.labelText.angle).toBe(90);
     expect(right.labelText.left).toBeGreaterThan(right.triangle.height / 2);
   });
 
-  it('sincroniza triangulos na planta e labels simples com fonte uniforme nas vistas elevadas', () => {
+  it('sincroniza triangulos na planta e labels simples proporcionais nas vistas elevadas', () => {
     const topGroup = createMockGroup([
       {isHouseBody: true, width: 366, height: 132, scaleX: 1, scaleY: 1},
       {isHouseViewReferenceMarker: true},
@@ -204,10 +200,43 @@ describe('house-view-reference-marker.ts', () => {
     expect(topMarker.houseViewReferenceMarkerLabel).toBe('Frontal');
     expect(topMarker.houseViewReferenceMarkerSide).toBe('bottom');
     expect(topMarker.top).toBeCloseTo(75.24);
-    expect(frontElevationMarker.text).toBe('Frontal #1');
-    expect(sideElevationMarker.text).toBe('Lateral Esquerda #2');
-    expect(frontElevationMarker.fontSize).toBe(8);
-    expect(frontElevationMarker.top).toBe(180);
-    expect(sideElevationMarker.fontSize).toBe(frontElevationMarker.fontSize);
+    expect(frontElevationMarker.text).toBe('Frontal');
+    expect(sideElevationMarker.text).toBe('Lateral Esquerda');
+    expect(frontElevationMarker.fontSize).toBeCloseTo(9.6);
+    expect(frontElevationMarker.top).toBe(-24);
+    expect(sideElevationMarker.top).toBeLessThan(0);
+    expect(sideElevationMarker.fontSize).toBe(8);
+  });
+
+  it('dimensiona a label superior pela largura da propria vista elevada', () => {
+    const smallElevationGroup = createMockGroup([
+      {left: 0, top: 0, width: 305, height: 160},
+    ]);
+    const largeElevationGroup = createMockGroup([
+      {left: 0, top: 0, width: 610, height: 320},
+    ]);
+
+    refreshHouseViewReferenceMarkersInViews({
+      houseType: 'tipo6',
+      topViews: [],
+      elevationViews: {
+        front: [{instanceId: 'front_1', side: 'bottom', group: smallElevationGroup}],
+        back: [{instanceId: 'back_2', side: 'top', group: largeElevationGroup}],
+        side1: [],
+        side2: [],
+      },
+    });
+
+    const smallMarker =
+      smallElevationGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+    const largeMarker =
+      largeElevationGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+
+    expect(smallMarker.text).toBe('Frontal');
+    expect(largeMarker.text).toBe('Posterior');
+    expect(smallMarker.fontSize).toBe(8);
+    expect(largeMarker.fontSize).toBe(16);
+    expect(smallMarker.top).toBeLessThan(0);
+    expect(largeMarker.top).toBeLessThan(0);
   });
 });

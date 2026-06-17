@@ -5,6 +5,7 @@ import type {
   HouseViewType,
 } from '@/shared/types/house.ts';
 import type {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import type {ContraventamentoOrientation} from '@/shared/types/contraventamento.ts';
 
 /**
  * Projeção serializável de um contraventamento da planta baixa para o viewer 3D.
@@ -13,14 +14,26 @@ export interface House3DContraventamentoProjection {
   /** Identificador estável do contraventamento no canvas lógico. */
   id?: string;
 
+  /** Orientação lógica do contraventamento. Ausente equivale a `vertical`. */
+  orientation?: ContraventamentoOrientation | string;
+
   /** Coluna estrutural onde o contraventamento está ancorado. */
   col?: unknown;
+
+  /** Linha estrutural onde o contraventamento horizontal está ancorado. */
+  row?: unknown;
 
   /** Linha inicial informada pela representação 2D. */
   startRow?: unknown;
 
   /** Linha final informada pela representação 2D. */
   endRow?: unknown;
+
+  /** Coluna inicial informada pela representação horizontal 2D. */
+  startCol?: unknown;
+
+  /** Coluna final informada pela representação horizontal 2D. */
+  endCol?: unknown;
 
   /** Lado visual do contraventamento na coluna. */
   side?: ContraventamentoSide | string;

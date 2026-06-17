@@ -13,6 +13,7 @@ interface EditorHousePilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupRe
   getRuntimeHouse: () => HouseRuntimeSnapshot<TGroup> | null;
   getAggregate: () => HouseAggregate | null;
   getSelectedPilotiHeights: () => readonly number[];
+  shouldAutoAdjustPilotiHeightsFromNivel: () => boolean;
   getAllGroups: () => TGroup[];
   updateRuntimePiloti(params: {
     aggregate: HouseAggregate;
@@ -22,6 +23,7 @@ interface EditorHousePilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupRe
     pilotiData: Partial<HousePiloti>;
     selectedPilotiHeights: readonly number[];
     groups: TGroup[];
+    recalculateHeightOnNivelChange: boolean;
   }): { updated: boolean; shouldRefreshAutoContraventamento: boolean };
   persistHouse: () => void;
   requestCanvasRender: () => void;
@@ -48,6 +50,7 @@ export class EditorHousePilotiCommandService<TGroup extends HouseRuntimeGroupRef
       pilotiId,
       pilotiData,
       selectedPilotiHeights: this.args.getSelectedPilotiHeights(),
+      recalculateHeightOnNivelChange: this.args.shouldAutoAdjustPilotiHeightsFromNivel(),
       runtimeViews: this.args.getRuntimeHouse()?.views ?? {
         top: [],
         front: [],
@@ -74,7 +77,7 @@ export class EditorHousePilotiCommandService<TGroup extends HouseRuntimeGroupRef
 
     aggregate.recalculateRecommendedPilotiData(
       DEFAULT_HOUSE_PILOTI,
-      true,
+      this.args.shouldAutoAdjustPilotiHeightsFromNivel(),
       this.args.getSelectedPilotiHeights(),
     );
     this.args.persistHouse();

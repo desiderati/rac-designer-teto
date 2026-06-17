@@ -52,6 +52,7 @@ export function useContraventamento({
     contraventamentoFirst: contraventamentoFirst
       ? {col: contraventamentoFirst.col, row: contraventamentoFirst.row}
       : null,
+    contraventamentoSide,
     pilotiIdForEditor: pilotiSelection?.pilotiId ?? null,
   });
 
@@ -60,7 +61,9 @@ export function useContraventamento({
     getTopViewGroup: queries.getTopViewGroup,
     getNonTopViewGroups: queries.getNonTopViewGroups,
     getContraventamentoColumnSides: queries.getContraventamentoColumnSides,
+    getContraventamentoHorizontalSides: queries.getContraventamentoHorizontalSides,
     isPilotiEligibleForContraventamentoColumn: queries.isPilotiEligibleForContraventamentoColumn,
+    isPilotiEligibleForContraventamentoRow: queries.isPilotiEligibleForContraventamentoRow,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     setSelectedContraventamento,
     setIsContraventamentoMode,
@@ -79,6 +82,7 @@ export function useContraventamento({
     houseVersion,
     isContraventamentoMode,
     contraventamentoFirst,
+    contraventamentoSide,
     getTopViewGroup: queries.getTopViewGroup,
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     handleCancelContraventamento: commands.handleCancelContraventamento,
@@ -93,5 +97,6 @@ export function useContraventamento({
     isPilotiEligibleAsDestination: queries.isPilotiEligibleAsDestination,
     getContraventamentoEditorState: queries.getContraventamentoEditorState,
     handleContraventamentoSelect: commands.handleContraventamentoSelect,
+    handleHorizontalContraventamentoSelect: commands.handleHorizontalContraventamentoSelect,
   };
 }

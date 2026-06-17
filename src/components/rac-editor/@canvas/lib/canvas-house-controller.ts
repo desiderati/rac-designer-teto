@@ -27,7 +27,12 @@ export function createCanvasHouseController(args: CanvasHouseControllerArgs): Ed
     viewRuntime: {
       applyCurrentHouseDataToGroups,
       applyTerrainTypeToElevationViews,
-      updatePiloti: updateHousePiloti,
+      updatePiloti: (params) => updateHousePiloti({
+        ...params,
+        recalculateHeightOnNivelChange: args.settingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
+      }),
     },
+    shouldAutoAdjustPilotiHeightsFromNivel: () =>
+      args.settingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
   });
 }

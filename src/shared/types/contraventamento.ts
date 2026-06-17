@@ -6,11 +6,22 @@
  * Geometria local de canvas pertence ao slice `@canvas`.
  */
 
-export type ContraventamentoSide = 'left' | 'right';
+export type ContraventamentoVerticalSide = 'left' | 'right';
+
+export type ContraventamentoHorizontalSide = 'top' | 'bottom';
+
+export type ContraventamentoSide = ContraventamentoVerticalSide | ContraventamentoHorizontalSide;
+
+export type ContraventamentoOrientation = 'vertical' | 'horizontal';
 
 export interface ContraventamentoSidesOccupation {
   left: boolean;
   right: boolean;
+}
+
+export interface ContraventamentoHorizontalSidesOccupation {
+  top: boolean;
+  bottom: boolean;
 }
 
 export interface ContraventamentoEditorState {
@@ -18,6 +29,10 @@ export interface ContraventamentoEditorState {
   rightDisabled: boolean;
   leftActive: boolean;
   rightActive: boolean;
+  topDisabled: boolean;
+  bottomDisabled: boolean;
+  topActive: boolean;
+  bottomActive: boolean;
 }
 
 export interface ContraventamentoOrigin {
@@ -35,7 +50,17 @@ export interface ContraventamentoOrigin {
 export function createContraventamentoEditorState(params: {
   canReceiveContraventamento: boolean;
   occupiedSides: ContraventamentoSidesOccupation;
+  canReceiveHorizontalContraventamento?: boolean;
+  occupiedHorizontalSides?: ContraventamentoHorizontalSidesOccupation;
+  allowedHorizontalSides?: readonly ContraventamentoHorizontalSide[];
 }): ContraventamentoEditorState {
+  const allowedHorizontalSides = params.allowedHorizontalSides ?? [];
+  const topActive = params.occupiedHorizontalSides?.top === true;
+  const bottomActive = params.occupiedHorizontalSides?.bottom === true;
+  const canReceiveHorizontal = params.canReceiveHorizontalContraventamento === true;
+  const topDisabled = !topActive && (!canReceiveHorizontal || !allowedHorizontalSides.includes('top'));
+  const bottomDisabled = !bottomActive && (!canReceiveHorizontal || !allowedHorizontalSides.includes('bottom'));
+
   if (!params.canReceiveContraventamento) {
     return {
       // Coluna inelegível para inserção: mantém habilitado somente o lado ocupado,
@@ -44,6 +69,10 @@ export function createContraventamentoEditorState(params: {
       rightDisabled: !params.occupiedSides.right,
       leftActive: params.occupiedSides.left,
       rightActive: params.occupiedSides.right,
+      topDisabled,
+      bottomDisabled,
+      topActive,
+      bottomActive,
     };
   }
 
@@ -52,17 +81,38 @@ export function createContraventamentoEditorState(params: {
     rightDisabled: false,
     leftActive: params.occupiedSides.left,
     rightActive: params.occupiedSides.right,
+    topDisabled,
+    bottomDisabled,
+    topActive,
+    bottomActive,
   };
+}
+
+export function isContraventamentoVerticalSide(side: unknown): side is ContraventamentoVerticalSide {
+  return side === 'left' || side === 'right';
+}
+
+export function isContraventamentoHorizontalSide(side: unknown): side is ContraventamentoHorizontalSide {
+  return side === 'top' || side === 'bottom';
 }
 
 /**
  * Retorna o rótulo em português do lado de contraventamento.
  *
- * @param side Lado lógico (`left` ou `right`).
+ * @param side Lado lógico.
  * @returns Rótulo de exibição.
  */
 export function getContraventamentoSideLabel(side: ContraventamentoSide): string {
-  return side === 'left' ? 'esquerdo' : 'direito';
+  switch (side) {
+    case 'left':
+      return 'esquerdo';
+    case 'right':
+      return 'direito';
+    case 'top':
+      return 'superior';
+    case 'bottom':
+      return 'inferior';
+  }
 }
 
 /**

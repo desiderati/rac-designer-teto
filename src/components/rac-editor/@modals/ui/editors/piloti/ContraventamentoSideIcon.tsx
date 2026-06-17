@@ -1,8 +1,11 @@
-import {ContraventamentoSide} from '@/shared/types/contraventamento.ts';
+import type {
+  ContraventamentoHorizontalSide,
+  ContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
 import {PILOTI_MASTER_STYLE} from '@/shared/config.ts';
 
 interface ContraventamentoSideIconProps {
-  side: ContraventamentoSide;
+  side: ContraventamentoVerticalSide;
   size?: number;
 }
 
@@ -22,3 +25,29 @@ export function ContraventamentoSideIcon({side, size = 64}: ContraventamentoSide
   );
 }
 
+interface ContraventamentoHorizontalSideIconProps {
+  side: ContraventamentoHorizontalSide;
+  size?: number;
+}
+
+export function ContraventamentoHorizontalSideIcon({
+  side,
+  size = 64,
+}: ContraventamentoHorizontalSideIconProps) {
+  const centerY = 20;
+  const radius = 5;
+  const beamHeight = 4;
+  const beamY = side === 'top'
+    ? centerY - radius - beamHeight
+    : centerY + radius;
+
+  return (
+    <svg width={size} height={size} viewBox='0 0 64 40' aria-hidden='true'>
+      <rect x='8' y={beamY} width='48' height={beamHeight} rx='2' fill={PILOTI_MASTER_STYLE.strokeColor}/>
+      <circle cx='14' cy={centerY} r={radius} fill='#0ea5e9'/>
+      <circle cx='26' cy={centerY} r={radius} fill='#0ea5e9'/>
+      <circle cx='38' cy={centerY} r={radius} fill='#0ea5e9'/>
+      <circle cx='50' cy={centerY} r={radius} fill='#0ea5e9'/>
+    </svg>
+  );
+}

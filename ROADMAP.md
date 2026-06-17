@@ -3,7 +3,7 @@ title: Roadmap do RAC Designer TETO
 doc_type: roadmap
 status: active
 lang: pt-BR
-last_updated: 2026-06-16
+last_updated: 2026-06-17
 ---
 
 # Roadmap do RAC Designer TETO
@@ -16,11 +16,13 @@ prováveis de impacto, mas não substitui PRDs canônicos quando uma frente prec
 
 ## Referências atuais
 
+- `docs/business-rules/BUS-001-canvas.md`: regras do canvas 2D, seleção, edição e comportamento visual.
 - `docs/business-rules/BUS-002-toolbar.md`: regras da toolbar, exportação PDF e navegação de Construções TETO.
 - `docs/business-rules/BUS-003-vistas-por-tipo.md`: limites e nomes das vistas por tipo de casa.
 - `docs/business-rules/BUS-004-piloti-nivel.md`: regras de nível, altura e consistência visual dos pilotis.
 - `docs/business-rules/BUS-006-contraventamento.md`: regras de criação, remoção e elegibilidade de contraventamentos.
 - `docs/business-rules/BUS-008-indicador-risco-terreno-pdf.md`: regra do indicador de risco do terreno no PDF.
+- `docs/business-rules/BUS-009-materiais-terreno.md`: regra de materiais de base do terreno e definição de pedras.
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`: gestão de Construções TETO, casas e famílias.
 - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
 - `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`: modal inicial de seleção de pilotis.
@@ -143,32 +145,36 @@ casa ainda não materializava labels permanentes para cada vista e para o lado c
 
 ### RD-004 - Labels de identificação dos pilotis na planta
 
+**Status:** concluído em 2026-06-17.
+
 **Necessidade:** a vista de planta deve identificar os pilotis por código. Pilotis `A*` e `B*` ficam abaixo do círculo;
 pilotis `C*` ficam acima.
 
-**Estado atual:** a planta mostra a altura do piloti no centro do círculo e labels de nível apenas nos pilotis de
+**Estado anterior:** a planta mostrava a altura do piloti no centro do círculo e labels de nível apenas nos pilotis de
 canto. A função `getPilotiName` já resolve códigos como `A1`, `B2` e `C4` a partir do ID interno.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Criar labels permanentes de identificação para todos os pilotis da planta.
-2. Posicionar `A*` e `B*` abaixo do círculo.
-3. Posicionar `C*` acima do círculo.
-4. Resolver colisões com altura, nível, destaque de piloti mestre e feedback de seleção.
+1. A planta passou a renderizar labels permanentes `A1` a `C4` para os 12 pilotis.
+2. Labels `A*` e `B*` ficam abaixo do círculo do piloti.
+3. Labels `C*` ficam acima do círculo do piloti.
+4. As labels são não interativas, serializáveis e não alteram seleção, altura, nível ou estado de mestre.
+5. A regra foi registrada em `BUS-001`.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - Todos os 12 pilotis da planta exibem seu código.
 - Labels seguem a regra de posição por linha (`A/B` abaixo, `C` acima).
 - Labels permanecem legíveis quando o piloti está selecionado, mestre ou destacado.
 - Alterações de altura/nível não deslocam incorretamente a identificação.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
-- `src/components/rac-editor/@canvas/lib/piloti.ts`
-- `src/shared/types/piloti.ts`
+- `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.smoke.test.ts`
+- `src/components/rac-editor/@canvas/lib/canvas.ts`
 - `src/shared/config.ts`
+- `docs/business-rules/BUS-001-canvas.md`
 
 ### RD-005 - Inserir componente visual de gauge pela toolbar
 
@@ -211,18 +217,18 @@ ou se representa um indicador visual independente.
 
 ### RD-006 - Corrigir cálculo de pedras por casa
 
-**Status:** desbloqueado; definição funcional confirmada.
+**Status:** concluído em 2026-06-17.
 
 **Necessidade:** corrigir o cálculo de pedras para uma casa e identificar com precisão como esse cálculo é feito
 atualmente.
 
-**Estado atual identificado:**
+**Estado anterior identificado:**
 
 - O modal de terreno chama `calculateTotalVolumes`.
 - `calculateTotalVolumes` retorna `rachaoM3` e `britaM3`.
 - `calculateRachaoVolume` calcula um cilindro externo por piloti, usando:
   - diâmetro externo = largura real do piloti para cálculo (`20 cm`) + duas laterais de brita (`8 cm` cada);
-  - altura de rachão conforme tipo de solo (`20 cm` a `60 cm`);
+  - altura de rachão conforme tipo de solo (`10 cm`, `15 cm`, `30 cm`, `25 cm` ou `30 cm`);
   - fator de vazio de rachão `1.40`;
   - contagem de pilotis do registro, com fallback para `12`.
 - `calculateBritaVolume` soma, para cada piloti, o volume do cilindro externo menos o cilindro do piloti, usando:
@@ -234,28 +240,30 @@ atualmente.
 conceitual; a implementação deve validar se o `Total` atual já representa essa soma em todos os fluxos e ajustar
 fórmula, nomenclatura ou exportações onde houver divergência.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Comparar a definição `pedras = rachão + brita` com `terrain-volume.ts` e com todos os pontos de exibição.
-2. Corrigir fórmula, constantes, arredondamento e nomenclatura de UI quando houver divergência.
-3. Garantir que PDF, UI e eventuais relatórios usem a mesma semântica de pedras.
-4. Adicionar testes unitários com exemplos reais de casas.
-5. Atualizar regra de negócio consolidando a definição funcional.
+1. `calculateTotalVolumes` passou a devolver `rachaoM3`, `britaM3` e `pedrasM3`.
+2. A fórmula `pedras = rachão + brita` foi centralizada em função própria e coberta por testes.
+3. A modal de terreno exibe `Pedras (Rachão + Brita)` usando a mesma regra centralizada.
+4. O relatório PDF passou a receber e renderizar os volumes de rachão, brita e pedras por casa.
+5. A regra durável foi documentada em `BUS-009`.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - A fórmula de pedras está documentada e coberta por testes.
 - Exemplos reais produzem os valores esperados.
 - UI e PDF usam a mesma regra.
 - Nomes exibidos ao usuário não misturam "pedras", "rachão" e "brita" sem distinção operacional.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `src/components/rac-editor/lib/terrain-volume.ts`
 - `src/components/rac-editor/lib/terrain-volume.smoke.test.ts`
 - `src/components/rac-editor/@modals/ui/editors/terrain/TerrainEditor.tsx`
-- `src/shared/config.ts`
-- `docs/business-rules/`
+- `src/components/rac-editor/lib/rac-pdf-report-model.ts`
+- `src/components/rac-editor/lib/rac-pdf-report-renderer.ts`
+- `src/components/rac-editor/lib/rac-pdf-report-model.smoke.test.ts`
+- `docs/business-rules/BUS-009-materiais-terreno.md`
 
 ### RD-007 - Unificar e qualificar os loaders da aplicação
 
@@ -414,77 +422,81 @@ compatibilidade para notas legadas de família e cobertura por testes de UI, per
 
 ### RD-010 - Modo manual de alturas ao alterar níveis
 
-**Status:** proposto.
+**Status:** concluído em 2026-06-17.
 
 **Necessidade:** permitir uma preferência global do editor para desativar a recomendação automática de novas alturas de
 pilotis quando níveis forem alterados.
 
-**Estado atual:** ao alterar o nível pelo editor de piloti, a aplicação mantém o nível escolhido e recalcula a altura do
+**Estado anterior:** ao alterar o nível pelo editor de piloti, a aplicação mantinha o nível escolhido e recalculava a altura do
 piloti com a menor altura disponível que satisfaça a proporção estrutural `altura >= nível * 3`. Alterações de nível nos
 cantos também podem recalcular níveis intermediários e alturas recomendadas dos 12 pilotis.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Criar uma preferência global no editor para alternar entre modo automático e modo manual de alturas.
-2. Manter o modo automático como comportamento atual: alterações de nível podem recalcular alturas recomendadas.
-3. No modo manual, alterações de nível não devem sugerir nem aplicar novas alturas para o piloti editado ou para pilotis
-   afetados por interpolação.
-4. No modo manual, níveis continuam obrigatoriamente limitados ao mínimo `0,20 m` e ao máximo permitido pela altura atual
-   de cada piloti (`altura / 2`).
-5. A preferência deve ser persistida junto às configurações globais do editor, não no modelo da casa.
-6. O usuário deve perceber claramente qual modo está ativo antes de editar níveis.
+1. Criada a preferência global `autoAdjustPilotiHeightsFromNivel`, persistida nas configurações do editor.
+2. O modo automático permanece como padrão e mantém o comportamento anterior de recomendação de alturas.
+3. No modo manual, alteração de nível modifica somente o piloti selecionado e limita o valor pela altura atual dele.
+4. Interpolação e comandos do canvas respeitam a preferência global ao aplicar níveis: automático interpola, manual não.
+5. A modal de piloti sinaliza se a edição está em `Nível do Piloti (Auto)` ou `Nível do Piloti (Manual)`.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - O usuário consegue alternar entre modo automático e modo manual nas configurações globais do editor.
 - No modo automático, o fluxo de recomendação de alturas permanece compatível com o comportamento atual.
-- No modo manual, alterar nível não altera alturas de pilotis automaticamente.
+- No modo manual, alterar nível não altera alturas nem níveis dos demais pilotis automaticamente.
 - No modo manual, níveis inválidos são bloqueados ou ajustados para o intervalo permitido por cada altura atual.
 - Persistência, restauração, desfazer/refazer, visual 2D, visual 3D, escadas e contraventamentos continuam coerentes com
   os níveis efetivamente aplicados.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `src/shared/types/settings.ts`
 - `src/shared/config.ts`
-- `src/components/rac-editor/store/editor-settings.ts`
 - `src/components/rac-editor/@modals/ui/SettingsModal.tsx`
 - `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
 - `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
 - `src/domain/house/use-cases/house-piloti.use-case.ts`
 - `src/components/rac-editor/@canvas/lib/house-visual-runtime.ts`
+- `src/components/rac-editor/lib/editor-house-controller.ts`
+- `src/components/rac-editor/lib/editor-house-command-service.ts`
+- `src/components/rac-editor/lib/editor-house-piloti-command-service.ts`
+- `src/components/rac-editor/store/editor-settings.smoke.test.ts`
 - `docs/business-rules/BUS-004-piloti-nivel.md`
 
 ### RD-011 - Contraventamento horizontal manual
 
-**Status:** proposto.
+**Status:** concluído em 2026-06-17.
 
 **Necessidade:** criar contraventamento horizontal usando as mesmas bases funcionais já definidas para o
 contraventamento vertical, mas com inserção exclusivamente manual.
 
-**Estado atual:** o contraventamento existente é controlado por coluna, possui lados esquerdo/direito, usa elegibilidade
+**Estado anterior:** o contraventamento existente era controlado por coluna, possuía lados esquerdo/direito, usava elegibilidade
 por nível e proporção estrutural, e pode ser recalculado automaticamente quando uma coluna exige contraventamento.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Adicionar suporte a contraventamento horizontal como orientação distinta do contraventamento vertical atual.
-2. Permitir que o contraventamento horizontal envolva os quatro pilotis de uma mesma linha/faixa da planta quando a linha
-   atender às regras de elegibilidade.
-3. Reutilizar as mesmas regras de nível, altura e proporção estrutural usadas para decidir se o contraventamento vertical
-   é permitido.
-4. Garantir que contraventamento horizontal nunca seja criado por rotina automática.
-5. Tratar criação e remoção do contraventamento horizontal como ação manual explícita.
-6. Preservar persistência, histórico, restauração, projeção visual e sincronização com o 3D.
+1. Adicionada orientação `horizontal` distinta da orientação vertical existente.
+2. A modal de piloti passou a oferecer ações manuais `Superior` e `Inferior` abaixo dos lados `Esquerdo` e `Direito`.
+3. A linha A permite apenas horizontal inferior, a linha B permite superior e inferior, e a linha C permite apenas
+   superior.
+4. A criação horizontal usa a mesma elegibilidade estrutural já aplicada ao contraventamento vertical e entra no fluxo
+   de seleção de destino na mesma linha.
+5. O sistema bloqueia repetição do mesmo lado horizontal na linha, mas permite o lado oposto quando elegível.
+6. Rotinas automáticas continuam criando/removendo apenas contraventamentos verticais.
+7. Contraventamentos horizontais são serializados, restaurados, preservados pelo automático vertical e refletidos nas
+   vistas compatíveis e no 3D.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
-- O usuário consegue criar e remover contraventamento horizontal manualmente.
-- A criação só é habilitada quando a linha/faixa respeita as regras de elegibilidade de contraventamento.
+- O usuário consegue criar e remover contraventamento horizontal manualmente pelos lados `Superior` e `Inferior`.
+- A criação só é habilitada quando a linha/faixa e o lado respeitam as regras de elegibilidade de contraventamento.
+- A criação horizontal exige seleção de outro piloti da mesma linha.
+- A linha A não oferece ação superior, e a linha C não oferece ação inferior.
 - Nenhum fluxo automático cria contraventamento horizontal.
 - Contraventamentos verticais automáticos continuam funcionando sem criar, remover ou sobrescrever horizontais manuais.
-- Contraventamentos horizontais são persistidos, restaurados e refletidos nas vistas e no 3D.
+- Contraventamentos horizontais são persistidos, restaurados e refletidos nas vistas compatíveis e no 3D.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `docs/business-rules/BUS-006-contraventamento.md`
 - `src/shared/types/contraventamento.ts`
@@ -495,49 +507,51 @@ por nível e proporção estrutural, e pode ser recalculado automaticamente quan
 - `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts`
 - `src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
 - `src/components/rac-editor/@viewer-3d/lib/parsers/contraventamento-parser.ts`
+- `src/components/rac-editor/@viewer-3d/ui/House3DTerrainMeshes.tsx`
+- `src/components/rac-editor/ports/House3DProjectionPort.ts`
 
 ### RD-012 - Digitação de nível na modal de pilotis desktop
 
-**Status:** proposto.
+**Status:** concluído em 2026-06-17.
 
 **Necessidade:** no modo desktop, permitir que o nível do piloti também seja editado por digitação na modal de edição de
 pilotis, mantendo as mesmas regras usadas pelos controles atuais.
 
-**Estado atual:** o nível é exibido em formato `N,NN m` e pode ser alterado por botões de incremento/decremento e slider.
+**Estado anterior:** o nível era exibido em formato `N,NN m` e podia ser alterado por botões de incremento/decremento e slider.
 A edição por digitação ainda não existe na modal de piloti.
 
-**Direção proposta:**
+**Resultado implementado:**
 
-1. Adicionar campo digitável de nível apenas na experiência desktop da modal de piloti.
-2. Aceitar somente números digitados pelo operador.
-3. Aplicar máscara visual `N,NN`, usando vírgula decimal e duas casas.
-4. Reutilizar as mesmas regras de mínimo, máximo global e máximo por altura atual do piloti.
-5. Integrar a digitação ao mesmo fluxo de commit usado pelo slider e pelos botões de nível.
-6. Manter a experiência mobile inalterada, salvo se uma etapa futura decidir o contrário.
+1. O `NivelSlider` passou a permitir edição direta do texto do nível apenas na experiência desktop.
+2. O texto editável aceita somente dígitos, aplica máscara `N,NN` e confirma por `blur` ou `Enter`.
+3. O valor digitado é normalizado pelos mesmos limites de mínimo e máximo usados pelos demais controles.
+4. O modo mobile permanece sem edição por digitação de nível.
+5. Testes cobrem sanitização, máscara, commit e clamp por limite máximo.
 
-**Critérios de aceite:**
+**Critérios de aceite atendidos:**
 
 - Em desktop, o usuário consegue editar o nível digitando apenas números.
 - A UI formata o valor digitado como `N,NN`.
 - Valores abaixo do mínimo ou acima do máximo permitido são impedidos ou normalizados de forma previsível.
 - O valor confirmado dispara os mesmos efeitos de nível já aplicados pelos controles existentes.
-- O campo não quebra navegação entre pilotis, confirmação/cancelamento da modal nem acessibilidade básica por teclado.
+- A edição inline não quebra navegação entre pilotis, confirmação/cancelamento da modal nem acessibilidade básica por
+  teclado.
 
-**Pontos prováveis de impacto:**
+**Pontos impactados:**
 
 - `src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
 - `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
 - `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
-- `src/shared/types/piloti.ts`
+- `src/components/rac-editor/@modals/ui/editors/NivelSlider.smoke.test.tsx`
 - `docs/business-rules/BUS-004-piloti-nivel.md`
 
 ## Ordem sugerida de execução
 
-1. **RD-006**: validar e implementar a definição confirmada de pedras como `rachão + brita`.
-2. **RD-010**: definir e implementar a preferência global de modo manual/automático para alturas ao alterar níveis.
-3. **RD-012**: adicionar digitação de nível no desktop depois que a semântica de modo manual estiver consolidada.
-4. **RD-011**: implementar contraventamento horizontal manual com base nas regras já consolidadas de elegibilidade.
-5. **RD-004**: implementar labels de identificação dos pilotis na planta.
+1. **RD-006**: concluído em 2026-06-17.
+2. **RD-010**: concluído em 2026-06-17.
+3. **RD-011**: concluído em 2026-06-17.
+4. **RD-012**: concluído em 2026-06-17.
+5. **RD-004**: concluído em 2026-06-17.
 6. **RD-001**: melhorar exportação PDF com nome configurável e fallback de download.
 7. **RD-005**: inserir gauge visual; decidir se o canvas reutiliza a regra de risco já definida em `BUS-008`.
 8. **RD-002**: concluído em 2026-05-13.

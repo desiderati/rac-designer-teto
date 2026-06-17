@@ -21,6 +21,12 @@ import {
 import {formatNivel} from '@/shared/types/piloti.ts';
 import {resolveHouseElevationCornerPilotiIds} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
 
+export interface GroundLineAnchor {
+  x: number;
+  y: number;
+  nivel?: number;
+}
+
 // Create all ground visualization elements: X markers, nivel labels, ground polyline, and fill polygon
 export function createGroundElements(
   leftX: number,
@@ -45,6 +51,11 @@ export function createGroundElements(
     visualRight?: number;
     visualBottom?: number;
   }>,
+  groundAnchors: GroundLineAnchor[] = [
+    {x: leftCenterX, y: leftNivelY},
+    {x: rightCenterX, y: rightNivelY},
+  ],
+  showAllNivelLabels = false,
 ): CanvasObject[] {
 
   const elements: CanvasObject[] = [];
@@ -52,6 +63,7 @@ export function createGroundElements(
   const xSize = labelFontSize / 2;
   const lineColor = TERRAIN_STYLE.strokeColor;
   const markerWidth = HOUSE_2D_STYLE.outlineStrokeWidth;
+  const terrainAnchors = normalizeGroundLineAnchors(groundAnchors);
 
   // X marker on left corner piloti
   const xL1 = new Line([leftCenterX - xSize, leftNivelY - xSize, leftCenterX + xSize, leftNivelY + xSize], {
@@ -134,16 +146,64 @@ export function createGroundElements(
   rLabelObject.isGroundElement = true;
   rLabelObject.isNivelLabel = true;
 
+  const centralNivelElements: CanvasObject[] = [];
+  if (showAllNivelLabels) {
+    terrainAnchors.forEach((anchor) => {
+      const isCorner =
+        Math.abs(anchor.x - leftCenterX) < NUMERIC_EPSILON
+        || Math.abs(anchor.x - rightCenterX) < NUMERIC_EPSILON;
+      if (isCorner || !Number.isFinite(anchor.nivel)) return;
+
+      const xC1 = new Line([anchor.x - xSize, anchor.y - xSize, anchor.x + xSize, anchor.y + xSize], {
+        stroke: lineColor,
+        strokeWidth: markerWidth,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+      });
+      const xC1Object = toCanvasObject(xC1);
+      xC1Object.isGroundElement = true;
+      xC1Object.isNivelMarker = true;
+
+      const xC2 = new Line([anchor.x - xSize, anchor.y + xSize, anchor.x + xSize, anchor.y - xSize], {
+        stroke: lineColor,
+        strokeWidth: markerWidth,
+        strokeUniform: true,
+        selectable: false,
+        evented: false,
+      });
+      const xC2Object = toCanvasObject(xC2);
+      xC2Object.isGroundElement = true;
+      xC2Object.isNivelMarker = true;
+
+      const cLabel = new Text(formatNivel(Number(anchor.nivel)), {
+        fontSize: labelFontSize,
+        fill: lineColor,
+        backgroundColor: HOUSE_2D_STYLE.surfaceBackgroundColor,
+        fontFamily: CANVAS_STYLE.fontFamily,
+        fontWeight: 'bold',
+        left: anchor.x,
+        top: anchor.y + xSize + labelFontSize,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+      });
+      const cLabelObject = toCanvasObject(cLabel);
+      cLabelObject.isGroundElement = true;
+      cLabelObject.isNivelLabel = true;
+
+      centralNivelElements.push(xC1Object, xC2Object, cLabelObject);
+    });
+  }
+
   // --- Polyline + Polygon: terreno irregular ---
   const normalizedTerrainType = normalizeTerrainSolidityLevel(terrainType);
   const groundPtsAbs = generateGroundLinePoints(
     leftX,
-    leftNivelY,
     rightX,
-    rightNivelY,
     seed,
-    leftCenterX,
-    rightCenterX,
+    terrainAnchors,
   );
 
   const gMinX = Math.min(...groundPtsAbs.map((p) => p.x));
@@ -276,7 +336,8 @@ export function createGroundElements(
   }
 
   // Alvo transparente para interação de edição de terreno.
-  const terrainHitAreaTop = Math.min(leftNivelY, rightNivelY) - 6 * s;
+  const minNivelY = Math.min(leftNivelY, rightNivelY, ...terrainAnchors.map((anchor) => anchor.y));
+  const terrainHitAreaTop = minNivelY - 6 * s;
   const terrainHitArea = new Rect({
     left: leftX,
     top: terrainHitAreaTop,
@@ -305,27 +366,44 @@ export function createGroundElements(
     xR2Object,
     lLabelObject,
     rLabelObject,
+    ...centralNivelElements,
   );
   return elements;
 }
 
-// Generate irregular ground line points with 3 segments:
-// 1. leftX -> leftCenterX: flat at leftY
-// 2. leftCenterX -> rightCenterX: slope from leftY to rightY
-// 3. rightCenterX -> rightX: flat at rightY
-function generateGroundLinePoints(
+export function normalizeGroundLineAnchors(anchors: GroundLineAnchor[]): GroundLineAnchor[] {
+  return anchors
+    .filter((anchor) => Number.isFinite(anchor.x) && Number.isFinite(anchor.y))
+    .sort((a, b) => a.x - b.x)
+    .reduce<GroundLineAnchor[]>((acc, anchor) => {
+      const previous = acc[acc.length - 1];
+      if (previous && Math.abs(previous.x - anchor.x) < NUMERIC_EPSILON) {
+        previous.y = anchor.y;
+        previous.nivel = anchor.nivel ?? previous.nivel;
+        return acc;
+      }
+
+      acc.push({...anchor});
+      return acc;
+    }, []);
+}
+
+// Generate irregular ground line points anchored at each visible piloti.
+// Unchanged anchors remain geometrically stable when only one piloti nivel changes.
+export function generateGroundLinePoints(
   leftX: number,
-  leftY: number,
   rightX: number,
-  rightY: number,
   seed: number,
-  leftCenterX?: number,
-  rightCenterX?: number,
+  anchors: GroundLineAnchor[],
 ): { x: number; y: number }[] {
 
+  const normalizedAnchors = normalizeGroundLineAnchors(anchors);
+  if (normalizedAnchors.length === 0) return [];
+
   const rng = seededRandom(seed);
-  const lcx = leftCenterX ?? leftX;
-  const rcx = rightCenterX ?? rightX;
+  const first = normalizedAnchors[0];
+  const last = normalizedAnchors[normalizedAnchors.length - 1];
+  const totalLen = Math.max(NUMERIC_EPSILON, rightX - leftX);
 
   const addSegment = (
     pts: { x: number; y: number }[],
@@ -345,23 +423,23 @@ function generateGroundLinePoints(
     if (includeEnd) pts.push({x: x1, y: y1});
   };
 
-  const points: { x: number; y: number }[] = [{x: leftX, y: leftY}];
-
-  // Segment 1: flat left (leftX -> leftCenterX)
-  const leftLen = lcx - leftX;
-  const rightLen = rightX - rcx;
-  const totalLen = rightX - leftX;
-
   const totalSegs = 16;
-  const seg1 = Math.max(3, Math.round(totalSegs * (leftLen / totalLen)));
-  const seg3 = Math.max(3, Math.round(totalSegs * (rightLen / totalLen)));
-  const seg2 = Math.max(3, totalSegs - seg1 - seg3);
+  const getSegmentCount = (x0: number, x1: number) =>
+    Math.max(3, Math.round(totalSegs * (Math.abs(x1 - x0) / totalLen)));
 
-  addSegment(points, leftX, leftY, lcx, leftY, seg1, true);
-  addSegment(points, lcx, leftY, rcx, rightY, seg2, true);
-  addSegment(points, rcx, rightY, rightX, rightY, seg3, false);
+  const points: { x: number; y: number }[] = [{x: leftX, y: first.y}];
 
-  points.push({x: rightX, y: rightY});
+  addSegment(points, leftX, first.y, first.x, first.y, getSegmentCount(leftX, first.x), true);
+
+  for (let i = 0; i < normalizedAnchors.length - 1; i += 1) {
+    const current = normalizedAnchors[i];
+    const next = normalizedAnchors[i + 1];
+    addSegment(points, current.x, current.y, next.x, next.y, getSegmentCount(current.x, next.x), true);
+  }
+
+  addSegment(points, last.x, last.y, rightX, last.y, getSegmentCount(last.x, rightX), false);
+
+  points.push({x: rightX, y: last.y});
   return points;
 }
 
@@ -411,7 +489,7 @@ function createRachaoPattern(scale: number): Pattern {
   });
 }
 
-function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): number {
+export function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): number {
   if (!points.length) return 0;
 
   if (targetX <= points[0].x) return points[0].y;
@@ -431,6 +509,23 @@ function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): 
   }
 
   return points[points.length - 1].y;
+}
+
+export function collectPilotiGroundAnchors(pilotis: CanvasObject[]): GroundLineAnchor[] {
+  return normalizeGroundLineAnchors(
+    pilotis.map((piloti) => {
+      const baseHeight = Number(piloti.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE);
+      const scale = baseHeight / PILOTI_BASE_HEIGHT_PX;
+      const width = Number(piloti.width ?? HOUSE_DIMENSIONS.piloti.width);
+      const nivel = Number(piloti.pilotiNivel ?? PILOTI_DEFAULT_NIVEL);
+
+      return {
+        x: Number(piloti.left ?? 0) + width / 2,
+        y: Number(piloti.top ?? 0) + nivel * 100 * scale,
+        nivel,
+      };
+    }),
+  );
 }
 
 export function getGroundTerrainType(group: CanvasGroup): TerrainSolidityLevel {
@@ -524,6 +619,7 @@ export function updateGroundInGroup(group: CanvasGroup): void {
 
   // Find the max bottom Y of all pilotis in this view
   const allPilotis = remainingObjects.filter(o => o.isPilotiRect);
+  const groundAnchors = collectPilotiGroundAnchors(allPilotis);
   let maxPilotiBottomY = 0;
   for (const p of allPilotis) {
     const pTop = p.top ?? 0;
@@ -554,6 +650,8 @@ export function updateGroundInGroup(group: CanvasGroup): void {
       width: Number(piloti.width ?? HOUSE_DIMENSIONS.piloti.width),
       height: Number(piloti.height ?? 0),
     })),
+    groundAnchors,
+    Boolean(group.showAllPilotiNivelLabels),
   );
 
   const groundBack =

@@ -17,6 +17,8 @@ export function useRacEditorSettingsActions({
     const settings = settingsPort.getSettings();
     setShowZoomControls(settings.zoomEnabledByDefault);
     houseWritePort.refreshAutoStairsForCurrentSettings();
+    houseWritePort.refreshPilotiNameLabelsForCurrentSettings();
+    houseWritePort.refreshElevationNivelLabelsForCurrentSettings();
   }, [houseWritePort, settingsPort, setShowZoomControls]);
 
   return {handleSettingsChange};

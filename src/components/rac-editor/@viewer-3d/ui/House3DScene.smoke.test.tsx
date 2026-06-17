@@ -3,6 +3,10 @@ import {render} from '@testing-library/react';
 import {House3DScene} from '@/components/rac-editor/@viewer-3d/ui/House3DScene.tsx';
 import {DEFAULT_HOUSE_PILOTI, HousePiloti} from '@/shared/types/house.ts';
 import {ALL_PILOTI_IDS} from '@/shared/config.ts';
+import {
+  CONTRAVENTAMENTO_SQUARE_WIDTH,
+  CONTRAVENTAMENTO_TOP_WIDTH,
+} from '@/components/rac-editor/@viewer-3d/lib/constants.ts';
 
 describe('House3DScene.tsx', () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -23,6 +27,7 @@ describe('House3DScene.tsx', () => {
 
     const contraventamento = {
       id: 'c-1',
+      orientation: 'vertical' as const,
       col: 0,
       startRow: 0,
       endRow: 2,
@@ -50,6 +55,73 @@ describe('House3DScene.tsx', () => {
     const withContraventamentoBoxGeometryCount = withContraventamento.container.querySelectorAll('boxgeometry').length;
 
     expect(withContraventamentoBoxGeometryCount).toBe(baselineBoxGeometryCount + 1);
+  });
+
+  it('renderiza contraventamento horizontal no 3D entre piloti inicial e final', () => {
+    const pilotis = {
+      piloti_0_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.3},
+      piloti_1_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.4},
+      piloti_2_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.5},
+      piloti_3_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.6},
+    } as Record<string, HousePiloti>;
+
+    const baseline = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[]}
+      />,
+    );
+    const baselineBoxGeometryCount = baseline.container.querySelectorAll('boxgeometry').length;
+    baseline.unmount();
+
+    const withContraventamento = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[{
+          id: 'h-1',
+          orientation: 'horizontal',
+          row: 1,
+          startCol: 0,
+          endCol: 3,
+          side: 'bottom',
+          anchorPilotiId: 'piloti_0_1',
+        }]}
+      />,
+    );
+    const withContraventamentoBoxGeometryCount = withContraventamento.container.querySelectorAll('boxgeometry').length;
+
+    expect(withContraventamentoBoxGeometryCount).toBe(baselineBoxGeometryCount + 1);
+  });
+
+  it('mantém contraventamento horizontal em pé na linha de 6m', () => {
+    const pilotis = {
+      piloti_0_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.3},
+      piloti_3_1: {...DEFAULT_HOUSE_PILOTI, nivel: 0.7},
+    } as Record<string, HousePiloti>;
+
+    const scene = render(
+      <House3DScene
+        houseType='tipo6'
+        pilotis={pilotis}
+        contraventamentos={[{
+          id: 'h-upright',
+          orientation: 'horizontal',
+          row: 1,
+          startCol: 0,
+          endCol: 3,
+          side: 'top',
+          anchorPilotiId: 'piloti_0_1',
+        }]}
+      />,
+    );
+
+    const braceGeometry = scene.container.querySelector('boxgeometry');
+    const args = braceGeometry?.getAttribute('args')?.split(',').map(Number) ?? [];
+
+    expect(args[0]).toBeCloseTo(CONTRAVENTAMENTO_SQUARE_WIDTH, 6);
+    expect(args[2]).toBeCloseTo(CONTRAVENTAMENTO_TOP_WIDTH, 6);
   });
 
   it('renderiza piloti segmentado em duas partes (2/3 inferior + 1/3 superior)', () => {

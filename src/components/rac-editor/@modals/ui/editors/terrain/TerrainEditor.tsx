@@ -44,15 +44,10 @@ export function TerrainEditor({
     [normalizedDraftType],
   );
 
-  const volumesCodex = useMemo(
-    () => calculateTotalVolumes(normalizedDraftType, pilotis),
-    [normalizedDraftType, pilotis],
-  );
-
   const volumes = useMemo(() => {
     if (!pilotis || Object.keys(pilotis).length === 0) return null;
-    return calculateTotalVolumes(draftType, pilotis);
-  }, [draftType, pilotis]);
+    return calculateTotalVolumes(normalizedDraftType, pilotis);
+  }, [normalizedDraftType, pilotis]);
 
   const formatVolume = useMemo(
     () =>
@@ -91,8 +86,7 @@ export function TerrainEditor({
       }
       cardContent={
         <>
-          <div className='text-center space-y-1'>
-            <p className='text-sm font-medium'>Tipo de Solo: {selected.label}</p>
+          <div className='text-center'>
             <p className='text-xs text-muted-foreground'>
               Cama de rachão: {selected.rachao} cm
             </p>
@@ -123,15 +117,15 @@ export function TerrainEditor({
             <div className='mt-3 pt-3 border-t border-border space-y-1'>
               <div className='flex justify-between text-xs text-muted-foreground px-1'>
                 <span>Qtd. de Rachão Aprox.:</span>&nbsp;
-                <span className='font-mono'>{volumes.rachaoM3.toFixed(2)} m³</span>
+                <span className='font-mono'>{formatVolume.format(volumes.rachaoM3)} m³</span>
               </div>
               <div className='flex justify-between text-xs text-muted-foreground px-1'>
                 <span>Qtd. de Brita Aprox.:</span>&nbsp;
-                <span className='font-mono'>{volumes.britaM3.toFixed(2)} m³</span>
+                <span className='font-mono'>{formatVolume.format(volumes.britaM3)} m³</span>
               </div>
               <div className='flex justify-between text-xs font-medium px-1 pt-1 border-t border-border'>
-                <span>Total:</span>
-                <span className='font-mono'>{(volumes.rachaoM3 + volumes.britaM3).toFixed(2)} m³</span>
+                <span>Pedras (Rachão | Brita):</span>
+                <span className='font-mono'>{formatVolume.format(volumes.pedrasM3)} m³</span>
               </div>
             </div>
           )}

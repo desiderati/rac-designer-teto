@@ -118,6 +118,12 @@ describe('rac pdf report model', () => {
     expect(report?.house.selectedSize).toBe('Grande');
     expect(report?.house.selectedType).toBe('Tipo 6');
     expect(report?.terrain.desnivelCm).toBe(70);
+    expect(report?.terrain.volumes?.rachaoM3).toBeGreaterThan(0);
+    expect(report?.terrain.volumes?.britaM3).toBeGreaterThan(0);
+    expect(report?.terrain.volumes?.pedrasM3).toBeCloseTo(
+      (report?.terrain.volumes?.rachaoM3 ?? 0) + (report?.terrain.volumes?.britaM3 ?? 0),
+      6,
+    );
     expect(report?.terrain.optionGroups.find((group) => group.label === 'Solo')?.selected).toEqual(['Água no fundo']);
     expect(report?.monitors.map((monitor) => monitor.name)).toEqual(['Carioca', 'John']);
     expect(report?.pilotis.master?.code).toBe('A1');
@@ -173,6 +179,10 @@ describe('rac pdf report model', () => {
     expect(output).toContain('Subterrâneos');
     expect(output).toContain('Elevados');
     expect(output).toContain('Recuos vizinhos');
+    expect(output).toContain('MATERIAIS DE BASE');
+    expect(output).toContain('RACHÃO');
+    expect(output).toContain('BRITA');
+    expect(output).toContain('PEDRAS');
     expect(output).not.toContain('COMPLEXIDADE');
     expect(output).not.toContain('Moderado');
     expect(output).toContain('MATERIAL EXTRA');

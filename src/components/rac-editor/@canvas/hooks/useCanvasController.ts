@@ -55,7 +55,7 @@ export function useCanvasController({
   onHouseDrawingChange,
 }: UseRacEditorCanvasControllerArgs) {
   const editorStore = useEditorStore();
-  const {houseReadPort, houseWritePort} = useEditorPorts();
+  const {houseReadPort, houseWritePort, settingsPort} = useEditorPorts();
 
   const {
     getVisibleCenter,
@@ -114,6 +114,8 @@ export function useCanvasController({
     setPendingNivelSide,
     niveisAppliedRef,
     transitionToNivelRef,
+    shouldShowAllElevationNivelLabels: () =>
+      !settingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
   });

@@ -13,7 +13,7 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
 import {setCanvasGroupMyType} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
-import {formatNivel, formatPilotiHeight} from '@/shared/types/piloti.ts';
+import {formatNivel, formatPilotiHeight, getPilotiName} from '@/shared/types/piloti.ts';
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
 
 export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
@@ -220,10 +220,30 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
       nivelTextObj.pilotiId = pilotiId;
       nivelTextObj.isPilotiNivelText = true;
 
-      // Add hit area first (behind), then circle, then text, then nivel text
+      const nameLabelOffset = rad + PILOTI_STYLE.nameLabelOffsetTopView * s;
+      const nameLabel = new Text(getPilotiName(pilotiId), {
+        fontSize: PILOTI_STYLE.nameFontSizeTopView * s,
+        fontFamily: CANVAS_STYLE.fontFamily,
+        fontWeight: 'bold',
+        fill: PILOTI_STYLE.nameFontColor,
+        originX: 'center',
+        originY: 'center',
+        left: x,
+        top: rowIdx === 2 ? y - nameLabelOffset : y + nameLabelOffset,
+        selectable: false,
+        evented: false,
+      });
+
+      const nameLabelObj = toCanvasObject(nameLabel);
+      nameLabelObj.myType = 'pilotiNameLabel';
+      nameLabelObj.pilotiId = pilotiId;
+      nameLabelObj.isPilotiNameLabel = true;
+
+      // Add hit area first (behind), then circle, then readable labels.
       houseObjects.push(hitArea);
       houseObjects.push(circle);
       houseObjects.push(text);
+      houseObjects.push(nameLabel);
       houseObjects.push(nivelText);
       pilotiIndex++;
     });
