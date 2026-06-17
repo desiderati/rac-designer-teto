@@ -165,6 +165,7 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
         fill: PILOTI_STYLE.fillColor,
         stroke: PILOTI_STYLE.strokeColor,
         strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+        strokeUniform: true,
         left: x,
         top: y,
         originX: 'center',

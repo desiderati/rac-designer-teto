@@ -3,6 +3,7 @@ import type {Canvas as FabricCanvas} from 'fabric';
 import {createHouseTop} from './house-top.strategy.ts';
 import type {CanvasObject} from '../../canvas.ts';
 import {updatePilotiHeight, updatePilotiMaster} from '../../piloti.ts';
+import {HOUSE_2D_STYLE} from '@/shared/config.ts';
 
 type PilotiNameLabelObject = CanvasObject & {
   isPilotiNameLabel?: boolean;
@@ -29,6 +30,8 @@ describe('house-top.strategy.ts', () => {
     for (const label of nameLabels) {
       const circle = objects.find((object) => object.isPilotiCircle && object.pilotiId === label.pilotiId);
       expect(circle).toBeDefined();
+      expect(circle?.strokeWidth).toBe(HOUSE_2D_STYLE.outlineStrokeWidth);
+      expect(circle?.strokeUniform).toBe(true);
       expect(label.selectable).toBe(false);
       expect(label.evented).toBe(false);
 
@@ -55,10 +58,13 @@ describe('house-top.strategy.ts', () => {
 
     updatePilotiHeight(group, 'piloti_0_0', 3);
     updatePilotiMaster(group, 'piloti_0_0', true, 0.6);
+    const masterCircle = objects.find((object) => object.isPilotiCircle && object.pilotiId === 'piloti_0_0');
 
     expect(label?.text).toBe('A1');
     expect(label?.left).toBe(initialPosition.left);
     expect(label?.top).toBe(initialPosition.top);
+    expect(masterCircle?.strokeWidth).toBe(HOUSE_2D_STYLE.outlineStrokeWidth);
+    expect(masterCircle?.strokeUniform).toBe(true);
   });
 });
 

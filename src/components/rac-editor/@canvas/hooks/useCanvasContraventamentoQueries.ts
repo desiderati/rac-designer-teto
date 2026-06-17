@@ -7,6 +7,7 @@ import {
   ContraventamentoOrigin,
   ContraventamentoSide,
   createContraventamentoEditorState,
+  isContraventamentoHorizontalSide,
 } from '@/shared/types/contraventamento.ts';
 import {
   collectOccupiedHorizontalContraventamentoSides,
@@ -27,6 +28,12 @@ interface UseContraventamentoQueriesArgs {
   contraventamentoFirst: ContraventamentoOrigin | null;
   contraventamentoSide: ContraventamentoSide | null;
   pilotiIdForEditor: string | null;
+}
+
+interface HorizontalContraventamentoOccupationTarget {
+  col?: number;
+  startCol?: number;
+  endCol?: number;
 }
 
 export function useContraventamentoQueries({
@@ -63,10 +70,13 @@ export function useContraventamentoQueries({
     }, []);
 
   const getContraventamentoHorizontalSides =
-    useCallback((group: CanvasGroup, row: number) => {
+    useCallback((group: CanvasGroup, row: number, target?: HorizontalContraventamentoOccupationTarget) => {
       return collectOccupiedHorizontalContraventamentoSides({
         objects: group.getCanvasObjects(),
         row,
+        col: target?.col,
+        startCol: target?.startCol,
+        endCol: target?.endCol,
         onResolvedSide: (object, side) => {
           (object as ContraventamentoCandidate & { contraventamentoSide?: unknown }).contraventamentoSide = side;
         },
@@ -95,16 +105,33 @@ export function useContraventamentoQueries({
     }
 
     if (orientation === 'horizontal') {
-      return isHouseHorizontalContraventamentoDestinationEligible({
+      const structurallyEligible = isHouseHorizontalContraventamentoDestinationEligible({
         first,
         candidate: parsed,
         side,
         pilotis: houseSnapshot?.pilotis ?? {},
       });
+      if (!structurallyEligible) return false;
+      if (!isContraventamentoHorizontalSide(side)) return false;
+
+      const topGroup = getTopViewGroup();
+      if (!topGroup) return false;
+
+      const occupiedSides = getContraventamentoHorizontalSides(topGroup, first.row, {
+        startCol: first.col,
+        endCol: parsed.col,
+      });
+      return !occupiedSides[side];
     }
 
     return false;
-  }, [contraventamentoFirst, contraventamentoSide, houseSnapshot]);
+  }, [
+    contraventamentoFirst,
+    contraventamentoSide,
+    getContraventamentoHorizontalSides,
+    getTopViewGroup,
+    houseSnapshot,
+  ]);
 
   const isPilotiEligibleForContraventamentoColumn = useCallback((pilotiId: string): boolean => {
     const parsed = parsePilotiGridPosition(pilotiId);
@@ -141,7 +168,7 @@ export function useContraventamentoQueries({
     if (!parsed) return disabled;
 
     const occupiedSides = getContraventamentoColumnSides(topGroup, parsed.col);
-    const occupiedHorizontalSides = getContraventamentoHorizontalSides(topGroup, parsed.row);
+    const occupiedHorizontalSides = getContraventamentoHorizontalSides(topGroup, parsed.row, {col: parsed.col});
     const canReceiveContraventamento = isPilotiEligibleForContraventamentoColumn(pilotiIdForEditor);
     const canReceiveHorizontalContraventamento =
       isPilotiEligibleForContraventamentoRow(pilotiIdForEditor);

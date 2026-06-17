@@ -124,7 +124,7 @@ export const PILOTI_MASTER_STYLE = {
   fillColor: '#d4a574',
   strokeColor: '#8b4513',
   strokeWidth: PILOTI_STYLE.selectedStrokeWidth,
-  strokeWidthTopView: PILOTI_STYLE.selectedStrokeWidthTopView,
+  strokeWidthTopView: PILOTI_STYLE.strokeWidthTopView,
 } as const;
 
 export const PILOTI_VISUAL_FEEDBACK_COLORS = {
@@ -147,7 +147,7 @@ export const PILOTI_CORNER_ID_LIST = [
   PILOTI_CORNER_ID.bottomRight,
 ] as const;
 
-// Corner piloti IDs (A1, A4, C1, C4) - only these can be master and have nivel
+// Corner piloti IDs (A1, A4, C1, C4) - only these can be master and drive automatic nivel interpolation.
 export const PILOTI_CORNER_IDS: readonly string[] = [...PILOTI_CORNER_ID_LIST];
 
 export const ALL_PILOTI_IDS = Array.from({length: 3 * 4}, (_, index) => {
@@ -279,7 +279,7 @@ export const TOAST_MESSAGES = {
     `A coluna já possui contraventamento no lado ${sideLabel}.`,
 
   contraventamentoRowSideAlreadyOccupied: (sideLabel: string): string =>
-    `A linha já possui contraventamento no lado ${sideLabel}.`,
+    `Um dos pilotis selecionados já possui contraventamento no lado ${sideLabel}.`,
 
   failedToCreateContraventamento: 'Não foi possível criar o contraventamento.',
   contraventamentoAddedSuccessfully: 'Contraventamento adicionado!',

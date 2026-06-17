@@ -357,14 +357,6 @@ function drawTerrainSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: nu
   drawStatefulChipRow(pdf, obstacles, LEFT_COLUMN_X, cursorY + 9, LEFT_COLUMN_WIDTH);
   cursorY += 32;
 
-  if (report.terrain.volumes) {
-    drawTinyLabel(pdf, 'Materiais de base', LEFT_COLUMN_X, cursorY);
-    drawLabelValue(pdf, 'Rachão', formatVolumeM3(report.terrain.volumes.rachaoM3), LEFT_COLUMN_X, cursorY + 12, 58);
-    drawLabelValue(pdf, 'Brita', formatVolumeM3(report.terrain.volumes.britaM3), LEFT_COLUMN_X + 66, cursorY + 12, 58);
-    drawLabelValue(pdf, 'Pedras', formatVolumeM3(report.terrain.volumes.pedrasM3), LEFT_COLUMN_X + 132, cursorY + 12, 66);
-    cursorY += 46;
-  }
-
   return cursorY;
 }
 
@@ -1085,14 +1077,6 @@ function getImageFormat(dataUrl: string): 'PNG' | 'JPEG' | 'WEBP' {
 function formatDesnivel(value: number | null) {
   if (value === null) return 'Não informado';
   return `${value} cm`;
-}
-
-function formatVolumeM3(value: number): string {
-  if (!Number.isFinite(value)) return '0,00 m³';
-  return `${new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)} m³`;
 }
 
 function getInitials(value: string): string {

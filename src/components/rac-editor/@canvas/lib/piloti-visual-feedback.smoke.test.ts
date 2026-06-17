@@ -42,8 +42,10 @@ describe('piloti-visual-feedback.ts', () => {
 
     expect(a.state.stroke).toBe('#facc15');
     expect(a.state.strokeWidth).toBe(3);
+    expect(a.state.strokeUniform).toBe(false);
     expect(b.state.stroke).toBe('#facc15');
     expect(b.state.strokeWidth).toBe(4);
+    expect(b.state.strokeUniform).toBe(true);
   });
 
   it('highlights only target piloti across views', () => {
@@ -63,6 +65,7 @@ describe('piloti-visual-feedback.ts', () => {
 
     expect(target.state.stroke).toBe('#3b82f6');
     expect(target.state.strokeWidth).toBe(3);
+    expect(target.state.strokeUniform).toBe(false);
     expect(other.state.stroke).toBeUndefined();
   });
 
@@ -83,31 +86,42 @@ describe('piloti-visual-feedback.ts', () => {
 
     expect(target.state.stroke).toBe('#3b82f6');
     expect(target.state.strokeWidth).toBe(3);
+    expect(target.state.strokeUniform).toBe(false);
     expect(other.state.stroke).toBe('#facc15');
     expect(other.state.strokeWidth).toBe(4);
+    expect(other.state.strokeUniform).toBe(true);
   });
 
   it('restores visuals according to selection and master status', () => {
     const normal = createPiloti({pilotiId: 'piloti_1_1'});
+    const masterCircle = createPiloti({pilotiId: 'piloti_0_0', isMaster: true});
     const masterRect = createPiloti({pilotiId: 'piloti_0_0', isRect: true, isMaster: true});
 
     applyPilotiEditorCloseVisuals({
-      groupObjects: [normal.object, masterRect.object],
+      groupObjects: [normal.object, masterCircle.object, masterRect.object],
       houseStillSelected: false,
     });
 
     expect(normal.state.stroke).toBe('#333');
     expect(normal.state.strokeWidth).toBe(1.5);
+    expect(normal.state.strokeUniform).toBe(true);
+    expect(masterCircle.state.stroke).toBe('#8b4513');
+    expect(masterCircle.state.strokeWidth).toBe(1.5);
+    expect(masterCircle.state.strokeUniform).toBe(true);
     expect(masterRect.state.stroke).toBe('#8b4513');
     expect(masterRect.state.strokeWidth).toBe(4);
+    expect(masterRect.state.strokeUniform).toBe(true);
 
     applyPilotiEditorCloseVisuals({
-      groupObjects: [normal.object, masterRect.object],
+      groupObjects: [normal.object, masterCircle.object, masterRect.object],
       houseStillSelected: true,
     });
 
     expect(normal.state.stroke).toBe('#facc15');
     expect(masterRect.state.stroke).toBe('#facc15');
+    expect(normal.state.strokeUniform).toBe(false);
+    expect(masterCircle.state.strokeUniform).toBe(false);
+    expect(masterRect.state.strokeUniform).toBe(true);
   });
 });
 

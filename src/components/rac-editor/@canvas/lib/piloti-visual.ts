@@ -41,6 +41,7 @@ export interface PilotiVisualDataPatch {
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
+  strokeUniform?: boolean;
 }
 
 export function getPilotiVisualHeight(pilotiHeight: number, scale: number): number {
@@ -61,6 +62,7 @@ export function createPilotiVisualDataPatch(params: {
     pilotiHeight: params.height,
     pilotiIsMaster: params.isMaster,
     pilotiNivel: params.nivel,
+    strokeUniform: true,
     ...(params.isRect ? {height: params.baseHeight * params.height, scaleY: 1} : {}),
     ...(params.isMaster
       ? {

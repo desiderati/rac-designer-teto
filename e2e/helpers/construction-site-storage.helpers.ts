@@ -1,9 +1,9 @@
 import type {Page} from '@playwright/test';
 import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../src/shared/types/construction-site';
-import type {HousePiloti} from '../../src/shared/types/house';
+import type {HousePiloti, HouseSideMapping, HouseType, HouseViews} from '../../src/shared/types/house';
 import {getAllPilotiIds} from '../../src/shared/types/piloti';
 
-type SeedHouseType = 'tipo6' | 'tipo3' | null;
+type SeedHouseType = HouseType;
 type SeedHouseSize = 'large' | 'small';
 
 interface SeedConstructionSiteMonitor {
@@ -26,6 +26,7 @@ export interface SeedConstructionSiteDocumentOptions {
   siteAssessment?: Partial<SiteAssessment>;
   selectedPilotiHeights?: number[];
   pilotis?: Record<string, Partial<HousePiloti>>;
+  insertInitialViews?: boolean;
 }
 
 export async function seedConstructionSiteDocument(
@@ -64,6 +65,9 @@ export async function seedConstructionSiteDocument(
 function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
   const now = '2026-05-11T12:00:00.000Z';
   const houseType = options.houseType === undefined ? 'tipo6' : options.houseType;
+  const initialViews = options.insertInitialViews
+    ? createInitialViewsForHouseType(houseType)
+    : createEmptyInitialViews();
   const pilotis = options.pilotis
     ? Object.fromEntries(
       getAllPilotiIds().map((pilotiId) => [
@@ -134,8 +138,8 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
             houseType,
             pilotis,
             terrainType: 1,
-            views: {top: [], front: [], back: [], side1: [], side2: []},
-            sideMappings: {top: null, bottom: null, left: null, right: null},
+            views: initialViews.views,
+            sideMappings: initialViews.sideMappings,
             preAssignedSides: {},
           },
           canvas: {schemaVersion: 1, objects: []},
@@ -148,4 +152,34 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
       }],
     }],
   };
+}
+
+function createEmptyHouseViews(): HouseViews {
+  return {top: [], front: [], back: [], side1: [], side2: []};
+}
+
+function createEmptySideMappings(): HouseSideMapping {
+  return {top: null, bottom: null, left: null, right: null};
+}
+
+function createEmptyInitialViews() {
+  return {
+    views: createEmptyHouseViews(),
+    sideMappings: createEmptySideMappings(),
+  };
+}
+
+function createInitialViewsForHouseType(houseType: SeedHouseType) {
+  const {views, sideMappings} = createEmptyInitialViews();
+  views.top.push({instanceId: 'top_e2e'});
+
+  if (houseType === 'tipo6') {
+    views.front.push({instanceId: 'front_e2e', side: 'top'});
+    sideMappings.top = 'front';
+  } else if (houseType === 'tipo3') {
+    views.side2.push({instanceId: 'side2_e2e', side: 'left'});
+    sideMappings.left = 'side2';
+  }
+
+  return {views, sideMappings};
 }

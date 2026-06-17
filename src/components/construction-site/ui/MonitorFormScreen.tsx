@@ -87,57 +87,59 @@ export function MonitorFormScreen({
               />
             )}
           />
-          <div data-testid='monitor-fields-column' className='grid h-full grid-cols-1 gap-4 md:grid-rows-[auto_auto_auto_minmax(0,1fr)]'>
-            <Controller
-              control={form.control}
-              name='name'
-              render={({field, fieldState}) => (
-                <TextField
-                  label='Nome do Monitor'
-                  placeholder='Nome completo'
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  required
-                  maxLength={MONITOR_NAME_MAX_LENGTH}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <Controller
-              control={form.control}
-              name='phone'
-              render={({field, fieldState}) => (
-                <TextField
-                  label='Telefone'
-                  placeholder='(41) 00000-0000'
-                  value={field.value}
-                  onChange={(phone) => field.onChange(formatPhoneInput(phone))}
-                  onBlur={field.onBlur}
-                  required
-                  maxLength={PHONE_MASK_MAX_LENGTH}
-                  inputMode='numeric'
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <Controller
-              control={form.control}
-              name='email'
-              render={({field, fieldState}) => (
-                <TextField
-                  label='E-mail'
-                  type='email'
-                  placeholder='monitor@dominio.com'
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  maxLength={MONITOR_EMAIL_MAX_LENGTH}
-                  error={fieldState.error?.message}
-                />
-              )}
-            />
-            <PrimaryButton type='submit' className='w-full md:self-end' disabled={isSubmitting}>
+          <div data-testid='monitor-fields-column' className='flex h-full flex-col'>
+            <div data-testid='monitor-fields-stack' className='flex flex-col gap-5'>
+              <Controller
+                control={form.control}
+                name='name'
+                render={({field, fieldState}) => (
+                  <TextField
+                    label='Nome do Monitor'
+                    placeholder='Nome completo'
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    required
+                    maxLength={MONITOR_NAME_MAX_LENGTH}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={form.control}
+                name='phone'
+                render={({field, fieldState}) => (
+                  <TextField
+                    label='Telefone'
+                    placeholder='(41) 00000-0000'
+                    value={field.value}
+                    onChange={(phone) => field.onChange(formatPhoneInput(phone))}
+                    onBlur={field.onBlur}
+                    required
+                    maxLength={PHONE_MASK_MAX_LENGTH}
+                    inputMode='numeric'
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <Controller
+                control={form.control}
+                name='email'
+                render={({field, fieldState}) => (
+                  <TextField
+                    label='E-mail'
+                    type='email'
+                    placeholder='monitor@dominio.com'
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    maxLength={MONITOR_EMAIL_MAX_LENGTH}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            </div>
+            <PrimaryButton type='submit' className='mt-4 w-full md:mt-auto' disabled={isSubmitting}>
               {submitLabel}
             </PrimaryButton>
           </div>

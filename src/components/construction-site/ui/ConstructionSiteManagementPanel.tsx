@@ -50,6 +50,9 @@ export function ConstructionSiteManagementPanel({
     initialScreen,
   });
   const screenTitle = getScreenTitle(navigation.screen, navigation.constructionLabel);
+  const isBackToCanvasButton = navigation.screen === 'construction-list'
+    && canOpenRacEditor
+    && Boolean(onBackToCanvas);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const hasUnsavedChangesRef = useRef(false);
@@ -122,6 +125,7 @@ export function ConstructionSiteManagementPanel({
                   type='button'
                   onClick={() => requestNavigation(navigation.navigateBack)}
                   aria-label='Voltar'
+                  data-guided-tour-id={isBackToCanvasButton ? 'rac-construction-back-to-canvas' : undefined}
                   className='grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200'
                 >
                   <ArrowLeft className='h-5 w-5'/>

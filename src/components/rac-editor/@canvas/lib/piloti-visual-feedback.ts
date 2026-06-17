@@ -34,6 +34,7 @@ export function highlightAllHousePilotis(canvasObjects: unknown[]): void {
       strokeWidth: piloti.isPilotiRect
         ? PILOTI_STYLE.selectedStrokeWidth
         : PILOTI_STYLE.selectedStrokeWidthTopView,
+      strokeUniform: Boolean(piloti.isPilotiRect),
     });
   });
 }
@@ -49,6 +50,7 @@ export function highlightPilotiAcrossViews(
       strokeWidth: piloti.isPilotiRect
         ? PILOTI_STYLE.selectedStrokeWidth
         : PILOTI_STYLE.selectedStrokeWidthTopView,
+      strokeUniform: Boolean(piloti.isPilotiRect),
     });
   });
 }
@@ -75,6 +77,7 @@ export function applyPilotiEditorCloseVisuals(params: {
         strokeWidth: piloti.isPilotiRect
           ? PILOTI_STYLE.selectedStrokeWidth
           : PILOTI_STYLE.selectedStrokeWidthTopView,
+        strokeUniform: Boolean(piloti.isPilotiRect),
       });
       return;
     }
@@ -85,6 +88,7 @@ export function applyPilotiEditorCloseVisuals(params: {
         strokeWidth: piloti.isPilotiRect
           ? PILOTI_MASTER_STYLE.strokeWidth
           : PILOTI_MASTER_STYLE.strokeWidthTopView,
+        strokeUniform: true,
       });
       return;
     }
@@ -94,6 +98,7 @@ export function applyPilotiEditorCloseVisuals(params: {
       strokeWidth: piloti.isPilotiRect
         ? PILOTI_STYLE.strokeWidth
         : PILOTI_STYLE.strokeWidthTopView,
+      strokeUniform: true,
     });
   });
 }

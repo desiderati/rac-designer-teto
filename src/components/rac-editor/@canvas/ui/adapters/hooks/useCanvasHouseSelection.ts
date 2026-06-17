@@ -34,12 +34,14 @@ export function useCanvasHouseSelection({
                 if (child.pilotiIsMaster) {
                   child.set({
                     stroke: PILOTI_MASTER_STROKE_COLOR,
-                    strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView
+                    strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
+                    strokeUniform: true,
                   });
                 } else {
                   child.set({
                     stroke: PILOTI_STROKE_COLOR,
-                    strokeWidth: PILOTI_STYLE.strokeWidthTopView
+                    strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+                    strokeUniform: true,
                   });
                 }
               }
@@ -48,12 +50,14 @@ export function useCanvasHouseSelection({
                 if (child.pilotiIsMaster) {
                   child.set({
                     stroke: PILOTI_MASTER_STROKE_COLOR,
-                    strokeWidth: PILOTI_MASTER_STYLE.strokeWidth
+                    strokeWidth: PILOTI_MASTER_STYLE.strokeWidth,
+                    strokeUniform: true,
                   });
                 } else {
                   child.set({
                     stroke: PILOTI_STROKE_COLOR,
-                    strokeWidth: PILOTI_STYLE.strokeWidth
+                    strokeWidth: PILOTI_STYLE.strokeWidth,
+                    strokeUniform: true,
                   });
                 }
               }

@@ -102,6 +102,56 @@ describe('construction-site-form-validation.ts', () => {
     }).success).toBe(false);
   });
 
+  it('bloqueia fotos de construção e família fora dos tipos de imagem aceitos', () => {
+    expect(constructionFormSchema.safeParse({
+      externalCode: 'CC2603',
+      constructionDate: '2026-06-16',
+      communityName: 'Tiradentes',
+      photoDataUrl: VALID_PNG_DATA_URL,
+    }).success).toBe(true);
+
+    expect(constructionFormSchema.safeParse({
+      externalCode: 'CC2603',
+      constructionDate: '2026-06-16',
+      communityName: 'Tiradentes',
+      photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+    }).success).toBe(false);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      familyName: 'Família Souza',
+      primaryContactName: 'Maria',
+      primaryContactPhone: '',
+      primaryContactEmail: '',
+      familyPhotoDataUrl: VALID_PNG_DATA_URL,
+      houseSize: '',
+      leaders: '',
+      notes: '',
+      soilProfile: '',
+      hasUndergroundObstacles: false,
+      hasElevatedObstacles: false,
+      hasNeighborSetbacks: false,
+      locationQuery: '',
+      terrainComplexity: 'flat',
+    }).success).toBe(true);
+
+    expect(houseConfigurationFormSchema.safeParse({
+      familyName: 'Família Souza',
+      primaryContactName: 'Maria',
+      primaryContactPhone: '',
+      primaryContactEmail: '',
+      familyPhotoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+      houseSize: '',
+      leaders: '',
+      notes: '',
+      soilProfile: '',
+      hasUndergroundObstacles: false,
+      hasElevatedObstacles: false,
+      hasNeighborSetbacks: false,
+      locationQuery: '',
+      terrainComplexity: 'flat',
+    }).success).toBe(false);
+  });
+
   it('mantém dados opcionais de Sobre a Casa sem obrigar preenchimento', () => {
     const baseHouseConfiguration = {
       familyName: 'Família Souza',

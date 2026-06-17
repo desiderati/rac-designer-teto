@@ -98,13 +98,13 @@ async function openHouseExtraMaterials(page: Page) {
 }
 
 async function reopenHouseConfiguration(page: Page) {
-  await expect(page.getByRole('heading', {name: 'Casas da Construção', hidden: true})).toBeAttached();
+  await expect(page.getByRole('heading', {name: /^Casas - CC2603/, hidden: true})).toBeAttached();
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i}).click();
   await expect(page.getByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
 }
 
 async function reopenHouseExtraMaterials(page: Page) {
-  await expect(page.getByRole('heading', {name: 'Casas da Construção', hidden: true})).toBeAttached();
+  await expect(page.getByRole('heading', {name: /^Casas - CC2603/, hidden: true})).toBeAttached();
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})
     .getByRole('button', {name: 'Abrir materiais extras da casa Família E2E'})
     .click();

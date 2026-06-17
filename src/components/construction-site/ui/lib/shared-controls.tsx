@@ -521,22 +521,24 @@ export function TextField({
   return (
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
       <label htmlFor={inputId}>{label}</label>
-      <input
-        id={inputId}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        required={required}
-        maxLength={maxLength}
-        pattern={pattern}
-        inputMode={inputMode}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={error ? errorId : undefined}
-        onChange={(event) => onChange(event.target.value)}
-        onBlur={onBlur}
-        onKeyDown={onKeyDown}
-        className={inputClassName}
-      />
+      <span className='relative block h-10 w-full'>
+        <input
+          id={inputId}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          required={required}
+          maxLength={maxLength}
+          pattern={pattern}
+          inputMode={inputMode}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? errorId : undefined}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          onKeyDown={onKeyDown}
+          className={cn(inputClassName, 'h-full w-full')}
+        />
+      </span>
       {error ? (
         <span id={errorId} className='text-xs font-semibold normal-case tracking-normal text-red-600'>
           {error}

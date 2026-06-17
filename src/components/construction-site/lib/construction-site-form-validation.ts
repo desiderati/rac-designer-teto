@@ -35,7 +35,9 @@ export const constructionFormSchema = z.object({
     .trim()
     .transform((value) => value.toUpperCase())
     .refine((value) => CONSTRUCTION_CODE_PATTERN.test(value), 'Informe o código no formato CC0000.'),
-  photoDataUrl: z.string().optional(),
+  photoDataUrl: z.string()
+    .refine(hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE)
+    .optional(),
   constructionDate: z.string()
     .trim()
     .refine(isDateOnly, 'Informe a data da construção.'),
@@ -60,7 +62,9 @@ export const houseConfigurationFormSchema = z.object({
     .trim()
     .max(HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH, `Máximo de ${HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH} caracteres.`)
     .refine(hasValidOptionalEmail, 'Informe um e-mail válido.'),
-  familyPhotoDataUrl: z.string().optional(),
+  familyPhotoDataUrl: z.string()
+    .refine(hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE)
+    .optional(),
   houseSize: z.enum(['large', 'small']).or(z.literal('')),
   leaders: z.string()
     .trim()

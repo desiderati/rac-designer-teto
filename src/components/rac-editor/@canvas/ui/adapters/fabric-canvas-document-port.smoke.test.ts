@@ -1,16 +1,32 @@
 import {describe, expect, it, vi} from 'vitest';
 import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
 import {createFabricCanvasDocumentPort} from './fabric-canvas-document-port.ts';
+import {
+  HOUSE_2D_STYLE,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE,
+  PILOTI_VISUAL_FEEDBACK_COLORS,
+} from '@/shared/config.ts';
 
-function createHouseGroup() {
+function createHouseGroup(children: any[] = []) {
   return {
     type: 'group',
     myType: 'house',
     objectCaching: true,
-    getObjects: vi.fn(() => []),
-    getCanvasObjects: vi.fn(() => []),
+    getObjects: vi.fn(() => children),
+    getCanvasObjects: vi.fn(() => children),
     setControlsVisibility: vi.fn(),
     setCoords: vi.fn(),
+  };
+}
+
+function createCanvasObject(props: Record<string, unknown>) {
+  return {
+    dirty: false,
+    set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {
+      Object.assign(this, patch);
+    }),
+    ...props,
   };
 }
 
@@ -373,7 +389,10 @@ describe('fabric-canvas-document-port.ts', () => {
 
   it('captura imagem descartando seleção ativa antes de exportar', () => {
     const canvas = {
+      getObjects: vi.fn(() => []),
+      getActiveObject: vi.fn(() => null),
       discardActiveObject: vi.fn(),
+      setActiveObject: vi.fn(),
       renderAll: vi.fn(),
       toDataURL: vi.fn(() => 'data:image/png;base64,abc'),
     };
@@ -383,5 +402,65 @@ describe('fabric-canvas-document-port.ts', () => {
     expect(port.exportImageDataUrl()).toBe('data:image/png;base64,abc');
     expect(canvas.discardActiveObject).toHaveBeenCalled();
     expect(canvas.renderAll).toHaveBeenCalled();
+    expect(canvas.setActiveObject).not.toHaveBeenCalled();
+  });
+
+  it('captura imagem de exportação com seleção visual neutralizada e restaura o estado do editor', () => {
+    const pilotiCircle = createCanvasObject({
+      isPilotiCircle: true,
+      pilotiIsMaster: false,
+      fill: PILOTI_STYLE.fillColor,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+      strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView,
+      strokeUniform: false,
+      hoverCursor: 'pointer',
+    });
+    const masterPilotiRect = createCanvasObject({
+      isPilotiRect: true,
+      pilotiIsMaster: true,
+      fill: PILOTI_MASTER_STYLE.fillColor,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
+      strokeWidth: PILOTI_STYLE.selectedStrokeWidth,
+      strokeUniform: true,
+      hoverCursor: 'pointer',
+    });
+    const sideEdge = createCanvasObject({
+      isHouseBorderEdge: true,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
+      strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView,
+      hoverCursor: 'pointer',
+    });
+    const houseGroup = createHouseGroup([pilotiCircle, masterPilotiRect, sideEdge]);
+    const activeObject = houseGroup;
+    const canvas = {
+      getObjects: vi.fn(() => [houseGroup]),
+      getActiveObject: vi.fn(() => activeObject),
+      discardActiveObject: vi.fn(),
+      setActiveObject: vi.fn(),
+      renderAll: vi.fn(),
+      toDataURL: vi.fn(() => {
+        expect(pilotiCircle.stroke).toBe(PILOTI_STYLE.strokeColor);
+        expect(pilotiCircle.strokeWidth).toBe(PILOTI_STYLE.strokeWidthTopView);
+        expect(pilotiCircle.strokeUniform).toBe(true);
+        expect(masterPilotiRect.stroke).toBe(PILOTI_MASTER_STYLE.strokeColor);
+        expect(masterPilotiRect.strokeWidth).toBe(PILOTI_MASTER_STYLE.strokeWidth);
+        expect(sideEdge.stroke).toBe(HOUSE_2D_STYLE.outlineStrokeColor);
+        expect(sideEdge.strokeWidth).toBe(HOUSE_2D_STYLE.outlineStrokeWidth);
+        return 'data:image/png;base64,clean';
+      }),
+    };
+
+    const port = createFabricCanvasDocumentPort(canvas as any);
+
+    expect(port.exportImageDataUrl()).toBe('data:image/png;base64,clean');
+    expect(canvas.discardActiveObject).toHaveBeenCalledTimes(1);
+    expect(canvas.setActiveObject).toHaveBeenCalledWith(activeObject);
+    expect(pilotiCircle.stroke).toBe(PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor);
+    expect(pilotiCircle.strokeWidth).toBe(PILOTI_STYLE.selectedStrokeWidthTopView);
+    expect(pilotiCircle.strokeUniform).toBe(false);
+    expect(masterPilotiRect.stroke).toBe(PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor);
+    expect(masterPilotiRect.strokeWidth).toBe(PILOTI_STYLE.selectedStrokeWidth);
+    expect(sideEdge.stroke).toBe(PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor);
+    expect(sideEdge.strokeWidth).toBe(PILOTI_STYLE.selectedStrokeWidthTopView);
   });
 });

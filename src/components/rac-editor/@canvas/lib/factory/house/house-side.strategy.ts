@@ -60,7 +60,9 @@ export function createHouseSide(
     left: 0,
     top: 0,
   });
-  const elements: CanvasObject[] = [toCanvasObject(wall)];
+  const wallObject = toCanvasObject(wall);
+  wallObject.isHouseBody = true;
+  const elements: CanvasObject[] = [wallObject];
 
   const floor = new Rect({
     width: floorW,

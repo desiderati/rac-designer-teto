@@ -59,10 +59,11 @@ Os mesmos valores alimentam a informação exibida na modal de terreno e a altur
 
 1. Pedras sempre corresponde à soma dos volumes calculados de rachão e brita.
 2. O sistema não deve tratar pedras como um terceiro material independente.
-3. UI, PDF e relatórios devem usar a mesma regra centralizada.
+3. A interface deve usar a regra centralizada quando exibir esses totais.
+4. O PDF RAC não deve exibir os campos detalhados de rachão, brita e pedras.
 
 ## Regras de apresentação
 
 1. A interface deve diferenciar rachão, brita e pedras.
 2. Quando o total de pedras for exibido, o rótulo deve usar `Rachão | Brita`.
-3. Exportações devem preservar a mesma nomenclatura para evitar interpretação operacional ambígua.
+3. A exportação em PDF deve omitir a seção de materiais de base.

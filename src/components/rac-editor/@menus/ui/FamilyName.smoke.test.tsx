@@ -31,8 +31,8 @@ describe('FamilyName.tsx', () => {
     const input = screen.getByRole('textbox', {name: 'Editar nome da família'});
     expect(input).toHaveAttribute('maxlength', String(HOUSE_FAMILY_NAME_MAX_LENGTH));
     expect(input).toHaveClass(
-      'w-[min(24rem,calc(100vw-7rem))]',
-      'max-w-[min(24rem,calc(100vw-7rem))]',
+      'w-[min(12rem,calc(100vw-7rem))]',
+      'max-w-[min(12rem,calc(100vw-7rem))]',
     );
     await user.clear(input);
     await user.type(input, `${longFamilyName}{Enter}`);

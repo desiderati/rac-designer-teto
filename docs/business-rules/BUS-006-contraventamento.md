@@ -49,21 +49,29 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 
 3. Se os dois lados verticais já estiverem ocupados, não é possível criar novo contraventamento vertical nessa coluna.
 
-## Regras de capacidade por linha
+## Regras de capacidade horizontal por linha
 
-1. Uma linha/faixa pode ter até dois contraventamentos horizontais:
+1. Cada piloti de uma linha/faixa pode receber até dois contraventamentos horizontais:
     - Um no lado superior.
     - Um no lado inferior.
 
-2. Não pode repetir o mesmo lado horizontal na mesma linha.
+2. Um contraventamento horizontal ocupa o lado escolhido nos pilotis tocados pelo trecho entre origem e destino:
+    - piloti de origem;
+    - piloti de destino;
+    - pilotis intermediários quando o trecho passar por eles.
 
-3. A linha A (`A1` a `A4`) permite apenas contraventamento inferior, quando elegível.
+3. Não pode criar contraventamento horizontal se o mesmo lado já estiver ocupado em qualquer piloti tocado pelo trecho.
 
-4. A linha B (`B1` a `B4`) permite contraventamento superior e inferior, quando elegível.
+4. Pode existir mais de um contraventamento horizontal no mesmo lado da mesma linha, desde que os trechos não toquem os
+   mesmos pilotis.
 
-5. A linha C (`C1` a `C4`) permite apenas contraventamento superior, quando elegível.
+5. A linha A (`A1` a `A4`) permite apenas contraventamento inferior, quando elegível.
 
-6. Contraventamentos horizontais não consomem capacidade de lado vertical da coluna.
+6. A linha B (`B1` a `B4`) permite contraventamento superior e inferior, quando elegível.
+
+7. A linha C (`C1` a `C4`) permite apenas contraventamento superior, quando elegível.
+
+8. Contraventamentos horizontais não consomem capacidade de lado vertical da coluna.
 
 ## Onde o fluxo começa
 
@@ -83,14 +91,15 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
     - Inserção é bloqueada.
     - Remoção de lado já existente continua permitida.
 
-4. Se o lado horizontal permitido para a linha já estiver ocupado
-    - O botão desse lado permanece habilitado para permitir remoção.
+4. Se o lado horizontal permitido já estiver ocupado no piloti selecionado
+    - O botão desse lado permanece habilitado para permitir remoção do contraventamento que toca esse piloti.
 
-5. Se o lado horizontal permitido para a linha estiver livre
+5. Se o lado horizontal permitido estiver livre no piloti selecionado
     - Só habilita quando a linha/faixa atender às mesmas regras de elegibilidade estrutural usadas pelo
       contraventamento vertical.
 
-6. Lados horizontais não permitidos para a linha do piloti não aparecem como ação disponível.
+6. Lados horizontais não permitidos para a linha do piloti aparecem no editor, mas ficam desabilitados e não iniciam
+   fluxo de seleção.
 
 ## Fluxo de criação vertical
 
@@ -123,11 +132,13 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
     - O destino deve ser diferente da coluna de origem.
     - Deve respeitar elegibilidade da linha no momento da criação.
     - Deve respeitar os lados permitidos para a linha A, B ou C.
+    - O trecho entre origem e destino não pode tocar, no mesmo lado, um piloti já ocupado por outro contraventamento
+      horizontal.
 
 ## Regras de remoção
 
 1. Clicar no lado vertical já ativo remove o contraventamento desse lado.
-2. Clicar no lado horizontal já ativo remove o contraventamento desse lado naquela linha/faixa.
+2. Clicar no lado horizontal já ativo remove o contraventamento desse lado que toca o piloti selecionado.
 3. Após remoção:
     - O estado visual é atualizado.
     - As vistas são sincronizadas.
@@ -158,6 +169,8 @@ Ao cancelar:
 1. Pilotis elegíveis ficam visualmente destacados.
 2. Pilotis não elegíveis ficam com aparência neutra.
 3. Cursor e destaque devem deixar claro o que é clicável.
+4. Nas vistas elevadas dos lados menores da casa, a espessura visual do contraventamento deve ser o dobro da espessura
+   usada nas vistas do lado de 6 m.
 
 ## Regras de consistência com 3D
 

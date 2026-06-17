@@ -41,6 +41,7 @@ export function highlightEligibleContraventamentoPilotis(
       obj.set({
         stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
         strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView,
+        strokeUniform: false,
         fill: PILOTI_STYLE.fillColor,
         hoverCursor: 'pointer',
       });
@@ -49,6 +50,7 @@ export function highlightEligibleContraventamentoPilotis(
       obj.set({
         stroke: PILOTI_VISUAL_FEEDBACK_COLORS.dimmedStrokeColor,
         strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+        strokeUniform: true,
         fill: PILOTI_VISUAL_FEEDBACK_COLORS.dimmedStrokeColor,
         hoverCursor: 'default',
       });
@@ -74,6 +76,7 @@ export function resetHighlightContraventamentoPilotis(group: CanvasGroup): void 
       obj.set({
         stroke: PILOTI_MASTER_STYLE.strokeColor,
         strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
+        strokeUniform: true,
         fill: PILOTI_MASTER_STYLE.fillColor,
         hoverCursor: 'default',
       });
@@ -81,6 +84,7 @@ export function resetHighlightContraventamentoPilotis(group: CanvasGroup): void 
       obj.set({
         stroke: PILOTI_STYLE.strokeColor,
         strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+        strokeUniform: true,
         fill: PILOTI_STYLE.fillColor,
         hoverCursor: 'default',
       });

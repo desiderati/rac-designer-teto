@@ -107,12 +107,8 @@ export function PilotiEditor({
 
   if (!isOpen) return null;
 
-  const pilotiRowMatch = pilotiId?.match(/^piloti_\d+_(\d+)$/);
-  const pilotiRow = pilotiRowMatch ? Number(pilotiRowMatch[1]) : null;
-  const canShowTopContraventamento = pilotiRow === 1 || pilotiRow === 2;
-  const canShowBottomContraventamento = pilotiRow === 0 || pilotiRow === 1;
-
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
+  const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
 
   return (
     <FloatingEditor
@@ -169,7 +165,7 @@ export function PilotiEditor({
             </>
           }
 
-          {isCornerPiloti &&
+          {canEditNivel &&
             <>
               <NivelSlider
                 nivel={tempNivel}
@@ -244,47 +240,43 @@ export function PilotiEditor({
                 </span>
               </button>
 
-              {canShowTopContraventamento ? (
-                <button
-                  type='button'
-                  disabled={contraventamentoTopDisabled}
-                  onClick={() => {
-                    commitDraftChanges();
-                    onHorizontalContraventamentoSelect?.('top', pilotiId ?? undefined);
-                  }}
-                  className={
-                    getContraventamentoButtonClasses(
-                      contraventamentoTopActive,
-                      contraventamentoTopDisabled
-                    )
-                  }>
-                  <span className='flex flex-col items-center gap-1.5'>
-                    <ContraventamentoHorizontalSideIcon side='top' size={40}/>
-                    <span className='text-xs font-semibold'>Superior</span>
-                  </span>
-                </button>
-              ) : <span aria-hidden='true'/>}
+              <button
+                type='button'
+                disabled={contraventamentoTopDisabled}
+                onClick={() => {
+                  commitDraftChanges();
+                  onHorizontalContraventamentoSelect?.('top', pilotiId ?? undefined);
+                }}
+                className={
+                  getContraventamentoButtonClasses(
+                    contraventamentoTopActive,
+                    contraventamentoTopDisabled
+                  )
+                }>
+                <span className='flex flex-col items-center gap-1.5'>
+                  <ContraventamentoHorizontalSideIcon side='top' size={40}/>
+                  <span className='text-xs font-semibold'>Superior</span>
+                </span>
+              </button>
 
-              {canShowBottomContraventamento ? (
-                <button
-                  type='button'
-                  disabled={contraventamentoBottomDisabled}
-                  onClick={() => {
-                    commitDraftChanges();
-                    onHorizontalContraventamentoSelect?.('bottom', pilotiId ?? undefined);
-                  }}
-                  className={
-                    getContraventamentoButtonClasses(
-                      contraventamentoBottomActive,
-                      contraventamentoBottomDisabled
-                    )
-                  }>
-                  <span className='flex flex-col items-center gap-1.5'>
-                    <ContraventamentoHorizontalSideIcon side='bottom' size={40}/>
-                    <span className='text-xs font-semibold'>Inferior</span>
-                  </span>
-                </button>
-              ) : <span aria-hidden='true'/>}
+              <button
+                type='button'
+                disabled={contraventamentoBottomDisabled}
+                onClick={() => {
+                  commitDraftChanges();
+                  onHorizontalContraventamentoSelect?.('bottom', pilotiId ?? undefined);
+                }}
+                className={
+                  getContraventamentoButtonClasses(
+                    contraventamentoBottomActive,
+                    contraventamentoBottomDisabled
+                  )
+                }>
+                <span className='flex flex-col items-center gap-1.5'>
+                  <ContraventamentoHorizontalSideIcon side='bottom' size={40}/>
+                  <span className='text-xs font-semibold'>Inferior</span>
+                </span>
+              </button>
             </div>
           </div>
         </>

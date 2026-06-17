@@ -34,6 +34,8 @@ export interface ContraventamentoCandidate {
   contraventamentoOrientation?: unknown;
   contraventamentoCol?: unknown;
   contraventamentoRow?: unknown;
+  contraventamentoStartCol?: unknown;
+  contraventamentoEndCol?: unknown;
   contraventamentoSide?: unknown;
   left?: unknown;
   top?: unknown;
@@ -103,6 +105,73 @@ export function getContraventamentoRowCenterY(row: number): number {
   return CONTRAVENTAMENTO_ROW_Y[row] ?? 0;
 }
 
+function toFiniteNumber(value: unknown): number | null {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function getNearestContraventamentoCol(x: number): number {
+  let idx = 0;
+  let minDist = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < CONTRAVENTAMENTO_COLUMN_X.length; i += 1) {
+    const dist = Math.abs(x - CONTRAVENTAMENTO_COLUMN_X[i]);
+    if (dist < minDist) {
+      minDist = dist;
+      idx = i;
+    }
+  }
+  return idx;
+}
+
+function normalizeColRange(startCol: number, endCol: number): { startCol: number; endCol: number } {
+  return {
+    startCol: Math.min(startCol, endCol),
+    endCol: Math.max(startCol, endCol),
+  };
+}
+
+function getHorizontalContraventamentoColumnRange(
+  object: ContraventamentoCandidate,
+): { startCol: number; endCol: number } {
+  const metadataStartCol = toFiniteNumber(object.contraventamentoStartCol);
+  const metadataEndCol = toFiniteNumber(object.contraventamentoEndCol);
+  if (metadataStartCol !== null && metadataEndCol !== null) {
+    return normalizeColRange(metadataStartCol, metadataEndCol);
+  }
+
+  const left = toFiniteNumber(object.left) ?? 0;
+  const width = toFiniteNumber(object.width) ?? 0;
+  const scaleX = toFiniteNumber(object.scaleX) ?? 1;
+  const right = left + width * scaleX;
+  return normalizeColRange(
+    getNearestContraventamentoCol(left),
+    getNearestContraventamentoCol(right),
+  );
+}
+
+function getRequestedHorizontalColumnRange(params: {
+  col?: number;
+  startCol?: number;
+  endCol?: number;
+}): { startCol: number; endCol: number } | null {
+  if (Number.isFinite(params.col)) {
+    return normalizeColRange(Number(params.col), Number(params.col));
+  }
+
+  if (Number.isFinite(params.startCol) && Number.isFinite(params.endCol)) {
+    return normalizeColRange(Number(params.startCol), Number(params.endCol));
+  }
+
+  return null;
+}
+
+function columnRangesOverlap(
+  left: { startCol: number; endCol: number },
+  right: { startCol: number; endCol: number },
+): boolean {
+  return left.startCol <= right.endCol && right.startCol <= left.endCol;
+}
+
 /**
  * Coleta os lados ocupados por contraventamentos em uma coluna.
  *
@@ -149,14 +218,22 @@ export function collectOccupiedContraventamentoSides(params: {
 export function collectOccupiedHorizontalContraventamentoSides(params: {
   objects: ContraventamentoCandidate[];
   row: number;
+  col?: number;
+  startCol?: number;
+  endCol?: number;
   onResolvedSide?: (object: ContraventamentoCandidate, side: ContraventamentoHorizontalSide) => void;
 }): ContraventamentoHorizontalSidesOccupation {
   const occupied: ContraventamentoHorizontalSidesOccupation = {top: false, bottom: false};
+  const requestedRange = getRequestedHorizontalColumnRange(params);
 
   params.objects.forEach((object) => {
     if (!object.isContraventamento) return;
     if (getContraventamentoOrientation(object) !== 'horizontal') return;
     if (Number(object.contraventamentoRow) !== params.row) return;
+    if (requestedRange) {
+      const objectRange = getHorizontalContraventamentoColumnRange(object);
+      if (!columnRangesOverlap(requestedRange, objectRange)) return;
+    }
 
     let side: ContraventamentoHorizontalSide;
     if (isContraventamentoHorizontalSide(object.contraventamentoSide)) {

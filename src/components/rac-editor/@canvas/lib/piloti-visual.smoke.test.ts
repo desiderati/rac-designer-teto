@@ -22,6 +22,7 @@ describe('piloti-visual.ts', () => {
       pilotiHeight: 2,
       pilotiIsMaster: true,
       pilotiNivel: 0.8,
+      strokeUniform: true,
       height: 120,
       scaleY: 1,
       fill: '#fef08a',
@@ -45,6 +46,7 @@ describe('piloti-visual.ts', () => {
       pilotiHeight: 1.2,
       pilotiIsMaster: false,
       pilotiNivel: 0.3,
+      strokeUniform: true,
     });
   });
 

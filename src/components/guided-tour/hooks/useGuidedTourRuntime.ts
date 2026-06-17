@@ -198,6 +198,23 @@ export function useGuidedTourRuntime(registry: GuidedTourRegistry) {
   }, []);
 
   useEffect(() => {
+    if (activeItem) return;
+
+    const passiveTip = registry.tips.find((candidate) => {
+      if (!candidate.targetId || candidate.triggerSelector || candidate.triggerEvent) return false;
+      if (isGuidedTourTipShown(candidate.persistKey)) return false;
+      return Boolean(getVisibleTargetRect(candidate.targetId));
+    });
+    if (!passiveTip?.targetId) return;
+
+    const passiveTargetRect = getVisibleTargetRect(passiveTip.targetId);
+    if (!passiveTargetRect) return;
+
+    setTargetRect(passiveTargetRect);
+    setActiveItem({kind: 'tip', step: passiveTip, targetRect: passiveTargetRect});
+  }, [activeItem, observerVersion, registry.tips]);
+
+  useEffect(() => {
     if (!activeItem) {
       setTargetRect(null);
       return;

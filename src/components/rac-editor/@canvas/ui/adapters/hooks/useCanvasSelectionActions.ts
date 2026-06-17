@@ -84,7 +84,8 @@ export function useCanvasSelectionActions() {
             if (child?.isPilotiRect) {
               child.set({
                 stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
-                strokeWidth: PILOTI_STYLE.selectedStrokeWidth
+                strokeWidth: PILOTI_STYLE.selectedStrokeWidth,
+                strokeUniform: true,
               });
             }
           });
@@ -95,7 +96,8 @@ export function useCanvasSelectionActions() {
           if (child?.isPilotiCircle) {
             child.set({
               stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
-              strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView
+              strokeWidth: PILOTI_STYLE.selectedStrokeWidthTopView,
+              strokeUniform: false,
             });
           }
         });
@@ -108,12 +110,14 @@ export function useCanvasSelectionActions() {
         if (canvasObjectChild.pilotiIsMaster) {
           canvasObjectChild.set({
             stroke: PILOTI_MASTER_STYLE.strokeColor,
-            strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView
+            strokeWidth: PILOTI_MASTER_STYLE.strokeWidthTopView,
+            strokeUniform: true,
           });
         } else {
           canvasObjectChild.set({
             stroke: PILOTI_STYLE.strokeColor,
-            strokeWidth: PILOTI_STYLE.strokeWidthTopView
+            strokeWidth: PILOTI_STYLE.strokeWidthTopView,
+            strokeUniform: true,
           });
         }
       }
@@ -122,12 +126,14 @@ export function useCanvasSelectionActions() {
         if (canvasObjectChild.pilotiIsMaster) {
           canvasObjectChild.set({
             stroke: PILOTI_MASTER_STYLE.strokeColor,
-            strokeWidth: PILOTI_MASTER_STYLE.strokeWidth
+            strokeWidth: PILOTI_MASTER_STYLE.strokeWidth,
+            strokeUniform: true,
           });
         } else {
           canvasObjectChild.set({
             stroke: PILOTI_STYLE.strokeColor,
-            strokeWidth: PILOTI_STYLE.strokeWidth
+            strokeWidth: PILOTI_STYLE.strokeWidth,
+            strokeUniform: true,
           });
         }
       }
@@ -251,6 +257,7 @@ export function useCanvasSelectionActions() {
             canvasObjectChild.set({
               stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
               strokeWidth: 3,
+              strokeUniform: false,
             });
             canvasObjectChild.dirty = true;
           }

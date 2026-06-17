@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
+  addContraventamentoBeam,
   addHorizontalContraventamentoBeam,
   syncContraventamentoElevationViews
 } from '@/components/rac-editor/@canvas/lib/contraventamento.ts';
@@ -15,6 +16,7 @@ import {
   inferContraventamentoSide,
 } from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {isPilotiOutOfProportion, parsePilotiGridPosition} from '@/shared/types/piloti.ts';
+import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 
 function createMockGroup(props: Record<string, unknown> = {}) {
   const group: any = {
@@ -46,6 +48,8 @@ function createPilotiRect(pilotiId: string, left: number, top: number) {
 }
 
 describe('contraventamento.ts', () => {
+  const defaultElevationWidth = HOUSE_DIMENSIONS.contraventamento.squareWidth / 2;
+
   it('parses piloti ids', () => {
     expect(parsePilotiGridPosition('piloti_2_1')).toEqual({col: 2, row: 1});
     expect(parsePilotiGridPosition('invalid')).toBeNull();
@@ -135,6 +139,7 @@ describe('contraventamento.ts', () => {
 
     expect(createdId).toEqual(expect.any(String));
     const beam = topGroup._objects[0];
+    expect(beam.strokeUniform).toBe(true);
     expect(beam.contraventamentoOrientation).toBe('horizontal');
     expect(beam.contraventamentoSide).toBe('top');
     expect(beam.contraventamentoStartCol).toBe(0);
@@ -147,6 +152,78 @@ describe('contraventamento.ts', () => {
         objects: topGroup.getCanvasObjects(),
       }),
     ).toEqual({top: true, bottom: false});
+  });
+
+  it('cria contraventamento vertical da planta com borda uniforme', () => {
+    const topGroup = createMockGroup();
+    const createdId = addContraventamentoBeam(
+      topGroup,
+      {col: 1, row: 0},
+      {col: 1, row: 2},
+      {side: 'left', anchorPilotiId: 'piloti_1_0'},
+    );
+
+    expect(createdId).toEqual(expect.any(String));
+    const beam = topGroup._objects[0];
+    expect(beam.strokeUniform).toBe(true);
+    expect(beam.contraventamentoOrientation).toBe('vertical');
+  });
+
+  it('avalia ocupação horizontal pelos pilotis tocados pelo trecho', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoOrientation: 'horizontal',
+          contraventamentoRow: 1,
+          contraventamentoStartCol: 0,
+          contraventamentoEndCol: 1,
+          contraventamentoSide: 'top',
+        },
+        {
+          isContraventamento: true,
+          contraventamentoOrientation: 'horizontal',
+          contraventamentoRow: 1,
+          contraventamentoStartCol: 0,
+          contraventamentoEndCol: 1,
+          contraventamentoSide: 'bottom',
+        },
+      ],
+    });
+
+    expect(
+      collectOccupiedHorizontalContraventamentoSides({
+        row: 1,
+        col: 1,
+        objects: topGroup.getCanvasObjects(),
+      }),
+    ).toEqual({top: true, bottom: true});
+
+    expect(
+      collectOccupiedHorizontalContraventamentoSides({
+        row: 1,
+        col: 2,
+        objects: topGroup.getCanvasObjects(),
+      }),
+    ).toEqual({top: false, bottom: false});
+
+    expect(
+      collectOccupiedHorizontalContraventamentoSides({
+        row: 1,
+        startCol: 2,
+        endCol: 3,
+        objects: topGroup.getCanvasObjects(),
+      }),
+    ).toEqual({top: false, bottom: false});
+
+    expect(
+      collectOccupiedHorizontalContraventamentoSides({
+        row: 1,
+        startCol: 1,
+        endCol: 2,
+        objects: topGroup.getCanvasObjects(),
+      }),
+    ).toEqual({top: true, bottom: true});
   });
 
   it('constructionSites contraventamento in side views using legacy and houseSide metadata', () => {
@@ -213,6 +290,14 @@ describe('contraventamento.ts', () => {
       'contrav_right',
       'contrav_right',
     ]);
+    expect(legacyLeftProjections.map((object: any) => object.strokeWidth)).toEqual([
+      defaultElevationWidth * 2 + 2,
+      defaultElevationWidth * 2,
+    ]);
+    expect(modernRightProjections.map((object: any) => object.strokeWidth)).toEqual([
+      defaultElevationWidth * 2 + 2,
+      defaultElevationWidth * 2,
+    ]);
     expect(legacyLeftGroup.setCoords).toHaveBeenCalled();
     expect(modernRightGroup.setCoords).toHaveBeenCalled();
   });
@@ -255,6 +340,10 @@ describe('contraventamento.ts', () => {
     expect(projections.map((object: any) => object.contraventamentoId)).toEqual([
       'contrav_horizontal',
       'contrav_horizontal',
+    ]);
+    expect(projections.map((object: any) => object.strokeWidth)).toEqual([
+      defaultElevationWidth + 2,
+      defaultElevationWidth,
     ]);
     expect(frontGroup.setCoords).toHaveBeenCalled();
   });

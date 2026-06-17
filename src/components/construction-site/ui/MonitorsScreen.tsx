@@ -114,19 +114,18 @@ export function MonitorsScreen({
       <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto sm:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
-            <col className='w-[52%]'/>
+            <col className='w-[48%]'/>
             <col className='w-[16%]'/>
-            <col className='w-[32%]'/>
+            <col className='w-[24%]'/>
+            <col className='w-[12%]'/>
           </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Monitores</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
+            <th scope='col' className='px-3 pb-1 text-center'>Contato</th>
             <th scope='col' className='px-3 pb-1 text-center'>
-              <span className='grid grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3'>
-                <span className='justify-self-center'>Contato</span>
-                <span aria-hidden='true'/>
-              </span>
+              <span className='sr-only'>Ações</span>
             </th>
           </tr>
           </thead>
@@ -294,15 +293,17 @@ function MonitorTableRow({
       <td className='px-3 py-3 text-center align-middle'>
         <MonitorStatusBadge status={monitor.status}/>
       </td>
-      <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3'>
-          <span className='justify-self-center whitespace-nowrap text-center'>{monitor.phone}</span>
+      <td className='px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
+        <span className='block whitespace-nowrap text-center'>{monitor.phone}</span>
+      </td>
+      <td className='rounded-r-lg px-3 py-3 text-center align-middle'>
+        <span data-testid='monitor-table-actions' className='flex min-h-14 items-center justify-center'>
           <StatusActionButton
             action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
             label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
             onClick={requestStatusChange}
           />
-        </div>
+        </span>
       </td>
     </tr>
   );

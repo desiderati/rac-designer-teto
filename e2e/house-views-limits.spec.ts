@@ -27,7 +27,7 @@ test.describe('RAC views and limits', () => {
 
     await ensureMainMenuOpen(page);
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
-    await page.getByRole('button', {name: 'Visão Frontal'}).click();
+    await page.getByRole('button', {name: 'Frontal'}).click();
 
     await expect(page.getByText('Limite de Frontal atingido para este tipo de casa.')).toBeVisible();
   });
@@ -57,12 +57,12 @@ test.describe('RAC views and limits', () => {
 
     await ensureMainMenuOpen(page);
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
-    await page.getByRole('button', {name: 'Visão Lateral'}).click();
+    await page.getByRole('button', {name: 'Lateral'}).click();
     await page.getByRole('button', {name: 'Superior'}).click();
 
     await ensureMainMenuOpen(page);
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
-    await page.getByRole('button', {name: 'Visão Lateral'}).click();
+    await page.getByRole('button', {name: 'Lateral'}).click();
     await expect(page.getByRole('heading', {name: 'Qual das laterais deseja mostrar?'})).toBeHidden();
 
     await expect
@@ -73,14 +73,14 @@ test.describe('RAC views and limits', () => {
     expect(snapshot?.sideMappings.top).toBe('back');
     expect(snapshot?.sideMappings.bottom).toBe('back');
 
-    await triggerHouseAction(page, 'Visão Lateral');
+    await triggerHouseAction(page, 'Lateral');
     await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
   });
 
   test('vistas tipo6: remove e reinsere visão traseira', async ({page}) => {
     await createHouse(page, 'tipo6');
 
-    await triggerHouseAction(page, 'Visão Traseira');
+    await triggerHouseAction(page, 'Posterior');
     await expectViewCount(page, 'back', 1);
     let snapshot = await getHouseSnapshot(page);
 
@@ -90,18 +90,18 @@ test.describe('RAC views and limits', () => {
     snapshot = await getHouseSnapshot(page);
     expect(Object.values(snapshot?.sideMappings ?? {})).not.toContain('back');
 
-    await triggerHouseAction(page, 'Visão Traseira');
+    await triggerHouseAction(page, 'Posterior');
     await expectViewCount(page, 'back', 1);
     snapshot = await getHouseSnapshot(page);
   });
 
-  test('vistas tipo6: quadrado fechado libera novamente após remoção', async ({page}) => {
+  test('vistas tipo6: lateral libera novamente após remoção', async ({page}) => {
     await createHouse(page, 'tipo6');
 
-    await triggerHouseAction(page, 'Quadrado Fechado', 'Direito');
-    await triggerHouseAction(page, 'Quadrado Fechado');
-    await triggerHouseAction(page, 'Quadrado Fechado');
-    await expect(page.getByText('Limite de Quadrado Fechado atingido para este tipo de casa.')).toBeVisible();
+    await triggerHouseAction(page, 'Lateral', 'Direito');
+    await triggerHouseAction(page, 'Lateral');
+    await triggerHouseAction(page, 'Lateral');
+    await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
 
     await expectViewCount(page, 'side1', 2);
     let snapshot = await getHouseSnapshot(page);
@@ -111,7 +111,7 @@ test.describe('RAC views and limits', () => {
     await expectViewCount(page, 'side1', 1);
     snapshot = await getHouseSnapshot(page);
 
-    await triggerHouseAction(page, 'Quadrado Fechado');
+    await triggerHouseAction(page, 'Lateral');
     await expectViewCount(page, 'side1', 2);
     snapshot = await getHouseSnapshot(page);
   });
@@ -119,9 +119,9 @@ test.describe('RAC views and limits', () => {
   test('vistas tipo3: lateral libera novamente após remoção', async ({page}) => {
     await createHouse(page, 'tipo3');
 
-    await triggerHouseAction(page, 'Visão Lateral', 'Superior');
-    await triggerHouseAction(page, 'Visão Lateral');
-    await triggerHouseAction(page, 'Visão Lateral');
+    await triggerHouseAction(page, 'Lateral', 'Superior');
+    await triggerHouseAction(page, 'Lateral');
+    await triggerHouseAction(page, 'Lateral');
     await expect(page.getByText('Limite de Lateral atingido para este tipo de casa.')).toBeVisible();
 
     await expectViewCount(page, 'back', 2);
@@ -133,7 +133,7 @@ test.describe('RAC views and limits', () => {
     snapshot = await getHouseSnapshot(page);
     expect(snapshot?.sideMappings.top).toBeNull();
 
-    await triggerHouseAction(page, 'Visão Lateral', 'Superior');
+    await triggerHouseAction(page, 'Lateral', 'Superior');
     await expectViewCount(page, 'back', 2);
     snapshot = await getHouseSnapshot(page);
     expect(snapshot?.sideMappings.top).toBe('back');

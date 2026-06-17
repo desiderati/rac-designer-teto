@@ -37,6 +37,8 @@ describe('NivelSlider.tsx', () => {
     expect(screen.queryByText('Altura manual')).not.toBeInTheDocument();
     expect(screen.queryByText(/Máximo para altura atual/i)).not.toBeInTheDocument();
     expect(container.querySelector('input')).toBeNull();
+    expect(screen.getByLabelText('Nível do piloti em metros'))
+      .toHaveClass('outline-none', 'focus-visible:ring-0', 'focus-visible:ring-offset-0');
   });
 
   it('permite editar diretamente o texto do nível no desktop usando somente números', () => {

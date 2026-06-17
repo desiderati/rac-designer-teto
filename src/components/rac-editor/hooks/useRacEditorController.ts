@@ -1,4 +1,4 @@
-import {MouseEvent as ReactMouseEvent, useCallback, useRef, useState} from 'react';
+import {MouseEvent as ReactMouseEvent, useCallback, useRef} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
@@ -24,9 +24,11 @@ import {
   useConstructionSiteManagementController,
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
-import type {ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
 import {hasHouseViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
+import {
+  useRacEditorConstructionSitePanelController,
+} from '@/components/rac-editor/hooks/useRacEditorConstructionSitePanelController.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -107,8 +109,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
   const constructionSiteManagement = useConstructionSiteManagementController({
     canvasRef,
   });
-  const [constructionSiteManagementInitialScreen, setConstructionSiteManagementInitialScreen] =
-    useState<ConstructionSiteManagementScreen>('construction-list');
 
   const {
     handlePilotisSetupConfirm,
@@ -133,37 +133,18 @@ export function useRacEditorController(): RacEditorLayoutProps {
     setShowRestartConfirm(true);
   }, [setShowRestartConfirm]);
 
-  const openConstructionSiteManagement = useCallback((initialScreen: ConstructionSiteManagementScreen) => {
-    void constructionSiteManagement.flushActiveHouseDocumentSave({force: true})
-      .catch(() => undefined)
-      .finally(() => {
-        setConstructionSiteManagementInitialScreen(initialScreen);
-        setActiveSubmenu(null);
-        setIsMenuOpen(false);
-        setConstructionSiteManagementOpen(true);
-      });
-  }, [constructionSiteManagement, setActiveSubmenu, setIsMenuOpen, setConstructionSiteManagementOpen]);
-
-  const handleOpenConstructionSites = useCallback(() => {
-    openConstructionSiteManagement('construction-list');
-  }, [openConstructionSiteManagement]);
-
-  const handleCanvasDocumentChange = useCallback(() => {
-    void constructionSiteManagement.notifyActiveHouseDocumentChanged();
-  }, [constructionSiteManagement]);
-
-  const handleActivateHouse = useCallback((constructionId: string, houseId: string) => {
-    const activation = constructionSiteManagement.actions.activateHouse(constructionId, houseId);
-    setActiveSubmenu(null);
-    setIsMenuOpen(false);
-    return activation;
-  }, [constructionSiteManagement, setActiveSubmenu, setIsMenuOpen]);
-
-  const closeConstructionSiteManagement = useCallback(() => {
-    if (!constructionSiteManagement.canOpenRacEditor) return;
-    setConstructionSiteManagementOpen(false);
-    constructionSiteManagement.hydrateActiveHouseDocument();
-  }, [constructionSiteManagement, setConstructionSiteManagementOpen]);
+  const {
+    constructionSiteManagementInitialScreen,
+    handleOpenConstructionSites,
+    handleCanvasDocumentChange,
+    handleActivateHouse,
+    closeConstructionSiteManagement,
+  } = useRacEditorConstructionSitePanelController({
+    constructionSiteManagement,
+    setActiveSubmenu,
+    setIsMenuOpen,
+    setConstructionSiteManagementOpen,
+  });
 
   const closeRestartConfirm = useCallback(() => {
     setShowRestartConfirm(false);

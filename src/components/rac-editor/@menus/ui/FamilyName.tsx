@@ -83,7 +83,7 @@ export function FamilyName({familyName, onRename}: FamilyNameProps) {
           'px-2 py-2 text-lg font-bold text-slate-800 font-display',
           'bg-white/80 rounded-lg outline-none',
           'border border-blue-300 ring-2 ring-blue-200/60',
-          'min-w-[12rem] w-[min(24rem,calc(100vw-7rem))] max-w-[min(24rem,calc(100vw-7rem))]',
+          'min-w-[12rem] w-[min(12rem,calc(100vw-7rem))] max-w-[min(12rem,calc(100vw-7rem))]',
         )}
         style={{fontFamily: '"Space Grotesk", "Inter", sans-serif'}}
       />

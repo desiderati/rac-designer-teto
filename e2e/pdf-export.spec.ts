@@ -70,7 +70,10 @@ test.describe('Exportação PDF do RAC', () => {
 
   test('gera download pelo menu móvel da conta', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});
-    await setupSeededRacEditorPage(page, pdfExportSeed);
+    await setupSeededRacEditorPage(page, {
+      ...pdfExportSeed,
+      insertInitialViews: true,
+    });
 
     await expect(page.getByRole('button', {name: 'Exportar RAC em PDF'})).toHaveCount(0);
 

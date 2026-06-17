@@ -37,6 +37,7 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
 2. **Modo manual**
     - Alterar nível não sugere nem aplica novas alturas de piloti.
     - A pessoa responsável deve definir as alturas uma a uma.
+    - Todos os pilotis podem ter o nível editado individualmente.
     - O nível continua limitado ao mínimo global `0.20 m` e ao máximo permitido pela altura atual de cada piloti
       (`altura / 2`).
     - Ao alterar o nível de um piloti, somente o piloti selecionado é modificado; os demais permanecem intactos.
@@ -75,7 +76,7 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
 
 ### Digitação de nível no desktop
 
-1. A modal desktop de edição de piloti permite digitar o nível.
+1. A modal desktop de edição de piloti permite digitar o nível em todos os pilotis editáveis pelo modo ativo.
 2. O campo aceita somente dígitos.
 3. A interface aplica máscara visual `N,NN`, com vírgula decimal e duas casas.
 4. O valor digitado é confirmado por perda de foco ou pela tecla `Enter`.

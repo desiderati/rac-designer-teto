@@ -162,5 +162,15 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       persistKey: 'guided-tour:rac-tip:piloti',
       kind: 'tip',
     },
+    {
+      id: 'rac-tip-construction-back-to-canvas',
+      targetId: 'rac-construction-back-to-canvas',
+      placement: 'right',
+      alignment: 'middle',
+      title: 'Voltar ao Canvas',
+      text: 'Use este botão para retornar ao canvas da casa ativa depois de criar, arquivar, listar ou trocar construções.',
+      persistKey: 'guided-tour:rac-tip:construction-back-to-canvas',
+      kind: 'tip',
+    },
   ],
 };

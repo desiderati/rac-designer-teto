@@ -48,6 +48,33 @@ export function recalculateRecommendedPilotiData(params: {
   return nextPilotis;
 }
 
+export function applyPilotiPatch(params: {
+  pilotis: Record<string, HousePiloti>;
+  pilotiId: string;
+  patch: Partial<HousePiloti>;
+  defaultPiloti: HousePiloti;
+}): {
+  pilotis: Record<string, HousePiloti>;
+  clearedMasters: string[];
+} {
+  const nextPilotis: Record<string, HousePiloti> = {...params.pilotis};
+  const clearedMasters: string[] = [];
+
+  if (params.patch.isMaster === true) {
+    Object.entries(nextPilotis).forEach(([id, piloti]) => {
+      if (id !== params.pilotiId && piloti.isMaster) {
+        nextPilotis[id] = {...piloti, isMaster: false};
+        clearedMasters.push(id);
+      }
+    });
+  }
+
+  const current = nextPilotis[params.pilotiId] ?? params.defaultPiloti;
+  nextPilotis[params.pilotiId] = {...current, ...params.patch};
+
+  return {pilotis: nextPilotis, clearedMasters};
+}
+
 /**
  * Decide quais efeitos lógicos uma alteração de piloti deve acionar.
  *

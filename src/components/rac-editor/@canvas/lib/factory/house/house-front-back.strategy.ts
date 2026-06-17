@@ -85,11 +85,14 @@ export function createHouseFrontBack(
     },
   );
 
+  const bodyStrokeObject = toCanvasObject(bodyStroke);
+  bodyStrokeObject.isHouseBody = true;
+
   const elements: CanvasObject[] = [
     toCanvasObject(leftDiagFill),
     toCanvasObject(chapelFill),
     toCanvasObject(rightDiagFill),
-    toCanvasObject(bodyStroke)
+    bodyStrokeObject,
   ];
 
   const floor = new Rect({

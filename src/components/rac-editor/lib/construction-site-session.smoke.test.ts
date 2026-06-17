@@ -9,6 +9,7 @@ import {
 import type {HouseState} from '@/shared/types/house.ts';
 
 const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
+const VALID_JPEG_DATA_URL = 'data:image/jpeg;base64,/9j/';
 
 function createStorage(initialConstructionSites: StoredConstructionSitesDocument['constructionSites'] = []) {
   const writes: StoredConstructionSitesDocument['constructionSites'][] = [];
@@ -66,14 +67,14 @@ describe('constructionSite-session.ts', () => {
 
     const createdConstructionSite = session.createConstructionSite({
       externalCode: 'CC2603',
-      photoDataUrl: 'data:image/png;base64,site',
+      photoDataUrl: VALID_PNG_DATA_URL,
       constructionDate: '2026-05-11',
       communityName: 'Tiradentes',
     });
 
     expect(session.getConstructionSite()?.constructionSite.id).toBe(createdConstructionSite.constructionSite.id);
     expect(session.getConstructionSite()?.constructionSite.externalCode).toBe('CC2603');
-    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe('data:image/png;base64,site');
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe(VALID_PNG_DATA_URL);
     expect(session.getConstructionSite()?.constructionSite.constructionDate).toBe('2026-05-11');
     expect(session.getConstructionSite()?.constructionSite.communityId).toBe(session.getConstructionSite()?.communities[0]?.id);
     expect(session.getConstructionSite()?.communities.map((community) => community.name)).toEqual([
@@ -242,7 +243,7 @@ describe('constructionSite-session.ts', () => {
       externalCode: 'CC2603',
       constructionDate: '2026-05-11',
       communityName: 'Tiradentes',
-      photoDataUrl: 'data:image/png;base64,site',
+      photoDataUrl: VALID_PNG_DATA_URL,
     } as never);
 
     const createdHouse = session.createHouse({
@@ -250,7 +251,7 @@ describe('constructionSite-session.ts', () => {
       primaryContactName: 'Maria',
       primaryContactPhone: '(11) 99999-0000',
       primaryContactEmail: 'maria@example.com',
-      familyPhotoDataUrl: 'data:image/png;base64,family',
+      familyPhotoDataUrl: VALID_PNG_DATA_URL,
       houseType: 'tipo3',
       houseSize: 'large',
       leaders: 'Ana e Bruno',
@@ -272,7 +273,7 @@ describe('constructionSite-session.ts', () => {
       },
     } as never);
 
-    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe('data:image/png;base64,site');
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe(VALID_PNG_DATA_URL);
     expect(createdHouse.houseType).toBe('tipo3');
     expect(createdHouse.houseSize).toBe('large');
     expect(createdHouse.leaders).toBe('Ana e Bruno');
@@ -297,7 +298,7 @@ describe('constructionSite-session.ts', () => {
       primaryContactName: 'Maria',
       primaryContactPhone: '(11) 99999-0000',
       primaryContactEmail: 'maria@example.com',
-      photoDataUrl: 'data:image/png;base64,family',
+      photoDataUrl: VALID_PNG_DATA_URL,
     });
     expect(session.getActiveFamily().notes).toBeUndefined();
     expect('hasWater' in session.getActiveHouse().siteAssessment).toBe(false);
@@ -310,7 +311,7 @@ describe('constructionSite-session.ts', () => {
       primaryContactName: 'João',
       primaryContactPhone: '(11) 98888-0000',
       primaryContactEmail: 'joao@example.com',
-      familyPhotoDataUrl: 'data:image/png;base64,family2',
+      familyPhotoDataUrl: VALID_JPEG_DATA_URL,
       houseSize: 'small',
       leaders: 'Carla e João',
       notes: 'Nota atualizada da casa',
@@ -330,7 +331,7 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().notes).toBe('Nota atualizada da casa');
     expect(session.getActiveHouse().siteAssessment.terrainComplexity).toBe('extreme');
     expect(session.getActiveFamily().name).toBe('Família Local Atualizada');
-    expect(session.getActiveFamily().photoDataUrl).toBe('data:image/png;base64,family2');
+    expect(session.getActiveFamily().photoDataUrl).toBe(VALID_JPEG_DATA_URL);
     expect(session.getActiveFamily().notes).toBeUndefined();
 
     (session as unknown as {
@@ -552,6 +553,37 @@ describe('constructionSite-session.ts', () => {
     })).toThrow('Foto do monitor inválida.');
   });
 
+  it('normaliza fotos inválidas de construção e família nos caminhos de sessão', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+
+    session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+      photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+    });
+    session.createHouse({
+      familyName: 'Família Souza',
+      familyPhotoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+    });
+
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBeUndefined();
+    expect(session.getActiveFamily().photoDataUrl).toBeUndefined();
+
+    session.updateActiveConstructionSite({photoDataUrl: VALID_PNG_DATA_URL});
+    session.updateActiveFamily({photoDataUrl: VALID_PNG_DATA_URL});
+
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBe(VALID_PNG_DATA_URL);
+    expect(session.getActiveFamily().photoDataUrl).toBe(VALID_PNG_DATA_URL);
+
+    session.updateActiveConstructionSite({photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+'});
+    session.updateActiveHouseConfiguration({familyPhotoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+'});
+
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBeUndefined();
+    expect(session.getActiveFamily().photoDataUrl).toBeUndefined();
+  });
+
   it('normaliza monitores persistidos mantendo vínculo com a construção que contém a coleção', () => {
     const now = '2026-05-09T12:00:00.000Z';
     const session = createConstructionSiteSession(createStorage([{
@@ -602,6 +634,56 @@ describe('constructionSite-session.ts', () => {
       createdAt: now,
       updatedAt: now,
     }]);
+  });
+
+  it('normaliza fotos inválidas de construção e família persistidas', () => {
+    const now = '2026-05-09T12:00:00.000Z';
+    const session = createConstructionSiteSession(createStorage([{
+      constructionSite: {
+        id: 'construction_site_1',
+        externalCode: 'CC2603',
+        constructionDate: '2026-05-11',
+        communityId: 'community_1',
+        status: 'in_progress',
+        activeHouseId: 'house_1',
+        photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+        createdAt: now,
+        updatedAt: now,
+      },
+      communities: [{id: 'community_1', name: 'Tiradentes'}],
+      families: [{
+        id: 'family_1',
+        constructionSiteId: 'construction_site_1',
+        communityId: 'community_1',
+        name: 'Família Legada',
+        photoDataUrl: 'data:image/svg+xml;base64,PHN2Zy8+',
+      }],
+      monitors: [],
+      houses: [{
+        id: 'house_1',
+        constructionSiteId: 'construction_site_1',
+        familyId: 'family_1',
+        communityId: 'community_1',
+        houseType: null,
+        terrainType: 1,
+        status: 'draft',
+        designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
+        siteAssessment: {terrainComplexity: 'flat'},
+        pilotiLayout: {points: []},
+        drawingDocument: {
+          schemaVersion: 1,
+          house: null,
+          canvas: {schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, objects: []},
+          views: {},
+        },
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+      }],
+    } as never]).storage);
+
+    expect(session.getConstructionSite()?.constructionSite.photoDataUrl).toBeUndefined();
+    expect(session.getActiveFamily().photoDataUrl).toBeUndefined();
   });
 
   it('arquiva e desarquiva construção por ID restaurando status como em andamento', () => {

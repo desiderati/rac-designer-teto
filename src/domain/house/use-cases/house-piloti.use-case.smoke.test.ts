@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 import {
+  applyPilotiPatch,
   recalculateRecommendedPilotiData,
   resolvePilotiUpdateEffects,
 } from '@/domain/house/use-cases/house-piloti.use-case.ts';
@@ -13,6 +14,29 @@ function createPilotis() {
 }
 
 describe('house-piloti.use-case.ts', () => {
+  it('aplica patch mantendo apenas um piloti mestre e sem mutar a entrada', () => {
+    const pilotis = createPilotis();
+    pilotis.piloti_0_0 = {...pilotis.piloti_0_0, isMaster: true, height: 1.5};
+    pilotis.piloti_1_1 = {...pilotis.piloti_1_1, isMaster: true, height: 2.0};
+
+    const result = applyPilotiPatch({
+      pilotis,
+      pilotiId: 'piloti_3_2',
+      patch: {isMaster: true, nivel: 0.8},
+      defaultPiloti: DEFAULT_HOUSE_PILOTI,
+    });
+
+    expect(result.clearedMasters).toEqual(['piloti_0_0', 'piloti_1_1']);
+    expect(result.pilotis.piloti_0_0.isMaster).toBe(false);
+    expect(result.pilotis.piloti_1_1.isMaster).toBe(false);
+    expect(result.pilotis.piloti_3_2).toMatchObject({
+      isMaster: true,
+      nivel: 0.8,
+    });
+    expect(pilotis.piloti_0_0.isMaster).toBe(true);
+    expect(pilotis.piloti_1_1.isMaster).toBe(true);
+  });
+
   it('recalcula níveis intermediários e alturas recomendadas por interpolação bilinear', () => {
     const pilotis = createPilotis();
     pilotis.piloti_0_0 = {...pilotis.piloti_0_0, nivel: 0.2};

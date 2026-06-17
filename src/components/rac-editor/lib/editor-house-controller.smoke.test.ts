@@ -7,6 +7,11 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
 import type {AppSettings} from '@/shared/types/settings.ts';
+import {
+  HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+  HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+  HOUSE_DRAWING_DOCUMENT_TYPE,
+} from '@/shared/types/house-drawing-document.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -287,6 +292,42 @@ describe('editor house controller', () => {
     expect(houseController.getHouse()?.terrainType).toBe(4);
     expect((frontGroup as any).groundTerrainType).toBe(4);
     expect((sideGroup as any).groundTerrainType).toBe(4);
+  });
+
+  it('limpa a casa ativa ao arquivar e reidrata o documento ao desarquivar', () => {
+    const listener = vi.fn();
+    const unsubscribe = houseController.subscribe(listener);
+    houseController.setHouseType('tipo6');
+    const houseState = houseController.getHouseState();
+    expect(houseState).not.toBeNull();
+    const activeHouseId = houseController.getConstructionSiteSnapshot()?.constructionSite.activeHouseId;
+    expect(activeHouseId).toBeTruthy();
+
+    houseController.saveActiveHouseDrawingDocument({
+      documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
+      schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+      setup: {
+        familyName: houseController.getFamilyName(),
+        selectedPilotiHeights: [...houseController.getSelectedPilotiHeights()],
+      },
+      house: houseState!,
+      canvas: {
+        schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+        objects: [],
+      },
+    });
+
+    houseController.archiveActiveHouse();
+
+    expect(houseController.canOpenRacEditor()).toBe(false);
+    expect(houseController.getHouseState()).toBeNull();
+
+    houseController.unarchiveHouse(activeHouseId!);
+
+    expect(houseController.canOpenRacEditor()).toBe(true);
+    expect(houseController.getHouseState()?.houseType).toBe('tipo6');
+    expect(listener).toHaveBeenCalled();
+    unsubscribe();
   });
 
   it('positions top door marker using rendered door geometry instead of stored door coordinates', () => {

@@ -53,7 +53,7 @@
   <context_rules>
     <rule>Follow this repository's `AGENTS.md` guardrails and language rules.</rule>
     <rule>
-      Do not bypass confirmation requirements for external, production, destructive, 
+      Do not bypass confirmation requirements for external, production, destructive,
       irreversible, deploy, push, migration, schema, credential, or real-data actions.
     </rule>
     <rule>Do not resolve Git conflicts for the user.</rule>
@@ -62,7 +62,7 @@
       actually provide it.
     </rule>
     <rule>
-      If true subagent execution is unavailable, state that limitation before using 
+      If true subagent execution is unavailable, state that limitation before using
       a centralized fallback or ask whether the user wants the reduced-fidelity fallback.
     </rule>
     <rule>

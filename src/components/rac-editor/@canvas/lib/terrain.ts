@@ -595,25 +595,16 @@ export function updateGroundInGroup(group: CanvasGroup): void {
   const rightCenterX =
     (rightRectAfter.left ?? 0) + (rightRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width) / 2;
 
-  // Derive view limits from structural objects (walls, roof) instead of piloti positions
-  const structuralObjs =
-    remainingObjects.filter(o => !o.isGroundElement && !o.isPilotiRect);
+  const {left: viewLeftX, right: viewRightX} = resolveStableGroundViewLimits(
+    group,
+    remainingObjects,
+    rightCenterX,
+    rightRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width,
+  );
 
-  let viewLeftX = Infinity;
-  let viewRightX = -Infinity;
-  for (const o of structuralObjs) {
-    const oLeft = o.left ?? 0;
-    const oWidth = o.width ?? 0;
-    if (oLeft < viewLeftX) viewLeftX = oLeft;
-    if (oLeft + oWidth > viewRightX) viewRightX = oLeft + oWidth;
-  }
-
-  if (!isFinite(viewLeftX)) viewLeftX = 0;
-  if (!isFinite(viewRightX)) viewRightX =
-    rightCenterX + (rightRectAfter.width ?? HOUSE_DIMENSIONS.piloti.width) / 2;
-
-  const leftX = viewLeftX - HOUSE_DEFAULTS.viewPadding;
-  const rightX = viewRightX + HOUSE_DEFAULTS.viewPadding;
+  const horizontalPadding = HOUSE_DEFAULTS.viewPadding * scale;
+  const leftX = viewLeftX - horizontalPadding;
+  const rightX = viewRightX + horizontalPadding;
   const leftNivelY = (leftRectAfter.top ?? 0) + leftNivel * 100 * scale;
   const rightNivelY = (rightRectAfter.top ?? 0) + rightNivel * 100 * scale;
 
@@ -700,6 +691,76 @@ function resolvePilotiVisualEnvelope(
   // causado pela faixa hachurada interna.
   const bounds = getPilotiRectVisualBounds(pilotiRect);
   return {left: bounds.left, right: bounds.right, bottom: bounds.bottom};
+}
+
+function resolveStableGroundViewLimits(
+  group: CanvasGroup,
+  objects: CanvasObject[],
+  rightCenterX: number,
+  rightPilotiWidth: number,
+): { left: number; right: number } {
+
+  const explicitStructuralObjects = objects.filter((object) => object.isHouseBody || object.isHouseBorderEdge);
+  if (explicitStructuralObjects.length) {
+    return resolveAndStoreGroundViewLimits(group, explicitStructuralObjects, rightCenterX, rightPilotiWidth);
+  }
+
+  if (
+    Number.isFinite(group.groundViewLeftX)
+    && Number.isFinite(group.groundViewRightX)
+    && Number(group.groundViewRightX) > Number(group.groundViewLeftX)
+  ) {
+    return {
+      left: Number(group.groundViewLeftX),
+      right: Number(group.groundViewRightX),
+    };
+  }
+
+  const limitObjects = objects.filter(isGroundViewLimitFallbackObject);
+
+  return resolveAndStoreGroundViewLimits(group, limitObjects, rightCenterX, rightPilotiWidth);
+}
+
+function resolveAndStoreGroundViewLimits(
+  group: CanvasGroup,
+  limitObjects: CanvasObject[],
+  rightCenterX: number,
+  rightPilotiWidth: number,
+): { left: number; right: number } {
+
+  let viewLeftX = Infinity;
+  let viewRightX = -Infinity;
+
+  limitObjects.forEach((object) => {
+    const left = Number(object.left ?? 0);
+    const width = Number(object.width ?? 0) * Number(object.scaleX ?? 1);
+    if (!Number.isFinite(left) || !Number.isFinite(width) || width <= 0) return;
+
+    viewLeftX = Math.min(viewLeftX, left);
+    viewRightX = Math.max(viewRightX, left + width);
+  });
+
+  if (!Number.isFinite(viewLeftX)) viewLeftX = 0;
+  if (!Number.isFinite(viewRightX) || viewRightX <= viewLeftX) {
+    viewRightX = rightCenterX + rightPilotiWidth / 2;
+  }
+
+  group.groundViewLeftX = viewLeftX;
+  group.groundViewRightX = viewRightX;
+
+  return {left: viewLeftX, right: viewRightX};
+}
+
+function isGroundViewLimitFallbackObject(object: CanvasObject): boolean {
+  if (object.isGroundElement) return false;
+  if (object.isPilotiRect || object.isPilotiCircle || object.isPilotiText || object.isPilotiNivelText) return false;
+  if (object.isPilotiNameLabel || object.isPilotiSizeLabel || object.isPilotiStripe || object.isPilotiHitArea) return false;
+  if (object.isContraventamento || object.isAutoStairs || object.isHouseViewReferenceMarker) return false;
+  if (object.isHouseDoor || object.isTopDoorMarker) return false;
+  if (object.myType === 'terrain' || object.myType === 'stairs' || object.myType === 'door') return false;
+
+  const width = Number(object.width ?? 0) * Number(object.scaleX ?? 1);
+  return Number.isFinite(width) && width > 0;
 }
 
 function getPilotiRectVisualBounds(

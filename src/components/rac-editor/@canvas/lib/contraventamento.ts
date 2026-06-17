@@ -33,6 +33,7 @@ const CONTRAVENTAMENTO_S = HOUSE_DEFAULTS.viewScale;
 const CONTRAVENTAMENTO_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAVENTAMENTO_S;
 const CONTRAVENTAMENTO_BEAM_WIDTH = HOUSE_DIMENSIONS.contraventamento.topWidth;
 const CONTRAVENTAMENTO_ELEVATION_WIDTH = HOUSE_DIMENSIONS.contraventamento.squareWidth / 2;
+const CONTRAVENTAMENTO_SHORT_SIDE_ELEVATION_WIDTH = CONTRAVENTAMENTO_ELEVATION_WIDTH * 2;
 
 /**
  * Normaliza e devolve os metadados de um objeto de contraventamento no canvas.
@@ -229,6 +230,7 @@ export function addContraventamentoBeam(
     fill: CONTRAVENTAMENTO_FILL,
     stroke: CONTRAVENTAMENTO_STROKE,
     strokeWidth: CONTRAVENTAMENTO_STROKE_WIDTH,
+    strokeUniform: true,
     originX: 'left',
     originY: 'top',
     selectable: false,
@@ -291,6 +293,7 @@ export function addHorizontalContraventamentoBeam(
     fill: CONTRAVENTAMENTO_FILL,
     stroke: CONTRAVENTAMENTO_STROKE,
     strokeWidth: CONTRAVENTAMENTO_STROKE_WIDTH,
+    strokeUniform: true,
     originX: 'left',
     originY: 'top',
     selectable: false,
@@ -455,6 +458,7 @@ export function syncContraventamentoElevationViews(
       x2: number;
       y2: number;
       behind: boolean;
+      strokeWidth: number;
     },
   ): boolean => {
     if (
@@ -470,7 +474,7 @@ export function syncContraventamentoElevationViews(
     // Border (behind) + fill (front) to keep visible outline on elevation views.
     const border = new Line([params.x1, params.y1, params.x2, params.y2], {
       stroke: CONTRAVENTAMENTO_STROKE,
-      strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH + 2,
+      strokeWidth: params.strokeWidth + 2,
       strokeUniform: false,
       selectable: false,
       evented: false,
@@ -484,7 +488,7 @@ export function syncContraventamentoElevationViews(
 
     const line = new Line([params.x1, params.y1, params.x2, params.y2], {
       stroke: CONTRAVENTAMENTO_FILL,
-      strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
+      strokeWidth: params.strokeWidth,
       strokeUniform: false,
       selectable: false,
       evented: false,
@@ -590,6 +594,7 @@ export function syncContraventamentoElevationViews(
           x2: getRectCenterX(targetRect),
           y2: getDestinationY(targetRect, offsetTarget),
           behind: isOpposite,
+          strokeWidth: CONTRAVENTAMENTO_SHORT_SIDE_ELEVATION_WIDTH,
         });
         if (changed) hasChanges = true;
         continue;
@@ -631,6 +636,7 @@ export function syncContraventamentoElevationViews(
         x2: getRectCenterX(targetRect),
         y2: getDestinationY(targetRect, offsetTarget),
         behind: isOpposite,
+        strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
       });
       if (changed) hasChanges = true;
     }

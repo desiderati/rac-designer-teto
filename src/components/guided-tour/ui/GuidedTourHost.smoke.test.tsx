@@ -188,6 +188,27 @@ describe('GuidedTourHost', () => {
     expect(localStorage.getItem('guided-tour:rac-tip:piloti')).toBe('true');
   });
 
+  it('shows a passive tip when the construction back-to-canvas target becomes visible', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+
+    render(<TestGuidedTourHost/>);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    appendTarget('rac-construction-back-to-canvas', rect(16, 16, 40, 40));
+
+    const dialog = await screen.findByRole('dialog', {name: 'Voltar ao Canvas'});
+    expect(dialog).toBeVisible();
+    expect(dialog).toHaveAccessibleDescription(/retornar ao canvas da casa ativa/i);
+    expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(localStorage.getItem('guided-tour:rac-tip:construction-back-to-canvas')).toBe('true');
+  });
+
   it('starts a short house tour from the initial house insertion event', async () => {
     const user = userEvent.setup();
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');

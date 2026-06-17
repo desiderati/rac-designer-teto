@@ -27,6 +27,7 @@ import {
   isContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 import {
+  collectOccupiedHorizontalContraventamentoSides,
   getContraventamentoOrientation,
 } from '@/components/rac-editor/@canvas/lib/contraventamento-geometry.ts';
 import {
@@ -50,7 +51,11 @@ interface UseContraventamentoCommandsArgs {
     left: boolean;
     right: boolean;
   };
-  getContraventamentoHorizontalSides: (group: CanvasGroup, row: number) => {
+  getContraventamentoHorizontalSides: (
+    group: CanvasGroup,
+    row: number,
+    target?: { col?: number; startCol?: number; endCol?: number },
+  ) => {
     top: boolean;
     bottom: boolean;
   };
@@ -205,7 +210,10 @@ export function useContraventamentoCommands({
         return;
       }
 
-      const occupiedSides = getContraventamentoHorizontalSides(originGroup, row);
+      const occupiedSides = getContraventamentoHorizontalSides(originGroup, row, {
+        startCol: contraventamentoFirst.col,
+        endCol: col,
+      });
       if (occupiedSides[contraventamentoSide]) {
         toast.warning(
           TOAST_MESSAGES.contraventamentoRowSideAlreadyOccupied(
@@ -401,13 +409,18 @@ export function useContraventamentoCommands({
         return;
       }
 
-      const occupiedSides = getContraventamentoHorizontalSides(topGroup, row);
+      const occupiedSides = getContraventamentoHorizontalSides(topGroup, row, {col: parsed.col});
       if (occupiedSides[side]) {
         const removed =
           removeContraventamentosFromTopView(topGroup, canvasObj => (
             getContraventamentoOrientation(canvasObj) === 'horizontal'
             && Number(canvasObj.contraventamentoRow) === row
             && canvasObj.contraventamentoSide === side
+            && collectOccupiedHorizontalContraventamentoSides({
+              objects: [canvasObj],
+              row,
+              col: parsed.col,
+            })[side]
           ));
 
         if (removed > 0) {

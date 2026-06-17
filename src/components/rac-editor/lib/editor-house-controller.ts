@@ -19,6 +19,7 @@ import {EditorHouseQueryService} from '@/components/rac-editor/lib/editor-house-
 import {EditorHouseCommandService} from '@/components/rac-editor/lib/editor-house-command-service.ts';
 import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
 import {EditorHouseSessionService} from '@/components/rac-editor/lib/editor-house-session-service.ts';
+import {EditorHouseConstructionSiteBridge} from '@/components/rac-editor/lib/editor-house-construction-site-bridge.ts';
 import type {
   CreateHouseInput,
   CreateConstructionSiteInput,
@@ -92,9 +93,16 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   private readonly constructionSiteSession: ConstructionSiteSessionPort;
 
+  private readonly constructionSites: EditorHouseConstructionSiteBridge;
+
   constructor(args: EditorHouseControllerArgs<TGroup>) {
     this.constructionSiteSession = args.constructionSiteSession;
     this.state = new EditorHouseState(args.persistence);
+    this.constructionSites = new EditorHouseConstructionSiteBridge({
+      constructionSiteSession: this.constructionSiteSession,
+      loadHouseDrawingDocument: (document) => this.loadNullableHouseDrawingDocument(document),
+      notify: () => this.notify(),
+    });
     this.session = new EditorHouseSessionService({
       constructionSiteSession: this.constructionSiteSession,
       getAggregate: () => this.getHouseAggregate(),
@@ -287,136 +295,107 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   }
 
   getConstructionSiteSummaries(): ConstructionSiteSummary[] {
-    return this.constructionSiteSession.getConstructionSiteSummaries();
+    return this.constructionSites.getConstructionSiteSummaries();
   }
 
   getConstructionSiteSnapshots(): ConstructionSiteState[] {
-    return this.constructionSiteSession.getConstructionSiteSnapshots();
+    return this.constructionSites.getConstructionSiteSnapshots();
   }
 
   getConstructionSiteSnapshot(): ConstructionSiteState | null {
-    return this.constructionSiteSession.getConstructionSite();
+    return this.constructionSites.getConstructionSiteSnapshot();
   }
 
   createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState {
-    const constructionSite = this.constructionSiteSession.createConstructionSite(input);
-    this.house = null;
-    this.notify();
-    return constructionSite;
+    return this.constructionSites.createConstructionSite(input);
   }
 
   updateActiveConstructionSite(input: UpdateConstructionSiteInput): void {
-    this.constructionSiteSession.updateActiveConstructionSite(input);
-    this.notify();
+    this.constructionSites.updateActiveConstructionSite(input);
   }
 
   archiveActiveConstructionSite(): void {
-    this.constructionSiteSession.archiveActiveConstructionSite();
-    this.house = null;
-    this.notify();
+    this.constructionSites.archiveActiveConstructionSite();
   }
 
   archiveConstructionSite(constructionSiteId: string): void {
-    this.constructionSiteSession.archiveConstructionSite(constructionSiteId);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.archiveConstructionSite(constructionSiteId);
   }
 
   unarchiveConstructionSite(constructionSiteId: string): void {
-    this.constructionSiteSession.unarchiveConstructionSite(constructionSiteId);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.unarchiveConstructionSite(constructionSiteId);
   }
 
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
-    const document = this.constructionSiteSession.activateConstructionSite(constructionSiteId);
-    this.loadNullableHouseDrawingDocument(document);
-    return document;
+    return this.constructionSites.activateConstructionSite(constructionSiteId);
   }
 
   createMonitor(input: CreateMonitorInput): MonitorRecord {
-    const monitor = this.constructionSiteSession.createMonitor(input);
-    this.notify();
-    return monitor;
+    return this.constructionSites.createMonitor(input);
   }
 
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void {
-    this.constructionSiteSession.updateMonitor(monitorId, input);
-    this.notify();
+    this.constructionSites.updateMonitor(monitorId, input);
   }
 
   inactivateMonitor(monitorId: string): void {
-    this.constructionSiteSession.inactivateMonitor(monitorId);
-    this.notify();
+    this.constructionSites.inactivateMonitor(monitorId);
   }
 
   reactivateMonitor(monitorId: string): void {
-    this.constructionSiteSession.reactivateMonitor(monitorId);
-    this.notify();
+    this.constructionSites.reactivateMonitor(monitorId);
   }
 
   createHouse(input: CreateHouseInput): PersistedHouseRecord {
-    const house = this.constructionSiteSession.createHouse(input);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
-    return house;
+    return this.constructionSites.createHouse(input);
   }
 
   duplicateActiveHouse(): PersistedHouseRecord {
-    const house = this.constructionSiteSession.duplicateActiveHouse();
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
-    return house;
+    return this.constructionSites.duplicateActiveHouse();
   }
 
   archiveActiveHouse(): void {
-    this.constructionSiteSession.archiveActiveHouse();
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.archiveActiveHouse();
   }
 
   archiveHouse(houseId: string): void {
-    this.constructionSiteSession.archiveHouse(houseId);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.archiveHouse(houseId);
   }
 
   unarchiveHouse(houseId: string): void {
-    this.constructionSiteSession.unarchiveHouse(houseId);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.unarchiveHouse(houseId);
   }
 
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {
-    const document = this.constructionSiteSession.activateHouse(constructionSiteId, houseId);
-    this.loadNullableHouseDrawingDocument(document);
-    return document;
+    return this.constructionSites.activateHouse(constructionSiteId, houseId);
   }
 
   updateActiveFamily(input: UpdateFamilyInput): void {
-    this.constructionSiteSession.updateActiveFamily(input);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.updateActiveFamily(input);
   }
 
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void {
-    this.constructionSiteSession.updateActiveHouseSiteAssessment(input);
-    this.notify();
+    this.constructionSites.updateActiveHouseSiteAssessment(input);
   }
 
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
-    this.constructionSiteSession.updateActiveHouseConfiguration(input);
-    this.loadNullableHouseDrawingDocument(this.constructionSiteSession.getActiveHouseDrawingDocument());
+    this.constructionSites.updateActiveHouseConfiguration(input);
   }
 
   updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void {
-    this.constructionSiteSession.updateActiveHouseExtraMaterials(input);
-    this.notify();
+    this.constructionSites.updateActiveHouseExtraMaterials(input);
   }
 
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void {
-    this.constructionSiteSession.saveActiveHouseDrawingDocument(document);
-    this.notify();
+    this.constructionSites.saveActiveHouseDrawingDocument(document);
   }
 
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null {
-    return this.constructionSiteSession.getActiveHouseDrawingDocument();
+    return this.constructionSites.getActiveHouseDrawingDocument();
   }
 
   canOpenRacEditor(): boolean {
-    return this.constructionSiteSession.canOpenRacEditor();
+    return this.constructionSites.canOpenRacEditor();
   }
 
   private loadNullableHouseDrawingDocument(document: HouseDrawingDocument | null): void {

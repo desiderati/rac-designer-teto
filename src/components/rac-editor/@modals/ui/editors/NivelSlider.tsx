@@ -147,7 +147,7 @@ export function NivelSlider({
                 replaceEditableText(nextText);
                 moveCaretToEnd();
               }}
-              className='inline-block min-w-[4.6rem] rounded-sm text-center text-4xl font-bold leading-none text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+              className='inline-block min-w-[4.6rem] rounded-sm text-center text-4xl font-bold leading-none text-primary outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
             >
               {displayedNivel}
             </span> :

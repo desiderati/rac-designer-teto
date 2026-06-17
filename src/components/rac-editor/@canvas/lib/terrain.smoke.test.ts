@@ -1,6 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {PILOTI_BASE_HEIGHT_PX} from '@/shared/constants.ts';
+import {HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {
   collectPilotiGroundAnchors,
   createGroundElements,
@@ -38,12 +39,17 @@ function createElevationGroup(objects: CanvasObject[]): CanvasGroup {
   return group as unknown as CanvasGroup;
 }
 
-function createPilotiRect(pilotiId: string, left: number, nivel: number): CanvasObject {
+function createPilotiRect(
+  pilotiId: string,
+  left: number,
+  nivel: number,
+  pilotiBaseHeight = PILOTI_BASE_HEIGHT_PX,
+): CanvasObject {
   return createCanvasObject({
     isPilotiRect: true,
     pilotiId,
     pilotiNivel: nivel,
-    pilotiBaseHeight: PILOTI_BASE_HEIGHT_PX,
+    pilotiBaseHeight,
     left,
     top: 100,
     width: 10,
@@ -54,6 +60,20 @@ function createPilotiRect(pilotiId: string, left: number, nivel: number): Canvas
 function getGroundLinePoints(group: CanvasGroup): Array<{ x: number; y: number }> {
   const groundLine = group.getCanvasObjects().find((object) => object.isGroundLine);
   return (groundLine as CanvasObject & { points?: Array<{ x: number; y: number }> })?.points ?? [];
+}
+
+function getMainGroundFillRight(group: CanvasGroup): number {
+  const groundFill = group.getCanvasObjects()
+    .find((object) => object.isGroundFill && !object.isTerrainSideGravel && !object.isTerrainRachao);
+  const points = (groundFill as CanvasObject & { points?: Array<{ x: number; y: number }> })?.points ?? [];
+  return Math.max(...points.map((point) => point.x));
+}
+
+function getMainGroundFillLeft(group: CanvasGroup): number {
+  const groundFill = group.getCanvasObjects()
+    .find((object) => object.isGroundFill && !object.isTerrainSideGravel && !object.isTerrainRachao);
+  const points = (groundFill as CanvasObject & { points?: Array<{ x: number; y: number }> })?.points ?? [];
+  return Math.min(...points.map((point) => point.x));
 }
 
 function getNivelLabelTexts(objects: CanvasObject[]): string[] {
@@ -202,6 +222,60 @@ describe('terrain.ts', () => {
     expect(sampleGroundYAtX(groundPointsAfter, 15)).toBe(150);
     expect(sampleGroundYAtX(groundPointsAfter, 65)).toBe(middleGroundYBefore);
     expect(middlePiloti.pilotiNivel).toBe(0.3);
+  });
+
+  it('mantém a largura lateral do terreno estável em redesenhos sucessivos', () => {
+    const leftPiloti = createPilotiRect('piloti_0_0', 10, 0.2);
+    const group = createElevationGroup([
+      createCanvasObject({isHouseBody: true, left: 0, top: 0, width: 130, height: 80}),
+      leftPiloti,
+      createPilotiRect('piloti_0_1', 60, 0.3),
+      createPilotiRect('piloti_0_2', 110, 0.4),
+    ]);
+
+    updateGroundInGroup(group);
+    const fillRightBefore = getMainGroundFillRight(group);
+
+    group.getCanvasObjects().push(createCanvasObject({left: 140, top: 0, width: 80, height: 10}));
+    leftPiloti.pilotiNivel = 0.5;
+    updateGroundInGroup(group);
+
+    expect(getMainGroundFillRight(group)).toBe(fillRightBefore);
+  });
+
+  it('recalcula o recuo do terreno pelo corpo da casa quando há limite persistido maior', () => {
+    const group = createElevationGroup([
+      createCanvasObject({isHouseBody: true, left: 0, top: 0, width: 130, height: 80}),
+      createPilotiRect('piloti_0_0', 10, 0.2),
+      createPilotiRect('piloti_0_1', 60, 0.3),
+      createPilotiRect('piloti_0_2', 110, 0.4),
+    ]);
+    group.groundViewLeftX = -100;
+    group.groundViewRightX = 220;
+
+    updateGroundInGroup(group);
+
+    expect(group.groundViewLeftX).toBe(0);
+    expect(group.groundViewRightX).toBe(130);
+    expect(getMainGroundFillLeft(group)).toBe(-50);
+    expect(getMainGroundFillRight(group)).toBe(180);
+  });
+
+  it('escala o recuo lateral do terreno junto com a vista elevada', () => {
+    const scale = 0.5;
+    const pilotiBaseHeight = PILOTI_BASE_HEIGHT_PX * scale;
+    const group = createElevationGroup([
+      createCanvasObject({isHouseBody: true, left: 0, top: 0, width: 130, height: 80}),
+      createPilotiRect('piloti_0_0', 10, 0.2, pilotiBaseHeight),
+      createPilotiRect('piloti_0_1', 60, 0.3, pilotiBaseHeight),
+      createPilotiRect('piloti_0_2', 110, 0.4, pilotiBaseHeight),
+    ]);
+
+    updateGroundInGroup(group);
+
+    const expectedPadding = HOUSE_DEFAULTS.viewPadding * scale;
+    expect(getMainGroundFillLeft(group)).toBe(-expectedPadding);
+    expect(getMainGroundFillRight(group)).toBe(130 + expectedPadding);
   });
 
   it('redesenha a elevação manual com labels de nível nos pilotis centrais visíveis', () => {

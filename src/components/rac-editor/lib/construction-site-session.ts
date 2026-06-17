@@ -6,11 +6,7 @@ import {
   type HouseType,
 } from '@/shared/types/house.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
-import {
-  hasValidOptionalEmail,
-  hasValidRequiredPhone,
-} from '@/shared/lib/contact-validation.ts';
-import {isSupportedPhotoDataUrl, normalizeOptionalPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
+import {normalizeOptionalPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
 import {
   createEmptyConstructionSiteState,
   EMPTY_DRAWING_DOCUMENT,
@@ -19,19 +15,15 @@ import {
   type FamilyRecord,
   type CommunityRecord,
   type PersistedDrawingDocument,
-  type PersistedHouseStatus,
   type PersistedPilotiPoint,
   type PersistedHouseRecord,
   type MonitorRecord,
   type MonitorStatus,
-  type ConstructionSiteStatus,
   type ConstructionSiteSummary,
   type ConstructionSiteState,
   type HouseExtraMaterials,
   type HouseSize,
   type SiteAssessment,
-  type SoilProfile,
-  type TerrainComplexity,
   toConstructionSiteSummary,
 } from '@/shared/types/construction-site.ts';
 import {
@@ -40,6 +32,31 @@ import {
   HOUSE_DRAWING_DOCUMENT_TYPE,
   type HouseDrawingDocument,
 } from '@/shared/types/house-drawing-document.ts';
+import {
+  cloneConstructionSiteValue,
+  isConstructionSiteStatus,
+  isHouseType,
+  isMonitorStatus,
+  isPersistedHouseStatus,
+  normalizeConstructionCode,
+  normalizeConstructionDate,
+  normalizeConstructionSiteCommunityId,
+  normalizeDateOnlyFromIso,
+  normalizeHouseSize,
+  normalizeMonitorEmail,
+  normalizeMonitorPhotoDataUrl,
+  normalizeNumberArray,
+  normalizeOptionalText,
+  normalizePersistedMonitorEmail,
+  normalizePersistedMonitorPhone,
+  normalizePilotiLayout,
+  requireConstructionCode,
+  requireConstructionDate,
+  requireMonitorName,
+  requireMonitorPhone,
+  sanitizeHouseExtraMaterials,
+  sanitizeSiteAssessment,
+} from '@/components/rac-editor/lib/construction-site-session-normalizers.ts';
 
 export interface StoredConstructionSitesDocument {
   version: number;
@@ -170,13 +187,12 @@ function createInitialHouseState(houseId: string): HouseState {
 
 const DEFAULT_CONSTRUCTION_CODE = 'CC0000';
 const DEFAULT_COMMUNITY_NAME = 'Comunidade não informada';
-const HOUSE_EXTRA_MATERIAL_MAX_COUNT = 9999;
 
 function createConstructionSiteRecord(now: string, input: CreateConstructionSiteInput, communityId: string): ConstructionSiteRecord {
   return {
     id: createId('construction'),
     externalCode: requireConstructionCode(input.externalCode),
-    photoDataUrl: input.photoDataUrl,
+    photoDataUrl: normalizeOptionalPhotoDataUrl(input.photoDataUrl),
     constructionDate: requireConstructionDate(input.constructionDate),
     communityId,
     status: 'in_progress',
@@ -213,7 +229,7 @@ function createFamilyRecord(
     primaryContactName: input.primaryContactName,
     primaryContactPhone: input.primaryContactPhone,
     primaryContactEmail: input.primaryContactEmail,
-    photoDataUrl: input.photoDataUrl,
+    photoDataUrl: normalizeOptionalPhotoDataUrl(input.photoDataUrl),
     notes: normalizeOptionalText(input.notes),
   };
 }
@@ -310,7 +326,7 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
     primaryContactName: family.primaryContactName,
     primaryContactPhone: family.primaryContactPhone,
     primaryContactEmail: family.primaryContactEmail,
-    photoDataUrl: family.photoDataUrl,
+    photoDataUrl: normalizeOptionalPhotoDataUrl(family.photoDataUrl),
     notes: family.notes,
   }));
 
@@ -318,7 +334,7 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
   const constructionSite: ConstructionSiteRecord = {
     id: constructionSiteId,
     externalCode: normalizeConstructionCode(rawConstructionSite.externalCode) ?? DEFAULT_CONSTRUCTION_CODE,
-    photoDataUrl: rawConstructionSite.photoDataUrl,
+    photoDataUrl: normalizeOptionalPhotoDataUrl(rawConstructionSite.photoDataUrl),
     constructionDate: normalizeConstructionDate(rawConstructionSite.constructionDate)
       ?? normalizeDateOnlyFromIso(rawConstructionSite.createdAt)
       ?? normalizeDateOnlyFromIso(now)
@@ -464,7 +480,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     const now = new Date().toISOString();
     const constructionSite = this.state.constructionSite;
     if (input.externalCode !== undefined) constructionSite.externalCode = requireConstructionCode(input.externalCode);
-    if ('photoDataUrl' in input) constructionSite.photoDataUrl = input.photoDataUrl || undefined;
+    if ('photoDataUrl' in input) constructionSite.photoDataUrl = normalizeOptionalPhotoDataUrl(input.photoDataUrl);
     if ('constructionDate' in input) constructionSite.constructionDate = requireConstructionDate(input.constructionDate);
     if (input.communityName !== undefined) {
       this.replaceConstructionSiteCommunity(requireCommunityName(input.communityName));
@@ -699,7 +715,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if (input.primaryContactName !== undefined) family.primaryContactName = input.primaryContactName;
     if (input.primaryContactPhone !== undefined) family.primaryContactPhone = input.primaryContactPhone;
     if (input.primaryContactEmail !== undefined) family.primaryContactEmail = input.primaryContactEmail;
-    if ('photoDataUrl' in input) family.photoDataUrl = input.photoDataUrl || undefined;
+    if ('photoDataUrl' in input) family.photoDataUrl = normalizeOptionalPhotoDataUrl(input.photoDataUrl);
     if (input.notes !== undefined) family.notes = input.notes;
     this.touchActiveHouse();
   }
@@ -722,7 +738,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if (input.primaryContactName !== undefined) family.primaryContactName = input.primaryContactName;
     if (input.primaryContactPhone !== undefined) family.primaryContactPhone = input.primaryContactPhone;
     if (input.primaryContactEmail !== undefined) family.primaryContactEmail = input.primaryContactEmail;
-    if ('familyPhotoDataUrl' in input) family.photoDataUrl = input.familyPhotoDataUrl || undefined;
+    if ('familyPhotoDataUrl' in input) family.photoDataUrl = normalizeOptionalPhotoDataUrl(input.familyPhotoDataUrl);
     if ('houseSize' in input) house.houseSize = normalizeHouseSize(input.houseSize);
     if ('leaders' in input) house.leaders = normalizeOptionalText(input.leaders);
     if ('notes' in input) {
@@ -924,10 +940,6 @@ export function createConstructionSiteSession(storage: ConstructionSiteSessionSt
   return new ConstructionSiteSession(storage);
 }
 
-function cloneConstructionSiteValue<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
-
 function normalizeMonitors(
   monitors: ConstructionSiteState['monitors'] | undefined,
   constructionSiteId: string,
@@ -976,72 +988,6 @@ function toPilotiCode(pilotiId: string): PersistedPilotiPoint['code'] {
   return `${rowLabel}${colLabel}` as PersistedPilotiPoint['code'];
 }
 
-function sanitizeSiteAssessment(input: Partial<SiteAssessment>): SiteAssessment {
-  const assessment: SiteAssessment = {
-    terrainComplexity: isTerrainComplexity(input.terrainComplexity)
-      ? input.terrainComplexity
-      : EMPTY_SITE_ASSESSMENT.terrainComplexity,
-  };
-
-  if (isSoilProfile(input.soilProfile)) {
-    assessment.soilProfile = input.soilProfile;
-  }
-  if (typeof input.hasUndergroundObstacles === 'boolean') {
-    assessment.hasUndergroundObstacles = input.hasUndergroundObstacles;
-  }
-  if (typeof input.hasElevatedObstacles === 'boolean') {
-    assessment.hasElevatedObstacles = input.hasElevatedObstacles;
-  }
-  if (typeof input.hasNeighborSetbacks === 'boolean') {
-    assessment.hasNeighborSetbacks = input.hasNeighborSetbacks;
-  }
-  if (typeof input.locationQuery === 'string' && input.locationQuery.trim()) {
-    assessment.locationQuery = input.locationQuery.trim();
-  }
-
-  return assessment;
-}
-
-function sanitizeHouseExtraMaterials(input: Partial<HouseExtraMaterials> | undefined): HouseExtraMaterials | undefined {
-  if (!input) return undefined;
-
-  const extraMaterials: HouseExtraMaterials = {};
-  const floorBeams = normalizeOptionalNonNegativeInteger(input.floorBeams);
-  const rafters = normalizeOptionalNonNegativeInteger(input.rafters);
-  const secondaryBeams = normalizeOptionalNonNegativeInteger(input.secondaryBeams);
-  const gutters = normalizeOptionalNonNegativeInteger(input.gutters);
-  const justification = normalizeOptionalText(input.justification);
-
-  if (floorBeams !== undefined) extraMaterials.floorBeams = floorBeams;
-  if (rafters !== undefined) extraMaterials.rafters = rafters;
-  if (secondaryBeams !== undefined) extraMaterials.secondaryBeams = secondaryBeams;
-  if (gutters !== undefined) extraMaterials.gutters = gutters;
-  if (justification !== undefined) extraMaterials.justification = justification;
-
-  return Object.keys(extraMaterials).length > 0 ? extraMaterials : undefined;
-}
-
-function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  const parsed = typeof value === 'number' ? value : Number(String(value).trim());
-  if (!Number.isInteger(parsed) || parsed < 0 || parsed > HOUSE_EXTRA_MATERIAL_MAX_COUNT) return undefined;
-  return parsed;
-}
-
-function normalizeNumberArray(value: number[] | undefined): number[] | null {
-  if (!Array.isArray(value)) return null;
-  const normalized = value.filter((entry) => Number.isFinite(entry));
-  return normalized.length ? normalized : null;
-}
-
-function normalizePilotiLayout(layout: PersistedHouseRecord['pilotiLayout']): PersistedHouseRecord['pilotiLayout'] {
-  return {
-    masterCode: layout?.masterCode,
-    points: Array.isArray(layout?.points) ? cloneConstructionSiteValue(layout.points) : [],
-    summary: layout?.summary ? cloneConstructionSiteValue(layout.summary) : undefined,
-  };
-}
-
 function normalizePersistedDrawingDocument(
   document: PersistedDrawingDocument | undefined,
   houseId: string,
@@ -1071,147 +1017,4 @@ function createEmptyPersistedDrawingDocument(houseId: string): PersistedDrawingD
     },
     views: {},
   };
-}
-
-function isConstructionSiteStatus(value: ConstructionSiteStatus): value is ConstructionSiteStatus {
-  return ['in_progress', 'completed', 'archived'].includes(value);
-}
-
-function isMonitorStatus(value: unknown): value is MonitorStatus {
-  return value === 'active' || value === 'inactive';
-}
-
-function normalizeOptionalText(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  return trimmed || undefined;
-}
-
-function normalizeHouseSize(value: unknown): HouseSize | undefined {
-  if (value === 'large' || value === 'small') return value;
-  if (typeof value !== 'string') return undefined;
-
-  const normalized = value.trim().toLowerCase();
-  if (normalized === 'grande') return 'large';
-  if (normalized === 'pequena') return 'small';
-  return undefined;
-}
-
-function requireMonitorName(value: unknown): string {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized) throw new Error('Nome do monitor é obrigatório.');
-  return normalized;
-}
-
-function requireMonitorPhone(value: unknown): string {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized) throw new Error('Telefone do monitor é obrigatório.');
-  if (!hasValidRequiredPhone(normalized)) throw new Error('Telefone do monitor deve ter 11 dígitos com DDD.');
-  return normalized;
-}
-
-function normalizeMonitorEmail(value: unknown): string | undefined {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized) return undefined;
-  if (!hasValidOptionalEmail(normalized)) throw new Error('E-mail do monitor inválido.');
-  return normalized;
-}
-
-function normalizeMonitorPhotoDataUrl(value: unknown): string | undefined {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized) return undefined;
-  if (!isSupportedPhotoDataUrl(normalized)) throw new Error('Foto do monitor inválida.');
-  return normalized;
-}
-
-function normalizePersistedMonitorPhone(value: unknown): string | null {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized || !hasValidRequiredPhone(normalized)) return null;
-  return normalized;
-}
-
-function normalizePersistedMonitorEmail(value: unknown): string | undefined {
-  const normalized = normalizeOptionalText(value);
-  if (!normalized || !hasValidOptionalEmail(normalized)) return undefined;
-  return normalized;
-}
-
-function normalizeConstructionCode(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const normalized = value.trim().toUpperCase();
-  if (!/^CC\d{4}$/.test(normalized)) return undefined;
-  return normalized;
-}
-
-function requireConstructionCode(value: unknown): string {
-  const normalized = normalizeConstructionCode(value);
-  if (!normalized) throw new Error('Código da CC deve seguir o formato CC0000.');
-  return normalized;
-}
-
-function normalizeConstructionDate(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  const trimmed = value.trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return undefined;
-  const [year, month, day] = trimmed.split('-').map(Number);
-  const parsed = new Date(year, month - 1, day);
-  if (
-    parsed.getFullYear() !== year
-    || parsed.getMonth() !== month - 1
-    || parsed.getDate() !== day
-  ) {
-    return undefined;
-  }
-  return trimmed;
-}
-
-function requireConstructionDate(value: unknown): string {
-  const normalized = normalizeConstructionDate(value);
-  if (!normalized) throw new Error('Data da Construção é obrigatória.');
-  return normalized;
-}
-
-function normalizeDateOnlyFromIso(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
-  return normalizeConstructionDate(value.slice(0, 10));
-}
-
-function normalizeConstructionSiteCommunityId(
-  rawCommunityId: unknown,
-  communities: CommunityRecord[],
-  now: string,
-): string {
-  if (
-    typeof rawCommunityId === 'string'
-    && communities.some((community) => community.id === rawCommunityId)
-  ) {
-    return rawCommunityId;
-  }
-
-  const fallbackCommunity = communities.find((community) => community.name.trim())
-    ?? createCommunityRecord(now, DEFAULT_COMMUNITY_NAME);
-  if (!communities.some((community) => community.id === fallbackCommunity.id)) {
-    communities.push(fallbackCommunity);
-  }
-  return fallbackCommunity.id;
-}
-
-function isPersistedHouseStatus(value: PersistedHouseStatus): value is PersistedHouseStatus {
-  return ['draft', 'rac_printed', 'built', 'archived'].includes(value);
-}
-
-function isHouseType(value: HouseType): value is HouseType {
-  return value === null || value === 'tipo6' || value === 'tipo3';
-}
-
-function isSoilProfile(value: SoilProfile | undefined): value is SoilProfile {
-  return value === 'stable' || value === 'loose_clay' || value === 'water_table';
-}
-
-function isTerrainComplexity(value: TerrainComplexity | undefined): value is TerrainComplexity {
-  return value === 'flat'
-    || value === 'moderate'
-    || value === 'steep'
-    || value === 'very_steep'
-    || value === 'extreme';
 }

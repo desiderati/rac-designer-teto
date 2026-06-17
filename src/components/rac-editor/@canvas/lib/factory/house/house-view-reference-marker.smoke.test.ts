@@ -203,7 +203,7 @@ describe('house-view-reference-marker.ts', () => {
     expect(frontElevationMarker.text).toBe('Frontal');
     expect(sideElevationMarker.text).toBe('Lateral Esquerda');
     expect(frontElevationMarker.fontSize).toBeCloseTo(9.6);
-    expect(frontElevationMarker.top).toBe(-24);
+    expect(frontElevationMarker.top).toBe(-12);
     expect(sideElevationMarker.top).toBeLessThan(0);
     expect(sideElevationMarker.fontSize).toBe(8);
   });
@@ -236,7 +236,7 @@ describe('house-view-reference-marker.ts', () => {
     expect(largeMarker.text).toBe('Posterior');
     expect(smallMarker.fontSize).toBe(8);
     expect(largeMarker.fontSize).toBe(16);
-    expect(smallMarker.top).toBeLessThan(0);
-    expect(largeMarker.top).toBeLessThan(0);
+    expect(smallMarker.top).toBe(-10);
+    expect(largeMarker.top).toBe(-20);
   });
 });

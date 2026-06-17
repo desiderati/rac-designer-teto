@@ -5,7 +5,8 @@ import {
   PILOTI_CORNER_ID,
   PILOTI_CORNER_IDS,
   PILOTI_MASTER_STYLE,
-  PILOTI_STYLE
+  PILOTI_STYLE,
+  PILOTI_VISUAL_FEEDBACK_COLORS
 } from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
@@ -344,6 +345,7 @@ export function updatePilotiMaster(
           obj.set('fill', PILOTI_STYLE.fillColor);
           obj.set('stroke', PILOTI_STYLE.strokeColor);
           obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView);
+          obj.set('strokeUniform', true);
         }
         // Keep nivel text visible for corner pilotis even when losing master status
         if (obj.isPilotiNivelText && !PILOTI_CORNER_IDS.includes(obj.pilotiId)) {
@@ -366,10 +368,12 @@ export function updatePilotiMaster(
           obj.set('fill', PILOTI_MASTER_FILL_COLOR);
           obj.set('stroke', PILOTI_MASTER_STROKE_COLOR);
           obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_MASTER_STYLE.strokeWidth : PILOTI_MASTER_STYLE.strokeWidthTopView);
+          obj.set('strokeUniform', true);
         } else {
           obj.set('fill', PILOTI_STYLE.fillColor);
           obj.set('stroke', PILOTI_STYLE.strokeColor);
           obj.set('strokeWidth', obj.isPilotiRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView);
+          obj.set('strokeUniform', true);
         }
       }
 
@@ -405,6 +409,19 @@ export function refreshHouseGroupsOnCanvas(canvas: FabricCanvas): void {
     .forEach(group => refreshHouseGroupRendering(toCanvasGroup(group)));
 }
 
+function isActivePilotiCircleStroke(stroke: unknown): boolean {
+  if (typeof stroke !== 'string') return false;
+
+  return stroke === PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor
+    || stroke === PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor;
+}
+
+function shouldNormalizeStrokeUniform(obj: CanvasObject): boolean {
+  if (obj.isContraventamento) return true;
+
+  return Boolean(obj.isPilotiCircle && !isActivePilotiCircleStroke(obj.stroke));
+}
+
 /**
  * Forces Fabric to rebuild caches/bounds for house groups so resized pilotis are actually redrawn.
  * This also fixes Ctrl+Z restore cases where the group comes back "cortado" due to stale cache.
@@ -421,6 +438,9 @@ export function refreshHouseGroupRendering(group: CanvasGroup): void {
 
   const objects = group.getCanvasObjects();
   objects.forEach(obj => {
+    if (shouldNormalizeStrokeUniform(obj)) {
+      obj.set?.({strokeUniform: true});
+    }
     obj.objectCaching = false;
     obj.dirty = true;
     obj.setCoords?.();

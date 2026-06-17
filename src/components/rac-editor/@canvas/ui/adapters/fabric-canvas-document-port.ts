@@ -1,7 +1,17 @@
 import type {Canvas as FabricCanvas} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
-import {canvasObjectProps} from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {
+  type CanvasObject,
+  canvasObjectProps,
+  getCanvasGroupObjects,
+  toCanvasGroup,
+} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
+import {
+  HOUSE_2D_STYLE,
+  PILOTI_MASTER_STYLE,
+  PILOTI_STYLE,
+} from '@/shared/config.ts';
 import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
   type HouseDrawingCanvasDocument,
@@ -72,6 +82,12 @@ const resourceKeys = [
 ] as const;
 
 const metadataKeys = canvasObjectProps.filter((key) => key !== 'myType' && key !== 'editorObjectId');
+const exportVisualStyleKeys = ['fill', 'stroke', 'strokeWidth', 'strokeUniform', 'hoverCursor'] as const;
+
+interface ExportVisualSnapshot {
+  object: CanvasObject;
+  style: Record<string, unknown>;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -215,6 +231,66 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
   };
 }
 
+function collectExportVisualObjects(canvas: FabricCanvas): CanvasObject[] {
+  return canvas.getObjects()
+    .flatMap((item) => {
+      const group = toCanvasGroup(item);
+      if (!group || group.myType !== 'house') return [];
+
+      return getCanvasGroupObjects(group).filter((object) => (
+        object.isPilotiCircle
+        || object.isPilotiRect
+        || object.isHouseBorderEdge
+      ));
+    });
+}
+
+function captureExportVisualState(canvas: FabricCanvas): ExportVisualSnapshot[] {
+  return collectExportVisualObjects(canvas).map((object) => ({
+    object,
+    style: Object.fromEntries(
+      exportVisualStyleKeys.map((key) => [key, object[key]]),
+    ),
+  }));
+}
+
+function applyCleanExportVisualState(canvas: FabricCanvas): void {
+  collectExportVisualObjects(canvas).forEach((object) => {
+    if (object.isPilotiCircle || object.isPilotiRect) {
+      const isRect = Boolean(object.isPilotiRect);
+      const isMaster = Boolean(object.pilotiIsMaster);
+
+      object.set({
+        fill: isMaster ? PILOTI_MASTER_STYLE.fillColor : PILOTI_STYLE.fillColor,
+        stroke: isMaster ? PILOTI_MASTER_STYLE.strokeColor : PILOTI_STYLE.strokeColor,
+        strokeWidth: isMaster
+          ? (isRect ? PILOTI_MASTER_STYLE.strokeWidth : PILOTI_MASTER_STYLE.strokeWidthTopView)
+          : (isRect ? PILOTI_STYLE.strokeWidth : PILOTI_STYLE.strokeWidthTopView),
+        strokeUniform: true,
+        hoverCursor: 'default',
+      });
+      object.dirty = true;
+      return;
+    }
+
+    if (object.isHouseBorderEdge) {
+      object.set({
+        stroke: HOUSE_2D_STYLE.outlineStrokeColor,
+        strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth,
+        hoverCursor: 'default',
+      });
+      object.dirty = true;
+    }
+  });
+}
+
+function restoreExportVisualState(snapshot: ExportVisualSnapshot[]): void {
+  snapshot.forEach(({object, style}) => {
+    object.set(style);
+    object.dirty = true;
+  });
+}
+
 /**
  * Cria a borda documental do Fabric.
  *
@@ -252,9 +328,21 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
     },
 
     exportImageDataUrl: () => {
-      canvas.discardActiveObject();
-      canvas.renderAll();
-      return canvas.toDataURL();
+      const activeObject = canvas.getActiveObject();
+      const visualSnapshot = captureExportVisualState(canvas);
+
+      try {
+        canvas.discardActiveObject();
+        applyCleanExportVisualState(canvas);
+        canvas.renderAll();
+        return canvas.toDataURL();
+      } finally {
+        restoreExportVisualState(visualSnapshot);
+        if (activeObject) {
+          canvas.setActiveObject(activeObject);
+        }
+        canvas.renderAll();
+      }
     },
   };
 }

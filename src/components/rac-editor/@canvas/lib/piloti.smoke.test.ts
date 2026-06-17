@@ -1,5 +1,9 @@
-import {describe, expect, it} from 'vitest';
-import {normalizeTerrainSolidityLevel, TERRAIN_SOLIDITY} from '@/shared/config.ts';
+import {describe, expect, it, vi} from 'vitest';
+import {
+  normalizeTerrainSolidityLevel,
+  PILOTI_VISUAL_FEEDBACK_COLORS,
+  TERRAIN_SOLIDITY
+} from '@/shared/config.ts';
 import {
   clampNivel,
   clampNivelByHeight,
@@ -15,6 +19,7 @@ import {
   MAX_AVAILABLE_PILOTI_NIVEL
 } from '@/shared/types/piloti.ts';
 import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/@canvas/lib/terrain.ts';
+import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 
 describe('piloti.ts', () => {
   it('clamps nivel respecting min/max', () => {
@@ -82,6 +87,55 @@ describe('piloti.ts', () => {
     expect(normalizeTerrainSolidityLevel(99)).toBe(5);
     expect(getTerrainRachaoThicknessCm(1)).toBe(TERRAIN_SOLIDITY.levels[1].rachao);
     expect(getTerrainRachaoThicknessCm(5)).toBe(TERRAIN_SOLIDITY.levels[5].rachao);
+  });
+
+  it('preserves active top-view piloti border behavior while normalizing neutral strokes', () => {
+    const createObject = (properties: Record<string, unknown>) => ({
+      dirty: false,
+      objectCaching: true,
+      set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {
+        Object.assign(this, patch);
+      }),
+      setCoords: vi.fn(),
+      ...properties,
+    });
+
+    const highlightedPiloti = createObject({
+      isPilotiCircle: true,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.emphasizedStrokeColor,
+      strokeUniform: false,
+    });
+    const focusedPiloti = createObject({
+      isPilotiCircle: true,
+      stroke: PILOTI_VISUAL_FEEDBACK_COLORS.focusedStrokeColor,
+      strokeUniform: false,
+    });
+    const neutralPiloti = createObject({
+      isPilotiCircle: true,
+      stroke: '#3f3f46',
+      strokeUniform: false,
+    });
+    const contraventamento = createObject({
+      isContraventamento: true,
+      strokeUniform: false,
+    });
+    const objects = [highlightedPiloti, focusedPiloti, neutralPiloti, contraventamento];
+    const group = {
+      myType: 'house',
+      _objects: [...objects],
+      getCanvasObjects: () => objects,
+      setControlsVisibility: vi.fn(),
+      _clearCache: vi.fn(),
+      _calcBounds: vi.fn(),
+      setCoords: vi.fn(),
+    };
+
+    refreshHouseGroupRendering(group as never);
+
+    expect(highlightedPiloti.strokeUniform).toBe(false);
+    expect(focusedPiloti.strokeUniform).toBe(false);
+    expect(neutralPiloti.strokeUniform).toBe(true);
+    expect(contraventamento.strokeUniform).toBe(true);
   });
 });
 

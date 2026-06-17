@@ -31,7 +31,10 @@ import {
   createEmptySideMappings,
   createEmptyViews
 } from '@/domain/house/use-cases/house-state.use-case.ts';
-import {recalculateRecommendedPilotiData} from '@/domain/house/use-cases/house-piloti.use-case.ts';
+import {
+  applyPilotiPatch as applyHousePilotiPatch,
+  recalculateRecommendedPilotiData,
+} from '@/domain/house/use-cases/house-piloti.use-case.ts';
 
 export class HouseAggregate {
 
@@ -217,23 +220,15 @@ export class HouseAggregate {
     pilotiId: string,
     patch: Partial<HousePiloti>,
   ): { clearedMasters: string[] } {
-    const nextPilotis: Record<string, HousePiloti> = {...this.state.pilotis};
-    const clearedMasters: string[] = [];
+    const result = applyHousePilotiPatch({
+      pilotis: this.state.pilotis,
+      pilotiId,
+      patch,
+      defaultPiloti: DEFAULT_HOUSE_PILOTI,
+    });
+    this.state.pilotis = result.pilotis;
 
-    if (patch.isMaster === true) {
-      Object.entries(nextPilotis).forEach(([id, p]) => {
-        if (id !== pilotiId && p.isMaster) {
-          nextPilotis[id] = {...p, isMaster: false};
-          clearedMasters.push(id);
-        }
-      });
-    }
-
-    const current = nextPilotis[pilotiId] ?? DEFAULT_HOUSE_PILOTI;
-    nextPilotis[pilotiId] = {...current, ...patch};
-    this.state.pilotis = nextPilotis;
-
-    return {clearedMasters};
+    return {clearedMasters: result.clearedMasters};
   }
 
   recalculateRecommendedPilotiData(

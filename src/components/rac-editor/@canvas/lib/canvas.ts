@@ -47,6 +47,8 @@ type CanvasProperties = {
   isFlippedHorizontally?: boolean;
   isRightSide?: boolean;
   showAllPilotiNivelLabels?: boolean;
+  groundViewLeftX?: number;
+  groundViewRightX?: number;
   isHouseBody?: boolean;
   isHouseBorderEdge?: boolean;
   edgeSide?: HouseSide;
@@ -198,6 +200,8 @@ export const canvasObjectProps = [
   'isFlippedHorizontally',
   'isRightSide',
   'showAllPilotiNivelLabels',
+  'groundViewLeftX',
+  'groundViewRightX',
   'isHouseBody',
   'isHouseBorderEdge',
   'edgeSide',

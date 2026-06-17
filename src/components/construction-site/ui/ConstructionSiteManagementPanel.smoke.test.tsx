@@ -6,6 +6,7 @@ import {getPhotoOrientation} from '@/components/construction-site/lib/photo-orie
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 
 const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
+const VALID_JPEG_DATA_URL = 'data:image/jpeg;base64,/9j/';
 const VALID_PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const TEST_CURRENT_DATE = new Date(2026, 4, 1, 12);
 const SLOW_UI_TEST_TIMEOUT_MS = 10_000;
@@ -123,7 +124,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getAllByRole('button', {name: 'Desarquivar construção CC2605'})).toHaveLength(2);
 
     const row = screen.getByRole('row', {name: /CC2603/i});
-    expect(within(row).getByRole('img', {name: 'Foto da construção CC2603'})).toHaveAttribute('src', 'data:image/png;base64,site');
+    expect(within(row).getByRole('img', {name: 'Foto da construção CC2603'})).toHaveAttribute('src', VALID_PNG_DATA_URL);
     expect(within(row).getByText('CC2603')).toBeVisible();
     expect(within(row).getByText('Tiradentes')).toBeVisible();
     expect(within(row).getByText('Em andamento')).toBeVisible();
@@ -277,6 +278,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
     expect(screen.getByRole('button', {name: 'Voltar'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Voltar'})).not.toHaveAttribute('data-guided-tour-id');
     expect(screen.queryByRole('button', {name: 'Voltar à lista'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar Casas'})).not.toBeInTheDocument();
     expect(screen.getByTestId('construction-photo-field')).toBeVisible();
@@ -627,15 +629,18 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const phone = within(monitorTable).getByText('(11) 99999-0000');
     const statusHeader = within(monitorTable).getByRole('columnheader', {name: 'Status'});
     const contactHeader = within(monitorTable).getByRole('columnheader', {name: 'Contato'});
+    const actionsHeader = within(monitorTable).getByRole('columnheader', {name: 'Ações'});
+    const actionButton = within(monitorTable).getByRole('button', {name: `Inativar monitor ${longMonitorName}`});
+    const actions = within(monitorTable).getByTestId('monitor-table-actions');
 
     expect(desktopTable).toHaveClass('table-fixed');
-    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[52%]');
+    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
     expect(desktopTable.querySelectorAll('col')[1]).toHaveClass('w-[16%]');
-    expect(desktopTable.querySelectorAll('col')[2]).toHaveClass('w-[32%]');
+    expect(desktopTable.querySelectorAll('col')[2]).toHaveClass('w-[24%]');
+    expect(desktopTable.querySelectorAll('col')[3]).toHaveClass('w-[12%]');
     expect(statusHeader).toHaveClass('text-center');
     expect(contactHeader).toHaveClass('text-center');
-    expect(contactHeader.firstElementChild)
-      .toHaveClass('grid', 'grid-cols-[minmax(0,1fr)_2.25rem]', 'items-center');
+    expect(actionsHeader).toHaveClass('text-center');
     expect(identity.closest('td')).toHaveClass('max-w-0');
     expect(identity).toHaveClass('min-w-0', 'flex-1');
     expect(monitorName).toHaveTextContent(longMonitorName);
@@ -644,9 +649,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(monitorEmail).toHaveTextContent(longMonitorEmail);
     expect(monitorEmail).toHaveAttribute('title', longMonitorEmail);
     expect(monitorEmail).toHaveClass('block', 'truncate');
-    expect(phone).toHaveClass('justify-self-center', 'whitespace-nowrap', 'text-center');
+    expect(phone).toHaveClass('block', 'whitespace-nowrap', 'text-center');
     expect(phone.closest('td')).toHaveClass('text-center', 'align-middle');
-    expect(phone.parentElement).toHaveClass('min-h-14', 'grid-cols-[minmax(0,1fr)_2.25rem]', 'items-center');
+    expect(actions).toHaveClass('min-h-14', 'items-center', 'justify-center');
+    expect(actionButton.closest('td')).toHaveClass('text-center', 'align-middle');
   });
 
   it('cadastra monitor com nome e telefone válidos e bloqueia campos inválidos', async () => {
@@ -670,9 +676,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-form')).toHaveClass('items-stretch');
     expect(screen.getByTestId('monitor-form-layout')).toHaveClass('h-full', 'items-stretch');
     expect(screen.getByTestId('monitor-fields-column'))
-      .toHaveClass('h-full', 'grid-cols-1', 'md:grid-rows-[auto_auto_auto_minmax(0,1fr)]');
+      .toHaveClass('h-full', 'flex', 'flex-col');
+    expect(screen.getByTestId('monitor-fields-stack')).toHaveClass('flex', 'flex-col', 'gap-5');
+    expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
     expect(within(screen.getByTestId('monitor-fields-column')).getByRole('button', {name: 'Cadastrar Monitor'}))
-      .toHaveClass('w-full', 'md:self-end');
+      .toHaveClass('mt-4', 'w-full', 'md:mt-auto');
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
       .toHaveClass('flex-1', 'min-h-[16rem]');
 
@@ -1098,7 +1106,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     Object.defineProperty(originalPhoto, 'naturalHeight', {configurable: true, value: 900});
     fireEvent.load(originalPhoto);
     expect(photoDropZone).toHaveAttribute('data-photo-orientation', 'landscape');
-    expect(originalPhoto).toHaveAttribute('src', 'data:image/png;base64,family');
+    expect(originalPhoto).toHaveAttribute('src', VALID_JPEG_DATA_URL);
 
     const fileInput = within(photoField).getByLabelText('Foto da Família arquivo') as HTMLInputElement;
     const clickFileInput = vi.spyOn(fileInput, 'click');
@@ -1106,16 +1114,16 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(within(photoField).getByText('Clique para fazer upload ou arraste uma foto'));
 
     expect(clickFileInput).toHaveBeenCalledTimes(1);
-    expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', 'data:image/png;base64,family');
+    expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', VALID_JPEG_DATA_URL);
 
     fireEvent.change(fileInput, {target: {files: []}});
 
-    expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', 'data:image/png;base64,family');
+    expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', VALID_JPEG_DATA_URL);
 
     await user.upload(fileInput, new File([VALID_PNG_BYTES], 'familia.png', {type: 'image/png'}));
 
     await waitFor(() => {
-      expect(screen.getByAltText('Foto da Família')).not.toHaveAttribute('src', 'data:image/png;base64,family');
+      expect(screen.getByAltText('Foto da Família')).not.toHaveAttribute('src', VALID_JPEG_DATA_URL);
     });
     expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', expect.stringMatching(/^data:image\/png;base64,/));
 
@@ -1375,6 +1383,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     renderPanel({canOpenRacEditor: true, onBackToCanvas});
 
+    expect(screen.getByRole('button', {name: 'Voltar'}))
+      .toHaveAttribute('data-guided-tour-id', 'rac-construction-back-to-canvas');
+
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
 
     expect(onBackToCanvas).toHaveBeenCalledTimes(1);
@@ -1474,7 +1485,7 @@ function createSummaries(): ConstructionSiteSummary[] {
       id: 'construction_site_1',
       label: 'CC2603 · Tiradentes',
       externalCode: 'CC2603',
-      photoDataUrl: 'data:image/png;base64,site',
+      photoDataUrl: VALID_PNG_DATA_URL,
       constructionDate: '2026-05-11',
       communityName: 'Tiradentes',
       status: 'in_progress',
@@ -1626,7 +1637,7 @@ function createConstructionSite(): ConstructionSiteState {
     constructionSite: {
       id: 'construction_site_1',
       externalCode: 'CC2603',
-      photoDataUrl: 'data:image/png;base64,site',
+      photoDataUrl: VALID_PNG_DATA_URL,
       constructionDate: '2026-05-11',
       communityId: 'community_1',
       status: 'in_progress',
@@ -1651,7 +1662,7 @@ function createConstructionSite(): ConstructionSiteState {
         communityId: 'community_1',
         name: 'Família Souza',
         primaryContactName: 'Maria',
-        photoDataUrl: 'data:image/png;base64,family',
+        photoDataUrl: VALID_JPEG_DATA_URL,
       },
       {
         id: 'family_2',

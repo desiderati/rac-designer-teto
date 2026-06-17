@@ -179,10 +179,10 @@ describe('rac pdf report model', () => {
     expect(output).toContain('Subterrâneos');
     expect(output).toContain('Elevados');
     expect(output).toContain('Recuos vizinhos');
-    expect(output).toContain('MATERIAIS DE BASE');
-    expect(output).toContain('RACHÃO');
-    expect(output).toContain('BRITA');
-    expect(output).toContain('PEDRAS');
+    expect(output).not.toContain('MATERIAIS DE BASE');
+    expect(output).not.toContain('RACHÃO');
+    expect(output).not.toContain('BRITA');
+    expect(output).not.toContain('RACHÃO | BRITA');
     expect(output).not.toContain('COMPLEXIDADE');
     expect(output).not.toContain('Moderado');
     expect(output).toContain('MATERIAL EXTRA');
