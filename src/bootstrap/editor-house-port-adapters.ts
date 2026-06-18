@@ -3,7 +3,10 @@ import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
-import type {HousePilotiPatch} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import type {
+  HousePilotiPatch,
+  InitialPilotiNivelDefinition,
+} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 import type {HouseDrawingDocumentPort} from '@/components/rac-editor/ports/HouseDrawingDocumentPort.ts';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseRuntimePort} from '@/components/rac-editor/ports/HouseRuntimePort.ts';
@@ -80,6 +83,7 @@ export interface EditorHouseWriteSource {
   autoAssignAllSides(initialViewType: HouseViewType, initialSide: HouseSide): void;
   updatePiloti(pilotiId: string, pilotiData: HousePilotiPatch): void;
   getPilotiData(pilotiId: string): HousePiloti;
+  applyInitialPilotiNiveis(niveis: Record<string, InitialPilotiNivelDefinition>): void;
   calculateAndApplyRecommendedHeights(): void;
 }
 
@@ -173,6 +177,7 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
       source.updatePiloti(pilotiId, pilotiData);
       return source.getPilotiData(pilotiId);
     },
+    applyInitialPilotiNiveis: (niveis) => source.applyInitialPilotiNiveis(niveis),
     calculateAndApplyRecommendedHeights: () => source.calculateAndApplyRecommendedHeights(),
   };
 }

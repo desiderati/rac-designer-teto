@@ -22,7 +22,6 @@ const pdfExportSeed = {
   selectedPilotiHeights: [1, 1.5, 2, 2.5],
   siteAssessment: {
     soilProfile: 'water_table' as const,
-    terrainComplexity: 'moderate' as const,
     hasElevatedObstacles: true,
   },
   monitors: [

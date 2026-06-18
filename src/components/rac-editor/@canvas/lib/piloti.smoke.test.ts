@@ -137,5 +137,41 @@ describe('piloti.ts', () => {
     expect(neutralPiloti.strokeUniform).toBe(true);
     expect(contraventamento.strokeUniform).toBe(true);
   });
+
+  it('mantém contraventamento de elevação entre terreno e estrutura ao reordenar o grupo', () => {
+    const createObject = (properties: Record<string, unknown>) => ({
+      dirty: false,
+      objectCaching: true,
+      set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {
+        Object.assign(this, patch);
+      }),
+      setCoords: vi.fn(),
+      ...properties,
+    });
+
+    const piloti = createObject({isPilotiRect: true});
+    const ground = createObject({isGroundElement: true, isGroundFill: true});
+    const contraventamentoElevation = createObject({isContraventamentoElevation: true});
+    const nivelLabel = createObject({isGroundElement: true, isNivelLabel: true});
+    const objects = [piloti, ground, contraventamentoElevation, nivelLabel];
+    const group = {
+      myType: 'house',
+      _objects: [...objects],
+      getCanvasObjects: () => objects,
+      setControlsVisibility: vi.fn(),
+      _clearCache: vi.fn(),
+      _calcBounds: vi.fn(),
+      setCoords: vi.fn(),
+    };
+
+    refreshHouseGroupRendering(group as never);
+
+    expect(group._objects).toEqual([
+      ground,
+      contraventamentoElevation,
+      piloti,
+      nivelLabel,
+    ]);
+  });
 });
 

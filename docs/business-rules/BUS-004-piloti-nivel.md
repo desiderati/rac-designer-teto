@@ -46,6 +46,15 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
     - Nas vistas elevadas, os pilotis centrais visíveis também exibem o valor do nível. Na vista planta, a exibição
       dos valores de nível permanece inalterada.
 
+## Inserção inicial da casa
+
+1. A definição de níveis feita no fluxo de criação/inserção inicial da casa sempre materializa os pilotis usando a
+   regra automática de interpolação e altura recomendada.
+2. Essa regra independe da preferência global de edição manual/automática do editor.
+3. A preferência manual só passa a controlar alterações feitas depois que a casa já foi criada.
+4. Portanto, níveis iniciais acima de `0.50 m` não podem ser limitados pela altura padrão `1.0 m`; antes da casa ser
+   inserida, a altura recomendada deve ser calculada para cada piloti.
+
 ### Alturas disponíveis e máximos de nível
 
 | Altura do piloti | Nível máximo permitido |
@@ -61,10 +70,10 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
 
 1. O nível pode ser alterado entre o mínimo global (`0.20 m`) e o máximo aplicável ao modo ativo.
 2. Ao confirmar alteração, o valor deve ser aplicado imediatamente.
-3. Ao alterar o nível pelo slider ou pela digitação desktop no modo automático:
+3. Ao alterar o nível pelo slider ou pela digitação no modo automático:
     - o nível escolhido é mantido exatamente como o usuário deixou;
     - a altura do piloti é recalculada com a menor altura disponível que satisfaça `altura >= nível * 3`.
-4. Ao alterar o nível pelo slider ou pela digitação desktop no modo manual:
+4. Ao alterar o nível pelo slider ou pela digitação no modo manual:
     - a altura atual do piloti é preservada;
     - o nível é limitado ao máximo permitido pela altura atual (`altura / 2`);
     - se o valor informado ultrapassar esse limite, o sistema normaliza para o maior valor permitido.
@@ -74,14 +83,15 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
       limite;
     - se a nova altura continuar compatível, o nível permanece como estava.
 
-### Digitação de nível no desktop
+### Digitação de nível
 
-1. A modal desktop de edição de piloti permite digitar o nível em todos os pilotis editáveis pelo modo ativo.
+1. A modal de edição de piloti permite digitar o nível em todos os pilotis editáveis pelo modo ativo, em desktop e
+   mobile.
 2. O campo aceita somente dígitos.
 3. A interface aplica máscara visual `N,NN`, com vírgula decimal e duas casas.
 4. O valor digitado é confirmado por perda de foco ou pela tecla `Enter`.
 5. A confirmação usa as mesmas regras de mínimo, máximo e modo ativo aplicadas ao slider e aos botões.
-6. A experiência mobile mantém apenas controles por botões e slider.
+6. O fluxo de definição inicial de níveis da casa também permite digitação em desktop e mobile.
 
 ### Síntese operacional
 

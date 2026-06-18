@@ -3,7 +3,6 @@ import type {
   HouseSize,
   MonitorStatus,
   PersistedHouseStatus,
-  TerrainComplexity,
 } from '@/shared/types/construction-site.ts';
 import type {
   ConstructionSortKey,
@@ -108,19 +107,4 @@ export const MONITOR_SORT_OPTIONS: VisualSelectOption<MonitorSortKey>[] = [
   {value: 'name', label: 'Nome'},
   {value: 'updatedAt', label: 'Última modificação'},
   {value: 'status', label: 'Status'},
-];
-
-export const TERRAIN_COMPLEXITY_LABELS: Record<TerrainComplexity, string> = {
-  flat: 'Plano',
-  moderate: 'Moderado',
-  steep: 'Íngreme',
-  very_steep: 'Muito íngreme',
-  extreme: 'Extremo',
-};
-
-export const TERRAIN_COMPLEXITY_OPTIONS: VisualSelectOption<TerrainComplexity>[] = [
-  {value: 'flat', label: TERRAIN_COMPLEXITY_LABELS.flat},
-  {value: 'moderate', label: TERRAIN_COMPLEXITY_LABELS.moderate},
-  {value: 'steep', label: TERRAIN_COMPLEXITY_LABELS.steep},
-  {value: 'very_steep', label: TERRAIN_COMPLEXITY_LABELS.very_steep},
 ];

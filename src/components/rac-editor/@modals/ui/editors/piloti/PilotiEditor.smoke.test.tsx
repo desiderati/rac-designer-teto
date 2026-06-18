@@ -45,6 +45,7 @@ function createEditorPorts(input: {
     },
     houseWritePort: {
       updatePiloti,
+      applyInitialPilotiNiveis: vi.fn(),
       calculateAndApplyRecommendedHeights: vi.fn(),
     },
     settingsPort: {
@@ -111,6 +112,44 @@ describe('PilotiEditor.tsx', () => {
       height: 1,
       isMaster: false,
       nivel: 0.4,
+    }));
+  });
+
+  it('permite editar o nível digitando no modo mobile', () => {
+    const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
+      ...pilotis[pilotiId],
+      ...patch,
+    }));
+
+    render(
+      <PilotiEditor
+        isOpen
+        onClose={vi.fn()}
+        pilotiId='piloti_0_0'
+        currentHeight={1}
+        currentIsMaster
+        currentNivel={0.2}
+        pilotiIds={['piloti_0_0', 'piloti_1_0']}
+        selectedPilotiHeights={[1, 1.5, 2]}
+        isMobile
+        onHeightChange={vi.fn()}
+      />,
+      {
+        wrapper: createWrapper({
+          updatePiloti,
+        }),
+      },
+    );
+
+    const nivelEditor = screen.getByLabelText('Nível do piloti em metros');
+    nivelEditor.textContent = '045';
+    fireEvent.input(nivelEditor);
+    fireEvent.blur(nivelEditor);
+
+    expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', expect.objectContaining({
+      height: 1.5,
+      isMaster: true,
+      nivel: 0.45,
     }));
   });
 

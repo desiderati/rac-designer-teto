@@ -6,13 +6,17 @@ import type {
   PersistedHouseRecord,
   SiteAssessment,
   SoilProfile,
-  TerrainComplexity,
 } from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
-import {ALL_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import type {HousePiloti, HouseState, HouseType} from '@/shared/types/house.ts';
 import {formatNivel, formatPilotiHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
+import {
+  calculateTerrainDesnivelCm,
+  calculateHouseDifficultyIndicator,
+  type HouseDifficultyIndicator,
+  type HouseDifficultyLevel,
+} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 
 export interface RacPdfReportField {
   label: string;
@@ -54,13 +58,8 @@ export interface RacPdfReportTerrainVolumes {
   pedrasM3: number;
 }
 
-export type RacPdfTerrainRiskLevel = 'low' | 'medium' | 'high' | 'critical';
-
-export interface RacPdfTerrainRiskIndicator {
-  score: number;
-  label: string;
-  level: RacPdfTerrainRiskLevel;
-}
+export type RacPdfTerrainRiskLevel = HouseDifficultyLevel;
+export type RacPdfTerrainRiskIndicator = HouseDifficultyIndicator;
 
 export interface RacPdfReportModel {
   title: string;
@@ -74,7 +73,6 @@ export interface RacPdfReportModel {
   communityName: string;
   constructionCode: string;
   constructionCodeDisplay: string;
-  complexityLabel: string;
   generatedAtLabel: string;
   headerFields: RacPdfReportField[];
   house: {
@@ -126,39 +124,6 @@ const SOIL_PROFILE_LABELS: Record<SoilProfile, string> = {
   water_table: 'Água no fundo',
 };
 
-const TERRAIN_COMPLEXITY_LABELS: Record<TerrainComplexity, string> = {
-  flat: 'Plano',
-  moderate: 'Moderado',
-  steep: 'Íngreme',
-  very_steep: 'Muito íngreme',
-  extreme: 'Extremo',
-};
-
-const SOIL_RISK_SCORE: Record<SoilProfile, number> = {
-  stable: 1,
-  loose_clay: 3,
-  water_table: 4,
-};
-
-const TERRAIN_COMPLEXITY_RISK_SCORE: Record<TerrainComplexity, number> = {
-  flat: 1,
-  moderate: 2,
-  steep: 3,
-  very_steep: 4,
-  extreme: 5,
-};
-
-const UNKNOWN_SOIL_RISK_SCORE = 2;
-const UNDERGROUND_OBSTACLE_RISK_INCREMENT = 1.25;
-const ELEVATED_OBSTACLE_RISK_INCREMENT = 0.25;
-const NEIGHBOR_SETBACK_RISK_INCREMENT = 0.75;
-const MIN_MATRIX_RISK = 1;
-const MAX_MATRIX_RISK = 25;
-const MIN_PILOTI_AVERAGE_HEIGHT = Math.min(...ALL_PILOTI_HEIGHTS);
-const MAX_PILOTI_AVERAGE_HEIGHT = Math.max(...ALL_PILOTI_HEIGHTS);
-const MIN_PILOTI_HEIGHT_RISK_MULTIPLIER = 1;
-const MAX_PILOTI_HEIGHT_RISK_MULTIPLIER = 2;
-
 export function buildRacPdfReportModel({
   constructionSite,
   canvasImageDataUrl,
@@ -180,7 +145,6 @@ export function buildRacPdfReportModel({
   const pilotiGrid = buildPilotiGrid(pilotis);
   const pilotiTotals = buildPilotiTotals(pilotis, activeHouse.designSettings.selectedPilotiHeights);
   const master = pilotiGrid.flat().find((piloti) => piloti.isMaster) ?? null;
-  const complexityLabel = TERRAIN_COMPLEXITY_LABELS[activeHouse.siteAssessment.terrainComplexity];
   const leaders = normalizeDisplayValue(activeHouse.leaders, '');
   const generatedAtLabel = formatDateLabel(generatedAt);
 
@@ -196,7 +160,6 @@ export function buildRacPdfReportModel({
     communityName,
     constructionCode,
     constructionCodeDisplay,
-    complexityLabel,
     generatedAtLabel,
     headerFields: [
       {label: 'Comunidade', value: communityName},
@@ -229,31 +192,14 @@ export function buildRacPdfReportModel({
 }
 
 export function calculateDesnivelCm(house: HouseState | null | undefined): number | null {
-  const niveis = Object.values(house?.pilotis ?? {})
-    .map((piloti) => piloti.nivel)
-    .filter((nivel): nivel is number => Number.isFinite(nivel));
-
-  if (niveis.length === 0) return null;
-  return Math.round((Math.max(...niveis) - Math.min(...niveis)) * 100);
+  return calculateTerrainDesnivelCm(house?.pilotis);
 }
 
 export function calculateTerrainRiskIndicator(
   assessment: SiteAssessment,
   pilotis?: Record<string, HousePiloti>,
 ): RacPdfTerrainRiskIndicator {
-  const obstaclePressure = calculateTerrainObstaclePressure(assessment);
-  const probability = clampRiskFactor(
-    TERRAIN_COMPLEXITY_RISK_SCORE[assessment.terrainComplexity] + obstaclePressure,
-  );
-  const severity = clampRiskFactor(getSoilRiskScore(assessment.soilProfile) + obstaclePressure);
-  const rawRisk = probability * severity * calculatePilotiHeightRiskMultiplier(pilotis);
-  const score = Math.round(((rawRisk - MIN_MATRIX_RISK) / (MAX_MATRIX_RISK - MIN_MATRIX_RISK)) * 100);
-  const boundedScore = Math.min(100, Math.max(0, score));
-
-  return {
-    score: boundedScore,
-    ...getTerrainRiskLevel(boundedScore),
-  };
+  return calculateHouseDifficultyIndicator(assessment, pilotis);
 }
 
 function getActiveReportHouse(constructionSite: ConstructionSiteState): PersistedHouseRecord | null {
@@ -330,57 +276,7 @@ function buildTerrainOptionGroups(assessment: SiteAssessment): RacPdfReportOptio
         assessment.hasNeighborSetbacks ? 'Recuos vizinhos' : null,
       ].filter((option): option is string => option !== null),
     },
-    {
-      label: 'Complexidade',
-      options: Object.values(TERRAIN_COMPLEXITY_LABELS),
-      selected: [TERRAIN_COMPLEXITY_LABELS[assessment.terrainComplexity]],
-    },
   ];
-}
-
-function calculateTerrainObstaclePressure(assessment: SiteAssessment): number {
-  return [
-    assessment.hasUndergroundObstacles ? UNDERGROUND_OBSTACLE_RISK_INCREMENT : 0,
-    assessment.hasElevatedObstacles ? ELEVATED_OBSTACLE_RISK_INCREMENT : 0,
-    assessment.hasNeighborSetbacks ? NEIGHBOR_SETBACK_RISK_INCREMENT : 0,
-  ].reduce((total, value) => total + value, 0);
-}
-
-function getSoilRiskScore(soilProfile: SoilProfile | undefined): number {
-  return soilProfile ? SOIL_RISK_SCORE[soilProfile] : UNKNOWN_SOIL_RISK_SCORE;
-}
-
-function calculatePilotiHeightRiskMultiplier(pilotis: Record<string, HousePiloti> | undefined): number {
-  const averageHeight = calculateAveragePilotiHeight(pilotis);
-  const normalizedHeightPressure = (
-    (averageHeight - MIN_PILOTI_AVERAGE_HEIGHT)
-    / (MAX_PILOTI_AVERAGE_HEIGHT - MIN_PILOTI_AVERAGE_HEIGHT)
-  );
-
-  return MIN_PILOTI_HEIGHT_RISK_MULTIPLIER
-    + normalizedHeightPressure * (MAX_PILOTI_HEIGHT_RISK_MULTIPLIER - MIN_PILOTI_HEIGHT_RISK_MULTIPLIER);
-}
-
-function calculateAveragePilotiHeight(pilotis: Record<string, HousePiloti> | undefined): number {
-  const heights = Object.values(pilotis ?? {})
-    .map((piloti) => piloti.height)
-    .filter((height): height is number => Number.isFinite(height));
-
-  if (heights.length === 0) return MIN_PILOTI_AVERAGE_HEIGHT;
-
-  const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
-  return Math.min(MAX_PILOTI_AVERAGE_HEIGHT, Math.max(MIN_PILOTI_AVERAGE_HEIGHT, average));
-}
-
-function clampRiskFactor(value: number): number {
-  return Math.min(5, Math.max(1, value));
-}
-
-function getTerrainRiskLevel(score: number): Pick<RacPdfTerrainRiskIndicator, 'label' | 'level'> {
-  if (score < 25) return {label: 'Baixa', level: 'low'};
-  if (score < 50) return {label: 'Média', level: 'medium'};
-  if (score < 75) return {label: 'Alta', level: 'high'};
-  return {label: 'Crítica', level: 'critical'};
 }
 
 function toReportMonitor(monitor: MonitorRecord): RacPdfReportMonitor {
@@ -420,10 +316,6 @@ function formatDateLabel(date: Date): string {
 function formatConstructionCodeDisplay(constructionCode: string): string {
   const match = /^CC(\d{4})$/i.exec(constructionCode.trim());
   return match?.[1] ?? constructionCode;
-}
-
-function formatCentimeters(value: number): number {
-  return Math.round(value * 100);
 }
 
 function buildReportFileName(constructionCode: string, familyName: string): string {

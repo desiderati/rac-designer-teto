@@ -137,31 +137,29 @@ export function useContraventamentoCommands({
     const topGroup = getTopViewGroup();
     if (!topGroup) return;
 
+    const house = houseSnapshot;
+    if (house) {
+      refreshAutoStairsInViews({
+        houseType: house.houseType,
+        sideMappings: house.sideMappings,
+        pilotis: house.pilotis,
+        topView: house.views.top,
+        elevationViews: [
+          ...house.views.front,
+          ...house.views.back,
+          ...house.views.side1,
+          ...house.views.side2,
+        ],
+        showStairsOnTopView: settingsPort.getSettings().showStairsOnTopView,
+      });
+    }
+
     const targets = getNonTopViewGroups();
     syncContraventamentoElevationViews(
       topGroup,
       targets,
       (pilotiId) => houseSnapshot?.pilotis[pilotiId]?.nivel ?? 0
     );
-
-    // Reaplica auto-stairs após o sync do contraventamento para manter
-    // a ordem visual correta das camadas nas vistas elevadas.
-    const house = houseSnapshot;
-    if (!house) return;
-
-    refreshAutoStairsInViews({
-      houseType: house.houseType,
-      sideMappings: house.sideMappings,
-      pilotis: house.pilotis,
-      topView: house.views.top,
-      elevationViews: [
-        ...house.views.front,
-        ...house.views.back,
-        ...house.views.side1,
-        ...house.views.side2,
-      ],
-      showStairsOnTopView: settingsPort.getSettings().showStairsOnTopView,
-    });
 
     canvasRef.current?.renderAll();
   }, [canvasRef, getNonTopViewGroups, getTopViewGroup, houseSnapshot, settingsPort]);

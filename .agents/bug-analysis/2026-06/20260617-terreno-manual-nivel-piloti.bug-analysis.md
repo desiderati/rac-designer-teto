@@ -48,19 +48,19 @@ aliases: [ terreno manual de nível do piloti ]
 - fluxos afetados: edição de nível de piloti e redesenho de terreno em elevações.
 - regras de negócio afetadas: `BUS-004` modo manual de nível do piloti.
 - módulos, componentes ou serviços envolvidos:
-  - `src/components/rac-editor/@canvas/lib/terrain.ts`
-  - `src/components/rac-editor/@canvas/lib/piloti-visual.ts`
-  - `src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    - `src/components/rac-editor/@canvas/lib/terrain.ts`
+    - `src/components/rac-editor/@canvas/lib/piloti-visual.ts`
+    - `src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
 - contratos, schemas ou interfaces envolvidos: nenhum contrato externo.
 
 ## 5. Mapa de Camadas e Fronteiras
 
-| Camada ou fronteira | Responsabilidade | Evidência disponível | Status |
-|---------------------|------------------|----------------------|--------|
-| Modal/comando de piloti | Enviar novo nível para o piloti selecionado | testes existentes do controller | observado |
-| Domínio da casa | Preservar demais pilotis em modo manual | teste `altera somente o piloti selecionado...` | observado |
-| Runtime visual 2D | Redesenhar terreno a partir dos níveis renderizados | `updateGroundInGroup` usava apenas extremos | observado |
-| Browser/canvas real | Percepção visual final no editor | não exercitado manualmente | não verificado |
+| Camada ou fronteira     | Responsabilidade                                    | Evidência disponível                           | Status         |
+|-------------------------|-----------------------------------------------------|------------------------------------------------|----------------|
+| Modal/comando de piloti | Enviar novo nível para o piloti selecionado         | testes existentes do controller                | observado      |
+| Domínio da casa         | Preservar demais pilotis em modo manual             | teste `altera somente o piloti selecionado...` | observado      |
+| Runtime visual 2D       | Redesenhar terreno a partir dos níveis renderizados | `updateGroundInGroup` usava apenas extremos    | observado      |
+| Browser/canvas real     | Percepção visual final no editor                    | não exercitado manualmente                     | não verificado |
 
 ## 6. Fluxo Esperado vs. Fluxo Real
 
@@ -73,11 +73,11 @@ aliases: [ terreno manual de nível do piloti ]
 
 ## 7. Hipóteses Causais
 
-| Hipótese | Evidências a favor | Evidências contra | O que ainda falta saber | Como validar | Status |
-|----------|--------------------|-------------------|-------------------------|--------------|--------|
-| O domínio ainda altera demais pilotis em modo manual | sintoma visual parecia propagação global | teste existente confirma piloti intermediário intacto | nada | `editor-house-controller.smoke.test.ts` | descartada |
-| O terreno é redesenhado usando apenas extremos da vista | `updateGroundInGroup` lia `leftRect` e `rightRect` | não havia teste específico de geometria | validação visual manual | teste novo de terreno | confirmada |
-| Escadas automáticas alteram a linha do terreno | escadas usam interpolação de terreno | sintoma ocorre no redesenho de terreno, antes de escadas | validação visual de escadas | smoke de escadas | descartada |
+| Hipótese                                                | Evidências a favor                                 | Evidências contra                                        | O que ainda falta saber     | Como validar                            | Status     |
+|---------------------------------------------------------|----------------------------------------------------|----------------------------------------------------------|-----------------------------|-----------------------------------------|------------|
+| O domínio ainda altera demais pilotis em modo manual    | sintoma visual parecia propagação global           | teste existente confirma piloti intermediário intacto    | nada                        | `editor-house-controller.smoke.test.ts` | descartada |
+| O terreno é redesenhado usando apenas extremos da vista | `updateGroundInGroup` lia `leftRect` e `rightRect` | não havia teste específico de geometria                  | validação visual manual     | teste novo de terreno                   | confirmada |
+| Escadas automáticas alteram a linha do terreno          | escadas usam interpolação de terreno               | sintoma ocorre no redesenho de terreno, antes de escadas | validação visual de escadas | smoke de escadas                        | descartada |
 
 ## 8. Evidências e Pontos Envolvidos
 
@@ -122,10 +122,12 @@ aliases: [ terreno manual de nível do piloti ]
 - validação de integração: `editor-house-controller.smoke.test.ts` para preservar regra manual no estado da casa.
 - validação na fronteira original: parcial; não houve teste visual no navegador.
 - testes executados:
-  - `npx vitest run src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti-visual.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
-  - `npx tsc --noEmit --pretty false`
-  - `npm run lint`
-  - `git diff --check -- src/components/rac-editor/@canvas/lib/terrain.ts src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts docs/business-rules/BUS-004-piloti-nivel.md`
+    -
+    `npx vitest run src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti-visual.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    - `npx tsc --noEmit --pretty false`
+    - `npm run lint`
+    -
+    `git diff --check -- src/components/rac-editor/@canvas/lib/terrain.ts src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts docs/business-rules/BUS-004-piloti-nivel.md`
 - validação manual ou operacional: não executada.
 - build, lint ou smoke relevante: lint, typecheck e 36 testes focados passaram.
 - critério de sucesso observado: ponto do piloti intermediário manteve o mesmo Y após alterar o nível do extremo.

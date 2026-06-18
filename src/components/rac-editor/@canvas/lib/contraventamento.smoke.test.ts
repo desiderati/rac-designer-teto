@@ -254,6 +254,7 @@ describe('contraventamento.ts', () => {
       houseView: 'side',
       isRightSide: false,
       _objects: [
+        {isGroundElement: true, isGroundFill: true},
         createPilotiRect('piloti_0_0', 10, 100),
         createPilotiRect('piloti_0_2', 10, 250),
       ],
@@ -262,6 +263,7 @@ describe('contraventamento.ts', () => {
     const modernRightGroup = createMockGroup({
       houseSide: 'right',
       _objects: [
+        {isGroundElement: true, isGroundFill: true},
         createPilotiRect('piloti_3_0', 20, 100),
         createPilotiRect('piloti_3_2', 20, 250),
       ],
@@ -298,6 +300,14 @@ describe('contraventamento.ts', () => {
       defaultElevationWidth + 2,
       defaultElevationWidth,
     ]);
+    expect(legacyLeftGroup._objects[0]?.isGroundElement).toBe(true);
+    expect(legacyLeftGroup._objects.slice(1, 3).every(
+      (object: any) => object?.isContraventamentoElevation === true,
+    )).toBe(true);
+    expect(modernRightGroup._objects[0]?.isGroundElement).toBe(true);
+    expect(modernRightGroup._objects.slice(1, 3).every(
+      (object: any) => object?.isContraventamentoElevation === true,
+    )).toBe(true);
     expect(legacyLeftGroup.setCoords).toHaveBeenCalled();
     expect(modernRightGroup.setCoords).toHaveBeenCalled();
   });
@@ -321,6 +331,7 @@ describe('contraventamento.ts', () => {
     const frontGroup = createMockGroup({
       houseSide: 'top',
       _objects: [
+        {isGroundElement: true, isGroundFill: true},
         createPilotiRect('piloti_0_0', 10, 100),
         createPilotiRect('piloti_3_0', 210, 250),
       ],
@@ -345,6 +356,13 @@ describe('contraventamento.ts', () => {
       defaultElevationWidth + 2,
       defaultElevationWidth,
     ]);
+    expect(frontGroup._objects[0]?.isGroundElement).toBe(true);
+    expect(frontGroup._objects.slice(1, 3).every(
+      (object: any) => object?.isContraventamentoElevation === true,
+    )).toBe(true);
+    expect(frontGroup._objects.slice(3).every(
+      (object: any) => object?.isPilotiRect === true,
+    )).toBe(true);
     expect(frontGroup.setCoords).toHaveBeenCalled();
   });
 });

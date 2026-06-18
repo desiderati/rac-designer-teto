@@ -79,7 +79,7 @@ describe('GuidedTourHost', () => {
     expect(dialog).toHaveAccessibleDescription(/use o menu principal/i);
     expect(dialog).toHaveClass('bg-amber-100', 'border-amber-200');
     expect(screen.getByText('Menu Principal')).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(6);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
     expect(screen.getByRole('button', {name: 'OK'})).toHaveClass('bg-amber-400', 'text-amber-950');
     expect(screen.getByTestId('guided-tour-click-blocker')).toHaveClass('pointer-events-auto');
     expect(screen.queryByRole('button', {name: /pr[oó]ximo/i})).not.toBeInTheDocument();
@@ -91,6 +91,40 @@ describe('GuidedTourHost', () => {
 
     expect(await screen.findByRole('dialog', {name: 'Perfil e Ajuda'})).toBeVisible();
     expect(screen.getByText(/configurações, dicas/i)).toBeVisible();
+  });
+
+  it('includes the house difficulty controls in the initial RAC tutorial', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Target guidedTourId='rac-hamburger' label='hamburger' targetRect={rect(20, 20, 48, 48)}/>
+        <Target guidedTourId='rac-user-menu' label='user menu' targetRect={rect(500, 20, 48, 48)}/>
+        <Target guidedTourId='rac-export-pdf' label='export pdf' targetRect={rect(820, 20, 48, 48)}/>
+        <Target guidedTourId='rac-view-3d' label='view 3d' targetRect={rect(880, 20, 48, 48)}/>
+        <Target guidedTourId='rac-zoom-menu' label='zoom' targetRect={rect(520, 70, 80, 36)}/>
+        <Target
+          guidedTourId='rac-house-difficulty-controls'
+          label='difficulty controls'
+          targetRect={rect(920, 180, 72, 190)}
+        />
+        <Target guidedTourId='rac-toolbar' label='toolbar' targetRect={rect(20, 120, 72, 400)}/>
+        <TestGuidedTourHost/>
+      </>,
+    );
+
+    for (const title of ['Menu Principal', 'Perfil e Ajuda', 'Exportar PDF', 'Visualização 3D', 'Zoom']) {
+      expect(await screen.findByRole('dialog', {name: title})).toBeVisible();
+      await user.click(screen.getByRole('button', {name: 'OK'}));
+    }
+
+    const difficultyDialog = await screen.findByRole('dialog', {name: 'Dificuldade da Casa'});
+    expect(difficultyDialog).toBeVisible();
+    expect(difficultyDialog).toHaveAccessibleDescription(/solo, obstáculos subterrâneos/i);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+
+    expect(await screen.findByRole('dialog', {name: 'Barra de Ferramentas'})).toBeVisible();
   });
 
   it('starts contextual tips from canvas object events and persists them after close', async () => {

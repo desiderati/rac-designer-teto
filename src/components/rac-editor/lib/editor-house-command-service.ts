@@ -19,6 +19,7 @@ import {EditorHouseSetupCommandService} from '@/components/rac-editor/lib/editor
 import {EditorHouseTerrainCommandService} from '@/components/rac-editor/lib/editor-house-terrain-command-service.ts';
 import {EditorHouseViewCommandService} from '@/components/rac-editor/lib/editor-house-view-command-service.ts';
 import type {EditorHouseViewRuntime} from '@/components/rac-editor/lib/editor-house-view-runtime.ts';
+import type {InitialPilotiNivelDefinition} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 
 interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
@@ -108,6 +109,10 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
 
   calculateAndApplyRecommendedHeights(): void {
     this.pilotiCommands.calculateAndApplyRecommendedHeights();
+  }
+
+  applyInitialPilotiNiveis(niveis: Record<string, InitialPilotiNivelDefinition>): void {
+    this.pilotiCommands.applyInitialPilotiNiveis(niveis);
   }
 
   autoAssignAllSides(initialSide: HouseSide): void {

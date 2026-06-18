@@ -671,11 +671,7 @@ export function updateGroundInGroup(group: CanvasGroup): void {
     }
   }
 
-  // Garante bounds atualizados imediatamente após inserir/remover terreno.
-  group._clearCache?.();
-  group._calcBounds?.();
-  group.setCoords();
-  group.dirty = true;
+  refreshHouseGroupRendering(group);
 
   const canvas = group.canvas;
   if (canvas?.getActiveObject() === group) {

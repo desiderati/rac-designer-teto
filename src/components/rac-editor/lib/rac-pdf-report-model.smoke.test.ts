@@ -31,10 +31,9 @@ describe('rac pdf report model', () => {
     expect(calculateDesnivelCm(house)).toBe(52);
   });
 
-  it('calcula indicador de risco do terreno por solo, complexidade, obstaculos e media dos pilotis', () => {
+  it('calcula indicador de risco do terreno por solo, desnivel dos pilotis, obstaculos e media dos pilotis', () => {
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'stable',
-      terrainComplexity: 'flat',
     })).toEqual({
       score: 0,
       label: 'Baixa',
@@ -43,50 +42,45 @@ describe('rac pdf report model', () => {
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'water_table',
-      terrainComplexity: 'moderate',
       hasElevatedObstacles: true,
-    }, createPilotisWithHeight(1))).toEqual({
-      score: 36,
+    }, createPilotisWithHeightAndDesnivel(1, 30))).toEqual({
+      score: 37,
       label: 'Média',
       level: 'medium',
     });
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'water_table',
-      terrainComplexity: 'moderate',
       hasElevatedObstacles: true,
-    }, createPilotisWithHeight(3))).toEqual({
-      score: 68,
+    }, createPilotisWithHeightAndDesnivel(3, 30))).toEqual({
+      score: 53,
       label: 'Alta',
       level: 'high',
     });
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'stable',
-      terrainComplexity: 'flat',
-    }, createPilotisWithHeight(3.5))).toEqual({
-      score: 4,
+    }, createPilotisWithHeightAndDesnivel(3.5, 0))).toEqual({
+      score: 20,
       label: 'Baixa',
       level: 'low',
     });
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'water_table',
-      terrainComplexity: 'moderate',
       hasElevatedObstacles: true,
     })).toEqual({
-      score: 36,
+      score: 27,
       label: 'Média',
       level: 'medium',
     });
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'water_table',
-      terrainComplexity: 'extreme',
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
       hasNeighborSetbacks: true,
-    })).toEqual({
+    }, createPilotisWithHeightAndDesnivel(3.5, 120))).toEqual({
       score: 100,
       label: 'Crítica',
       level: 'critical',
@@ -107,9 +101,9 @@ describe('rac pdf report model', () => {
       {label: 'Data de geração', value: '16/06/2026 09:00'},
     ]);
     expect(report?.terrain.riskIndicator).toEqual({
-      score: 44,
-      label: 'Média',
-      level: 'medium',
+      score: 51,
+      label: 'Alta',
+      level: 'high',
     });
     expect(report?.familyName).toBe('Daniel');
     expect(report?.leaders).toBe('Math Almeida + Calfa');
@@ -516,7 +510,6 @@ function createHouseRecord({
     },
     siteAssessment: {
       soilProfile: 'water_table',
-      terrainComplexity: 'moderate',
       hasElevatedObstacles: true,
     },
     pilotiLayout: {
@@ -539,13 +532,15 @@ function createHouseRecord({
   };
 }
 
-function createPilotisWithHeight(height: number): Record<string, HousePiloti> {
+function createPilotisWithHeightAndDesnivel(height: number, desnivelCm: number): Record<string, HousePiloti> {
+  const maxNivel = desnivelCm / 100;
+
   return Object.fromEntries(
     getAllPilotiIds().map((pilotiId, index) => [
       pilotiId,
       {
         height,
-        nivel: 0.4,
+        nivel: index === 0 ? 0 : maxNivel,
         isMaster: index === 0,
       },
     ]),

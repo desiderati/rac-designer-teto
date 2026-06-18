@@ -26,9 +26,11 @@ import {
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
 import {hasHouseViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
+import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {
   useRacEditorConstructionSitePanelController,
 } from '@/components/rac-editor/hooks/useRacEditorConstructionSitePanelController.ts';
+import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
@@ -416,6 +418,19 @@ export function useRacEditorController(): RacEditorLayoutProps {
     },
   });
 
+  const activeHouse = constructionSiteManagement.constructionSite?.houses.find(
+    (house) => house.id === constructionSiteManagement.constructionSite?.constructionSite.activeHouseId,
+  ) ?? null;
+  const difficultyIndicator = activeHouse
+    ? calculateHouseDifficultyIndicator(
+      activeHouse.siteAssessment,
+      terrainPilotis ?? activeHouse.drawingDocument.house?.pilotis ?? undefined,
+    )
+    : null;
+  const handleSiteAssessmentChange = useCallback((input: Partial<SiteAssessment>) => {
+    constructionSiteManagement.actions.updateActiveHouseSiteAssessment(input);
+  }, [constructionSiteManagement.actions]);
+
   return buildRacEditorLayoutProps({
     handleContainerClick,
     menuActions,
@@ -439,6 +454,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
     canExportPDF,
     canvasRef,
     infoMessage,
+    difficultyIndicator,
+    siteAssessment: activeHouse?.siteAssessment ?? null,
+    handleSiteAssessmentChange,
     isAnyEditorOpen,
     isContraventamentoMode,
     isPilotiEligibleAsDestination,

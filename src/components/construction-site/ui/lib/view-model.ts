@@ -13,10 +13,11 @@ import type {
   MonitorRecord,
   PersistedHouseRecord,
   SoilProfile,
-  TerrainComplexity,
 } from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
 import type {HouseType} from '@/shared/types/house.ts';
+import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
+import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import {
   CONSTRUCTION_SITE_STATUS_LABELS,
   HOUSE_STATUS_LABELS,
@@ -201,7 +202,6 @@ export interface HouseConfigurationFormState {
   hasElevatedObstacles: boolean;
   hasNeighborSetbacks: boolean;
   locationQuery: string;
-  terrainComplexity: TerrainComplexity;
 }
 
 export function getHouseConfigurationInitialState(
@@ -225,16 +225,7 @@ export function getHouseConfigurationInitialState(
     hasElevatedObstacles: assessment?.hasElevatedObstacles ?? false,
     hasNeighborSetbacks: assessment?.hasNeighborSetbacks ?? false,
     locationQuery: assessment?.locationQuery ?? '',
-    terrainComplexity: toEditableTerrainComplexity(assessment?.terrainComplexity),
   };
-}
-
-function toEditableTerrainComplexity(terrainComplexity?: TerrainComplexity): TerrainComplexity {
-  if (terrainComplexity === 'extreme') {
-    return 'very_steep';
-  }
-
-  return terrainComplexity ?? 'flat';
 }
 
 export function toHouseConfigurationInput(form: HouseConfigurationFormValues): CreateHouseInput {
@@ -253,7 +244,6 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
       hasElevatedObstacles: form.hasElevatedObstacles ?? false,
       hasNeighborSetbacks: form.hasNeighborSetbacks ?? false,
       locationQuery: form.locationQuery?.trim() || undefined,
-      terrainComplexity: form.terrainComplexity ?? 'flat',
     },
   };
 }
@@ -369,6 +359,10 @@ export function getHouseFamily(constructionSite: ConstructionSiteState, house: P
 
 export function getHouseFamilyName(constructionSite: ConstructionSiteState, house: PersistedHouseRecord): string {
   return getHouseFamily(constructionSite, house)?.name ?? 'Família sem nome';
+}
+
+export function getHouseDifficultyIndicator(house: PersistedHouseRecord): HouseDifficultyIndicator {
+  return calculateHouseDifficultyIndicator(house.siteAssessment, house.drawingDocument.house?.pilotis ?? undefined);
 }
 
 function formatOptionalInteger(value: number | undefined): string {

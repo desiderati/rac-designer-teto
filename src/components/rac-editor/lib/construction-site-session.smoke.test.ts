@@ -269,7 +269,6 @@ describe('constructionSite-session.ts', () => {
         hasElevatedObstacles: true,
         hasNeighborSetbacks: false,
         locationQuery: 'Rua A, 123',
-        terrainComplexity: 'very_steep',
       },
     } as never);
 
@@ -291,7 +290,6 @@ describe('constructionSite-session.ts', () => {
       hasElevatedObstacles: true,
       hasNeighborSetbacks: false,
       locationQuery: 'Rua A, 123',
-      terrainComplexity: 'very_steep',
     });
     expect(session.getActiveFamily()).toMatchObject({
       name: 'Família Local',
@@ -321,7 +319,6 @@ describe('constructionSite-session.ts', () => {
         hasElevatedObstacles: false,
         hasNeighborSetbacks: true,
         locationQuery: 'Rua B, 456',
-        terrainComplexity: 'extreme',
       },
     });
 
@@ -329,7 +326,13 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().houseSize).toBe('small');
     expect(session.getActiveHouse().leaders).toBe('Carla e João');
     expect(session.getActiveHouse().notes).toBe('Nota atualizada da casa');
-    expect(session.getActiveHouse().siteAssessment.terrainComplexity).toBe('extreme');
+    expect(session.getActiveHouse().siteAssessment).toEqual({
+      soilProfile: 'stable',
+      hasUndergroundObstacles: false,
+      hasElevatedObstacles: false,
+      hasNeighborSetbacks: true,
+      locationQuery: 'Rua B, 456',
+    });
     expect(session.getActiveFamily().name).toBe('Família Local Atualizada');
     expect(session.getActiveFamily().photoDataUrl).toBe(VALID_JPEG_DATA_URL);
     expect(session.getActiveFamily().notes).toBeUndefined();
@@ -413,7 +416,7 @@ describe('constructionSite-session.ts', () => {
         terrainType: 1,
         status: 'draft',
         designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
-        siteAssessment: {terrainComplexity: 'flat'},
+        siteAssessment: {},
         pilotiLayout: {points: []},
         drawingDocument: {
           schemaVersion: 1,
@@ -668,7 +671,7 @@ describe('constructionSite-session.ts', () => {
         terrainType: 1,
         status: 'draft',
         designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
-        siteAssessment: {terrainComplexity: 'flat'},
+        siteAssessment: {},
         pilotiLayout: {points: []},
         drawingDocument: {
           schemaVersion: 1,
@@ -789,7 +792,7 @@ describe('constructionSite-session.ts', () => {
     expect(constructionSiteRecord.constructionDate).toBe('2026-05-09');
     expect(houseRecord.houseSize).toBe('large');
     expect(houseRecord.notes).toBe('Nota antiga da família');
-    expect(houseRecord.siteAssessment).toEqual({terrainComplexity: 'flat'});
+    expect(houseRecord.siteAssessment).toEqual({});
   });
 });
 

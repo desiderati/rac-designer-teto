@@ -446,17 +446,20 @@ export function refreshHouseGroupRendering(group: CanvasGroup): void {
     obj.setCoords?.();
   });
 
-  // Z-order sort: normal objects (pilotis, walls, roof) -> ground layers -> markers/labels.
-  // Ground elements render in front of pilotis to preserve the "enterrado" visual.
+  // Z-order sort: ground layers -> elevation braces -> normal objects -> markers/labels.
+  // Elevation braces render above terrain/stones, but behind house structure, pilotis and stairs.
   const groundBack =
     objects.filter(o => o.isGroundElement && !o.isNivelMarker && !o.isNivelLabel);
+
+  const elevationMiddle =
+    objects.filter(o => o.isContraventamentoElevation);
 
   const groundFront =
     objects.filter(o => o.isNivelMarker || o.isNivelLabel);
 
-  const normal = objects.filter(o => !o.isGroundElement);
+  const normal = objects.filter(o => !o.isGroundElement && !o.isContraventamentoElevation);
   // Pilotis e estrutura devem ficar na frente de brita/rachão.
-  const sorted = [...groundBack, ...normal, ...groundFront];
+  const sorted = [...groundBack, ...elevationMiddle, ...normal, ...groundFront];
 
   // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
   const internalObjects = group._objects;

@@ -6,7 +6,6 @@ import {
 } from '@/shared/lib/contact-validation.ts';
 import {hasValidOptionalPhotoDataUrl, PHOTO_UPLOAD_ERROR_MESSAGE} from '@/shared/lib/photo-data-url.ts';
 import {HOUSE_FAMILY_NAME_MAX_LENGTH} from '@/shared/constants.ts';
-import type {TerrainComplexity} from '@/shared/types/construction-site.ts';
 
 const CONSTRUCTION_CODE_PATTERN = /^CC\d{4}$/;
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -81,9 +80,6 @@ export const houseConfigurationFormSchema = z.object({
     .refine((value) => value.length === 0 || parseMapCoordinates(value) !== null, {
       message: 'Use latitude e longitude, por exemplo: -25.4284, -49.2733.',
     }),
-  terrainComplexity: z.enum(['flat', 'moderate', 'steep', 'very_steep', 'extreme'], {
-    required_error: 'Informe a complexidade do terreno.',
-  }),
 });
 
 const optionalIntegerDraftSchema = z.string()
@@ -151,12 +147,4 @@ export function parseMapCoordinates(value: string): { latitude: number; longitud
   if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) return null;
 
   return {latitude, longitude};
-}
-
-export function isTerrainComplexity(value: string): value is TerrainComplexity {
-  return value === 'flat'
-    || value === 'moderate'
-    || value === 'steep'
-    || value === 'very_steep'
-    || value === 'extreme';
 }

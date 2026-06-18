@@ -45,8 +45,8 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 7. `BUS-007-viewer-3d.md`
     - Regras de visualização 3D, sincronização e inserção de snapshot no 2D.
 
-8. `BUS-008-indicador-risco-terreno-pdf.md`
-    - Regra do indicador de risco do terreno no PDF, calculado por solo, complexidade, obstáculos e pilotis.
+8. `BUS-008-indicador-dificuldade-terreno.md`
+    - Regra do indicador de dificuldade do terreno, calculado por solo, desnível, obstáculos e pilotis.
 
 9. `BUS-009-materiais-terreno.md`
     - Regra de materiais de base do terreno e definição de pedras como rachão + brita.

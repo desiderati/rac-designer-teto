@@ -62,7 +62,6 @@ export interface SiteAssessment {
   hasElevatedObstacles?: boolean;
   hasNeighborSetbacks?: boolean;
   locationQuery?: string;
-  terrainComplexity: TerrainComplexity;
 }
 
 export interface HouseExtraMaterials {
@@ -169,9 +168,7 @@ export interface ConstructionSiteSummary {
 
 export const CONSTRUCTION_SITE_DOCUMENT_SCHEMA_VERSION = 1;
 
-export const EMPTY_SITE_ASSESSMENT: SiteAssessment = {
-  terrainComplexity: 'flat',
-};
+export const EMPTY_SITE_ASSESSMENT: SiteAssessment = {};
 
 export const EMPTY_DRAWING_DOCUMENT: PersistedDrawingDocument = {
   schemaVersion: CONSTRUCTION_SITE_DOCUMENT_SCHEMA_VERSION,

@@ -9,12 +9,17 @@ import type {
 import {InfoBar} from './InfoBar.tsx';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
+import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
+import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;
   showTips: boolean;
   showZoomControls: boolean;
   infoMessage: string;
+  difficultyIndicator?: HouseDifficultyIndicator | null;
+  siteAssessment?: SiteAssessment | null;
+  onSiteAssessmentChange?: (input: Partial<SiteAssessment>) => void;
   isAnyEditorOpen: boolean;
   isContraventamentoMode: boolean;
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
@@ -39,6 +44,9 @@ export function RacEditorCanvas({
   showTips,
   showZoomControls,
   infoMessage,
+  difficultyIndicator = null,
+  siteAssessment = null,
+  onSiteAssessmentChange,
   isAnyEditorOpen,
   isContraventamentoMode,
   isPilotiEligibleForContraventamento,
@@ -83,6 +91,9 @@ export function RacEditorCanvas({
         onMinimapInteraction={onZoomInteraction}
         onZoomChange={onZoomChange}
         canvasToolMode={canvasToolMode}
+        difficultyIndicator={difficultyIndicator}
+        siteAssessment={siteAssessment}
+        onSiteAssessmentChange={onSiteAssessmentChange}
         showTips={showTips}
         onPilotiSelect={onPilotiSelect}
         onWallSelect={onWallSelect}

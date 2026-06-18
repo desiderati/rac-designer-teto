@@ -224,6 +224,35 @@ describe('terrain.ts', () => {
     expect(middlePiloti.pilotiNivel).toBe(0.3);
   });
 
+  it('redesenha o terreno mantendo contraventamento entre solo e estrutura', () => {
+    const houseBody = createCanvasObject({isHouseBody: true, left: 0, top: 0, width: 130, height: 80});
+    const contraventamento = createCanvasObject({isContraventamentoElevation: true});
+    const leftPiloti = createPilotiRect('piloti_0_0', 10, 0.2);
+    const middlePiloti = createPilotiRect('piloti_0_1', 60, 0.3);
+    const rightPiloti = createPilotiRect('piloti_0_2', 110, 0.4);
+    const group = createElevationGroup([
+      houseBody,
+      contraventamento,
+      leftPiloti,
+      middlePiloti,
+      rightPiloti,
+    ]);
+
+    updateGroundInGroup(group);
+
+    const objects = group.getCanvasObjects();
+    const groundIndexes = objects
+      .map((object, index) => ({object, index}))
+      .filter(({object}) => object.isGroundElement && !object.isNivelMarker && !object.isNivelLabel)
+      .map(({index}) => index);
+    const contraventamentoIndex = objects.indexOf(contraventamento);
+
+    expect(Math.max(...groundIndexes)).toBeLessThan(contraventamentoIndex);
+    expect(contraventamentoIndex).toBeLessThan(objects.indexOf(houseBody));
+    expect(contraventamentoIndex).toBeLessThan(objects.indexOf(leftPiloti));
+    expect(contraventamentoIndex).toBeLessThan(objects.findIndex((object) => object.isNivelLabel));
+  });
+
   it('mantém a largura lateral do terreno estável em redesenhos sucessivos', () => {
     const leftPiloti = createPilotiRect('piloti_0_0', 10, 0.2);
     const group = createElevationGroup([

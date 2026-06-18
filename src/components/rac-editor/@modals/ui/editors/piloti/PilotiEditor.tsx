@@ -174,7 +174,7 @@ export function PilotiEditor({
                 onNivelIncrement={handleNivelIncrement}
                 onNivelChange={handleNivelChange}
                 onNivelCommit={handleNivelCommit}
-                enableInput={!isMobile}
+                enableInput
                 modeLabel={autoAdjustPilotiHeightsFromNivel ? 'Auto' : 'Manual'}
               />
 

@@ -1,6 +1,12 @@
 import React, {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
-import {Drawer, DrawerContent} from '@/components/ui/drawer.tsx';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer.tsx';
 import {useFloatingEditor} from '@/components/rac-editor/@modals/hooks/useFloatingEditor.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
@@ -76,6 +82,12 @@ export function FloatingEditor({
     return (
       <Drawer open={isOpen} onOpenChange={(open) => !open && onCancel()}>
         <DrawerContent>
+          <DrawerHeader className='sr-only'>
+            <DrawerTitle>Editor do item selecionado</DrawerTitle>
+            <DrawerDescription>
+              Edite as propriedades do item selecionado e confirme ou cancele a alteração.
+            </DrawerDescription>
+          </DrawerHeader>
           <div
             className='px-4 pb-4'
             data-guided-tour-id={dataGuidedTourId}

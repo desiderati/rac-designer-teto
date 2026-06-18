@@ -1,6 +1,9 @@
 import {ReactNode} from 'react';
 import {Minimap} from '@/components/rac-editor/ui/Minimap.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
+import {HouseDifficultyControls} from '@/components/rac-editor/ui/HouseDifficultyControls.tsx';
+import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
+import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;
@@ -21,6 +24,9 @@ interface CanvasOverlaysProps {
     type: string;
   }>;
   showTips: boolean;
+  difficultyIndicator?: HouseDifficultyIndicator | null;
+  siteAssessment?: SiteAssessment | null;
+  onSiteAssessmentChange?: (input: Partial<SiteAssessment>) => void;
   children?: ReactNode;
 }
 
@@ -43,6 +49,9 @@ export function CanvasOverlays({
   onViewportChange,
   minimapObjects,
   showTips,
+  difficultyIndicator,
+  siteAssessment,
+  onSiteAssessmentChange,
   children,
 }: CanvasOverlaysProps) {
 
@@ -76,6 +85,26 @@ export function CanvasOverlays({
           />
         </div>
       )}
+
+      {difficultyIndicator ? (
+        <>
+          <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 sm:block'>
+            <HouseDifficultyControls
+              indicator={difficultyIndicator}
+              siteAssessment={siteAssessment}
+              onSiteAssessmentChange={onSiteAssessmentChange}
+            />
+          </div>
+          <div className='absolute right-1 top-1/2 z-10 -translate-y-1/2 sm:hidden'>
+            <HouseDifficultyControls
+              indicator={difficultyIndicator}
+              siteAssessment={siteAssessment}
+              onSiteAssessmentChange={onSiteAssessmentChange}
+              enableMobileCollapse
+            />
+          </div>
+        </>
+      ) : null}
 
       {/* Mobile: minimapa e InfoBar empilhados no contêiner flex */}
       <div

@@ -33,6 +33,8 @@ import type {
   TerrainCanvasSelection,
   WallCanvasSelection,
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
+import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
+import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 
 interface CanvasProps {
   children?: ReactNode;
@@ -51,6 +53,9 @@ interface CanvasProps {
 
   showZoomControls?: boolean;
   showTips?: boolean;
+  difficultyIndicator?: HouseDifficultyIndicator | null;
+  siteAssessment?: SiteAssessment | null;
+  onSiteAssessmentChange?: (input: Partial<SiteAssessment>) => void;
 
   /** Modo ativo da ferramenta do canvas. `pan` desativa a multisseleção do Fabric. */
   canvasToolMode?: CanvasToolMode;
@@ -84,6 +89,9 @@ export const Canvas =
 
       showZoomControls = true,
       showTips = false,
+      difficultyIndicator = null,
+      siteAssessment = null,
+      onSiteAssessmentChange,
       canvasToolMode = 'select',
       onZoomChange,
 
@@ -424,6 +432,9 @@ export const Canvas =
             onZoomChange={handleZoomChange}
             showZoomControls={showZoomControls}
             minimapObjects={minimapObjects}
+            difficultyIndicator={difficultyIndicator}
+            siteAssessment={siteAssessment}
+            onSiteAssessmentChange={onSiteAssessmentChange}
 
             viewportX={viewportX}
             viewportY={viewportY}

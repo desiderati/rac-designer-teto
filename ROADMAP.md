@@ -21,7 +21,7 @@ prováveis de impacto, mas não substitui PRDs canônicos quando uma frente prec
 - `docs/business-rules/BUS-003-vistas-por-tipo.md`: limites e nomes das vistas por tipo de casa.
 - `docs/business-rules/BUS-004-piloti-nivel.md`: regras de nível, altura e consistência visual dos pilotis.
 - `docs/business-rules/BUS-006-contraventamento.md`: regras de criação, remoção e elegibilidade de contraventamentos.
-- `docs/business-rules/BUS-008-indicador-risco-terreno-pdf.md`: regra do indicador de risco do terreno no PDF.
+- `docs/business-rules/BUS-008-indicador-dificuldade-terreno.md`: regra do indicador de dificuldade do terreno.
 - `docs/business-rules/BUS-009-materiais-terreno.md`: regra de materiais de base do terreno e definição de pedras.
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`: gestão de Construções TETO, casas e famílias.
 - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
@@ -181,13 +181,13 @@ canto. A função `getPilotiName` já resolve códigos como `A1`, `B2` e `C4` a 
 **Status:** parcialmente desbloqueado; ainda não implementado no canvas.
 
 **Necessidade:** criar uma opção no menu da toolbar para inserir um componente visual do tipo gauge. O gauge indicará a
-dificuldade do terreno. Para o PDF, a regra de risco já foi definida em
-`docs/business-rules/BUS-008-indicador-risco-terreno-pdf.md`; ainda falta decidir se o gauge inserível no canvas deve
-reutilizar essa mesma regra ou representar outro indicador visual.
+dificuldade do terreno. A regra de dificuldade está definida em
+`docs/business-rules/BUS-008-indicador-dificuldade-terreno.md`; ainda falta decidir se um gauge inserível como objeto
+do canvas deve reutilizar essa mesma regra ou representar outro indicador visual.
 
 **Estado atual:** a toolbar já possui menus para elementos, linhas, texto livre e ações gerais. Objetos de canvas são
-criados por estratégias em `@canvas/lib/factory/elements`. O PDF já renderiza um gauge de risco do terreno, mas não há
-tipo `gauge` serializável nem ação de inserção pela toolbar do canvas.
+criados por estratégias em `@canvas/lib/factory/elements`. O RAC já possui indicador de dificuldade fora do Fabric,
+mas não há tipo `gauge` serializável nem ação de inserção pela toolbar do canvas.
 
 **Direção proposta:**
 

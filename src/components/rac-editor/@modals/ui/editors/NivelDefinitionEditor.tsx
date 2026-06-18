@@ -221,6 +221,7 @@ export function NivelDefinitionEditor(
           maxNivel={maxNivel}
           onNivelIncrement={handleNivelIncrement}
           onNivelChange={handleNivelChange}
+          enableInput
           recommendedHeightText={`${formatPilotiHeight(getRecommendedHeight(entry.nivel, selectedHeights))}m`}
         />
       </div>

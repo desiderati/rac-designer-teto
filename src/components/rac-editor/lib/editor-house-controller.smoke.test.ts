@@ -241,6 +241,45 @@ describe('editor house controller', () => {
     });
   });
 
+  it('aplica níveis iniciais com recalculo automático mesmo quando a preferência global está manual', () => {
+    const manualController = createCanvasHouseController({
+      persistence: new InMemoryHousePersistenceAdapter(),
+      settingsPort: createSettingsPort({autoAdjustPilotiHeightsFromNivel: false}),
+      constructionSiteSession: createConstructionSiteSessionForTest(),
+    });
+    manualController.setSelectedPilotiHeights([1, 1.5, 2, 2.5, 3]);
+    manualController.setHouseType('tipo6');
+
+    manualController.applyInitialPilotiNiveis({
+      piloti_0_0: {nivel: 0.45, isMaster: true},
+      piloti_3_0: {nivel: 0.95, isMaster: false},
+      piloti_0_2: {nivel: 1.11, isMaster: false},
+      piloti_3_2: {nivel: 1.45, isMaster: false},
+    });
+
+    expect(manualController.getPilotiData('piloti_0_0')).toMatchObject({
+      nivel: 0.45,
+      height: 1.5,
+      isMaster: true,
+    });
+    expect(manualController.getPilotiData('piloti_3_0')).toMatchObject({
+      nivel: 0.95,
+      height: 3.0,
+    });
+    expect(manualController.getPilotiData('piloti_0_2')).toMatchObject({
+      nivel: 1.11,
+      height: 3.0,
+    });
+    expect(manualController.getPilotiData('piloti_3_2')).toMatchObject({
+      nivel: 1.45,
+      height: 3.0,
+    });
+    expect(manualController.getPilotiData('piloti_1_1')).toMatchObject({
+      nivel: 0.92,
+      height: 3.0,
+    });
+  });
+
   it('registers and removes views while syncing side assignments', () => {
     const {group} = createMockGroup();
     const canvasGroups = [group];

@@ -18,6 +18,20 @@ export interface HousePilotiPatch {
 }
 
 /**
+ * Definição inicial de nível informada no fluxo de criação da casa.
+ *
+ * Esse fluxo é deliberadamente distinto da edição manual posterior: durante a
+ * inserção inicial, os níveis devem materializar a casa com alturas recomendadas.
+ */
+export interface InitialPilotiNivelDefinition {
+  /** Nível relativo usado para calcular alturas recomendadas. */
+  nivel: number;
+
+  /** Indica se este piloti é o ponto mestre de nível da casa. */
+  isMaster: boolean;
+}
+
+/**
  * Leituras de domínio necessárias para fluxos que editam pilotis.
  */
 export interface HousePilotiReadPort {
@@ -37,6 +51,9 @@ export interface HousePilotiReadPort {
 export interface HousePilotiWritePort {
   /** Atualiza um piloti e retorna o estado efetivamente aplicado. */
   updatePiloti(pilotiId: string, patch: HousePilotiPatch): HousePiloti;
+
+  /** Aplica os níveis iniciais da casa sempre recalculando alturas recomendadas. */
+  applyInitialPilotiNiveis(niveis: Record<string, InitialPilotiNivelDefinition>): void;
 
   /** Recalcula e aplica as alturas recomendadas para todos os pilotis da casa. */
   calculateAndApplyRecommendedHeights(): void;

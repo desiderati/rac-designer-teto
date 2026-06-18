@@ -1,7 +1,7 @@
 import {type KeyboardEvent, type ReactNode, useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Droplets, LoaderCircle, LocateFixed, Mountain, Waves} from 'lucide-react';
+import {Droplets, Layers, LoaderCircle, LocateFixed, Waves} from 'lucide-react';
 import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
   ConstructionSiteState,
@@ -20,7 +20,7 @@ import {
   PHONE_MASK_MAX_LENGTH,
   type HouseConfigurationFormValues,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
-import {HOUSE_SIZE_OPTIONS, TERRAIN_COMPLEXITY_OPTIONS} from '@/components/construction-site/ui/lib/constants.ts';
+import {HOUSE_SIZE_OPTIONS} from '@/components/construction-site/ui/lib/constants.ts';
 import {
   CheckboxField,
   PhotoUploadField,
@@ -292,7 +292,7 @@ export function HouseConfigurationScreen({
                   <legend className='text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>Perfil do Solo</legend>
                   <div className='space-y-3'>
                     <RadioField
-                      icon={<Mountain className='h-5 w-5'/>}
+                      icon={<Layers className='h-5 w-5'/>}
                       label='Terreno Estável / Firme'
                       name='soilProfile'
                       value='stable'
@@ -421,22 +421,8 @@ export function HouseConfigurationScreen({
             <div data-testid='static-map-wrapper' className='md:col-span-2'>
               <StaticMapPreview locationQuery={locationQuery}/>
             </div>
-            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2 md:items-end'>
-              <Controller
-                control={form.control}
-                name='terrainComplexity'
-                render={({field, fieldState}) => (
-                  <VisualSelectField
-                    label='Complexidade do Terreno'
-                    ariaLabel='Complexidade do Terreno'
-                    value={field.value}
-                    options={TERRAIN_COMPLEXITY_OPTIONS}
-                    onChange={(terrainComplexity) => field.onChange(terrainComplexity)}
-                    error={fieldState.error?.message}
-                  />
-                )}
-              />
-              <PrimaryButton type='submit' className='w-full md:self-end'>Salvar Configurações</PrimaryButton>
+            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2'>
+              <PrimaryButton type='submit' className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
             </div>
           </div>
         </HouseFormSection>

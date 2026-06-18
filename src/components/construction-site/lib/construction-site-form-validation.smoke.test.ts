@@ -131,7 +131,6 @@ describe('construction-site-form-validation.ts', () => {
       hasElevatedObstacles: false,
       hasNeighborSetbacks: false,
       locationQuery: '',
-      terrainComplexity: 'flat',
     }).success).toBe(true);
 
     expect(houseConfigurationFormSchema.safeParse({
@@ -148,7 +147,6 @@ describe('construction-site-form-validation.ts', () => {
       hasElevatedObstacles: false,
       hasNeighborSetbacks: false,
       locationQuery: '',
-      terrainComplexity: 'flat',
     }).success).toBe(false);
   });
 
@@ -164,7 +162,6 @@ describe('construction-site-form-validation.ts', () => {
       hasElevatedObstacles: false,
       hasNeighborSetbacks: false,
       locationQuery: '',
-      terrainComplexity: 'flat',
     };
 
     expect(houseConfigurationFormSchema.safeParse({
@@ -234,7 +231,6 @@ describe('construction-site-form-validation.ts', () => {
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
       hasNeighborSetbacks: false,
-      terrainComplexity: 'flat',
     };
 
     for (const locationQuery of ['-25.4284567, -49.2733123', '-90, -180', '90, 180']) {

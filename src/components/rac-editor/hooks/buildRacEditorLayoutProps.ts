@@ -25,6 +25,9 @@ interface BuildRacEditorLayoutPropsArgs {
   canExportPDF: LayoutProps['menus']['canExportPDF'];
   canvasRef: LayoutProps['canvas']['canvasRef'];
   infoMessage: LayoutProps['canvas']['infoMessage'];
+  difficultyIndicator: LayoutProps['canvas']['difficultyIndicator'];
+  siteAssessment: LayoutProps['canvas']['siteAssessment'];
+  handleSiteAssessmentChange: LayoutProps['canvas']['onSiteAssessmentChange'];
   isAnyEditorOpen: LayoutProps['canvas']['isAnyEditorOpen'];
   isContraventamentoMode: LayoutProps['canvas']['isContraventamentoMode'];
   isPilotiEligibleAsDestination: LayoutProps['canvas']['isPilotiEligibleForContraventamento'];
@@ -126,6 +129,9 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
       infoMessage: args.infoMessage,
+      difficultyIndicator: args.difficultyIndicator,
+      siteAssessment: args.siteAssessment,
+      onSiteAssessmentChange: args.handleSiteAssessmentChange,
       isAnyEditorOpen: args.isAnyEditorOpen,
       isContraventamentoMode: args.isContraventamentoMode,
       isPilotiEligibleForContraventamento: args.isPilotiEligibleAsDestination,

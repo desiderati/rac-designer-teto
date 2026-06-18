@@ -270,16 +270,7 @@ export function useCanvasHouseViewActions({
       // Mark as applied so onClose won't reset the house manager
       niveisAppliedRef.current = true;
 
-      // Update corner pilotis through the house write port.
-      for (const [pilotiId, entry] of Object.entries(niveis)) {
-        houseWritePort.updatePiloti(pilotiId, {
-          isMaster: entry.isMaster,
-          nivel: entry.nivel
-        });
-      }
-
-      // Calcula as alturas recomendadas dos 12 pilotis por interpolação bilinear.
-      houseWritePort.calculateAndApplyRecommendedHeights();
+      houseWritePort.applyInitialPilotiNiveis(niveis);
 
       // Adiciona planta e vista inicial.
       if (viewType) {

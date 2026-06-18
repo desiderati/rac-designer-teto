@@ -242,6 +242,55 @@ describe('house-auto-stairs.ts', () => {
     expect(stair?.stairsStepCount).toBe(3);
   });
 
+  it('mantém contraventamento atrás da escada nas elevações de 6m', () => {
+    const {group, objects} = createMockGroup({houseSide: 'top'});
+    const contraventamentoBorder = createMockObject({
+      isContraventamentoElevation: true,
+      contraventamentoId: 'contrav_horizontal',
+    });
+    const contraventamentoLine = createMockObject({
+      isContraventamentoElevation: true,
+      contraventamentoId: 'contrav_horizontal',
+    });
+
+    objects.push(
+      createMockObject({
+        isHouseDoor: true,
+        left: 110,
+        top: 80,
+        width: 40,
+        height: 95,
+      }),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_0_0', left: 90, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_1_0', left: 150, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_2_0', left: 210, width: 20}),
+      createMockObject({isPilotiRect: true, pilotiId: 'piloti_3_0', left: 270, width: 20}),
+      contraventamentoBorder,
+      contraventamentoLine,
+    );
+
+    const changed = refreshAutoStairsInViews({
+      houseType: 'tipo6',
+      sideMappings: {top: 'front', bottom: null, left: null, right: null},
+      pilotis: {
+        piloti_0_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_1_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_2_0: {height: 1, isMaster: false, nivel: 0.2},
+        piloti_3_0: {height: 1, isMaster: false, nivel: 0.2},
+      } as any,
+      topView: [],
+      elevationViews: [{instanceId: 'front_1', group} as any],
+    });
+
+    const currentObjects = group._objects as any[];
+    const stairIndex = currentObjects.findIndex((object) => object?.isAutoStairs === true);
+
+    expect(changed).toBe(true);
+    expect(stairIndex).toBeGreaterThanOrEqual(0);
+    expect(currentObjects.indexOf(contraventamentoBorder)).toBeLessThan(stairIndex);
+    expect(currentObjects.indexOf(contraventamentoLine)).toBeLessThan(stairIndex);
+  });
+
   it('removes top-view auto stairs when showStairsOnTopView is disabled', () => {
     const topGroup = createTopViewGroupWithAutoStair();
 

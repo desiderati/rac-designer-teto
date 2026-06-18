@@ -22,6 +22,7 @@ import {
   formatPaginationText,
   formatTimestampDate,
   getAvatarPalette,
+  getHouseDifficultyIndicator,
   getHouseFamily,
   getHouseFamilyName,
   getHouseInitials,
@@ -34,6 +35,7 @@ import {
   StatusActionButton,
   VisualSelect,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {HouseDifficultyGauge} from '@/components/rac-editor/ui/HouseDifficultyGauge.tsx';
 
 export function HousesScreen({
   constructionSite,
@@ -131,14 +133,16 @@ export function HousesScreen({
       <div data-testid='house-desktop-table' className='hidden overflow-x-auto sm:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
-            <col className='w-[48%]'/>
-            <col className='w-[16%]'/>
-            <col className='w-[36%]'/>
+            <col className='w-[40%]'/>
+            <col className='w-[14%]'/>
+            <col className='w-[22%]'/>
+            <col className='w-[24%]'/>
           </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Casas</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
+            <th scope='col' className='px-3 pb-1 text-center'>Dificuldade</th>
             <th scope='col' className='px-3 pb-1'>
               <span
                 data-testid='house-updated-header-grid'
@@ -220,6 +224,7 @@ export function HouseMobileCard({
   const houseTypeLabel = formatHouseType(house.houseType);
   const statusLabel = HOUSE_STATUS_LABELS[house.status];
   const formattedDate = formatTimestampDate(house.updatedAt);
+  const difficultyIndicator = getHouseDifficultyIndicator(house);
   const openHouse = () => {
     void onOpenHouse(house.id);
   };
@@ -263,12 +268,19 @@ export function HouseMobileCard({
         </div>
       </div>
       <div className='mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2'>
-        <div className='min-w-0 text-xs font-medium text-slate-600'>
-          <span className='block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400'>
-            Última Modificação
-          </span>
-          <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
-          <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
+        <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3'>
+          <div className='min-w-0 text-xs font-medium text-slate-600'>
+            <span className='block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400'>
+              Última Modificação
+            </span>
+            <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
+            <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
+          </div>
+          <HouseDifficultyGauge
+            indicator={difficultyIndicator}
+            testId='house-mobile-difficulty-gauge'
+            meterClassName='h-2'
+          />
         </div>
         <div className='flex shrink-0 items-center gap-1'>
           {house.status !== 'archived' ? (
@@ -310,6 +322,7 @@ export function HouseTableRow({
   const houseTypeLabel = formatHouseType(house.houseType);
   const statusLabel = HOUSE_STATUS_LABELS[house.status];
   const formattedDate = formatTimestampDate(house.updatedAt);
+  const difficultyIndicator = getHouseDifficultyIndicator(house);
   const openHouse = () => {
     void onOpenHouse(house.id);
   };
@@ -361,6 +374,13 @@ export function HouseTableRow({
       </td>
       <td className='px-3 py-3 text-center align-middle'>
         <HouseStatusBadge status={house.status}/>
+      </td>
+      <td className='px-3 py-3 text-center align-middle'>
+        <HouseDifficultyGauge
+          indicator={difficultyIndicator}
+          testId='house-table-difficulty-gauge'
+          className='mx-auto max-w-[9.5rem]'
+        />
       </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
         <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-center gap-2'>

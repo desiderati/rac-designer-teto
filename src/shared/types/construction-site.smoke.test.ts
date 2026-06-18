@@ -35,11 +35,10 @@ describe('constructionSite.ts', () => {
     expect('name' in state.constructionSite).toBe(false);
   });
 
-  it('usa contrato destrutivo de local com cinco complexidades de terreno', () => {
-    expect(EMPTY_SITE_ASSESSMENT).toEqual({
-      terrainComplexity: 'flat',
-    });
+  it('usa contrato destrutivo de local sem complexidade persistida', () => {
+    expect(EMPTY_SITE_ASSESSMENT).toEqual({});
     expect(Object.keys(EMPTY_SITE_ASSESSMENT)).not.toEqual(expect.arrayContaining([
+      'terrainComplexity',
       'hasConcreteGross',
       'hasConcreteFine',
       'hasStone',

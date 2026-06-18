@@ -45,6 +45,7 @@ import type {
   ConstructionSiteSummary,
   SiteAssessment,
 } from '@/shared/types/construction-site.ts';
+import type {InitialPilotiNivelDefinition} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 
 interface EditorHouseEffectsPort {
   refreshTopDoorMarkers(): void;
@@ -448,6 +449,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   updatePiloti(pilotiId: string, pilotiData: Partial<HousePiloti>): void {
     this.commands.updatePiloti(pilotiId, pilotiData);
+  }
+
+  applyInitialPilotiNiveis(niveis: Record<string, InitialPilotiNivelDefinition>): void {
+    this.commands.applyInitialPilotiNiveis(niveis);
   }
 
   // Obtém os dados de um piloti.

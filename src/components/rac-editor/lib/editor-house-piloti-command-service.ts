@@ -7,6 +7,11 @@ import {
 } from '@/shared/types/house.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {HouseRuntimeGroupRef} from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
+import type {InitialPilotiNivelDefinition} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import {
+  clampNivel,
+  getMaxNivelForAvailableHeights,
+} from '@/shared/types/piloti.ts';
 
 interface EditorHousePilotiCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   getHouse: () => HouseState | null;
@@ -81,5 +86,34 @@ export class EditorHousePilotiCommandService<TGroup extends HouseRuntimeGroupRef
       this.args.getSelectedPilotiHeights(),
     );
     this.args.persistHouse();
+  }
+
+  applyInitialPilotiNiveis(niveis: Record<string, InitialPilotiNivelDefinition>): void {
+    const aggregate = this.args.getAggregate();
+    const house = this.args.getHouse();
+    if (!house || !aggregate) return;
+
+    const availableHeights = this.args.getSelectedPilotiHeights();
+    const maxNivel = getMaxNivelForAvailableHeights(availableHeights);
+
+    Object.entries(niveis).forEach(([pilotiId, entry]) => {
+      const rawNivel = Number(entry.nivel);
+      aggregate.applyPilotiPatch(pilotiId, {
+        isMaster: Boolean(entry.isMaster),
+        nivel: clampNivel(
+          Number.isFinite(rawNivel) ? rawNivel : DEFAULT_HOUSE_PILOTI.nivel,
+          DEFAULT_HOUSE_PILOTI.nivel,
+          maxNivel,
+        ),
+      });
+    });
+
+    aggregate.recalculateRecommendedPilotiData(
+      DEFAULT_HOUSE_PILOTI,
+      true,
+      availableHeights,
+    );
+    this.args.persistHouse();
+    this.args.notify();
   }
 }

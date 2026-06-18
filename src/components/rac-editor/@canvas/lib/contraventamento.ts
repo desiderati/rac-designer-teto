@@ -500,11 +500,15 @@ export function syncContraventamentoElevationViews(
     lineCanvasObject.contraventamentoSourcePilotiId = params.sourcePilotiId;
 
     if (params.behind) {
-      // Lowest z-index for opposite-side contraventamento in this elevation view.
-      internalObjects.unshift(line);
-      lineCanvasObject.group = group;
-      internalObjects.unshift(border);
+      // Middle z-index: terrain/stones render below it; house elements, pilotis and stairs render above it.
+      const insertIndex = internalObjects.findIndex((object) => {
+        const canvasObject = toCanvasObject(object);
+        return !(canvasObject.isGroundElement && !canvasObject.isNivelMarker && !canvasObject.isNivelLabel);
+      });
+      const targetIndex = insertIndex >= 0 ? insertIndex : internalObjects.length;
+      internalObjects.splice(targetIndex, 0, border, line);
       borderCanvasObject.group = group;
+      lineCanvasObject.group = group;
     } else {
       internalObjects.push(border);
       borderCanvasObject.group = group;
@@ -555,9 +559,8 @@ export function syncContraventamentoElevationViews(
         if (axisContext.side !== 'left' && axisContext.side !== 'right') continue;
         if (!isContraventamentoVerticalSide(contrav.side)) continue;
 
-        // For square views:
-        // - external side is rendered normally
-        // - opposite side is also rendered when present, but behind everything (lower z-index)
+        // For square views, both external and opposite sides use the elevation middle layer:
+        // above terrain/stones and behind house structure, pilotis and stairs.
         const isRightSideView = axisContext.side === 'right';
         const visibleCol = isRightSideView ? 3 : 0;
         const externalSide: ContraventamentoVerticalSide = isRightSideView ? 'right' : 'left';
@@ -592,7 +595,7 @@ export function syncContraventamentoElevationViews(
           y1: getOriginY(originRect, originPilotiId, offsetOrigin),
           x2: getRectCenterX(targetRect),
           y2: getDestinationY(targetRect, offsetTarget),
-          behind: isOpposite,
+          behind: true,
           strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
         });
         if (changed) hasChanges = true;
@@ -634,7 +637,7 @@ export function syncContraventamentoElevationViews(
         y1: getOriginY(originRect, originPilotiId, offsetOrigin),
         x2: getRectCenterX(targetRect),
         y2: getDestinationY(targetRect, offsetTarget),
-        behind: isOpposite,
+        behind: true,
         strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
       });
       if (changed) hasChanges = true;

@@ -4,7 +4,6 @@ import {
 } from '@/shared/lib/contact-validation.ts';
 import {isSupportedPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
 import {
-  EMPTY_SITE_ASSESSMENT,
   type ConstructionSiteStatus,
   type CommunityRecord,
   type HouseExtraMaterials,
@@ -14,7 +13,6 @@ import {
   type PersistedHouseStatus,
   type SiteAssessment,
   type SoilProfile,
-  type TerrainComplexity,
 } from '@/shared/types/construction-site.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 
@@ -25,11 +23,7 @@ export function cloneConstructionSiteValue<T>(value: T): T {
 }
 
 export function sanitizeSiteAssessment(input: Partial<SiteAssessment>): SiteAssessment {
-  const assessment: SiteAssessment = {
-    terrainComplexity: isTerrainComplexity(input.terrainComplexity)
-      ? input.terrainComplexity
-      : EMPTY_SITE_ASSESSMENT.terrainComplexity,
-  };
+  const assessment: SiteAssessment = {};
 
   if (isSoilProfile(input.soilProfile)) {
     assessment.soilProfile = input.soilProfile;
@@ -214,14 +208,6 @@ export function isHouseType(value: HouseType): value is HouseType {
 
 export function isSoilProfile(value: SoilProfile | undefined): value is SoilProfile {
   return value === 'stable' || value === 'loose_clay' || value === 'water_table';
-}
-
-export function isTerrainComplexity(value: TerrainComplexity | undefined): value is TerrainComplexity {
-  return value === 'flat'
-    || value === 'moderate'
-    || value === 'steep'
-    || value === 'very_steep'
-    || value === 'extreme';
 }
 
 function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined {

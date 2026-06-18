@@ -127,7 +127,6 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
         status: 'draft',
         designSettings: {selectedPilotiHeights: options.selectedPilotiHeights ?? [1, 1.5, 2]},
         siteAssessment: {
-          terrainComplexity: 'flat',
           ...options.siteAssessment,
         },
         pilotiLayout: {points: []},

@@ -87,6 +87,7 @@ function createHouseWritePort(): HouseWritePort {
       isMaster: Boolean(patch.isMaster),
       nivel: patch.nivel ?? 0.2,
     })),
+    applyInitialPilotiNiveis: vi.fn(),
     calculateAndApplyRecommendedHeights: vi.fn(),
   } as unknown as HouseWritePort;
 }
@@ -394,6 +395,73 @@ describe('useCanvasHouseViewActions house insertion events', () => {
       .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
     expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
+  });
+
+  it('aplica níveis iniciais por comando automático dedicado antes de inserir as vistas', () => {
+    const plantGroup = createGroup({
+      height: 100,
+      bounds: {left: 100, top: 100, width: 320, height: 100},
+      objects: [],
+    });
+    const elevationGroup = createGroup({
+      height: 200,
+      bounds: {left: 160, top: 250, width: 360, height: 260},
+      objects: [],
+    });
+    const canvasRef = {
+      current: {
+        createHouseViewGroup: vi.fn()
+          .mockReturnValueOnce(plantGroup)
+          .mockReturnValueOnce(elevationGroup),
+        renderAll: vi.fn(),
+        getCanvasPointScreenPosition: vi.fn((point) => point),
+      },
+    } as unknown as RefObject<
+      CanvasObjectCreationHandle
+      & CanvasRenderHandle
+      & CanvasScreenProjectionHandle
+    >;
+    const houseWritePort = createHouseWritePort();
+    const addObjectToCanvas = vi.fn(() => true);
+    const result = renderHook(() => useCanvasHouseViewActions({
+      canvasRef,
+      getVisibleCenter: () => ({x: 300, y: 300}),
+      closeAllMenus: vi.fn(),
+      addObjectToCanvas,
+      onHouseDrawingChange: vi.fn(),
+      houseReadPort: createHouseReadPort(),
+      houseWritePort,
+      pendingViewType: 'front',
+      setPendingViewType: vi.fn(),
+      sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(),
+      setHouseSideSlots: vi.fn(),
+      pendingNivelSide: 'top',
+      setPendingNivelSide: vi.fn(),
+      niveisAppliedRef: {current: false},
+      transitionToNivelRef: {current: false},
+      setSideSelectorOpen: vi.fn(),
+      setNivelDefinitionOpen: vi.fn(),
+    }));
+
+    const niveis = {
+      piloti_0_0: {nivel: 0.45, isMaster: true},
+      piloti_3_0: {nivel: 0.95, isMaster: false},
+      piloti_0_2: {nivel: 1.11, isMaster: false},
+      piloti_3_2: {nivel: 1.45, isMaster: false},
+    };
+
+    act(() => {
+      result.result.current.handleNiveisApplied(niveis);
+    });
+
+    const applyInitialPilotiNiveis = vi.mocked(houseWritePort.applyInitialPilotiNiveis);
+
+    expect(applyInitialPilotiNiveis).toHaveBeenCalledWith(niveis);
+    expect(houseWritePort.updatePiloti).not.toHaveBeenCalled();
+    expect(houseWritePort.calculateAndApplyRecommendedHeights).not.toHaveBeenCalled();
+    expect(applyInitialPilotiNiveis.mock.invocationCallOrder[0])
+      .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
   });
 
   it('repassa o modo manual para a criação visual da vista elevada', () => {
