@@ -178,6 +178,18 @@ function getMutableCanvasGroupObjects(group: CanvasGroup): FabricObject[] | null
   return Array.isArray(internalObjects) ? internalObjects : null;
 }
 
+function getCanvasGroupObjectListFallback(group: CanvasGroup): FabricObject[] | null {
+  const canvasObjects = group.getCanvasObjects?.();
+  if (Array.isArray(canvasObjects)) return canvasObjects;
+
+  const fabricObjects = group.getObjects?.();
+  return Array.isArray(fabricObjects) ? fabricObjects : null;
+}
+
+function canMutateCanvasGroupThroughFabricMethods(group: CanvasGroup): boolean {
+  return typeof group.add === 'function';
+}
+
 export function refreshCanvasGroup(
   group: CanvasGroup,
   options: Omit<CanvasGroupMutationOptions, 'refresh' | 'setObjectCoords'> = {},
@@ -213,7 +225,16 @@ export function appendCanvasGroupObjects(
     if (options.setObjectCoords) {
       objects.forEach((object) => object.setCoords?.());
     }
-    group.add(...objects);
+    if (canMutateCanvasGroupThroughFabricMethods(group)) {
+      group.add(...objects);
+    } else {
+      const fallbackObjects = getCanvasGroupObjectListFallback(group);
+      if (!fallbackObjects) return false;
+      objects.forEach((object) => {
+        object.group = group;
+        fallbackObjects.push(object);
+      });
+    }
   }
 
   if (options.refresh !== false) {
@@ -243,7 +264,17 @@ export function insertCanvasGroupObjects(
     if (options.setObjectCoords) {
       objects.forEach((object) => object.setCoords?.());
     }
-    group.add(...objects);
+    if (canMutateCanvasGroupThroughFabricMethods(group)) {
+      group.add(...objects);
+    } else {
+      const fallbackObjects = getCanvasGroupObjectListFallback(group);
+      if (!fallbackObjects) return false;
+      const targetIndex = Math.max(0, Math.min(index, fallbackObjects.length));
+      objects.forEach((object) => {
+        object.group = group;
+      });
+      fallbackObjects.splice(targetIndex, 0, ...objects);
+    }
   }
 
   if (options.refresh !== false) {
@@ -307,12 +338,26 @@ export function replaceCanvasGroupObjects(
       internalObjects.push(object);
     });
   } else {
+    const fallbackObjects = getCanvasGroupObjectListFallback(group);
     const currentObjects = getCanvasGroupObjects(group);
-    if (currentObjects.length) group.remove(...currentObjects);
-    if (options.setObjectCoords) {
-      objects.forEach((object) => object.setCoords?.());
+
+    if (canMutateCanvasGroupThroughFabricMethods(group)) {
+      if (currentObjects.length) group.remove(...currentObjects);
+      if (options.setObjectCoords) {
+        objects.forEach((object) => object.setCoords?.());
+      }
+      group.add(...objects);
+    } else if (fallbackObjects) {
+      fallbackObjects.forEach((object) => {
+        object.group = undefined;
+      });
+      fallbackObjects.length = 0;
+      objects.forEach((object) => {
+        object.group = group;
+        if (options.setObjectCoords) object.setCoords?.();
+        fallbackObjects.push(object);
+      });
     }
-    group.add(...objects);
   }
 
   if (options.refresh !== false) {
