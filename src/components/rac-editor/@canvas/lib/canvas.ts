@@ -166,6 +166,160 @@ export function getCanvasGroupObjects(
   return canvasGroup?.getCanvasObjects?.() ?? [];
 }
 
+interface CanvasGroupMutationOptions {
+  refresh?: boolean;
+  recalculateBounds?: boolean;
+  requestRender?: boolean;
+  setObjectCoords?: boolean;
+}
+
+function getMutableCanvasGroupObjects(group: CanvasGroup): FabricObject[] | null {
+  const internalObjects = group._objects;
+  return Array.isArray(internalObjects) ? internalObjects : null;
+}
+
+export function refreshCanvasGroup(
+  group: CanvasGroup,
+  options: Omit<CanvasGroupMutationOptions, 'refresh' | 'setObjectCoords'> = {},
+): void {
+  if (options.recalculateBounds) {
+    group._clearCache?.();
+    group._calcBounds?.();
+  }
+
+  group.setCoords();
+  group.dirty = true;
+
+  if (options.requestRender) {
+    group.canvas?.requestRenderAll();
+  }
+}
+
+export function appendCanvasGroupObjects(
+  group: CanvasGroup,
+  objects: FabricObject[],
+  options: CanvasGroupMutationOptions = {},
+): boolean {
+  if (!objects.length) return false;
+
+  const internalObjects = getMutableCanvasGroupObjects(group);
+  if (internalObjects) {
+    objects.forEach((object) => {
+      object.group = group;
+      if (options.setObjectCoords) object.setCoords?.();
+      internalObjects.push(object);
+    });
+  } else {
+    if (options.setObjectCoords) {
+      objects.forEach((object) => object.setCoords?.());
+    }
+    group.add(...objects);
+  }
+
+  if (options.refresh !== false) {
+    refreshCanvasGroup(group, options);
+  }
+
+  return true;
+}
+
+export function insertCanvasGroupObjects(
+  group: CanvasGroup,
+  index: number,
+  objects: FabricObject[],
+  options: CanvasGroupMutationOptions = {},
+): boolean {
+  if (!objects.length) return false;
+
+  const internalObjects = getMutableCanvasGroupObjects(group);
+  if (internalObjects) {
+    const targetIndex = Math.max(0, Math.min(index, internalObjects.length));
+    objects.forEach((object) => {
+      object.group = group;
+      if (options.setObjectCoords) object.setCoords?.();
+    });
+    internalObjects.splice(targetIndex, 0, ...objects);
+  } else {
+    if (options.setObjectCoords) {
+      objects.forEach((object) => object.setCoords?.());
+    }
+    group.add(...objects);
+  }
+
+  if (options.refresh !== false) {
+    refreshCanvasGroup(group, options);
+  }
+
+  return true;
+}
+
+export function removeCanvasGroupObjectsWhere(
+  group: CanvasGroup,
+  predicate: (object: CanvasObject) => boolean,
+  options: CanvasGroupMutationOptions = {},
+): number {
+  const internalObjects = getMutableCanvasGroupObjects(group);
+  if (internalObjects) {
+    const nextObjects: FabricObject[] = [];
+    let removed = 0;
+
+    internalObjects.forEach((object) => {
+      if (predicate(toCanvasObject(object))) {
+        object.group = undefined;
+        removed += 1;
+        return;
+      }
+      nextObjects.push(object);
+    });
+
+    if (removed === 0) return 0;
+    group._objects = nextObjects;
+
+    if (options.refresh !== false) {
+      refreshCanvasGroup(group, options);
+    }
+
+    return removed;
+  }
+
+  const objectsToRemove = getCanvasGroupObjects(group).filter(predicate);
+  if (!objectsToRemove.length) return 0;
+
+  group.remove(...objectsToRemove);
+  if (options.refresh !== false) {
+    refreshCanvasGroup(group, options);
+  }
+
+  return objectsToRemove.length;
+}
+
+export function replaceCanvasGroupObjects(
+  group: CanvasGroup,
+  objects: FabricObject[],
+  options: CanvasGroupMutationOptions = {},
+): void {
+  const internalObjects = getMutableCanvasGroupObjects(group);
+  if (internalObjects) {
+    internalObjects.length = 0;
+    objects.forEach((object) => {
+      object.group = group;
+      if (options.setObjectCoords) object.setCoords?.();
+      internalObjects.push(object);
+    });
+  } else {
+    const currentObjects = getCanvasGroupObjects(group);
+    if (currentObjects.length) group.remove(...currentObjects);
+    if (options.setObjectCoords) {
+      objects.forEach((object) => object.setCoords?.());
+    }
+    group.add(...objects);
+  }
+
+  if (options.refresh !== false) {
+    refreshCanvasGroup(group, options);
+  }
+}
+
 //
 // CanvasObject
 //

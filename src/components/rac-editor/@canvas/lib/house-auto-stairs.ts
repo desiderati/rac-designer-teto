@@ -1,4 +1,4 @@
-import {FabricObject, Group as FabricGroup, Line, Rect} from 'fabric';
+import {Group as FabricGroup, Line, Rect} from 'fabric';
 import {HousePiloti, HouseRuntimeViewInstance, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_ELEMENT_STYLE, HOUSE_2D_STYLE} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
@@ -11,7 +11,10 @@ import {
 import {
   CanvasGroup,
   CanvasObject,
+  appendCanvasGroupObjects,
   getCanvasGroupObjects,
+  refreshCanvasGroup,
+  removeCanvasGroupObjectsWhere,
   toCanvasGroup,
   toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
@@ -246,21 +249,11 @@ function refreshTopViewAutoStairs(params: {
 }
 
 function removeAutoStairsFromGroup(group: CanvasGroup): boolean {
-  const internalObjects = group._objects as FabricObject[] | undefined;
-  if (internalObjects && Array.isArray(internalObjects)) {
-    const next = internalObjects.filter((object) => toCanvasObject(object)?.isAutoStairs !== true);
-
-    if (next.length === internalObjects.length) return false;
-    group._objects = next;
-    return true;
-  }
-
-  const current = getCanvasGroupObjects(group);
-  const toRemove = current.filter((object) => object?.isAutoStairs === true);
-  if (!toRemove.length) return false;
-
-  group.remove(...toRemove);
-  return true;
+  return removeCanvasGroupObjectsWhere(
+    group,
+    (object) => object.isAutoStairs === true,
+    {refresh: false},
+  ) > 0;
 }
 
 function applyStairMetrics(canvasGroup: CanvasGroup, metrics: StairMetrics): void {
@@ -346,20 +339,12 @@ function resolvePilotiCenterX(group: CanvasGroup, pilotiId: string): number | nu
 }
 
 function addObjectToGroup(group: CanvasGroup, object: CanvasObject): void {
-  const internalObjects = group._objects as FabricObject[] | undefined;
-  if (internalObjects && Array.isArray(internalObjects)) {
-    internalObjects.push(object);
-    object.group = group;
-    return;
-  }
-  group.add(object);
+  appendCanvasGroupObjects(group, [object], {refresh: false});
 }
 
 function refreshGroupBounds(group: CanvasGroup): void {
   // Recalcula bounds antes do setCoords para evitar grupo menor que o desenho.
-  group._clearCache?.();
-  group._calcBounds?.();
-  group.setCoords();
+  refreshCanvasGroup(group, {recalculateBounds: true});
 }
 
 function createStripedTopStair(params: {

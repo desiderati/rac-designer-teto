@@ -1,4 +1,4 @@
-import {FabricObject, Line, Rect} from 'fabric';
+import {Line, Rect} from 'fabric';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
   type ContraventamentoHorizontalSide,
@@ -18,7 +18,10 @@ import {HOUSE_DEFAULTS,} from '@/shared/config.ts';
 import {
   CanvasGroup,
   CanvasObject,
+  appendCanvasGroupObjects,
   getCanvasGroupObjects,
+  insertCanvasGroupObjects,
+  removeCanvasGroupObjectsWhere,
   toCanvasObject
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {
@@ -249,13 +252,7 @@ export function addContraventamentoBeam(
     options?.anchorPilotiId ?? `piloti_${col}_${Math.min(piloti1.row, piloti2.row)}`;
   beamCanvasObject.isAutoContraventamento = options?.isAuto === true;
 
-  const internalObjects = group._objects as FabricObject[];
-  internalObjects.push(beam);
-  beam.group = group;
-  group.dirty = true;
-
-  group.setCoords();
-  group.canvas?.requestRenderAll();
+  appendCanvasGroupObjects(group, [beam], {requestRender: true});
   return beamCanvasObject.contraventamentoId as string;
 }
 
@@ -312,13 +309,7 @@ export function addHorizontalContraventamentoBeam(
     options?.anchorPilotiId ?? `piloti_${piloti1.col}_${row}`;
   beamCanvasObject.isAutoContraventamento = options?.isAuto === true;
 
-  const internalObjects = group._objects as FabricObject[];
-  internalObjects.push(beam);
-  beam.group = group;
-  group.dirty = true;
-
-  group.setCoords();
-  group.canvas?.requestRenderAll();
+  appendCanvasGroupObjects(group, [beam], {requestRender: true});
   return beamCanvasObject.contraventamentoId as string;
 }
 
@@ -333,32 +324,11 @@ export function removeContraventamentosFromTopView(
   group: CanvasGroup,
   predicate?: (obj: CanvasObject) => boolean,
 ): number {
-
-  const internalObjects = group._objects as FabricObject[];
-  if (!Array.isArray(internalObjects)) return 0;
-
-  const nextObjects: FabricObject[] = [];
-  let removed = 0;
-
-  for (const obj of internalObjects) {
-    const canvasObject = toCanvasObject(obj);
-    const isContrav = canvasObject?.isContraventamento === true;
-    const shouldRemove = isContrav && (!predicate || predicate(obj));
-    if (shouldRemove) {
-      removed += 1;
-    } else {
-      nextObjects.push(obj);
-    }
-  }
-
-  if (removed > 0) {
-    group._objects = nextObjects;
-    group.dirty = true;
-    group.setCoords();
-    group.canvas?.requestRenderAll();
-  }
-
-  return removed;
+  return removeCanvasGroupObjectsWhere(
+    group,
+    (obj) => obj.isContraventamento === true && (!predicate || predicate(obj)),
+    {requestRender: true},
+  );
 }
 
 /**
@@ -372,31 +342,11 @@ export function removeContraventamentoFromElevationViews(
   group: CanvasGroup,
   contraventamentoId?: string,
 ): number {
-
-  const internalObjects = group._objects as FabricObject[];
-  if (!Array.isArray(internalObjects)) return 0;
-
-  const nextObjects: FabricObject[] = [];
-  let removed = 0;
-
-  for (const obj of internalObjects) {
-    const canvasObject = toCanvasObject(obj);
-    const isElevation = canvasObject?.isContraventamentoElevation === true;
-    const matches = !contraventamentoId || String(canvasObject.contraventamentoId) === contraventamentoId;
-    if (isElevation && matches) {
-      removed += 1;
-    } else {
-      nextObjects.push(obj);
-    }
-  }
-
-  if (removed > 0) {
-    group._objects = nextObjects;
-    group.dirty = true;
-    group.setCoords();
-  }
-
-  return removed;
+  return removeCanvasGroupObjectsWhere(
+    group,
+    (obj) => obj.isContraventamentoElevation === true
+      && (!contraventamentoId || String(obj.contraventamentoId) === contraventamentoId),
+  );
 }
 
 /**
@@ -448,7 +398,6 @@ export function syncContraventamentoElevationViews(
 
   const addElevationProjection = (
     group: CanvasGroup,
-    internalObjects: FabricObject[],
     params: {
       contraventamentoId: string;
       sourcePilotiId: string;
@@ -501,19 +450,15 @@ export function syncContraventamentoElevationViews(
 
     if (params.behind) {
       // Middle z-index: terrain/stones render below it; house elements, pilotis and stairs render above it.
-      const insertIndex = internalObjects.findIndex((object) => {
+      const currentObjects = getCanvasGroupObjects(group);
+      const insertIndex = currentObjects.findIndex((object) => {
         const canvasObject = toCanvasObject(object);
         return !(canvasObject.isGroundElement && !canvasObject.isNivelMarker && !canvasObject.isNivelLabel);
       });
-      const targetIndex = insertIndex >= 0 ? insertIndex : internalObjects.length;
-      internalObjects.splice(targetIndex, 0, border, line);
-      borderCanvasObject.group = group;
-      lineCanvasObject.group = group;
+      const targetIndex = insertIndex >= 0 ? insertIndex : currentObjects.length;
+      insertCanvasGroupObjects(group, targetIndex, [border, line], {refresh: false});
     } else {
-      internalObjects.push(border);
-      borderCanvasObject.group = group;
-      internalObjects.push(line);
-      lineCanvasObject.group = group;
+      appendCanvasGroupObjects(group, [border, line], {refresh: false});
     }
 
     return true;
@@ -552,8 +497,6 @@ export function syncContraventamentoElevationViews(
     const rectByPilotiId = new Map<string, CanvasObject>();
     pilotiRects.forEach((rect) => rectByPilotiId.set(String(rect.pilotiId), rect));
 
-    const internalObjects = group._objects as FabricObject[];
-
     for (const contrav of contraventamentos) {
       if (contrav.orientation === 'vertical') {
         if (axisContext.side !== 'left' && axisContext.side !== 'right') continue;
@@ -588,7 +531,7 @@ export function syncContraventamentoElevationViews(
 
         const offsetOrigin = resolveContraventamentoOffsetFromNivel(originNivel, true);
         const offsetTarget = resolveContraventamentoOffsetFromNivel(targetNivel, false);
-        const changed = addElevationProjection(group, internalObjects, {
+        const changed = addElevationProjection(group, {
           contraventamentoId: contrav.id,
           sourcePilotiId: originPilotiId,
           x1: getRectCenterX(originRect),
@@ -630,7 +573,7 @@ export function syncContraventamentoElevationViews(
 
       const offsetOrigin = resolveContraventamentoOffsetFromNivel(originNivel, true);
       const offsetTarget = resolveContraventamentoOffsetFromNivel(targetNivel, false);
-      const changed = addElevationProjection(group, internalObjects, {
+      const changed = addElevationProjection(group, {
         contraventamentoId: contrav.id,
         sourcePilotiId: originPilotiId,
         x1: getRectCenterX(originRect),

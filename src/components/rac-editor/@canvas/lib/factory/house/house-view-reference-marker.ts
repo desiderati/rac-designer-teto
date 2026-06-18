@@ -1,4 +1,4 @@
-import {FabricObject, Group as FabricGroup, Rect, Text, Triangle} from 'fabric';
+import {Group as FabricGroup, Rect, Text, Triangle} from 'fabric';
 
 import {CANVAS_STYLE, HOUSE_2D_STYLE, HOUSE_DEFAULTS} from '@/shared/config.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
@@ -9,7 +9,15 @@ import {
   HouseViewInstanceId,
   HouseViewType,
 } from '@/shared/types/house.ts';
-import {CanvasGroup, CanvasObject, getCanvasGroupObjects, toCanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {
+  CanvasGroup,
+  CanvasObject,
+  appendCanvasGroupObjects,
+  getCanvasGroupObjects,
+  refreshCanvasGroup,
+  removeCanvasGroupObjectsWhere,
+  toCanvasObject
+} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {getElevationViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 
 interface HouseViewReferenceMarkerArgs {
@@ -410,35 +418,17 @@ function getViewInstanceOrderValue(instanceId: HouseViewInstanceId): number {
 }
 
 function removeHouseViewReferenceMarkersFromGroup(group: CanvasGroup): boolean {
-  const internalObjects = group._objects as FabricObject[] | undefined;
-  if (internalObjects && Array.isArray(internalObjects)) {
-    const next = internalObjects.filter((object) => toCanvasObject(object)?.isHouseViewReferenceMarker !== true);
-    if (next.length === internalObjects.length) return false;
-    group._objects = next;
-    return true;
-  }
-
-  const markers = getCanvasGroupObjects(group).filter((object) => object.isHouseViewReferenceMarker);
-  if (!markers.length) return false;
-
-  group.remove(...markers);
-  return true;
+  return removeCanvasGroupObjectsWhere(
+    group,
+    (object) => object.isHouseViewReferenceMarker === true,
+    {refresh: false},
+  ) > 0;
 }
 
 function addObjectToGroup(group: CanvasGroup, object: CanvasObject): void {
-  const internalObjects = group._objects as FabricObject[] | undefined;
-  if (internalObjects && Array.isArray(internalObjects)) {
-    internalObjects.push(object);
-    object.group = group;
-    return;
-  }
-
-  group.add(object);
+  appendCanvasGroupObjects(group, [object], {refresh: false});
 }
 
 function refreshGroupBounds(group: CanvasGroup): void {
-  group._clearCache?.();
-  group._calcBounds?.();
-  group.setCoords();
-  group.dirty = true;
+  refreshCanvasGroup(group, {recalculateBounds: true});
 }

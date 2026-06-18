@@ -1,4 +1,4 @@
-import {FabricObject, Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
+import {Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
 import {
   CANVAS_STYLE,
   HOUSE_2D_STYLE,
@@ -9,7 +9,13 @@ import {
   TERRAIN_STYLE,
   TerrainSolidityLevel
 } from '@/shared/config.ts';
-import {CanvasGroup, CanvasObject, toCanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts'
+import {
+  CanvasGroup,
+  CanvasObject,
+  appendCanvasGroupObjects,
+  removeCanvasGroupObjectsWhere,
+  toCanvasObject
+} from '@/components/rac-editor/@canvas/lib/canvas.ts'
 import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
@@ -562,20 +568,7 @@ export function updateGroundInGroup(group: CanvasGroup): void {
   // Find seed from existing ground
   const oldSeed = (objects.find(o => o.groundSeed))?.groundSeed ?? 42;
 
-  // Remove all existing ground elements directly from _objects to avoid coordinate transforms
-  const groundElements = objects.filter(o => o.isGroundElement);
-  if (groundElements.length) {
-    const internalObjects = group._objects as FabricObject[];
-    if (internalObjects && Array.isArray(internalObjects)) {
-      group._objects =
-        internalObjects.filter(o => !toCanvasObject(o)?.isGroundElement);
-      groundElements.forEach(o => {
-        o.group = undefined;
-      });
-    } else {
-      group.remove(...(groundElements));
-    }
-  }
+  removeCanvasGroupObjectsWhere(group, (object) => object.isGroundElement === true, {refresh: false});
 
   // Re-read objects after removal
   const remainingObjects = group.getCanvasObjects();
@@ -651,25 +644,7 @@ export function updateGroundInGroup(group: CanvasGroup): void {
   const nivelFront =
     newElements.filter(o => o.isNivelMarker || o.isNivelLabel);
 
-  // Add new ground elements directly to _objects to avoid coordinate transforms
-  const currentObjects = group._objects as FabricObject[];
-  if (currentObjects && Array.isArray(currentObjects)) {
-    const allNew = [...groundBack, ...nivelFront];
-    allNew.forEach(o => {
-      o.group = group;
-      o.setCoords?.();
-      currentObjects.push(o);
-    });
-  } else {
-    if (groundBack.length) {
-      groundBack.forEach(o => o.setCoords?.());
-      group.add(...(groundBack));
-    }
-    if (nivelFront.length) {
-      nivelFront.forEach(o => o.setCoords?.());
-      group.add(...(nivelFront));
-    }
-  }
+  appendCanvasGroupObjects(group, [...groundBack, ...nivelFront], {setObjectCoords: true, refresh: false});
 
   refreshHouseGroupRendering(group);
 

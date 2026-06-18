@@ -13,6 +13,8 @@ import {
   CanvasGroup,
   CanvasObject,
   isCanvasGroup,
+  refreshCanvasGroup,
+  replaceCanvasGroupObjects,
   toCanvasGroup,
   toCanvasObject
 } from '@/components/rac-editor/@canvas/lib/canvas.ts'
@@ -461,12 +463,7 @@ export function refreshHouseGroupRendering(group: CanvasGroup): void {
   // Pilotis e estrutura devem ficar na frente de brita/rachão.
   const sorted = [...groundBack, ...elevationMiddle, ...normal, ...groundFront];
 
-  // Replace _objects array in-place to reorder Z without remove/add coordinate transforms
-  const internalObjects = group._objects;
-  if (internalObjects && Array.isArray(internalObjects)) {
-    internalObjects.length = 0;
-    internalObjects.push(...sorted);
-  }
+  replaceCanvasGroupObjects(group, sorted, {refresh: false});
 
   // Polyline/Polygon need pathOffset recalculation
   objects.forEach(obj => {
@@ -475,9 +472,5 @@ export function refreshHouseGroupRendering(group: CanvasGroup): void {
     }
   });
 
-  // Recalculate bounds without triggering object coordinate transforms
-  group._clearCache?.();
-  group._calcBounds?.();
-  group.setCoords();
-  group.dirty = true;
+  refreshCanvasGroup(group, {recalculateBounds: true});
 }
