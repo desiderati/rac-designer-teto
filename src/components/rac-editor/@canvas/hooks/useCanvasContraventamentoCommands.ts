@@ -171,6 +171,54 @@ export function useContraventamentoCommands({
     setSelectedContraventamento(null);
   }, [setSelectedContraventamento]);
 
+  const resetContraventamentoAnchor = useCallback(() => {
+    setContraventamentoFirst(null);
+    setContraventamentoSide(null);
+  }, [setContraventamentoFirst, setContraventamentoSide]);
+
+  const beginContraventamentoInsertion = useCallback((
+    first: ContraventamentoOrigin,
+    side: ContraventamentoSide,
+  ) => {
+    setIsPilotiEditorOpen(false);
+    setPilotiSelection(null);
+    setActiveSubmenu(null);
+    setIsContraventamentoMode(true);
+    enterSecondContraventamentoSelection(first, side);
+  }, [
+    enterSecondContraventamentoSelection,
+    setActiveSubmenu,
+    setIsContraventamentoMode,
+    setIsPilotiEditorOpen,
+    setPilotiSelection,
+  ]);
+
+  const finishContraventamentoInsertion = useCallback((
+    originGroup: CanvasGroup,
+    successMessage: string,
+  ) => {
+    setIsContraventamentoMode(false);
+    resetContraventamentoAnchor();
+    clearContraventamentoSelection(originGroup);
+    syncContraventamentoElevations();
+
+    canvasRef.current?.saveHistory();
+    toast.success(successMessage);
+  }, [
+    canvasRef,
+    clearContraventamentoSelection,
+    resetContraventamentoAnchor,
+    setIsContraventamentoMode,
+    syncContraventamentoElevations,
+  ]);
+
+  const finishContraventamentoRemoval = useCallback((successMessage: string) => {
+    syncContraventamentoElevations();
+    canvasRef.current?.saveHistory();
+    emitHouseStoreChange();
+    toast.success(successMessage);
+  }, [canvasRef, emitHouseStoreChange, syncContraventamentoElevations]);
+
   const handleCancelContraventamento = useCallback(() => {
     const topGroup = getTopViewGroup();
     if (topGroup) resetHighlightContraventamentoPilotis(topGroup);
@@ -219,8 +267,7 @@ export function useContraventamentoCommands({
           )
         );
 
-        setContraventamentoFirst(null);
-        setContraventamentoSide(null);
+        resetContraventamentoAnchor();
         return;
       }
 
@@ -236,14 +283,7 @@ export function useContraventamentoCommands({
         return;
       }
 
-      setIsContraventamentoMode(false);
-      setContraventamentoFirst(null);
-      setContraventamentoSide(null);
-      clearContraventamentoSelection(originGroup);
-      syncContraventamentoElevations();
-
-      canvasRef.current?.saveHistory();
-      toast.success(TOAST_MESSAGES.contraventamentoHorizontalAdded);
+      finishContraventamentoInsertion(originGroup, TOAST_MESSAGES.contraventamentoHorizontalAdded);
       return;
     }
 
@@ -279,8 +319,7 @@ export function useContraventamentoCommands({
         )
       );
 
-      setContraventamentoFirst(null);
-      setContraventamentoSide(null);
+      resetContraventamentoAnchor();
       return;
     }
 
@@ -296,27 +335,16 @@ export function useContraventamentoCommands({
       return;
     }
 
-    setIsContraventamentoMode(false);
-    setContraventamentoFirst(null);
-    setContraventamentoSide(null);
-    clearContraventamentoSelection(originGroup);
-    syncContraventamentoElevations();
-
-    canvasRef.current?.saveHistory();
-    toast.success(TOAST_MESSAGES.contraventamentoAddedSuccessfully);
+    finishContraventamentoInsertion(originGroup, TOAST_MESSAGES.contraventamentoAddedSuccessfully);
   }, [
-    canvasRef,
     contraventamentoFirst,
-    setContraventamentoFirst,
     contraventamentoSide,
-    setContraventamentoSide,
-    setIsContraventamentoMode,
+    finishContraventamentoInsertion,
     getContraventamentoColumnSides,
     getContraventamentoHorizontalSides,
     getTopViewGroup,
     isPilotiEligibleAsDestination,
-    clearContraventamentoSelection,
-    syncContraventamentoElevations,
+    resetContraventamentoAnchor,
   ]);
 
   const handleContraventamentoSelect =
@@ -350,11 +378,9 @@ export function useContraventamentoCommands({
           });
 
         if (removed > 0) {
-          syncContraventamentoElevations();
-          canvasRef.current?.saveHistory();
-
-          emitHouseStoreChange();
-          toast.success(TOAST_MESSAGES.contraventamentoRemovedFromSide(getContraventamentoSideLabel(side)));
+          finishContraventamentoRemoval(
+            TOAST_MESSAGES.contraventamentoRemovedFromSide(getContraventamentoSideLabel(side))
+          );
         }
         return;
       }
@@ -367,24 +393,14 @@ export function useContraventamentoCommands({
 
       const first = {pilotiId: selectedPilotiId, col, row};
 
-      setIsPilotiEditorOpen(false);
-      setPilotiSelection(null);
-      setActiveSubmenu(null);
-      setIsContraventamentoMode(true);
-      enterSecondContraventamentoSelection(first, side);
+      beginContraventamentoInsertion(first, side);
     }, [
-      canvasRef,
-      enterSecondContraventamentoSelection,
+      beginContraventamentoInsertion,
+      finishContraventamentoRemoval,
       getTopViewGroup,
       getContraventamentoColumnSides,
       isPilotiEligibleForContraventamentoColumn,
-      emitHouseStoreChange,
-      setActiveSubmenu,
-      setIsPilotiEditorOpen,
       pilotiSelection,
-      setPilotiSelection,
-      setIsContraventamentoMode,
-      syncContraventamentoElevations,
     ]);
 
   const handleHorizontalContraventamentoSelect =
@@ -422,10 +438,7 @@ export function useContraventamentoCommands({
           ));
 
         if (removed > 0) {
-          syncContraventamentoElevations();
-          canvasRef.current?.saveHistory();
-          emitHouseStoreChange();
-          toast.success(TOAST_MESSAGES.contraventamentoHorizontalRemoved);
+          finishContraventamentoRemoval(TOAST_MESSAGES.contraventamentoHorizontalRemoved);
         }
         return;
       }
@@ -437,24 +450,14 @@ export function useContraventamentoCommands({
 
       const first = {pilotiId: selectedPilotiId, col: parsed.col, row};
 
-      setIsPilotiEditorOpen(false);
-      setPilotiSelection(null);
-      setActiveSubmenu(null);
-      setIsContraventamentoMode(true);
-      enterSecondContraventamentoSelection(first, side);
+      beginContraventamentoInsertion(first, side);
     }, [
-      canvasRef,
-      emitHouseStoreChange,
-      enterSecondContraventamentoSelection,
+      beginContraventamentoInsertion,
+      finishContraventamentoRemoval,
       getContraventamentoHorizontalSides,
       getTopViewGroup,
       isPilotiEligibleForContraventamentoRow,
       pilotiSelection,
-      setActiveSubmenu,
-      setIsPilotiEditorOpen,
-      setIsContraventamentoMode,
-      setPilotiSelection,
-      syncContraventamentoElevations,
     ]);
 
   return {
