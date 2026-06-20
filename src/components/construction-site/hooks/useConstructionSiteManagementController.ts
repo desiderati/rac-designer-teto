@@ -42,6 +42,7 @@ export function useConstructionSiteManagementController({
     loadHouseDocument,
     hydrateActiveHouseDocument,
     runDocumentMutation,
+    runDocumentSelection,
   } = useHouseDocumentLifecycle({
     canvasRef,
     houseDrawingDocumentPort,
@@ -54,11 +55,8 @@ export function useConstructionSiteManagementController({
   }), [constructionSiteManagementPort]);
 
   const activateHouse = useCallback(async (constructionSiteId: string, houseId: string) => {
-    await runDocumentMutation(
-      () => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId),
-      {forceSave: false},
-    );
-  }, [constructionSiteManagementPort, runDocumentMutation]);
+    await runDocumentSelection(() => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId));
+  }, [constructionSiteManagementPort, runDocumentSelection]);
 
   const createHouse = useCallback(async (input: CreateHouseInput) => {
     await runDocumentMutation(() => {
@@ -139,11 +137,8 @@ export function useConstructionSiteManagementController({
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
   const activateConstructionSite = useCallback(async (constructionSiteId: string) => {
-    await runDocumentMutation(
-      () => constructionSiteManagementPort.activateConstructionSite(constructionSiteId),
-      {forceSave: false},
-    );
-  }, [constructionSiteManagementPort, runDocumentMutation]);
+    await runDocumentSelection(() => constructionSiteManagementPort.activateConstructionSite(constructionSiteId));
+  }, [constructionSiteManagementPort, runDocumentSelection]);
 
   const prepareRacEditorOpening = useCallback(() => (
     constructionSiteManagementPort.prepareRacEditorOpening()

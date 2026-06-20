@@ -20,6 +20,8 @@ interface UseHouseDocumentLifecycleArgs {
   emitHouseStoreChange: () => void;
 }
 
+type DocumentTransitionMutation = () => HouseDrawingDocument | null | void;
+
 export function useHouseDocumentLifecycle({
   canvasRef,
   houseDrawingDocumentPort,
@@ -266,7 +268,7 @@ export function useHouseDocumentLifecycle({
   }, [setTrackedDocumentSaveStatus]);
 
   const runDocumentMutation = useCallback(async (
-    mutate: () => HouseDrawingDocument | null | void,
+    mutate: DocumentTransitionMutation,
     options: { forceSave?: boolean } = {},
   ) => {
     await runDocumentTransition(async () => {
@@ -283,6 +285,10 @@ export function useHouseDocumentLifecycle({
     loadOrQueueHouseDocument,
     runDocumentTransition,
   ]);
+
+  const runDocumentSelection = useCallback((select: DocumentTransitionMutation) => (
+    runDocumentMutation(select, {forceSave: false})
+  ), [runDocumentMutation]);
 
   useEffect(() => () => {
     if (documentSaveTimerRef.current !== null) {
@@ -310,5 +316,6 @@ export function useHouseDocumentLifecycle({
     loadHouseDocument,
     hydrateActiveHouseDocument,
     runDocumentMutation,
+    runDocumentSelection,
   };
 }

@@ -113,6 +113,11 @@ export interface ConstructionSiteSessionPort {
   }): void;
 }
 
+type HouseConstructionSiteCandidate = {
+  constructionSite: ConstructionSiteState;
+  house: PersistedHouseRecord;
+};
+
 export interface CreateConstructionSiteInput {
   externalCode: string;
   photoDataUrl?: string;
@@ -439,22 +444,18 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   canOpenRacEditor(): boolean {
-    return this.findLatestEditedHouseConstructionSite() !== null;
+    return this.hasActiveRacEditorDocument() || this.findRacEditorOpeningCandidate() !== null;
   }
 
   prepareRacEditorOpening(): HouseDrawingDocument | null {
-    if (!this.isConstructionSiteReadOnly(this.state) && this.getActiveHouseOrNull()) {
+    if (this.hasActiveRacEditorDocument()) {
       return this.getActiveHouseDrawingDocument();
     }
 
-    const nextConstructionSite = this.findLatestEditedHouseConstructionSite();
-    if (!nextConstructionSite) return null;
+    const candidate = this.findRacEditorOpeningCandidate();
+    if (!candidate) return null;
 
-    this.state = nextConstructionSite.constructionSite;
-    this.state.constructionSite.activeHouseId = nextConstructionSite.house.id;
-    this.persist();
-
-    return this.getActiveHouseDrawingDocument();
+    return this.selectRacEditorOpeningCandidate(candidate);
   }
 
   setActiveFamilyName(name: string): void {
@@ -760,10 +761,13 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {
-    const constructionSite = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId && entry.constructionSite.status !== 'archived');
+    const constructionSite = this.constructionSites.find((entry) => (
+      entry.constructionSite.id === constructionSiteId && this.isConstructionSiteVisibleInManagement(entry)
+    ));
     if (!constructionSite) return null;
 
-    const house = constructionSite.houses.find((entry) => entry.id === houseId && entry.status !== 'archived');
+    const house = constructionSite.houses.find((entry) =>
+      entry.id === houseId && this.isHouseAvailableForRacEditor(entry));
     if (!house) return null;
 
     this.state = constructionSite;
@@ -940,30 +944,43 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   private resolveInitialConstructionSite(): ConstructionSiteState | null {
-    const latestHouseConstructionSite = this.findLatestEditedHouseConstructionSite();
-    if (latestHouseConstructionSite) {
-      latestHouseConstructionSite.constructionSite.constructionSite.activeHouseId = latestHouseConstructionSite.house.id;
-      return latestHouseConstructionSite.constructionSite;
+    const candidate = this.findRacEditorOpeningCandidate();
+    if (candidate) {
+      candidate.constructionSite.constructionSite.activeHouseId = candidate.house.id;
+      return candidate.constructionSite;
     }
 
-    return this.constructionSites.find((constructionSite) => constructionSite.constructionSite.status !== 'archived') ?? null;
+    return this.constructionSites.find((constructionSite) =>
+      this.isConstructionSiteVisibleInManagement(constructionSite)) ?? null;
   }
 
-  private findLatestEditedHouseConstructionSite(): { constructionSite: ConstructionSiteState; house: PersistedHouseRecord } | null {
+  private findRacEditorOpeningCandidate(): HouseConstructionSiteCandidate | null {
     return this.constructionSites
-      .filter((constructionSite) => !this.isConstructionSiteReadOnly(constructionSite))
+      .filter((constructionSite) => this.isConstructionSiteEditableForCanvas(constructionSite))
       .flatMap((constructionSite) => constructionSite.houses
-        .filter((house) => house.status !== 'archived')
+        .filter((house) => this.isHouseAvailableForRacEditor(house))
         .map((house) => ({constructionSite, house})))
       .sort((a, b) => b.house.updatedAt.localeCompare(a.house.updatedAt))[0] ?? null;
   }
 
+  private selectRacEditorOpeningCandidate(candidate: HouseConstructionSiteCandidate): HouseDrawingDocument | null {
+    this.state = candidate.constructionSite;
+    this.state.constructionSite.activeHouseId = candidate.house.id;
+    this.persist();
+
+    return this.getActiveHouseDrawingDocument();
+  }
+
+  private hasActiveRacEditorDocument(): boolean {
+    return this.isConstructionSiteEditableForCanvas(this.state) && this.getActiveHouseOrNull() !== null;
+  }
+
   private getActiveHouseOrNull(): PersistedHouseRecord | null {
     if (!this.state) return null;
-    if (this.state.constructionSite.status === 'archived') return null;
+    if (!this.isConstructionSiteVisibleInManagement(this.state)) return null;
     const activeHouseId = this.state.constructionSite.activeHouseId;
-    return this.state.houses.find((entry) => entry.id === activeHouseId && entry.status !== 'archived')
-      ?? this.state.houses.find((entry) => entry.status !== 'archived')
+    return this.state.houses.find((entry) => entry.id === activeHouseId && this.isHouseAvailableForRacEditor(entry))
+      ?? this.state.houses.find((entry) => this.isHouseAvailableForRacEditor(entry))
       ?? null;
   }
 
@@ -978,9 +995,27 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     return constructionSite?.constructionSite.status === 'archived';
   }
 
+  private isConstructionSiteVisibleInManagement(
+    constructionSite: ConstructionSiteState | null | undefined,
+  ): constructionSite is ConstructionSiteState {
+    return Boolean(constructionSite) && !this.isConstructionSiteArchived(constructionSite);
+  }
+
+  private isConstructionSiteEditableForCanvas(
+    constructionSite: ConstructionSiteState | null | undefined,
+  ): constructionSite is ConstructionSiteState {
+    return Boolean(constructionSite) && !this.isConstructionSiteReadOnly(constructionSite);
+  }
+
   private isConstructionSiteReadOnly(constructionSite: ConstructionSiteState | null | undefined): boolean {
     const status = constructionSite?.constructionSite.status;
     return status === 'completed' || status === 'archived';
+  }
+
+  private isHouseAvailableForRacEditor(
+    house: PersistedHouseRecord | null | undefined,
+  ): house is PersistedHouseRecord {
+    return Boolean(house) && house.status !== 'archived';
   }
 
   private updateConstructionSiteStatus(
