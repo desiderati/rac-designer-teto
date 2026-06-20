@@ -253,14 +253,19 @@ export function usePilotiEditor({
           ? params.isMasterOverride
           : tempIsMaster;
 
-      const nivelToApply = clampNivelByHeight(resolvedNivel, tempHeight);
-      const hasChanges = tempHeight !== currentHeight
+      const nivelToApply = autoAdjustPilotiHeightsFromNivel
+        ? clampNivel(resolvedNivel, PILOTI_DEFAULT_NIVEL, maxNivel)
+        : clampNivelByHeight(resolvedNivel, tempHeight);
+      const heightToApply = autoAdjustPilotiHeightsFromNivel
+        ? getRecommendedHeight(nivelToApply, selectedHeights)
+        : tempHeight;
+      const hasChanges = heightToApply !== currentHeight
         || resolvedIsMaster !== currentIsMaster
         || nivelToApply !== currentNivel;
       if (!hasChanges) return false;
 
       const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
-        height: tempHeight,
+        height: heightToApply,
         isMaster: resolvedIsMaster,
         nivel: nivelToApply,
       });

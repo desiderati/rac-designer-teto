@@ -280,11 +280,6 @@ export function ConstructionMobileCard({
         <div className='flex shrink-0 items-center gap-1'>
           {!isArchived ? (
             <>
-              <StatusActionButton
-                action={completionAction}
-                label={completionLabel}
-                onClick={requestCompletionStatusChange}
-              />
               <RoundIconActionButton
                 label={`Gerenciar monitores da construção ${constructionCode}`}
                 guidedTourId={showGuidedTourTargets ? 'rac-construction-monitors' : undefined}
@@ -299,6 +294,11 @@ export function ConstructionMobileCard({
               >
                 <Home className='h-4 w-4'/>
               </RoundIconActionButton>
+              <StatusActionButton
+                action={completionAction}
+                label={completionLabel}
+                onClick={requestCompletionStatusChange}
+              />
             </>
           ) : null}
           <StatusActionButton
@@ -419,11 +419,6 @@ export function ConstructionTableRow({
         <div className='flex items-center justify-end gap-2'>
           {!isArchived ? (
             <>
-              <StatusActionButton
-                action={completionAction}
-                label={completionLabel}
-                onClick={requestCompletionStatusChange}
-              />
               <RoundIconActionButton
                 label={`Gerenciar monitores da construção ${constructionCode}`}
                 guidedTourId={showGuidedTourTargets ? 'rac-construction-monitors' : undefined}
@@ -438,6 +433,11 @@ export function ConstructionTableRow({
               >
                 <Home className='h-4 w-4'/>
               </RoundIconActionButton>
+              <StatusActionButton
+                action={completionAction}
+                label={completionLabel}
+                onClick={requestCompletionStatusChange}
+              />
             </>
           ) : null}
           <StatusActionButton

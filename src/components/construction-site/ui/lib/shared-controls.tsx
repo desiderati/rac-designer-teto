@@ -56,7 +56,7 @@ export function StatusActionButton({
     return (
       <RoundIconActionButton
         label={label}
-        tone='neutral'
+        tone={action === 'markBuilt' || action === 'markCompleted' ? 'success' : 'neutral'}
         onClick={onClick}
         guidedTourId={guidedTourId}
         disabled={disabled}
@@ -92,7 +92,7 @@ export function RoundIconActionButton({
   label: string;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
   children: ReactNode;
-  tone?: 'neutral' | 'archive' | 'unarchive';
+  tone?: 'neutral' | 'archive' | 'unarchive' | 'success';
   guidedTourId?: string;
   disabled?: boolean;
 }) {
@@ -110,6 +110,7 @@ export function RoundIconActionButton({
         tone === 'archive' ? 'hover:bg-red-50 hover:text-red-600 focus:ring-red-100' : null,
         tone === 'unarchive' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
         tone === 'neutral' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
+        tone === 'success' ? 'hover:bg-emerald-50 hover:text-emerald-700 focus:ring-emerald-100' : null,
       )}
     >
       {children}

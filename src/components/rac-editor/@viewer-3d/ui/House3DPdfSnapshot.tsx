@@ -152,6 +152,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
             wallColor={HOUSE_3D_WALL_COLORS.viewerInitialColor}
             tipo6FrontSide={tipo6FrontSide}
             tipo3OpenSide={tipo3OpenSide}
+            hideBelowTerrain
           />
 
           <CaptureBridge requestId={captureRequestId} onCapture={finishCapture}/>

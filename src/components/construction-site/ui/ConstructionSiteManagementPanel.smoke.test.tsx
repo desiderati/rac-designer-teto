@@ -577,7 +577,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-built');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
-      .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
+      .toHaveClass('text-slate-400', 'hover:bg-emerald-50', 'hover:text-emerald-700');
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
+      .not.toHaveClass('bg-emerald-50', 'text-emerald-700');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-archive');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
@@ -737,6 +739,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const actionsHeader = within(monitorTable).getByRole('columnheader', {name: 'Ações'});
     const actionButton = within(monitorTable).getByRole('button', {name: `Inativar monitor ${longMonitorName}`});
     const actions = within(monitorTable).getByTestId('monitor-table-actions');
+    const monitorRow = actionButton.closest('tr');
 
     expect(desktopTable).toHaveClass('table-fixed');
     expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
@@ -758,6 +761,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(phone.closest('td')).toHaveClass('text-center', 'align-middle');
     expect(actions).toHaveClass('min-h-14', 'items-center', 'justify-center');
     expect(actionButton.closest('td')).toHaveClass('text-center', 'align-middle');
+    expect(monitorRow).toHaveClass('bg-transparent', 'hover:bg-slate-50');
+    expect(monitorRow).not.toHaveClass('bg-slate-50/70');
   });
 
   it('cadastra monitor com nome e telefone válidos e bloqueia campos inválidos', async () => {

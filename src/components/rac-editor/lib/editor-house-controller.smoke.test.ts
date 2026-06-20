@@ -201,8 +201,8 @@ describe('editor house controller', () => {
     // recalculadas em todos os 12 pilotis via regra de ouro (altura = menor ≥ nivel*3).
     // piloti_1_1 @ nivel=0.47 → minHeight=1.41 → recommended=1.5.
     expect(houseController.getPilotiData('piloti_1_1').height).toBe(1.5);
-    // piloti_2_1 @ nivel=0.73 → minHeight=2.19 → recommended=2.5.
-    expect(houseController.getPilotiData('piloti_2_1').height).toBe(2.5);
+    // piloti_2_1 @ nivel=0.73 → minHeight=2.19 → recommended=2.2.
+    expect(houseController.getPilotiData('piloti_2_1').height).toBe(2.2);
   });
 
   it.each(getAllPilotiIds())(
@@ -247,7 +247,7 @@ describe('editor house controller', () => {
     });
     expect(houseController.getPilotiData('piloti_2_1')).toMatchObject({
       nivel: 0.73,
-      height: 2.5,
+      height: 2.2,
     });
   });
 

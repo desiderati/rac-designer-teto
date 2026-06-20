@@ -283,7 +283,7 @@ function MonitorTableRow({
         }}
       className={cn(
         'rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        isInactive ? 'cursor-default opacity-55' : 'cursor-pointer hover:bg-slate-50',
+        isInactive ? 'cursor-default opacity-55' : 'cursor-pointer bg-transparent hover:bg-slate-50',
       )}
     >
       <td className='max-w-0 rounded-l-lg px-3 py-3'>

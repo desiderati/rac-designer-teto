@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import {BringToFront, SendToBack} from 'lucide-react';
 import {
   CanvasGroup,
   CanvasObject,
@@ -327,7 +328,7 @@ export const Canvas =
         if (!rect) return {x: clientX, y: clientY};
 
         return {
-          x: Math.min(Math.max(clientX - rect.left, 8), Math.max(rect.width - 176, 8)),
+          x: Math.min(Math.max(clientX - rect.left, 8), Math.max(rect.width - 216, 8)),
           y: Math.min(Math.max(clientY - rect.top, 8), Math.max(rect.height - 96, 8)),
         };
       }, []);
@@ -629,7 +630,7 @@ export const Canvas =
           {imageLayerMenu
             ? <div
                 role='menu'
-                className='absolute z-50 min-w-[168px] overflow-hidden rounded-md border border-border bg-popover py-1 text-sm text-popover-foreground shadow-md'
+                className='absolute z-50 w-52 rounded-xl border border-slate-200 bg-white/95 p-1 text-slate-700 shadow-xl backdrop-blur-xl'
                 style={{
                   left: imageLayerMenu.x,
                   top: imageLayerMenu.y,
@@ -640,18 +641,20 @@ export const Canvas =
                 <button
                   type='button'
                   role='menuitem'
-                  className='block w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none'
+                  className='flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100'
                   onClick={() => moveActiveImageLayer('back')}
                 >
-                  Enviar para trás
+                  <SendToBack className='h-4 w-4 shrink-0 text-slate-500'/>
+                  <span className='min-w-0 flex-1 truncate text-left'>Enviar para trás</span>
                 </button>
                 <button
                   type='button'
                   role='menuitem'
-                  className='block w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none'
+                  className='flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-100'
                   onClick={() => moveActiveImageLayer('front')}
                 >
-                  Trazer para frente
+                  <BringToFront className='h-4 w-4 shrink-0 text-slate-500'/>
+                  <span className='min-w-0 flex-1 truncate text-left'>Trazer para frente</span>
                 </button>
               </div>
             : null}

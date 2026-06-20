@@ -73,7 +73,8 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 3. O PDF deve usar a última pose salva do viewer 3D da casa ativa para capturar a imagem 3D.
 4. Se não houver pose salva, o PDF deve usar o enquadramento inicial voltado para a porta.
 5. A iluminação do snapshot do PDF deve seguir a mesma orientação por porta usada no viewer.
-6. Em falha, usuário deve receber mensagem clara.
+6. O snapshot do PDF deve ocultar a parte dos elementos 3D que fica abaixo do terreno.
+7. Em falha, usuário deve receber mensagem clara.
 
 ## Regras de consistência geral
 
