@@ -35,10 +35,10 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 3. Overflow (mais opções)
     - No Canvas, o FAB hamburger exibe "Construções TETO" como primeira opção e, depois de um separador, lista
-      Construções TETO ativas agrupadas por código da construção.
+      Construções TETO não arquivadas agrupadas por código da construção.
     - O FAB hamburger não exibe `Monitores` como subopção de `Construções TETO`; monitores pertencem a uma construção
       específica e são acessados pela listagem de Construções TETO.
-    - Cada construção ativa exibe suas casas como submenu, usando como rótulo o nome da família associada à casa.
+    - Cada construção não arquivada exibe suas casas como submenu, usando como rótulo o nome da família associada à casa.
     - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
     - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
     - A ação "Construções TETO" não fica no menu do usuário/avatar.

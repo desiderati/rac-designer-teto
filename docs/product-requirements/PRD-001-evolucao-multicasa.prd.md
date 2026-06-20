@@ -30,7 +30,7 @@ lang: pt-BR
 
 - Permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
 - Registrar Código da CC, Data da Construção, Comunidade e foto opcional por Construção TETO.
-- Permitir criar, arquivar, desarquivar, listar e editar casas dentro da Construção TETO ativa.
+- Permitir criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em andamento.
 - Identificar cada casa pelo nome da família associada, sem nome próprio de casa.
 - Persistir o último documento de desenho da casa no banco local.
 - Abrir o RAC Editor somente quando houver Construção TETO em andamento com pelo menos uma casa não arquivada.
@@ -57,7 +57,7 @@ administrar múltiplas unidades habitacionais.
 
 **Critérios de aceitação:**
 
-- [x] O sistema permite criar casa vinculada à Construção TETO ativa.
+- [x] O sistema permite criar casa vinculada à Construção TETO em andamento.
 - [x] O sistema identifica a casa pelo nome da família designada.
 - [x] O sistema permite arquivar e desarquivar casas com confirmação apropriada.
 - [x] O sistema restaura o desenho correto ao alternar entre casas da mesma Construção TETO.
@@ -103,7 +103,8 @@ casa ativa.
 - `FR-2:` Construção TETO deve possuir Código da CC, Data da Construção, Comunidade, foto opcional, status e metadados
   técnicos.
 - `FR-3:` O sistema deve permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
-- `FR-4:` O sistema deve permitir criar, arquivar, desarquivar, listar e editar casas dentro da Construção TETO ativa.
+- `FR-4:` O sistema deve permitir criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em
+  andamento.
 - `FR-5:` Casa deve pertencer a uma única Construção TETO e estar associada a uma única família.
 - `FR-6:` O rótulo da casa na UI deve ser derivado do nome da família associada.
 - `FR-7:` O sistema deve persistir e restaurar o `HouseDrawingDocument` da casa ativa.
