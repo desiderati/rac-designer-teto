@@ -132,10 +132,11 @@ export function MonitorsScreen({
           </tr>
           </thead>
           <tbody>
-          {pageMonitors.map((monitor) => (
+          {pageMonitors.map((monitor, index) => (
             <MonitorTableRow
               key={monitor.id}
               monitor={monitor}
+              rowIndex={index}
               onOpenMonitor={onEditMonitor}
               onRequestMonitorStatusChange={onRequestMonitorStatusChange}
               readOnly={readOnly}
@@ -251,17 +252,20 @@ function MonitorMobileCard({
 
 function MonitorTableRow({
   monitor,
+  rowIndex,
   onOpenMonitor,
   onRequestMonitorStatusChange,
   readOnly = false,
 }: {
   monitor: MonitorRecord;
+  rowIndex: number;
   onOpenMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
   readOnly?: boolean;
 }) {
   const statusLabel = MONITOR_STATUS_LABELS[monitor.status];
   const isInactive = monitor.status === 'inactive';
+  const useTintedBackground = rowIndex % 2 === 1;
   const openMonitor = () => {
     if (isInactive) return;
     onOpenMonitor(monitor.id);
@@ -283,7 +287,9 @@ function MonitorTableRow({
         }}
       className={cn(
         'rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        isInactive ? 'cursor-default opacity-55' : 'cursor-pointer bg-transparent hover:bg-slate-50',
+        isInactive ? 'cursor-default opacity-55' : 'cursor-pointer',
+        !isInactive && useTintedBackground ? 'bg-blue-50/90 hover:bg-blue-100/70' : null,
+        !isInactive && !useTintedBackground ? 'bg-transparent hover:bg-slate-50' : null,
       )}
     >
       <td className='max-w-0 rounded-l-lg px-3 py-3'>

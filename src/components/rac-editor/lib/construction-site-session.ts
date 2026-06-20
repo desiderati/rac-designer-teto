@@ -75,6 +75,7 @@ export interface ConstructionSiteSessionPort {
   getActiveHouse(): PersistedHouseRecord;
   getActiveFamily(): FamilyRecord;
   canOpenRacEditor(): boolean;
+  prepareRacEditorOpening(): HouseDrawingDocument | null;
   createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState;
   updateActiveConstructionSite(input: UpdateConstructionSiteInput): void;
   archiveActiveConstructionSite(): void;
@@ -192,6 +193,7 @@ function createInitialHouseState(houseId: string): HouseState {
 
 const DEFAULT_CONSTRUCTION_CODE = 'CC0000';
 const DEFAULT_COMMUNITY_NAME = 'Comunidade não informada';
+const READ_ONLY_CONSTRUCTION_SITE_ERROR = 'Não é possível editar uma Construção TETO concluída ou arquivada.';
 
 function createConstructionSiteRecord(now: string, input: CreateConstructionSiteInput, communityId: string): ConstructionSiteRecord {
   return {
@@ -437,7 +439,22 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   canOpenRacEditor(): boolean {
-    return this.getActiveHouseOrNull() !== null;
+    return this.findLatestEditedHouseConstructionSite() !== null;
+  }
+
+  prepareRacEditorOpening(): HouseDrawingDocument | null {
+    if (!this.isConstructionSiteReadOnly(this.state) && this.getActiveHouseOrNull()) {
+      return this.getActiveHouseDrawingDocument();
+    }
+
+    const nextConstructionSite = this.findLatestEditedHouseConstructionSite();
+    if (!nextConstructionSite) return null;
+
+    this.state = nextConstructionSite.constructionSite;
+    this.state.constructionSite.activeHouseId = nextConstructionSite.house.id;
+    this.persist();
+
+    return this.getActiveHouseDrawingDocument();
   }
 
   setActiveFamilyName(name: string): void {
@@ -556,7 +573,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       throw new Error('Não foi possível criar monitor sem Construção TETO ativa.');
     }
     if (this.isConstructionSiteReadOnly(this.state)) {
-      throw new Error('Não é possível editar uma Construção TETO arquivada.');
+      throw new Error(READ_ONLY_CONSTRUCTION_SITE_ERROR);
     }
 
     const now = new Date().toISOString();
@@ -600,7 +617,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       throw new Error('Não foi possível criar casa sem Construção TETO ativa.');
     }
     if (this.isConstructionSiteReadOnly(this.state)) {
-      throw new Error('Não é possível editar uma Construção TETO arquivada.');
+      throw new Error(READ_ONLY_CONSTRUCTION_SITE_ERROR);
     }
 
     const now = new Date().toISOString();
@@ -629,7 +646,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   duplicateActiveHouse(): PersistedHouseRecord {
     if (this.isConstructionSiteReadOnly(this.state)) {
-      throw new Error('Não é possível editar uma Construção TETO arquivada.');
+      throw new Error(READ_ONLY_CONSTRUCTION_SITE_ERROR);
     }
 
     const now = new Date().toISOString();
@@ -934,7 +951,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   private findLatestEditedHouseConstructionSite(): { constructionSite: ConstructionSiteState; house: PersistedHouseRecord } | null {
     return this.constructionSites
-      .filter((constructionSite) => constructionSite.constructionSite.status !== 'archived')
+      .filter((constructionSite) => !this.isConstructionSiteReadOnly(constructionSite))
       .flatMap((constructionSite) => constructionSite.houses
         .filter((house) => house.status !== 'archived')
         .map((house) => ({constructionSite, house})))

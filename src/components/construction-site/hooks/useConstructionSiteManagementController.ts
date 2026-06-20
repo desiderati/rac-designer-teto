@@ -142,6 +142,10 @@ export function useConstructionSiteManagementController({
     );
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const prepareRacEditorOpening = useCallback(() => (
+    constructionSiteManagementPort.prepareRacEditorOpening()
+  ), [constructionSiteManagementPort]);
+
   void version;
   const constructionSite = constructionSiteManagementPort.getConstructionSiteSnapshot();
   const constructionSiteSnapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
@@ -159,6 +163,7 @@ export function useConstructionSiteManagementController({
     acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
+    prepareRacEditorOpening,
     actions: {
       createConstructionSite,
       updateActiveConstructionSite: (input: UpdateConstructionSiteInput) => constructionSiteManagementPort.updateActiveConstructionSite(input),

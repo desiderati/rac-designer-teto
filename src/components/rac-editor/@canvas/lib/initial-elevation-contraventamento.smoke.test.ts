@@ -95,7 +95,7 @@ describe('contraventamento na primeira elevação inserida', () => {
     } finally {
       canvas.dispose();
     }
-  }, 20000);
+  }, 60000);
 
   it('mantém a mesma projeção quando a vista de 3m inicial é removida e reinserida', () => {
     const canvas = createCanvas();

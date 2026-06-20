@@ -58,6 +58,10 @@ function RacEditorLoadingState() {
 function RacEditorEntryPoint() {
   const constructionSiteManagement = useConstructionSiteManagementController({});
   const [editorOpen, setEditorOpen] = useState(constructionSiteManagement.canOpenRacEditor);
+  const openRacEditor = () => {
+    if (!constructionSiteManagement.prepareRacEditorOpening()) return;
+    setEditorOpen(true);
+  };
 
   useEffect(() => {
     if (!constructionSiteManagement.canOpenRacEditor) {
@@ -73,7 +77,7 @@ function RacEditorEntryPoint() {
     <div className='relative h-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
       <ConstructionSiteManagementPanel
         {...constructionSiteManagement}
-        onBackToCanvas={() => setEditorOpen(true)}
+        onBackToCanvas={openRacEditor}
       />
     </div>
   );

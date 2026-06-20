@@ -424,6 +424,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     return this.constructionSites.canOpenRacEditor();
   }
 
+  prepareRacEditorOpening(): HouseDrawingDocument | null {
+    return this.constructionSites.prepareRacEditorOpening();
+  }
+
   private loadNullableHouseDrawingDocument(document: HouseDrawingDocument | null): void {
     if (!document) {
       this.house = null;

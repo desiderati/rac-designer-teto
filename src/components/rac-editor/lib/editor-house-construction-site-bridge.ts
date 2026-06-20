@@ -184,6 +184,12 @@ export class EditorHouseConstructionSiteBridge {
     return this.session.canOpenRacEditor();
   }
 
+  prepareRacEditorOpening(): HouseDrawingDocument | null {
+    const document = this.session.prepareRacEditorOpening();
+    this.args.loadHouseDrawingDocument(document);
+    return document;
+  }
+
   private get session(): ConstructionSiteSessionPort {
     return this.args.constructionSiteSession;
   }

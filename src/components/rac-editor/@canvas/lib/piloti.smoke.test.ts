@@ -41,10 +41,11 @@ describe('piloti.ts', () => {
     expect(clampNivelByHeight(2, 1)).toBe(0.5);
   });
 
-  it('supports max nivel 1.75 when max piloti height is 3.5', () => {
+  it('supports max nivel 1.9 when max piloti height is 3.8', () => {
     expect(getMaxNivelForPilotiHeight(3.5)).toBe(1.75);
-    expect(MAX_AVAILABLE_PILOTI_NIVEL).toBe(1.75);
-    expect(clampNivel(2)).toBe(1.75);
+    expect(getMaxNivelForPilotiHeight(3.8)).toBe(1.9);
+    expect(MAX_AVAILABLE_PILOTI_NIVEL).toBe(1.9);
+    expect(clampNivel(2)).toBe(1.9);
   });
 
   it('formats nivel and piloti ids', () => {
@@ -77,7 +78,7 @@ describe('piloti.ts', () => {
 
   it('normalizes selected family heights and falls back safely when needed', () => {
     expect(normalizeAvailablePilotiHeights([3.2, 1.5, 3.2, 9] as unknown as number[])).toEqual([1.5, 3.2]);
-    expect(normalizeAvailablePilotiHeights([])).toEqual([1.0, 1.2, 1.5, 2.0, 2.5, 3.0]);
+    expect(normalizeAvailablePilotiHeights([])).toEqual([1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0]);
   });
 
   it('detects out-of-proportion piloti using the same ratio as recommendation', () => {

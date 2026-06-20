@@ -723,6 +723,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const longMonitorEmail = `${'M'.repeat(43)}@MMM.MM`;
     constructionSite.monitors[0].name = longMonitorName;
     constructionSite.monitors[0].email = longMonitorEmail;
+    constructionSite.monitors[1].name = 'Segundo Monitor';
+    constructionSite.monitors[1].status = 'active';
 
     renderPanel({constructionSite});
 
@@ -730,16 +732,18 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     const monitorTable = screen.getByTestId('monitor-desktop-table');
     const desktopTable = within(monitorTable).getByRole('table');
-    const identity = within(monitorTable).getByTestId('monitor-table-identity');
-    const monitorName = within(monitorTable).getByTestId('monitor-table-name');
-    const monitorEmail = within(monitorTable).getByTestId('monitor-table-email');
-    const phone = within(monitorTable).getByText('(11) 99999-0000');
     const statusHeader = within(monitorTable).getByRole('columnheader', {name: 'Status'});
     const contactHeader = within(monitorTable).getByRole('columnheader', {name: 'Contato'});
     const actionsHeader = within(monitorTable).getByRole('columnheader', {name: 'Ações'});
     const actionButton = within(monitorTable).getByRole('button', {name: `Inativar monitor ${longMonitorName}`});
-    const actions = within(monitorTable).getByTestId('monitor-table-actions');
     const monitorRow = actionButton.closest('tr');
+    const monitorRowQueries = within(monitorRow as HTMLElement);
+    const identity = monitorRowQueries.getByTestId('monitor-table-identity');
+    const monitorName = monitorRowQueries.getByTestId('monitor-table-name');
+    const monitorEmail = monitorRowQueries.getByTestId('monitor-table-email');
+    const phone = monitorRowQueries.getByText('(11) 99999-0000');
+    const actions = monitorRowQueries.getByTestId('monitor-table-actions');
+    const monitorRows = within(monitorTable).getAllByRole('row');
 
     expect(desktopTable).toHaveClass('table-fixed');
     expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
@@ -762,6 +766,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions).toHaveClass('min-h-14', 'items-center', 'justify-center');
     expect(actionButton.closest('td')).toHaveClass('text-center', 'align-middle');
     expect(monitorRow).toHaveClass('bg-transparent', 'hover:bg-slate-50');
+    expect(monitorRows[2]).toHaveClass('bg-blue-50/90', 'hover:bg-blue-100/70');
     expect(monitorRow).not.toHaveClass('bg-slate-50/70');
   });
 

@@ -433,6 +433,7 @@ function createConstructionSiteManagementPort(
     getConstructionSiteSnapshots: vi.fn(() => []),
     getConstructionSiteSnapshot: vi.fn(() => null),
     canOpenRacEditor: vi.fn(() => true),
+    prepareRacEditorOpening: vi.fn(() => null),
     createConstructionSite: vi.fn(),
     updateActiveConstructionSite: vi.fn(),
     archiveActiveConstructionSite: vi.fn(),

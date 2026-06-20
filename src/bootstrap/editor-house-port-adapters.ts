@@ -110,6 +110,7 @@ export interface EditorConstructionSiteManagementSource {
   getConstructionSiteSnapshots(): ConstructionSiteState[];
   getConstructionSiteSnapshot(): ConstructionSiteState | null;
   canOpenRacEditor(): boolean;
+  prepareRacEditorOpening(): HouseDrawingDocument | null;
   createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState;
   updateActiveConstructionSite(input: UpdateConstructionSiteInput): void;
   archiveActiveConstructionSite(): void;
@@ -245,6 +246,7 @@ export function createEditorConstructionSiteManagementPort(
     getConstructionSiteSnapshots: () => clonePortValue(source.getConstructionSiteSnapshots()),
     getConstructionSiteSnapshot: () => clonePortValue(source.getConstructionSiteSnapshot()),
     canOpenRacEditor: () => source.canOpenRacEditor(),
+    prepareRacEditorOpening: () => source.prepareRacEditorOpening(),
     createConstructionSite: (input) => clonePortValue(source.createConstructionSite(input)),
     updateActiveConstructionSite: (input) => source.updateActiveConstructionSite(input),
     archiveActiveConstructionSite: () => source.archiveActiveConstructionSite(),

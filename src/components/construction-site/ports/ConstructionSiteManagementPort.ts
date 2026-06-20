@@ -23,6 +23,7 @@ export interface ConstructionSiteManagementPort {
   getConstructionSiteSnapshots(): ConstructionSiteState[];
   getConstructionSiteSnapshot(): ConstructionSiteState | null;
   canOpenRacEditor(): boolean;
+  prepareRacEditorOpening(): HouseDrawingDocument | null;
   createConstructionSite(input: CreateConstructionSiteInput): ConstructionSiteState;
   updateActiveConstructionSite(input: UpdateConstructionSiteInput): void;
   archiveActiveConstructionSite(): void;

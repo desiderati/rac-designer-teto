@@ -54,8 +54,10 @@ export function useRacEditorConstructionSitePanelController({
 
   const closeConstructionSiteManagement = useCallback(() => {
     if (!constructionSiteManagement.canOpenRacEditor) return;
+    const document = constructionSiteManagement.prepareRacEditorOpening();
+    if (!document) return;
     setConstructionSiteManagementOpen(false);
-    constructionSiteManagement.hydrateActiveHouseDocument();
+    constructionSiteManagement.hydrateActiveHouseDocument(document);
   }, [constructionSiteManagement, setConstructionSiteManagementOpen]);
 
   return {

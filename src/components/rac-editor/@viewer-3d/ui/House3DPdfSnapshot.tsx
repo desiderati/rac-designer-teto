@@ -60,10 +60,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
     () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
     [activeHouseId],
   );
-  const persistedCameraPose = useMemo(
-    () => readHouse3DViewerCameraPose(cameraPoseStorageKey),
-    [cameraPoseStorageKey, captureRequestId],
-  );
+  const persistedCameraPose = readHouse3DViewerCameraPose(cameraPoseStorageKey);
   const doorFace = useMemo(
     () => resolveHouse3DDoorFace(houseType, tipo6FrontSide, tipo3OpenSide),
     [houseType, tipo3OpenSide, tipo6FrontSide],
