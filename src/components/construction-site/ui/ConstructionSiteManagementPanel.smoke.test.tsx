@@ -766,8 +766,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions).toHaveClass('min-h-14', 'items-center', 'justify-center');
     expect(actionButton.closest('td')).toHaveClass('text-center', 'align-middle');
     expect(monitorRow).toHaveClass('bg-transparent', 'hover:bg-slate-50');
-    expect(monitorRows[2]).toHaveClass('bg-blue-50/90', 'hover:bg-blue-100/70');
-    expect(monitorRow).not.toHaveClass('bg-slate-50/70');
+    expect(monitorRows[2]).toHaveClass('bg-transparent', 'hover:bg-slate-50');
+    expect(monitorRow).not.toHaveClass('bg-blue-50/90');
+    expect(monitorRows[2]).not.toHaveClass('bg-blue-50/90');
   });
 
   it('cadastra monitor com nome e telefone válidos e bloqueia campos inválidos', async () => {

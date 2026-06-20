@@ -163,6 +163,10 @@ describe('useConstructionSiteManagementController.ts', () => {
 
     expect(scheduledFrames).toHaveLength(1);
 
+    act(() => {
+      void result.current.notifyActiveHouseDocumentChanged();
+    });
+
     await act(async () => {
       await result.current.actions.activateHouse('construction_site_b', 'house_b');
     });
@@ -179,6 +183,52 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(loadCanvasDocument).toHaveBeenLastCalledWith(switchedCanvas);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(switchedDocument);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).not.toHaveBeenCalledWith(initialDocument);
+  });
+
+  it('não salva o documento da casa ao abrir edição sem alteração pendente no Canvas', async () => {
+    const savedCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_current')],
+    };
+    const targetCanvas: HouseDrawingCanvasDocument = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [createCanvasObject('object_b')],
+    };
+    const targetDocument = createDrawingDocument('house_b', 'Família B', targetCanvas);
+    const exportCanvasDocument = vi.fn(() => savedCanvas);
+    const loadCanvasDocument = vi.fn(async () => true);
+    const canvasHandle = {
+      createDocumentPort: () => ({
+        exportCanvasDocument,
+        loadCanvasDocument,
+      }),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const canvasRef: MutableRefObject<CanvasHandle | null> = {current: canvasHandle};
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      activateHouse: vi.fn(() => targetDocument),
+      getActiveHouseDrawingDocument: vi.fn(() => targetDocument),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+      houseDrawingDocumentPort: {
+        exportHouseDrawingDocument: vi.fn(() => createDrawingDocument('house_a', 'Família A', savedCanvas)),
+        importHouseDrawingDocument: vi.fn(),
+      },
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.activateHouse('construction_site_b', 'house_b');
+    });
+
+    expect(constructionSiteManagementPort.activateHouse).toHaveBeenCalledWith('construction_site_b', 'house_b');
+    expect(constructionSiteManagementPort.saveActiveHouseDrawingDocument).not.toHaveBeenCalled();
+    expect(loadCanvasDocument).toHaveBeenCalledWith(targetCanvas);
   });
 
   it('serializa trocas rápidas de casa para não salvar canvas antigo com estado lógico novo', async () => {

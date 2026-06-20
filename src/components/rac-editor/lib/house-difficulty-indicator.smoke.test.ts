@@ -155,6 +155,18 @@ describe('house difficulty indicator', () => {
       .toBe(44);
     expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(3.5, 0)).score)
       .toBe(50);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(3.8, 0)).score)
+      .toBe(50);
+  });
+
+  it('trata pilotis de 3,8 m como 3,5 m apenas no cálculo de dificuldade', () => {
+    expect(calculateHouseDifficultyIndicator(
+      {soilProfile: 'stable_clay'},
+      createPilotisFromHeights([1, 3.8]),
+    ).score).toBe(calculateHouseDifficultyIndicator(
+      {soilProfile: 'stable_clay'},
+      createPilotisFromHeights([1, 3.5]),
+    ).score);
   });
 
   it('calibra casas planas com agua no fundo por medias altas de pilotis', () => {
@@ -193,6 +205,19 @@ function createPilotisWithHeightAndDesnivel(height: number, desnivelCm: number):
       {
         height,
         nivel: index === 0 ? 0 : maxNivel,
+        isMaster: index === 0,
+      },
+    ]),
+  );
+}
+
+function createPilotisFromHeights(heights: number[]): Record<string, HousePiloti> {
+  return Object.fromEntries(
+    getAllPilotiIds().map((pilotiId, index) => [
+      pilotiId,
+      {
+        height: heights[index % heights.length] ?? 1,
+        nivel: 0,
         isMaster: index === 0,
       },
     ]),

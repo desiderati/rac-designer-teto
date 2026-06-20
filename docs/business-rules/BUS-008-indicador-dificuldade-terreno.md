@@ -108,6 +108,8 @@ Cada opção marcada soma:
 
 O cálculo usa a média das alturas de todos os pilotis da casa ativa. A média é limitada ao intervalo
 canônico de `1,0 m` a `3,5 m` e gera até `50` pontos.
+Para fins exclusivos deste cálculo, alturas de `3,8 m` são tratadas como `3,5 m`, evitando variação
+adicional no indicador sem alterar a altura real do piloti no projeto.
 
 ```text
 pontosPilotis = clamp((médiaPilotis - 1,0) * 20, 0, 50)

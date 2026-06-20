@@ -39,7 +39,7 @@ const STEEP_TERRAIN_DESNIVEL_CM = 60;
 const VERY_STEEP_TERRAIN_DESNIVEL_CM = 90;
 const EXTREME_TERRAIN_DESNIVEL_CM = 120;
 const MIN_PILOTI_AVERAGE_HEIGHT = Math.min(...ALL_PILOTI_HEIGHTS);
-const MAX_PILOTI_AVERAGE_HEIGHT = Math.max(...ALL_PILOTI_HEIGHTS);
+const MAX_PILOTI_AVERAGE_HEIGHT_FOR_DIFFICULTY = 3.5;
 const MIN_SOIL_DIFFICULTY_WEIGHT = SOIL_DIFFICULTY_WEIGHT.stable_clay;
 const MAX_SOIL_DIFFICULTY_WEIGHT = SOIL_DIFFICULTY_WEIGHT.water_table;
 const MAX_SOIL_DIFFICULTY_POINTS = 25;
@@ -122,13 +122,17 @@ function calculatePilotiHeightDifficultyPoints(pilotis: Record<string, HousePilo
 
 function calculateAveragePilotiHeight(pilotis: Record<string, HousePiloti> | undefined): number {
   const heights = Object.values(pilotis ?? {})
-    .map((piloti) => piloti.height)
+    .map((piloti) => normalizePilotiHeightForDifficulty(piloti.height))
     .filter((height): height is number => Number.isFinite(height));
 
   if (heights.length === 0) return MIN_PILOTI_AVERAGE_HEIGHT;
 
   const average = heights.reduce((sum, height) => sum + height, 0) / heights.length;
-  return Math.min(MAX_PILOTI_AVERAGE_HEIGHT, Math.max(MIN_PILOTI_AVERAGE_HEIGHT, average));
+  return Math.min(MAX_PILOTI_AVERAGE_HEIGHT_FOR_DIFFICULTY, Math.max(MIN_PILOTI_AVERAGE_HEIGHT, average));
+}
+
+function normalizePilotiHeightForDifficulty(height: number): number {
+  return Math.min(MAX_PILOTI_AVERAGE_HEIGHT_FOR_DIFFICULTY, Math.max(MIN_PILOTI_AVERAGE_HEIGHT, height));
 }
 
 function getDifficultyLevel(score: number): Pick<HouseDifficultyIndicator, 'label' | 'level'> {

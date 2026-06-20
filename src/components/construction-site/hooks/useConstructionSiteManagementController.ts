@@ -54,7 +54,10 @@ export function useConstructionSiteManagementController({
   }), [constructionSiteManagementPort]);
 
   const activateHouse = useCallback(async (constructionSiteId: string, houseId: string) => {
-    await runDocumentMutation(() => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId));
+    await runDocumentMutation(
+      () => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId),
+      {forceSave: false},
+    );
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
   const createHouse = useCallback(async (input: CreateHouseInput) => {
