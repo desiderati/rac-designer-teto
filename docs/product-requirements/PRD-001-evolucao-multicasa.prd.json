@@ -2,11 +2,9 @@
   "metadata": {
     "id": "PRD-001",
     "title": "Evolução multicasa do RAC Designer TETO",
-    "status": "review",
-    "version": "0.1.0",
-    "owners": [
-      "a definir"
-    ]
+    "status": "implemented",
+    "version": "1.0.0",
+    "owners": []
   },
   "context": {
     "problem": "O editor atual opera sobre uma única casa, com persistência centrada em localStorage e sem um modelo durável de Construção TETO, famílias e múltiplas casas.",
@@ -37,96 +35,87 @@
   "requirements": [
     {
       "id": "FR-1",
-      "title": "Gestão de Construções TETO",
+      "title": "Persistência de Construções TETO",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero criar e abrir Construções TETO para organizar minhas atividades por Código da CC e comunidade.",
       "acceptance_criteria": [
-        "O sistema permite criar Construção TETO com Código da CC e Comunidade.",
-        "O sistema lista e troca Construções TETO existentes.",
-        "O sistema permite arquivar e desarquivar Construção TETO de forma lógica.",
-        "Ao abrir uma Construção TETO, o sistema carrega casas e dados associados sem reconstrução manual."
+        "O sistema persiste Construções TETO em IndexedDB.",
+        "Construções TETO persistidas sobrevivem a recarregamentos e reabertura do navegador."
       ]
     },
     {
       "id": "FR-2",
-      "title": "CRUD de casas dentro da Construção TETO",
+      "title": "Dados da Construção TETO",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma Construção TETO para administrar múltiplas unidades habitacionais.",
       "acceptance_criteria": [
-        "O sistema permite criar casa vinculada à Construção TETO em andamento.",
-        "A casa não possui nome próprio persistido; seu rótulo deriva da família associada.",
-        "O sistema permite arquivar e desarquivar casas com confirmação apropriada.",
-        "A alternância entre casas restaura desenho e dados da casa correta."
+        "Construção TETO possui Código da CC, Data da Construção, Comunidade, foto opcional, status e metadados técnicos."
       ]
     },
     {
       "id": "FR-3",
-      "title": "Associação durável entre casa e família",
+      "title": "Gestão de Construções TETO",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero associar uma família a cada casa para manter a relação entre beneficiários e Construção TETO de forma durável.",
       "acceptance_criteria": [
-        "O sistema permite criar e editar dados essenciais da família.",
-        "Cada casa pode ser vinculada a uma família existente ou recém-criada.",
-        "A associação entre casa e família permanece consistente após recarregar a Construção TETO."
+        "O sistema permite criar, arquivar, desarquivar, listar e trocar Construções TETO."
       ]
     },
     {
       "id": "FR-4",
-      "title": "Avaliação do local por casa",
+      "title": "Gestão de casas em construção em andamento",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero registrar obstáculos e condições do solo para orientar o desenho e a montagem do piloti.",
       "acceptance_criteria": [
-        "O sistema oferece interface dedicada para avaliação do local por casa.",
-        "Os dados de solo e obstáculos ficam persistidos separadamente do desenho.",
-        "A avaliação do local não inclui informação de desnível nesta etapa.",
-        "Alterações na avaliação do local podem ser recuperadas após nova abertura da Construção TETO."
+        "O sistema permite criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em andamento.",
+        "Construções TETO concluídas ou arquivadas bloqueiam criação e edição de casas."
       ]
     },
     {
       "id": "FR-5",
-      "title": "Layout de piloti persistido",
+      "title": "Vínculo entre casa, construção e família",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero definir piloti mestre, alturas e pontos de piloti para manter a coerência estrutural da casa.",
       "acceptance_criteria": [
-        "O sistema permite definir piloti mestre e altura mestre por casa.",
-        "O sistema permite editar pontos individuais de piloti sem perder coerência com o layout geral.",
-        "Resumos de pilotis derivam dos pontos persistidos, e não de campos independentes."
+        "Casa pertence a uma única Construção TETO.",
+        "Casa está associada a uma única família."
       ]
     },
     {
       "id": "FR-6",
-      "title": "Persistência do desenho por casa",
+      "title": "Rótulo de casa derivado da família",
       "priority": "must",
-      "user_story": "Como monitor voluntário, quero que o desenho de cada casa seja salvo e restaurado automaticamente ao alternar entre casas.",
       "acceptance_criteria": [
-        "O sistema persiste o documento serializável do desenho por casa.",
-        "O canvas não é a única fonte de verdade do estado persistido.",
-        "O desenho correto é restaurado ao reabrir a casa."
-      ],
-      "notes": [
-        "O documento de desenho precisa permanecer compatível com evolução de schema."
+        "O rótulo da casa na UI é derivado do nome da família associada."
       ]
     },
     {
       "id": "FR-7",
-      "title": "Importação e exportação versionada do projeto da casa",
+      "title": "Persistência do documento de desenho",
       "priority": "must",
-      "user_story": "Como líder voluntário, quero exportar e reimportar o projeto da casa ativa para compartilhar, arquivar e restaurar o desenho sem perda de informações.",
       "acceptance_criteria": [
-        "O sistema exporta um documento versionado da casa ativa com setup, estado da casa e desenho.",
-        "O sistema reimporta o documento exportado preservando a família e o desenho da casa ativa.",
-        "Importação e exportação JSON não representam a entidade Construção TETO."
+        "O sistema persiste e restaura o HouseDrawingDocument da casa ativa.",
+        "O documento de desenho permanece separado do runtime do canvas."
       ]
     },
     {
       "id": "FR-8",
-      "title": "Preparação para relatórios e exportação consolidada",
-      "priority": "should",
-      "user_story": "Como líder voluntário, quero preparar relatórios e exportações consolidadas para análise externa e apresentação.",
+      "title": "Disponibilidade do RAC Editor",
+      "priority": "must",
       "acceptance_criteria": [
-        "A modelagem da Construção TETO permite derivar exportações consolidadas em planilha.",
-        "A modelagem da Construção TETO permite geração futura de relatórios PDF sem remodelagem total do domínio.",
-        "As entidades persistidas fornecem base suficiente para agregações operacionais e estruturais."
+        "O RAC Editor não monta quando não houver Construção TETO em andamento com casa não arquivada."
+      ]
+    },
+    {
+      "id": "FR-9",
+      "title": "Boot do Canvas",
+      "priority": "must",
+      "acceptance_criteria": [
+        "O boot do Canvas restaura a casa não arquivada com maior updatedAt, considerando apenas construções em andamento."
+      ]
+    },
+    {
+      "id": "FR-10",
+      "title": "Importação e exportação JSON fora da navegação principal",
+      "priority": "must",
+      "acceptance_criteria": [
+        "Importação e exportação JSON não fazem parte da navegação principal.",
+        "Importação e exportação JSON não representam a entidade Construção TETO."
       ]
     }
   ],
