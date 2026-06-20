@@ -83,6 +83,9 @@ export interface House3DElevationViewProjection {
   /** Largura visual do grupo de elevação. */
   groupWidth: number;
 
+  /** Posição esquerda do corpo da casa no grupo de elevação. */
+  bodyLeft?: number;
+
   /** Largura do corpo da casa, quando presente na elevação. */
   bodyWidth?: number;
 

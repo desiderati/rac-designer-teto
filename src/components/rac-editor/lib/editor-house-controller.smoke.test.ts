@@ -1,4 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
+import type {Canvas as FabricCanvas} from 'fabric';
 import {createCanvasHouseController} from '@/components/rac-editor/@canvas/lib/canvas-house-controller.ts';
 import {createCanvasHouseRuntimePort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-house-runtime-port.ts';
 import {InMemoryHousePersistenceAdapter} from '@/infra/persistence/in-memory-house-persistence.adapter.ts';
@@ -12,6 +13,7 @@ import {
   HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
   HOUSE_DRAWING_DOCUMENT_TYPE,
 } from '@/shared/types/house-drawing-document.ts';
+import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 
 type MockObject = {
   [key: string]: unknown;
@@ -203,7 +205,9 @@ describe('editor house controller', () => {
     expect(houseController.getPilotiData('piloti_2_1').height).toBe(2.5);
   });
 
-  it('altera somente o piloti selecionado quando o ajuste automático está desativado', () => {
+  it.each(getAllPilotiIds())(
+    'altera somente o piloti %s quando o ajuste automático está desativado',
+    (pilotiId) => {
     const manualController = createCanvasHouseController({
       persistence: new InMemoryHousePersistenceAdapter(),
       settingsPort: createSettingsPort({autoAdjustPilotiHeightsFromNivel: false}),
@@ -211,17 +215,23 @@ describe('editor house controller', () => {
     });
     manualController.setHouseType('tipo6');
 
-    manualController.updatePiloti('piloti_0_0', {height: 1.0, nivel: 0.2});
-    const untouchedBefore = manualController.getPilotiData('piloti_1_1');
+    const before = Object.fromEntries(
+      getAllPilotiIds().map((id) => [id, manualController.getPilotiData(id)])
+    );
 
-    manualController.updatePiloti('piloti_3_0', {height: 1.0, nivel: 1.0});
+    manualController.updatePiloti(pilotiId, {height: 1.0, nivel: 1.0});
 
-    expect(manualController.getPilotiData('piloti_3_0')).toMatchObject({
+    expect(manualController.getPilotiData(pilotiId)).toMatchObject({
       height: 1.0,
       nivel: 0.5,
     });
-    expect(manualController.getPilotiData('piloti_1_1')).toEqual(untouchedBefore);
-  });
+    getAllPilotiIds()
+      .filter((id) => id !== pilotiId)
+      .forEach((id) => {
+        expect(manualController.getPilotiData(id)).toEqual(before[id]);
+      });
+    }
+  );
 
   it('mantém interpolação e alturas recomendadas no modo automático', () => {
     houseController.setHouseType('tipo6');
@@ -443,7 +453,7 @@ describe('editor house controller', () => {
     const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
     topObjects.push(pilotiNameLabel);
 
-    controller.initialize(createCanvasHouseRuntimePort(createMockCanvas([topGroup])));
+    controller.initialize(createCanvasHouseRuntimePort(createMockCanvas([topGroup]) as unknown as FabricCanvas));
     controller.setHouseType('tipo6');
     const instanceId = 'top_settings_labels';
     Object.assign(topGroup, {

@@ -1,4 +1,4 @@
-import {MouseEvent as ReactMouseEvent, useCallback, useRef} from 'react';
+import {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef} from 'react';
 import {toast} from 'sonner';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
@@ -8,7 +8,7 @@ import {useRacEditorLocalState} from '@/components/rac-editor/hooks/useRacEditor
 import {useRacEditorUiRefs} from '@/components/rac-editor/hooks/useRacEditorUiRefs.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
-import type {HouseType} from '@/shared/types/house.ts';
+import {DEFAULT_HOUSE_PILOTI_HEIGHTS, type HouseType} from '@/shared/types/house.ts';
 import {useRacEditorMenuController} from '@/components/rac-editor/@menus/hooks/useRacEditorMenuController.ts';
 import {useRacEditorContraventamentoController} from '@/components/rac-editor/hooks/useRacEditorContraventamentoController.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
@@ -37,7 +37,7 @@ import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/hou
  */
 export function useRacEditorController(): RacEditorLayoutProps {
   const isMobile = useIsMobile();
-  const {houseReadPort, houseWritePort} = useEditorPorts();
+  const {houseReadPort, houseWritePort, settingsPort} = useEditorPorts();
 
   const {
     pendingViewType,
@@ -111,6 +111,19 @@ export function useRacEditorController(): RacEditorLayoutProps {
   const constructionSiteManagement = useConstructionSiteManagementController({
     canvasRef,
   });
+  const activeHouse = constructionSiteManagement.constructionSite?.houses.find(
+    (house) =>
+      house.id === constructionSiteManagement.constructionSite?.constructionSite.activeHouseId
+      && house.status !== 'archived',
+  )
+    ?? constructionSiteManagement.constructionSite?.houses.find((house) => house.status !== 'archived')
+    ?? null;
+  const activeConstructionStatus = constructionSiteManagement.constructionSite?.constructionSite.status;
+  const isActiveConstructionReadOnly =
+    activeConstructionStatus === 'completed' || activeConstructionStatus === 'archived';
+  const isActiveHouseBuilt = activeHouse?.status === 'built';
+  const isEditorReadOnly = isActiveHouseBuilt || isActiveConstructionReadOnly;
+  const noopEditorAction = useCallback(() => {}, []);
 
   const {
     handlePilotisSetupConfirm,
@@ -132,8 +145,9 @@ export function useRacEditorController(): RacEditorLayoutProps {
   });
 
   const handleRestartDrawing = useCallback(() => {
+    if (isEditorReadOnly) return;
     setShowRestartConfirm(true);
-  }, [setShowRestartConfirm]);
+  }, [isEditorReadOnly, setShowRestartConfirm]);
 
   const {
     constructionSiteManagementInitialScreen,
@@ -153,6 +167,11 @@ export function useRacEditorController(): RacEditorLayoutProps {
   }, [setShowRestartConfirm]);
 
   const confirmRestartDrawing = useCallback(() => {
+    if (isEditorReadOnly) {
+      setShowRestartConfirm(false);
+      return;
+    }
+
     restartActiveHouseDrawing({
       canvasRef,
       houseWritePort,
@@ -176,6 +195,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
   }, [
     canvasRef,
     houseWritePort,
+    isEditorReadOnly,
     niveisAppliedRef,
     setActiveSubmenu,
     setPilotisSetupOpen,
@@ -240,8 +260,17 @@ export function useRacEditorController(): RacEditorLayoutProps {
 
   const handleOpenHouseTypeSelector = useCallback(() => {
     closeAllMenus();
-    setPilotisSetupOpen(true);
-  }, [closeAllMenus, setPilotisSetupOpen]);
+
+    if (settingsPort.getSettings().allowPilotiHeightDefinitionOnHouseInsert) {
+      setPilotisSetupOpen(true);
+      return;
+    }
+
+    houseWritePort.applyPilotisSetup({
+      selectedPilotiHeights: [...DEFAULT_HOUSE_PILOTI_HEIGHTS],
+    });
+    setHouseTypeSelectorOpen(true);
+  }, [closeAllMenus, houseWritePort, settingsPort, setHouseTypeSelectorOpen, setPilotisSetupOpen]);
 
   const handleOpenImageUpload = useCallback(() => {
     disableDrawingMode();
@@ -334,7 +363,8 @@ export function useRacEditorController(): RacEditorLayoutProps {
     house3DPdfSnapshotRef,
     canExportPdf: () => hasHouseViewInsertedInCanvas(houseReadPort),
     onBeforeExportPdf: () => constructionSiteManagement.flushActiveHouseDocumentSave({force: true}),
-    onToggleDrawMode: handleToggleDrawMode,
+    onAfterExportPdf: constructionSiteManagement.acknowledgeActiveHouseDocumentSaved,
+    onToggleDrawMode: isEditorReadOnly ? noopEditorAction : handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
     onSetCanvasToolMode: handleSetCanvasToolMode,
     onFitToView: handleFitToView,
@@ -418,9 +448,6 @@ export function useRacEditorController(): RacEditorLayoutProps {
     },
   });
 
-  const activeHouse = constructionSiteManagement.constructionSite?.houses.find(
-    (house) => house.id === constructionSiteManagement.constructionSite?.constructionSite.activeHouseId,
-  ) ?? null;
   const difficultyIndicator = activeHouse
     ? calculateHouseDifficultyIndicator(
       activeHouse.siteAssessment,
@@ -428,8 +455,40 @@ export function useRacEditorController(): RacEditorLayoutProps {
     )
     : null;
   const handleSiteAssessmentChange = useCallback((input: Partial<SiteAssessment>) => {
+    if (isEditorReadOnly) return;
     constructionSiteManagement.actions.updateActiveHouseSiteAssessment(input);
-  }, [constructionSiteManagement.actions]);
+  }, [constructionSiteManagement.actions, isEditorReadOnly]);
+
+  useEffect(() => {
+    if (!isEditorReadOnly) return;
+
+    setActiveSubmenu(null);
+    setIsMenuOpen(false);
+    setIsDrawing(false);
+    setCanvasToolMode('select');
+    setPilotiSelection(null);
+    setIsPilotiEditorOpen(false);
+    setPilotisSetupOpen(false);
+    setHouseTypeSelectorOpen(false);
+    setNivelDefinitionOpen(false);
+    setSideSelectorOpen(false);
+    setIsImageUploadOpen(false);
+    resetContraventamentoFlow();
+  }, [
+    isEditorReadOnly,
+    resetContraventamentoFlow,
+    setActiveSubmenu,
+    setCanvasToolMode,
+    setHouseTypeSelectorOpen,
+    setIsDrawing,
+    setIsImageUploadOpen,
+    setIsMenuOpen,
+    setIsPilotiEditorOpen,
+    setNivelDefinitionOpen,
+    setPilotiSelection,
+    setPilotisSetupOpen,
+    setSideSelectorOpen,
+  ]);
 
   return buildRacEditorLayoutProps({
     handleContainerClick,
@@ -452,6 +511,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     documentSaveStatus: constructionSiteManagement.documentSaveStatus,
     documentTransitioning: constructionSiteManagement.isDocumentTransitioning,
     canExportPDF,
+    isHouseReadOnly: isEditorReadOnly,
     canvasRef,
     infoMessage,
     difficultyIndicator,
@@ -521,6 +581,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     closeRestartConfirm,
     is3DViewerOpen,
     setIs3DViewerOpen,
+    activeHouseId: activeHouse?.id ?? null,
     house3DPdfSnapshotRef,
     constructionSiteManagementOpen,
     closeConstructionSiteManagement,

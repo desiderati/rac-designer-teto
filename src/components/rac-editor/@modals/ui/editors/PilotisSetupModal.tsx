@@ -2,7 +2,7 @@ import {useCallback, useState} from 'react';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
 import {getPilotiHeightButtonClasses} from '@/components/rac-editor/@modals/lib/piloti-editor-classes.ts';
-import {ALL_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
+import {ALL_PILOTI_HEIGHTS, DEFAULT_HOUSE_PILOTI_HEIGHTS} from '@/shared/types/house.ts';
 import {formatPilotiHeight} from '@/shared/types/piloti.ts';
 
 export interface PilotisSetupResult {
@@ -15,7 +15,8 @@ interface PilotisSetupModalProps {
   onConfirm: (result: PilotisSetupResult) => void;
 }
 
-const DEFAULT_SELECTED: Set<number> = new Set([1.0, 1.2, 1.5, 2.0, 2.5, 3.0]);
+const REQUIRED_SELECTED_COUNT = DEFAULT_HOUSE_PILOTI_HEIGHTS.length;
+const DEFAULT_SELECTED: Set<number> = new Set(DEFAULT_HOUSE_PILOTI_HEIGHTS);
 
 export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModalProps) {
   const isMobile = useIsMobile();
@@ -26,14 +27,14 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
       const next = new Set(prev);
       if (next.has(h)) {
         next.delete(h);
-      } else if (next.size < 6) {
+      } else if (next.size < REQUIRED_SELECTED_COUNT) {
         next.add(h);
       }
       return next;
     });
   }, []);
 
-  const canConfirm = selectedHeights.size === 6;
+  const canConfirm = selectedHeights.size === REQUIRED_SELECTED_COUNT;
 
   const handleConfirm = useCallback(() => {
     if (!canConfirm) return;
@@ -50,7 +51,7 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
   const getHeightButtonClassName = (height: number, isSelected: boolean, isDisabled: boolean) => {
     if (!isMobile) {
       return `
-        h-16 w-full rounded-2xl border text-lg font-semibold transition-all
+        h-12 w-12 rounded-lg border text-base font-semibold transition-all
         flex items-center justify-center shadow-sm
         ${isSelected
         ? 'bg-primary text-primary-foreground border-primary'
@@ -61,7 +62,7 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
 
     if (isDisabled) {
       return `
-        h-16 w-16 rounded-2xl border border-transparent bg-primary/10 text-muted-foreground text-lg font-semibold
+        h-12 w-12 rounded-lg border border-transparent bg-primary/10 text-muted-foreground text-base font-semibold
         flex items-center justify-center opacity-50 cursor-not-allowed
       `;
     }
@@ -70,16 +71,17 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
       height,
       clickedHeight: null,
       tempHeight: isSelected ? height : Number.NaN,
+      compact: true,
     });
   };
 
   const content = (
     <div className={isMobile
-      ? 'grid grid-cols-3 justify-items-center gap-3 max-w-[240px] mx-auto'
-      : 'grid grid-cols-3 gap-3 w-full'}>
+      ? 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'
+      : 'grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'}>
       {ALL_PILOTI_HEIGHTS.map((h) => {
         const isSelected = selectedHeights.has(h);
-        const isDisabled = !isSelected && selectedHeights.size >= 6;
+        const isDisabled = !isSelected && selectedHeights.size >= REQUIRED_SELECTED_COUNT;
         return (
           <button
             key={h}
@@ -100,7 +102,7 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
       isMobile={isMobile}
       isOpen={isOpen}
       title='Pilotis'
-      titleAccessory={`(${selectedHeights.size}/6 selecionados)`}
+      titleAccessory={`(${selectedHeights.size}/${REQUIRED_SELECTED_COUNT} selecionados)`}
       content={content}
       mainCardClassName='md:max-w-[248px] mx-auto w-full !p-4'
       dialogContentClassName='sm:max-w-[280px] p-4'

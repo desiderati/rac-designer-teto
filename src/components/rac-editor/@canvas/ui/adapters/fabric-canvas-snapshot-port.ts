@@ -28,8 +28,8 @@ async function insertImageSnapshotOnFabricCanvas(params: {
       await FabricImage.fromURL(params.dataUrl, {crossOrigin: 'anonymous'});
     const center = params.canvas.getVpCenter();
 
-    image.set(
-      create3DSnapshotImagePatch({
+    image.set({
+      ...create3DSnapshotImagePatch({
         centerX: center.x,
         centerY: center.y,
         imageWidth: image.width ?? 1,
@@ -37,7 +37,8 @@ async function insertImageSnapshotOnFabricCanvas(params: {
         canvasWidth: params.canvas.getWidth() || CANVAS_WIDTH,
         canvasHeight: params.canvas.getHeight() || CANVAS_HEIGHT,
       }),
-    );
+      myType: 'image',
+    });
     image.setControlsVisibility?.({mtr: false});
     params.canvas.add(image);
     params.canvas.setActiveObject(image);

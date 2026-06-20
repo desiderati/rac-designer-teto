@@ -515,3 +515,15 @@ handoff.
 <!-- knowledge-base:end -->
 
 @RTK.md
+
+---
+
+## Knowledge graph interoperability
+
+When a repository uses Graphify:
+
+- If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture or context searches across raw files.
+- Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the canonical source of
+  truth.
+- If Graphify output conflicts with source code, versioned docs, or explicit technical decisions, prefer those primary
+  sources.

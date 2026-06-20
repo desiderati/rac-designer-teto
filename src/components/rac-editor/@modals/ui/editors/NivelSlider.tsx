@@ -4,6 +4,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
 import {Slider} from '@/components/ui/slider.tsx';
+import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {clampNivel, formatNivel} from '@/shared/types/piloti.ts';
 import {
   formatNivelInputDigits,
@@ -21,8 +22,12 @@ interface NivelSliderProps {
   onNivelCommit?: (value: number) => void;
   recommendedHeightText?: string;
   enableInput?: boolean;
-  modeLabel?: string;
+  autoMode?: boolean;
+  onAutoModeToggle?: () => void;
+  showModeTourTarget?: boolean;
 }
+
+const NIVEL_MODE_TOUR_TARGET_ID = 'rac-piloti-nivel-mode-toggle';
 
 export function NivelSlider({
   nivel,
@@ -33,7 +38,9 @@ export function NivelSlider({
   onNivelCommit,
   recommendedHeightText,
   enableInput = false,
-  modeLabel,
+  autoMode,
+  onAutoModeToggle,
+  showModeTourTarget = false,
 }: NivelSliderProps) {
   const [inputDigits, setInputDigits] = useState(() => nivelToInputDigits(nivel));
   const editableNivelRef = useRef<HTMLSpanElement | null>(null);
@@ -106,13 +113,35 @@ export function NivelSlider({
     }
   };
 
-  const nivelTitle = modeLabel ? `Nível do Piloti (${modeLabel})` : 'Nível do Piloti';
   const displayedNivel = enableInput ? formatNivelInputDigits(inputDigits) : formatNivel(nivel);
+  const showModeButton = typeof autoMode === 'boolean' && Boolean(onAutoModeToggle);
+  const modeLabel = autoMode ? 'automático' : 'manual';
 
   return (
     <div className='space-y-4'>
       <div className='text-center'>
-        <p className='text-sm font-medium'>{nivelTitle}</p>
+        <div className='flex items-center justify-center gap-2'>
+          {showModeButton &&
+            <Button
+              type='button'
+              variant='outline'
+              aria-pressed={autoMode}
+              aria-label='Modo automático de altura dos pilotis'
+              title={`Modo ${modeLabel} de altura`}
+              data-guided-tour-id={showModeTourTarget ? NIVEL_MODE_TOUR_TARGET_ID : undefined}
+              onClick={onAutoModeToggle}
+              className={cn(
+                'h-[18px] rounded-full px-1.5 py-0 text-[9px] font-bold uppercase leading-none tracking-normal transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+                autoMode
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-blue-200 hover:bg-primary hover:text-primary-foreground'
+                  : 'border-primary bg-primary-foreground text-primary hover:bg-primary-foreground hover:text-primary',
+              )}
+            >
+              auto
+            </Button>
+          }
+          <p className='text-sm font-medium'>Nível do Piloti</p>
+        </div>
       </div>
 
       <div className='flex items-center justify-center gap-3'>

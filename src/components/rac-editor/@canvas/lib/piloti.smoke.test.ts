@@ -21,6 +21,16 @@ import {
 import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/@canvas/lib/terrain.ts';
 import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 
+type TestCanvasObject = {
+  dirty: boolean;
+  objectCaching: boolean;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeUniform?: boolean;
+  set: ReturnType<typeof vi.fn>;
+  setCoords: ReturnType<typeof vi.fn>;
+} & Record<string, unknown>;
+
 describe('piloti.ts', () => {
   it('clamps nivel respecting min/max', () => {
     expect(clampNivel(0.1, 0.2, 1.5)).toBe(0.2);
@@ -90,7 +100,7 @@ describe('piloti.ts', () => {
   });
 
   it('preserves active top-view piloti border behavior while normalizing neutral strokes', () => {
-    const createObject = (properties: Record<string, unknown>) => ({
+    const createObject = (properties: Record<string, unknown>): TestCanvasObject => ({
       dirty: false,
       objectCaching: true,
       set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {
@@ -139,7 +149,7 @@ describe('piloti.ts', () => {
   });
 
   it('mantém contraventamento de elevação entre terreno e estrutura ao reordenar o grupo', () => {
-    const createObject = (properties: Record<string, unknown>) => ({
+    const createObject = (properties: Record<string, unknown>): TestCanvasObject => ({
       dirty: false,
       objectCaching: true,
       set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {

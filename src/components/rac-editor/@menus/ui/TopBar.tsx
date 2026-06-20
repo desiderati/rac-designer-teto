@@ -20,6 +20,7 @@ interface TopBarProps {
   documentSaveStatus: HouseDocumentSaveStatus;
   documentTransitioning: boolean;
   canExportPDF: boolean;
+  isReadOnly?: boolean;
 }
 
 /**
@@ -44,6 +45,7 @@ export function TopBar({
   documentSaveStatus,
   documentTransitioning,
   canExportPDF,
+  isReadOnly = false,
 }: TopBarProps) {
   const exportPDFTitle = canExportPDF
     ? 'Exportar RAC em PDF'
@@ -58,7 +60,7 @@ export function TopBar({
           constructionGroups={constructionGroups}
           documentTransitioning={documentTransitioning}
         />
-        <FamilyName familyName={familyName} onRename={actions.renameFamily}/>
+        <FamilyName familyName={familyName} onRename={actions.renameFamily} disabled={isReadOnly}/>
       </div>
 
       {/* Center: Zoom indicator + canvas-tool submenu */}
@@ -115,6 +117,7 @@ export function TopBar({
           isMobile={isMobile}
           showTips={showTips}
           onRestartDrawing={actions.restartDrawing}
+          restartDrawingDisabled={isReadOnly}
           onOpen3DViewer={actions.open3DViewer}
           onSavePDF={actions.savePDF}
           canExportPDF={canExportPDF}

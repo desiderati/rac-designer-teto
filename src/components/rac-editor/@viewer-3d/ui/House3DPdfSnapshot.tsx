@@ -1,14 +1,18 @@
 import {Canvas, useThree} from '@react-three/fiber';
-import {OrbitControls} from '@react-three/drei';
-import {forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {HOUSE_3D_WALL_COLORS} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {House3DScene} from '@/components/rac-editor/@viewer-3d/ui/House3DScene.tsx';
-import {House3DDefaultCamera} from '@/components/rac-editor/@viewer-3d/ui/House3DDefaultCamera.tsx';
 import {useHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
-import {HOUSE_3D_CAMERA_TARGET} from '@/components/rac-editor/@viewer-3d/lib/constants.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
+import {House3DViewerCameraRig} from '@/components/rac-editor/@viewer-3d/ui/House3DViewerCameraRig.tsx';
+import {
+  createHouse3DDoorFacingLightingPreset,
+  getHouse3DViewerCameraPoseStorageKey,
+  readHouse3DViewerCameraPose,
+  resolveHouse3DDoorFace,
+} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 
 const SNAPSHOT_WIDTH = 1000;
 const SNAPSHOT_HEIGHT = Math.round(SNAPSHOT_WIDTH * (CANVAS_HEIGHT / CANVAS_WIDTH));
@@ -30,12 +34,17 @@ interface PendingCapture {
   resolve: (dataUrl: string | null) => void;
 }
 
+interface House3DPdfSnapshotProps {
+  activeHouseId: string | null;
+}
+
 interface CaptureBridgeProps {
   requestId: number;
   onCapture: (dataUrl: string | null) => void;
 }
 
-export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle>(function House3DPdfSnapshot(_, ref) {
+export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPdfSnapshotProps>(
+  function House3DPdfSnapshot({activeHouseId}, ref) {
   const {
     houseType,
     canRenderHouse,
@@ -47,6 +56,22 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle>(function 
   } = useHouse3DViewerModel();
   const [captureRequestId, setCaptureRequestId] = useState(0);
   const pendingCaptureRef = useRef<PendingCapture | null>(null);
+  const cameraPoseStorageKey = useMemo(
+    () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
+    [activeHouseId],
+  );
+  const persistedCameraPose = useMemo(
+    () => readHouse3DViewerCameraPose(cameraPoseStorageKey),
+    [cameraPoseStorageKey, captureRequestId],
+  );
+  const doorFace = useMemo(
+    () => resolveHouse3DDoorFace(houseType, tipo6FrontSide, tipo3OpenSide),
+    [houseType, tipo3OpenSide, tipo6FrontSide],
+  );
+  const lightingPreset = useMemo(
+    () => createHouse3DDoorFacingLightingPreset(doorFace),
+    [doorFace],
+  );
 
   const finishCapture = useCallback((dataUrl: string | null) => {
     const pendingCapture = pendingCaptureRef.current;
@@ -97,11 +122,14 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle>(function 
           gl={{preserveDrawingBuffer: true}}
         >
           <color attach='background' args={['#f8fafc']}/>
-          <House3DDefaultCamera/>
+          <House3DViewerCameraRig
+            doorFace={doorFace}
+            persistedPose={persistedCameraPose}
+          />
 
           <ambientLight intensity={0.6}/>
           <directionalLight
-            position={[50, 100, 50]}
+            position={lightingPreset.primaryPosition}
             intensity={0.8}
             castShadow
             shadow-mapSize={[1024, 1024]}
@@ -114,7 +142,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle>(function 
             shadow-camera-top={260}
             shadow-camera-bottom={-260}
           />
-          <directionalLight position={[-50, 50, -50]} intensity={0.3}/>
+          <directionalLight position={lightingPreset.fillPosition} intensity={0.3}/>
 
           <House3DScene
             houseType={houseType}
@@ -126,14 +154,6 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle>(function 
             tipo3OpenSide={tipo3OpenSide}
           />
 
-          <OrbitControls
-            enablePan
-            enableZoom
-            enableRotate
-            minDistance={80}
-            maxDistance={700}
-            target={HOUSE_3D_CAMERA_TARGET}
-          />
           <CaptureBridge requestId={captureRequestId} onCapture={finishCapture}/>
         </Canvas>
       </Suspense>

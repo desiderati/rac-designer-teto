@@ -25,6 +25,7 @@ test.describe('RAC views and limits', () => {
   test('tipo6: bloqueia adicionar visão frontal além do limite', async ({page}) => {
     await createHouse(page, 'tipo6');
 
+    await triggerHouseAction(page, 'Frontal');
     await ensureMainMenuOpen(page);
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
     await page.getByRole('button', {name: 'Frontal'}).click();
@@ -32,19 +33,21 @@ test.describe('RAC views and limits', () => {
     await expect(page.getByText('Limite de Frontal atingido para este tipo de casa.')).toBeVisible();
   });
 
-  test('M4: mantém planta e posição superior da vista inicial (tipo6)', async ({page}) => {
+  test('M4: mantém apenas planta e pré-atribui posição superior da frontal (tipo6)', async ({page}) => {
     await createHouse(page, 'tipo6');
 
     const snapshot = await getHouseSnapshot(page);
 
     expect(snapshot?.views.top.length).toBe(1);
-    expect(snapshot?.views.front.length).toBe(1);
-    expect(snapshot?.sideMappings.top).toBe('front');
+    expect(snapshot?.views.front.length).toBe(0);
+    expect(snapshot?.preAssignedSides.front).toBe('top');
+    expect(snapshot?.sideMappings.top).toBeNull();
   });
 
   test('tipo3: bloqueia adicionar quadrado aberto além do limite', async ({page}) => {
     await createHouse(page, 'tipo3');
 
+    await triggerHouseAction(page, 'Quadrado Aberto');
     await ensureMainMenuOpen(page);
     await page.getByRole('button', {name: 'Casa TETO (Opções)'}).click();
     await page.getByRole('button', {name: 'Quadrado Aberto'}).click();

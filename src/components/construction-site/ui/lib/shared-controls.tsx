@@ -14,8 +14,10 @@ import {
   ArchiveRestore,
   Camera,
   Check,
+  CheckCircle2,
   ChevronDown,
   MapPin,
+  RotateCcw,
   X,
 } from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
@@ -36,16 +38,43 @@ export function StatusActionButton({
   action,
   label,
   onClick,
+  guidedTourId,
+  disabled = false,
 }: {
   action: StatusChangeAction;
   label: string;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
+  guidedTourId?: string;
+  disabled?: boolean;
 }) {
+  if (
+    action === 'markBuilt'
+    || action === 'markDraft'
+    || action === 'markCompleted'
+    || action === 'markInProgress'
+  ) {
+    return (
+      <RoundIconActionButton
+        label={label}
+        tone='neutral'
+        onClick={onClick}
+        guidedTourId={guidedTourId}
+        disabled={disabled}
+      >
+        {action === 'markBuilt' || action === 'markCompleted'
+          ? <CheckCircle2 className='h-4 w-4'/>
+          : <RotateCcw className='h-4 w-4'/>}
+      </RoundIconActionButton>
+    );
+  }
+
   return (
     <RoundIconActionButton
       label={label}
       tone={action === 'unarchive' ? 'unarchive' : 'archive'}
       onClick={onClick}
+      guidedTourId={guidedTourId}
+      disabled={disabled}
     >
       {action === 'unarchive' ? <ArchiveRestore className='h-4 w-4'/> : <Archive className='h-4 w-4'/>}
     </RoundIconActionButton>
@@ -57,23 +86,30 @@ export function RoundIconActionButton({
   onClick,
   children,
   tone = 'neutral',
+  guidedTourId,
+  disabled = false,
 }: {
   label: string;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
   children: ReactNode;
   tone?: 'neutral' | 'archive' | 'unarchive';
+  guidedTourId?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
       type='button'
       aria-label={label}
       title={label}
-      onClick={onClick}
+      data-guided-tour-id={guidedTourId}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={cn(
         'grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full text-slate-400 transition-colors focus:outline-none focus:ring-2',
+        disabled ? 'cursor-not-allowed opacity-45' : null,
         tone === 'archive' ? 'hover:bg-red-50 hover:text-red-600 focus:ring-red-100' : null,
-        tone === 'unarchive' ? 'hover:bg-blue-50 hover:text-blue-600 focus:ring-blue-100' : null,
-        tone === 'neutral' ? 'hover:bg-blue-50 hover:text-blue-600 focus:ring-blue-100' : null,
+        tone === 'unarchive' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
+        tone === 'neutral' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
       )}
     >
       {children}
@@ -89,6 +125,7 @@ export function PhotoUploadField({
   className,
   dropZoneClassName,
   loadedDropZoneClassName,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -97,6 +134,7 @@ export function PhotoUploadField({
   className?: string;
   dropZoneClassName?: string;
   loadedDropZoneClassName?: string;
+  disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
@@ -133,10 +171,12 @@ export function PhotoUploadField({
   };
 
   const openFilePicker = () => {
+    if (disabled) return;
     inputRef.current?.click();
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     const file = event.target.files?.[0];
     if (!file) return;
     void updatePhoto(file);
@@ -145,6 +185,7 @@ export function PhotoUploadField({
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    if (disabled) return;
     const file = event.dataTransfer.files?.[0];
     if (!file) return;
     void updatePhoto(file);
@@ -153,12 +194,14 @@ export function PhotoUploadField({
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
+    if (disabled) return;
     openFilePicker();
   };
 
   const clearPhoto = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if (disabled) return;
     setUploadError(null);
     onChange('');
   };
@@ -168,8 +211,9 @@ export function PhotoUploadField({
       <span className='block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>{label}</span>
       <div
         role='button'
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
         aria-label={label}
+        aria-disabled={disabled}
         data-photo-orientation={photoOrientation}
         onClick={openFilePicker}
         onKeyDown={handleKeyDown}
@@ -177,6 +221,7 @@ export function PhotoUploadField({
         onDrop={handleDrop}
         className={cn(
           'relative flex h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-blue-200 bg-blue-50/80 px-3 py-4 text-center text-sm font-medium text-slate-600 transition-colors hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-200',
+          disabled ? 'cursor-not-allowed opacity-60 hover:border-blue-200 hover:bg-blue-50/80 focus:ring-0' : null,
           uploadError ? 'border-red-300 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 focus:ring-red-100' : null,
           dropZoneClassName,
           value ? cn('p-0', loadedDropZoneClassName) : null,
@@ -196,6 +241,7 @@ export function PhotoUploadField({
               type='button'
               aria-label={`Remover ${label}`}
               onClick={clearPhoto}
+              disabled={disabled}
               className='absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/75 text-slate-700/90 shadow-sm backdrop-blur-sm transition-colors hover:bg-white/90 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-blue-200'
             >
               <X className='h-4 w-4'/>
@@ -218,6 +264,7 @@ export function PhotoUploadField({
           className='sr-only'
           onClick={(event) => event.stopPropagation()}
           onChange={handleChange}
+          disabled={disabled}
         />
       </div>
       {uploadError ? (
@@ -234,6 +281,7 @@ export function RadioField({
   value,
   checked,
   onChange,
+  disabled = false,
 }: {
   icon: ReactNode;
   label: string;
@@ -241,12 +289,14 @@ export function RadioField({
   value: string;
   checked: boolean;
   onChange(value: string): void;
+  disabled?: boolean;
 }) {
   return (
     <label
       className={cn(
         'relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border px-4 text-sm font-semibold transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-200',
         checked ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-transparent bg-slate-50 text-slate-950 hover:bg-slate-100',
+        disabled ? 'cursor-not-allowed opacity-60 hover:bg-slate-50' : null,
       )}
     >
       <input
@@ -256,7 +306,8 @@ export function RadioField({
         value={value}
         checked={checked}
         onChange={(event) => onChange(event.target.value)}
-        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0'
+        disabled={disabled}
+        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
       />
       <span className={cn('shrink-0', checked ? 'text-blue-600' : 'text-slate-500')}>{icon}</span>
       <span className='min-w-0 flex-1'>{label}</span>
@@ -501,6 +552,7 @@ export function TextField({
   pattern,
   inputMode,
   error,
+  disabled = false,
 }: {
   label: string;
   type?: string;
@@ -514,6 +566,7 @@ export function TextField({
   pattern?: string;
   inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   error?: string;
+  disabled?: boolean;
 }) {
   const inputId = `text-field-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`;
   const errorId = `${inputId}-error`;
@@ -533,6 +586,7 @@ export function TextField({
           inputMode={inputMode}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? errorId : undefined}
+          disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           onBlur={onBlur}
           onKeyDown={onKeyDown}
@@ -555,6 +609,7 @@ export function VisualSelect<T extends string>({
   options,
   onChange,
   className,
+  disabled = false,
 }: {
   label: string;
   ariaLabel: string;
@@ -562,6 +617,7 @@ export function VisualSelect<T extends string>({
   options: VisualSelectOption<T>[];
   onChange(value: T): void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <div className={cn(
@@ -574,6 +630,7 @@ export function VisualSelect<T extends string>({
         value={value}
         options={options}
         onChange={onChange}
+        disabled={disabled}
         triggerClassName='min-h-7 min-w-0 flex-1 bg-transparent px-0 py-0 text-xs font-semibold text-slate-700'
       />
     </div>
@@ -587,6 +644,7 @@ export function VisualSelectField<T extends string>({
   options,
   onChange,
   error,
+  disabled = false,
 }: {
   label: string;
   ariaLabel: string;
@@ -594,6 +652,7 @@ export function VisualSelectField<T extends string>({
   options: VisualSelectOption<T>[];
   onChange(value: T): void;
   error?: string;
+  disabled?: boolean;
 }) {
   const errorId = `${ariaLabel.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}-error`;
 
@@ -605,6 +664,7 @@ export function VisualSelectField<T extends string>({
         value={value}
         options={options}
         onChange={onChange}
+        disabled={disabled}
         triggerClassName={cn(inputClassName, 'justify-between text-left')}
         ariaInvalid={Boolean(error)}
         ariaDescribedBy={error ? errorId : undefined}
@@ -626,6 +686,7 @@ export function VisualSelectMenu<T extends string>({
   triggerClassName,
   ariaInvalid,
   ariaDescribedBy,
+  disabled = false,
 }: {
   ariaLabel: string;
   value: T;
@@ -634,25 +695,31 @@ export function VisualSelectMenu<T extends string>({
   triggerClassName: string;
   ariaInvalid?: boolean;
   ariaDescribedBy?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
 
   const selectOption = (nextValue: T) => {
+    if (disabled) return;
     onChange(nextValue);
     setOpen(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={disabled ? false : open} onOpenChange={(nextOpen) => {
+      if (!disabled) setOpen(nextOpen);
+    }}>
       <PopoverTrigger asChild>
         <button
           type='button'
           aria-label={ariaLabel}
           aria-invalid={ariaInvalid ? 'true' : undefined}
           aria-describedby={ariaDescribedBy}
+          disabled={disabled}
           className={cn(
             'inline-flex cursor-pointer items-center gap-2 rounded-lg outline-none transition-colors focus:ring-2 focus:ring-blue-100',
+            disabled ? 'cursor-not-allowed opacity-60 focus:ring-0' : null,
             triggerClassName,
           )}
         >
@@ -702,6 +769,7 @@ export function TextArea({
   onBlur,
   maxLength,
   error,
+  disabled = false,
 }: {
   label: string;
   placeholder?: string;
@@ -710,6 +778,7 @@ export function TextArea({
   onBlur?: () => void;
   maxLength?: number;
   error?: string;
+  disabled?: boolean;
 }) {
   const inputId = `textarea-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`;
   const errorId = `${inputId}-error`;
@@ -726,6 +795,7 @@ export function TextArea({
         maxLength={maxLength}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? errorId : undefined}
+        disabled={disabled}
         rows={4}
         className={cn(inputClassName, 'resize-y py-3')}
       />
@@ -743,20 +813,28 @@ export function CheckboxField({
   description,
   checked,
   onChange,
+  disabled = false,
 }: {
   label: string;
   description: string;
   checked: boolean;
   onChange(value: boolean): void;
+  disabled?: boolean;
 }) {
   return (
-    <label className='relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-slate-50 px-4 text-sm transition-colors hover:bg-slate-100 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-200'>
+    <label
+      className={cn(
+        'relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border border-transparent bg-slate-50 px-4 text-sm transition-colors hover:bg-slate-100 focus-within:ring-2 focus-within:ring-inset focus-within:ring-blue-200',
+        disabled ? 'cursor-not-allowed opacity-60 hover:bg-slate-50' : null,
+      )}
+    >
       <input
         type='checkbox'
         aria-label={label}
         checked={checked}
         onChange={(event) => onChange(event.target.checked)}
-        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0'
+        disabled={disabled}
+        className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
       />
       <span
         aria-hidden='true'
@@ -775,7 +853,7 @@ export function CheckboxField({
   );
 }
 
-export const inputClassName = 'min-h-10 rounded-lg border border-transparent bg-blue-50/80 px-3 text-sm font-medium normal-case tracking-normal text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100';
+export const inputClassName = 'min-h-10 rounded-lg border border-transparent bg-blue-50/80 px-3 text-sm font-medium normal-case tracking-normal text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-70 disabled:focus:border-transparent disabled:focus:ring-0';
 
 export function PrimaryButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button {...props} className={cn(buttonClassName, 'bg-blue-600 text-white shadow-sm shadow-blue-200 hover:bg-blue-700', props.className)}/>;

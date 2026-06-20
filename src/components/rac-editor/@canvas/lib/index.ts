@@ -1,6 +1,7 @@
 export * from './canvas.ts';
 export * from './piloti-selection.ts';
 export * from './house-group-candidates.ts';
+export * from './house-top-slope-indicator.ts';
 export * from './canvas-screen-position.ts';
 export * from './contraventamento.ts';
 export * from './factory/elements';

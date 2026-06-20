@@ -2,6 +2,7 @@ interface HeightButtonClassesParams {
   height: number;
   clickedHeight: number | null;
   tempHeight: number;
+  compact?: boolean;
 }
 
 /**
@@ -11,11 +12,13 @@ export function getPilotiHeightButtonClasses({
   height,
   clickedHeight,
   tempHeight,
+  compact = false,
 }: HeightButtonClassesParams): string {
   const isSelected = clickedHeight === height || (clickedHeight === null && tempHeight === height);
+  const sizeClasses = compact ? 'h-12 w-12 rounded-lg text-base' : 'h-16 w-16 rounded-2xl text-lg';
   return isSelected
-    ? 'h-16 w-16 rounded-2xl border border-primary bg-primary text-primary-foreground text-lg font-semibold flex items-center justify-center shadow-sm'
-    : 'h-16 w-16 rounded-2xl border border-transparent bg-primary/10 text-foreground text-lg font-semibold flex items-center justify-center hover:bg-primary/20';
+    ? `${sizeClasses} border border-primary bg-primary text-primary-foreground font-semibold flex items-center justify-center shadow-sm`
+    : `${sizeClasses} border border-transparent bg-primary/10 text-foreground font-semibold flex items-center justify-center hover:bg-primary/20`;
 }
 
 /**

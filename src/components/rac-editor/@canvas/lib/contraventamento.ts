@@ -31,6 +31,7 @@ import {
   PILOTI_BASE_HEIGHT_PX
 } from '@/shared/constants';
 import {resolveHouseElevationAxisContext} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
+import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 
 const CONTRAVENTAMENTO_S = HOUSE_DEFAULTS.viewScale;
 const CONTRAVENTAMENTO_RADIUS = HOUSE_DIMENSIONS.piloti.radius * CONTRAVENTAMENTO_S;
@@ -379,12 +380,22 @@ export function syncContraventamentoElevationViews(
   const getRectBaseHeight =
     (rect: CanvasObject): number => Number(rect?.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX * CONTRAVENTAMENTO_S);
 
+  const getProjectionPilotiNivel =
+    (pilotiId: string, rect: CanvasObject): number => {
+      const visualNivel = Number(rect?.pilotiNivel);
+      if (Number.isFinite(visualNivel) && visualNivel > 0) {
+        return visualNivel;
+      }
+
+      const fallbackNivel = Number(getPilotiNivel(pilotiId) ?? 0);
+      return Number.isFinite(fallbackNivel) ? fallbackNivel : 0;
+    };
+
   // Origem: deslocamento dinâmico acima do terreno local do piloti de origem.
   const getOriginY =
-    (rect: CanvasObject, originPilotiId: string, offsetFromGround: number): number => {
+    (rect: CanvasObject, originNivel: number, offsetFromGround: number): number => {
       const top = getRectTop(rect);
       const base = getRectBaseHeight(rect);
-      const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
       return top + (originNivel - offsetFromGround) * base;
     };
 
@@ -465,15 +476,26 @@ export function syncContraventamentoElevationViews(
   };
 
   let hasChanges = false;
+  const groupsNeedingRefresh = new Set<CanvasGroup>();
+
+  const markGroupChanged = (group: CanvasGroup): void => {
+    hasChanges = true;
+    groupsNeedingRefresh.add(group);
+  };
+
+  const refreshChangedElevationGroups = (): void => {
+    groupsNeedingRefresh.forEach(group => refreshHouseGroupRendering(group));
+    targetGroups[0]?.canvas?.requestRenderAll();
+  };
 
   targetGroups.forEach((group) => {
     if (removeContraventamentoFromElevationViews(group) > 0) {
-      hasChanges = true;
+      markGroupChanged(group);
     }
   });
 
   if (!topGroup) {
-    targetGroups[0]?.canvas?.requestRenderAll();
+    refreshChangedElevationGroups();
     return hasChanges;
   }
 
@@ -482,7 +504,7 @@ export function syncContraventamentoElevationViews(
     .map(obj => ({obj, ...getContraventamentoCanvasObject(obj)}));
 
   if (contraventamentos.length === 0) {
-    targetGroups[0]?.canvas?.requestRenderAll();
+    refreshChangedElevationGroups();
     return hasChanges;
   }
 
@@ -526,8 +548,8 @@ export function syncContraventamentoElevationViews(
         const targetRect = rectByPilotiId.get(targetPilotiId);
         if (!originRect || !targetRect) continue;
 
-        const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
-        const targetNivel = Number(getPilotiNivel(targetPilotiId) ?? 0);
+        const originNivel = getProjectionPilotiNivel(originPilotiId, originRect);
+        const targetNivel = getProjectionPilotiNivel(targetPilotiId, targetRect);
 
         const offsetOrigin = resolveContraventamentoOffsetFromNivel(originNivel, true);
         const offsetTarget = resolveContraventamentoOffsetFromNivel(targetNivel, false);
@@ -535,13 +557,13 @@ export function syncContraventamentoElevationViews(
           contraventamentoId: contrav.id,
           sourcePilotiId: originPilotiId,
           x1: getRectCenterX(originRect),
-          y1: getOriginY(originRect, originPilotiId, offsetOrigin),
+          y1: getOriginY(originRect, originNivel, offsetOrigin),
           x2: getRectCenterX(targetRect),
           y2: getDestinationY(targetRect, offsetTarget),
           behind: true,
           strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
         });
-        if (changed) hasChanges = true;
+        if (changed) markGroupChanged(group);
         continue;
       }
 
@@ -568,8 +590,8 @@ export function syncContraventamentoElevationViews(
       const targetRect = rectByPilotiId.get(targetPilotiId);
       if (!originRect || !targetRect) continue;
 
-      const originNivel = Number(getPilotiNivel(originPilotiId) ?? 0);
-      const targetNivel = Number(getPilotiNivel(targetPilotiId) ?? 0);
+      const originNivel = getProjectionPilotiNivel(originPilotiId, originRect);
+      const targetNivel = getProjectionPilotiNivel(targetPilotiId, targetRect);
 
       const offsetOrigin = resolveContraventamentoOffsetFromNivel(originNivel, true);
       const offsetTarget = resolveContraventamentoOffsetFromNivel(targetNivel, false);
@@ -577,19 +599,16 @@ export function syncContraventamentoElevationViews(
         contraventamentoId: contrav.id,
         sourcePilotiId: originPilotiId,
         x1: getRectCenterX(originRect),
-        y1: getOriginY(originRect, originPilotiId, offsetOrigin),
+        y1: getOriginY(originRect, originNivel, offsetOrigin),
         x2: getRectCenterX(targetRect),
         y2: getDestinationY(targetRect, offsetTarget),
         behind: true,
         strokeWidth: CONTRAVENTAMENTO_ELEVATION_WIDTH,
       });
-      if (changed) hasChanges = true;
+      if (changed) markGroupChanged(group);
     }
-
-    group.dirty = true;
-    group.setCoords();
   }
 
-  topGroup.canvas?.requestRenderAll();
+  refreshChangedElevationGroups();
   return hasChanges;
 }

@@ -36,6 +36,14 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
     settingsPort.updateSetting('zoomEnabledByDefault', tempSettings.zoomEnabledByDefault);
     settingsPort.updateSetting('openEditorsAtFixedPosition', tempSettings.openEditorsAtFixedPosition);
     settingsPort.updateSetting('disableDrawModeAfterFreehand', tempSettings.disableDrawModeAfterFreehand);
+    settingsPort.updateSetting(
+      'configureCornerPilotiNiveisOnHouseInsert',
+      tempSettings.configureCornerPilotiNiveisOnHouseInsert,
+    );
+    settingsPort.updateSetting(
+      'allowPilotiHeightDefinitionOnHouseInsert',
+      tempSettings.allowPilotiHeightDefinitionOnHouseInsert,
+    );
     settingsPort.updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
     settingsPort.updateSetting('showPilotiLabelsOnTopView', tempSettings.showPilotiLabelsOnTopView);
     onSettingsChange?.();
@@ -104,8 +112,28 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
       </div>
 
       <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='configure-corner-piloti-niveis' className='text-sm leading-snug cursor-pointer flex-1'>
+          Configurar o nível dos pilotis dos cantos ao inserir uma casa
+        </Label>
+        <Switch
+          id='configure-corner-piloti-niveis'
+          checked={tempSettings.configureCornerPilotiNiveisOnHouseInsert}
+          onCheckedChange={(v) => handleToggle('configureCornerPilotiNiveisOnHouseInsert', v)}/>
+      </div>
+
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='allow-piloti-height-definition' className='text-sm leading-snug cursor-pointer flex-1'>
+          Permitir a definição das alturas dos pilotis ao inserir uma casa
+        </Label>
+        <Switch
+          id='allow-piloti-height-definition'
+          checked={tempSettings.allowPilotiHeightDefinitionOnHouseInsert}
+          onCheckedChange={(v) => handleToggle('allowPilotiHeightDefinitionOnHouseInsert', v)}/>
+      </div>
+
+      <div className='flex items-start justify-between gap-4'>
         <Label htmlFor='show-stairs-top-view' className='text-sm leading-snug cursor-pointer flex-1'>
-          Mostrar escada na vista superior (planta)
+          Mostrar escada na vista planta
         </Label>
         <Switch
           id='show-stairs-top-view'

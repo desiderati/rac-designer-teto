@@ -62,6 +62,38 @@ export async function seedConstructionSiteDocument(
   }, createSeedDocument(options));
 }
 
+export async function readConstructionSiteDocument(page: Page): Promise<ReturnType<typeof createSeedDocument> | null> {
+  return page.evaluate(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open('rac-designer-teto', 2);
+    request.onerror = () => reject(request.error ?? new Error('Falha ao abrir IndexedDB.'));
+    request.onupgradeneeded = () => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains('construction-site-documents')) {
+        database.createObjectStore('construction-site-documents');
+      }
+    };
+    request.onsuccess = () => {
+      const database = request.result;
+      const transaction = database.transaction('construction-site-documents', 'readonly');
+      transaction.onerror = () => {
+        database.close();
+        reject(transaction.error ?? new Error('Falha ao ler IndexedDB.'));
+      };
+      const getRequest = transaction
+        .objectStore('construction-site-documents')
+        .get('construction-sites');
+      getRequest.onerror = () => {
+        database.close();
+        reject(getRequest.error ?? new Error('Falha ao ler documento de construções.'));
+      };
+      getRequest.onsuccess = () => {
+        database.close();
+        resolve(getRequest.result ?? null);
+      };
+    };
+  }));
+}
+
 function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
   const now = '2026-05-11T12:00:00.000Z';
   const houseType = options.houseType === undefined ? 'tipo6' : options.houseType;

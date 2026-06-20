@@ -32,7 +32,10 @@ export type MonitorStatusFilter = 'all' | MonitorStatus;
 export type MonitorSortKey = 'updatedAt' | 'name' | 'status';
 export type HouseStatusFilter = 'all' | PersistedHouseStatus;
 export type HouseSortKey = 'updatedAt' | 'familyName' | 'status' | 'houseType';
-export type StatusChangeAction = 'archive' | 'unarchive';
+export type ArchiveStatusChangeAction = 'archive' | 'unarchive';
+export type HouseStatusChangeAction = ArchiveStatusChangeAction | 'markBuilt' | 'markDraft';
+export type ConstructionStatusChangeAction = ArchiveStatusChangeAction | 'markCompleted' | 'markInProgress';
+export type StatusChangeAction = HouseStatusChangeAction | ConstructionStatusChangeAction;
 
 export type VisualSelectOption<T extends string> = {
   value: T;
@@ -47,6 +50,8 @@ export interface ConstructionSiteManagementActions {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): Promise<void>;
   unarchiveConstructionSite(constructionSiteId: string): Promise<void>;
+  markConstructionSiteCompleted(constructionSiteId: string): Promise<void>;
+  markConstructionSiteInProgress(constructionSiteId: string): Promise<void>;
   activateConstructionSite(constructionSiteId: string): Promise<void>;
   createMonitor(input: CreateMonitorInput): void;
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
@@ -57,6 +62,8 @@ export interface ConstructionSiteManagementActions {
   archiveActiveHouse(): Promise<void>;
   archiveHouse(houseId: string): Promise<void>;
   unarchiveHouse(houseId: string): Promise<void>;
+  markHouseBuilt(houseId: string): Promise<void>;
+  markHouseDraft(houseId: string): Promise<void>;
   activateHouse(constructionSiteId: string, houseId: string): Promise<void>;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): Promise<void>;

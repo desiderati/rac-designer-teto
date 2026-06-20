@@ -21,7 +21,7 @@ export type PilotiCode =
   | 'b1' | 'b2' | 'b3' | 'b4'
   | 'c1' | 'c2' | 'c3' | 'c4';
 
-export type SoilProfile = 'stable' | 'loose_clay' | 'water_table';
+export type SoilProfile = 'stable_clay' | 'firm_hard' | 'alluvial' | 'water_table';
 
 export type TerrainComplexity = 'flat' | 'moderate' | 'steep' | 'very_steep' | 'extreme';
 
@@ -58,9 +58,10 @@ export interface MonitorRecord {
 
 export interface SiteAssessment {
   soilProfile?: SoilProfile;
+  hasHydraulicObstacles?: boolean;
   hasUndergroundObstacles?: boolean;
   hasElevatedObstacles?: boolean;
-  hasNeighborSetbacks?: boolean;
+  hasNeighborSetbackConstraints?: boolean;
   locationQuery?: string;
 }
 

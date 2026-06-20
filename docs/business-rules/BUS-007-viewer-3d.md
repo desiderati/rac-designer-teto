@@ -32,7 +32,8 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
     - Viewer mostra estado vazio e orienta criação inicial.
 
 2. Sem vista de casa inserida
-    - Viewer mostra estado vazio mesmo quando o tipo de casa já foi escolhido, pois ainda não existe casa representada no canvas.
+    - Viewer mostra estado vazio mesmo quando o tipo de casa já foi escolhido, pois ainda não existe casa representada
+      no canvas.
 
 3. Ordem visual
     - Terreno, estrutura da casa, pilotis, contraventamentos, escadas e aberturas.
@@ -56,16 +57,23 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 
 ## Regras de interação no modal
 
-1. Reset de câmera deve retornar para enquadramento padrão.
-2. Tela cheia deve funcionar sem perder controles principais.
-3. Troca de cor de parede deve ser imediata.
-4. Opção de ocultar elementos abaixo do terreno deve ser clara e reversível.
+1. Primeira abertura da casa no viewer deve iniciar com a câmera voltada para a face onde está a porta.
+2. A iluminação principal do viewer deve ser orientada para a face onde está a porta.
+3. Ao fechar e reabrir o viewer da mesma casa, a última pose da câmera deve ser restaurada, incluindo rotação, pan e
+   zoom.
+4. Reset de câmera deve retornar para o enquadramento padrão voltado para a porta e descartar a pose salva da casa.
+5. Tela cheia deve funcionar sem perder controles principais.
+6. Troca de cor de parede deve ser imediata.
+7. Opção de ocultar elementos abaixo do terreno deve ser clara e reversível.
 
 ## Regras de snapshot para 2D
 
 1. Captura do 3D deve gerar imagem válida.
 2. Inserção no canvas 2D deve ocorrer sem quebrar o estado do projeto.
-3. Em falha, usuário deve receber mensagem clara.
+3. O PDF deve usar a última pose salva do viewer 3D da casa ativa para capturar a imagem 3D.
+4. Se não houver pose salva, o PDF deve usar o enquadramento inicial voltado para a porta.
+5. A iluminação do snapshot do PDF deve seguir a mesma orientação por porta usada no viewer.
+6. Em falha, usuário deve receber mensagem clara.
 
 ## Regras de consistência geral
 

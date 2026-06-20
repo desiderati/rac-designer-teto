@@ -51,6 +51,12 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 9. `BUS-009-materiais-terreno.md`
     - Regra de materiais de base do terreno e definição de pedras como rachão + brita.
 
+10. `BUS-010-status-casa.md`
+    - Regra de status da casa, impressão do RAC, bloqueio de casa construída e retorno para rascunho.
+
+11. `BUS-011-status-construcao.md`
+    - Regra de status da Construção TETO e bloqueio de edição quando a construção está arquivada.
+
 ## Quando atualizar
 
 Atualize estes documentos quando houver mudança em:

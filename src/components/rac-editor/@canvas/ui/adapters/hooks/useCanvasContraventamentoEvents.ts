@@ -1,7 +1,7 @@
 import {useCallback} from 'react';
 import {Canvas as FabricCanvas, util as fabricUtil} from 'fabric';
 import {CanvasObject, CanvasPointerPayload, isCanvasGroup, toCanvasGroup} from '@/components/rac-editor/@canvas/lib';
-import {TIMINGS, VIEWPORT} from '@/shared/config.ts';
+import {INTERACTION_THRESHOLDS, TIMINGS, VIEWPORT} from '@/shared/config.ts';
 
 interface useCanvasContraventamentoEventsArgs {
   canvas: FabricCanvas;
@@ -128,36 +128,74 @@ export function useCanvasContraventamentoEvents() {
       setCanvasCursor(eligible ? 'pointer' : 'default');
     };
 
-    const handleMobilePilotiTap = (event: unknown) => {
+    let mobilePilotiLongPressTimeout: number | null = null;
+    let mobilePilotiLongPressStartPoint: { x: number; y: number } | null = null;
+
+    const clearMobilePilotiLongPress = () => {
+      if (mobilePilotiLongPressTimeout !== null) {
+        window.clearTimeout(mobilePilotiLongPressTimeout);
+      }
+      mobilePilotiLongPressTimeout = null;
+      mobilePilotiLongPressStartPoint = null;
+    };
+
+    const handleMobilePilotiLongPressStart = (event: unknown) => {
       const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
-      if (!isMobileDevice || isAnyEditorOpen()) return;
+      if (!isMobileDevice || isAnyEditorOpen() || isContraventamentoMode()) return;
 
       const payload = getEventPayload(event);
       const target = payload.target ?? null;
       const subTargets = payload.subTargets ?? [];
       const pilotiTarget = subTargets.find((subTarget) =>
-        subTarget.myType === 'piloti' || subTarget.myType === 'pilotiHitArea'
+        subTarget?.myType === 'piloti'
+        || subTarget?.myType === 'pilotiHitArea'
+        || subTarget?.isPilotiCircle
+        || subTarget?.isPilotiHitArea
       );
+      if (!pilotiTarget || !target || !payload.e) return;
 
-      if (pilotiTarget && target) {
-        setTimeout(() => {
-          handlePilotiSelection(pilotiTarget, target);
-        }, TIMINGS.mobilePilotiTapDelayMs);
-      }
+      clearMobilePilotiLongPress();
+      mobilePilotiLongPressStartPoint = canvas.getPointer(payload.e);
+      mobilePilotiLongPressTimeout = window.setTimeout(() => {
+        clearMobilePilotiLongPress();
+        handlePilotiSelection(pilotiTarget, target);
+      }, TIMINGS.mobileLongPressDelayMs);
     };
 
-    const handleMouseOut = () => setCanvasCursor('default');
+    const handleMobilePilotiLongPressMove = (event: unknown) => {
+      if (mobilePilotiLongPressTimeout === null || !mobilePilotiLongPressStartPoint) return;
+
+      const payload = getEventPayload(event);
+      if (!payload.e) return;
+
+      const pointer = canvas.getPointer(payload.e);
+      const movement = Math.hypot(
+        pointer.x - mobilePilotiLongPressStartPoint.x,
+        pointer.y - mobilePilotiLongPressStartPoint.y,
+      );
+      if (movement > INTERACTION_THRESHOLDS.mobilePanActivation) clearMobilePilotiLongPress();
+    };
+
+    const handleMouseOut = () => {
+      setCanvasCursor('default');
+      clearMobilePilotiLongPress();
+    };
 
     canvas.on('mouse:down', handleContraventamentoPilotiClick);
     canvas.on('mouse:move', handleContraventamentoCursor);
+    canvas.on('mouse:down', handleMobilePilotiLongPressStart);
+    canvas.on('mouse:move', handleMobilePilotiLongPressMove);
+    canvas.on('mouse:up', clearMobilePilotiLongPress);
     canvas.on('mouse:out', handleMouseOut);
-    canvas.on('mouse:down', handleMobilePilotiTap);
 
     return () => {
+      clearMobilePilotiLongPress();
       canvas.off('mouse:down', handleContraventamentoPilotiClick);
       canvas.off('mouse:move', handleContraventamentoCursor);
+      canvas.off('mouse:down', handleMobilePilotiLongPressStart);
+      canvas.off('mouse:move', handleMobilePilotiLongPressMove);
+      canvas.off('mouse:up', clearMobilePilotiLongPress);
       canvas.off('mouse:out', handleMouseOut);
-      canvas.off('mouse:down', handleMobilePilotiTap);
     };
   }, []);
 

@@ -37,10 +37,12 @@ export function MonitorsScreen({
   constructionSite,
   onEditMonitor,
   onRequestMonitorStatusChange,
+  readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   onEditMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const [statusFilter, setStatusFilter] = useState<MonitorStatusFilter>('active');
   const [sortKey, setSortKey] = useState<MonitorSortKey>('name');
@@ -136,6 +138,7 @@ export function MonitorsScreen({
               monitor={monitor}
               onOpenMonitor={onEditMonitor}
               onRequestMonitorStatusChange={onRequestMonitorStatusChange}
+              readOnly={readOnly}
             />
           ))}
           </tbody>
@@ -149,6 +152,7 @@ export function MonitorsScreen({
             monitor={monitor}
             onOpenMonitor={onEditMonitor}
             onRequestMonitorStatusChange={onRequestMonitorStatusChange}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -180,13 +184,19 @@ function MonitorMobileCard({
   monitor,
   onOpenMonitor,
   onRequestMonitorStatusChange,
+  readOnly = false,
 }: {
   monitor: MonitorRecord;
   onOpenMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const statusLabel = MONITOR_STATUS_LABELS[monitor.status];
-  const openMonitor = () => onOpenMonitor(monitor.id);
+  const isInactive = monitor.status === 'inactive';
+  const openMonitor = () => {
+    if (isInactive) return;
+    onOpenMonitor(monitor.id);
+  };
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestMonitorStatusChange(monitor.id, monitor.status === 'inactive' ? 'unarchive' : 'archive');
@@ -195,18 +205,18 @@ function MonitorMobileCard({
   return (
     <article
       data-testid='monitor-mobile-card'
-      role='button'
-      tabIndex={0}
-      aria-label={`Abrir monitor ${monitor.name} ${statusLabel}`}
-      onClick={openMonitor}
-      onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        openMonitor();
-      }}
+      role={isInactive ? undefined : 'button'}
+      tabIndex={isInactive ? undefined : 0}
+      aria-label={isInactive ? undefined : `Abrir monitor ${monitor.name} ${statusLabel}`}
+      onClick={isInactive ? undefined : openMonitor}
+      onKeyDown={isInactive ? undefined : (event: KeyboardEvent<HTMLElement>) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openMonitor();
+        }}
       className={cn(
-        'cursor-pointer rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 hover:bg-slate-100',
-        monitor.status === 'inactive' ? 'opacity-55 grayscale' : null,
+        'rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        isInactive ? 'cursor-default opacity-55 grayscale' : 'cursor-pointer hover:bg-slate-100',
       )}
     >
       <div className='flex items-start gap-3'>
@@ -232,6 +242,7 @@ function MonitorMobileCard({
           action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
           label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
           onClick={requestStatusChange}
+          disabled={readOnly}
         />
       </div>
     </article>
@@ -242,13 +253,19 @@ function MonitorTableRow({
   monitor,
   onOpenMonitor,
   onRequestMonitorStatusChange,
+  readOnly = false,
 }: {
   monitor: MonitorRecord;
   onOpenMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const statusLabel = MONITOR_STATUS_LABELS[monitor.status];
-  const openMonitor = () => onOpenMonitor(monitor.id);
+  const isInactive = monitor.status === 'inactive';
+  const openMonitor = () => {
+    if (isInactive) return;
+    onOpenMonitor(monitor.id);
+  };
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestMonitorStatusChange(monitor.id, monitor.status === 'inactive' ? 'unarchive' : 'archive');
@@ -256,17 +273,17 @@ function MonitorTableRow({
 
   return (
     <tr
-      tabIndex={0}
+      tabIndex={isInactive ? undefined : 0}
       aria-label={`${monitor.name} ${statusLabel} ${monitor.phone} ${monitor.email ?? ''}`}
-      onClick={openMonitor}
-      onKeyDown={(event: KeyboardEvent<HTMLTableRowElement>) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        openMonitor();
-      }}
+      onClick={isInactive ? undefined : openMonitor}
+      onKeyDown={isInactive ? undefined : (event: KeyboardEvent<HTMLTableRowElement>) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openMonitor();
+        }}
       className={cn(
-        'cursor-pointer rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200 hover:bg-slate-50',
-        monitor.status === 'inactive' ? 'opacity-55' : null,
+        'rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        isInactive ? 'cursor-default opacity-55' : 'cursor-pointer hover:bg-slate-50',
       )}
     >
       <td className='max-w-0 rounded-l-lg px-3 py-3'>
@@ -302,6 +319,7 @@ function MonitorTableRow({
             action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
             label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
             onClick={requestStatusChange}
+            disabled={readOnly}
           />
         </span>
       </td>

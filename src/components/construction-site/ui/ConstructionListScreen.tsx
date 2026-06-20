@@ -59,6 +59,7 @@ export function ConstructionListScreen({
   const firstIndex = filteredSummaries.length ? (normalizedPage - 1) * CONSTRUCTIONS_PER_PAGE : 0;
   const lastIndex = Math.min(firstIndex + CONSTRUCTIONS_PER_PAGE, filteredSummaries.length);
   const pageSummaries = filteredSummaries.slice(firstIndex, lastIndex);
+  const guidedTourConstructionId = pageSummaries.find((summary) => summary.status !== 'archived')?.id ?? null;
 
   useEffect(() => {
     setPage(1);
@@ -126,7 +127,7 @@ export function ConstructionListScreen({
             <th scope='col' className='px-3 pb-1'>Construções</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Data da Construção</th>
-            <th scope='col' className='w-[7.75rem] px-3 pb-1 text-center'>
+            <th scope='col' className='w-[10.75rem] px-3 pb-1 text-center'>
               <span className='sr-only'>Ações</span>
             </th>
           </tr>
@@ -137,6 +138,7 @@ export function ConstructionListScreen({
               key={summary.id}
               summary={summary}
               active={summary.id === activeConstructionId}
+              showGuidedTourTargets={summary.id === guidedTourConstructionId}
               onOpenConstruction={onOpenConstruction}
               onOpenConstructionHouses={onOpenConstructionHouses}
               onOpenConstructionMonitors={onOpenConstructionMonitors}
@@ -153,6 +155,7 @@ export function ConstructionListScreen({
             key={summary.id}
             summary={summary}
             active={summary.id === activeConstructionId}
+            showGuidedTourTargets={summary.id === guidedTourConstructionId}
             onOpenConstruction={onOpenConstruction}
             onOpenConstructionHouses={onOpenConstructionHouses}
             onOpenConstructionMonitors={onOpenConstructionMonitors}
@@ -183,6 +186,7 @@ export function ConstructionListScreen({
 export function ConstructionMobileCard({
   summary,
   active,
+  showGuidedTourTargets = false,
   onOpenConstruction,
   onOpenConstructionHouses,
   onOpenConstructionMonitors,
@@ -190,6 +194,7 @@ export function ConstructionMobileCard({
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
+  showGuidedTourTargets?: boolean;
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
@@ -199,13 +204,25 @@ export function ConstructionMobileCard({
   const constructionCode = getConstructionCode(summary);
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
+  const isArchived = summary.status === 'archived';
   const openConstruction = () => {
+    if (isArchived) return;
     void onOpenConstruction(summary);
   };
 
-  const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+  const completionAction = summary.status === 'completed' ? 'markInProgress' : 'markCompleted';
+  const completionLabel = summary.status === 'completed'
+    ? `Voltar construção ${constructionCode} para andamento`
+    : `Concluir construção ${constructionCode}`;
+
+  const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const requestCompletionStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestStatusChange(summary, completionAction);
   };
 
   const openMonitors = (event: MouseEvent<HTMLButtonElement>) => {
@@ -221,19 +238,20 @@ export function ConstructionMobileCard({
   return (
     <article
       data-testid='construction-mobile-card'
-      role='button'
-      tabIndex={0}
-      aria-label={`Abrir construção ${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
-      onClick={openConstruction}
-      onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        openConstruction();
-      }}
+      role={isArchived ? undefined : 'button'}
+      tabIndex={isArchived ? undefined : 0}
+      aria-label={isArchived ? undefined : `Abrir construção ${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
+      onClick={isArchived ? undefined : openConstruction}
+      onKeyDown={isArchived ? undefined : (event: KeyboardEvent<HTMLElement>) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openConstruction();
+        }}
       className={cn(
-        'cursor-pointer rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        active ? 'bg-blue-50/90 shadow-blue-100' : 'hover:bg-slate-100',
-        summary.status === 'archived' ? 'opacity-60 grayscale' : null,
+        'rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        !isArchived ? 'cursor-pointer' : 'cursor-default opacity-60 grayscale',
+        !isArchived && active ? 'bg-blue-50/90 shadow-blue-100' : null,
+        !isArchived && !active ? 'hover:bg-slate-100' : null,
       )}
     >
       <div className='flex items-start gap-3'>
@@ -260,24 +278,36 @@ export function ConstructionMobileCard({
           )}
         </div>
         <div className='flex shrink-0 items-center gap-1'>
-          <RoundIconActionButton
-            label={`Gerenciar monitores da construção ${constructionCode}`}
-            onClick={openMonitors}
-          >
-            <UsersRound className='h-4 w-4'/>
-          </RoundIconActionButton>
-          <RoundIconActionButton
-            label={`Gerenciar casas da construção ${constructionCode}`}
-            onClick={openHouses}
-          >
-            <Home className='h-4 w-4'/>
-          </RoundIconActionButton>
+          {!isArchived ? (
+            <>
+              <StatusActionButton
+                action={completionAction}
+                label={completionLabel}
+                onClick={requestCompletionStatusChange}
+              />
+              <RoundIconActionButton
+                label={`Gerenciar monitores da construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-monitors' : undefined}
+                onClick={openMonitors}
+              >
+                <UsersRound className='h-4 w-4'/>
+              </RoundIconActionButton>
+              <RoundIconActionButton
+                label={`Gerenciar casas da construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-houses' : undefined}
+                onClick={openHouses}
+              >
+                <Home className='h-4 w-4'/>
+              </RoundIconActionButton>
+            </>
+          ) : null}
           <StatusActionButton
             action={summary.status === 'archived' ? 'unarchive' : 'archive'}
             label={summary.status === 'archived'
               ? `Desarquivar construção ${constructionCode}`
               : `Arquivar construção ${constructionCode}`}
-            onClick={requestStatusChange}
+            guidedTourId={showGuidedTourTargets ? 'rac-construction-archive' : undefined}
+            onClick={requestArchiveStatusChange}
           />
         </div>
       </div>
@@ -288,6 +318,7 @@ export function ConstructionMobileCard({
 export function ConstructionTableRow({
   summary,
   active,
+  showGuidedTourTargets = false,
   onOpenConstruction,
   onOpenConstructionHouses,
   onOpenConstructionMonitors,
@@ -295,6 +326,7 @@ export function ConstructionTableRow({
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
+  showGuidedTourTargets?: boolean;
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
@@ -304,13 +336,25 @@ export function ConstructionTableRow({
   const constructionCode = getConstructionCode(summary);
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
+  const isArchived = summary.status === 'archived';
   const openConstruction = () => {
+    if (isArchived) return;
     void onOpenConstruction(summary);
   };
 
-  const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+  const completionAction = summary.status === 'completed' ? 'markInProgress' : 'markCompleted';
+  const completionLabel = summary.status === 'completed'
+    ? `Voltar construção ${constructionCode} para andamento`
+    : `Concluir construção ${constructionCode}`;
+
+  const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const requestCompletionStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestStatusChange(summary, completionAction);
   };
 
   const openMonitors = (event: MouseEvent<HTMLButtonElement>) => {
@@ -325,18 +369,19 @@ export function ConstructionTableRow({
 
   return (
     <tr
-      tabIndex={0}
-      aria-label={`Abrir construção ${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
-      onClick={openConstruction}
-      onKeyDown={(event: KeyboardEvent<HTMLTableRowElement>) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        openConstruction();
-      }}
+      tabIndex={isArchived ? undefined : 0}
+      aria-label={`${isArchived ? '' : 'Abrir construção '}${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
+      onClick={isArchived ? undefined : openConstruction}
+      onKeyDown={isArchived ? undefined : (event: KeyboardEvent<HTMLTableRowElement>) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openConstruction();
+        }}
       className={cn(
-        'cursor-pointer rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        active ? 'bg-blue-50/90' : 'bg-transparent hover:bg-slate-50',
-        summary.status === 'archived' ? 'opacity-60' : null,
+        'rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        !isArchived ? 'cursor-pointer' : 'cursor-default opacity-60',
+        !isArchived && active ? 'bg-blue-50/90' : null,
+        !isArchived && !active ? 'bg-transparent hover:bg-slate-50' : null,
       )}
     >
       <td className='max-w-0 rounded-l-lg px-3 py-3'>
@@ -370,26 +415,38 @@ export function ConstructionTableRow({
           <span className='block'>{constructionDateLabel}</span>
         )}
       </td>
-      <td className='w-[7.75rem] rounded-r-lg px-3 py-3 align-middle'>
+      <td className='w-[10.75rem] rounded-r-lg px-3 py-3 align-middle'>
         <div className='flex items-center justify-end gap-2'>
-          <RoundIconActionButton
-            label={`Gerenciar monitores da construção ${constructionCode}`}
-            onClick={openMonitors}
-          >
-            <UsersRound className='h-4 w-4'/>
-          </RoundIconActionButton>
-          <RoundIconActionButton
-            label={`Gerenciar casas da construção ${constructionCode}`}
-            onClick={openHouses}
-          >
-            <Home className='h-4 w-4'/>
-          </RoundIconActionButton>
+          {!isArchived ? (
+            <>
+              <StatusActionButton
+                action={completionAction}
+                label={completionLabel}
+                onClick={requestCompletionStatusChange}
+              />
+              <RoundIconActionButton
+                label={`Gerenciar monitores da construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-monitors' : undefined}
+                onClick={openMonitors}
+              >
+                <UsersRound className='h-4 w-4'/>
+              </RoundIconActionButton>
+              <RoundIconActionButton
+                label={`Gerenciar casas da construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-houses' : undefined}
+                onClick={openHouses}
+              >
+                <Home className='h-4 w-4'/>
+              </RoundIconActionButton>
+            </>
+          ) : null}
           <StatusActionButton
             action={summary.status === 'archived' ? 'unarchive' : 'archive'}
             label={summary.status === 'archived'
               ? `Desarquivar construção ${constructionCode}`
               : `Arquivar construção ${constructionCode}`}
-            onClick={requestStatusChange}
+            guidedTourId={showGuidedTourTargets ? 'rac-construction-archive' : undefined}
+            onClick={requestArchiveStatusChange}
           />
         </div>
       </td>

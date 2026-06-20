@@ -53,6 +53,9 @@ Nele, a pessoa consegue:
     - Piloti abre edição de piloti.
     - Parede, linha, seta e distância abrem seus editores correspondentes.
     - Imagens enviadas pelo usuário são inseridas como objetos selecionáveis e redimensionáveis no canvas.
+    - Imagens selecionadas podem ser enviadas para o fundo absoluto ou trazidas para a frente absoluta da pilha visual.
+    - No desktop, o menu de camada de imagem é aberto por clique direito sobre a imagem.
+    - No mobile, o mesmo menu é aberto ao pressionar e manter pressionada a imagem.
     - Quando aplicável, o sistema já abre o editor correto com os dados atuais.
 
 3. Edição de objetos lineares
@@ -90,6 +93,7 @@ Nele, a pessoa consegue:
 1. Histórico
     - Mudanças importantes devem ser registradas para permitir desfazer.
     - Inserção de imagem enviada pelo usuário deve ser registrada no histórico.
+    - Alterações de camada de imagem devem preservar seleção, registrar histórico e re-renderizar o canvas.
 
 2. Exclusão da planta
     - A planta só pode ser removida quando não existir nenhuma outra vista da casa.
@@ -118,6 +122,8 @@ Nele, a pessoa consegue:
     - Um toque e arraste: deslocamento.
     - Dois toques: zoom por gesto.
     - A barra lateral pode ser recolhida por gesto horizontal para liberar área de desenho.
+    - Fora do modo de contraventamento, piloti abre edição por pressionar e manter pressionado; toque simples não deve abrir edição de piloti.
+    - No modo de contraventamento, a seleção de piloti continua imediata para preservar o fluxo origem/destino.
 
 2. Feedback
     - Durante zoom por gesto, o sistema informa o nível de zoom para facilitar o controle.

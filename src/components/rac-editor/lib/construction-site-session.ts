@@ -80,6 +80,8 @@ export interface ConstructionSiteSessionPort {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  markConstructionSiteCompleted(constructionSiteId: string): void;
+  markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
   createMonitor(input: CreateMonitorInput): MonitorRecord;
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
@@ -90,6 +92,9 @@ export interface ConstructionSiteSessionPort {
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  markActiveHouseRacPrinted(): void;
+  markHouseBuilt(houseId: string): void;
+  markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
@@ -436,13 +441,17 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   setActiveFamilyName(name: string): void {
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     const family = this.getActiveFamily();
     family.name = name;
     this.touchActiveHouse();
   }
 
   setActiveHouseSelectedPilotiHeights(heights: number[]): void {
-    this.getActiveHouse().designSettings.selectedPilotiHeights = [...heights];
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
+    house.designSettings.selectedPilotiHeights = [...heights];
     this.touchActiveHouse();
   }
 
@@ -453,7 +462,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     selectedPilotiHeights: number[];
   }): void {
 
-    const house = this.getActiveHouse();
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     const family = this.getActiveFamily();
     house.houseType = input.houseType;
     house.terrainType = input.terrainType;
@@ -476,6 +486,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   updateActiveConstructionSite(input: UpdateConstructionSiteInput): void {
     if (!this.state) return;
+    if (this.isConstructionSiteReadOnly(this.state)) return;
 
     const now = new Date().toISOString();
     const constructionSite = this.state.constructionSite;
@@ -522,6 +533,14 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     this.persist();
   }
 
+  markConstructionSiteCompleted(constructionSiteId: string): void {
+    this.updateConstructionSiteStatus(constructionSiteId, 'completed');
+  }
+
+  markConstructionSiteInProgress(constructionSiteId: string): void {
+    this.updateConstructionSiteStatus(constructionSiteId, 'in_progress');
+  }
+
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
     const constructionSite = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId);
     if (!constructionSite) return null;
@@ -535,6 +554,9 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   createMonitor(input: CreateMonitorInput): MonitorRecord {
     if (!this.state) {
       throw new Error('Não foi possível criar monitor sem Construção TETO ativa.');
+    }
+    if (this.isConstructionSiteReadOnly(this.state)) {
+      throw new Error('Não é possível editar uma Construção TETO arquivada.');
     }
 
     const now = new Date().toISOString();
@@ -551,6 +573,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     const now = new Date().toISOString();
     const {constructionSite, monitor} = monitorConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
     if (input.name !== undefined) monitor.name = requireMonitorName(input.name);
     if (input.phone !== undefined) monitor.phone = requireMonitorPhone(input.phone);
     if ('photoDataUrl' in input) monitor.photoDataUrl = normalizeMonitorPhotoDataUrl(input.photoDataUrl);
@@ -575,6 +598,9 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   createHouse(input: CreateHouseInput): PersistedHouseRecord {
     if (!this.state) {
       throw new Error('Não foi possível criar casa sem Construção TETO ativa.');
+    }
+    if (this.isConstructionSiteReadOnly(this.state)) {
+      throw new Error('Não é possível editar uma Construção TETO arquivada.');
     }
 
     const now = new Date().toISOString();
@@ -602,6 +628,10 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   duplicateActiveHouse(): PersistedHouseRecord {
+    if (this.isConstructionSiteReadOnly(this.state)) {
+      throw new Error('Não é possível editar uma Construção TETO arquivada.');
+    }
+
     const now = new Date().toISOString();
     const activeHouse = this.getActiveHouse();
     const activeFamily = this.getActiveFamily();
@@ -641,6 +671,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   archiveActiveHouse(): void {
     if (!this.state) return;
+    if (this.isConstructionSiteReadOnly(this.state)) return;
     this.archiveHouse(this.getActiveHouse().id);
   }
 
@@ -650,6 +681,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     const now = new Date().toISOString();
     const {constructionSite, house: targetHouse} = houseConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
     if (!targetHouse || targetHouse.status === 'archived') return;
 
     targetHouse.status = 'archived';
@@ -674,6 +706,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     const now = new Date().toISOString();
     const {constructionSite, house} = houseConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
     if (house.status !== 'archived') return;
 
     house.status = 'draft';
@@ -695,6 +728,20 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     this.persist();
   }
 
+  markActiveHouseRacPrinted(): void {
+    const house = this.getActiveHouseOrNull();
+    if (!house || house.status === 'built' || house.status === 'archived') return;
+    this.updateHouseStatus(house.id, 'rac_printed');
+  }
+
+  markHouseBuilt(houseId: string): void {
+    this.updateHouseStatus(houseId, 'built');
+  }
+
+  markHouseDraft(houseId: string): void {
+    this.updateHouseStatus(houseId, 'draft');
+  }
+
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {
     const constructionSite = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId && entry.constructionSite.status !== 'archived');
     if (!constructionSite) return null;
@@ -710,6 +757,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   updateActiveFamily(input: UpdateFamilyInput): void {
+    if (!this.getEditableActiveHouseOrNull()) return;
     const family = this.getActiveFamily();
     if (input.name !== undefined) family.name = input.name;
     if (input.primaryContactName !== undefined) family.primaryContactName = input.primaryContactName;
@@ -721,7 +769,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void {
-    const house = this.getActiveHouse();
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     house.siteAssessment = {
       ...house.siteAssessment,
       ...input,
@@ -731,7 +780,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
-    const house = this.getActiveHouse();
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     const family = this.getActiveFamily();
 
     if (input.familyName !== undefined) family.name = input.familyName || family.name;
@@ -757,14 +807,17 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void {
-    const house = this.getActiveHouse();
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     house.extraMaterials = sanitizeHouseExtraMaterials(input);
     this.touchActiveHouse();
   }
 
   saveActiveHouseDrawingDocument(document: HouseDrawingDocument): void {
-    const house = this.getActiveHouse();
+    const house = this.getEditableActiveHouseOrNull();
+    if (!house) return;
     const family = this.getActiveFamily();
+    if (this.isActiveHouseDrawingDocumentUnchanged(house, family, document)) return;
     const now = new Date().toISOString();
 
     house.houseType = document.house.houseType;
@@ -784,9 +837,35 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     house.updatedAt = now;
     house.version += 1;
+    if (house.status === 'rac_printed') house.status = 'draft';
     family.name = document.setup.familyName || family.name;
     this.state.constructionSite.updatedAt = now;
     this.persist();
+  }
+
+  private isActiveHouseDrawingDocumentUnchanged(
+    house: PersistedHouseRecord,
+    family: FamilyRecord,
+    document: HouseDrawingDocument,
+  ): boolean {
+    const currentHouseState = cloneConstructionSiteValue(
+      house.drawingDocument.house ?? createInitialHouseState(house.id),
+    );
+    currentHouseState.id = house.id;
+    currentHouseState.houseType = house.houseType;
+    currentHouseState.terrainType = house.terrainType;
+
+    const nextFamilyName = document.setup.familyName || family.name;
+
+    return family.name === nextFamilyName
+      && house.houseType === document.house.houseType
+      && house.terrainType === document.house.terrainType
+      && areConstructionSiteValuesEqual(
+        house.designSettings.selectedPilotiHeights,
+        document.setup.selectedPilotiHeights,
+      )
+      && areConstructionSiteValuesEqual(currentHouseState, document.house)
+      && areConstructionSiteValuesEqual(house.drawingDocument.canvas, document.canvas);
   }
 
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null {
@@ -813,6 +892,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   private touchActiveHouse(): void {
     const now = new Date().toISOString();
     const house = this.getActiveHouse();
+    if (house.status === 'built') return;
+    if (house.status === 'rac_printed') house.status = 'draft';
     house.updatedAt = now;
     house.version += 1;
     this.state.constructionSite.updatedAt = now;
@@ -869,6 +950,40 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       ?? null;
   }
 
+  private getEditableActiveHouseOrNull(): PersistedHouseRecord | null {
+    if (this.isConstructionSiteReadOnly(this.state)) return null;
+    const house = this.getActiveHouseOrNull();
+    if (!house || house.status === 'built') return null;
+    return house;
+  }
+
+  private isConstructionSiteArchived(constructionSite: ConstructionSiteState | null | undefined): boolean {
+    return constructionSite?.constructionSite.status === 'archived';
+  }
+
+  private isConstructionSiteReadOnly(constructionSite: ConstructionSiteState | null | undefined): boolean {
+    const status = constructionSite?.constructionSite.status;
+    return status === 'completed' || status === 'archived';
+  }
+
+  private updateConstructionSiteStatus(
+    constructionSiteId: string,
+    status: ConstructionSiteRecord['status'],
+  ): void {
+    const constructionSite = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId);
+    if (!constructionSite || constructionSite.constructionSite.status === 'archived') return;
+    if (constructionSite.constructionSite.status === status) return;
+
+    constructionSite.constructionSite.status = status;
+    constructionSite.constructionSite.updatedAt = new Date().toISOString();
+    this.normalizeConstructionSiteActiveHouse(constructionSite);
+
+    if (this.state?.constructionSite.id === constructionSiteId) {
+      this.state = constructionSite;
+    }
+    this.persist();
+  }
+
   private normalizeConstructionSiteActiveHouse(constructionSite: ConstructionSiteState): void {
     const activeHouse = constructionSite.houses.find((house) => house.id === constructionSite.constructionSite.activeHouseId && house.status !== 'archived')
       ?? constructionSite.houses
@@ -922,11 +1037,32 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     const monitorConstructionSite = this.findMonitorConstructionSite(monitorId);
     if (!monitorConstructionSite) return;
     const {constructionSite, monitor} = monitorConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
     if (monitor.status === status) return;
 
     const now = new Date().toISOString();
     monitor.status = status;
     monitor.updatedAt = now;
+    constructionSite.constructionSite.updatedAt = now;
+
+    if (this.state?.constructionSite.id === constructionSite.constructionSite.id) {
+      this.state = constructionSite;
+    }
+    this.persist();
+  }
+
+  private updateHouseStatus(houseId: string, status: PersistedHouseRecord['status']): void {
+    const houseConstructionSite = this.findHouseConstructionSite(houseId);
+    if (!houseConstructionSite) return;
+
+    const {constructionSite, house} = houseConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
+    if (house.status === 'archived' || house.status === status) return;
+
+    const now = new Date().toISOString();
+    house.status = status;
+    house.updatedAt = now;
+    house.version += 1;
     constructionSite.constructionSite.updatedAt = now;
 
     if (this.state?.constructionSite.id === constructionSite.constructionSite.id) {
@@ -1017,4 +1153,8 @@ function createEmptyPersistedDrawingDocument(houseId: string): PersistedDrawingD
     },
     views: {},
   };
+}
+
+function areConstructionSiteValuesEqual(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }

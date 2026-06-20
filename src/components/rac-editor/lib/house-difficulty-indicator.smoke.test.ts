@@ -9,7 +9,7 @@ import {getAllPilotiIds} from '@/shared/types/piloti.ts';
 describe('house difficulty indicator', () => {
   it('calcula dificuldade por solo, desnivel dos pilotis, obstaculos e media dos pilotis', () => {
     expect(calculateHouseDifficultyIndicator({
-      soilProfile: 'stable',
+      soilProfile: 'stable_clay',
     })).toEqual({
       score: 0,
       label: 'Baixa',
@@ -23,9 +23,17 @@ describe('house difficulty indicator', () => {
     });
 
     expect(calculateHouseDifficultyIndicator({
-      soilProfile: 'loose_clay',
+      soilProfile: 'firm_hard',
     })).toEqual({
       score: 8,
+      label: 'Baixa',
+      level: 'low',
+    });
+
+    expect(calculateHouseDifficultyIndicator({
+      soilProfile: 'alluvial',
+    })).toEqual({
+      score: 17,
       label: 'Baixa',
       level: 'low',
     });
@@ -34,7 +42,7 @@ describe('house difficulty indicator', () => {
       soilProfile: 'water_table',
       hasElevatedObstacles: true,
     }, createPilotisWithHeightAndDesnivel(1, 30))).toEqual({
-      score: 37,
+      score: 34,
       label: 'Média',
       level: 'medium',
     });
@@ -43,38 +51,41 @@ describe('house difficulty indicator', () => {
       soilProfile: 'water_table',
       hasElevatedObstacles: true,
     }, createPilotisWithHeightAndDesnivel(3, 30))).toEqual({
-      score: 53,
+      score: 74,
       label: 'Alta',
       level: 'high',
     });
 
     expect(calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
     }, createPilotisWithHeightAndDesnivel(3, 0))).toEqual({
-      score: 56,
-      label: 'Alta',
-      level: 'high',
-    });
-
-    expect(calculateHouseDifficultyIndicator({
-      soilProfile: 'water_table',
-      hasUndergroundObstacles: true,
-      hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
-    }, createPilotisWithHeightAndDesnivel(1, 120))).toEqual({
-      score: 80,
+      score: 85,
       label: 'Crítica',
       level: 'critical',
     });
 
     expect(calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
+    }, createPilotisWithHeightAndDesnivel(1, 120))).toEqual({
+      score: 75,
+      label: 'Crítica',
+      level: 'critical',
+    });
+
+    expect(calculateHouseDifficultyIndicator({
+      soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
+      hasUndergroundObstacles: true,
+      hasElevatedObstacles: true,
+      hasNeighborSetbackConstraints: true,
     }, createPilotisWithHeightAndDesnivel(3.5, 120))).toEqual({
       score: 100,
       label: 'Crítica',
@@ -96,29 +107,80 @@ describe('house difficulty indicator', () => {
   });
 
   it('mantém obstáculos sensíveis quando o solo é água no fundo', () => {
-    const pilotis = createPilotisWithHeightAndDesnivel(3, 120);
+    const pilotis = createPilotisWithHeightAndDesnivel(3, 30);
     const withAllObstacles = calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
     }, pilotis);
 
     expect(withAllObstacles.score).toBeGreaterThan(calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
       hasUndergroundObstacles: true,
-      hasNeighborSetbacks: true,
+      hasElevatedObstacles: true,
+      hasNeighborSetbackConstraints: true,
     }, pilotis).score);
     expect(withAllObstacles.score).toBeGreaterThan(calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
+      hasElevatedObstacles: true,
+      hasNeighborSetbackConstraints: true,
+    }, pilotis).score);
+    expect(withAllObstacles.score).toBeGreaterThan(calculateHouseDifficultyIndicator({
+      soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
     }, pilotis).score);
     expect(withAllObstacles.score).toBeGreaterThan(calculateHouseDifficultyIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
     }, pilotis).score);
+  });
+
+  it('calibra a dificuldade operacional pela media dos pilotis', () => {
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(1.5, 0)).score)
+      .toBe(10);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(2, 0)).score)
+      .toBe(20);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(2.5, 0)).score)
+      .toBe(30);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(3, 0)).score)
+      .toBe(40);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(3.2, 0)).score)
+      .toBe(44);
+    expect(calculateHouseDifficultyIndicator({soilProfile: 'stable_clay'}, createPilotisWithHeightAndDesnivel(3.5, 0)).score)
+      .toBe(50);
+  });
+
+  it('calibra casas planas com agua no fundo por medias altas de pilotis', () => {
+    expect(calculateHouseDifficultyIndicator({
+      soilProfile: 'water_table',
+    }, createPilotisWithHeightAndDesnivel(2.5, 0))).toEqual({
+      score: 55,
+      label: 'Alta',
+      level: 'high',
+    });
+
+    expect(calculateHouseDifficultyIndicator({
+      soilProfile: 'water_table',
+    }, createPilotisWithHeightAndDesnivel(3, 0))).toEqual({
+      score: 65,
+      label: 'Alta',
+      level: 'high',
+    });
+
+    expect(calculateHouseDifficultyIndicator({
+      soilProfile: 'water_table',
+    }, createPilotisWithHeightAndDesnivel(3.5, 0))).toEqual({
+      score: 75,
+      label: 'Crítica',
+      level: 'critical',
+    });
   });
 });
 

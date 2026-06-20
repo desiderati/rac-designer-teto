@@ -58,6 +58,7 @@ import {
   refreshHouseViewReferenceMarkersInViews,
 } from './house-view-reference-marker.ts';
 import {toCanvasGroup} from '@/components/rac-editor/@canvas/lib';
+import type {CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 
 function createMockGroup(objects: any[] = []) {
   const group = {
@@ -109,7 +110,7 @@ describe('house-view-reference-marker.ts', () => {
       sequence: 1,
       top: 20,
       scale: 0.5,
-    });
+    }) as CanvasObject & {fontSize?: number};
 
     expect(marker.type).toBeUndefined();
     expect(marker.text).toBe('Frontal');
@@ -238,5 +239,37 @@ describe('house-view-reference-marker.ts', () => {
     expect(largeMarker.fontSize).toBe(16);
     expect(smallMarker.top).toBe(-10);
     expect(largeMarker.top).toBe(-20);
+  });
+
+  it('mantem a mesma escala de label quando vistas de 3m e 6m compartilham a mesma escala visual', () => {
+    const frontElevationGroup = createMockGroup([
+      {left: -50, top: 150, width: 405, height: 90},
+      {isHouseBody: true, left: 0, top: 0, width: 305, height: 160},
+    ]);
+    const sideElevationGroup = createMockGroup([
+      {left: -50, top: 150, width: 250, height: 90},
+      {isHouseBody: true, left: 0, top: 0, width: 150, height: 160},
+    ]);
+
+    refreshHouseViewReferenceMarkersInViews({
+      houseType: 'tipo6',
+      topViews: [],
+      elevationViews: {
+        front: [{instanceId: 'front_1', side: 'bottom', group: frontElevationGroup}],
+        back: [],
+        side1: [{instanceId: 'side1_2', side: 'left', group: sideElevationGroup}],
+        side2: [],
+      },
+    });
+
+    const frontMarker =
+      frontElevationGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+    const sideMarker =
+      sideElevationGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+
+    expect(frontMarker.text).toBe('Frontal');
+    expect(sideMarker.text).toBe('Lateral Esquerda');
+    expect(frontMarker.fontSize).toBe(8);
+    expect(sideMarker.fontSize).toBe(8);
   });
 });

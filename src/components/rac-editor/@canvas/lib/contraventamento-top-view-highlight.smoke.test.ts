@@ -2,7 +2,17 @@ import {describe, expect, it, vi} from 'vitest';
 import {PILOTI_STYLE, PILOTI_VISUAL_FEEDBACK_COLORS} from '@/shared/config.ts';
 import {highlightEligibleContraventamentoPilotis} from '@/components/rac-editor/@canvas/lib/contraventamento-top-view-highlight.ts';
 
-function createPilotiCircle(pilotiId: string) {
+type PilotiCircleFake = {
+  dirty: boolean;
+  isPilotiCircle: true;
+  pilotiId: string;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeUniform?: boolean;
+  set: ReturnType<typeof vi.fn>;
+};
+
+function createPilotiCircle(pilotiId: string): PilotiCircleFake {
   return {
     dirty: false,
     isPilotiCircle: true,

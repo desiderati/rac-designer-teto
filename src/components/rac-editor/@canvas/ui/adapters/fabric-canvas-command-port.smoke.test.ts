@@ -5,12 +5,14 @@ import type {CanvasObject} from '@/components/rac-editor/@canvas/lib';
 
 function createPort(canvas: unknown, options?: {
   getVisibleCenter?: () => { x: number; y: number };
+  getCanvasPointScreenPosition?: (point: { x: number; y: number }) => { x: number; y: number } | null;
   clearHistory?: () => void;
   saveHistory?: () => void;
 }) {
   return createFabricCanvasCommandPort({
     canvas: canvas as FabricCanvas,
     getVisibleCenter: options?.getVisibleCenter ?? (() => ({x: 10, y: 20})),
+    getCanvasPointScreenPosition: options?.getCanvasPointScreenPosition,
     clearHistory: options?.clearHistory ?? vi.fn(),
     saveHistory: options?.saveHistory ?? vi.fn(),
   });
@@ -170,5 +172,42 @@ describe('createFabricCanvasCommandPort', () => {
     const position = createPort(canvas).getPilotiScreenPosition('piloti_3_2', 'front');
 
     expect(position).toEqual({x: 198, y: 202});
+  });
+
+  it('uses the editor viewport projection for group-local piloti positions when available', () => {
+    const group = {
+      type: 'group',
+      myType: 'house',
+      houseView: 'top',
+      calcTransformMatrix: () => [1, 0, 0, 1, 120, 80],
+      getObjects: () => [
+        {
+          pilotiId: 'piloti_0_0',
+          isPilotiCircle: true,
+          left: -60,
+          top: -30,
+          set: vi.fn(),
+        },
+      ],
+    };
+    const canvas = {
+      getObjects: () => [group],
+      getElement: () => ({
+        parentElement: {
+          getBoundingClientRect: () => ({left: 1000, top: 1000}),
+        },
+      }),
+      viewportTransform: [4, 0, 0, 4, 2000, 2000],
+    };
+    const getCanvasPointScreenPosition = vi.fn((point: { x: number; y: number }) => ({
+      x: point.x * 0.5 + 10,
+      y: point.y * 0.5 + 20,
+    }));
+
+    const position = createPort(canvas, {getCanvasPointScreenPosition})
+      .getPilotiScreenPosition('piloti_0_0', 'top');
+
+    expect(getCanvasPointScreenPosition).toHaveBeenCalledWith({x: 60, y: 50});
+    expect(position).toEqual({x: 40, y: 45});
   });
 });

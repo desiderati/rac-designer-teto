@@ -1,4 +1,4 @@
-import {type PointerEvent, useRef, useState} from 'react';
+import {type ComponentType, type PointerEvent, type SVGProps, useRef, useState} from 'react';
 import {
   Check,
   Droplets,
@@ -6,6 +6,7 @@ import {
   Layers,
   type LucideIcon,
   Mountain,
+  Pickaxe,
   Ruler,
   UtilityPole,
   Waves,
@@ -24,6 +25,22 @@ import type {SiteAssessment, SoilProfile} from '@/shared/types/construction-site
 
 type SiteAssessmentChange = (input: Partial<SiteAssessment>) => void;
 type SoilMenuValue = SoilProfile | '';
+type ObstacleIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+function HydraulicObstacleIcon({className, ...props}: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      data-icon='hydraulic-pipe'
+      viewBox='0 0 512 512'
+      fill='currentColor'
+      focusable='false'
+      className={className}
+    >
+      <path d='M488.727 232.727h-93.091c-12.853 0-23.273 10.42-23.273 23.273v23.273H232.727V139.636H256c12.853 0 23.273-10.42 23.273-23.273V23.273C279.273 10.42 268.853 0 256 0H23.273C10.42 0 0 10.42 0 23.273v93.091c0 12.853 10.42 23.273 23.273 23.273h23.273v219.415c0 58.77 47.633 106.403 106.403 106.403h219.415v23.273c0 12.853 10.42 23.273 23.273 23.273h93.091C501.58 512 512 501.58 512 488.727V256c0-12.853-10.42-23.273-23.273-23.273zM46.545 46.545h186.182V93.09H46.545V46.545zm106.403 372.364c-33.064 0-59.857-26.794-59.857-59.857V139.636h93.091v162.909c0 12.853 10.42 23.273 23.273 23.273h162.909v93.091H152.948zm312.507 46.546H418.91V279.273h46.545v186.182z'/>
+    </svg>
+  );
+}
 
 interface HouseDifficultyControlsProps {
   indicator: HouseDifficultyIndicator;
@@ -46,30 +63,49 @@ const SOIL_PROFILE_OPTIONS: Array<{
     iconClassName: 'text-slate-400',
   },
   {
-    value: 'stable',
-    label: 'Firme',
+    value: 'stable_clay',
+    label: 'Terreno Estável / Argiloso',
     Icon: Layers,
     iconClassName: 'text-emerald-600',
   },
   {
-    value: 'loose_clay',
-    label: 'Argila / solto',
+    value: 'firm_hard',
+    label: 'Terreno Firme / Duro',
+    Icon: Pickaxe,
+    iconClassName: 'text-stone-600',
+  },
+  {
+    value: 'alluvial',
+    label: 'Solo Aluvial',
     Icon: Waves,
     iconClassName: 'text-amber-600',
   },
   {
     value: 'water_table',
-    label: 'Água no fundo',
+    label: 'Lençol Freático / Água no Fundo',
     Icon: Droplets,
     iconClassName: 'text-sky-600',
   },
 ];
 
 const OBSTACLE_OPTIONS: Array<{
-  key: keyof Pick<SiteAssessment, 'hasUndergroundObstacles' | 'hasElevatedObstacles' | 'hasNeighborSetbacks'>;
+  key: keyof Pick<
+    SiteAssessment,
+    'hasHydraulicObstacles'
+    | 'hasUndergroundObstacles'
+    | 'hasElevatedObstacles'
+    | 'hasNeighborSetbackConstraints'
+  >;
   label: string;
-  Icon: LucideIcon;
+  Icon: ObstacleIcon;
+  iconClassName?: string;
 }> = [
+  {
+    key: 'hasHydraulicObstacles',
+    label: 'Obstáculos hidráulicos',
+    Icon: HydraulicObstacleIcon,
+    iconClassName: 'h-3.5 w-3.5',
+  },
   {
     key: 'hasUndergroundObstacles',
     label: 'Obstáculos subterrâneos',
@@ -81,8 +117,8 @@ const OBSTACLE_OPTIONS: Array<{
     Icon: UtilityPole,
   },
   {
-    key: 'hasNeighborSetbacks',
-    label: 'Recuos vizinhos',
+    key: 'hasNeighborSetbackConstraints',
+    label: 'Servidões vizinhas',
     Icon: Ruler,
   },
 ];
@@ -226,7 +262,7 @@ export function HouseDifficultyControls({
       />
 
       <div className='flex flex-col items-center gap-1.5'>
-        {OBSTACLE_OPTIONS.map(({key, label, Icon}) => {
+        {OBSTACLE_OPTIONS.map(({key, label, Icon, iconClassName}) => {
           const checked = Boolean(siteAssessment?.[key]);
 
           return (
@@ -246,7 +282,7 @@ export function HouseDifficultyControls({
                     onSiteAssessmentChange ? null : 'cursor-not-allowed opacity-60',
                   )}
                 >
-                  <Icon aria-hidden='true' className='h-4 w-4'/>
+                  <Icon aria-hidden='true' className={cn('h-4 w-4', iconClassName)}/>
                 </button>
               </TooltipTrigger>
               <TooltipContent side='left' className='bg-slate-900 text-xs text-white'>

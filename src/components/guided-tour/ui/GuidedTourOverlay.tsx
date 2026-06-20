@@ -135,6 +135,7 @@ export function GuidedTourOverlay({activeItem, targetRect, tourProgress, onConfi
       <div className='absolute inset-0 pointer-events-auto' aria-hidden='true' data-testid='guided-tour-click-blocker'/>
 
       <div
+        data-testid='guided-tour-highlight'
         className='absolute rounded-xl ring-2 ring-amber-400 pointer-events-none'
         style={layout.highlightStyle}
       />

@@ -4,6 +4,7 @@ import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas
 import type {
   CanvasActiveSelectionHandle,
   CanvasDrawingModeHandle,
+  CanvasImageLayerHandle,
   CanvasRenderHandle,
 } from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/CanvasViewportHandle.ts';
@@ -14,6 +15,7 @@ import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/C
 export type CanvasControllerHandle =
   & CanvasActiveSelectionHandle
   & CanvasDrawingModeHandle
+  & CanvasImageLayerHandle
   & CanvasHistoryHandle
   & CanvasObjectCreationHandle
   & CanvasRenderHandle

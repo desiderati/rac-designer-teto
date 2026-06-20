@@ -47,6 +47,17 @@ function createPilotiRect(pilotiId: string, left: number, top: number) {
   };
 }
 
+function getProjectionCoordinates(group: { _objects: any[] }) {
+  return group._objects
+    .filter((object: any) => object?.isContraventamentoElevation === true)
+    .map((object: any) => [
+      Number(object.x1),
+      Number(object.y1),
+      Number(object.x2),
+      Number(object.y2),
+    ]);
+}
+
 describe('contraventamento.ts', () => {
   const defaultElevationWidth = HOUSE_DIMENSIONS.contraventamento.squareWidth;
 
@@ -296,9 +307,17 @@ describe('contraventamento.ts', () => {
       defaultElevationWidth + 2,
       defaultElevationWidth,
     ]);
+    expect(legacyLeftProjections.map((object: any) => object.strokeUniform)).toEqual([
+      false,
+      false,
+    ]);
     expect(modernRightProjections.map((object: any) => object.strokeWidth)).toEqual([
       defaultElevationWidth + 2,
       defaultElevationWidth,
+    ]);
+    expect(modernRightProjections.map((object: any) => object.strokeUniform)).toEqual([
+      false,
+      false,
     ]);
     expect(legacyLeftGroup._objects[0]?.isGroundElement).toBe(true);
     expect(legacyLeftGroup._objects.slice(1, 3).every(
@@ -356,6 +375,10 @@ describe('contraventamento.ts', () => {
       defaultElevationWidth + 2,
       defaultElevationWidth,
     ]);
+    expect(projections.map((object: any) => object.strokeUniform)).toEqual([
+      false,
+      false,
+    ]);
     expect(frontGroup._objects[0]?.isGroundElement).toBe(true);
     expect(frontGroup._objects.slice(1, 3).every(
       (object: any) => object?.isContraventamentoElevation === true,
@@ -365,5 +388,188 @@ describe('contraventamento.ts', () => {
     )).toBe(true);
     expect(frontGroup.setCoords).toHaveBeenCalled();
   });
-});
 
+  it('usa o nível visual da elevação quando o snapshot externo está defasado', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_visual_nivel',
+          contraventamentoCol: 0,
+          contraventamentoStartRow: 0,
+          contraventamentoEndRow: 2,
+          contraventamentoSide: 'left',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+      ],
+    });
+
+    const createSideGroup = () => createMockGroup({
+      houseSide: 'left',
+      _objects: [
+        {isGroundElement: true, isGroundFill: true},
+        {...createPilotiRect('piloti_0_0', 10, 100), pilotiNivel: 1.5},
+        {...createPilotiRect('piloti_0_2', 10, 250), pilotiNivel: 1.5},
+      ],
+    });
+
+    const staleSnapshotGroup = createSideGroup();
+    const currentSnapshotGroup = createSideGroup();
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [staleSnapshotGroup],
+      () => 0,
+    );
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [currentSnapshotGroup],
+      () => 1.5,
+    );
+
+    expect(getProjectionCoordinates(staleSnapshotGroup)).toEqual(
+      getProjectionCoordinates(currentSnapshotGroup),
+    );
+  });
+
+  it('mantém espessura proporcional nas projeções de elevação quando a vista é redimensionada', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_scaled_side',
+          contraventamentoCol: 0,
+          contraventamentoStartRow: 0,
+          contraventamentoEndRow: 2,
+          contraventamentoSide: 'left',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+      ],
+    });
+
+    const autoInsertedSideGroup = createMockGroup({
+      houseSide: 'left',
+      scaleX: 2,
+      scaleY: 2,
+      _objects: [
+        {isGroundElement: true, isGroundFill: true},
+        createPilotiRect('piloti_0_0', 10, 100),
+        createPilotiRect('piloti_0_2', 10, 250),
+      ],
+    });
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [autoInsertedSideGroup],
+      () => 0.4,
+    );
+
+    const projections = autoInsertedSideGroup._objects.filter(
+      (object: any) => object?.isContraventamentoElevation === true,
+    );
+
+    expect(projections).toHaveLength(2);
+    expect(projections.map((object: any) => object.strokeWidth)).toEqual([
+      defaultElevationWidth + 2,
+      defaultElevationWidth,
+    ]);
+    expect(projections.map((object: any) => object.strokeUniform)).toEqual([
+      false,
+      false,
+    ]);
+    expect(projections.map((object: any) => object.strokeWidth * autoInsertedSideGroup.scaleX)).toEqual([
+      (defaultElevationWidth + 2) * 2,
+      defaultElevationWidth * 2,
+    ]);
+  });
+
+  it('mantém espessura proporcional do contraventamento horizontal em elevação de 6m redimensionada', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_scaled_front',
+          contraventamentoOrientation: 'horizontal',
+          contraventamentoRow: 0,
+          contraventamentoStartCol: 0,
+          contraventamentoEndCol: 3,
+          contraventamentoSide: 'bottom',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+      ],
+    });
+
+    const autoInsertedFrontGroup = createMockGroup({
+      houseSide: 'top',
+      scaleX: 2,
+      scaleY: 2,
+      _objects: [
+        {isGroundElement: true, isGroundFill: true},
+        createPilotiRect('piloti_0_0', 10, 100),
+        createPilotiRect('piloti_3_0', 210, 250),
+      ],
+    });
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [autoInsertedFrontGroup],
+      () => 0.4,
+    );
+
+    const projections = autoInsertedFrontGroup._objects.filter(
+      (object: any) => object?.isContraventamentoElevation === true,
+    );
+
+    expect(projections).toHaveLength(2);
+    expect(projections.map((object: any) => object.strokeWidth)).toEqual([
+      defaultElevationWidth + 2,
+      defaultElevationWidth,
+    ]);
+    expect(projections.map((object: any) => object.strokeUniform)).toEqual([
+      false,
+      false,
+    ]);
+    expect(projections.map((object: any) => object.strokeWidth * autoInsertedFrontGroup.scaleX)).toEqual([
+      (defaultElevationWidth + 2) * 2,
+      defaultElevationWidth * 2,
+    ]);
+  });
+
+  it('recalcula bounds da elevação ao sincronizar projeções de contraventamento', () => {
+    const topGroup = createMockGroup({
+      _objects: [
+        {
+          isContraventamento: true,
+          contraventamentoId: 'contrav_initial_front_cache',
+          contraventamentoOrientation: 'horizontal',
+          contraventamentoRow: 0,
+          contraventamentoStartCol: 0,
+          contraventamentoEndCol: 3,
+          contraventamentoSide: 'bottom',
+          contraventamentoAnchorPilotiId: 'piloti_0_0',
+        },
+      ],
+    });
+
+    const initialFrontGroup = createMockGroup({
+      houseSide: 'top',
+      _clearCache: vi.fn(),
+      _calcBounds: vi.fn(),
+      _objects: [
+        {isGroundElement: true, isGroundFill: true},
+        createPilotiRect('piloti_0_0', 10, 100),
+        createPilotiRect('piloti_3_0', 210, 250),
+      ],
+    });
+
+    syncContraventamentoElevationViews(
+      topGroup,
+      [initialFrontGroup],
+      () => 1.5,
+    );
+
+    expect(initialFrontGroup._clearCache).toHaveBeenCalled();
+    expect(initialFrontGroup._calcBounds).toHaveBeenCalled();
+  });
+});

@@ -2,7 +2,10 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {PILOTI_BASE_HEIGHT_PX} from '@/shared/constants.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
-import {refreshElevationNivelLabels} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
+import {
+  refreshElevationNivelLabels,
+  refreshTopSlopeIndicators,
+} from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
 import type {SettingsPort} from '@/components/rac-editor/ports/SettingsPort.ts';
 
@@ -143,4 +146,35 @@ describe('house-visual-effects.ts', () => {
     expect(topGroup.showAllPilotiNivelLabels).toBeUndefined();
     expect(requestRender).toHaveBeenCalledTimes(2);
   });
+
+  it('sincroniza a seta de desnível em vista planta já carregada', () => {
+    const topGroup = createGroup([
+      createCanvasObject({isHouseBody: true, width: 160, height: 90}),
+      createPilotiCircle('piloti_0_0', -60, -30, 0.2),
+      createPilotiCircle('piloti_3_0', 60, -30, 0.5),
+      createPilotiCircle('piloti_0_2', -60, 30, 0.6),
+      createPilotiCircle('piloti_3_2', 60, 30, 0.9),
+    ], 'top');
+    const elevationGroup = createGroup([], 'side');
+    const house = createHouseSnapshot(topGroup, elevationGroup);
+    const requestRender = vi.fn();
+
+    refreshTopSlopeIndicators({house, requestRender});
+
+    const slopeObjects = topGroup.getCanvasObjects().filter((object) => object.isTopSlopeIndicator);
+    expect(slopeObjects).toHaveLength(2);
+    expect(slopeObjects[0].isTopSlopeIndicatorText).toBeUndefined();
+    expect(slopeObjects[1].text).toBe('Desnível 0,70 m');
+    expect(requestRender).toHaveBeenCalledOnce();
+  });
 });
+
+function createPilotiCircle(pilotiId: string, left: number, top: number, nivel: number): CanvasObject {
+  return createCanvasObject({
+    isPilotiCircle: true,
+    pilotiId,
+    pilotiNivel: nivel,
+    left,
+    top,
+  });
+}

@@ -40,6 +40,10 @@ export interface CanvasActiveSelectionHandle {
   }): 'deleted' | 'blocked' | 'none';
 }
 
+export interface CanvasImageLayerHandle {
+  moveActiveImageLayer(direction: 'front' | 'back'): boolean;
+}
+
 /**
  * Capacidade de desenho, limpeza e seleção da superfície visual.
  */
@@ -47,5 +51,6 @@ export interface CanvasSurfaceHandle
   extends CanvasDrawingModeHandle,
     CanvasSurfaceResetHandle,
     CanvasRenderHandle,
+    CanvasImageLayerHandle,
     CanvasActiveSelectionHandle {
 }

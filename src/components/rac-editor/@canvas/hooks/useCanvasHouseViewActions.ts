@@ -1,4 +1,4 @@
-import {Dispatch, MutableRefObject, RefObject, SetStateAction} from 'react';
+import {Dispatch, MutableRefObject, RefObject, SetStateAction, useRef} from 'react';
 import {toast} from 'sonner';
 import {NivelDefinition} from '@/components/rac-editor/@modals/ui/editors/NivelDefinitionEditor.tsx';
 import {
@@ -6,6 +6,7 @@ import {
   shouldTransitionToNivelDefinition
 } from '@/components/rac-editor/lib/house-side.ts';
 import {
+  DEFAULT_HOUSE_PILOTI,
   HOUSE_VIEW_INSERTION_DECISION_TYPES,
   type HousePreAssignedSideDisplay,
   type HouseSide,
@@ -13,7 +14,7 @@ import {
   type HouseViewType
 } from '@/shared/types/house.ts';
 import {HouseSideSelectorMode} from '@/components/rac-editor/@modals/ui/selectors/HouseSideSelector.tsx';
-import {HOUSE_DEFAULTS, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {PILOTI_CORNER_ID, TIMINGS, TOAST_MESSAGES} from '@/shared/config.ts';
 import {getViewLabelForHouseType} from '@/components/rac-editor/lib/house-view.ts';
 import {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib';
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
@@ -22,14 +23,13 @@ import type {CanvasObjectCreationHandle} from '@/components/rac-editor/@canvas/p
 import type {CanvasScreenProjectionHandle} from '@/components/rac-editor/@canvas/ports/CanvasScreenProjectionHandle.ts';
 import type {CanvasRenderHandle} from '@/components/rac-editor/@canvas/ports/CanvasSurfaceHandle.ts';
 import {createViewInstanceId} from '@/components/rac-editor/lib/house-identity.ts';
-import {
-  calculateStackedViewPositions,
-  resolveHouseViewInsertion,
-} from '@/domain/house/use-cases/house-views-layout.use-case.ts';
+import {resolveHouseViewInsertion} from '@/domain/house/use-cases/house-views-layout.use-case.ts';
 import {
   dispatchRacCanvasObjectEvent,
   RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT,
+  RAC_HOUSE_INITIAL_VIEWS_ELEVATION_INSERTED_EVENT,
 } from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
+import {useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
 
 interface UseCanvasHouseViewActionsArgs {
   canvasRef: RefObject<(
@@ -53,13 +53,35 @@ interface UseCanvasHouseViewActionsArgs {
   niveisAppliedRef: MutableRefObject<boolean>;
   transitionToNivelRef: MutableRefObject<boolean>;
   shouldShowAllElevationNivelLabels?: () => boolean;
+  shouldConfigureCornerPilotiNiveisOnHouseInsert?: () => boolean;
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-const HOUSE_INITIAL_TOUR_KIND = 'house-initial-views';
+const HOUSE_TOP_VIEW_TOUR_KIND = 'house-top-view-inserted';
+const HOUSE_ELEVATION_VIEW_TOUR_KIND = 'house-elevation-view-inserted';
 const HOUSE_TOP_VIEW_TARGET = 'house-top-view';
+const HOUSE_TOP_VIEW_PILOTI_TARGET = 'house-top-view-piloti';
 const HOUSE_ELEVATION_VIEW_TARGET = 'house-elevation-view';
+
+const DEFAULT_INITIAL_CORNER_NIVEIS: Record<string, NivelDefinition> = {
+  [PILOTI_CORNER_ID.topLeft]: {
+    nivel: DEFAULT_HOUSE_PILOTI.nivel,
+    isMaster: true,
+  },
+  [PILOTI_CORNER_ID.topRight]: {
+    nivel: DEFAULT_HOUSE_PILOTI.nivel,
+    isMaster: false,
+  },
+  [PILOTI_CORNER_ID.bottomLeft]: {
+    nivel: DEFAULT_HOUSE_PILOTI.nivel,
+    isMaster: false,
+  },
+  [PILOTI_CORNER_ID.bottomRight]: {
+    nivel: DEFAULT_HOUSE_PILOTI.nivel,
+    isMaster: false,
+  },
+};
 
 interface CanvasEventRect {
   left: number;
@@ -104,27 +126,93 @@ function getGroupScreenRect(
   return projectCanvasRect(canvasRef, bounds);
 }
 
+function resolveObjectLocalRect(object: CanvasObject): CanvasEventRect | null {
+  const width = Number(object.width ?? 0) * Number(object.scaleX ?? 1);
+  const height = Number(object.height ?? 0) * Number(object.scaleY ?? 1);
+  if (width <= 0 || height <= 0) return null;
+
+  const originX = String(object.originX ?? 'left');
+  const originY = String(object.originY ?? 'top');
+  const left = Number(object.left ?? 0) - (originX === 'center' ? width / 2 : 0);
+  const top = Number(object.top ?? 0) - (originY === 'center' ? height / 2 : 0);
+
+  return {left, top, width, height};
+}
+
+function getGroupLocalObjectScreenRect(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  group: CanvasGroup,
+  object: CanvasObject,
+): DOMRect | null {
+  const localRect = resolveObjectLocalRect(object);
+  if (!localRect) return null;
+
+  const topLeft = canvasRef.current?.getGroupLocalPointScreenPosition(group, {
+    x: localRect.left,
+    y: localRect.top,
+  });
+  const bottomRight = canvasRef.current?.getGroupLocalPointScreenPosition(group, {
+    x: localRect.left + localRect.width,
+    y: localRect.top + localRect.height,
+  });
+  if (!topLeft || !bottomRight) return null;
+
+  const left = Math.min(topLeft.x, bottomRight.x);
+  const top = Math.min(topLeft.y, bottomRight.y);
+  const width = Math.abs(bottomRight.x - topLeft.x);
+  const height = Math.abs(bottomRight.y - topLeft.y);
+  return width > 0 && height > 0 ? new DOMRect(left, top, width, height) : null;
+}
+
+function getTopViewPilotiTourRect(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  plantGroup: CanvasGroup,
+): DOMRect | null {
+  const objects = plantGroup.getCanvasObjects?.() ?? [];
+  const masterCircle = objects.find((object) => object.isPilotiCircle && object.pilotiIsMaster);
+  const fallbackCircle = objects.find((object) => object.isPilotiCircle);
+  const target = masterCircle ?? fallbackCircle;
+  return target ? getGroupLocalObjectScreenRect(canvasRef, plantGroup, target) : null;
+}
+
 function dispatchInitialHouseViewsInsertedEvent(
   canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
   plantGroup: CanvasGroup,
-  elevationGroup: CanvasGroup,
 ): void {
   const topViewRect = getGroupScreenRect(canvasRef, plantGroup);
-  const elevationViewRect = getGroupScreenRect(canvasRef, elevationGroup);
-  if (!topViewRect || !elevationViewRect) return;
+  if (!topViewRect) return;
+  const pilotiRect = getTopViewPilotiTourRect(canvasRef, plantGroup) ?? topViewRect;
 
   dispatchRacCanvasObjectEvent(RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT, {
-    kind: HOUSE_INITIAL_TOUR_KIND,
+    kind: HOUSE_TOP_VIEW_TOUR_KIND,
     targets: {
       [HOUSE_TOP_VIEW_TARGET]: toCanvasEventRect(topViewRect),
+      [HOUSE_TOP_VIEW_PILOTI_TARGET]: toCanvasEventRect(pilotiRect),
+    },
+  });
+}
+
+function dispatchFirstElevationViewInsertedEvent(
+  canvasRef: RefObject<CanvasScreenProjectionHandle | null>,
+  elevationGroup: CanvasGroup,
+): void {
+  const elevationViewRect = getGroupScreenRect(canvasRef, elevationGroup);
+  if (!elevationViewRect) return;
+
+  dispatchRacCanvasObjectEvent(RAC_HOUSE_INITIAL_VIEWS_ELEVATION_INSERTED_EVENT, {
+    kind: HOUSE_ELEVATION_VIEW_TOUR_KIND,
+    targets: {
       [HOUSE_ELEVATION_VIEW_TARGET]: toCanvasEventRect(elevationViewRect),
     },
   });
 }
 
+function isElevationView(viewType: HouseViewType): boolean {
+  return viewType !== 'top';
+}
+
 export function useCanvasHouseViewActions({
   canvasRef,
-  getVisibleCenter,
   closeAllMenus,
   addObjectToCanvas,
   onHouseDrawingChange,
@@ -140,9 +228,12 @@ export function useCanvasHouseViewActions({
   niveisAppliedRef,
   transitionToNivelRef,
   shouldShowAllElevationNivelLabels,
+  shouldConfigureCornerPilotiNiveisOnHouseInsert,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
 }: UseCanvasHouseViewActionsArgs) {
+  const emitHouseStoreChange = useHouseStoreEmitter();
+  const hasDispatchedFirstElevationViewRef = useRef(false);
 
   const addViewToCanvas =
     (viewType: HouseViewType, side?: HouseSide): CanvasGroup | null => {
@@ -171,10 +262,16 @@ export function useCanvasHouseViewActions({
         houseWritePort.removeView(instanceId);
         return null;
       }
-      houseWritePort.refreshAutoContraventamentoForCurrentHouse();
       houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse();
+      houseWritePort.refreshAutoContraventamentoForCurrentHouse();
+      emitHouseStoreChange();
 
       onHouseDrawingChange();
+
+      if (isElevationView(viewType) && !hasDispatchedFirstElevationViewRef.current) {
+        hasDispatchedFirstElevationViewRef.current = true;
+        dispatchFirstElevationViewInsertedEvent(canvasRef, house);
+      }
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
       toast.success(TOAST_MESSAGES.houseViewAdded(label));
@@ -230,6 +327,32 @@ export function useCanvasHouseViewActions({
       }
     };
 
+  const applyInitialNiveis =
+    (niveis: Record<string, NivelDefinition>) => {
+      // Capture pending values before any state clearing
+      const viewType = pendingViewType;
+
+      // Mark as applied so onClose won't reset the house manager
+      niveisAppliedRef.current = true;
+
+      houseWritePort.applyInitialPilotiNiveis(niveis);
+
+      // Adiciona apenas a vista de planta.
+      if (viewType) {
+        const plantGroup = addViewToCanvas('top'); // Planta
+        if (canvasRef.current && plantGroup) {
+          setTimeout(() => {
+            dispatchInitialHouseViewsInsertedEvent(canvasRef, plantGroup);
+          }, TIMINGS.stackedViewRepositionDelayMs);
+        }
+      }
+
+      // Clear state and close modal
+      setPendingViewType(null);
+      setPendingNivelSide(null);
+      setNivelDefinitionOpen(false);
+    };
+
   const handleSideSelected = (side: HouseSide) => {
     if (!pendingViewType) {
       setSideSelectorOpen(false);
@@ -250,7 +373,13 @@ export function useCanvasHouseViewActions({
       // Use a flag to prevent handleSideSelectorClose from clearing pendingViewType
       transitionToNivelRef.current = true;
       setSideSelectorOpen(false);
-      setNivelDefinitionOpen(true);
+
+      if (shouldConfigureCornerPilotiNiveisOnHouseInsert?.() ?? true) {
+        setNivelDefinitionOpen(true);
+        return;
+      }
+
+      applyInitialNiveis(DEFAULT_INITIAL_CORNER_NIVEIS);
       return;
     } else {
       // Regular side selection or choose-instance
@@ -263,49 +392,7 @@ export function useCanvasHouseViewActions({
 
   const handleNiveisApplied =
     (niveis: Record<string, NivelDefinition>) => {
-      // Capture pending values before any state clearing
-      const viewType = pendingViewType;
-      const side = pendingNivelSide;
-
-      // Mark as applied so onClose won't reset the house manager
-      niveisAppliedRef.current = true;
-
-      houseWritePort.applyInitialPilotiNiveis(niveis);
-
-      // Adiciona planta e vista inicial.
-      if (viewType) {
-        const plantGroup = addViewToCanvas('top'); // Planta
-        const viewGroup = addViewToCanvas(viewType, side ?? undefined); // Vista inicial
-
-        // Reposiciona para manter a planta acima e a vista abaixo.
-        if (canvasRef.current && plantGroup && viewGroup) {
-          setTimeout(() => {
-            const center = getVisibleCenter();
-            const gap = HOUSE_DEFAULTS.viewBetweenGap;
-            const ph = (plantGroup.height || 0) * (plantGroup.scaleY || 1);
-            const vh = (viewGroup.height || 0) * (viewGroup.scaleY || 1);
-
-            const layout = calculateStackedViewPositions({
-              centerY: center.y,
-              topHeight: ph,
-              bottomHeight: vh,
-              gap,
-            });
-
-            plantGroup.set({left: center.x, top: layout.topY});
-            viewGroup.set({left: center.x, top: layout.bottomY});
-            plantGroup.setCoords();
-            viewGroup.setCoords();
-            canvasRef.current?.renderAll();
-            dispatchInitialHouseViewsInsertedEvent(canvasRef, plantGroup, viewGroup);
-          }, TIMINGS.stackedViewRepositionDelayMs);
-        }
-      }
-
-      // Clear state and close modal
-      setPendingViewType(null);
-      setPendingNivelSide(null);
-      setNivelDefinitionOpen(false);
+      applyInitialNiveis(niveis);
     };
 
   const handleNivelDefinitionClose = () => {

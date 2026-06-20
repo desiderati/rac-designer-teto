@@ -127,9 +127,10 @@ describe('construction-site-form-validation.ts', () => {
       leaders: '',
       notes: '',
       soilProfile: '',
+      hasHydraulicObstacles: false,
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
-      hasNeighborSetbacks: false,
+      hasNeighborSetbackConstraints: false,
       locationQuery: '',
     }).success).toBe(true);
 
@@ -143,9 +144,10 @@ describe('construction-site-form-validation.ts', () => {
       leaders: '',
       notes: '',
       soilProfile: '',
+      hasHydraulicObstacles: false,
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
-      hasNeighborSetbacks: false,
+      hasNeighborSetbackConstraints: false,
       locationQuery: '',
     }).success).toBe(false);
   });
@@ -158,9 +160,10 @@ describe('construction-site-form-validation.ts', () => {
       primaryContactEmail: '',
       familyPhotoDataUrl: '',
       soilProfile: '',
+      hasHydraulicObstacles: false,
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
-      hasNeighborSetbacks: false,
+      hasNeighborSetbackConstraints: false,
       locationQuery: '',
     };
 
@@ -228,9 +231,10 @@ describe('construction-site-form-validation.ts', () => {
       leaders: '',
       notes: '',
       soilProfile: '',
+      hasHydraulicObstacles: false,
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
-      hasNeighborSetbacks: false,
+      hasNeighborSetbackConstraints: false,
     };
 
     for (const locationQuery of ['-25.4284567, -49.2733123', '-90, -180', '90, 180']) {

@@ -23,6 +23,7 @@ interface BuildRacEditorLayoutPropsArgs {
   documentSaveStatus: LayoutProps['menus']['documentSaveStatus'];
   documentTransitioning: LayoutProps['menus']['documentTransitioning'];
   canExportPDF: LayoutProps['menus']['canExportPDF'];
+  isHouseReadOnly: boolean;
   canvasRef: LayoutProps['canvas']['canvasRef'];
   infoMessage: LayoutProps['canvas']['infoMessage'];
   difficultyIndicator: LayoutProps['canvas']['difficultyIndicator'];
@@ -92,6 +93,7 @@ interface BuildRacEditorLayoutPropsArgs {
   closeRestartConfirm: LayoutProps['modals']['onCloseRestartConfirm'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
+  activeHouseId: LayoutProps['viewer']['activeHouseId'];
   house3DPdfSnapshotRef: LayoutProps['house3DPdfSnapshot']['snapshotRef'];
   constructionSiteManagementOpen: LayoutProps['workspace']['open'];
   closeConstructionSiteManagement: LayoutProps['workspace']['onClose'];
@@ -123,6 +125,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       documentSaveStatus: args.documentSaveStatus,
       documentTransitioning: args.documentTransitioning,
       canExportPDF: args.canExportPDF,
+      isReadOnly: args.isHouseReadOnly,
     },
     canvas: {
       canvasRef: args.canvasRef,
@@ -149,6 +152,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onContraventamentoCancel: args.handleCancelContraventamento,
       onFreeDrawPathCreated: args.handleFreeDrawPathCreated,
       onCanvasDocumentChange: args.onCanvasDocumentChange,
+      readOnly: args.isHouseReadOnly,
     },
     houseTypeSelector: {
       pilotisSetupOpen: args.pilotisSetupOpen,
@@ -210,9 +214,11 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       open: args.is3DViewerOpen,
       onOpenChange: args.setIs3DViewerOpen,
       canvasRef: args.canvasRef,
+      activeHouseId: args.activeHouseId,
     },
     house3DPdfSnapshot: {
       snapshotRef: args.house3DPdfSnapshotRef,
+      activeHouseId: args.activeHouseId,
     },
     workspace: {
       open: args.constructionSiteManagementOpen,

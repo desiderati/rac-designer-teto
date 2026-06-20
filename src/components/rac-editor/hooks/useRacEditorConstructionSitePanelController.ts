@@ -27,7 +27,7 @@ export function useRacEditorConstructionSitePanelController({
     useState<ConstructionSiteManagementScreen>('construction-list');
 
   const openConstructionSiteManagement = useCallback((initialScreen: ConstructionSiteManagementScreen) => {
-    void constructionSiteManagement.flushActiveHouseDocumentSave({force: true})
+    void constructionSiteManagement.flushActiveHouseDocumentSave()
       .catch(() => undefined)
       .finally(() => {
         setConstructionSiteManagementInitialScreen(initialScreen);

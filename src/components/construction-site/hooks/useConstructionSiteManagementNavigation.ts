@@ -99,29 +99,35 @@ export function useConstructionSiteManagementNavigation({
     : '';
 
   const pendingMonitorName = monitorPendingStatusChange?.name ?? '';
+  const isActiveConstructionArchived = constructionSite?.constructionSite.status === 'archived';
+  const isActiveConstructionReadOnly = isActiveConstructionArchived
+    || constructionSite?.constructionSite.status === 'completed';
 
   useEffect(() => {
     setScreen(initialScreen);
   }, [initialScreen]);
 
   const activateConstructionSummary = async (summary: ConstructionSiteSummary) => {
+    if (summary.status === 'archived') return false;
     setSelectedConstructionId(summary.id);
+    if (constructionSite?.constructionSite.id === summary.id) return true;
     await actions.activateConstructionSite(summary.id);
+    return true;
   };
 
   const openConstructionDetail = async (summary: ConstructionSiteSummary) => {
-    await activateConstructionSummary(summary);
+    if (!(await activateConstructionSummary(summary))) return;
     setScreen('construction-detail');
   };
 
   const openConstructionHouses = async (summary: ConstructionSiteSummary) => {
-    await activateConstructionSummary(summary);
+    if (!(await activateConstructionSummary(summary))) return;
     setSelectedHouseId(null);
     setScreen('houses');
   };
 
   const openConstructionMonitors = async (summary: ConstructionSiteSummary) => {
-    await activateConstructionSummary(summary);
+    if (!(await activateConstructionSummary(summary))) return;
     setSelectedMonitorId(null);
     setScreen('monitors');
   };
@@ -142,11 +148,13 @@ export function useConstructionSiteManagementNavigation({
   };
 
   const openHouseCreate = () => {
+    if (isActiveConstructionReadOnly) return;
     setSelectedHouseId(null);
     setScreen('house-create');
   };
 
   const openMonitorCreate = () => {
+    if (isActiveConstructionReadOnly) return;
     setSelectedMonitorId(null);
     setScreen('monitor-create');
   };
@@ -176,7 +184,7 @@ export function useConstructionSiteManagementNavigation({
   const openMonitorDetail = (monitorId: string) => {
     if (!constructionSite) return;
     const monitor = constructionSite.monitors.find((entry) => entry.id === monitorId);
-    if (!monitor) return;
+    if (!monitor || monitor.status === 'inactive') return;
 
     setSelectedMonitorId(monitorId);
     setScreen('monitor-detail');
@@ -208,12 +216,20 @@ export function useConstructionSiteManagementNavigation({
 
   const confirmHouseStatusChange = async () => {
     if (!housePendingStatusChange || !pendingHouseStatusChange) return;
+    if (isActiveConstructionReadOnly) {
+      setPendingHouseStatusChange(null);
+      return;
+    }
     if (pendingHouseStatusChange.action === 'archive') {
       await actions.archiveHouse(housePendingStatusChange.id);
-    } else {
+    } else if (pendingHouseStatusChange.action === 'unarchive') {
       await actions.unarchiveHouse(housePendingStatusChange.id);
+    } else if (pendingHouseStatusChange.action === 'markBuilt') {
+      await actions.markHouseBuilt(housePendingStatusChange.id);
+    } else if (pendingHouseStatusChange.action === 'markDraft') {
+      await actions.markHouseDraft(housePendingStatusChange.id);
     }
-    if (selectedHouseId === housePendingStatusChange.id) {
+    if (selectedHouseId === housePendingStatusChange.id && pendingHouseStatusChange.action === 'archive') {
       setSelectedHouseId(null);
     }
     setPendingHouseStatusChange(null);
@@ -221,6 +237,10 @@ export function useConstructionSiteManagementNavigation({
 
   const confirmMonitorStatusChange = () => {
     if (!monitorPendingStatusChange || !pendingMonitorStatusChange) return;
+    if (isActiveConstructionReadOnly) {
+      setPendingMonitorStatusChange(null);
+      return;
+    }
     if (pendingMonitorStatusChange.action === 'archive') {
       actions.inactivateMonitor(monitorPendingStatusChange.id);
     } else {
@@ -236,8 +256,12 @@ export function useConstructionSiteManagementNavigation({
     if (!pendingConstructionStatusChange) return;
     if (pendingConstructionStatusChange.action === 'archive') {
       await actions.archiveConstructionSite(pendingConstructionStatusChange.summary.id);
-    } else {
+    } else if (pendingConstructionStatusChange.action === 'unarchive') {
       await actions.unarchiveConstructionSite(pendingConstructionStatusChange.summary.id);
+    } else if (pendingConstructionStatusChange.action === 'markCompleted') {
+      await actions.markConstructionSiteCompleted(pendingConstructionStatusChange.summary.id);
+    } else if (pendingConstructionStatusChange.action === 'markInProgress') {
+      await actions.markConstructionSiteInProgress(pendingConstructionStatusChange.summary.id);
     }
     if (selectedConstructionId === pendingConstructionStatusChange.summary.id) {
       setSelectedConstructionId(constructionSite?.constructionSite.id ?? null);
@@ -279,9 +303,11 @@ export function useConstructionSiteManagementNavigation({
       setPendingConstructionStatusChange({summary, action});
     },
     requestHouseStatusChange: (houseId: string, action: StatusChangeAction) => {
+      if (isActiveConstructionReadOnly) return;
       setPendingHouseStatusChange({houseId, action});
     },
     requestMonitorStatusChange: (monitorId: string, action: StatusChangeAction) => {
+      if (isActiveConstructionReadOnly) return;
       setPendingMonitorStatusChange({monitorId, action});
     },
     cancelConstructionStatusChange: () => setPendingConstructionStatusChange(null),

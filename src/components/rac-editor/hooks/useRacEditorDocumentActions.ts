@@ -9,6 +9,7 @@ interface UseRacEditorDocumentActionsArgs {
   house3DPdfSnapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
   canExportPdf?: () => boolean;
   onBeforeExportPdf?: () => Promise<unknown>;
+  onAfterExportPdf?: () => void;
 }
 
 /**
@@ -19,12 +20,14 @@ export function useRacEditorDocumentActions({
   house3DPdfSnapshotRef,
   canExportPdf,
   onBeforeExportPdf,
+  onAfterExportPdf,
 }: UseRacEditorDocumentActionsArgs) {
   const {handleSavePDF} = useRacEditorPdfExportAction({
     canvasRef,
     house3DPdfSnapshotRef,
     canExportPdf,
     onBeforeExportPdf,
+    onAfterExportPdf,
   });
 
   return {

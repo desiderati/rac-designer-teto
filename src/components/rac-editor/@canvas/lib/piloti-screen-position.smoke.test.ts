@@ -28,5 +28,19 @@ describe('piloti-screen-position.ts', () => {
       y: 170,
     });
   });
+
+  it('applies the full affine matrix instead of assuming axis-only scale', () => {
+    expect(
+      projectCanvasPointToScreenPoint({
+        groupMatrix: [1, 0.5, 0.25, 1, 100, 50],
+        localCanvasPoint: {x: 20, y: 40},
+        canvasContainer: {left: 10, top: 15},
+        viewportTransform: [1, 0.2, 0.1, 1, 5, 7],
+      }),
+    ).toEqual({
+      x: 155,
+      y: 148,
+    });
+  });
 });
 

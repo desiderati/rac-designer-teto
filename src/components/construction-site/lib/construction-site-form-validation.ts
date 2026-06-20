@@ -71,10 +71,11 @@ export const houseConfigurationFormSchema = z.object({
   notes: z.string()
     .trim()
     .max(HOUSE_NOTES_MAX_LENGTH, `Máximo de ${HOUSE_NOTES_MAX_LENGTH} caracteres.`),
-  soilProfile: z.enum(['stable', 'loose_clay', 'water_table']).or(z.literal('')),
+  soilProfile: z.enum(['stable_clay', 'firm_hard', 'alluvial', 'water_table']).or(z.literal('')),
+  hasHydraulicObstacles: z.boolean(),
   hasUndergroundObstacles: z.boolean(),
   hasElevatedObstacles: z.boolean(),
-  hasNeighborSetbacks: z.boolean(),
+  hasNeighborSetbackConstraints: z.boolean(),
   locationQuery: z.string()
     .trim()
     .refine((value) => value.length === 0 || parseMapCoordinates(value) !== null, {

@@ -28,6 +28,8 @@ export interface ConstructionSiteManagementPort {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  markConstructionSiteCompleted(constructionSiteId: string): void;
+  markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
   createMonitor(input: CreateMonitorInput): MonitorRecord;
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
@@ -38,6 +40,9 @@ export interface ConstructionSiteManagementPort {
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  markActiveHouseRacPrinted(): void;
+  markHouseBuilt(houseId: string): void;
+  markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;

@@ -35,6 +35,7 @@ export function ConstructionFormScreen({
   communityName,
   onSubmit,
   onDirtyChange,
+  readOnly = false,
 }: {
   mode: 'create' | 'edit';
   externalCode: string;
@@ -44,6 +45,7 @@ export function ConstructionFormScreen({
   communityName: string;
   onSubmit(input: CreateConstructionSiteInput & UpdateConstructionSiteInput): void | Promise<void>;
   onDirtyChange?: (isDirty: boolean) => void;
+  readOnly?: boolean;
 }) {
   const form = useForm<ConstructionFormValues>({
     resolver: zodResolver(constructionFormSchema),
@@ -68,6 +70,8 @@ export function ConstructionFormScreen({
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
+    if (readOnly) return;
+
     const normalizedExternalCode = values.externalCode.trim().toUpperCase();
     if (mode === 'create' && unavailableExternalCodes.includes(normalizedExternalCode)) {
       form.setError('externalCode', {
@@ -99,6 +103,7 @@ export function ConstructionFormScreen({
               value={field.value ?? ''}
               onChange={field.onChange}
               dropZoneClassName='h-56'
+              disabled={readOnly}
             />
           )}
         />
@@ -117,6 +122,7 @@ export function ConstructionFormScreen({
                 maxLength={6}
                 pattern='CC[0-9]{4}'
                 error={fieldState.error?.message}
+                disabled={readOnly}
               />
             )}
           />
@@ -129,6 +135,7 @@ export function ConstructionFormScreen({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 error={fieldState.error?.message}
+                disabled={readOnly}
               />
             )}
           />
@@ -141,13 +148,14 @@ export function ConstructionFormScreen({
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 error={fieldState.error?.message}
+                disabled={readOnly}
               />
             )}
           />
         </div>
       </div>
       <div className='flex justify-end'>
-        <PrimaryButton type='submit' className={FORM_ACTION_BUTTON_CLASS}>
+        <PrimaryButton type='submit' className={FORM_ACTION_BUTTON_CLASS} disabled={readOnly}>
           {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
         </PrimaryButton>
       </div>
@@ -160,11 +168,13 @@ export function CommunityField({
   onChange,
   onBlur,
   error,
+  disabled = false,
 }: {
   value: string;
   onChange(value: string): void;
   onBlur?: () => void;
   error?: string;
+  disabled?: boolean;
 }) {
   return (
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
@@ -180,9 +190,10 @@ export function CommunityField({
         maxLength={CONSTRUCTION_COMMUNITY_MAX_LENGTH}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? 'construction-communities-error' : undefined}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}
-        className='min-h-10 rounded-lg border border-transparent bg-blue-50/80 px-3 text-sm font-medium normal-case tracking-normal text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100'
+        className='min-h-10 rounded-lg border border-transparent bg-blue-50/80 px-3 text-sm font-medium normal-case tracking-normal text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-70 disabled:focus:border-transparent disabled:focus:ring-0'
       />
       {error ? (
         <span id='construction-communities-error' className='text-xs font-semibold normal-case tracking-normal text-red-600'>
@@ -198,17 +209,20 @@ export function ConstructionDatePicker({
   onChange,
   onBlur,
   error,
+  disabled = false,
 }: {
   value: string;
   onChange(value: string): void;
   onBlur?: () => void;
   error?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const selectedDate = parseDateOnly(value);
   const label = formatDateOnly(value);
 
   const selectDate = (date?: Date) => {
+    if (disabled) return;
     onChange(date ? toDateOnly(date) : '');
     onBlur?.();
     setOpen(false);
@@ -218,7 +232,9 @@ export function ConstructionDatePicker({
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
       <span id='construction-date-label'>Data da Construção</span>
       <div className='flex gap-2'>
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={disabled ? false : open} onOpenChange={(nextOpen) => {
+          if (!disabled) setOpen(nextOpen);
+        }}>
           <PopoverTrigger asChild>
             <Button
               type='button'
@@ -227,9 +243,11 @@ export function ConstructionDatePicker({
               aria-labelledby='construction-date-label'
               aria-invalid={error ? 'true' : undefined}
               aria-describedby={error ? 'construction-date-error' : undefined}
+              disabled={disabled}
               className={cn(
                 inputClassName,
                 'w-full cursor-pointer justify-between border-transparent bg-blue-50/80 px-3 text-left normal-case tracking-normal hover:bg-white',
+                disabled ? 'hover:bg-slate-100' : null,
               )}
             >
               <span className={cn('min-w-0 flex-1 truncate', selectedDate ? 'text-slate-800' : 'text-slate-400')}>
@@ -256,12 +274,14 @@ export function ConstructionDatePicker({
           <button
             type='button'
             aria-label='Limpar Data da Construção'
+            disabled={disabled}
             onClick={() => {
+              if (disabled) return;
               onChange('');
               onBlur?.();
             }}
             onBlur={onBlur}
-            className='grid min-h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100'
+            className='grid min-h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-slate-100 disabled:hover:text-slate-500'
           >
             <X className='h-4 w-4'/>
           </button>

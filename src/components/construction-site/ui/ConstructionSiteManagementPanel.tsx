@@ -20,6 +20,29 @@ import {
 import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
+import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+
+const RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT = 'rac:construction-management-tour-ready';
+const RAC_CONSTRUCTION_MANAGEMENT_TOUR_KIND = 'construction-management';
+const RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT = 'rac:house-management-tour-ready';
+const RAC_HOUSE_MANAGEMENT_TOUR_KIND = 'house-management';
+const CONSTRUCTION_TOUR_TARGET_IDS = [
+  'rac-construction-add',
+  'rac-construction-monitors',
+  'rac-construction-houses',
+  'rac-construction-archive',
+  'rac-construction-back-to-canvas',
+] as const;
+const HOUSE_TOUR_TARGET_IDS = [
+  'rac-house-add',
+  'rac-house-status',
+  'rac-house-difficulty',
+  'rac-house-extra-materials',
+  'rac-house-built',
+  'rac-house-archive',
+  'rac-house-back',
+] as const;
+const GUIDED_TOUR_TARGET_COLLECTION_MAX_ATTEMPTS = 12;
 
 export interface ConstructionSiteManagementPanelProps {
   constructionSite: ConstructionSiteState | null;
@@ -53,9 +76,16 @@ export function ConstructionSiteManagementPanel({
   const isBackToCanvasButton = navigation.screen === 'construction-list'
     && canOpenRacEditor
     && Boolean(onBackToCanvas);
+  const backButtonGuidedTourId = getBackButtonGuidedTourId(navigation.screen, isBackToCanvasButton);
+  const selectedConstructionStatus = navigation.selectedSummary?.status
+    ?? constructionSite?.constructionSite.status;
+  const isSelectedConstructionReadOnly =
+    selectedConstructionStatus === 'archived' || selectedConstructionStatus === 'completed';
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const hasUnsavedChangesRef = useRef(false);
+  const hasDispatchedConstructionTourRef = useRef(false);
+  const hasDispatchedHouseTourRef = useRef(false);
 
   const updateUnsavedChanges = useCallback((isDirty: boolean) => {
     hasUnsavedChangesRef.current = isDirty;
@@ -104,6 +134,40 @@ export function ConstructionSiteManagementPanel({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  useEffect(() => {
+    if (hasDispatchedConstructionTourRef.current) return;
+    if (navigation.screen !== 'construction-list' || !isBackToCanvasButton) return;
+
+    return scheduleGuidedTourWhenTargetsReady(collectConstructionTourTargets, (targets) => {
+      if (hasDispatchedConstructionTourRef.current) return;
+
+      hasDispatchedConstructionTourRef.current = true;
+      document.dispatchEvent(new CustomEvent(RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT, {
+        detail: {
+          kind: RAC_CONSTRUCTION_MANAGEMENT_TOUR_KIND,
+          targets,
+        },
+      }));
+    });
+  }, [isBackToCanvasButton, navigation.screen, summaries.length]);
+
+  useEffect(() => {
+    if (hasDispatchedHouseTourRef.current) return;
+    if (navigation.screen !== 'houses' || !constructionSite?.houses.length) return;
+
+    return scheduleGuidedTourWhenTargetsReady(collectHouseTourTargets, (targets) => {
+      if (hasDispatchedHouseTourRef.current) return;
+
+      hasDispatchedHouseTourRef.current = true;
+      document.dispatchEvent(new CustomEvent(RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT, {
+        detail: {
+          kind: RAC_HOUSE_MANAGEMENT_TOUR_KIND,
+          targets,
+        },
+      }));
+    });
+  }, [constructionSite?.houses.length, navigation.screen]);
+
   return (
     <main
       data-testid='construction-management-shell'
@@ -125,7 +189,7 @@ export function ConstructionSiteManagementPanel({
                   type='button'
                   onClick={() => requestNavigation(navigation.navigateBack)}
                   aria-label='Voltar'
-                  data-guided-tour-id={isBackToCanvasButton ? 'rac-construction-back-to-canvas' : undefined}
+                  data-guided-tour-id={backButtonGuidedTourId}
                   className='grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200'
                 >
                   <ArrowLeft className='h-5 w-5'/>
@@ -146,6 +210,7 @@ export function ConstructionSiteManagementPanel({
             </div>
             <HeaderAction
               screen={navigation.screen}
+              disabled={isSelectedConstructionReadOnly}
               onAddConstruction={() => navigation.setScreen('construction-create')}
               onAddHouse={navigation.openHouseCreate}
               onAddMonitor={navigation.openMonitorCreate}
@@ -193,6 +258,7 @@ export function ConstructionSiteManagementPanel({
                 finishFormNavigation(navigation.showConstructionList);
               }}
               onDirtyChange={updateUnsavedChanges}
+              readOnly={isSelectedConstructionReadOnly}
             />
           ) : (
             <EmptyState
@@ -208,6 +274,7 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               onEditMonitor={navigation.openMonitorDetail}
               onRequestMonitorStatusChange={navigation.requestMonitorStatusChange}
+              readOnly={isSelectedConstructionReadOnly}
             />
           ) : (
             <EmptyState title='Nenhuma construção ativa' description='Crie uma Construção TETO antes de cadastrar monitores.'/>
@@ -224,6 +291,7 @@ export function ConstructionSiteManagementPanel({
               finishFormNavigation(navigation.showMonitors);
             }}
             onDirtyChange={updateUnsavedChanges}
+            readOnly={isSelectedConstructionReadOnly}
           />
         ) : null}
 
@@ -238,6 +306,7 @@ export function ConstructionSiteManagementPanel({
               finishFormNavigation(navigation.showMonitors);
             }}
             onDirtyChange={updateUnsavedChanges}
+            readOnly={isSelectedConstructionReadOnly}
           />
         ) : null}
 
@@ -249,6 +318,7 @@ export function ConstructionSiteManagementPanel({
               onEditHouse={navigation.openHouseDetail}
               onOpenHouseExtraMaterials={navigation.openHouseExtraMaterials}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}
+              readOnly={isSelectedConstructionReadOnly}
             />
           ) : (
             <EmptyState title='Nenhuma construção ativa' description='Crie uma Construção TETO antes de cadastrar casas.'/>
@@ -265,6 +335,7 @@ export function ConstructionSiteManagementPanel({
               finishFormNavigation(navigation.showHouses);
             }}
             onDirtyChange={updateUnsavedChanges}
+            readOnly={isSelectedConstructionReadOnly}
           />
         ) : null}
 
@@ -278,6 +349,7 @@ export function ConstructionSiteManagementPanel({
               finishFormNavigation(navigation.showHouses);
             }}
             onDirtyChange={updateUnsavedChanges}
+            readOnly={isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'built'}
           />
         ) : null}
 
@@ -290,6 +362,7 @@ export function ConstructionSiteManagementPanel({
               finishFormNavigation(navigation.showHouses);
             }}
             onDirtyChange={updateUnsavedChanges}
+            readOnly={isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'built'}
           />
         ) : null}
 
@@ -329,18 +402,25 @@ export function ConstructionSiteManagementPanel({
 
 function HeaderAction({
   screen,
+  disabled = false,
   onAddConstruction,
   onAddHouse,
   onAddMonitor,
 }: {
   screen: ConstructionSiteManagementScreen;
+  disabled?: boolean;
   onAddConstruction(): void;
   onAddHouse(): void;
   onAddMonitor(): void;
 }) {
   if (screen === 'construction-list') {
     return (
-      <PrimaryButton type='button' className={HEADER_ACTION_BUTTON_CLASS} onClick={onAddConstruction}>
+      <PrimaryButton
+        type='button'
+        data-guided-tour-id='rac-construction-add'
+        className={HEADER_ACTION_BUTTON_CLASS}
+        onClick={onAddConstruction}
+      >
         + Adicionar Construção
       </PrimaryButton>
     );
@@ -348,7 +428,7 @@ function HeaderAction({
 
   if (screen === 'monitors') {
     return (
-      <PrimaryButton type='button' className={HEADER_ACTION_BUTTON_CLASS} onClick={onAddMonitor}>
+      <PrimaryButton type='button' className={HEADER_ACTION_BUTTON_CLASS} onClick={onAddMonitor} disabled={disabled}>
         + Adicionar Monitor
       </PrimaryButton>
     );
@@ -356,11 +436,94 @@ function HeaderAction({
 
   if (screen === 'houses') {
     return (
-      <PrimaryButton type='button' className={HEADER_ACTION_BUTTON_CLASS} onClick={onAddHouse}>
+      <PrimaryButton
+        type='button'
+        data-guided-tour-id='rac-house-add'
+        className={HEADER_ACTION_BUTTON_CLASS}
+        onClick={onAddHouse}
+        disabled={disabled}
+      >
         + Adicionar Casa
       </PrimaryButton>
     );
   }
 
   return null;
+}
+
+function scheduleGuidedTourWhenTargetsReady(
+  collectTargets: () => Record<string, GuidedTourEventRect> | null,
+  dispatchTour: (targets: Record<string, GuidedTourEventRect>) => void,
+): () => void {
+  let frame: number | null = null;
+  let attempt = 0;
+  let cancelled = false;
+
+  const tryDispatch = () => {
+    if (cancelled) return;
+
+    const targets = collectTargets();
+    if (targets) {
+      dispatchTour(targets);
+      return;
+    }
+
+    attempt += 1;
+    if (attempt >= GUIDED_TOUR_TARGET_COLLECTION_MAX_ATTEMPTS) return;
+
+    frame = window.requestAnimationFrame(tryDispatch);
+  };
+
+  frame = window.requestAnimationFrame(tryDispatch);
+
+  return () => {
+    cancelled = true;
+    if (frame !== null) {
+      window.cancelAnimationFrame(frame);
+    }
+  };
+}
+
+function collectConstructionTourTargets(): Record<string, GuidedTourEventRect> | null {
+  return collectGuidedTourTargets(CONSTRUCTION_TOUR_TARGET_IDS);
+}
+
+function collectHouseTourTargets(): Record<string, GuidedTourEventRect> | null {
+  return collectGuidedTourTargets(HOUSE_TOUR_TARGET_IDS);
+}
+
+function collectGuidedTourTargets(targetIds: readonly string[]): Record<string, GuidedTourEventRect> | null {
+  const entries = targetIds.map((targetId) => {
+    const rect = getVisibleTargetRect(targetId);
+    if (!rect) return null;
+    return [targetId, toGuidedTourEventRect(rect)] as const;
+  });
+
+  if (entries.some((entry) => entry === null)) return null;
+  return Object.fromEntries(entries.filter((entry): entry is NonNullable<typeof entry> => entry !== null));
+}
+
+function getBackButtonGuidedTourId(
+  screen: ConstructionSiteManagementScreen,
+  isBackToCanvasButton: boolean,
+): string | undefined {
+  if (isBackToCanvasButton) return 'rac-construction-back-to-canvas';
+  if (screen === 'houses') return 'rac-house-back';
+  return undefined;
+}
+
+interface GuidedTourEventRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+function toGuidedTourEventRect(rect: DOMRect): GuidedTourEventRect {
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+  };
 }

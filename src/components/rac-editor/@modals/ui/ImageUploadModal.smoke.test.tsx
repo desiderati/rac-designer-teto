@@ -28,7 +28,7 @@ describe('ImageUploadModal.tsx', () => {
   it('validates and inserts an uploaded image data URL', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
-    const onInsertImage = vi.fn(async () => true);
+    const onInsertImage = vi.fn(async (_dataUrl: string) => true);
     renderImageUploadModal({onOpenChange, onInsertImage});
 
     await user.upload(
@@ -44,7 +44,7 @@ describe('ImageUploadModal.tsx', () => {
   it('keeps the modal open and reports invalid image files', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
-    const onInsertImage = vi.fn(() => true);
+    const onInsertImage = vi.fn((_dataUrl: string) => true);
     renderImageUploadModal({onOpenChange, onInsertImage});
 
     await user.upload(

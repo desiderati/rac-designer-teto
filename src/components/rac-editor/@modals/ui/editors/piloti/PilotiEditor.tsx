@@ -83,6 +83,7 @@ export function PilotiEditor({
     masterPilotiName,
     maxNivel,
     autoAdjustPilotiHeightsFromNivel,
+    handleNivelModeToggle,
     handleNavigate,
     handleApply,
     handleCancel,
@@ -175,7 +176,9 @@ export function PilotiEditor({
                 onNivelChange={handleNivelChange}
                 onNivelCommit={handleNivelCommit}
                 enableInput
-                modeLabel={autoAdjustPilotiHeightsFromNivel ? 'Auto' : 'Manual'}
+                autoMode={autoAdjustPilotiHeightsFromNivel}
+                onAutoModeToggle={handleNivelModeToggle}
+                showModeTourTarget={!isMobile}
               />
 
               <Separator/>
@@ -184,13 +187,13 @@ export function PilotiEditor({
 
           <div className='space-y-4'>
             <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>
-            <div className='grid grid-cols-3 justify-items-center gap-3 max-w-[240px] mx-auto'>
+            <div className='grid grid-cols-4 justify-items-center gap-2 max-w-[216px] mx-auto'>
               {selectedPilotiHeights.map((h) =>
                 <button
                   key={h}
                   onClick={() => handleHeightClick(h)}
                   disabled={clickedHeight !== null}
-                  className={getHeightButtonClasses(h)}
+                  className={getHeightButtonClasses(h, {compact: true})}
                 >
                   {formatPilotiHeight(h)}
                 </button>

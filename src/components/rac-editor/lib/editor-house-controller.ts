@@ -58,6 +58,8 @@ interface EditorHouseEffectsPort {
 
   refreshPilotiNameLabels(): void;
 
+  refreshTopSlopeIndicators(): void;
+
   refreshElevationNivelLabels(): void;
 }
 
@@ -148,6 +150,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.notifier.addInternalListener(() => this.effects.refreshAutoStairs());
     this.notifier.addInternalListener(() => this.effects.refreshHouseViewReferenceMarkers());
     this.notifier.addInternalListener(() => this.effects.refreshPilotiNameLabels());
+    this.notifier.addInternalListener(() => this.effects.refreshTopSlopeIndicators());
     this.notifier.addInternalListener(() => this.effects.refreshElevationNivelLabels());
   }
 
@@ -187,10 +190,12 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   }
 
   refreshAutoStairsForCurrentSettings(): void {
+    this.invalidateRuntimeHouseCache();
     this.effects.refreshAutoStairs();
   }
 
   refreshAutoContraventamentoForCurrentHouse(): void {
+    this.invalidateRuntimeHouseCache();
     this.effects.refreshAutoContraventamento();
   }
 
@@ -327,6 +332,14 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.constructionSites.unarchiveConstructionSite(constructionSiteId);
   }
 
+  markConstructionSiteCompleted(constructionSiteId: string): void {
+    this.constructionSites.markConstructionSiteCompleted(constructionSiteId);
+  }
+
+  markConstructionSiteInProgress(constructionSiteId: string): void {
+    this.constructionSites.markConstructionSiteInProgress(constructionSiteId);
+  }
+
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
     return this.constructionSites.activateConstructionSite(constructionSiteId);
   }
@@ -365,6 +378,18 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   unarchiveHouse(houseId: string): void {
     this.constructionSites.unarchiveHouse(houseId);
+  }
+
+  markActiveHouseRacPrinted(): void {
+    this.constructionSites.markActiveHouseRacPrinted();
+  }
+
+  markHouseBuilt(houseId: string): void {
+    this.constructionSites.markHouseBuilt(houseId);
+  }
+
+  markHouseDraft(houseId: string): void {
+    this.constructionSites.markHouseDraft(houseId);
   }
 
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {

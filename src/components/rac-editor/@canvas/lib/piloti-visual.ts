@@ -24,6 +24,7 @@ import {
   PILOTI_MASTER_STROKE_COLOR
 } from '@/shared/constants.ts';
 import {formatNivel, formatPilotiHeight} from '@/shared/types/piloti.ts';
+import {refreshTopSlopeIndicator} from '@/components/rac-editor/@canvas/lib/house-top-slope-indicator.ts';
 
 export interface PilotiNivelTextPatch {
   text: string;
@@ -147,6 +148,7 @@ export function applyPilotiDataToGroup(
   const pilotiObjectIndex = buildPilotiObjectIndex(canvasObjects);
 
   applyPilotiDataFirstPass(canvasObjects, pilotiObjectIndex, pilotis);
+  refreshTopSlopeIndicator(group);
   applyNivelLabelsBackground(canvasObjects);
   applyPilotiSizeLabelPositions(canvasObjects, pilotiObjectIndex);
   applyPilotiStripeOverlays(canvasObjects, pilotiObjectIndex);
@@ -349,6 +351,7 @@ function syncPilotiUpdateOnGroup(
     updatePilotiMaster(group, pilotiId, newData.isMaster, newData.nivel);
   }
   if (pilotiData.height !== undefined || pilotiData.nivel !== undefined) {
+    refreshTopSlopeIndicator(group);
     updateGroundInGroup(group);
   }
 

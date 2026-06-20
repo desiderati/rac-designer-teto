@@ -7,6 +7,7 @@ import {
   startConsoleErrorCapture,
 } from './helpers/rac-editor.helpers';
 import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
+import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
 
 const pdfExportSeed = {
   houseSize: 'large' as const,
@@ -22,6 +23,7 @@ const pdfExportSeed = {
   selectedPilotiHeights: [1, 1.5, 2, 2.5],
   siteAssessment: {
     soilProfile: 'water_table' as const,
+    hasHydraulicObstacles: true,
     hasElevatedObstacles: true,
   },
   monitors: [
@@ -55,6 +57,7 @@ test.describe('Exportação PDF do RAC', () => {
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');
+    await expect(page.getByText('PDF salvo com sucesso!')).toBeVisible();
 
     const downloadPath = await download.path();
     expect(downloadPath).toBeTruthy();
@@ -65,6 +68,21 @@ test.describe('Exportação PDF do RAC', () => {
     expect(pdfText).toContain('/Creator (RAC Designer TETO)');
     expect(pdfText).toMatch(/\/MediaBox \[0 0 841\.88\d* 595\.27\d*\]/);
     expect((pdfText.match(/\/Type \/Page\b/g) ?? []).length).toBe(2);
+    await expect.poll(async () => {
+      const document = await readConstructionSiteDocument(page);
+      return document?.constructionSites[0]?.houses[0]?.status ?? null;
+    }).toBe('rac_printed');
+
+    await page.getByRole('button', {name: 'Abrir menu principal'}).click();
+    await page.getByRole('button', {name: 'Construções TETO'}).click();
+    const documentAfterOpeningConstructionList = await readConstructionSiteDocument(page);
+    expect(documentAfterOpeningConstructionList?.constructionSites[0]?.houses[0]?.status).toBe('rac_printed');
+    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
+      .click();
+    const documentAfterOpeningHouseList = await readConstructionSiteDocument(page);
+    expect(documentAfterOpeningHouseList?.constructionSites[0]?.houses[0]?.status).toBe('rac_printed');
+    await expect(page.getByRole('row', {name: /Família E2E.*Tipo 6.*RAC Impressa/i})).toBeVisible();
   });
 
   test('gera download pelo menu móvel da conta', async ({page}) => {

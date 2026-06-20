@@ -15,6 +15,7 @@ import {CanvasGroup, CanvasObject, toCanvasObject} from '../../canvas.ts';
 import {setCanvasGroupMyType} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
 import {formatNivel, formatPilotiHeight, getPilotiName} from '@/shared/types/piloti.ts';
 import {HOUSE_BASE_HEIGHT, HOUSE_BASE_WIDTH} from '@/shared/constants.ts';
+import {refreshTopSlopeIndicator} from '@/components/rac-editor/@canvas/lib/house-top-slope-indicator.ts';
 
 export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
 
@@ -261,5 +262,6 @@ export function createHouseTop(canvas: FabricCanvas): CanvasGroup {
 
   const groupObj = setCanvasGroupMyType(group, 'house');
   groupObj.houseView = 'top';
+  refreshTopSlopeIndicator(groupObj);
   return groupObj;
 }

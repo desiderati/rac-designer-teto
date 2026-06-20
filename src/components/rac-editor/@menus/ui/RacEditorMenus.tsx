@@ -31,6 +31,7 @@ export function RacEditorMenus({
   documentSaveStatus,
   documentTransitioning,
   canExportPDF,
+  isReadOnly = false,
 }: RacEditorMenusProps) {
   return (
     <>
@@ -45,6 +46,7 @@ export function RacEditorMenus({
         documentSaveStatus={documentSaveStatus}
         documentTransitioning={documentTransitioning}
         canExportPDF={canExportPDF}
+        isReadOnly={isReadOnly}
       />
 
       <CanvasToolsMenu
@@ -57,6 +59,7 @@ export function RacEditorMenus({
         side1ViewCount={side1ViewCount}
         side2ViewCount={side2ViewCount}
         isMobile={isMobile}
+        disabled={isReadOnly}
       />
     </>
   );

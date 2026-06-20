@@ -38,6 +38,7 @@ export function useConstructionSiteManagementController({
     saveActiveHouseDocument,
     notifyActiveHouseDocumentChanged,
     flushActiveHouseDocumentSave,
+    acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
     runDocumentMutation,
@@ -92,6 +93,18 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const markHouseBuilt = useCallback(async (houseId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.markHouseBuilt(houseId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
+  const markHouseDraft = useCallback(async (houseId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.markHouseDraft(houseId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
   const createConstructionSite = useCallback(async (input: CreateConstructionSiteInput) => {
     await runDocumentMutation(() => {
       constructionSiteManagementPort.createConstructionSite(input);
@@ -110,8 +123,23 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const markConstructionSiteCompleted = useCallback(async (constructionSiteId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.markConstructionSiteCompleted(constructionSiteId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
+  const markConstructionSiteInProgress = useCallback(async (constructionSiteId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.markConstructionSiteInProgress(constructionSiteId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
   const activateConstructionSite = useCallback(async (constructionSiteId: string) => {
-    await runDocumentMutation(() => constructionSiteManagementPort.activateConstructionSite(constructionSiteId));
+    await runDocumentMutation(
+      () => constructionSiteManagementPort.activateConstructionSite(constructionSiteId),
+      {forceSave: false},
+    );
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
   void version;
@@ -128,6 +156,7 @@ export function useConstructionSiteManagementController({
     saveActiveHouseDocument,
     notifyActiveHouseDocumentChanged,
     flushActiveHouseDocumentSave,
+    acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
     actions: {
@@ -136,6 +165,8 @@ export function useConstructionSiteManagementController({
       archiveActiveConstructionSite: () => constructionSiteManagementPort.archiveActiveConstructionSite(),
       archiveConstructionSite,
       unarchiveConstructionSite,
+      markConstructionSiteCompleted,
+      markConstructionSiteInProgress,
       activateConstructionSite,
       createMonitor: (input: CreateMonitorInput) => constructionSiteManagementPort.createMonitor(input),
       updateMonitor: (monitorId: string, input: UpdateMonitorInput) =>
@@ -147,6 +178,8 @@ export function useConstructionSiteManagementController({
       archiveActiveHouse,
       archiveHouse,
       unarchiveHouse,
+      markHouseBuilt,
+      markHouseDraft,
       activateHouse,
       updateActiveFamily: (input: UpdateFamilyInput) => constructionSiteManagementPort.updateActiveFamily(input),
       updateActiveHouseSiteAssessment: (input: Partial<SiteAssessment>) =>

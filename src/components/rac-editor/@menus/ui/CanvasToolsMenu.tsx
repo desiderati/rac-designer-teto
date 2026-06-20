@@ -27,6 +27,7 @@ interface CanvasToolsMenuProps {
   side1ViewCount: MenuViewCount;
   side2ViewCount: MenuViewCount;
   isMobile: boolean;
+  disabled?: boolean;
 }
 
 export function CanvasToolsMenu({
@@ -39,6 +40,7 @@ export function CanvasToolsMenu({
   side1ViewCount,
   side2ViewCount,
   isMobile,
+  disabled = false,
 }: CanvasToolsMenuProps) {
   const houseMenuItems = houseType ? HOUSE_MENU_CONFIG[houseType] : [];
   const isHouseMenuOpen = activeSubmenu === 'house' && !!houseType;
@@ -111,15 +113,17 @@ export function CanvasToolsMenu({
         )}
         aria-label='Barra de ferramentas principal'
         data-guided-tour-id='rac-toolbar'
+        aria-disabled={disabled}
       >
         <RailItemWithSubmenu
-          anchorOpen={isHouseMenuOpen}
+          anchorOpen={!disabled && isHouseMenuOpen}
           anchor={(
             <RailButton
               icon={MAIN_MENU_ICONS.house}
               title='Casa TETO (Opções)'
               onClick={() => (houseType ? actions.toggleHouseMenu() : actions.openHouseTypeSelector())}
               isActive={activeSubmenu === 'house'}
+              isDisabled={disabled}
               hideTooltip={activeSubmenu === 'house'}
             />
           )}
@@ -127,6 +131,7 @@ export function CanvasToolsMenu({
             icon: item.icon,
             title: item.title,
             onClick: actions[item.action],
+            isDisabled: disabled,
             isAtLimit: resolveLimitState(item.limitKey, {
               frontViewCount,
               backViewCount,
@@ -137,13 +142,14 @@ export function CanvasToolsMenu({
         />
 
         <RailItemWithSubmenu
-          anchorOpen={activeSubmenu === 'elements'}
+          anchorOpen={!disabled && activeSubmenu === 'elements'}
           anchor={(
             <RailButton
               icon={MAIN_MENU_ICONS.elements}
               title='Elementos'
               onClick={actions.toggleElementsMenu}
               isActive={activeSubmenu === 'elements'}
+              isDisabled={disabled}
               hideTooltip={activeSubmenu === 'elements'}
             />
           )}
@@ -151,19 +157,20 @@ export function CanvasToolsMenu({
             icon: item.icon,
             title: item.title,
             onClick: actions[item.action],
-            isDisabled: item.disabled,
+            isDisabled: disabled || item.disabled,
             guidedTourId: item.guidedTourId,
           }))}
         />
 
         <RailItemWithSubmenu
-          anchorOpen={activeSubmenu === 'lines'}
+          anchorOpen={!disabled && activeSubmenu === 'lines'}
           anchor={(
             <RailButton
               icon={MAIN_MENU_ICONS.lines}
               title='Linhas'
               onClick={actions.toggleLinesMenu}
               isActive={activeSubmenu === 'lines'}
+              isDisabled={disabled}
               hideTooltip={activeSubmenu === 'lines'}
             />
           )}
@@ -171,6 +178,7 @@ export function CanvasToolsMenu({
             icon: item.icon,
             title: item.title,
             onClick: actions[item.action],
+            isDisabled: disabled,
             guidedTourId: item.guidedTourId,
           }))}
         />
@@ -180,18 +188,21 @@ export function CanvasToolsMenu({
           title='Lápis'
           onClick={actions.toggleDrawMode}
           isActive={isDrawing}
+          isDisabled={disabled}
         />
 
         <RailButton
           icon={MAIN_MENU_ICONS.text}
           title='Texto Livre'
           onClick={actions.addText}
+          isDisabled={disabled}
         />
 
         <RailButton
           icon={MAIN_MENU_ICONS.upload}
           title='Upload de Imagem'
           onClick={actions.openImageUpload}
+          isDisabled={disabled}
         />
 
         <RailDivider/>
@@ -201,6 +212,7 @@ export function CanvasToolsMenu({
           title='Excluir Item'
           onClick={actions.deleteSelection}
           isDestructive
+          isDisabled={disabled}
         />
       </aside>
     </>

@@ -66,6 +66,16 @@ export class EditorHouseConstructionSiteBridge {
     this.reloadActiveHouseDrawingDocument();
   }
 
+  markConstructionSiteCompleted(constructionSiteId: string): void {
+    this.session.markConstructionSiteCompleted(constructionSiteId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
+  markConstructionSiteInProgress(constructionSiteId: string): void {
+    this.session.markConstructionSiteInProgress(constructionSiteId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
     const document = this.session.activateConstructionSite(constructionSiteId);
     this.args.loadHouseDrawingDocument(document);
@@ -117,6 +127,21 @@ export class EditorHouseConstructionSiteBridge {
 
   unarchiveHouse(houseId: string): void {
     this.session.unarchiveHouse(houseId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
+  markActiveHouseRacPrinted(): void {
+    this.session.markActiveHouseRacPrinted();
+    this.args.notify();
+  }
+
+  markHouseBuilt(houseId: string): void {
+    this.session.markHouseBuilt(houseId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
+  markHouseDraft(houseId: string): void {
+    this.session.markHouseDraft(houseId);
     this.reloadActiveHouseDrawingDocument();
   }
 

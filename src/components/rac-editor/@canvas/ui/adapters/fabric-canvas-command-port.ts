@@ -20,7 +20,10 @@ import {
   applyPilotiEditorCloseVisuals,
   applyPilotiSelectionVisuals,
 } from '@/components/rac-editor/@canvas/lib/piloti-visual-feedback.ts';
-import {projectCanvasPointToScreenPoint} from '@/components/rac-editor/@canvas/lib/piloti-screen-position.ts';
+import {
+  projectCanvasPointToScreenPoint,
+  transformGroupLocalPointToCanvasPoint,
+} from '@/components/rac-editor/@canvas/lib/piloti-screen-position.ts';
 import {createViewGroupMetadataPatch} from '@/components/rac-editor/lib/house-view.ts';
 
 export interface FabricCanvasCommandPort {
@@ -37,6 +40,7 @@ export interface FabricCanvasCommandPort {
   setDrawingModeEnabled: (enabled: boolean) => boolean;
   resetSurface: () => void;
   renderAll: () => void;
+  moveActiveImageLayer: (direction: 'front' | 'back') => boolean;
   getActiveObjectCount: () => number;
   deleteActiveObjects: (handlers?: {
     canDeleteTopView?: () => boolean;
@@ -65,8 +69,21 @@ export interface FabricCanvasCommandPort {
 interface FabricCanvasCommandPortArgs {
   canvas: FabricCanvas;
   getVisibleCenter: () => { x: number; y: number };
+  getCanvasPointScreenPosition?: (point: { x: number; y: number }) => { x: number; y: number } | null;
   clearHistory: () => void;
   saveHistory: () => void;
+}
+
+interface FabricCanvasLayerApi {
+  bringObjectToFront?: (object: CanvasObject) => void;
+  sendObjectToBack?: (object: CanvasObject) => void;
+  bringToFront?: (object: CanvasObject) => void;
+  sendToBack?: (object: CanvasObject) => void;
+  moveObjectTo?: (object: CanvasObject, index: number) => void;
+}
+
+function isImageCanvasObject(object: CanvasObject | null): object is CanvasObject {
+  return object?.myType === 'image' || object?.type === 'image';
 }
 
 /**
@@ -75,6 +92,7 @@ interface FabricCanvasCommandPortArgs {
 export function createFabricCanvasCommandPort({
   canvas,
   getVisibleCenter,
+  getCanvasPointScreenPosition,
   clearHistory,
   saveHistory,
 }: FabricCanvasCommandPortArgs): FabricCanvasCommandPort {
@@ -99,6 +117,28 @@ export function createFabricCanvasCommandPort({
     }
 
     return {x: left, y: top};
+  };
+
+  const projectGroupLocalPointToScreen = (
+    group: CanvasGroup,
+    localCanvasPoint: { x: number; y: number },
+  ): { x: number; y: number } | null => {
+    const canvasPoint = transformGroupLocalPointToCanvasPoint({
+      groupMatrix: group.calcTransformMatrix(),
+      localCanvasPoint,
+    });
+    const projectedByEditorViewport = getCanvasPointScreenPosition?.(canvasPoint);
+    if (projectedByEditorViewport) return projectedByEditorViewport;
+
+    const container = canvas.getElement().parentElement;
+    if (!container) return null;
+
+    return projectCanvasPointToScreenPoint({
+      groupMatrix: group.calcTransformMatrix(),
+      localCanvasPoint,
+      canvasContainer: container.getBoundingClientRect(),
+      viewportTransform: canvas.viewportTransform ?? undefined,
+    });
   };
 
   const getHouseGroups = (houseView?: PilotiCanvasSelection['houseView']): CanvasGroup[] => {
@@ -162,6 +202,38 @@ export function createFabricCanvasCommandPort({
       canvas.renderAll();
     },
 
+    moveActiveImageLayer: (direction) => {
+      const activeObject = toCanvasObject(canvas.getActiveObject());
+      if (!isImageCanvasObject(activeObject)) return false;
+
+      const layerApi = canvas as FabricCanvas & FabricCanvasLayerApi;
+      if (direction === 'front') {
+        if (layerApi.bringObjectToFront) {
+          layerApi.bringObjectToFront(activeObject);
+        } else if (layerApi.bringToFront) {
+          layerApi.bringToFront(activeObject);
+        } else if (layerApi.moveObjectTo) {
+          layerApi.moveObjectTo(activeObject, Math.max(canvas.getObjects().length - 1, 0));
+        } else {
+          return false;
+        }
+      } else if (layerApi.sendObjectToBack) {
+        layerApi.sendObjectToBack(activeObject);
+      } else if (layerApi.sendToBack) {
+        layerApi.sendToBack(activeObject);
+      } else if (layerApi.moveObjectTo) {
+        layerApi.moveObjectTo(activeObject, 0);
+      } else {
+        return false;
+      }
+
+      canvas.setActiveObject(activeObject);
+      activeObject.setCoords?.();
+      canvas.requestRenderAll?.();
+      saveHistory();
+      return true;
+    },
+
     getActiveObjectCount: () => canvas.getActiveObjects().length,
 
     deleteActiveObjects: (handlers) => {
@@ -197,17 +269,7 @@ export function createFabricCanvasCommandPort({
       return 'deleted';
     },
 
-    getGroupLocalPointScreenPosition: (group, localCanvasPoint) => {
-      const container = canvas.getElement().parentElement;
-      if (!container) return null;
-
-      return projectCanvasPointToScreenPoint({
-        groupMatrix: group.calcTransformMatrix(),
-        localCanvasPoint,
-        canvasContainer: container.getBoundingClientRect(),
-        viewportTransform: canvas.viewportTransform ?? undefined,
-      });
-    },
+    getGroupLocalPointScreenPosition: projectGroupLocalPointToScreen,
 
     applyGenericObjectEdit: ({kind, objectId, color, label}) => {
       const object = findObjectByEditorId(objectId);
@@ -236,21 +298,13 @@ export function createFabricCanvasCommandPort({
     },
 
     getPilotiScreenPosition: (pilotiId, houseView) => {
-      const container = canvas.getElement().parentElement;
-      if (!container) return null;
-
       for (const group of getHouseGroups(houseView)) {
         const piloti = group.getCanvasObjects().find((object) =>
           object.pilotiId === pilotiId && (object.isPilotiCircle || object.isPilotiRect),
         );
         if (!piloti) continue;
 
-        return projectCanvasPointToScreenPoint({
-          groupMatrix: group.calcTransformMatrix(),
-          localCanvasPoint: getPilotiLocalCenterPoint(piloti),
-          canvasContainer: container.getBoundingClientRect(),
-          viewportTransform: canvas.viewportTransform ?? undefined,
-        });
+        return projectGroupLocalPointToScreen(group, getPilotiLocalCenterPoint(piloti));
       }
 
       return null;

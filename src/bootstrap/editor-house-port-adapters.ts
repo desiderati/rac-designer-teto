@@ -115,6 +115,8 @@ export interface EditorConstructionSiteManagementSource {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  markConstructionSiteCompleted(constructionSiteId: string): void;
+  markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
   createMonitor(input: CreateMonitorInput): MonitorRecord;
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
@@ -125,6 +127,9 @@ export interface EditorConstructionSiteManagementSource {
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  markActiveHouseRacPrinted(): void;
+  markHouseBuilt(houseId: string): void;
+  markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
   updateActiveFamily(input: UpdateFamilyInput): void;
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
@@ -245,6 +250,8 @@ export function createEditorConstructionSiteManagementPort(
     archiveActiveConstructionSite: () => source.archiveActiveConstructionSite(),
     archiveConstructionSite: (constructionSiteId) => source.archiveConstructionSite(constructionSiteId),
     unarchiveConstructionSite: (constructionSiteId) => source.unarchiveConstructionSite(constructionSiteId),
+    markConstructionSiteCompleted: (constructionSiteId) => source.markConstructionSiteCompleted(constructionSiteId),
+    markConstructionSiteInProgress: (constructionSiteId) => source.markConstructionSiteInProgress(constructionSiteId),
     activateConstructionSite: (constructionSiteId) => source.activateConstructionSite(constructionSiteId),
     createMonitor: (input) => clonePortValue(source.createMonitor(input)),
     updateMonitor: (monitorId, input) => source.updateMonitor(monitorId, input),
@@ -255,6 +262,9 @@ export function createEditorConstructionSiteManagementPort(
     archiveActiveHouse: () => source.archiveActiveHouse(),
     archiveHouse: (houseId) => source.archiveHouse(houseId),
     unarchiveHouse: (houseId) => source.unarchiveHouse(houseId),
+    markActiveHouseRacPrinted: () => source.markActiveHouseRacPrinted(),
+    markHouseBuilt: (houseId) => source.markHouseBuilt(houseId),
+    markHouseDraft: (houseId) => source.markHouseDraft(houseId),
     activateHouse: (constructionSiteId, houseId) => source.activateHouse(constructionSiteId, houseId),
     updateActiveFamily: (input) => source.updateActiveFamily(input),
     updateActiveHouseSiteAssessment: (input) => source.updateActiveHouseSiteAssessment(input),

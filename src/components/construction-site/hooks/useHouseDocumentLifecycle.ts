@@ -254,15 +254,27 @@ export function useHouseDocumentLifecycle({
     return saveActiveHouseDocumentRevision(currentRevision);
   }, [runPendingDocumentSave, saveActiveHouseDocumentRevision]);
 
+  const acknowledgeActiveHouseDocumentSaved = useCallback(() => {
+    if (documentSaveTimerRef.current !== null) {
+      window.clearTimeout(documentSaveTimerRef.current);
+      documentSaveTimerRef.current = null;
+    }
+    pendingDocumentSaveWaitersRef.current.forEach((waiter) => waiter.resolve());
+    pendingDocumentSaveWaitersRef.current = [];
+    savedDocumentRevisionRef.current = documentRevisionRef.current;
+    setTrackedDocumentSaveStatus('saved');
+  }, [setTrackedDocumentSaveStatus]);
+
   const runDocumentMutation = useCallback(async (
     mutate: () => HouseDrawingDocument | null | void,
+    options: { forceSave?: boolean } = {},
   ) => {
     await runDocumentTransition(async () => {
-      await flushActiveHouseDocumentSave({force: true});
+      await flushActiveHouseDocumentSave({force: options.forceSave ?? true});
       const mutationDocument = mutate();
-      const document = mutationDocument === undefined
+      const document: HouseDrawingDocument | null = mutationDocument === undefined
         ? constructionSiteManagementPort.getActiveHouseDrawingDocument()
-        : mutationDocument;
+        : mutationDocument as HouseDrawingDocument | null;
       await loadOrQueueHouseDocument(document);
     });
   }, [
@@ -294,6 +306,7 @@ export function useHouseDocumentLifecycle({
     saveActiveHouseDocument,
     notifyActiveHouseDocumentChanged,
     flushActiveHouseDocumentSave,
+    acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
     runDocumentMutation,

@@ -1,7 +1,19 @@
-import {forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import {
+  forwardRef,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  TouchEvent as ReactTouchEvent,
+  WheelEvent as ReactWheelEvent,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
   CanvasGroup,
   CanvasObject,
+  toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types.ts';
@@ -35,10 +47,12 @@ import type {
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
+import {INTERACTION_THRESHOLDS, TIMINGS} from '@/shared/config.ts';
 
 interface CanvasProps {
   children?: ReactNode;
   isAnyEditorOpen?: boolean;
+  readOnly?: boolean;
 
   onSelectionChange: (hint: string) => void;
   onDelete?: () => void;
@@ -70,11 +84,32 @@ interface CanvasProps {
   onFreeDrawPathCreated?: () => void;
 }
 
+interface ImageLayerMenuState {
+  x: number;
+  y: number;
+}
+
+interface ImageLongPressState {
+  timeoutId: number;
+  startX: number;
+  startY: number;
+  target: CanvasObject;
+}
+
+interface FabricCanvasTargetFinder extends FabricCanvasRuntime {
+  findTarget?: (event: unknown, skipGroup?: boolean) => unknown;
+}
+
+function isImageCanvasObject(object: CanvasObject | null): object is CanvasObject {
+  return object?.myType === 'image' || object?.type === 'image';
+}
+
 export const Canvas =
   forwardRef<CanvasHandle, CanvasProps>(
     ({
       children,
       isAnyEditorOpen = false,
+      readOnly = false,
 
       onSelectionChange,
       onDelete,
@@ -106,6 +141,9 @@ export const Canvas =
       const canvasRef = useRef<HTMLCanvasElement>(null);
       const fabricCanvasRef = useRef<FabricCanvasRuntime | null>(null);
       const documentRestoringRef = useRef(false);
+      const imageLongPressRef = useRef<ImageLongPressState | null>(null);
+      const [imageLayerMenu, setImageLayerMenu] = useState<ImageLayerMenuState | null>(null);
+      const noop = useCallback(() => {}, []);
       const {houseDrawingDocumentPort} = useEditorPorts();
 
       const {
@@ -223,6 +261,7 @@ export const Canvas =
             ? createFabricCanvasCommandPort({
               canvas,
               getVisibleCenter,
+              getCanvasPointScreenPosition: getCurrentScreenPoint,
               clearHistory,
               saveHistory,
             })
@@ -255,6 +294,7 @@ export const Canvas =
         setDrawingModeEnabled: (enabled) => createCommandPort()?.setDrawingModeEnabled(enabled) ?? false,
         resetSurface: () => createCommandPort()?.resetSurface(),
         renderAll: () => createCommandPort()?.renderAll(),
+        moveActiveImageLayer: (direction) => createCommandPort()?.moveActiveImageLayer(direction) ?? false,
         getActiveObjectCount: () => createCommandPort()?.getActiveObjectCount() ?? 0,
         deleteActiveObjects: (handlers) => createCommandPort()?.deleteActiveObjects(handlers) ?? 'none',
         getCanvasPointScreenPosition: (point) => getCurrentScreenPoint(point),
@@ -274,6 +314,106 @@ export const Canvas =
       };
       }, [clearHistory, copy, createCanvasDocumentPort, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
 
+      const clearImageLongPress = useCallback(() => {
+        const pendingLongPress = imageLongPressRef.current;
+        if (!pendingLongPress) return;
+
+        window.clearTimeout(pendingLongPress.timeoutId);
+        imageLongPressRef.current = null;
+      }, []);
+
+      const getImageLayerMenuPosition = useCallback((clientX: number, clientY: number): ImageLayerMenuState => {
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (!rect) return {x: clientX, y: clientY};
+
+        return {
+          x: Math.min(Math.max(clientX - rect.left, 8), Math.max(rect.width - 176, 8)),
+          y: Math.min(Math.max(clientY - rect.top, 8), Math.max(rect.height - 96, 8)),
+        };
+      }, []);
+
+      const findImageObjectAtPointer = useCallback((event: unknown): CanvasObject | null => {
+        const canvas = fabricCanvasRef.current as FabricCanvasTargetFinder | null;
+        if (!canvas) return null;
+
+        const target = toCanvasObject(canvas.findTarget?.(event, false));
+        return isImageCanvasObject(target) ? target : null;
+      }, []);
+
+      const openImageLayerMenu = useCallback((target: CanvasObject, clientX: number, clientY: number) => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) return;
+
+        canvas.setActiveObject(target);
+        canvas.requestRenderAll();
+        setImageLayerMenu(getImageLayerMenuPosition(clientX, clientY));
+      }, [getImageLayerMenuPosition]);
+
+      const handleImageContextMenu = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+        if (readOnly) return;
+
+        const target = findImageObjectAtPointer(event.nativeEvent);
+        if (!target) {
+          setImageLayerMenu(null);
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        openImageLayerMenu(target, event.clientX, event.clientY);
+      }, [findImageObjectAtPointer, openImageLayerMenu, readOnly]);
+
+      const moveActiveImageLayer = useCallback((direction: 'front' | 'back') => {
+        if (readOnly) return;
+
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) return;
+
+        const moved = createFabricCanvasCommandPort({
+          canvas,
+          getVisibleCenter,
+          getCanvasPointScreenPosition: getCurrentScreenPoint,
+          clearHistory,
+          saveHistory,
+        }).moveActiveImageLayer(direction);
+        if (moved) setImageLayerMenu(null);
+      }, [clearHistory, getCurrentScreenPoint, getVisibleCenter, readOnly, saveHistory]);
+
+      const scheduleImageLongPress = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        if (readOnly || event.touches.length !== 1) return;
+
+        const touch = event.touches.item(0);
+        if (!touch) return;
+
+        const target = findImageObjectAtPointer(touch);
+        if (!target) return;
+
+        clearImageLongPress();
+        imageLongPressRef.current = {
+          startX: touch.clientX,
+          startY: touch.clientY,
+          target,
+          timeoutId: window.setTimeout(() => {
+            imageLongPressRef.current = null;
+            openImageLayerMenu(target, touch.clientX, touch.clientY);
+          }, TIMINGS.mobileLongPressDelayMs),
+        };
+      }, [clearImageLongPress, findImageObjectAtPointer, openImageLayerMenu, readOnly]);
+
+      const cancelImageLongPressOnMove = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        const pendingLongPress = imageLongPressRef.current;
+        if (!pendingLongPress || event.touches.length !== 1) return;
+
+        const touch = event.touches.item(0);
+        if (!touch) return;
+
+        const movement = Math.hypot(
+          touch.clientX - pendingLongPress.startX,
+          touch.clientY - pendingLongPress.startY,
+        );
+        if (movement > INTERACTION_THRESHOLDS.mobilePanActivation) clearImageLongPress();
+      }, [clearImageLongPress]);
+
       // Surface zoom changes back to the parent so the top-bar zoom indicator
       // can stay in sync with wheel/pinch interactions.
       useEffect(() => {
@@ -287,7 +427,18 @@ export const Canvas =
         const fabric = fabricCanvasRef.current;
         if (!fabric) return;
 
-        if (canvasToolMode === 'pan') {
+        if (readOnly) {
+          fabric.discardActiveObject();
+          fabric.selection = false;
+          fabric.skipTargetFind = true;
+          fabric.isDrawingMode = false;
+          fabric.defaultCursor = 'not-allowed';
+          fabric.hoverCursor = 'not-allowed';
+          fabric.moveCursor = 'not-allowed';
+          fabric.upperCanvasEl.style.cursor = 'not-allowed';
+          fabric.lowerCanvasEl.style.cursor = 'not-allowed';
+          fabric.wrapperEl.style.cursor = 'not-allowed';
+        } else if (canvasToolMode === 'pan') {
           const panCursor = isPanning ? 'grabbing' : 'grab';
           fabric.selection = false;
           fabric.skipTargetFind = true;
@@ -308,7 +459,7 @@ export const Canvas =
           fabric.wrapperEl.style.cursor = 'default';
         }
         fabric.requestRenderAll();
-      }, [canvasToolMode, isPanning]);
+      }, [canvasToolMode, isPanning, readOnly]);
 
       useCanvasFabricSetup({
         canvasRef,
@@ -324,8 +475,8 @@ export const Canvas =
         onTerrainSelect,
 
         copy,
-        paste,
-        undo,
+        paste: readOnly ? noop : paste,
+        undo: readOnly ? noop : undo,
         saveHistory,
         documentRestoringRef,
         getCurrentScreenPoint,
@@ -334,7 +485,7 @@ export const Canvas =
         isPilotiEligibleForContraventamentoRef,
         onContraventamentoPilotiClickRef,
         onContraventamentoCancelRef,
-        onFreeDrawPathCreated,
+        onFreeDrawPathCreated: readOnly ? undefined : onFreeDrawPathCreated,
       });
 
       useCanvasContainerLifecycle({
@@ -378,6 +529,34 @@ export const Canvas =
         setViewportY,
       });
 
+      const handleCanvasMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+        setImageLayerMenu(null);
+        handleMouseDown(event);
+      }, [handleMouseDown]);
+
+      const handleCanvasWheel = useCallback((event: ReactWheelEvent<HTMLDivElement>) => {
+        setImageLayerMenu(null);
+        handleWheel(event);
+      }, [handleWheel]);
+
+      const handleCanvasTouchStart = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        setImageLayerMenu(null);
+        handleTouchStart(event);
+        scheduleImageLongPress(event);
+      }, [handleTouchStart, scheduleImageLongPress]);
+
+      const handleCanvasTouchMove = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        handleTouchMove(event);
+        cancelImageLongPressOnMove(event);
+      }, [cancelImageLongPressOnMove, handleTouchMove]);
+
+      const handleCanvasTouchEnd = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
+        handleTouchEnd(event);
+        clearImageLongPress();
+      }, [clearImageLongPress, handleTouchEnd]);
+
+      useEffect(() => () => clearImageLongPress(), [clearImageLongPress]);
+
       // Calculate canvas position - center it when it fits, otherwise use viewport offset
       const {canvasX, canvasY} = getCanvasOffsetFromState({
         zoom,
@@ -387,7 +566,9 @@ export const Canvas =
         containerHeight: containerSize.height,
       });
 
-      const canvasCursor = canvasToolMode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : undefined;
+      const canvasCursor = readOnly
+        ? 'not-allowed'
+        : canvasToolMode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : undefined;
 
       return (
         <div
@@ -399,14 +580,15 @@ export const Canvas =
             ...CANVAS_WORKSPACE_STYLE,
             cursor: canvasCursor,
           }}
-          onMouseDown={handleMouseDown}
+          onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onWheel={handleCanvasWheel}
+          onContextMenu={handleImageContextMenu}
+          onTouchStart={handleCanvasTouchStart}
+          onTouchMove={handleCanvasTouchMove}
+          onTouchEnd={handleCanvasTouchEnd}
         >
           {/* Canvas */}
           <div
@@ -444,6 +626,35 @@ export const Canvas =
           >
             {children}
           </CanvasOverlays>
+          {imageLayerMenu
+            ? <div
+                role='menu'
+                className='absolute z-50 min-w-[168px] overflow-hidden rounded-md border border-border bg-popover py-1 text-sm text-popover-foreground shadow-md'
+                style={{
+                  left: imageLayerMenu.x,
+                  top: imageLayerMenu.y,
+                }}
+                onMouseDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type='button'
+                  role='menuitem'
+                  className='block w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none'
+                  onClick={() => moveActiveImageLayer('back')}
+                >
+                  Enviar para trás
+                </button>
+                <button
+                  type='button'
+                  role='menuitem'
+                  className='block w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none'
+                  onClick={() => moveActiveImageLayer('front')}
+                >
+                  Trazer para frente
+                </button>
+              </div>
+            : null}
         </div>
       );
     }

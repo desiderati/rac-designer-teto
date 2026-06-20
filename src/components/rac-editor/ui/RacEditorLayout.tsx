@@ -30,6 +30,7 @@ export interface RacEditorLayoutProps {
   viewer: ViewerProps;
   house3DPdfSnapshot: {
     snapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
+    activeHouseId: string | null;
   };
   workspace: {
     open: boolean;
@@ -64,7 +65,10 @@ export function RacEditorLayout({
           <RacEditorHouseTypeSelector {...houseTypeSelector}/>
           <RacEditorModalEditors {...modalEditors}/>
           <RacEditorModals {...modals}/>
-          <House3DPdfSnapshot ref={house3DPdfSnapshot.snapshotRef}/>
+          <House3DPdfSnapshot
+            ref={house3DPdfSnapshot.snapshotRef}
+            activeHouseId={house3DPdfSnapshot.activeHouseId}
+          />
           <House3DViewerOverlay {...viewer}/>
         </>
       )}

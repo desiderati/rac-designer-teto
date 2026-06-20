@@ -1,6 +1,7 @@
 export const RAC_CANVAS_OBJECT_INSERTED_EVENT = 'rac:canvas-object-inserted';
 export const RAC_CANVAS_OBJECT_SELECTED_EVENT = 'rac:canvas-object-selected';
-export const RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT = 'rac:house-initial-views-inserted';
+export const RAC_HOUSE_INITIAL_VIEWS_INSERTED_EVENT = 'rac:house-top-view-inserted';
+export const RAC_HOUSE_INITIAL_VIEWS_ELEVATION_INSERTED_EVENT = 'rac:house-elevation-view-inserted';
 
 export type RacCanvasObjectEventKind =
   | 'wall'
@@ -9,7 +10,8 @@ export type RacCanvasObjectEventKind =
   | 'distance'
   | 'piloti'
   | 'piloti-master'
-  | 'house-initial-views';
+  | 'house-top-view-inserted'
+  | 'house-elevation-view-inserted';
 
 interface RacCanvasObjectEventRect {
   left: number;

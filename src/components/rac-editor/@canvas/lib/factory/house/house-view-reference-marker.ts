@@ -222,8 +222,10 @@ export function refreshHouseViewReferenceMarkersInViews(params: {
     const group = reference.group;
     hasChanges = removeHouseViewReferenceMarkersFromGroup(group) || hasChanges;
 
-    const bounds = calculateObjectBounds(getCanvasGroupObjects(group));
-    const scale = calculateElevationReferenceScale(reference.viewType, bounds.width);
+    const objects = getCanvasGroupObjects(group);
+    const bounds = calculateObjectBounds(objects);
+    const bodyBounds = calculateElevationBodyBounds(objects) ?? bounds;
+    const scale = calculateElevationReferenceScale(reference.viewType, bodyBounds.width);
     addObjectToGroup(
       group,
       createHouseElevationReferenceLabel({
@@ -309,6 +311,14 @@ function calculateObjectBounds(objects: CanvasObject[]): {
       height: bottom - top,
     };
   }, getObjectBounds(drawableObjects[0]));
+}
+
+function calculateElevationBodyBounds(objects: CanvasObject[]): ReturnType<typeof getObjectBounds> | null {
+  const houseBody = objects.find((object) => object.isHouseBody === true);
+  if (!houseBody) return null;
+
+  const bounds = getObjectBounds(houseBody);
+  return bounds.width > 0 && bounds.height > 0 ? bounds : null;
 }
 
 function getObjectBounds(object: CanvasObject): {

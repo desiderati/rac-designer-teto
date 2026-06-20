@@ -337,7 +337,7 @@ function drawTerrainSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: nu
     text: option,
     selected: selectedObstacles.has(option),
   }));
-  drawStatefulChipRow(pdf, obstacles, LEFT_COLUMN_X, cursorY + 9, LEFT_COLUMN_WIDTH);
+  drawCompactStatefulChipRow(pdf, obstacles, LEFT_COLUMN_X, cursorY + 9, LEFT_COLUMN_WIDTH);
   cursorY += 32;
 
   return cursorY;
@@ -899,6 +899,27 @@ function drawStatefulChipRow(pdf: JsPDFDocument, values: ChipItem[], x: number, 
     setText(pdf, value.selected ? COLORS.brand : COLORS.chipMutedText);
     pdf.text(limitText(pdf, value.text, chipWidth - 8), cursorX + chipWidth / 2, y + 8.6, {align: 'center'});
     cursorX += chipWidth + gap;
+  });
+}
+
+function drawCompactStatefulChipRow(pdf: JsPDFDocument, values: ChipItem[], x: number, y: number, width: number) {
+  const availableWidth = Math.max(0, width);
+  if (availableWidth <= 0 || values.length === 0) return;
+
+  const gap = 4;
+  const chipWidth = Math.max(0, (availableWidth - gap * (values.length - 1)) / values.length);
+  if (chipWidth < 22) return;
+
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, 5.1);
+
+  values.forEach((value, index) => {
+    const cursorX = x + index * (chipWidth + gap);
+    setFill(pdf, value.selected ? COLORS.chipSelectedFill : COLORS.chipMutedFill);
+    setStroke(pdf, value.selected ? COLORS.chipSelectedLine : COLORS.chipMutedLine);
+    pdf.roundedRect(cursorX, y, chipWidth, 13, 2, 2, 'FD');
+    setText(pdf, value.selected ? COLORS.brand : COLORS.chipMutedText);
+    pdf.text(limitText(pdf, value.text, chipWidth - 5), cursorX + chipWidth / 2, y + 8.6, {align: 'center'});
   });
 }
 

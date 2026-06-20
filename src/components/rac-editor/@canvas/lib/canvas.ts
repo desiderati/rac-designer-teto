@@ -52,6 +52,8 @@ type CanvasProperties = {
   isHouseBody?: boolean;
   isHouseBorderEdge?: boolean;
   edgeSide?: HouseSide;
+  isTopSlopeIndicator?: boolean;
+  isTopSlopeIndicatorText?: boolean;
 
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;
@@ -404,6 +406,8 @@ export const canvasObjectProps = [
   'isHouseBody',
   'isHouseBorderEdge',
   'edgeSide',
+  'isTopSlopeIndicator',
+  'isTopSlopeIndicatorText',
 
   'isPilotiCircle',
   'isPilotiRect',

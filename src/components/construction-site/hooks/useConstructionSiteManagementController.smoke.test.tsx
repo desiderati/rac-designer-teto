@@ -21,6 +21,9 @@ import {
 } from '@/shared/types/house-drawing-document.ts';
 
 type CanvasHandle = CanvasDocumentHandle & CanvasHistoryHandle;
+type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagementPort'] & {
+  [Key in keyof EditorPorts['constructionSiteManagementPort']]: ReturnType<typeof vi.fn>;
+};
 
 describe('useConstructionSiteManagementController.ts', () => {
   afterEach(() => {
@@ -421,7 +424,9 @@ function createEditorPorts(overrides: Partial<EditorPorts>): EditorPorts {
   };
 }
 
-function createConstructionSiteManagementPort(overrides: Partial<EditorPorts['constructionSiteManagementPort']> = {}) {
+function createConstructionSiteManagementPort(
+  overrides: Partial<ConstructionSiteManagementPortMock> = {},
+): ConstructionSiteManagementPortMock {
   return {
     subscribe: vi.fn(() => () => {}),
     getConstructionSiteSummaries: vi.fn(() => []),
@@ -439,6 +444,9 @@ function createConstructionSiteManagementPort(overrides: Partial<EditorPorts['co
     archiveActiveHouse: vi.fn(),
     archiveHouse: vi.fn(),
     unarchiveHouse: vi.fn(),
+    markActiveHouseRacPrinted: vi.fn(),
+    markHouseBuilt: vi.fn(),
+    markHouseDraft: vi.fn(),
     activateHouse: vi.fn(() => null),
     updateActiveFamily: vi.fn(),
     updateActiveHouseSiteAssessment: vi.fn(),
@@ -447,7 +455,7 @@ function createConstructionSiteManagementPort(overrides: Partial<EditorPorts['co
     saveActiveHouseDrawingDocument: vi.fn(),
     getActiveHouseDrawingDocument: vi.fn(() => null),
     ...overrides,
-  };
+  } as ConstructionSiteManagementPortMock;
 }
 
 function createDrawingDocument(

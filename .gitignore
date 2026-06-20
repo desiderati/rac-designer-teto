@@ -43,6 +43,7 @@ coverage/
 .agents/worktrees/
 .agents/errors.md
 .codex/hooks/codex-resolution-time-state/
+.codex/hooks/git-freshness-preflight/state/
 .codex/hooks/resolution-time/state/
 .codex/hooks/self-improvement-observer/state/
 .codex/tmp/

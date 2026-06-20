@@ -10,38 +10,42 @@ export interface HouseDifficultyIndicator {
 }
 
 const SOIL_DIFFICULTY_WEIGHT: Record<SoilProfile, number> = {
-  stable: 1,
-  loose_clay: 2,
+  stable_clay: 1,
+  firm_hard: 2,
+  alluvial: 3,
   water_table: 4,
 };
 
 const TERRAIN_COMPLEXITY_DIFFICULTY_POINTS: Record<TerrainComplexity, number> = {
   flat: 0,
-  moderate: 10,
-  steep: 20,
-  very_steep: 30,
-  extreme: 40,
+  moderate: 7.5,
+  steep: 15,
+  very_steep: 22.5,
+  extreme: 30,
 };
 
 const UNKNOWN_SOIL_DIFFICULTY_WEIGHT = 1.5;
+const HYDRAULIC_OBSTACLE_DIFFICULTY_INCREMENT = 0.8;
 const UNDERGROUND_OBSTACLE_DIFFICULTY_INCREMENT = 1;
 const ELEVATED_OBSTACLE_DIFFICULTY_INCREMENT = 0.2;
-const NEIGHBOR_SETBACK_DIFFICULTY_INCREMENT = 0.6;
+const NEIGHBOR_SETBACK_CONSTRAINT_DIFFICULTY_INCREMENT = 0.6;
 const MAX_OBSTACLE_PRESSURE =
-  UNDERGROUND_OBSTACLE_DIFFICULTY_INCREMENT
+  HYDRAULIC_OBSTACLE_DIFFICULTY_INCREMENT
+  + UNDERGROUND_OBSTACLE_DIFFICULTY_INCREMENT
   + ELEVATED_OBSTACLE_DIFFICULTY_INCREMENT
-  + NEIGHBOR_SETBACK_DIFFICULTY_INCREMENT;
+  + NEIGHBOR_SETBACK_CONSTRAINT_DIFFICULTY_INCREMENT;
 const MODERATE_TERRAIN_DESNIVEL_CM = 30;
 const STEEP_TERRAIN_DESNIVEL_CM = 60;
 const VERY_STEEP_TERRAIN_DESNIVEL_CM = 90;
 const EXTREME_TERRAIN_DESNIVEL_CM = 120;
 const MIN_PILOTI_AVERAGE_HEIGHT = Math.min(...ALL_PILOTI_HEIGHTS);
 const MAX_PILOTI_AVERAGE_HEIGHT = Math.max(...ALL_PILOTI_HEIGHTS);
-const MIN_SOIL_DIFFICULTY_WEIGHT = SOIL_DIFFICULTY_WEIGHT.stable;
+const MIN_SOIL_DIFFICULTY_WEIGHT = SOIL_DIFFICULTY_WEIGHT.stable_clay;
 const MAX_SOIL_DIFFICULTY_WEIGHT = SOIL_DIFFICULTY_WEIGHT.water_table;
 const MAX_SOIL_DIFFICULTY_POINTS = 25;
-const MAX_OBSTACLE_DIFFICULTY_POINTS = 15;
-const MAX_PILOTI_HEIGHT_DIFFICULTY_POINTS = 20;
+const MAX_OBSTACLE_DIFFICULTY_POINTS = 20;
+const MAX_PILOTI_AVERAGE_DIFFICULTY_POINTS = 50;
+const PILOTI_AVERAGE_DIFFICULTY_POINTS_PER_METER = 20;
 
 export function calculateHouseDifficultyIndicator(
   assessment: SiteAssessment,
@@ -89,9 +93,10 @@ export function calculateTerrainDesnivelCm(pilotis: Record<string, HousePiloti> 
 
 function calculateObstaclePressure(assessment: SiteAssessment): number {
   return [
+    assessment.hasHydraulicObstacles ? HYDRAULIC_OBSTACLE_DIFFICULTY_INCREMENT : 0,
     assessment.hasUndergroundObstacles ? UNDERGROUND_OBSTACLE_DIFFICULTY_INCREMENT : 0,
     assessment.hasElevatedObstacles ? ELEVATED_OBSTACLE_DIFFICULTY_INCREMENT : 0,
-    assessment.hasNeighborSetbacks ? NEIGHBOR_SETBACK_DIFFICULTY_INCREMENT : 0,
+    assessment.hasNeighborSetbackConstraints ? NEIGHBOR_SETBACK_CONSTRAINT_DIFFICULTY_INCREMENT : 0,
   ].reduce((total, value) => total + value, 0);
 }
 
@@ -109,12 +114,10 @@ function calculateObstacleDifficultyPoints(obstaclePressure: number): number {
 
 function calculatePilotiHeightDifficultyPoints(pilotis: Record<string, HousePiloti> | undefined): number {
   const averageHeight = calculateAveragePilotiHeight(pilotis);
-  const normalizedHeightPressure = (
-    (averageHeight - MIN_PILOTI_AVERAGE_HEIGHT)
-    / (MAX_PILOTI_AVERAGE_HEIGHT - MIN_PILOTI_AVERAGE_HEIGHT)
+  return Math.min(
+    MAX_PILOTI_AVERAGE_DIFFICULTY_POINTS,
+    Math.max(0, (averageHeight - MIN_PILOTI_AVERAGE_HEIGHT) * PILOTI_AVERAGE_DIFFICULTY_POINTS_PER_METER),
   );
-
-  return normalizedHeightPressure * MAX_PILOTI_HEIGHT_DIFFICULTY_POINTS;
 }
 
 function calculateAveragePilotiHeight(pilotis: Record<string, HousePiloti> | undefined): number {

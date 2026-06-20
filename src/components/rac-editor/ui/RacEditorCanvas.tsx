@@ -37,6 +37,7 @@ interface RacEditorCanvasProps {
   onContraventamentoCancel: () => void;
   onFreeDrawPathCreated: () => void;
   onCanvasDocumentChange: () => void;
+  readOnly?: boolean;
 }
 
 export function RacEditorCanvas({
@@ -64,8 +65,11 @@ export function RacEditorCanvas({
   onContraventamentoCancel,
   onFreeDrawPathCreated,
   onCanvasDocumentChange,
+  readOnly = false,
 }: RacEditorCanvasProps) {
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
+  const noop = useCallback(() => {}, []);
+  const neverEligibleForContraventamento = useCallback(() => false, []);
 
   useEffect(() => {
     if (!showTips) return;
@@ -85,28 +89,29 @@ export function RacEditorCanvas({
     <div className='h-full overflow-hidden relative'>
       <Canvas
         ref={canvasRef}
+        readOnly={readOnly}
         onSelectionChange={handleSelectionChange}
-        onHistorySave={onCanvasDocumentChange}
+        onHistorySave={readOnly ? noop : onCanvasDocumentChange}
         onZoomInteraction={onZoomInteraction}
         onMinimapInteraction={onZoomInteraction}
         onZoomChange={onZoomChange}
         canvasToolMode={canvasToolMode}
         difficultyIndicator={difficultyIndicator}
         siteAssessment={siteAssessment}
-        onSiteAssessmentChange={onSiteAssessmentChange}
+        onSiteAssessmentChange={readOnly ? undefined : onSiteAssessmentChange}
         showTips={showTips}
-        onPilotiSelect={onPilotiSelect}
-        onWallSelect={onWallSelect}
-        onLinearSelect={onLinearSelect}
-        onTerrainSelect={onTerrainSelect}
+        onPilotiSelect={readOnly ? undefined : onPilotiSelect}
+        onWallSelect={readOnly ? undefined : onWallSelect}
+        onLinearSelect={readOnly ? undefined : onLinearSelect}
+        onTerrainSelect={readOnly ? undefined : onTerrainSelect}
         isAnyEditorOpen={isAnyEditorOpen}
-        onDelete={onDelete}
+        onDelete={readOnly ? undefined : onDelete}
         showZoomControls={showZoomControls}
-        isContraventamentoMode={isContraventamentoMode}
-        isPilotiEligibleForContraventamento={isPilotiEligibleForContraventamento}
-        onContraventamentoPilotiClick={onContraventamentoPilotiClick}
-        onContraventamentoCancel={onContraventamentoCancel}
-        onFreeDrawPathCreated={onFreeDrawPathCreated}
+        isContraventamentoMode={readOnly ? false : isContraventamentoMode}
+        isPilotiEligibleForContraventamento={readOnly ? neverEligibleForContraventamento : isPilotiEligibleForContraventamento}
+        onContraventamentoPilotiClick={readOnly ? undefined : onContraventamentoPilotiClick}
+        onContraventamentoCancel={readOnly ? undefined : onContraventamentoCancel}
+        onFreeDrawPathCreated={readOnly ? undefined : onFreeDrawPathCreated}
       >
         {showTips && hasActiveSelection &&
           <div

@@ -25,12 +25,15 @@ export function HouseExtraMaterialsScreen({
   house,
   onSave,
   onDirtyChange,
+  readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
   onSave(input: UpdateHouseExtraMaterialsInput): void | Promise<void>;
   onDirtyChange?: (isDirty: boolean) => void;
+  readOnly?: boolean;
 }) {
+  const isReadOnly = readOnly || house.status === 'built' || house.status === 'archived';
   const form = useForm<HouseExtraMaterialsFormValues>({
     resolver: zodResolver(houseExtraMaterialsFormSchema),
     mode: 'onBlur',
@@ -44,6 +47,7 @@ export function HouseExtraMaterialsScreen({
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
+    if (isReadOnly) return;
     await onSave(toHouseExtraMaterialsInput(values));
   });
 
@@ -63,24 +67,28 @@ export function HouseExtraMaterialsScreen({
             name='floorBeams'
             label='Vigas de Piso'
             placeholder='0'
+            disabled={isReadOnly}
           />
           <IntegerField
             control={form.control}
             name='rafters'
             label='Caibros'
             placeholder='0'
+            disabled={isReadOnly}
           />
           <IntegerField
             control={form.control}
             name='secondaryBeams'
             label='Vigas Secundárias'
             placeholder='0'
+            disabled={isReadOnly}
           />
           <IntegerField
             control={form.control}
             name='gutters'
             label='Calhas'
             placeholder='0'
+            disabled={isReadOnly}
           />
           <div className='md:col-span-2'>
             <Controller
@@ -95,6 +103,7 @@ export function HouseExtraMaterialsScreen({
                   onBlur={field.onBlur}
                   maxLength={HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH}
                   error={fieldState.error?.message}
+                  disabled={isReadOnly}
                 />
               )}
             />
@@ -102,7 +111,7 @@ export function HouseExtraMaterialsScreen({
         </div>
 
         <div className='grid gap-4 md:grid-cols-2'>
-          <PrimaryButton type='submit' className='w-full md:col-start-2'>Salvar Materiais Extras</PrimaryButton>
+          <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Materiais Extras</PrimaryButton>
         </div>
       </div>
     </form>
@@ -114,11 +123,13 @@ function IntegerField({
   name,
   label,
   placeholder,
+  disabled = false,
 }: {
   control: Control<HouseExtraMaterialsFormValues>;
   name: keyof Pick<HouseExtraMaterialsFormValues, 'floorBeams' | 'rafters' | 'secondaryBeams' | 'gutters'>;
   label: string;
   placeholder: string;
+  disabled?: boolean;
 }) {
   return (
     <Controller
@@ -135,6 +146,7 @@ function IntegerField({
           pattern='[0-9]*'
           inputMode='numeric'
           error={fieldState.error?.message}
+          disabled={disabled}
         />
       )}
     />

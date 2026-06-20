@@ -264,10 +264,11 @@ describe('constructionSite-session.ts', () => {
       },
       notes: 'Nota inicial da casa',
       siteAssessment: {
-        soilProfile: 'loose_clay',
+        soilProfile: 'alluvial',
+        hasHydraulicObstacles: true,
         hasUndergroundObstacles: true,
         hasElevatedObstacles: true,
-        hasNeighborSetbacks: false,
+        hasNeighborSetbackConstraints: false,
         locationQuery: 'Rua A, 123',
       },
     } as never);
@@ -285,10 +286,11 @@ describe('constructionSite-session.ts', () => {
     });
     expect(createdHouse.notes).toBe('Nota inicial da casa');
     expect(createdHouse.siteAssessment).toEqual({
-      soilProfile: 'loose_clay',
+      soilProfile: 'alluvial',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: false,
+      hasNeighborSetbackConstraints: false,
       locationQuery: 'Rua A, 123',
     });
     expect(session.getActiveFamily()).toMatchObject({
@@ -314,10 +316,11 @@ describe('constructionSite-session.ts', () => {
       leaders: 'Carla e João',
       notes: 'Nota atualizada da casa',
       siteAssessment: {
-        soilProfile: 'stable',
+        soilProfile: 'stable_clay',
+        hasHydraulicObstacles: false,
         hasUndergroundObstacles: false,
         hasElevatedObstacles: false,
-        hasNeighborSetbacks: true,
+        hasNeighborSetbackConstraints: true,
         locationQuery: 'Rua B, 456',
       },
     });
@@ -327,10 +330,11 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().leaders).toBe('Carla e João');
     expect(session.getActiveHouse().notes).toBe('Nota atualizada da casa');
     expect(session.getActiveHouse().siteAssessment).toEqual({
-      soilProfile: 'stable',
+      soilProfile: 'stable_clay',
+      hasHydraulicObstacles: false,
       hasUndergroundObstacles: false,
       hasElevatedObstacles: false,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
       locationQuery: 'Rua B, 456',
     });
     expect(session.getActiveFamily().name).toBe('Família Local Atualizada');
@@ -724,6 +728,200 @@ describe('constructionSite-session.ts', () => {
     expect(session.getConstructionSite()?.houses.find((entry) => entry.id === house.id)?.status).toBe('draft');
     expect(session.getActiveHouse().id).toBe(house.id);
     expect(session.canOpenRacEditor()).toBe(true);
+  });
+
+  it('não permite abrir o Canvas quando todas as casas da construção estão arquivadas', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const firstHouse = session.createHouse({familyName: 'Família 01'});
+    const secondHouse = session.createHouse({familyName: 'Família 02'});
+    const constructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
+
+    session.archiveHouse(firstHouse.id);
+    session.archiveHouse(secondHouse.id);
+
+    expect(session.canOpenRacEditor()).toBe(false);
+    expect(session.getActiveHouseDrawingDocument()).toBeNull();
+    expect(session.activateConstructionSite(constructionSiteId)).toBeNull();
+    expect(session.activateHouse(constructionSiteId, firstHouse.id)).toBeNull();
+  });
+
+  it('não permite abrir o Canvas quando todas as construções estão arquivadas', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    session.createHouse({familyName: 'Família 01'});
+    const firstConstructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
+    session.createConstructionSite({externalCode: 'CC2604', constructionDate: '2026-05-12', communityName: 'Heliópolis'});
+    session.createHouse({familyName: 'Família 02'});
+    const secondConstructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
+
+    session.archiveConstructionSite(firstConstructionSiteId);
+    session.archiveConstructionSite(secondConstructionSiteId);
+
+    expect(session.getConstructionSite()).toBeNull();
+    expect(session.canOpenRacEditor()).toBe(false);
+    expect(session.activateConstructionSite(firstConstructionSiteId)).toBeNull();
+    expect(session.activateHouse(firstConstructionSiteId, 'house_missing')).toBeNull();
+  });
+
+  it('marca a casa ativa como RAC Impressa e volta para rascunho ao salvar alteração editorial', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const house = session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
+
+    session.markActiveHouseRacPrinted();
+
+    expect(session.getActiveHouse().status).toBe('rac_printed');
+
+    session.saveActiveHouseDrawingDocument(createDrawingDocument({
+      houseId: house.id,
+      familyName: 'Família 01',
+      houseType: 'tipo3',
+    }));
+
+    expect(session.getActiveHouse().status).toBe('draft');
+    expect(session.getActiveHouse().houseType).toBe('tipo3');
+  });
+
+  it('preserva RAC Impressa quando o flush do documento não muda a casa ativa', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
+    const currentDocument = session.getActiveHouseDrawingDocument();
+    expect(currentDocument).not.toBeNull();
+
+    session.markActiveHouseRacPrinted();
+    const printedVersion = session.getActiveHouse().version;
+
+    session.saveActiveHouseDrawingDocument(currentDocument!);
+
+    expect(session.getActiveHouse().status).toBe('rac_printed');
+    expect(session.getActiveHouse().version).toBe(printedVersion);
+  });
+
+  it('bloqueia mutações editoriais de casa construída e permite retornar para rascunho', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const house = session.createHouse({
+      familyName: 'Família 01',
+      houseType: 'tipo6',
+      leaders: 'Líder original',
+    });
+
+    session.markHouseBuilt(house.id);
+    session.saveActiveHouseDrawingDocument(createDrawingDocument({
+      houseId: house.id,
+      familyName: 'Família Alterada',
+      houseType: 'tipo3',
+    }));
+    session.updateActiveHouseConfiguration({
+      familyName: 'Família Alterada',
+      leaders: 'Líder alterado',
+      siteAssessment: {hasElevatedObstacles: true},
+    });
+    session.updateActiveHouseExtraMaterials({floorBeams: 10, justification: 'Alteração indevida'});
+    session.updateActiveHouseSiteAssessment({hasHydraulicObstacles: true});
+
+    expect(session.getActiveHouse()).toMatchObject({
+      status: 'built',
+      houseType: 'tipo6',
+      leaders: 'Líder original',
+      extraMaterials: {},
+      siteAssessment: {},
+    });
+    expect(session.getActiveFamily().name).toBe('Família 01');
+
+    session.markHouseDraft(house.id);
+    session.updateActiveHouseExtraMaterials({floorBeams: 10});
+
+    expect(session.getActiveHouse().status).toBe('draft');
+    expect(session.getActiveHouse().extraMaterials.floorBeams).toBe(10);
+  });
+
+  it('bloqueia edição de construção, monitores e casas quando a construção está arquivada', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const monitor = session.createMonitor({
+      name: 'Monitor Original',
+      phone: '(11) 99999-0000',
+      email: 'monitor@example.com',
+    });
+    const house = session.createHouse({
+      familyName: 'Família Original',
+      houseType: 'tipo6',
+      leaders: 'Líder original',
+    });
+    const constructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
+
+    session.archiveConstructionSite(constructionSiteId);
+    session.activateConstructionSite(constructionSiteId);
+
+    session.updateActiveConstructionSite({
+      externalCode: 'CC9999',
+      constructionDate: '2026-06-18',
+      communityName: 'Comunidade Alterada',
+    });
+    session.updateMonitor(monitor.id, {
+      name: 'Monitor Alterado',
+      phone: '(11) 98888-0000',
+      email: 'alterado@example.com',
+    });
+    session.inactivateMonitor(monitor.id);
+    session.archiveHouse(house.id);
+    session.markHouseBuilt(house.id);
+    session.updateActiveHouseConfiguration({
+      familyName: 'Família Alterada',
+      leaders: 'Líder alterado',
+      siteAssessment: {hasHydraulicObstacles: true},
+    });
+    session.updateActiveHouseExtraMaterials({floorBeams: 10});
+    session.saveActiveHouseDrawingDocument(createDrawingDocument({
+      houseId: house.id,
+      familyName: 'Família Alterada',
+      houseType: 'tipo3',
+    }));
+
+    expect(() => session.createMonitor({
+      name: 'Novo Monitor',
+      phone: '(11) 97777-0000',
+    })).toThrow('Não é possível editar uma Construção TETO arquivada.');
+    expect(() => session.createHouse({familyName: 'Nova Família'}))
+      .toThrow('Não é possível editar uma Construção TETO arquivada.');
+    expect(() => session.duplicateActiveHouse())
+      .toThrow('Não é possível editar uma Construção TETO arquivada.');
+
+    const archivedConstructionSite = session.getConstructionSiteSnapshots()
+      .find((entry) => entry.constructionSite.id === constructionSiteId);
+    const persistedMonitor = archivedConstructionSite?.monitors.find((entry) => entry.id === monitor.id);
+    const persistedHouse = archivedConstructionSite?.houses.find((entry) => entry.id === house.id);
+    const persistedFamily = archivedConstructionSite?.families.find((entry) => entry.id === house.familyId);
+
+    expect(archivedConstructionSite?.constructionSite).toMatchObject({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      status: 'archived',
+    });
+    expect(archivedConstructionSite?.communities.map((community) => community.name)).toEqual(['Tiradentes']);
+    expect(persistedMonitor).toMatchObject({
+      name: 'Monitor Original',
+      phone: '(11) 99999-0000',
+      email: 'monitor@example.com',
+      status: 'active',
+    });
+    expect(persistedHouse).toMatchObject({
+      status: 'draft',
+      houseType: 'tipo6',
+      leaders: 'Líder original',
+      extraMaterials: {},
+      siteAssessment: {},
+    });
+    expect(persistedFamily?.name).toBe('Família Original');
   });
 
   it('normaliza destrutivamente registros antigos ao ler a sessão', () => {

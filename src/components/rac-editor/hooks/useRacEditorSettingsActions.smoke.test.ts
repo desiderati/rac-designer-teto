@@ -33,6 +33,8 @@ describe('useRacEditorSettingsActions.ts', () => {
           zoomEnabledByDefault: false,
           openEditorsAtFixedPosition: false,
           disableDrawModeAfterFreehand: true,
+          configureCornerPilotiNiveisOnHouseInsert: true,
+          allowPilotiHeightDefinitionOnHouseInsert: false,
           showStairsOnTopView: true,
           showPilotiLabelsOnTopView: false,
         }),

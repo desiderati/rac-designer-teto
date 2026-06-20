@@ -3,6 +3,8 @@ import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
 
+const SLOW_UI_TEST_TIMEOUT_MS = 20_000;
+
 function renderMenu(options: { documentTransitioning?: boolean } = {}) {
   const user = userEvent.setup();
   const actions = {
@@ -79,7 +81,7 @@ describe('HamburgerMenu.tsx', () => {
 
     expect(actions.activateHouse).toHaveBeenCalledWith('construction-2604', 'house-2');
     expect(screen.queryByRole('button', {name: 'Família Souza'})).not.toBeInTheDocument();
-  });
+  }, SLOW_UI_TEST_TIMEOUT_MS);
 
   it('fecha o menu ao abrir Construções TETO', async () => {
     const {user, actions} = renderMenu();

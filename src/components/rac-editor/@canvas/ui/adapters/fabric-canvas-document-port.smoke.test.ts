@@ -8,6 +8,14 @@ import {
   PILOTI_VISUAL_FEEDBACK_COLORS,
 } from '@/shared/config.ts';
 
+type TestCanvasObject = {
+  dirty: boolean;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeUniform?: boolean;
+  set: ReturnType<typeof vi.fn>;
+} & Record<string, unknown>;
+
 function createHouseGroup(children: any[] = []) {
   return {
     type: 'group',
@@ -20,7 +28,7 @@ function createHouseGroup(children: any[] = []) {
   };
 }
 
-function createCanvasObject(props: Record<string, unknown>) {
+function createCanvasObject(props: Record<string, unknown>): TestCanvasObject {
   return {
     dirty: false,
     set: vi.fn(function set(this: Record<string, unknown>, patch: Record<string, unknown>) {

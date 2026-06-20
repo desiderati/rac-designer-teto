@@ -116,6 +116,8 @@ export function useCanvasController({
     transitionToNivelRef,
     shouldShowAllElevationNivelLabels: () =>
       !settingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
+    shouldConfigureCornerPilotiNiveisOnHouseInsert: () =>
+      settingsPort.getSettings().configureCornerPilotiNiveisOnHouseInsert,
     setSideSelectorOpen,
     setNivelDefinitionOpen,
   });

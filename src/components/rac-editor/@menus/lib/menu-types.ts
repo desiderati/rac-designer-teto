@@ -93,4 +93,6 @@ export interface RacEditorMenusProps {
   documentTransitioning: boolean;
   /** Indica se já existe ao menos uma vista de casa inserida no canvas para exportar em PDF. */
   canExportPDF: boolean;
+  /** Bloqueia ações editoriais quando a casa ativa foi marcada como construída. */
+  isReadOnly?: boolean;
 }

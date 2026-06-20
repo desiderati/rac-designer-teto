@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {createEditorPorts, type EditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
-import type {HouseViewType} from '@/shared/types/house.ts';
+import type {HouseType, HouseViewType} from '@/shared/types/house.ts';
 import {useRacEditorHouseReadModel} from '@/components/rac-editor/hooks/useRacEditorHouseReadModel.ts';
 
 function createWrapper(ports: EditorPorts) {
@@ -18,7 +18,7 @@ function createPortsWithViewCounts(insertedViews: Partial<Record<HouseViewType, 
     ...defaultPorts,
     houseReadPort: {
       ...defaultPorts.houseReadPort,
-      getCurrentHouseType: vi.fn(() => 'tipo6'),
+      getCurrentHouseType: vi.fn((): HouseType => 'tipo6'),
       getFamilyName: vi.fn(() => 'Família Teste'),
       getSelectedPilotiHeights: vi.fn(() => [1, 1.5, 2]),
       getPilotis: vi.fn(() => ({})),

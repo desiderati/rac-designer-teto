@@ -1,6 +1,7 @@
 import {expect, Page} from '@playwright/test';
-import {HousePiloti, HouseSide, HouseSnapshot, HouseType, HouseViewType} from '../../src/shared/types/house';
-import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../src/components/rac-editor/lib/canvas';
+import {HousePiloti, HouseSide, HouseType, HouseViewType} from '../../src/shared/types/house';
+import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../src/components/rac-editor/@canvas/lib';
+import type {HouseRuntimeSnapshot} from '../../src/components/rac-editor/lib/house-runtime-snapshot';
 import {RacEditorUiState} from '../../src/components/rac-editor/lib/rac-editor';
 import {seedConstructionSiteDocument} from './construction-site-storage.helpers';
 
@@ -12,8 +13,9 @@ interface ActiveCanvasObjectSummary {
 }
 
 interface RacEditorDebugApi {
-  getHouse?: () => HouseSnapshot<CanvasGroup> | null;
+  getHouse?: () => HouseRuntimeSnapshot<CanvasGroup> | null;
   getHousePiloti?: (pilotiId: string) => HousePiloti | null;
+  getPilotiScreenPosition?: (pilotiId: string) => { x: number; y: number } | null;
   updatePiloti?: (
     pilotiId: string,
     payload: { isMaster?: boolean; height?: number; nivel?: number }
@@ -65,13 +67,18 @@ export function expectNoConsoleErrors(page: Page): void {
 export async function applyRacEditorInitScript(page: Page) {
   await page.addInitScript(() => {
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-initial-views:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-initial-views:completed:revision', 'top-view');
-    localStorage.setItem('guided-tour:rac-tip:piloti', 'true');
+    localStorage.setItem('guided-tour:rac-house-top-view:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-top-view:completed:revision', 'piloti-target');
+    localStorage.setItem('guided-tour:rac-house-elevation-view:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-management:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-management:completed:revision', 'construction-actions-v2');
+    localStorage.setItem('guided-tour:rac-house-management:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-management:completed:revision', 'house-actions-v3');
     localStorage.setItem('guided-tour:rac-tip:wall', 'true');
     localStorage.setItem('guided-tour:rac-tip:line', 'true');
     localStorage.setItem('guided-tour:rac-tip:arrow', 'true');
     localStorage.setItem('guided-tour:rac-tip:distance', 'true');
+    localStorage.setItem('guided-tour:rac-tip:piloti-nivel-mode', 'true');
     localStorage.setItem('rac-settings', JSON.stringify({
       autoNavigatePiloti: false,
       zoomEnabledByDefault: true,
@@ -128,10 +135,10 @@ export async function dismissInitialHouseGuidedTourIfVisible(page: Page): Promis
   }
 
   await topViewDialog.getByRole('button', {name: 'OK'}).click({force: true});
-  const elevationDialog = page.getByRole('dialog').filter({hasText: 'Vista Elevada'});
-  await expect(elevationDialog).toBeVisible({timeout: 3000});
-  await elevationDialog.getByRole('button', {name: 'OK'}).click({force: true});
-  await expect(elevationDialog).toBeHidden({timeout: 3000});
+  const pilotiDialog = page.getByRole('dialog').filter({hasText: 'Na planta superior'});
+  await expect(pilotiDialog).toBeVisible({timeout: 3000});
+  await pilotiDialog.getByRole('button', {name: 'OK'}).click({force: true});
+  await expect(pilotiDialog).toBeHidden({timeout: 3000});
 }
 
 export async function createHouse(page: Page, houseType: HouseType, options: CreateHouseOptions = {}) {
@@ -158,10 +165,10 @@ async function waitForInitialHouseViews(page: Page, houseType: HouseType) {
       const snapshot = await getHouseSnapshot(page);
       if (!snapshot || snapshot.houseType !== houseType || snapshot.views.top.length !== 1) return false;
       if (houseType === 'tipo6') {
-        return snapshot.views.front.length === 1 && snapshot.sideMappings.top === 'front';
+        return snapshot.views.front.length === 0 && snapshot.preAssignedSides?.front === 'top';
       }
       if (houseType === 'tipo3') {
-        return snapshot.views.side2.length === 1;
+        return snapshot.views.side2.length === 0 && snapshot.preAssignedSides?.side2 === 'left';
       }
       return false;
     })
@@ -228,11 +235,78 @@ export async function triggerLinesAction(page: Page, actionLabel: string) {
   await actionButton.click({force: true});
 }
 
-export async function getHouseSnapshot(page: Page): Promise<HouseSnapshot<CanvasGroup> | null> {
+export async function getHouseSnapshot(page: Page): Promise<HouseRuntimeSnapshot<CanvasGroup> | null> {
   return page.evaluate(() => {
     const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
     return debug?.getHouse?.() ?? null;
   });
+}
+
+export async function getPilotiScreenPositionByDebug(
+  page: Page,
+  pilotiId: string,
+): Promise<{ x: number; y: number } | null> {
+  return page.evaluate((targetId) => {
+    const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
+    return debug?.getPilotiScreenPosition?.(targetId) ?? null;
+  }, pilotiId);
+}
+
+type ContraventamentoProjectionSignature = {
+  id: string | null;
+  sourcePilotiId: string | null;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  strokeWidth: number;
+};
+
+export async function getContraventamentoProjectionSignatures(
+  page: Page,
+  viewType: HouseViewType,
+  side?: HouseSide,
+): Promise<ContraventamentoProjectionSignature[]> {
+  return page.evaluate(
+    ({targetViewType, targetSide}) => {
+      const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
+      const house = debug?.getHouse?.();
+      const instance = house?.views[targetViewType]?.find((view) => (
+        targetSide ? view.side === targetSide : true
+      ));
+      const group = instance?.group;
+      if (!group) return [];
+
+      const round = (value: unknown) => {
+        const numericValue = Number(value ?? 0);
+        return Number.isFinite(numericValue) ? Math.round(numericValue * 1000) / 1000 : 0;
+      };
+
+      return group.getObjects()
+        .filter((object) => Boolean((object as Record<string, unknown>).isContraventamentoElevation))
+        .map((object) => {
+          const canvasObject = object as Record<string, unknown>;
+          return {
+            id: typeof canvasObject.contraventamentoId === 'string'
+              ? canvasObject.contraventamentoId
+              : null,
+            sourcePilotiId: typeof canvasObject.contraventamentoSourcePilotiId === 'string'
+              ? canvasObject.contraventamentoSourcePilotiId
+              : null,
+            x1: round(canvasObject.x1),
+            y1: round(canvasObject.y1),
+            x2: round(canvasObject.x2),
+            y2: round(canvasObject.y2),
+            strokeWidth: round(canvasObject.strokeWidth),
+          };
+        })
+        .sort((a, b) => (
+          `${a.id ?? ''}:${a.sourcePilotiId ?? ''}:${a.x1}:${a.y1}:${a.x2}:${a.y2}:${a.strokeWidth}`
+            .localeCompare(`${b.id ?? ''}:${b.sourcePilotiId ?? ''}:${b.x1}:${b.y1}:${b.x2}:${b.y2}:${b.strokeWidth}`)
+        ));
+    },
+    {targetViewType: viewType, targetSide: side}
+  );
 }
 
 export async function removeViewByDebug(page: Page, HouseViewType: HouseViewType, side?: HouseSide): Promise<boolean> {
@@ -310,6 +384,20 @@ export async function getHousePilotiByDebug(page: Page, pilotiId: string): Promi
     const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
     return debug?.getHousePiloti?.(targetId) ?? null;
   }, pilotiId);
+}
+
+export async function updatePilotiByDebug(
+  page: Page,
+  pilotiId: string,
+  payload: { isMaster?: boolean; height?: number; nivel?: number },
+): Promise<void> {
+  await page.evaluate(
+    ({targetId, patch}) => {
+      const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
+      debug?.updatePiloti?.(targetId, patch);
+    },
+    {targetId: pilotiId, patch: payload}
+  );
 }
 
 export async function openPilotiEditorByDebug(page: Page, pilotiId: string): Promise<boolean> {

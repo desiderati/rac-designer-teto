@@ -4,6 +4,10 @@ import type {
   ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
 import {
+  isContraventamentoHorizontalSide,
+  isContraventamentoVerticalSide,
+} from '@/shared/types/contraventamento.ts';
+import {
   getAllowedHorizontalContraventamentoSidesForRow,
   canUseHorizontalContraventamentoSideInRow,
 } from '@/domain/house/use-cases/house-contraventamento.use-case.ts';
@@ -53,9 +57,11 @@ export function parseContraventamentosFromTopView(
       const endCol = Math.max(startColRaw, endColRaw);
       if (startCol === endCol || startCol < 0 || endCol > 3) return;
 
-      const fallbackSide = getAllowedHorizontalContraventamentoSidesForRow(row)[0] ?? 'bottom';
-      const side = canUseHorizontalContraventamentoSideInRow({row, side: item.side})
-        ? item.side
+      const fallbackSide: ContraventamentoHorizontalSide =
+        getAllowedHorizontalContraventamentoSidesForRow(row)[0] ?? 'bottom';
+      const requestedSide = isContraventamentoHorizontalSide(item.side) ? item.side : null;
+      const side = canUseHorizontalContraventamentoSideInRow({row, side: requestedSide})
+        ? requestedSide
         : fallbackSide;
 
       const anchorPilotiId =
@@ -77,7 +83,7 @@ export function parseContraventamentosFromTopView(
     const endRow = Math.max(startRowRaw, endRowRaw);
     if (startRow === endRow || startRow < 0 || endRow > 2) return;
 
-    const side = item.side === 'left' || item.side === 'right'
+    const side = isContraventamentoVerticalSide(item.side)
       ? item.side
       : 'right';
 

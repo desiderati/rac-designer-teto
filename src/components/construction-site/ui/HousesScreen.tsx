@@ -43,12 +43,14 @@ export function HousesScreen({
   onEditHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const [statusFilter, setStatusFilter] = useState<HouseStatusFilter>('all');
   const [sortKey, setSortKey] = useState<HouseSortKey>('updatedAt');
@@ -70,6 +72,7 @@ export function HousesScreen({
   const firstIndex = filteredHouses.length ? (normalizedPage - 1) * HOUSES_PER_PAGE : 0;
   const lastIndex = Math.min(firstIndex + HOUSES_PER_PAGE, filteredHouses.length);
   const pageHouses = filteredHouses.slice(firstIndex, lastIndex);
+  const guidedTourHouseId = pageHouses.find((house) => house.status !== 'archived')?.id ?? null;
 
   useEffect(() => {
     setPage(1);
@@ -133,10 +136,10 @@ export function HousesScreen({
       <div data-testid='house-desktop-table' className='hidden overflow-x-auto sm:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
-            <col className='w-[40%]'/>
+            <col className='w-[34%]'/>
             <col className='w-[14%]'/>
-            <col className='w-[22%]'/>
-            <col className='w-[24%]'/>
+            <col className='w-[20%]'/>
+            <col className='w-[32%]'/>
           </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
@@ -146,9 +149,10 @@ export function HousesScreen({
             <th scope='col' className='px-3 pb-1'>
               <span
                 data-testid='house-updated-header-grid'
-                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-center gap-2 text-center'
+                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem] items-center gap-2 text-center'
               >
                 <span>Última Modificação</span>
+                <span aria-hidden='true'/>
                 <span aria-hidden='true'/>
                 <span aria-hidden='true'/>
               </span>
@@ -162,9 +166,11 @@ export function HousesScreen({
               constructionSite={constructionSite}
               house={house}
               active={activeHouse?.id === house.id}
+              showGuidedTourTargets={house.id === guidedTourHouseId}
               onOpenHouse={onEditHouse}
               onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
+              readOnly={readOnly}
             />
           ))}
           </tbody>
@@ -178,9 +184,11 @@ export function HousesScreen({
             constructionSite={constructionSite}
             house={house}
             active={activeHouse?.id === house.id}
+            showGuidedTourTargets={house.id === guidedTourHouseId}
             onOpenHouse={onEditHouse}
             onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -208,16 +216,20 @@ export function HouseMobileCard({
   constructionSite,
   house,
   active,
+  showGuidedTourTargets = false,
   onOpenHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
   active: boolean;
+  showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const family = getHouseFamily(constructionSite, house);
   const familyName = family?.name ?? getHouseFamilyName(constructionSite, house);
@@ -231,6 +243,10 @@ export function HouseMobileCard({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const requestBuiltStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestHouseStatusChange(house.id, house.status === 'built' ? 'markDraft' : 'markBuilt');
   };
   const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -263,7 +279,10 @@ export function HouseMobileCard({
               <h2 className='truncate text-base font-semibold text-slate-950'>{familyName}</h2>
               <p className='mt-1 truncate text-xs font-medium text-slate-500'>{houseTypeLabel}</p>
             </div>
-            <HouseStatusBadge status={house.status}/>
+            <HouseStatusBadge
+              status={house.status}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-status' : undefined}
+            />
           </div>
         </div>
       </div>
@@ -276,25 +295,44 @@ export function HouseMobileCard({
             <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
             <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
           </div>
-          <HouseDifficultyGauge
-            indicator={difficultyIndicator}
-            testId='house-mobile-difficulty-gauge'
-            meterClassName='h-2'
-          />
+          <span
+            data-guided-tour-id={showGuidedTourTargets ? 'rac-house-difficulty' : undefined}
+            className='block min-w-0'
+          >
+            <HouseDifficultyGauge
+              indicator={difficultyIndicator}
+              testId='house-mobile-difficulty-gauge'
+              meterClassName='h-2'
+            />
+          </span>
         </div>
         <div className='flex shrink-0 items-center gap-1'>
           {house.status !== 'archived' ? (
             <RoundIconActionButton
               label={`Abrir materiais extras da casa ${familyName}`}
               onClick={openExtraMaterials}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}
             >
               <PackagePlus className='h-4 w-4'/>
             </RoundIconActionButton>
+          ) : null}
+          {house.status !== 'archived' ? (
+            <StatusActionButton
+              action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
+              label={house.status === 'built'
+                ? `Voltar casa ${familyName} para rascunho`
+                : `Marcar casa ${familyName} como construída`}
+              onClick={requestBuiltStatusChange}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
+              disabled={readOnly}
+            />
           ) : null}
           <StatusActionButton
             action={house.status === 'archived' ? 'unarchive' : 'archive'}
             label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
             onClick={requestStatusChange}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
+            disabled={readOnly}
           />
         </div>
       </div>
@@ -306,16 +344,20 @@ export function HouseTableRow({
   constructionSite,
   house,
   active,
+  showGuidedTourTargets = false,
   onOpenHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
   active: boolean;
+  showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  readOnly?: boolean;
 }) {
   const family = getHouseFamily(constructionSite, house);
   const familyName = family?.name ?? getHouseFamilyName(constructionSite, house);
@@ -329,6 +371,10 @@ export function HouseTableRow({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const requestBuiltStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestHouseStatusChange(house.id, house.status === 'built' ? 'markDraft' : 'markBuilt');
   };
   const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -373,17 +419,24 @@ export function HouseTableRow({
         </div>
       </td>
       <td className='px-3 py-3 text-center align-middle'>
-        <HouseStatusBadge status={house.status}/>
-      </td>
-      <td className='px-3 py-3 text-center align-middle'>
-        <HouseDifficultyGauge
-          indicator={difficultyIndicator}
-          testId='house-table-difficulty-gauge'
-          className='mx-auto max-w-[9.5rem]'
+        <HouseStatusBadge
+          status={house.status}
+          guidedTourId={showGuidedTourTargets ? 'rac-house-status' : undefined}
         />
       </td>
+      <td className='px-3 py-3 text-center align-middle'>
+        <span
+          data-guided-tour-id={showGuidedTourTargets ? 'rac-house-difficulty' : undefined}
+          className='mx-auto block max-w-[9.5rem]'
+        >
+          <HouseDifficultyGauge
+            indicator={difficultyIndicator}
+            testId='house-table-difficulty-gauge'
+          />
+        </span>
+      </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-center gap-2'>
+        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem] items-center gap-2'>
           <span data-testid='house-table-updated-at' className='text-center'>
             <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
             <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
@@ -392,9 +445,23 @@ export function HouseTableRow({
             <RoundIconActionButton
               label={`Abrir materiais extras da casa ${familyName}`}
               onClick={openExtraMaterials}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}
             >
               <PackagePlus className='h-4 w-4'/>
             </RoundIconActionButton>
+          ) : (
+            <span aria-hidden='true'/>
+          )}
+          {house.status !== 'archived' ? (
+            <StatusActionButton
+              action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
+              label={house.status === 'built'
+                ? `Voltar casa ${familyName} para rascunho`
+                : `Marcar casa ${familyName} como construída`}
+              onClick={requestBuiltStatusChange}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
+              disabled={readOnly}
+            />
           ) : (
             <span aria-hidden='true'/>
           )}
@@ -402,6 +469,8 @@ export function HouseTableRow({
             action={house.status === 'archived' ? 'unarchive' : 'archive'}
             label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
             onClick={requestStatusChange}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
+            disabled={readOnly}
           />
         </div>
       </td>
@@ -448,12 +517,21 @@ export function HouseThumbnail({
   );
 }
 
-export function HouseStatusBadge({status}: { status: PersistedHouseStatus }) {
+export function HouseStatusBadge({
+  status,
+  guidedTourId,
+}: {
+  status: PersistedHouseStatus;
+  guidedTourId?: string;
+}) {
   return (
-    <span className={cn(
-      'inline-flex min-h-6 items-center rounded-full px-2.5 text-[11px] font-bold uppercase ring-1',
-      HOUSE_STATUS_BADGE_CLASS_NAMES[status],
-    )}>
+    <span
+      data-guided-tour-id={guidedTourId}
+      className={cn(
+        'inline-flex min-h-6 items-center rounded-full px-2.5 text-[11px] font-bold uppercase ring-1',
+        HOUSE_STATUS_BADGE_CLASS_NAMES[status],
+      )}
+    >
       {HOUSE_STATUS_LABELS[status]}
     </span>
   );

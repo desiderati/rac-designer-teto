@@ -27,7 +27,7 @@ describe('PilotisSetupModal', () => {
     await user.click(screen.getByRole('button', {name: 'Confirmar'}));
 
     expect(onConfirm).toHaveBeenCalledWith({
-      selectedHeights: [1, 1.2, 1.5, 2, 2.5, 3],
+      selectedHeights: [1, 1.2, 1.5, 1.8, 2, 2.2, 2.5, 3],
     });
   });
 
@@ -42,8 +42,8 @@ describe('PilotisSetupModal', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', {name: 'Pilotis (6/6 selecionados)'})).toBeVisible();
-    expect(screen.getAllByText('(6/6 selecionados)')).toHaveLength(1);
+    expect(screen.getByRole('heading', {name: 'Pilotis (8/8 selecionados)'})).toBeVisible();
+    expect(screen.getAllByText('(8/8 selecionados)')).toHaveLength(1);
   });
 
   it('usa no mobile a grade compacta do editor de piloti', () => {
@@ -57,6 +57,6 @@ describe('PilotisSetupModal', () => {
       />,
     );
 
-    expect(screen.getByRole('button', {name: '1,0'})).toHaveClass('h-16', 'w-16', 'rounded-2xl');
+    expect(screen.getByRole('button', {name: '1,0'})).toHaveClass('h-12', 'w-12', 'rounded-lg');
   });
 });

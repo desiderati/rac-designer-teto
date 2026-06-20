@@ -7,6 +7,7 @@ interface UserMenuProps {
   isMobile: boolean;
   showTips: boolean;
   onRestartDrawing: () => void;
+  restartDrawingDisabled?: boolean;
   onOpen3DViewer: () => void;
   onSavePDF: () => void;
   canExportPDF: boolean;
@@ -32,6 +33,7 @@ export function UserMenu({
   isMobile,
   showTips,
   onRestartDrawing,
+  restartDrawingDisabled = false,
   onOpen3DViewer,
   onSavePDF,
   canExportPDF,
@@ -63,7 +65,12 @@ export function UserMenu({
         sideOffset={8}
         className='w-52 p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
       >
-        <Item icon={TOP_BAR_ICONS.restart} label='Reiniciar Desenho' onClick={onRestartDrawing}/>
+        <Item
+          icon={TOP_BAR_ICONS.restart}
+          label='Reiniciar Desenho'
+          onClick={onRestartDrawing}
+          disabled={restartDrawingDisabled}
+        />
         <Divider/>
         {isMobile ? (
           <>

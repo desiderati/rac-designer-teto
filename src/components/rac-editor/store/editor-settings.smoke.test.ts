@@ -17,6 +17,8 @@ describe('editor-settings.ts', () => {
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      configureCornerPilotiNiveisOnHouseInsert: true,
+      allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
     });
@@ -30,6 +32,8 @@ describe('editor-settings.ts', () => {
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      configureCornerPilotiNiveisOnHouseInsert: true,
+      allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
     });
@@ -47,6 +51,8 @@ describe('editor-settings.ts', () => {
       zoomEnabledByDefault: false,
       openEditorsAtFixedPosition: false,
       disableDrawModeAfterFreehand: false,
+      configureCornerPilotiNiveisOnHouseInsert: true,
+      allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
     });

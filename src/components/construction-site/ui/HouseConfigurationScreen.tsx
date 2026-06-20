@@ -1,7 +1,7 @@
 import {type KeyboardEvent, type ReactNode, useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Droplets, Layers, LoaderCircle, LocateFixed, Waves} from 'lucide-react';
+import {Droplets, Layers, LoaderCircle, LocateFixed, Pickaxe, Waves} from 'lucide-react';
 import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {
   ConstructionSiteState,
@@ -46,13 +46,16 @@ export function HouseConfigurationScreen({
   house,
   onSave,
   onDirtyChange,
+  readOnly = false,
 }: {
   mode: 'create' | 'edit';
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord | null;
   onSave(input: CreateHouseInput): void | Promise<void>;
   onDirtyChange?: (isDirty: boolean) => void;
+  readOnly?: boolean;
 }) {
+  const isReadOnly = readOnly || house?.status === 'built' || house?.status === 'archived';
   const [locationLookupStatus, setLocationLookupStatus] = useState<'idle' | 'loading'>('idle');
   const [locationLookupMessage, setLocationLookupMessage] = useState<{
     tone: 'success' | 'error';
@@ -74,10 +77,12 @@ export function HouseConfigurationScreen({
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
+    if (isReadOnly) return;
     await onSave(toHouseConfigurationInput(values));
   });
 
   const useCurrentLocation = () => {
+    if (isReadOnly) return;
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       setLocationLookupMessage({
         tone: 'error',
@@ -123,6 +128,7 @@ export function HouseConfigurationScreen({
   };
 
   const loadMapFromLocationQuery = () => {
+    if (isReadOnly) return;
     setLocationLookupMessage(null);
     void form.trigger('locationQuery');
   };
@@ -155,6 +161,7 @@ export function HouseConfigurationScreen({
                   value={field.value ?? ''}
                   onChange={field.onChange}
                   loadedDropZoneClassName='h-72'
+                  disabled={isReadOnly}
                 />
               )}
             />
@@ -173,6 +180,7 @@ export function HouseConfigurationScreen({
                       required
                       maxLength={HOUSE_FAMILY_NAME_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -189,6 +197,7 @@ export function HouseConfigurationScreen({
                       maxLength={PHONE_MASK_MAX_LENGTH}
                       inputMode='numeric'
                       error={fieldState.error?.message}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -207,6 +216,7 @@ export function HouseConfigurationScreen({
                       required
                       maxLength={HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -223,6 +233,7 @@ export function HouseConfigurationScreen({
                       onBlur={field.onBlur}
                       maxLength={HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -244,6 +255,7 @@ export function HouseConfigurationScreen({
                   options={HOUSE_SIZE_OPTIONS}
                   onChange={(houseSize) => field.onChange(houseSize)}
                   error={fieldState.error?.message}
+                  disabled={isReadOnly}
                 />
               )}
             />
@@ -259,6 +271,7 @@ export function HouseConfigurationScreen({
                   onBlur={field.onBlur}
                   maxLength={HOUSE_LEADERS_MAX_LENGTH}
                   error={fieldState.error?.message}
+                  disabled={isReadOnly}
                 />
               )}
             />
@@ -275,6 +288,7 @@ export function HouseConfigurationScreen({
                     onBlur={field.onBlur}
                     maxLength={HOUSE_NOTES_MAX_LENGTH}
                     error={fieldState.error?.message}
+                    disabled={isReadOnly}
                   />
                 )}
               />
@@ -293,19 +307,30 @@ export function HouseConfigurationScreen({
                   <div className='space-y-3'>
                     <RadioField
                       icon={<Layers className='h-5 w-5'/>}
-                      label='Terreno Estável / Firme'
+                      label='Terreno Estável / Argiloso'
                       name='soilProfile'
-                      value='stable'
-                      checked={field.value === 'stable'}
+                      value='stable_clay'
+                      checked={field.value === 'stable_clay'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      disabled={isReadOnly}
+                    />
+                    <RadioField
+                      icon={<Pickaxe className='h-5 w-5'/>}
+                      label='Terreno Firme / Duro'
+                      name='soilProfile'
+                      value='firm_hard'
+                      checked={field.value === 'firm_hard'}
+                      onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      disabled={isReadOnly}
                     />
                     <RadioField
                       icon={<Waves className='h-5 w-5'/>}
-                      label='Solo Aluvial Solto / Argila'
+                      label='Solo Aluvial'
                       name='soilProfile'
-                      value='loose_clay'
-                      checked={field.value === 'loose_clay'}
+                      value='alluvial'
+                      checked={field.value === 'alluvial'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      disabled={isReadOnly}
                     />
                     <RadioField
                       icon={<Droplets className='h-5 w-5'/>}
@@ -314,6 +339,7 @@ export function HouseConfigurationScreen({
                       value='water_table'
                       checked={field.value === 'water_table'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      disabled={isReadOnly}
                     />
                   </div>
                 </fieldset>
@@ -325,13 +351,27 @@ export function HouseConfigurationScreen({
               <div className='space-y-3'>
                 <Controller
                   control={form.control}
+                  name='hasHydraulicObstacles'
+                  render={({field}) => (
+                    <CheckboxField
+                      label='Obstáculos Hidráulicos'
+                      description='Canos ou fossas'
+                      checked={field.value}
+                      onChange={field.onChange}
+                      disabled={isReadOnly}
+                    />
+                  )}
+                />
+                <Controller
+                  control={form.control}
                   name='hasUndergroundObstacles'
                   render={({field}) => (
                     <CheckboxField
                       label='Obstáculos Subterrâneos'
-                      description='Canos, raízes ou caliças (entulhos e concretos)'
+                      description='Raízes ou caliças (entulhos ou concreto)'
                       checked={field.value}
                       onChange={field.onChange}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -341,21 +381,23 @@ export function HouseConfigurationScreen({
                   render={({field}) => (
                     <CheckboxField
                       label='Obstáculos Elevados'
-                      description='Árvores ou fios de tensão'
+                      description='Árvores, galhos ou fios de tensão'
                       checked={field.value}
                       onChange={field.onChange}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
                 <Controller
                   control={form.control}
-                  name='hasNeighborSetbacks'
+                  name='hasNeighborSetbackConstraints'
                   render={({field}) => (
                     <CheckboxField
                       label='Servidões Vizinhas'
-                      description='Recuos rígidos de limites (esquadro apertado)'
+                      description='Recuo rígido de limite (esquadro apertado)'
                       checked={field.value}
                       onChange={field.onChange}
+                      disabled={isReadOnly}
                     />
                   )}
                 />
@@ -386,6 +428,7 @@ export function HouseConfigurationScreen({
                       onBlur={field.onBlur}
                       onKeyDown={handleLocationQueryKeyDown}
                       error={fieldState.error?.message}
+                      disabled={isReadOnly}
                     />
                     <button
                       type='button'
@@ -395,7 +438,7 @@ export function HouseConfigurationScreen({
                         'w-full gap-2 border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 md:mt-[1.45rem]',
                       )}
                       onClick={useCurrentLocation}
-                      disabled={locationLookupStatus === 'loading'}
+                      disabled={isReadOnly || locationLookupStatus === 'loading'}
                     >
                       {locationLookupStatus === 'loading'
                         ? <LoaderCircle className='h-4 w-4 animate-spin'/>
@@ -422,7 +465,7 @@ export function HouseConfigurationScreen({
               <StaticMapPreview locationQuery={locationQuery}/>
             </div>
             <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2'>
-              <PrimaryButton type='submit' className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
+              <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
             </div>
           </div>
         </HouseFormSection>

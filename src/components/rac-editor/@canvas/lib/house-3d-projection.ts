@@ -85,12 +85,13 @@ function createElevationViewProjection(params: {
     instanceId: params.view.instanceId,
     houseView: typeof group.houseView === 'string' ? group.houseView : undefined,
     groupWidth: getGroupWidth(group),
+    bodyLeft: getObjectLeft(body),
     bodyWidth: getObjectWidth(body),
     doorWidth: getObjectWidth(door),
     stairs: stairs
       ? {
-        width: getObjectWidth(stairs),
-        left: Number(stairs.left ?? 0),
+        width: getObjectWidth(stairs) ?? 0,
+        left: getObjectLeft(stairs) ?? 0,
         heightMts: Number(stairs.stairsHeight ?? 0),
         stepCount: Number(stairs.stairsStepCount ?? 0),
       }
@@ -122,4 +123,11 @@ function getObjectWidth(object: CanvasObject | undefined): number | undefined {
   if (Number.isFinite(widthFromBounds) && widthFromBounds > 0) return widthFromBounds;
 
   return undefined;
+}
+
+function getObjectLeft(object: CanvasObject | undefined): number | undefined {
+  if (!object) return undefined;
+
+  const left = Number(object.left ?? 0);
+  return Number.isFinite(left) ? left : undefined;
 }

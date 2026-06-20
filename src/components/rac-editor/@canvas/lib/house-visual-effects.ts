@@ -9,6 +9,7 @@ import {refreshHouseViewReferenceMarkersInViews} from '@/components/rac-editor/@
 import {getCanvasGroupObjects} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 import {updateGroundInGroup} from '@/components/rac-editor/@canvas/lib/terrain.ts';
+import {refreshTopSlopeIndicator} from '@/components/rac-editor/@canvas/lib/house-top-slope-indicator.ts';
 
 function renderWhenChanged(changed: boolean, requestRender: () => void): void {
   if (changed) {
@@ -121,6 +122,23 @@ export function refreshPilotiNameLabels(params: {
   renderWhenChanged(changed, params.requestRender);
 }
 
+export function refreshTopSlopeIndicators(params: {
+  house: HouseRuntimeSnapshot<CanvasGroup> | null;
+  requestRender: () => void;
+}): void {
+  if (!params.house) return;
+
+  let changed = false;
+  params.house.views.top.forEach((instance) => {
+    if (!refreshTopSlopeIndicator(instance.group)) return;
+
+    refreshHouseGroupRendering(instance.group);
+    changed = true;
+  });
+
+  renderWhenChanged(changed, params.requestRender);
+}
+
 export function refreshElevationNivelLabels(params: {
   house: HouseRuntimeSnapshot<CanvasGroup> | null;
   requestRender: () => void;
@@ -192,6 +210,13 @@ export class HouseVisualEffects {
       house: this.args.getHouse(),
       requestRender: () => this.args.requestCanvasRender(),
       settingsPort: this.args.settingsPort,
+    });
+  }
+
+  refreshTopSlopeIndicators(): void {
+    refreshTopSlopeIndicators({
+      house: this.args.getHouse(),
+      requestRender: () => this.args.requestCanvasRender(),
     });
   }
 

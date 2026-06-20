@@ -74,7 +74,7 @@ export function ConstructionStatusDialog({
   onCancel(): void;
   onConfirm(): void;
 }) {
-  const isUnarchive = action === 'unarchive';
+  const content = getConstructionStatusDialogContent(action, constructionCode);
   return (
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
@@ -82,26 +82,62 @@ export function ConstructionStatusDialog({
       <AlertDialogContent className='bg-white'>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {isUnarchive ? 'Desarquivar construção?' : 'Arquivar construção?'}
+            {content.title}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {isUnarchive
-              ? `A construção ${constructionCode || 'sem código'} voltará a ficar disponível para gestão e seleção.`
-              : `A construção ${constructionCode || 'sem código'} será arquivada e deixará de abrir no Canvas.`}
+            {content.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={isUnarchive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-600 text-white hover:bg-red-700'}
+            className={content.actionClassName}
           >
-            {isUnarchive ? 'Desarquivar construção' : 'Arquivar construção'}
+            {content.actionLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
+}
+
+function getConstructionStatusDialogContent(action: StatusChangeAction, constructionCode: string) {
+  const normalizedConstructionCode = constructionCode || 'sem código';
+
+  if (action === 'unarchive') {
+    return {
+      title: 'Desarquivar construção?',
+      description: `A construção ${normalizedConstructionCode} voltará a ficar disponível para gestão e seleção.`,
+      actionLabel: 'Desarquivar construção',
+      actionClassName: 'bg-blue-600 text-white hover:bg-blue-700',
+    };
+  }
+
+  if (action === 'markCompleted') {
+    return {
+      title: 'Concluir construção?',
+      description: `A construção ${normalizedConstructionCode} ficará disponível para visualização, sem edição de casas e monitores.`,
+      actionLabel: 'Concluir construção',
+      actionClassName: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    };
+  }
+
+  if (action === 'markInProgress') {
+    return {
+      title: 'Voltar construção para andamento?',
+      description: `A construção ${normalizedConstructionCode} voltará a permitir edição de casas e monitores.`,
+      actionLabel: 'Voltar para andamento',
+      actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
+    };
+  }
+
+  return {
+    title: 'Arquivar construção?',
+    description: `A construção ${normalizedConstructionCode} será arquivada e deixará de abrir no Canvas.`,
+    actionLabel: 'Arquivar construção',
+    actionClassName: 'bg-red-600 text-white hover:bg-red-700',
+  };
 }
 
 export function HouseStatusDialog({
@@ -117,32 +153,69 @@ export function HouseStatusDialog({
   onCancel(): void;
   onConfirm(): void;
 }) {
-  const isUnarchive = action === 'unarchive';
+  const content = getHouseStatusDialogContent(action, familyName);
+
   return (
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
       <AlertDialogContent className='bg-white'>
         <AlertDialogHeader>
-          <AlertDialogTitle>{isUnarchive ? 'Desarquivar casa?' : 'Arquivar casa?'}</AlertDialogTitle>
+          <AlertDialogTitle>{content.title}</AlertDialogTitle>
           <AlertDialogDescription>
-            {isUnarchive
-              ? `A casa de ${familyName || 'família sem nome'} voltará a ficar disponível no gerenciamento.`
-              : `A casa de ${familyName || 'família sem nome'} será arquivada e deixará de aparecer no Canvas.`}
+            {content.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={isUnarchive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-600 text-white hover:bg-red-700'}
+            className={content.actionClassName}
           >
-            {isUnarchive ? 'Desarquivar casa' : 'Arquivar casa'}
+            {content.actionLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
+}
+
+function getHouseStatusDialogContent(action: StatusChangeAction, familyName: string) {
+  const normalizedFamilyName = familyName || 'família sem nome';
+
+  if (action === 'unarchive') {
+    return {
+      title: 'Desarquivar casa?',
+      description: `A casa de ${normalizedFamilyName} voltará a ficar disponível no gerenciamento.`,
+      actionLabel: 'Desarquivar casa',
+      actionClassName: 'bg-blue-600 text-white hover:bg-blue-700',
+    };
+  }
+
+  if (action === 'markBuilt') {
+    return {
+      title: 'Marcar casa como construída?',
+      description: `A casa de ${normalizedFamilyName} ficará bloqueada para edição no Canvas, configurações e materiais extras.`,
+      actionLabel: 'Marcar como construída',
+      actionClassName: 'bg-emerald-600 text-white hover:bg-emerald-700',
+    };
+  }
+
+  if (action === 'markDraft') {
+    return {
+      title: 'Voltar casa para rascunho?',
+      description: `A casa de ${normalizedFamilyName} voltará a permitir edição no Canvas, configurações e materiais extras.`,
+      actionLabel: 'Voltar para rascunho',
+      actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
+    };
+  }
+
+  return {
+    title: 'Arquivar casa?',
+    description: `A casa de ${normalizedFamilyName} será arquivada e deixará de aparecer no Canvas.`,
+    actionLabel: 'Arquivar casa',
+    actionClassName: 'bg-red-600 text-white hover:bg-red-700',
+  };
 }
 
 export function MonitorStatusDialog({

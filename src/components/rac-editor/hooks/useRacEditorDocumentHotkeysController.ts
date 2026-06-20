@@ -14,6 +14,7 @@ export function useRacEditorDocumentHotkeysController({
   house3DPdfSnapshotRef,
   canExportPdf,
   onBeforeExportPdf,
+  onAfterExportPdf,
   onToggleDrawMode,
   onToggleZoomControls,
   onSetCanvasToolMode,
@@ -24,6 +25,7 @@ export function useRacEditorDocumentHotkeysController({
     house3DPdfSnapshotRef,
     canExportPdf,
     onBeforeExportPdf,
+    onAfterExportPdf,
   });
 
   useRacEditorHotkeys({

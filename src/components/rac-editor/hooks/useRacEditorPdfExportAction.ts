@@ -13,6 +13,7 @@ interface UseRacEditorPdfExportActionArgs {
   house3DPdfSnapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
   canExportPdf?: () => boolean;
   onBeforeExportPdf?: () => Promise<unknown>;
+  onAfterExportPdf?: () => void;
 }
 
 export function useRacEditorPdfExportAction({
@@ -20,6 +21,7 @@ export function useRacEditorPdfExportAction({
   house3DPdfSnapshotRef,
   canExportPdf,
   onBeforeExportPdf,
+  onAfterExportPdf,
 }: UseRacEditorPdfExportActionArgs) {
   const {constructionSiteManagementPort} = useEditorPorts();
 
@@ -65,13 +67,22 @@ export function useRacEditorPdfExportAction({
         jsPDF,
       });
       pdf.save(report.fileName);
+      constructionSiteManagementPort.markActiveHouseRacPrinted();
+      onAfterExportPdf?.();
       toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
 
     } catch (error) {
       console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);
       toast.error('Falha ao salvar PDF.');
     }
-  }, [canExportPdf, canvasRef, constructionSiteManagementPort, house3DPdfSnapshotRef, onBeforeExportPdf]);
+  }, [
+    canExportPdf,
+    canvasRef,
+    constructionSiteManagementPort,
+    house3DPdfSnapshotRef,
+    onAfterExportPdf,
+    onBeforeExportPdf,
+  ]);
 
   return {handleSavePDF};
 }

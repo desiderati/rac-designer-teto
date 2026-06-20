@@ -29,12 +29,14 @@ export function MonitorFormScreen({
   monitor,
   onSave,
   onDirtyChange,
+  readOnly = false,
 }: {
   mode: 'create' | 'edit';
   constructionSite: ConstructionSiteState;
   monitor: MonitorRecord | null;
   onSave(input: CreateMonitorInput): void | Promise<void>;
   onDirtyChange?: (isDirty: boolean) => void;
+  readOnly?: boolean;
 }) {
   const form = useForm<MonitorFormValues>({
     resolver: zodResolver(monitorFormSchema),
@@ -49,6 +51,7 @@ export function MonitorFormScreen({
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
+    if (readOnly) return;
     await onSave(toMonitorInput(values));
   });
   const isSubmitting = form.formState.isSubmitting;
@@ -84,6 +87,7 @@ export function MonitorFormScreen({
                 className='h-full'
                 dropZoneClassName='min-h-[16rem] flex-1'
                 loadedDropZoneClassName='min-h-[16rem] flex-1'
+                disabled={readOnly}
               />
             )}
           />
@@ -102,6 +106,7 @@ export function MonitorFormScreen({
                     required
                     maxLength={MONITOR_NAME_MAX_LENGTH}
                     error={fieldState.error?.message}
+                    disabled={readOnly}
                   />
                 )}
               />
@@ -119,6 +124,7 @@ export function MonitorFormScreen({
                     maxLength={PHONE_MASK_MAX_LENGTH}
                     inputMode='numeric'
                     error={fieldState.error?.message}
+                    disabled={readOnly}
                   />
                 )}
               />
@@ -135,11 +141,12 @@ export function MonitorFormScreen({
                     onBlur={field.onBlur}
                     maxLength={MONITOR_EMAIL_MAX_LENGTH}
                     error={fieldState.error?.message}
+                    disabled={readOnly}
                   />
                 )}
               />
             </div>
-            <PrimaryButton type='submit' className='mt-4 w-full md:mt-auto' disabled={isSubmitting}>
+            <PrimaryButton type='submit' className='mt-4 w-full md:mt-auto' disabled={readOnly || isSubmitting}>
               {submitLabel}
             </PrimaryButton>
           </div>

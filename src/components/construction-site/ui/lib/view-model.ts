@@ -198,9 +198,10 @@ export interface HouseConfigurationFormState {
   leaders: string;
   notes: string;
   soilProfile: SoilProfile | '';
+  hasHydraulicObstacles: boolean;
   hasUndergroundObstacles: boolean;
   hasElevatedObstacles: boolean;
-  hasNeighborSetbacks: boolean;
+  hasNeighborSetbackConstraints: boolean;
   locationQuery: string;
 }
 
@@ -221,9 +222,10 @@ export function getHouseConfigurationInitialState(
     leaders: house?.leaders ?? '',
     notes: house?.notes ?? family?.notes ?? '',
     soilProfile: assessment?.soilProfile ?? '',
+    hasHydraulicObstacles: assessment?.hasHydraulicObstacles ?? false,
     hasUndergroundObstacles: assessment?.hasUndergroundObstacles ?? false,
     hasElevatedObstacles: assessment?.hasElevatedObstacles ?? false,
-    hasNeighborSetbacks: assessment?.hasNeighborSetbacks ?? false,
+    hasNeighborSetbackConstraints: assessment?.hasNeighborSetbackConstraints ?? false,
     locationQuery: assessment?.locationQuery ?? '',
   };
 }
@@ -240,9 +242,10 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
     notes: form.notes ?? '',
     siteAssessment: {
       soilProfile: form.soilProfile || undefined,
+      hasHydraulicObstacles: form.hasHydraulicObstacles ?? false,
       hasUndergroundObstacles: form.hasUndergroundObstacles ?? false,
       hasElevatedObstacles: form.hasElevatedObstacles ?? false,
-      hasNeighborSetbacks: form.hasNeighborSetbacks ?? false,
+      hasNeighborSetbackConstraints: form.hasNeighborSetbackConstraints ?? false,
       locationQuery: form.locationQuery?.trim() || undefined,
     },
   };
@@ -348,7 +351,8 @@ export function getHouseInitials(label: string): string {
 }
 
 export function getActiveHouse(constructionSite: ConstructionSiteState): PersistedHouseRecord | null {
-  return constructionSite.houses.find((house) => house.id === constructionSite.constructionSite.activeHouseId)
+  return constructionSite.houses.find((house) =>
+    house.id === constructionSite.constructionSite.activeHouseId && house.status !== 'archived')
     ?? constructionSite.houses.find((house) => house.status !== 'archived')
     ?? null;
 }

@@ -119,9 +119,10 @@ const HOUSE_TYPE_LABELS: Record<Exclude<HouseType, null>, string> = {
 };
 
 const SOIL_PROFILE_LABELS: Record<SoilProfile, string> = {
-  stable: 'Firme',
-  loose_clay: 'Argila / solto',
-  water_table: 'Água no fundo',
+  stable_clay: 'Terreno Estável / Argiloso',
+  firm_hard: 'Terreno Firme / Duro',
+  alluvial: 'Solo Aluvial',
+  water_table: 'Lençol Freático / Água no Fundo',
 };
 
 export function buildRacPdfReportModel({
@@ -269,11 +270,12 @@ function buildTerrainOptionGroups(assessment: SiteAssessment): RacPdfReportOptio
     },
     {
       label: 'Obstáculos',
-      options: ['Subterrâneos', 'Elevados', 'Recuos vizinhos'],
+      options: ['Hidráulicos', 'Subterrâneos', 'Elevados', 'Esquadro'],
       selected: [
+        assessment.hasHydraulicObstacles ? 'Hidráulicos' : null,
         assessment.hasUndergroundObstacles ? 'Subterrâneos' : null,
         assessment.hasElevatedObstacles ? 'Elevados' : null,
-        assessment.hasNeighborSetbacks ? 'Recuos vizinhos' : null,
+        assessment.hasNeighborSetbackConstraints ? 'Esquadro' : null,
       ].filter((option): option is string => option !== null),
     },
   ];

@@ -1,6 +1,5 @@
-import {Suspense, useEffect} from 'react';
+import {Suspense, useEffect, useMemo} from 'react';
 import {Canvas} from '@react-three/fiber';
-import {OrbitControls} from '@react-three/drei';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
@@ -15,23 +14,32 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {House3DScene} from './House3DScene.tsx';
-import {House3DDefaultCamera} from '@/components/rac-editor/@viewer-3d/ui/House3DDefaultCamera.tsx';
+import {House3DViewerCameraRig} from '@/components/rac-editor/@viewer-3d/ui/House3DViewerCameraRig.tsx';
 import type {RefObject} from 'react';
 import {HOUSE_3D_WALL_COLOR_OPTIONS} from '@/shared/config.ts';
 import {useHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
 import {useHouse3DViewerActions} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerActions.ts';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 import {
-  HOUSE_3D_CAMERA_TARGET,
-} from '@/components/rac-editor/@viewer-3d/lib/constants.ts';
+  createHouse3DDoorFacingLightingPreset,
+  getHouse3DViewerCameraPoseStorageKey,
+  readHouse3DViewerCameraPose,
+  resolveHouse3DDoorFace,
+} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 
 interface House3DViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
+  activeHouseId: string | null;
 }
 
-export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProps) {
+function readPersistedCameraPose(storageKey: string | null, storageRevision: number) {
+  void storageRevision;
+  return readHouse3DViewerCameraPose(storageKey);
+}
+
+export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: House3DViewerProps) {
   const {
     houseType,
     hasHouseViews,
@@ -42,6 +50,18 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
     contraventamentos,
     stairs,
   } = useHouse3DViewerModel();
+  const cameraPoseStorageKey = useMemo(
+    () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
+    [activeHouseId],
+  );
+  const doorFace = useMemo(
+    () => resolveHouse3DDoorFace(houseType, tipo6FrontSide, tipo3OpenSide),
+    [houseType, tipo3OpenSide, tipo6FrontSide],
+  );
+  const lightingPreset = useMemo(
+    () => createHouse3DDoorFacingLightingPreset(doorFace),
+    [doorFace],
+  );
 
   const {
     resetKey,
@@ -53,16 +73,23 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
     isSceneReady,
     clearSceneReadiness,
     handleCanvasCreated,
+    registerCameraPoseReader,
     handleReset,
     toggleFullscreen,
     handleClose,
+    handleDialogOpenChange,
     handleInsertOnCanvas,
   } = useHouse3DViewerActions({
     houseType,
     hasHouseViews,
     onOpenChange,
     canvasRef,
+    cameraPoseStorageKey,
   });
+  const persistedCameraPose = useMemo(
+    () => readPersistedCameraPose(cameraPoseStorageKey, resetKey),
+    [cameraPoseStorageKey, resetKey],
+  );
 
   useEffect(() => {
     if (!open || canRenderHouse) return;
@@ -74,7 +101,7 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
     : 'max-w-3xl w-full h-[70vh] max-h-[70vh]';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         hideCloseButton
         className={`p-0 gap-0 flex flex-col ${dialogClass}`}
@@ -182,11 +209,15 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
                   handleCanvasCreated(gl.domElement);
                 }}
               >
-                <House3DDefaultCamera/>
+                <House3DViewerCameraRig
+                  doorFace={doorFace}
+                  persistedPose={persistedCameraPose}
+                  onCameraPoseReaderChange={registerCameraPoseReader}
+                />
 
                 <ambientLight intensity={0.6}/>
                 <directionalLight
-                  position={[50, 100, 50]}
+                  position={lightingPreset.primaryPosition}
                   intensity={0.8}
                   castShadow
                   shadow-mapSize={[1024, 1024]}
@@ -200,7 +231,7 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
                   shadow-camera-bottom={-260}
                 />
                 <directionalLight
-                  position={[-50, 50, -50]}
+                  position={lightingPreset.fillPosition}
                   intensity={0.3}
                 />
 
@@ -215,14 +246,6 @@ export function House3DViewer({open, onOpenChange, canvasRef}: House3DViewerProp
                   hideBelowTerrain={hideBelowTerrain}
                 />
 
-                <OrbitControls
-                  enablePan
-                  enableZoom
-                  enableRotate
-                  minDistance={80}
-                  maxDistance={700}
-                  target={HOUSE_3D_CAMERA_TARGET}
-                />
               </Canvas>
             </Suspense>
           )}

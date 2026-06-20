@@ -6,6 +6,8 @@ export const APP_SETTINGS_DEFAULTS = {
   zoomEnabledByDefault: false,
   openEditorsAtFixedPosition: false,
   disableDrawModeAfterFreehand: false,
+  configureCornerPilotiNiveisOnHouseInsert: true,
+  allowPilotiHeightDefinitionOnHouseInsert: false,
   showStairsOnTopView: false,
   showPilotiLabelsOnTopView: true,
 } as const;
@@ -14,6 +16,7 @@ export const STORAGE_KEYS = {
   settings: 'rac-settings',
   constructionSites: 'rac-construction-sites',
   canvasViewport: 'rac-canvas-viewport:v1',
+  house3DViewerCameraPosePrefix: 'rac-house-3d-camera-pose:v1:',
 } as const;
 
 export const VIEWPORT = {
@@ -218,6 +221,7 @@ export const MINIMAP = {
 export const TIMINGS = {
   mobileTapToEditDelayMs: 300,
   mobilePilotiTapDelayMs: 50,
+  mobileLongPressDelayMs: 500,
   pilotiAutoNavigateDelayMs: 150,
   stackedViewRepositionDelayMs: 50,
   pinchEndDebounceMs: 450,

@@ -33,7 +33,7 @@ describe('rac pdf report model', () => {
 
   it('calcula indicador de risco do terreno por solo, desnivel dos pilotis, obstaculos e media dos pilotis', () => {
     expect(calculateTerrainRiskIndicator({
-      soilProfile: 'stable',
+      soilProfile: 'stable_clay',
     })).toEqual({
       score: 0,
       label: 'Baixa',
@@ -44,7 +44,7 @@ describe('rac pdf report model', () => {
       soilProfile: 'water_table',
       hasElevatedObstacles: true,
     }, createPilotisWithHeightAndDesnivel(1, 30))).toEqual({
-      score: 37,
+      score: 34,
       label: 'Média',
       level: 'medium',
     });
@@ -53,17 +53,17 @@ describe('rac pdf report model', () => {
       soilProfile: 'water_table',
       hasElevatedObstacles: true,
     }, createPilotisWithHeightAndDesnivel(3, 30))).toEqual({
-      score: 53,
+      score: 74,
       label: 'Alta',
       level: 'high',
     });
 
     expect(calculateTerrainRiskIndicator({
-      soilProfile: 'stable',
+      soilProfile: 'stable_clay',
     }, createPilotisWithHeightAndDesnivel(3.5, 0))).toEqual({
-      score: 20,
-      label: 'Baixa',
-      level: 'low',
+      score: 50,
+      label: 'Alta',
+      level: 'high',
     });
 
     expect(calculateTerrainRiskIndicator({
@@ -77,9 +77,10 @@ describe('rac pdf report model', () => {
 
     expect(calculateTerrainRiskIndicator({
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasUndergroundObstacles: true,
       hasElevatedObstacles: true,
-      hasNeighborSetbacks: true,
+      hasNeighborSetbackConstraints: true,
     }, createPilotisWithHeightAndDesnivel(3.5, 120))).toEqual({
       score: 100,
       label: 'Crítica',
@@ -101,7 +102,7 @@ describe('rac pdf report model', () => {
       {label: 'Data de geração', value: '16/06/2026 09:00'},
     ]);
     expect(report?.terrain.riskIndicator).toEqual({
-      score: 51,
+      score: 70,
       label: 'Alta',
       level: 'high',
     });
@@ -118,7 +119,12 @@ describe('rac pdf report model', () => {
       (report?.terrain.volumes?.rachaoM3 ?? 0) + (report?.terrain.volumes?.britaM3 ?? 0),
       6,
     );
-    expect(report?.terrain.optionGroups.find((group) => group.label === 'Solo')?.selected).toEqual(['Água no fundo']);
+    expect(report?.terrain.optionGroups.find((group) => group.label === 'Solo')?.selected)
+      .toEqual(['Lençol Freático / Água no Fundo']);
+    expect(report?.terrain.optionGroups.find((group) => group.label === 'Obstáculos')?.options)
+      .toEqual(['Hidráulicos', 'Subterrâneos', 'Elevados', 'Esquadro']);
+    expect(report?.terrain.optionGroups.find((group) => group.label === 'Obstáculos')?.selected)
+      .toEqual(['Hidráulicos', 'Subterrâneos', 'Elevados', 'Esquadro']);
     expect(report?.monitors.map((monitor) => monitor.name)).toEqual(['Carioca', 'John']);
     expect(report?.pilotis.master?.code).toBe('A1');
     expect(report?.pilotis.master?.nivelLabel).toBe('0,10 m');
@@ -164,15 +170,16 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('DATA DE GERA...');
     expect(output).toContain('16/06/2026 09:00');
     expect(output).toMatch(/58\. 0 0 24\.\d+ 763\.\d+ 549\.\d+ cm/);
-    expect(output).toContain('52');
+    expect(output).toContain(String(report!.terrain.riskIndicator.score));
     expect(output).toContain('BR');
     expect(output).toContain('70 cm');
     expect(output).toContain('Grande');
     expect(output).toContain('Tipo 6');
-    expect(output).toContain('Água no fundo');
+    expect(output).toContain('Hidráulicos');
     expect(output).toContain('Subterrâneos');
     expect(output).toContain('Elevados');
-    expect(output).toContain('Recuos vizinhos');
+    expect(output).toContain('Esquadro');
+    expect(output).not.toContain('+2');
     expect(output).not.toContain('MATERIAIS DE BASE');
     expect(output).not.toContain('RACHÃO');
     expect(output).not.toContain('BRITA');
@@ -196,8 +203,8 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('LÍDERES');
     expect(output).not.toContain('Pequena');
     expect(output).not.toContain('Tipo 3');
-    expect(output).not.toContain('Firme');
-    expect(output).not.toContain('Argila / solto');
+    expect(output).not.toContain('Terreno Firme / Duro');
+    expect(output).not.toContain('Solo Aluvial');
     expect(output).not.toContain('Plano');
   });
 
@@ -510,7 +517,10 @@ function createHouseRecord({
     },
     siteAssessment: {
       soilProfile: 'water_table',
+      hasHydraulicObstacles: true,
       hasElevatedObstacles: true,
+      hasUndergroundObstacles: true,
+      hasNeighborSetbackConstraints: true,
     },
     pilotiLayout: {
       masterCode: 'a1',

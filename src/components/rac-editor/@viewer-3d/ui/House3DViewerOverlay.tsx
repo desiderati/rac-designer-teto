@@ -11,9 +11,15 @@ interface RacEditor3DViewerOverlayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
+  activeHouseId: string | null;
 }
 
-export function House3DViewerOverlay({open, onOpenChange, canvasRef}: RacEditor3DViewerOverlayProps) {
+export function House3DViewerOverlay({
+  open,
+  onOpenChange,
+  canvasRef,
+  activeHouseId,
+}: RacEditor3DViewerOverlayProps) {
   if (!open) return null;
 
   return (
@@ -22,6 +28,7 @@ export function House3DViewerOverlay({open, onOpenChange, canvasRef}: RacEditor3
         open={open}
         onOpenChange={onOpenChange}
         canvasRef={canvasRef}
+        activeHouseId={activeHouseId}
       />
     </Suspense>
   );

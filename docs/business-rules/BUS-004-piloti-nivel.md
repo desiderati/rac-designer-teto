@@ -20,7 +20,7 @@ O nível representa a altura de referência do terreno sob um piloti, em metros.
 visualização 2D/3D, a altura recomendada do piloti, o diagnóstico de proporção estrutural e as escadas automáticas.
 
 - **Mínimo global:** 0.20 m
-- **Máximo global:** 1.75 m (metade da maior altura disponível, 3.5 m / 2)
+- **Máximo global:** 1.90 m (metade da maior altura disponível, 3.8 m / 2)
 - **Limite máximo permitido por piloti:** `Altura do piloti / 2`
 - **Relação usada para recomendação estrutural:** `Altura recomendada >= nível * 3`
 
@@ -54,17 +54,33 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
 3. A preferência manual só passa a controlar alterações feitas depois que a casa já foi criada.
 4. Portanto, níveis iniciais acima de `0.50 m` não podem ser limitados pela altura padrão `1.0 m`; antes da casa ser
    inserida, a altura recomendada deve ser calculada para cada piloti.
+5. A configuração `Configurar o nível dos pilotis dos cantos ao inserir uma casa` vem ativada por padrão e controla se
+   a modal inicial de níveis dos cantos será exibida.
+6. Quando essa configuração está desativada, a casa é inserida com o piloti mestre `A1` e os cantos `A1`, `A4`, `C1` e
+   `C4` com nível `0.20 m`.
+7. A configuração `Permitir a definição das alturas dos pilotis ao inserir uma casa` vem desativada por padrão.
+8. Quando a definição de alturas está desativada, a casa usa automaticamente as alturas `1.0`, `1.2`, `1.5`, `1.8`,
+   `2.0`, `2.2`, `2.5` e `3.0` m.
+9. Quando a definição de alturas está ativada, a modal inicial exibe 12 opções em 3 linhas de 4: `1.0`, `1.2`, `1.5`,
+   `1.8`; `2.0`, `2.2`, `2.5`, `2.8`; `3.0`, `3.2`, `3.5`, `3.8`. O usuário deve manter exatamente 8 alturas
+   selecionadas.
 
 ### Alturas disponíveis e máximos de nível
 
 | Altura do piloti | Nível máximo permitido |
 |------------------|------------------------|
 | 1.0 m            | 0.50 m                 |
+| 1.2 m            | 0.60 m                 |
 | 1.5 m            | 0.75 m                 |
+| 1.8 m            | 0.90 m                 |
 | 2.0 m            | 1.00 m                 |
+| 2.2 m            | 1.10 m                 |
 | 2.5 m            | 1.25 m                 |
+| 2.8 m            | 1.40 m                 |
 | 3.0 m            | 1.50 m                 |
+| 3.2 m            | 1.60 m                 |
 | 3.5 m            | 1.75 m                 |
+| 3.8 m            | 1.90 m                 |
 
 ## Regras de edição
 
@@ -82,6 +98,7 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
     - se o nível atual ultrapassar o máximo permitido da nova altura (`altura / 2`), o nível é reduzido para esse
       limite;
     - se a nova altura continuar compatível, o nível permanece como estava.
+6. A modal de edição de piloti exibe as 8 alturas habilitadas para a casa em 2 linhas de 4 opções.
 
 ### Digitação de nível
 
@@ -95,12 +112,12 @@ Essa preferência pertence ao editor/usuário e não ao registro da casa.
 
 ### Síntese operacional
 
-| Ação do usuário                    | Altura recalculada? | Nível recalculado?              |
-|------------------------------------|---------------------|---------------------------------|
-| Alterar nível no modo automático   | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido dentro do limite global) |
-| Alterar nível no modo manual       | Não                 | Sim, se nível > altura atual / 2 |
-| Botão de altura (menor)            | Não                 | Sim, se nível > nova altura / 2 |
-| Botão de altura (maior)            | Não                 | Não                             |
+| Ação do usuário                  | Altura recalculada?                                | Nível recalculado?                                     |
+|----------------------------------|----------------------------------------------------|--------------------------------------------------------|
+| Alterar nível no modo automático | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido dentro do limite global) |
+| Alterar nível no modo manual     | Não                                                | Sim, se nível > altura atual / 2                       |
+| Botão de altura (menor)          | Não                                                | Sim, se nível > nova altura / 2                        |
+| Botão de altura (maior)          | Não                                                | Não                                                    |
 
 ## Regras de limite
 
@@ -147,6 +164,12 @@ Ao modificar a altura de um piloti:
 1. O usuário deve perceber se a edição está em modo automático ou manual antes de alterar o nível.
 2. O usuário deve perceber quando houve ajuste automático por limite ou por recomendação.
 3. O sistema não pode manter valores inválidos escondidos.
+4. A vista planta pode exibir uma seta translúcida de `Desnível` quando houver diferença entre os níveis dos pilotis.
+   Essa seta deve apontar para o sentido de crescimento do nível, ficar no fundo da planta, atrás dos pilotis,
+   contraventamentos, labels e bordas, e não deve ser selecionável nem interferir na edição.
+5. A cabeça da seta de `Desnível` deve manter proporção visual estável; apenas o comprimento do corpo varia conforme
+   o vetor do terreno. Quando a direção deixaria o texto invertido, a label deve ser rotacionada para manter leitura
+   da ponta da seta para o rabo.
 
 ## Regras de consistência
 

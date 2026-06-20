@@ -15,6 +15,8 @@ const defaultSettings: AppSettings = {
   zoomEnabledByDefault: true,
   openEditorsAtFixedPosition: true,
   disableDrawModeAfterFreehand: false,
+  configureCornerPilotiNiveisOnHouseInsert: true,
+  allowPilotiHeightDefinitionOnHouseInsert: false,
   showStairsOnTopView: true,
   showPilotiLabelsOnTopView: true,
 };
@@ -27,6 +29,8 @@ const pilotis: Record<string, HousePiloti> = {
 function createEditorPorts(input: {
   settings?: Partial<AppSettings>;
   updatePiloti?: ReturnType<typeof vi.fn>;
+  updateSetting?: ReturnType<typeof vi.fn>;
+  refreshElevationNivelLabelsForCurrentSettings?: ReturnType<typeof vi.fn>;
 } = {}): EditorPorts {
   const settings = {
     ...defaultSettings,
@@ -47,10 +51,12 @@ function createEditorPorts(input: {
       updatePiloti,
       applyInitialPilotiNiveis: vi.fn(),
       calculateAndApplyRecommendedHeights: vi.fn(),
+      refreshElevationNivelLabelsForCurrentSettings:
+        input.refreshElevationNivelLabelsForCurrentSettings ?? vi.fn(),
     },
     settingsPort: {
       getSettings: vi.fn(() => settings),
-      updateSetting: vi.fn(),
+      updateSetting: input.updateSetting ?? vi.fn(),
     },
   } as unknown as EditorPorts;
 }
@@ -101,7 +107,10 @@ describe('PilotiEditor.tsx', () => {
       },
     );
 
-    expect(screen.getByText('Nível do Piloti (Manual)')).toBeVisible();
+    expect(screen.getByText('Nível do Piloti')).toBeVisible();
+    expect(screen.queryByText('Nível do Piloti (Manual)')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /modo automático de altura dos pilotis/i}))
+      .toHaveAttribute('data-guided-tour-id', 'rac-piloti-nivel-mode-toggle');
 
     const nivelEditor = screen.getByLabelText('Nível do piloti em metros');
     nivelEditor.textContent = '040';
@@ -142,6 +151,8 @@ describe('PilotiEditor.tsx', () => {
     );
 
     const nivelEditor = screen.getByLabelText('Nível do piloti em metros');
+    expect(screen.getByRole('button', {name: /modo automático de altura dos pilotis/i}))
+      .not.toHaveAttribute('data-guided-tour-id');
     nivelEditor.textContent = '045';
     fireEvent.input(nivelEditor);
     fireEvent.blur(nivelEditor);
@@ -172,6 +183,42 @@ describe('PilotiEditor.tsx', () => {
 
     expect(screen.queryByText('Nível do Piloti (Auto)')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Nível do piloti em metros')).not.toBeInTheDocument();
+  });
+
+  it('alterna o modo global de nível pelo botão do editor', () => {
+    const updateSetting = vi.fn();
+    const refreshElevationNivelLabelsForCurrentSettings = vi.fn();
+
+    render(
+      <PilotiEditor
+        isOpen
+        onClose={vi.fn()}
+        pilotiId='piloti_0_0'
+        currentHeight={1}
+        currentIsMaster
+        currentNivel={0.2}
+        pilotiIds={['piloti_0_0', 'piloti_1_0']}
+        selectedPilotiHeights={[1, 1.5, 2]}
+        isMobile={false}
+        onHeightChange={vi.fn()}
+      />,
+      {
+        wrapper: createWrapper({
+          updateSetting,
+          refreshElevationNivelLabelsForCurrentSettings,
+        }),
+      },
+    );
+
+    const modeButton = screen.getByRole('button', {name: /modo automático de altura dos pilotis/i});
+    expect(modeButton).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(modeButton);
+
+    expect(updateSetting).toHaveBeenCalledWith('autoAdjustPilotiHeightsFromNivel', false);
+    expect(refreshElevationNivelLabelsForCurrentSettings).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', {name: /modo automático de altura dos pilotis/i}))
+      .toHaveAttribute('aria-pressed', 'false');
   });
 
   it('mantém o botão horizontal superior visível e desabilitado quando a linha só permite inferior', () => {

@@ -15,7 +15,7 @@ export function parseStairsFromElevationViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
   elevationViews: House3DElevationViewProjection[];
-}): Stairs3DData {
+}): Stairs3DData | null {
   if (!params.houseType) return null;
 
   for (const view of params.elevationViews) {
@@ -25,7 +25,9 @@ export function parseStairsFromElevationViews(params: {
     const stairWidth = Number(stairs.width ?? 0);
     const stairHeightMts = Number(stairs.heightMts ?? 0);
     const stepCount = Number(stairs.stepCount ?? 0);
-    if (stairWidth <= 0 || stairHeightMts <= 0 || stepCount <= 0) return null;
+    const stairLeft = Number(stairs.left ?? 0);
+    if (stairWidth <= 0 || stairHeightMts <= 0 || stepCount <= 0) continue;
+    if (!Number.isFinite(stairLeft)) continue;
 
     const face = resolveStairFace({
       houseType: params.houseType,
@@ -38,18 +40,27 @@ export function parseStairsFromElevationViews(params: {
     if (bodyWidth <= 0 || stairWidth <= 0) continue;
     if (!Number.isFinite(stairHeightMts) || stairHeightMts <= 0) continue;
 
-    // Escada na elevação está em origem esquerda, no mesmo eixo horizontal da fachada.
-    const centerFromLeft = Number(stairs.left ?? 0) + stairWidth / 2 + bodyWidth / 2;
+    const rawCenterFromLeft = resolveStairCenterFromLeft({
+      bodyLeft: view.bodyLeft,
+      bodyWidth,
+      stairLeft,
+      stairWidth,
+    });
+    const viewScaleFactor = resolveCanonicalElevationScaleFactor({view, bodyWidth});
+    const centerFromLeft = rawCenterFromLeft * viewScaleFactor;
+    const normalizedStairWidth = stairWidth * viewScaleFactor;
 
     return {
       id: `${String(view.instanceId ?? view.viewType)}-stairs`,
       face,
       centerFromLeft,
-      stairWidth,
+      stairWidth: normalizedStairWidth,
       stairHeightMts,
       stepCount,
     };
   }
+
+  return null;
 }
 
 function resolveElevationViewBodyWidth(params: {
@@ -102,4 +113,40 @@ function resolveStairFace(params: {
 function getProjectionWidth(width: number | undefined): number {
   const parsedWidth = Number(width ?? 0);
   return Number.isFinite(parsedWidth) && parsedWidth > 0 ? parsedWidth : 0;
+}
+
+function resolveStairCenterFromLeft(params: {
+  bodyLeft: number | undefined;
+  bodyWidth: number;
+  stairLeft: number;
+  stairWidth: number;
+}): number {
+  const bodyLeft = Number(params.bodyLeft);
+  if (Number.isFinite(bodyLeft)) {
+    return params.stairLeft - bodyLeft + params.stairWidth / 2;
+  }
+
+  // Fallback para projeções antigas ou mocks sem posição do corpo.
+  return params.stairLeft + params.stairWidth / 2 + params.bodyWidth / 2;
+}
+
+function resolveCanonicalElevationScaleFactor(params: {
+  view: House3DElevationViewProjection;
+  bodyWidth: number;
+}): number {
+  const canonicalBodyWidth = resolveCanonicalElevationBodyWidth(params.view);
+  if (canonicalBodyWidth <= 0 || params.bodyWidth <= 0) return 1;
+
+  const factor = canonicalBodyWidth / params.bodyWidth;
+  return Number.isFinite(factor) && factor > 0 ? factor : 1;
+}
+
+function resolveCanonicalElevationBodyWidth(view: House3DElevationViewProjection): number {
+  const isSideView =
+    view.viewType === 'side1'
+    || view.viewType === 'side2'
+    || view.houseView === 'side';
+
+  const footprintWidth = isSideView ? HOUSE_DIMENSIONS.footprint.depth : HOUSE_DIMENSIONS.footprint.width;
+  return footprintWidth * HOUSE_DIMENSIONS.view.scale;
 }

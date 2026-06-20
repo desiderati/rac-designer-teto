@@ -28,14 +28,11 @@ export function sanitizeSiteAssessment(input: Partial<SiteAssessment>): SiteAsse
   if (isSoilProfile(input.soilProfile)) {
     assessment.soilProfile = input.soilProfile;
   }
-  if (typeof input.hasUndergroundObstacles === 'boolean') {
-    assessment.hasUndergroundObstacles = input.hasUndergroundObstacles;
-  }
-  if (typeof input.hasElevatedObstacles === 'boolean') {
-    assessment.hasElevatedObstacles = input.hasElevatedObstacles;
-  }
-  if (typeof input.hasNeighborSetbacks === 'boolean') {
-    assessment.hasNeighborSetbacks = input.hasNeighborSetbacks;
+  if (typeof input.hasHydraulicObstacles === 'boolean') assessment.hasHydraulicObstacles = input.hasHydraulicObstacles;
+  if (typeof input.hasUndergroundObstacles === 'boolean') assessment.hasUndergroundObstacles = input.hasUndergroundObstacles;
+  if (typeof input.hasElevatedObstacles === 'boolean') assessment.hasElevatedObstacles = input.hasElevatedObstacles;
+  if (typeof input.hasNeighborSetbackConstraints === 'boolean') {
+    assessment.hasNeighborSetbackConstraints = input.hasNeighborSetbackConstraints;
   }
   if (typeof input.locationQuery === 'string' && input.locationQuery.trim()) {
     assessment.locationQuery = input.locationQuery.trim();
@@ -207,7 +204,7 @@ export function isHouseType(value: HouseType): value is HouseType {
 }
 
 export function isSoilProfile(value: SoilProfile | undefined): value is SoilProfile {
-  return value === 'stable' || value === 'loose_clay' || value === 'water_table';
+  return value === 'stable_clay' || value === 'firm_hard' || value === 'alluvial' || value === 'water_table';
 }
 
 function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined {
@@ -218,9 +215,9 @@ function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined
 }
 
 function createFallbackCommunity(now: string): CommunityRecord {
+  void now;
   return {
     id: `community_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     name: 'Comunidade não informada',
-    createdAt: now,
   };
 }

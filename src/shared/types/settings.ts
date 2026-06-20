@@ -4,6 +4,8 @@ export interface AppSettings {
   zoomEnabledByDefault: boolean;
   openEditorsAtFixedPosition: boolean;
   disableDrawModeAfterFreehand: boolean;
+  configureCornerPilotiNiveisOnHouseInsert: boolean;
+  allowPilotiHeightDefinitionOnHouseInsert: boolean;
   showStairsOnTopView: boolean;
   showPilotiLabelsOnTopView: boolean;
 }
