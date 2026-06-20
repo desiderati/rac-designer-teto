@@ -53,7 +53,7 @@
       "priority": "must",
       "user_story": "Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma Construção TETO para administrar múltiplas unidades habitacionais.",
       "acceptance_criteria": [
-        "O sistema permite criar casa vinculada à Construção TETO ativa.",
+        "O sistema permite criar casa vinculada à Construção TETO em andamento.",
         "A casa não possui nome próprio persistido; seu rótulo deriva da família associada.",
         "O sistema permite arquivar e desarquivar casas com confirmação apropriada.",
         "A alternância entre casas restaura desenho e dados da casa correta."
@@ -219,7 +219,7 @@
     {
       "name": "Editor de casa",
       "consumer": "Monitor voluntário",
-      "contract_summary": "Abre a casa ativa, restaura desenho e dados persistidos e permite editar desenho, família, avaliação do local e piloti."
+      "contract_summary": "Abre uma casa não arquivada de Construção TETO em andamento, restaura desenho e dados persistidos e permite editar desenho, família, avaliação do local e piloti."
     },
     {
       "name": "Importação e exportação do projeto da casa",
@@ -247,7 +247,7 @@
   },
   "test_strategy": {
     "behavioral_checks": [
-      "Criar Construção TETO, criar casa, associar família e reabrir a construção mantendo todos os vínculos.",
+      "Criar Construção TETO em andamento, criar casa, associar família e reabrir a construção mantendo todos os vínculos.",
       "Alternar entre duas casas e verificar restauração do desenho e dos dados corretos.",
       "Editar avaliação do local e layout de piloti e confirmar persistência após nova abertura."
     ],

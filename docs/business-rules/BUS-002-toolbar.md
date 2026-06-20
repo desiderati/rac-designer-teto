@@ -45,7 +45,7 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
     - A ação "Construções TETO" abre uma área CRUD dedicada. Nessa área, canvas, toolbar, submenus e opções de desenho
       ficam temporariamente ocultos.
     - Na área CRUD, a navegação volta pelo cabeçalho; o retorno ao Canvas só fica disponível quando houver Construção
-      TETO com pelo menos uma casa ativa.
+      TETO em andamento com pelo menos uma casa não arquivada.
     - A área central separa a gestão de Construções TETO da listagem de casas, da listagem de monitores e dos detalhes.
     - Construção TETO possui Código da CC, Data da Construção, Comunidade única e foto opcional, com ações de criar,
       arquivar, desarquivar, listar e trocar construção.

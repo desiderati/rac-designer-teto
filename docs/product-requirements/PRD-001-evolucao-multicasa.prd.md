@@ -33,8 +33,8 @@ lang: pt-BR
 - Permitir criar, arquivar, desarquivar, listar e editar casas dentro da Construção TETO ativa.
 - Identificar cada casa pelo nome da família associada, sem nome próprio de casa.
 - Persistir o último documento de desenho da casa no banco local.
-- Abrir o RAC Editor somente quando houver Construção TETO ativa com pelo menos uma casa ativa.
-- Restaurar no boot a casa não arquivada com maior `updatedAt`, considerando todas as Construções TETO.
+- Abrir o RAC Editor somente quando houver Construção TETO em andamento com pelo menos uma casa não arquivada.
+- Restaurar no boot do Canvas a casa não arquivada com maior `updatedAt` entre Construções TETO em andamento.
 
 ## 3. Histórias De Usuário
 
@@ -91,8 +91,9 @@ casa ativa.
 
 **Critérios de aceitação:**
 
-- [x] Sem Construção TETO com casa ativa, a aplicação abre diretamente no gerenciamento.
-- [x] A seta contextual do gerenciamento só retorna ao Canvas quando houver uma casa ativa válida.
+- [x] Sem Construção TETO em andamento com casa não arquivada, a aplicação abre diretamente no gerenciamento.
+- [x] A seta contextual do gerenciamento só retorna ao Canvas quando houver uma construção em andamento com casa não
+  arquivada.
 - [x] No Canvas, o FAB hamburger exibe “Construções TETO” primeiro e agrupa casas por código da construção.
 - [x] O menu do usuário não contém “Construções TETO”.
 
@@ -106,8 +107,9 @@ casa ativa.
 - `FR-5:` Casa deve pertencer a uma única Construção TETO e estar associada a uma única família.
 - `FR-6:` O rótulo da casa na UI deve ser derivado do nome da família associada.
 - `FR-7:` O sistema deve persistir e restaurar o `HouseDrawingDocument` da casa ativa.
-- `FR-8:` O RAC Editor não deve montar quando não houver Construção TETO ativa com casa ativa.
-- `FR-9:` O boot deve restaurar a casa não arquivada com maior `updatedAt`, considerando todas as construções.
+- `FR-8:` O RAC Editor não deve montar quando não houver Construção TETO em andamento com casa não arquivada.
+- `FR-9:` O boot do Canvas deve restaurar a casa não arquivada com maior `updatedAt`, considerando apenas construções
+  em andamento.
 - `FR-10:` Importação e exportação JSON não devem fazer parte da navegação principal.
 
 ## 5. Não Objetivos
@@ -141,7 +143,7 @@ casa ativa.
 
 - Usuários conseguem criar Construção TETO, criar casas e retornar ao Canvas sem perda de estado.
 - Alternância entre casas da mesma Construção TETO restaura o desenho correto.
-- Recarregar a aplicação abre a última casa editada quando houver casa ativa válida.
+- Recarregar a aplicação abre a última casa editada quando houver construção em andamento com casa não arquivada.
 - Boot sem dados ou com construção sem casa abre gerenciamento com Back desabilitado.
 
 ## 9. Questões Em Aberto
