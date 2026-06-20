@@ -60,7 +60,7 @@ Definir como o status da casa muda entre edição, impressão do RAC, conclusão
     - Desarquivar retorna a casa para `Rascunho`.
 
 6. Disponibilidade do Canvas
-    - O Canvas só pode ser aberto quando existir ao menos uma casa não arquivada em uma construção não arquivada.
+    - O Canvas só pode ser aberto quando existir ao menos uma casa não arquivada em uma construção em andamento.
     - Se nenhuma construção em andamento tiver ao menos uma casa não arquivada, o retorno ao Canvas deve ficar
       indisponível.
 

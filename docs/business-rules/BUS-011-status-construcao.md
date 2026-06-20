@@ -41,9 +41,9 @@ Definir como o status da Construção TETO afeta a edição da própria constru�
 
 ## Disponibilidade do Canvas
 
-O Canvas só pode ser aberto quando existir ao menos uma Construção TETO não arquivada com ao menos uma casa não
-arquivada. Se todas as construções estiverem arquivadas, a gestão permanece consultável, mas o retorno ao Canvas deve
-ficar indisponível.
+O Canvas só pode ser aberto quando existir ao menos uma Construção TETO em andamento com ao menos uma casa não
+arquivada. Se não houver construção em andamento com casa apta, a gestão permanece consultável, mas o retorno ao Canvas
+deve ficar indisponível.
 
 ## Segurança
 
