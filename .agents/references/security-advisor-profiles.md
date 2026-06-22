@@ -73,4 +73,3 @@ Reviews LGPD, auditability, retention, evidence requirements, policy alignment, 
 
 Reviews pipeline permissions, infrastructure as code, release gates, artifact provenance, and secure
 delivery controls.
-

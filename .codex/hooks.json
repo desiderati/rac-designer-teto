@@ -77,26 +77,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Scaffold Context Visibility",
-            "timeout": 20
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Production Change Audit",
-            "timeout": 20
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Resolution Time",
             "timeout": 20
@@ -109,6 +89,26 @@
             "type": "command",
             "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Self Improvement Observer",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Scaffold Context Visibility",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Production Change Audit",
             "timeout": 20
           }
         ]

@@ -35,6 +35,7 @@ Optional local-only directories when the repository adopts those conventions:
 ```text
 .agents/code-reviews/
 .agents/council-sessions/
+.agents/pruning-reports/
 .agents/refactorings/
 ```
 
@@ -174,6 +175,13 @@ Optional local-only file:
     - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
     - reusable decisions should be promoted separately to `docs/`, ADRs, PRDs,
       plans, or changelogs when they become durable project knowledge
+
+- `.agents/pruning-reports/`
+    - optional, local, gitignored workspace for pruning diagnostics and reports
+    - not durable knowledge, not versioned, and must not be indexed by
+      `OBSIDIAN.md`
+    - reusable retention-policy conclusions should be promoted separately to
+      `docs/`, ADRs, or changelogs when they become durable project knowledge
 
 - `.agents/refactorings/`
     - optional, local, gitignored workspace for refactoring fronts, prompts, heuristics, execution records, and
@@ -334,6 +342,12 @@ changelog, do not open a work-item by default.
   durable artifacts, or keep it open only if continuity risk still remains
 - `reter localmente? sim` is an explicit local hold and blocks automatic archiving or purge until the flag is removed
   or changed
+- If a work-item is no longer useful in the hot local layer but still lacks the
+  normal archival contract, it may be marked with `arquivamento pendente? sim`,
+  `arquivamento pendente desde` and `motivo do arquivamento pendente`.
+  Automated housekeeping may archive such marked items after the configured
+  cold period, but must still preserve active, blocked, interrupted, and
+  locally retained items.
 - Never auto-delete a work-item that is active, blocked, interrupted, unpromoted, or still carries local-only evidence
 
 ---

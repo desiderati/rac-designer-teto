@@ -24,7 +24,7 @@ Descrever onde o problema, decisão ou padrão apareceu.
 - Artefatos de origem:
     - changelog(s) relevante(s)
     - work-item correlato, quando existir
-    - `.agents/errors.md`, quando existir erro recorrente de agente sanitizável e relevante para
+    - `.agents/errors.md`, quando existir erro recorrente de agente sanitizável e relevante para 
       workflow ou guardrail
     - sidecar `.work-item.assets/`, quando existir
     - artefato local efêmero, quando usado; não tratar como referência canônica e não criar link

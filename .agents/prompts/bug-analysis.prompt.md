@@ -57,6 +57,11 @@
   <constraints>
     <constraint>Respond in Portuguese, following the language rules of this repository.</constraint>
     <constraint>
+      Preserve UTF-8 text and normal Portuguese accents in any generated diagnostic artifact.
+      Do not transliterate Portuguese human text to ASCII; keep words such as análise, correção,
+      and validação accented.
+    </constraint>
+    <constraint>
       If information is ambiguous or missing, explicitly state what is missing and why it matters.
     </constraint>
     <constraint>

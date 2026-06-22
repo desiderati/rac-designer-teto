@@ -38,13 +38,42 @@ os atalhos e não acione subagentes.
 @Council of Agents pressure test this decision before I commit to the plan.
 Load `.agents/prompts/council-of-agents.prompt.md` and run the full five-advisor council when the question has real stakes.
 Accepted Council triggers are `council this`, `pressure test this`, `stress test this`, `war room this`,
-`premortem this`, `debate this`, `council of agents`, `fellowship of agents`, `@Council of Agents`,
-and `@Fellowship of Agents`.
+`premortem this`, `debate this`, `council of agents`, and `@Council of Agents`.
 Do not delegate to `council-of-agents`; the parent acts as Chairman.
 ```
 
 ```text
-@Fellowship of Agents debate this: I'm torn between these two approaches. Give me the council verdict and the one thing to do first.
+premortem this: identify how this rollout could fail before implementation.
+```
+
+## `agents-of-shield`
+
+```text
+@Agents of Shield review this authentication flow before release.
+Load `.agents/prompts/agents-of-shield.prompt.md` and
+`.agents/references/security-advisor-profiles.md`. Use the fixed five security profiles:
+Threat Modeler, Secrets & Supply Chain Auditor, Cloud & Runtime Guardian, Adversarial Abuse Tester,
+and Compliance & Governance Analyst. Keep the output diagnostic and sanitized.
+```
+
+```text
+agents of shield: review this webhook threat model and call out the highest-risk abuse paths.
+```
+
+## `fellowship-of-architects`
+
+```text
+@Fellowship of Architects assess this refactoring direction before I write the ADR.
+Load `.agents/prompts/fellowship-of-architects.prompt.md` and
+`.agents/references/solutions-architect-profiles.md`. Use the fixed five architecture profiles:
+Boundary Architect, Resilience Architect, Clarity Architect, Data Architect, and
+Performance & Scalability Architect. Keep the output advisory unless implementation is separately
+delegated.
+```
+
+```text
+fellowship of architects: compare these two architecture approaches and recommend the smallest
+coherent next step.
 ```
 
 ## `league-of-agents`

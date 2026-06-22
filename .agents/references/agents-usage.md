@@ -14,13 +14,16 @@ point the user to `@Agents Shortcuts` for that catalog.
 | `Agents Examples`, `Agents Example`, `@Agents Examples`, or `@Agents Example` | Show examples from `.agents/references/agents-examples.md` without spawning subagents.                  | "Show practical examples for the installed custom agents."                            |
 | `Agents Shortcuts`, `Agents Shortcut`, or `@Agents Shortcuts`                 | Show compact `!` chat control shortcuts with when-to-use guidance and examples, without executing them. | "Which `!` commands can I use here?"                                                  |
 | `Agents Usage` or `@Agents Usage`                                             | Explain how custom agent orchestration works in this repository.                                        | "When should I use subagents instead of keeping the work centralized?"                |
-| `@Council of Agents` or `@Fellowship of Agents`                               | Directly invoke the project-scoped Council custom agent for a qualifying decision.                      | "@Council of Agents pressure test this architecture choice."                          |
+| `@Agents of Shield`                                                           | Run the fixed five-profile security council built on `security-advisor` profiles.                       | "@Agents of Shield review this authentication flow before release."                   |
+| `agents of shield`                                                            | Use the security council by its natural-language name.                                                  | "agents of shield: review this webhook threat model."                                 |
+| `@Fellowship of Architects`                                                   | Run the fixed five-profile architecture council built on `solutions-architect` profiles.                | "@Fellowship of Architects assess this refactoring direction."                        |
+| `fellowship of architects`                                                    | Use the architecture council by its natural-language name.                                              | "fellowship of architects: compare these refactoring options."                        |
 | `@League of Agents`                                                           | Directly invoke the project-scoped League custom agent for team-mode orchestration.                     | "@League of Agents investigate this bug and use specialists only if useful."          |
+| `league of agents`                                                            | Evaluate whether subagents should be used for a non-trivial task with separable fronts.                 | "league of agents: investigate this bug and use specialists only if that adds value." |
+| `@Council of Agents`                                                          | Directly invoke the project-scoped Council custom agent for a qualifying decision.                      | "@Council of Agents pressure test this architecture choice."                          |
 | `council of agents`                                                           | Use the Council flow by its natural-language name.                                                      | "council of agents: should I build or buy this automation?"                           |
 | `council this`                                                                | Use a compact textual cue for the Council flow when a decision needs structured debate.                 | "council this: should I buy a tool or build an internal automation?"                  |
 | `debate this`                                                                 | Ask Council to compare competing positions before implementation.                                       | "debate this: should the integration live in the API or worker?"                      |
-| `fellowship of agents`                                                        | Use the Fellowship alias for the same Council flow.                                                     | "fellowship of agents: I'm torn between these two release options."                   |
-| `league of agents`                                                            | Evaluate whether subagents should be used for a non-trivial task with separable fronts.                 | "league of agents: investigate this bug and use specialists only if that adds value." |
 | `premortem this`                                                              | Use the Council posture to identify likely failure modes before committing to a plan.                   | "premortem this: what will probably break in this rollout?"                           |
 | `pressure test this`                                                          | Challenge a proposal, plan, or decision before it becomes implementation work.                          | "pressure test this migration plan before I start changing code."                     |
 | `stress test this`                                                            | Stress-test a decision, plan, or assumption against likely failure pressure.                            | "stress test this: what breaks if traffic triples?"                                   |
@@ -55,6 +58,33 @@ When the user invokes one of the Council trigger phrases:
 These trigger phrases are shortcuts for the same decision-council flow. They are not specialist
 roles for downstream delegation.
 
+## Profile-Council Flow
+
+When the user invokes `@Agents of Shield` or `agents of shield`:
+
+1. Read `.agents/prompts/agents-of-shield.prompt.md`.
+
+2. Read `.agents/references/security-advisor-profiles.md`.
+
+3. Apply the fixed Agents of Shield profile set every time: Threat Modeler,
+   Secrets & Supply Chain Auditor, Cloud & Runtime Guardian, Adversarial Abuse Tester, and
+   Compliance & Governance Analyst.
+
+4. Produce diagnostic security advisory output only. Code fixes, credential changes, external
+   calls, deployments, and production mutations require a separate explicit handoff.
+
+When the user invokes `@Fellowship of Architects` or `fellowship of architects`:
+
+1. Read `.agents/prompts/fellowship-of-architects.prompt.md`.
+
+2. Read `.agents/references/solutions-architect-profiles.md`.
+
+3. Apply the fixed Fellowship of Architects profile set every time: Boundary Architect, Resilience
+   Architect, Clarity Architect, Data Architect, and Performance & Scalability Architect.
+
+4. Produce architecture advisory output only. Implementation, ADR writing, or refactoring execution
+   requires a separate bounded handoff.
+
 ## Team-Mode Flow
 
 When the user enables team mode:
@@ -74,6 +104,8 @@ flow. They are orchestration entrypoints, not additional specialist roles.
 Use agents when role separation creates concrete value:
 
 - a high-stakes decision benefits from independent pressure testing through Council of Agents
+- a security-sensitive decision benefits from the fixed Agents of Shield profile set
+- an architecture direction benefits from the fixed Fellowship of Architects profile set
 - product scope and technical design need separate judgment
 - architecture, implementation, tests, and review can proceed as separate fronts
 - root-cause investigation has independent hypotheses or evidence sources
@@ -100,14 +132,16 @@ Keep work centralized when:
 | `@Agents Examples`                                                                                        | "Show examples for the installed custom agents."                                      |
 | `@Agents Shortcuts`                                                                                       | "List the accepted `!` shortcuts with simple examples."                               |
 | `@Agents Usage`                                                                                           | "Explain when to use agents, Council, or League in this repository."                  |
-| `@Council of Agents pressure test this pricing decision before I build anything.`                         | Direct Council invocation for high-stakes trade-off analysis.                         |
-| `@Fellowship of Agents debate this release strategy before I commit.`                                     | Direct Fellowship alias for the same Council flow.                                    |
+| `@Agents of Shield review this authentication flow before release.`                                       | Direct security council invocation using the fixed Agents of Shield profiles.         |
+| `agents of shield: review this webhook threat model.`                                                     | Natural-language security council request.                                            |
+| `@Fellowship of Architects assess this refactoring direction before I write the ADR.`                     | Direct architecture council invocation using the fixed Fellowship profiles.           |
+| `fellowship of architects: compare these two architecture approaches.`                                    | Natural-language architecture council request.                                        |
 | `@League of Agents investigate this bug and use specialists only if useful.`                              | Direct League invocation for bounded team-mode evaluation.                            |
+| `league of agents: map this area with code-explorer, then design and implement the smallest safe change.` | Team-mode request with a specific exploration role and bounded implementation target. |
+| `@Council of Agents pressure test this pricing decision before I build anything.`                         | Direct Council invocation for high-stakes trade-off analysis.                         |
 | `council of agents: should I hire someone or build an automation first?`                                  | Natural-language Council request.                                                     |
 | `council this: should I hire someone or build an automation first?`                                       | Compact decision-council request.                                                     |
 | `debate this: should this move to an async worker or stay synchronous?`                                   | Council request for comparing competing positions.                                    |
-| `fellowship of agents: I'm torn between these two architecture approaches.`                               | Fellowship alias for a decision-council request.                                      |
-| `league of agents: map this area with code-explorer, then design and implement the smallest safe change.` | Team-mode request with a specific exploration role and bounded implementation target. |
 | `premortem this: identify how this rollout could fail before implementation.`                             | Council request focused on failure modes before execution.                            |
 | `pressure test this: I'm choosing between these two architecture approaches.`                             | Council request for adversarial review of a proposal or choice.                       |
 | `stress test this: what breaks if this endpoint receives ten times more traffic?`                         | Council request focused on pressure and failure modes.                                |

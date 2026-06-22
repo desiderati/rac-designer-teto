@@ -76,4 +76,3 @@ simplicity.
 
 Assesses isolation, test design, contract verification, regression controls, fixtures, and practical
 testability of the proposed structure.
-

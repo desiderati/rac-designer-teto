@@ -124,7 +124,6 @@ function Write-SessionState {
 
     $state = [pscustomobject]@{
         sessionStartUtc = [DateTimeOffset]::UtcNow.ToString("o")
-        repositoryRoot = $RepositoryRoot
     }
     $state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $statePath -Encoding utf8
 }

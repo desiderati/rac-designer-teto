@@ -92,8 +92,8 @@ Purpose:
 Use when:
 
 - the user asks for `council this`, `pressure test this`, `stress test this`, `war room this`,
-  `premortem this`, `debate this`, `council of agents`, `fellowship of agents`, or directly invokes
-  `@Council of Agents` or `@Fellowship of Agents`
+  `premortem this`, `debate this`, `council of agents`, or directly invokes
+  `@Council of Agents`
 
 - there is a genuine decision with stakes, uncertainty, and competing options
 
@@ -104,6 +104,33 @@ Do not use when:
 
 - the question has one factual answer
 - the task is ordinary implementation or content generation
+
+### 2c. `agents-of-shield.prompt.md`
+
+Use when:
+
+- the user invokes `@Agents of Shield` or says `agents of shield`
+- the security question benefits from the fixed five security profiles
+- the output should remain diagnostic, sanitized, and advisory
+
+Do not use when:
+
+- the user asks for a single `security-advisor` profile
+- the user asks for code fixes, credential rotation, deployment, or external mutation without a
+  separate explicit handoff
+
+### 2d. `fellowship-of-architects.prompt.md`
+
+Use when:
+
+- the user invokes `@Fellowship of Architects` or says `fellowship of architects`
+- the architecture question benefits from the fixed five architecture profiles
+- the output should compare trade-offs, ADR implications, refactoring direction, and next steps
+
+Do not use when:
+
+- the user asks for a single `solutions-architect` profile
+- the user asks for implementation or ADR writing without a separate bounded handoff
 - the user asks for team-mode execution rather than decision pressure testing
 
 Purpose:

@@ -18,6 +18,9 @@ aliases: [ <título curto do caso> ]
 > Sidecar opcional para anexos não Markdown:
 > `.agents/bug-analysis/YYYY-MM/yyyyMMdd-{bug-slug}.bug-analysis.assets/`
 >
+> Texto humano em português deve manter acentuação normal em UTF-8.
+> Não normalize palavras como análise, correção ou validação para ASCII.
+>
 > Se o mesmo caso também tiver incidente operacional, mantenha o `.incident.md`
 > correlato como artefato separado e registre apenas cross-link explícito.
 

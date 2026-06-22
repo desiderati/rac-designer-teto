@@ -126,7 +126,7 @@ for judgment.
     - direct invocation through `@League of Agents`
 
 - Use `.agents/prompts/council-of-agents.prompt.md` as the starting prompt when the user uses one
-  of these Council/Fellowship entries:
+  of these Council entries:
     - "council this"
     - "pressure test this"
     - "stress test this"
@@ -134,9 +134,17 @@ for judgment.
     - "premortem this"
     - "debate this"
     - "council of agents"
-    - "fellowship of agents"
     - direct invocation through `@Council of Agents`
-    - direct invocation through `@Fellowship of Agents`
+
+- Use `.agents/prompts/agents-of-shield.prompt.md` as the starting prompt when the user uses one
+  of these security council entries:
+    - "agents of shield"
+    - direct invocation through `@Agents of Shield`
+
+- Use `.agents/prompts/fellowship-of-architects.prompt.md` as the starting prompt when the user
+  uses one of these architecture council entries:
+    - "fellowship of architects"
+    - direct invocation through `@Fellowship of Architects`
 
 - Use `.agents/references/agents-usage.md` as the answer source, without spawning subagents, when
   the user says "Agents Usage" or invokes `@Agents Usage`.

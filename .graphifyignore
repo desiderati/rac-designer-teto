@@ -29,3 +29,4 @@ vendor/
 AGENTS.md
 CLAUDE.md
 OBSIDIAN.md
+.agents/knowledge-base/

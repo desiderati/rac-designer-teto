@@ -82,4 +82,3 @@
     Provide boundaries, affected areas, out-of-scope items, validation evidence, and residual risks.
   </output_format>
 </system>
-

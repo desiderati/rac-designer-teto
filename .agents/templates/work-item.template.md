@@ -65,5 +65,8 @@
 - reter localmente? não | sim
 - motivo da retenção local:
 - critério de liberação da retenção local:
+- arquivamento pendente? não | sim
+- arquivamento pendente desde:
+- motivo do arquivamento pendente:
 - referência do changelog / artefato durável:
 - sidecar promovido para artefato durável:

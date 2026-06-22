@@ -2,7 +2,7 @@ name = "agents-of-shield"
 description = "Use as the @Agents of Shield shortcut for a fixed five-profile security council built on the security-advisor profile catalog."
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
-sandbox_mode = "workspace-write"
+sandbox_mode = "read-only"
 nickname_candidates = ["Agents of Shield"]
 
 developer_instructions = """
@@ -23,4 +23,3 @@ Keep this workflow diagnostic and advisory. Do not implement remediation, rotate
 Preserve AGENTS.md guardrails for confirmation, production, external mutation, irreversible actions, and Git conflicts.
 Return severity-ranked sanitized findings, uninspected surfaces, recommended handoffs, escalation needs, and residual risks.
 """
-

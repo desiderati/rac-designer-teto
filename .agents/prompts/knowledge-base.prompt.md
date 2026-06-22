@@ -33,14 +33,31 @@
   <context_rules>
     <rule>Read `OBSIDIAN.md` first when present.</rule>
     <rule>
-      If `OBSIDIAN.md` is absent, propose `OBSIDIAN.md` and `docs/` as the default
-      knowledge-base scaffolding for this prompt; create them only after
+      If `OBSIDIAN.md` is absent, propose `OBSIDIAN.md` and `docs/` as the default 
+      knowledge-base scaffolding for this prompt; create them only after 
       explicit user confirmation.
     </rule>
     <rule>Treat `docs/` as the canonical knowledge-base directory.</rule>
     <rule>
+      Treat the SAT banner as presentation, not as durable knowledge. During
+      curation, add or preserve it only for eligible human-facing entrypoints
+      and final institutional documents governed by
+      `references/documentation-governance.md`; never add it to `OBSIDIAN.md`,
+      ADRs, protected release manifests, prompts, templates, examples, or local
+      operational records.
+    </rule>
+    <rule>
       If `graphify-out/GRAPH_REPORT.md` exists, read it before broad searches across raw files and use it only as a
       derived structural entrypoint for scoping, never as canonical truth.
+    </rule>
+    <rule>
+      Before triage, resolve the shared durable-curation spine:
+      `.agents/references/durable-curation.md` when this prompt is installed by
+      `agents-bootstrap`, or `scaffold/dot-agents/references/durable-curation.md`
+      when running from the standalone `documentation` skill source. Read it
+      when present. If neither path exists, continue with this prompt's local
+      constraints and report the missing spine as a validation gap whenever
+      code-review or refactoring curation signals are in scope.
     </rule>
     <rule>Inspect relevant existing notes in `docs/` before proposing new ones.</rule>
     <rule>
@@ -179,7 +196,7 @@
     </constraint>
     <constraint>
       Durable notes and `OBSIDIAN.md` must not link to local non-versioned
-      scopes such as `.agents/changelogs/`, `.agents/code-reviews/`,
+      scopes such as `.agents/changelogs/`, `.agents/code-reviews/`, 
       `.agents/refactorings/`, `.agents/work-items/` or `.agents/errors.md`.
       Any local link in durable documentation must resolve to a Git-tracked target.
     </constraint>
@@ -193,6 +210,19 @@
       `.agents/refactorings/*.refactoring.md` as durable destinations or
       stable references. Use their curation signals as source material only,
       and never link to them from durable documentation.
+    </constraint>
+    <constraint>
+      Keep the durable-curation spine as the common contract for provenance,
+      promotion plan, ADR boundary, and validation. Preserve source-specific
+      fields in the originating artifact: `code-review` owns review findings and
+      refactoring candidates; `refactoring` owns front status, prompt status,
+      heuristic drift, risk posture, and regression evidence.
+    </constraint>
+    <constraint>
+      Do not use the SAT banner as evidence, provenance, classification input,
+      promotion justification, or validation success. It is allowed only as
+      presentation for `README.md`, `REPOSITORY-OVERVIEW.md`, `docs/README.md`,
+      or explicitly final and sanitized stakeholder-facing documents.
     </constraint>
     <constraint>
       Do not promote raw `.agents/errors.md` entries. Promote only sanitized,
@@ -243,17 +273,20 @@
       1. Read `OBSIDIAN.md` when present; confirm `docs/` exists as the knowledge-base directory
       2. If `graphify-out/GRAPH_REPORT.md` exists, use it to scope related modules, notes, and links before broad
          raw-file searches
-      3. Inspect existing notes in `docs/` to understand current knowledge state
-      4. Read the relevant changelogs from `.agents/changelogs/`
-      5. Read the relevant work-item notes from `.agents/work-items/` and
+      3. Read the shared durable-curation spine when it is available through
+         `.agents/references/durable-curation.md` or the standalone
+         `documentation` scaffold source
+      4. Inspect existing notes in `docs/` to understand current knowledge state
+      5. Read the relevant changelogs from `.agents/changelogs/`
+      6. Read the relevant work-item notes from `.agents/work-items/` and
          matching sidecar assets when they describe the same case
-      6. Read relevant code-review records from `.agents/code-reviews/` and
+      7. Read relevant code-review records from `.agents/code-reviews/` and
          refactoring records from `.agents/refactorings/` when they describe the
          same case or carry durable-curation signals
-      7. Read `.agents/errors.md` only when it exists and the candidate
+      8. Read `.agents/errors.md` only when it exists and the candidate
          consolidation is about agent workflow, guardrails, documentation
          governance, or a recurring execution mistake
-      8. Triage each candidate case:
+      9. Triage each candidate case:
          a. Apply <analysis_per_entry> as a reading lens to deconstruct the entry
          b. Apply <extraction_targets> as a promotion filter — only items matching at least
             one target qualify for promotion
@@ -261,13 +294,13 @@
             <promotion_criteria>, identify destination note, and preserve the
             mapping between review signal, refactoring signal, executed phase,
             invalidated hypothesis, and future design before promotion
-      9. Before writing any note, present your consolidation plan:
+      10. Before writing any note, present your consolidation plan:
          - list what will be promoted and why
          - list what will be ignored and why
          - list which existing notes will be updated vs. which new notes will be created
          - ask the user to confirm or adjust the plan before proceeding
-      10. Only after confirmation: generate the notes, update OBSIDIAN.md, and list ignored items
-      11. After writing durable documentation, run the durable-link validation gate when the
+      11. Only after confirmation: generate the notes, update OBSIDIAN.md, and list ignored items
+      12. After writing durable documentation, run the durable-link validation gate when the
          `documentation` skill script is available:
          `python documentation/scripts/validate_durable_links.py --repo-root <repo_root> docs OBSIDIAN.md`
          or the equivalent installed-skill path. If the gate fails, correct the links before

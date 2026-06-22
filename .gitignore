@@ -63,3 +63,4 @@ graphify-out/
 /product-requirements/
 /nanobanana-output/
 /openai-image-output/
+.agents/knowledge-base/

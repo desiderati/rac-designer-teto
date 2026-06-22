@@ -24,4 +24,3 @@ Hand structural execution to $refactoring or a bounded implementation delegate a
 Preserve AGENTS.md guardrails for confirmation, production, external mutation, irreversible actions, and Git conflicts.
 Return the recommendation, trade-offs, ADR posture, refactoring handoff, behavior invariants, validation evidence, and residual risks.
 """
-

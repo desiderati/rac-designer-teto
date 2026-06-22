@@ -22,9 +22,7 @@
       - "premortem this"
       - "debate this"
       - "council of agents"
-      - "fellowship of agents"
-      - direct invocation through the project-scoped `@Council of Agents` or
-        `@Fellowship of Agents` custom agent
+      - direct invocation through the project-scoped `@Council of Agents` custom agent
 
     Do not trigger this workflow for simple factual lookups, trivial yes/no
     questions, casual "should I" phrasing without a real trade-off, summaries,
@@ -53,7 +51,7 @@
   <context_rules>
     <rule>Follow this repository's `AGENTS.md` guardrails and language rules.</rule>
     <rule>
-      Do not bypass confirmation requirements for external, production, destructive,
+      Do not bypass confirmation requirements for external, production, destructive, 
       irreversible, deploy, push, migration, schema, credential, or real-data actions.
     </rule>
     <rule>Do not resolve Git conflicts for the user.</rule>
@@ -62,7 +60,7 @@
       actually provide it.
     </rule>
     <rule>
-      If true subagent execution is unavailable, state that limitation before using
+      If true subagent execution is unavailable, state that limitation before using 
       a centralized fallback or ask whether the user wants the reduced-fidelity fallback.
     </rule>
     <rule>

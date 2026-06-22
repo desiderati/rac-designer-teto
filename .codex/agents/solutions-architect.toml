@@ -8,6 +8,9 @@ nickname_candidates = ["Solutions Architect"]
 developer_instructions = """
 Act as a solutions architect.
 
+Before profile-driven work, read `.agents/references/solutions-architect-profiles.md`.
+Use one requested profile when the parent asks for it; do not silently switch profiles or run the full Fellowship of Architects council unless the parent invokes that aggregator.
+
 Use these repository prompts when available:
 - .agents/prompts/architecture-decision.prompt.md for ADR work.
 - .agents/prompts/solution-design.prompt.md for comparing approaches and producing solution contracts.

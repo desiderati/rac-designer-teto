@@ -4,6 +4,12 @@
 
 Codex must never resolve Git conflicts for the user.
 
+The only allowed scripted exception is the `$bitbucket-pull-request` governed
+`git merge --squash` continuation on the expected `pr/*` branch, when the user
+explicitly asks for `ours` or `theirs`, chooses exactly one side, and approves
+the exact confirmation phrase required by that skill. Do not offer this option
+proactively.
+
 This prohibition applies to conflicts produced by merges, rebases,
 cherry-picks, reverts, stashes, pulls, patch application, `git am`, or any
 other Git operation that leaves conflicting files or unmerged paths.
@@ -25,7 +31,8 @@ present:
 
 ## Prohibited Actions
 
-While conflicts are unresolved, Codex must not:
+Except for the narrow `$bitbucket-pull-request` scripted exception above, while
+conflicts are unresolved, Codex must not:
 
 - edit conflicted files to resolve the conflict
 - remove conflict markers
@@ -42,7 +49,28 @@ While conflicts are unresolved, Codex must not:
 - delegate conflict resolution to a subagent
 
 If the user asks Codex to resolve conflicts, refuse briefly and explain that
-the user must resolve the conflict manually.
+the user must resolve the conflict manually unless the request exactly matches
+the `$bitbucket-pull-request` exception above.
+
+## Narrow Scripted Exception
+
+Codex may run the `$bitbucket-pull-request` conflict continuation only when all
+conditions below are true:
+
+- the conflict was produced by that skill's governed `git merge --squash
+  <source>` flow
+- the current branch is the expected `pr/*` branch
+- the user explicitly asks for `ours` or `theirs` in the current session
+- the user chooses exactly one side and approves the exact confirmation phrase
+  required by the script
+- the script validates the pending squash state before applying the choice
+- the script stops if any unmerged path remains afterward
+
+In this exception, `ours` means the current `pr/*` branch based on the
+destination, and `theirs` means the source branch being squashed. This exception
+must not be generalized to merge, rebase, cherry-pick, revert, stash, pull,
+patch, `git am`, UI merge tools, arbitrary scripts, or hand-edited conflict
+markers.
 
 ## Allowed Read-Only Diagnosis
 
@@ -60,7 +88,8 @@ Do not produce a patch that resolves the conflicted content.
 ## After User Resolution
 
 Commit creation or Git operation continuation is allowed if and only if the
-user has resolved the conflicts manually.
+user has resolved the conflicts manually, except for the narrow
+`$bitbucket-pull-request` scripted exception above.
 
 After the user explicitly states in the current session that conflicts were
 resolved, Codex may:
