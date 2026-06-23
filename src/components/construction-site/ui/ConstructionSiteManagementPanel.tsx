@@ -30,6 +30,7 @@ const CONSTRUCTION_TOUR_TARGET_IDS = [
   'rac-construction-add',
   'rac-construction-monitors',
   'rac-construction-houses',
+  'rac-construction-completed',
   'rac-construction-archive',
   'rac-construction-back-to-canvas',
 ] as const;

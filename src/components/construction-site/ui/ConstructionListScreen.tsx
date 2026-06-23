@@ -297,6 +297,7 @@ export function ConstructionMobileCard({
               <StatusActionButton
                 action={completionAction}
                 label={completionLabel}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-completed' : undefined}
                 onClick={requestCompletionStatusChange}
               />
             </>
@@ -436,6 +437,7 @@ export function ConstructionTableRow({
               <StatusActionButton
                 action={completionAction}
                 label={completionLabel}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-completed' : undefined}
                 onClick={requestCompletionStatusChange}
               />
             </>

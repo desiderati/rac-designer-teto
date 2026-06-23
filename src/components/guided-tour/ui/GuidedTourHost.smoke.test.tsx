@@ -230,6 +230,7 @@ describe('GuidedTourHost', () => {
             'rac-construction-add': {left: 720, top: 64, width: 172, height: 40},
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
             'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-archive': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-back-to-canvas': {left: 32, top: 56, width: 40, height: 40},
           },
@@ -240,13 +241,18 @@ describe('GuidedTourHost', () => {
     const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Construção'});
     expect(addDialog).toBeVisible();
     expect(addDialog).toHaveAccessibleDescription(/nova Construção TETO/i);
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(5);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(6);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Monitores'})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Casas e Famílias'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+    const completedDialog = await screen.findByRole('dialog', {name: 'Construção Concluída'});
+    expect(completedDialog).toBeVisible();
+    expect(completedDialog).toHaveAccessibleDescription(/casas e monitores ficam somente para visualização/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Arquivar Construção'})).toBeVisible();
@@ -258,13 +264,13 @@ describe('GuidedTourHost', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-construction-management:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-construction-management:completed:revision'))
-      .toBe('construction-actions-v2');
+      .toBe('construction-actions-v3');
   });
 
   it('replays the construction management tour when the stored completion predates the current revision', async () => {
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
     localStorage.setItem('guided-tour:rac-construction-management:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-management:completed:revision', 'construction-actions-v1');
+    localStorage.setItem('guided-tour:rac-construction-management:completed:revision', 'construction-actions-v2');
 
     render(<TestGuidedTourHost/>);
 
@@ -276,6 +282,7 @@ describe('GuidedTourHost', () => {
             'rac-construction-add': {left: 720, top: 64, width: 172, height: 40},
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
             'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-archive': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-back-to-canvas': {left: 32, top: 56, width: 40, height: 40},
           },

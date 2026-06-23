@@ -8,7 +8,7 @@ const RAC_HOUSE_ELEVATION_VIEW_INSERTED_EVENT = 'rac:house-elevation-view-insert
 const RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT = 'rac:construction-management-tour-ready';
 const RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT = 'rac:house-management-tour-ready';
 const RAC_HOUSE_TOP_VIEW_STORAGE_REVISION = 'piloti-target';
-const RAC_CONSTRUCTION_MANAGEMENT_STORAGE_REVISION = 'construction-actions-v2';
+const RAC_CONSTRUCTION_MANAGEMENT_STORAGE_REVISION = 'construction-actions-v3';
 const RAC_HOUSE_MANAGEMENT_STORAGE_REVISION = 'house-actions-v3';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
@@ -189,8 +189,19 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'center',
           title: 'Casas e Famílias',
           text: 'Aqui você acessa as casas da construção, configura famílias, dificuldade, materiais e o desenho RAC de cada casa.',
-          next: 'rac-construction-archive',
+          next: 'rac-construction-completed',
           persistKey: 'guided-tour:rac-construction-management:houses',
+          kind: 'flow',
+        },
+        {
+          id: 'rac-construction-completed',
+          targetId: 'rac-construction-completed',
+          placement: 'bottom',
+          alignment: 'center',
+          title: 'Construção Concluída',
+          text: 'Use este botão para marcar a construção como concluída. Quando isso acontece, casas e monitores ficam somente para visualização até voltar para andamento.',
+          next: 'rac-construction-archive',
+          persistKey: 'guided-tour:rac-construction-management:completion',
           kind: 'flow',
         },
         {

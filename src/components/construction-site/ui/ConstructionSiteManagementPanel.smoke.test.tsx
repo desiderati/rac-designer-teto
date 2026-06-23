@@ -154,6 +154,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(constructionMobilePagination).getByText('Mostrando 1-3 de 3 construções')).toBeVisible();
     expect(within(constructionMobilePagination).queryAllByRole('button')).toHaveLength(0);
     expect(constructionMobilePagination).toHaveClass('justify-center', 'text-center');
+    expect(screen.getAllByRole('button', {name: 'Concluir construção CC2603'})).toHaveLength(2);
     expect(screen.getAllByRole('button', {name: 'Arquivar construção CC2603'})).toHaveLength(2);
     expect(screen.getAllByRole('button', {name: 'Desarquivar construção CC2605'})).toHaveLength(2);
     expect(screen.queryByRole('button', {name: 'Gerenciar monitores da construção CC2605'}))
@@ -166,6 +167,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     });
+    screen.getAllByRole('button', {name: 'Concluir construção CC2603'}).forEach((button) => {
+      expect(button).toHaveClass('hover:bg-emerald-50', 'hover:text-emerald-700');
+    });
     screen.getAllByRole('button', {name: 'Arquivar construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-red-50', 'hover:text-red-600');
     });
@@ -176,6 +180,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     });
     screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-houses');
+    });
+    screen.getAllByRole('button', {name: 'Concluir construção CC2603'}).forEach((button) => {
+      expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-completed');
     });
     screen.getAllByRole('button', {name: 'Arquivar construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-archive');
