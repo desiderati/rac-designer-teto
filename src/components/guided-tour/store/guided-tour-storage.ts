@@ -2,6 +2,8 @@ import type {GuidedTourDefinition, GuidedTourTip} from '@/components/guided-tour
 
 type GuidedTourCompletionTarget = string | Pick<GuidedTourDefinition, 'persistKey' | 'storageRevision'>;
 
+export const GUIDED_TOUR_COMPLETED_EVENT = 'guided-tour:completed';
+
 const LEGACY_KEYS_BY_PERSIST_KEY: Record<string, string> = {
   'guided-tour:rac-editor-intro:completed': 'rac-tutorial-completed',
   'guided-tour:rac-tip:piloti': 'rac-piloti-tip-shown',
@@ -88,6 +90,7 @@ export function markGuidedTourCompleted(target: GuidedTourCompletionTarget): voi
   if (storageRevision) {
     setValue(getStorageRevisionKey(persistKey), storageRevision);
   }
+  dispatchGuidedTourCompletedEvent(persistKey, storageRevision);
 }
 
 export function isGuidedTourTipShown(persistKey: string): boolean {
@@ -110,4 +113,14 @@ export function resetGuidedTourProgress(tour: GuidedTourDefinition, tips: Guided
   tips.forEach((tip) => {
     [tip.persistKey, LEGACY_KEYS_BY_PERSIST_KEY[tip.persistKey]].filter(Boolean).forEach((key) => setFlag(key, false));
   });
+}
+
+function dispatchGuidedTourCompletedEvent(persistKey: string, storageRevision?: string): void {
+  if (typeof document === 'undefined') return;
+  document.dispatchEvent(new CustomEvent(GUIDED_TOUR_COMPLETED_EVENT, {
+    detail: {
+      persistKey,
+      storageRevision,
+    },
+  }));
 }

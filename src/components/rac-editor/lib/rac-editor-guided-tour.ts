@@ -5,11 +5,17 @@ export const RAC_EDITOR_TOUR_ID = 'rac-editor-intro';
 const RAC_CANVAS_OBJECT_INSERTED_EVENT = 'rac:canvas-object-inserted';
 const RAC_HOUSE_TOP_VIEW_INSERTED_EVENT = 'rac:house-top-view-inserted';
 const RAC_HOUSE_ELEVATION_VIEW_INSERTED_EVENT = 'rac:house-elevation-view-inserted';
-const RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT = 'rac:construction-management-tour-ready';
-const RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT = 'rac:house-management-tour-ready';
+const RAC_CONSTRUCTION_ADD_TOUR_READY_EVENT = 'rac:construction-add-tour-ready';
+const RAC_CONSTRUCTION_ACTIONS_TOUR_READY_EVENT = 'rac:construction-actions-tour-ready';
+const RAC_CONSTRUCTION_BACK_TO_CANVAS_TOUR_READY_EVENT = 'rac:construction-back-to-canvas-tour-ready';
+const RAC_HOUSE_ADD_TOUR_READY_EVENT = 'rac:house-add-tour-ready';
+const RAC_HOUSE_ACTIONS_TOUR_READY_EVENT = 'rac:house-actions-tour-ready';
 const RAC_HOUSE_TOP_VIEW_STORAGE_REVISION = 'piloti-target';
-const RAC_CONSTRUCTION_MANAGEMENT_STORAGE_REVISION = 'construction-actions-v3';
-const RAC_HOUSE_MANAGEMENT_STORAGE_REVISION = 'house-actions-v3';
+const RAC_CONSTRUCTION_ADD_STORAGE_REVISION = 'construction-add-v1';
+const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v1';
+const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
+const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
+const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v1';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
   tours: [
@@ -151,13 +157,13 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
       ],
     },
     {
-      id: 'rac-construction-management',
+      id: 'rac-construction-add',
       initialStepId: 'rac-construction-add',
-      persistKey: 'guided-tour:rac-construction-management:completed',
-      storageRevision: RAC_CONSTRUCTION_MANAGEMENT_STORAGE_REVISION,
+      persistKey: 'guided-tour:rac-construction-add:completed',
+      storageRevision: RAC_CONSTRUCTION_ADD_STORAGE_REVISION,
       triggerEvent: {
-        name: RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT,
-        objectKind: 'construction-management',
+        name: RAC_CONSTRUCTION_ADD_TOUR_READY_EVENT,
+        objectKind: 'construction-add',
       },
       steps: [
         {
@@ -167,10 +173,21 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'right',
           title: 'Adicionar Construção',
           text: 'Crie uma nova Construção TETO para registrar comunidade, data, famílias, casas e monitores em um único fluxo.',
-          next: 'rac-construction-monitors',
-          persistKey: 'guided-tour:rac-construction-management:add',
+          persistKey: 'guided-tour:rac-construction-add:add',
           kind: 'flow',
         },
+      ],
+    },
+    {
+      id: 'rac-construction-actions',
+      initialStepId: 'rac-construction-monitors',
+      persistKey: 'guided-tour:rac-construction-actions:completed',
+      storageRevision: RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION,
+      triggerEvent: {
+        name: RAC_CONSTRUCTION_ACTIONS_TOUR_READY_EVENT,
+        objectKind: 'construction-actions',
+      },
+      steps: [
         {
           id: 'rac-construction-monitors',
           targetId: 'rac-construction-monitors',
@@ -179,7 +196,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Monitores',
           text: 'Use este atalho para cadastrar e editar a equipe responsável pela construção selecionada.',
           next: 'rac-construction-houses',
-          persistKey: 'guided-tour:rac-construction-management:monitors',
+          persistKey: 'guided-tour:rac-construction-actions:monitors',
           kind: 'flow',
         },
         {
@@ -190,7 +207,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Casas e Famílias',
           text: 'Aqui você acessa as casas da construção, configura famílias, dificuldade, materiais e o desenho RAC de cada casa.',
           next: 'rac-construction-completed',
-          persistKey: 'guided-tour:rac-construction-management:houses',
+          persistKey: 'guided-tour:rac-construction-actions:houses',
           kind: 'flow',
         },
         {
@@ -201,7 +218,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Construção Concluída',
           text: 'Use este botão para marcar a construção como concluída. Quando isso acontece, casas e monitores ficam somente para visualização até voltar para andamento.',
           next: 'rac-construction-archive',
-          persistKey: 'guided-tour:rac-construction-management:completion',
+          persistKey: 'guided-tour:rac-construction-actions:completion',
           kind: 'flow',
         },
         {
@@ -211,10 +228,21 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'center',
           title: 'Arquivar Construção',
           text: 'Arquive ou desarquive uma construção sem abrir a edição. A confirmação evita mudanças acidentais.',
-          next: 'rac-construction-back-to-canvas',
-          persistKey: 'guided-tour:rac-construction-management:archive',
+          persistKey: 'guided-tour:rac-construction-actions:archive',
           kind: 'flow',
         },
+      ],
+    },
+    {
+      id: 'rac-construction-back-to-canvas',
+      initialStepId: 'rac-construction-back-to-canvas',
+      persistKey: 'guided-tour:rac-construction-back-to-canvas:completed',
+      storageRevision: RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION,
+      triggerEvent: {
+        name: RAC_CONSTRUCTION_BACK_TO_CANVAS_TOUR_READY_EVENT,
+        objectKind: 'construction-back-to-canvas',
+      },
+      steps: [
         {
           id: 'rac-construction-back-to-canvas',
           targetId: 'rac-construction-back-to-canvas',
@@ -222,19 +250,19 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'middle',
           title: 'Voltar ao Canvas',
           text: 'Use este botão para retornar ao canvas da casa ativa depois de criar, arquivar, listar ou trocar construções.',
-          persistKey: 'guided-tour:rac-construction-management:back-to-canvas',
+          persistKey: 'guided-tour:rac-construction-back-to-canvas:back',
           kind: 'flow',
         },
       ],
     },
     {
-      id: 'rac-house-management',
+      id: 'rac-house-add',
       initialStepId: 'rac-house-add',
-      persistKey: 'guided-tour:rac-house-management:completed',
-      storageRevision: RAC_HOUSE_MANAGEMENT_STORAGE_REVISION,
+      persistKey: 'guided-tour:rac-house-add:completed',
+      storageRevision: RAC_HOUSE_ADD_STORAGE_REVISION,
       triggerEvent: {
-        name: RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT,
-        objectKind: 'house-management',
+        name: RAC_HOUSE_ADD_TOUR_READY_EVENT,
+        objectKind: 'house-add',
       },
       steps: [
         {
@@ -244,10 +272,21 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'right',
           title: 'Adicionar Casa',
           text: 'Crie uma nova casa para configurar família, terreno, pilotis e desenho RAC dentro da construção selecionada.',
-          next: 'rac-house-status',
-          persistKey: 'guided-tour:rac-house-management:add',
+          persistKey: 'guided-tour:rac-house-add:add',
           kind: 'flow',
         },
+      ],
+    },
+    {
+      id: 'rac-house-actions',
+      initialStepId: 'rac-house-status',
+      persistKey: 'guided-tour:rac-house-actions:completed',
+      storageRevision: RAC_HOUSE_ACTIONS_STORAGE_REVISION,
+      triggerEvent: {
+        name: RAC_HOUSE_ACTIONS_TOUR_READY_EVENT,
+        objectKind: 'house-actions',
+      },
+      steps: [
         {
           id: 'rac-house-status',
           targetId: 'rac-house-status',
@@ -256,7 +295,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Status da Casa',
           text: 'O status mostra a etapa atual da casa, como rascunho, RAC impresso, construída ou arquivada.',
           next: 'rac-house-difficulty',
-          persistKey: 'guided-tour:rac-house-management:status',
+          persistKey: 'guided-tour:rac-house-actions:status',
           kind: 'flow',
         },
         {
@@ -267,7 +306,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Dificuldade',
           text: 'Este medidor resume a dificuldade estimada a partir dos níveis dos pilotis, solo e obstáculos informados.',
           next: 'rac-house-extra-materials',
-          persistKey: 'guided-tour:rac-house-management:difficulty',
+          persistKey: 'guided-tour:rac-house-actions:difficulty',
           kind: 'flow',
         },
         {
@@ -278,7 +317,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Materiais Extras',
           text: 'Use este atalho para registrar materiais extras e justificativas específicas da casa.',
           next: 'rac-house-built',
-          persistKey: 'guided-tour:rac-house-management:extra-materials',
+          persistKey: 'guided-tour:rac-house-actions:extra-materials',
           kind: 'flow',
         },
         {
@@ -289,7 +328,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Casa Construída',
           text: 'Use este botão para marcar a casa como construída. Quando isso acontece, a edição da casa e do canvas fica bloqueada até voltar para rascunho.',
           next: 'rac-house-archive',
-          persistKey: 'guided-tour:rac-house-management:built',
+          persistKey: 'guided-tour:rac-house-actions:built',
           kind: 'flow',
         },
         {
@@ -300,7 +339,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           title: 'Arquivar Casa',
           text: 'Arquive ou desarquive uma casa sem abrir a edição. A confirmação evita mudanças acidentais.',
           next: 'rac-house-back',
-          persistKey: 'guided-tour:rac-house-management:archive',
+          persistKey: 'guided-tour:rac-house-actions:archive',
           kind: 'flow',
         },
         {
@@ -310,7 +349,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'middle',
           title: 'Voltar para Construções',
           text: 'Use esta seta para voltar à listagem da construção selecionada.',
-          persistKey: 'guided-tour:rac-house-management:back',
+          persistKey: 'guided-tour:rac-house-actions:back',
           kind: 'flow',
         },
       ],

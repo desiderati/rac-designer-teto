@@ -216,23 +216,18 @@ describe('GuidedTourHost', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('starts the construction management tour from the ready event', async () => {
+  it('starts the construction add tour from the ready event', async () => {
     const user = userEvent.setup();
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
 
     render(<TestGuidedTourHost/>);
 
     act(() => {
-      document.dispatchEvent(new CustomEvent('rac:construction-management-tour-ready', {
+      document.dispatchEvent(new CustomEvent('rac:construction-add-tour-ready', {
         detail: {
-          kind: 'construction-management',
+          kind: 'construction-add',
           targets: {
             'rac-construction-add': {left: 720, top: 64, width: 172, height: 40},
-            'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
-            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
-            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-archive': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-back-to-canvas': {left: 32, top: 56, width: 40, height: 40},
           },
         },
       }));
@@ -241,10 +236,37 @@ describe('GuidedTourHost', () => {
     const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Construção'});
     expect(addDialog).toBeVisible();
     expect(addDialog).toHaveAccessibleDescription(/nova Construção TETO/i);
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(6);
+    expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(localStorage.getItem('guided-tour:rac-construction-add:completed')).toBe('true');
+    expect(localStorage.getItem('guided-tour:rac-construction-add:completed:revision'))
+      .toBe('construction-add-v1');
+  });
+
+  it('starts the construction actions tour from the ready event', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+
+    render(<TestGuidedTourHost/>);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent('rac:construction-actions-tour-ready', {
+        detail: {
+          kind: 'construction-actions',
+          targets: {
+            'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
+            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
+            'rac-construction-archive': {left: 892, top: 180, width: 36, height: 36},
+          },
+        },
+      }));
+    });
+
     expect(await screen.findByRole('dialog', {name: 'Monitores'})).toBeVisible();
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(4);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Casas e Famílias'})).toBeVisible();
@@ -258,53 +280,102 @@ describe('GuidedTourHost', () => {
     expect(await screen.findByRole('dialog', {name: 'Arquivar Construção'})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
-    expect(await screen.findByRole('dialog', {name: 'Voltar ao Canvas'})).toBeVisible();
-
-    await user.click(screen.getByRole('button', {name: 'OK'}));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(localStorage.getItem('guided-tour:rac-construction-management:completed')).toBe('true');
-    expect(localStorage.getItem('guided-tour:rac-construction-management:completed:revision'))
-      .toBe('construction-actions-v3');
+    expect(localStorage.getItem('guided-tour:rac-construction-actions:completed')).toBe('true');
+    expect(localStorage.getItem('guided-tour:rac-construction-actions:completed:revision'))
+      .toBe('construction-actions-v1');
   });
 
-  it('replays the construction management tour when the stored completion predates the current revision', async () => {
-    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-management:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-management:completed:revision', 'construction-actions-v2');
-
-    render(<TestGuidedTourHost/>);
-
-    act(() => {
-      document.dispatchEvent(new CustomEvent('rac:construction-management-tour-ready', {
-        detail: {
-          kind: 'construction-management',
-          targets: {
-            'rac-construction-add': {left: 720, top: 64, width: 172, height: 40},
-            'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
-            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
-            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-archive': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-back-to-canvas': {left: 32, top: 56, width: 40, height: 40},
-          },
-        },
-      }));
-    });
-
-    expect(await screen.findByRole('dialog', {name: 'Adicionar Construção'})).toBeVisible();
-  });
-
-  it('starts the house management tour from the ready event', async () => {
+  it('starts the construction back to canvas tour from the ready event', async () => {
     const user = userEvent.setup();
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
 
     render(<TestGuidedTourHost/>);
 
     act(() => {
-      document.dispatchEvent(new CustomEvent('rac:house-management-tour-ready', {
+      document.dispatchEvent(new CustomEvent('rac:construction-back-to-canvas-tour-ready', {
         detail: {
-          kind: 'house-management',
+          kind: 'construction-back-to-canvas',
+          targets: {
+            'rac-construction-back-to-canvas': {left: 32, top: 56, width: 40, height: 40},
+          },
+        },
+      }));
+    });
+
+    expect(await screen.findByRole('dialog', {name: 'Voltar ao Canvas'})).toBeVisible();
+    expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(localStorage.getItem('guided-tour:rac-construction-back-to-canvas:completed')).toBe('true');
+    expect(localStorage.getItem('guided-tour:rac-construction-back-to-canvas:completed:revision'))
+      .toBe('construction-back-to-canvas-v1');
+  });
+
+  it('replays the construction actions tour when the stored completion predates the current revision', async () => {
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-actions:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-actions:completed:revision', 'construction-actions-v0');
+
+    render(<TestGuidedTourHost/>);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent('rac:construction-actions-tour-ready', {
+        detail: {
+          kind: 'construction-actions',
+          targets: {
+            'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
+            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
+            'rac-construction-archive': {left: 892, top: 180, width: 36, height: 36},
+          },
+        },
+      }));
+    });
+
+    expect(await screen.findByRole('dialog', {name: 'Monitores'})).toBeVisible();
+  });
+
+  it('starts the house add tour from the ready event', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+
+    render(<TestGuidedTourHost/>);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent('rac:house-add-tour-ready', {
+        detail: {
+          kind: 'house-add',
           targets: {
             'rac-house-add': {left: 720, top: 64, width: 148, height: 40},
+          },
+        },
+      }));
+    });
+
+    const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Casa'});
+    expect(addDialog).toBeVisible();
+    expect(addDialog).toHaveAccessibleDescription(/configurar família, terreno, pilotis/i);
+    expect(screen.queryByTestId('guided-tour-progress-dot')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(localStorage.getItem('guided-tour:rac-house-add:completed')).toBe('true');
+    expect(localStorage.getItem('guided-tour:rac-house-add:completed:revision')).toBe('house-add-v1');
+  });
+
+  it('starts the house actions tour from the ready event', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+
+    render(<TestGuidedTourHost/>);
+
+    act(() => {
+      document.dispatchEvent(new CustomEvent('rac:house-actions-tour-ready', {
+        detail: {
+          kind: 'house-actions',
+          targets: {
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
@@ -316,13 +387,8 @@ describe('GuidedTourHost', () => {
       }));
     });
 
-    const addDialog = await screen.findByRole('dialog', {name: 'Adicionar Casa'});
-    expect(addDialog).toBeVisible();
-    expect(addDialog).toHaveAccessibleDescription(/configurar família, terreno, pilotis/i);
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
-
-    await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(6);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Dificuldade'})).toBeVisible();
@@ -343,24 +409,23 @@ describe('GuidedTourHost', () => {
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(localStorage.getItem('guided-tour:rac-house-management:completed')).toBe('true');
-    expect(localStorage.getItem('guided-tour:rac-house-management:completed:revision'))
-      .toBe('house-actions-v3');
+    expect(localStorage.getItem('guided-tour:rac-house-actions:completed')).toBe('true');
+    expect(localStorage.getItem('guided-tour:rac-house-actions:completed:revision'))
+      .toBe('house-actions-v1');
   });
 
-  it('replays the house management tour when the stored completion predates the current revision', async () => {
+  it('replays the house actions tour when the stored completion predates the current revision', async () => {
     localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-management:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-management:completed:revision', 'house-actions-v2');
+    localStorage.setItem('guided-tour:rac-house-actions:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v0');
 
     render(<TestGuidedTourHost/>);
 
     act(() => {
-      document.dispatchEvent(new CustomEvent('rac:house-management-tour-ready', {
+      document.dispatchEvent(new CustomEvent('rac:house-actions-tour-ready', {
         detail: {
-          kind: 'house-management',
+          kind: 'house-actions',
           targets: {
-            'rac-house-add': {left: 720, top: 64, width: 148, height: 40},
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
@@ -372,7 +437,7 @@ describe('GuidedTourHost', () => {
       }));
     });
 
-    expect(await screen.findByRole('dialog', {name: 'Adicionar Casa'})).toBeVisible();
+    expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
   });
 
   it('shows the piloti nivel mode tip when the desktop toggle first appears', async () => {

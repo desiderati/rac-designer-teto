@@ -21,28 +21,75 @@ import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/s
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
 import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+import {
+  GUIDED_TOUR_COMPLETED_EVENT,
+  isGuidedTourCompleted,
+} from '@/components/guided-tour/store/guided-tour-storage.ts';
 
-const RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT = 'rac:construction-management-tour-ready';
-const RAC_CONSTRUCTION_MANAGEMENT_TOUR_KIND = 'construction-management';
-const RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT = 'rac:house-management-tour-ready';
-const RAC_HOUSE_MANAGEMENT_TOUR_KIND = 'house-management';
-const CONSTRUCTION_TOUR_TARGET_IDS = [
-  'rac-construction-add',
-  'rac-construction-monitors',
-  'rac-construction-houses',
-  'rac-construction-completed',
-  'rac-construction-archive',
-  'rac-construction-back-to-canvas',
+const CONSTRUCTION_ADD_TOUR_SEGMENT = {
+  key: 'construction-add',
+  eventName: 'rac:construction-add-tour-ready',
+  kind: 'construction-add',
+  persistKey: 'guided-tour:rac-construction-add:completed',
+  storageRevision: 'construction-add-v1',
+  targetIds: ['rac-construction-add'],
+} as const;
+const CONSTRUCTION_ACTIONS_TOUR_SEGMENT = {
+  key: 'construction-actions',
+  eventName: 'rac:construction-actions-tour-ready',
+  kind: 'construction-actions',
+  persistKey: 'guided-tour:rac-construction-actions:completed',
+  storageRevision: 'construction-actions-v1',
+  targetIds: [
+    'rac-construction-monitors',
+    'rac-construction-houses',
+    'rac-construction-completed',
+    'rac-construction-archive',
+  ],
+} as const;
+const CONSTRUCTION_BACK_TO_CANVAS_TOUR_SEGMENT = {
+  key: 'construction-back-to-canvas',
+  eventName: 'rac:construction-back-to-canvas-tour-ready',
+  kind: 'construction-back-to-canvas',
+  persistKey: 'guided-tour:rac-construction-back-to-canvas:completed',
+  storageRevision: 'construction-back-to-canvas-v1',
+  targetIds: ['rac-construction-back-to-canvas'],
+} as const;
+const HOUSE_ADD_TOUR_SEGMENT = {
+  key: 'house-add',
+  eventName: 'rac:house-add-tour-ready',
+  kind: 'house-add',
+  persistKey: 'guided-tour:rac-house-add:completed',
+  storageRevision: 'house-add-v1',
+  targetIds: ['rac-house-add'],
+} as const;
+const HOUSE_ACTIONS_TOUR_SEGMENT = {
+  key: 'house-actions',
+  eventName: 'rac:house-actions-tour-ready',
+  kind: 'house-actions',
+  persistKey: 'guided-tour:rac-house-actions:completed',
+  storageRevision: 'house-actions-v1',
+  targetIds: [
+    'rac-house-status',
+    'rac-house-difficulty',
+    'rac-house-extra-materials',
+    'rac-house-built',
+    'rac-house-archive',
+    'rac-house-back',
+  ],
+} as const;
+const CONSTRUCTION_TOUR_SEGMENTS = [
+  CONSTRUCTION_ADD_TOUR_SEGMENT,
+  CONSTRUCTION_ACTIONS_TOUR_SEGMENT,
+  CONSTRUCTION_BACK_TO_CANVAS_TOUR_SEGMENT,
 ] as const;
-const HOUSE_TOUR_TARGET_IDS = [
-  'rac-house-add',
-  'rac-house-status',
-  'rac-house-difficulty',
-  'rac-house-extra-materials',
-  'rac-house-built',
-  'rac-house-archive',
-  'rac-house-back',
+const HOUSE_TOUR_SEGMENTS = [
+  HOUSE_ADD_TOUR_SEGMENT,
+  HOUSE_ACTIONS_TOUR_SEGMENT,
 ] as const;
+type GuidedTourSegment =
+  | typeof CONSTRUCTION_TOUR_SEGMENTS[number]
+  | typeof HOUSE_TOUR_SEGMENTS[number];
 const GUIDED_TOUR_TARGET_COLLECTION_MAX_ATTEMPTS = 12;
 
 export interface ConstructionSiteManagementPanelProps {
@@ -84,9 +131,9 @@ export function ConstructionSiteManagementPanel({
     selectedConstructionStatus === 'archived' || selectedConstructionStatus === 'completed';
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
+  const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
   const hasUnsavedChangesRef = useRef(false);
-  const hasDispatchedConstructionTourRef = useRef(false);
-  const hasDispatchedHouseTourRef = useRef(false);
+  const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
 
   const updateUnsavedChanges = useCallback((isDirty: boolean) => {
     hasUnsavedChangesRef.current = isDirty;
@@ -136,38 +183,48 @@ export function ConstructionSiteManagementPanel({
   }, []);
 
   useEffect(() => {
-    if (hasDispatchedConstructionTourRef.current) return;
-    if (navigation.screen !== 'construction-list' || !isBackToCanvasButton) return;
+    const handleGuidedTourCompleted = () => {
+      setGuidedTourCompletionVersion((version) => version + 1);
+    };
 
-    return scheduleGuidedTourWhenTargetsReady(collectConstructionTourTargets, (targets) => {
-      if (hasDispatchedConstructionTourRef.current) return;
-
-      hasDispatchedConstructionTourRef.current = true;
-      document.dispatchEvent(new CustomEvent(RAC_CONSTRUCTION_MANAGEMENT_TOUR_READY_EVENT, {
-        detail: {
-          kind: RAC_CONSTRUCTION_MANAGEMENT_TOUR_KIND,
-          targets,
-        },
-      }));
-    });
-  }, [isBackToCanvasButton, navigation.screen, summaries.length]);
+    document.addEventListener(GUIDED_TOUR_COMPLETED_EVENT, handleGuidedTourCompleted);
+    return () => document.removeEventListener(GUIDED_TOUR_COMPLETED_EVENT, handleGuidedTourCompleted);
+  }, []);
 
   useEffect(() => {
-    if (hasDispatchedHouseTourRef.current) return;
-    if (navigation.screen !== 'houses' || !constructionSite?.houses.length) return;
+    if (navigation.screen !== 'construction-list') return;
 
-    return scheduleGuidedTourWhenTargetsReady(collectHouseTourTargets, (targets) => {
-      if (hasDispatchedHouseTourRef.current) return;
-
-      hasDispatchedHouseTourRef.current = true;
-      document.dispatchEvent(new CustomEvent(RAC_HOUSE_MANAGEMENT_TOUR_READY_EVENT, {
+    return scheduleGuidedTourWhenTargetsReady(() => collectNextGuidedTourSegment([
+      {segment: CONSTRUCTION_ADD_TOUR_SEGMENT, enabled: true},
+      {segment: CONSTRUCTION_ACTIONS_TOUR_SEGMENT, enabled: summaries.some((summary) => summary.status !== 'archived')},
+      {segment: CONSTRUCTION_BACK_TO_CANVAS_TOUR_SEGMENT, enabled: isBackToCanvasButton},
+    ], dispatchedGuidedTourSegmentsRef.current), ({segment, targets}) => {
+      dispatchedGuidedTourSegmentsRef.current.add(segment.key);
+      document.dispatchEvent(new CustomEvent(segment.eventName, {
         detail: {
-          kind: RAC_HOUSE_MANAGEMENT_TOUR_KIND,
+          kind: segment.kind,
           targets,
         },
       }));
     });
-  }, [constructionSite?.houses.length, navigation.screen]);
+  }, [guidedTourCompletionVersion, isBackToCanvasButton, navigation.screen, summaries]);
+
+  useEffect(() => {
+    if (navigation.screen !== 'houses') return;
+
+    return scheduleGuidedTourWhenTargetsReady(() => collectNextGuidedTourSegment([
+      {segment: HOUSE_ADD_TOUR_SEGMENT, enabled: true},
+      {segment: HOUSE_ACTIONS_TOUR_SEGMENT, enabled: Boolean(constructionSite?.houses.some((house) => house.status !== 'archived'))},
+    ], dispatchedGuidedTourSegmentsRef.current), ({segment, targets}) => {
+      dispatchedGuidedTourSegmentsRef.current.add(segment.key);
+      document.dispatchEvent(new CustomEvent(segment.eventName, {
+        detail: {
+          kind: segment.kind,
+          targets,
+        },
+      }));
+    });
+  }, [constructionSite?.houses, guidedTourCompletionVersion, navigation.screen]);
 
   return (
     <main
@@ -485,14 +542,6 @@ function scheduleGuidedTourWhenTargetsReady(
   };
 }
 
-function collectConstructionTourTargets(): Record<string, GuidedTourEventRect> | null {
-  return collectGuidedTourTargets(CONSTRUCTION_TOUR_TARGET_IDS);
-}
-
-function collectHouseTourTargets(): Record<string, GuidedTourEventRect> | null {
-  return collectGuidedTourTargets(HOUSE_TOUR_TARGET_IDS);
-}
-
 function collectGuidedTourTargets(targetIds: readonly string[]): Record<string, GuidedTourEventRect> | null {
   const entries = targetIds.map((targetId) => {
     const rect = getVisibleTargetRect(targetId);
@@ -502,6 +551,22 @@ function collectGuidedTourTargets(targetIds: readonly string[]): Record<string, 
 
   if (entries.some((entry) => entry === null)) return null;
   return Object.fromEntries(entries.filter((entry): entry is NonNullable<typeof entry> => entry !== null));
+}
+
+function collectNextGuidedTourSegment(
+  candidates: ReadonlyArray<{segment: GuidedTourSegment; enabled: boolean}>,
+  dispatchedSegments: ReadonlySet<string>,
+): GuidedTourSegmentTargets | null {
+  for (const candidate of candidates) {
+    if (!candidate.enabled) continue;
+    if (dispatchedSegments.has(candidate.segment.key)) continue;
+    if (isGuidedTourCompleted(candidate.segment)) continue;
+
+    const targets = collectGuidedTourTargets(candidate.segment.targetIds);
+    if (targets) return {segment: candidate.segment, targets};
+  }
+
+  return null;
 }
 
 function getBackButtonGuidedTourId(
@@ -518,6 +583,11 @@ interface GuidedTourEventRect {
   top: number;
   width: number;
   height: number;
+}
+
+interface GuidedTourSegmentTargets {
+  segment: GuidedTourSegment;
+  targets: Record<string, GuidedTourEventRect>;
 }
 
 function toGuidedTourEventRect(rect: DOMRect): GuidedTourEventRect {

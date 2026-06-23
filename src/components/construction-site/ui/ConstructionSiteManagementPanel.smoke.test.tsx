@@ -15,6 +15,7 @@ const RealDate = Date;
 
 describe('ConstructionSiteManagementPanel.tsx', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.stubGlobal('Date', class extends RealDate {
       constructor(...args: unknown[]) {
         switch (args.length) {
@@ -214,6 +215,56 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .getByText('Mostrando 1-1 de 1 construções')).toBeVisible();
     expect(screen.getByTestId('construction-mobile-pagination')).toHaveClass('justify-center', 'text-center');
   }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('dispara apenas o tour de adicionar construção quando a listagem está vazia', async () => {
+    const constructionAddTour = listenGuidedTourEvent('rac:construction-add-tour-ready');
+    const constructionActionsTour = listenGuidedTourEvent('rac:construction-actions-tour-ready');
+
+    renderPanel({constructionSite: null, summaries: []});
+    stubGuidedTourTargetRects();
+
+    await waitFor(() => expect(constructionAddTour.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(constructionAddTour.listener)).toEqual(['rac-construction-add']);
+    expect(constructionActionsTour.listener).not.toHaveBeenCalled();
+
+    constructionAddTour.cleanup();
+    constructionActionsTour.cleanup();
+  });
+
+  it('dispara ações da construção sem depender do retorno ao canvas', async () => {
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
+    const constructionActionsTour = listenGuidedTourEvent('rac:construction-actions-tour-ready');
+    const backToCanvasTour = listenGuidedTourEvent('rac:construction-back-to-canvas-tour-ready');
+
+    renderPanel({canOpenRacEditor: false});
+    stubGuidedTourTargetRects();
+
+    await waitFor(() => expect(constructionActionsTour.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(constructionActionsTour.listener)).toEqual([
+      'rac-construction-monitors',
+      'rac-construction-houses',
+      'rac-construction-completed',
+      'rac-construction-archive',
+    ]);
+    expect(backToCanvasTour.listener).not.toHaveBeenCalled();
+
+    constructionActionsTour.cleanup();
+    backToCanvasTour.cleanup();
+  });
+
+  it('dispara retorno ao canvas apenas quando a casa ativa pode abrir o editor', async () => {
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    const backToCanvasTour = listenGuidedTourEvent('rac:construction-back-to-canvas-tour-ready');
+
+    renderPanel({canOpenRacEditor: true, onBackToCanvas: vi.fn()});
+    stubGuidedTourTargetRects();
+
+    await waitFor(() => expect(backToCanvasTour.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(backToCanvasTour.listener)).toEqual(['rac-construction-back-to-canvas']);
+
+    backToCanvasTour.cleanup();
+  });
 
   it('trunca comunidade longa na listagem desktop de construções sem deslocar colunas', () => {
     const summaries = createSummaries();
@@ -622,6 +673,51 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(houseMobilePagination).getByText('Mostrando 1-1 de 1 casas')).toBeVisible();
     expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
   }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('dispara apenas o tour de adicionar casa quando a construção ainda não tem casas', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    constructionSite.houses = [];
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    const houseAddTour = listenGuidedTourEvent('rac:house-add-tour-ready');
+    const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
+
+    renderPanel({constructionSite});
+    await openConstructionHouses(user);
+    stubGuidedTourTargetRects();
+
+    await waitFor(() => expect(houseAddTour.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(houseAddTour.listener)).toEqual(['rac-house-add']);
+    expect(houseActionsTour.listener).not.toHaveBeenCalled();
+
+    houseAddTour.cleanup();
+    houseActionsTour.cleanup();
+  });
+
+  it('dispara ações da casa depois que existe casa cadastrada', async () => {
+    const user = userEvent.setup();
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-house-add:completed', 'house-add-v1');
+    const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
+
+    renderPanel();
+    await openConstructionHouses(user);
+    stubGuidedTourTargetRects();
+
+    await waitFor(() => expect(houseActionsTour.listener).toHaveBeenCalledTimes(1));
+    expect(getGuidedTourEventTargetIds(houseActionsTour.listener)).toEqual([
+      'rac-house-status',
+      'rac-house-difficulty',
+      'rac-house-extra-materials',
+      'rac-house-built',
+      'rac-house-archive',
+      'rac-house-back',
+    ]);
+
+    houseActionsTour.cleanup();
+  });
 
   it('trunca nome longo na listagem desktop de casas sem deslocar status e data', async () => {
     const user = userEvent.setup();
@@ -1714,6 +1810,47 @@ function renderPanel(input: {
       />
     </TooltipProvider>,
   );
+}
+
+function listenGuidedTourEvent(eventName: string) {
+  const listener = vi.fn();
+  const eventListener = (event: Event) => listener(event);
+
+  document.addEventListener(eventName, eventListener);
+
+  return {
+    listener,
+    cleanup: () => document.removeEventListener(eventName, eventListener),
+  };
+}
+
+function getGuidedTourEventTargetIds(listener: ReturnType<typeof vi.fn>): string[] {
+  const event = listener.mock.calls.at(-1)?.[0] as CustomEvent<{targets?: Record<string, unknown>}> | undefined;
+  return Object.keys(event?.detail.targets ?? {});
+}
+
+function markGuidedTourSegmentCompleted(persistKey: string, storageRevision: string): void {
+  localStorage.setItem(persistKey, 'true');
+  localStorage.setItem(`${persistKey}:revision`, storageRevision);
+}
+
+function stubGuidedTourTargetRects(): void {
+  Array.from(document.querySelectorAll<HTMLElement>('[data-guided-tour-id]')).forEach((element, index) => {
+    Object.defineProperty(element, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        left: 80 + (index * 44),
+        top: 64 + (index * 8),
+        width: 36,
+        height: 36,
+        right: 116 + (index * 44),
+        bottom: 100 + (index * 8),
+        x: 80 + (index * 44),
+        y: 64 + (index * 8),
+        toJSON: () => ({}),
+      } as DOMRect),
+    });
+  });
 }
 
 function createActions() {
