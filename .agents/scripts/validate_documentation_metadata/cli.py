@@ -6,7 +6,7 @@ documentation files selected by the caller for:
 
 1. required YAML frontmatter fields, defaulting to `doc_role`;
 2. outbound local-link durability by delegating to validate_durable_links.py;
-3. inbound reachability from OBSIDIAN.md when OBSIDIAN.md exists;
+3. transitive inbound reachability from OBSIDIAN.md when OBSIDIAN.md exists;
 4. optional docs/ governance when --enforce-docs-governance is passed.
 
 Root-level operational contract files such as README.md, AGENTS.md,
@@ -306,8 +306,8 @@ def _normalize_index_target(raw: str) -> str:
     return value.strip("/")
 
 
-def _iter_index_targets(obsidian_path: Path) -> Iterator[str]:
-    text = obsidian_path.read_text(encoding="utf-8")
+def _iter_markdown_targets(markdown_path: Path) -> Iterator[str]:
+    text = markdown_path.read_text(encoding="utf-8")
     in_fence = False
     for line in text.splitlines():
         if line.strip().startswith("```"):
@@ -326,13 +326,95 @@ def _iter_index_targets(obsidian_path: Path) -> Iterator[str]:
             yield _normalize_index_target(match.group(1))
 
 
-def _target_indexed(target: ValidationTarget, index_targets: set[str]) -> bool:
-    relative = target.relative_path
-    without_suffix = str(Path(relative).with_suffix("")).replace("\\", "/")
-    name = Path(relative).name
-    stem = Path(relative).stem
-    candidates = {relative, without_suffix, name, stem}
-    return bool(candidates & index_targets)
+def _is_external_or_anchor_target(raw_target: str) -> bool:
+    value = raw_target.strip()
+    return (
+        not value
+        or value.startswith("#")
+        or re.match(r"\A[a-zA-Z][a-zA-Z0-9+.-]*:", value) is not None
+    )
+
+
+def _normalize_relative_parts(path: Path) -> Path | None:
+    parts: list[str] = []
+    for part in path.parts:
+        if part in ("", "."):
+            continue
+        if part == "..":
+            if not parts:
+                return None
+            parts.pop()
+            continue
+        parts.append(part)
+    return Path(*parts) if parts else Path(".")
+
+
+def _resolve_local_markdown_target(
+    repo_root: Path,
+    source_relative_path: str,
+    raw_target: str,
+) -> str | None:
+    if _is_external_or_anchor_target(raw_target):
+        return None
+
+    normalized_target = _normalize_index_target(_split_markdown_destination(raw_target))
+    if _is_external_or_anchor_target(normalized_target):
+        return None
+
+    target_path = Path(normalized_target)
+    if target_path.is_absolute():
+        target_path = Path(*target_path.parts[1:])
+    elif target_path.parts and target_path.parts[0] in {
+        ".agents",
+        "docs",
+        "graphify-out",
+        "src",
+    }:
+        target_path = Path(*target_path.parts)
+    else:
+        target_path = Path(source_relative_path).parent / target_path
+
+    target_path = _normalize_relative_parts(target_path)
+    if target_path is None:
+        return None
+
+    absolute_target = repo_root / target_path
+    if absolute_target.is_dir():
+        readme = absolute_target / "README.md"
+        if readme.is_file():
+            return _relative_path(repo_root, readme.resolve())
+        return None
+
+    if absolute_target.is_file() and absolute_target.suffix.lower() == ".md":
+        return _relative_path(repo_root, absolute_target.resolve())
+
+    if absolute_target.suffix == "":
+        markdown_target = absolute_target.with_suffix(".md")
+        if markdown_target.is_file():
+            return _relative_path(repo_root, markdown_target.resolve())
+
+    return None
+
+
+def _collect_transitive_index_targets(repo_root: Path, obsidian_path: Path) -> set[str]:
+    obsidian_relative = _relative_path(repo_root, obsidian_path.resolve())
+    reachable = {obsidian_relative}
+    queue = [obsidian_relative]
+
+    while queue:
+        current_relative = queue.pop(0)
+        current_path = repo_root / current_relative
+        if not current_path.is_file() or current_path.suffix.lower() != ".md":
+            continue
+
+        for raw_target in _iter_markdown_targets(current_path):
+            resolved = _resolve_local_markdown_target(repo_root, current_relative, raw_target)
+            if resolved is None or resolved in reachable:
+                continue
+            reachable.add(resolved)
+            queue.append(resolved)
+
+    return reachable
 
 
 def _validate_obsidian_reachability(
@@ -344,7 +426,7 @@ def _validate_obsidian_reachability(
     if not obsidian_path.exists():
         return []
 
-    index_targets = {target for target in _iter_index_targets(obsidian_path) if target}
+    reachable_targets = _collect_transitive_index_targets(repo_root, obsidian_path)
     obsidian_rel = _relative_path(repo_root, obsidian_path.resolve())
     violations: list[str] = []
     for target in targets:
@@ -352,7 +434,7 @@ def _validate_obsidian_reachability(
             continue
         if target.relative_path == obsidian_rel:
             continue
-        if not _target_indexed(target, index_targets):
+        if target.relative_path not in reachable_targets:
             violations.append(
                 f"{obsidian_rel}: missing index connection to {target.relative_path}"
             )
