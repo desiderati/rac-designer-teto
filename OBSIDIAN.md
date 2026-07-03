@@ -30,6 +30,9 @@ claramente estabelecida.
 
 - [docs/README.md](docs/README.md), para o índice versionado do diretório de documentação
 
+- [docs/product-requirements/README.md](docs/product-requirements/README.md), para o índice de PRDs
+  do projeto
+
 - [docs/architecture-decisions/](docs/architecture-decisions/), quando houver decisões arquiteturais
   duráveis registradas
 
@@ -38,6 +41,18 @@ claramente estabelecida.
 
 - [docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md](docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md),
   para a decisão vigente sobre o formato canônico inicial de importação/exportação do projeto RAC
+
+- [docs/architecture-decisions/ADR-003-backend-remoto-local-first-convex-clerk.md](docs/architecture-decisions/ADR-003-backend-remoto-local-first-convex-clerk.md),
+  para a decisão proposta de backend remoto global com Convex e Clerk
+
+- [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.md),
+  para o escopo proposto de autenticação e sincronização remota global
+
+- [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/technical-spec.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/technical-spec.md),
+  para o contrato técnico inicial associado ao PRD-004
+
+- [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md),
+  para a comparação de alternativas ao Convex na iniciativa remota
 
 - [docs/ui-definitions/README.md](docs/ui-definitions/README.md), para definições duráveis de
   comportamento visual

@@ -1,6 +1,7 @@
 ---
 title: PRDs do Projeto
 doc_type: index
+doc_role: index
 doc_set: product-requirements
 status: active
 lang: pt-BR
@@ -19,9 +20,13 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 ## Regras
 
 1. O Markdown é a fonte humana principal.
-2. O JSON derivado adjacente só existe quando houver valor real para automação, validação estrutural ou consumo por
-   outro agente.
-3. Diagramas, evidências, exportações brutas, scripts e derivados auxiliares ficam no sidecar `*.prd.assets/`.
+
+2. O JSON derivado adjacente só existe quando houver valor real para automação, validação estrutural
+   ou consumo por outro agente.
+
+3. Diagramas, evidências, exportações brutas, scripts e derivados auxiliares ficam no sidecar
+   `*.prd.assets/`.
+
 4. O PRD não substitui `work-items`; estado operacional de execução continua fora deste diretório.
 
 ## Índice atual
@@ -29,3 +34,4 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 - [PRD-001-evolucao-multicasa.prd.md](./PRD-001-evolucao-multicasa.prd.md)
 - [PRD-002-gerenciamento-de-monitores.prd.md](./PRD-002-gerenciamento-de-monitores.prd.md)
 - [PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md](./PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md)
+- [PRD-004-autenticacao-sincronizacao-remota.prd.md](./PRD-004-autenticacao-sincronizacao-remota.prd.md)
