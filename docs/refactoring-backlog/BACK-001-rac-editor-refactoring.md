@@ -1,6 +1,7 @@
 ---
 title: BACK-001 - Refatoração do RAC Editor
 doc_type: refactoring-backlog
+doc_role: refactoring-backlog
 doc_set: refactoring-backlog
 status: active
 lang: pt-BR

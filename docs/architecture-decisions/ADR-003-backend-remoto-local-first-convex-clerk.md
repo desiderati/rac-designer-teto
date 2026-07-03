@@ -1,6 +1,8 @@
 ---
 title: "ADR-003 — Backend Remoto Global com Convex e Clerk"
+doc_type: architecture-decision
 doc_role: architecture-decision-record
+doc_set: architecture-decisions
 adr_number: ADR-003
 decision_mode: previo
 status: proposed
@@ -76,14 +78,12 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
     - IndexedDB, se mantido no modo remoto, funciona apenas como cache descartável e fila pendente.
     - O editor continua consumindo ports e documentos serializáveis, sem conhecer o provedor remoto.
     - A camada de sync descarta dados locais legados, carrega o remoto, reconstrói cache quando necessário e expõe
-      status
-      operacional.
+      status operacional.
 
 - fluxo principal:
     - Boot sem login -> estado `local` ou tela de autenticação, sem upload de IndexedDB legado.
     - Primeiro boot com login -> descartar IndexedDB legado -> carregar Convex global -> criar sessão local em
-      memória ->
-      reconstruir cache descartável, se habilitado.
+      memória -> reconstruir cache descartável, se habilitado.
     - Escrita -> mutation remota com versão esperada -> cache otimista opcional -> status de sync.
 
 - modo da decisão: previo

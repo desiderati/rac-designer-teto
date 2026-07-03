@@ -2,6 +2,7 @@
 title: Persona de Engenharia
 id: PLAY-001
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: core
 precedence: 1

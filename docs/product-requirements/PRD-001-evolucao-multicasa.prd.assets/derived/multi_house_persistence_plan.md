@@ -1,6 +1,7 @@
 ---
 title: Multi-house Persistence Evolution Plan
 doc_type: derived-note
+doc_role: technical-plan
 doc_set: product-requirements
 status: active
 lang: en

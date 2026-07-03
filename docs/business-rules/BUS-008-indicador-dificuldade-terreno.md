@@ -2,6 +2,7 @@
 title: Indicador de Dificuldade do Terreno
 id: BUS-008
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 8
 status: active

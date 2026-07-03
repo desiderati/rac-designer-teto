@@ -2,6 +2,7 @@
 title: Sobre a Casa na Edição da Casa
 id: PRD-003
 doc_type: prd
+doc_role: product-requirements
 doc_set: product-requirements
 status: implemented
 version: "1.0.0"

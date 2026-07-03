@@ -2,6 +2,7 @@
 title: Regras de Vistas por Tipo de Casa
 id: BUS-003
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 3
 status: active

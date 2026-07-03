@@ -2,6 +2,7 @@
 title: Ports and Adapters no Editor RAC
 id: PLAY-006
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: core
 precedence: 6

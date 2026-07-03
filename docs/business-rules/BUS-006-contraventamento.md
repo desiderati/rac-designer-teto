@@ -2,6 +2,7 @@
 title: Regras de Contraventamento
 id: BUS-006
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 6
 status: active

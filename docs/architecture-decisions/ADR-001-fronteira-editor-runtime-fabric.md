@@ -1,6 +1,8 @@
 ---
 title: "ADR-001 — Fronteira do Editor RAC com o Runtime Fabric"
+doc_type: architecture-decision
 doc_role: architecture-decision-record
+doc_set: architecture-decisions
 adr_number: ADR-001
 decision_mode: previo
 status: accepted
@@ -92,8 +94,7 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
     - Adapters do bootstrap devem ser genéricos sobre `HouseRuntimeGroupRef`; quando a implementação precisa interpretar
       `CanvasGroup`, ela pertence ao slice `@canvas`.
     - `House3DProjectionPort` entrega projeção serializável ao viewer 3D; o adapter concreto que lê grupos do canvas
-      fica
-      em `src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts`.
+      fica em `src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts`.
     - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
       como contrato público do editor.
     - O estado lógico do editor deve receber `HousePersistencePort`; adapters concretos de persistência são compostos no

@@ -2,6 +2,7 @@
 title: Checklist de Exportação da RAC
 id: BUS-012
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 12
 status: active

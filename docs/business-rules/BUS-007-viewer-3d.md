@@ -2,6 +2,7 @@
 title: Regras do Viewer 3D
 id: BUS-007
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 7
 status: active

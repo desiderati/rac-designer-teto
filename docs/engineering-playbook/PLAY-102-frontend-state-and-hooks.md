@@ -2,6 +2,7 @@
 title: Estado e Hooks no Frontend
 id: PLAY-102
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: frontend
 precedence: 102

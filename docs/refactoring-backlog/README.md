@@ -1,6 +1,7 @@
 ---
 title: Refactoring Backlog
 doc_type: index
+doc_role: index
 doc_set: refactoring-backlog
 status: active
 lang: pt-BR
@@ -58,5 +59,5 @@ ou `PRD`.
 
 ## Backlogs ativos
 
-- `BACK-001-rac-editor-refactoring.md`
+- [BACK-001-rac-editor-refactoring.md](BACK-001-rac-editor-refactoring.md)
     - Cortes finais e condicionais de refatoração do RAC Editor.

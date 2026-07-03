@@ -2,6 +2,7 @@
 title: Regras de Nível do Piloti
 id: BUS-004
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 4
 status: active

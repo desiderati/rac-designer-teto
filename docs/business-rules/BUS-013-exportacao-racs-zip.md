@@ -2,6 +2,7 @@
 title: Exportação de RACs em ZIP
 id: BUS-013
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 13
 status: active

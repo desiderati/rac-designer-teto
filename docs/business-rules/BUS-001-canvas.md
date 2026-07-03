@@ -2,6 +2,7 @@
 title: Regras do Canvas 2D
 id: BUS-001
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 1
 status: active

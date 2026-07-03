@@ -2,6 +2,7 @@
 title: Padrões de Componentes Frontend
 id: PLAY-101
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: frontend
 precedence: 101

@@ -1,6 +1,7 @@
 ---
 title: Engineering Playbook
 doc_type: index
+doc_role: index
 doc_set: engineering-playbook
 status: active
 lang: pt-BR
@@ -55,36 +56,36 @@ convenções e critérios de decisão que orientam tanto humanos quanto agentes 
 
 ## Índice
 
-- `PLAY-001-persona.md`
+- [PLAY-001-persona.md](PLAY-001-persona.md)
     - Porta de entrada do playbook e ordem de precedência dos demais guias.
 
-- `PLAY-002-core-principles.md`
+- [PLAY-002-core-principles.md](PLAY-002-core-principles.md)
     - Princípios fundamentais e fluxo obrigatório de decisão antes de implementar.
 
-- `PLAY-003-tech-stack.md`
+- [PLAY-003-tech-stack.md](PLAY-003-tech-stack.md)
     - Stack detectada e restrições de introdução de novas dependências.
 
-- `PLAY-004-project-structure.md`
+- [PLAY-004-project-structure.md](PLAY-004-project-structure.md)
     - Estrutura atual, restrições vigentes e direção de evolução.
 
-- `PLAY-005-naming-conventions.md`
+- [PLAY-005-naming-conventions.md](PLAY-005-naming-conventions.md)
     - Convenções de nomenclatura para arquivos, funções e tipos.
 
-- `PLAY-006-ports-and-adapters.md`
+- [PLAY-006-ports-and-adapters.md](PLAY-006-ports-and-adapters.md)
     - Disciplina de Ports and Adapters no editor RAC, com fronteiras, riscos, critérios de corte e plano de
       continuidade.
 
-- `PLAY-101-frontend-component-patterns.md`
+- [PLAY-101-frontend-component-patterns.md](PLAY-101-frontend-component-patterns.md)
     - Padrões de composição e responsabilidades dos componentes.
 
-- `PLAY-102-frontend-state-and-hooks.md`
+- [PLAY-102-frontend-state-and-hooks.md](PLAY-102-frontend-state-and-hooks.md)
     - Regras para hooks, coordenação de estado e guardrails de evolução do editor.
 
-- `PLAY-103-frontend-data-fetching.md`
+- [PLAY-103-frontend-data-fetching.md](PLAY-103-frontend-data-fetching.md)
     - Regras para integração remota e separação entre estado local e remoto.
 
-- `PLAY-104-frontend-testing.md`
+- [PLAY-104-frontend-testing.md](PLAY-104-frontend-testing.md)
     - Estratégia de testes unitários, integração, smoke e E2E.
 
-- `PLAY-105-frontend-security-and-a11y.md`
+- [PLAY-105-frontend-security-and-a11y.md](PLAY-105-frontend-security-and-a11y.md)
     - Segurança, acessibilidade e requisitos mínimos de interação.

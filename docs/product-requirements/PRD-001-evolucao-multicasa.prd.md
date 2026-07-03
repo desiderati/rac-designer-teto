@@ -2,6 +2,7 @@
 title: Evolução Multicasa do RAC Designer TETO
 id: PRD-001
 doc_type: prd
+doc_role: product-requirements
 doc_set: product-requirements
 status: implemented
 version: "1.0.0"

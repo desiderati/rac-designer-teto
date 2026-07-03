@@ -2,6 +2,7 @@
 title: Estrutura do Projeto
 id: PLAY-004
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: core
 precedence: 4

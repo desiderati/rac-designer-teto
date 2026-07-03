@@ -2,6 +2,7 @@
 title: Data Fetching no Frontend
 id: PLAY-103
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: frontend
 precedence: 103

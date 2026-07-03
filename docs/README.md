@@ -32,30 +32,30 @@ transitórios devem declarar explicitamente seu ciclo de vida.
 
 ## Temas disponíveis
 
-1. `architecture-decisions/`
+1. [architecture-decisions/](architecture-decisions/)
     - Registros de decisão arquitetural durável, usando o padrão `ADR-NNN-{slug}.md`.
 
-2. `business-rules/`
+2. [business-rules/README.md](business-rules/README.md)
     - Regras funcionais do produto, organizadas por ordem canônica em `BUS-00x-*` e indexadas em
       `business-rules/README.md`.
 
-3. `engineering-playbook/`
+3. [engineering-playbook/README.md](engineering-playbook/README.md)
     - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
       O playbook combina um núcleo comum em `PLAY-001` a `PLAY-006` com módulos específicos de família, hoje
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
-4. `refactoring-backlog/`
+4. [refactoring-backlog/README.md](refactoring-backlog/README.md)
     - Backlogs técnicos transitórios de refatoração, organizados por arquivos `BACK-00x-*`, com critério explícito de
       ativação, descarte, promoção ou encerramento.
 
-5. `code-scaffolds/`
+5. [code-scaffolds/README.md](code-scaffolds/README.md)
     - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
       persistência e testes.
 
-6. `ui-definitions/`
+6. [ui-definitions/README.md](ui-definitions/README.md)
     - Definições duráveis de comportamento visual para superfícies operacionais, áreas dimensionadas e exportações.
 
-7. `product-requirements/`
+7. [product-requirements/README.md](product-requirements/README.md)
     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 

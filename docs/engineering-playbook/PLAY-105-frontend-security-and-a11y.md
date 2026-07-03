@@ -2,6 +2,7 @@
 title: Segurança e Acessibilidade no Frontend
 id: PLAY-105
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: frontend
 precedence: 105

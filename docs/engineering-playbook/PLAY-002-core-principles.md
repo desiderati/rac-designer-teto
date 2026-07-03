@@ -2,6 +2,7 @@
 title: Princípios Centrais de Engenharia
 id: PLAY-002
 doc_type: playbook
+doc_role: engineering-playbook
 doc_set: engineering-playbook
 family: core
 precedence: 2

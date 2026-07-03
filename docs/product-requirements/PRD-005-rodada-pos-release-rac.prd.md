@@ -2,6 +2,7 @@
 title: Rodada Pós-Release RAC
 id: PRD-005
 doc_type: prd
+doc_role: product-requirements
 doc_set: product-requirements
 status: implemented
 version: "1.0.0"

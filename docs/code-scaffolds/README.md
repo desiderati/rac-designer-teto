@@ -1,6 +1,7 @@
 ---
 title: Code Scaffolds
 doc_type: index
+doc_role: index
 doc_set: code-scaffolds
 status: active
 lang: pt-BR
@@ -17,13 +18,13 @@ vigentes.
 
 ## Organização
 
-- `docs/code-scaffolds/domain/`
+- [domain/](domain/)
     - Scaffolds para agregado e caso de uso puro.
 
-- `docs/code-scaffolds/persistence/`
+- [persistence/](persistence/)
     - Scaffolds para contrato e adapter de persistência.
 
-- `docs/code-scaffolds/testing/`
+- [testing/](testing/)
     - Scaffolds de teste mínimo reutilizáveis.
 
 Não existem subpastas `frontend/` ou `backend/` neste momento porque nenhum scaffold atual pertence
@@ -32,19 +33,19 @@ elas.
 
 ## Scaffolds disponíveis
 
-- `docs/code-scaffolds/domain/aggregate.ts.hbs`
+- [domain/aggregate.ts.hbs](domain/aggregate.ts.hbs)
     - Esqueleto de agregado em classe, com `fromState()` e `toState()`.
 
-- `docs/code-scaffolds/domain/use-case.ts.hbs`
+- [domain/use-case.ts.hbs](domain/use-case.ts.hbs)
     - Esqueleto de caso de uso como função pura com parâmetros explícitos e resultado estruturado.
 
-- `docs/code-scaffolds/persistence/persistence-port.ts.hbs`
+- [persistence/persistence-port.ts.hbs](persistence/persistence-port.ts.hbs)
     - Contrato síncrono de persistência para o agregado no domínio.
 
-- `docs/code-scaffolds/persistence/persistence-adapter.ts.hbs`
+- [persistence/persistence-adapter.ts.hbs](persistence/persistence-adapter.ts.hbs)
     - Adaptador in-memory em classe, alinhado ao port de persistência atual.
 
-- `docs/code-scaffolds/testing/smoke-test.ts.hbs`
+- [testing/smoke-test.ts.hbs](testing/smoke-test.ts.hbs)
     - Smoke test co-localizado no estilo da suíte atual.
 
 ## Regras de uso

@@ -2,6 +2,7 @@
 title: Regras de Materiais de Terreno
 id: BUS-009
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 9
 status: active

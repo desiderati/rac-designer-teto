@@ -1,6 +1,8 @@
 ---
 title: "ADR-002 - Documento Canônico da Casa RAC"
+doc_type: architecture-decision
 doc_role: architecture-decision-record
+doc_set: architecture-decisions
 adr_number: ADR-002
 decision_mode: previo
 status: accepted
