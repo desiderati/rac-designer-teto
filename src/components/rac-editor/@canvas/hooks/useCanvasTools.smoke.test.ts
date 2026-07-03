@@ -138,4 +138,15 @@ describe('useCanvasTools guided tour events', () => {
       document.removeEventListener(INSERTED_EVENT, listener as EventListener);
     }
   });
+
+  it('insere a rua reta usando a estrategia dedicada', () => {
+    const object = createCanvasObject();
+    const {result, addObjectToCanvas} = renderCanvasTools(object);
+
+    act(() => {
+      result.current.handleAddStreetStraight();
+    });
+
+    expect(addObjectToCanvas).toHaveBeenCalledWith(object);
+  });
 });

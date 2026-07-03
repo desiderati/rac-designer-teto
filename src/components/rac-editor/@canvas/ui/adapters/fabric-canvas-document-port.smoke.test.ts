@@ -314,6 +314,90 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('preserva variante semântica de rua no documento visual', async () => {
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Group',
+          myType: 'street',
+          editorObjectId: 'street-1',
+          streetVariant: 'corner',
+          objects: [{
+            type: 'Rect',
+            myType: 'streetBody',
+            width: 220,
+            height: 72,
+            fill: '#9ca3af',
+          }],
+        }],
+      })),
+    };
+    const targetCanvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+    const loaded = await createFabricCanvasDocumentPort(targetCanvas as any).loadCanvasDocument(exported!);
+
+    expect(loaded).toBe(true);
+    expect(exported?.objects[0]).toMatchObject({
+      id: 'street-1',
+      kind: 'street',
+      shape: 'group',
+      metadata: {streetVariant: 'corner'},
+    });
+    expect(targetCanvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'group',
+        streetVariant: 'corner',
+        myType: 'street',
+        editorObjectId: 'street-1',
+        objects: [{
+          type: 'rect',
+          width: 220,
+          height: 72,
+          fill: '#9ca3af',
+          myType: 'streetBody',
+          editorObjectId: 'streetBody-0-0',
+        }],
+      }],
+    });
+  });
+
+  it('reanexa normalizacao de scaling em muros restaurados do documento visual', async () => {
+    const wallGroup = {
+      type: 'group',
+      myType: 'wall',
+      getObjects: vi.fn(() => []),
+      on: vi.fn(),
+      setCoords: vi.fn(),
+    };
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => [wallGroup]),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    const port = createFabricCanvasDocumentPort(canvas as any);
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{
+        id: 'wall-1',
+        kind: 'wall',
+        shape: 'group',
+      }],
+    })).resolves.toBe(true);
+
+    expect(wallGroup.on).toHaveBeenCalledWith('scaling', expect.any(Function));
+  });
+
   it('recusa documento visual com payload opaco antes de tocar o canvas', async () => {
     const canvas = {
       clear: vi.fn(),

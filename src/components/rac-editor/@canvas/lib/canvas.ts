@@ -55,6 +55,8 @@ type CanvasProperties = {
   isTopSlopeIndicator?: boolean;
   isTopSlopeIndicatorText?: boolean;
 
+  streetVariant?: 'straight' | 'corner';
+
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;
   isPilotiText?: boolean;
@@ -408,6 +410,8 @@ export const canvasObjectProps = [
   'edgeSide',
   'isTopSlopeIndicator',
   'isTopSlopeIndicatorText',
+
+  'streetVariant',
 
   'isPilotiCircle',
   'isPilotiRect',

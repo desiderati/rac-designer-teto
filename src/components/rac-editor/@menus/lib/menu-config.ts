@@ -160,6 +160,8 @@ export const ELEMENTS_MENU_CONFIG: MenuCommandConfig[] = [
     title: 'Objeto / Muro',
     guidedTourId: 'rac-tool-wall',
   },
+  {action: 'addStreetStraight', icon: faSlash, title: 'Rua Reta'},
+  {action: 'addStreetCorner', icon: faShapes, title: 'Rua em Quina'},
   {action: 'addDoor', icon: faDoorOpen, title: 'Porta - Out Of Service', disabled: true},
   {action: 'addStairs', icon: faStairs, title: 'Escada - Out Of Service', disabled: true},
   {action: 'addTree', icon: faTree, title: 'Árvore'},

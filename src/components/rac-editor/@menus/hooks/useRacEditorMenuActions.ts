@@ -9,6 +9,8 @@ export interface UseMenuActionsArgs {
   handleOpenHouseTypeSelector: () => void;
   handleAddHouseView: (viewType: 'front' | 'back' | 'side1' | 'side2') => void;
   handleAddWall: () => void;
+  handleAddStreetStraight: () => void;
+  handleAddStreetCorner: () => void;
   handleAddDoor: () => void;
   handleAddStairs: () => void;
   handleAddTree: () => void;
@@ -45,6 +47,8 @@ export function useRacEditorMenuActions({
   handleOpenHouseTypeSelector,
   handleAddHouseView,
   handleAddWall,
+  handleAddStreetStraight,
+  handleAddStreetCorner,
   handleAddDoor,
   handleAddStairs,
   handleAddTree,
@@ -84,6 +88,8 @@ export function useRacEditorMenuActions({
     addHouseSide1: () => handleAddHouseView('side1'),
     addHouseSide2: () => handleAddHouseView('side2'),
     addWall: handleAddWall,
+    addStreetStraight: handleAddStreetStraight,
+    addStreetCorner: handleAddStreetCorner,
     addDoor: handleAddDoor,
     addStairs: handleAddStairs,
     addTree: handleAddTree,
@@ -124,6 +130,8 @@ export function useRacEditorMenuActions({
     handleAddHouseView,
     handleAddLine,
     handleAddStairs,
+    handleAddStreetCorner,
+    handleAddStreetStraight,
     handleAddText,
     handleAddTree,
     handleAddWall,

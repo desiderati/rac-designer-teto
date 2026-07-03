@@ -13,6 +13,8 @@ const actions = {
   addHouseSide1: vi.fn(),
   addHouseSide2: vi.fn(),
   addWall: vi.fn(),
+  addStreetStraight: vi.fn(),
+  addStreetCorner: vi.fn(),
   addDoor: vi.fn(),
   addStairs: vi.fn(),
   addTree: vi.fn(),
@@ -86,15 +88,18 @@ describe('CanvasToolsMenu.tsx', () => {
     const houseButton = screen.getByRole('button', {name: 'Casa TETO (Opções)'});
     const elementsButton = screen.getByRole('button', {name: 'Elementos'});
     const wallButton = screen.getByRole('button', {name: 'Objeto / Muro'});
+    const streetButton = screen.getByRole('button', {name: 'Rua Reta'});
     const uploadButton = screen.getByRole('button', {name: 'Upload de Imagem'});
 
     expect(houseButton).not.toHaveAttribute('title');
     expect(elementsButton).not.toHaveAttribute('title');
     expect(wallButton).not.toHaveAttribute('title');
+    expect(streetButton).not.toHaveAttribute('title');
     expect(uploadButton).not.toHaveAttribute('title');
     expect(houseButton).toHaveClass('w-10', 'h-10');
     expect(elementsButton).toHaveClass('w-10', 'h-10');
     expect(wallButton).toHaveClass('w-10', 'h-10');
+    expect(streetButton).toHaveClass('w-10', 'h-10');
     expect(uploadButton).toHaveClass('w-10', 'h-10');
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toHaveClass('p-1');
     expect(screen.getByTestId('rac-side-rail-submenu')).toHaveClass('px-1');

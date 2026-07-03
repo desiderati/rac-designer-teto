@@ -3,6 +3,7 @@ import {CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {LINEAR_LABEL_TOP} from '@/components/rac-editor/@canvas/lib/factory/elements/shared.ts';
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
+import {toPastelWallFill} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
 
 export type GenericObjectEditorType = GenericCanvasObjectEditorType;
 
@@ -35,9 +36,15 @@ function createWallStrategy(): GenericObjectEditorStrategy {
     kind: 'wall',
     apply: ({canvas, object, color, label}) => {
       const groupChildren = object.getObjects();
+      const wallColor = color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
       groupChildren.forEach((child) => {
-        if (child.myType !== 'wallLabel') {
-          child.set({stroke: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement});
+        if (child.myType === 'wallBody') {
+          child.set({
+            stroke: wallColor,
+            fill: toPastelWallFill(wallColor),
+          });
+        } else if (child.myType !== 'wallLabel') {
+          child.set({stroke: wallColor});
         }
       });
 
@@ -49,7 +56,7 @@ function createWallStrategy(): GenericObjectEditorStrategy {
         labelObject: existingLabel,
         defaultTop: 0,
         text: label,
-        color: color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement
+        color: wallColor
       });
       canvas.requestRenderAll();
     },

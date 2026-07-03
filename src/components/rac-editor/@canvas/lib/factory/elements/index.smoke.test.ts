@@ -7,5 +7,10 @@ describe('index.ts', () => {
     expect(strategy).toBeDefined();
     expect(typeof strategy.create).toBe('function');
   });
+
+  it('returns strategies for street variants', () => {
+    expect(typeof getElementStrategy('streetStraight').create).toBe('function');
+    expect(typeof getElementStrategy('streetCorner').create).toBe('function');
+  });
 });
 

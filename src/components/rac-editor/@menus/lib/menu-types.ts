@@ -10,6 +10,8 @@ export interface MenuActionMap {
   addHouseSide1: () => void;
   addHouseSide2: () => void;
   addWall: () => void;
+  addStreetStraight: () => void;
+  addStreetCorner: () => void;
   addDoor: () => void;
   addStairs: () => void;
   addTree: () => void;

@@ -124,6 +124,8 @@ export function useCanvasController({
 
   const {
     handleAddWall,
+    handleAddStreetStraight,
+    handleAddStreetCorner,
     handleAddDoor,
     handleAddStairs,
     handleAddTree,
@@ -161,6 +163,8 @@ export function useCanvasController({
     handleAddHouseView,
     handleHouseTypeSelectedFromFlow,
     handleAddWall,
+    handleAddStreetStraight,
+    handleAddStreetCorner,
     handleAddDoor,
     handleAddStairs,
     handleAddTree,

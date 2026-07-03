@@ -6,6 +6,7 @@ import {
   getCanvasGroupObjects,
   toCanvasGroup,
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {bindWallCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
   HOUSE_2D_STYLE,
@@ -291,6 +292,13 @@ function restoreExportVisualState(snapshot: ExportVisualSnapshot[]): void {
   });
 }
 
+function restoreCanvasRuntimeBehaviors(canvas: FabricCanvas): void {
+  canvas.getObjects()
+    .map((object) => toCanvasGroup(object))
+    .filter((group): group is NonNullable<ReturnType<typeof toCanvasGroup>> => group?.myType === 'wall')
+    .forEach(bindWallCanvasGroupScaling);
+}
+
 /**
  * Cria a borda documental do Fabric.
  *
@@ -319,6 +327,7 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
         objects: document.objects.map(toRuntimePayload),
       });
       refreshHouseGroupsOnCanvas(canvas);
+      restoreCanvasRuntimeBehaviors(canvas);
 
       canvas.renderAll();
       setTimeout(() => {

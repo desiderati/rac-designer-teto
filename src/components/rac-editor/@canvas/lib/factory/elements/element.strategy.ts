@@ -6,6 +6,8 @@ export type ElementStrategyKey =
   | 'arrow'
   | 'distance'
   | 'wall'
+  | 'streetStraight'
+  | 'streetCorner'
   | 'water'
   | 'door'
   | 'stairs'

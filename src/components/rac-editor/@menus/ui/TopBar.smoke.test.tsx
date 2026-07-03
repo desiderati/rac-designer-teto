@@ -13,6 +13,8 @@ function createActions(): MenuActionMap {
     addHouseSide1: vi.fn(),
     addHouseSide2: vi.fn(),
     addWall: vi.fn(),
+    addStreetStraight: vi.fn(),
+    addStreetCorner: vi.fn(),
     addDoor: vi.fn(),
     addStairs: vi.fn(),
     addTree: vi.fn(),

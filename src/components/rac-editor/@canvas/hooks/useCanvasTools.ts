@@ -94,6 +94,14 @@ export function useCanvasTools({
     addCanvasObject('wall');
   }, [addCanvasObject]);
 
+  const handleAddStreetStraight = useCallback(() => {
+    addCanvasObject('streetStraight');
+  }, [addCanvasObject]);
+
+  const handleAddStreetCorner = useCallback(() => {
+    addCanvasObject('streetCorner');
+  }, [addCanvasObject]);
+
   const handleAddDoor =
     useCallback(() =>
       addCanvasObject('door'), [addCanvasObject]
@@ -153,6 +161,8 @@ export function useCanvasTools({
 
   return {
     handleAddWall,
+    handleAddStreetStraight,
+    handleAddStreetCorner,
     handleAddDoor,
     handleAddStairs,
     handleAddTree,

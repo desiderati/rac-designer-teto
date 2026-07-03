@@ -48,6 +48,7 @@ describe('generic-object-editor-strategy.ts', () => {
     });
 
     expect(wallBody.stroke).toBe(CANVAS_ELEMENT_STYLE.strokeColor.wallElement);
+    expect(wallBody.fill).toBe('rgb(215, 215, 215)');
     expect(wallLabel.text).toBe('Vizinho');
     expect(wallLabel.fill).toBe(CANVAS_ELEMENT_STYLE.strokeColor.wallElement);
     expect(canvas.requestRenderAll).toHaveBeenCalledOnce();
@@ -72,5 +73,22 @@ describe('generic-object-editor-strategy.ts', () => {
     expect(label.fill).toBe('#f00');
     expect(canvas.requestRenderAll).toHaveBeenCalledOnce();
     expect(strategy.getInfoMessage()).toBe('Distância atualizada.');
+  });
+
+  it('aplica preenchimento pastel ao muro pela cor escolhida', () => {
+    const canvas = {requestRenderAll: vi.fn()};
+    const wallBody = createChild({myType: 'wallBody', stroke: '#111', fill: '#eee'});
+    const wallLabel = createChild({myType: 'wallLabel', text: '', fill: '#111'});
+
+    getGenericObjectEditorStrategy('wall').apply({
+      canvas: canvas as never,
+      object: createObject([wallBody, wallLabel]),
+      color: '#ff0000',
+      label: 'Casa Atual',
+    });
+
+    expect(wallBody.stroke).toBe('#ff0000');
+    expect(wallBody.fill).toBe('rgb(255, 189, 189)');
+    expect(wallLabel.fill).toBe('#ff0000');
   });
 });

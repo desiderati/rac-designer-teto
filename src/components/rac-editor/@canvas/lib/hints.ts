@@ -20,6 +20,9 @@ export function getHintForObject(obj: CanvasObject | null): string {
     case 'wall':
       return '<b>Objeto:</b> Puxe as laterais para aumentar.';
 
+    case 'street':
+      return '<b>Rua:</b> Mova, gire ou redimensione para posicionar no terreno.';
+
     case 'stairs':
       return '<b>Escada:</b> Redimensione para ajustar. Os degraus se ajustam automaticamente.';
 
