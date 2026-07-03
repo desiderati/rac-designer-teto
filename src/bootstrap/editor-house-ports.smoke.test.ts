@@ -171,8 +171,47 @@ describe('editor house ports', () => {
     expect(ports.constructionSiteManagementPort.canOpenRacEditor()).toBe(false);
     ports.constructionSiteManagementPort.unarchiveHouse(createdHouse.id);
     expect(ports.constructionSiteManagementPort.canOpenRacEditor()).toBe(true);
+    ports.constructionSiteManagementPort.markHouseRacPrinted(createdHouse.id);
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.houses[0]?.status).toBe('rac_printed');
     expect(listener.mock.calls.length).toBeGreaterThan(1);
 
     unsubscribe();
+  });
+
+  it('propaga exclusões definitivas pela porta padrão de gerenciamento', () => {
+    const ports = createDefaultEditorHousePorts({
+      constructionSiteSessionStorage: createConstructionSiteSessionStorage(),
+    });
+
+    const constructionSite = ports.constructionSiteManagementPort.createConstructionSite({
+      externalCode: 'CC2604',
+      constructionDate: '2026-05-12',
+      communityName: 'Tiradentes',
+    });
+    const monitor = ports.constructionSiteManagementPort.createMonitor({
+      name: 'Bruno Monitoria',
+      phone: '(11) 98888-0000',
+    });
+    const house = ports.constructionSiteManagementPort.createHouse({
+      familyName: 'Família arquivada',
+      houseType: 'tipo3',
+    });
+
+    ports.constructionSiteManagementPort.archiveHouse(house.id);
+    ports.constructionSiteManagementPort.deleteArchivedHouse(house.id);
+
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.houses).toHaveLength(0);
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.families).toHaveLength(0);
+
+    ports.constructionSiteManagementPort.inactivateMonitor(monitor.id);
+    ports.constructionSiteManagementPort.deleteInactiveMonitor(monitor.id);
+
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()?.monitors).toHaveLength(0);
+
+    ports.constructionSiteManagementPort.archiveConstructionSite(constructionSite.constructionSite.id);
+    ports.constructionSiteManagementPort.deleteArchivedConstructionSite(constructionSite.constructionSite.id);
+
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSummaries()).toHaveLength(0);
+    expect(ports.constructionSiteManagementPort.getConstructionSiteSnapshot()).toBeNull();
   });
 });

@@ -117,6 +117,7 @@ export interface EditorConstructionSiteManagementSource {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  deleteArchivedConstructionSite(constructionSiteId: string): void;
   markConstructionSiteCompleted(constructionSiteId: string): void;
   markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
@@ -124,11 +125,13 @@ export interface EditorConstructionSiteManagementSource {
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
   inactivateMonitor(monitorId: string): void;
   reactivateMonitor(monitorId: string): void;
+  deleteInactiveMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): PersistedHouseRecord;
   duplicateActiveHouse(): PersistedHouseRecord;
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  deleteArchivedHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
   markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
@@ -255,6 +258,7 @@ export function createEditorConstructionSiteManagementPort(
     archiveActiveConstructionSite: () => source.archiveActiveConstructionSite(),
     archiveConstructionSite: (constructionSiteId) => source.archiveConstructionSite(constructionSiteId),
     unarchiveConstructionSite: (constructionSiteId) => source.unarchiveConstructionSite(constructionSiteId),
+    deleteArchivedConstructionSite: (constructionSiteId) => source.deleteArchivedConstructionSite(constructionSiteId),
     markConstructionSiteCompleted: (constructionSiteId) => source.markConstructionSiteCompleted(constructionSiteId),
     markConstructionSiteInProgress: (constructionSiteId) => source.markConstructionSiteInProgress(constructionSiteId),
     activateConstructionSite: (constructionSiteId) => source.activateConstructionSite(constructionSiteId),
@@ -262,11 +266,13 @@ export function createEditorConstructionSiteManagementPort(
     updateMonitor: (monitorId, input) => source.updateMonitor(monitorId, input),
     inactivateMonitor: (monitorId) => source.inactivateMonitor(monitorId),
     reactivateMonitor: (monitorId) => source.reactivateMonitor(monitorId),
+    deleteInactiveMonitor: (monitorId) => source.deleteInactiveMonitor(monitorId),
     createHouse: (input) => clonePortValue(source.createHouse(input)),
     duplicateActiveHouse: () => clonePortValue(source.duplicateActiveHouse()),
     archiveActiveHouse: () => source.archiveActiveHouse(),
     archiveHouse: (houseId) => source.archiveHouse(houseId),
     unarchiveHouse: (houseId) => source.unarchiveHouse(houseId),
+    deleteArchivedHouse: (houseId) => source.deleteArchivedHouse(houseId),
     markActiveHouseRacPrinted: () => source.markActiveHouseRacPrinted(),
     markHouseRacPrinted: (houseId) => source.markHouseRacPrinted(houseId),
     markHouseBuilt: (houseId) => source.markHouseBuilt(houseId),

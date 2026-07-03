@@ -29,6 +29,7 @@ import {
   EmptyState,
   MobilePagination,
   PaginationButton,
+  PermanentDeleteActionButton,
   StatusActionButton,
   VisualSelect,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
@@ -37,11 +38,13 @@ export function MonitorsScreen({
   constructionSite,
   onEditMonitor,
   onRequestMonitorStatusChange,
+  onRequestMonitorPermanentDelete,
   readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
   onEditMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  onRequestMonitorPermanentDelete(monitorId: string): void;
   readOnly?: boolean;
 }) {
   const [statusFilter, setStatusFilter] = useState<MonitorStatusFilter>('active');
@@ -138,6 +141,7 @@ export function MonitorsScreen({
               monitor={monitor}
               onOpenMonitor={onEditMonitor}
               onRequestMonitorStatusChange={onRequestMonitorStatusChange}
+              onRequestMonitorPermanentDelete={onRequestMonitorPermanentDelete}
               readOnly={readOnly}
             />
           ))}
@@ -152,6 +156,7 @@ export function MonitorsScreen({
             monitor={monitor}
             onOpenMonitor={onEditMonitor}
             onRequestMonitorStatusChange={onRequestMonitorStatusChange}
+            onRequestMonitorPermanentDelete={onRequestMonitorPermanentDelete}
             readOnly={readOnly}
           />
         ))}
@@ -184,11 +189,13 @@ function MonitorMobileCard({
   monitor,
   onOpenMonitor,
   onRequestMonitorStatusChange,
+  onRequestMonitorPermanentDelete,
   readOnly = false,
 }: {
   monitor: MonitorRecord;
   onOpenMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  onRequestMonitorPermanentDelete(monitorId: string): void;
   readOnly?: boolean;
 }) {
   const statusLabel = MONITOR_STATUS_LABELS[monitor.status];
@@ -200,6 +207,10 @@ function MonitorMobileCard({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestMonitorStatusChange(monitor.id, monitor.status === 'inactive' ? 'unarchive' : 'archive');
+  };
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestMonitorPermanentDelete(monitor.id);
   };
 
   return (
@@ -238,12 +249,21 @@ function MonitorMobileCard({
           </span>
           <span className='mt-0.5 block'>{monitor.phone}</span>
         </div>
-        <StatusActionButton
-          action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
-          label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
-          onClick={requestStatusChange}
-          disabled={readOnly}
-        />
+        <div className='flex shrink-0 items-center gap-1'>
+          <StatusActionButton
+            action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
+            label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
+            onClick={requestStatusChange}
+            disabled={readOnly}
+          />
+          {isInactive ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente monitor ${monitor.name}`}
+              onClick={requestPermanentDelete}
+              disabled={readOnly}
+            />
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -253,11 +273,13 @@ function MonitorTableRow({
   monitor,
   onOpenMonitor,
   onRequestMonitorStatusChange,
+  onRequestMonitorPermanentDelete,
   readOnly = false,
 }: {
   monitor: MonitorRecord;
   onOpenMonitor(monitorId: string): void;
   onRequestMonitorStatusChange(monitorId: string, action: StatusChangeAction): void;
+  onRequestMonitorPermanentDelete(monitorId: string): void;
   readOnly?: boolean;
 }) {
   const statusLabel = MONITOR_STATUS_LABELS[monitor.status];
@@ -269,6 +291,10 @@ function MonitorTableRow({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestMonitorStatusChange(monitor.id, monitor.status === 'inactive' ? 'unarchive' : 'archive');
+  };
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestMonitorPermanentDelete(monitor.id);
   };
 
   return (
@@ -315,13 +341,20 @@ function MonitorTableRow({
         <span className='block whitespace-nowrap text-center'>{monitor.phone}</span>
       </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle'>
-        <span data-testid='monitor-table-actions' className='flex min-h-14 items-center justify-center'>
+        <span data-testid='monitor-table-actions' className='flex min-h-14 items-center justify-center gap-2'>
           <StatusActionButton
             action={monitor.status === 'inactive' ? 'unarchive' : 'archive'}
             label={monitor.status === 'inactive' ? `Reativar monitor ${monitor.name}` : `Inativar monitor ${monitor.name}`}
             onClick={requestStatusChange}
             disabled={readOnly}
           />
+          {isInactive ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente monitor ${monitor.name}`}
+              onClick={requestPermanentDelete}
+              disabled={readOnly}
+            />
+          ) : null}
         </span>
       </td>
     </tr>

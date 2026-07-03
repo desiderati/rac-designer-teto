@@ -150,6 +150,11 @@ export class EditorHouseConstructionSiteBridge {
     this.args.notify();
   }
 
+  markHouseRacPrinted(houseId: string): void {
+    this.session.markHouseRacPrinted(houseId);
+    this.args.notify();
+  }
+
   markHouseBuilt(houseId: string): void {
     this.session.markHouseBuilt(houseId);
     this.reloadActiveHouseDrawingDocument();

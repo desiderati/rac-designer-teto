@@ -15,6 +15,7 @@ import {
   ConstructionStatusDialog,
   HouseStatusDialog,
   MonitorStatusDialog,
+  PermanentDeleteDialog,
   UnsavedChangesDialog,
 } from '@/components/construction-site/ui/lib/status-dialogs.tsx';
 import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
@@ -130,6 +131,12 @@ export function ConstructionSiteManagementPanel({
     ?? constructionSite?.constructionSite.status;
   const isSelectedConstructionReadOnly =
     selectedConstructionStatus === 'archived' || selectedConstructionStatus === 'completed';
+  const permanentDeleteDialogContent = getPermanentDeleteDialogContent({
+    pendingPermanentDelete: navigation.pendingPermanentDelete,
+    constructionCode: navigation.pendingPermanentDeleteConstructionCode,
+    houseFamilyName: navigation.pendingPermanentDeleteHouseFamilyName,
+    monitorName: navigation.pendingPermanentDeleteMonitorName,
+  });
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
@@ -299,6 +306,7 @@ export function ConstructionSiteManagementPanel({
             onExportConstructionRacsZip={handleExportRacsZip}
             exportingRacsZipConstructionId={exportingRacsZipConstructionId}
             onRequestStatusChange={navigation.requestConstructionStatusChange}
+            onRequestPermanentDelete={navigation.requestConstructionPermanentDelete}
           />
         ) : null}
 
@@ -347,6 +355,7 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               onEditMonitor={navigation.openMonitorDetail}
               onRequestMonitorStatusChange={navigation.requestMonitorStatusChange}
+              onRequestMonitorPermanentDelete={navigation.requestMonitorPermanentDelete}
               readOnly={isSelectedConstructionReadOnly}
             />
           ) : (
@@ -391,6 +400,7 @@ export function ConstructionSiteManagementPanel({
               onEditHouse={navigation.openHouseDetail}
               onOpenHouseExtraMaterials={navigation.openHouseExtraMaterials}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}
+              onRequestHousePermanentDelete={navigation.requestHousePermanentDelete}
               readOnly={isSelectedConstructionReadOnly}
             />
           ) : (
@@ -468,9 +478,66 @@ export function ConstructionSiteManagementPanel({
           onCancel={navigation.cancelMonitorStatusChange}
           onConfirm={navigation.confirmMonitorStatusChange}
         />
+
+        <PermanentDeleteDialog
+          open={Boolean(navigation.pendingPermanentDelete)}
+          title={permanentDeleteDialogContent.title}
+          description={permanentDeleteDialogContent.description}
+          actionLabel={permanentDeleteDialogContent.actionLabel}
+          onCancel={navigation.cancelPermanentDelete}
+          onConfirm={() => void navigation.confirmPermanentDelete()}
+        />
       </div>
     </main>
   );
+}
+
+function getPermanentDeleteDialogContent({
+  pendingPermanentDelete,
+  constructionCode,
+  houseFamilyName,
+  monitorName,
+}: {
+  pendingPermanentDelete: ReturnType<typeof useConstructionSiteManagementNavigation>['pendingPermanentDelete'];
+  constructionCode: string;
+  houseFamilyName: string;
+  monitorName: string;
+}) {
+  if (pendingPermanentDelete?.kind === 'construction') {
+    const code = constructionCode || 'sem código';
+    const houseCount = pendingPermanentDelete.summary.houseCount;
+    const familyCount = pendingPermanentDelete.summary.familyCount;
+    return {
+      title: 'Excluir construção definitivamente?',
+      description:
+        `Esta ação é permanente, local e sem desfazer. A construção ${code}, ${houseCount} casa(s), ${familyCount} família(s), monitores, fotos, documentos RAC e dados de desenho serão removidos.`,
+      actionLabel: 'Excluir definitivamente',
+    };
+  }
+
+  if (pendingPermanentDelete?.kind === 'house') {
+    return {
+      title: 'Excluir casa definitivamente?',
+      description:
+        `Esta ação é permanente, local e sem desfazer. A casa de ${houseFamilyName || 'família sem nome'}, seus dados de terreno, materiais, pilotis, vistas, canvas e documento RAC serão removidos.`,
+      actionLabel: 'Excluir casa',
+    };
+  }
+
+  if (pendingPermanentDelete?.kind === 'monitor') {
+    return {
+      title: 'Excluir monitor definitivamente?',
+      description:
+        `Esta ação é permanente, local e sem desfazer. O monitor ${monitorName || 'sem nome'} e seus dados de contato serão removidos.`,
+      actionLabel: 'Excluir monitor',
+    };
+  }
+
+  return {
+    title: 'Excluir definitivamente?',
+    description: 'Esta ação é permanente, local e sem desfazer.',
+    actionLabel: 'Excluir definitivamente',
+  };
 }
 
 function HeaderAction({

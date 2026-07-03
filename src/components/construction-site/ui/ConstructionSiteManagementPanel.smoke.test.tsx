@@ -160,6 +160,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getAllByRole('button', {name: 'Concluir construção CC2603'})).toHaveLength(2);
     expect(screen.getAllByRole('button', {name: 'Arquivar construção CC2603'})).toHaveLength(2);
     expect(screen.getAllByRole('button', {name: 'Desarquivar construção CC2605'})).toHaveLength(2);
+    expect(screen.getAllByRole('button', {name: 'Excluir definitivamente construção CC2605'})).toHaveLength(2);
     expect(screen.queryByRole('button', {name: 'Gerenciar monitores da construção CC2605'}))
       .not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar casas da construção CC2605'}))
@@ -580,6 +581,27 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.exportConstructionRacsZip).not.toHaveBeenCalled();
   });
 
+  it('confirma exclusão definitiva apenas para construção arquivada', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    expect(screen.queryByRole('button', {name: 'Excluir definitivamente construção CC2603'}))
+      .not.toBeInTheDocument();
+
+    await user.click(screen.getAllByRole('button', {name: 'Excluir definitivamente construção CC2605'})[0]);
+
+    expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Excluir construção definitivamente?'})).toBeVisible();
+    expect(screen.getByText(/construção CC2605, 1 casa\(s\), 1 família\(s\), monitores/i)).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Excluir definitivamente'}));
+
+    expect(actions.deleteArchivedConstructionSite).toHaveBeenCalledWith('construction_site_3');
+    expect(actions.unarchiveConstructionSite).not.toHaveBeenCalled();
+  });
+
   it('abre edição pela linha inteira e acessa a listagem de casas sem ações redundantes', async () => {
     const user = userEvent.setup();
     const actions = createActions();
@@ -655,7 +677,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('columnheader', {name: 'Status'})).toHaveClass('text-center');
     expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toHaveClass('text-center');
     expect(screen.getByTestId('house-updated-header-grid'))
-      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem]', 'text-center');
+      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem]', 'text-center');
     expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
     expect(screen.getByTestId('house-desktop-table').className).toContain('sm:block');
     const houseDesktopTable = within(screen.getByTestId('house-desktop-table')).getByRole('table');
@@ -709,9 +731,13 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveAttribute('aria-valuetext', 'Dificuldade Baixa, 4 de 100');
     expect(within(houseRow).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
     expect(within(houseRow).getByTestId('house-table-updated-at').parentElement)
-      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem]');
+      .toHaveClass('grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem]');
     expect(within(houseRow).getByRole('button', {name: 'Arquivar casa Família Santos'}).parentElement)
-      .toHaveClass('min-h-14', 'grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem]', 'items-center');
+      .toHaveClass('min-h-14', 'grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem]', 'items-center');
+    expect(screen.getAllByRole('button', {name: 'Excluir definitivamente casa Família Arquivada'}))
+      .toHaveLength(2);
+    expect(screen.queryByRole('button', {name: 'Excluir definitivamente casa Família Souza'}))
+      .not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Filtrar casas por status'})).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
@@ -731,6 +757,25 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(houseMobilePagination).getByText('Mostrando 1-1 de 1 casas')).toBeVisible();
     expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
   }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('confirma exclusão definitiva apenas para casa arquivada', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await openConstructionHouses(user);
+    await user.click(screen.getAllByRole('button', {name: 'Excluir definitivamente casa Família Arquivada'})[0]);
+
+    expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Excluir casa definitivamente?'})).toBeVisible();
+    expect(screen.getByText(/A casa de Família Arquivada/i)).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Excluir casa'}));
+
+    expect(actions.deleteArchivedHouse).toHaveBeenCalledWith('house_3');
+    expect(actions.unarchiveHouse).not.toHaveBeenCalled();
+  });
 
   it('dispara apenas o tour de adicionar casa quando a construção ainda não tem casas', async () => {
     const user = userEvent.setup();
@@ -837,6 +882,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(inactiveMonitorMobileCard).not.toHaveAttribute('role', 'button');
     expect(inactiveMonitorMobileCard).toHaveClass('cursor-default', 'opacity-55');
     expect(screen.queryByRole('row', {name: /Ana Monitoria.*Ativo/i})).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', {name: 'Excluir definitivamente monitor Bruno Inativo'}))
+      .toHaveLength(2);
 
     await user.click(inactiveMonitorRow);
 
@@ -855,6 +902,28 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(actions.reactivateMonitor).toHaveBeenCalledWith('monitor_2');
     expect(actions.inactivateMonitor).not.toHaveBeenCalled();
+  }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('confirma exclusão definitiva apenas para monitor inativo', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await openConstructionMonitors(user);
+    expect(screen.queryByRole('button', {name: 'Excluir definitivamente monitor Ana Monitoria'}))
+      .not.toBeInTheDocument();
+    await chooseVisualOption(user, 'Filtrar monitores por status', 'Inativos');
+    await user.click(screen.getAllByRole('button', {name: 'Excluir definitivamente monitor Bruno Inativo'})[0]);
+
+    expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Excluir monitor definitivamente?'})).toBeVisible();
+    expect(screen.getByText(/O monitor Bruno Inativo e seus dados de contato serão removidos/i)).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Excluir monitor'}));
+
+    expect(actions.deleteInactiveMonitor).toHaveBeenCalledWith('monitor_2');
+    expect(actions.reactivateMonitor).not.toHaveBeenCalled();
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
   it('trunca título longo da tela de monitores sem invadir a ação principal', async () => {
@@ -1722,7 +1791,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByLabelText('Código da CC')).not.toBeInTheDocument();
   });
 
-  it('mostra apenas a ação de desarquivar para construção arquivada', async () => {
+  it('mostra ações de desarquivar e excluir definitivamente para construção arquivada', async () => {
     const user = userEvent.setup();
     const actions = createActions();
     const constructionSite = createConstructionSite();
@@ -1918,16 +1987,19 @@ function createActions() {
     archiveActiveConstructionSite: vi.fn(),
     archiveConstructionSite: vi.fn().mockResolvedValue(undefined),
     unarchiveConstructionSite: vi.fn().mockResolvedValue(undefined),
+    deleteArchivedConstructionSite: vi.fn().mockResolvedValue(undefined),
     activateConstructionSite: vi.fn().mockResolvedValue(null),
     createMonitor: vi.fn(),
     updateMonitor: vi.fn(),
     inactivateMonitor: vi.fn(),
     reactivateMonitor: vi.fn(),
+    deleteInactiveMonitor: vi.fn(),
     createHouse: vi.fn().mockResolvedValue(undefined),
     duplicateActiveHouse: vi.fn().mockResolvedValue(undefined),
     archiveActiveHouse: vi.fn().mockResolvedValue(undefined),
     archiveHouse: vi.fn().mockResolvedValue(undefined),
     unarchiveHouse: vi.fn().mockResolvedValue(undefined),
+    deleteArchivedHouse: vi.fn().mockResolvedValue(undefined),
     exportConstructionRacsZip: vi.fn().mockResolvedValue(undefined),
     markHouseBuilt: vi.fn().mockResolvedValue(undefined),
     markHouseDraft: vi.fn().mockResolvedValue(undefined),

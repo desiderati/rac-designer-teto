@@ -258,3 +258,43 @@ export function MonitorStatusDialog({
     </AlertDialog>
   );
 }
+
+export function PermanentDeleteDialog({
+  open,
+  title,
+  description,
+  actionLabel,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  actionLabel: string;
+  onCancel(): void;
+  onConfirm(): void;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={(nextOpen) => {
+      if (!nextOpen) onCancel();
+    }}>
+      <AlertDialogContent className='bg-white'>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className='bg-red-700 text-white hover:bg-red-800'
+          >
+            {actionLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}

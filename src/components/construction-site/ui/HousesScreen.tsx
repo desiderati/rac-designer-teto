@@ -31,6 +31,7 @@ import {
   EmptyState,
   MobilePagination,
   PaginationButton,
+  PermanentDeleteActionButton,
   RoundIconActionButton,
   StatusActionButton,
   VisualSelect,
@@ -43,6 +44,7 @@ export function HousesScreen({
   onEditHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  onRequestHousePermanentDelete,
   readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
@@ -50,6 +52,7 @@ export function HousesScreen({
   onEditHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
 }) {
   const [statusFilter, setStatusFilter] = useState<HouseStatusFilter>('all');
@@ -149,9 +152,10 @@ export function HousesScreen({
             <th scope='col' className='px-3 pb-1'>
               <span
                 data-testid='house-updated-header-grid'
-                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem] items-center gap-2 text-center'
+                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem] items-center gap-2 text-center'
               >
                 <span>Última Modificação</span>
+                <span aria-hidden='true'/>
                 <span aria-hidden='true'/>
                 <span aria-hidden='true'/>
                 <span aria-hidden='true'/>
@@ -170,6 +174,7 @@ export function HousesScreen({
               onOpenHouse={onEditHouse}
               onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
+              onRequestHousePermanentDelete={onRequestHousePermanentDelete}
               readOnly={readOnly}
             />
           ))}
@@ -188,6 +193,7 @@ export function HousesScreen({
             onOpenHouse={onEditHouse}
             onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
+            onRequestHousePermanentDelete={onRequestHousePermanentDelete}
             readOnly={readOnly}
           />
         ))}
@@ -220,6 +226,7 @@ export function HouseMobileCard({
   onOpenHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  onRequestHousePermanentDelete,
   readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
@@ -229,6 +236,7 @@ export function HouseMobileCard({
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
 }) {
   const family = getHouseFamily(constructionSite, house);
@@ -243,6 +251,10 @@ export function HouseMobileCard({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestHousePermanentDelete(house.id);
   };
   const requestBuiltStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -334,6 +346,13 @@ export function HouseMobileCard({
             guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
             disabled={readOnly}
           />
+          {house.status === 'archived' ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente casa ${familyName}`}
+              onClick={requestPermanentDelete}
+              disabled={readOnly}
+            />
+          ) : null}
         </div>
       </div>
     </article>
@@ -348,6 +367,7 @@ export function HouseTableRow({
   onOpenHouse,
   onOpenHouseExtraMaterials,
   onRequestHouseStatusChange,
+  onRequestHousePermanentDelete,
   readOnly = false,
 }: {
   constructionSite: ConstructionSiteState;
@@ -357,6 +377,7 @@ export function HouseTableRow({
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
+  onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
 }) {
   const family = getHouseFamily(constructionSite, house);
@@ -371,6 +392,10 @@ export function HouseTableRow({
   const requestStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'archived' ? 'unarchive' : 'archive');
+  };
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestHousePermanentDelete(house.id);
   };
   const requestBuiltStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -436,7 +461,7 @@ export function HouseTableRow({
         </span>
       </td>
       <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem] items-center gap-2'>
+        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem] items-center gap-2'>
           <span data-testid='house-table-updated-at' className='text-center'>
             <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
             <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
@@ -472,6 +497,15 @@ export function HouseTableRow({
             guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
             disabled={readOnly}
           />
+          {house.status === 'archived' ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente casa ${familyName}`}
+              onClick={requestPermanentDelete}
+              disabled={readOnly}
+            />
+          ) : (
+            <span aria-hidden='true'/>
+          )}
         </div>
       </td>
     </tr>

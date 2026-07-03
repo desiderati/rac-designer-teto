@@ -401,6 +401,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.constructionSites.markActiveHouseRacPrinted();
   }
 
+  markHouseRacPrinted(houseId: string): void {
+    this.constructionSites.markHouseRacPrinted(houseId);
+  }
+
   markHouseBuilt(houseId: string): void {
     this.constructionSites.markHouseBuilt(houseId);
   }

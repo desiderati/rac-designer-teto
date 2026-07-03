@@ -24,6 +24,7 @@ import {
   EmptyState,
   MobilePagination,
   PaginationButton,
+  PermanentDeleteActionButton,
   RoundIconActionButton,
   StatusActionButton,
   VisualSelect,
@@ -38,6 +39,7 @@ export function ConstructionListScreen({
   onExportConstructionRacsZip,
   exportingRacsZipConstructionId,
   onRequestStatusChange,
+  onRequestPermanentDelete,
 }: {
   summaries: ConstructionSiteSummary[];
   activeConstructionId?: string;
@@ -47,6 +49,7 @@ export function ConstructionListScreen({
   onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
   exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
+  onRequestPermanentDelete(summary: ConstructionSiteSummary): void;
 }) {
   const [statusFilter, setStatusFilter] = useState<ConstructionStatusFilter>('all');
   const [sortKey, setSortKey] = useState<ConstructionSortKey>('constructionDate');
@@ -149,6 +152,7 @@ export function ConstructionListScreen({
               onExportConstructionRacsZip={onExportConstructionRacsZip}
               exportingRacsZipConstructionId={exportingRacsZipConstructionId}
               onRequestStatusChange={onRequestStatusChange}
+              onRequestPermanentDelete={onRequestPermanentDelete}
             />
           ))}
           </tbody>
@@ -168,6 +172,7 @@ export function ConstructionListScreen({
             onExportConstructionRacsZip={onExportConstructionRacsZip}
             exportingRacsZipConstructionId={exportingRacsZipConstructionId}
             onRequestStatusChange={onRequestStatusChange}
+            onRequestPermanentDelete={onRequestPermanentDelete}
           />
         ))}
       </div>
@@ -201,6 +206,7 @@ export function ConstructionMobileCard({
   onExportConstructionRacsZip,
   exportingRacsZipConstructionId,
   onRequestStatusChange,
+  onRequestPermanentDelete,
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
@@ -211,6 +217,7 @@ export function ConstructionMobileCard({
   onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
   exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
+  onRequestPermanentDelete(summary: ConstructionSiteSummary): void;
 }) {
 
   const constructionCode = getConstructionCode(summary);
@@ -236,6 +243,11 @@ export function ConstructionMobileCard({
   const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestPermanentDelete(summary);
   };
 
   const requestCompletionStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
@@ -342,6 +354,12 @@ export function ConstructionMobileCard({
             guidedTourId={showGuidedTourTargets ? 'rac-construction-archive' : undefined}
             onClick={requestArchiveStatusChange}
           />
+          {isArchived ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente construção ${constructionCode}`}
+              onClick={requestPermanentDelete}
+            />
+          ) : null}
         </div>
       </div>
     </article>
@@ -358,6 +376,7 @@ export function ConstructionTableRow({
   onExportConstructionRacsZip,
   exportingRacsZipConstructionId,
   onRequestStatusChange,
+  onRequestPermanentDelete,
 }: {
   summary: ConstructionSiteSummary;
   active: boolean;
@@ -368,6 +387,7 @@ export function ConstructionTableRow({
   onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
   exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
+  onRequestPermanentDelete(summary: ConstructionSiteSummary): void;
 }) {
 
   const constructionCode = getConstructionCode(summary);
@@ -393,6 +413,11 @@ export function ConstructionTableRow({
   const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     onRequestStatusChange(summary, summary.status === 'archived' ? 'unarchive' : 'archive');
+  };
+
+  const requestPermanentDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onRequestPermanentDelete(summary);
   };
 
   const requestCompletionStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
@@ -506,6 +531,12 @@ export function ConstructionTableRow({
             guidedTourId={showGuidedTourTargets ? 'rac-construction-archive' : undefined}
             onClick={requestArchiveStatusChange}
           />
+          {isArchived ? (
+            <PermanentDeleteActionButton
+              label={`Excluir definitivamente construção ${constructionCode}`}
+              onClick={requestPermanentDelete}
+            />
+          ) : null}
         </div>
       </td>
     </tr>

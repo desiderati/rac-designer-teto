@@ -58,6 +58,17 @@ export function useConstructionSiteManagementNavigation({
     action: StatusChangeAction;
   } | null>(null);
 
+  const [pendingPermanentDelete, setPendingPermanentDelete] = useState<{
+    kind: 'construction';
+    summary: ConstructionSiteSummary;
+  } | {
+    kind: 'house';
+    houseId: string;
+  } | {
+    kind: 'monitor';
+    monitorId: string;
+  } | null>(null);
+
   const activeHouse = useMemo(() => constructionSite ? getActiveHouse(constructionSite) : null, [constructionSite]);
 
   const selectedHouse = useMemo(() => {
@@ -87,6 +98,10 @@ export function useConstructionSiteManagementNavigation({
 
   const monitorPendingStatusChange = constructionSite?.monitors.find((monitor) => monitor.id === pendingMonitorStatusChange?.monitorId)
     ?? null;
+  const housePendingPermanentDelete = constructionSite?.houses.find((house) =>
+    pendingPermanentDelete?.kind === 'house' && house.id === pendingPermanentDelete.houseId) ?? null;
+  const monitorPendingPermanentDelete = constructionSite?.monitors.find((monitor) =>
+    pendingPermanentDelete?.kind === 'monitor' && monitor.id === pendingPermanentDelete.monitorId) ?? null;
 
   const canNavigateBack = screen !== 'construction-list' || Boolean(canOpenRacEditor && onBackToCanvas);
 
@@ -99,6 +114,13 @@ export function useConstructionSiteManagementNavigation({
     : '';
 
   const pendingMonitorName = monitorPendingStatusChange?.name ?? '';
+  const pendingPermanentDeleteConstructionCode = pendingPermanentDelete?.kind === 'construction'
+    ? getConstructionCode(pendingPermanentDelete.summary)
+    : '';
+  const pendingPermanentDeleteHouseFamilyName = constructionSite && housePendingPermanentDelete
+    ? getHouseFamilyName(constructionSite, housePendingPermanentDelete)
+    : '';
+  const pendingPermanentDeleteMonitorName = monitorPendingPermanentDelete?.name ?? '';
   const isActiveConstructionArchived = constructionSite?.constructionSite.status === 'archived';
   const isActiveConstructionReadOnly = isActiveConstructionArchived
     || constructionSite?.constructionSite.status === 'completed';
@@ -269,6 +291,40 @@ export function useConstructionSiteManagementNavigation({
     setPendingConstructionStatusChange(null);
   };
 
+  const confirmPermanentDelete = async () => {
+    if (!pendingPermanentDelete) return;
+
+    if (pendingPermanentDelete.kind === 'construction') {
+      await actions.deleteArchivedConstructionSite(pendingPermanentDelete.summary.id);
+      if (selectedConstructionId === pendingPermanentDelete.summary.id) {
+        setSelectedConstructionId(constructionSite?.constructionSite.id ?? null);
+      }
+      setScreen('construction-list');
+      setPendingPermanentDelete(null);
+      return;
+    }
+
+    if (isActiveConstructionReadOnly) {
+      setPendingPermanentDelete(null);
+      return;
+    }
+
+    if (pendingPermanentDelete.kind === 'house') {
+      await actions.deleteArchivedHouse(pendingPermanentDelete.houseId);
+      if (selectedHouseId === pendingPermanentDelete.houseId) {
+        setSelectedHouseId(null);
+      }
+      setPendingPermanentDelete(null);
+      return;
+    }
+
+    actions.deleteInactiveMonitor(pendingPermanentDelete.monitorId);
+    if (selectedMonitorId === pendingPermanentDelete.monitorId) {
+      setSelectedMonitorId(null);
+    }
+    setPendingPermanentDelete(null);
+  };
+
   return {
     screen,
     activeHouse,
@@ -281,11 +337,17 @@ export function useConstructionSiteManagementNavigation({
     pendingConstructionStatusChange,
     pendingHouseStatusChange,
     pendingMonitorStatusChange,
+    pendingPermanentDelete,
     housePendingStatusChange,
     monitorPendingStatusChange,
+    housePendingPermanentDelete,
+    monitorPendingPermanentDelete,
     pendingConstructionCode,
     pendingHouseFamilyName,
     pendingMonitorName,
+    pendingPermanentDeleteConstructionCode,
+    pendingPermanentDeleteHouseFamilyName,
+    pendingPermanentDeleteMonitorName,
     setScreen,
     openConstructionDetail,
     openConstructionHouses,
@@ -302,19 +364,37 @@ export function useConstructionSiteManagementNavigation({
     requestConstructionStatusChange: (summary: ConstructionSiteSummary, action: StatusChangeAction) => {
       setPendingConstructionStatusChange({summary, action});
     },
+    requestConstructionPermanentDelete: (summary: ConstructionSiteSummary) => {
+      if (summary.status !== 'archived') return;
+      setPendingPermanentDelete({kind: 'construction', summary});
+    },
     requestHouseStatusChange: (houseId: string, action: StatusChangeAction) => {
       if (isActiveConstructionReadOnly) return;
       setPendingHouseStatusChange({houseId, action});
+    },
+    requestHousePermanentDelete: (houseId: string) => {
+      if (isActiveConstructionReadOnly) return;
+      const house = constructionSite?.houses.find((entry) => entry.id === houseId);
+      if (house?.status !== 'archived') return;
+      setPendingPermanentDelete({kind: 'house', houseId});
     },
     requestMonitorStatusChange: (monitorId: string, action: StatusChangeAction) => {
       if (isActiveConstructionReadOnly) return;
       setPendingMonitorStatusChange({monitorId, action});
     },
+    requestMonitorPermanentDelete: (monitorId: string) => {
+      if (isActiveConstructionReadOnly) return;
+      const monitor = constructionSite?.monitors.find((entry) => entry.id === monitorId);
+      if (monitor?.status !== 'inactive') return;
+      setPendingPermanentDelete({kind: 'monitor', monitorId});
+    },
     cancelConstructionStatusChange: () => setPendingConstructionStatusChange(null),
     cancelHouseStatusChange: () => setPendingHouseStatusChange(null),
     cancelMonitorStatusChange: () => setPendingMonitorStatusChange(null),
+    cancelPermanentDelete: () => setPendingPermanentDelete(null),
     confirmConstructionStatusChange,
     confirmHouseStatusChange,
     confirmMonitorStatusChange,
+    confirmPermanentDelete,
   };
 }

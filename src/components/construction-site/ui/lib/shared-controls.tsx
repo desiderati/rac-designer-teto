@@ -18,6 +18,7 @@ import {
   ChevronDown,
   MapPin,
   RotateCcw,
+  Trash2,
   X,
 } from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
@@ -81,6 +82,30 @@ export function StatusActionButton({
   );
 }
 
+export function PermanentDeleteActionButton({
+  label,
+  onClick,
+  guidedTourId,
+  disabled = false,
+}: {
+  label: string;
+  onClick(event: MouseEvent<HTMLButtonElement>): void;
+  guidedTourId?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <RoundIconActionButton
+      label={label}
+      tone='destructive'
+      onClick={onClick}
+      guidedTourId={guidedTourId}
+      disabled={disabled}
+    >
+      <Trash2 className='h-4 w-4'/>
+    </RoundIconActionButton>
+  );
+}
+
 export function RoundIconActionButton({
   label,
   onClick,
@@ -92,7 +117,7 @@ export function RoundIconActionButton({
   label: string;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
   children: ReactNode;
-  tone?: 'neutral' | 'archive' | 'unarchive' | 'success';
+  tone?: 'neutral' | 'archive' | 'unarchive' | 'success' | 'destructive';
   guidedTourId?: string;
   disabled?: boolean;
 }) {
@@ -108,6 +133,7 @@ export function RoundIconActionButton({
         'grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full text-slate-400 transition-colors focus:outline-none focus:ring-2',
         disabled ? 'cursor-not-allowed opacity-45' : null,
         tone === 'archive' ? 'hover:bg-red-50 hover:text-red-600 focus:ring-red-100' : null,
+        tone === 'destructive' ? 'hover:bg-red-100 hover:text-red-700 focus:ring-red-100' : null,
         tone === 'unarchive' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
         tone === 'neutral' ? 'hover:bg-blue-100 hover:text-blue-600 focus:ring-blue-100' : null,
         tone === 'success' ? 'hover:bg-emerald-50 hover:text-emerald-700 focus:ring-emerald-100' : null,
