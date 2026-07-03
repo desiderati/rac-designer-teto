@@ -50,6 +50,7 @@ export interface ConstructionSiteManagementActions {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): Promise<void>;
   unarchiveConstructionSite(constructionSiteId: string): Promise<void>;
+  deleteArchivedConstructionSite(constructionSiteId: string): Promise<void>;
   markConstructionSiteCompleted(constructionSiteId: string): Promise<void>;
   markConstructionSiteInProgress(constructionSiteId: string): Promise<void>;
   activateConstructionSite(constructionSiteId: string): Promise<void>;
@@ -57,11 +58,13 @@ export interface ConstructionSiteManagementActions {
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
   inactivateMonitor(monitorId: string): void;
   reactivateMonitor(monitorId: string): void;
+  deleteInactiveMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): Promise<void>;
   duplicateActiveHouse(): Promise<void>;
   archiveActiveHouse(): Promise<void>;
   archiveHouse(houseId: string): Promise<void>;
   unarchiveHouse(houseId: string): Promise<void>;
+  deleteArchivedHouse(houseId: string): Promise<void>;
   exportConstructionRacsZip(constructionSiteId?: string): Promise<void>;
   markHouseBuilt(houseId: string): Promise<void>;
   markHouseDraft(houseId: string): Promise<void>;

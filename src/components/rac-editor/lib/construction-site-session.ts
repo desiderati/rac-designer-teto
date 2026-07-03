@@ -81,6 +81,7 @@ export interface ConstructionSiteSessionPort {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  deleteArchivedConstructionSite(constructionSiteId: string): void;
   markConstructionSiteCompleted(constructionSiteId: string): void;
   markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
@@ -88,11 +89,13 @@ export interface ConstructionSiteSessionPort {
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
   inactivateMonitor(monitorId: string): void;
   reactivateMonitor(monitorId: string): void;
+  deleteInactiveMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): PersistedHouseRecord;
   duplicateActiveHouse(): PersistedHouseRecord;
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  deleteArchivedHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
   markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
@@ -552,6 +555,24 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     this.persist();
   }
 
+  deleteArchivedConstructionSite(constructionSiteId: string): void {
+    const constructionSiteIndex = this.constructionSites.findIndex((entry) =>
+      entry.constructionSite.id === constructionSiteId);
+    if (constructionSiteIndex < 0) return;
+
+    const constructionSite = this.constructionSites[constructionSiteIndex];
+    if (constructionSite.constructionSite.status !== 'archived') return;
+
+    this.constructionSites.splice(constructionSiteIndex, 1);
+
+    if (this.state?.constructionSite.id === constructionSiteId) {
+      this.state = this.resolveInitialConstructionSite();
+      if (this.state) this.normalizeConstructionSiteActiveHouse(this.state);
+    }
+
+    this.persist();
+  }
+
   markConstructionSiteCompleted(constructionSiteId: string): void {
     this.updateConstructionSiteStatus(constructionSiteId, 'completed');
   }
@@ -612,6 +633,26 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   reactivateMonitor(monitorId: string): void {
     this.updateMonitorStatus(monitorId, 'active');
+  }
+
+  deleteInactiveMonitor(monitorId: string): void {
+    const monitorConstructionSite = this.findMonitorConstructionSite(monitorId);
+    if (!monitorConstructionSite) return;
+
+    const {constructionSite, monitor} = monitorConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
+    if (monitor.status !== 'inactive') return;
+
+    const monitorIndex = constructionSite.monitors.findIndex((entry) => entry.id === monitorId);
+    if (monitorIndex < 0) return;
+
+    constructionSite.monitors.splice(monitorIndex, 1);
+    constructionSite.constructionSite.updatedAt = new Date().toISOString();
+
+    if (this.state?.constructionSite.id === constructionSite.constructionSite.id) {
+      this.state = constructionSite;
+    }
+    this.persist();
   }
 
   createHouse(input: CreateHouseInput): PersistedHouseRecord {
@@ -742,6 +783,33 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if (!this.canOpenRacEditor() && constructionSite.constructionSite.status !== 'archived') {
       this.state = constructionSite;
     } else if (this.state?.constructionSite.id === constructionSite.constructionSite.id) {
+      this.state = constructionSite;
+    }
+    this.persist();
+  }
+
+  deleteArchivedHouse(houseId: string): void {
+    const houseConstructionSite = this.findHouseConstructionSite(houseId);
+    if (!houseConstructionSite) return;
+
+    const {constructionSite, house} = houseConstructionSite;
+    if (this.isConstructionSiteReadOnly(constructionSite)) return;
+    if (house.status !== 'archived') return;
+
+    const houseIndex = constructionSite.houses.findIndex((entry) => entry.id === houseId);
+    if (houseIndex < 0) return;
+
+    const familyId = house.familyId;
+    constructionSite.houses.splice(houseIndex, 1);
+    if (!constructionSite.houses.some((entry) => entry.familyId === familyId)) {
+      const familyIndex = constructionSite.families.findIndex((entry) => entry.id === familyId);
+      if (familyIndex >= 0) constructionSite.families.splice(familyIndex, 1);
+    }
+
+    this.normalizeConstructionSiteActiveHouse(constructionSite);
+    constructionSite.constructionSite.updatedAt = new Date().toISOString();
+
+    if (this.state?.constructionSite.id === constructionSite.constructionSite.id) {
       this.state = constructionSite;
     }
     this.persist();

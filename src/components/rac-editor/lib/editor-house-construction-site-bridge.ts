@@ -66,6 +66,11 @@ export class EditorHouseConstructionSiteBridge {
     this.reloadActiveHouseDrawingDocument();
   }
 
+  deleteArchivedConstructionSite(constructionSiteId: string): void {
+    this.session.deleteArchivedConstructionSite(constructionSiteId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
   markConstructionSiteCompleted(constructionSiteId: string): void {
     this.session.markConstructionSiteCompleted(constructionSiteId);
     this.reloadActiveHouseDrawingDocument();
@@ -103,6 +108,11 @@ export class EditorHouseConstructionSiteBridge {
     this.args.notify();
   }
 
+  deleteInactiveMonitor(monitorId: string): void {
+    this.session.deleteInactiveMonitor(monitorId);
+    this.args.notify();
+  }
+
   createHouse(input: CreateHouseInput): PersistedHouseRecord {
     const house = this.session.createHouse(input);
     this.reloadActiveHouseDrawingDocument();
@@ -127,6 +137,11 @@ export class EditorHouseConstructionSiteBridge {
 
   unarchiveHouse(houseId: string): void {
     this.session.unarchiveHouse(houseId);
+    this.reloadActiveHouseDrawingDocument();
+  }
+
+  deleteArchivedHouse(houseId: string): void {
+    this.session.deleteArchivedHouse(houseId);
     this.reloadActiveHouseDrawingDocument();
   }
 

@@ -1085,6 +1085,157 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().extraMaterials.floorBeams).toBe(10);
   });
 
+  it('exclui fisicamente construção arquivada com dados filhos em cascata', () => {
+    const {storage, writes} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const archivedConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+    session.createMonitor({name: 'Monitor 01', phone: '(11) 99999-0000'});
+    session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
+
+    session.archiveConstructionSite(archivedConstructionSite.constructionSite.id);
+    const nextConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2604',
+      constructionDate: '2026-05-12',
+      communityName: 'Guarujá',
+    });
+    session.createHouse({familyName: 'Família 02', houseType: 'tipo3'});
+
+    session.deleteArchivedConstructionSite(archivedConstructionSite.constructionSite.id);
+
+    const snapshots = session.getConstructionSiteSnapshots();
+    expect(snapshots.map((entry) => entry.constructionSite.id)).toEqual([
+      nextConstructionSite.constructionSite.id,
+    ]);
+    expect(snapshots[0]?.houses.map((house) => house.familyId)).toHaveLength(1);
+    expect(snapshots[0]?.families.map((family) => family.name)).toEqual(['Família 02']);
+    expect(snapshots[0]?.monitors).toEqual([]);
+    expect(session.getConstructionSite()?.constructionSite.id).toBe(nextConstructionSite.constructionSite.id);
+    expect(session.canOpenRacEditor()).toBe(true);
+    expect(writes.at(-1)).toEqual(snapshots);
+  });
+
+  it('não exclui fisicamente construção que não esteja arquivada', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const inProgressConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+    const completedConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2604',
+      constructionDate: '2026-05-12',
+      communityName: 'Guarujá',
+    });
+
+    session.markConstructionSiteCompleted(completedConstructionSite.constructionSite.id);
+    session.deleteArchivedConstructionSite(inProgressConstructionSite.constructionSite.id);
+    session.deleteArchivedConstructionSite(completedConstructionSite.constructionSite.id);
+
+    expect(session.getConstructionSiteSnapshots().map((entry) => ({
+      id: entry.constructionSite.id,
+      status: entry.constructionSite.status,
+    }))).toEqual([
+      {id: inProgressConstructionSite.constructionSite.id, status: 'in_progress'},
+      {id: completedConstructionSite.constructionSite.id, status: 'completed'},
+    ]);
+  });
+
+  it('exclui fisicamente casa arquivada e remove família sem referência restante', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const archivedHouse = session.createHouse({familyName: 'Família Arquivada'});
+    const activeHouse = session.createHouse({familyName: 'Família Ativa'});
+
+    session.archiveHouse(archivedHouse.id);
+    session.deleteArchivedHouse(archivedHouse.id);
+
+    const state = session.getConstructionSite();
+    expect(state?.houses.map((house) => house.id)).toEqual([activeHouse.id]);
+    expect(state?.families.map((family) => family.name)).toEqual(['Família Ativa']);
+    expect(state?.constructionSite.activeHouseId).toBe(activeHouse.id);
+  });
+
+  it('não exclui casa que não esteja arquivada ou que pertença a construção bloqueada', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const constructionSite = session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+    const draftHouse = session.createHouse({familyName: 'Família Rascunho'});
+    const archivedHouse = session.createHouse({familyName: 'Família Arquivada'});
+
+    session.deleteArchivedHouse(draftHouse.id);
+    expect(session.getConstructionSite()?.houses.map((house) => house.id)).toContain(draftHouse.id);
+
+    session.archiveHouse(archivedHouse.id);
+    session.markConstructionSiteCompleted(constructionSite.constructionSite.id);
+    session.deleteArchivedHouse(archivedHouse.id);
+
+    expect(session.getConstructionSite()?.houses.map((house) => house.id)).toEqual([
+      draftHouse.id,
+      archivedHouse.id,
+    ]);
+  });
+
+  it('exclui fisicamente monitor inativo sem afetar monitores ativos', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const inactiveMonitor = session.createMonitor({name: 'Monitor Inativo', phone: '(11) 99999-0000'});
+    const activeMonitor = session.createMonitor({name: 'Monitor Ativo', phone: '(11) 98888-0000'});
+
+    session.inactivateMonitor(inactiveMonitor.id);
+    session.deleteInactiveMonitor(inactiveMonitor.id);
+    session.deleteInactiveMonitor(activeMonitor.id);
+
+    expect(session.getConstructionSite()?.monitors.map((monitor) => ({
+      id: monitor.id,
+      status: monitor.status,
+    }))).toEqual([
+      {id: activeMonitor.id, status: 'active'},
+    ]);
+  });
+
+  it('não exclui monitor inativo quando a construção está concluída ou arquivada', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    const completedConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Tiradentes',
+    });
+    const completedMonitor = session.createMonitor({name: 'Monitor Concluído', phone: '(11) 99999-0000'});
+    session.inactivateMonitor(completedMonitor.id);
+    session.markConstructionSiteCompleted(completedConstructionSite.constructionSite.id);
+
+    session.deleteInactiveMonitor(completedMonitor.id);
+
+    expect(session.getConstructionSite()?.monitors.map((monitor) => monitor.id)).toEqual([completedMonitor.id]);
+
+    const archivedConstructionSite = session.createConstructionSite({
+      externalCode: 'CC2604',
+      constructionDate: '2026-05-12',
+      communityName: 'Guarujá',
+    });
+    const archivedMonitor = session.createMonitor({name: 'Monitor Arquivado', phone: '(11) 98888-0000'});
+    session.inactivateMonitor(archivedMonitor.id);
+    session.archiveConstructionSite(archivedConstructionSite.constructionSite.id);
+
+    session.deleteInactiveMonitor(archivedMonitor.id);
+
+    const archivedSnapshot = session.getConstructionSiteSnapshots()
+      .find((entry) => entry.constructionSite.id === archivedConstructionSite.constructionSite.id);
+    expect(archivedSnapshot?.monitors.map((monitor) => monitor.id)).toEqual([archivedMonitor.id]);
+  });
+
   it('normaliza destrutivamente registros antigos ao ler a sessão', () => {
     const now = '2026-05-09T12:00:00.000Z';
     const legacyConstructionSite = {

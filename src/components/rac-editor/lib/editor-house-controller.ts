@@ -337,6 +337,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.constructionSites.unarchiveConstructionSite(constructionSiteId);
   }
 
+  deleteArchivedConstructionSite(constructionSiteId: string): void {
+    this.constructionSites.deleteArchivedConstructionSite(constructionSiteId);
+  }
+
   markConstructionSiteCompleted(constructionSiteId: string): void {
     this.constructionSites.markConstructionSiteCompleted(constructionSiteId);
   }
@@ -365,6 +369,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.constructionSites.reactivateMonitor(monitorId);
   }
 
+  deleteInactiveMonitor(monitorId: string): void {
+    this.constructionSites.deleteInactiveMonitor(monitorId);
+  }
+
   createHouse(input: CreateHouseInput): PersistedHouseRecord {
     return this.constructionSites.createHouse(input);
   }
@@ -383,6 +391,10 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   unarchiveHouse(houseId: string): void {
     this.constructionSites.unarchiveHouse(houseId);
+  }
+
+  deleteArchivedHouse(houseId: string): void {
+    this.constructionSites.deleteArchivedHouse(houseId);
   }
 
   markActiveHouseRacPrinted(): void {

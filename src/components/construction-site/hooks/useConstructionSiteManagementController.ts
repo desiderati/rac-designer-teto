@@ -95,6 +95,12 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const deleteArchivedHouse = useCallback(async (houseId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.deleteArchivedHouse(houseId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
   const markHouseBuilt = useCallback(async (houseId: string) => {
     await runDocumentMutation(() => {
       constructionSiteManagementPort.markHouseBuilt(houseId);
@@ -179,6 +185,12 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const deleteArchivedConstructionSite = useCallback(async (constructionSiteId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.deleteArchivedConstructionSite(constructionSiteId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
   const markConstructionSiteCompleted = useCallback(async (constructionSiteId: string) => {
     await runDocumentMutation(() => {
       constructionSiteManagementPort.markConstructionSiteCompleted(constructionSiteId);
@@ -223,6 +235,7 @@ export function useConstructionSiteManagementController({
       archiveActiveConstructionSite: () => constructionSiteManagementPort.archiveActiveConstructionSite(),
       archiveConstructionSite,
       unarchiveConstructionSite,
+      deleteArchivedConstructionSite,
       markConstructionSiteCompleted,
       markConstructionSiteInProgress,
       activateConstructionSite,
@@ -231,11 +244,13 @@ export function useConstructionSiteManagementController({
         constructionSiteManagementPort.updateMonitor(monitorId, input),
       inactivateMonitor: (monitorId: string) => constructionSiteManagementPort.inactivateMonitor(monitorId),
       reactivateMonitor: (monitorId: string) => constructionSiteManagementPort.reactivateMonitor(monitorId),
+      deleteInactiveMonitor: (monitorId: string) => constructionSiteManagementPort.deleteInactiveMonitor(monitorId),
       createHouse,
       duplicateActiveHouse,
       archiveActiveHouse,
       archiveHouse,
       unarchiveHouse,
+      deleteArchivedHouse,
       exportConstructionRacsZip,
       markHouseBuilt,
       markHouseDraft,

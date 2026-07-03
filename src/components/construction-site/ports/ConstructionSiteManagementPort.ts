@@ -29,6 +29,7 @@ export interface ConstructionSiteManagementPort {
   archiveActiveConstructionSite(): void;
   archiveConstructionSite(constructionSiteId: string): void;
   unarchiveConstructionSite(constructionSiteId: string): void;
+  deleteArchivedConstructionSite(constructionSiteId: string): void;
   markConstructionSiteCompleted(constructionSiteId: string): void;
   markConstructionSiteInProgress(constructionSiteId: string): void;
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null;
@@ -36,11 +37,13 @@ export interface ConstructionSiteManagementPort {
   updateMonitor(monitorId: string, input: UpdateMonitorInput): void;
   inactivateMonitor(monitorId: string): void;
   reactivateMonitor(monitorId: string): void;
+  deleteInactiveMonitor(monitorId: string): void;
   createHouse(input: CreateHouseInput): PersistedHouseRecord;
   duplicateActiveHouse(): PersistedHouseRecord;
   archiveActiveHouse(): void;
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
+  deleteArchivedHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
   markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
