@@ -54,6 +54,8 @@ test.describe('Exportação PDF do RAC', () => {
 
     const downloadPromise = page.waitForEvent('download');
     await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
+    await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
+    await page.getByRole('button', {name: 'Gerar PDF'}).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');
@@ -100,6 +102,8 @@ test.describe('Exportação PDF do RAC', () => {
 
     const downloadPromise = page.waitForEvent('download');
     await exportButton.click();
+    await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
+    await page.getByRole('button', {name: 'Gerar PDF'}).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');

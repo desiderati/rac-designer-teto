@@ -72,8 +72,18 @@ export async function applyRacEditorInitScript(page: Page) {
     localStorage.setItem('guided-tour:rac-house-elevation-view:completed', 'true');
     localStorage.setItem('guided-tour:rac-construction-management:completed', 'true');
     localStorage.setItem('guided-tour:rac-construction-management:completed:revision', 'construction-actions-v2');
+    localStorage.setItem('guided-tour:rac-construction-add:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-add:completed:revision', 'construction-add-v1');
+    localStorage.setItem('guided-tour:rac-construction-actions:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-actions:completed:revision', 'construction-actions-v1');
+    localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed', 'true');
+    localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed:revision', 'construction-back-to-canvas-v1');
     localStorage.setItem('guided-tour:rac-house-management:completed', 'true');
     localStorage.setItem('guided-tour:rac-house-management:completed:revision', 'house-actions-v3');
+    localStorage.setItem('guided-tour:rac-house-add:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-add:completed:revision', 'house-add-v1');
+    localStorage.setItem('guided-tour:rac-house-actions:completed', 'true');
+    localStorage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v1');
     localStorage.setItem('guided-tour:rac-tip:wall', 'true');
     localStorage.setItem('guided-tour:rac-tip:line', 'true');
     localStorage.setItem('guided-tour:rac-tip:arrow', 'true');

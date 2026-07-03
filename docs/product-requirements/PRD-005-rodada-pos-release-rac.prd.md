@@ -3,8 +3,8 @@ title: Rodada Pós-Release RAC
 id: PRD-005
 doc_type: prd
 doc_set: product-requirements
-status: proposed
-version: "0.1.0"
+status: implemented
+version: "1.0.0"
 owners: [ ]
 lang: pt-BR
 ---
@@ -52,10 +52,10 @@ modal ou recarregar a página para ver e salvar o desenho correto.
 
 **Critérios de aceitação:**
 
-- [ ] Ao desligar `[auto]` e mover o slider, o canvas é redesenhado imediatamente.
-- [ ] A alteração é persistida ao confirmar o modal.
-- [ ] Reabrir o modal ou recarregar a página não é necessário para ver o novo nível.
-- [ ] O comportamento é coberto por teste focado do hook/componente de nível.
+- [x] Ao desligar `[auto]` e mover o slider, o canvas é redesenhado imediatamente.
+- [x] A alteração é persistida ao confirmar o modal.
+- [x] Reabrir o modal ou recarregar a página não é necessário para ver o novo nível.
+- [x] O comportamento é coberto por teste focado do hook/componente de nível.
 
 ### US-002: Exibir porta e marcador de vista elevada na planta
 
@@ -64,10 +64,10 @@ elevada correspondente existir e contiver porta.
 
 **Critérios de aceitação:**
 
-- [ ] A porta da planta é derivada de forma determinística da vista elevada válida.
-- [ ] O marcador de posição da vista elevada aparece na planta quando a relação entre vistas é válida.
-- [ ] A correção cobre o cenário intermitente em que a vista elevada já está presente no Canvas.
-- [ ] Há teste cobrindo o caso de vista elevada com porta e planta renderizada depois.
+- [x] A porta da planta é derivada de forma determinística da vista elevada válida.
+- [x] O marcador de posição da vista elevada aparece na planta quando a relação entre vistas é válida.
+- [x] A correção cobre o cenário intermitente em que a vista elevada já está presente no Canvas.
+- [x] Há teste cobrindo o caso de vista elevada com porta e planta renderizada depois.
 
 ### US-003: Corrigir laterais em casas tipo 3 e 6
 
@@ -76,11 +76,11 @@ orientação real da casa, não apenas à posição visual no Canvas.
 
 **Critérios de aceitação:**
 
-- [ ] Casa tipo 3 com porta à direita da planta rotula corretamente a vista inferior como lateral esquerda.
-- [ ] Casa tipo 3 rotula corretamente a vista superior como lateral direita.
-- [ ] Casa tipo 6 com vista frontal em cima da planta rotula corretamente a lateral da direita da planta como lateral
+- [x] Casa tipo 3 com porta à direita da planta rotula corretamente a vista inferior como lateral esquerda.
+- [x] Casa tipo 3 rotula corretamente a vista superior como lateral direita.
+- [x] Casa tipo 6 com vista frontal em cima da planta rotula corretamente a lateral da direita da planta como lateral
   esquerda.
-- [ ] A matriz de orientação tem teste unitário/smoke para os tipos afetados.
+- [x] A matriz de orientação tem teste unitário/smoke para os tipos afetados.
 
 ### US-004: Inserir rua no Canvas
 
@@ -89,10 +89,10 @@ entorno imediato da casa.
 
 **Critérios de aceitação:**
 
-- [ ] O Canvas oferece novo tipo de objeto `Rua`.
-- [ ] O usuário escolhe entre `Reta` e `Quina`.
-- [ ] O objeto é persistido no documento do Canvas.
-- [ ] Seleção, movimentação, redimensionamento e exportação visual funcionam como nos objetos genéricos equivalentes.
+- [x] O Canvas oferece novo tipo de objeto `Rua`.
+- [x] O usuário escolhe entre `Reta` e `Quina`.
+- [x] O objeto é persistido no documento do Canvas.
+- [x] Seleção, movimentação, redimensionamento e exportação visual funcionam como nos objetos genéricos equivalentes.
 
 ### US-005: Ajustar fundo pastel do muro
 
@@ -101,10 +101,10 @@ melhorar a leitura visual do desenho.
 
 **Critérios de aceitação:**
 
-- [ ] Ao selecionar uma das cores atuais do muro, o fundo usa a mesma família de cor em tom pastel.
-- [ ] A borda/tracejado continua legível sobre o fundo.
-- [ ] A cor persistida continua suficiente para reconstruir o objeto ao recarregar.
-- [ ] Exportação do Canvas preserva o visual do muro.
+- [x] Ao selecionar uma das cores atuais do muro, o fundo usa a mesma família de cor em tom pastel.
+- [x] A borda/tracejado continua legível sobre o fundo.
+- [x] A cor persistida continua suficiente para reconstruir o objeto ao recarregar.
+- [x] Exportação do Canvas preserva o visual do muro.
 
 ### US-006: Exportar RACs em ZIP
 
@@ -113,15 +113,15 @@ Construção TETO em um ZIP para reduzir trabalho repetitivo.
 
 **Critérios de aceitação:**
 
-- [ ] O comando fica disponível no formulário/fluxo de Construções TETO.
-- [ ] Casas `archived` são excluídas da exportação.
-- [ ] Cada casa não arquivada gera um PDF próprio no ZIP.
-- [ ] Casas exportadas com sucesso são marcadas como `RAC Impressa`, exceto casas `Construída`, que permanecem
+- [x] O comando fica disponível no formulário/fluxo de Construções TETO.
+- [x] Casas `archived` são excluídas da exportação.
+- [x] Cada casa não arquivada gera um PDF próprio no ZIP.
+- [x] Casas exportadas com sucesso são marcadas como `RAC Impressa`, exceto casas `Construída`, que permanecem
   `Construída`.
-- [ ] Falhas parciais são registradas em um arquivo de erro dentro do ZIP.
-- [ ] Uma falha em uma casa não impede a inclusão dos PDFs gerados com sucesso.
-- [ ] Se nenhuma casa não arquivada puder ser exportada, o usuário recebe erro claro.
-- [ ] O lote considera a Construção TETO ativa/selecionada, não todas as construções do banco local.
+- [x] Falhas parciais são registradas em um arquivo de erro dentro do ZIP.
+- [x] Uma falha em uma casa não impede a inclusão dos PDFs gerados com sucesso.
+- [x] Se nenhuma casa não arquivada puder ser exportada, o usuário recebe erro claro.
+- [x] O lote considera a Construção TETO ativa/selecionada, não todas as construções do banco local.
 
 ### US-007: Preservar preferências da visualização 3D
 
@@ -130,11 +130,11 @@ ou ocultar a área de pilotis abaixo do terreno.
 
 **Critérios de aceitação:**
 
-- [ ] A cor escolhida no 3D é persistida.
-- [ ] A preferência do botão de olho é persistida.
-- [ ] Ao reabrir o 3D, cor e botão de olho retornam ao último valor definido.
-- [ ] O PDF continua ocultando a área abaixo do terreno por regra normativa.
-- [ ] O PDF usa a cor persistida pelo usuário.
+- [x] A cor escolhida no 3D é persistida.
+- [x] A preferência do botão de olho é persistida.
+- [x] Ao reabrir o 3D, cor e botão de olho retornam ao último valor definido.
+- [x] O PDF continua ocultando a área abaixo do terreno por regra normativa.
+- [x] O PDF usa a cor persistida pelo usuário.
 
 ### US-008: Redimensionar muro sem deformar texto ou tracejado
 
@@ -143,10 +143,10 @@ tracejado.
 
 **Critérios de aceitação:**
 
-- [ ] O texto do muro mantém tamanho visual estável durante redimensionamento diagonal.
-- [ ] O tracejado mantém padrão visual estável durante redimensionamento diagonal.
-- [ ] A geometria do muro continua sendo redimensionada.
-- [ ] A regra é preservada ao salvar e reabrir o desenho.
+- [x] O texto do muro mantém tamanho visual estável durante redimensionamento diagonal.
+- [x] O tracejado mantém padrão visual estável durante redimensionamento diagonal.
+- [x] A geometria do muro continua sendo redimensionada.
+- [x] A regra é preservada ao salvar e reabrir o desenho.
 
 ### US-009: Enviar fotos de até 5 MB
 
@@ -155,10 +155,10 @@ comuns de celular.
 
 **Critérios de aceitação:**
 
-- [ ] Uploads PNG, JPG e WEBP de até 5 MB são aceitos nos formulários existentes.
-- [ ] Arquivos acima de 5 MB continuam bloqueados.
-- [ ] Mensagens de erro exibem o novo limite.
-- [ ] Testes de validação cobrem limite aceito e limite rejeitado.
+- [x] Uploads PNG, JPG e WEBP de até 5 MB são aceitos nos formulários existentes.
+- [x] Arquivos acima de 5 MB continuam bloqueados.
+- [x] Mensagens de erro exibem o novo limite.
+- [x] Testes de validação cobrem limite aceito e limite rejeitado.
 
 ### US-010: Ver checklist antes da exportação PDF padrão
 
@@ -167,11 +167,11 @@ faltantes ou riscos antes de gerar o PDF.
 
 **Critérios de aceitação:**
 
-- [ ] Antes do PDF padrão, o sistema apresenta checklist com itens verificados.
-- [ ] Itens ausentes são destacados.
-- [ ] O usuário consegue cancelar a exportação.
-- [ ] O usuário consegue continuar quando os itens são apenas alerta.
-- [ ] Itens bloqueantes impedem exportação quando não houver dados mínimos para PDF.
+- [x] Antes do PDF padrão, o sistema apresenta checklist com itens verificados.
+- [x] Itens ausentes são destacados.
+- [x] O usuário consegue cancelar a exportação.
+- [x] O usuário consegue continuar quando os itens são apenas alerta.
+- [x] Itens bloqueantes impedem exportação quando não houver dados mínimos para PDF.
 
 ### US-011: Renomear Solo Aluvial para Solo Molhado
 
@@ -180,9 +180,9 @@ terminologia mais adequada ao uso de campo.
 
 **Critérios de aceitação:**
 
-- [ ] Todo texto visível que hoje mostra `Solo Aluvial` passa a mostrar `Solo Molhado`.
-- [ ] O valor interno pode continuar sendo `alluvial` se isso evitar migração desnecessária.
-- [ ] O PDF e qualquer resumo visível usam `Solo Molhado`.
+- [x] Todo texto visível que hoje mostra `Solo Aluvial` passa a mostrar `Solo Molhado`.
+- [x] O valor interno pode continuar sendo `alluvial` se isso evitar migração desnecessária.
+- [x] O PDF e qualquer resumo visível usam `Solo Molhado`.
 
 ### US-012: Trocar Calhas por Mata-juntas
 
@@ -191,11 +191,11 @@ fazem parte da necessidade atual.
 
 **Critérios de aceitação:**
 
-- [ ] O formulário de materiais extras exibe `Mata-juntas`.
-- [ ] O PDF exibe `Mata-juntas`.
-- [ ] Valores persistidos hoje em `gutters` são interpretados como quantidade de mata-juntas.
-- [ ] A UI não mantém `Calhas` como opção funcional.
-- [ ] Testes existentes que validam `Calhas` são atualizados para `Mata-juntas`.
+- [x] O formulário de materiais extras exibe `Mata-juntas`.
+- [x] O PDF exibe `Mata-juntas`.
+- [x] Valores persistidos hoje em `gutters` são interpretados como quantidade de mata-juntas.
+- [x] A UI não mantém `Calhas` como opção funcional.
+- [x] Testes existentes que validam `Calhas` são atualizados para `Mata-juntas`.
 
 ## 4. Requisitos Funcionais
 
@@ -423,3 +423,51 @@ fazem parte da necessidade atual.
   - [useRacEditorPdfExportAction.ts](../../src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts)
   - [HouseExtraMaterialsScreen.tsx](../../src/components/construction-site/ui/HouseExtraMaterialsScreen.tsx)
   - [photo-data-url.ts](../../src/shared/lib/photo-data-url.ts)
+
+## 11. Execução Concluída
+
+### Commits Da Rodada
+
+1. `f3434ee docs(rac): documentar rodada pos-release`
+2. `317912d feat(rac): atualizar solo materiais e fotos`
+3. `df7a9e6 fix(rac): corrigir bugfixes pos-release`
+4. `ee62d8f feat(rac): adicionar ruas e ajustar muro`
+5. `add74e8 feat(rac): adicionar checklist e preferencias 3d`
+6. `a428241 feat(rac): exportar racs em zip`
+7. `chore(rac): consolidar validacao da rodada` (commit de consolidação deste documento)
+
+### Cobertura Dos Itens Priorizados
+
+| Item | Resultado | Evidência principal |
+|------|-----------|---------------------|
+| Bugfix 1: `[auto]` e slider de nível de piloti | Endereçado | `df7a9e6`, testes de `usePilotiEditor` e `PilotiEditor` |
+| Bugfix 2: porta e marcador da vista elevada na planta | Endereçado | `df7a9e6`, testes de marcador de porta e referência de vista |
+| Bugfix 3: laterais tipo 3 e tipo 6 | Endereçado | `df7a9e6`, testes de `house-view` e marcadores |
+| Feature 1: objeto `Rua` reta/quina | Endereçada | `ee62d8f`, testes de factory, toolbar e persistência |
+| Feature 2: fundo pastel do `Muro` | Endereçada | `ee62d8f`, testes de estratégia visual do muro |
+| Feature 3: exportação ZIP de RACs | Endereçada | `a428241`, `BUS-013-exportacao-racs-zip.md` e testes de ZIP/status/UI |
+| Feature 4: preferências 3D e cor no PDF | Endereçada | `add74e8`, testes de viewer e snapshot PDF |
+| Feature 5: resize de muro sem deformar texto/tracejado | Endereçada | `ee62d8f`, testes de resize e reload Fabric |
+| Feature 6: fotos até 5 MB | Endereçada | `317912d`, testes de validação de upload |
+| Feature 7: checklist pré-PDF | Endereçada | `add74e8`, testes do checklist e E2E de exportação PDF |
+| Feature 8: `Solo Molhado` | Endereçada | `317912d`, testes de UI/PDF para `alluvial` |
+| Feature 9: `Mata-juntas` no lugar de `Calhas` | Endereçada | `317912d`, testes de formulário, view-model e PDF |
+
+### Validação Final
+
+- `npm run test -- --reporter=dot`
+  - 142 arquivos de teste, 606 testes aprovados.
+- `npm run lint`
+  - aprovado.
+- `npm run build`
+  - aprovado; manteve apenas o aviso não bloqueante de chunk acima de 1000 kB.
+- `npm run test:e2e`
+  - 40 testes Chromium aprovados.
+
+### Observações
+
+- A exportação ZIP considera apenas casas não arquivadas da construção selecionada.
+- Casas construídas entram no ZIP, mas preservam status `Construída`.
+- Falha parcial de casa é registrada em `ERROS_EXPORTACAO_RACS.txt` quando há ao menos um PDF gerado.
+- O PDF individual segue ocultando a área abaixo do terreno por regra normativa e usa a cor persistida no viewer 3D.
+- O ZIP não gera snapshot 3D em lote; usa a imagem 2D persistida de cada casa.

@@ -146,6 +146,8 @@ test.describe('RAC views and limits', () => {
     await createHouse(page, 'tipo3');
 
     await triggerHouseAction(page, 'Quadrado Aberto');
+    await expectViewCount(page, 'side2', 1);
+    await triggerHouseAction(page, 'Quadrado Aberto');
     await expect(page.getByText('Limite de Quadrado Aberto atingido para este tipo de casa.')).toBeVisible();
 
     const removed = await removeViewByDebug(page, 'side2');

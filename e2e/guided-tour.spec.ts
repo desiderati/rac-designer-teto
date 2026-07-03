@@ -74,45 +74,46 @@ test.describe('RAC guided tour', () => {
 
   test('guided-tour: orienta ações principais da listagem de construções', async ({page}) => {
     await page.evaluate(() => {
-      localStorage.removeItem('guided-tour:rac-construction-management:completed');
-      localStorage.removeItem('guided-tour:rac-construction-management:completed:revision');
+      localStorage.setItem('guided-tour:rac-construction-add:completed', 'true');
+      localStorage.setItem('guided-tour:rac-construction-add:completed:revision', 'construction-add-v1');
+      localStorage.removeItem('guided-tour:rac-construction-actions:completed');
+      localStorage.removeItem('guided-tour:rac-construction-actions:completed:revision');
+      localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed', 'true');
+      localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed:revision', 'construction-back-to-canvas-v1');
     });
 
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
 
-    const addDialog = page.getByRole('dialog').filter({hasText: 'Adicionar Construção'});
-    await expect(addDialog).toBeVisible();
-    await expect(addDialog).toContainText('Adicionar Construção');
-    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(5);
-
-    await addDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const monitorsDialog = page.getByRole('dialog').filter({hasText: 'Monitores'});
     await expect(monitorsDialog).toBeVisible();
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(4);
 
     await monitorsDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const housesDialog = page.getByRole('dialog').filter({hasText: 'Casas e Famílias'});
     await expect(housesDialog).toBeVisible();
 
     await housesDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    const completedDialog = page.getByRole('dialog').filter({hasText: 'Construção Concluída'});
+    await expect(completedDialog).toBeVisible();
+
+    await completedDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const archiveDialog = page.getByRole('dialog').filter({hasText: 'Arquivar Construção'});
     await expect(archiveDialog).toBeVisible();
 
     await archiveDialog.getByRole('button', {name: 'OK'}).click({force: true});
-    const backDialog = page.getByRole('dialog').filter({hasText: 'Voltar ao Canvas'});
-    await expect(backDialog).toBeVisible();
-
-    await backDialog.getByRole('button', {name: 'OK'}).click({force: true});
-    await expect(backDialog).toBeHidden();
+    await expect(archiveDialog).toBeHidden();
     await expect.poll(() => page.evaluate(() => (
-      localStorage.getItem('guided-tour:rac-construction-management:completed')
+      localStorage.getItem('guided-tour:rac-construction-actions:completed')
     ))).toBe('true');
   });
 
   test('guided-tour: orienta criação e edição de casas', async ({page}) => {
     await page.evaluate(() => {
-      localStorage.removeItem('guided-tour:rac-house-management:completed');
-      localStorage.removeItem('guided-tour:rac-house-management:completed:revision');
+      localStorage.removeItem('guided-tour:rac-house-add:completed');
+      localStorage.removeItem('guided-tour:rac-house-add:completed:revision');
+      localStorage.removeItem('guided-tour:rac-house-actions:completed');
+      localStorage.removeItem('guided-tour:rac-house-actions:completed:revision');
     });
 
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
@@ -122,11 +123,12 @@ test.describe('RAC guided tour', () => {
     const addDialog = page.getByRole('dialog').filter({hasText: 'Adicionar Casa'});
     await expect(addDialog).toBeVisible();
     await expect(addDialog).toContainText('Adicionar Casa');
-    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(7);
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(0);
 
     await addDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const statusDialog = page.getByRole('dialog').filter({hasText: 'Status da Casa'});
     await expect(statusDialog).toBeVisible();
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(6);
 
     await statusDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const difficultyDialog = page.getByRole('dialog').filter({hasText: 'Dificuldade'});
@@ -152,7 +154,7 @@ test.describe('RAC guided tour', () => {
     await backDialog.getByRole('button', {name: 'OK'}).click({force: true});
     await expect(backDialog).toBeHidden();
     await expect.poll(() => page.evaluate(() => (
-      localStorage.getItem('guided-tour:rac-house-management:completed')
+      localStorage.getItem('guided-tour:rac-house-actions:completed')
     ))).toBe('true');
   });
 });
