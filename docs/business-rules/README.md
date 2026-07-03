@@ -57,6 +57,9 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 11. `BUS-011-status-construcao.md`
     - Regra de status da Construção TETO e bloqueio de edição quando a construção está arquivada.
 
+12. `BUS-012-checklist-exportacao-rac.md`
+    - Regra do checklist exibido antes da exportação padrão de PDF da RAC.
+
 ## Quando atualizar
 
 Atualize estes documentos quando houver mudança em:

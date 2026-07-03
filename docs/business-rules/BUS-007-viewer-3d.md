@@ -65,6 +65,9 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 5. Tela cheia deve funcionar sem perder controles principais.
 6. Troca de cor de parede deve ser imediata.
 7. Opção de ocultar elementos abaixo do terreno deve ser clara e reversível.
+8. Ao fechar o viewer, a cor de parede escolhida e a preferência de ocultar elementos abaixo do terreno devem ser
+   persistidas por casa.
+9. Ao reabrir o viewer da mesma casa, a cor e a preferência de ocultação devem ser restauradas.
 
 ## Regras de snapshot para 2D
 
@@ -74,7 +77,10 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 4. Se não houver pose salva, o PDF deve usar o enquadramento inicial voltado para a porta.
 5. A iluminação do snapshot do PDF deve seguir a mesma orientação por porta usada no viewer.
 6. O snapshot do PDF deve ocultar a parte dos elementos 3D que fica abaixo do terreno.
-7. Em falha, usuário deve receber mensagem clara.
+7. O snapshot do PDF deve usar a última cor de parede persistida pelo viewer da casa ativa.
+8. A preferência visual de mostrar elementos abaixo do terreno não altera a regra normativa do PDF: o PDF continua
+   ocultando a área abaixo do terreno.
+9. Em falha, usuário deve receber mensagem clara.
 
 ## Regras de consistência geral
 

@@ -26,6 +26,7 @@ import {
   readHouse3DViewerCameraPose,
   resolveHouse3DDoorFace,
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
+import {getHouse3DViewerPreferencesStorageKey} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -52,6 +53,10 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: Ho
   } = useHouse3DViewerModel();
   const cameraPoseStorageKey = useMemo(
     () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
+    [activeHouseId],
+  );
+  const viewerPreferencesStorageKey = useMemo(
+    () => getHouse3DViewerPreferencesStorageKey(activeHouseId),
     [activeHouseId],
   );
   const doorFace = useMemo(
@@ -85,6 +90,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: Ho
     onOpenChange,
     canvasRef,
     cameraPoseStorageKey,
+    viewerPreferencesStorageKey,
   });
   const persistedCameraPose = useMemo(
     () => readPersistedCameraPose(cameraPoseStorageKey, resetKey),

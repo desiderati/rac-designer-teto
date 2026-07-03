@@ -360,6 +360,11 @@ export function useRacEditorController(): RacEditorLayoutProps {
 
   const {
     handleSavePDF,
+    pdfExportChecklist,
+    isPdfExportChecklistOpen,
+    isPdfExporting,
+    handleConfirmPdfExport,
+    handleCancelPdfExport,
   } = useRacEditorDocumentHotkeysController({
     canvasRef,
     house3DPdfSnapshotRef,
@@ -583,6 +588,11 @@ export function useRacEditorController(): RacEditorLayoutProps {
     showRestartConfirm,
     confirmRestartDrawing,
     closeRestartConfirm,
+    pdfExportChecklist,
+    isPdfExportChecklistOpen,
+    isPdfExporting,
+    handleConfirmPdfExport,
+    handleCancelPdfExport,
     is3DViewerOpen,
     setIs3DViewerOpen,
     activeHouseId: activeHouse?.id ?? null,

@@ -1,14 +1,18 @@
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {toast} from 'sonner';
 import type {HouseType} from '@/shared/types/house.ts';
-import {HOUSE_3D_WALL_COLORS, TOAST_MESSAGES} from '@/shared/config.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 import type {House3DViewerCameraPoseReader} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 import {
   removeHouse3DViewerCameraPose,
   writeHouse3DViewerCameraPose,
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
+import {
+  readHouse3DViewerPreferences,
+  writeHouse3DViewerPreferences,
+} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;
@@ -16,6 +20,7 @@ interface UseHouse3DViewerActionsArgs {
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   cameraPoseStorageKey: string | null;
+  viewerPreferencesStorageKey: string | null;
 }
 
 /**
@@ -30,15 +35,26 @@ export function useHouse3DViewerActions({
   onOpenChange,
   canvasRef,
   cameraPoseStorageKey,
+  viewerPreferencesStorageKey,
 }: UseHouse3DViewerActionsArgs) {
 
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [wallColor, setWallColor] = useState(HOUSE_3D_WALL_COLORS.viewerInitialColor);
-  const [hideBelowTerrain, setHideBelowTerrain] = useState(false);
+  const [wallColor, setWallColor] = useState(
+    () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).wallColor,
+  );
+  const [hideBelowTerrain, setHideBelowTerrain] = useState(
+    () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).hideBelowTerrain,
+  );
   const [isSceneReady, setIsSceneReady] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraPoseReaderRef = useRef<House3DViewerCameraPoseReader | null>(null);
+
+  useEffect(() => {
+    const preferences = readHouse3DViewerPreferences(viewerPreferencesStorageKey);
+    setWallColor(preferences.wallColor);
+    setHideBelowTerrain(preferences.hideBelowTerrain);
+  }, [viewerPreferencesStorageKey]);
 
   const registerCameraPoseReader = useCallback((reader: House3DViewerCameraPoseReader | null) => {
     cameraPoseReaderRef.current = reader;
@@ -69,10 +85,18 @@ export function useHouse3DViewerActions({
     writeHouse3DViewerCameraPose(cameraPoseStorageKey, pose);
   }, [cameraPoseStorageKey]);
 
+  const persistCurrentViewerPreferences = useCallback(() => {
+    writeHouse3DViewerPreferences(viewerPreferencesStorageKey, {
+      wallColor,
+      hideBelowTerrain,
+    });
+  }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
+
   const handleClose = useCallback(() => {
     persistCurrentCameraPose();
+    persistCurrentViewerPreferences();
     onOpenChange(false);
-  }, [onOpenChange, persistCurrentCameraPose]);
+  }, [onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
 
   const handleDialogOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {

@@ -1,7 +1,6 @@
 import {Canvas, useThree} from '@react-three/fiber';
 import {forwardRef, Suspense, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
-import {HOUSE_3D_WALL_COLORS} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {House3DScene} from '@/components/rac-editor/@viewer-3d/ui/House3DScene.tsx';
 import {useHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
@@ -13,6 +12,10 @@ import {
   readHouse3DViewerCameraPose,
   resolveHouse3DDoorFace,
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
+import {
+  getHouse3DViewerPreferencesStorageKey,
+  readHouse3DViewerPreferences,
+} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
 const SNAPSHOT_WIDTH = 1000;
 const SNAPSHOT_HEIGHT = Math.round(SNAPSHOT_WIDTH * (CANVAS_HEIGHT / CANVAS_WIDTH));
@@ -61,6 +64,11 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
     [activeHouseId],
   );
   const persistedCameraPose = readHouse3DViewerCameraPose(cameraPoseStorageKey);
+  const viewerPreferencesStorageKey = useMemo(
+    () => getHouse3DViewerPreferencesStorageKey(activeHouseId),
+    [activeHouseId],
+  );
+  const viewerPreferences = readHouse3DViewerPreferences(viewerPreferencesStorageKey);
   const doorFace = useMemo(
     () => resolveHouse3DDoorFace(houseType, tipo6FrontSide, tipo3OpenSide),
     [houseType, tipo3OpenSide, tipo6FrontSide],
@@ -146,7 +154,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
             pilotis={pilotis}
             contraventamentos={contraventamentos}
             stairs={stairs}
-            wallColor={HOUSE_3D_WALL_COLORS.viewerInitialColor}
+            wallColor={viewerPreferences.wallColor}
             tipo6FrontSide={tipo6FrontSide}
             tipo3OpenSide={tipo3OpenSide}
             hideBelowTerrain

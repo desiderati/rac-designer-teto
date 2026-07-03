@@ -1,6 +1,8 @@
 import {SettingsModal} from '@/components/rac-editor/@modals/ui/SettingsModal.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
 import {ImageUploadModal} from '@/components/rac-editor/@modals/ui/ImageUploadModal.tsx';
+import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
+import type {RacPdfExportChecklist} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 
 interface RacEditorOverlaysProps {
   isMobile: boolean;
@@ -13,6 +15,11 @@ interface RacEditorOverlaysProps {
   showRestartConfirm: boolean;
   onConfirmRestartDrawing: () => void;
   onCloseRestartConfirm: () => void;
+  pdfExportChecklist: RacPdfExportChecklist | null;
+  isPdfExportChecklistOpen: boolean;
+  isPdfExporting: boolean;
+  onConfirmPdfExport: () => void;
+  onCancelPdfExport: () => void;
 }
 
 export function RacEditorModals({
@@ -26,6 +33,11 @@ export function RacEditorModals({
   showRestartConfirm,
   onConfirmRestartDrawing,
   onCloseRestartConfirm,
+  pdfExportChecklist,
+  isPdfExportChecklistOpen,
+  isPdfExporting,
+  onConfirmPdfExport,
+  onCancelPdfExport,
 }: RacEditorOverlaysProps) {
   return (
     <>
@@ -49,6 +61,15 @@ export function RacEditorModals({
         confirmLabel='Confirmar'
         handleConfirm={onConfirmRestartDrawing}
         handleCancel={onCloseRestartConfirm}
+      />
+
+      <RacPdfExportChecklistModal
+        isMobile={isMobile}
+        isOpen={isPdfExportChecklistOpen}
+        checklist={pdfExportChecklist}
+        isExporting={isPdfExporting}
+        onConfirm={onConfirmPdfExport}
+        onCancel={onCancelPdfExport}
       />
     </>
   );

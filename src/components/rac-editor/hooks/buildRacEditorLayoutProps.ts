@@ -91,6 +91,11 @@ interface BuildRacEditorLayoutPropsArgs {
   showRestartConfirm: LayoutProps['modals']['showRestartConfirm'];
   confirmRestartDrawing: LayoutProps['modals']['onConfirmRestartDrawing'];
   closeRestartConfirm: LayoutProps['modals']['onCloseRestartConfirm'];
+  pdfExportChecklist: LayoutProps['modals']['pdfExportChecklist'];
+  isPdfExportChecklistOpen: LayoutProps['modals']['isPdfExportChecklistOpen'];
+  isPdfExporting: LayoutProps['modals']['isPdfExporting'];
+  handleConfirmPdfExport: LayoutProps['modals']['onConfirmPdfExport'];
+  handleCancelPdfExport: LayoutProps['modals']['onCancelPdfExport'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
   activeHouseId: LayoutProps['viewer']['activeHouseId'];
@@ -209,6 +214,11 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       showRestartConfirm: args.showRestartConfirm,
       onConfirmRestartDrawing: args.confirmRestartDrawing,
       onCloseRestartConfirm: args.closeRestartConfirm,
+      pdfExportChecklist: args.pdfExportChecklist,
+      isPdfExportChecklistOpen: args.isPdfExportChecklistOpen,
+      isPdfExporting: args.isPdfExporting,
+      onConfirmPdfExport: args.handleConfirmPdfExport,
+      onCancelPdfExport: args.handleCancelPdfExport,
     },
     viewer: {
       open: args.is3DViewerOpen,

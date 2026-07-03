@@ -22,7 +22,7 @@ export function useRacEditorDocumentActions({
   onBeforeExportPdf,
   onAfterExportPdf,
 }: UseRacEditorDocumentActionsArgs) {
-  const {handleSavePDF} = useRacEditorPdfExportAction({
+  const pdfExport = useRacEditorPdfExportAction({
     canvasRef,
     house3DPdfSnapshotRef,
     canExportPdf,
@@ -31,6 +31,6 @@ export function useRacEditorDocumentActions({
   });
 
   return {
-    handleSavePDF,
+    ...pdfExport,
   };
 }
