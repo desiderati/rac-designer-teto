@@ -6,6 +6,7 @@ import {
   getElevationViewLabelForHouseType,
   getViewLabelForHouseType,
 } from './house-view.ts';
+import type {HouseSideMapping} from '@/shared/types/house.ts';
 
 describe('house-view.ts', () => {
   it('creates metadata and controls patches', () => {
@@ -50,6 +51,48 @@ describe('house-view.ts', () => {
       houseType: 'tipo3',
       viewType: 'back',
       side: 'bottom',
+    })).toBe('Lateral Direita');
+  });
+
+  it('maps laterals relative to door or front orientation when side mappings are known', () => {
+    const tipo3DoorOnRight: HouseSideMapping = {
+      top: 'back',
+      bottom: 'back',
+      left: 'side1',
+      right: 'side2',
+    };
+
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'back',
+      side: 'bottom',
+      sideMappings: tipo3DoorOnRight,
+    })).toBe('Lateral Esquerda');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'back',
+      side: 'top',
+      sideMappings: tipo3DoorOnRight,
+    })).toBe('Lateral Direita');
+
+    const tipo6FrontOnTop: HouseSideMapping = {
+      top: 'front',
+      bottom: 'back',
+      left: 'side1',
+      right: 'side1',
+    };
+
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'side1',
+      side: 'right',
+      sideMappings: tipo6FrontOnTop,
+    })).toBe('Lateral Esquerda');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'side1',
+      side: 'left',
+      sideMappings: tipo6FrontOnTop,
     })).toBe('Lateral Direita');
   });
 

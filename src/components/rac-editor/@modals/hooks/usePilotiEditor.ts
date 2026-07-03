@@ -1,4 +1,5 @@
-import {useContext, useEffect, useMemo, useState} from 'react';
+import {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import {EditorPortsContext} from '@/bootstrap/editor-bootstrap.ts';
 import {PILOTI_CORNER_IDS, TIMINGS} from '@/shared/config.ts';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
@@ -62,6 +63,10 @@ export function usePilotiEditor({
   const [autoAdjustPilotiHeightsFromNivel, setAutoAdjustPilotiHeightsFromNivel] = useState(
     () => resolvedSettingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
   );
+  const tempHeightRef = useRef(tempHeight);
+  const tempIsMasterRef = useRef(tempIsMaster);
+  const tempNivelRef = useRef(tempNivel);
+  const autoAdjustPilotiHeightsFromNivelRef = useRef(autoAdjustPilotiHeightsFromNivel);
 
 
   const allIds = useMemo(() => {
@@ -70,9 +75,61 @@ export function usePilotiEditor({
   }, [pilotiIds]);
 
   const selectedHeights = resolvedPilotiReadPort.getSelectedPilotiHeights();
+  const selectedHeightsRef = useRef(selectedHeights);
+  selectedHeightsRef.current = selectedHeights;
+  tempHeightRef.current = tempHeight;
+  tempIsMasterRef.current = tempIsMaster;
+  tempNivelRef.current = tempNivel;
+  autoAdjustPilotiHeightsFromNivelRef.current = autoAdjustPilotiHeightsFromNivel;
   const maxNivel = autoAdjustPilotiHeightsFromNivel
     ? getMaxNivelForAvailableHeights(selectedHeights)
     : getMaxNivelForPilotiHeight(tempHeight);
+
+  const setSyncedTempHeight: Dispatch<SetStateAction<number>> = (value) => {
+    setTempHeight((previous) => {
+      const next = typeof value === 'function'
+        ? (value as (current: number) => number)(previous)
+        : value;
+      tempHeightRef.current = next;
+      return next;
+    });
+  };
+
+  const setSyncedTempIsMaster: Dispatch<SetStateAction<boolean>> = (value) => {
+    setTempIsMaster((previous) => {
+      const next = typeof value === 'function'
+        ? (value as (current: boolean) => boolean)(previous)
+        : value;
+      tempIsMasterRef.current = next;
+      return next;
+    });
+  };
+
+  const setSyncedTempNivel: Dispatch<SetStateAction<number>> = (value) => {
+    setTempNivel((previous) => {
+      const next = typeof value === 'function'
+        ? (value as (current: number) => number)(previous)
+        : value;
+      tempNivelRef.current = next;
+      return next;
+    });
+  };
+
+  const setSyncedAutoAdjustPilotiHeightsFromNivel: Dispatch<SetStateAction<boolean>> = (value) => {
+    setAutoAdjustPilotiHeightsFromNivel((previous) => {
+      const next = typeof value === 'function'
+        ? (value as (current: boolean) => boolean)(previous)
+        : value;
+      autoAdjustPilotiHeightsFromNivelRef.current = next;
+      return next;
+    });
+  };
+
+  const getMaxNivelForMode =
+    (autoMode: boolean, height: number): number =>
+      autoMode
+        ? getMaxNivelForAvailableHeights(selectedHeightsRef.current)
+        : getMaxNivelForPilotiHeight(height);
 
   const currentIndex = pilotiId ? allIds.indexOf(pilotiId) : -1;
   const hasPrev = currentIndex > 0;
@@ -93,10 +150,10 @@ export function usePilotiEditor({
   useEffect(() => {
     if (!isOpen) return;
 
-    setTempHeight(currentHeight);
-    setTempIsMaster(currentIsMaster);
-    setTempNivel(currentNivel);
-    setAutoAdjustPilotiHeightsFromNivel(
+    setSyncedTempHeight(currentHeight);
+    setSyncedTempIsMaster(currentIsMaster);
+    setSyncedTempNivel(currentNivel);
+    setSyncedAutoAdjustPilotiHeightsFromNivel(
       resolvedSettingsPort.getSettings().autoAdjustPilotiHeightsFromNivel,
     );
   }, [isOpen, pilotiId, currentHeight, currentIsMaster, currentNivel, resolvedSettingsPort]);
@@ -104,7 +161,7 @@ export function usePilotiEditor({
   // Clipa o nível apenas quando a altura muda (botão de altura), nunca durante o drag.
   // Usa atualização funcional para ler o valor mais recente sem precisar de tempNivel nas deps.
   useEffect(() => {
-    setTempNivel(prev => {
+    setSyncedTempNivel(prev => {
       const clamped = clampNivelByHeight(prev, tempHeight);
       return clamped !== prev ? clamped : prev;
     });
@@ -125,9 +182,9 @@ export function usePilotiEditor({
     const pilotiData = resolvedPilotiReadPort.getPilotiData(newId);
     if (pilotiData && onNavigate) {
       onNavigate(newId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
-      setTempHeight(pilotiData.height);
-      setTempIsMaster(pilotiData.isMaster);
-      setTempNivel(pilotiData.nivel);
+      setSyncedTempHeight(pilotiData.height);
+      setSyncedTempIsMaster(pilotiData.isMaster);
+      setSyncedTempNivel(pilotiData.nivel);
     }
   };
 
@@ -137,33 +194,44 @@ export function usePilotiEditor({
   };
 
   const handleCancel = () => {
-    setTempHeight(currentHeight);
-    setTempIsMaster(currentIsMaster);
-    setTempNivel(currentNivel);
+    setSyncedTempHeight(currentHeight);
+    setSyncedTempIsMaster(currentIsMaster);
+    setSyncedTempNivel(currentNivel);
     onClose();
   };
 
   // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
   // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
-    setTempNivel(clampNivel(value, PILOTI_DEFAULT_NIVEL, maxNivel));
+    setSyncedTempNivel(
+      clampNivel(
+        value,
+        PILOTI_DEFAULT_NIVEL,
+        getMaxNivelForMode(
+          autoAdjustPilotiHeightsFromNivelRef.current,
+          tempHeightRef.current,
+        ),
+      ),
+    );
   };
 
   const handleNivelCommit = (value: number) => {
     if (!pilotiId) return;
 
-    const nivelToApply = autoAdjustPilotiHeightsFromNivel
-      ? clampNivel(value, PILOTI_DEFAULT_NIVEL, maxNivel)
-      : clampNivelByHeight(value, tempHeight);
-    const heightToApply = autoAdjustPilotiHeightsFromNivel
-      ? getRecommendedHeight(nivelToApply, selectedHeights)
-      : tempHeight;
-    setTempHeight(heightToApply);
-    setTempNivel(nivelToApply);
+    const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
+    const height = tempHeightRef.current;
+    const nivelToApply = autoMode
+      ? clampNivel(value, PILOTI_DEFAULT_NIVEL, getMaxNivelForMode(autoMode, height))
+      : clampNivelByHeight(value, height);
+    const heightToApply = autoMode
+      ? getRecommendedHeight(nivelToApply, selectedHeightsRef.current)
+      : height;
+    setSyncedTempHeight(heightToApply);
+    setSyncedTempNivel(nivelToApply);
 
     const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
       height: heightToApply,
-      isMaster: tempIsMaster,
+      isMaster: tempIsMasterRef.current,
       nivel: nivelToApply,
     });
     onHeightChange(updatedPiloti.height);
@@ -171,24 +239,33 @@ export function usePilotiEditor({
   };
 
   const handleNivelIncrement = (delta: number) => {
-    const newVal = Math.round((tempNivel + delta) * 100) / 100;
-    const clamped = Math.max(PILOTI_DEFAULT_NIVEL, Math.min(newVal, maxNivel));
+    const newVal = Math.round((tempNivelRef.current + delta) * 100) / 100;
+    const clamped = Math.max(
+      PILOTI_DEFAULT_NIVEL,
+      Math.min(
+        newVal,
+        getMaxNivelForMode(
+          autoAdjustPilotiHeightsFromNivelRef.current,
+          tempHeightRef.current,
+        ),
+      ),
+    );
     handleNivelCommit(clamped);
   };
 
   const handleHeightClick = (h: number) => {
-    setTempHeight(h);
+    setSyncedTempHeight(h);
 
     const {autoNavigatePiloti} = resolvedSettingsPort.getSettings();
-    const nivelToApply = clampNivelByHeight(tempNivel, h);
+    const nivelToApply = clampNivelByHeight(tempNivelRef.current, h);
 
     // Ao reduzir altura, ajusta imediatamente o slider para não ultrapassar o novo máximo.
-    setTempNivel(nivelToApply);
+    setSyncedTempNivel(nivelToApply);
 
     if (pilotiId) {
       const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
         height: h,
-        isMaster: tempIsMaster,
+        isMaster: tempIsMasterRef.current,
         nivel: nivelToApply,
       });
       onHeightChange(updatedPiloti.height);
@@ -213,9 +290,9 @@ export function usePilotiEditor({
           const pilotiData = resolvedPilotiReadPort.getPilotiData(nextId);
           if (pilotiData && onNavigate) {
             onNavigate(nextId, pilotiData.height, pilotiData.isMaster, pilotiData.nivel);
-            setTempHeight(pilotiData.height);
-            setTempIsMaster(pilotiData.isMaster);
-            setTempNivel(pilotiData.nivel);
+            setSyncedTempHeight(pilotiData.height);
+            setSyncedTempIsMaster(pilotiData.isMaster);
+            setSyncedTempNivel(pilotiData.nivel);
           }
           return;
         }
@@ -246,19 +323,21 @@ export function usePilotiEditor({
       const resolvedNivel =
         Number.isFinite(params?.nivelOverride)
           ? Number(params?.nivelOverride)
-          : tempNivel;
+          : tempNivelRef.current;
 
       const resolvedIsMaster =
         typeof params?.isMasterOverride === 'boolean'
           ? params.isMasterOverride
-          : tempIsMaster;
+          : tempIsMasterRef.current;
 
-      const nivelToApply = autoAdjustPilotiHeightsFromNivel
-        ? clampNivel(resolvedNivel, PILOTI_DEFAULT_NIVEL, maxNivel)
-        : clampNivelByHeight(resolvedNivel, tempHeight);
-      const heightToApply = autoAdjustPilotiHeightsFromNivel
-        ? getRecommendedHeight(nivelToApply, selectedHeights)
-        : tempHeight;
+      const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
+      const height = tempHeightRef.current;
+      const nivelToApply = autoMode
+        ? clampNivel(resolvedNivel, PILOTI_DEFAULT_NIVEL, getMaxNivelForMode(autoMode, height))
+        : clampNivelByHeight(resolvedNivel, height);
+      const heightToApply = autoMode
+        ? getRecommendedHeight(nivelToApply, selectedHeightsRef.current)
+        : height;
       const hasChanges = heightToApply !== currentHeight
         || resolvedIsMaster !== currentIsMaster
         || nivelToApply !== currentNivel;
@@ -280,22 +359,23 @@ export function usePilotiEditor({
     };
 
   const handleNivelModeToggle = () => {
-    const nextAutoMode = !autoAdjustPilotiHeightsFromNivel;
-    const nextMaxNivel = nextAutoMode
-      ? getMaxNivelForAvailableHeights(selectedHeights)
-      : getMaxNivelForPilotiHeight(tempHeight);
+    const nextAutoMode = !autoAdjustPilotiHeightsFromNivelRef.current;
+    const nextMaxNivel = getMaxNivelForMode(nextAutoMode, tempHeightRef.current);
+    const nextNivel = nextAutoMode
+      ? clampNivel(tempNivelRef.current, PILOTI_DEFAULT_NIVEL, nextMaxNivel)
+      : clampNivelByHeight(tempNivelRef.current, tempHeightRef.current);
 
     resolvedSettingsPort.updateSetting('autoAdjustPilotiHeightsFromNivel', nextAutoMode);
-    setAutoAdjustPilotiHeightsFromNivel(nextAutoMode);
-    setTempNivel((current) => clampNivel(current, PILOTI_DEFAULT_NIVEL, nextMaxNivel));
+    setSyncedAutoAdjustPilotiHeightsFromNivel(nextAutoMode);
+    setSyncedTempNivel(nextNivel);
     editorPorts?.houseWritePort.refreshElevationNivelLabelsForCurrentSettings?.();
   };
 
   return {
     tempHeight,
-    setTempHeight,
+    setTempHeight: setSyncedTempHeight,
     tempIsMaster,
-    setTempIsMaster,
+    setTempIsMaster: setSyncedTempIsMaster,
     tempNivel,
     clickedHeight,
     allIds,

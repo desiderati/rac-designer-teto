@@ -33,6 +33,22 @@ describe('house-top-view-door-marker.ts', () => {
     ).toBe('right');
   });
 
+  it('resolves door marker side for the photographed tipo 3 and tipo 6 orientations', () => {
+    expect(
+      resolveTopDoorMarkerSide({
+        houseType: 'tipo3',
+        sideMappings: {top: 'back', bottom: 'back', left: 'side1', right: 'side2'},
+      }),
+    ).toBe('right');
+
+    expect(
+      resolveTopDoorMarkerSide({
+        houseType: 'tipo6',
+        sideMappings: {top: 'front', bottom: 'back', left: 'side1', right: 'side1'},
+      }),
+    ).toBe('top');
+  });
+
   it('calculates marker coordinates for all sides and clamps door center', () => {
     expect(
       calculateTopDoorPlacement({

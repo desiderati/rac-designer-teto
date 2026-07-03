@@ -1,4 +1,4 @@
-import {HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {HouseSide, HouseSideMapping, HouseType, HouseViewType} from '@/shared/types/house.ts';
 
 export interface ViewGroupMetadataPatch<TView extends string, TSide extends string> {
   houseViewType: TView;
@@ -66,21 +66,62 @@ export function getViewLabelForHouseType(viewType: HouseViewType, houseType: Hou
 export function getElevationViewLabelForHouseType(params: {
   houseType: HouseType;
   side?: HouseSide;
+  sideMappings?: HouseSideMapping;
   viewType: Exclude<HouseViewType, 'top'>;
 }): string {
   if (params.houseType === 'tipo6') {
     if (params.viewType === 'front') return 'Frontal';
     if (params.viewType === 'back') return 'Posterior';
-    if (params.viewType === 'side1') return getLateralLabel(params.side);
+    if (params.viewType === 'side1') {
+      return getRelativeLateralLabel({
+        primaryViewType: 'front',
+        side: params.side,
+        sideMappings: params.sideMappings,
+      });
+    }
   }
 
   if (params.houseType === 'tipo3') {
     if (params.viewType === 'side2') return 'Quadrado Aberto';
     if (params.viewType === 'side1') return 'Quadrado Fechado';
-    if (params.viewType === 'back') return getLateralLabel(params.side);
+    if (params.viewType === 'back') {
+      return getRelativeLateralLabel({
+        primaryViewType: 'side2',
+        side: params.side,
+        sideMappings: params.sideMappings,
+      });
+    }
   }
 
   return getViewLabelForHouseType(params.viewType, params.houseType);
+}
+
+const RELATIVE_LATERAL_SIDES_BY_PRIMARY_SIDE: Record<HouseSide, {
+  left: HouseSide;
+  right: HouseSide;
+}> = {
+  top: {left: 'right', right: 'left'},
+  bottom: {left: 'left', right: 'right'},
+  left: {left: 'top', right: 'bottom'},
+  right: {left: 'bottom', right: 'top'},
+};
+
+function getRelativeLateralLabel(params: {
+  primaryViewType: HouseViewType;
+  side?: HouseSide;
+  sideMappings?: HouseSideMapping;
+}): string {
+  if (!params.side || !params.sideMappings) return getLateralLabel(params.side);
+
+  const primarySide =
+    (Object.keys(params.sideMappings) as HouseSide[])
+      .find((side) => params.sideMappings?.[side] === params.primaryViewType);
+  if (!primarySide) return getLateralLabel(params.side);
+
+  const relativeSides = RELATIVE_LATERAL_SIDES_BY_PRIMARY_SIDE[primarySide];
+  if (params.side === relativeSides.left) return 'Lateral Esquerda';
+  if (params.side === relativeSides.right) return 'Lateral Direita';
+  return 'Lateral';
 }
 
 function getLateralLabel(side?: HouseSide): string {

@@ -72,6 +72,7 @@ export interface EditorHouseWriteSource {
   setFamilyName(name: string): void;
   refreshAutoStairsForCurrentSettings(): void;
   refreshAutoContraventamentoForCurrentHouse(): void;
+  refreshTopDoorMarkersForCurrentHouse(): void;
   refreshHouseViewReferenceMarkersForCurrentHouse(): void;
   refreshPilotiNameLabelsForCurrentSettings(): void;
   refreshElevationNivelLabelsForCurrentSettings(): void;
@@ -170,6 +171,7 @@ export function createEditorHouseWritePort(source: EditorHouseWriteSource): Hous
     renameFamily: (name) => source.setFamilyName(name),
     refreshAutoStairsForCurrentSettings: () => source.refreshAutoStairsForCurrentSettings(),
     refreshAutoContraventamentoForCurrentHouse: () => source.refreshAutoContraventamentoForCurrentHouse(),
+    refreshTopDoorMarkersForCurrentHouse: () => source.refreshTopDoorMarkersForCurrentHouse(),
     refreshHouseViewReferenceMarkersForCurrentHouse: () => source.refreshHouseViewReferenceMarkersForCurrentHouse(),
     refreshPilotiNameLabelsForCurrentSettings: () => source.refreshPilotiNameLabelsForCurrentSettings(),
     refreshElevationNivelLabelsForCurrentSettings: () => source.refreshElevationNivelLabelsForCurrentSettings(),

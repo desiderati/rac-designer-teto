@@ -82,6 +82,7 @@ function createHouseWritePort(): HouseWritePort {
     setHouseType: vi.fn(),
     refreshAutoStairsForCurrentSettings: vi.fn(),
     refreshAutoContraventamentoForCurrentHouse: vi.fn(),
+    refreshTopDoorMarkersForCurrentHouse: vi.fn(),
     refreshHouseViewReferenceMarkersForCurrentHouse: vi.fn(),
     resetHouse: vi.fn(),
     setTerrainType: vi.fn((terrainType: number) => terrainType),
@@ -378,19 +379,24 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     const registerView = vi.mocked(houseWritePort.registerView);
     const refreshAutoContraventamento =
       vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+    const refreshTopDoorMarkers =
+      vi.mocked(houseWritePort.refreshTopDoorMarkersForCurrentHouse);
     const refreshReferenceMarkers =
       vi.mocked(houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse);
 
     expect(registerView).toHaveBeenCalledTimes(1);
     expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
+    expect(refreshTopDoorMarkers).toHaveBeenCalledTimes(1);
     expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
     expect(refreshReferenceMarkers).toHaveBeenCalledTimes(1);
     expect(registerView.mock.invocationCallOrder[0])
       .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
     expect(addObjectToCanvas.mock.invocationCallOrder[0])
-      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
-    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshTopDoorMarkers.mock.invocationCallOrder[0]);
+    expect(refreshTopDoorMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(refreshReferenceMarkers.mock.invocationCallOrder[0]);
+    expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
   });
 
   it('recalcula efeitos derivados da planta depois que a vista entra no canvas', () => {
@@ -441,20 +447,25 @@ describe('useCanvasHouseViewActions house insertion events', () => {
     const registerView = vi.mocked(houseWritePort.registerView);
     const refreshAutoContraventamento =
       vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+    const refreshTopDoorMarkers =
+      vi.mocked(houseWritePort.refreshTopDoorMarkersForCurrentHouse);
     const refreshReferenceMarkers =
       vi.mocked(houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse);
 
     expect(registerView).toHaveBeenCalledTimes(1);
     expect(addObjectToCanvas).toHaveBeenCalledTimes(1);
+    expect(refreshTopDoorMarkers).toHaveBeenCalledTimes(1);
     expect(refreshAutoContraventamento).toHaveBeenCalledTimes(1);
     expect(refreshReferenceMarkers).toHaveBeenCalledTimes(1);
     expect(onHouseDrawingChange).toHaveBeenCalledTimes(1);
     expect(registerView.mock.invocationCallOrder[0])
       .toBeLessThan(addObjectToCanvas.mock.invocationCallOrder[0]);
     expect(addObjectToCanvas.mock.invocationCallOrder[0])
-      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
-    expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshTopDoorMarkers.mock.invocationCallOrder[0]);
+    expect(refreshTopDoorMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(refreshReferenceMarkers.mock.invocationCallOrder[0]);
+    expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);
     expect(refreshAutoContraventamento.mock.invocationCallOrder[0])
       .toBeLessThan(onHouseDrawingChange.mock.invocationCallOrder[0]);
     expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
@@ -508,11 +519,15 @@ describe('useCanvasHouseViewActions house insertion events', () => {
 
     const refreshAutoContraventamento =
       vi.mocked(houseWritePort.refreshAutoContraventamentoForCurrentHouse);
+    const refreshTopDoorMarkers =
+      vi.mocked(houseWritePort.refreshTopDoorMarkersForCurrentHouse);
     const refreshReferenceMarkers =
       vi.mocked(houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse);
 
     expect(houseStoreMocks.emitHouseStoreChange).toHaveBeenCalledTimes(1);
     expect(addObjectToCanvas.mock.invocationCallOrder[0])
+      .toBeLessThan(refreshTopDoorMarkers.mock.invocationCallOrder[0]);
+    expect(refreshTopDoorMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(refreshReferenceMarkers.mock.invocationCallOrder[0]);
     expect(refreshReferenceMarkers.mock.invocationCallOrder[0])
       .toBeLessThan(refreshAutoContraventamento.mock.invocationCallOrder[0]);

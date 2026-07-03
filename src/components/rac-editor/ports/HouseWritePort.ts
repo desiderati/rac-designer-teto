@@ -34,6 +34,9 @@ export interface HouseLifecycleWritePort {
   /** Recalcula o contraventamento automático para as vistas atualmente no canvas. */
   refreshAutoContraventamentoForCurrentHouse(): void;
 
+  /** Atualiza os marcadores de porta derivados entre vista elevada e planta. */
+  refreshTopDoorMarkersForCurrentHouse(): void;
+
   /** Atualiza os marcadores de referência entre planta e vistas elevadas. */
   refreshHouseViewReferenceMarkersForCurrentHouse(): void;
 

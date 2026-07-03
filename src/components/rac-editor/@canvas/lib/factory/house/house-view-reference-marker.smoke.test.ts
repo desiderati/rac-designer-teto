@@ -272,4 +272,60 @@ describe('house-view-reference-marker.ts', () => {
     expect(frontMarker.fontSize).toBe(8);
     expect(sideMarker.fontSize).toBe(8);
   });
+
+  it('rotula laterais pela orientacao relativa da fachada ou porta na planta', () => {
+    const topGroupTipo3 = createMockGroup([
+      {isHouseBody: true, width: 366, height: 132, scaleX: 1, scaleY: 1},
+    ]);
+    const topBackGroup = createMockGroup([
+      {left: 0, top: 0, width: 305, height: 160},
+    ]);
+    const bottomBackGroup = createMockGroup([
+      {left: 0, top: 0, width: 305, height: 160},
+    ]);
+
+    refreshHouseViewReferenceMarkersInViews({
+      houseType: 'tipo3',
+      sideMappings: {top: 'back', bottom: 'back', left: 'side1', right: 'side2'},
+      topViews: [{instanceId: 'top_1', group: topGroupTipo3}],
+      elevationViews: {
+        front: [],
+        back: [
+          {instanceId: 'back_1', side: 'bottom', group: bottomBackGroup},
+          {instanceId: 'back_2', side: 'top', group: topBackGroup},
+        ],
+        side1: [],
+        side2: [],
+      },
+    });
+
+    const bottomBackMarker =
+      bottomBackGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+    const topBackMarker =
+      topBackGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+
+    expect(bottomBackMarker.text).toBe('Lateral Esquerda');
+    expect(topBackMarker.text).toBe('Lateral Direita');
+
+    const rightSideGroup = createMockGroup([
+      {left: 0, top: 0, width: 150, height: 160},
+    ]);
+
+    refreshHouseViewReferenceMarkersInViews({
+      houseType: 'tipo6',
+      sideMappings: {top: 'front', bottom: 'back', left: null, right: 'side1'},
+      topViews: [],
+      elevationViews: {
+        front: [],
+        back: [],
+        side1: [{instanceId: 'side1_1', side: 'right', group: rightSideGroup}],
+        side2: [],
+      },
+    });
+
+    const rightSideMarker =
+      rightSideGroup.getCanvasObjects().find((object) => object.isHouseViewReferenceMarker) as any;
+
+    expect(rightSideMarker.text).toBe('Lateral Esquerda');
+  });
 });

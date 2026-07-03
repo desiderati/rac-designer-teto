@@ -84,6 +84,7 @@ describe('editor house ports', () => {
 
   it('expoe os efeitos visuais derivados de configuracoes pela porta de escrita', () => {
     expect(typeof ports.houseWritePort.refreshAutoStairsForCurrentSettings).toBe('function');
+    expect(typeof ports.houseWritePort.refreshTopDoorMarkersForCurrentHouse).toBe('function');
     expect(typeof ports.houseWritePort.refreshPilotiNameLabelsForCurrentSettings).toBe('function');
     expect(typeof ports.houseWritePort.refreshElevationNivelLabelsForCurrentSettings).toBe('function');
   });

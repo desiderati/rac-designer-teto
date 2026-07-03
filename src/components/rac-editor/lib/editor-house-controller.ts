@@ -199,6 +199,11 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.effects.refreshAutoContraventamento();
   }
 
+  refreshTopDoorMarkersForCurrentHouse(): void {
+    this.invalidateRuntimeHouseCache();
+    this.effects.refreshTopDoorMarkers();
+  }
+
   refreshHouseViewReferenceMarkersForCurrentHouse(): void {
     this.invalidateRuntimeHouseCache();
     this.effects.refreshHouseViewReferenceMarkers();

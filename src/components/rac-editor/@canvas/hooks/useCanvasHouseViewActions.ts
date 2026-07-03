@@ -262,6 +262,7 @@ export function useCanvasHouseViewActions({
         houseWritePort.removeView(instanceId);
         return null;
       }
+      houseWritePort.refreshTopDoorMarkersForCurrentHouse();
       houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse();
       houseWritePort.refreshAutoContraventamentoForCurrentHouse();
       emitHouseStoreChange();

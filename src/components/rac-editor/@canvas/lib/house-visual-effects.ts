@@ -78,6 +78,7 @@ export function refreshHouseViewReferenceMarkers(params: {
   renderWhenChanged(
     refreshHouseViewReferenceMarkersInViews({
       houseType: params.house.houseType,
+      sideMappings: params.house.sideMappings,
       topViews: params.house.views.top,
       elevationViews: {
         front: params.house.views.front,

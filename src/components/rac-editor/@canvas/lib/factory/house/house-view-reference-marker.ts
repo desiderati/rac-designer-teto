@@ -5,6 +5,7 @@ import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {
   HouseRuntimeViewInstance,
   HouseSide,
+  HouseSideMapping,
   HouseType,
   HouseViewInstanceId,
   HouseViewType,
@@ -56,6 +57,7 @@ const ELEVATION_VIEW_TYPES: Exclude<HouseViewType, 'top'>[] = ['front', 'back', 
 export function collectHouseViewReferenceEntries(params: {
   elevationViews: Record<Exclude<HouseViewType, 'top'>, HouseRuntimeViewInstance<CanvasGroup>[]>;
   houseType: HouseType;
+  sideMappings?: HouseSideMapping;
 }): HouseViewReferenceEntry[] {
   const entries = ELEVATION_VIEW_TYPES.flatMap((viewType) =>
     params.elevationViews[viewType].map((instance) => ({
@@ -64,6 +66,7 @@ export function collectHouseViewReferenceEntries(params: {
       label: getElevationViewLabelForHouseType({
         houseType: params.houseType,
         side: instance.side,
+        sideMappings: params.sideMappings,
         viewType,
       }),
       side: instance.side,
@@ -184,11 +187,13 @@ export function createHousePlanReferenceMarker({
 export function refreshHouseViewReferenceMarkersInViews(params: {
   elevationViews: Record<Exclude<HouseViewType, 'top'>, HouseRuntimeViewInstance<CanvasGroup>[]>;
   houseType: HouseType;
+  sideMappings?: HouseSideMapping;
   topViews: HouseRuntimeViewInstance<CanvasGroup>[];
 }): boolean {
   const references = collectHouseViewReferenceEntries({
     elevationViews: params.elevationViews,
     houseType: params.houseType,
+    sideMappings: params.sideMappings,
   });
 
   let hasChanges = false;
