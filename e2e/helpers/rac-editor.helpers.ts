@@ -91,10 +91,14 @@ export async function applyRacEditorInitScript(page: Page) {
     localStorage.setItem('guided-tour:rac-tip:piloti-nivel-mode', 'true');
     localStorage.setItem('rac-settings', JSON.stringify({
       autoNavigatePiloti: false,
+      autoAdjustPilotiHeightsFromNivel: true,
       zoomEnabledByDefault: true,
-      openEditorsAtFixedPosition: false,
-      disableDrawModeAfterFreehand: false,
+      openEditorsAtFixedPosition: true,
+      disableDrawModeAfterFreehand: true,
+      configureCornerPilotiNiveisOnHouseInsert: true,
+      allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
+      showPilotiLabelsOnTopView: true,
     }));
     localStorage.removeItem('rac-projects');
   });

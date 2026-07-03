@@ -142,10 +142,14 @@ test.describe('RAC 3D viewer', () => {
       localStorage.setItem('guided-tour:rac-tip:distance', 'true');
       localStorage.setItem('rac-settings', JSON.stringify({
         autoNavigatePiloti: false,
+        autoAdjustPilotiHeightsFromNivel: true,
         zoomEnabledByDefault: true,
-        openEditorsAtFixedPosition: false,
-        disableDrawModeAfterFreehand: false,
+        openEditorsAtFixedPosition: true,
+        disableDrawModeAfterFreehand: true,
+        configureCornerPilotiNiveisOnHouseInsert: true,
+        allowPilotiHeightDefinitionOnHouseInsert: false,
         showStairsOnTopView: false,
+        showPilotiLabelsOnTopView: true,
       }));
       localStorage.setItem('rac-projects', JSON.stringify({
         version: 1,

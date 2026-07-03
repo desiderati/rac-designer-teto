@@ -122,7 +122,7 @@ const HOUSE_TYPE_LABELS: Record<Exclude<HouseType, null>, string> = {
 const SOIL_PROFILE_LABELS: Record<SoilProfile, string> = {
   stable_clay: 'Terreno Estável / Argiloso',
   firm_hard: 'Terreno Firme / Duro',
-  alluvial: 'Solo Molhado',
+  alluvial: 'Solo Molhado / Lama',
   water_table: 'Lençol Freático / Água no Fundo',
 };
 

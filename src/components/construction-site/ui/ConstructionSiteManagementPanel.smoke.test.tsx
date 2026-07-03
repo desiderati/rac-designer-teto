@@ -101,10 +101,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       backgroundSize: '40px 40px',
     });
     expect(screen.getByTestId('construction-management-shell').className).toContain('h-full');
+    expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-auto');
     expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-y-auto');
     expect(screen.getByTestId('construction-management-shell').className).toContain('py-10');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('min-h-full');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('pt-24');
+    expect(screen.getByTestId('construction-management-card').className).toContain('min-w-[450px]');
     expect(screen.getByTestId('construction-management-card').className).toContain('max-w-4xl');
     expect(screen.getByTestId('construction-management-card').className).toContain('bg-white');
     expect(screen.getByTestId('construction-management-card').className).toContain('min-h-[calc(100dvh-5rem)]');
@@ -1066,7 +1068,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('CC2603')).toBeVisible();
     expect(screen.getByText('Tiradentes')).toBeVisible();
     expect(screen.getByText('11/05/2026')).toBeVisible();
-    expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-hidden');
+    expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-auto');
     expect(screen.getByRole('img', {name: 'Foto da construção CC2603'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Detalhes da Família'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Sobre a Casa'})).toBeVisible();
@@ -1134,7 +1136,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Ana e Bruno'}});
     fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Casa precisa ficar próxima ao acesso lateral.'}});
     const stableSoilOption = screen.getByRole('radio', {name: /Terreno Estável \/ Argiloso/i});
-    const alluvialSoilOption = screen.getByRole('radio', {name: /Solo Molhado/i});
+    const alluvialSoilOption = screen.getByRole('radio', {name: /Solo Molhado \/ Lama/i});
     const elevatedObstaclesOption = screen.getByLabelText('Obstáculos Elevados');
     expect(stableSoilOption.closest('label')?.querySelector('svg')).toHaveClass('lucide-layers');
     expect(alluvialSoilOption.closest('label')?.className).toContain('focus-within:ring-inset');

@@ -212,7 +212,7 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('Plano');
   });
 
-  it('exibe alluvial como Solo Molhado no relatorio', () => {
+  it('exibe alluvial como Solo Molhado / Lama no relatorio', () => {
     const constructionSite = createConstructionSiteState();
     constructionSite.houses[0].siteAssessment = {
       soilProfile: 'alluvial',
@@ -225,7 +225,7 @@ describe('rac pdf report model', () => {
     });
 
     expect(report?.terrain.optionGroups.find((group) => group.label === 'Solo')?.selected)
-      .toEqual(['Solo Molhado']);
+      .toEqual(['Solo Molhado / Lama']);
   });
 
   it('monta o relatório de uma casa específica mesmo quando ela não é a ativa', () => {

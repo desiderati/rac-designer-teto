@@ -30,6 +30,26 @@ function renderSettingsModal() {
 }
 
 describe('SettingsModal.tsx', () => {
+  it('renderiza as opções padrão do editor conforme configuração inicial', () => {
+    renderSettingsModal();
+
+    expect(screen.getByLabelText('Recalcular alturas automaticamente ao alterar níveis')).toBeChecked();
+    expect(screen.getByLabelText(
+      'Navegar automaticamente para o próximo piloti ao definir a altura do piloti selecionado',
+    )).not.toBeChecked();
+    expect(screen.getByLabelText('Habilitar Minimap por padrão')).not.toBeChecked();
+    expect(screen.getByLabelText(
+      'Abrir modais de editores em posição fixa ao lado da barra de ferramentas esquerda',
+    )).toBeChecked();
+    expect(screen.getByLabelText('Desabilitar a opção Lápis após desenho à mão livre')).toBeChecked();
+    expect(screen.getByLabelText('Configurar o nível dos pilotis dos cantos ao inserir uma casa')).toBeChecked();
+    expect(screen.getByLabelText(
+      'Permitir a definição das alturas dos pilotis ao inserir uma casa',
+    )).not.toBeChecked();
+    expect(screen.getByLabelText('Mostrar escada na vista planta')).not.toBeChecked();
+    expect(screen.getByLabelText('Mostrar labels dos pilotis na vista planta')).toBeChecked();
+  });
+
   it('mantém a configuração de recalcular alturas sem título ou subtexto auxiliar', () => {
     renderSettingsModal();
 

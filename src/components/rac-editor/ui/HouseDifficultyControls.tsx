@@ -76,7 +76,7 @@ const SOIL_PROFILE_OPTIONS: Array<{
   },
   {
     value: 'alluvial',
-    label: 'Solo Molhado',
+    label: 'Solo Molhado / Lama',
     Icon: Waves,
     iconClassName: 'text-amber-600',
   },

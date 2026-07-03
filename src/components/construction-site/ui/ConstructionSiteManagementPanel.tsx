@@ -242,12 +242,12 @@ export function ConstructionSiteManagementPanel({
   return (
     <main
       data-testid='construction-management-shell'
-      className='h-full overflow-x-hidden overflow-y-auto px-4 py-10 sm:px-6 lg:px-10'
+      className='h-full overflow-x-auto overflow-y-auto px-4 py-10 sm:px-6 lg:px-10'
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div
         data-testid='construction-management-card'
-        className='mx-auto flex min-h-[calc(100dvh-5rem)] w-full max-w-4xl flex-col rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-8'
+        className='mx-auto flex min-h-[calc(100dvh-5rem)] min-w-[450px] w-full max-w-4xl flex-col rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-8'
       >
         <header className='mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
           <div
