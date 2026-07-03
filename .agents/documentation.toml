@@ -1,0 +1,21 @@
+repo_acronym = "RAC"
+
+[docs_governance]
+allowed_nested_readmes = [
+  "docs/business-rules/README.md",
+  "docs/code-scaffolds/README.md",
+  "docs/engineering-playbook/README.md",
+  "docs/product-requirements/README.md",
+  "docs/refactoring-backlog/README.md",
+  "docs/ui-definitions/README.md",
+]
+
+filename_patterns = [
+  '^docs/architecture-decisions/ADR-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$',
+  '^docs/business-rules/BUS-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$',
+  '^docs/engineering-playbook/PLAY-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$',
+  '^docs/product-requirements/PRD-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.prd\.md$',
+  '^docs/product-requirements/PRD-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.prd\.assets/(?:[a-z0-9]+(?:-[a-z0-9]+)*|derived/[a-z0-9_]+(?:-[a-z0-9_]+)*)\.md$',
+  '^docs/refactoring-backlog/BACK-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$',
+  '^docs/ui-definitions/UI-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$',
+]

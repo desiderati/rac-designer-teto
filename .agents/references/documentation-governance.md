@@ -138,19 +138,24 @@ When performing broad curation of `docs/`, preserve release delivery artifacts:
 The `<number>` segment must be numeric, such as `89` or `102`. These documents may be formatted and
 validated for UTF-8, accents, frontmatter, and links, but must not be moved or renamed.
 
-Use `docs/README.md` as the unique GitHub-friendly index for the `docs/` directory. Move loose
-`docs/*.md` files, except `docs/README.md`, into semantic subdirectories such as
-`system-specifications`, `bug-analysis`, `data-models`, `architecture-decisions`,
-`engineering-playbook`, `execution-runbooks`, `product-requirements`, or `incident-reports`.
+Use `docs/README.md` as the GitHub-friendly root index for the `docs/` directory. This repository
+also uses domain-specific READMEs as curated indexes, explicitly configured in
+`.agents/documentation.toml`. Move loose `docs/*.md` files, except `docs/README.md`, into semantic
+subdirectories such as `system-specifications`, `bug-analysis`, `data-models`,
+`architecture-decisions`, `engineering-playbook`, `execution-runbooks`, `product-requirements`, or
+`incident-reports`.
 
-For Markdown documents under `docs/`, except `docs/README.md` and protected release artifacts, use
-`{REPO_ACRONYM}-{NNN}-{slug}.md`. The repository acronym must come from explicit repository
-configuration at `.agents/documentation.toml` using `repo_acronym = "SAT"`, or from explicit user
-confirmation before any rename. Do not infer the acronym silently from the repository name.
+For Markdown documents under `docs/`, except indexes and protected release artifacts, use the
+filename families configured in `.agents/documentation.toml`. The generic fallback is
+`{REPO_ACRONYM}-{NNN}-{slug}.md`, with the repository acronym coming from explicit repository
+configuration such as `repo_acronym = "SAT"`, or from explicit user confirmation before any rename.
+Do not infer the acronym silently from the repository name.
 
 When `.agents/scripts/validate_documentation_metadata.py` is installed, run it with
-`--enforce-docs-governance` for broad `docs/` curation. Use `--repo-acronym` only for one-off
-validation when the config is absent and the operator has already confirmed the acronym.
+`--enforce-docs-governance` for broad `docs/` curation. In this repository, that gate reads
+`.agents/documentation.toml` and accepts the local `ADR-*`, `BUS-*`, `PRD-*`, `PLAY-*`, `BACK-*` and
+`UI-*` taxonomy. Use `--repo-acronym` only for one-off fallback validation when the config is absent
+and the operator has already confirmed the acronym.
 
 ---
 

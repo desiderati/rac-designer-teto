@@ -85,6 +85,13 @@ class ValidationTarget:
     frontmatter_required: bool
 
 
+@dataclass(frozen=True)
+class DocsGovernancePolicy:
+    repo_acronym: str
+    allowed_nested_readmes: frozenset[str]
+    filename_patterns: tuple[re.Pattern[str], ...]
+
+
 def _fail(message: str, code: int = 2) -> NoReturn:
     print(f"[validate_documentation_metadata] error: {message}", file=sys.stderr)
     sys.exit(code)
@@ -160,12 +167,70 @@ def _parse_frontmatter(text: str) -> dict[str, str] | None:
     return fields
 
 
-def _load_repo_acronym(repo_root: Path, config_path: Path, override: str | None) -> tuple[str | None, list[str]]:
+def _validate_repo_acronym(acronym: str, source: str) -> list[str]:
+    if not acronym:
+        return [f"{source}: missing repo_acronym"]
+    if not REPO_ACRONYM_RE.fullmatch(acronym):
+        return [f"{source}: repo_acronym must match {REPO_ACRONYM_RE.pattern}: {acronym}"]
+    return []
+
+
+def _read_string_list(
+    data: object,
+    field_name: str,
+    *,
+    normalize_paths: bool = False,
+) -> tuple[list[str], list[str]]:
+    if data is None:
+        return [], []
+    if not isinstance(data, list):
+        return [], [f"{field_name}: expected a list of strings"]
+
+    values: list[str] = []
+    violations: list[str] = []
+    for index, item in enumerate(data):
+        if not isinstance(item, str):
+            violations.append(f"{field_name}[{index}]: expected a string")
+            continue
+        value = item.strip()
+        if normalize_paths:
+            value = value.replace("\\", "/").strip("/")
+        if not value:
+            violations.append(f"{field_name}[{index}]: value cannot be blank")
+            continue
+        values.append(value)
+    return values, violations
+
+
+def _compile_filename_patterns(
+    raw_patterns: list[str],
+    field_name: str,
+) -> tuple[tuple[re.Pattern[str], ...], list[str]]:
+    patterns: list[re.Pattern[str]] = []
+    violations: list[str] = []
+    for index, raw_pattern in enumerate(raw_patterns):
+        try:
+            patterns.append(re.compile(raw_pattern))
+        except re.error as exc:
+            violations.append(f"{field_name}[{index}]: invalid regex: {exc}")
+    return tuple(patterns), violations
+
+
+def _load_docs_governance_policy(
+    repo_root: Path,
+    config_path: Path,
+    override: str | None,
+) -> tuple[DocsGovernancePolicy | None, list[str]]:
     if override:
         acronym = override.strip()
-        if not REPO_ACRONYM_RE.fullmatch(acronym):
-            return None, [f"--repo-acronym must match {REPO_ACRONYM_RE.pattern}: {override}"]
-        return acronym, []
+        violations = _validate_repo_acronym(acronym, "--repo-acronym")
+        if violations:
+            return None, violations
+        return DocsGovernancePolicy(
+            repo_acronym=acronym,
+            allowed_nested_readmes=frozenset(),
+            filename_patterns=tuple(),
+        ), []
 
     full_config_path = config_path if config_path.is_absolute() else repo_root / config_path
     if not full_config_path.exists():
@@ -182,11 +247,40 @@ def _load_repo_acronym(repo_root: Path, config_path: Path, override: str | None)
         return None, [f"{config_path.as_posix()}: invalid TOML: {exc}"]
 
     acronym = str(data.get("repo_acronym", "")).strip()
-    if not acronym:
-        return None, [f"{config_path.as_posix()}: missing repo_acronym"]
-    if not REPO_ACRONYM_RE.fullmatch(acronym):
-        return None, [f"{config_path.as_posix()}: repo_acronym must match {REPO_ACRONYM_RE.pattern}: {acronym}"]
-    return acronym, []
+    violations = _validate_repo_acronym(acronym, config_path.as_posix())
+    docs_governance = data.get("docs_governance", {})
+    if docs_governance is None:
+        docs_governance = {}
+    if not isinstance(docs_governance, dict):
+        violations.append(f"{config_path.as_posix()}: docs_governance must be a table")
+        docs_governance = {}
+
+    allowed_nested_readmes, readme_violations = _read_string_list(
+        docs_governance.get("allowed_nested_readmes"),
+        "docs_governance.allowed_nested_readmes",
+        normalize_paths=True,
+    )
+    violations.extend(readme_violations)
+
+    raw_filename_patterns, filename_pattern_violations = _read_string_list(
+        docs_governance.get("filename_patterns"),
+        "docs_governance.filename_patterns",
+    )
+    violations.extend(filename_pattern_violations)
+    filename_patterns, regex_violations = _compile_filename_patterns(
+        raw_filename_patterns,
+        "docs_governance.filename_patterns",
+    )
+    violations.extend(regex_violations)
+
+    if violations:
+        return None, violations
+
+    return DocsGovernancePolicy(
+        repo_acronym=acronym,
+        allowed_nested_readmes=frozenset(allowed_nested_readmes),
+        filename_patterns=filename_patterns,
+    ), []
 
 
 def _validate_frontmatter(
@@ -228,14 +322,14 @@ def _validate_docs_governance(
     repo_root: Path,
     targets: list[ValidationTarget],
     *,
-    repo_acronym: str | None,
-    acronym_violations: list[str],
+    policy: DocsGovernancePolicy | None,
+    policy_violations: list[str],
 ) -> list[str]:
     docs_root = repo_root / "docs"
     if not docs_root.exists():
         return []
 
-    violations = list(acronym_violations)
+    violations = list(policy_violations)
     docs_readme = repo_root / DOCS_INDEX_PATH
     if not docs_readme.is_file():
         violations.append(
@@ -249,9 +343,14 @@ def _validate_docs_governance(
         if Path(target.relative_path).name == "README.md" and target.relative_path != DOCS_INDEX_PATH.as_posix()
     ]
     for relative_path in nested_readmes:
+        if policy is not None and relative_path in policy.allowed_nested_readmes:
+            continue
         violations.append(
             f"{relative_path}: extra README.md under docs; keep docs/README.md as the unique docs index"
         )
+
+    if policy is None:
+        return violations
 
     for target in docs_targets:
         relative = target.relative_path
@@ -267,14 +366,23 @@ def _validate_docs_governance(
                 f"{relative}: loose docs file must be moved to a semantic subdirectory"
             )
             continue
-        if repo_acronym is None:
+
+        if policy.filename_patterns:
+            if not any(pattern.fullmatch(relative) for pattern in policy.filename_patterns):
+                violations.append(
+                    (
+                        f"{relative}: docs filename must match one configured "
+                        "docs_governance.filename_patterns entry"
+                    )
+                )
             continue
+
         canonical_re = re.compile(
-            DOCS_CANONICAL_NAME_RE_TEMPLATE.format(repo_acronym=re.escape(repo_acronym))
+            DOCS_CANONICAL_NAME_RE_TEMPLATE.format(repo_acronym=re.escape(policy.repo_acronym))
         )
         if not canonical_re.fullmatch(path.name):
             expected = DOCS_CANONICAL_NAME_TEMPLATE.format(
-                repo_acronym=repo_acronym,
+                repo_acronym=policy.repo_acronym,
                 number="NNN",
                 slug="slug",
             )
@@ -520,7 +628,10 @@ def main() -> int:
         "--docs-governance-config",
         type=Path,
         default=DOCS_GOVERNANCE_CONFIG,
-        help="Repository-local TOML config carrying repo_acronym for docs governance.",
+        help=(
+            "Repository-local TOML config carrying repo_acronym and optional "
+            "docs_governance policy overrides."
+        ),
     )
     args = parser.parse_args()
 
@@ -543,7 +654,7 @@ def main() -> int:
     violations.extend(_validate_frontmatter(targets, required_fields))
 
     if args.enforce_docs_governance:
-        repo_acronym, acronym_violations = _load_repo_acronym(
+        docs_governance_policy, policy_violations = _load_docs_governance_policy(
             repo_root,
             args.docs_governance_config,
             args.repo_acronym,
@@ -552,8 +663,8 @@ def main() -> int:
             _validate_docs_governance(
                 repo_root,
                 targets,
-                repo_acronym=repo_acronym,
-                acronym_violations=acronym_violations,
+                policy=docs_governance_policy,
+                policy_violations=policy_violations,
             )
         )
 
