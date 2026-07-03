@@ -130,6 +130,7 @@ export interface EditorConstructionSiteManagementSource {
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
+  markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
   markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
@@ -267,6 +268,7 @@ export function createEditorConstructionSiteManagementPort(
     archiveHouse: (houseId) => source.archiveHouse(houseId),
     unarchiveHouse: (houseId) => source.unarchiveHouse(houseId),
     markActiveHouseRacPrinted: () => source.markActiveHouseRacPrinted(),
+    markHouseRacPrinted: (houseId) => source.markHouseRacPrinted(houseId),
     markHouseBuilt: (houseId) => source.markHouseBuilt(houseId),
     markHouseDraft: (houseId) => source.markHouseDraft(houseId),
     activateHouse: (constructionSiteId, houseId) => source.activateHouse(constructionSiteId, houseId),

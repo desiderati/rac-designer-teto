@@ -42,6 +42,7 @@ export interface ConstructionSiteManagementPort {
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
+  markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
   markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;

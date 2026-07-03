@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import type {MutableRefObject, ReactNode} from 'react';
 import {
@@ -8,6 +8,7 @@ import {
 import {
   useConstructionSiteManagementController,
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
+import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 import type {HouseState} from '@/shared/types/house.ts';
@@ -20,12 +21,55 @@ import {
   type HouseDrawingElementDocument,
 } from '@/shared/types/house-drawing-document.ts';
 
+const controllerMocks = vi.hoisted(() => ({
+  buildRacPdfZipExport: vi.fn(),
+  downloadBlob: vi.fn(),
+  renderHouseDrawingCanvasImageDataUrl: vi.fn(),
+  JSZip: vi.fn(),
+  jsPDF: vi.fn(),
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+vi.mock('sonner', () => ({
+  toast: controllerMocks.toast,
+}));
+
+vi.mock('jszip', () => ({
+  default: controllerMocks.JSZip,
+}));
+
+vi.mock('jspdf', () => ({
+  jsPDF: controllerMocks.jsPDF,
+}));
+
+vi.mock('@/components/rac-editor/lib/rac-pdf-zip-export.ts', () => ({
+  buildRacPdfZipExport: controllerMocks.buildRacPdfZipExport,
+  downloadBlob: controllerMocks.downloadBlob,
+}));
+
+vi.mock('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts', () => ({
+  renderHouseDrawingCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
+}));
+
 type CanvasHandle = CanvasDocumentHandle & CanvasHistoryHandle;
 type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagementPort'] & {
   [Key in keyof EditorPorts['constructionSiteManagementPort']]: ReturnType<typeof vi.fn>;
 };
 
 describe('useConstructionSiteManagementController.ts', () => {
+  beforeEach(() => {
+    controllerMocks.buildRacPdfZipExport.mockReset();
+    controllerMocks.downloadBlob.mockReset();
+    controllerMocks.renderHouseDrawingCanvasImageDataUrl.mockReset();
+    controllerMocks.JSZip.mockReset();
+    controllerMocks.jsPDF.mockReset();
+    controllerMocks.toast.success.mockReset();
+    controllerMocks.toast.error.mockReset();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -310,6 +354,71 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenNthCalledWith(2, secondTargetDocument);
   });
 
+  it('exporta RACs em ZIP para a construção selecionada e marca as casas exportadas', async () => {
+    const constructionSite = createConstructionSiteSnapshot();
+    const blob = new Blob(['zip']);
+    controllerMocks.buildRacPdfZipExport.mockResolvedValue({
+      fileName: 'RACS-CC2603.zip',
+      blob,
+      exportedHouseIds: ['house_draft', 'house_built'],
+      failures: [],
+    });
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      getConstructionSiteSnapshots: vi.fn(() => [constructionSite]),
+      getConstructionSiteSnapshot: vi.fn(() => null),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.exportConstructionRacsZip('construction_site_1');
+    });
+
+    expect(controllerMocks.buildRacPdfZipExport).toHaveBeenCalledWith({
+      constructionSite,
+      JSZip: controllerMocks.JSZip,
+      jsPDF: controllerMocks.jsPDF,
+      renderCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
+    });
+    expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(blob, 'RACS-CC2603.zip');
+    expect(constructionSiteManagementPort.markHouseRacPrinted.mock.calls).toEqual([
+      ['house_draft'],
+      ['house_built'],
+    ]);
+    expect(controllerMocks.toast.success).toHaveBeenCalledWith('ZIP de RACs gerado com 2 PDF(s).');
+  });
+
+  it('não exporta RACs em ZIP para construção concluída porque a ação altera status', async () => {
+    const constructionSite = createConstructionSiteSnapshot('completed');
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      getConstructionSiteSnapshots: vi.fn(() => [constructionSite]),
+      getConstructionSiteSnapshot: vi.fn(() => null),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.exportConstructionRacsZip('construction_site_1');
+    });
+
+    expect(controllerMocks.buildRacPdfZipExport).not.toHaveBeenCalled();
+    expect(constructionSiteManagementPort.markHouseRacPrinted).not.toHaveBeenCalled();
+    expect(controllerMocks.toast.error)
+      .toHaveBeenCalledWith('A exportação em ZIP só está disponível para construções em andamento.');
+  });
+
   it('salva a casa ativa quando o Canvas notifica mudança documental real', async () => {
     vi.useFakeTimers();
 
@@ -496,6 +605,7 @@ function createConstructionSiteManagementPort(
     archiveHouse: vi.fn(),
     unarchiveHouse: vi.fn(),
     markActiveHouseRacPrinted: vi.fn(),
+    markHouseRacPrinted: vi.fn(),
     markHouseBuilt: vi.fn(),
     markHouseDraft: vi.fn(),
     activateHouse: vi.fn(() => null),
@@ -542,5 +652,66 @@ function createDrawingDocument(
       preAssignedSides: {},
     } satisfies HouseState,
     canvas,
+  };
+}
+
+function createConstructionSiteSnapshot(
+  status: ConstructionSiteState['constructionSite']['status'] = 'in_progress',
+): ConstructionSiteState {
+  const houses = [
+    createPersistedHouse('house_draft', 'family_draft', 'draft'),
+    createPersistedHouse('house_archived', 'family_archived', 'archived'),
+    createPersistedHouse('house_built', 'family_built', 'built'),
+  ];
+
+  return {
+    constructionSite: {
+      id: 'construction_site_1',
+      externalCode: 'CC2603',
+      constructionDate: '2026-07-02',
+      communityId: 'community_1',
+      status,
+      activeHouseId: 'house_draft',
+      createdAt: '2026-07-02T00:00:00.000Z',
+      updatedAt: '2026-07-02T00:00:00.000Z',
+    },
+    communities: [{id: 'community_1', name: 'Comunidade'}],
+    families: [
+      {id: 'family_draft', constructionSiteId: 'construction_site_1', name: 'Família Rascunho'},
+      {id: 'family_archived', constructionSiteId: 'construction_site_1', name: 'Família Arquivada'},
+      {id: 'family_built', constructionSiteId: 'construction_site_1', name: 'Família Construída'},
+    ],
+    monitors: [],
+    houses,
+  };
+}
+
+function createPersistedHouse(
+  id: string,
+  familyId: string,
+  status: PersistedHouseRecord['status'],
+): PersistedHouseRecord {
+  return {
+    id,
+    constructionSiteId: 'construction_site_1',
+    familyId,
+    houseType: 'tipo6',
+    terrainType: 1,
+    status,
+    designSettings: {selectedPilotiHeights: [1, 1.5, 2]},
+    siteAssessment: {},
+    pilotiLayout: {points: []},
+    drawingDocument: {
+      schemaVersion: 1,
+      house: null,
+      canvas: {
+        schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+        objects: [],
+      },
+      views: {},
+    },
+    version: 1,
+    createdAt: '2026-07-02T00:00:00.000Z',
+    updatedAt: '2026-07-02T00:00:00.000Z',
   };
 }

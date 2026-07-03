@@ -1,4 +1,5 @@
 import {type RefObject, useCallback, useEffect, useState} from 'react';
+import {toast} from 'sonner';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
@@ -106,6 +107,60 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
+  const exportConstructionRacsZip = useCallback(async (constructionSiteId?: string) => {
+    try {
+      await flushActiveHouseDocumentSave({force: true});
+
+      const snapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
+      const targetConstructionSite = snapshots.find((snapshot) => snapshot.constructionSite.id === constructionSiteId)
+        ?? constructionSiteManagementPort.getConstructionSiteSnapshot();
+
+      if (!targetConstructionSite) {
+        toast.error('Nenhuma construção ativa para exportar RACs.');
+        return;
+      }
+
+      if (targetConstructionSite.constructionSite.status !== 'in_progress') {
+        toast.error('A exportação em ZIP só está disponível para construções em andamento.');
+        return;
+      }
+
+      const [
+        {default: JSZip},
+        {jsPDF},
+        {buildRacPdfZipExport, downloadBlob},
+        {renderHouseDrawingCanvasImageDataUrl},
+      ] = await Promise.all([
+        import('jszip'),
+        import('jspdf'),
+        import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
+        import('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts'),
+      ]);
+
+      const result = await buildRacPdfZipExport({
+        constructionSite: targetConstructionSite,
+        JSZip,
+        jsPDF,
+        renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
+      });
+
+      downloadBlob(result.blob, result.fileName);
+      result.exportedHouseIds.forEach((houseId) => {
+        constructionSiteManagementPort.markHouseRacPrinted(houseId);
+      });
+
+      const failureMessage = result.failures.length > 0
+        ? ` ${result.failures.length} falha(s) foram relatadas no ZIP.`
+        : '';
+      toast.success(`ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`);
+    } catch (error) {
+      console.error('[useConstructionSiteManagementController] Failed to export RAC ZIP:', error);
+      toast.error(error instanceof Error && error.message.trim()
+        ? error.message
+        : 'Falha ao exportar RACs em ZIP.');
+    }
+  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
+
   const createConstructionSite = useCallback(async (input: CreateConstructionSiteInput) => {
     await runDocumentMutation(() => {
       constructionSiteManagementPort.createConstructionSite(input);
@@ -181,6 +236,7 @@ export function useConstructionSiteManagementController({
       archiveActiveHouse,
       archiveHouse,
       unarchiveHouse,
+      exportConstructionRacsZip,
       markHouseBuilt,
       markHouseDraft,
       activateHouse,

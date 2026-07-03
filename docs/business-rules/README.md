@@ -60,6 +60,9 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
 12. `BUS-012-checklist-exportacao-rac.md`
     - Regra do checklist exibido antes da exportação padrão de PDF da RAC.
 
+13. `BUS-013-exportacao-racs-zip.md`
+    - Regra da exportação em lote das RACs de uma construção para arquivo ZIP.
+
 ## Quando atualizar
 
 Atualize estes documentos quando houver mudança em:

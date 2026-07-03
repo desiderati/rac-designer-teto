@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {CalendarDays, X} from 'lucide-react';
+import {CalendarDays, Download, X} from 'lucide-react';
 import type {
   CreateConstructionSiteInput,
   UpdateConstructionSiteInput,
@@ -34,6 +34,9 @@ export function ConstructionFormScreen({
   constructionDate,
   communityName,
   onSubmit,
+  onExportRacsZip,
+  canExportRacsZip = false,
+  isExportingRacsZip = false,
   onDirtyChange,
   readOnly = false,
 }: {
@@ -44,6 +47,9 @@ export function ConstructionFormScreen({
   constructionDate: string;
   communityName: string;
   onSubmit(input: CreateConstructionSiteInput & UpdateConstructionSiteInput): void | Promise<void>;
+  onExportRacsZip?: () => void | Promise<void>;
+  canExportRacsZip?: boolean;
+  isExportingRacsZip?: boolean;
   onDirtyChange?: (isDirty: boolean) => void;
   readOnly?: boolean;
 }) {
@@ -154,7 +160,19 @@ export function ConstructionFormScreen({
           />
         </div>
       </div>
-      <div className='flex justify-end'>
+      <div className='flex flex-col justify-end gap-3 sm:flex-row'>
+        {mode === 'edit' && onExportRacsZip ? (
+          <Button
+            type='button'
+            variant='outline'
+            className={cn(FORM_ACTION_BUTTON_CLASS, 'gap-2 bg-white')}
+            onClick={() => void onExportRacsZip()}
+            disabled={!canExportRacsZip || isExportingRacsZip}
+          >
+            <Download className='h-4 w-4'/>
+            {isExportingRacsZip ? 'Gerando ZIP...' : 'Exportar RACs ZIP'}
+          </Button>
+        ) : null}
         <PrimaryButton type='submit' className={FORM_ACTION_BUTTON_CLASS} disabled={readOnly}>
           {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
         </PrimaryButton>

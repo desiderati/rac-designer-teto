@@ -859,6 +859,26 @@ describe('constructionSite-session.ts', () => {
     expect(session.getActiveHouse().version).toBe(printedVersion);
   });
 
+  it('marca RAC Impressa por casa preservando construída e arquivada', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const draftHouse = session.createHouse({familyName: 'Família Rascunho'});
+    const builtHouse = session.createHouse({familyName: 'Família Construída'});
+    const archivedHouse = session.createHouse({familyName: 'Família Arquivada'});
+
+    session.markHouseBuilt(builtHouse.id);
+    session.archiveHouse(archivedHouse.id);
+    session.markHouseRacPrinted(draftHouse.id);
+    session.markHouseRacPrinted(builtHouse.id);
+    session.markHouseRacPrinted(archivedHouse.id);
+
+    const houses = session.getConstructionSite()?.houses ?? [];
+    expect(houses.find((house) => house.id === draftHouse.id)?.status).toBe('rac_printed');
+    expect(houses.find((house) => house.id === builtHouse.id)?.status).toBe('built');
+    expect(houses.find((house) => house.id === archivedHouse.id)?.status).toBe('archived');
+  });
+
   it('bloqueia mutações editoriais de casa construída e permite retornar para rascunho', () => {
     const {storage} = createStorage();
     const session = createConstructionSiteSession(storage);

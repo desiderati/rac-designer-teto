@@ -43,23 +43,30 @@ Definir como o status da casa muda entre edição, impressão do RAC, conclusão
     - Se a casa ativa não estiver `Construída` nem `Arquivada`, gerar o PDF muda o status para `RAC Impressa`.
     - Se a casa estiver `Construída`, gerar o PDF não altera o status.
 
-2. Alteração editorial
+2. Geração de ZIP de RACs
+    - A exportação em lote considera apenas casas não arquivadas da construção.
+    - Cada casa exportada com sucesso muda para `RAC Impressa`, exceto casas `Construídas`, que permanecem
+      `Construídas`.
+    - Casas com falha individual de exportação não devem ter status alterado.
+    - Casas `Arquivadas` não entram na impressão de RACs e não têm status alterado pelo ZIP.
+
+3. Alteração editorial
     - Alterações no canvas, níveis, pilotis, família, configurações da casa, avaliação do terreno ou materiais extras
       devem mudar `RAC Impressa` para `Rascunho`.
 
-3. Marcar como construída
+4. Marcar como construída
     - A ação deve pedir confirmação.
     - Ao confirmar, a casa muda para `Construída` e passa a ficar bloqueada para edição.
 
-4. Voltar para rascunho
+5. Voltar para rascunho
     - A ação deve pedir confirmação.
     - Ao confirmar, a casa muda para `Rascunho` e volta a permitir edição.
 
-5. Arquivar e desarquivar
+6. Arquivar e desarquivar
     - Arquivar mantém o comportamento próprio de retirada da casa dos fluxos ativos.
     - Desarquivar retorna a casa para `Rascunho`.
 
-6. Disponibilidade do Canvas
+7. Disponibilidade do Canvas
     - O Canvas só pode ser aberto quando existir ao menos uma casa não arquivada em uma construção em andamento.
     - Se nenhuma construção em andamento tiver ao menos uma casa não arquivada, o retorno ao Canvas deve ficar
       indisponível.

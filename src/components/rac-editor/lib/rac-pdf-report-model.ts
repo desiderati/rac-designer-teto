@@ -104,6 +104,7 @@ interface BuildRacPdfReportModelArgs {
   house3DImageDataUrl?: string | null;
   house3DImageAspectRatio?: number;
   generatedAt?: Date;
+  houseId?: string;
 }
 
 const NOT_INFORMED = 'Não informado';
@@ -132,8 +133,9 @@ export function buildRacPdfReportModel({
   house3DImageDataUrl = null,
   house3DImageAspectRatio = canvasImageAspectRatio,
   generatedAt = new Date(),
+  houseId,
 }: BuildRacPdfReportModelArgs): RacPdfReportModel | null {
-  const activeHouse = getActiveReportHouse(constructionSite);
+  const activeHouse = getReportHouse(constructionSite, houseId);
   if (!activeHouse) return null;
 
   const family = constructionSite.families.find((entry) => entry.id === activeHouse.familyId) ?? null;
@@ -203,7 +205,13 @@ export function calculateTerrainRiskIndicator(
   return calculateHouseDifficultyIndicator(assessment, pilotis);
 }
 
-function getActiveReportHouse(constructionSite: ConstructionSiteState): PersistedHouseRecord | null {
+function getReportHouse(constructionSite: ConstructionSiteState, houseId?: string): PersistedHouseRecord | null {
+  const normalizedHouseId = houseId?.trim();
+  if (normalizedHouseId) {
+    return constructionSite.houses.find((house) => house.id === normalizedHouseId && house.status !== 'archived')
+      ?? null;
+  }
+
   const activeHouseId = constructionSite.constructionSite.activeHouseId;
   return constructionSite.houses.find((house) => house.id === activeHouseId && house.status !== 'archived')
     ?? constructionSite.houses.find((house) => house.status !== 'archived')

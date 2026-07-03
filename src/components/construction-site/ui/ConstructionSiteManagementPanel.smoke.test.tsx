@@ -522,6 +522,23 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     }));
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
+  it('exporta RACs em ZIP pelo formulário de construção', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await user.click(screen.getByRole('row', {name: /CC2603.*Em andamento/i}));
+    expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
+
+    const exportButton = screen.getByRole('button', {name: 'Exportar RACs ZIP'});
+    expect(exportButton).toBeEnabled();
+
+    await user.click(exportButton);
+
+    await waitFor(() => expect(actions.exportConstructionRacsZip).toHaveBeenCalledWith('construction_site_1'));
+  }, SLOW_UI_TEST_TIMEOUT_MS);
+
   it('abre edição pela linha inteira e acessa a listagem de casas sem ações redundantes', async () => {
     const user = userEvent.setup();
     const actions = createActions();
@@ -1870,6 +1887,7 @@ function createActions() {
     archiveActiveHouse: vi.fn().mockResolvedValue(undefined),
     archiveHouse: vi.fn().mockResolvedValue(undefined),
     unarchiveHouse: vi.fn().mockResolvedValue(undefined),
+    exportConstructionRacsZip: vi.fn().mockResolvedValue(undefined),
     markHouseBuilt: vi.fn().mockResolvedValue(undefined),
     markHouseDraft: vi.fn().mockResolvedValue(undefined),
     activateHouse: vi.fn().mockResolvedValue(null),

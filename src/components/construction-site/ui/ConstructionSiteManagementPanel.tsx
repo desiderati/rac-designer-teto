@@ -132,8 +132,13 @@ export function ConstructionSiteManagementPanel({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
+  const [isExportingRacsZip, setIsExportingRacsZip] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
+  const canExportRacsZip = Boolean(
+    constructionSite?.constructionSite.status === 'in_progress'
+    && constructionSite.houses.some((house) => house.status !== 'archived'),
+  );
 
   const updateUnsavedChanges = useCallback((isDirty: boolean) => {
     hasUnsavedChangesRef.current = isDirty;
@@ -169,6 +174,17 @@ export function ConstructionSiteManagementPanel({
     clearUnsavedChanges();
     if (action) void action();
   }, [clearUnsavedChanges, pendingUnsavedNavigation]);
+
+  const handleExportRacsZip = useCallback(async () => {
+    if (!constructionSite || isExportingRacsZip) return;
+
+    setIsExportingRacsZip(true);
+    try {
+      await actions.exportConstructionRacsZip(constructionSite.constructionSite.id);
+    } finally {
+      setIsExportingRacsZip(false);
+    }
+  }, [actions, constructionSite, isExportingRacsZip]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -315,6 +331,9 @@ export function ConstructionSiteManagementPanel({
                 actions.updateActiveConstructionSite(input);
                 finishFormNavigation(navigation.showConstructionList);
               }}
+              onExportRacsZip={handleExportRacsZip}
+              canExportRacsZip={canExportRacsZip}
+              isExportingRacsZip={isExportingRacsZip}
               onDirtyChange={updateUnsavedChanges}
               readOnly={isSelectedConstructionReadOnly}
             />

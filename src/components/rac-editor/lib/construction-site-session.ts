@@ -94,6 +94,7 @@ export interface ConstructionSiteSessionPort {
   archiveHouse(houseId: string): void;
   unarchiveHouse(houseId: string): void;
   markActiveHouseRacPrinted(): void;
+  markHouseRacPrinted(houseId: string): void;
   markHouseBuilt(houseId: string): void;
   markHouseDraft(houseId: string): void;
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null;
@@ -750,6 +751,13 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     const house = this.getActiveHouseOrNull();
     if (!house || house.status === 'built' || house.status === 'archived') return;
     this.updateHouseStatus(house.id, 'rac_printed');
+  }
+
+  markHouseRacPrinted(houseId: string): void {
+    const houseConstructionSite = this.findHouseConstructionSite(houseId);
+    const house = houseConstructionSite?.house;
+    if (!house || house.status === 'built' || house.status === 'archived') return;
+    this.updateHouseStatus(houseId, 'rac_printed');
   }
 
   markHouseBuilt(houseId: string): void {

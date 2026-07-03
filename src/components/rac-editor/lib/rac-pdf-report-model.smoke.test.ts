@@ -228,6 +228,37 @@ describe('rac pdf report model', () => {
       .toEqual(['Solo Molhado']);
   });
 
+  it('monta o relatório de uma casa específica mesmo quando ela não é a ativa', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.families.push({
+      id: 'family-2',
+      constructionSiteId: 'cc-1',
+      name: 'Marina',
+    });
+    constructionSite.houses.push(createHouseRecord({
+      id: 'house-2',
+      status: 'draft',
+      familyId: 'family-2',
+    }));
+    constructionSite.houses[1].houseType = 'tipo3';
+    constructionSite.houses[1].houseSize = 'small';
+    constructionSite.houses[1].leaders = 'Equipe local';
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      houseId: 'house-2',
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+      generatedAt: new Date('2026-06-16T12:00:00.000Z'),
+    });
+
+    expect(report).not.toBeNull();
+    expect(report?.familyName).toBe('Marina');
+    expect(report?.leaders).toBe('Equipe local');
+    expect(report?.house.selectedType).toBe('Tipo 3');
+    expect(report?.house.selectedSize).toBe('Pequena');
+    expect(report?.fileName).toBe('RAC-CC2603-MARINA.pdf');
+  });
+
   it('gera pagina extra com visualizacao 3D no mesmo formato do canvas principal', () => {
     const report = buildRacPdfReportModel({
       constructionSite: createConstructionSiteState(),
