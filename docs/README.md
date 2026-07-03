@@ -36,27 +36,27 @@ transitórios devem declarar explicitamente seu ciclo de vida.
     - Registros de decisão arquitetural durável, usando o padrão `ADR-NNN-{slug}.md`.
 
 2. `business-rules/`
-     - Regras funcionais do produto, organizadas por ordem canônica em `BUS-00x-*` e indexadas em
+    - Regras funcionais do produto, organizadas por ordem canônica em `BUS-00x-*` e indexadas em
       `business-rules/README.md`.
 
 3. `engineering-playbook/`
-     - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
+    - Constituição técnica do repositório: princípios, arquitetura, stack, convenções e critérios de decisão.
       O playbook combina um núcleo comum em `PLAY-001` a `PLAY-006` com módulos específicos de família, hoje
       materializados apenas na faixa frontend `PLAY-101` a `PLAY-105`.
 
 4. `refactoring-backlog/`
-     - Backlogs técnicos transitórios de refatoração, organizados por arquivos `BACK-00x-*`, com critério explícito de
+    - Backlogs técnicos transitórios de refatoração, organizados por arquivos `BACK-00x-*`, com critério explícito de
       ativação, descarte, promoção ou encerramento.
 
 5. `code-scaffolds/`
-     - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
+    - Scaffolds aprovados com utilidade operacional real, organizados por responsabilidade como domínio,
       persistência e testes.
 
 6. `ui-definitions/`
-     - Definições duráveis de comportamento visual para superfícies operacionais, áreas dimensionadas e exportações.
+    - Definições duráveis de comportamento visual para superfícies operacionais, áreas dimensionadas e exportações.
 
 7. `product-requirements/`
-     - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
+    - PRDs canônicos do projeto, com basename `PRD-{id_number}-{slug}.prd`, sidecar `*.prd.assets/` e JSON derivado
       opcional.
 
 ## Princípios deste diretório

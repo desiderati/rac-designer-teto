@@ -10,8 +10,8 @@ lang: pt-BR
 
 Este diretório reúne a constituição técnica do `RAC Designer TETO`.
 
-Os arquivos daqui são duráveis e versionados. Eles definem princípios, arquitetura, stack, convenções e critérios de
-decisão que orientam tanto humanos quanto agentes de codificação.
+Os arquivos daqui são duráveis e versionados. Eles definem princípios, arquitetura, stack,
+convenções e critérios de decisão que orientam tanto humanos quanto agentes de codificação.
 
 ## Como usar
 
@@ -25,15 +25,20 @@ decisão que orientam tanto humanos quanto agentes de codificação.
 
 - `frontend-react-vite`
     - Evidenciado por `vite.config.ts`, dependências React, scripts Vite e entrypoint `src/main.tsx`.
+
 - `frontend-react-router-spa`
     - Evidenciado por `react-router-dom`, `BrowserRouter`, `Routes` e rotas em `src/App.tsx`.
+
 - `architecture-ports-adapters`
     - Evidenciado por ports do editor, adapters Fabric no slice `@canvas`, composição em `src/bootstrap/` e guards em
       `src/test/rac-editor-boundary.smoke.test.ts`.
+
 - `build-npm`
     - Evidenciado por `package-lock.json`, scripts npm em `package.json` e comandos oficiais no `README.md`.
+
 - `backend`
     - Não detectado neste repositório.
+
 - `api`
     - Não detectada como superfície externa versionada.
 
@@ -66,7 +71,8 @@ decisão que orientam tanto humanos quanto agentes de codificação.
     - Convenções de nomenclatura para arquivos, funções e tipos.
 
 - `PLAY-006-ports-and-adapters.md`
-    - Disciplina de Ports and Adapters no editor RAC, com fronteiras, riscos, critérios de corte e plano de continuidade.
+    - Disciplina de Ports and Adapters no editor RAC, com fronteiras, riscos, critérios de corte e plano de
+      continuidade.
 
 - `PLAY-101-frontend-component-patterns.md`
     - Padrões de composição e responsabilidades dos componentes.

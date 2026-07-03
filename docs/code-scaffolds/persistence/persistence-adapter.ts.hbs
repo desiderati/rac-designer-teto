@@ -1,24 +1,25 @@
 /**
- * In-Memory {{pascalCase model}} Persistence Adapter
- *
- * Adapter in-memory alinhado ao contrato atual do repositório.
- */
+* In-Memory {{pascalCase model}} Persistence Adapter
+*
+* Adapter in-memory alinhado ao contrato atual do repositório.
+*/
 
 import type { {{pascalCase model}}State } from '@/domain/{{kebabCase model}}/{{kebabCase model}}.aggregate';
-import type { {{pascalCase model}}PersistencePort } from '@/domain/{{kebabCase model}}/{{kebabCase model}}-persistence.port';
+import type { {{pascalCase model}}PersistencePort } from '@/domain/{{kebabCase model}}/{{kebabCase
+        model}}-persistence.port';
 
 export class InMemory{{pascalCase model}}PersistenceAdapter implements {{pascalCase model}}PersistencePort {
-  private state: {{pascalCase model}}State | null;
+private state: {{pascalCase model}}State | null;
 
-  constructor(initialState: {{pascalCase model}}State | null = null) {
-    this.state = initialState;
-  }
+constructor(initialState: {{pascalCase model}}State | null = null) {
+this.state = initialState;
+}
 
-  load(): {{pascalCase model}}State | null {
-    return this.state;
-  }
+load(): {{pascalCase model}}State | null {
+return this.state;
+}
 
-  save(state: {{pascalCase model}}State | null): void {
-    this.state = state;
-  }
+save(state: {{pascalCase model}}State | null): void {
+this.state = state;
+}
 }

@@ -1,6 +1,7 @@
 ---
 title: Regras de Negócio
 doc_type: index
+doc_role: index
 doc_set: business-rules
 status: active
 lang: pt-BR
@@ -12,15 +13,18 @@ lang: pt-BR
 
 Este diretório concentra as regras funcionais duráveis do `RAC Designer TETO`.
 
-As regras daqui descrevem comportamento esperado do produto, limites operacionais e consistência entre fluxos 2D, 3D
-e edição estrutural. Quando houver dúvida sobre como o editor deve se comportar, este é o ponto de entrada correto.
+As regras daqui descrevem comportamento esperado do produto, limites operacionais e consistência
+entre fluxos 2D, 3D e edição estrutural. Quando houver dúvida sobre como o editor deve se comportar,
+este é o ponto de entrada correto.
 
 ## Convenção de organização
 
 1. Cada documento usa o padrão `BUS-00x-{business-rule-slug}.md`.
+
 2. A numeração expressa a ordem canônica de leitura e referência.
-3. `docs/README.md` continua sendo o índice geral de `docs/`; este arquivo é o índice específico das regras de
-   negócio.
+
+3. `docs/README.md` continua sendo o índice geral de `docs/`; este arquivo é o índice específico das
+   regras de negócio.
 
 ## Ordem canônica
 
@@ -52,10 +56,12 @@ e edição estrutural. Quando houver dúvida sobre como o editor deve se comport
     - Regra de materiais de base do terreno e definição de pedras como rachão + brita.
 
 10. `BUS-010-status-casa.md`
-    - Regra de status da casa, impressão do RAC, bloqueio de casa construída e retorno para rascunho.
+    - Regra de status da casa, impressão do RAC, bloqueio de casa construída, retorno para rascunho
+      e exclusão definitiva de casa arquivada em construção navegável.
 
 11. `BUS-011-status-construcao.md`
-    - Regra de status da Construção TETO e bloqueio de edição quando a construção está arquivada.
+    - Regra de status da Construção TETO, bloqueio de edição e exclusão física em cascata quando a
+      construção está arquivada.
 
 12. `BUS-012-checklist-exportacao-rac.md`
     - Regra do checklist exibido antes da exportação padrão de PDF da RAC.

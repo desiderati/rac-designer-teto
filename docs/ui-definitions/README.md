@@ -18,7 +18,7 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
 ## Índice
 
 - [UI-001-texto-overflow-e-areas-impressas.md](UI-001-texto-overflow-e-areas-impressas.md)
-  - Define validação de textos em áreas dimensionadas e tratamento obrigatório de overflow.
+    - Define validação de textos em áreas dimensionadas e tratamento obrigatório de overflow.
 
 - [UI-002-tabelas-largura-proporcional-colunas.md](UI-002-tabelas-largura-proporcional-colunas.md)
-  - Define proporção de colunas em tabelas a partir do tamanho máximo dos campos exibidos.
+    - Define proporção de colunas em tabelas a partir do tamanho máximo dos campos exibidos.

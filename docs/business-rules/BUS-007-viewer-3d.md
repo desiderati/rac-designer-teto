@@ -12,7 +12,8 @@ lang: pt-BR
 
 ## Objetivo
 
-Garantir que a visualização 3D represente corretamente o projeto 2D e permita uso prático em revisão e apresentação.
+Garantir que a visualização 3D represente corretamente o projeto 2D e permita uso prático em revisão
+e apresentação.
 
 ## Papel do Viewer 3D
 
@@ -57,29 +58,47 @@ Garantir que a visualização 3D represente corretamente o projeto 2D e permita 
 
 ## Regras de interação no modal
 
-1. Primeira abertura da casa no viewer deve iniciar com a câmera voltada para a face onde está a porta.
+1. Primeira abertura da casa no viewer deve iniciar com a câmera voltada para a face onde está a
+   porta.
+
 2. A iluminação principal do viewer deve ser orientada para a face onde está a porta.
-3. Ao fechar e reabrir o viewer da mesma casa, a última pose da câmera deve ser restaurada, incluindo rotação, pan e
-   zoom.
-4. Reset de câmera deve retornar para o enquadramento padrão voltado para a porta e descartar a pose salva da casa.
+
+3. Ao fechar e reabrir o viewer da mesma casa, a última pose da câmera deve ser restaurada,
+   incluindo rotação, pan e zoom.
+
+4. Reset de câmera deve retornar para o enquadramento padrão voltado para a porta e descartar a pose
+   salva da casa.
+
 5. Tela cheia deve funcionar sem perder controles principais.
+
 6. Troca de cor de parede deve ser imediata.
+
 7. Opção de ocultar elementos abaixo do terreno deve ser clara e reversível.
-8. Ao fechar o viewer, a cor de parede escolhida e a preferência de ocultar elementos abaixo do terreno devem ser
-   persistidas por casa.
+
+8. Ao fechar o viewer, a cor de parede escolhida e a preferência de ocultar elementos abaixo do
+   terreno devem ser persistidas por casa.
+
 9. Ao reabrir o viewer da mesma casa, a cor e a preferência de ocultação devem ser restauradas.
 
 ## Regras de snapshot para 2D
 
 1. Captura do 3D deve gerar imagem válida.
+
 2. Inserção no canvas 2D deve ocorrer sem quebrar o estado do projeto.
+
 3. O PDF deve usar a última pose salva do viewer 3D da casa ativa para capturar a imagem 3D.
+
 4. Se não houver pose salva, o PDF deve usar o enquadramento inicial voltado para a porta.
+
 5. A iluminação do snapshot do PDF deve seguir a mesma orientação por porta usada no viewer.
+
 6. O snapshot do PDF deve ocultar a parte dos elementos 3D que fica abaixo do terreno.
+
 7. O snapshot do PDF deve usar a última cor de parede persistida pelo viewer da casa ativa.
-8. A preferência visual de mostrar elementos abaixo do terreno não altera a regra normativa do PDF: o PDF continua
-   ocultando a área abaixo do terreno.
+
+8. A preferência visual de mostrar elementos abaixo do terreno não altera a regra normativa do PDF:
+   o PDF continua ocultando a área abaixo do terreno.
+
 9. Em falha, usuário deve receber mensagem clara.
 
 ## Regras de consistência geral

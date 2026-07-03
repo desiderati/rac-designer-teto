@@ -35,3 +35,4 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 - [PRD-002-gerenciamento-de-monitores.prd.md](./PRD-002-gerenciamento-de-monitores.prd.md)
 - [PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md](./PRD-003-sobre-a-casa-na-edicao-da-casa.prd.md)
 - [PRD-004-autenticacao-sincronizacao-remota.prd.md](./PRD-004-autenticacao-sincronizacao-remota.prd.md)
+- [PRD-005-rodada-pos-release-rac.prd.md](./PRD-005-rodada-pos-release-rac.prd.md)

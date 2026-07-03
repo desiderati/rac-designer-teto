@@ -10,8 +10,9 @@ lang: pt-BR
 
 Esta pasta registra backlogs técnicos de refatoração com escopo delimitado.
 
-Estes documentos não são ADRs, Playbooks ou decisões arquiteturais duráveis. Eles existem para organizar frentes de
-refatoração que ainda precisam de execução, validação, descarte ou promoção para uma documentação mais estável.
+Estes documentos não são ADRs, Playbooks ou decisões arquiteturais duráveis. Eles existem para
+organizar frentes de refatoração que ainda precisam de execução, validação, descarte ou promoção
+para uma documentação mais estável.
 
 ## Quando usar
 
@@ -41,8 +42,8 @@ Um item deve sair daqui quando:
 4. virar regra durável em Playbook;
 5. deixar de representar dor técnica real.
 
-Quando todos os itens de um backlog forem resolvidos, descartados ou promovidos, o arquivo deve ser removido ou marcado
-como encerrado com a justificativa correspondente.
+Quando todos os itens de um backlog forem resolvidos, descartados ou promovidos, o arquivo deve ser
+removido ou marcado como encerrado com a justificativa correspondente.
 
 ## Convenção de nomes
 
@@ -52,7 +53,8 @@ Os arquivos seguem o formato:
 BACK-00x-{slug}.md
 ```
 
-O identificador `BACK` indica backlog técnico condicionado. Ele não substitui `ADR`, `PLAY`, `BUS` ou `PRD`.
+O identificador `BACK` indica backlog técnico condicionado. Ele não substitui `ADR`, `PLAY`, `BUS`
+ou `PRD`.
 
 ## Backlogs ativos
 

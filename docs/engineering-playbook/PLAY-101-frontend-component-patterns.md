@@ -17,8 +17,8 @@ Definir regras para criação de componentes React previsíveis, reutilizáveis 
 
 ## Composição sobre herança
 
-Sempre prefira composição para reutilizar lógica e UI. Use props como `children` ou props específicas para injetar
-outros componentes, em vez de criar hierarquias complexas.
+Sempre prefira composição para reutilizar lógica e UI. Use props como `children` ou props
+específicas para injetar outros componentes, em vez de criar hierarquias complexas.
 
 Exemplo recomendado:
 
@@ -40,8 +40,11 @@ function Card({header, children}: CardProps) {
 ## Separação entre lógica e apresentação
 
 - Componentes presentacionais recebem dados e callbacks via props.
+
 - Componentes de coordenação gerenciam estado, integração e composição.
-- A divisão não precisa virar dogma cerimonial, mas a responsabilidade de cada componente deve continuar legível.
+
+- A divisão não precisa virar dogma cerimonial, mas a responsabilidade de cada componente deve
+  continuar legível.
 
 Exemplo recomendado, usando vocabulário do editor:
 
@@ -71,8 +74,9 @@ function RacEditorViewerControls() {
 }
 ```
 
-Ao extrair esse padrão do `RacEditor`, mantenha a coordenação no ponto que já detém o estado. Não crie container
-paralelo nem hooks remotos fictícios para simular arquitetura de data fetching que não existe no fluxo local do editor.
+Ao extrair esse padrão do `RacEditor`, mantenha a coordenação no ponto que já detém o estado. Não
+crie container paralelo nem hooks remotos fictícios para simular arquitetura de data fetching que
+não existe no fluxo local do editor.
 
 ## Props com destructuring e tipos explícitos
 
@@ -129,6 +133,6 @@ Exemplo a evitar:
 
 ## Props drilling excessivo
 
-Se uma prop atravessa mais de dois ou três níveis sem uso intermediário, reavalie a modelagem. O caminho preferencial
-é usar contexto ou a coordenação compartilhada já existente na feature antes de criar uma solução paralela
-desnecessária.
+Se uma prop atravessa mais de dois ou três níveis sem uso intermediário, reavalie a modelagem. O
+caminho preferencial é usar contexto ou a coordenação compartilhada já existente na feature antes de
+criar uma solução paralela desnecessária.

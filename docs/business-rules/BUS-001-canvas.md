@@ -12,7 +12,8 @@ lang: pt-BR
 
 ## Objetivo
 
-Explicar, de forma simples, como o espaço de desenho funciona no dia a dia para quem cria e edita projetos.
+Explicar, de forma simples, como o espaço de desenho funciona no dia a dia para quem cria e edita
+projetos.
 
 ## O que é o Canvas
 
@@ -105,7 +106,8 @@ Nele, a pessoa consegue:
 ## Regras visuais
 
 1. Área de trabalho
-    - O fundo externo do canvas usa base cinza bem clara com grade branca para reforçar a leitura espacial sem competir com o desenho.
+    - O fundo externo do canvas usa base cinza bem clara com grade branca para reforçar a leitura espacial sem competir
+      com o desenho.
     - A grade da área de trabalho deve encostar nos limites da página, sem margem cinza ao redor.
     - A superfície editável do desenho deve ter quinas arredondadas e recortar seu conteúdo dentro desse limite.
 
@@ -122,7 +124,8 @@ Nele, a pessoa consegue:
     - Um toque e arraste: deslocamento.
     - Dois toques: zoom por gesto.
     - A barra lateral pode ser recolhida por gesto horizontal para liberar área de desenho.
-    - Fora do modo de contraventamento, piloti abre edição por pressionar e manter pressionado; toque simples não deve abrir edição de piloti.
+    - Fora do modo de contraventamento, piloti abre edição por pressionar e manter pressionado; toque simples não deve
+      abrir edição de piloti.
     - No modo de contraventamento, a seleção de piloti continua imediata para preservar o fluxo origem/destino.
 
 2. Feedback

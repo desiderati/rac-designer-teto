@@ -11,37 +11,46 @@ lang: pt-BR
 
 # Evolução Multicasa do RAC Designer TETO
 
-> Este é o artefato humano primário da iniciativa. O JSON derivado adjacente existe para consumo estruturado e o
-> sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas, exportações brutas e material
-> auxiliar.
+> Este é o artefato humano primário da iniciativa. O JSON derivado adjacente existe para consumo
+> estruturado e o sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas,
+> exportações brutas e material auxiliar.
 
 ## 1. Visão Geral
 
-- problema:
-  O editor operava sobre uma única casa e não distinguia a gestão operacional da Construção TETO do estado de desenho
-  da casa.
-- objetivo da iniciativa:
-  Evoluir o RAC Designer TETO para um editor local-first com Construções TETO, múltiplas casas por construção,
-  associação explícita entre casa e família e persistência durável do último estado do canvas por casa.
-- decisão de nomenclatura:
-  O código interno usa `ConstructionSite*`; a UI usa “Construção TETO”.
+- problema: O editor operava sobre uma única casa e não distinguia a gestão operacional da
+  Construção TETO do estado de desenho da casa.
+
+- objetivo da iniciativa: Evoluir o RAC Designer TETO para um editor local-first com Construções
+  TETO, múltiplas casas por construção, associação explícita entre casa e família e persistência
+  durável do último estado do canvas por casa.
+
+- decisão de nomenclatura: O código interno usa `ConstructionSite*`; a UI usa “Construção TETO”.
 
 ## 2. Metas
 
 - Permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
+
 - Registrar Código da CC, Data da Construção, Comunidade e foto opcional por Construção TETO.
-- Permitir criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em andamento.
+
+- Permitir criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em
+  andamento.
+
 - Identificar cada casa pelo nome da família associada, sem nome próprio de casa.
+
 - Persistir o último documento de desenho da casa no banco local.
-- Abrir o RAC Editor somente quando houver Construção TETO em andamento com pelo menos uma casa não arquivada.
-- Restaurar no boot do Canvas a casa não arquivada com maior `updatedAt` entre Construções TETO em andamento.
+
+- Abrir o RAC Editor somente quando houver Construção TETO em andamento com pelo menos uma casa não
+  arquivada.
+
+- Restaurar no boot do Canvas a casa não arquivada com maior `updatedAt` entre Construções TETO em
+  andamento.
 
 ## 3. Histórias De Usuário
 
 ### US-001: Criar e trocar Construções TETO
 
-**Descrição:** Como monitor voluntário, quero criar e abrir Construções TETO para organizar minhas atividades por Código
-da CC e comunidade.
+**Descrição:** Como monitor voluntário, quero criar e abrir Construções TETO para organizar minhas
+atividades por Código da CC e comunidade.
 
 **Critérios de aceitação:**
 
@@ -52,8 +61,8 @@ da CC e comunidade.
 
 ### US-002: Gerenciar casas da construção
 
-**Descrição:** Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma Construção TETO para
-administrar múltiplas unidades habitacionais.
+**Descrição:** Como monitor voluntário, quero criar, arquivar e desarquivar casas dentro de uma
+Construção TETO para administrar múltiplas unidades habitacionais.
 
 **Critérios de aceitação:**
 
@@ -64,8 +73,8 @@ administrar múltiplas unidades habitacionais.
 
 ### US-003: Vincular famílias às casas
 
-**Descrição:** Como monitor voluntário, quero associar uma família a cada casa para manter a relação entre beneficiários
-e Construção TETO de forma durável.
+**Descrição:** Como monitor voluntário, quero associar uma família a cada casa para manter a relação
+entre beneficiários e Construção TETO de forma durável.
 
 **Critérios de aceitação:**
 
@@ -76,7 +85,8 @@ e Construção TETO de forma durável.
 
 ### US-004: Registrar informações de local
 
-**Descrição:** Como monitor voluntário, quero registrar condições do local da casa para orientar o desenho e a montagem.
+**Descrição:** Como monitor voluntário, quero registrar condições do local da casa para orientar o
+desenho e a montagem.
 
 **Critérios de aceitação:**
 
@@ -86,31 +96,46 @@ e Construção TETO de forma durável.
 
 ### US-005: Alternar entre gerenciamento e RAC Editor
 
-**Descrição:** Como monitor voluntário, quero alternar entre gestão de Construções TETO e Canvas sem perder o estado da
-casa ativa.
+**Descrição:** Como monitor voluntário, quero alternar entre gestão de Construções TETO e Canvas sem
+perder o estado da casa ativa.
 
 **Critérios de aceitação:**
 
-- [x] Sem Construção TETO em andamento com casa não arquivada, a aplicação abre diretamente no gerenciamento.
-- [x] A seta contextual do gerenciamento só retorna ao Canvas quando houver uma construção em andamento com casa não
-  arquivada.
-- [x] No Canvas, o FAB hamburger exibe “Construções TETO” primeiro e agrupa casas por código da construção.
+- [x] Sem Construção TETO em andamento com casa não arquivada, a aplicação abre diretamente no
+  gerenciamento.
+
+- [x] A seta contextual do gerenciamento só retorna ao Canvas quando houver uma construção em
+  andamento com casa não arquivada.
+
+- [x] No Canvas, o FAB hamburger exibe “Construções TETO” primeiro e agrupa casas por código da
+  construção.
+
 - [x] O menu do usuário não contém “Construções TETO”.
 
 ## 4. Requisitos Funcionais
 
 - `FR-1:` O sistema deve persistir Construções TETO em IndexedDB.
-- `FR-2:` Construção TETO deve possuir Código da CC, Data da Construção, Comunidade, foto opcional, status e metadados
-  técnicos.
+
+- `FR-2:` Construção TETO deve possuir Código da CC, Data da Construção, Comunidade, foto opcional,
+  status e metadados técnicos.
+
 - `FR-3:` O sistema deve permitir criar, arquivar, desarquivar, listar e trocar Construções TETO.
-- `FR-4:` O sistema deve permitir criar, arquivar, desarquivar, listar e editar casas dentro de Construção TETO em
-  andamento.
+
+- `FR-4:` O sistema deve permitir criar, arquivar, desarquivar, listar e editar casas dentro de
+  Construção TETO em andamento.
+
 - `FR-5:` Casa deve pertencer a uma única Construção TETO e estar associada a uma única família.
+
 - `FR-6:` O rótulo da casa na UI deve ser derivado do nome da família associada.
+
 - `FR-7:` O sistema deve persistir e restaurar o `HouseDrawingDocument` da casa ativa.
-- `FR-8:` O RAC Editor não deve montar quando não houver Construção TETO em andamento com casa não arquivada.
-- `FR-9:` O boot do Canvas deve restaurar a casa não arquivada com maior `updatedAt`, considerando apenas construções
-  em andamento.
+
+- `FR-8:` O RAC Editor não deve montar quando não houver Construção TETO em andamento com casa não
+  arquivada.
+
+- `FR-9:` O boot do Canvas deve restaurar a casa não arquivada com maior `updatedAt`, considerando
+  apenas construções em andamento.
+
 - `FR-10:` Importação e exportação JSON não devem fazer parte da navegação principal.
 
 ## 5. Não Objetivos
@@ -124,10 +149,16 @@ casa ativa.
 ## 6. Considerações De Design
 
 - O Canvas continua sendo a experiência principal quando há casa válida para edição.
-- O gerenciamento é um módulo separado de `src/components/rac-editor`, localizado em `src/components/construction-site`.
+
+- O gerenciamento é um módulo separado de `src/components/rac-editor`, localizado em
+  `src/components/construction-site`.
+
 - No modo de gerenciamento, canvas, toolbar e submenus ficam ocultos.
+
 - No modo de gerenciamento, a seta contextual do cabeçalho substitui o retorno flutuante.
-- A tela de gerenciamento prioriza CRUD de Construções TETO e casas, não composição visual de desenho.
+
+- A tela de gerenciamento prioriza CRUD de Construções TETO e casas, não composição visual de
+  desenho.
 
 ## 7. Conceitos De Dados
 
@@ -143,8 +174,12 @@ casa ativa.
 ## 8. Métricas De Sucesso
 
 - Usuários conseguem criar Construção TETO, criar casas e retornar ao Canvas sem perda de estado.
+
 - Alternância entre casas da mesma Construção TETO restaura o desenho correto.
-- Recarregar a aplicação abre a última casa editada quando houver construção em andamento com casa não arquivada.
+
+- Recarregar a aplicação abre a última casa editada quando houver construção em andamento com casa
+  não arquivada.
+
 - Boot sem dados ou com construção sem casa abre gerenciamento com Back desabilitado.
 
 ## 9. Questões Em Aberto
@@ -160,6 +195,7 @@ casa ativa.
     - [ConstructionSiteManagementPanel.tsx](../../src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
     - [ConstructionSiteManagementPort.ts](../../src/components/construction-site/ports/ConstructionSiteManagementPort.ts)
     - [house-drawing-document.ts](../../src/shared/types/house-drawing-document.ts)
+
 - Evidências e material auxiliar:
     - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
     - [Diagrama de arquitetura](./PRD-001-evolucao-multicasa.prd.assets/diagrams/multi_house_persistence_architecture.mmd)

@@ -33,6 +33,9 @@ claramente estabelecida.
 - [docs/product-requirements/README.md](docs/product-requirements/README.md), para o índice de PRDs
   do projeto
 
+- [docs/product-requirements/PRD-002-gerenciamento-de-monitores.prd.md](docs/product-requirements/PRD-002-gerenciamento-de-monitores.prd.md),
+  para o escopo implementado de monitores por Construção TETO
+
 - [docs/architecture-decisions/](docs/architecture-decisions/), quando houver decisões arquiteturais
   duráveis registradas
 
@@ -57,7 +60,14 @@ claramente estabelecida.
 - [docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md](docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md),
   para o plano executado de exclusão física local em Construções TETO, casas e monitores
 
-- [docs/business-rules/](docs/business-rules/), para regras de negócio duráveis do editor RAC
+- [docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md](docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md),
+  para o checklist manual da rodada pós-release RAC
+
+- [docs/business-rules/README.md](docs/business-rules/README.md), para o índice de regras de negócio
+  duráveis do editor RAC
+
+- [docs/business-rules/BUS-002-toolbar.md](docs/business-rules/BUS-002-toolbar.md), para regras de
+  segurança e ações destrutivas da toolbar
 
 - [docs/business-rules/BUS-010-status-casa.md](docs/business-rules/BUS-010-status-casa.md), para a
   regra vigente de status da casa, incluindo exclusão definitiva de casa arquivada

@@ -13,9 +13,9 @@ lang: pt-BR
 
 ## Objetivo
 
-Este documento descreve a stack atualmente detectada no projeto `rac-designer-teto`. Ele serve como referência para
-manutenção e evolução incremental do código. Tecnologias listadas aqui não são licença para expandir a arquitetura sem
-necessidade real.
+Este documento descreve a stack atualmente detectada no projeto `rac-designer-teto`. Ele serve como
+referência para manutenção e evolução incremental do código. Tecnologias listadas aqui não são
+licença para expandir a arquitetura sem necessidade real.
 
 ## Framework
 
@@ -27,16 +27,26 @@ necessidade real.
 ## Linguagem
 
 - O projeto é escrito em TypeScript.
+
 - `tsconfig.app.json` está hoje com `strict: false`.
-- `tsconfig.json` também mantém opções permissivas como `noImplicitAny: false` e `strictNullChecks: false`.
+
+- `tsconfig.json` também mantém opções permissivas como `noImplicitAny: false` e `strictNullChecks:
+  false`.
+
 - Isso deve ser tratado como estado atual do repositório, não como diretriz arquitetural permanente.
+
 - O código novo deve continuar explícito, defensivo e com tipagem útil.
 
 ## Build e gerenciador de pacotes
 
 - O perfil operacional detectado é `build-npm`.
-- `package-lock.json`, scripts em `package.json` e comandos oficiais do `README.md` padronizam o uso de npm.
-- `bun.lock` existe no repositório, mas não há documentação operacional vigente que padronize Bun para este projeto.
+
+- `package-lock.json`, scripts em `package.json` e comandos oficiais do `README.md` padronizam o uso
+  de npm.
+
+- `bun.lock` existe no repositório, mas não há documentação operacional vigente que padronize Bun
+  para este projeto.
+
 - Não troque o gerenciador de pacotes nem reescreva lockfiles sem decisão explícita.
 
 ## Estilização
@@ -65,20 +75,35 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 ## Estado e arquitetura
 
 - O projeto não usa biblioteca genérica de estado global como Zustand ou Redux.
+
 - `RacEditorStoreProvider` injeta `EditorStore` e ports do editor por contexto.
-- `EditorStore` é uma store serializável de interação do editor, hoje centrada em seleção pública e commands.
-- O estado compartilhado do editor é coordenado pela própria feature, principalmente por `editor-house-controller`,
-  `useSyncExternalStore` e hooks locais.
-- A store injetada não substitui ainda o estado lógico da casa nem autoriza uma store genérica na raiz.
+
+- `EditorStore` é uma store serializável de interação do editor, hoje centrada em seleção pública e
+  commands.
+
+- O estado compartilhado do editor é coordenado pela própria feature, principalmente por
+  `editor-house-controller`, `useSyncExternalStore` e hooks locais.
+
+- A store injetada não substitui ainda o estado lógico da casa nem autoriza uma store genérica na
+  raiz.
+
 - Estados simples devem continuar em `useState` ou `useReducer`.
-- Não abra automaticamente uma camada genérica de store na raiz nem uma segunda fonte de verdade para a casa.
+
+- Não abra automaticamente uma camada genérica de store na raiz nem uma segunda fonte de verdade
+  para a casa.
 
 ## Data fetching
 
 - TanStack Query está presente no projeto.
-- A aplicação registra `QueryClientProvider`, mas hoje não há uso ativo de `useQuery` ou `useMutation` em `src`.
+
+- A aplicação registra `QueryClientProvider`, mas hoje não há uso ativo de `useQuery` ou
+  `useMutation` em `src`.
+
 - Use-o quando houver query ou mutation remota real.
-- Não transforme fluxos puramente locais do editor em data fetching apenas porque React Query existe no repositório.
+
+- Não transforme fluxos puramente locais do editor em data fetching apenas porque React Query existe
+  no repositório.
+
 - Não crie uma camada genérica de services por reflexo.
 
 ## Validação e formulários
@@ -105,7 +130,12 @@ function MyComponent({ isActive }: { isActive: boolean }) {
 ## Guardrails para agentes
 
 - Não use este documento para inventar dependências novas ou pastas novas por padrão.
+
 - Não assuma React Query como centro arquitetural.
+
 - Não assuma Zod ou React Hook Form como padrão ativo de todo fluxo de entrada.
+
 - Não trate `strict: false` como preferência estrutural.
-- Não introduza services genéricos nem uma store genérica na raiz sem necessidade explícita e evidência arquitetural.
+
+- Não introduza services genéricos nem uma store genérica na raiz sem necessidade explícita e
+  evidência arquitetural.

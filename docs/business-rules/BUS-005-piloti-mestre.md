@@ -12,8 +12,8 @@ lang: pt-BR
 
 ## Objetivo
 
-Garantir que o projeto sempre tenha, no máximo, um piloti mestre por vez e que isso apareça de forma clara para quem
-usa.
+Garantir que o projeto sempre tenha, no máximo, um piloti mestre por vez e que isso apareça de forma
+clara para quem usa.
 
 ## Regra principal
 
@@ -39,7 +39,9 @@ usa.
 
 ## Regras de persistência
 
-1. Ao salvar, exportar, importar e reconstruir projeto, a regra de mestre único deve permanecer válida.
+1. Ao salvar, exportar, importar e reconstruir projeto, a regra de mestre único deve permanecer
+   válida.
+
 2. Em desfazer/refazer, o estado do mestre deve acompanhar o histórico.
 
 ## Regras de edição simultânea

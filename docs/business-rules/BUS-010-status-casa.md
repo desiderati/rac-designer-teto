@@ -2,6 +2,7 @@
 title: Status da Casa
 id: BUS-010
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 10
 status: active

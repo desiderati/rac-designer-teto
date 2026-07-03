@@ -2,6 +2,7 @@
 title: Status da Construção TETO
 id: BUS-011
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 11
 status: active

@@ -2,6 +2,7 @@
 title: Regras da Toolbar
 id: BUS-002
 doc_type: business-rule
+doc_role: business-rule
 doc_set: business-rules
 order: 2
 status: active
@@ -38,7 +39,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
       Construções TETO não arquivadas agrupadas por código da construção.
     - O FAB hamburger não exibe `Monitores` como subopção de `Construções TETO`; monitores pertencem a uma construção
       específica e são acessados pela listagem de Construções TETO.
-    - Cada construção não arquivada exibe suas casas como submenu, usando como rótulo o nome da família associada à casa.
+    - Cada construção não arquivada exibe suas casas como submenu, usando como rótulo o nome da família associada à
+      casa.
     - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
     - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
     - A ação "Construções TETO" não fica no menu do usuário/avatar.
@@ -67,7 +69,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 2. Elementos
     - Inserção cria objeto no canvas com comportamento padrão esperado.
-    - Upload de imagem é uma ação direta do menu lateral e abre seleção/drag-and-drop antes de inserir a imagem no canvas.
+    - Upload de imagem é uma ação direta do menu lateral e abre seleção/drag-and-drop antes de inserir a imagem no
+      canvas.
     - Upload de imagem aceita somente PNG, JPG ou WEBP dentro do limite de tamanho definido pela aplicação.
 
 3. Linhas e medidas
@@ -86,11 +89,22 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 ## Regras de segurança
 
-1. Ações destrutivas com maior impacto contextual, como reiniciar o canvas/tutorial ou desagrupar, devem pedir confirmação.
-2. Exclusão simples da seleção atua diretamente, mas deve respeitar bloqueios de segurança do projeto.
+1. Ações destrutivas com maior impacto contextual, como reiniciar o canvas/tutorial ou desagrupar,
+   devem pedir confirmação.
+
+2. Exclusão simples da seleção atua diretamente, mas deve respeitar bloqueios de segurança do
+   projeto.
+
 3. Ações bloqueadas por regra devem informar motivo de forma explícita.
-4. Arquivamento de Construção TETO ou casa exige confirmação e deve ser lógico, preservando o registro como inativo/arquivado.
+
+4. Arquivamento de Construção TETO ou casa exige confirmação e deve ser lógico, preservando o
+   registro como inativo/arquivado.
+
 5. Inativação ou reativação de monitor exige confirmação e não deve remover fisicamente o registro.
+
+6. Exclusão definitiva de Construção TETO arquivada, casa arquivada ou monitor inativo é ação
+   destrutiva separada das ações de arquivar/inativar e deve usar confirmação explícita de
+   permanência e ausência de desfazer.
 
 ## Regras de feedback
 

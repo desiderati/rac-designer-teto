@@ -100,8 +100,8 @@ para uma coluna própria.
 
 Uma distribuição aceitável para esse tipo de tabela é:
 
-| Coluna     | Proporção |
-|------------|-----------|
+| Coluna      | Proporção |
+|-------------|-----------|
 | `Monitores` | 48%       |
 | `Status`    | 16%       |
 | `Contato`   | 24%       |

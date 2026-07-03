@@ -1,6 +1,7 @@
 ---
 title: Plano de Execução - Exclusão Física Com Cascata
 doc_type: execution-plan
+doc_role: execution-plan
 doc_set: product-requirements
 prd: PRD-005
 status: implemented
@@ -11,9 +12,9 @@ lang: pt-BR
 
 ## 1. Resumo de Contexto
 
-O produto passará a permitir exclusão física local em três situações controladas: Construção TETO
-`Arquivada`, casa `Arquivada` e monitor `Inativo`. Cada exclusão remove fisicamente o item alvo e
-todos os dados abaixo dele em cascata.
+O produto permite exclusão física local em três situações controladas: Construção TETO `Arquivada`,
+casa `Arquivada` e monitor `Inativo`. Cada exclusão remove fisicamente o item alvo e todos os dados
+abaixo dele em cascata.
 
 A decisão aprovada é não abrir exclusão granular dentro de construção arquivada. Casas e monitores
 podem ser excluídos fisicamente apenas em construções navegáveis, desde que a casa esteja
@@ -228,7 +229,7 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
 
 - commit esperado: `docs(rac): documentar exclusao fisica de construcao`
 
-- commit executado: Aguardando fechamento deste ciclo documental.
+- commit executado: `be1025e docs(rac): documentar exclusao fisica em cascata`
 
 ### Ciclo 5: Curadoria Final De Documentação
 
@@ -244,7 +245,8 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
 
 - commit esperado: `docs(rac): formatar documentacao`
 
-- commit executado: Aguardando curadoria final.
+- commit executado: Curadoria final executada nesta rodada, com formatação aplicada em `docs/` e
+  `OBSIDIAN.md`.
 
 ### Ciclo 6: Validação Final e Fechamento
 

@@ -29,7 +29,7 @@ updated: 2026-06-22
 
 - decisão técnica associada:
   A ADR-003 seleciona Convex + Clerk para o MVP remoto, dentro do plano gratuito enquanto o uso permitir, com Supabase
-  + Supabase Auth preservado como alternativa futura de migração.
+    + Supabase Auth preservado como alternativa futura de migração.
 
 - decisão sobre dados locais: Dados locais legados não serão migrados nem enviados ao remoto. No
   rollout remoto, a aplicação deve descartar os dados locais anteriores e carregar o estado a partir
@@ -72,8 +72,8 @@ remota para acessar o ambiente compartilhado do RAC Designer TETO.
 
 - [ ] Qualquer usuário autenticado autorizado acessa o mesmo escopo global de dados.
 
-- [ ] A identidade do provedor não aparece como tipo de domínio em `src/domain`, `src/shared/types` ou nos contratos do
-      editor.
+- [ ] A identidade do provedor não aparece como tipo de domínio em `src/domain`, `src/shared/types`
+  ou nos contratos do editor.
 
 - [ ] Usuários não autenticados não acessam a base remota global.
 
@@ -104,11 +104,11 @@ outros usuários vejam o mesmo estado.
 
 **Acceptance Criteria:**
 
-- [ ] Alterações em Construções TETO, casas, famílias, monitores, avaliações e documentos de desenho são persistidas no
-      remoto.
+- [ ] Alterações em Construções TETO, casas, famílias, monitores, avaliações e documentos de desenho
+  são persistidas no remoto.
 
-- [ ] Cada documento remoto preserva `constructionSite.id`, `schemaVersion`, `documentVersion`, `updatedAt` e payload
-      versionado.
+- [ ] Cada documento remoto preserva `constructionSite.id`, `schemaVersion`, `documentVersion`,
+  `updatedAt` e payload versionado.
 
 - [ ] O sync não persiste JSON Fabric bruto como contrato durável.
 
@@ -249,38 +249,38 @@ evolução planejada é incremental:
 
 1. `documentVersion` obrigatório no MVP.
 
-   - Rejeitar conflito de versão.
-   - Não fazer merge automático.
-   - Não sobrescrever alteração remota silenciosamente.
+    - Rejeitar conflito de versão.
+    - Não fazer merge automático.
+    - Não sobrescrever alteração remota silenciosamente.
 
 2. Lock leve por Construção TETO.
 
-   - Exibir presença operacional como "Felipe está editando esta construção".
-   - Usar `TTL` e heartbeat para evitar lock preso.
-   - Começar como aviso forte, não como bloqueio absoluto.
+    - Exibir presença operacional como "Felipe está editando esta construção".
+    - Usar `TTL` e heartbeat para evitar lock preso.
+    - Começar como aviso forte, não como bloqueio absoluto.
 
 3. Versionamento por seção.
 
-   - Separar versões de metadados, famílias, monitores e desenho.
-   - Permitir aceitar alterações independentes quando seções diferentes forem modificadas.
-   - Manter conflito quando duas sessões alterarem a mesma seção incompatível.
+    - Separar versões de metadados, famílias, monitores e desenho.
+    - Permitir aceitar alterações independentes quando seções diferentes forem modificadas.
+    - Manter conflito quando duas sessões alterarem a mesma seção incompatível.
 
 4. Merge por seção.
 
-   - Aceitar alterações paralelas em seções distintas.
-   - Exigir resolução explícita quando a mesma entidade ou o mesmo desenho tiver alterações
-     incompatíveis.
+    - Aceitar alterações paralelas em seções distintas.
+    - Exigir resolução explícita quando a mesma entidade ou o mesmo desenho tiver alterações
+      incompatíveis.
 
 5. Patch ou event log.
 
-   - Persistir intenções como adicionar família, atualizar monitor ou mover casa, em vez de sempre
-     salvar o payload inteiro.
-   - Abrir caminho para histórico, auditoria, undo remoto e migração mais controlada.
+    - Persistir intenções como adicionar família, atualizar monitor ou mover casa, em vez de sempre
+      salvar o payload inteiro.
+    - Abrir caminho para histórico, auditoria, undo remoto e migração mais controlada.
 
 6. Colaboração em tempo real somente se o uso real justificar.
 
-   - Considerar presença, cursores, atualização ao vivo e eventualmente CRDT apenas se a edição
-     simultânea da mesma Construção TETO virar requisito frequente.
+    - Considerar presença, cursores, atualização ao vivo e eventualmente CRDT apenas se a edição
+      simultânea da mesma Construção TETO virar requisito frequente.
 
 Essa evolução é compatível com Convex no início e com Supabase depois, desde que o editor continue
 dependendo de ports, IDs de domínio e payloads versionados.

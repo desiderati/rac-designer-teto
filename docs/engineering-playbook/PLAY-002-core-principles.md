@@ -13,13 +13,15 @@ lang: pt-BR
 
 ## Objetivo
 
-Este documento define os princípios fundamentais que guiam todas as decisões de desenvolvimento no repositório. Eles
-representam a filosofia de engenharia esperada para qualquer intervenção relevante no código.
+Este documento define os princípios fundamentais que guiam todas as decisões de desenvolvimento no
+repositório. Eles representam a filosofia de engenharia esperada para qualquer intervenção relevante
+no código.
 
 ## Reutilizar antes de construir
 
-Antes de criar qualquer componente, hook ou função nova, audite a base existente em busca de uma solução reutilizável.
-Duplicação de código é o principal inimigo a ser combatido. Criar algo novo é último recurso, não o primeiro.
+Antes de criar qualquer componente, hook ou função nova, audite a base existente em busca de uma
+solução reutilizável. Duplicação de código é o principal inimigo a ser combatido. Criar algo novo é
+último recurso, não o primeiro.
 
 ## Fluxo obrigatório de decisão
 
@@ -35,17 +37,24 @@ Antes de escrever qualquer código de feature ou refatoração, siga esta sequê
 
 ### Quando reutilizar
 
-- O comportamento desejado já existe e a diferença é apenas de dados, texto, estilo ou props simples.
+- O comportamento desejado já existe e a diferença é apenas de dados, texto, estilo ou props
+  simples.
+
 - O contrato de interação já é idêntico.
-- A ação correta é estender a API do componente ou hook existente com a menor superfície de mudança possível.
+
+- A ação correta é estender a API do componente ou hook existente com a menor superfície de mudança
+  possível.
 
 ### Quando extrair
 
 - Já existe duplicação de lógica ou estrutura em dois ou mais pontos.
+
 - Há chance concreta e imediata de um terceiro uso.
+
 - O fluxo-base é o mesmo e apenas a regra de domínio final muda.
-- A ação correta é extrair a parte comum para componente ou hook compartilhado e manter a regra específica no
-  consumidor.
+
+- A ação correta é extrair a parte comum para componente ou hook compartilhado e manter a regra
+  específica no consumidor.
 
 ### Quando criar
 
@@ -56,14 +65,14 @@ Antes de escrever qualquer código de feature ou refatoração, siga esta sequê
 
 ## Passos pequenos, incrementais e validados
 
-Toda mudança deve ser a menor unidade lógica possível. Após cada passo relevante, execute as validações compatíveis
-com o escopo, como testes, lint ou type-check. Não agrupe múltiplas frentes de refatoração ou feature num único bloco
-grande de mudança.
+Toda mudança deve ser a menor unidade lógica possível. Após cada passo relevante, execute as
+validações compatíveis com o escopo, como testes, lint ou type-check. Não agrupe múltiplas frentes
+de refatoração ou feature num único bloco grande de mudança.
 
 ## Clareza antes de abstração prematura
 
-Prefira código fácil de ler e entender. Uma abstração só se justifica quando atende imediatamente a pelo menos dois dos
-critérios abaixo:
+Prefira código fácil de ler e entender. Uma abstração só se justifica quando atende imediatamente a
+pelo menos dois dos critérios abaixo:
 
 1. Elimina duplicação de lógica crítica já existente.
 2. Reduz acoplamento problemático já existente.
@@ -74,14 +83,15 @@ Se esses critérios não forem atendidos, mantenha a solução direta.
 
 ## Fonte única de verdade
 
-Regras de negócio, constantes, configurações de escala, mapeamentos e demais informações compartilhadas devem viver em
-um único ponto canônico. Espalhar defaults ou regras em múltiplos arquivos é proibido.
+Regras de negócio, constantes, configurações de escala, mapeamentos e demais informações
+compartilhadas devem viver em um único ponto canônico. Espalhar defaults ou regras em múltiplos
+arquivos é proibido.
 
 ## Compatibilidade incremental
 
-Ao refatorar estruturas de dados, tipos ou serialização, preserve compatibilidade com o formato legado durante a
-transição. A leitura deve suportar formato novo e antigo. A escrita deve convergir para o formato novo. Breaking
-changes silenciosos em dados existentes são inaceitáveis.
+Ao refatorar estruturas de dados, tipos ou serialização, preserve compatibilidade com o formato
+legado durante a transição. A leitura deve suportar formato novo e antigo. A escrita deve convergir
+para o formato novo. Breaking changes silenciosos em dados existentes são inaceitáveis.
 
 ## Antipadrões proibidos
 

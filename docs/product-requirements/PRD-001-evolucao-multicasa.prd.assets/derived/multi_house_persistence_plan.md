@@ -13,18 +13,21 @@ parent_id: PRD-001
 > (“Construção TETO” in the UI). Generic “project” wording in this sidecar remains as historical
 > research context, not as the current implementation contract.
 
-The application can be transformed into a **complete persisted project editor** without discarding the current drawing
-engine. The right move is not to “persist the canvas as the source of truth”, but to **promote the domain model** so
-that a construction project contains multiple houses, each house is linked to one family, and the drawing becomes a
-projection of that persisted model rather than the only place where state lives.[1] [2] [3] [4]
+The application can be transformed into a **complete persisted project editor** without discarding
+the current drawing engine. The right move is not to “persist the canvas as the source of truth”,
+but to **promote the domain model** so that a construction project contains multiple houses, each
+house is linked to one family, and the drawing becomes a projection of that persisted model rather
+than the only place where state lives.[1] [2] [3] [4]
 
-At the moment, the application is structurally constrained to a **single active house**. The current state contract is
-`HouseState<TGroup>`, which models only one house and has no `familyId`, no project root, and no multi-house
-container.[2] The central manager instantiates exactly one aggregate, uses an **in-memory adapter**, and keeps
-`familyName` plus selected piloti heights outside the persisted `HouseState`, which is why that information is not
-durable today.[1] The current import/export flow already uses an initial `HouseDrawingDocument` for the active house,
-combining logical `HouseState`, setup data and a serializable visual document. That is a better bridge than raw Fabric
-JSON, but it is still **single-house**, not a persisted multi-house project document.[4]
+At the moment, the application is structurally constrained to a **single active house**. The current
+state contract is `HouseState<TGroup>`, which models only one house and has no `familyId`, no
+project root, and no multi-house container.[2] The central manager instantiates exactly one
+aggregate, uses an **in-memory adapter**, and keeps `familyName` plus selected piloti heights
+outside the persisted `HouseState`, which is why that information is not durable today.[1] The
+current import/export flow already uses an initial `HouseDrawingDocument` for the active house,
+combining logical `HouseState`, setup data and a serializable visual document. That is a better
+bridge than raw Fabric JSON, but it is still **single-house**, not a persisted multi-house project
+document.[4]
 
 | Current limitation                      | Why it matters                                                     |
 |-----------------------------------------|--------------------------------------------------------------------|
@@ -35,14 +38,16 @@ JSON, but it is still **single-house**, not a persisted multi-house project docu
 
 ## What the spreadsheet is really modeling
 
-The reference sheet is not just “one house form”. It already contains several latent entities. The visible `RACS` sheet
-has 50 columns and 12 records, with fields that naturally cluster into family identity, project grouping,
-terrain/obstacle conditions, piloti configuration, derived piloti totals, observations, and assigned monitors.[5]
+The reference sheet is not just “one house form”. It already contains several latent entities. The
+visible `RACS` sheet has 50 columns and 12 records, with fields that naturally cluster into family
+identity, project grouping, terrain/obstacle conditions, piloti configuration, derived piloti
+totals, observations, and assigned monitors.[5]
 
-The strongest signal in the spreadsheet is that the row is really a **house assignment record** inside a broader
-execution context. The values show repeated `cc` and community values, repeated monitor teams, and repeated leader
-groups, while family names vary row by row.[5] In other words, the row is not a pure “family” entity and not a pure
-“house template” entity either; it is a **house-in-project record**.
+The strongest signal in the spreadsheet is that the row is really a **house assignment record**
+inside a broader execution context. The values show repeated `cc` and community values, repeated
+monitor teams, and repeated leader groups, while family names vary row by row.[5] In other words,
+the row is not a pure “family” entity and not a pure “house template” entity either; it is a
+**house-in-project record**.
 
 | Spreadsheet group             | Representative columns                                                                                                                | Recommended entity meaning                                                    |
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
@@ -57,8 +62,8 @@ groups, while family names vary row by row.[5] In other words, the row is not a 
 
 ## Entity decomposition I would adopt
 
-I would introduce a **project root** and then normalize the row into entities with clear ownership. The cleanest
-hierarchy is:
+I would introduce a **project root** and then normalize the row into entities with clear ownership.
+The cleanest hierarchy is:
 
 ```text
 ConstructionSite
@@ -73,13 +78,15 @@ ConstructionSite
   └── MonitorAssignments
 ```
 
-This matters because some information belongs to the **project**, some belongs to the **family**, and some belongs to
-the **house instance**. If you store everything inside one flattened record, editing becomes fragile very quickly.
+This matters because some information belongs to the **project**, some belongs to the **family**,
+and some belongs to the **house instance**. If you store everything inside one flattened record,
+editing becomes fragile very quickly.
 
 ### 1. `ConstructionSite`
 
-This becomes the top-level saved document. In your case, a project corresponds to the construction batch or mission, and
-`cc` is a strong candidate for the external project code. A project should contain many houses.[5]
+This becomes the top-level saved document. In your case, a project corresponds to the construction
+batch or mission, and `cc` is a strong candidate for the external project code. A project should
+contain many houses.[5]
 
 Suggested fields:
 
@@ -95,8 +102,8 @@ Suggested fields:
 
 ### 2. `Community`
 
-The spreadsheet repeats community names across many rows, so this should not be duplicated per house. It is a shared
-lookup entity.[5]
+The spreadsheet repeats community names across many rows, so this should not be duplicated per
+house. It is a shared lookup entity.[5]
 
 | Field   | Type            | Notes                               |
 |---------|-----------------|-------------------------------------|
@@ -107,9 +114,9 @@ lookup entity.[5]
 
 ### 3. `Family`
 
-A family is a first-class domain object and must stop being just a string sitting in the modal. One family may later
-have contacts, documents, or history. Even if today each house maps to one family, the family should still be modeled
-separately.[1] [5]
+A family is a first-class domain object and must stop being just a string sitting in the modal. One
+family may later have contacts, documents, or history. Even if today each house maps to one family,
+the family should still be modeled separately.[1] [5]
 
 | Field                 | Type            | Notes                                    |
 |-----------------------|-----------------|------------------------------------------|
@@ -122,8 +129,8 @@ separately.[1] [5]
 
 ### 4. `House`
 
-This is the core editable unit inside the app. Each house should belong to one project and one family. This is the
-entity the editor opens.[2]
+This is the core editable unit inside the app. Each house should belong to one project and one
+family. This is the entity the editor opens.[2]
 
 | Field                     | Type          | Notes                                      |
 |---------------------------|---------------|--------------------------------------------|
@@ -140,8 +147,8 @@ entity the editor opens.[2]
 
 ### 5. `SiteAssessment`
 
-The obstacle and terrain columns are not really house geometry; they are field-survey information. This should be a
-separate sub-entity owned by `House`.[5]
+The obstacle and terrain columns are not really house geometry; they are field-survey information.
+This should be a separate sub-entity owned by `House`.[5]
 
 | Field              | Type          | Notes                                 |
 |--------------------|---------------|---------------------------------------|
@@ -160,9 +167,10 @@ separate sub-entity owned by `House`.[5]
 
 ### 6. `PilotiLayout` and `PilotiPoint`
 
-This is where the spreadsheet is especially clear: the house has a **12-position piloti matrix** (`a1` to `c4`), one
-master piloti, and height-derived totals.[5] The existing editor already has detailed piloti logic, so the persistence
-model should preserve that richness rather than collapsing it into a flat blob.[1] [2]
+This is where the spreadsheet is especially clear: the house has a **12-position piloti matrix**
+(`a1` to `c4`), one master piloti, and height-derived totals.[5] The existing editor already has
+detailed piloti logic, so the persistence model should preserve that richness rather than collapsing
+it into a flat blob.[1] [2]
 
 I would model piloti in two layers.
 
@@ -191,15 +199,15 @@ Suggested structure:
 | `isMaster`          | boolean | Derived from `masterPilotiCode` |
 | `xIndex` / `yIndex` | integer | Optional query convenience      |
 
-The `total-piloti-*` columns should **not** be stored as canonical data. They are summary values derived from
-`PilotiPoint.heightCm` and should be recalculated automatically.[5]
+The `total-piloti-*` columns should **not** be stored as canonical data. They are summary values
+derived from `PilotiPoint.heightCm` and should be recalculated automatically.[5]
 
 ### 7. `HouseDrawingDocument`
 
-This is the bridge between the current editor and the future persisted model. The app now exports an initial
-`HouseDrawingDocument` for the active house instead of raw Fabric JSON.[4] In the multi-house architecture, each house
-should own a **drawing document** that stores serializable views, objects, and editor metadata — without using live
-Fabric groups as persisted state.[1] [2]
+This is the bridge between the current editor and the future persisted model. The app now exports an
+initial `HouseDrawingDocument` for the active house instead of raw Fabric JSON.[4] In the
+multi-house architecture, each house should own a **drawing document** that stores serializable
+views, objects, and editor metadata — without using live Fabric groups as persisted state.[1] [2]
 
 | Field           | Type           | Notes                                |
 |-----------------|----------------|--------------------------------------|
@@ -212,14 +220,15 @@ Fabric groups as persisted state.[1] [2]
 | `side2ViewJson` | jsonb nullable | Serialized drawing payload           |
 | `canvasMeta`    | jsonb          | Zoom, guides, scale, viewport, etc.  |
 
-This is the crucial architectural distinction: **persist serializable drawing documents, not Fabric runtime objects**.
-The current `HouseViewInstance<TGroup>` stores a live `group`, which is fine in memory but wrong as a durable storage
-contract.[2]
+This is the crucial architectural distinction: **persist serializable drawing documents, not Fabric
+runtime objects**. The current `HouseViewInstance<TGroup>` stores a live `group`, which is fine in
+memory but wrong as a durable storage contract.[2]
 
 ### 8. `Person` and assignments
 
-The sheet repeats monitors across many records, and leaders appear as concatenated text in one cell.[5] That is a sign
-the model should include reusable people instead of copying names and phones into every house forever.
+The sheet repeats monitors across many records, and leaders appear as concatenated text in one
+cell.[5] That is a sign the model should include reusable people instead of copying names and phones
+into every house forever.
 
 | Entity                                                          | Why it exists                                            |
 |-----------------------------------------------------------------|----------------------------------------------------------|
@@ -227,18 +236,18 @@ the model should include reusable people instead of copying names and phones int
 | `ConstructionSiteLeaderAssignment`                              | links a person to a project as leader                    |
 | `HouseMonitorAssignment` or `ConstructionSiteMonitorAssignment` | links a person to a house or project with role and phone |
 
-For the first implementation, you can keep leaders as plain text if you want speed. But monitors already look like a
-repeatable team, so they are strong candidates for normalization.
+For the first implementation, you can keep leaders as plain text if you want speed. But monitors
+already look like a repeatable team, so they are strong candidates for normalization.
 
 ### 9. `HouseNote`
 
-`observações` should not be buried inside a generic JSON blob.[5] It deserves a dedicated persisted text field or note
-entity.
+`observações` should not be buried inside a generic JSON blob.[5] It deserves a dedicated persisted
+text field or note entity.
 
 ## Recommended relational model
 
-If you want this to scale cleanly, I would use a relational schema even if the first runtime storage is local. The
-conceptual schema is below.
+If you want this to scale cleanly, I would use a relational schema even if the first runtime storage
+is local. The conceptual schema is below.
 
 | Table                        | Key relations                                                        |
 |------------------------------|----------------------------------------------------------------------|
@@ -257,19 +266,22 @@ conceptual schema is below.
 
 ## How I would implement it in this codebase
 
-I would not start by wiring a backend directly into the current singleton. I would first **separate runtime drawing
-state from persisted project state**, because today those layers are entangled.[1] [2] [4]
+I would not start by wiring a backend directly into the current singleton. I would first **separate
+runtime drawing state from persisted project state**, because today those layers are entangled.[1]
+[2] [4]
 
 ### Step 1 — Introduce a new project-level domain model
 
-Create new types such as `ConstructionSiteState`, `PersistedHouse`, `Family`, `SiteAssessment`, `PilotiLayout`, and
-`HouseDrawingDocument`. Keep the current `HouseAggregate` if possible, but make it operate on a **serializable house
-payload**, not on a payload that embeds Fabric `group` references.[1] [2]
+Create new types such as `ConstructionSiteState`, `PersistedHouse`, `Family`, `SiteAssessment`,
+`PilotiLayout`, and `HouseDrawingDocument`. Keep the current `HouseAggregate` if possible, but make
+it operate on a **serializable house payload**, not on a payload that embeds Fabric `group`
+references.[1] [2]
 
 ### Step 2 — Replace single-house persistence with project persistence
 
-The current persistence port supports only `load(): HouseState | null` and `save(HouseState | null)`. That must become
-something like a project repository with list/load/save semantics and async behavior.[3]
+The current persistence port supports only `load(): HouseState | null` and `save(HouseState |
+null)`. That must become something like a project repository with list/load/save semantics and async
+behavior.[3]
 
 Suggested ports:
 
@@ -315,19 +327,20 @@ That shell should let you:
 
 ### Step 4 — Keep one active house in the editor, but not one house in the whole app
 
-This is the subtle but important move. The editor itself can still work with **one active house at a time** for
-simplicity, but the application must maintain a **project store** containing many houses. Selecting a house in the
-sidebar loads its drawing document and domain state into the editor. Saving writes back into the project store and
-persistence layer.
+This is the subtle but important move. The editor itself can still work with **one active house at a
+time** for simplicity, but the application must maintain a **project store** containing many houses.
+Selecting a house in the sidebar loads its drawing document and domain state into the editor. Saving
+writes back into the project store and persistence layer.
 
-That means you do **not** need to redesign the canvas into multi-house simultaneous editing on day one. You only need to
-redesign the application state so the active canvas is a projection of `project.houses[selectedHouseId]`.
+That means you do **not** need to redesign the canvas into multi-house simultaneous editing on day
+one. You only need to redesign the application state so the active canvas is a projection of
+`project.houses[selectedHouseId]`.
 
 ### Step 5 — Move family data into persisted state
 
-The current `_familyName` and `_selectedPilotiHeights` fields in the transient house controller should disappear as
-loose fields
-and become persisted properties under `Family` and `PilotiLayout`/`HouseDesignSettings`.[1]
+The current `_familyName` and `_selectedPilotiHeights` fields in the transient house controller
+should disappear as loose fields and become persisted properties under `Family` and
+`PilotiLayout`/`HouseDesignSettings`.[1]
 
 A cleaner breakdown is:
 
@@ -338,8 +351,9 @@ A cleaner breakdown is:
 
 ### Step 6 — Promote active-house document export/import into project document export/import
 
-Today the editor exports a versioned `HouseDrawingDocument` for one active house.[4] The next persistence step is not to
-return to Fabric JSON; it is to wrap the same documentary direction in a versioned project document, for example:
+Today the editor exports a versioned `HouseDrawingDocument` for one active house.[4] The next
+persistence step is not to return to Fabric JSON; it is to wrap the same documentary direction in a
+versioned project document, for example:
 
 ```json
 {
@@ -384,19 +398,20 @@ My recommendation is a **two-stage persistence strategy**.
 
 ### Phase A — Local-first
 
-Use **IndexedDB** to store `ConstructionSiteState` and `HouseDrawingDocument` locally. This gives you durable
-persistence
-immediately, no server required, and enough storage for many houses plus serialized views.
+Use **IndexedDB** to store `ConstructionSiteState` and `HouseDrawingDocument` locally. This gives
+you durable persistence immediately, no server required, and enough storage for many houses plus
+serialized views.
 
 ### Phase B — Cloud-ready
 
-Add a backend with authentication, relational storage, and optional file/object storage for heavy drawing payloads.
-Because the domain model was normalized first, the migration becomes manageable instead of theatrical.
+Add a backend with authentication, relational storage, and optional file/object storage for heavy
+drawing payloads. Because the domain model was normalized first, the migration becomes manageable
+instead of theatrical.
 
 ## Recommended technical stack for the full version
 
-Because the current app is a pure frontend, the clean long-term evolution is to move to a web app with authenticated
-persistence. In practice, I would adopt the following stack:
+Because the current app is a pure frontend, the clean long-term evolution is to move to a web app
+with authenticated persistence. In practice, I would adopt the following stack:
 
 | Layer               | Recommendation                                           |
 |---------------------|----------------------------------------------------------|
@@ -434,25 +449,25 @@ If you want the **fastest credible implementation**, I would do this first:
 5. Persist family + selected piloti heights inside each house record.
 6. Export/import a versioned project JSON.
 
-That already solves the core problem you described: **one construction with one or more houses, each associated with one
-family, and everything saved durably**.
+That already solves the core problem you described: **one construction with one or more houses, each
+associated with one family, and everything saved durably**.
 
 ## My direct recommendation
 
-If the objective is to turn RAC Designer TETO into a real production-grade tool, I would implement it as a *
-*project-based editor** with this core rule:
+If the objective is to turn RAC Designer TETO into a real production-grade tool, I would implement
+it as a * *project-based editor** with this core rule:
 
-> A construction project contains many houses. Each house belongs to exactly one family. Each house has its own
-> assessment data, piloti layout, and drawing document. The editor loads one active house at a time, but persistence
-> always happens at project level.[1] [2] [3] [4] [5]
+> A construction project contains many houses. Each house belongs to exactly one family. Each house
+> has its own assessment data, piloti layout, and drawing document. The editor loads one active
+> house at a time, but persistence always happens at project level.[1] [2] [3] [4] [5]
 
-That gives you the cleanest path from today’s single-house prototype to a real system, without tearing out the current
-editor logic unnecessarily.
+That gives you the cleanest path from today’s single-house prototype to a real system, without
+tearing out the current editor logic unnecessarily.
 
 ## Suggested next concrete step
 
-The most valuable next step is not coding blindly. It is to freeze the **target schema** and then implement the first
-local-persistence milestone.
+The most valuable next step is not coding blindly. It is to freeze the **target schema** and then
+implement the first local-persistence milestone.
 
 I recommend that the next execution task be:
 
@@ -464,8 +479,9 @@ I recommend that the next execution task be:
 | 4        | add a left sidebar listing houses and linked families                                     |
 | 5        | replace current JSON import/export with versioned project documents                       |
 
-If you want, I can do the next step end-to-end: I can **design the exact TypeScript interfaces, repository contracts,
-IndexedDB schema, and UI flow**, and then start implementing the first milestone in this repository.
+If you want, I can do the next step end-to-end: I can **design the exact TypeScript interfaces,
+repository contracts, IndexedDB schema, and UI flow**, and then start implementing the first
+milestone in this repository.
 
 ## References
 

@@ -12,7 +12,8 @@ lang: pt-BR
 
 ## Objetivo
 
-Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inserção, bloqueio e remoção.
+Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inserção, bloqueio e
+remoção.
 
 ## Tipos de vista
 
@@ -56,7 +57,9 @@ Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inse
 ## Regras de remoção
 
 1. Ao remover uma vista, a vaga correspondente deve ser liberada.
+
 2. Após remoção, deve ser possível inserir novamente dentro dos limites.
+
 3. A planta segue regra especial:
     - Só pode ser removida se não houver outras vistas ativas.
 
@@ -76,14 +79,22 @@ Definir quais vistas podem ser criadas em cada tipo de casa e como funciona inse
 ## Regras de identificação no canvas
 
 1. Cada vista elevada mantém referência interna pela ordem de inserção no canvas.
+
 2. A vista elevada exibe apenas uma etiqueta superior com o nome da vista, logo acima da própria vista.
     - Exemplo: `Frontal`.
+
 3. A planta exibe o marcador triangular correspondente a cada vista elevada inserida.
+
 4. O marcador triangular fica pareado com o lado da planta associado à vista.
+
 5. A base do triângulo deve ficar paralela ao lado da planta.
+
 6. A ponta do triângulo deve apontar para o lado da planta correspondente.
+
 7. O triângulo não deve exibir número interno.
+
 8. O texto do nome deve ficar paralelo à base do triângulo.
+
 9. O nome da vista deve ficar do lado externo da base:
     - Superior: acima da base.
     - Inferior: abaixo da base.

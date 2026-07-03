@@ -1,13 +1,13 @@
 /**
- * {{pascalCase model}} Persistence Port
- *
- * Contrato síncrono de persistência alinhado ao padrão atual do repositório.
- * O domínio define o que precisa; a infraestrutura fornece a implementação.
- */
+* {{pascalCase model}} Persistence Port
+*
+* Contrato síncrono de persistência alinhado ao padrão atual do repositório.
+* O domínio define o que precisa; a infraestrutura fornece a implementação.
+*/
 
 import type { {{pascalCase model}}State } from './{{kebabCase model}}.aggregate';
 
 export interface {{pascalCase model}}PersistencePort {
-  load(): {{pascalCase model}}State | null;
-  save(state: {{pascalCase model}}State | null): void;
+load(): {{pascalCase model}}State | null;
+save(state: {{pascalCase model}}State | null): void;
 }

@@ -47,7 +47,8 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 
 2. Não pode repetir o mesmo lado vertical na mesma coluna.
 
-3. Se os dois lados verticais já estiverem ocupados, não é possível criar novo contraventamento vertical nessa coluna.
+3. Se os dois lados verticais já estiverem ocupados, não é possível criar novo contraventamento
+   vertical nessa coluna.
 
 ## Regras de capacidade horizontal por linha
 
@@ -60,10 +61,11 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
     - piloti de destino;
     - pilotis intermediários quando o trecho passar por eles.
 
-3. Não pode criar contraventamento horizontal se o mesmo lado já estiver ocupado em qualquer piloti tocado pelo trecho.
+3. Não pode criar contraventamento horizontal se o mesmo lado já estiver ocupado em qualquer piloti
+   tocado pelo trecho.
 
-4. Pode existir mais de um contraventamento horizontal no mesmo lado da mesma linha, desde que os trechos não toquem os
-   mesmos pilotis.
+4. Pode existir mais de um contraventamento horizontal no mesmo lado da mesma linha, desde que os
+   trechos não toquem os mesmos pilotis.
 
 5. A linha A (`A1` a `A4`) permite apenas contraventamento inferior, quando elegível.
 
@@ -98,8 +100,8 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
     - Só habilita quando a linha/faixa atender às mesmas regras de elegibilidade estrutural usadas pelo
       contraventamento vertical.
 
-6. Lados horizontais não permitidos para a linha do piloti aparecem no editor, mas ficam desabilitados e não iniciam
-   fluxo de seleção.
+6. Lados horizontais não permitidos para a linha do piloti aparecem no editor, mas ficam
+   desabilitados e não iniciam fluxo de seleção.
 
 ## Fluxo de criação vertical
 
@@ -138,7 +140,10 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 ## Regras de remoção
 
 1. Clicar no lado vertical já ativo remove o contraventamento desse lado.
-2. Clicar no lado horizontal já ativo remove o contraventamento desse lado que toca o piloti selecionado.
+
+2. Clicar no lado horizontal já ativo remove o contraventamento desse lado que toca o piloti
+   selecionado.
+
 3. Após remoção:
     - O estado visual é atualizado.
     - As vistas são sincronizadas.
@@ -146,10 +151,13 @@ Definir como criar e remover contraventamentos de forma segura, previsível e f�
 
 ## Regras de automação
 
-1. Rotinas automáticas podem propor, criar, remover ou substituir contraventamentos verticais conforme a regra de
-   proporção estrutural.
+1. Rotinas automáticas podem propor, criar, remover ou substituir contraventamentos verticais
+   conforme a regra de proporção estrutural.
+
 2. Rotinas automáticas nunca criam contraventamento horizontal.
-3. Rotinas automáticas de vertical não devem remover nem sobrescrever contraventamentos horizontais manuais.
+
+3. Rotinas automáticas de vertical não devem remover nem sobrescrever contraventamentos horizontais
+   manuais.
 
 ## Regras de cancelamento
 
@@ -167,15 +175,24 @@ Ao cancelar:
 ## Regras de feedback visual
 
 1. Pilotis elegíveis ficam visualmente destacados.
+
 2. Pilotis não elegíveis ficam com aparência neutra.
+
 3. Cursor e destaque devem deixar claro o que é clicável.
-4. Nas vistas elevadas, a espessura visual do contraventamento deve permanecer consistente entre frontal, posterior e
-   laterais, sem dobrar a espessura nos lados menores.
+
+4. Nas vistas elevadas, a espessura visual do contraventamento deve permanecer consistente entre
+   frontal, posterior e laterais, sem dobrar a espessura nos lados menores.
 
 ## Regras de consistência com 3D
 
 1. Contraventamento vertical criado/removido na planta deve refletir nas vistas compatíveis e no 3D.
-2. Contraventamento horizontal criado/removido na planta deve refletir nas vistas compatíveis e no 3D.
+
+2. Contraventamento horizontal criado/removido na planta deve refletir nas vistas compatíveis e no
+   3D.
+
 3. A posição superior/inferior ou esquerda/direita deve respeitar tangenciamento ao piloti.
-4. As alturas inicial e final do contraventamento são derivadas dos níveis dos pilotis de origem e destino.
+
+4. As alturas inicial e final do contraventamento são derivadas dos níveis dos pilotis de origem e
+   destino.
+
 5. Em importação, desfazer e reconstrução, as regras devem permanecer consistentes.

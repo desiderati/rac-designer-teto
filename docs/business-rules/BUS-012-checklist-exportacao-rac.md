@@ -54,6 +54,8 @@ Itens recomendados não bloqueiam a geração, mas aparecem como alertas:
 ## Consistência
 
 1. O checklist deve avaliar a mesma casa que será usada pelo modelo do PDF.
-2. O checklist pode usar dados persistidos após salvar o documento ativo, para evitar alertas causados por estado visual
-   ainda não sincronizado.
+
+2. O checklist pode usar dados persistidos após salvar o documento ativo, para evitar alertas
+   causados por estado visual ainda não sincronizado.
+
 3. Alertas não devem impedir a geração, pois parte dos campos é operacionalmente opcional.

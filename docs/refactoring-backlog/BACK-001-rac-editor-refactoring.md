@@ -14,11 +14,11 @@ Ativo.
 
 ## Objetivo
 
-Registrar os cortes finais e condicionais de refatoração do RAC Editor sem abrir uma frente indefinida de reescrita
-arquitetural.
+Registrar os cortes finais e condicionais de refatoração do RAC Editor sem abrir uma frente
+indefinida de reescrita arquitetural.
 
-Este backlog existe para preservar clareza sobre o que ficou conscientemente adiado após a estabilização da fronteira
-entre domínio, editor, canvas e runtime visual.
+Este backlog existe para preservar clareza sobre o que ficou conscientemente adiado após a
+estabilização da fronteira entre domínio, editor, canvas e runtime visual.
 
 ## Critérios de ativação
 
@@ -51,8 +51,8 @@ Esta frente deve ser considerada encerrada quando:
 
 Status: adiado.
 
-Motivo: `CanvasHandle` ainda concentra várias capacidades do canvas em um contrato amplo. O acoplamento é visível, mas
-não bloqueia o estado atual da aplicação.
+Motivo: `CanvasHandle` ainda concentra várias capacidades do canvas em um contrato amplo. O
+acoplamento é visível, mas não bloqueia o estado atual da aplicação.
 
 Ativar quando:
 
@@ -69,9 +69,9 @@ Critério de parada:
 
 Status: adiado.
 
-Motivo: modais ainda consomem seleções operacionais do canvas para obter posição de tela, valores visuais e contexto de
-edição. Isso é aceitável enquanto permanecer como detalhe de interação, mas pode virar vazamento se a seleção visual
-começar a representar regra de editor ou domínio.
+Motivo: modais ainda consomem seleções operacionais do canvas para obter posição de tela, valores
+visuais e contexto de edição. Isso é aceitável enquanto permanecer como detalhe de interação, mas
+pode virar vazamento se a seleção visual começar a representar regra de editor ou domínio.
 
 Ativar quando:
 
@@ -82,7 +82,9 @@ Ativar quando:
 Critério de parada:
 
 1. modais dependerem de modelos de editor quando a informação for lógica;
-2. seleção operacional do canvas permanecer restrita a coordenadas, alvo visual e contexto de interação.
+
+2. seleção operacional do canvas permanecer restrita a coordenadas, alvo visual e contexto de
+   interação.
 
 ### 3. Classificar hotspots internos de `@canvas/lib`
 
@@ -95,13 +97,16 @@ Arquivos candidatos:
 3. `src/components/rac-editor/@canvas/lib/contraventamento.ts`;
 4. `src/components/rac-editor/@canvas/lib/house-auto-stairs.ts`.
 
-Motivo: esses arquivos ainda concentram lógica relevante, mas nem todo cálculo dentro de `@canvas` é vazamento de
-domínio. Geometria visual, ordenação de objetos e projeção Fabric pertencem ao canvas.
+Motivo: esses arquivos ainda concentram lógica relevante, mas nem todo cálculo dentro de `@canvas` é
+vazamento de domínio. Geometria visual, ordenação de objetos e projeção Fabric pertencem ao canvas.
 
 Ativar quando:
 
-1. uma regra pura de casa, vistas, pilotis, terreno ou limites aparecer misturada com geometria visual;
+1. uma regra pura de casa, vistas, pilotis, terreno ou limites aparecer misturada com geometria
+   visual;
+
 2. a mesma regra existir em dois pontos com contratos equivalentes;
+
 3. uma alteração nesses arquivos exigir testes difíceis demais para uma regra pura.
 
 Critério de parada:
@@ -114,9 +119,10 @@ Critério de parada:
 
 Status: adiado.
 
-Motivo: `editor-house-controller.ts` ainda coordena estado, sessão, persistência, runtime visual, comandos e efeitos.
-Ele não deve ser removido por estética; deve ficar menor apenas quando uma responsabilidade clara puder migrar para um
-serviço, port ou use case com valor de teste e manutenção.
+Motivo: `editor-house-controller.ts` ainda coordena estado, sessão, persistência, runtime visual,
+comandos e efeitos. Ele não deve ser removido por estética; deve ficar menor apenas quando uma
+responsabilidade clara puder migrar para um serviço, port ou use case com valor de teste e
+manutenção.
 
 Ativar quando:
 
@@ -134,8 +140,8 @@ Critério de parada:
 
 Status: adiado.
 
-Motivo: as guardas atuais já protegem pontos centrais da fronteira entre domínio, editor e canvas. Novas guardas só
-devem ser adicionadas quando houver risco concreto de regressão arquitetural.
+Motivo: as guardas atuais já protegem pontos centrais da fronteira entre domínio, editor e canvas.
+Novas guardas só devem ser adicionadas quando houver risco concreto de regressão arquitetural.
 
 Ativar quando:
 
