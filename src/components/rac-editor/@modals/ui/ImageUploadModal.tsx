@@ -8,6 +8,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
   PHOTO_UPLOAD_ACCEPT,
   PHOTO_UPLOAD_ERROR_MESSAGE,
+  PHOTO_UPLOAD_LIMIT_LABEL,
   isSupportedPhotoDataUrl,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
@@ -141,7 +142,7 @@ export function ImageUploadModal({
             Arraste uma imagem ou clique para selecionar
           </span>
           <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>
-            {ACCEPTED_IMAGE_TYPES_LABEL} até 2 MB
+            {ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_UPLOAD_LIMIT_LABEL}
           </span>
         </span>
       </button>

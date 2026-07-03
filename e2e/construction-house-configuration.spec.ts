@@ -60,7 +60,7 @@ test.describe('Configuração da casa', () => {
     await page.getByLabel('Vigas de Piso').fill('12a');
     await page.getByLabel('Caibros').fill('24');
     await page.getByLabel('Vigas Secundárias').fill('8');
-    await page.getByLabel('Calhas').fill('4');
+    await page.getByLabel('Mata-juntas').fill('4');
     await page.getByLabel('Outros / Justificativa').fill('Material extra aprovado pela monitoria.');
     await expect(page.getByLabel('Vigas de Piso')).toHaveValue('12');
     await page.getByRole('button', {name: 'Salvar Materiais Extras'}).click();
@@ -70,7 +70,7 @@ test.describe('Configuração da casa', () => {
     await expect(page.getByLabel('Vigas de Piso')).toHaveValue('12');
     await expect(page.getByLabel('Caibros')).toHaveValue('24');
     await expect(page.getByLabel('Vigas Secundárias')).toHaveValue('8');
-    await expect(page.getByLabel('Calhas')).toHaveValue('4');
+    await expect(page.getByLabel('Mata-juntas')).toHaveValue('4');
     await expect(page.getByLabel('Outros / Justificativa')).toHaveValue('Material extra aprovado pela monitoria.');
   });
 });

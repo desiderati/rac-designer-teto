@@ -31,6 +31,8 @@ describe('ImageUploadModal.tsx', () => {
     const onInsertImage = vi.fn(async (_dataUrl: string) => true);
     renderImageUploadModal({onOpenChange, onInsertImage});
 
+    expect(screen.getByText('PNG, JPG ou WEBP até 5 MB')).toBeVisible();
+
     await user.upload(
       screen.getByLabelText('Selecionar imagem para inserir no canvas'),
       createPngFile(),

@@ -80,8 +80,11 @@ No RAC:
 | Terreno Estável / Argiloso      |    1 |               0 |
 | Não informado                   |  1,5 |            4,17 |
 | Terreno Firme / Duro            |    2 |            8,33 |
-| Solo Aluvial                    |    3 |           16,67 |
+| Solo Molhado                    |    3 |           16,67 |
 | Lençol Freático / Água no Fundo |    4 |              25 |
+
+`Solo Molhado` mantém o mesmo peso operacional do perfil técnico interno `alluvial`; a mudança desta regra é de
+nomenclatura visível para a pessoa usuária, sem migração de dados.
 
 ### Desnível
 
@@ -169,7 +172,7 @@ Referências usadas para a regra:
    interação com o desenho.
 5. Os controles circulares do canvas devem alterar apenas `siteAssessment` da casa ativa; o botão de
    solo deve permitir `Não informado`, `Terreno Estável / Argiloso`, `Terreno Firme / Duro`,
-   `Solo Aluvial` e `Lençol Freático / Água no Fundo`, e os quatro botões de obstáculo devem
+   `Solo Molhado` e `Lençol Freático / Água no Fundo`, e os quatro botões de obstáculo devem
    funcionar como toggles independentes.
 6. A listagem de casas deve manter contrato explícito de colunas e exibir gauge horizontal por
    linha na coluna `Dificuldade`.

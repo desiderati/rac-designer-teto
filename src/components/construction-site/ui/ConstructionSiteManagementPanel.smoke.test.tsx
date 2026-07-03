@@ -1078,7 +1078,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Ana e Bruno'}});
     fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Casa precisa ficar próxima ao acesso lateral.'}});
     const stableSoilOption = screen.getByRole('radio', {name: /Terreno Estável \/ Argiloso/i});
-    const alluvialSoilOption = screen.getByRole('radio', {name: /Solo Aluvial/i});
+    const alluvialSoilOption = screen.getByRole('radio', {name: /Solo Molhado/i});
     const elevatedObstaclesOption = screen.getByLabelText('Obstáculos Elevados');
     expect(stableSoilOption.closest('label')?.querySelector('svg')).toHaveClass('lucide-layers');
     expect(alluvialSoilOption.closest('label')?.className).toContain('focus-within:ring-inset');
@@ -1424,12 +1424,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('12');
     expect(screen.getByLabelText('Caibros')).toHaveValue('24');
     expect(screen.getByLabelText('Vigas Secundárias')).toHaveValue('8');
-    expect(screen.getByLabelText('Calhas')).toHaveValue('4');
+    expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
 
     fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
-    fireEvent.change(screen.getByLabelText('Calhas'), {target: {value: '2.5'}});
+    fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});
     expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
-    expect(screen.getByLabelText('Calhas')).toHaveValue('4');
+    expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
     fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {
       target: {value: 'Reforço revisado com a monitoria.'},
     });

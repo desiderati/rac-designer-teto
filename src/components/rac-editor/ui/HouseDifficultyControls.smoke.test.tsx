@@ -97,7 +97,7 @@ describe('HouseDifficultyControls', () => {
       </TooltipProvider>,
     );
 
-    await user.click(screen.getByRole('button', {name: 'Editar perfil do solo. Atual: Solo Aluvial'}));
+    await user.click(screen.getByRole('button', {name: 'Editar perfil do solo. Atual: Solo Molhado'}));
     await user.click(await screen.findByRole('menuitem', {name: 'Selecionar solo Não informado'}));
 
     expect(onSiteAssessmentChange).toHaveBeenCalledWith({soilProfile: undefined});

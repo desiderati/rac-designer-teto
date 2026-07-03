@@ -121,7 +121,7 @@ const HOUSE_TYPE_LABELS: Record<Exclude<HouseType, null>, string> = {
 const SOIL_PROFILE_LABELS: Record<SoilProfile, string> = {
   stable_clay: 'Terreno Estável / Argiloso',
   firm_hard: 'Terreno Firme / Duro',
-  alluvial: 'Solo Aluvial',
+  alluvial: 'Solo Molhado',
   water_table: 'Lençol Freático / Água no Fundo',
 };
 
@@ -255,7 +255,7 @@ function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): R
       {label: 'Vigas de Piso', value: formatMaterialCount(extraMaterials?.floorBeams)},
       {label: 'Caibros', value: formatMaterialCount(extraMaterials?.rafters)},
       {label: 'Vigas Secundárias', value: formatMaterialCount(extraMaterials?.secondaryBeams)},
-      {label: 'Calhas', value: formatMaterialCount(extraMaterials?.gutters)},
+      {label: 'Mata-juntas', value: formatMaterialCount(extraMaterials?.gutters)},
     ],
     justification: normalizeDisplayValue(extraMaterials?.justification, 'Nenhuma observação adicional.'),
   };

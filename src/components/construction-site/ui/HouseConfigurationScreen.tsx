@@ -325,7 +325,7 @@ export function HouseConfigurationScreen({
                     />
                     <RadioField
                       icon={<Waves className='h-5 w-5'/>}
-                      label='Solo Aluvial'
+                      label='Solo Molhado'
                       name='soilProfile'
                       value='alluvial'
                       checked={field.value === 'alluvial'}

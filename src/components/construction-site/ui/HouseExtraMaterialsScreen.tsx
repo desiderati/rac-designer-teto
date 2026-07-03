@@ -86,7 +86,7 @@ export function HouseExtraMaterialsScreen({
           <IntegerField
             control={form.control}
             name='gutters'
-            label='Calhas'
+            label='Mata-juntas'
             placeholder='0'
             disabled={isReadOnly}
           />

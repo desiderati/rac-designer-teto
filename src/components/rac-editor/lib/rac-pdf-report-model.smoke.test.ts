@@ -134,6 +134,8 @@ describe('rac pdf report model', () => {
     expect(report?.pilotis.totals).toContainEqual({heightLabel: '2,0 m', count: 1});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas de Piso', value: '12'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Caibros', value: '24'});
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas Secundárias', value: '8'});
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
     expect(report?.extraMaterials.justification).toBe('Material para reforço do acesso lateral.');
     expect(report?.canvasImageAspectRatio).toBe(1);
     expect(report?.house3DImageDataUrl).toBeNull();
@@ -189,6 +191,7 @@ describe('rac pdf report model', () => {
     expect(output).toContain('MATERIAL EXTRA');
     expect(output).toContain('VIGAS DE PISO');
     expect(output).toContain('CAIBROS');
+    expect(output).toContain('MATA-JUNTAS');
     expect(output).toContain('12');
     expect(output).toContain('24');
     expect(getPrecedingSegments(output, 'Material para reforço', 240).at(0)).toContain('0.42 0.447 0.502 rg');
@@ -205,7 +208,24 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('Tipo 3');
     expect(output).not.toContain('Terreno Firme / Duro');
     expect(output).not.toContain('Solo Aluvial');
+    expect(output).not.toContain('CALHAS');
     expect(output).not.toContain('Plano');
+  });
+
+  it('exibe alluvial como Solo Molhado no relatorio', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].siteAssessment = {
+      soilProfile: 'alluvial',
+    };
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+      generatedAt: new Date('2026-06-16T12:00:00.000Z'),
+    });
+
+    expect(report?.terrain.optionGroups.find((group) => group.label === 'Solo')?.selected)
+      .toEqual(['Solo Molhado']);
   });
 
   it('gera pagina extra com visualizacao 3D no mesmo formato do canvas principal', () => {
