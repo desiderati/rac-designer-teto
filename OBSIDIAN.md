@@ -54,6 +54,17 @@ claramente estabelecida.
 - [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md),
   para a comparação de alternativas ao Convex na iniciativa remota
 
+- [docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md](docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md),
+  para o plano executado de exclusão física local em Construções TETO, casas e monitores
+
+- [docs/business-rules/](docs/business-rules/), para regras de negócio duráveis do editor RAC
+
+- [docs/business-rules/BUS-010-status-casa.md](docs/business-rules/BUS-010-status-casa.md), para a
+  regra vigente de status da casa, incluindo exclusão definitiva de casa arquivada
+
+- [docs/business-rules/BUS-011-status-construcao.md](docs/business-rules/BUS-011-status-construcao.md),
+  para a regra vigente de status da Construção TETO, incluindo exclusão física em cascata
+
 - [docs/ui-definitions/README.md](docs/ui-definitions/README.md), para definições duráveis de
   comportamento visual
 

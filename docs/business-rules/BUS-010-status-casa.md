@@ -12,7 +12,8 @@ lang: pt-BR
 
 ## Objetivo
 
-Definir como o status da casa muda entre edição, impressão do RAC, conclusão da construção e arquivamento.
+Definir como o status da casa muda entre edição, impressão do RAC, conclusão da construção e
+arquivamento.
 
 ## Estados
 
@@ -36,6 +37,7 @@ Definir como o status da casa muda entre edição, impressão do RAC, conclusão
     - Remove a casa do canvas e dos fluxos de edição ativos.
     - Bloqueia edição de configuração da casa e materiais extras.
     - Pode ser desarquivada, retornando para `Rascunho`.
+    - Pode ser excluída definitivamente somente quando a Construção TETO pai estiver navegável e em andamento.
 
 ## Transições
 
@@ -66,15 +68,31 @@ Definir como o status da casa muda entre edição, impressão do RAC, conclusão
     - Arquivar mantém o comportamento próprio de retirada da casa dos fluxos ativos.
     - Desarquivar retorna a casa para `Rascunho`.
 
-7. Disponibilidade do Canvas
+7. Exclusão definitiva
+    - A ação deve pedir confirmação destrutiva explícita.
+    - A exclusão é física, local e sem desfazer.
+    - A casa só pode ser excluída se estiver `Arquivada` e se a Construção TETO pai estiver navegável e em andamento.
+    - Ao excluir a casa, seus dados de terreno, materiais, pilotis, vistas, canvas, documento RAC e metadados próprios
+      são removidos.
+    - A família vinculada só deve ser removida quando nenhuma outra casa restante referenciar a mesma família.
+    - Casas arquivadas dentro de Construção TETO arquivada não têm exclusão granular; nesse caso, a ação permitida é
+      excluir a construção inteira.
+
+8. Disponibilidade do Canvas
     - O Canvas só pode ser aberto quando existir ao menos uma casa não arquivada em uma construção em andamento.
     - Se nenhuma construção em andamento tiver ao menos uma casa não arquivada, o retorno ao Canvas deve ficar
       indisponível.
 
 ## Segurança
 
-O bloqueio de `Construída` deve existir na interface e na camada de sessão/persistência. Se uma chamada interna tentar
-salvar uma mudança editorial em casa construída, a sessão deve ignorar a mutação.
+O bloqueio de `Construída` deve existir na interface e na camada de sessão/persistência. Se uma
+chamada interna tentar salvar uma mudança editorial em casa construída, a sessão deve ignorar a
+mutação.
 
-O bloqueio de `Arquivada` também deve existir na interface e na camada de sessão/persistência. Se uma chamada interna
-tentar editar configuração, materiais extras ou documento visual de uma casa arquivada, a sessão deve ignorar a mutação.
+O bloqueio de `Arquivada` também deve existir na interface e na camada de sessão/persistência. Se
+uma chamada interna tentar editar configuração, materiais extras ou documento visual de uma casa
+arquivada, a sessão deve ignorar a mutação.
+
+A exclusão definitiva de casa arquivada é uma exceção explícita ao bloqueio de edição da própria
+casa, mas não ao bloqueio da Construção TETO pai. Se a construção estiver `Concluída` ou
+`Arquivada`, a sessão deve ignorar a exclusão granular da casa.
