@@ -258,18 +258,24 @@ describe('GuidedTourHost', () => {
           targets: {
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
             'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
-            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-archive': {left: 892, top: 180, width: 36, height: 36},
+            'rac-construction-export-racs': {left: 848, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 892, top: 180, width: 36, height: 36},
+            'rac-construction-archive': {left: 936, top: 180, width: 36, height: 36},
           },
         },
       }));
     });
 
     expect(await screen.findByRole('dialog', {name: 'Monitores'})).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(4);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(5);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Casas e Famílias'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+    const exportDialog = await screen.findByRole('dialog', {name: 'Exportar RACs'});
+    expect(exportDialog).toBeVisible();
+    expect(exportDialog).toHaveAccessibleDescription(/ZIP com as RACs das casas não arquivadas/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const completedDialog = await screen.findByRole('dialog', {name: 'Construção Concluída'});
@@ -283,7 +289,7 @@ describe('GuidedTourHost', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-construction-actions:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-construction-actions:completed:revision'))
-      .toBe('construction-actions-v1');
+      .toBe('construction-actions-v2');
   });
 
   it('starts the construction back to canvas tour from the ready event', async () => {
@@ -327,8 +333,9 @@ describe('GuidedTourHost', () => {
           targets: {
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
             'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
-            'rac-construction-completed': {left: 848, top: 180, width: 36, height: 36},
-            'rac-construction-archive': {left: 892, top: 180, width: 36, height: 36},
+            'rac-construction-export-racs': {left: 848, top: 180, width: 36, height: 36},
+            'rac-construction-completed': {left: 892, top: 180, width: 36, height: 36},
+            'rac-construction-archive': {left: 936, top: 180, width: 36, height: 36},
           },
         },
       }));

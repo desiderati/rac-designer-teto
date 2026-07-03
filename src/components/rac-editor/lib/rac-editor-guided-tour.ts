@@ -12,7 +12,7 @@ const RAC_HOUSE_ADD_TOUR_READY_EVENT = 'rac:house-add-tour-ready';
 const RAC_HOUSE_ACTIONS_TOUR_READY_EVENT = 'rac:house-actions-tour-ready';
 const RAC_HOUSE_TOP_VIEW_STORAGE_REVISION = 'piloti-target';
 const RAC_CONSTRUCTION_ADD_STORAGE_REVISION = 'construction-add-v1';
-const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v1';
+const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v2';
 const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
 const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
 const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v1';
@@ -206,8 +206,19 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'center',
           title: 'Casas e Famílias',
           text: 'Aqui você acessa as casas da construção, configura famílias, dificuldade, materiais e o desenho RAC de cada casa.',
-          next: 'rac-construction-completed',
+          next: 'rac-construction-export-racs',
           persistKey: 'guided-tour:rac-construction-actions:houses',
+          kind: 'flow',
+        },
+        {
+          id: 'rac-construction-export-racs',
+          targetId: 'rac-construction-export-racs',
+          placement: 'bottom',
+          alignment: 'center',
+          title: 'Exportar RACs',
+          text: 'Gere um ZIP com as RACs das casas não arquivadas desta construção quando ela estiver em andamento.',
+          next: 'rac-construction-completed',
+          persistKey: 'guided-tour:rac-construction-actions:export-racs',
           kind: 'flow',
         },
         {

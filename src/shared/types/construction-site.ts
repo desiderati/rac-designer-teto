@@ -163,6 +163,7 @@ export interface ConstructionSiteSummary {
   status: ConstructionSiteStatus;
   activeHouseId?: string;
   houseCount: number;
+  nonArchivedHouseCount: number;
   familyCount: number;
   updatedAt: string;
 }
@@ -204,6 +205,7 @@ export function toConstructionSiteSummary(state: ConstructionSiteState): Constru
     status: state.constructionSite.status,
     activeHouseId: state.constructionSite.activeHouseId,
     houseCount: state.houses.length,
+    nonArchivedHouseCount: state.houses.filter((house) => house.status !== 'archived').length,
     familyCount: state.families.length,
     updatedAt: state.constructionSite.updatedAt,
   };

@@ -87,13 +87,17 @@ test.describe('RAC guided tour', () => {
 
     const monitorsDialog = page.getByRole('dialog').filter({hasText: 'Monitores'});
     await expect(monitorsDialog).toBeVisible();
-    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(4);
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(5);
 
     await monitorsDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const housesDialog = page.getByRole('dialog').filter({hasText: 'Casas e Famílias'});
     await expect(housesDialog).toBeVisible();
 
     await housesDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    const exportDialog = page.getByRole('dialog').filter({hasText: 'Exportar RACs'});
+    await expect(exportDialog).toBeVisible();
+
+    await exportDialog.getByRole('button', {name: 'OK'}).click({force: true});
     const completedDialog = page.getByRole('dialog').filter({hasText: 'Construção Concluída'});
     await expect(completedDialog).toBeVisible();
 

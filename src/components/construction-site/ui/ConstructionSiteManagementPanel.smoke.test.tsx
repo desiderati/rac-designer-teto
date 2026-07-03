@@ -116,10 +116,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('construction-desktop-table').className).toContain('sm:block');
     const constructionDesktopTable = within(screen.getByTestId('construction-desktop-table')).getByRole('table');
     expect(constructionDesktopTable).toHaveClass('table-fixed');
-    expect(constructionDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
-    expect(constructionDesktopTable.querySelectorAll('col')[1]).toHaveClass('w-[17%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[42%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[1]).toHaveClass('w-[16%]');
     expect(constructionDesktopTable.querySelectorAll('col')[2]).toHaveClass('w-[18%]');
-    expect(constructionDesktopTable.querySelectorAll('col')[3]).toHaveClass('w-[17%]');
+    expect(constructionDesktopTable.querySelectorAll('col')[3]).toHaveClass('w-[24%]');
     const constructionMobileList = screen.getByTestId('construction-mobile-list');
     const constructionMobilePagination = screen.getByTestId('construction-mobile-pagination');
 
@@ -162,10 +162,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar casas da construção CC2605'}))
       .not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Exportar RACs ZIP da construção CC2605'}))
+      .not.toBeInTheDocument();
     screen.getAllByRole('button', {name: 'Gerenciar monitores da construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     });
     screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
+      expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
+    });
+    screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     });
     screen.getAllByRole('button', {name: 'Concluir construção CC2603'}).forEach((button) => {
@@ -182,6 +187,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-houses');
     });
+    screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'}).forEach((button) => {
+      expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-export-racs');
+    });
     screen.getAllByRole('button', {name: 'Concluir construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-completed');
     });
@@ -189,6 +197,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-archive');
     });
     screen.getAllByRole('button', {name: 'Gerenciar monitores da construção CC2604'}).forEach((button) => {
+      expect(button).not.toHaveAttribute('data-guided-tour-id');
+    });
+    screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2604'}).forEach((button) => {
       expect(button).not.toHaveAttribute('data-guided-tour-id');
     });
 
@@ -243,6 +254,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(getGuidedTourEventTargetIds(constructionActionsTour.listener)).toEqual([
       'rac-construction-monitors',
       'rac-construction-houses',
+      'rac-construction-export-racs',
       'rac-construction-completed',
       'rac-construction-archive',
     ]);
@@ -254,7 +266,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   it('dispara retorno ao canvas apenas quando a casa ativa pode abrir o editor', async () => {
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     const backToCanvasTour = listenGuidedTourEvent('rac:construction-back-to-canvas-tour-ready');
 
     renderPanel({canOpenRacEditor: true, onBackToCanvas: vi.fn()});
@@ -285,7 +297,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const date = within(row).getByText('11/05/2026');
 
     expect(desktopTable).toHaveClass('table-fixed');
-    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[48%]');
+    expect(desktopTable.querySelectorAll('col')[0]).toHaveClass('w-[42%]');
     expect(identity.closest('td')).toHaveClass('max-w-0');
     expect(identity).toHaveClass('min-w-0', 'flex-1');
     expect(community).toHaveTextContent(longCommunityName);
@@ -522,22 +534,49 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     }));
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
-  it('exporta RACs em ZIP pelo formulário de construção', async () => {
+  it('exporta RACs em ZIP pelo grupo de ações da construção', async () => {
     const user = userEvent.setup();
     const actions = createActions();
+    let resolveExport!: () => void;
+    actions.exportConstructionRacsZip = vi.fn(() => new Promise<void>((resolve) => {
+      resolveExport = resolve;
+    }));
 
     renderPanel({actions});
 
-    await user.click(screen.getByRole('row', {name: /CC2603.*Em andamento/i}));
-    expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
-
-    const exportButton = screen.getByRole('button', {name: 'Exportar RACs ZIP'});
+    const constructionRow = screen.getByRole('row', {name: /CC2603.*Em andamento/i});
+    const exportButton = within(constructionRow)
+      .getByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'});
     expect(exportButton).toBeEnabled();
 
     await user.click(exportButton);
 
     await waitFor(() => expect(actions.exportConstructionRacsZip).toHaveBeenCalledWith('construction_site_1'));
+    expect(within(constructionRow)
+      .getByRole('button', {name: 'Gerando ZIP das RACs da construção CC2603'}))
+      .toBeDisabled();
+    expect(screen.queryByRole('heading', {name: 'Editar Construção TETO'})).not.toBeInTheDocument();
+
+    resolveExport();
+    await waitFor(() => expect(within(constructionRow)
+      .getByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'}))
+      .toBeEnabled());
   }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('mantem exportação de RACs desabilitada para construção concluída', () => {
+    const summaries = createSummaries().map((summary) => (
+      summary.id === 'construction_site_1'
+        ? {...summary, status: 'completed' as const}
+        : summary
+    ));
+    const actions = createActions();
+
+    renderPanel({actions, summaries});
+
+    expect(screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'})[0])
+      .toBeDisabled();
+    expect(actions.exportConstructionRacsZip).not.toHaveBeenCalled();
+  });
 
   it('abre edição pela linha inteira e acessa a listagem de casas sem ações redundantes', async () => {
     const user = userEvent.setup();
@@ -696,7 +735,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const constructionSite = createConstructionSite();
     constructionSite.houses = [];
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     const houseAddTour = listenGuidedTourEvent('rac:house-add-tour-ready');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -715,7 +754,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
   it('dispara ações da casa depois que existe casa cadastrada', async () => {
     const user = userEvent.setup();
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v1');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     markGuidedTourSegmentCompleted('guided-tour:rac-house-add:completed', 'house-add-v1');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -1910,6 +1949,7 @@ function createSummaries(): ConstructionSiteSummary[] {
       status: 'in_progress',
       activeHouseId: 'house_1',
       houseCount: 1,
+      nonArchivedHouseCount: 1,
       familyCount: 1,
       updatedAt: '2026-05-09T12:00:00.000Z',
     },
@@ -1922,6 +1962,7 @@ function createSummaries(): ConstructionSiteSummary[] {
       status: 'in_progress',
       activeHouseId: 'house_2',
       houseCount: 1,
+      nonArchivedHouseCount: 1,
       familyCount: 1,
       updatedAt: '2026-05-08T18:30:00.000Z',
     },
@@ -1934,6 +1975,7 @@ function createSummaries(): ConstructionSiteSummary[] {
       status: 'archived',
       activeHouseId: 'house_3',
       houseCount: 1,
+      nonArchivedHouseCount: 1,
       familyCount: 1,
       updatedAt: '2026-05-07T18:30:00.000Z',
     },
@@ -1955,6 +1997,7 @@ function createPaginatedSummaries(count: number): ConstructionSiteSummary[] {
       status: 'in_progress',
       activeHouseId: `house_page_${pageNumber}`,
       houseCount: 1,
+      nonArchivedHouseCount: 1,
       familyCount: 1,
       updatedAt: `${date}T12:00:00.000Z`,
     };

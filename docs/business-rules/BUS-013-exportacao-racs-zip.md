@@ -16,7 +16,7 @@ Definir a exportação em lote das RACs de uma Construção TETO para um arquivo
 
 ## Regra Geral
 
-1. A ação fica disponível no formulário de Construções TETO.
+1. A ação fica disponível no grupo de ícones de cada Construção TETO na listagem.
 2. A exportação em ZIP só pode ocorrer para construção `Em andamento`, porque a geração altera status de casas.
 3. Casas `Arquivadas` não entram na impressão das RACs.
 4. Casas `Construídas` entram no ZIP, mas permanecem com status `Construída`.

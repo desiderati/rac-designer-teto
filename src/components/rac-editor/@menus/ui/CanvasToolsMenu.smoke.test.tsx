@@ -89,18 +89,23 @@ describe('CanvasToolsMenu.tsx', () => {
     const elementsButton = screen.getByRole('button', {name: 'Elementos'});
     const wallButton = screen.getByRole('button', {name: 'Objeto / Muro'});
     const streetButton = screen.getByRole('button', {name: 'Rua Reta'});
+    const streetCornerButton = screen.getByRole('button', {name: 'Rua em Quina'});
     const uploadButton = screen.getByRole('button', {name: 'Upload de Imagem'});
 
     expect(houseButton).not.toHaveAttribute('title');
     expect(elementsButton).not.toHaveAttribute('title');
     expect(wallButton).not.toHaveAttribute('title');
     expect(streetButton).not.toHaveAttribute('title');
+    expect(streetCornerButton).not.toHaveAttribute('title');
     expect(uploadButton).not.toHaveAttribute('title');
     expect(houseButton).toHaveClass('w-10', 'h-10');
     expect(elementsButton).toHaveClass('w-10', 'h-10');
     expect(wallButton).toHaveClass('w-10', 'h-10');
     expect(streetButton).toHaveClass('w-10', 'h-10');
+    expect(streetCornerButton).toHaveClass('w-10', 'h-10');
     expect(uploadButton).toHaveClass('w-10', 'h-10');
+    expect(streetButton.querySelector('[data-menu-icon]')).not.toBeInTheDocument();
+    expect(streetCornerButton.querySelector('[data-menu-icon]')).not.toBeInTheDocument();
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toHaveClass('p-1');
     expect(screen.getByTestId('rac-side-rail-submenu')).toHaveClass('px-1');
   });

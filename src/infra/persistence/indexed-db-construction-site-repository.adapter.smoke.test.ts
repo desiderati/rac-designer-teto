@@ -21,6 +21,7 @@ describe('IndexedDbConstructionSiteRepositoryAdapter', () => {
         status: 'in_progress',
         activeHouseId: undefined,
         houseCount: 0,
+        nonArchivedHouseCount: 0,
         familyCount: 0,
         updatedAt: '2026-05-09T01:00:00.000Z',
       },

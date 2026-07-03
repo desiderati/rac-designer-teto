@@ -1,5 +1,5 @@
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {Home, UsersRound} from 'lucide-react';
+import {Download, Home, UsersRound} from 'lucide-react';
 import type {ConstructionSiteStatus, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
@@ -35,6 +35,8 @@ export function ConstructionListScreen({
   onOpenConstruction,
   onOpenConstructionHouses,
   onOpenConstructionMonitors,
+  onExportConstructionRacsZip,
+  exportingRacsZipConstructionId,
   onRequestStatusChange,
 }: {
   summaries: ConstructionSiteSummary[];
@@ -42,6 +44,8 @@ export function ConstructionListScreen({
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
+  onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
+  exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
   const [statusFilter, setStatusFilter] = useState<ConstructionStatusFilter>('all');
@@ -117,17 +121,17 @@ export function ConstructionListScreen({
       <div data-testid='construction-desktop-table' className='hidden overflow-x-auto sm:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
-            <col className='w-[48%]'/>
-            <col className='w-[17%]'/>
+            <col className='w-[42%]'/>
+            <col className='w-[16%]'/>
             <col className='w-[18%]'/>
-            <col className='w-[17%]'/>
+            <col className='w-[24%]'/>
           </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Construções</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Data da Construção</th>
-            <th scope='col' className='w-[10.75rem] px-3 pb-1 text-center'>
+            <th scope='col' className='w-[13.5rem] px-3 pb-1 text-center'>
               <span className='sr-only'>Ações</span>
             </th>
           </tr>
@@ -142,6 +146,8 @@ export function ConstructionListScreen({
               onOpenConstruction={onOpenConstruction}
               onOpenConstructionHouses={onOpenConstructionHouses}
               onOpenConstructionMonitors={onOpenConstructionMonitors}
+              onExportConstructionRacsZip={onExportConstructionRacsZip}
+              exportingRacsZipConstructionId={exportingRacsZipConstructionId}
               onRequestStatusChange={onRequestStatusChange}
             />
           ))}
@@ -159,6 +165,8 @@ export function ConstructionListScreen({
             onOpenConstruction={onOpenConstruction}
             onOpenConstructionHouses={onOpenConstructionHouses}
             onOpenConstructionMonitors={onOpenConstructionMonitors}
+            onExportConstructionRacsZip={onExportConstructionRacsZip}
+            exportingRacsZipConstructionId={exportingRacsZipConstructionId}
             onRequestStatusChange={onRequestStatusChange}
           />
         ))}
@@ -190,6 +198,8 @@ export function ConstructionMobileCard({
   onOpenConstruction,
   onOpenConstructionHouses,
   onOpenConstructionMonitors,
+  onExportConstructionRacsZip,
+  exportingRacsZipConstructionId,
   onRequestStatusChange,
 }: {
   summary: ConstructionSiteSummary;
@@ -198,6 +208,8 @@ export function ConstructionMobileCard({
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
+  onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
+  exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
 
@@ -214,6 +226,12 @@ export function ConstructionMobileCard({
   const completionLabel = summary.status === 'completed'
     ? `Voltar construção ${constructionCode} para andamento`
     : `Concluir construção ${constructionCode}`;
+  const canExportRacsZip = summary.status === 'in_progress'
+    && summary.nonArchivedHouseCount > 0;
+  const isExportingRacsZip = exportingRacsZipConstructionId === summary.id;
+  const exportRacsZipLabel = isExportingRacsZip
+    ? `Gerando ZIP das RACs da construção ${constructionCode}`
+    : `Exportar RACs ZIP da construção ${constructionCode}`;
 
   const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -233,6 +251,12 @@ export function ConstructionMobileCard({
   const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     void onOpenConstructionHouses(summary);
+  };
+
+  const exportRacsZip = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!canExportRacsZip || isExportingRacsZip) return;
+    void onExportConstructionRacsZip(summary);
   };
 
   return (
@@ -294,6 +318,14 @@ export function ConstructionMobileCard({
               >
                 <Home className='h-4 w-4'/>
               </RoundIconActionButton>
+              <RoundIconActionButton
+                label={exportRacsZipLabel}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-export-racs' : undefined}
+                onClick={exportRacsZip}
+                disabled={!canExportRacsZip || isExportingRacsZip}
+              >
+                <Download className='h-4 w-4'/>
+              </RoundIconActionButton>
               <StatusActionButton
                 action={completionAction}
                 label={completionLabel}
@@ -323,6 +355,8 @@ export function ConstructionTableRow({
   onOpenConstruction,
   onOpenConstructionHouses,
   onOpenConstructionMonitors,
+  onExportConstructionRacsZip,
+  exportingRacsZipConstructionId,
   onRequestStatusChange,
 }: {
   summary: ConstructionSiteSummary;
@@ -331,6 +365,8 @@ export function ConstructionTableRow({
   onOpenConstruction(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionHouses(summary: ConstructionSiteSummary): Promise<void>;
   onOpenConstructionMonitors(summary: ConstructionSiteSummary): Promise<void>;
+  onExportConstructionRacsZip(summary: ConstructionSiteSummary): Promise<void>;
+  exportingRacsZipConstructionId?: string | null;
   onRequestStatusChange(summary: ConstructionSiteSummary, action: StatusChangeAction): void;
 }) {
 
@@ -347,6 +383,12 @@ export function ConstructionTableRow({
   const completionLabel = summary.status === 'completed'
     ? `Voltar construção ${constructionCode} para andamento`
     : `Concluir construção ${constructionCode}`;
+  const canExportRacsZip = summary.status === 'in_progress'
+    && summary.nonArchivedHouseCount > 0;
+  const isExportingRacsZip = exportingRacsZipConstructionId === summary.id;
+  const exportRacsZipLabel = isExportingRacsZip
+    ? `Gerando ZIP das RACs da construção ${constructionCode}`
+    : `Exportar RACs ZIP da construção ${constructionCode}`;
 
   const requestArchiveStatusChange = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -366,6 +408,12 @@ export function ConstructionTableRow({
   const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     void onOpenConstructionHouses(summary);
+  };
+
+  const exportRacsZip = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (!canExportRacsZip || isExportingRacsZip) return;
+    void onExportConstructionRacsZip(summary);
   };
 
   return (
@@ -416,7 +464,7 @@ export function ConstructionTableRow({
           <span className='block'>{constructionDateLabel}</span>
         )}
       </td>
-      <td className='w-[10.75rem] rounded-r-lg px-3 py-3 align-middle'>
+      <td className='w-[13.5rem] rounded-r-lg px-3 py-3 align-middle'>
         <div className='flex items-center justify-end gap-2'>
           {!isArchived ? (
             <>
@@ -433,6 +481,14 @@ export function ConstructionTableRow({
                 onClick={openHouses}
               >
                 <Home className='h-4 w-4'/>
+              </RoundIconActionButton>
+              <RoundIconActionButton
+                label={exportRacsZipLabel}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-export-racs' : undefined}
+                onClick={exportRacsZip}
+                disabled={!canExportRacsZip || isExportingRacsZip}
+              >
+                <Download className='h-4 w-4'/>
               </RoundIconActionButton>
               <StatusActionButton
                 action={completionAction}

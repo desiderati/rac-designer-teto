@@ -49,8 +49,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
     - A área central separa a gestão de Construções TETO da listagem de casas, da listagem de monitores e dos detalhes.
     - Construção TETO possui Código da CC, Data da Construção, Comunidade única e foto opcional, com ações de criar,
       arquivar, desarquivar, listar e trocar construção.
-    - Cada item da listagem de Construções TETO expõe ações por ícone para gerenciar monitores e casas daquela
-      construção, posicionadas antes da ação de arquivar ou desarquivar.
+    - Cada item da listagem de Construções TETO expõe ações por ícone para gerenciar monitores, gerenciar casas e
+      exportar RACs em ZIP daquela construção, posicionadas antes das ações de concluir e arquivar ou desarquivar.
     - Monitores pertencem somente à Construção TETO em foco, são listados como ativos por padrão e usam inativação
       lógica para preservação histórica.
     - Cada casa é identificada pela família associada; não há nome próprio de casa.

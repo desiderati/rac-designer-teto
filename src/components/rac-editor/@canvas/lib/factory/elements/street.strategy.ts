@@ -8,11 +8,14 @@ export type StreetVariant = 'straight' | 'corner';
 const STREET_BODY_COLOR = '#9ca3af';
 const STREET_BORDER_COLOR = '#6b7280';
 const STREET_MARKING_COLOR = '#f8fafc';
-const STREET_STROKE_WIDTH = 2;
+const STREET_BORDER_WIDTH = 1.5;
+const STREET_MARKING_WIDTH = 4;
 const STREET_MARKING_DASH = [18, 12] as const;
 const STRAIGHT_STREET_WIDTH = 280;
 const STREET_DEPTH = 72;
 const CORNER_STREET_ARM = 220;
+const CORNER_HORIZONTAL_MARKING_START_INSET = 54;
+const CORNER_VERTICAL_MARKING_BOTTOM_INSET = 46;
 
 export const streetStraightStrategy = createStreetStrategy('straight');
 export const streetCornerStrategy = createStreetStrategy('corner');
@@ -49,9 +52,6 @@ function createStreetBody(params: {
     width: params.width,
     height: params.height,
     fill: STREET_BODY_COLOR,
-    stroke: STREET_BORDER_COLOR,
-    strokeWidth: STREET_STROKE_WIDTH,
-    strokeUniform: true,
     originX: 'center',
     originY: 'center',
     left: params.left,
@@ -63,13 +63,28 @@ function createStreetBody(params: {
   return setCanvasObjectMyType(body, 'streetBody');
 }
 
+function createStreetBorder(points: [number, number, number, number]): CanvasObject {
+  const border = new Line(points, {
+    stroke: STREET_BORDER_COLOR,
+    strokeWidth: STREET_BORDER_WIDTH,
+    strokeUniform: true,
+    strokeLineCap: 'square',
+    originX: 'center',
+    originY: 'center',
+    selectable: false,
+    evented: false,
+  });
+
+  return setCanvasObjectMyType(border, 'streetBorder');
+}
+
 function createStreetMarking(points: [number, number, number, number]): CanvasObject {
   const marking = new Line(points, {
     stroke: STREET_MARKING_COLOR,
-    strokeWidth: 3,
+    strokeWidth: STREET_MARKING_WIDTH,
     strokeDashArray: [...STREET_MARKING_DASH],
     strokeUniform: true,
-    strokeLineCap: 'round',
+    strokeLineCap: 'square',
     originX: 'center',
     originY: 'center',
     selectable: false,
@@ -87,6 +102,18 @@ function createStraightStreetGroup(): FabricGroup {
       left: 0,
       top: 0,
     }),
+    createStreetBorder([
+      -STRAIGHT_STREET_WIDTH / 2,
+      -STREET_DEPTH / 2,
+      STRAIGHT_STREET_WIDTH / 2,
+      -STREET_DEPTH / 2,
+    ]),
+    createStreetBorder([
+      -STRAIGHT_STREET_WIDTH / 2,
+      STREET_DEPTH / 2,
+      STRAIGHT_STREET_WIDTH / 2,
+      STREET_DEPTH / 2,
+    ]),
     createStreetMarking([
       -STRAIGHT_STREET_WIDTH / 2 + 24,
       0,
@@ -117,8 +144,32 @@ function createCornerStreetGroup(): FabricGroup {
       left: verticalLeft,
       top: verticalCenter,
     }),
+    createStreetBorder([
+      -CORNER_STREET_ARM / 2,
+      -STREET_DEPTH / 2,
+      CORNER_STREET_ARM / 2,
+      -STREET_DEPTH / 2,
+    ]),
+    createStreetBorder([
+      verticalLeft + STREET_DEPTH / 2,
+      STREET_DEPTH / 2,
+      CORNER_STREET_ARM / 2,
+      STREET_DEPTH / 2,
+    ]),
+    createStreetBorder([
+      verticalLeft - STREET_DEPTH / 2,
+      -STREET_DEPTH / 2,
+      verticalLeft - STREET_DEPTH / 2,
+      verticalCenter + CORNER_STREET_ARM / 2,
+    ]),
+    createStreetBorder([
+      verticalLeft + STREET_DEPTH / 2,
+      STREET_DEPTH / 2,
+      verticalLeft + STREET_DEPTH / 2,
+      verticalCenter + CORNER_STREET_ARM / 2,
+    ]),
     createStreetMarking([
-      -CORNER_STREET_ARM / 2 + 24,
+      -CORNER_STREET_ARM / 2 + CORNER_HORIZONTAL_MARKING_START_INSET,
       0,
       CORNER_STREET_ARM / 2 - 24,
       0,
@@ -127,7 +178,7 @@ function createCornerStreetGroup(): FabricGroup {
       verticalLeft,
       24,
       verticalLeft,
-      CORNER_STREET_ARM - 24,
+      CORNER_STREET_ARM - CORNER_VERTICAL_MARKING_BOTTOM_INSET,
     ]),
   ], {
     originX: 'center',
