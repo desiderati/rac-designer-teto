@@ -48,7 +48,6 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 - evidências consultadas:
     - `docs/engineering-playbook/PLAY-004-project-structure.md`
     - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
-    - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/fabric-boundary-baseline.md`
     - `src/components/rac-editor/lib/editor-house-controller.ts`
     - `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts`
     - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
@@ -247,9 +246,6 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
     - House ports em `src/components/rac-editor/ports`.
     - Guarda arquitetural em `src/test/rac-editor-boundary.smoke.test.ts`.
 
-- layout de artefatos:
-    - `.agents/work-items/20260428-autonomous-loop-editor-architecture.work-item.assets/`
-
 - superfícies humanas relacionadas:
     - `docs/engineering-playbook/PLAY-004-project-structure.md`
     - `docs/engineering-playbook/PLAY-006-ports-and-adapters.md`
@@ -294,9 +290,6 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 
 - code review de origem:
     - Nenhum ainda.
-
-- changelog relacionado:
-    - `.agents/changelogs/2026-04/20260428.changelog.md`
 
 - outros ADRs relacionados:
     - `docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md`

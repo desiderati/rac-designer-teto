@@ -332,9 +332,9 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
 
 - arquivos prováveis:
     - `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
-    - `src/components/rac-editor/@modals/ui/NivelSlider.tsx`
-    - `src/components/rac-editor/domain/house-view.ts`
-    - `src/components/rac-editor/@canvas/lib/factory/house/house-top-view-door-marker.ts`
+    - `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+    - `src/components/rac-editor/lib/house-view.ts`
+    - `src/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts`
     - `src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
     - testes smoke dos módulos acima.
     - `docs/business-rules/BUS-003-vistas-por-tipo.md`

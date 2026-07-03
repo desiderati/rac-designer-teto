@@ -40,7 +40,7 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 - Prefira extensão TS, mas use TSX quando o arquivo realmente precisar de TSX ou de APIs React
   acopladas a isso.
 
-- Exemplos recomendados: `src/components/rac-editor/hooks/useHouseTypeFlow.ts`,
+- Exemplos recomendados: `src/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts`,
   `src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts`,
   `src/components/rac-editor/lib/use-mobile.tsx`.
 
@@ -53,7 +53,8 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 - Admita sufixos semânticos com ponto quando o padrão do repositório pedir isso.
 
 - Exemplos recomendados: `src/shared/types/house-drawing-document.ts`,
-  `src/infra/storage/settings.storage.ts`, `src/domain/house/house.aggregate.ts`.
+  `src/components/rac-editor/store/editor-settings-storage.ts`,
+  `src/domain/house/house.aggregate.ts`.
 
 - Exemplos a evitar: nomes como apiClient.ts ou StringUtils.ts.
 

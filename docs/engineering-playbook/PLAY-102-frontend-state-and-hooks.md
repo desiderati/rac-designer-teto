@@ -111,7 +111,7 @@ na desestruturação.
   serializáveis, não com instâncias Fabric ou grupos concretos do canvas.
 
 - Quando um hook precisar acessar o canvas por ref, ele deve depender do menor handle necessário,
-  importado do arquivo de capacidade específico em `@canvas/ports`.
+  importado do arquivo de capacidade específico em `src/components/rac-editor/@canvas/ports`.
 
 - `CanvasInteractionPort`/`CanvasHandle` não deve ser reintroduzido como atalho em hooks de fluxo; a
   composição de tela atual usa `CanvasHandle` e os demais consumidores devem escolher handles
