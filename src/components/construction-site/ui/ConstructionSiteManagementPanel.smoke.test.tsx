@@ -5,6 +5,7 @@ import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui
 import {getPhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
+import type {HouseState} from '@/shared/types/house.ts';
 
 const VALID_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgo=';
 const VALID_JPEG_DATA_URL = 'data:image/jpeg;base64,/9j/';
@@ -783,15 +784,17 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.unarchiveHouse).not.toHaveBeenCalled();
   });
 
-  it('exporta RAC PDF diretamente pela listagem de casas sem abrir edição', async () => {
+  it('exige confirmação do checklist antes de exportar RAC PDF pela listagem de casas', async () => {
     const user = userEvent.setup();
     const actions = createActions();
+    const constructionSite = createConstructionSite();
+    makeHousePdfChecklistExportableWithWarnings(constructionSite, 'house_1');
     let resolveExport!: () => void;
     actions.exportHouseRacPdf = vi.fn(() => new Promise<void>((resolve) => {
       resolveExport = resolve;
     }));
 
-    renderPanel({actions});
+    renderPanel({actions, constructionSite});
 
     await openConstructionHouses(user);
     const houseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i});
@@ -800,18 +803,33 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.click(exportButton);
 
+    expect(await screen.findByRole('heading', {name: 'Checklist da RAC'})).toBeVisible();
+    expect(actions.exportHouseRacPdf).not.toHaveBeenCalled();
+    expect(screen.getByText(/alerta\(s\)/i)).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'Cancelar'}));
+    await waitFor(() => expect(screen.queryByRole('heading', {name: 'Checklist da RAC'}))
+      .not.toBeInTheDocument());
+    expect(actions.exportHouseRacPdf).not.toHaveBeenCalled();
+
+    await user.click(exportButton);
+    expect(await screen.findByRole('heading', {name: 'Checklist da RAC'})).toBeVisible();
+    await user.click(screen.getByRole('button', {name: 'Gerar PDF'}));
+
     await waitFor(() => expect(actions.exportHouseRacPdf)
       .toHaveBeenCalledWith('construction_site_1', 'house_1'));
     expect(actions.activateHouse).not.toHaveBeenCalled();
-    expect(within(houseRow)
-      .getByRole('button', {name: 'Gerando PDF da RAC da casa Família Souza'}))
-      .toBeDisabled();
+    expect(screen.getAllByLabelText('Gerando PDF da RAC da casa Família Souza')
+      .every((button) => button instanceof HTMLButtonElement && button.disabled))
+      .toBe(true);
     expect(screen.queryByLabelText('Nome da Família')).not.toBeInTheDocument();
 
     resolveExport();
-    await waitFor(() => expect(within(houseRow)
-      .getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'}))
-      .toBeEnabled());
+    await waitFor(() => expect(screen.getAllByLabelText('Exportar RAC PDF da casa Família Souza')
+      .every((button) => button instanceof HTMLButtonElement && !button.disabled))
+      .toBe(true));
+    await waitFor(() => expect(screen.queryByRole('heading', {name: 'Checklist da RAC'}))
+      .not.toBeInTheDocument());
   });
 
   it('dispara apenas o tour de adicionar casa quando a construção ainda não tem casas', async () => {
@@ -2367,4 +2385,45 @@ function createConstructionSite(): ConstructionSiteState {
       },
     ],
   } as ConstructionSiteState;
+}
+
+function makeHousePdfChecklistExportableWithWarnings(
+  constructionSite: ConstructionSiteState,
+  houseId: string,
+): void {
+  const house = constructionSite.houses.find((entry) => entry.id === houseId);
+  if (!house) throw new Error(`Casa ${houseId} não encontrada.`);
+
+  const topView = {
+    instanceId: `${houseId}_top_view`,
+    viewType: 'top' as const,
+    payload: {},
+  };
+  house.drawingDocument = {
+    ...house.drawingDocument,
+    house: {
+      id: house.id,
+      houseType: house.houseType,
+      terrainType: house.terrainType,
+      pilotis: {},
+      views: {
+        top: [{instanceId: topView.instanceId}],
+        front: [],
+        back: [],
+        side1: [],
+        side2: [],
+      },
+      sideMappings: {
+        top: null,
+        bottom: null,
+        left: null,
+        right: null,
+      },
+      preAssignedSides: {},
+    } satisfies HouseState,
+    views: {
+      ...house.drawingDocument.views,
+      top: [topView],
+    },
+  };
 }

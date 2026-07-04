@@ -4,6 +4,12 @@ import {useConstructionSiteManagementNavigation} from '@/components/construction
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {HEADER_ACTION_BUTTON_CLASS} from '@/components/construction-site/ui/lib/constants.ts';
+import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
+import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
+import {
+  buildRacPdfExportChecklist,
+  type RacPdfExportChecklist,
+} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import {ConstructionFormScreen} from './ConstructionFormScreen.tsx';
 import {ConstructionListScreen} from './ConstructionListScreen.tsx';
 import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
@@ -105,6 +111,12 @@ export interface ConstructionSiteManagementPanelProps {
 
 type PendingNavigation = () => void | Promise<void>;
 
+type PendingHouseRacPdfExport = {
+  constructionSiteId: string;
+  houseId: string;
+  checklist: RacPdfExportChecklist;
+};
+
 export function ConstructionSiteManagementPanel({
   constructionSite,
   summaries,
@@ -114,6 +126,7 @@ export function ConstructionSiteManagementPanel({
   initialScreen,
 }: ConstructionSiteManagementPanelProps) {
 
+  const isMobile = useIsMobile();
   const navigation = useConstructionSiteManagementNavigation({
     constructionSite,
     summaries,
@@ -142,6 +155,7 @@ export function ConstructionSiteManagementPanel({
   const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
   const [exportingRacsZipConstructionId, setExportingRacsZipConstructionId] = useState<string | null>(null);
   const [exportingRacPdfHouseId, setExportingRacPdfHouseId] = useState<string | null>(null);
+  const [pendingHouseRacPdfExport, setPendingHouseRacPdfExport] = useState<PendingHouseRacPdfExport | null>(null);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
 
@@ -192,15 +206,37 @@ export function ConstructionSiteManagementPanel({
   }, [actions, exportingRacsZipConstructionId]);
 
   const handleExportHouseRacPdf = useCallback(async (houseId: string) => {
-    if (exportingRacPdfHouseId || !constructionSite) return;
+    if (exportingRacPdfHouseId || pendingHouseRacPdfExport || !constructionSite) return;
 
-    setExportingRacPdfHouseId(houseId);
+    setPendingHouseRacPdfExport({
+      constructionSiteId: constructionSite.constructionSite.id,
+      houseId,
+      checklist: buildRacPdfExportChecklist(constructionSite, houseId),
+    });
+  }, [constructionSite, exportingRacPdfHouseId, pendingHouseRacPdfExport]);
+
+  const cancelHouseRacPdfExport = useCallback(() => {
+    if (exportingRacPdfHouseId) return;
+
+    setPendingHouseRacPdfExport(null);
+  }, [exportingRacPdfHouseId]);
+
+  const confirmHouseRacPdfExport = useCallback(async () => {
+    if (exportingRacPdfHouseId || !pendingHouseRacPdfExport || pendingHouseRacPdfExport.checklist.hasBlockingItems) {
+      return;
+    }
+
+    setExportingRacPdfHouseId(pendingHouseRacPdfExport.houseId);
     try {
-      await actions.exportHouseRacPdf(constructionSite.constructionSite.id, houseId);
+      await actions.exportHouseRacPdf(
+        pendingHouseRacPdfExport.constructionSiteId,
+        pendingHouseRacPdfExport.houseId,
+      );
+      setPendingHouseRacPdfExport(null);
     } finally {
       setExportingRacPdfHouseId(null);
     }
-  }, [actions, constructionSite, exportingRacPdfHouseId]);
+  }, [actions, exportingRacPdfHouseId, pendingHouseRacPdfExport]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -500,6 +536,15 @@ export function ConstructionSiteManagementPanel({
           actionLabel={permanentDeleteDialogContent.actionLabel}
           onCancel={navigation.cancelPermanentDelete}
           onConfirm={() => void navigation.confirmPermanentDelete()}
+        />
+
+        <RacPdfExportChecklistModal
+          isMobile={isMobile}
+          isOpen={Boolean(pendingHouseRacPdfExport)}
+          checklist={pendingHouseRacPdfExport?.checklist ?? null}
+          isExporting={Boolean(exportingRacPdfHouseId)}
+          onConfirm={() => void confirmHouseRacPdfExport()}
+          onCancel={cancelHouseRacPdfExport}
         />
       </div>
     </main>
