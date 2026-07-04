@@ -583,7 +583,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
   activateConstructionSite(constructionSiteId: string): HouseDrawingDocument | null {
     const constructionSite = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId);
-    if (!constructionSite) return null;
+    if (!this.isConstructionSiteVisibleInManagement(constructionSite)) return null;
 
     this.state = constructionSite;
     this.normalizeConstructionSiteActiveHouse(constructionSite);

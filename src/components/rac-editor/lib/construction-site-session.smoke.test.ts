@@ -819,6 +819,7 @@ describe('constructionSite-session.ts', () => {
     expect(session.getConstructionSite()).toBeNull();
     expect(session.canOpenRacEditor()).toBe(false);
     expect(session.activateConstructionSite(firstConstructionSiteId)).toBeNull();
+    expect(session.getConstructionSite()).toBeNull();
     expect(session.activateHouse(firstConstructionSiteId, 'house_missing')).toBeNull();
   });
 
@@ -936,7 +937,8 @@ describe('constructionSite-session.ts', () => {
     const constructionSiteId = session.getConstructionSite()?.constructionSite.id ?? '';
 
     session.archiveConstructionSite(constructionSiteId);
-    session.activateConstructionSite(constructionSiteId);
+    expect(session.activateConstructionSite(constructionSiteId)).toBeNull();
+    expect(session.getConstructionSite()).toBeNull();
 
     session.updateActiveConstructionSite({
       externalCode: 'CC9999',
@@ -966,11 +968,11 @@ describe('constructionSite-session.ts', () => {
     expect(() => session.createMonitor({
       name: 'Novo Monitor',
       phone: '(11) 97777-0000',
-    })).toThrow('Não é possível editar uma Construção TETO concluída ou arquivada.');
+    })).toThrow('Não foi possível criar monitor sem Construção TETO ativa.');
     expect(() => session.createHouse({familyName: 'Nova Família'}))
-      .toThrow('Não é possível editar uma Construção TETO concluída ou arquivada.');
+      .toThrow('Não foi possível criar casa sem Construção TETO ativa.');
     expect(() => session.duplicateActiveHouse())
-      .toThrow('Não é possível editar uma Construção TETO concluída ou arquivada.');
+      .toThrow('Nenhuma casa ativa disponível para o RAC Editor.');
 
     const archivedConstructionSite = session.getConstructionSiteSnapshots()
       .find((entry) => entry.constructionSite.id === constructionSiteId);

@@ -4,6 +4,7 @@ import {
   startConsoleErrorCapture,
 } from './helpers/rac-editor.helpers';
 import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
+import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
 
 test.describe('Bloqueios por status', () => {
   test.beforeEach(async ({page}) => {
@@ -45,7 +46,7 @@ test.describe('Bloqueios por status', () => {
   test('construção arquivada exibe apenas desarquivar e não abre formulário', async ({page}) => {
     await openConstructionList(page);
 
-    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+    await page.getByRole('row', {name: /CC2603.*Andamento/i})
       .getByRole('button', {name: 'Arquivar construção CC2603'})
       .click();
     await expect(page.getByRole('heading', {name: 'Arquivar construção?'})).toBeVisible();
@@ -59,18 +60,26 @@ test.describe('Bloqueios por status', () => {
 
     await archivedRow.click({force: true});
     await expect(page.getByTestId('construction-form-grid')).toHaveCount(0);
+
+    await archivedRow.getByRole('button', {name: 'Excluir definitivamente construção CC2603'}).click();
+    await expect(page.getByRole('heading', {name: 'Excluir construção definitivamente?'})).toBeVisible();
+    await page.getByRole('button', {name: 'Excluir definitivamente'}).click();
+
+    await expect(page.getByRole('row', {name: /CC2603/i})).toHaveCount(0);
+    const document = await readConstructionSiteDocument(page);
+    expect(document?.constructionSites).toHaveLength(0);
   });
 });
 
 async function openConstructionList(page: Parameters<typeof setupSeededRacEditorPage>[0]) {
   await page.getByRole('button', {name: 'Abrir menu principal'}).click();
   await page.getByRole('button', {name: 'Construções TETO'}).click();
-  await expect(page.getByRole('row', {name: /CC2603.*Em andamento/i})).toBeVisible();
+  await expect(page.getByRole('row', {name: /CC2603.*Andamento/i})).toBeVisible();
 }
 
 async function openHousesList(page: Parameters<typeof setupSeededRacEditorPage>[0]) {
   await openConstructionList(page);
-  await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+  await page.getByRole('row', {name: /CC2603.*Andamento/i})
     .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
     .click();
   await expect(page.getByRole('heading', {name: /^Casas - CC2603/})).toBeVisible();
