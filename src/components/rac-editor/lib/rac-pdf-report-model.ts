@@ -108,6 +108,8 @@ interface BuildRacPdfReportModelArgs {
 }
 
 const NOT_INFORMED = 'Não informado';
+const DEFAULT_EXTRA_MATERIALS_NOTE = 'Os materiais extras relacionados podem sofrer alterações ao longo da construção, conforme a evolução dos trabalhos e as necessidades identificadas durante a CC.';
+const DEFAULT_RAC_GENERAL_NOTE = 'A RAC é uma referência inicial para a construção da casa e pode sofrer alterações ao longo da CC. Adequações na posição da casa e remanejamento dos pilotis podem ocorrer em alguns casos.';
 
 const HOUSE_SIZE_LABELS: Record<HouseSize, string> = {
   large: 'Grande',
@@ -190,7 +192,7 @@ export function buildRacPdfReportModel({
     monitors: constructionSite.monitors
       .filter((monitor) => monitor.status === 'active')
       .map(toReportMonitor),
-    notes: normalizeDisplayValue(activeHouse.notes, ''),
+    notes: appendStandardReportText(activeHouse.notes, DEFAULT_RAC_GENERAL_NOTE),
   };
 }
 
@@ -265,7 +267,7 @@ function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): R
       {label: 'Vigas Secundárias', value: formatMaterialCount(extraMaterials?.secondaryBeams)},
       {label: 'Mata-juntas', value: formatMaterialCount(extraMaterials?.gutters)},
     ],
-    justification: normalizeDisplayValue(extraMaterials?.justification, 'Nenhuma observação adicional.'),
+    justification: appendStandardReportText(extraMaterials?.justification, DEFAULT_EXTRA_MATERIALS_NOTE),
   };
 }
 
@@ -301,6 +303,12 @@ function normalizeDisplayValue(value: unknown, fallback = NOT_INFORMED): string 
   if (typeof value !== 'string') return fallback;
   const trimmed = value.trim();
   return trimmed || fallback;
+}
+
+function appendStandardReportText(value: unknown, standardText: string): string {
+  if (typeof value !== 'string') return standardText;
+  const trimmed = value.trim();
+  return trimmed ? `${trimmed}\n\n${standardText}` : standardText;
 }
 
 function formatMaterialCount(value: number | undefined): string {

@@ -17,6 +17,10 @@ import type {
 import type {ConstructionSiteState, SiteAssessment} from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
 import {useHouseDocumentLifecycle} from '@/components/construction-site/hooks/useHouseDocumentLifecycle.ts';
+import {
+  buildRacPdfExportChecklist,
+  formatRacPdfExportChecklistSummary,
+} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -112,6 +116,70 @@ export function useConstructionSiteManagementController({
       constructionSiteManagementPort.markHouseDraft(houseId);
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
+
+  const exportHouseRacPdf = useCallback(async (constructionSiteId: string, houseId: string) => {
+    try {
+      await flushActiveHouseDocumentSave({force: true});
+
+      const snapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
+      const targetConstructionSite = snapshots.find((snapshot) => snapshot.constructionSite.id === constructionSiteId)
+        ?? null;
+
+      if (!targetConstructionSite) {
+        toast.error('Nenhuma construção encontrada para imprimir a RAC.');
+        return;
+      }
+
+      if (targetConstructionSite.constructionSite.status !== 'in_progress') {
+        toast.error('A impressão de RAC só está disponível para construções em andamento.');
+        return;
+      }
+
+      const targetHouse = targetConstructionSite.houses
+        .find((house) => house.id === houseId && house.status !== 'archived');
+      if (!targetHouse) {
+        toast.error('A impressão de RAC só está disponível para casas não arquivadas.');
+        return;
+      }
+
+      const checklist = buildRacPdfExportChecklist(targetConstructionSite, houseId);
+      if (checklist.hasBlockingItems) {
+        toast.error(`Checklist da RAC possui pendências obrigatórias: ${formatRacPdfExportChecklistSummary(checklist)}.`);
+        return;
+      }
+
+      const checklistSummary = formatRacPdfExportChecklistSummary(checklist);
+      if (checklistSummary !== 'Checklist sem pendências.') {
+        toast.warning(`Checklist da RAC: ${checklistSummary}`);
+      }
+
+      const [
+        {jsPDF},
+        {buildRacPdfHouseExport, downloadBlob},
+        {renderHouseDrawingCanvasImageDataUrl},
+      ] = await Promise.all([
+        import('jspdf'),
+        import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
+        import('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts'),
+      ]);
+
+      const result = await buildRacPdfHouseExport({
+        constructionSite: targetConstructionSite,
+        houseId,
+        jsPDF,
+        renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
+      });
+
+      downloadBlob(result.blob, result.fileName);
+      constructionSiteManagementPort.markHouseRacPrinted(result.exportedHouseId);
+      toast.success('PDF da RAC gerado.');
+    } catch (error) {
+      console.error('[useConstructionSiteManagementController] Failed to export house RAC PDF:', error);
+      toast.error(error instanceof Error && error.message.trim()
+        ? error.message
+        : 'Falha ao imprimir RAC.');
+    }
+  }, [constructionSiteManagementPort, flushActiveHouseDocumentSave]);
 
   const exportConstructionRacsZip = useCallback(async (constructionSiteId?: string) => {
     try {
@@ -251,6 +319,7 @@ export function useConstructionSiteManagementController({
       archiveHouse,
       unarchiveHouse,
       deleteArchivedHouse,
+      exportHouseRacPdf,
       exportConstructionRacsZip,
       markHouseBuilt,
       markHouseDraft,

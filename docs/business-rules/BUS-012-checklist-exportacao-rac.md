@@ -60,3 +60,20 @@ Itens recomendados não bloqueiam a geração, mas aparecem como alertas:
    causados por estado visual ainda não sincronizado.
 
 3. Alertas não devem impedir a geração, pois parte dos campos é operacionalmente opcional.
+
+## Conteúdo padrão do PDF
+
+1. O PDF deve adicionar a observação padrão de materiais extras depois da justificativa digitada
+   pelo usuário: `Os materiais extras relacionados podem sofrer alterações ao longo da construção,
+   conforme a evolução dos trabalhos e as necessidades identificadas durante a CC.`
+
+2. O PDF deve adicionar a observação geral padrão da casa/RAC depois das observações digitadas pelo
+   usuário: `A RAC é uma referência inicial para a construção da casa e pode sofrer alterações ao
+   longo da CC. Adequações na posição da casa e remanejamento dos pilotis podem ocorrer em alguns
+   casos.`
+
+3. Esses textos padrão pertencem ao relatório gerado e não devem aparecer nos formulários, ser
+   editáveis ou ser persistidos como texto do usuário.
+
+4. A observação padrão de materiais extras não satisfaz o item recomendado de justificativa
+   preenchida quando houver material extra com quantidade maior que zero.

@@ -1,5 +1,5 @@
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {PackagePlus} from 'lucide-react';
+import {Download, PackagePlus} from 'lucide-react';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -43,6 +43,8 @@ export function HousesScreen({
   activeHouse,
   onEditHouse,
   onOpenHouseExtraMaterials,
+  onExportHouseRacPdf,
+  exportingRacPdfHouseId,
   onRequestHouseStatusChange,
   onRequestHousePermanentDelete,
   readOnly = false,
@@ -51,6 +53,8 @@ export function HousesScreen({
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
+  onExportHouseRacPdf(houseId: string): Promise<void>;
+  exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
   onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
@@ -139,27 +143,22 @@ export function HousesScreen({
       <div data-testid='house-desktop-table' className='hidden overflow-x-auto sm:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
-            <col className='w-[34%]'/>
+            <col className='w-[32%]'/>
+            <col className='w-[13%]'/>
+            <col className='w-[21%]'/>
             <col className='w-[14%]'/>
             <col className='w-[20%]'/>
-            <col className='w-[32%]'/>
           </colgroup>
           <thead>
           <tr className='text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400'>
             <th scope='col' className='px-3 pb-1'>Casas</th>
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Dificuldade</th>
-            <th scope='col' className='px-3 pb-1'>
-              <span
-                data-testid='house-updated-header-grid'
-                className='grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem] items-center gap-2 text-center'
-              >
-                <span>Última Modificação</span>
-                <span aria-hidden='true'/>
-                <span aria-hidden='true'/>
-                <span aria-hidden='true'/>
-                <span aria-hidden='true'/>
-              </span>
+            <th scope='col' className='px-3 pb-1 text-center align-middle leading-4'>
+              Última Modificação
+            </th>
+            <th scope='col' className='w-[11.5rem] px-3 pb-1 text-center'>
+              <span className='sr-only'>Ações</span>
             </th>
           </tr>
           </thead>
@@ -173,6 +172,8 @@ export function HousesScreen({
               showGuidedTourTargets={house.id === guidedTourHouseId}
               onOpenHouse={onEditHouse}
               onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
+              onExportHouseRacPdf={onExportHouseRacPdf}
+              exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
               onRequestHousePermanentDelete={onRequestHousePermanentDelete}
               readOnly={readOnly}
@@ -192,6 +193,8 @@ export function HousesScreen({
             showGuidedTourTargets={house.id === guidedTourHouseId}
             onOpenHouse={onEditHouse}
             onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
+            onExportHouseRacPdf={onExportHouseRacPdf}
+            exportingRacPdfHouseId={exportingRacPdfHouseId}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
             onRequestHousePermanentDelete={onRequestHousePermanentDelete}
             readOnly={readOnly}
@@ -225,6 +228,8 @@ export function HouseMobileCard({
   showGuidedTourTargets = false,
   onOpenHouse,
   onOpenHouseExtraMaterials,
+  onExportHouseRacPdf,
+  exportingRacPdfHouseId,
   onRequestHouseStatusChange,
   onRequestHousePermanentDelete,
   readOnly = false,
@@ -235,6 +240,8 @@ export function HouseMobileCard({
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
+  onExportHouseRacPdf(houseId: string): Promise<void>;
+  exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
   onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
@@ -245,6 +252,10 @@ export function HouseMobileCard({
   const statusLabel = HOUSE_STATUS_LABELS[house.status];
   const formattedDate = formatTimestampDate(house.updatedAt);
   const difficultyIndicator = getHouseDifficultyIndicator(house);
+  const isExportingRacPdf = exportingRacPdfHouseId === house.id;
+  const exportRacPdfLabel = isExportingRacPdf
+    ? `Gerando PDF da RAC da casa ${familyName}`
+    : `Exportar RAC PDF da casa ${familyName}`;
   const openHouse = () => {
     void onOpenHouse(house.id);
   };
@@ -263,6 +274,11 @@ export function HouseMobileCard({
   const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     void onOpenHouseExtraMaterials(house.id);
+  };
+  const exportRacPdf = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (isExportingRacPdf || house.status === 'archived' || readOnly) return;
+    void onExportHouseRacPdf(house.id);
   };
 
   return (
@@ -329,6 +345,15 @@ export function HouseMobileCard({
             </RoundIconActionButton>
           ) : null}
           {house.status !== 'archived' ? (
+            <RoundIconActionButton
+              label={exportRacPdfLabel}
+              onClick={exportRacPdf}
+              disabled={readOnly || isExportingRacPdf}
+            >
+              <Download className='h-4 w-4'/>
+            </RoundIconActionButton>
+          ) : null}
+          {house.status !== 'archived' ? (
             <StatusActionButton
               action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
               label={house.status === 'built'
@@ -366,6 +391,8 @@ export function HouseTableRow({
   showGuidedTourTargets = false,
   onOpenHouse,
   onOpenHouseExtraMaterials,
+  onExportHouseRacPdf,
+  exportingRacPdfHouseId,
   onRequestHouseStatusChange,
   onRequestHousePermanentDelete,
   readOnly = false,
@@ -376,6 +403,8 @@ export function HouseTableRow({
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
   onOpenHouseExtraMaterials(houseId: string): Promise<void>;
+  onExportHouseRacPdf(houseId: string): Promise<void>;
+  exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
   onRequestHousePermanentDelete(houseId: string): void;
   readOnly?: boolean;
@@ -386,6 +415,10 @@ export function HouseTableRow({
   const statusLabel = HOUSE_STATUS_LABELS[house.status];
   const formattedDate = formatTimestampDate(house.updatedAt);
   const difficultyIndicator = getHouseDifficultyIndicator(house);
+  const isExportingRacPdf = exportingRacPdfHouseId === house.id;
+  const exportRacPdfLabel = isExportingRacPdf
+    ? `Gerando PDF da RAC da casa ${familyName}`
+    : `Exportar RAC PDF da casa ${familyName}`;
   const openHouse = () => {
     void onOpenHouse(house.id);
   };
@@ -404,6 +437,11 @@ export function HouseTableRow({
   const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     void onOpenHouseExtraMaterials(house.id);
+  };
+  const exportRacPdf = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (isExportingRacPdf || house.status === 'archived' || readOnly) return;
+    void onExportHouseRacPdf(house.id);
   };
 
   return (
@@ -452,7 +490,7 @@ export function HouseTableRow({
       <td className='px-3 py-3 text-center align-middle'>
         <span
           data-guided-tour-id={showGuidedTourTargets ? 'rac-house-difficulty' : undefined}
-          className='mx-auto block max-w-[9.5rem]'
+          className='mx-auto block max-w-[8rem]'
         >
           <HouseDifficultyGauge
             indicator={difficultyIndicator}
@@ -460,12 +498,14 @@ export function HouseTableRow({
           />
         </span>
       </td>
-      <td className='rounded-r-lg px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <div className='grid min-h-14 grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem] items-center gap-2'>
-          <span data-testid='house-table-updated-at' className='text-center'>
-            <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
-            <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
-          </span>
+      <td className='px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
+        <span data-testid='house-table-updated-at' className='block text-center'>
+          <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
+          <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
+        </span>
+      </td>
+      <td className='w-[11.5rem] rounded-r-lg px-3 py-3 align-middle'>
+        <div data-testid='house-table-actions' className='flex min-h-14 items-center justify-end gap-2'>
           {house.status !== 'archived' ? (
             <RoundIconActionButton
               label={`Abrir materiais extras da casa ${familyName}`}
@@ -474,9 +514,16 @@ export function HouseTableRow({
             >
               <PackagePlus className='h-4 w-4'/>
             </RoundIconActionButton>
-          ) : (
-            <span aria-hidden='true'/>
-          )}
+          ) : null}
+          {house.status !== 'archived' ? (
+            <RoundIconActionButton
+              label={exportRacPdfLabel}
+              onClick={exportRacPdf}
+              disabled={readOnly || isExportingRacPdf}
+            >
+              <Download className='h-4 w-4'/>
+            </RoundIconActionButton>
+          ) : null}
           {house.status !== 'archived' ? (
             <StatusActionButton
               action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
@@ -487,9 +534,7 @@ export function HouseTableRow({
               guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
               disabled={readOnly}
             />
-          ) : (
-            <span aria-hidden='true'/>
-          )}
+          ) : null}
           <StatusActionButton
             action={house.status === 'archived' ? 'unarchive' : 'archive'}
             label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
@@ -503,9 +548,7 @@ export function HouseTableRow({
               onClick={requestPermanentDelete}
               disabled={readOnly}
             />
-          ) : (
-            <span aria-hidden='true'/>
-          )}
+          ) : null}
         </div>
       </td>
     </tr>

@@ -65,6 +65,7 @@ export interface ConstructionSiteManagementActions {
   archiveHouse(houseId: string): Promise<void>;
   unarchiveHouse(houseId: string): Promise<void>;
   deleteArchivedHouse(houseId: string): Promise<void>;
+  exportHouseRacPdf(constructionSiteId: string, houseId: string): Promise<void>;
   exportConstructionRacsZip(constructionSiteId?: string): Promise<void>;
   markHouseBuilt(houseId: string): Promise<void>;
   markHouseDraft(houseId: string): Promise<void>;

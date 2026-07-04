@@ -25,6 +25,12 @@ export interface RacPdfZipExportResult {
   failures: RacPdfZipExportFailure[];
 }
 
+export interface RacPdfHouseExportResult {
+  fileName: string;
+  blob: Blob;
+  exportedHouseId: string;
+}
+
 export type RacPdfZipCanvasRenderer = (house: PersistedHouseRecord) => Promise<string>;
 
 interface BuildRacPdfZipExportArgs {
@@ -35,7 +41,55 @@ interface BuildRacPdfZipExportArgs {
   generatedAt?: Date;
 }
 
+interface BuildRacPdfHouseExportArgs {
+  constructionSite: ConstructionSiteState;
+  houseId: string;
+  jsPDF: JsPdfConstructor;
+  renderCanvasImageDataUrl: RacPdfZipCanvasRenderer;
+  generatedAt?: Date;
+}
+
 const ZIP_FAILURE_REPORT_FILE_NAME = 'ERROS_EXPORTACAO_RACS.txt';
+
+export async function buildRacPdfHouseExport({
+  constructionSite,
+  houseId,
+  jsPDF,
+  generatedAt = new Date(),
+  renderCanvasImageDataUrl,
+}: BuildRacPdfHouseExportArgs): Promise<RacPdfHouseExportResult> {
+  const house = constructionSite.houses.find((entry) => entry.id === houseId && entry.status !== 'archived');
+  if (!house) {
+    throw new Error('Casa não arquivada não encontrada para exportar.');
+  }
+
+  const canvasImageDataUrl = await renderCanvasImageDataUrl(house);
+  const report = buildRacPdfReportModel({
+    constructionSite,
+    houseId: house.id,
+    canvasImageDataUrl,
+    canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+    house3DImageDataUrl: null,
+    house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+    generatedAt,
+  });
+
+  if (!report) {
+    throw new Error('Não foi possível montar o modelo do PDF.');
+  }
+
+  const pdf = createRacPdfReportDocument({
+    report,
+    jsPDF,
+  });
+  const pdfData = pdf.output('arraybuffer') as ArrayBuffer;
+
+  return {
+    fileName: report.fileName,
+    blob: new Blob([pdfData], {type: 'application/pdf'}),
+    exportedHouseId: house.id,
+  };
+}
 
 export async function buildRacPdfZipExport({
   constructionSite,

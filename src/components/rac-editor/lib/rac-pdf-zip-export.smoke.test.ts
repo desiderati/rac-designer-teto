@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import JSZip from 'jszip';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {
+  buildRacPdfHouseExport,
   buildRacPdfZipExport,
 } from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 
@@ -14,6 +15,35 @@ vi.mock('@/components/rac-editor/lib/rac-pdf-report-renderer.ts', () => ({
 }));
 
 describe('rac-pdf-zip-export.ts', () => {
+  it('gera PDF individual para uma casa não arquivada específica', async () => {
+    const output = vi.fn(() => new ArrayBuffer(4));
+    zipExportMocks.createRacPdfReportDocument.mockReturnValue({output});
+    const constructionSite = createConstructionSite();
+    const renderCanvasImageDataUrl = vi.fn(async () => 'data:image/png;base64,canvas');
+
+    const result = await buildRacPdfHouseExport({
+      constructionSite,
+      houseId: 'house_3',
+      jsPDF: vi.fn() as never,
+      renderCanvasImageDataUrl,
+    });
+
+    expect(result.exportedHouseId).toBe('house_3');
+    expect(result.fileName).toContain('FAMILIA-CONSTRUIDA');
+    expect(result.blob.type).toBe('application/pdf');
+    expect(renderCanvasImageDataUrl).toHaveBeenCalledWith(constructionSite.houses[2]);
+    expect(output).toHaveBeenCalledWith('arraybuffer');
+  });
+
+  it('bloqueia PDF individual de casa arquivada', async () => {
+    await expect(buildRacPdfHouseExport({
+      constructionSite: createConstructionSite(),
+      houseId: 'house_2',
+      jsPDF: vi.fn() as never,
+      renderCanvasImageDataUrl: async () => 'data:image/png;base64,canvas',
+    })).rejects.toThrow('Casa não arquivada não encontrada para exportar.');
+  });
+
   it('gera ZIP apenas com casas não arquivadas, incluindo construídas', async () => {
     zipExportMocks.createRacPdfReportDocument.mockReturnValue({
       output: vi.fn(() => new ArrayBuffer(4)),

@@ -556,3 +556,7 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
   persistida no viewer 3D.
 
 - O ZIP não gera snapshot 3D em lote; usa a imagem 2D persistida de cada casa.
+
+- O PDF adiciona textos padrão não editáveis depois da justificativa de materiais extras e das
+  observações gerais da casa/RAC; esses textos não aparecem nos formulários nem substituem o
+  preenchimento de justificativa pelo usuário.

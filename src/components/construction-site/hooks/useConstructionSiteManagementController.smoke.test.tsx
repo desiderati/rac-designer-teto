@@ -22,6 +22,7 @@ import {
 } from '@/shared/types/house-drawing-document.ts';
 
 const controllerMocks = vi.hoisted(() => ({
+  buildRacPdfHouseExport: vi.fn(),
   buildRacPdfZipExport: vi.fn(),
   downloadBlob: vi.fn(),
   renderHouseDrawingCanvasImageDataUrl: vi.fn(),
@@ -29,6 +30,7 @@ const controllerMocks = vi.hoisted(() => ({
   jsPDF: vi.fn(),
   toast: {
     success: vi.fn(),
+    warning: vi.fn(),
     error: vi.fn(),
   },
 }));
@@ -46,6 +48,7 @@ vi.mock('jspdf', () => ({
 }));
 
 vi.mock('@/components/rac-editor/lib/rac-pdf-zip-export.ts', () => ({
+  buildRacPdfHouseExport: controllerMocks.buildRacPdfHouseExport,
   buildRacPdfZipExport: controllerMocks.buildRacPdfZipExport,
   downloadBlob: controllerMocks.downloadBlob,
 }));
@@ -61,12 +64,14 @@ type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagemen
 
 describe('useConstructionSiteManagementController.ts', () => {
   beforeEach(() => {
+    controllerMocks.buildRacPdfHouseExport.mockReset();
     controllerMocks.buildRacPdfZipExport.mockReset();
     controllerMocks.downloadBlob.mockReset();
     controllerMocks.renderHouseDrawingCanvasImageDataUrl.mockReset();
     controllerMocks.JSZip.mockReset();
     controllerMocks.jsPDF.mockReset();
     controllerMocks.toast.success.mockReset();
+    controllerMocks.toast.warning.mockReset();
     controllerMocks.toast.error.mockReset();
   });
 
@@ -394,6 +399,68 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(controllerMocks.toast.success).toHaveBeenCalledWith('ZIP de RACs gerado com 2 PDF(s).');
   });
 
+  it('exporta RAC em PDF para a casa selecionada e marca a casa exportada', async () => {
+    const constructionSite = createConstructionSiteSnapshot();
+    makeHousePrintable(constructionSite, 'house_draft');
+    const blob = new Blob(['pdf']);
+    controllerMocks.buildRacPdfHouseExport.mockResolvedValue({
+      fileName: 'RAC-CC2603-FAMILIA-RASCUNHO.pdf',
+      blob,
+      exportedHouseId: 'house_draft',
+    });
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      getConstructionSiteSnapshots: vi.fn(() => [constructionSite]),
+      getConstructionSiteSnapshot: vi.fn(() => null),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.exportHouseRacPdf('construction_site_1', 'house_draft');
+    });
+
+    expect(controllerMocks.buildRacPdfHouseExport).toHaveBeenCalledWith({
+      constructionSite,
+      houseId: 'house_draft',
+      jsPDF: controllerMocks.jsPDF,
+      renderCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
+    });
+    expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(blob, 'RAC-CC2603-FAMILIA-RASCUNHO.pdf');
+    expect(constructionSiteManagementPort.markHouseRacPrinted).toHaveBeenCalledWith('house_draft');
+    expect(controllerMocks.toast.success).toHaveBeenCalledWith('PDF da RAC gerado.');
+  });
+
+  it('não exporta RAC em PDF para casa arquivada pela listagem', async () => {
+    const constructionSite = createConstructionSiteSnapshot();
+    const constructionSiteManagementPort = createConstructionSiteManagementPort({
+      getConstructionSiteSnapshots: vi.fn(() => [constructionSite]),
+      getConstructionSiteSnapshot: vi.fn(() => null),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort,
+    });
+
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    await act(async () => {
+      await result.current.actions.exportHouseRacPdf('construction_site_1', 'house_archived');
+    });
+
+    expect(controllerMocks.buildRacPdfHouseExport).not.toHaveBeenCalled();
+    expect(constructionSiteManagementPort.markHouseRacPrinted).not.toHaveBeenCalled();
+    expect(controllerMocks.toast.error)
+      .toHaveBeenCalledWith('A impressão de RAC só está disponível para casas não arquivadas.');
+  });
+
   it('não exporta RACs em ZIP para construção concluída porque a ação altera status', async () => {
     const constructionSite = createConstructionSiteSnapshot('completed');
     const constructionSiteManagementPort = createConstructionSiteManagementPort({
@@ -617,6 +684,38 @@ function createConstructionSiteManagementPort(
     getActiveHouseDrawingDocument: vi.fn(() => null),
     ...overrides,
   } as ConstructionSiteManagementPortMock;
+}
+
+function makeHousePrintable(constructionSite: ConstructionSiteState, houseId: string): void {
+  const house = constructionSite.houses.find((entry) => entry.id === houseId);
+  if (!house) return;
+
+  house.drawingDocument = {
+    ...house.drawingDocument,
+    house: {
+      id: house.id,
+      houseType: house.houseType,
+      terrainType: house.terrainType,
+      pilotis: {},
+      views: {
+        top: [{instanceId: 'top_1'}],
+        front: [],
+        back: [],
+        side1: [],
+        side2: [],
+      },
+      sideMappings: {
+        top: null,
+        bottom: null,
+        left: null,
+        right: null,
+      },
+      preAssignedSides: {},
+    } satisfies HouseState,
+    views: {
+      top: [{instanceId: 'top_1', viewType: 'top', payload: {}}],
+    },
+  };
 }
 
 function createDrawingDocument(

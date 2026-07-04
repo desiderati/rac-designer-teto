@@ -41,7 +41,10 @@ Isso vale para:
 5. Em PDFs, o texto deve ser medido contra a área real de desenho. Não é aceitável confiar apenas no
    limite de caracteres do formulário.
 
-6. Estados com dados máximos aceitos pelo domínio devem ter validação automatizada ou inspeção
+6. Quando um trecho resumido na primeira página do PDF continuar no verso, o indicador visual deve
+   ser explícito, usando `(continua atrás...)` em vez de reticências isoladas.
+
+7. Estados com dados máximos aceitos pelo domínio devem ter validação automatizada ou inspeção
    visual registrada.
 
 ## Evidência esperada

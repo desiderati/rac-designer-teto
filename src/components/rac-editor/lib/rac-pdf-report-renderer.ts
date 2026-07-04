@@ -67,6 +67,7 @@ const FIRST_PAGE_MONITOR_ROW_HEIGHT = 30;
 const FIRST_PAGE_MONITOR_SUMMARY_WIDTH = 90;
 const FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT = 3;
 const FIRST_PAGE_NOTES_LINE_LIMIT = 5;
+const FIRST_PAGE_BODY_CONTINUATION_HINT = '(continua atrás...)';
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
 const FIRST_PAGE_MUTED_BODY_LINE_HEIGHT = 8.6;
 const CONTINUATION_LEFT_COLUMN_Y = LEFT_COLUMN_Y;
@@ -772,8 +773,27 @@ function splitFirstPageBodyTextToFit(pdf: JsPDFDocument, text: string, maxLines:
   const lines = splitFirstPageBodyText(pdf, text);
   if (lines.length <= maxLines) return lines;
   const visible = lines.slice(0, maxLines);
-  visible[visible.length - 1] = limitText(pdf, `${visible.at(-1) ?? ''}...`, LEFT_COLUMN_WIDTH);
+  visible[visible.length - 1] = appendFirstPageBodyContinuationHint(pdf, visible.at(-1) ?? '');
   return visible;
+}
+
+function appendFirstPageBodyContinuationHint(pdf: JsPDFDocument, line: string): string {
+  if (pdf.getTextWidth(FIRST_PAGE_BODY_CONTINUATION_HINT) > LEFT_COLUMN_WIDTH) {
+    return limitText(pdf, FIRST_PAGE_BODY_CONTINUATION_HINT, LEFT_COLUMN_WIDTH);
+  }
+
+  const suffix = ` ${FIRST_PAGE_BODY_CONTINUATION_HINT}`;
+  let prefix = line.trimEnd();
+  while (prefix.length > 0 && pdf.getTextWidth(`${prefix}${suffix}`) > LEFT_COLUMN_WIDTH) {
+    prefix = removeLastWordForContinuationHint(prefix);
+  }
+
+  return prefix ? `${prefix}${suffix}` : FIRST_PAGE_BODY_CONTINUATION_HINT;
+}
+
+function removeLastWordForContinuationHint(text: string): string {
+  const withoutLastWord = text.replace(/\s+\S+$/, '').trimEnd();
+  return withoutLastWord && withoutLastWord !== text ? withoutLastWord : text.slice(0, -1).trimEnd();
 }
 
 function drawFirstPageBodyLines(pdf: JsPDFDocument, lines: string[], x: number, y: number) {

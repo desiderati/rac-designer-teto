@@ -20,6 +20,8 @@ import {jsPDF} from 'jspdf';
 
 const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+const DEFAULT_EXTRA_MATERIALS_NOTE = 'Os materiais extras relacionados podem sofrer alterações ao longo da construção, conforme a evolução dos trabalhos e as necessidades identificadas durante a CC.';
+const DEFAULT_RAC_GENERAL_NOTE = 'A RAC é uma referência inicial para a construção da casa e pode sofrer alterações ao longo da CC. Adequações na posição da casa e remanejamento dos pilotis podem ocorrer em alguns casos.';
 
 describe('rac pdf report model', () => {
   it('calcula desnivel pela diferenca entre maior e menor nivel dos pilotis', () => {
@@ -89,8 +91,9 @@ describe('rac pdf report model', () => {
   });
 
   it('monta o relatorio com metadados atuais, monitores ativos e dados de pilotis', () => {
+    const constructionSite = createConstructionSiteState();
     const report = buildRacPdfReportModel({
-      constructionSite: createConstructionSiteState(),
+      constructionSite,
       canvasImageDataUrl: TINY_PNG_DATA_URL,
       generatedAt: new Date('2026-06-16T12:00:00.000Z'),
     });
@@ -136,11 +139,38 @@ describe('rac pdf report model', () => {
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Caibros', value: '24'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas Secundárias', value: '8'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
-    expect(report?.extraMaterials.justification).toBe('Material para reforço do acesso lateral.');
+    expect(report?.extraMaterials.justification).toBe([
+      'Material para reforço do acesso lateral.',
+      DEFAULT_EXTRA_MATERIALS_NOTE,
+    ].join('\n\n'));
+    expect(report?.notes).toBe([
+      'Observacao de campo.',
+      DEFAULT_RAC_GENERAL_NOTE,
+    ].join('\n\n'));
+    expect(constructionSite.houses[0].extraMaterials?.justification)
+      .toBe('Material para reforço do acesso lateral.');
+    expect(constructionSite.houses[0].notes).toBe('Observacao de campo.');
     expect(report?.canvasImageAspectRatio).toBe(1);
     expect(report?.house3DImageDataUrl).toBeNull();
     expect(report?.house3DImageAspectRatio).toBe(1);
     expect(report?.fileName).toBe('RAC-CC2603-DANIEL.pdf');
+  });
+
+  it('inclui textos padrao no relatorio sem preencher campos editaveis vazios', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].extraMaterials!.justification = '';
+    constructionSite.houses[0].notes = '';
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+      generatedAt: new Date('2026-06-16T12:00:00.000Z'),
+    });
+
+    expect(report?.extraMaterials.justification).toBe(DEFAULT_EXTRA_MATERIALS_NOTE);
+    expect(report?.notes).toBe(DEFAULT_RAC_GENERAL_NOTE);
+    expect(constructionSite.houses[0].extraMaterials?.justification).toBe('');
+    expect(constructionSite.houses[0].notes).toBe('');
   });
 
   it('gera um documento PDF em A4 paisagem com o modelo do relatorio', () => {
@@ -158,7 +188,7 @@ describe('rac pdf report model', () => {
       compress: false,
     });
 
-    expect(pdf.getNumberOfPages()).toBe(1);
+    expect(pdf.getNumberOfPages()).toBe(2);
     const output = pdf.output();
 
     expect(pdf.output('arraybuffer').byteLength).toBeGreaterThan(1000);
@@ -167,6 +197,7 @@ describe('rac pdf report model', () => {
     expect(output).toContain('CONSTRUÇÃO');
     expect(output).toContain('CC2603');
     expect(output).not.toContain('CONSTRU...');
+    expect(output).toContain('continua atrás...');
     expect(output).toContain('Math Almeida + Calfa');
     expect(output).toContain('DATA DE GERAÇÃO');
     expect(output).not.toContain('DATA DE GERA...');
@@ -290,8 +321,8 @@ describe('rac pdf report model', () => {
       expect(getLastLineWidthCommand(segment)).toBe('0.35');
     });
     expect(output).not.toContain('MONITORIA \\(CONTINUAÇÃO\\)');
-    expect(output).not.toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
-    expect(output).not.toContain('OBSERVAÇÕES COMPLETAS');
+    expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
+    expect(output).toContain('OBSERVAÇÕES COMPLETAS');
   });
 
   it('limita o cabecalho do PDF quando familia e lideres usam texto continuo longo', () => {
@@ -343,7 +374,7 @@ describe('rac pdf report model', () => {
     });
     const output = pdf.output();
 
-    expect(pdf.getNumberOfPages()).toBe(1);
+    expect(pdf.getNumberOfPages()).toBe(2);
     expect(output).toContain('Monitor 1');
     expect(output).toContain('Monitor 4');
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
@@ -379,6 +410,7 @@ describe('rac pdf report model', () => {
     const output = pdf.output();
 
     expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
+    expect((output.match(/continua atrás\.\.\./g) ?? [])).toHaveLength(2);
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
@@ -395,7 +427,7 @@ describe('rac pdf report model', () => {
     expect(output).toContain('observacao.');
   });
 
-  it('gera pagina de continuacao quando apenas observacoes excedem a coluna esquerda', () => {
+  it('gera pagina de continuacao quando observacoes excedem a coluna esquerda', () => {
     const constructionSite = createConstructionSiteState();
     constructionSite.houses[0].notes = [
       'Mobilizar voluntariado jovem para trabalhar com senso de urgencia em acao conjunta com os moradores.',
@@ -420,9 +452,10 @@ describe('rac pdf report model', () => {
     const output = pdf.output();
 
     expect(pdf.getNumberOfPages()).toBe(2);
+    expect(output).toContain('continua atrás...');
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
-    expect(output).not.toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
+    expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('Trecho final exclusivo das');
     expect(output).toContain('observacoes.');
   });

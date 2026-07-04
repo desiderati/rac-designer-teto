@@ -27,8 +27,9 @@ const ELEVATION_VIEW_TYPES: HouseViewType[] = ['front', 'back', 'side1', 'side2'
 
 export function buildRacPdfExportChecklist(
   constructionSite: ConstructionSiteState | null | undefined,
+  houseId?: string,
 ): RacPdfExportChecklist {
-  const activeHouse = getChecklistHouse(constructionSite);
+  const activeHouse = getChecklistHouse(constructionSite, houseId);
   const family = getChecklistFamily(constructionSite, activeHouse);
   const activeMonitors = Array.isArray(constructionSite?.monitors)
     ? constructionSite.monitors.filter((monitor) => monitor.status === 'active')
@@ -224,8 +225,17 @@ function createChecklistItem(input: {
   };
 }
 
-function getChecklistHouse(constructionSite: ConstructionSiteState | null | undefined): PersistedHouseRecord | null {
+function getChecklistHouse(
+  constructionSite: ConstructionSiteState | null | undefined,
+  houseId?: string,
+): PersistedHouseRecord | null {
   const houses = Array.isArray(constructionSite?.houses) ? constructionSite.houses : [];
+  const normalizedHouseId = houseId?.trim();
+  if (normalizedHouseId) {
+    return houses.find((house) => house.id === normalizedHouseId && house.status !== 'archived')
+      ?? null;
+  }
+
   const activeHouseId = constructionSite?.constructionSite?.activeHouseId;
   return houses.find((house) => house.id === activeHouseId && house.status !== 'archived')
     ?? houses.find((house) => house.status !== 'archived')

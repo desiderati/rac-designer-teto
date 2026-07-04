@@ -1,5 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import {IndexedDbConstructionSiteRepositoryAdapter} from '@/infra/persistence/indexed-db-construction-site-repository.adapter.ts';
+import type {ConstructionSiteRepositoryPort} from '@/domain/construction-site/construction-site-repository.port.ts';
 import type {
   ConstructionSiteSessionStoragePort,
   StoredConstructionSitesDocument,
@@ -29,9 +30,8 @@ export function useIndexedDbConstructionSiteSessionStorage(): ConstructionSiteSt
 
         setState({
           status: 'ready',
-          storage: createReactiveConstructionSiteSessionStorage(constructionSites, async (nextConstructionSites) => {
-            await Promise.all(nextConstructionSites.map((constructionSite) => repository.save(constructionSite)));
-          }),
+          storage: createReactiveConstructionSiteSessionStorage(constructionSites, (nextConstructionSites, previousConstructionSites) =>
+            persistReactiveConstructionSites(repository, nextConstructionSites, previousConstructionSites)),
         });
       } catch (error) {
         if (!alive) return;
@@ -52,9 +52,26 @@ export function useIndexedDbConstructionSiteSessionStorage(): ConstructionSiteSt
   return state;
 }
 
-function createReactiveConstructionSiteSessionStorage(
+export async function persistReactiveConstructionSites(
+  repository: Pick<ConstructionSiteRepositoryPort, 'save' | 'remove'>,
+  constructionSites: ConstructionSiteState[],
+  previousConstructionSites: ConstructionSiteState[],
+): Promise<void> {
+  const nextConstructionSiteIds = new Set(constructionSites.map((entry) => entry.constructionSite.id));
+  const removedConstructionSiteIds = previousConstructionSites
+    .map((entry) => entry.constructionSite.id)
+    .filter((constructionSiteId) => !nextConstructionSiteIds.has(constructionSiteId));
+
+  await Promise.all(constructionSites.map((constructionSite) => repository.save(constructionSite)));
+  await Promise.all(removedConstructionSiteIds.map((constructionSiteId) => repository.remove(constructionSiteId)));
+}
+
+export function createReactiveConstructionSiteSessionStorage(
   initialConstructionSites: ConstructionSiteState[],
-  onWrite: (constructionSites: ConstructionSiteState[]) => Promise<void>,
+  onWrite: (
+    constructionSites: ConstructionSiteState[],
+    previousConstructionSites: ConstructionSiteState[],
+  ) => Promise<void>,
 ): ConstructionSiteSessionStoragePort {
   let document: StoredConstructionSitesDocument = {
     version: 1,
@@ -64,11 +81,12 @@ function createReactiveConstructionSiteSessionStorage(
   return {
     read: () => cloneDocument(document),
     write: (constructionSites) => {
+      const previousConstructionSites = document.constructionSites;
       document = {
         version: document.version,
         constructionSites: cloneConstructionSites(constructionSites),
       };
-      void onWrite(document.constructionSites);
+      void onWrite(document.constructionSites, cloneConstructionSites(previousConstructionSites));
     },
   };
 }

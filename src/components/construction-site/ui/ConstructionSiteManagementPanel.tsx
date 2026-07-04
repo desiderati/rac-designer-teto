@@ -141,6 +141,7 @@ export function ConstructionSiteManagementPanel({
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
   const [exportingRacsZipConstructionId, setExportingRacsZipConstructionId] = useState<string | null>(null);
+  const [exportingRacPdfHouseId, setExportingRacPdfHouseId] = useState<string | null>(null);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
 
@@ -189,6 +190,17 @@ export function ConstructionSiteManagementPanel({
       setExportingRacsZipConstructionId(null);
     }
   }, [actions, exportingRacsZipConstructionId]);
+
+  const handleExportHouseRacPdf = useCallback(async (houseId: string) => {
+    if (exportingRacPdfHouseId || !constructionSite) return;
+
+    setExportingRacPdfHouseId(houseId);
+    try {
+      await actions.exportHouseRacPdf(constructionSite.constructionSite.id, houseId);
+    } finally {
+      setExportingRacPdfHouseId(null);
+    }
+  }, [actions, constructionSite, exportingRacPdfHouseId]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -399,6 +411,8 @@ export function ConstructionSiteManagementPanel({
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
               onOpenHouseExtraMaterials={navigation.openHouseExtraMaterials}
+              onExportHouseRacPdf={handleExportHouseRacPdf}
+              exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}
               onRequestHousePermanentDelete={navigation.requestHousePermanentDelete}
               readOnly={isSelectedConstructionReadOnly}

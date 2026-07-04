@@ -23,7 +23,7 @@ export const LIST_CONTROLS_CLASS = 'grid grid-cols-2 gap-2 sm:flex sm:flex-wrap'
 export const LIST_SELECT_CLASS = 'w-full min-w-0 sm:w-[11.25rem] sm:shrink-0';
 
 export const CONSTRUCTION_SITE_STATUS_LABELS: Record<ConstructionSiteStatus, string> = {
-  in_progress: 'Em andamento',
+  in_progress: 'Andamento',
   completed: 'Concluída',
   archived: 'Arquivada',
 };
@@ -61,7 +61,7 @@ export const MONITOR_STATUS_BADGE_CLASS_NAMES: Record<MonitorStatus, string> = {
 export const CONSTRUCTION_STATUS_FILTER_OPTIONS: VisualSelectOption<ConstructionStatusFilter>[] = [
   {value: 'all', label: 'Todos'},
   {value: 'archived', label: 'Arquivada'},
-  {value: 'in_progress', label: 'Em andamento'},
+  {value: 'in_progress', label: 'Andamento'},
   {value: 'completed', label: 'Concluída'},
 ];
 

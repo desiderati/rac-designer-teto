@@ -30,6 +30,38 @@ describe('rac-pdf-export-checklist.ts', () => {
     expect(formatRacPdfExportChecklistSummary(checklist)).toBe('Checklist sem pendências.');
   });
 
+  it('valida a casa informada quando recebe um ID específico', () => {
+    const constructionSite = createCompleteConstructionSite();
+    constructionSite.families.push({
+      id: 'family_2',
+      constructionSiteId: 'construction_site_1',
+      communityId: 'community_1',
+      name: 'Família Sem Desenho',
+    });
+    constructionSite.houses.push({
+      ...createCompleteHouse(),
+      id: 'house_2',
+      familyId: 'family_2',
+      drawingDocument: {
+        schemaVersion: 1,
+        house: null,
+        canvas: {
+          schemaVersion: 1,
+          objects: [],
+        },
+        views: {},
+      },
+    });
+
+    const checklist = buildRacPdfExportChecklist(constructionSite, 'house_2');
+
+    expect(checklist.hasBlockingItems).toBe(true);
+    expect(checklist.missingRequiredItems.map((item) => item.id)).toEqual([
+      'house-drawing',
+      'any-view',
+    ]);
+  });
+
   it('classifica dados complementares ausentes como alertas', () => {
     const constructionSite = createCompleteConstructionSite();
     constructionSite.houses[0] = {
