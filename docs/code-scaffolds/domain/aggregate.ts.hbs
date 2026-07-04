@@ -1,34 +1,33 @@
 /**
-* {{pascalCase model}} Aggregate
-*
-* Esqueleto alinhado ao padrão atual do repositório:
-* agregado em classe, estado encapsulado e factories explícitas.
-* Este arquivo pertence ao domínio e não deve importar `infra/` nem componentes React.
-*/
+ * {{pascalCase model}} Aggregate
+ *
+ * Esqueleto alinhado ao padrão atual do repositório:
+ * agregado em classe, estado encapsulado e factories explícitas.
+ * Este arquivo pertence ao domínio e não deve importar `infra/` nem componentes React.
+ */
 
 export type {{pascalCase model}}State = {
-// TODO: definir o estado do agregado
+  // TODO: definir o estado do agregado
 };
 
 export class {{pascalCase model}}Aggregate {
-private constructor(private readonly state: {{pascalCase model}}State) {
-}
+  private constructor(private readonly state: {{pascalCase model}}State) {
+  }
 
-static createInitialState(
-initial: Partial
-<{{pascalCase model}}State> = {},
-    ): {{pascalCase model}}State {
+  static createInitialState(
+    initial: Partial<{{pascalCase model}}State> = {},
+  ): {{pascalCase model}}State {
     return {
-    // TODO: definir defaults obrigatórios do agregado
-    ...initial,
+      // TODO: definir defaults obrigatórios do agregado
+      ...initial,
     } as {{pascalCase model}}State;
-    }
+  }
 
-    static fromState(state: {{pascalCase model}}State): {{pascalCase model}}Aggregate {
+  static fromState(state: {{pascalCase model}}State): {{pascalCase model}}Aggregate {
     return new {{pascalCase model}}Aggregate(state);
-    }
+  }
 
-    toState(): {{pascalCase model}}State {
+  toState(): {{pascalCase model}}State {
     return this.state;
-    }
-    }
+  }
+}
