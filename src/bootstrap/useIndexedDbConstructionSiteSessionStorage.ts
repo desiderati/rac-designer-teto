@@ -73,6 +73,7 @@ export function createReactiveConstructionSiteSessionStorage(
     previousConstructionSites: ConstructionSiteState[],
   ) => Promise<void>,
 ): ConstructionSiteSessionStoragePort {
+  let pendingWrite: Promise<void> | null = null;
   let document: StoredConstructionSitesDocument = {
     version: 1,
     constructionSites: cloneConstructionSites(initialConstructionSites),
@@ -86,9 +87,43 @@ export function createReactiveConstructionSiteSessionStorage(
         version: document.version,
         constructionSites: cloneConstructionSites(constructionSites),
       };
-      void onWrite(document.constructionSites, cloneConstructionSites(previousConstructionSites));
+      const nextConstructionSites = cloneConstructionSites(document.constructionSites);
+      const previousConstructionSitesSnapshot = cloneConstructionSites(previousConstructionSites);
+      enqueueReactiveWrite(
+        () => onWrite(nextConstructionSites, previousConstructionSitesSnapshot),
+        (error) => {
+          console.error('[rac] Falha ao persistir construções no IndexedDB.', error);
+        },
+        (promise) => {
+          pendingWrite = promise;
+        },
+        () => pendingWrite,
+      );
     },
   };
+}
+
+function enqueueReactiveWrite(
+  write: () => Promise<void>,
+  onError: (error: unknown) => void,
+  setPendingWrite: (promise: Promise<void> | null) => void,
+  getPendingWrite: () => Promise<void> | null,
+): void {
+  const run = async () => {
+    try {
+      await write();
+    } catch (error) {
+      onError(error);
+    }
+  };
+  const previousWrite = getPendingWrite();
+  const scheduledWrite = previousWrite ? previousWrite.then(run, run) : run();
+  setPendingWrite(scheduledWrite);
+  void scheduledWrite.finally(() => {
+    if (getPendingWrite() === scheduledWrite) {
+      setPendingWrite(null);
+    }
+  });
 }
 
 function cloneDocument(document: StoredConstructionSitesDocument): StoredConstructionSitesDocument {

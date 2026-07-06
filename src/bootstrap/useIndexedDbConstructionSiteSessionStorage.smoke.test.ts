@@ -82,7 +82,62 @@ describe('useIndexedDbConstructionSiteSessionStorage.ts', () => {
       [constructionSite],
     );
   });
+
+  it('serializa escritas reativas para preservar a última versão persistida', async () => {
+    let resolveFirstWrite!: () => void;
+    const persistedWrites: Array<{ next: string[]; previous: string[] }> = [];
+    const onWrite = vi.fn((nextConstructionSites: ConstructionSiteState[], previousConstructionSites: ConstructionSiteState[]) => {
+      persistedWrites.push({
+        next: nextConstructionSites.map((entry) => entry.constructionSite.id),
+        previous: previousConstructionSites.map((entry) => entry.constructionSite.id),
+      });
+      if (persistedWrites.length === 1) {
+        return new Promise<void>((resolve) => {
+          resolveFirstWrite = resolve;
+        });
+      }
+      return Promise.resolve();
+    });
+    const firstConstructionSite = createConstructionSiteState('construction_site_1');
+    const secondConstructionSite = createConstructionSiteState('construction_site_2');
+    const storage = createReactiveConstructionSiteSessionStorage([
+      firstConstructionSite,
+      secondConstructionSite,
+    ], onWrite);
+
+    storage.write([firstConstructionSite]);
+    storage.write([firstConstructionSite, secondConstructionSite]);
+
+    expect(storage.read().constructionSites.map((entry) => entry.constructionSite.id)).toEqual([
+      'construction_site_1',
+      'construction_site_2',
+    ]);
+    expect(onWrite).toHaveBeenCalledTimes(1);
+    expect(persistedWrites).toEqual([{
+      next: ['construction_site_1'],
+      previous: ['construction_site_1', 'construction_site_2'],
+    }]);
+
+    resolveFirstWrite();
+    await flushPromises();
+
+    expect(onWrite).toHaveBeenCalledTimes(2);
+    expect(persistedWrites).toEqual([
+      {
+        next: ['construction_site_1'],
+        previous: ['construction_site_1', 'construction_site_2'],
+      },
+      {
+        next: ['construction_site_1', 'construction_site_2'],
+        previous: ['construction_site_1'],
+      },
+    ]);
+  });
 });
+
+async function flushPromises(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
 
 function createConstructionSiteState(id: string): ConstructionSiteState {
   return {
