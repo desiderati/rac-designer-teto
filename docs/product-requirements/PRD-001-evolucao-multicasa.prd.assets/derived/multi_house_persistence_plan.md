@@ -486,12 +486,12 @@ milestone in this repository.
 
 ## References
 
-[1]: ../../../../src/components/rac-editor/lib/editor-house-controller.ts "Current single-house controller with in-memory persistence and non-persisted family fields"
+[1]: ../../../../client/src/components/rac-editor/lib/editor-house-controller.ts "Current single-house controller with in-memory persistence and non-persisted family fields"
 
-[2]: ../../../../src/shared/types/house.ts "Current HouseState type used by the editor"
+[2]: ../../../../client/src/shared/types/house.ts "Current HouseState type used by the editor"
 
-[3]: ../../../../src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
+[3]: ../../../../client/src/domain/house/house-persistence.port.ts "Current persistence port limited to a single house"
 
-[4]: ../../../../src/components/rac-editor/ports/HouseDrawingDocumentPort.ts "Current HouseDrawingDocument composition port"
+[4]: ../../../../client/src/components/rac-editor/ports/HouseDrawingDocumentPort.ts "Current HouseDrawingDocument composition port"
 
 [5]: https://docs.google.com/spreadsheets/d/16ZYrcTcABqMJAK7_URahCg_h2ZfC_yYWJvZyeRBhbm8/edit?gid=0#gid=0 "Reference Google Sheet used to infer house data groups and persistent entities"

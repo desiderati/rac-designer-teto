@@ -25,14 +25,14 @@ convenções e critérios de decisão que orientam tanto humanos quanto agentes 
 ## Perfis detectados
 
 - `frontend-react-vite`
-    - Evidenciado por `vite.config.ts`, dependências React, scripts Vite e entrypoint `src/main.tsx`.
+    - Evidenciado por `vite.config.ts`, dependências React, scripts Vite e entrypoint `client/src/main.tsx`.
 
 - `frontend-react-router-spa`
-    - Evidenciado por `react-router-dom`, `BrowserRouter`, `Routes` e rotas em `src/App.tsx`.
+    - Evidenciado por `react-router-dom`, `BrowserRouter`, `Routes` e rotas em `client/src/App.tsx`.
 
 - `architecture-ports-adapters`
-    - Evidenciado por ports do editor, adapters Fabric no slice `@canvas`, composição em `src/bootstrap/` e guards em
-      `src/test/rac-editor-boundary.smoke.test.ts`.
+    - Evidenciado por ports do editor, adapters Fabric no slice `@canvas`, composição em `client/src/bootstrap/` e guards em
+      `client/src/test/rac-editor-boundary.smoke.test.ts`.
 
 - `build-npm`
     - Evidenciado por `package-lock.json`, scripts npm em `package.json` e comandos oficiais no `README.md`.

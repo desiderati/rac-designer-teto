@@ -89,10 +89,10 @@ aliases: [ mapeamento entre planta e vistas elevadas ]
 
 ### Pontos de código, contrato ou regra
 
-- `src/domain/house/house.aggregate.ts`: normaliza `sideMappings` ao reconstruir o agregado.
-- `src/domain/house/use-cases/house-views.use-case.ts`: fornece a reconstrução determinística por `views[*].side`.
-- `src/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts`: consome o índice reconstruído.
-- `src/components/rac-editor/lib/house-view.ts`: calcula rótulos relativos sobre orientação coerente.
+- `client/src/domain/house/house.aggregate.ts`: normaliza `sideMappings` ao reconstruir o agregado.
+- `client/src/domain/house/use-cases/house-views.use-case.ts`: fornece a reconstrução determinística por `views[*].side`.
+- `client/src/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts`: consome o índice reconstruído.
+- `client/src/components/rac-editor/lib/house-view.ts`: calcula rótulos relativos sobre orientação coerente.
 
 ## 9. Classe do Defeito ou Regressão
 

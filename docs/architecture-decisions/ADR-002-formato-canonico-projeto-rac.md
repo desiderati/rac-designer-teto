@@ -84,7 +84,7 @@ A decisão está aceita quando:
 2. A restauração aplica `HouseDrawingDocument` ao estado lógico sem chamar rebuild lógico a partir
    do canvas.
 
-3. `CanvasGroup` e `CanvasObject` permanecem confinados a `src/components/rac-editor/@canvas`.
+3. `CanvasGroup` e `CanvasObject` permanecem confinados a `client/src/components/rac-editor/@canvas`.
 
 4. `canvas.toJSON()` e `canvas.loadFromJSON()` não vazam para hooks de aplicação, bootstrap, ports
    gerais ou domínio.
@@ -132,6 +132,6 @@ principal para salvar o estado da casa nem para alternar Construções TETO.
 - `docs/architecture-decisions/ADR-001-fronteira-editor-runtime-fabric.md`
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`
 - `docs/engineering-playbook/PLAY-006-ports-and-adapters.md`
-- `src/shared/types/house-drawing-document.ts`
-- `src/components/rac-editor/ports/HouseDrawingDocumentPort.ts`
-- `src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts`
+- `client/src/shared/types/house-drawing-document.ts`
+- `client/src/components/rac-editor/ports/HouseDrawingDocumentPort.ts`
+- `client/src/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts`

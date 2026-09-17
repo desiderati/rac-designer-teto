@@ -93,10 +93,10 @@ Status: adiado.
 
 Arquivos candidatos:
 
-1. `src/components/rac-editor/@canvas/lib/terrain.ts`;
-2. `src/components/rac-editor/@canvas/lib/piloti.ts`;
-3. `src/components/rac-editor/@canvas/lib/contraventamento.ts`;
-4. `src/components/rac-editor/@canvas/lib/house-auto-stairs.ts`.
+1. `client/src/components/rac-editor/@canvas/lib/terrain.ts`;
+2. `client/src/components/rac-editor/@canvas/lib/piloti.ts`;
+3. `client/src/components/rac-editor/@canvas/lib/contraventamento.ts`;
+4. `client/src/components/rac-editor/@canvas/lib/house-auto-stairs.ts`.
 
 Motivo: esses arquivos ainda concentram lógica relevante, mas nem todo cálculo dentro de `@canvas` é
 vazamento de domínio. Geometria visual, ordenação de objetos e projeção Fabric pertencem ao canvas.
@@ -112,7 +112,7 @@ Ativar quando:
 
 Critério de parada:
 
-1. regra pura ir para `src/domain/house`;
+1. regra pura ir para `client/src/domain/house`;
 2. geometria e projeção visual permanecerem em `@canvas`;
 3. a extração ser coberta por teste de caracterização quando houver risco de comportamento.
 

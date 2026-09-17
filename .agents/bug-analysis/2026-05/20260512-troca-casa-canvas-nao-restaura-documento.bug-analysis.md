@@ -45,12 +45,12 @@ aliases: [ troca de casa no canvas, canvas não carrega casa selecionada ]
     - uma casa deve carregar seu último estado salvo no Canvas;
     - a casa anterior deve ser salva antes da troca.
 - módulos, componentes ou serviços envolvidos:
-    - `src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
-    - `src/components/rac-editor/hooks/useRacEditorController.ts`
-    - `src/components/rac-editor/@menus/lib/menu-types.ts`
-    - `src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
-    - `src/components/rac-editor/@menus/ui/HamburgerMenu.tsx`
-    - `src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`
+    - `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
+    - `client/src/components/rac-editor/hooks/useRacEditorController.ts`
+    - `client/src/components/rac-editor/@menus/lib/menu-types.ts`
+    - `client/src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
+    - `client/src/components/rac-editor/@menus/ui/HamburgerMenu.tsx`
+    - `client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`
 - contratos, schemas ou interfaces envolvidos:
     - `MenuActionMap.activateHouse`
     - `ConstructionSiteManagementPort.activateHouse`
@@ -108,23 +108,23 @@ aliases: [ troca de casa no canvas, canvas não carrega casa selecionada ]
 
 ### Pontos de código, contrato ou regra
 
-- `src/components/construction-site/hooks/useConstructionSiteManagementController.ts:100`: `loadOrQueueHouseDocument`
+- `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts:100`: `loadOrQueueHouseDocument`
   passou a cancelar hidratação obsoleta, carregar o documento novo e agendar retry explícito quando necessário.
-- `src/components/construction-site/hooks/useConstructionSiteManagementController.ts:126`: `saveActiveHouseDocument`
+- `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts:126`: `saveActiveHouseDocument`
   passou a invalidar hidratações pendentes antes de exportar o Canvas.
-- `src/components/construction-site/hooks/useConstructionSiteManagementController.ts:118`: `runDocumentTransition`
+- `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts:118`: `runDocumentTransition`
   passou a serializar transições documentais.
-- `src/components/construction-site/hooks/useConstructionSiteManagementController.ts:144`: `activateHouse` passou a
+- `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts:144`: `activateHouse` passou a
   executar dentro da fila transacional.
-- `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts:167`: a inserção de vistas da casa passou a
+- `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts:167`: a inserção de vistas da casa passou a
   disparar persistência durável após o registro lógico da vista.
-- `src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`: a reidratação de shapes `itext`,
+- `client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`: a reidratação de shapes `itext`,
   `text` e `textbox` passou a fornecer `text: ""` quando o documento canônico não traz conteúdo textual.
-- `src/components/rac-editor/hooks/useRacEditorController.ts`: o controller do editor passou a entregar
+- `client/src/components/rac-editor/hooks/useRacEditorController.ts`: o controller do editor passou a entregar
   `saveActiveHouseDocument` como `onHouseDrawingChange` para o fluxo do Canvas.
-- `src/components/rac-editor/hooks/useRacEditorController.ts:134`: o handler do menu passou a retornar a promessa da
+- `client/src/components/rac-editor/hooks/useRacEditorController.ts:134`: o handler do menu passou a retornar a promessa da
   ativação em vez de descartá-la semanticamente.
-- `src/components/rac-editor/@menus/lib/menu-types.ts:23`: `activateHouse` passou a ser tipado como `Promise<void>`.
+- `client/src/components/rac-editor/@menus/lib/menu-types.ts:23`: `activateHouse` passou a ser tipado como `Promise<void>`.
 
 ## 7. Classe do Defeito ou Regressão
 
@@ -158,17 +158,17 @@ aliases: [ troca de casa no canvas, canvas não carrega casa selecionada ]
 ## 9. Validação Executada
 
 - testes executados:
-  - `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
-    - `rtk npm run test -- src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx`
-    - `rtk npm run test -- src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
-    - `rtk npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
-    - `rtk npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/lib/construction-site-session.smoke.test.ts src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts --testTimeout 20000`
-  - `rtk npm run test -- src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/CanvasToolsMenu.smoke.test.tsx src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx --testTimeout 15000`
-    - `rtk npm run test -- src/test/rac-editor-boundary.smoke.test.ts --testTimeout 60000`
+  - `rtk npm run test -- client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
+    - `rtk npm run test -- client/src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx`
+    - `rtk npm run test -- client/src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
+    - `rtk npm run test -- client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
+    - `rtk npm run test -- client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx client/src/components/rac-editor/lib/construction-site-session.smoke.test.ts client/src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts --testTimeout 20000`
+  - `rtk npm run test -- client/src/components/rac-editor/@menus/ui/HamburgerMenu.smoke.test.tsx client/src/components/rac-editor/@menus/ui/CanvasToolsMenu.smoke.test.tsx client/src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx --testTimeout 15000`
+    - `rtk npm run test -- client/src/test/rac-editor-boundary.smoke.test.ts --testTimeout 60000`
     - `rtk npm run test -- --testTimeout 20000`: 102 arquivos, 316 testes.
-    - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts --testTimeout 20000`
-  - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx --testTimeout 20000`: 16 testes.
-    - `rtk npm run test -- src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-command-port.smoke.test.ts src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --testTimeout 20000`: 9 testes.
+    - `rtk npm run test -- client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts --testTimeout 20000`
+  - `rtk npm run test -- client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.smoke.test.ts client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx client/src/components/rac-editor/@menus/ui/TopBar.smoke.test.tsx --testTimeout 20000`: 16 testes.
+    - `rtk npm run test -- client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-command-port.smoke.test.ts client/src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --testTimeout 20000`: 9 testes.
     - `rtk npm run test -- --testTimeout 20000`: 103 arquivos, 324 testes.
 - validação manual:
     - Playwright MCP em `http://127.0.0.1:5200/`: duas casas limpas; inserção da casa A; troca para B vazia; retorno

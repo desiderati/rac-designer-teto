@@ -48,8 +48,8 @@ aliases: [ slider de nível do piloti ao sair do auto ]
 
 | Camada ou fronteira | Responsabilidade | Evidência disponível | Status |
 |---------------------|------------------|----------------------|--------|
-| UI `NivelSlider` | capturar valor controlado e emitir commit persistente | `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx` | observado |
-| Hook `usePilotiEditor` | converter nível em patch do piloti e chamar `onHeightChange` | `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts` | observado |
+| UI `NivelSlider` | capturar valor controlado e emitir commit persistente | `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx` | observado |
+| Hook `usePilotiEditor` | converter nível em patch do piloti e chamar `onHeightChange` | `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts` | observado |
 | Canvas history | salvar histórico e notificar alteração documental | `useCanvasHistory.smoke.test.ts` e fluxo `onHeightChange` | observado |
 | Persistência E2E | gravar nível no documento de Construções TETO | `e2e/piloti.spec.ts` | observado |
 
@@ -77,8 +77,8 @@ aliases: [ slider de nível do piloti ao sair do auto ]
 
 ### Pontos de código, contrato ou regra
 
-- `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`: adiciona fallback de commit.
-- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`: evita duplicar update quando fallback e commit nativo chegam com o mesmo valor.
+- `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`: adiciona fallback de commit.
+- `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`: evita duplicar update quando fallback e commit nativo chegam com o mesmo valor.
 - `e2e/piloti.spec.ts`: cobre a fronteira original com UI real e persistência.
 
 ## 9. Classe do Defeito ou Regressão
@@ -101,7 +101,7 @@ aliases: [ slider de nível do piloti ao sair do auto ]
 
 ## 12. Validação Executada
 
-- validação de camada: `npx vitest run src/components/rac-editor/@modals/ui/editors/NivelSlider.smoke.test.tsx src/components/rac-editor/@modals/hooks/usePilotiEditor.smoke.test.tsx src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.smoke.test.tsx src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --reporter=dot`
+- validação de camada: `npx vitest run client/src/components/rac-editor/@modals/ui/editors/NivelSlider.smoke.test.tsx client/src/components/rac-editor/@modals/hooks/usePilotiEditor.smoke.test.tsx client/src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.smoke.test.tsx client/src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.smoke.test.ts --reporter=dot`
 - validação de integração: `npm run test:architecture`
 - validação na fronteira original: `npx playwright test e2e/piloti.spec.ts`
 - testes executados: 16 testes Vitest focados, 13 testes de arquitetura, 3 testes E2E de pilotis.

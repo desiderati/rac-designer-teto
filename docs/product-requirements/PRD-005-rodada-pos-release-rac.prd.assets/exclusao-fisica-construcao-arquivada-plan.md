@@ -96,28 +96,28 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
 ## 5. Áreas Afetadas
 
 - Sessão e persistência local:
-  - `src/components/rac-editor/lib/construction-site-session.ts`
-  - `src/components/rac-editor/lib/editor-house-construction-site-bridge.ts`
-  - `src/components/rac-editor/lib/editor-house-controller.ts`
+  - `client/src/components/rac-editor/lib/construction-site-session.ts`
+  - `client/src/components/rac-editor/lib/editor-house-construction-site-bridge.ts`
+  - `client/src/components/rac-editor/lib/editor-house-controller.ts`
 
 - Porta e controller do gerenciamento:
-  - `src/bootstrap/editor-house-port-adapters.ts`
-  - `src/bootstrap/editor-house-ports.smoke.test.ts`
-  - `src/components/construction-site/ports/ConstructionSiteManagementPort.ts`
-  - `src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
-  - `src/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts`
-  - `src/components/construction-site/ui/lib/types.ts`
+  - `client/src/bootstrap/editor-house-port-adapters.ts`
+  - `client/src/bootstrap/editor-house-ports.smoke.test.ts`
+  - `client/src/components/construction-site/ports/ConstructionSiteManagementPort.ts`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts`
+  - `client/src/components/construction-site/ui/lib/types.ts`
 
 - UI:
-  - `src/components/construction-site/ui/ConstructionListScreen.tsx`
-  - `src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
-  - `src/components/construction-site/ui/lib/shared-controls.tsx`
-  - `src/components/construction-site/ui/lib/status-dialogs.tsx`
+  - `client/src/components/construction-site/ui/ConstructionListScreen.tsx`
+  - `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
+  - `client/src/components/construction-site/ui/lib/shared-controls.tsx`
+  - `client/src/components/construction-site/ui/lib/status-dialogs.tsx`
 
 - Testes:
-  - `src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
-  - `src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
-  - `src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
+  - `client/src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
+  - `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
 
 - Documentação:
   - `docs/business-rules/BUS-010-status-casa.md`
@@ -176,13 +176,13 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
 - verificação: Smoke tests de sessão cobrindo sucesso, bloqueios e normalização de estado.
 
 - arquivos-chave:
-  - `src/components/rac-editor/lib/construction-site-session.ts`
-  - `src/components/rac-editor/lib/editor-house-construction-site-bridge.ts`
-  - `src/components/rac-editor/lib/editor-house-controller.ts`
-  - `src/components/construction-site/ports/ConstructionSiteManagementPort.ts`
-  - `src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
-  - `src/components/construction-site/ui/lib/types.ts`
-  - `src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
+  - `client/src/components/rac-editor/lib/construction-site-session.ts`
+  - `client/src/components/rac-editor/lib/editor-house-construction-site-bridge.ts`
+  - `client/src/components/rac-editor/lib/editor-house-controller.ts`
+  - `client/src/components/construction-site/ports/ConstructionSiteManagementPort.ts`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementController.ts`
+  - `client/src/components/construction-site/ui/lib/types.ts`
+  - `client/src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
 
 - commit esperado: `feat(rac): excluir itens arquivados da sessao`
 
@@ -197,13 +197,13 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
 - verificação: Smoke tests de UI e controller.
 
 - arquivos-chave:
-  - `src/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts`
-  - `src/components/construction-site/ui/ConstructionListScreen.tsx`
-  - `src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
-  - `src/components/construction-site/ui/lib/shared-controls.tsx`
-  - `src/components/construction-site/ui/lib/status-dialogs.tsx`
-  - `src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
-  - `src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts`
+  - `client/src/components/construction-site/ui/ConstructionListScreen.tsx`
+  - `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
+  - `client/src/components/construction-site/ui/lib/shared-controls.tsx`
+  - `client/src/components/construction-site/ui/lib/status-dialogs.tsx`
+  - `client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx`
+  - `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
 
 - commit esperado: `feat(rac): adicionar exclusao definitiva nas listagens`
 
@@ -257,8 +257,8 @@ Implementar ações destrutivas, explícitas e confirmadas para excluir definiti
   reconciliado.
 
 - verificação:
-  - `npm run test -- src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
-  - `npm run test -- src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
+  - `npm run test -- client/src/components/rac-editor/lib/construction-site-session.smoke.test.ts`
+  - `npm run test -- client/src/components/construction-site/hooks/useConstructionSiteManagementController.smoke.test.tsx client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
   - `npm run lint`
 
 - arquivos-chave:

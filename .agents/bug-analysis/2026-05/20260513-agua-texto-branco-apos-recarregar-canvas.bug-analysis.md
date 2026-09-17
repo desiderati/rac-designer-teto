@@ -46,9 +46,9 @@ aliases: [ Texto da água branco após recarregar canvas ]
 - fluxos afetados: inserção de água, autosave da casa ativa, reload/hidratação do canvas.
 - regras de negócio afetadas: consistência visual do canvas 2D.
 - módulos envolvidos:
-    - `src/components/rac-editor/@canvas/lib/factory/elements/water.strategy.ts`
-    - `src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`
-    - `src/shared/types/house-drawing-document.ts`
+    - `client/src/components/rac-editor/@canvas/lib/factory/elements/water.strategy.ts`
+    - `client/src/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts`
+    - `client/src/shared/types/house-drawing-document.ts`
 - contratos envolvidos: `HouseDrawingCanvasDocument` e adapter Fabric do `CanvasDocumentPort`.
 
 ## 5. Mapa de Camadas e Fronteiras

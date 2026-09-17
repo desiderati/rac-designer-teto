@@ -35,10 +35,10 @@ aliases: [ tip do piloti após inserir casa ]
 - regras de negócio afetadas: a inserção inicial da casa deve orientar o usuário primeiro no piloti mestre e depois na
   vista elevada.
 - módulos envolvidos:
-    - `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
-    - `src/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts`
-    - `src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
-    - `src/components/guided-tour/tours/rac-editor-tour.ts`
+    - `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
+    - `client/src/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts`
+    - `client/src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
+    - `client/src/components/guided-tour/tours/rac-editor-tour.ts`
 - contratos envolvidos: evento `rac:house-initial-views-inserted` com alvos dinâmicos.
 
 ## 4. Fluxo Esperado vs. Fluxo Real
@@ -92,10 +92,10 @@ aliases: [ tip do piloti após inserir casa ]
 
 - testes executados:
   -
-  `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+  `npm run test -- client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
   -
-  `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
-    - `npm run test -- src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx`
+  `npm run test -- client/src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+    - `npm run test -- client/src/components/rac-editor/@menus/ui/FamilyName.smoke.test.tsx`
 - build, lint ou smoke relevante:
     - `npm run lint`
     - `npm run build`

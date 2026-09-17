@@ -9,8 +9,8 @@ lang: pt-BR
 
 # Code Scaffolds
 
-Este diretório reúne scaffolds alinhados aos padrões atualmente observáveis em `src/domain/house/` e
-`src/infra/persistence/`.
+Este diretório reúne scaffolds alinhados aos padrões atualmente observáveis em `client/src/domain/house/` e
+`client/src/infra/persistence/`.
 
 Eles existem como ponto de partida, não como autorização para gerar código por reflexo. Antes de
 usar qualquer scaffold, confirme que o padrão realmente se aplica ao domínio e à arquitetura

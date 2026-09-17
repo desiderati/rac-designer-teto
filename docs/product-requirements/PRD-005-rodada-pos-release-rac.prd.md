@@ -306,11 +306,11 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - Feature 9: `Calhas` -> `Mata-juntas`.
 
 - arquivos prováveis:
-    - `src/shared/lib/photo-data-url.ts`
-    - `src/components/construction-site/ui/HouseExtraMaterialsScreen.tsx`
-    - `src/components/construction-site/ui/lib/view-model.ts`
-    - `src/components/rac-editor/lib/rac-pdf-report-model.ts`
-    - `src/components/construction-site/ui/lib/constants.ts`
+    - `client/src/shared/lib/photo-data-url.ts`
+    - `client/src/components/construction-site/ui/HouseExtraMaterialsScreen.tsx`
+    - `client/src/components/construction-site/ui/lib/view-model.ts`
+    - `client/src/components/rac-editor/lib/rac-pdf-report-model.ts`
+    - `client/src/components/construction-site/ui/lib/constants.ts`
     - testes de formulário/PDF/upload relacionados.
     - `docs/business-rules/BUS-008-indicador-dificuldade-terreno.md`
     - `docs/business-rules/BUS-009-materiais-terreno.md`
@@ -331,11 +331,11 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - Bugfix 3: laterais em tipos 3 e 6.
 
 - arquivos prováveis:
-    - `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
-    - `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
-    - `src/components/rac-editor/lib/house-view.ts`
-    - `src/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts`
-    - `src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
+    - `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
+    - `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+    - `client/src/components/rac-editor/lib/house-view.ts`
+    - `client/src/components/rac-editor/@canvas/lib/house-top-view-door-marker.ts`
+    - `client/src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
     - testes smoke dos módulos acima.
     - `docs/business-rules/BUS-003-vistas-por-tipo.md`
     - `docs/business-rules/BUS-004-piloti-nivel.md`
@@ -356,10 +356,10 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - Feature 5: redimensionamento de muro sem deformar texto/tracejado.
 
 - arquivos prováveis:
-    - tipos de objeto do canvas em `src/shared/types/house-drawing-document.ts`
-    - estratégias/factories de objetos em `src/components/rac-editor/@canvas/`
-    - menus de ferramentas em `src/components/rac-editor/@menus/`
-    - editores genéricos em `src/components/rac-editor/@modals/`
+    - tipos de objeto do canvas em `client/src/shared/types/house-drawing-document.ts`
+    - estratégias/factories de objetos em `client/src/components/rac-editor/@canvas/`
+    - menus de ferramentas em `client/src/components/rac-editor/@menus/`
+    - editores genéricos em `client/src/components/rac-editor/@modals/`
     - testes smoke de serialização, criação, resize e export visual.
     - `docs/business-rules/BUS-001-canvas.md`
 
@@ -378,10 +378,10 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - Feature 7: checklist antes do PDF padrão.
 
 - arquivos prováveis:
-    - `src/components/rac-editor/@viewer-3d/`
-    - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
-    - `src/components/rac-editor/lib/rac-pdf-report-model.ts`
-    - componentes de dialog/checklist em `src/components/rac-editor/`
+    - `client/src/components/rac-editor/@viewer-3d/`
+    - `client/src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
+    - `client/src/components/rac-editor/lib/rac-pdf-report-model.ts`
+    - componentes de dialog/checklist em `client/src/components/rac-editor/`
     - testes do hook de exportação e viewer 3D.
     - `docs/business-rules/BUS-007-viewer-3d.md`
     - `docs/business-rules/BUS-010-status-casa.md`
@@ -400,11 +400,11 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - Feature 3: exportar todas as RACs não arquivadas para ZIP.
 
 - arquivos prováveis:
-    - `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
-    - `src/components/rac-editor/lib/rac-pdf-report-model.ts`
-    - novo serviço/helper de exportação ZIP em `src/components/rac-editor/lib/`
-    - ports de gerenciamento de construção em `src/components/construction-site/ports/`
-    - adapters em `src/bootstrap/` e sessão em `src/components/rac-editor/lib/construction-site-session.ts`
+    - `client/src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
+    - `client/src/components/rac-editor/lib/rac-pdf-report-model.ts`
+    - novo serviço/helper de exportação ZIP em `client/src/components/rac-editor/lib/`
+    - ports de gerenciamento de construção em `client/src/components/construction-site/ports/`
+    - adapters em `client/src/bootstrap/` e sessão em `client/src/components/rac-editor/lib/construction-site-session.ts`
     - UI do formulário/fluxo de Construções TETO.
     - testes unitários/smoke de exportação em lote.
     - `docs/business-rules/BUS-010-status-casa.md`
@@ -494,11 +494,11 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
     - [BUS-010-status-casa.md](../business-rules/BUS-010-status-casa.md)
 
 - Código atual relacionado:
-    - [construction-site-session.ts](../../src/components/rac-editor/lib/construction-site-session.ts)
-    - [rac-pdf-report-model.ts](../../src/components/rac-editor/lib/rac-pdf-report-model.ts)
-    - [useRacEditorPdfExportAction.ts](../../src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts)
-    - [HouseExtraMaterialsScreen.tsx](../../src/components/construction-site/ui/HouseExtraMaterialsScreen.tsx)
-    - [photo-data-url.ts](../../src/shared/lib/photo-data-url.ts)
+    - [construction-site-session.ts](../../client/src/components/rac-editor/lib/construction-site-session.ts)
+    - [rac-pdf-report-model.ts](../../client/src/components/rac-editor/lib/rac-pdf-report-model.ts)
+    - [useRacEditorPdfExportAction.ts](../../client/src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts)
+    - [HouseExtraMaterialsScreen.tsx](../../client/src/components/construction-site/ui/HouseExtraMaterialsScreen.tsx)
+    - [photo-data-url.ts](../../client/src/shared/lib/photo-data-url.ts)
 
 ## 11. Execução Concluída
 

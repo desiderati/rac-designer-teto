@@ -68,12 +68,12 @@
 
 | Arquivo                                                                 | Responsabilidade no defeito ou na correção                                                                 |
 |-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| `src/shared/types/piloti.ts`                                            | normalização central das alturas disponíveis e cálculo do máximo de nível com base no conjunto selecionado |
-| `src/domain/house/house.aggregate.ts`                                   | recálculo recomendado dos 12 pilotis usando as alturas selecionadas                                        |
-| `src/components/rac-editor/lib/house-manager.ts`                        | normalização das 6 alturas escolhidas e injeção delas no recálculo automático                              |
-| `src/components/rac-editor/hooks/usePilotiEditor.ts`                    | cálculo da altura recomendada e do limite máximo do slider no editor individual                            |
-| `src/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx` | cálculo do limite máximo e exibição correta da altura recomendada no fluxo inicial                         |
-| `src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`             | cobertura para recomendação dinâmica, máximo de nível dinâmico e normalização das alturas                  |
+| `client/src/shared/types/piloti.ts`                                            | normalização central das alturas disponíveis e cálculo do máximo de nível com base no conjunto selecionado |
+| `client/src/domain/house/house.aggregate.ts`                                   | recálculo recomendado dos 12 pilotis usando as alturas selecionadas                                        |
+| `client/src/components/rac-editor/lib/house-manager.ts`                        | normalização das 6 alturas escolhidas e injeção delas no recálculo automático                              |
+| `client/src/components/rac-editor/hooks/usePilotiEditor.ts`                    | cálculo da altura recomendada e do limite máximo do slider no editor individual                            |
+| `client/src/components/rac-editor/ui/modals/editors/NivelDefinitionEditor.tsx` | cálculo do limite máximo e exibição correta da altura recomendada no fluxo inicial                         |
+| `client/src/components/rac-editor/lib/canvas/piloti.smoke.test.ts`             | cobertura para recomendação dinâmica, máximo de nível dinâmico e normalização das alturas                  |
 
 ## 7. Classe do Defeito ou Regressão
 

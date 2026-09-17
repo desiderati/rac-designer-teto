@@ -1,0 +1,17 @@
+Fullstack Manus implementation, 2026-09-17
+
+Implemented:
+- Converted the project to the Manus WebDev fullstack runtime with Express, Manus OAuth, tRPC, Drizzle, MySQL/TiDB, and the native Storage proxy.
+- Added `users` and `construction_site_documents` in `drizzle/schema.ts`; reviewed and applied `drizzle/0000_late_karnak.sql` through the WebDev database tool.
+- Created protected `constructionSites.list`, `load`, `save`, and `remove` procedures; `save` uses optimistic `documentVersion` and returns CONFLICT instead of overwriting concurrent work.
+- Created protected `storage.uploadImage`, constrained to PNG/JPEG/WEBP with content-signature verification and a strict 5 MiB ceiling. Storage bytes go through `storagePut`; remote documents retain `/manus-storage/{key}` only.
+- Added `RemoteConstructionSiteRepositoryAdapter` behind `ConstructionSiteRepositoryPort` and an in-memory reactive session storage composition for the Fabric canvas.
+- Added the Manus login gate and migrated canvas and form photo uploads to the native Storage upload context.
+- Updated ADR-003, PRD-004 and its technical specification to distinguish completed implementation from remaining operational work.
+
+Intentionally not delivered in this implementation:
+- Confirmation and deletion flow for legacy IndexedDB data.
+- Persistent offline queue and UI states (synchronizing, pending, error).
+- Dedicated user conflict-resolution UI, export administration, and orphan object cleanup.
+
+These gaps are documented as follow-up scope rather than represented as completed behavior.

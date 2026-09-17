@@ -21,17 +21,17 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 
 - Componentes de produto e feature devem usar PascalCase com extensão TSX.
 
-- Exemplos recomendados: `src/components/rac-editor/ui/RacEditor.tsx`,
-  `src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx`,
-  `src/components/rac-editor/@modals/ui/selectors/HouseTypeSelector.tsx`.
+- Exemplos recomendados: `client/src/components/rac-editor/ui/RacEditor.tsx`,
+  `client/src/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx`,
+  `client/src/components/rac-editor/@modals/ui/selectors/HouseTypeSelector.tsx`.
 
 - Exemplos a evitar: nomes como my-component.tsx ou user_profile_card.js.
 
-- Exceção vigente: primitives base de shadcn/ui em `src/components/ui` preservam o padrão gerado em
-  lowercase ou kebab-case, como `src/components/ui/button.tsx` e
-  `src/components/ui/alert-dialog.tsx`.
+- Exceção vigente: primitives base de shadcn/ui em `client/src/components/ui` preservam o padrão gerado em
+  lowercase ou kebab-case, como `client/src/components/ui/button.tsx` e
+  `client/src/components/ui/alert-dialog.tsx`.
 
-- Não renomeie arquivos de `src/components/ui` apenas para forçar PascalCase.
+- Não renomeie arquivos de `client/src/components/ui` apenas para forçar PascalCase.
 
 ## Arquivos de hooks React
 
@@ -40,9 +40,9 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 - Prefira extensão TS, mas use TSX quando o arquivo realmente precisar de TSX ou de APIs React
   acopladas a isso.
 
-- Exemplos recomendados: `src/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts`,
-  `src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts`,
-  `src/components/rac-editor/lib/use-mobile.tsx`.
+- Exemplos recomendados: `client/src/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts`,
+  `client/src/components/rac-editor/@canvas/ui/adapters/hooks/useCanvasHistory.ts`,
+  `client/src/components/rac-editor/lib/use-mobile.tsx`.
 
 - Exemplos a evitar: nomes como UserDataHook.ts ou use-form-validation.ts.
 
@@ -52,9 +52,9 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 
 - Admita sufixos semânticos com ponto quando o padrão do repositório pedir isso.
 
-- Exemplos recomendados: `src/shared/types/house-drawing-document.ts`,
-  `src/components/rac-editor/store/editor-settings-storage.ts`,
-  `src/domain/house/house.aggregate.ts`.
+- Exemplos recomendados: `client/src/shared/types/house-drawing-document.ts`,
+  `client/src/components/rac-editor/store/editor-settings-storage.ts`,
+  `client/src/domain/house/house.aggregate.ts`.
 
 - Exemplos a evitar: nomes como apiClient.ts ou StringUtils.ts.
 
@@ -103,7 +103,7 @@ variáveis, funções e componentes é crucial para legibilidade e manutenibilid
 
 - Adapter: `{location}-{model}-{concern}.adapter.ts`, como `in-memory-house-persistence.adapter.ts`.
 
-- Caso de uso: `{action}.use-case.ts`, como `src/domain/house/use-cases/house-state.use-case.ts`.
+- Caso de uso: `{action}.use-case.ts`, como `client/src/domain/house/use-cases/house-state.use-case.ts`.
 
 - Estratégia: `{element}.strategy.ts`, como
-  `src/components/rac-editor/@canvas/lib/factory/elements/door.strategy.ts`.
+  `client/src/components/rac-editor/@canvas/lib/factory/elements/door.strategy.ts`.

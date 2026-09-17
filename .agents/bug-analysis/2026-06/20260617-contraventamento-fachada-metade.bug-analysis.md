@@ -50,8 +50,8 @@ demais.
 
 ## 6. Validação Executada
 
-- `npm run test -- src/components/rac-editor/@canvas/lib/contraventamento.smoke.test.ts`
-- `npm run test -- src/components/rac-editor/@canvas/lib/contraventamento.smoke.test.ts src/components/rac-editor/@viewer-3d/lib/contraventamento-parser.smoke.test.ts src/components/rac-editor/@viewer-3d/ui/House3DScene.smoke.test.tsx`
+- `npm run test -- client/src/components/rac-editor/@canvas/lib/contraventamento.smoke.test.ts`
+- `npm run test -- client/src/components/rac-editor/@canvas/lib/contraventamento.smoke.test.ts client/src/components/rac-editor/@viewer-3d/lib/contraventamento-parser.smoke.test.ts client/src/components/rac-editor/@viewer-3d/ui/House3DScene.smoke.test.tsx`
 - `npm run lint`
 - `npm run build`
 

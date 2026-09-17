@@ -1,0 +1,2 @@
+Preview recovery, 2026-09-17:
+The managed WebDev server originally failed because pnpm blocked build scripts for @swc/core, esbuild, core-js, and optional canvas. The required scripts were approved and dependencies reinstalled. The managed Vite server now runs on port 8080 and the rendered UI is the current remote application, showing the Construções TETO screen rather than the old RAC Planta MVP.

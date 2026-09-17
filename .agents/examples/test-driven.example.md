@@ -38,11 +38,11 @@
 
         ## 3. Convenções do Repositório
 
-        - Framework: Jest (já utilizado em `src/__tests__/`)
+        - Framework: Jest (já utilizado em `client/src/__tests__/`)
         - Convenção de nomes: `describe('ComponentName')` → `it('should [behavior]')`
         - Mocks: `jest.mock()` para dependências externas
-        - Fixtures: `src/__tests__/fixtures/` para dados de teste
-        - Estrutura: testes espelham a estrutura de `src/` sob `src/__tests__/`
+        - Fixtures: `client/src/__tests__/fixtures/` para dados de teste
+        - Estrutura: testes espelham a estrutura de `client/src/` sob `client/src/__tests__/`
 
         ## 4. Especificações por Componente
 
@@ -232,9 +232,9 @@
 
         - Framework: Jest
         - Convenção: `describe('ComponentName')` → `it('should [behavior]')`
-        - Fixtures: `src/__tests__/fixtures/`
+        - Fixtures: `client/src/__tests__/fixtures/`
         - Nota: `ReportService` não tem arquivo de teste — será criado como
-          `src/__tests__/services/ReportService.test.ts`
+          `client/src/__tests__/services/ReportService.test.ts`
 
         ## 4. Especificações por Componente
 

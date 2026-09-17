@@ -66,7 +66,7 @@ na desestruturação.
 - Estados modais, flags visuais e fluxos temporários continuam distribuídos em hooks locais da
   feature.
 
-- O guided tour usa runtime próprio em `src/components/guided-tour` e progresso em storage local
+- O guided tour usa runtime próprio em `client/src/components/guided-tour` e progresso em storage local
   próprio; ele não faz parte da coordenação da casa.
 
 - Não abra automaticamente uma store genérica na raiz.
@@ -102,16 +102,16 @@ na desestruturação.
 ## Uso de Fabric em hooks
 
 - É aceitável importar Fabric em hooks de adapter dentro de
-  `src/components/rac-editor/@canvas/ui/adapters/hooks`.
+  `client/src/components/rac-editor/@canvas/ui/adapters/hooks`.
 
 - Hooks do slice `@canvas` podem conhecer `CanvasGroup`/`CanvasObject` quando estiverem coordenando
   runtime visual concreto.
 
-- Hooks gerais em `src/components/rac-editor/hooks` devem falar com ports, callbacks e tipos
+- Hooks gerais em `client/src/components/rac-editor/hooks` devem falar com ports, callbacks e tipos
   serializáveis, não com instâncias Fabric ou grupos concretos do canvas.
 
 - Quando um hook precisar acessar o canvas por ref, ele deve depender do menor handle necessário,
-  importado do arquivo de capacidade específico em `src/components/rac-editor/@canvas/ports`.
+  importado do arquivo de capacidade específico em `client/src/components/rac-editor/@canvas/ports`.
 
 - `CanvasInteractionPort`/`CanvasHandle` não deve ser reintroduzido como atalho em hooks de fluxo; a
   composição de tela atual usa `CanvasHandle` e os demais consumidores devem escolher handles
@@ -132,7 +132,7 @@ na desestruturação.
 
 ## O que hooks não podem fazer
 
-- Conter regra de domínio que deveria morar em `src/domain` ou em utilitário dedicado da feature.
+- Conter regra de domínio que deveria morar em `client/src/domain` ou em utilitário dedicado da feature.
 
 - Abrir uma segunda fonte compartilhada de estado paralela ao controller/ports da casa sem plano
   explícito.

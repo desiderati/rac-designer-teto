@@ -4,299 +4,187 @@ id: PRD-004
 doc_type: prd
 doc_role: product-requirements
 doc_set: product-requirements
-status: proposed
-version: "0.2.0"
+status: in_progress
+version: "0.4.0"
 owners: []
 lang: pt-BR
 created: 2026-06-22
-updated: 2026-06-22
+updated: 2026-09-17
 ---
 
 # Autenticação e Sincronização Remota Global
 
-## 1. Visão Geral
+## 1. Visão geral
 
-- problema: O RAC Designer TETO persiste Construções TETO localmente em IndexedDB. Isso atende ao
-  marco local, mas não oferece acesso autenticado compartilhado, backup remoto nem recuperação
-  simples quando o usuário troca de máquina.
+O RAC Designer TETO persiste Construções TETO localmente em IndexedDB. Esta fase adiciona autenticação Manus, persistência remota global, backup, recuperação entre dispositivos e armazenamento de imagens no Storage nativo do Manus.
 
-- objetivo da iniciativa: Adicionar autenticação e persistência remota global, preservando o
-  comportamento atual do editor e tratando o backend remoto como fonte de verdade para todos os
-  usuários autenticados.
+A aplicação usará o mesmo padrão nativo de autenticação e banco utilizado em Grocerytics: Manus OAuth, backend fullstack do Manus, tRPC, Drizzle e banco MySQL/TiDB nativo. O banco remoto será a fonte de verdade para todos os usuários autenticados.
 
-- perfil de uso considerado: A aplicação é destinada a poucas pessoas, estimadas entre 20 e 50
-  usuários no limite máximo, com picos concentrados em aproximadamente uma semana a cada dois meses.
+No MVP, qualquer conta Manus autenticada terá acesso à base global. O campo `role` será mantido para evolução futura, mas não haverá restrição adicional por papel, allowlist ou organização nesta fase.
 
-- decisão técnica associada:
-  A ADR-003 seleciona Convex + Clerk para o MVP remoto, dentro do plano gratuito enquanto o uso permitir, com Supabase
-    + Supabase Auth preservado como alternativa futura de migração.
+Dados locais legados não serão migrados nem enviados automaticamente. Ao entrar no modo remoto, a aplicação deverá descartar esses dados após aviso e confirmação explícitos, quando houver dados a limpar.
 
-- decisão sobre dados locais: Dados locais legados não serão migrados nem enviados ao remoto. No
-  rollout remoto, a aplicação deve descartar os dados locais anteriores e carregar o estado a partir
-  do backend global.
+### Estado atual da iniciativa
+
+A estrutura `client/src/` e o runtime fullstack Manus estão implementados. A aplicação já contém Manus OAuth, `auth.me`, procedures protegidos, tRPC, Drizzle, a migration inicial, banco remoto global, `RemoteConstructionSiteRepositoryAdapter`, Storage nativo e upload validado de imagens até 5 MiB. O documento de cada Construção TETO é salvo como JSON versionado e as imagens são referenciadas por URLs `/manus-storage/{key}`; payloads com base64 são recusados no servidor.
+
+O estado visual detalhado de sincronização, a confirmação de limpeza do IndexedDB legado, a fila offline persistente, a experiência específica de resolução de conflito, o backup administrativo e a limpeza de objetos órfãos ainda não foram entregues. Portanto, este PRD permanece **em progresso**: a fundação remota foi concluída, mas os requisitos de resiliência e operação de campo ainda exigem uma etapa própria.
 
 ## 2. Metas
 
-- Permitir que usuários autenticados acessem o mesmo conjunto global de Construções TETO.
+- Permitir que qualquer usuário autenticado pelo Manus acesse a base global.
+- Usar o banco nativo Manus como fonte de verdade compartilhada.
+- Usar Storage nativo para fotos e arquivos de até aproximadamente 5 MB, mantendo no banco apenas referências e metadados.
+- Preservar `ConstructionSiteState` e `HouseDrawingDocument` como contratos versionados.
+- Usar IndexedDB somente como cache técnico descartável e fila de escrita pendente.
+- Manter o editor independente da implementação de autenticação e persistência por meio de ports e adapters.
+- Permitir que uma futura implementação Supabase substitua apenas esses adapters e sua composição.
+- Expor os estados `local`, `sincronizando`, `sincronizado`, `pendente` e `erro`.
+- Preservar as regras existentes de casas, construções, famílias, monitores e desenhos.
 
-- Usar o backend remoto como fonte de verdade compartilhada.
+## 3. Histórias de usuário
 
-- Descartar dados locais legados no início do modo remoto, sem tentativa de merge ou upload
-  automático.
+### US-001: Entrar com Manus OAuth
 
-- Preservar `ConstructionSiteState` e `HouseDrawingDocument` como contratos versionados de
-  persistência.
+Como usuário do RAC Designer TETO, quero autenticar-me com minha conta Manus para acessar a base remota global.
 
-- Usar IndexedDB, se necessário, apenas como cache técnico descartável e fila local de escrita, não
-  como fonte de verdade.
+Critérios de aceitação:
 
-- Evitar que componentes do editor, canvas ou domínio dependam diretamente de Convex, Clerk ou
-  Supabase.
+- O usuário consegue iniciar o login pelo portal Manus.
+- O callback `/api/oauth/callback` cria a sessão nativa.
+- `auth.me` retorna o usuário atual quando a sessão é válida.
+- Qualquer usuário autenticado acessa o escopo global no MVP.
+- Usuários não autenticados não acessam procedimentos protegidos.
+- O editor não manipula cookies, tokens ou URLs de sessão diretamente.
+- O fluxo é verificado em navegador com uma sessão limpa.
 
-- Expor a UI mínima de sincronização com os estados `local`, `sincronizando`, `sincronizado`,
-  `pendente` e `erro`.
+### US-002: Carregar a base global
 
-- Garantir que a arquitetura permita migração futura para Supabase por meio de adapters, payloads
-  versionados e fronteiras explícitas.
+Como usuário autenticado, quero carregar as Construções TETO remotas para trabalhar sobre a mesma base em qualquer dispositivo.
 
-## 3. Histórias De Usuário
+Critérios de aceitação:
 
-### US-001: Entrar na aplicação com identidade remota
+- O aplicativo avisa antes de descartar dados locais legados.
+- Após a confirmação, os dados locais legados são removidos sem upload automático.
+- A aplicação carrega a base global pelo backend protegido.
+- O editor restaura a casa ativa segundo as regras existentes.
+- `HouseDrawingDocument` passa pela validação estrutural vigente.
+- O carregamento possui estados visuais de progresso e erro.
 
-**Description:** Como monitor ou líder autorizado, quero entrar na aplicação com uma identidade
-remota para acessar o ambiente compartilhado do RAC Designer TETO.
+### US-003: Salvar alterações
 
-**Acceptance Criteria:**
+Como usuário autenticado, quero salvar alterações no backend compartilhado para que elas estejam disponíveis em outros dispositivos.
 
-- [ ] O usuário consegue iniciar sessão com o provedor configurado.
+Critérios de aceitação:
 
-- [ ] Qualquer usuário autenticado autorizado acessa o mesmo escopo global de dados.
+- Alterações de construções, casas, famílias, monitores, avaliações e desenhos são persistidas.
+- Cada registro mantém `scopeId`, `constructionSiteId`, `schemaVersion`, `documentVersion`, `updatedAt` e payload versionado.
+- O payload não usa JSON Fabric bruto como contrato durável.
+- O backend verifica `expectedDocumentVersion` antes de aceitar uma escrita.
+- Conflito de versão não sobrescreve silenciosamente o remoto.
+- O usuário responsável pode ser registrado por `openId` para auditoria futura.
 
-- [ ] A identidade do provedor não aparece como tipo de domínio em `src/domain`, `src/shared/types`
-  ou nos contratos do editor.
+### US-004: Persistir e recuperar imagens
 
-- [ ] Usuários não autenticados não acessam a base remota global.
+Como usuário autenticado, quero anexar fotos sem inflar o documento JSON da construção.
 
-- [ ] O fluxo de autenticação é verificado em navegador com Codex Browser ou Playwright.
+Critérios de aceitação:
 
-### US-002: Carregar a base remota global
+- Fotos de até aproximadamente 5 MB são enviadas ao Storage nativo.
+- O banco armazena apenas a referência do objeto, tipo, tamanho, checksum opcional e metadados necessários.
+- A exclusão ou substituição de uma foto não remove o registro do banco antes de a nova referência estar confirmada.
+- Objetos órfãos podem ser identificados e limpos por procedimento administrativo.
+- O payload remoto não contém base64 de imagens como regra permanente.
 
-**Description:** Como usuário autenticado, quero carregar as Construções TETO do backend global para
-trabalhar sobre a mesma base compartilhada por todos.
+### US-005: Operar com cache descartável
 
-**Acceptance Criteria:**
+Como usuário em campo, quero tolerar instabilidade curta de rede sem transformar o cache local em fonte definitiva.
 
-- [ ] Ao iniciar sessão, a aplicação descarta dados locais legados antes de hidratar a base remota
-  global.
+Critérios de aceitação:
 
-- [ ] A aplicação carrega todas as Construções TETO do escopo global autorizado.
+- O cache pode ser limpo e reconstruído a partir do backend.
+- Falha de rede marca a escrita como `pendente` ou `erro`.
+- A aplicação tenta reenviar alterações pendentes quando a conectividade retorna.
+- Conflitos não são mesclados nem sobrescritos automaticamente.
+- O usuário pode recarregar o estado remoto ou exportar a intenção local para resolução explícita.
 
-- [ ] O RAC Editor restaura a casa ativa conforme a regra atual de `updatedAt` e status.
+### US-006: Exportar backup administrativo
 
-- [ ] O `HouseDrawingDocument` restaurado passa pela validação estrutural vigente.
+Como mantenedor, quero exportar documentos e referências de arquivos em formato versionado para suporte, auditoria e migração.
 
-- [ ] O carregamento remoto possui estado visual de carregamento e erro.
+Critérios de aceitação:
 
-### US-003: Salvar alterações no backend global
+- Existe um procedimento documentado para exportar o escopo global.
+- A exportação não depende de IDs internos do banco ou de tokens de sessão.
+- As referências do Storage são exportadas com metadados suficientes para reconstituição.
+- A exportação pode ser transformada para outro backend sem alterar o domínio.
 
-**Description:** Como monitor voluntário, quero salvar alterações no backend compartilhado para que
-outros usuários vejam o mesmo estado.
+## 4. Requisitos funcionais
 
-**Acceptance Criteria:**
+- `FR-1:` Manus OAuth é obrigatório para acessar o backend global.
+- `FR-2:` Qualquer conta Manus autenticada acessa o escopo global no MVP.
+- `FR-3:` O campo `role` não restringe acesso nesta fase, mas deve permanecer disponível para autorização futura.
+- `FR-4:` Dados locais legados são descartados no primeiro ingresso remoto após confirmação explícita.
+- `FR-5:` IndexedDB pode existir somente como cache descartável e fila de escrita.
+- `FR-6:` O adapter remoto preserva listagem, carga, salvamento, remoção lógica e versionamento.
+- `FR-7:` Cada documento remoto contém `scopeId`, `constructionSiteId`, `schemaVersion`, `documentVersion`, `updatedAt`, `deletedAt` opcional e `payload`.
+- `FR-8:` O payload remoto é compatível com `ConstructionSiteState`.
+- `FR-9:` Cada casa mantém seu `PersistedDrawingDocument` versionado.
+- `FR-10:` Escritas exigem `expectedDocumentVersion` e são rejeitadas quando a versão diverge.
+- `FR-11:` Imagens são armazenadas no Storage nativo; o banco guarda referências e metadados.
+- `FR-12:` O estado visual distingue `local`, `sincronizando`, `sincronizado`, `pendente` e `erro`.
+- `FR-13:` A implementação não altera regras existentes de status, restauração da casa ativa ou bloqueios do domínio.
+- `FR-14:` A arquitetura permite substituir autenticação ou persistência trocando a implementação dos ports e sua composição, sem alterar domínio, canvas, documentos canônicos ou componentes centrais.
+- `FR-15:` O frontend reside em `client/src/`; mudanças futuras de organização física não alteram os contratos arquiteturais.
 
-- [ ] Alterações em Construções TETO, casas, famílias, monitores, avaliações e documentos de desenho
-  são persistidas no remoto.
+## 5. Não objetivos
 
-- [ ] Cada documento remoto preserva `constructionSite.id`, `schemaVersion`, `documentVersion`,
-  `updatedAt` e payload versionado.
+- Restrição de acesso por papel no MVP.
+- Allowlist de usuários, memberships organizacionais, SSO ou MFA obrigatório.
+- Colaboração em tempo real no canvas.
+- Merge automático de desenhos divergentes.
+- Normalização completa de todas as entidades.
+- Migração automática do IndexedDB legado.
+- Persistência de imagens base64 no payload como solução durável.
+- Tratar IndexedDB como fonte de verdade.
 
-- [ ] O sync não persiste JSON Fabric bruto como contrato durável.
+## 6. Considerações de design
 
-- [ ] Falhas remotas não sobrescrevem silenciosamente a versão remota.
+A experiência deve ser simples: autenticar, carregar a base global, editar e acompanhar o estado de sincronização. O acesso aberto no MVP não deve impedir a introdução posterior de autorização server-side.
 
-- [ ] Testes automatizados cobrem sucesso, falha remota e conflito de versão.
+O aviso de descarte local deve ser explícito. A interface deve diferenciar cache local, escrita pendente e sincronização confirmada. Erros de autenticação e conflitos de versão devem orientar o usuário para uma ação concreta, sem esconder a perda ou substituição de estado.
 
-### US-004: Operar com cache local descartável
+## 7. Restrições técnicas
 
-**Description:** Como usuário em campo, quero que a aplicação tolere instabilidade curta de rede sem
-transformar dados locais em fonte definitiva.
+O domínio e o canvas não importam SDKs de backend. A autenticação fica na borda da aplicação, e as regras de acesso ficam em procedures server-side.
 
-**Acceptance Criteria:**
+O frontend seguirá a estrutura `client/` do template fullstack do Manus. A separação entre `client/src/domain`, `client/src/shared`, `client/src/infra` e `client/src/bootstrap` preserva a arquitetura atual, mesmo que os caminhos físicos mudem.
 
-- [ ] O cache local pode ser limpo e reconstruído a partir do remoto.
+O backend usará tRPC, Drizzle e o banco MySQL/TiDB nativo. O Storage nativo será usado para fotos e arquivos. Segredos e tokens não entram no bundle nem nos documentos de domínio.
 
-- [ ] Quando o remoto está indisponível após uma edição, a aplicação marca a sincronização como
-  `pendente` ou `erro`.
+## 8. Métricas de sucesso
 
-- [ ] Ao recuperar conectividade, a aplicação tenta reenviar alterações pendentes.
+- Qualquer usuário Manus autenticado consegue abrir a base global em outro dispositivo.
+- Dados locais legados são descartados sem upload acidental.
+- Uma foto de até aproximadamente 5 MB é armazenada fora do payload JSON e recuperada por referência.
+- O app exibe corretamente os estados de sincronização.
+- Falhas remotas não causam sobrescrita silenciosa.
+- Conflitos de versão são detectados e apresentados de forma explícita.
+- Os testes atuais de persistência e editor continuam passando.
+- Uma futura troca de backend pode substituir adapters sem alterar domínio, canvas ou documentos canônicos.
 
-- [ ] Se houver conflito de versão, a aplicação não faz merge automático nem sobrescreve a base
-  remota silenciosamente.
+## 9. Evolução planejada
 
-- [ ] Testes cobrem cache descartável, fila pendente e reprocessamento.
+A primeira evolução de autorização poderá restringir o acesso por `users.role`, allowlist de `openId` ou memberships. A regra deverá ser implementada no backend e testada independentemente da UI.
 
-### US-005: Exportar backup administrativo
+A concorrência evoluirá de versão por documento para avisos de presença, locks leves, versões por seção e merge semântico limitado. Colaboração em tempo real só será considerada se o uso real justificar.
 
-**Description:** Como mantenedor da aplicação, quero exportar os documentos remotos em formato
-versionado para ter um caminho de auditoria, suporte e eventual migração.
+A persistência poderá normalizar entidades administrativas quando relatórios, auditoria ou consultas relacionais se tornarem requisitos. O envelope versionado e os ports devem permanecer estáveis.
 
-**Acceptance Criteria:**
+## 10. Questões em aberto
 
-- [ ] Existe um fluxo administrativo ou script documentado para exportar todos os documentos do
-  escopo global.
-
-- [ ] A exportação usa payloads versionados e não depende de IDs internos do provedor remoto.
-
-- [ ] A exportação pode alimentar uma migração futura para Supabase usando `jsonb` inicial.
-
-- [ ] O procedimento não inclui segredos, tokens ou dados de sessão.
-
-## 4. Requisitos Funcionais
-
-- `FR-1:` A autenticação remota deve ser obrigatória para acessar o backend global.
-
-- `FR-2:` O escopo remoto inicial deve ser global: todos os usuários autenticados autorizados veem e
-  editam os mesmos dados.
-
-- `FR-3:` Dados locais legados devem ser descartados por completo no início do modo remoto; não
-  haverá migração nem upload automático do IndexedDB antigo.
-
-- `FR-4:` IndexedDB pode existir no modo remoto apenas como cache descartável e fila de escrita
-  pendente.
-
-- `FR-5:` O adapter remoto deve preservar a semântica de listagem, carga, salvamento e remoção
-  lógica de Construções TETO.
-
-- `FR-6:` Cada documento remoto deve conter `scopeId`, `constructionSiteId`, `schemaVersion`,
-  `documentVersion`, `updatedAt`, `deletedAt` opcional e `payload`.
-
-- `FR-7:` O payload remoto deve ser compatível com `ConstructionSiteState`.
-
-- `FR-8:` Cada casa persistida deve manter `PersistedHouseRecord.drawingDocument` com
-  `HouseDrawingDocument` ou subdocumentos equivalentes versionados.
-
-- `FR-9:` O sync deve tratar conflito de versão sem sobrescrever silenciosamente alterações remotas
-  ou locais divergentes.
-
-- `FR-10:` O estado visual de sincronização deve distinguir `local`, `sincronizando`,
-  `sincronizado`, `pendente` e `erro`.
-
-- `FR-11:` A implementação não deve alterar regras de status de casa, status de construção,
-  restauração da casa ativa nem bloqueios já definidos nos documentos de regras de negócio.
-
-- `FR-12:` A arquitetura deve permitir trocar Convex por Supabase sem alterar domínio, canvas ou
-  componentes centrais do editor.
-
-## 5. Não Objetivos
-
-- Entregar colaboração em tempo real no editor.
-- Permitir edição simultânea segura da mesma casa por vários usuários.
-- Migrar para Supabase nesta fase.
-- Normalizar todo o modelo em tabelas relacionais nesta fase.
-- Criar relatórios SQL, BI ou camada administrativa relacional nesta fase.
-- Manter dados locais legados após ativar o modo remoto.
-- Tratar IndexedDB como fonte de verdade no modo remoto.
-- Tratar JSON Fabric bruto como formato durável de persistência.
-- Criar uma matriz completa de permissões, cargos e auditoria organizacional.
-
-## 6. Considerações De Design
-
-- A experiência remota deve ser simples: autenticar, carregar a base global e editar.
-
-- O descarte de dados locais legados deve ser explícito e seguro, evitando surpresa operacional.
-
-- Estados de carregamento e erro remoto devem ser discretos e operacionais, sem transformar a tela
-  em onboarding.
-
-- O indicador de salvamento deve distinguir cache local, escrita pendente e sincronização
-  confirmada.
-
-- Qualquer interface nova deve respeitar o padrão visual utilitário do editor.
-
-## 7. Restrições e Considerações Relevantes
-
-- `ADR-001` mantém Fabric e objetos concretos do canvas confinados ao slice `@canvas`.
-
-- `ADR-002` define `HouseDrawingDocument` como contrato canônico da casa ativa.
-
-- `PRD-001` consolidou a fase local com Construções TETO persistidas em IndexedDB.
-
-- `ConstructionSiteRepositoryPort` já existe como contrato assíncrono de persistência.
-
-- `ConstructionSiteSessionStoragePort` ainda é síncrono na borda da sessão atual; a integração
-  remota deve respeitar esse fato ou propor uma transição explícita.
-
-- `PLAY-103` orienta usar TanStack Query somente quando houver comunicação remota real, sem
-  transformar estado local do editor em fetch por reflexo.
-
-- O volume esperado de usuários é baixo; custo, simplicidade operacional e reversibilidade pesam
-  mais que otimização prematura para escala.
-
-## 8. Métricas De Sucesso
-
-- Um usuário autenticado consegue abrir a base global em outro dispositivo.
-- Dados locais legados são descartados no modo remoto sem upload acidental.
-- O app exibe corretamente os estados `local`, `sincronizando`, `sincronizado`, `pendente` e `erro`.
-- Falhas remotas não causam sobrescrita silenciosa de dados.
-- Os testes existentes de persistência multicasa continuam passando.
-- O MVP permanece dentro de planos gratuitos para o perfil de 20 a 50 usuários.
-- A decisão continua reversível para Supabase por meio de payloads versionados e adapters isolados.
-
-## 9. Evolução Planejada Pós-MVP
-
-A primeira versão remota não deve tentar resolver colaboração simultânea complexa. A trilha de
-evolução planejada é incremental:
-
-1. `documentVersion` obrigatório no MVP.
-
-    - Rejeitar conflito de versão.
-    - Não fazer merge automático.
-    - Não sobrescrever alteração remota silenciosamente.
-
-2. Lock leve por Construção TETO.
-
-    - Exibir presença operacional como "Felipe está editando esta construção".
-    - Usar `TTL` e heartbeat para evitar lock preso.
-    - Começar como aviso forte, não como bloqueio absoluto.
-
-3. Versionamento por seção.
-
-    - Separar versões de metadados, famílias, monitores e desenho.
-    - Permitir aceitar alterações independentes quando seções diferentes forem modificadas.
-    - Manter conflito quando duas sessões alterarem a mesma seção incompatível.
-
-4. Merge por seção.
-
-    - Aceitar alterações paralelas em seções distintas.
-    - Exigir resolução explícita quando a mesma entidade ou o mesmo desenho tiver alterações
-      incompatíveis.
-
-5. Patch ou event log.
-
-    - Persistir intenções como adicionar família, atualizar monitor ou mover casa, em vez de sempre
-      salvar o payload inteiro.
-    - Abrir caminho para histórico, auditoria, undo remoto e migração mais controlada.
-
-6. Colaboração em tempo real somente se o uso real justificar.
-
-    - Considerar presença, cursores, atualização ao vivo e eventualmente CRDT apenas se a edição
-      simultânea da mesma Construção TETO virar requisito frequente.
-
-Essa evolução é compatível com Convex no início e com Supabase depois, desde que o editor continue
-dependendo de ports, IDs de domínio e payloads versionados.
-
-## 10. Questões Em Aberto
-
-- Qual texto exato deve avisar o usuário de que os dados locais legados serão descartados?
-
-- O modo remoto deve bloquear completamente edição offline ou permitir fila pendente com cache local
-  descartável?
-
-- Qual mensagem e ação de UI devem ser exibidas quando o MVP rejeitar conflito de versão?
-
-- Haverá necessidade de remover branding do provedor de autenticação?
-
-- Haverá requisito de MFA no futuro?
-
-- Qual será o procedimento oficial de suporte para restaurar backup remoto em caso de erro
-  operacional?
+- Texto final do aviso de descarte do IndexedDB legado.
+- Política para escrita quando a rede estiver indisponível.
+- Mensagem e ação para conflito de versão.
+- Política futura para limpeza de objetos órfãos no Storage.
+- Momento de ativar restrições por papel ou allowlist.

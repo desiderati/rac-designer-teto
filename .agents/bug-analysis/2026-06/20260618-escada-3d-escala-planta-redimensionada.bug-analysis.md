@@ -50,9 +50,9 @@ aliases: [ escada 3d redimensionada ]
 - regras de negócio afetadas: `BUS-007` exige que escadas acompanhem dados reais do projeto sem
   virar uma versão alternativa das regras.
 - módulos, componentes ou serviços envolvidos:
-  - `src/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts`
-  - `src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts`
-  - `src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
+  - `client/src/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts`
+  - `client/src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts`
+  - `client/src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
 - contratos, schemas ou interfaces envolvidos: `House3DElevationViewProjection` e `Stairs3DData`.
 
 ## 5. Mapa de Camadas e Fronteiras
@@ -126,14 +126,14 @@ aliases: [ escada 3d redimensionada ]
 - validação de integração: projeção com factory real de planta/fachada em escala 2x.
 - validação na fronteira original: parcial; cena 3D testada por smoke, sem browser manual.
 - testes executados:
-  - `npm run test -- src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts`
-  - `npm run test -- src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
-  - `npm run test -- src/components/rac-editor/@viewer-3d/ui/House3DScene.smoke.test.tsx`
-  - `npm run test -- src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts`
-  - `npm run test -- src/components/rac-editor/@viewer-3d/lib/constants.smoke.test.ts`
+  - `npm run test -- client/src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts`
+  - `npm run test -- client/src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
+  - `npm run test -- client/src/components/rac-editor/@viewer-3d/ui/House3DScene.smoke.test.tsx`
+  - `npm run test -- client/src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts`
+  - `npm run test -- client/src/components/rac-editor/@viewer-3d/lib/constants.smoke.test.ts`
   - `npx tsc --noEmit`
   - `npm run lint`
-  - `git diff --check -- src/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
+  - `git diff --check -- client/src/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts client/src/components/rac-editor/@viewer-3d/lib/stairs-parser.smoke.test.ts client/src/components/rac-editor/@canvas/lib/house-3d-projection.smoke.test.ts`
 - validação manual ou operacional: não executada.
 - build, lint ou smoke relevante: typecheck e lint passaram.
 - critério de sucesso observado: o parser passa a devolver largura e centro normalizados quando a

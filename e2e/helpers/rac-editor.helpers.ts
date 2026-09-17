@@ -1,8 +1,8 @@
 import {expect, Page} from '@playwright/test';
-import {HousePiloti, HouseSide, HouseType, HouseViewType} from '../../src/shared/types/house';
-import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../src/components/rac-editor/@canvas/lib';
-import type {HouseRuntimeSnapshot} from '../../src/components/rac-editor/lib/house-runtime-snapshot';
-import {RacEditorUiState} from '../../src/components/rac-editor/lib/rac-editor';
+import {HousePiloti, HouseSide, HouseType, HouseViewType} from '../../client/src/shared/types/house';
+import {CanvasGroup, CanvasObjectSummary, CanvasPosition} from '../../client/src/components/rac-editor/@canvas/lib';
+import type {HouseRuntimeSnapshot} from '../../client/src/components/rac-editor/lib/house-runtime-snapshot';
+import {RacEditorUiState} from '../../client/src/components/rac-editor/lib/rac-editor';
 import {seedConstructionSiteDocument} from './construction-site-storage.helpers';
 
 interface ActiveCanvasObjectSummary {

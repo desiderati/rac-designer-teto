@@ -45,8 +45,8 @@ claramente estabelecida.
 - [docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md](docs/architecture-decisions/ADR-002-formato-canonico-projeto-rac.md),
   para a decisão vigente sobre o formato canônico inicial de importação/exportação do projeto RAC
 
-- [docs/architecture-decisions/ADR-003-backend-remoto-local-first-convex-clerk.md](docs/architecture-decisions/ADR-003-backend-remoto-local-first-convex-clerk.md),
-  para a decisão proposta de backend remoto global com Convex e Clerk
+- [docs/architecture-decisions/ADR-003-backend-remoto-local-first-manus.md](docs/architecture-decisions/ADR-003-backend-remoto-local-first-manus.md),
+  para a decisão proposta de backend remoto global com Manus Auth e banco nativo Manus
 
 - [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.md),
   para o escopo proposto de autenticação e sincronização remota global
@@ -55,7 +55,7 @@ claramente estabelecida.
   para o contrato técnico inicial associado ao PRD-004
 
 - [docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md](docs/product-requirements/PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md),
-  para a comparação de alternativas ao Convex na iniciativa remota
+  para a comparação de alternativas de backend na iniciativa remota
 
 - [docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md](docs/product-requirements/PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md),
   para o plano executado de exclusão física local em Construções TETO, casas e monitores

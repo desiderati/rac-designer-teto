@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test';
-import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../src/shared/types/construction-site';
-import type {HousePiloti, HouseSideMapping, HouseType, HouseViews} from '../../src/shared/types/house';
-import {getAllPilotiIds} from '../../src/shared/types/piloti';
+import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../client/src/shared/types/construction-site';
+import type {HousePiloti, HouseSideMapping, HouseType, HouseViews} from '../../client/src/shared/types/house';
+import {getAllPilotiIds} from '../../client/src/shared/types/piloti';
 
 type SeedHouseType = HouseType;
 type SeedHouseSize = 'large' | 'small';

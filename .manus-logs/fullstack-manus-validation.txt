@@ -1,0 +1,7 @@
+# Fullstack Manus — validação de 2026-09-17
+
+A conversão para o runtime fullstack foi validada com `pnpm check`, `pnpm build` e `git diff --check`, todos aprovados. A suíte de servidor (`pnpm test:server`) aprovou quatro testes, cobrindo logout, persistência protegida do documento canônico, bloqueio de imagens base64 no documento remoto e validação/encaminhamento de bytes PNG para o Storage nativo. Os testes focados de cliente também aprovaram o modal de imagem e a estratégia de planta Fabric, oito testes ao todo.
+
+O preview gerenciado foi reiniciado com `NODE_ENV=development tsx watch server/_core/index.ts`, iniciou OAuth e serviu a aplicação pela porta 3000. O preview autenticado exibiu a base global vazia, confirmando a execução real do caminho de carregamento remoto.
+
+A execução ampla de 635 testes do cliente aprovou 607 após a inclusão explícita de `canvas@3`, peer exigido por `jsdom@26`; isto elimina as falhas de contexto 2D que afetavam Fabric. Permanecem 28 timeouts em sete suítes de menus/guia que exercitam componentes Radix via `userEvent` em jsdom. O problema persiste em execução isolada mesmo com versões Radix alinhadas ao `package-lock.json` e mocks de DOM completos. Ele não é causado pelos procedures, pelo adapter remoto ou pelo Storage introduzidos nesta entrega. A dívida deve ser tratada separadamente, preferencialmente migrando esses testes para Playwright ou controlando os popovers Radix nos testes de componente.

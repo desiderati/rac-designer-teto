@@ -37,9 +37,9 @@ aliases: [ tips do guided-tour não reaparecem ]
 - regras de negócio afetadas: persistência de tips deve existir, mas não deve impedir uma nova rodada manual do
   tutorial.
 - módulos envolvidos:
-    - `src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
-    - `src/components/guided-tour/store/guided-tour-storage.ts`
-    - `src/components/rac-editor/@canvas/hooks/useCanvasTools.ts`
+    - `client/src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
+    - `client/src/components/guided-tour/store/guided-tour-storage.ts`
+    - `client/src/components/rac-editor/@canvas/hooks/useCanvasTools.ts`
 - contratos envolvidos: eventos DOM `rac:canvas-object-inserted` e flags `guided-tour:rac-tip:*`.
 
 ## 4. Fluxo Esperado vs. Fluxo Real
@@ -91,7 +91,7 @@ aliases: [ tips do guided-tour não reaparecem ]
 
 - testes executados:
   -
-  `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts`
+  `npm run test -- client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx client/src/components/rac-editor/@canvas/hooks/useCanvasTools.smoke.test.ts`
     - `npm run test`
 - build, lint ou smoke relevante:
     - `npm run lint`

@@ -36,10 +36,10 @@ aliases: [ auto-contraventamento por altura do piloti ]
 - fluxos afetados: inserção inicial da casa, edição de piloti, auto-contraventamento.
 - regras de negócio afetadas: elegibilidade estrutural por proporção `height < nivel * 3`.
 - módulos, componentes ou serviços envolvidos:
-    - `src/domain/house/use-cases/house-piloti.use-case.ts`
-    - `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
-    - `src/components/rac-editor/lib/editor-house-controller.ts`
-    - `src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
+    - `client/src/domain/house/use-cases/house-piloti.use-case.ts`
+    - `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
+    - `client/src/components/rac-editor/lib/editor-house-controller.ts`
+    - `client/src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
 - contratos, schemas ou interfaces envolvidos:
     - `HouseWritePort`
     - `EditorHouseWriteSource`
@@ -68,8 +68,8 @@ aliases: [ auto-contraventamento por altura do piloti ]
 ### Evidências observadas
 
 - teste vermelho inicial:
-    - `rtk npm run test -- src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts`
-    - `rtk npm run test -- src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    - `rtk npm run test -- client/src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts`
+    - `rtk npm run test -- client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
 - validação em navegador: após inserir uma casa e reduzir apenas `piloti_1_1.height` para `1.0`, a planta passou a
   conter `1` objeto `isAutoContraventamento`.
 
@@ -99,7 +99,7 @@ aliases: [ auto-contraventamento por altura do piloti ]
 ## 9. Validação Executada
 
 - testes executados:
-  - `rtk npm run test -- src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-contraventamento.smoke.test.ts`
+  - `rtk npm run test -- client/src/domain/house/use-cases/house-piloti.use-case.smoke.test.ts client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts client/src/components/rac-editor/@canvas/lib/house-auto-contraventamento.smoke.test.ts`
     - `rtk npm run test -- --testTimeout 20000`
 - validação manual:
     - navegador local em `http://127.0.0.1:5200/`; `debug.updatePiloti('piloti_1_1', {height: 1.0})` produziu

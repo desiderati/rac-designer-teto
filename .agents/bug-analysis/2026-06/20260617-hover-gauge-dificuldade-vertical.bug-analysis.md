@@ -44,9 +44,9 @@ aliases: [ hover-gauge-dificuldade-vertical ]
 - fluxos afetados: leitura do indicador de dificuldade no canvas
 - regras de negócio afetadas: `BUS-008`, que define hover/foco do gauge com faixa atual e legenda das faixas
 - módulos, componentes ou serviços envolvidos:
-    - `src/components/rac-editor/ui/HouseDifficultyControls.tsx`
-    - `src/components/rac-editor/ui/HouseDifficultyGauge.tsx`
-    - `src/components/rac-editor/@canvas/ui/CanvasOverlays.tsx`
+    - `client/src/components/rac-editor/ui/HouseDifficultyControls.tsx`
+    - `client/src/components/rac-editor/ui/HouseDifficultyGauge.tsx`
+    - `client/src/components/rac-editor/@canvas/ui/CanvasOverlays.tsx`
 - contratos, schemas ou interfaces envolvidos: nenhum schema ou persistência
 
 ## 5. Mapa de Camadas e Fronteiras
@@ -110,9 +110,9 @@ aliases: [ hover-gauge-dificuldade-vertical ]
 - validação de integração: `HouseDifficultyGauge.smoke.test.tsx` continua cobrindo tooltip de gauge horizontal/vertical
 - validação na fronteira original: parcial, por inferência direta do overlay; sem navegador real nesta rodada
 - testes executados:
-    - `npm run test -- src/components/rac-editor/ui/HouseDifficultyControls.smoke.test.tsx`
+    - `npm run test -- client/src/components/rac-editor/ui/HouseDifficultyControls.smoke.test.tsx`
     -
-    `npm run test -- src/components/rac-editor/ui/HouseDifficultyControls.smoke.test.tsx src/components/rac-editor/ui/HouseDifficultyGauge.smoke.test.tsx`
+    `npm run test -- client/src/components/rac-editor/ui/HouseDifficultyControls.smoke.test.tsx client/src/components/rac-editor/ui/HouseDifficultyGauge.smoke.test.tsx`
 - validação manual ou operacional: não executada
 - build, lint ou smoke relevante: smoke tests focados
 - critério de sucesso observado: 8 testes focados passaram após a correção

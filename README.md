@@ -81,26 +81,26 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 
 ## 🏗️ Arquitetura Atual
 
-- `src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
-- `src/domain/construction-site/` concentra o contrato de repositório de Construções TETO
-- `src/infra/` implementa persistência em memória, repositório local de Construções TETO, storage local e integrações técnicas
-- `src/components/guided-tour/` concentra o runtime reutilizável do tour guiado
-- `src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
+- `client/src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
+- `client/src/domain/construction-site/` concentra o contrato de repositório de Construções TETO
+- `client/src/infra/` implementa persistência em memória, repositório local de Construções TETO, storage local e integrações técnicas
+- `client/src/components/guided-tour/` concentra o runtime reutilizável do tour guiado
+- `client/src/components/rac-editor/` é a feature principal e organiza o editor em slices internos como `@canvas/`,
   `@menus/`, `@modals/`, `@viewer-3d/`, `ui/`, `hooks/`, `lib/`, `ports/` e `store/`
-- `src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
+- `client/src/components/rac-editor/@canvas/` concentra a borda visual 2D, incluindo hooks, `ports/`, adapters Fabric,
   factories e helpers de projeção/renderização do canvas
-- `src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
+- `client/src/components/rac-editor/@menus/` concentra a superfície de menus do editor, incluindo `RacEditorMenus`,
   `CanvasToolsMenu`, menus superiores, tipos e configs locais
-- `src/components/rac-editor/@modals/` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais
-- `src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
-- `src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
+- `client/src/components/rac-editor/@modals/` concentra dialogs, selectors, editors flutuantes e hooks específicos de modais
+- `client/src/components/rac-editor/@viewer-3d/` concentra a visualização 3D, parsers, geometria, meshes e hooks do viewer
+- `client/src/components/rac-editor/ports/` concentra contratos internos do editor ligados à casa, vistas, pilotis, runtime e
   leitura/escrita lógica
-- `src/components/rac-editor/store/` concentra stores reais e modelos serializáveis de interação da feature, hoje com
+- `client/src/components/rac-editor/store/` concentra stores reais e modelos serializáveis de interação da feature, hoje com
   `EditorStateStore` e `EditorSelection`
-- `src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
-  `src/components/rac-editor/lib/house-store.ts`
-- `src/shared/config.ts` concentra constantes operacionais compartilhadas
-- `src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, Construção TETO e documento RAC
+- `client/src/components/rac-editor/lib/editor-house-controller.ts` coordena hoje o estado compartilhado da casa, com bridge reativa em
+  `client/src/components/rac-editor/lib/house-store.ts`
+- `client/src/shared/config.ts` concentra constantes operacionais compartilhadas
+- `client/src/shared/types/` concentra contratos serializáveis compartilhados, incluindo casa, Construção TETO e documento RAC
 - O projeto usa alias `@/` para imports absolutos
 - O projeto não adota uma camada de store genérica na raiz; o estado compartilhado do editor permanece concentrado na
   própria feature
@@ -132,7 +132,7 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 │   └── product-requirements/ # PRDs canônicos e sidecars associados
 ├── e2e/                      # Testes E2E (Playwright)
 ├── public/                   # Assets estáticos
-├── src/
+├── client/src/
 │   ├── components/
 │   │   ├── rac-editor/       # Núcleo do editor (canvas, menus, modals, viewer3d, house, piloti)
 │   │   └── ui/               # Componentes base (shadcn/ui)
@@ -243,7 +243,7 @@ trabalho.
 
 | Arquivo                | Propósito                                            |
 |------------------------|------------------------------------------------------|
-| `src/shared/config.ts` | Constantes operacionais compartilhadas do editor     |
+| `client/src/shared/config.ts` | Constantes operacionais compartilhadas do editor     |
 | `vite.config.ts`       | Build, dev server e otimizações do Vite              |
 | `tailwind.config.ts`   | Tema e configuração do Tailwind                      |
 | `components.json`      | Configuração e aliases do shadcn/ui                  |

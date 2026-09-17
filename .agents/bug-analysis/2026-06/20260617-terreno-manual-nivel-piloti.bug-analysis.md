@@ -48,9 +48,9 @@ aliases: [ terreno manual de nível do piloti ]
 - fluxos afetados: edição de nível de piloti e redesenho de terreno em elevações.
 - regras de negócio afetadas: `BUS-004` modo manual de nível do piloti.
 - módulos, componentes ou serviços envolvidos:
-    - `src/components/rac-editor/@canvas/lib/terrain.ts`
-    - `src/components/rac-editor/@canvas/lib/piloti-visual.ts`
-    - `src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    - `client/src/components/rac-editor/@canvas/lib/terrain.ts`
+    - `client/src/components/rac-editor/@canvas/lib/piloti-visual.ts`
+    - `client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
 - contratos, schemas ou interfaces envolvidos: nenhum contrato externo.
 
 ## 5. Mapa de Camadas e Fronteiras
@@ -123,11 +123,11 @@ aliases: [ terreno manual de nível do piloti ]
 - validação na fronteira original: parcial; não houve teste visual no navegador.
 - testes executados:
     -
-    `npx vitest run src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti.smoke.test.ts src/components/rac-editor/@canvas/lib/piloti-visual.smoke.test.ts src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    `npx vitest run client/src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts client/src/components/rac-editor/@canvas/lib/piloti.smoke.test.ts client/src/components/rac-editor/@canvas/lib/piloti-visual.smoke.test.ts client/src/components/rac-editor/@canvas/lib/house-auto-stairs.smoke.test.ts client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
     - `npx tsc --noEmit --pretty false`
     - `npm run lint`
     -
-    `git diff --check -- src/components/rac-editor/@canvas/lib/terrain.ts src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts docs/business-rules/BUS-004-piloti-nivel.md`
+    `git diff --check -- client/src/components/rac-editor/@canvas/lib/terrain.ts client/src/components/rac-editor/@canvas/lib/terrain.smoke.test.ts docs/business-rules/BUS-004-piloti-nivel.md`
 - validação manual ou operacional: não executada.
 - build, lint ou smoke relevante: lint, typecheck e 36 testes focados passaram.
 - critério de sucesso observado: ponto do piloti intermediário manteve o mesmo Y após alterar o nível do extremo.

@@ -1,87 +1,116 @@
 ---
-title: Especificação Técnica - Autenticação e Sync Remoto Global
+title: Especificação Técnica — Autenticação Manus e Sync Remoto Global
 doc_type: technical-spec
 doc_role: technical-spec
 doc_set: product-requirements
-status: proposed
+status: in_progress
 parent_id: PRD-004
 lang: pt-BR
 created: 2026-06-22
-updated: 2026-06-22
+updated: 2026-09-17
 ---
 
-# Especificação Técnica - Autenticação e Sync Remoto Global
+# Especificação Técnica — Autenticação Manus e Sync Remoto Global
 
 ## 1. Objetivo
 
-Definir o contrato técnico inicial para implementar autenticação e sincronização remota global sem
-alterar o comportamento funcional atual do RAC Designer TETO. Este documento complementa `PRD-004` e
-deve ser lido junto com `ADR-003`.
+Definir o contrato técnico para implementar autenticação Manus, persistência remota global, Storage de imagens e sincronização sem alterar o comportamento funcional do RAC Designer TETO.
 
-## 2. Decisões Consolidadas
+A implementação seguirá o padrão fullstack nativo do Manus utilizado em Grocerytics: Manus OAuth, tRPC, Drizzle, banco MySQL/TiDB e Storage nativo.
 
-- O escopo remoto inicial é global: todos os usuários autenticados autorizados acessam os mesmos
-  dados.
+## 2. Decisões consolidadas
 
-- Dados locais legados devem ser descartados por completo no início do modo remoto.
+- Manus OAuth é o provedor de identidade do MVP.
+- Qualquer conta Manus autenticada acessa o escopo global no MVP.
+- `users.role` será preservado para autorização futura, mas não restringirá acesso agora.
+- O banco nativo Manus é a fonte de verdade remota.
+- Drizzle é a camada de schema e queries.
+- tRPC é a camada de procedures protegidos.
+- Fotos de até aproximadamente 5 MB são armazenadas no Storage nativo; o banco guarda referências.
+- Dados locais legados são descartados após confirmação na entrada remota.
+- IndexedDB é apenas cache descartável e fila curta de escrita.
+- A arquitetura usa ports e adapters para permitir trocar a implementação por Supabase no futuro.
+- A troca futura de backend não altera domínio, canvas, documentos canônicos ou componentes centrais.
+- O frontend está organizado em `client/src/`.
 
-- O projeto deve permanecer nos planos gratuitos de Convex e Clerk enquanto o perfil de uso
-  permitir.
-
-- A UI mínima de sync deve expor `local`, `sincronizando`, `sincronizado`, `pendente` e `erro`.
-
-- A arquitetura deve permitir migração futura para Supabase sem reescrever domínio, canvas ou
-  editor.
-
-- IndexedDB, se mantido, deve ser cache técnico descartável e fila de escrita, não fonte de verdade.
-
-## 3. Resumo Da Arquitetura
-
-A implementação deve adicionar uma camada remota global em volta da persistência atual:
+## 3. Resumo da arquitetura
 
 ```text
-UI / RAC Editor
-  -> EditorPorts
-    -> ConstructionSiteSession
-      -> ConstructionSiteSessionStoragePort
-        -> RemoteGlobalConstructionSiteSessionStorage
-          -> DisposableIndexedDbCache
-          -> ConvexConstructionSiteRepositoryAdapter
+Manus OAuth
+  -> /api/oauth/callback
+    -> cookie de sessão
+      -> ctx.user
+        -> protectedProcedure
+          -> tRPC
+            -> adapter remoto
+              -> Drizzle
+                -> MySQL/TiDB nativo Manus
+
+RAC Editor
+  -> ConstructionSiteSession
+    -> ConstructionSiteRepositoryPort
+      -> ManusConstructionSiteRepositoryAdapter
+        -> tRPC
+
+Upload de imagem
+  -> Storage nativo Manus
+    -> referência no ConstructionSiteState
 ```
 
-O editor continua operando sobre a sessão já carregada. O backend remoto é a fonte de verdade. O
-cache local participa apenas como otimização técnica, suporte a escrita pendente e recuperação curta
-de estado de UI.
+A aplicação deve separar o runtime do editor da infraestrutura:
+
+```text
+client/src/domain/
+client/src/shared/
+client/src/infra/
+client/src/bootstrap/
+client/src/components/
+
+drizzle/
+server/
+storage/
+shared/
+```
+
+A migração de `src/` para `client/src/` é uma mudança de organização, não de contrato.
+
+O caminho `client/src/` já está aplicado e o backend Manus foi incorporado. O cliente consome tRPC somente por `client/src/lib/trpc-client.ts`; o adapter remoto fica em `client/src/infra/persistence/remote-construction-site-repository.adapter.ts`; e a composição da sessão remota fica em `client/src/bootstrap/useRemoteConstructionSiteSessionStorage.ts`. O domínio e o canvas continuam sem importações de infraestrutura.
 
 ## 4. Fronteiras
 
-- `src/domain` não deve importar Convex, Clerk, Supabase, React Query ou detalhes de autenticação.
+- `client/src/domain` não importa Manus OAuth, tRPC, Drizzle, MySQL, Storage ou React Query.
+- `client/src/shared` contém tipos de domínio e contratos serializáveis, não tipos do provedor.
+- `client/src/components/rac-editor/@canvas` não conhece autenticação ou backend.
+- `client/src/components/rac-editor/lib` recebe storage por port.
+- `client/src/infra/persistence` contém adapters concretos do frontend.
+- `client/src/bootstrap` compõe autenticação, remoto, cache e ports.
+- `server/_core` permanece infraestrutura do Manus.
+- `server/routers.ts` contém procedures de aplicação e regras de autorização.
+- `server/db.ts` contém helpers de acesso Drizzle.
+- `drizzle/schema.ts` contém tabelas e tipos do banco.
+- `storage/` contém helpers para upload, leitura e remoção de objetos.
 
-- `src/shared/types` não deve conter tipos do provedor remoto.
+## 5. Identidade e escopo remoto
 
-- `src/components/rac-editor/@canvas` não deve conhecer autenticação nem backend.
-
-- `src/components/rac-editor/lib` deve continuar recebendo storage por porta.
-
-- `src/infra/persistence` e `src/infra/storage` são os locais preferenciais para adapters concretos.
-
-- A composição deve permanecer em `src/bootstrap` ou em um provider de aplicação claramente
-  identificado.
-
-## 5. Identidade e Escopo Remoto
-
-A identidade remota deve ser normalizada antes de chegar aos adapters de persistência:
+A sessão Manus deve ser normalizada na borda:
 
 ```ts
 export interface RemoteIdentity {
-  provider: 'clerk';
-  userId: string;
+  provider: 'manus';
+  userId: string; // ctx.user.openId
   primaryEmail?: string | null;
+  name?: string | null;
+  role?: 'admin' | 'user';
 }
 ```
 
-O escopo de dados não é individual por usuário nesta fase. Todos os usuários autenticados
-autorizados acessam o mesmo escopo global:
+No MVP, a autorização é:
+
+```text
+usuário autenticado pelo Manus -> acesso ao escopo global
+```
+
+O escopo não é particionado por usuário:
 
 ```ts
 export interface RemoteDataScope {
@@ -90,262 +119,123 @@ export interface RemoteDataScope {
 }
 ```
 
-Regras:
+`openId` é usado para identidade e auditoria. `scopeId` define a base compartilhada. IDs de construção, família, casa e monitor continuam sendo IDs de domínio gerados pela aplicação.
 
-- `userId` é identidade de auditoria e sessão, não partição de dados.
+No futuro, a regra poderá ser substituída por `role`, allowlist ou memberships em procedures server-side. Essa evolução não deve exigir mudanças no domínio.
 
-- `scopeId` define a base compartilhada inicial.
+## 6. Modelo de banco e arquivos
 
-- `constructionSite.id`, `family.id`, `house.id` e demais IDs do domínio continuam sendo gerados
-  pela aplicação.
+A tabela de usuários é a tabela nativa do template Manus e deve preservar o `openId`, `name`, `email`, `loginMethod`, `role`, timestamps e `lastSignedIn`.
 
-- Trocar Clerk por outro provedor deve exigir mudança no adapter de identidade, não nos documentos
-  persistidos.
+A tabela implementada de documentos remotos é `construction_site_documents`:
 
-## 6. Modelo Remoto Inicial
+```text
+construction_site_documents
+  id                    # constructionSite.id
+  scopeKey              # rac-designer-teto-global no MVP
+  externalCode
+  status
+  document              # JSON ConstructionSiteState
+  documentVersion
+  createdAt
+  updatedAt
+```
 
-No Convex, o MVP deve armazenar um documento por Construção TETO:
+O `id` é chave primária e há índices por `(scopeKey, updatedAt)` e `(scopeKey, externalCode)`. O payload é compatível com `ConstructionSiteState`, recebe `documentVersion` monotônico e é atualizado condicionalmente pela versão esperada. A remoção física permanece permitida apenas para construções já arquivadas; tombstones continuam uma evolução possível.
+
+O banco não deve armazenar imagens de até 5 MB como base64. O payload deve conter uma referência lógica:
 
 ```ts
-constructionSites: {
-  scopeId: 'rac-designer-teto-global';
-  constructionSiteId: string;
-  schemaVersion: number;
+export interface StoredAssetReference {
+  storageKey: string;
+  contentType: string;
+  sizeBytes: number;
+  checksum?: string;
+  uploadedAt: string;
+}
+```
+
+Os campos de foto continuam nomeados `photoDataUrl` por compatibilidade de domínio, mas a implementação aceita como valor remoto somente uma URL relativa `/manus-storage/{key}`. A procedure `storage.uploadImage` aceita PNG, JPEG e WEBP até 5 MiB, verifica a assinatura binária e chama `storagePut`; `constructionSites.save` rejeita qualquer `data:image/...` no payload.
+
+## 7. Procedures tRPC
+
+Procedures mínimos:
+
+```text
+auth.me
+auth.logout
+constructionSites.list
+constructionSites.load
+constructionSites.save
+constructionSites.remove
+storage.uploadImage
+```
+
+As operações de construção e assets usam `protectedProcedure`. O servidor obtém `ctx.user` da sessão Manus, deriva `scopeId`, valida input e ignora valores de autorização fornecidos pelo cliente.
+
+## 8. Contrato de persistência e concorrência
+
+O port deve representar concorrência otimista:
+
+```ts
+export interface SaveConstructionSiteInput {
+  constructionSite: ConstructionSiteState;
+  expectedDocumentVersion: number;
+}
+
+export interface SaveConstructionSiteResult {
   documentVersion: number;
   updatedAt: string;
-  deletedAt?: string;
-  payload: ConstructionSiteState;
 }
-```
 
-Índices esperados:
-
-- por `scopeId` e `updatedAt`;
-- por `scopeId` e `constructionSiteId`.
-
-Modelo equivalente inicial para Supabase futuro:
-
-```sql
-construction_sites (
-  id uuid primary key,
-  scope_id text not null,
-  construction_site_id text not null,
-  schema_version integer not null,
-  document_version integer not null,
-  updated_at timestamptz not null,
-  deleted_at timestamptz null,
-  payload jsonb not null
-)
-```
-
-Esse desenho permite iniciar a migração por `jsonb` e normalizar entidades depois, sem alterar o
-contrato do editor.
-
-## 7. Semântica De Boot
-
-### 7.1. Boot Sem Login
-
-- Não carregar a base remota.
-- Exibir estado `local` quando a aplicação estiver em modo local ou aguardando autenticação.
-- Não tratar dados locais legados como candidatos a upload.
-
-### 7.2. Primeiro Boot Com Login No Modo Remoto
-
-- Confirmar a entrada no modo remoto quando houver dados locais legados.
-- Descartar por completo os dados locais legados.
-- Carregar documentos remotos do escopo global.
-- Criar a sessão local em memória a partir do remoto.
-- Recriar o cache local descartável a partir do remoto, se o cache estiver habilitado.
-
-### 7.3. Boots Seguintes Com Login
-
-- Carregar remoto como fonte de verdade.
-- Usar cache local apenas como fallback temporário de UI enquanto o remoto carrega.
-- Substituir o cache pelo estado remoto confirmado.
-
-## 8. Semântica De Escrita
-
-- A escrita deve ser enviada ao remoto com `documentVersion` esperado.
-
-- A UI pode aplicar atualização otimista no cache local.
-
-- Se a mutation remota confirmar, marcar o estado como `sincronizado`.
-
-- Se a rede falhar, manter alteração em fila local e marcar como `pendente` ou `erro`.
-
-- Se o remoto rejeitar por conflito de versão, não sobrescrever silenciosamente; recarregar remoto e
-  exigir resolução futura ou ação explícita.
-
-## 9. Cache Local
-
-O cache local continua valendo, mas com papel reduzido:
-
-- acelerar boot e navegação;
-- permitir fila curta de escrita pendente;
-- preservar edição durante instabilidade temporária;
-- reconstruir sessão quando o remoto acabou de ser carregado.
-
-O cache local não deve:
-
-- ser fonte de verdade;
-- ser migrado para o remoto automaticamente;
-- sobreviver como base separada após ativação do modo remoto;
-- impedir limpeza total quando houver suspeita de inconsistência.
-
-## 10. Adapter Remoto
-
-O adapter Convex deve preservar a semântica do contrato existente:
-
-```ts
-export class ConvexConstructionSiteRepositoryAdapter implements ConstructionSiteRepositoryPort {
+export interface ConstructionSiteRepositoryPort {
   list(): Promise<ConstructionSiteSummary[]>;
   load(constructionSiteId: string): Promise<ConstructionSiteState | null>;
-  save(constructionSite: ConstructionSiteState): Promise<void>;
-  remove(constructionSiteId: string): Promise<void>;
+  save(input: SaveConstructionSiteInput): Promise<SaveConstructionSiteResult>;
+  remove(constructionSiteId: string, expectedDocumentVersion: number): Promise<void>;
 }
 ```
 
-Regras:
+Uma escrita condicional atualiza somente quando a versão remota corresponde à versão esperada. Se nenhuma linha for atualizada, o servidor retorna `CONFLICT`. O backend deriva `scopeKey`, calcula a próxima versão e substitui `documentVersion` no payload; não confia nesses valores fornecidos pelo cliente.
 
-- `remove` deve preferir tombstone remoto (`deletedAt`) quando a remoção física puder prejudicar
-  sync entre dispositivos.
+## 9. Semântica de boot
 
-- O adapter não deve fazer chamadas diretas a UI nem emitir toast.
+Sem login, não carregar a base remota nem fazer upload. Após `auth.me`, o cliente carrega a base global por `constructionSites.list` e `constructionSites.load`, constrói a sessão síncrona em memória e agenda escritas por meio do adapter remoto. A detecção, confirmação e limpeza explícita do IndexedDB legado é requisito pendente; o caminho remoto atual não o consulta nem o usa como fallback.
 
-- Erros remotos devem ser propagados para a camada de sync, não engolidos silenciosamente.
+## 10. Semântica de escrita e assets
 
-- A implementação Supabase futura deve implementar o mesmo port ou um port equivalente no domínio.
+A escrita envia `expectedDocumentVersion`. A UI pode atualizar o cache de forma otimista. Confirmação remota marca `sincronizado`; falha de rede mantém fila e marca `pendente` ou `erro`; conflito exige ação explícita.
 
-## 11. Hook De Composição
+O upload de foto ocorre antes da gravação do payload que referencia o arquivo. A referência só entra no documento depois de o upload ser confirmado. A substituição evita apagar o objeto antigo antes de persistir a nova referência. A limpeza de objetos órfãos é administrativa e segura.
 
-Criar um hook de composição, nome sugerido:
+## 11. Autenticação e variáveis
 
-```ts
-useRemoteGlobalConstructionSiteSessionStorage()
+O frontend inicia login em handler usando o helper nativo Manus, consulta `auth.me` e usa `auth.logout`. Componentes do editor não manipulam cookies ou tokens.
+
+Variáveis nativas esperadas:
+
+```text
+DATABASE_URL
+JWT_SECRET
+VITE_APP_ID
+OAUTH_SERVER_URL
+VITE_OAUTH_PORTAL_URL
+OWNER_OPEN_ID
+OWNER_NAME
+BUILT_IN_FORGE_API_URL
+BUILT_IN_FORGE_API_KEY
 ```
 
-Responsabilidades:
+Não versionar `.env`, enviar segredos ao bundle, persistir tokens em documentos ou registrar payloads completos.
 
-- obter identidade autenticada;
-- detectar e descartar dados locais legados ao entrar no modo remoto;
-- carregar remoto como fonte de verdade;
-- reconstruir cache local descartável, quando habilitado;
-- construir `ConstructionSiteSessionStoragePort` síncrono para o editor;
-- expor status de sync para UI;
-- enfileirar writes remotos sem bloquear a superfície do editor.
+## 12. Testes esperados
 
-## 12. Variáveis E Segredos
+Testar login, callback, logout, `auth.me`, acesso global para qualquer conta Manus autenticada, migrations, listagem, carga, save, remove, conflito de versão, descarte de IndexedDB, cache, fila pendente, upload, referências e fronteira de imports do domínio e canvas.
 
-Variáveis públicas esperadas:
+## 13. Fora do escopo inicial
 
-- `VITE_CONVEX_URL`;
-- `VITE_CLERK_PUBLISHABLE_KEY`.
+Autorização por papel ou allowlist, SSO, MFA obrigatório, colaboração em tempo real, merge visual, normalização completa, migração automática de dados locais e importação automática do IndexedDB legado.
 
-Regras:
+## 14. Evolução
 
-- chaves secretas não devem entrar no bundle Vite;
-- tokens de sessão não devem ser persistidos em documentos de domínio;
-- logs não devem imprimir payloads completos contendo dados pessoais, fotos ou contatos.
-
-## 13. Testes Esperados
-
-- Smoke test do adapter Convex com cliente fake.
-- Teste de boot remoto descartando dados locais legados.
-- Teste de carregamento do escopo global.
-- Teste de cache local descartável reconstruído a partir do remoto.
-- Teste de falha remota preservando fila pendente sem promover cache a fonte de verdade.
-- Teste de conflito de versão sem sobrescrita silenciosa.
-- Teste de fronteira garantindo que `src/domain` e `@canvas` não importam Convex ou Clerk.
-- Verificação em navegador do fluxo de login, descarte local, sync e restauração em sessão limpa.
-
-## 14. Fora Do Escopo Técnico Inicial
-
-- colaboração em tempo real no canvas;
-- merge visual de documentos divergentes;
-- normalização relacional;
-- Supabase adapter produtivo;
-- permissão granular por papel;
-- dashboard administrativo completo;
-- migração automática de Clerk para Supabase Auth;
-- importação automática do IndexedDB legado para o remoto.
-
-## 15. Trilha Técnica Pós-MVP Para Concorrência
-
-A arquitetura inicial deve deixar espaço para evoluir de salvamento documental simples para
-colaboração mais sofisticada sem reescrever o editor.
-
-### 15.1. MVP: Concorrência Otimista Por Documento
-
-- Cada escrita envia `expectedDocumentVersion`.
-
-- O backend aceita a escrita apenas quando a versão remota atual corresponde à versão esperada.
-
-- Em conflito, o backend rejeita a mutation e informa a versão remota atual.
-
-- A UI não faz merge automático; deve recarregar remoto ou preservar a intenção local como rascunho
-  técnico/exportável.
-
-### 15.2. Fase Seguinte: Lock Leve Por Construção TETO
-
-- Adicionar metadados de presença por `constructionSiteId`, identidade e instante de heartbeat.
-- Usar `TTL` para expirar locks abandonados.
-- Exibir aviso operacional quando outra pessoa estiver editando a mesma Construção TETO.
-- Preferir aviso forte antes de bloqueio absoluto.
-
-### 15.3. Fase Seguinte: Versionamento Por Seção
-
-Evoluir o envelope remoto para permitir versões independentes:
-
-```ts
-sectionVersions: {
-  metadata: number;
-  families: number;
-  monitors: number;
-  drawing: number;
-}
-```
-
-Regras:
-
-- alterações em seções diferentes podem ser aceitas sem conflito total do documento;
-- alterações concorrentes na mesma seção continuam gerando conflito;
-- o payload legado por documento inteiro continua exportável durante a transição.
-
-### 15.4. Fase Seguinte: Merge Por Seção
-
-- Resolver automaticamente apenas alterações independentes e semanticamente seguras.
-- Não tentar merge cego de `HouseDrawingDocument`.
-- Quando houver divergência no mesmo desenho ou entidade, exigir ação explícita.
-
-### 15.5. Fase Seguinte: Patch Ou Event Log
-
-Persistir comandos ou eventos versionados em vez de depender somente de snapshots:
-
-```ts
-type ConstructionSiteEvent =
-  | { type: 'family.added'; familyId: string; payload: unknown }
-  | { type: 'monitor.updated'; monitorId: string; patch: unknown }
-  | { type: 'house.drawing.updated'; houseId: string; patch: unknown };
-```
-
-Benefícios esperados:
-
-- histórico e auditoria;
-- retry mais granular;
-- resolução de conflito mais localizada;
-- migração futura para Supabase com replay ou materialização em `jsonb`.
-
-### 15.6. Fase Futura: Colaboração Em Tempo Real
-
-Só deve entrar se o uso real mostrar edição simultânea frequente na mesma Construção TETO ou no
-mesmo desenho. Nessa fase, avaliar presença em tempo real, cursores, atualização ao vivo e, se
-necessário, CRDT/Yjs/Automerge para partes altamente concorrentes.
-
-## 16. Condições Para Implementação
-
-Antes de implementar, confirmar:
-
-- texto exato do aviso de descarte local;
-- se o cache local descartável será habilitado já no MVP ou introduzido depois;
-- onde a UI mínima de status de sync aparecerá;
-- se o modo remoto bloqueia edição quando há conflito de versão.
+A autorização futura poderá ser introduzida em `protectedProcedure` por `role`, allowlist ou memberships. A troca para Supabase deve implementar os mesmos ports. O contrato de documentos e o domínio não devem ser reescritos por causa da mudança de infraestrutura.

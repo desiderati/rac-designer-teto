@@ -24,17 +24,17 @@ prováveis de impacto, mas não substitui PRDs canônicos quando uma frente prec
 - `docs/business-rules/BUS-008-indicador-dificuldade-terreno.md`: regra do indicador de dificuldade do terreno.
 - `docs/business-rules/BUS-009-materiais-terreno.md`: regra de materiais de base do terreno e definição de pedras.
 - `docs/product-requirements/PRD-001-evolucao-multicasa.prd.md`: gestão de Construções TETO, casas e famílias.
-- `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
-- `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`: modal inicial de seleção de pilotis.
-- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`: edição atual de altura, nível e contraventamento do piloti.
-- `src/components/rac-editor/@modals/ui/SettingsModal.tsx`: preferências globais do editor RAC.
-- `src/domain/house/use-cases/house-piloti.use-case.ts`: regras puras de interpolação de níveis e recomendação de alturas.
-- `src/domain/house/use-cases/house-contraventamento.use-case.ts`: regras puras de elegibilidade de contraventamento.
-- `src/components/rac-editor/lib/terrain-volume.ts`: cálculo atual de volumes de rachão e brita.
+- `client/src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`: exportação PDF atual.
+- `client/src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`: modal inicial de seleção de pilotis.
+- `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`: edição atual de altura, nível e contraventamento do piloti.
+- `client/src/components/rac-editor/@modals/ui/SettingsModal.tsx`: preferências globais do editor RAC.
+- `client/src/domain/house/use-cases/house-piloti.use-case.ts`: regras puras de interpolação de níveis e recomendação de alturas.
+- `client/src/domain/house/use-cases/house-contraventamento.use-case.ts`: regras puras de elegibilidade de contraventamento.
+- `client/src/components/rac-editor/lib/terrain-volume.ts`: cálculo atual de volumes de rachão e brita.
 - `index.html`: loader inicial exibido antes da montagem do React.
-- `src/components/rac-editor/ui/RacEditor.tsx`: loader interno enquanto o storage local do editor é preparado.
-- `src/shared/types/construction-site.ts`: modelo persistido atual de Construções TETO, com coleção própria de monitores.
-- `src/components/construction-site/ui/HouseConfigurationScreen.tsx`: tela atual de edição/configuração da casa.
+- `client/src/components/rac-editor/ui/RacEditor.tsx`: loader interno enquanto o storage local do editor é preparado.
+- `client/src/shared/types/construction-site.ts`: modelo persistido atual de Construções TETO, com coleção própria de monitores.
+- `client/src/components/construction-site/ui/HouseConfigurationScreen.tsx`: tela atual de edição/configuração da casa.
 
 ## Itens
 
@@ -66,9 +66,9 @@ nem escolher o diretório de destino.
 
 **Pontos prováveis de impacto:**
 
-- `src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
-- `src/components/rac-editor/@menus/ui/TopBar.tsx`
-- `src/components/rac-editor/@menus/ui/UserMenu.tsx`
+- `client/src/components/rac-editor/hooks/useRacEditorPdfExportAction.ts`
+- `client/src/components/rac-editor/@menus/ui/TopBar.tsx`
+- `client/src/components/rac-editor/@menus/ui/UserMenu.tsx`
 
 ### RD-002 - Remover nome da família da modal inicial de nova casa
 
@@ -100,12 +100,12 @@ preenchido e seis alturas de piloti selecionadas.
 
 **Pontos impactados:**
 
-- `src/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx`
-- `src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`
-- `src/components/rac-editor/hooks/useRacEditorFamilyActions.ts`
-- `src/components/rac-editor/hooks/buildRacEditorLayoutProps.ts`
-- `src/bootstrap/editor-house-port-adapters.ts`
-- `src/components/rac-editor/ports/HouseWritePort.ts`
+- `client/src/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx`
+- `client/src/components/rac-editor/@modals/ui/editors/PilotisSetupModal.tsx`
+- `client/src/components/rac-editor/hooks/useRacEditorFamilyActions.ts`
+- `client/src/components/rac-editor/hooks/buildRacEditorLayoutProps.ts`
+- `client/src/bootstrap/editor-house-port-adapters.ts`
+- `client/src/components/rac-editor/ports/HouseWritePort.ts`
 - `e2e/helpers/rac-editor.helpers.ts`
 
 ### RD-003 - Labels nas vistas elevadas e no lado correspondente da planta
@@ -135,13 +135,13 @@ casa ainda não materializava labels permanentes para cada vista e para o lado c
 
 **Pontos impactados:**
 
-- `src/components/rac-editor/lib/house-view.ts`
-- `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
-- `src/components/rac-editor/@canvas/lib/factory/house/house-front-back.strategy.ts`
-- `src/components/rac-editor/@canvas/lib/factory/house/house-side.strategy.ts`
-- `src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
-- `src/components/rac-editor/@canvas/lib/house-visual-effects.ts`
-- `src/components/rac-editor/lib/editor-house-controller.ts`
+- `client/src/components/rac-editor/lib/house-view.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-front-back.strategy.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-side.strategy.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-view-reference-marker.ts`
+- `client/src/components/rac-editor/@canvas/lib/house-visual-effects.ts`
+- `client/src/components/rac-editor/lib/editor-house-controller.ts`
 
 ### RD-004 - Labels de identificação dos pilotis na planta
 
@@ -170,10 +170,10 @@ canto. A função `getPilotiName` já resolve códigos como `A1`, `B2` e `C4` a 
 
 **Pontos impactados:**
 
-- `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
-- `src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.smoke.test.ts`
-- `src/components/rac-editor/@canvas/lib/canvas.ts`
-- `src/shared/config.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/house/house-top.strategy.smoke.test.ts`
+- `client/src/components/rac-editor/@canvas/lib/canvas.ts`
+- `client/src/shared/config.ts`
 - `docs/business-rules/BUS-001-canvas.md`
 
 ### RD-005 - Inserir componente visual de gauge pela toolbar
@@ -206,11 +206,11 @@ mas não há tipo `gauge` serializável nem ação de inserção pela toolbar do
 
 **Pontos prováveis de impacto:**
 
-- `src/components/rac-editor/@menus/lib/menu-config.ts`
-- `src/components/rac-editor/@menus/lib/menu-types.ts`
-- `src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
-- `src/components/rac-editor/@canvas/hooks/useCanvasTools.ts`
-- `src/components/rac-editor/@canvas/lib/factory/elements/`
+- `client/src/components/rac-editor/@menus/lib/menu-config.ts`
+- `client/src/components/rac-editor/@menus/lib/menu-types.ts`
+- `client/src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
+- `client/src/components/rac-editor/@canvas/hooks/useCanvasTools.ts`
+- `client/src/components/rac-editor/@canvas/lib/factory/elements/`
 
 **Pendência funcional:** confirmar se o gauge inserível no canvas usa a mesma semântica do indicador de risco do PDF
 ou se representa um indicador visual independente.
@@ -257,12 +257,12 @@ fórmula, nomenclatura ou exportações onde houver divergência.
 
 **Pontos impactados:**
 
-- `src/components/rac-editor/lib/terrain-volume.ts`
-- `src/components/rac-editor/lib/terrain-volume.smoke.test.ts`
-- `src/components/rac-editor/@modals/ui/editors/terrain/TerrainEditor.tsx`
-- `src/components/rac-editor/lib/rac-pdf-report-model.ts`
-- `src/components/rac-editor/lib/rac-pdf-report-renderer.ts`
-- `src/components/rac-editor/lib/rac-pdf-report-model.smoke.test.ts`
+- `client/src/components/rac-editor/lib/terrain-volume.ts`
+- `client/src/components/rac-editor/lib/terrain-volume.smoke.test.ts`
+- `client/src/components/rac-editor/@modals/ui/editors/terrain/TerrainEditor.tsx`
+- `client/src/components/rac-editor/lib/rac-pdf-report-model.ts`
+- `client/src/components/rac-editor/lib/rac-pdf-report-renderer.ts`
+- `client/src/components/rac-editor/lib/rac-pdf-report-model.smoke.test.ts`
 - `docs/business-rules/BUS-009-materiais-terreno.md`
 
 ### RD-007 - Unificar e qualificar os loaders da aplicação
@@ -298,9 +298,9 @@ do storage local e dos ports do editor.
 **Pontos prováveis de impacto:**
 
 - `index.html`
-- `src/components/rac-editor/ui/RacEditor.tsx`
-- `src/bootstrap/app-loading-fallback.smoke.test.ts`
-- `src/components/rac-editor/ui/RacEditor.smoke.test.tsx`
+- `client/src/components/rac-editor/ui/RacEditor.tsx`
+- `client/src/bootstrap/app-loading-fallback.smoke.test.ts`
+- `client/src/components/rac-editor/ui/RacEditor.smoke.test.tsx`
 
 **Observação técnica:** um percentual exato de carregamento no `index.html` só é confiável se o carregamento dos assets
 for instrumentado. Sem isso, o caminho mais pragmático é uma barra progressiva por etapas ou estimada, encerrada quando
@@ -352,14 +352,14 @@ grupo de monitores, e cada monitor deve ter nome e telefone obrigatórios, com f
 
 **Pontos prováveis de impacto:**
 
-- `src/shared/types/construction-site.ts`
-- `src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
-- `src/components/construction-site/lib/construction-site-form-validation.ts`
-- `src/components/rac-editor/@menus/ui/HamburgerMenu.tsx`
-- `src/components/rac-editor/@menus/lib/menu-types.ts`
-- `src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
-- `src/components/rac-editor/lib/construction-site-session.ts`
-- `src/infra/persistence/indexed-db-construction-site-repository.adapter.ts`
+- `client/src/shared/types/construction-site.ts`
+- `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx`
+- `client/src/components/construction-site/lib/construction-site-form-validation.ts`
+- `client/src/components/rac-editor/@menus/ui/HamburgerMenu.tsx`
+- `client/src/components/rac-editor/@menus/lib/menu-types.ts`
+- `client/src/components/rac-editor/@menus/hooks/useRacEditorMenuActions.ts`
+- `client/src/components/rac-editor/lib/construction-site-session.ts`
+- `client/src/infra/persistence/indexed-db-construction-site-repository.adapter.ts`
 - `docs/product-requirements/`
 
 **Decisão funcional:** monitores pertencem à Construção TETO. A edição ocorre em componente próprio, acessado pela ação
@@ -407,11 +407,11 @@ Essa seção concentra informações próprias da casa, sem misturá-las aos dad
 
 **Pontos prováveis de impacto:**
 
-- `src/components/construction-site/ui/HouseConfigurationScreen.tsx`
-- `src/components/construction-site/ui/lib/view-model.ts`
-- `src/components/construction-site/lib/construction-site-form-validation.ts`
-- `src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
-- `src/shared/types/construction-site.ts`
+- `client/src/components/construction-site/ui/HouseConfigurationScreen.tsx`
+- `client/src/components/construction-site/ui/lib/view-model.ts`
+- `client/src/components/construction-site/lib/construction-site-form-validation.ts`
+- `client/src/components/construction-site/ui/ConstructionSiteManagementPanel.smoke.test.tsx`
+- `client/src/shared/types/construction-site.ts`
 - `docs/product-requirements/`
 
 **Decisão funcional:** a seção `Sobre a Casa` pertence ao formulário de edição/configuração da casa, não ao formulário
@@ -450,17 +450,17 @@ cantos também podem recalcular níveis intermediários e alturas recomendadas d
 
 **Pontos impactados:**
 
-- `src/shared/types/settings.ts`
-- `src/shared/config.ts`
-- `src/components/rac-editor/@modals/ui/SettingsModal.tsx`
-- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
-- `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
-- `src/domain/house/use-cases/house-piloti.use-case.ts`
-- `src/components/rac-editor/@canvas/lib/house-visual-runtime.ts`
-- `src/components/rac-editor/lib/editor-house-controller.ts`
-- `src/components/rac-editor/lib/editor-house-command-service.ts`
-- `src/components/rac-editor/lib/editor-house-piloti-command-service.ts`
-- `src/components/rac-editor/store/editor-settings.smoke.test.ts`
+- `client/src/shared/types/settings.ts`
+- `client/src/shared/config.ts`
+- `client/src/components/rac-editor/@modals/ui/SettingsModal.tsx`
+- `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
+- `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+- `client/src/domain/house/use-cases/house-piloti.use-case.ts`
+- `client/src/components/rac-editor/@canvas/lib/house-visual-runtime.ts`
+- `client/src/components/rac-editor/lib/editor-house-controller.ts`
+- `client/src/components/rac-editor/lib/editor-house-command-service.ts`
+- `client/src/components/rac-editor/lib/editor-house-piloti-command-service.ts`
+- `client/src/components/rac-editor/store/editor-settings.smoke.test.ts`
 - `docs/business-rules/BUS-004-piloti-nivel.md`
 
 ### RD-011 - Contraventamento horizontal manual
@@ -499,16 +499,16 @@ por nível e proporção estrutural, e pode ser recalculado automaticamente quan
 **Pontos impactados:**
 
 - `docs/business-rules/BUS-006-contraventamento.md`
-- `src/shared/types/contraventamento.ts`
-- `src/domain/house/use-cases/house-contraventamento.use-case.ts`
-- `src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
-- `src/components/rac-editor/@canvas/hooks/useCanvasContraventamentoCommands.ts`
-- `src/components/rac-editor/@canvas/lib/contraventamento.ts`
-- `src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts`
-- `src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
-- `src/components/rac-editor/@viewer-3d/lib/parsers/contraventamento-parser.ts`
-- `src/components/rac-editor/@viewer-3d/ui/House3DTerrainMeshes.tsx`
-- `src/components/rac-editor/ports/House3DProjectionPort.ts`
+- `client/src/shared/types/contraventamento.ts`
+- `client/src/domain/house/use-cases/house-contraventamento.use-case.ts`
+- `client/src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
+- `client/src/components/rac-editor/@canvas/hooks/useCanvasContraventamentoCommands.ts`
+- `client/src/components/rac-editor/@canvas/lib/contraventamento.ts`
+- `client/src/components/rac-editor/@canvas/lib/contraventamento-geometry.ts`
+- `client/src/components/rac-editor/@canvas/lib/house-auto-contraventamento.ts`
+- `client/src/components/rac-editor/@viewer-3d/lib/parsers/contraventamento-parser.ts`
+- `client/src/components/rac-editor/@viewer-3d/ui/House3DTerrainMeshes.tsx`
+- `client/src/components/rac-editor/ports/House3DProjectionPort.ts`
 
 ### RD-012 - Digitação de nível na modal de pilotis desktop
 
@@ -539,10 +539,10 @@ A edição por digitação ainda não existe na modal de piloti.
 
 **Pontos impactados:**
 
-- `src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
-- `src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
-- `src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
-- `src/components/rac-editor/@modals/ui/editors/NivelSlider.smoke.test.tsx`
+- `client/src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.tsx`
+- `client/src/components/rac-editor/@modals/hooks/usePilotiEditor.ts`
+- `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.tsx`
+- `client/src/components/rac-editor/@modals/ui/editors/NivelSlider.smoke.test.tsx`
 - `docs/business-rules/BUS-004-piloti-nivel.md`
 
 ## Ordem sugerida de execução

@@ -151,8 +151,8 @@ perder o estado da casa ativa.
 
 - O Canvas continua sendo a experiência principal quando há casa válida para edição.
 
-- O gerenciamento é um módulo separado de `src/components/rac-editor`, localizado em
-  `src/components/construction-site`.
+- O gerenciamento é um módulo separado de `client/src/components/rac-editor`, localizado em
+  `client/src/components/construction-site`.
 
 - No modo de gerenciamento, canvas, toolbar e submenus ficam ocultos.
 
@@ -192,10 +192,10 @@ perder o estado da casa ativa.
 ## 10. Referências E Artefatos Auxiliares
 
 - Código atual relacionado:
-    - [construction-site-session.ts](../../src/components/rac-editor/lib/construction-site-session.ts)
-    - [ConstructionSiteManagementPanel.tsx](../../src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
-    - [ConstructionSiteManagementPort.ts](../../src/components/construction-site/ports/ConstructionSiteManagementPort.ts)
-    - [house-drawing-document.ts](../../src/shared/types/house-drawing-document.ts)
+    - [construction-site-session.ts](../../client/src/components/rac-editor/lib/construction-site-session.ts)
+    - [ConstructionSiteManagementPanel.tsx](../../client/src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
+    - [ConstructionSiteManagementPort.ts](../../client/src/components/construction-site/ports/ConstructionSiteManagementPort.ts)
+    - [house-drawing-document.ts](../../client/src/shared/types/house-drawing-document.ts)
 
 - Evidências e material auxiliar:
     - [Plano técnico derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)

@@ -97,13 +97,13 @@
         3. **Implementar `RetryPolicy` com backoff exponencial**
            - Objetivo: encapsular lógica de retry com max 3 tentativas
            - Resultado: classe testável e reutilizável
-           - Arquivos: `src/services/RetryPolicy.ts`, `tests/services/RetryPolicy.test.ts`
+           - Arquivos: `client/src/services/RetryPolicy.ts`, `tests/services/RetryPolicy.test.ts`
 
         4. **Integrar retry e dead-letter no `NotificationDispatcher`**
            - Objetivo: usar `RetryPolicy`; publicar no DLQ após esgotamento; registrar
              `status: failed` no banco
            - Resultado: falhas rastreáveis e eventos preservados no DLQ
-           - Arquivos: `src/workers/NotificationDispatcher.ts`
+           - Arquivos: `client/src/workers/NotificationDispatcher.ts`
            - Nota: a publicação no DLQ deve ser idempotente (usar message ID do evento original)
 
         5. **Criar alerta no Cloud Monitoring**

@@ -33,8 +33,8 @@ aliases: [ modal de nível não fecha após inserir casa ]
 - fluxos afetados: inserção inicial de casa no Canvas.
 - regras de negócio afetadas: `BUS-001-canvas` e `BUS-004-piloti-nivel`.
 - módulos, componentes ou serviços envolvidos:
-    - `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
-    - `src/components/rac-editor/@modals/ui/editors/NivelDefinitionEditor.tsx`
+    - `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
+    - `client/src/components/rac-editor/@modals/ui/editors/NivelDefinitionEditor.tsx`
 - contratos, schemas ou interfaces envolvidos: nenhum contrato público alterado.
 
 ## 4. Fluxo Esperado vs. Fluxo Real
@@ -64,7 +64,7 @@ aliases: [ modal de nível não fecha após inserir casa ]
 
 ### Pontos de código, contrato ou regra
 
-- arquivo: `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
+- arquivo: `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
 - responsabilidade no defeito: coordenar aplicação dos níveis, criação da planta/vista inicial e fechamento da modal.
 
 ## 7. Classe do Defeito ou Regressão
@@ -83,7 +83,7 @@ aliases: [ modal de nível não fecha após inserir casa ]
 ## 9. Validação Executada
 
 - testes executados:
-    - `npx eslint src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
+    - `npx eslint client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`
     - `npx playwright test e2e/house-views-limits.spec.ts --project=chromium -g "M4: mantém planta" --timeout=60000`
     - `npm run build`
 - validação manual: não executada.

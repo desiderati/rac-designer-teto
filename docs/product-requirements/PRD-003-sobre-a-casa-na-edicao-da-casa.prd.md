@@ -287,7 +287,7 @@ opcionais de `Sobre a Casa` para continuar editando apenas os dados que tenho no
     - [PRD-002-gerenciamento-de-monitores.prd.md](./PRD-002-gerenciamento-de-monitores.prd.md)
 
 - Código atual relacionado:
-    - [HouseConfigurationScreen.tsx](../../src/components/construction-site/ui/HouseConfigurationScreen.tsx)
-    - [view-model.ts](../../src/components/construction-site/ui/lib/view-model.ts)
-    - [construction-site-form-validation.ts](../../src/components/construction-site/lib/construction-site-form-validation.ts)
-    - [construction-site.ts](../../src/shared/types/construction-site.ts)
+    - [HouseConfigurationScreen.tsx](../../client/src/components/construction-site/ui/HouseConfigurationScreen.tsx)
+    - [view-model.ts](../../client/src/components/construction-site/ui/lib/view-model.ts)
+    - [construction-site-form-validation.ts](../../client/src/components/construction-site/lib/construction-site-form-validation.ts)
+    - [construction-site.ts](../../client/src/shared/types/construction-site.ts)

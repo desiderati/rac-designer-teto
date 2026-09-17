@@ -86,8 +86,8 @@ aliases: [ inserção inicial de níveis no modo manual ]
 
 ### Pontos de código, contrato ou regra
 
-- `src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`: aplicava níveis iniciais por edição normal.
-- `src/components/rac-editor/lib/editor-house-piloti-command-service.ts`: passou a ter comando de inserção inicial.
+- `client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts`: aplicava níveis iniciais por edição normal.
+- `client/src/components/rac-editor/lib/editor-house-piloti-command-service.ts`: passou a ter comando de inserção inicial.
 - `docs/business-rules/BUS-004-piloti-nivel.md`: passou a explicitar a exceção da criação inicial.
 
 ## 9. Classe do Defeito ou Regressão
@@ -120,10 +120,10 @@ aliases: [ inserção inicial de níveis no modo manual ]
 - validação de integração: smoke test do hook garantindo comando dedicado antes da criação das vistas.
 - validação na fronteira original: não executada em navegador nesta análise.
 - testes executados:
-    - `npm run test -- src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
-    - `npm run test -- src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
+    - `npm run test -- client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts`
+    - `npm run test -- client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
     -
-    `npm run test -- src/components/rac-editor/lib/editor-house-controller.smoke.test.ts src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts src/bootstrap/editor-house-ports.smoke.test.ts src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.smoke.test.tsx`
+    `npm run test -- client/src/components/rac-editor/lib/editor-house-controller.smoke.test.ts client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts client/src/bootstrap/editor-house-ports.smoke.test.ts client/src/components/rac-editor/@modals/ui/editors/piloti/PilotiEditor.smoke.test.tsx`
     - `npm run test`
 - validação manual ou operacional: não executada.
 - build, lint ou smoke relevante:

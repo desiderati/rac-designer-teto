@@ -113,8 +113,8 @@
         - considerar adicionar teste de contrato para campos nullable da API
 
         ### Arquivos afetados
-        - `src/main/java/com/app/service/OrderService.java`
-        - `src/test/java/com/app/service/OrderServiceTest.java`
+        - `client/src/main/java/com/app/service/OrderService.java`
+        - `client/src/test/java/com/app/service/OrderServiceTest.java`
       </content>
       <why>
         This is an ideal changelog entry because:

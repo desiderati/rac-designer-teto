@@ -252,7 +252,7 @@ TETO para continuar no contexto operacional correto.
     - [BUS-002-toolbar.md](../business-rules/BUS-002-toolbar.md)
 
 - Código atual relacionado:
-    - [construction-site.ts](../../src/shared/types/construction-site.ts)
-    - [ConstructionSiteManagementPanel.tsx](../../src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
-    - [construction-site-form-validation.ts](../../src/components/construction-site/lib/construction-site-form-validation.ts)
-    - [HamburgerMenu.tsx](../../src/components/rac-editor/@menus/ui/HamburgerMenu.tsx)
+    - [construction-site.ts](../../client/src/shared/types/construction-site.ts)
+    - [ConstructionSiteManagementPanel.tsx](../../client/src/components/construction-site/ui/ConstructionSiteManagementPanel.tsx)
+    - [construction-site-form-validation.ts](../../client/src/components/construction-site/lib/construction-site-form-validation.ts)
+    - [HamburgerMenu.tsx](../../client/src/components/rac-editor/@menus/ui/HamburgerMenu.tsx)

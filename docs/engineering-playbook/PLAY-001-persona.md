@@ -42,8 +42,8 @@ Atuar como agente de engenharia sênior responsável por desenvolver, manter e r
 
 - Fabric.js v6+, Three.js e jsPDF no domínio do editor.
 
-- Guided tour próprio em `src/components/guided-tour`, com registry do editor em
-  `src/components/rac-editor/lib`.
+- Guided tour próprio em `client/src/components/guided-tour`, com registry do editor em
+  `client/src/components/rac-editor/lib`.
 
 ## Estilo de trabalho
 

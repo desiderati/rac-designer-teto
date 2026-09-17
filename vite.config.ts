@@ -1,80 +1,42 @@
-import {defineConfig} from 'vite';
-import path from 'path';
+import { defineConfig } from 'vite';
+import path from 'node:path';
+import react from '@vitejs/plugin-react-swc';
 
-// https://vitejs.dev/config/
-export default defineConfig(async ({mode}) => {
-  const plugins = [];
+const projectRoot = import.meta.dirname;
 
-  try {
-    const {default: react} = await import('@vitejs/plugin-react-swc');
-    plugins.push(react());
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    // Some tooling evaluates this config through `[eval]`, which breaks createRequire(import.meta.url).
-    if (!message.includes('Received \'[eval]\'') || !message.includes('file URL object')) {
-      throw error;
-    }
-  }
-
-  if (mode === 'development') {
-    const {componentTagger} = await import('lovable-tagger');
-    plugins.push(componentTagger());
-  }
-
-  return {
-    // Caminhos relativos garantem que os assets carreguem em qualquer subpath
-    // (Lovable na raiz, GitHub Pages em /rac-designer-teto/, etc.) sem
-    // gerar 404 e tela branca.
-    base: process.env.GITHUB_PAGES === 'true' ? '/rac-designer-teto/' : '/',
-    server: {
-      host: '::',
-      port: 8080,
-      allowedHosts: true as const,
+export default defineConfig({
+  root: path.resolve(projectRoot, 'client'),
+  publicDir: path.resolve(projectRoot, 'client', 'public'),
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(projectRoot, 'client', 'src'),
+      '@shared': path.resolve(projectRoot, 'shared'),
     },
-    build: {
-      chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks(id: string | string[]) {
-            if (!id.includes('node_modules')) {
-              return;
-            }
-
-            if (id.includes('three') || id.includes('@react-three')) {
-              return 'three-vendor';
-            }
-
-            if (id.includes('fabric')) {
-              return 'fabric-vendor';
-            }
-          },
+  },
+  build: {
+    outDir: path.resolve(projectRoot, 'dist', 'public'),
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('three') || id.includes('@react-three')) return 'three-vendor';
+          if (id.includes('fabric')) return 'fabric-vendor';
         },
       },
     },
-    plugins,
-    resolve: {
-      alias: {
-        '@': path.resolve(process.cwd(), './src'),
-      },
-    },
-    test: {
-      globals: true,
-      environment: 'jsdom',
-      setupFiles: './src/test/setup.ts',
-      exclude: ['e2e/**', '**/node_modules/**', '**/dist/**'],
-      coverage: {
-        provider: 'v8',
-        reporter: ['text', 'html'],
-        include: ['src/domain/**', 'src/components/rac-editor/lib/**'],
-        exclude: [
-          '**/*.d.ts',
-          '**/*.smoke.test.*',
-          '**/__tests__/**',
-          '**/test/**',
-          '**/tests/**',
-        ],
-      },
-    },
-  };
+  },
+  server: {
+    host: true,
+    allowedHosts: true,
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    include: ['src/**/*.test.{ts,tsx}'],
+    exclude: ['../e2e/**', '**/node_modules/**', '**/dist/**'],
+  },
 });

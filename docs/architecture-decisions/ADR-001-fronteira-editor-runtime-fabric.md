@@ -24,8 +24,8 @@ Status permitido: `proposed` | `accepted` | `deprecated` | `superseded`.
 Esta ADR continua `accepted`. A revisão não altera a decisão central sobre a fronteira entre o
 editor RAC e o runtime Fabric. Ela apenas corrige um detalhe operacional que driftou:
 `TutorialProgressPort` não existe mais como port vigente em `src`. O progresso do tour guiado fica
-hoje no runtime próprio em `src/components/guided-tour`, enquanto o editor fornece registry, anchors
-e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
+hoje no runtime próprio em `client/src/components/guided-tour`, enquanto o editor fornece registry, anchors
+e eventos em `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 
 ## 1. Contexto
 
@@ -35,8 +35,8 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
       e coordenação de estado. Isso eleva o custo de testes e dificulta refatorações seguras.
 
 - restrições reais do ambiente:
-    - O repositório já trata `src/components/rac-editor` como miniaplicação interna.
-    - O playbook vigente não recomenda mover Fabric para `src/infra` por generalização.
+    - O repositório já trata `client/src/components/rac-editor` como miniaplicação interna.
+    - O playbook vigente não recomenda mover Fabric para `client/src/infra` por generalização.
     - O estado atual separa `HouseState` lógico de `HouseRuntimeSnapshot<TGroup>`.
     - Tipos concretos de canvas, como `CanvasGroup` e `CanvasObject`, devem ficar somente no slice `@canvas`.
     - A fronteira possui guarda automatizada para impedir retorno de imports amplos no núcleo lógico.
@@ -48,16 +48,16 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 - evidências consultadas:
     - `docs/engineering-playbook/PLAY-004-project-structure.md`
     - `docs/engineering-playbook/PLAY-102-frontend-state-and-hooks.md`
-    - `src/components/rac-editor/lib/editor-house-controller.ts`
-    - `src/components/rac-editor/@canvas/lib/canvas-house-controller.ts`
-    - `src/components/rac-editor/@canvas/ui/Canvas.tsx`
-    - `src/components/rac-editor/@canvas/lib/canvas.ts`
-    - `src/bootstrap/editor-infra-ports.ts`
-    - `src/components/rac-editor/ports/SettingsPort.ts`
-    - `src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
-    - `src/components/guided-tour/store/guided-tour-storage.ts`
-    - `src/components/rac-editor/lib/rac-editor-guided-tour.ts`
-    - `src/test/rac-editor-boundary.smoke.test.ts`
+    - `client/src/components/rac-editor/lib/editor-house-controller.ts`
+    - `client/src/components/rac-editor/@canvas/lib/canvas-house-controller.ts`
+    - `client/src/components/rac-editor/@canvas/ui/Canvas.tsx`
+    - `client/src/components/rac-editor/@canvas/lib/canvas.ts`
+    - `client/src/bootstrap/editor-infra-ports.ts`
+    - `client/src/components/rac-editor/ports/SettingsPort.ts`
+    - `client/src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
+    - `client/src/components/guided-tour/store/guided-tour-storage.ts`
+    - `client/src/components/rac-editor/lib/rac-editor-guided-tour.ts`
+    - `client/src/test/rac-editor-boundary.smoke.test.ts`
 
 ## 2. Decisão
 
@@ -89,26 +89,26 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
     - `HouseVisualRuntimePort<TGroup>` define as capacidades mínimas do runtime visual usadas pelo núcleo transitório do
       editor.
     - Fábricas que adaptam o controller transitório da casa para ports do editor pertencem ao bootstrap de composição em
-      `src/bootstrap/editor-house-port-adapters.ts` e `src/bootstrap/editor-house-ports.ts`.
+      `client/src/bootstrap/editor-house-port-adapters.ts` e `client/src/bootstrap/editor-house-ports.ts`.
     - Adapters do bootstrap devem ser genéricos sobre `HouseRuntimeGroupRef`; quando a implementação precisa interpretar
       `CanvasGroup`, ela pertence ao slice `@canvas`.
     - `House3DProjectionPort` entrega projeção serializável ao viewer 3D; o adapter concreto que lê grupos do canvas
-      fica em `src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts`.
+      fica em `client/src/components/rac-editor/@canvas/lib/canvas-house-3d-projection-port.ts`.
     - A composição padrão dessas portas deve ser feita por factory, evitando exportar adapters globais já instanciados
       como contrato público do editor.
     - O estado lógico do editor deve receber `HousePersistencePort`; adapters concretos de persistência são compostos no
-      bootstrap ou em `src/infra`, não instanciados dentro do núcleo do editor.
+      bootstrap ou em `client/src/infra`, não instanciados dentro do núcleo do editor.
     - Sessão de projeto e storage local seguem a mesma regra: o núcleo do editor recebe portas/funções de storage, e o
-      acesso concreto a `localStorage` fica em `src/infra` ou no bootstrap de composição.
+      acesso concreto a `localStorage` fica em `client/src/infra` ou no bootstrap de composição.
     - Configurações do editor seguem a mesma fronteira: UI, hooks e canvas consomem `SettingsPort`, com implementação
       concreta composta no bootstrap.
     - O progresso do tour guiado não é port vigente do editor neste estado. Ele pertence ao runtime transversal em
-      `src/components/guided-tour`, enquanto o editor fornece registry, anchors e eventos específicos do RAC editor.
+      `client/src/components/guided-tour`, enquanto o editor fornece registry, anchors e eventos específicos do RAC editor.
     - Handles imperativos do canvas devem ser consumidos por capacidade específica. O handle amplo
       `CanvasInteractionPort` foi removido; `Canvas` expõe `CanvasHandle` apenas como composição de tela.
     - Comandos do controller transitório da casa devem ser separados por responsabilidade quando deixam de ser simples
       delegação: setup, terreno, vistas e pilotis.
-    - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `src/infra` fica reservado
+    - Adapters Fabric permanecem no slice `@canvas`, principalmente em `@canvas/ui/adapters`; `client/src/infra` fica reservado
       a persistência, storage e integrações técnicas que não dependem da feature editor.
     - Bridges de debug que conhecem grupos visuais concretos pertencem ao slice `@canvas`, não aos hooks gerais do
       editor.
@@ -226,15 +226,15 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
 
 - o que fica fora:
     - Reescrita completa em big bang.
-    - Mover Fabric para `src/infra` por generalização antes de existir adapter concreto.
+    - Mover Fabric para `client/src/infra` por generalização antes de existir adapter concreto.
     - Trocar Fabric por outro runtime gráfico.
     - Criar raízes genéricas de application, services ou store global.
 
 ## 6. Artefatos e contratos relacionados
 
 - blueprint ou schema relacionado:
-    - `src/components/rac-editor/store/editor-selection.ts`
-    - `src/components/rac-editor/store/editor-ids.ts`
+    - `client/src/components/rac-editor/store/editor-selection.ts`
+    - `client/src/components/rac-editor/store/editor-ids.ts`
 
 - prompts relacionados:
     - `.agents/prompts/solution-design.prompt.md`
@@ -242,9 +242,9 @@ e eventos em `src/components/rac-editor/lib/rac-editor-guided-tour.ts`.
     - `.agents/prompts/architecture-decision.prompt.md`
 
 - contratos de integração:
-    - Canvas ports em `src/components/rac-editor/@canvas/ports`.
-    - House ports em `src/components/rac-editor/ports`.
-    - Guarda arquitetural em `src/test/rac-editor-boundary.smoke.test.ts`.
+    - Canvas ports em `client/src/components/rac-editor/@canvas/ports`.
+    - House ports em `client/src/components/rac-editor/ports`.
+    - Guarda arquitetural em `client/src/test/rac-editor-boundary.smoke.test.ts`.
 
 - superfícies humanas relacionadas:
     - `docs/engineering-playbook/PLAY-004-project-structure.md`

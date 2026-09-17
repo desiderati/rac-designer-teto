@@ -1,0 +1,193 @@
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
+import { COOKIE_NAME } from '@shared/const';
+import {
+  ConstructionSiteDeleteNotAllowedError,
+  ConstructionSiteVersionConflictError,
+  getConstructionSiteDocument,
+  listConstructionSiteSummaries,
+  removeConstructionSiteDocument,
+  saveConstructionSiteDocument,
+} from './db.ts';
+import { getSessionCookieOptions } from './_core/cookies.ts';
+import { systemRouter } from './_core/systemRouter.ts';
+import { protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
+import { storagePut } from './storage.ts';
+import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+/**
+ * O documento completo é um contrato de domínio serializável. A fronteira de
+ * transporte valida a forma mínima, tamanho e ausência de base64; validações
+ * de regras de negócio permanecem centralizadas na sessão do editor.
+ */
+const CONSTRUCTION_SITE_STATE_INPUT = z.custom<ConstructionSiteState>((value) => (
+  Boolean(value)
+  && typeof value === 'object'
+  && !Array.isArray(value)
+  && Boolean((value as Partial<ConstructionSiteState>).constructionSite?.id)
+));
+
+const IMAGE_UPLOAD_INPUT = z.object({
+  fileName: z.string().trim().min(1).max(160),
+  mimeType: z.enum(ALLOWED_IMAGE_MIME_TYPES),
+  base64: z.string().min(4),
+  constructionSiteId: z.string().trim().min(1).max(128).optional(),
+});
+
+export const appRouter = router({
+  system: systemRouter,
+  auth: router({
+    me: publicProcedure.query(({ ctx }) => ctx.user),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      return { success: true } as const;
+    }),
+  }),
+
+  constructionSites: router({
+    list: protectedProcedure.query(async () => listConstructionSiteSummaries()),
+
+    load: protectedProcedure
+      .input(z.object({ constructionSiteId: z.string().trim().min(1).max(128) }))
+      .query(async ({ input }) => getConstructionSiteDocument(input.constructionSiteId)),
+
+    save: protectedProcedure
+      .input(z.object({
+        state: CONSTRUCTION_SITE_STATE_INPUT,
+        expectedDocumentVersion: z.number().int().nonnegative(),
+      }))
+      .mutation(async ({ input }) => {
+        assertRemoteDocumentIsSafe(input.state);
+        try {
+          return await saveConstructionSiteDocument(
+            input.state,
+            input.expectedDocumentVersion,
+          );
+        } catch (error) {
+          throw toConstructionSiteTrpcError(error);
+        }
+      }),
+
+    remove: protectedProcedure
+      .input(z.object({
+        constructionSiteId: z.string().trim().min(1).max(128),
+        expectedDocumentVersion: z.number().int().positive(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          await removeConstructionSiteDocument(input.constructionSiteId, input.expectedDocumentVersion);
+          return { success: true } as const;
+        } catch (error) {
+          throw toConstructionSiteTrpcError(error);
+        }
+      }),
+  }),
+
+  storage: router({
+    uploadImage: protectedProcedure
+      .input(IMAGE_UPLOAD_INPUT)
+      .mutation(async ({ input }) => {
+        const bytes = decodeBase64Image(input.base64, input.mimeType);
+        const extension = input.mimeType === 'image/jpeg'
+          ? 'jpg'
+          : input.mimeType.split('/')[1];
+        const safeFileName = sanitizeFileName(input.fileName).replace(/\.[a-z0-9]+$/i, '') || 'imagem';
+        const scope = input.constructionSiteId ? sanitizePathSegment(input.constructionSiteId) : 'unassigned';
+        const objectKey = `rac-designer-teto/${scope}/photos/${safeFileName}.${extension}`;
+        const uploaded = await storagePut(objectKey, bytes, input.mimeType);
+
+        return {
+          key: uploaded.key,
+          url: uploaded.url,
+          bytes: bytes.byteLength,
+          mimeType: input.mimeType,
+        };
+      }),
+  }),
+});
+
+export type AppRouter = typeof appRouter;
+
+function assertRemoteDocumentIsSafe(state: unknown): void {
+  const serialized = JSON.stringify(state);
+  if (Buffer.byteLength(serialized, 'utf8') > 8 * 1024 * 1024) {
+    throw new TRPCError({
+      code: 'PAYLOAD_TOO_LARGE',
+      message: 'O documento da Construção TETO excede o limite de 8 MB.',
+    });
+  }
+
+  if (containsEmbeddedDataUrl(state)) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Imagens devem ser enviadas ao Storage nativo do Manus; dados base64 não são persistidos no documento.',
+    });
+  }
+}
+
+function containsEmbeddedDataUrl(value: unknown): boolean {
+  if (typeof value === 'string') return /^data:image\//i.test(value.trim());
+  if (Array.isArray(value)) return value.some(containsEmbeddedDataUrl);
+  if (!value || typeof value !== 'object') return false;
+  return Object.values(value as Record<string, unknown>).some(containsEmbeddedDataUrl);
+}
+
+function decodeBase64Image(base64: string, mimeType: typeof ALLOWED_IMAGE_MIME_TYPES[number]): Buffer {
+  const normalized = base64.replace(/\s/g, '');
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(normalized) || normalized.length % 4 !== 0) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Payload de imagem inválido.' });
+  }
+
+  const bytes = Buffer.from(normalized, 'base64');
+  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
+    throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Use uma imagem de até 5 MB.' });
+  }
+
+  if (!hasImageSignature(bytes, mimeType)) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'O arquivo não corresponde ao tipo de imagem informado.' });
+  }
+
+  return bytes;
+}
+
+function hasImageSignature(bytes: Buffer, mimeType: typeof ALLOWED_IMAGE_MIME_TYPES[number]): boolean {
+  if (mimeType === 'image/png') {
+    return bytes.length >= 8
+      && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+      && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  }
+  if (mimeType === 'image/jpeg') {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  return bytes.length >= 12
+    && bytes.subarray(0, 4).toString('ascii') === 'RIFF'
+    && bytes.subarray(8, 12).toString('ascii') === 'WEBP';
+}
+
+function sanitizeFileName(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 96);
+}
+
+function sanitizePathSegment(value: string): string {
+  return sanitizeFileName(value).replace(/\./g, '-') || 'unassigned';
+}
+
+function toConstructionSiteTrpcError(error: unknown): TRPCError {
+  if (error instanceof TRPCError) return error;
+  if (error instanceof ConstructionSiteVersionConflictError) {
+    return new TRPCError({ code: 'CONFLICT', message: error.message });
+  }
+  if (error instanceof ConstructionSiteDeleteNotAllowedError) {
+    return new TRPCError({ code: 'PRECONDITION_FAILED', message: error.message });
+  }
+  console.error('[constructionSites] operação remota falhou:', error);
+  return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Não foi possível persistir a Construção TETO.' });
+}

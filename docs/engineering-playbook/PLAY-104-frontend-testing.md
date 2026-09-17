@@ -85,7 +85,7 @@ como verificação rápida de integridade da regra principal e não exigem apara
 - Use `npm run test:architecture` quando a mudança tocar fronteiras do editor, ports, bootstrap,
   canvas, domínio ou infra.
 
-- A guarda atual vive em `src/test/rac-editor-boundary.smoke.test.ts`.
+- A guarda atual vive em `client/src/test/rac-editor-boundary.smoke.test.ts`.
 
 - Ela protege o núcleo lógico contra vazamentos de Fabric, `@canvas`, `CanvasGroup`, `CanvasObject`,
-  `CanvasInteractionPort` e imports concretos de `src/infra` no código produtivo do editor.
+  `CanvasInteractionPort` e imports concretos de `client/src/infra` no código produtivo do editor.

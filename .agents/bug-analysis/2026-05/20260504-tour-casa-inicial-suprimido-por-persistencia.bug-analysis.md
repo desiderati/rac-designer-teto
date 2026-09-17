@@ -38,10 +38,10 @@ aliases: [ tour inicial da casa não aparece ]
 - regras de negócio afetadas: a primeira inserção da casa no canvas deve orientar o usuário sobre Vista Planta e Vista
   Elevada.
 - módulos envolvidos:
-    - `src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
-    - `src/components/guided-tour/tours/rac-editor-tour.ts`
-    - `src/components/guided-tour/ports/types.ts`
-    - `src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+    - `client/src/components/guided-tour/hooks/useGuidedTourRuntime.ts`
+    - `client/src/components/guided-tour/tours/rac-editor-tour.ts`
+    - `client/src/components/guided-tour/ports/types.ts`
+    - `client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
     - `e2e/guided-tour.spec.ts`
 - contratos envolvidos: evento `rac:house-initial-views-inserted` com alvos dinâmicos.
 
@@ -95,9 +95,9 @@ aliases: [ tour inicial da casa não aparece ]
 ## 9. Validação Executada
 
 - testes executados:
-    - `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
+    - `npm run test -- client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx`
     -
-  `npm run test -- src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
+  `npm run test -- client/src/components/guided-tour/ui/GuidedTourHost.smoke.test.tsx client/src/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.smoke.test.ts`
     - `npm run test`
 - validação E2E:
     - `npx playwright test e2e/guided-tour.spec.ts --project=chromium`
