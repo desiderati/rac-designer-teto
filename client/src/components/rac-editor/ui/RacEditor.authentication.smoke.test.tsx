@@ -29,6 +29,7 @@ describe('RacEditor authentication landing', () => {
   it('shows the product landing with the real editor screenshot before login', () => {
     render(<RacEditor />);
 
+    expect(screen.getByRole('main')).not.toHaveClass('overflow-y-auto');
     expect(screen.getByRole('heading', { name: /Da ideia à planta/i })).toBeVisible();
     expect(screen.getByRole('img', { name: /Editor RAC Designer TETO/i })).toHaveAttribute(
       'src',

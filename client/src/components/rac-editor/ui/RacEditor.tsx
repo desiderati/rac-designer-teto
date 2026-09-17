@@ -96,7 +96,7 @@ function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
 
 function RacEditorAuthenticationState({error}: {error: unknown}) {
   return (
-    <main className='rac-login fixed inset-0 overflow-y-auto bg-[#eaf1f7] text-[#123d72]'>
+    <main className='rac-login fixed inset-0 bg-[#eaf1f7] text-[#123d72]'>
       <div className='rac-login__shell'>
         <section className='rac-login__copy'>
           <div className='rac-login__brand' aria-label='RAC Designer TETO'>

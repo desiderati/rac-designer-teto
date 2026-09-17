@@ -154,6 +154,7 @@ All colors MUST be HSL.
    served from Manus Storage so the repository does not carry large binaries. */
 .rac-login {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
 }
 
 .rac-login-loading {
@@ -243,14 +244,16 @@ All colors MUST be HSL.
 .rac-login__shell {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    grid-template-rows: auto minmax(18rem, 1fr);
+    grid-template-rows: minmax(0, 58fr) minmax(0, 42fr);
     align-items: stretch;
     column-gap: clamp(1.25rem, 3vw, 3.25rem);
     row-gap: clamp(1.5rem, 4vw, 3.25rem);
     width: min(100%, 1640px);
-    min-height: 100%;
+    height: 100%;
+    min-height: 0;
     margin: 0 auto;
     padding: clamp(1rem, 2.4vw, 2.25rem);
+    overflow: hidden;
     box-sizing: border-box;
 }
 
@@ -394,6 +397,7 @@ All colors MUST be HSL.
     grid-column: 2;
     grid-row: 1;
     display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
     align-content: start;
     min-width: 0;
     min-height: 0;
@@ -476,6 +480,20 @@ All colors MUST be HSL.
 .rac-login__callouts span:not(.rac-login__callout-icon) {
     color: #325f8d;
     font-weight: 500;
+}
+
+@media (min-width: 861px) {
+    .rac-login__editor-wrap {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        place-items: center;
+    }
+
+    .rac-login__editor-shot {
+        height: 100%;
+        object-fit: contain;
+    }
 }
 
 .rac-login__impact {
@@ -583,8 +601,10 @@ All colors MUST be HSL.
         align-items: stretch;
         gap: 1.25rem;
         width: 100%;
+        height: auto;
         min-height: 0;
         padding: 0.75rem;
+        overflow: visible;
     }
 
     .rac-login__copy,
@@ -622,8 +642,11 @@ All colors MUST be HSL.
 
     .rac-login__editor-wrap {
         width: calc(100% - 0.75rem);
+        height: auto;
         transform: rotate(-2deg);
     }
+
+    .rac-login__editor-shot { height: auto; }
 
     .rac-login__callouts {
         margin-top: 1rem;
