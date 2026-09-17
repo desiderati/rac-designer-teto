@@ -9,6 +9,7 @@ import {House3DViewerOverlay} from '@/components/rac-editor/@viewer-3d/ui/House3
 import {House3DPdfSnapshot} from '@/components/rac-editor/@viewer-3d/ui/House3DPdfSnapshot.tsx';
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 type RacEditorMenusProps = ComponentProps<typeof RacEditorMenus>;
 type CanvasProps = ComponentProps<typeof RacEditorCanvas>;
@@ -31,6 +32,7 @@ export interface RacEditorLayoutProps {
   house3DPdfSnapshot: {
     snapshotRef: RefObject<House3DPdfSnapshotHandle | null>;
     activeHouseId: string | null;
+    houseIllustrationPort?: HouseIllustrationPort;
   };
   workspace: {
     open: boolean;
@@ -68,6 +70,7 @@ export function RacEditorLayout({
           <House3DPdfSnapshot
             ref={house3DPdfSnapshot.snapshotRef}
             activeHouseId={house3DPdfSnapshot.activeHouseId}
+            houseIllustrationPort={house3DPdfSnapshot.houseIllustrationPort}
           />
           <House3DViewerOverlay {...viewer}/>
         </>

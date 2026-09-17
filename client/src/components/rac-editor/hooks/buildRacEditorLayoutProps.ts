@@ -1,4 +1,5 @@
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 type LayoutProps = RacEditorLayoutProps;
 
@@ -99,6 +100,7 @@ interface BuildRacEditorLayoutPropsArgs {
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
   activeHouseId: LayoutProps['viewer']['activeHouseId'];
+  houseIllustrationPort?: HouseIllustrationPort;
   house3DPdfSnapshotRef: LayoutProps['house3DPdfSnapshot']['snapshotRef'];
   constructionSiteManagementOpen: LayoutProps['workspace']['open'];
   closeConstructionSiteManagement: LayoutProps['workspace']['onClose'];
@@ -225,10 +227,12 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       onOpenChange: args.setIs3DViewerOpen,
       canvasRef: args.canvasRef,
       activeHouseId: args.activeHouseId,
+      houseIllustrationPort: args.houseIllustrationPort,
     },
     house3DPdfSnapshot: {
       snapshotRef: args.house3DPdfSnapshotRef,
       activeHouseId: args.activeHouseId,
+      houseIllustrationPort: args.houseIllustrationPort,
     },
     workspace: {
       open: args.constructionSiteManagementOpen,

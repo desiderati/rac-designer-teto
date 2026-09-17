@@ -16,10 +16,11 @@ import {
   getHouse3DViewerPreferencesStorageKey,
   readHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 const SNAPSHOT_WIDTH = 1000;
 const SNAPSHOT_HEIGHT = Math.round(SNAPSHOT_WIDTH * (CANVAS_HEIGHT / CANVAS_WIDTH));
-const CAPTURE_TIMEOUT_MS = 2200;
+const CAPTURE_TIMEOUT_MS = 30_000;
 
 const OFFSCREEN_STYLE: CSSProperties = {
   position: 'fixed',
@@ -39,6 +40,7 @@ interface PendingCapture {
 
 interface House3DPdfSnapshotProps {
   activeHouseId: string | null;
+  houseIllustrationPort?: HouseIllustrationPort;
 }
 
 interface CaptureBridgeProps {
@@ -47,7 +49,7 @@ interface CaptureBridgeProps {
 }
 
 export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPdfSnapshotProps>(
-  function House3DPdfSnapshot({activeHouseId}, ref) {
+  function House3DPdfSnapshot({activeHouseId, houseIllustrationPort}, ref) {
   const {
     houseType,
     canRenderHouse,
@@ -86,6 +88,29 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
     pendingCaptureRef.current = null;
     pendingCapture.resolve(dataUrl);
   }, []);
+
+  const handleCapturedHouse = useCallback(async (screenshotDataUrl: string | null) => {
+    if (!screenshotDataUrl) {
+      finishCapture(null);
+      return;
+    }
+
+    try {
+      const illustrationUrl = houseIllustrationPort
+        ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
+        : null;
+      if (!illustrationUrl) {
+        finishCapture(screenshotDataUrl);
+        return;
+      }
+
+      const illustrationDataUrl = await houseIllustrationPort?.resolveDataUrl(illustrationUrl) ?? null;
+      finishCapture(illustrationDataUrl ?? screenshotDataUrl);
+    } catch (error) {
+      console.warn('[House3DPdfSnapshot] Ilustração indisponível; usando captura 3D.', error);
+      finishCapture(screenshotDataUrl);
+    }
+  }, [finishCapture, houseIllustrationPort]);
 
   useImperativeHandle(ref, () => ({
     captureImageDataUrl: () => {
@@ -160,7 +185,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
             hideBelowTerrain
           />
 
-          <CaptureBridge requestId={captureRequestId} onCapture={finishCapture}/>
+          <CaptureBridge requestId={captureRequestId} onCapture={handleCapturedHouse}/>
         </Canvas>
       </Suspense>
     </div>

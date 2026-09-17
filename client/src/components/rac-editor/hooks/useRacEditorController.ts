@@ -37,7 +37,7 @@ import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/hou
  */
 export function useRacEditorController(): RacEditorLayoutProps {
   const isMobile = useIsMobile();
-  const {houseReadPort, houseWritePort, settingsPort} = useEditorPorts();
+  const {houseReadPort, houseWritePort, settingsPort, houseIllustrationPort} = useEditorPorts();
 
   const {
     pendingViewType,
@@ -596,6 +596,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     is3DViewerOpen,
     setIs3DViewerOpen,
     activeHouseId: activeHouse?.id ?? null,
+    houseIllustrationPort,
     house3DPdfSnapshotRef,
     constructionSiteManagementOpen,
     closeConstructionSiteManagement,

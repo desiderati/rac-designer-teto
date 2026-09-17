@@ -10,6 +10,8 @@ import type {SettingsPort} from '@/components/rac-editor/ports/SettingsPort.ts';
 import {createDefaultEditorHousePorts} from '@/bootstrap/editor-house-ports.ts';
 import {createDefaultSettingsPort} from '@/bootstrap/editor-infra-ports.ts';
 import type {ConstructionSiteSessionStoragePort} from '@/components/rac-editor/lib/construction-site-session.ts';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
+import {createHouseIllustrationPort} from '@/infra/image/house-illustration-generator.ts';
 
 export interface EditorPorts {
   houseReadPort: HouseReadPort;
@@ -21,6 +23,7 @@ export interface EditorPorts {
   houseDrawingDocumentPort: HouseDrawingDocumentPort;
   constructionSiteManagementPort: ConstructionSiteManagementPort;
   settingsPort: SettingsPort;
+  houseIllustrationPort?: HouseIllustrationPort;
 }
 
 export interface CreateEditorPortsArgs {
@@ -37,5 +40,6 @@ export function createEditorPorts(args: CreateEditorPortsArgs = {}): EditorPorts
   return {
     ...housePorts,
     settingsPort,
+    houseIllustrationPort: createHouseIllustrationPort(),
   };
 }

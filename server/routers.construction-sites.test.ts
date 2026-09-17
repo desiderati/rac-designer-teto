@@ -8,6 +8,7 @@ const db = vi.hoisted(() => ({
   removeConstructionSiteDocument: vi.fn(),
 }));
 const storage = vi.hoisted(() => ({ storagePut: vi.fn() }));
+const imageGeneration = vi.hoisted(() => ({ generateImage: vi.fn() }));
 
 vi.mock('./db.ts', () => ({
   ...db,
@@ -15,6 +16,7 @@ vi.mock('./db.ts', () => ({
   ConstructionSiteDeleteNotAllowedError: class ConstructionSiteDeleteNotAllowedError extends Error {},
 }));
 vi.mock('./storage.ts', () => storage);
+vi.mock('./_core/imageGeneration.ts', () => imageGeneration);
 
 import { appRouter } from './routers.ts';
 
@@ -101,5 +103,24 @@ describe('constructionSites procedures', () => {
       expect.any(Buffer),
       'image/png',
     );
+  });
+
+  it('generates a house illustration behind a protected procedure', async () => {
+    imageGeneration.generateImage.mockResolvedValue({
+      url: '/manus-storage/generated/house-illustration.png',
+    });
+    const caller = appRouter.createCaller(createContext());
+
+    const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    await expect(caller.storage.generateHouseIllustration({base64}))
+      .resolves.toEqual({url: '/manus-storage/generated/house-illustration.png'});
+    expect(imageGeneration.generateImage).toHaveBeenCalledWith(expect.objectContaining({
+      model: 'MODEL_GPT_IMAGE_2',
+      quality: 'medium',
+      originalImages: [{
+        b64Json: base64,
+        mimeType: 'image/png',
+      }],
+    }));
   });
 });

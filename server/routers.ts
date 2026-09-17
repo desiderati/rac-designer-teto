@@ -12,6 +12,7 @@ import {
 import { getSessionCookieOptions } from './_core/cookies.ts';
 import { systemRouter } from './_core/systemRouter.ts';
 import { protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
+import { generateImage } from './_core/imageGeneration.ts';
 import { storagePut } from './storage.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
@@ -104,6 +105,37 @@ export const appRouter = router({
           url: uploaded.url,
           bytes: bytes.byteLength,
           mimeType: input.mimeType,
+        };
+      }),
+
+    generateHouseIllustration: protectedProcedure
+      .input(z.object({
+        base64: z.string().min(32).max(7 * 1024 * 1024),
+      }))
+      .mutation(async ({ input }) => {
+        const pngBytes = decodeBase64Image(input.base64, 'image/png');
+        const generated = await generateImage({
+          prompt: [
+            'Transform the supplied 3D house render into a clean architectural watercolor-and-ink illustration for the RAC Designer TETO.',
+            'Preserve the house geometry exactly: roof pitch and corrugated roof, facade proportions, every visible window and door, stairs, elevated pilotis, foundation and terrain footprint, camera angle and overall silhouette.',
+            'Use fine dark architectural linework with restrained blue-gray walls, light roof details, soft natural colors and subtle shading.',
+            'Output the complete house and foundation as a true transparent PNG with clean alpha edges. No background, no checkerboard, no text, no labels, no arrows, no extra buildings, no crop.',
+          ].join(' '),
+          originalImages: [{b64Json: pngBytes.toString('base64'), mimeType: 'image/png'}],
+          model: 'MODEL_GPT_IMAGE_2',
+          quality: 'medium',
+        });
+
+        if (!generated.url) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'A ilustração da casa não foi gerada.',
+          });
+        }
+
+        return {
+          url: generated.url,
+          ...(generated.dataUrl ? {dataUrl: generated.dataUrl} : {}),
         };
       }),
   }),

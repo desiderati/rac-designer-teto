@@ -1,4 +1,5 @@
 import {Suspense, useEffect, useMemo} from 'react';
+import {Loader2} from 'lucide-react';
 import {Canvas} from '@react-three/fiber';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Button} from '@/components/ui/button.tsx';
@@ -27,12 +28,14 @@ import {
   resolveHouse3DDoorFace,
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 import {getHouse3DViewerPreferencesStorageKey} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 interface House3DViewerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   activeHouseId: string | null;
+  houseIllustrationPort?: HouseIllustrationPort;
 }
 
 function readPersistedCameraPose(storageKey: string | null, storageRevision: number) {
@@ -40,7 +43,7 @@ function readPersistedCameraPose(storageKey: string | null, storageRevision: num
   return readHouse3DViewerCameraPose(storageKey);
 }
 
-export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: House3DViewerProps) {
+export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort}: House3DViewerProps) {
   const {
     houseType,
     hasHouseViews,
@@ -77,6 +80,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: Ho
     setHideBelowTerrain,
     isSceneReady,
     clearSceneReadiness,
+    isGeneratingIllustration,
     handleCanvasCreated,
     registerCameraPoseReader,
     handleReset,
@@ -91,6 +95,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: Ho
     canvasRef,
     cameraPoseStorageKey,
     viewerPreferencesStorageKey,
+    houseIllustrationPort,
   });
   const persistedCameraPose = useMemo(
     () => readPersistedCameraPose(cameraPoseStorageKey, resetKey),
@@ -156,11 +161,11 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId}: Ho
               <Button
                 variant='outline'
                 size='icon'
-                title='Inserir no Canvas'
+                title={isGeneratingIllustration ? 'Gerando ilustração…' : 'Inserir no Canvas'}
                 onClick={handleInsertOnCanvas}
-                disabled={!canRenderHouse || !isSceneReady}
+                disabled={!canRenderHouse || !isSceneReady || isGeneratingIllustration}
               >
-                <FontAwesomeIcon icon={faCamera}/>
+                {isGeneratingIllustration ? <Loader2 className='h-4 w-4 animate-spin'/> : <FontAwesomeIcon icon={faCamera}/>}
               </Button>
               <Button
                 variant='outline'

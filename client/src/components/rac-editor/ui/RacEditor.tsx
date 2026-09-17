@@ -15,7 +15,7 @@ import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 
 const PRODUCT_SCREENSHOT_URL = '/manus-storage/pasted_file_3D3Rgh_image_7992f010.png';
-const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-faithful_13746605.png';
+const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-transparent-clean_a64b114e.png';
 
 export function RacEditor() {
   const {isAuthenticated, loading, error} = useAuth();
@@ -131,31 +131,33 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
         </section>
 
         <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
-          <div className='rac-login__editor-wrap'>
+          <div className='rac-login__editor-stage'>
+            <div className='rac-login__editor-wrap'>
+              <img
+                className='rac-login__editor-shot'
+                src={PRODUCT_SCREENSHOT_URL}
+                alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
+              />
+              <span className='rac-login__sync-badge' aria-label='Editor sincronizado'>
+                <CheckCircle2 aria-hidden='true'/>
+              </span>
+            </div>
+
+            <div className='rac-login__callouts'>
+              <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><br/>com histórico<br/>e versões.</p></div>
+              <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><br/>que decide<br/>junto.</p></div>
+              <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><br/>mais segura<br/>e eficiente.</p></div>
+            </div>
+          </div>
+
+          <div className='rac-login__house-stage'>
+            <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
             <img
-              className='rac-login__editor-shot'
-              src={PRODUCT_SCREENSHOT_URL}
-              alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
+              className='rac-login__house'
+              src={HOUSE_ILLUSTRATION_URL}
+              alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
             />
-            <span className='rac-login__sync-badge' aria-label='Editor sincronizado'>
-              <CheckCircle2 aria-hidden='true'/>
-            </span>
           </div>
-          <div className='rac-login__connector rac-login__connector--top' aria-hidden='true'/>
-          <div className='rac-login__connector rac-login__connector--bottom' aria-hidden='true'/>
-
-          <div className='rac-login__callouts'>
-            <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><br/>com histórico<br/>e versões.</p></div>
-            <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><br/>que decide<br/>junto.</p></div>
-            <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><br/>mais segura<br/>e eficiente.</p></div>
-          </div>
-
-          <img
-            className='rac-login__house'
-            src={HOUSE_ILLUSTRATION_URL}
-            alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
-          />
-          <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
         </section>
       </div>
     </main>

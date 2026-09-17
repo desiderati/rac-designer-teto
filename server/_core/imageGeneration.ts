@@ -38,6 +38,8 @@ export type GenerateImageOptions = {
 
 export type GenerateImageResponse = {
   url?: string;
+  /** Data URL transitória para consumidores que precisam materializar a imagem imediatamente. */
+  dataUrl?: string;
 };
 
 export async function generateImage(
@@ -103,6 +105,7 @@ export async function generateImage(
   );
   return {
     url,
+    dataUrl: `data:${result.image.mimeType};base64,${base64Data}`,
   };
 }
 

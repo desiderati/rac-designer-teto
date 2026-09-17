@@ -4,6 +4,7 @@ import {toast} from 'sonner';
 import type {HouseType} from '@/shared/types/house.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
+import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 import type {House3DViewerCameraPoseReader} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 import {
   removeHouse3DViewerCameraPose,
@@ -21,6 +22,7 @@ interface UseHouse3DViewerActionsArgs {
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   cameraPoseStorageKey: string | null;
   viewerPreferencesStorageKey: string | null;
+  houseIllustrationPort?: HouseIllustrationPort;
 }
 
 /**
@@ -36,6 +38,7 @@ export function useHouse3DViewerActions({
   canvasRef,
   cameraPoseStorageKey,
   viewerPreferencesStorageKey,
+  houseIllustrationPort,
 }: UseHouse3DViewerActionsArgs) {
 
   const [resetKey, setResetKey] = useState(0);
@@ -47,6 +50,7 @@ export function useHouse3DViewerActions({
     () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).hideBelowTerrain,
   );
   const [isSceneReady, setIsSceneReady] = useState(false);
+  const [isGeneratingIllustration, setIsGeneratingIllustration] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraPoseReaderRef = useRef<House3DViewerCameraPoseReader | null>(null);
 
@@ -119,17 +123,36 @@ export function useHouse3DViewerActions({
       return;
     }
 
+    const screenshotDataUrl = webglCanvas.toDataURL('image/png');
+
     try {
-      const dataUrl = webglCanvas.toDataURL('image/png');
-      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(dataUrl) ?? false;
+      setIsGeneratingIllustration(true);
+      toast.info('Gerando ilustração arquitetônica…');
+      const illustrationUrl = houseIllustrationPort
+        ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
+        : null;
+      const illustrationDataUrl = illustrationUrl
+        ? await houseIllustrationPort?.resolveDataUrl(illustrationUrl) ?? null
+        : null;
+      const imageDataUrl = illustrationDataUrl ?? screenshotDataUrl;
+      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(imageDataUrl) ?? false;
       if (inserted) {
-        toast.success(TOAST_MESSAGES.house3DInsertedSuccessfully);
+        toast.success(illustrationDataUrl
+          ? 'Ilustração da casa inserida no Canvas.'
+          : TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {
         toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas);
       }
     } catch (error) {
-      console.error('[House3DViewer] Falha ao capturar screenshot 3D:', error);
-      toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
+      console.error('[House3DViewer] Falha ao gerar ilustração da casa:', error);
+      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(screenshotDataUrl) ?? false;
+      if (inserted) {
+        toast.warning('A ilustração não ficou disponível; o screenshot 3D foi inserido como fallback.');
+      } else {
+        toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
+      }
+    } finally {
+      setIsGeneratingIllustration(false);
     }
   }, [canvasRef, hasHouseViews, houseType]);
 
@@ -141,6 +164,7 @@ export function useHouse3DViewerActions({
     hideBelowTerrain,
     setHideBelowTerrain,
     isSceneReady,
+    isGeneratingIllustration,
     clearSceneReadiness,
     handleCanvasCreated,
     registerCameraPoseReader,
