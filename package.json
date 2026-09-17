@@ -12,7 +12,7 @@
     "check": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:architecture": "vitest run client/src/test/rac-editor-boundary.smoke.test.ts",
+    "test:architecture": "vitest run --config vite.config.ts src/test/rac-editor-boundary.smoke.test.ts",
     "test": "vitest run --config vite.config.ts",
     "test:server": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vite.config.ts",
@@ -131,6 +131,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "7.1.11",
+    "vite-plugin-manus-runtime": "0.0.59",
     "vitest": "^3.2.4"
   }
 }

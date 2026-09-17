@@ -1,13 +1,15 @@
 import { defineConfig } from 'vite';
 import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
+import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
 
 const projectRoot = import.meta.dirname;
 
 export default defineConfig({
   root: path.resolve(projectRoot, 'client'),
   publicDir: path.resolve(projectRoot, 'client', 'public'),
-  plugins: [react()],
+  plugins: [react(), vitePluginManusRuntime()],
+  envDir: projectRoot,
   resolve: {
     alias: {
       '@': path.resolve(projectRoot, 'client', 'src'),

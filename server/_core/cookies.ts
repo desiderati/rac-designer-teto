@@ -9,16 +9,23 @@ function isIpAddress(host: string) {
 }
 
 function isSecureRequest(req: Request) {
+  if (req.secure) return true;
   if (req.protocol === "https") return true;
 
   const forwardedProto = req.headers["x-forwarded-proto"];
-  if (!forwardedProto) return false;
+  if (forwardedProto) {
+    const protoList = Array.isArray(forwardedProto)
+      ? forwardedProto
+      : forwardedProto.split(",");
 
-  const protoList = Array.isArray(forwardedProto)
-    ? forwardedProto
-    : forwardedProto.split(",");
+    if (protoList.some(proto => proto.trim().toLowerCase() === "https")) return true;
+  }
 
-  return protoList.some(proto => proto.trim().toLowerCase() === "https");
+  // Some managed preview gateways omit x-forwarded-proto while still serving
+  // the public app over HTTPS. Never emit SameSite=None without Secure there.
+  // Plain HTTP remains supported only for local development hosts.
+  const hostname = req.hostname ?? "";
+  return !LOCAL_HOSTS.has(hostname) && !isIpAddress(hostname);
 }
 
 export function getSessionCookieOptions(
@@ -42,7 +49,7 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    sameSite: isSecureRequest(req) ? "none" : "lax",
     secure: isSecureRequest(req),
   };
 }
