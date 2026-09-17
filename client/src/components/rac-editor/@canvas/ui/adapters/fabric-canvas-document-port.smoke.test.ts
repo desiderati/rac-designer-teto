@@ -479,6 +479,27 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('substitui base64 por referência do Storage quando o snapshot foi persistido', () => {
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Image',
+          myType: 'image',
+          editorObjectId: 'snapshot-storage-1',
+          src: 'data:image/png;base64,abc',
+          storageUrl: '/manus-storage/rac-designer-teto/generated/house.png',
+        }],
+      })),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+
+    expect(exported?.objects[0].resource).toEqual({
+      src: '/manus-storage/rac-designer-teto/generated/house.png',
+      storageUrl: '/manus-storage/rac-designer-teto/generated/house.png',
+    });
+  });
+
   it('captura imagem descartando seleção ativa antes de exportar', () => {
     const canvas = {
       getObjects: vi.fn(() => []),

@@ -34,6 +34,10 @@ describe('RacEditor authentication landing', () => {
       'src',
       '/manus-storage/pasted_file_3D3Rgh_image_7992f010.png',
     );
+    expect(screen.getByRole('img', { name: /casa TETO elevada/i })).toHaveAttribute(
+      'src',
+      '/manus-storage/teto-house-linework-transparent-cropped_28fd1656.png',
+    );
     expect(screen.queryByText('Imagens devem ser enviadas ao Storage do Manus')).not.toBeInTheDocument();
   });
 

@@ -96,16 +96,15 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
     }
 
     try {
-      const illustrationUrl = houseIllustrationPort
+      const illustration = houseIllustrationPort
         ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
         : null;
-      if (!illustrationUrl) {
+      if (!illustration?.dataUrl) {
         finishCapture(screenshotDataUrl);
         return;
       }
 
-      const illustrationDataUrl = await houseIllustrationPort?.resolveDataUrl(illustrationUrl) ?? null;
-      finishCapture(illustrationDataUrl ?? screenshotDataUrl);
+      finishCapture(illustration.dataUrl);
     } catch (error) {
       console.warn('[House3DPdfSnapshot] Ilustração indisponível; usando captura 3D.', error);
       finishCapture(screenshotDataUrl);

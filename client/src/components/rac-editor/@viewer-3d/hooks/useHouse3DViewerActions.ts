@@ -97,19 +97,21 @@ export function useHouse3DViewerActions({
   }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
 
   const handleClose = useCallback(() => {
+    if (isGeneratingIllustration) return;
     persistCurrentCameraPose();
     persistCurrentViewerPreferences();
     onOpenChange(false);
-  }, [onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
+  }, [isGeneratingIllustration, onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
 
   const handleDialogOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {
+      if (isGeneratingIllustration) return;
       handleClose();
       return;
     }
 
     onOpenChange(true);
-  }, [handleClose, onOpenChange]);
+  }, [handleClose, isGeneratingIllustration, onOpenChange]);
 
   const handleInsertOnCanvas = useCallback(async () => {
     if (!houseType || !hasHouseViews) {
@@ -127,25 +129,36 @@ export function useHouse3DViewerActions({
 
     try {
       setIsGeneratingIllustration(true);
-      toast.info('Gerando ilustração arquitetônica…');
-      const illustrationUrl = houseIllustrationPort
+      toast.info('Gerando ilustração arquitetônica transparente…');
+      const illustration = houseIllustrationPort
         ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
         : null;
-      const illustrationDataUrl = illustrationUrl
-        ? await houseIllustrationPort?.resolveDataUrl(illustrationUrl) ?? null
-        : null;
-      const imageDataUrl = illustrationDataUrl ?? screenshotDataUrl;
-      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(imageDataUrl) ?? false;
+      const imageDataUrl = illustration?.dataUrl ?? screenshotDataUrl;
+      let storageUrl = illustration?.storageUrl ?? null;
+
+      if (!storageUrl && houseIllustrationPort?.persistDataUrl) {
+        storageUrl = await houseIllustrationPort.persistDataUrl(imageDataUrl, 'casa-3d-fallback.png');
+      }
+
+      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(imageDataUrl, {storageUrl}) ?? false;
       if (inserted) {
-        toast.success(illustrationDataUrl
-          ? 'Ilustração da casa inserida no Canvas.'
+        toast.success(illustration?.dataUrl
+          ? 'Ilustração transparente da casa inserida no Canvas.'
           : TOAST_MESSAGES.house3DInsertedSuccessfully);
       } else {
         toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas);
       }
     } catch (error) {
       console.error('[House3DViewer] Falha ao gerar ilustração da casa:', error);
-      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(screenshotDataUrl) ?? false;
+      let storageUrl: string | null = null;
+      try {
+        storageUrl = houseIllustrationPort?.persistDataUrl
+          ? await houseIllustrationPort.persistDataUrl(screenshotDataUrl, 'casa-3d-fallback.png')
+          : null;
+      } catch (persistError) {
+        console.error('[House3DViewer] Falha ao persistir fallback 3D:', persistError);
+      }
+      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(screenshotDataUrl, {storageUrl}) ?? false;
       if (inserted) {
         toast.warning('A ilustração não ficou disponível; o screenshot 3D foi inserido como fallback.');
       } else {
@@ -154,7 +167,7 @@ export function useHouse3DViewerActions({
     } finally {
       setIsGeneratingIllustration(false);
     }
-  }, [canvasRef, hasHouseViews, houseType]);
+  }, [canvasRef, hasHouseViews, houseIllustrationPort, houseType]);
 
   return {
     resetKey,

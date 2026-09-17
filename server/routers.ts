@@ -14,6 +14,7 @@ import { systemRouter } from './_core/systemRouter.ts';
 import { protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
 import { generateImage } from './_core/imageGeneration.ts';
 import { storagePut } from './storage.ts';
+import { removeLightBackgroundFromPng } from './image-transparency.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -133,9 +134,30 @@ export const appRouter = router({
           });
         }
 
+        if (!generated.dataUrl) {
+          return {url: generated.url};
+        }
+
+        const generatedBase64 = generated.dataUrl.split(',', 2)[1];
+        if (!generatedBase64) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'A ilustração da casa retornou um formato inválido.',
+          });
+        }
+
+        const transparentPng = await removeLightBackgroundFromPng(
+          Buffer.from(generatedBase64, 'base64'),
+        );
+        const processed = await storagePut(
+          `rac-designer-teto/generated/house-illustration-${Date.now()}.png`,
+          transparentPng,
+          'image/png',
+        );
+
         return {
-          url: generated.url,
-          ...(generated.dataUrl ? {dataUrl: generated.dataUrl} : {}),
+          url: processed.url,
+          dataUrl: `data:image/png;base64,${transparentPng.toString('base64')}`,
         };
       }),
   }),

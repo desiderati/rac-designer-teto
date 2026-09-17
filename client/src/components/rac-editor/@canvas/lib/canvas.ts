@@ -39,6 +39,7 @@ type CanvasProperties = {
   getCanvasObjects?: () => CanvasObject[];
   getObjects?: () => CanvasObject[];
   objectCaching?: boolean;
+  storageUrl?: string;
 
   houseInstanceId?: string;
   houseViewType?: string;
@@ -420,6 +421,7 @@ export const canvasObjectProps = [
   'isPilotiNivelText',
   'isPilotiNameLabel',
   'isPilotiSizeLabel',
+  'storageUrl',
   'isPilotiStripe',
   'pilotiId',
   'pilotiHeight',

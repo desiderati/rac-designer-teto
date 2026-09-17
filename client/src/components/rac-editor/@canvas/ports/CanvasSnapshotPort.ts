@@ -8,5 +8,5 @@ export interface CanvasSnapshotPort {
    * Retorna `false` quando o canvas não está disponível, a imagem é inválida ou
    * a implementação concreta não consegue materializar o snapshot.
    */
-  insertImageSnapshot(dataUrl: string): Promise<boolean>;
+  insertImageSnapshot(dataUrl: string, options?: {storageUrl?: string | null}): Promise<boolean>;
 }

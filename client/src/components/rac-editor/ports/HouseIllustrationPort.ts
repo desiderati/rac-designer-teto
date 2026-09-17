@@ -3,6 +3,11 @@
  * A implementação concreta usa o backend Manus; o viewer conhece somente este contrato.
  */
 export interface HouseIllustrationPort {
-  generateFromDataUrl: (dataUrl: string) => Promise<string | null>;
-  resolveDataUrl: (url: string) => Promise<string | null>;
+  generateFromDataUrl: (dataUrl: string) => Promise<HouseIllustrationResult | null>;
+  persistDataUrl?: (dataUrl: string, fileName: string) => Promise<string | null>;
+}
+
+export interface HouseIllustrationResult {
+  dataUrl: string | null;
+  storageUrl: string | null;
 }

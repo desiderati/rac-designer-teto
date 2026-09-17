@@ -189,7 +189,8 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                 variant='outline'
                 size='icon'
                 onClick={handleClose}
-                title='Fechar'
+                title={isGeneratingIllustration ? 'Aguarde a geração da ilustração' : 'Fechar'}
+                disabled={isGeneratingIllustration}
               >
                 <FontAwesomeIcon icon={faXmark}/>
               </Button>

@@ -77,6 +77,7 @@ const styleKeys = [
 
 const resourceKeys = [
   'src',
+  'storageUrl',
   'crossOrigin',
   'cropX',
   'cropY',
@@ -185,6 +186,18 @@ function pickJsonObject(source: Record<string, unknown>, keys: readonly string[]
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+function pickResource(source: Record<string, unknown>): JsonObject | undefined {
+  const resource = pickJsonObject(source, resourceKeys);
+  if (!resource) return undefined;
+
+  const storageUrl = resource.storageUrl;
+  const src = resource.src;
+  if (typeof storageUrl === 'string' && /^data:image\//i.test(String(src ?? ''))) {
+    resource.src = storageUrl;
+  }
+  return resource;
+}
+
 function toDrawingElement(source: unknown, index: number, path = `${index}`): HouseDrawingElementDocument | null {
   if (!isRecord(source)) return null;
 
@@ -207,7 +220,7 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
     style: pickJsonObject(source, styleKeys),
     text: readString(source.text) ?? undefined,
     metadata: pickJsonObject(source, metadataKeys),
-    resource: pickJsonObject(source, resourceKeys),
+    resource: pickResource(source),
     children: children && children.length > 0 ? children : undefined,
   };
 }

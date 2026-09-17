@@ -1,20 +1,20 @@
 import {racTrpcClient} from '@/lib/trpc-client.ts';
-import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
+import {dataUrlToStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
+import type {HouseIllustrationPort, HouseIllustrationResult} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 export function createHouseIllustrationPort(): HouseIllustrationPort {
   return {
     generateFromDataUrl: generateHouseIllustrationFromDataUrl,
-    resolveDataUrl: imageUrlToDataUrl,
+    persistDataUrl: persistHouseImageDataUrl,
   };
 }
 
 /**
- * Converte a captura WebGL em uma referência gerada no Storage Manus.
- * A chamada é deliberadamente explícita: gerar uma ilustração é mais lento que
- * capturar o WebGL, portanto os consumidores podem exibir estado de progresso
- * e manter o screenshot como fallback.
+ * Converte a captura WebGL em uma ilustração arquitetônica transparente e
+ * devolve simultaneamente a representação transitória para o Canvas e a
+ * referência persistente do Storage Manus.
  */
-export async function generateHouseIllustrationFromDataUrl(dataUrl: string): Promise<string | null> {
+export async function generateHouseIllustrationFromDataUrl(dataUrl: string): Promise<HouseIllustrationResult | null> {
   const [, base64] = dataUrl.split(',', 2);
   if (!base64) return null;
 
@@ -22,7 +22,16 @@ export async function generateHouseIllustrationFromDataUrl(dataUrl: string): Pro
     base64,
   });
 
-  return result.dataUrl ?? (result.url ? toAbsoluteUrl(result.url) : null);
+  return {
+    dataUrl: result.dataUrl ?? (result.url ? await imageUrlToDataUrl(result.url) : null),
+    storageUrl: result.url ?? null,
+  };
+}
+
+export async function persistHouseImageDataUrl(dataUrl: string, fileName: string): Promise<string | null> {
+  const payload = dataUrlToStorageImageUploadPayload(dataUrl, fileName);
+  const result = await racTrpcClient.storage.uploadImage.mutate(payload);
+  return result.url ?? null;
 }
 
 export async function imageUrlToDataUrl(url: string): Promise<string | null> {

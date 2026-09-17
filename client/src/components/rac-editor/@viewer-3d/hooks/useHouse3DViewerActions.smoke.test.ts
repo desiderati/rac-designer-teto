@@ -41,7 +41,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('insere a URL da ilustração gerada no Canvas', async () => {
+  it('insere a ilustração transparente e registra a URL do Storage no Canvas', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
@@ -54,9 +54,11 @@ describe('useHouse3DViewerActions.ts', () => {
     };
     const houseIllustrationPort = {
       generateFromDataUrl: vi.fn().mockResolvedValue(
-        'https://example.test/manus-storage/generated/house.png',
+        {
+          storageUrl: 'https://example.test/manus-storage/generated/house.png',
+          dataUrl: 'data:image/png;base64,illustrated-house',
+        },
       ),
-      resolveDataUrl: vi.fn().mockResolvedValue('data:image/png;base64,illustrated-house'),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -76,7 +78,50 @@ describe('useHouse3DViewerActions.ts', () => {
     });
 
     expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith('data:image/png;base64,3d-screenshot');
-    expect(houseIllustrationPort.resolveDataUrl).toHaveBeenCalledWith('https://example.test/manus-storage/generated/house.png');
-    expect(insertImageSnapshot).toHaveBeenCalledWith('data:image/png;base64,illustrated-house');
+    expect(insertImageSnapshot).toHaveBeenCalledWith(
+      'data:image/png;base64,illustrated-house',
+      {storageUrl: 'https://example.test/manus-storage/generated/house.png'},
+    );
+  });
+
+  it('impede fechar o viewer enquanto a ilustração está sendo gerada', async () => {
+    let resolveGeneration: ((value: {dataUrl: string; storageUrl: string}) => void) | null = null;
+    const pendingGeneration = new Promise<{dataUrl: string; storageUrl: string}>((resolve) => {
+      resolveGeneration = resolve;
+    });
+    const onOpenChange = vi.fn();
+    const canvas = document.createElement('canvas');
+    Object.defineProperty(canvas, 'toDataURL', {
+      value: vi.fn(() => 'data:image/png;base64,3d-screenshot'),
+    });
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange,
+      canvasRef: {current: {createSnapshotPort: () => ({insertImageSnapshot: vi.fn().mockResolvedValue(true)})}},
+      cameraPoseStorageKey: null,
+      viewerPreferencesStorageKey: null,
+      houseIllustrationPort: {generateFromDataUrl: vi.fn(() => pendingGeneration)},
+    }));
+
+    act(() => {
+      result.current.handleCanvasCreated(canvas);
+      void result.current.handleInsertOnCanvas();
+    });
+
+    expect(result.current.isGeneratingIllustration).toBe(true);
+    act(() => result.current.handleClose());
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveGeneration?.({
+        dataUrl: 'data:image/png;base64,illustrated-house',
+        storageUrl: '/manus-storage/generated/house.png',
+      });
+      await pendingGeneration;
+    });
+
+    act(() => result.current.handleClose());
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

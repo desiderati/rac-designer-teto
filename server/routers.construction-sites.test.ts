@@ -106,14 +106,28 @@ describe('constructionSites procedures', () => {
   });
 
   it('generates a house illustration behind a protected procedure', async () => {
+    const generatedBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     imageGeneration.generateImage.mockResolvedValue({
       url: '/manus-storage/generated/house-illustration.png',
+      dataUrl: `data:image/png;base64,${generatedBase64}`,
+    });
+    storage.storagePut.mockResolvedValue({
+      key: 'rac-designer-teto/generated/house-illustration-processed.png',
+      url: '/manus-storage/rac-designer-teto/generated/house-illustration-processed.png',
     });
     const caller = appRouter.createCaller(createContext());
 
     const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     await expect(caller.storage.generateHouseIllustration({base64}))
-      .resolves.toEqual({url: '/manus-storage/generated/house-illustration.png'});
+      .resolves.toMatchObject({
+        url: '/manus-storage/rac-designer-teto/generated/house-illustration-processed.png',
+        dataUrl: expect.stringMatching(/^data:image\/png;base64,/),
+      });
+    expect(storage.storagePut).toHaveBeenCalledWith(
+      expect.stringMatching(/^rac-designer-teto\/generated\/house-illustration-/),
+      expect.any(Buffer),
+      'image/png',
+    );
     expect(imageGeneration.generateImage).toHaveBeenCalledWith(expect.objectContaining({
       model: 'MODEL_GPT_IMAGE_2',
       quality: 'medium',

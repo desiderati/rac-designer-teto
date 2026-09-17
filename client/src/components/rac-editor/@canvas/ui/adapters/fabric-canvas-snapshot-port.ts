@@ -8,10 +8,11 @@ import {create3DSnapshotImagePatch} from '@/components/rac-editor/lib/house-snap
  */
 export function createFabricCanvasSnapshotPort(canvas: FabricCanvas): CanvasSnapshotPort {
   return {
-    insertImageSnapshot: (dataUrl) =>
+    insertImageSnapshot: (dataUrl, options) =>
       insertImageSnapshotOnFabricCanvas({
         canvas,
         dataUrl,
+        storageUrl: options?.storageUrl ?? null,
       }),
   };
 }
@@ -19,6 +20,7 @@ export function createFabricCanvasSnapshotPort(canvas: FabricCanvas): CanvasSnap
 async function insertImageSnapshotOnFabricCanvas(params: {
   canvas: FabricCanvas | null;
   dataUrl: string;
+  storageUrl: string | null;
 }): Promise<boolean> {
   if (!params.canvas) return false;
   if (!params.dataUrl) return false;
@@ -38,6 +40,7 @@ async function insertImageSnapshotOnFabricCanvas(params: {
         canvasHeight: params.canvas.getHeight() || CANVAS_HEIGHT,
       }),
       myType: 'image',
+      ...(params.storageUrl ? {storageUrl: params.storageUrl} : {}),
     });
     image.setControlsVisibility?.({mtr: false});
     params.canvas.add(image);

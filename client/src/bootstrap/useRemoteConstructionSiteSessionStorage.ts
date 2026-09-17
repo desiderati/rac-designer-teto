@@ -236,6 +236,7 @@ export function createReactiveConstructionSiteSessionStorage(
   onWrite: (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => Promise<void>,
 ): ConstructionSiteSessionStoragePort {
   let pendingWrite: Promise<void> | null = null;
+  let writeSequence = 0;
   let document: StoredConstructionSitesDocument = {
     version: 1,
     constructionSites: cloneConstructionSites(initialConstructionSites),
@@ -244,11 +245,17 @@ export function createReactiveConstructionSiteSessionStorage(
   return {
     read: () => cloneDocument(document),
     write: (constructionSites) => {
+      const sequence = ++writeSequence;
       const previous = document.constructionSites;
       document = { version: document.version, constructionSites: cloneConstructionSites(constructionSites) };
       const nextSnapshot = cloneConstructionSites(document.constructionSites);
       const previousSnapshot = cloneConstructionSites(previous);
-      const run = () => onWrite(nextSnapshot, previousSnapshot);
+      const run = async () => {
+        await onWrite(nextSnapshot, previousSnapshot);
+        if (sequence === writeSequence) {
+          document = { version: document.version, constructionSites: cloneConstructionSites(nextSnapshot) };
+        }
+      };
       const scheduled = pendingWrite ? pendingWrite.then(run, run) : run();
       const tracked = scheduled.catch((error) => console.error('[rac] Falha ao sincronizar Construções TETO remotas.', error));
       pendingWrite = tracked;

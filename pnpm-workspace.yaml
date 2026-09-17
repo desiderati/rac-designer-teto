@@ -3,3 +3,4 @@ allowBuilds:
   canvas: true
   core-js: true
   esbuild: true
+  sharp: true
