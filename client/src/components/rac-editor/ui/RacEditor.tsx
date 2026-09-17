@@ -19,7 +19,12 @@ const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-transparent-c
 
 export function RacEditor() {
   const {isAuthenticated, loading, error} = useAuth();
+  const landingPreview = useMemo(() => {
+    if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('landing') === 'preview';
+  }, []);
 
+  if (landingPreview) return <RacEditorAuthenticationState error={null}/>;
   if (loading) return <RacEditorLoadingState/>;
   if (!isAuthenticated) return <RacEditorAuthenticationState error={error}/>;
 
@@ -140,18 +145,14 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
               />
             </div>
 
-            <div className='rac-login__connector rac-login__connector--top' aria-hidden='true'/>
-            <div className='rac-login__connector rac-login__connector--bottom' aria-hidden='true'/>
-
             <div className='rac-login__callouts'>
-              <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><br/>com histórico<br/>e versões.</p></div>
-              <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><br/>que decide<br/>junto.</p></div>
-              <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><br/>mais segura<br/>e eficiente.</p></div>
+              <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><span>Histórico e versões</span></p></div>
+              <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><span>Decisão conjunta</span></p></div>
+              <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><span>Mais segura</span></p></div>
             </div>
           </div>
 
           <div className='rac-login__house-stage'>
-            <div className='rac-login__house-connector' aria-hidden='true'/>
             <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
             <img
               className='rac-login__house'
