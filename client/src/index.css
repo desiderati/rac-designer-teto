@@ -633,7 +633,12 @@ All colors MUST be HSL.
     .rac-login__impact {
         order: 3;
         padding: 0.4rem 0.5rem 0;
+        text-align: center;
     }
+
+    .rac-login__house-caption::before { margin-left: auto; margin-right: auto; }
+    .rac-login__impact-detail { margin-left: auto; margin-right: auto; }
+    .rac-login__benefits { justify-content: center; }
 
     .rac-login__house-stage {
         order: 4;
@@ -669,7 +674,7 @@ All colors MUST be HSL.
     .rac-login__house-stage { min-height: 14rem; }
     .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
     .rac-login__impact-detail { margin-top: 0.9rem; font-size: 1rem; }
-    .rac-login__benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .rac-login__benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; justify-items: center; }
     .rac-login__benefits span + span { border-left: 0; padding-left: 0; }
     .rac-login__benefits span:last-child { grid-column: 1 / -1; }
 }
