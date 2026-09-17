@@ -9,7 +9,10 @@ export async function removeLightBackgroundFromPng(input: Buffer): Promise<Buffe
   const {data, info} = await sharp(input).ensureAlpha().raw().toBuffer({resolveWithObject: true});
   const {width, height, channels} = info;
   const pixelCount = width * height;
-  const alpha = new Uint8Array(pixelCount).fill(255);
+  const alpha = new Uint8Array(pixelCount);
+  for (let index = 0; index < pixelCount; index += 1) {
+    alpha[index] = channels >= 4 ? data[index * channels + 3] ?? 255 : 255;
+  }
   const visited = new Uint8Array(pixelCount);
   const queue = new Int32Array(pixelCount);
   let head = 0;
@@ -57,7 +60,8 @@ export async function removeLightBackgroundFromPng(input: Buffer): Promise<Buffe
     output[outputOffset] = data[sourceOffset] ?? 0;
     output[outputOffset + 1] = data[sourceOffset + 1] ?? 0;
     output[outputOffset + 2] = data[sourceOffset + 2] ?? 0;
-    output[outputOffset + 3] = alpha[index] ?? 255;
+    const sourceAlpha = channels >= 4 ? data[sourceOffset + 3] ?? 255 : 255;
+    output[outputOffset + 3] = alpha[index] ?? sourceAlpha;
   }
 
   return sharp(output, {raw: {width, height, channels: 4}}).png().toBuffer();
@@ -87,5 +91,11 @@ function isBackgroundRgb(rgb: Rgb, seed: Rgb): boolean {
   const distance = Math.sqrt(rgb.reduce((sum, value, index) => sum + (value - seed[index]) ** 2, 0));
   const brightness = (rgb[0] + rgb[1] + rgb[2]) / 3;
   const chroma = Math.max(...rgb) - Math.min(...rgb);
-  return distance <= 78 && brightness >= 150 && chroma <= 125;
+  // Generated backgrounds are often a light-blue/cream gradient rather than
+  // a flat color. Keep the flood fill conservative: only light, low-chroma
+  // pixels connected to the edge are eligible, so white doors/windows inside
+  // the house remain intact when surrounded by linework.
+  const lightNeutral = brightness >= 172 && chroma <= 145;
+  const closeToSeed = distance <= 118 && brightness >= 145 && chroma <= 155;
+  return lightNeutral || closeToSeed;
 }

@@ -2,6 +2,7 @@ export type StorageImageUploadPayload = {
   fileName: string;
   mimeType: 'image/png' | 'image/jpeg' | 'image/webp';
   base64: string;
+  constructionSiteId?: string;
 };
 
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;

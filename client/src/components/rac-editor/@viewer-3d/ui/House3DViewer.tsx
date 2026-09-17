@@ -115,6 +115,12 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         hideCloseButton
+        onEscapeKeyDown={(event) => {
+          if (isGeneratingIllustration) event.preventDefault();
+        }}
+        onPointerDownOutside={(event) => {
+          if (isGeneratingIllustration) event.preventDefault();
+        }}
         className={`p-0 gap-0 flex flex-col ${dialogClass}`}
       >
         <DialogHeader className='p-4 pb-2 border-b'>

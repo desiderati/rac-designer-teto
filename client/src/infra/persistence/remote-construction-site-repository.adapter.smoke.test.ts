@@ -57,6 +57,9 @@ describe('RemoteConstructionSiteRepositoryAdapter', () => {
     await adapter.save(state as any);
 
     expect(uploadImage).toHaveBeenCalledTimes(1);
+    expect(uploadImage).toHaveBeenCalledWith(expect.objectContaining({
+      constructionSiteId: 'construction-1',
+    }));
     expect(save).toHaveBeenCalledWith(expect.objectContaining({
       expectedDocumentVersion: 0,
       state: expect.objectContaining({

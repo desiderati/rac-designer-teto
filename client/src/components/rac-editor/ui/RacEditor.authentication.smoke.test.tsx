@@ -49,4 +49,19 @@ describe('RacEditor authentication landing', () => {
 
     expect(startLogin).toHaveBeenCalledTimes(1);
   });
+
+  it('shows the animated loading state while Manus OAuth validates the session', () => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      loading: true,
+      error: null,
+      isAuthenticated: false,
+      refresh: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(<RacEditor />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Preparando seu espaço de projeto...');
+  });
 });

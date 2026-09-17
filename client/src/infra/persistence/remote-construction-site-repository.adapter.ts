@@ -71,7 +71,13 @@ async function externalizeEmbeddedImages(
   client: RacTrpcClient,
 ): Promise<ConstructionSiteState> {
   const cache = new Map<string, string>();
-  return externalizeValue(state, client, cache, 'rac-document') as Promise<ConstructionSiteState>;
+  return externalizeValue(
+    state,
+    client,
+    cache,
+    'rac-document',
+    state.constructionSite.id,
+  ) as Promise<ConstructionSiteState>;
 }
 
 async function externalizeValue(
@@ -79,13 +85,17 @@ async function externalizeValue(
   client: RacTrpcClient,
   cache: Map<string, string>,
   path: string,
+  constructionSiteId: string,
 ): Promise<unknown> {
   if (typeof value === 'string') {
     if (!/^data:image\/(png|jpeg|webp);base64,/i.test(value)) return value;
     const cached = cache.get(value);
     if (cached) return cached;
 
-    const payload = dataUrlToStorageImageUploadPayload(value, `${path.replace(/[^a-z0-9_-]+/gi, '-')}.png`);
+    const payload = {
+      ...dataUrlToStorageImageUploadPayload(value, `${path.replace(/[^a-z0-9_-]+/gi, '-')}.png`),
+      constructionSiteId,
+    };
     const uploaded = await client.storage.uploadImage.mutate(payload);
     if (!uploaded.url) throw new Error('O Storage não retornou uma referência para a imagem embutida.');
     cache.set(value, uploaded.url);
@@ -93,7 +103,13 @@ async function externalizeValue(
   }
 
   if (Array.isArray(value)) {
-    return Promise.all(value.map((item, index) => externalizeValue(item, client, cache, `${path}-${index}`)));
+    return Promise.all(value.map((item, index) => externalizeValue(
+      item,
+      client,
+      cache,
+      `${path}-${index}`,
+      constructionSiteId,
+    )));
   }
 
   if (!value || typeof value !== 'object') return value;
@@ -101,7 +117,7 @@ async function externalizeValue(
   const entries = await Promise.all(
     Object.entries(value as Record<string, unknown>).map(async ([key, nested]) => [
       key,
-      await externalizeValue(nested, client, cache, `${path}-${key}`),
+      await externalizeValue(nested, client, cache, `${path}-${key}`, constructionSiteId),
     ] as const),
   );
   return Object.fromEntries(entries);
