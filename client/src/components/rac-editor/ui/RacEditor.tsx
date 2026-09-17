@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {ArrowRight, CheckCircle2, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
+import {ArrowRight, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
 import {createEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
@@ -138,10 +138,10 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
                 src={PRODUCT_SCREENSHOT_URL}
                 alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
               />
-              <span className='rac-login__sync-badge' aria-label='Editor sincronizado'>
-                <CheckCircle2 aria-hidden='true'/>
-              </span>
             </div>
+
+            <div className='rac-login__connector rac-login__connector--top' aria-hidden='true'/>
+            <div className='rac-login__connector rac-login__connector--bottom' aria-hidden='true'/>
 
             <div className='rac-login__callouts'>
               <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><br/>com histórico<br/>e versões.</p></div>
@@ -151,6 +151,7 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           </div>
 
           <div className='rac-login__house-stage'>
+            <div className='rac-login__house-connector' aria-hidden='true'/>
             <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
             <img
               className='rac-login__house'
