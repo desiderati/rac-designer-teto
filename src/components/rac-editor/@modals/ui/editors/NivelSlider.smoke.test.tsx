@@ -131,4 +131,36 @@ describe('NivelSlider.tsx', () => {
     expect(onNivelCommit).toHaveBeenLastCalledWith(0.5);
     expect(editor.textContent).toBe('0,50');
   });
+
+  it('confirma o valor controlado mais recente ao encerrar interação sem onValueCommit', () => {
+    const onNivelCommit = vi.fn();
+
+    const {rerender} = render(
+      <NivelSlider
+        nivel={0.2}
+        minNivel={0.2}
+        maxNivel={0.5}
+        onNivelIncrement={vi.fn()}
+        onNivelChange={vi.fn()}
+        onNivelCommit={onNivelCommit}
+        enableInput
+      />,
+    );
+
+    rerender(
+      <NivelSlider
+        nivel={0.4}
+        minNivel={0.2}
+        maxNivel={0.5}
+        onNivelIncrement={vi.fn()}
+        onNivelChange={vi.fn()}
+        onNivelCommit={onNivelCommit}
+        enableInput
+      />,
+    );
+
+    fireEvent.keyUp(screen.getByRole('slider'));
+
+    expect(onNivelCommit).toHaveBeenCalledWith(0.4);
+  });
 });

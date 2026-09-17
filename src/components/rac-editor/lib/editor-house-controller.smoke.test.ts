@@ -421,6 +421,69 @@ describe('editor house controller', () => {
     expect(topMarkerBottom.left).toBe(expectedBottomLeft);
   });
 
+  it('rebuilds stale side mappings before refreshing plant door markers', () => {
+    const topMarkerTop = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'top', visible: false});
+    const topMarkerBottom = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'bottom', visible: false});
+    const topBody = createMockObject({
+      isHouseBody: true,
+      width: HOUSE_DIMENSIONS.footprint.width * HOUSE_DIMENSIONS.view.scale,
+      height: HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    const {group: topGroup, objects: topObjects} = createMockGroup({
+      houseViewType: 'top',
+      houseView: 'top',
+      houseInstanceId: 'top_stale',
+    });
+    const {group: frontGroup} = createMockGroup({
+      houseViewType: 'front',
+      houseView: 'front',
+      houseInstanceId: 'front_stale',
+      houseSide: 'bottom',
+    });
+    topObjects.push(topBody, topMarkerTop, topMarkerBottom);
+
+    houseController.loadHouseDrawingDocument({
+      documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
+      schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+      setup: {
+        familyName: 'Família stale',
+        selectedPilotiHeights: [1, 1.5, 2],
+      },
+      house: {
+        id: 'house_stale',
+        houseType: 'tipo6',
+        pilotis: Object.fromEntries(
+          getAllPilotiIds().map((pilotiId) => [
+            pilotiId,
+            {height: 1, isMaster: false, nivel: 0.2},
+          ]),
+        ),
+        terrainType: 1,
+        views: {
+          top: [{instanceId: 'top_stale'}],
+          front: [{instanceId: 'front_stale', side: 'bottom'}],
+          back: [],
+          side1: [],
+          side2: [],
+        },
+        sideMappings: {top: null, bottom: null, left: null, right: null},
+        preAssignedSides: {},
+      },
+      canvas: {
+        schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+        objects: [],
+      },
+    });
+
+    initializeHouseControllerCanvas(createMockCanvas([topGroup, frontGroup]));
+
+    expect(houseController.getHouseState()?.sideMappings.bottom).toBe('front');
+    expect(topMarkerBottom.visible).toBe(true);
+    expect(topMarkerTop.visible).toBe(false);
+  });
+
   it('aplica auto contraventamento ao inserir a vista superior da casa', () => {
     const {group: topGroup, objects: topObjects} = createMockGroup({houseView: 'top'});
     initializeHouseControllerCanvas(createMockCanvas([topGroup]));

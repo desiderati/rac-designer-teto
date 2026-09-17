@@ -39,16 +39,8 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 
 ## Artefatos auxiliares versionados
 
-- [PRD-001 multi-house persistence
-  plan](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
-
+- [PRD-001 multi-house persistence plan](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
 - [PRD-004 technical spec](./PRD-004-autenticacao-sincronizacao-remota.prd.assets/technical-spec.md)
-
-- [PRD-004 backend
-  alternatives](./PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md)
-
-- [PRD-005 plano de exclusão
-  física](./PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md)
-
-- [PRD-005 checklist de validação
-  manual](./PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md)
+- [PRD-004 backend alternatives](./PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md)
+- [PRD-005 plano de exclusão física](./PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md)
+- [PRD-005 checklist de validação manual](./PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md)

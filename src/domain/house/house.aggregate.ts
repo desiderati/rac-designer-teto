@@ -14,6 +14,7 @@ import {
 } from '@/shared/types/house.ts';
 import {
   cleanupStaleViewInstances,
+  rebuildSideMappingsFromViews,
   registerViewInstance,
   removeViewInstance,
   removeViewInstanceById,
@@ -62,6 +63,10 @@ export class HouseAggregate {
   }
 
   static fromState(state: HouseState): HouseAggregate {
+    state.sideMappings = rebuildSideMappingsFromViews({
+      views: state.views,
+      sideMappingsTemplate: state.sideMappings,
+    });
     return new HouseAggregate(state);
   }
 

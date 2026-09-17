@@ -94,6 +94,46 @@ describe('house-view.ts', () => {
       side: 'left',
       sideMappings: tipo6FrontOnTop,
     })).toBe('Lateral Direita');
+
+    const tipo6FrontOnBottom: HouseSideMapping = {
+      top: 'back',
+      bottom: 'front',
+      left: 'side1',
+      right: 'side1',
+    };
+
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'side1',
+      side: 'left',
+      sideMappings: tipo6FrontOnBottom,
+    })).toBe('Lateral Esquerda');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo6',
+      viewType: 'side1',
+      side: 'right',
+      sideMappings: tipo6FrontOnBottom,
+    })).toBe('Lateral Direita');
+
+    const tipo3DoorOnLeft: HouseSideMapping = {
+      top: 'back',
+      bottom: 'back',
+      left: 'side2',
+      right: 'side1',
+    };
+
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'back',
+      side: 'top',
+      sideMappings: tipo3DoorOnLeft,
+    })).toBe('Lateral Esquerda');
+    expect(getElevationViewLabelForHouseType({
+      houseType: 'tipo3',
+      viewType: 'back',
+      side: 'bottom',
+      sideMappings: tipo3DoorOnLeft,
+    })).toBe('Lateral Direita');
   });
 
 });

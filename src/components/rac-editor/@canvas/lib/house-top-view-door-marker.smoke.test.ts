@@ -24,6 +24,12 @@ describe('house-top-view-door-marker.ts', () => {
         sideMappings: {top: 'front', bottom: null, left: null, right: null},
       }),
     ).toBe('top');
+    expect(
+      resolveTopDoorMarkerSide({
+        houseType: 'tipo6',
+        sideMappings: {top: null, bottom: 'front', left: null, right: null},
+      }),
+    ).toBe('bottom');
 
     expect(
       resolveTopDoorMarkerSide({
@@ -31,6 +37,12 @@ describe('house-top-view-door-marker.ts', () => {
         sideMappings: {top: null, bottom: null, left: null, right: 'side2'},
       }),
     ).toBe('right');
+    expect(
+      resolveTopDoorMarkerSide({
+        houseType: 'tipo3',
+        sideMappings: {top: null, bottom: null, left: 'side2', right: null},
+      }),
+    ).toBe('left');
   });
 
   it('resolves door marker side for the photographed tipo 3 and tipo 6 orientations', () => {

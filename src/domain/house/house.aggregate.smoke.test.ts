@@ -63,6 +63,27 @@ describe('house.aggregate.ts', () => {
     ]);
   });
 
+  it('rebuilds side mappings from view instances when loading stale state', () => {
+    const state = createState({houseType: 'tipo6'});
+    state.views.front.push({instanceId: 'front_1', side: 'bottom'});
+    state.views.side1.push({instanceId: 'side1_1', side: 'right'});
+    state.sideMappings = {
+      top: 'front',
+      bottom: null,
+      left: 'side1',
+      right: null,
+    };
+
+    const aggregate = HouseAggregate.fromState(state);
+
+    expect(aggregate.toState().sideMappings).toEqual({
+      top: null,
+      bottom: 'front',
+      left: null,
+      right: 'side1',
+    });
+  });
+
   it('sets house type and clears pre-assigned slots when null', () => {
     const state = createState({houseType: 'tipo6'});
     state.preAssignedSides = {front: 'top'};

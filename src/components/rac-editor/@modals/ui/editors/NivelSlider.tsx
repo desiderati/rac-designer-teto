@@ -44,8 +44,10 @@ export function NivelSlider({
 }: NivelSliderProps) {
   const [inputDigits, setInputDigits] = useState(() => nivelToInputDigits(nivel));
   const editableNivelRef = useRef<HTMLSpanElement | null>(null);
+  const latestSliderNivelRef = useRef(nivel);
 
   useEffect(() => {
+    latestSliderNivelRef.current = nivel;
     setInputDigits(nivelToInputDigits(nivel));
   }, [nivel]);
 
@@ -78,6 +80,13 @@ export function NivelSlider({
     replaceEditableText(formatNivelInputDigits(nextDigits));
     onNivelChange(nextNivel);
     onNivelCommit?.(nextNivel);
+  };
+
+  const commitLatestSliderNivel = () => {
+    if (!onNivelCommit) return;
+    const nextNivel = clampNivel(latestSliderNivelRef.current, minNivel, maxNivel);
+    latestSliderNivelRef.current = nextNivel;
+    onNivelCommit(nextNivel);
   };
 
   const handleEditableInput = () => {
@@ -199,9 +208,18 @@ export function NivelSlider({
       <div className='space-y-3 px-2'>
         <Slider
           value={[nivel]}
-          onValueChange={([v]) => onNivelChange(v)}
-          // Só aplica alterações persistentes ao soltar o drag do slider.
-          onValueCommit={([v]) => onNivelCommit?.(v)}
+          onBlur={commitLatestSliderNivel}
+          onKeyUp={commitLatestSliderNivel}
+          onPointerUp={commitLatestSliderNivel}
+          onValueChange={([v]) => {
+            latestSliderNivelRef.current = v;
+            onNivelChange(v);
+          }}
+          // Garante commit persistente mesmo quando o Slider não emite onValueCommit.
+          onValueCommit={([v]) => {
+            latestSliderNivelRef.current = v;
+            commitLatestSliderNivel();
+          }}
           min={minNivel}
           max={maxNivel}
           step={0.01}

@@ -229,6 +229,13 @@ export function usePilotiEditor({
     setSyncedTempHeight(heightToApply);
     setSyncedTempNivel(nivelToApply);
 
+    const currentPiloti = resolvedPilotiReadPort.getPilotiData(pilotiId);
+    const hasChanges =
+      currentPiloti.height !== heightToApply
+      || currentPiloti.isMaster !== tempIsMasterRef.current
+      || currentPiloti.nivel !== nivelToApply;
+    if (!hasChanges) return;
+
     const updatedPiloti = resolvedPilotiWritePort.updatePiloti(pilotiId, {
       height: heightToApply,
       isMaster: tempIsMasterRef.current,
