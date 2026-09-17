@@ -113,8 +113,7 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           </div>
 
           <p className='rac-login__description'>
-            Registre, compartilhe e construa<br className='hidden sm:block'/>
-            juntos os projetos da sua comunidade,<br className='hidden sm:block'/>
+            Registre, compartilhe e construa juntos os projetos da sua comunidade,
             com histórico claro e decisões mais seguras.
           </p>
 
@@ -128,6 +127,27 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
             <p role='alert' className='rac-login__auth-error'>Não foi possível validar a sessão. Tente entrar novamente.</p>
           ) : null}
 
+        </section>
+
+        <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
+          <div className='rac-login__editor-wrap'>
+            <img
+              className='rac-login__editor-shot'
+              src={PRODUCT_SCREENSHOT_URL}
+              alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
+            />
+          </div>
+
+          <div className='rac-login__callouts'>
+            <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><span>Histórico e versões</span></p></div>
+            <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><span>Decisão conjunta</span></p></div>
+            <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><span>Mais segura</span></p></div>
+          </div>
+        </section>
+
+        <section className='rac-login__impact' aria-label='Impacto social'>
+          <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
+          <p className='rac-login__impact-detail'>Cada traço organiza uma decisão. Cada decisão fortalece uma comunidade.</p>
           <div className='rac-login__benefits' aria-label='Recursos principais'>
             <span><Globe2 aria-hidden='true'/>Base global</span>
             <span><History aria-hidden='true'/>Histórico</span>
@@ -135,31 +155,12 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           </div>
         </section>
 
-        <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
-          <div className='rac-login__editor-stage'>
-            <div className='rac-login__editor-wrap'>
-              <img
-                className='rac-login__editor-shot'
-                src={PRODUCT_SCREENSHOT_URL}
-                alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
-              />
-            </div>
-
-            <div className='rac-login__callouts'>
-              <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><span>Histórico e versões</span></p></div>
-              <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><span>Decisão conjunta</span></p></div>
-              <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><span>Mais segura</span></p></div>
-            </div>
-          </div>
-
-          <div className='rac-login__house-stage'>
-            <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
-            <img
-              className='rac-login__house'
-              src={HOUSE_ILLUSTRATION_URL}
-              alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
-            />
-          </div>
+        <section className='rac-login__house-stage' aria-label='Casa TETO'>
+          <img
+            className='rac-login__house'
+            src={HOUSE_ILLUSTRATION_URL}
+            alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
+          />
         </section>
       </div>
     </main>

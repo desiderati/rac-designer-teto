@@ -242,84 +242,93 @@ All colors MUST be HSL.
 
 .rac-login__shell {
     display: grid;
-    grid-template-columns: minmax(430px, 0.88fr) minmax(0, 1.12fr);
-    gap: clamp(1.25rem, 3vw, 3.25rem);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto minmax(18rem, 1fr);
+    align-items: stretch;
+    column-gap: clamp(1.25rem, 3vw, 3.25rem);
+    row-gap: clamp(1.5rem, 4vw, 3.25rem);
+    width: min(100%, 1640px);
     min-height: 100%;
-    max-width: 1640px;
     margin: 0 auto;
     padding: clamp(1rem, 2.4vw, 2.25rem);
+    box-sizing: border-box;
 }
 
 .rac-login__copy {
     position: relative;
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
-    min-height: calc(100dvh - clamp(2rem, 4.8vw, 4.5rem));
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
     flex-direction: column;
     border-radius: 1.25rem;
     background: rgba(255, 255, 255, 0.96);
-    padding: clamp(2rem, 4.3vw, 4.3rem) clamp(1.75rem, 4.2vw, 4.5rem);
+    padding: clamp(1.75rem, 3.8vw, 3.75rem) clamp(1.5rem, 3.4vw, 3.5rem);
     box-shadow: 0 18px 55px rgba(40, 78, 114, 0.08);
+    box-sizing: border-box;
 }
 
 .rac-login__brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    min-width: 0;
     color: #0a407c;
-    font-size: clamp(1.25rem, 1.7vw, 1.9rem);
+    font-size: clamp(1.15rem, 1.55vw, 1.75rem);
     font-weight: 700;
     letter-spacing: -0.04em;
 }
 
-.rac-login__brand strong {
-    color: #08a9df;
-}
+.rac-login__brand strong { color: #08a9df; }
 
 .rac-login__brand-mark {
     display: grid;
-    height: 2.8rem;
-    width: 2.8rem;
+    flex: 0 0 auto;
+    height: clamp(2.35rem, 3vw, 2.8rem);
+    width: clamp(2.35rem, 3vw, 2.8rem);
     place-items: center;
     color: #10aee3;
 }
 
 .rac-login__brand-mark svg {
-    height: 2.8rem;
-    width: 2.8rem;
+    height: 100%;
+    width: 100%;
     stroke-width: 1.8;
 }
 
 .rac-login__divider {
     position: absolute;
-    top: clamp(2rem, 4.5vw, 4.35rem);
-    right: 34%;
-    height: 2.8rem;
+    top: clamp(1.75rem, 3.8vw, 3.75rem);
+    right: 32%;
+    height: 2.7rem;
     width: 1px;
     background: #d9e0e7;
 }
 
 .rac-login__eyebrow {
     position: absolute;
-    top: clamp(2rem, 4.3vw, 4.25rem);
-    right: 3.5%;
+    top: clamp(1.75rem, 3.6vw, 3.65rem);
+    right: 4%;
     width: 27%;
     margin: 0;
     color: #5b6f89;
-    font-size: clamp(0.58rem, 0.75vw, 0.8rem);
+    font-size: clamp(0.55rem, 0.68vw, 0.75rem);
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.4;
     letter-spacing: 0.02em;
 }
 
 .rac-login__headline {
-    margin-top: clamp(6.5rem, 10vw, 9rem);
+    margin-top: clamp(5.25rem, 8vw, 7.75rem);
 }
 
 .rac-login__headline-line {
     display: block;
-    height: 0.26rem;
-    width: 3.5rem;
-    margin-bottom: 1.6rem;
+    height: 0.24rem;
+    width: 3.35rem;
+    margin-bottom: 1.35rem;
     border-radius: 999px;
     background: #f5b82e;
 }
@@ -327,10 +336,10 @@ All colors MUST be HSL.
 .rac-login__headline h1 {
     margin: 0;
     color: #06417e;
-    font-size: clamp(2.8rem, 4.15vw, 5rem);
+    font-size: clamp(2.45rem, 3.7vw, 4.45rem);
     font-weight: 700;
     letter-spacing: -0.065em;
-    line-height: 0.98;
+    line-height: 0.99;
 }
 
 .rac-login__headline em {
@@ -339,10 +348,11 @@ All colors MUST be HSL.
 }
 
 .rac-login__description {
-    margin: clamp(1.75rem, 3vw, 2.65rem) 0 0;
+    max-width: 30rem;
+    margin: clamp(1.35rem, 2.5vw, 2.25rem) 0 0;
     color: #6d8097;
-    font-size: clamp(1rem, 1.4vw, 1.4rem);
-    line-height: 1.55;
+    font-size: clamp(0.95rem, 1.25vw, 1.25rem);
+    line-height: 1.5;
 }
 
 .rac-login__cta {
@@ -350,13 +360,13 @@ All colors MUST be HSL.
     align-items: center;
     gap: 0.85rem;
     width: min(100%, 25rem);
-    margin-top: clamp(1.75rem, 3.2vw, 3rem);
+    margin-top: clamp(1.5rem, 2.7vw, 2.5rem);
     border: 0;
     border-radius: 0.75rem;
     background: #1779ee;
-    padding: 1rem 1.2rem;
+    padding: 0.95rem 1.15rem;
     color: white;
-    font-size: clamp(1rem, 1.35vw, 1.35rem);
+    font-size: clamp(0.98rem, 1.2vw, 1.2rem);
     font-weight: 700;
     box-shadow: 0 10px 22px rgba(23, 121, 238, 0.2);
     transition: transform 160ms ease-out, background-color 160ms ease-out, box-shadow 160ms ease-out;
@@ -368,180 +378,120 @@ All colors MUST be HSL.
     transform: translateY(-1px);
 }
 
-.rac-login__cta:active {
-    transform: scale(0.98);
-}
-
-.rac-login__cta svg:first-child {
-    height: 1.5rem;
-    width: 1.5rem;
-}
-
-.rac-login__cta svg:last-child {
-    margin-left: auto;
-    height: 1.35rem;
-    width: 1.35rem;
-}
+.rac-login__cta:active { transform: scale(0.98); }
+.rac-login__cta svg:first-child { height: 1.4rem; width: 1.4rem; }
+.rac-login__cta svg:last-child { margin-left: auto; height: 1.25rem; width: 1.25rem; }
 
 .rac-login__auth-error {
-    margin: 0.75rem 0 0;
+    max-width: 25rem;
+    margin: 0.7rem 0 0;
     color: #b42318;
     font-size: 0.78rem;
     line-height: 1.35;
 }
 
-.rac-login__benefits {
-    display: flex;
-    flex-wrap: wrap;
-    gap: clamp(0.85rem, 1.6vw, 1.8rem);
-    margin-top: auto;
-    padding-top: 2rem;
-    color: #174b84;
-    font-size: clamp(0.74rem, 0.9vw, 1rem);
-    font-weight: 700;
-}
-
-.rac-login__benefits span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    white-space: nowrap;
-}
-
-.rac-login__benefits span + span {
-    border-left: 1px solid #edb52d;
-    padding-left: clamp(0.85rem, 1.6vw, 1.8rem);
-}
-
-.rac-login__benefits svg {
-    height: 1.5rem;
-    width: 1.5rem;
-    color: #0baedf;
-    stroke-width: 1.8;
-}
-
 .rac-login__visual {
+    grid-column: 2;
+    grid-row: 1;
     display: grid;
-    grid-template-rows: auto auto;
     align-content: start;
-    min-height: calc(100dvh - clamp(2rem, 4.8vw, 4.5rem));
-    gap: clamp(1.75rem, 4.5vh, 3.5rem);
-    padding: clamp(1.5rem, 3.5vh, 2.75rem) clamp(0.5rem, 1vw, 1rem) 0;
-}
-
-.rac-login__editor-stage {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-    gap: clamp(1.35rem, 3vh, 2.25rem);
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: clamp(0.5rem, 1.3vw, 1.15rem) 0 0;
+    box-sizing: border-box;
 }
 
 .rac-login__editor-wrap {
     position: relative;
-    width: min(92%, 70rem);
-    margin: 0.35rem 0 0;
-    margin-inline: auto;
-    transform: rotate(-4deg);
+    width: calc(100% - clamp(0.75rem, 2vw, 2rem));
+    min-width: 0;
+    margin: 0 auto;
+    transform: rotate(-3deg);
     filter: drop-shadow(0 17px 18px rgba(36, 67, 95, 0.18));
+    box-sizing: border-box;
 }
 
 .rac-login__editor-shot {
     display: block;
     width: 100%;
-    border: clamp(0.25rem, 0.55vw, 0.5rem) solid rgba(255, 255, 255, 0.9);
+    max-width: 100%;
+    border: clamp(0.2rem, 0.45vw, 0.42rem) solid rgba(255, 255, 255, 0.9);
     border-radius: 1rem;
     background: white;
+    box-sizing: border-box;
 }
 
 .rac-login__callouts {
     display: grid;
-    width: min(92%, 70rem);
+    width: 100%;
+    min-width: 0;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(0.55rem, 1vw, 0.85rem);
-    padding-top: 0;
-    margin: clamp(1.25rem, 3vh, 2rem) auto 0;
+    gap: clamp(0.45rem, 0.9vw, 0.8rem);
+    margin: clamp(1.1rem, 2.3vw, 1.8rem) 0 0;
 }
 
 .rac-login__callouts > div {
     display: flex;
     align-items: center;
-    gap: clamp(0.55rem, 0.8vw, 0.75rem);
+    gap: clamp(0.45rem, 0.7vw, 0.7rem);
     min-width: 0;
-    min-height: clamp(4rem, 5.4vw, 5.2rem);
-    border-radius: 1.1rem;
+    min-height: clamp(3.8rem, 5vw, 5rem);
+    border-radius: 1rem;
     background: rgba(255, 255, 255, 0.94);
-    padding: 0.8rem;
+    padding: clamp(0.55rem, 0.8vw, 0.8rem);
     box-shadow: 0 10px 24px rgba(42, 78, 111, 0.08);
+    box-sizing: border-box;
 }
 
 .rac-login__callout-icon {
     display: grid;
-    height: 2.5rem;
-    min-width: 2.5rem;
+    flex: 0 0 auto;
+    height: clamp(1.9rem, 2.6vw, 2.5rem);
+    width: clamp(1.9rem, 2.6vw, 2.5rem);
     place-items: center;
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     background: #f0f6fb;
     color: #1265a7;
 }
 
-.rac-login__callout-icon svg {
-    height: 1.55rem;
-    width: 1.55rem;
-}
+.rac-login__callout-icon svg { height: 1.45rem; width: 1.45rem; }
 
 .rac-login__callouts p {
     display: grid;
-    gap: 0.1rem;
     min-width: 0;
     margin: 0;
     color: #174b84;
-    font-size: clamp(0.72rem, 0.78vw, 0.88rem);
+    font-size: clamp(0.68rem, 0.78vw, 0.88rem);
     line-height: 1.25;
-    white-space: nowrap;
 }
 
-.rac-login__callouts strong {
-    font-size: 1.1em;
+.rac-login__callouts strong,
+.rac-login__callouts span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
+.rac-login__callouts strong { font-size: 1.08em; }
 .rac-login__callouts span:not(.rac-login__callout-icon) {
     color: #325f8d;
     font-weight: 500;
 }
 
-.rac-login__house {
-    display: block;
-    grid-column: 2;
-    width: min(170%, 72rem);
-    max-height: 100%;
-    object-fit: contain;
-    justify-self: center;
-    transform: translate(-0.9rem, -0.5rem);
-    filter: drop-shadow(0 14px 17px rgba(47, 75, 101, 0.11));
-}
-
-.rac-login__house-stage {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(11rem, 0.32fr) minmax(0, 1fr);
-    align-items: start;
-    gap: clamp(0.25rem, 0.55vw, 0.65rem);
-    min-height: 0;
-    padding: clamp(7.5rem, 14vh, 10rem) 0 0;
+.rac-login__impact {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    min-width: 0;
+    padding: clamp(0.25rem, 1vw, 1rem) clamp(0.25rem, 1.8vw, 1.75rem) 0;
+    box-sizing: border-box;
 }
 
 .rac-login__house-caption {
-    position: absolute;
-    top: 0;
-    left: 0;
     margin: 0;
-    padding: 0;
     color: #0b4e8d;
-    font-size: clamp(1.35rem, 2vw, 2.1rem);
-    line-height: 1.18;
-    transform: none;
+    font-size: clamp(1.45rem, 2.4vw, 2.5rem);
+    line-height: 1.14;
 }
 
 .rac-login__house-caption::before {
@@ -553,218 +503,157 @@ All colors MUST be HSL.
     content: '';
 }
 
-.rac-login__house-caption strong {
-    color: #efad20;
+.rac-login__house-caption strong { color: #efad20; }
+
+.rac-login__impact-detail {
+    max-width: 28rem;
+    margin: 1.15rem 0 0;
+    color: #537493;
+    font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+    line-height: 1.45;
+}
+
+.rac-login__benefits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.75rem, 1.25vw, 1.35rem);
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    color: #174b84;
+    font-size: clamp(0.72rem, 0.82vw, 0.94rem);
+    font-weight: 700;
+}
+
+.rac-login__benefits span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+}
+
+.rac-login__benefits span + span {
+    border-left: 1px solid #edb52d;
+    padding-left: clamp(0.75rem, 1.25vw, 1.35rem);
+}
+
+.rac-login__benefits svg {
+    height: 1.35rem;
+    width: 1.35rem;
+    color: #0baedf;
+    stroke-width: 1.8;
+}
+
+.rac-login__house-stage {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    justify-items: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.rac-login__house {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 14px 17px rgba(47, 75, 101, 0.11));
 }
 
 @media (max-width: 1120px) {
-    .rac-login__shell {
-        grid-template-columns: minmax(360px, 0.9fr) minmax(0, 1.1fr);
-        gap: 1.2rem;
-    }
-
-    .rac-login__copy {
-        padding-right: 2.3rem;
-        padding-left: 2.3rem;
-    }
-
-    .rac-login__eyebrow {
-        display: none;
-    }
-
-    .rac-login__divider {
-        display: none;
-    }
-
-    .rac-login__editor-stage { grid-template-columns: minmax(0, 1fr); }
+    .rac-login__shell { column-gap: 1.2rem; }
+    .rac-login__copy { padding-right: 2rem; padding-left: 2rem; }
+    .rac-login__eyebrow,
+    .rac-login__divider { display: none; }
+    .rac-login__headline { margin-top: 2.75rem; }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 860px) {
     .rac-login {
+        overflow-x: hidden;
         overflow-y: auto;
     }
 
     .rac-login__shell {
-        display: block;
-        padding: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+        width: 100%;
+        min-height: 0;
+        padding: 0.75rem;
+    }
+
+    .rac-login__copy,
+    .rac-login__visual,
+    .rac-login__impact,
+    .rac-login__house-stage {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .rac-login__copy {
-        min-height: auto;
-        padding: 2rem 1.35rem 1.5rem;
-    }
-
-    .rac-login__headline {
-        margin-top: 2.7rem;
-    }
-
-    .rac-login__headline h1 {
-        font-size: clamp(2.6rem, 9vw, 4.2rem);
-    }
-
-    .rac-login__description {
-        font-size: 1rem;
-    }
-
-    .rac-login__cta {
-        width: 100%;
-        max-width: 25rem;
-    }
-
-    .rac-login__benefits {
-        margin-top: 2rem;
-        padding-top: 0;
+        order: 1;
+        height: auto;
+        padding: 1.75rem 1.35rem 1.5rem;
     }
 
     .rac-login__visual {
-        min-height: auto;
-        margin-top: 1.25rem;
-        gap: 2rem;
+        order: 2;
+        overflow: hidden;
         padding: 0;
     }
 
-    .rac-login__editor-stage {
-        display: block;
-    }
-
-    .rac-login__editor-wrap {
-        width: min(94%, 48rem);
-        margin: 0 auto;
-    }
-
-    .rac-login__callouts {
-        width: min(94%, 48rem);
-        margin: 1.3rem auto 0;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.65rem;
-        padding: 0;
-    }
-
-    .rac-login__callouts > div {
-        min-height: 4.35rem;
-        gap: 0.4rem;
-        border-radius: 0.75rem;
-        padding: 0.45rem;
-    }
-
-    .rac-login__callout-icon {
-        height: 1.8rem;
-        min-width: 1.8rem;
-        border-radius: 0.5rem;
-    }
-
-    .rac-login__callout-icon svg {
-        height: 1rem;
-        width: 1rem;
-    }
-
-    .rac-login__house {
-        width: min(150%, 53rem);
-        transform: translate(-0.4rem, -0.4rem);
+    .rac-login__impact {
+        order: 3;
+        padding: 0.4rem 0.5rem 0;
     }
 
     .rac-login__house-stage {
-        padding-top: 7rem;
+        order: 4;
+        min-height: 16rem;
+        padding: 0;
     }
 
-    .rac-login__house-caption {
-        font-size: 1.28rem;
-        transform: none;
+    .rac-login__editor-wrap {
+        width: calc(100% - 0.75rem);
+        transform: rotate(-2deg);
     }
+
+    .rac-login__callouts {
+        margin-top: 1rem;
+    }
+
+    .rac-login__headline h1 { font-size: clamp(2.45rem, 8.5vw, 4rem); }
+    .rac-login__description { font-size: 1rem; }
+    .rac-login__cta { width: 100%; max-width: 25rem; }
+    .rac-login__house { width: 100%; height: auto; }
 }
 
-@media (max-width: 520px) {
-    .rac-login__brand {
-        font-size: 1.25rem;
-    }
+@media (max-width: 680px) {
+    .rac-login__brand { font-size: 1.25rem; }
+    .rac-login__brand-mark { height: 2.35rem; width: 2.35rem; }
+    .rac-login__headline h1 { font-size: clamp(2.25rem, 11vw, 3.4rem); }
+    .rac-login__callouts { grid-template-columns: 1fr; gap: 0.65rem; }
+    .rac-login__callouts > div { min-height: 3.85rem; padding: 0.7rem 0.8rem; }
+    .rac-login__callouts p { font-size: 0.92rem; }
+    .rac-login__house-stage { min-height: 14rem; }
+    .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
+    .rac-login__impact-detail { margin-top: 0.9rem; font-size: 1rem; }
+    .rac-login__benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .rac-login__benefits span + span { border-left: 0; padding-left: 0; }
+    .rac-login__benefits span:last-child { grid-column: 1 / -1; }
+}
 
-    .rac-login__brand-mark {
-        height: 2.35rem;
-        width: 2.35rem;
-    }
-
-    .rac-login__brand-mark svg {
-        height: 2.35rem;
-        width: 2.35rem;
-    }
-
-    .rac-login__headline h1 {
-        font-size: clamp(2.35rem, 12vw, 3.45rem);
-    }
-
-    .rac-login__description {
-        font-size: 0.96rem;
-    }
-
-    .rac-login__benefits {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.8rem;
-    }
-
-    .rac-login__benefits span + span {
-        border-left: 0;
-        padding-left: 0;
-    }
-
-    .rac-login__benefits span:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .rac-login__visual {
-        min-height: auto;
-        gap: 1.6rem;
-    }
-
-    .rac-login__editor-stage {
-        display: block;
-    }
-
-    .rac-login__editor-wrap {
-        width: 94%;
-        margin: 0 auto;
-        transform: rotate(-4deg);
-    }
-
-    .rac-login__callouts {
-        width: 100%;
-        margin-top: 1.1rem;
-        grid-template-columns: 1fr;
-        gap: 0.65rem;
-        padding: 0;
-    }
-
-    .rac-login__callouts > div {
-        min-height: auto;
-        min-height: 3.9rem;
-        padding: 0.75rem 0.9rem;
-        text-align: left;
-    }
-
-    .rac-login__callout-icon {
-        margin: 0;
-    }
-
-    .rac-login__callouts p {
-        font-size: 0.92rem;
-    }
-
-    .rac-login__house {
-        width: 195%;
-        max-height: none;
-        transform: translate(-2.15rem, -0.5rem);
-    }
-
-    .rac-login__house-caption {
-        padding: 0;
-        font-size: 1.2rem;
-        transform: none;
-    }
-
-    .rac-login__house-stage {
-        grid-template-columns: minmax(8rem, 0.39fr) minmax(0, 1fr);
-        gap: 0.2rem;
-        min-height: 15rem;
-        padding-top: 7.75rem;
-    }
+@media (max-width: 380px) {
+    .rac-login__shell { padding: 0.5rem; }
+    .rac-login__copy { padding-right: 1rem; padding-left: 1rem; }
+    .rac-login__brand { gap: 0.5rem; font-size: 1.08rem; }
+    .rac-login__headline h1 { font-size: 2.2rem; }
+    .rac-login__house-stage { min-height: 12rem; }
 }
