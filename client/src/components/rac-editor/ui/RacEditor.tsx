@@ -18,7 +18,7 @@ const PRODUCT_SCREENSHOT_URL = '/manus-storage/pasted_file_3D3Rgh_image_7992f010
 const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-transparent-cropped_28fd1656.png';
 
 export function RacEditor() {
-  const {isAuthenticated, loading, error} = useAuth();
+  const {isAuthenticated, loading, error, logout} = useAuth();
   const landingPreview = useMemo(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('landing') === 'preview';
@@ -30,12 +30,12 @@ export function RacEditor() {
 
   return (
     <StorageImageUploadProvider>
-      <RemoteRacEditor/>
+      <RemoteRacEditor onLogout={logout}/>
     </StorageImageUploadProvider>
   );
 }
 
-function RemoteRacEditor() {
+function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
   const storageState = useRemoteConstructionSiteSessionStorage();
   const [isDiscardingLegacyData, setIsDiscardingLegacyData] = useState(false);
   const ports = useMemo(() => {
@@ -87,7 +87,7 @@ function RemoteRacEditor() {
       <div className='relative h-full'>
         <RemoteSyncStatus/>
         <RacEditorStoreProvider key={storageState.sync.revision} ports={ports}>
-          <RacEditorEntryPoint/>
+          <RacEditorEntryPoint onLogout={onLogout}/>
         </RacEditorStoreProvider>
       </div>
     </RemoteSyncProvider>
@@ -179,7 +179,7 @@ function RacEditorLoadingState() {
   );
 }
 
-function RacEditorEntryPoint() {
+function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
   const constructionSiteManagement = useConstructionSiteManagementController({});
   const [editorOpen, setEditorOpen] = useState(constructionSiteManagement.canOpenRacEditor);
   const openRacEditor = () => {
@@ -194,7 +194,7 @@ function RacEditorEntryPoint() {
   }, [constructionSiteManagement.canOpenRacEditor]);
 
   if (editorOpen && constructionSiteManagement.canOpenRacEditor) {
-    return <RacEditorContent/>;
+    return <RacEditorContent onExit={onLogout}/>;
   }
 
   return (

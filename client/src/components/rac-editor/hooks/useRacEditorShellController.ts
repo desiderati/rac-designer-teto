@@ -16,6 +16,7 @@ import {useRacEditorSettingsActions} from '@/components/rac-editor/hooks/useRacE
 
 interface UseRacEditorShellControllerArgs {
   canvasRef: RefObject<(CanvasDebugHandle & CanvasScreenProjectionHandle & CanvasViewportHandle) | null>;
+  onExit: () => void | Promise<void>;
   showTipsRef: MutableRefObject<boolean>;
   showZoomControlsRef: MutableRefObject<boolean>;
   setPilotiSelection: Dispatch<SetStateAction<PilotiCanvasSelection | null>>;
@@ -32,6 +33,7 @@ interface UseRacEditorShellControllerArgs {
  */
 export function useRacEditorShellController({
   canvasRef,
+  onExit,
   showTipsRef,
   showZoomControlsRef,
   setPilotiSelection,
@@ -63,8 +65,8 @@ export function useRacEditorShellController({
   }, [canvasRef]);
 
   const handleExit = useCallback(() => {
-    console.info('[RacEditor] exit clicked - no sign-out flow wired yet.');
-  }, []);
+    return onExit();
+  }, [onExit]);
 
   useCanvasDebugBridge({
     canvasRef,

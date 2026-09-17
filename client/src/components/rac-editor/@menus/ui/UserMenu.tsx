@@ -1,5 +1,5 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
+import {useEffect, useRef, useState, type MouseEvent} from 'react';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 
@@ -13,21 +13,11 @@ interface UserMenuProps {
   canExportPDF: boolean;
   onToggleTips: () => void;
   onOpenSettings: () => void;
-  onExit: () => void;
+  onExit: () => void | Promise<void>;
 }
 
 /**
- * Top-right user avatar dropdown.
- *
- * Items (per the Stitch reference, in vertical order):
- *   1. Reiniciar Desenho
- *   ── divider ──
- *   2. Dicas (toggle)
- *   3. Abrir Tutorial
- *   ── divider ──
- *   4. Configurações
- *   ── divider ──
- *   5. Sair (destructive)
+ * Top-right user avatar dropdown with an explicit confirmation before logout.
  */
 export function UserMenu({
   isMobile,
@@ -41,15 +31,62 @@ export function UserMenu({
   onOpenSettings,
   onExit,
 }: UserMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  const confirmLogout = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setLogoutPending(true);
+    setLogoutError(null);
+    try {
+      await onExit();
+      setLogoutOpen(false);
+    } catch {
+      setLogoutError('Não foi possível sair agora. Tente novamente.');
+    } finally {
+      setLogoutPending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!logoutOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !logoutPending) setLogoutOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [logoutOpen, logoutPending]);
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <>
+      <div ref={menuRef} className='relative'>
         <button
           type='button'
           title='Conta'
           aria-label='Abrir menu da conta'
+          aria-expanded={menuOpen}
           data-guided-tour-id='rac-user-menu'
           data-guided-tour-aliases={isMobile ? 'rac-export-pdf rac-view-3d' : undefined}
+          onClick={() => setMenuOpen((open) => !open)}
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center',
             'bg-white/90 border-2 border-white shadow-sm overflow-hidden',
@@ -58,55 +95,112 @@ export function UserMenu({
         >
           <FontAwesomeIcon icon={TOP_BAR_ICONS.user} className='text-2xl'/>
         </button>
-      </PopoverTrigger>
 
-      <PopoverContent
-        align='end'
-        sideOffset={8}
-        className='w-52 p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
-      >
-        <Item
-          icon={TOP_BAR_ICONS.restart}
-          label='Reiniciar Desenho'
-          onClick={onRestartDrawing}
-          disabled={restartDrawingDisabled}
-        />
-        <Divider/>
-        {isMobile ? (
-          <>
+        {menuOpen ? (
+          <div
+            role='menu'
+            aria-label='Menu da conta'
+            className='absolute right-0 top-[calc(100%+8px)] z-[60] w-52 rounded-xl border border-slate-200 bg-white/95 p-1 shadow-xl backdrop-blur-xl'
+          >
             <Item
-              icon={TOP_BAR_ICONS.view3d}
-              label='Visualização 3D'
-              onClick={onOpen3DViewer}
-              dataGuidedTourId='rac-view-3d'
-            />
-            <Item
-              icon={TOP_BAR_ICONS.export}
-              label='Exportar RAC em PDF'
-              onClick={onSavePDF}
-              disabled={!canExportPDF}
-              dataGuidedTourId='rac-export-pdf'
+              icon={TOP_BAR_ICONS.restart}
+              label='Reiniciar Desenho'
+              onClick={onRestartDrawing}
+              disabled={restartDrawingDisabled}
             />
             <Divider/>
-          </>
+            {isMobile ? (
+              <>
+                <Item
+                  icon={TOP_BAR_ICONS.view3d}
+                  label='Visualização 3D'
+                  onClick={onOpen3DViewer}
+                  dataGuidedTourId='rac-view-3d'
+                />
+                <Item
+                  icon={TOP_BAR_ICONS.export}
+                  label='Exportar RAC em PDF'
+                  onClick={onSavePDF}
+                  disabled={!canExportPDF}
+                  dataGuidedTourId='rac-export-pdf'
+                />
+                <Divider/>
+              </>
+            ) : null}
+            <Item
+              icon={TOP_BAR_ICONS.tips}
+              label='Dicas'
+              onClick={onToggleTips}
+              rightSlot={showTips ? <ActiveDot/> : undefined}
+            />
+            <Item
+              icon={TOP_BAR_ICONS.guidedTour}
+              label='Abrir Tutorial'
+              dataGuidedTourStart='rac-editor-intro'
+            />
+            <Divider/>
+            <Item icon={TOP_BAR_ICONS.settings} label='Configurações' onClick={onOpenSettings}/>
+            <Divider/>
+            <Item
+              icon={TOP_BAR_ICONS.exit}
+              label='Sair'
+              onClick={() => {
+                setMenuOpen(false);
+                setLogoutError(null);
+                setLogoutOpen(true);
+              }}
+              destructive
+            />
+          </div>
         ) : null}
-        <Item
-          icon={TOP_BAR_ICONS.tips}
-          label='Dicas'
-          onClick={onToggleTips}
-          rightSlot={showTips ? <ActiveDot/> : undefined}
-        />
-        <Item
-          icon={TOP_BAR_ICONS.guidedTour}
-          label='Abrir Tutorial'
-          dataGuidedTourStart='rac-editor-intro'
-        />
-        <Divider/>
-        <Item icon={TOP_BAR_ICONS.settings} label='Configurações' onClick={onOpenSettings}/>
-        <Divider/>
-        <Item icon={TOP_BAR_ICONS.exit} label='Sair' onClick={onExit} destructive/>
-      </PopoverContent>
-    </Popover>
+      </div>
+
+      {logoutOpen ? (
+        <div className='fixed inset-0 z-[100] flex items-center justify-center p-4' role='presentation'>
+          <button
+            type='button'
+            aria-label='Fechar confirmação de saída'
+            className='absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]'
+            onClick={() => {
+              if (!logoutPending) setLogoutOpen(false);
+            }}
+          />
+          <div
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='logout-dialog-title'
+            aria-describedby='logout-dialog-description'
+            className='relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl'
+          >
+            <div className='space-y-2'>
+              <h2 id='logout-dialog-title' className='text-lg font-semibold text-slate-900'>Sair do RAC Designer?</h2>
+              <p id='logout-dialog-description' className='text-sm leading-6 text-slate-600'>
+                Sua sessão será encerrada. As alterações já sincronizadas continuarão salvas.
+              </p>
+            </div>
+            {logoutError ? <p role='alert' className='mt-4 text-sm font-medium text-red-600'>{logoutError}</p> : null}
+            <div className='mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
+              <button
+                type='button'
+                onClick={() => setLogoutOpen(false)}
+                disabled={logoutPending}
+                className='inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50'
+              >
+                Cancelar
+              </button>
+              <button
+                type='button'
+                onClick={confirmLogout}
+                disabled={logoutPending}
+                className='inline-flex min-h-10 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60'
+              >
+                {logoutPending ? 'Saindo…' : 'Sair'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

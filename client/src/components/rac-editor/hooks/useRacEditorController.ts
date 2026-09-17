@@ -35,7 +35,7 @@ import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/hou
 /**
  * Compõe os controladores do RAC editor e devolve o contrato de layout da tela.
  */
-export function useRacEditorController(): RacEditorLayoutProps {
+export function useRacEditorController({onExit}: {onExit: () => void | Promise<void>}): RacEditorLayoutProps {
   const isMobile = useIsMobile();
   const {houseReadPort, houseWritePort, settingsPort, houseIllustrationPort} = useEditorPorts();
 
@@ -134,6 +134,7 @@ export function useRacEditorController(): RacEditorLayoutProps {
     handleExit,
   } = useRacEditorShellController({
     canvasRef,
+    onExit,
     showTipsRef,
     showZoomControlsRef,
     setPilotiSelection,
