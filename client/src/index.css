@@ -590,6 +590,10 @@ All colors MUST be HSL.
     .rac-login__headline { margin-top: 2.75rem; }
 }
 
+@media (min-width: 861px) and (max-width: 1120px) {
+    .rac-login__house-stage { align-items: start; }
+}
+
 @media (max-width: 860px) {
     .rac-login {
         overflow-x: hidden;
@@ -642,7 +646,8 @@ All colors MUST be HSL.
 
     .rac-login__house-stage {
         order: 4;
-        min-height: 16rem;
+        min-height: 0;
+        align-items: start;
         padding: 0;
     }
 
@@ -671,7 +676,7 @@ All colors MUST be HSL.
     .rac-login__callouts { grid-template-columns: 1fr; gap: 0.65rem; }
     .rac-login__callouts > div { min-height: 3.85rem; padding: 0.7rem 0.8rem; }
     .rac-login__callouts p { font-size: 0.92rem; }
-    .rac-login__house-stage { min-height: 14rem; }
+    .rac-login__house-stage { min-height: 0; }
     .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
     .rac-login__impact-detail { margin-top: 0.9rem; font-size: 1rem; }
     .rac-login__benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; justify-items: center; }
@@ -684,5 +689,5 @@ All colors MUST be HSL.
     .rac-login__copy { padding-right: 1rem; padding-left: 1rem; }
     .rac-login__brand { gap: 0.5rem; font-size: 1.08rem; }
     .rac-login__headline h1 { font-size: 2.2rem; }
-    .rac-login__house-stage { min-height: 12rem; }
+    .rac-login__house-stage { min-height: 0; }
 }
