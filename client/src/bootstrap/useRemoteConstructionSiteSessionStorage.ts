@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TRPCClientError } from '@trpc/client';
+import { UNAUTHED_ERR_MSG } from '@shared/const';
+import { startLogin } from '@/const.ts';
 import type {
   ConstructionSiteSessionStoragePort,
   StoredConstructionSitesDocument,
@@ -73,7 +75,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setLoadStatus('ready');
     } catch (error) {
       setLoadStatus('error');
-      setLoadError(error instanceof Error ? error.message : 'Falha ao carregar as Construções TETO remotas.');
+      setLoadError(toRemoteSyncMessage(error, 'Falha ao carregar as Construções TETO remotas.'));
       setSyncStatus('error');
     }
   }, [repository]);
@@ -92,7 +94,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       .catch((error) => {
         if (!alive) return;
         setLoadStatus('error');
-        setLoadError(error instanceof Error ? error.message : 'Não foi possível verificar os dados locais.');
+        setLoadError(toRemoteSyncMessage(error, 'Não foi possível verificar os dados locais.'));
       });
     return () => { alive = false; };
   }, [loadRemote, loadGeneration]);
@@ -139,7 +141,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setLastSyncedAt(new Date().toISOString());
     } catch (error) {
       setSyncStatus('conflict');
-      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível aplicar suas alterações.');
+      setErrorMessage(toRemoteSyncMessage(error, 'Não foi possível aplicar suas alterações.'));
     }
   }, [conflict, repository, storage]);
 
@@ -226,7 +228,13 @@ export async function persistReactiveConstructionSites(
     return true;
   } catch (error) {
     setStatus?.('error');
-    setErrorMessage?.(error instanceof Error ? error.message : 'Não foi possível sincronizar as alterações.');
+    setErrorMessage?.(toRemoteSyncMessage(error, 'Não foi possível sincronizar as alterações.'));
+    if (isAuthenticationError(error) && typeof window !== 'undefined') {
+      // A chamada é assíncrona e acontece fora da renderização. Assim, uma sessão
+      // vencida no meio da edição volta ao fluxo Manus, sem deixar o usuário com
+      // um retry que jamais teria credenciais para concluir.
+      window.setTimeout(() => startLogin(), 0);
+    }
     return false;
   }
 }
@@ -269,6 +277,19 @@ export function createReactiveConstructionSiteSessionStorage(
   };
 }
 
+function toRemoteSyncMessage(error: unknown, fallback: string): string {
+  if (error instanceof TRPCClientError) {
+    if (error.data?.code === 'UNAUTHORIZED' || error.message === UNAUTHED_ERR_MSG) {
+      return 'Sua sessão Manus expirou ou foi bloqueada pelo preview. Entre novamente para continuar sincronizando.';
+    }
+    if (error.data?.code === 'PAYLOAD_TOO_LARGE') {
+      return 'O documento ficou grande demais para sincronizar. Reduza imagens incorporadas e tente novamente.';
+    }
+    if (error.message.trim()) return error.message;
+  }
+  return error instanceof Error && error.message.trim() ? error.message : fallback;
+}
+
 function replaceConstructionSite(list: ConstructionSiteState[], replacement: ConstructionSiteState): ConstructionSiteState[] {
   const next = list.filter((entry) => entry.constructionSite.id !== replacement.constructionSite.id);
   next.push(cloneConstructionSite(replacement));
@@ -291,6 +312,11 @@ async function loadConflictState(
 
 function isConflictError(error: unknown): boolean {
   return error instanceof TRPCClientError && error.data?.code === 'CONFLICT';
+}
+
+function isAuthenticationError(error: unknown): boolean {
+  return error instanceof TRPCClientError
+    && (error.data?.code === 'UNAUTHORIZED' || error.message === UNAUTHED_ERR_MSG);
 }
 
 function areConstructionSitesEqual(next: ConstructionSiteState, previous: ConstructionSiteState | undefined): boolean {

@@ -1,0 +1,13 @@
+# Recuperação de sessão e sincronização — 2026-09-17
+
+## Diagnóstico
+A persistência do banco foi validada com uma prova efêmera de create/update/delete (versões 1 → 2). A falha de sincronização ocorria antes do router `constructionSites.save`: requests tRPC protegidos chegavam sem `app_session_id` e sem Bearer token no preview incorporado.
+
+## Correção
+- Incluída ponte client-side para o protocolo `SpacePreviewerChannel` do runtime Manus. Ela solicita e armazena o cookie espelhado em `sessionStorage` para o cliente tRPC já configurado encaminhá-lo como Bearer token quando cookies de iframe forem bloqueados.
+- Mantido OAuth e procedures protegidas; nenhuma rota de escrita foi tornada pública.
+- A sincronização reconhece sessão expirada, informa a causa real e retoma o fluxo de login Manus, em vez de apresentar apenas um erro genérico de retry.
+
+## Validação
+- Preview interno após o reinício: editor autenticado e indicador de sincronização verde.
+- Tipagem, testes de bridge/sincronização/repositório/landing, testes de servidor e build de produção executados com sucesso.
