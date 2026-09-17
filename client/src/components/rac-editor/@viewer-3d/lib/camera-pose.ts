@@ -77,15 +77,15 @@ export function createHouse3DDoorFacingCameraPose(params: {
   doorFace: House3DDoorFace;
   compact: boolean;
 }): House3DViewerCameraPose {
-  const [, y, depthDistance] = params.compact
+  const [lateralDistance, y, depthDistance] = params.compact
     ? HOUSE_3D_COMPACT_CAMERA_POSITION
     : HOUSE_3D_CAMERA_POSITION;
 
   const positionByFace: Record<House3DDoorFace, House3DCameraVector> = {
-    front: [0, y, depthDistance],
-    back: [0, y, -depthDistance],
-    left: [-depthDistance, y, 0],
-    right: [depthDistance, y, 0],
+    front: [lateralDistance, y, depthDistance],
+    back: [-lateralDistance, y, -depthDistance],
+    left: [-depthDistance, y, -lateralDistance],
+    right: [depthDistance, y, lateralDistance],
   };
 
   return {

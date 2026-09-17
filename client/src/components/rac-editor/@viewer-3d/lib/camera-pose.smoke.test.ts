@@ -29,13 +29,13 @@ describe('camera-pose.ts', () => {
 
   it('cria enquadramento inicial olhando para a face da porta', () => {
     expect(createHouse3DDoorFacingCameraPose({doorFace: 'front', compact: false}).position)
-      .toEqual([0, 140, 250]);
+      .toEqual([180, 140, 250]);
     expect(createHouse3DDoorFacingCameraPose({doorFace: 'back', compact: false}).position)
-      .toEqual([0, 140, -250]);
+      .toEqual([-180, 140, -250]);
     expect(createHouse3DDoorFacingCameraPose({doorFace: 'left', compact: false}).position)
-      .toEqual([-250, 140, 0]);
+      .toEqual([-250, 140, -180]);
     expect(createHouse3DDoorFacingCameraPose({doorFace: 'right', compact: false}).position)
-      .toEqual([250, 140, 0]);
+      .toEqual([250, 140, 180]);
 
     expect(createHouse3DDoorFacingCameraPose({doorFace: 'front', compact: false}))
       .toMatchObject({

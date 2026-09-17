@@ -25,11 +25,10 @@ describe('constants.ts', () => {
 
   it('mantem enquadramento inicial da camera 3D centralizado na casa', () => {
     expect(HOUSE_3D_CAMERA_POSITION).toEqual([180, 140, 250]);
-    expect(HOUSE_3D_CAMERA_TARGET).toEqual([0, 28, 0]);
+    expect(HOUSE_3D_CAMERA_TARGET).toEqual([0, 40, 0]);
     expect(HOUSE_3D_CAMERA_FOV).toBe(40);
     expect(HOUSE_3D_COMPACT_CAMERA_POSITION).toEqual([220, 150, 305]);
     expect(HOUSE_3D_COMPACT_CAMERA_FOV).toBe(48);
     expect(HOUSE_3D_COMPACT_CAMERA_MAX_WIDTH).toBe(520);
   });
 });
-

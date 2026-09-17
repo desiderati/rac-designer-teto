@@ -16,7 +16,7 @@ export const STORAGE_KEYS = {
   settings: 'rac-settings',
   constructionSites: 'rac-construction-sites',
   canvasViewport: 'rac-canvas-viewport:v1',
-  house3DViewerCameraPosePrefix: 'rac-house-3d-camera-pose:v1:',
+  house3DViewerCameraPosePrefix: 'rac-house-3d-camera-pose:v2:',
   house3DViewerPreferencesPrefix: 'rac-house-3d-preferences:v1:',
 } as const;
 
