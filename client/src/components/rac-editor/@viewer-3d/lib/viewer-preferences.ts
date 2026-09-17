@@ -14,7 +14,7 @@ const ALLOWED_WALL_COLORS = new Set<string>(HOUSE_3D_WALL_COLOR_OPTIONS.map((opt
 
 export const DEFAULT_HOUSE_3D_VIEWER_PREFERENCES: House3DViewerPreferences = {
   wallColor: HOUSE_3D_WALL_COLORS.viewerInitialColor,
-  hideBelowTerrain: false,
+  hideBelowTerrain: true,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -39,7 +39,9 @@ export function normalizeHouse3DViewerPreferences(value: unknown): House3DViewer
 
   return {
     wallColor: normalizeWallColor(value.wallColor),
-    hideBelowTerrain: value.hideBelowTerrain === true,
+    hideBelowTerrain: typeof value.hideBelowTerrain === 'boolean'
+      ? value.hideBelowTerrain
+      : DEFAULT_HOUSE_3D_VIEWER_PREFERENCES.hideBelowTerrain,
   };
 }
 

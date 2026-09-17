@@ -27,6 +27,15 @@ describe('viewer-preferences.ts', () => {
     });
   });
 
+  it('inicia com a ocultação abaixo do terreno ativada', () => {
+    const storageKey = getHouse3DViewerPreferencesStorageKey('house_without_preferences');
+
+    expect(readHouse3DViewerPreferences(storageKey)).toEqual({
+      wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Azul,
+      hideBelowTerrain: true,
+    });
+  });
+
   it('ignora valores inválidos e mantém fallback seguro', () => {
     const storageKey = getHouse3DViewerPreferencesStorageKey('house_1');
     localStorage.setItem(storageKey!, JSON.stringify({
@@ -37,7 +46,7 @@ describe('viewer-preferences.ts', () => {
 
     expect(readHouse3DViewerPreferences(storageKey)).toEqual({
       wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Azul,
-      hideBelowTerrain: false,
+      hideBelowTerrain: true,
     });
   });
 
