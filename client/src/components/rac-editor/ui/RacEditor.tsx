@@ -9,6 +9,9 @@ import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspa
 import {StorageImageUploadProvider} from '@/contexts/StorageImageUploadContext.tsx';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {startLogin} from '@/const.ts';
+import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
+import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
+import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 
 export function RacEditor() {
   const {isAuthenticated, loading, error} = useAuth();
@@ -25,6 +28,7 @@ export function RacEditor() {
 
 function RemoteRacEditor() {
   const storageState = useRemoteConstructionSiteSessionStorage();
+  const [isDiscardingLegacyData, setIsDiscardingLegacyData] = useState(false);
   const ports = useMemo(() => {
     if (storageState.status !== 'ready') return null;
     return createEditorPorts({
@@ -33,6 +37,31 @@ function RemoteRacEditor() {
   }, [storageState]);
 
   if (storageState.status === 'loading') return <RacEditorLoadingState/>;
+
+  if (storageState.status === 'legacy_confirmation') {
+    return (
+      <>
+        <RemoteLegacyDataDialog
+          open
+          busy={isDiscardingLegacyData}
+          onKeepLocal={storageState.keepLegacyData}
+          onConfirmDiscard={async () => {
+            setIsDiscardingLegacyData(true);
+            try {
+              await storageState.discardLegacyData();
+            } finally {
+              setIsDiscardingLegacyData(false);
+            }
+          }}
+        />
+        <RacEditorLoadingState/>
+      </>
+    );
+  }
+
+  if (storageState.status === 'blocked') {
+    return <LegacyDataBlockedState onReview={storageState.reviewLegacyData}/>;
+  }
 
   if (storageState.status === 'error') {
     return (
@@ -45,9 +74,14 @@ function RemoteRacEditor() {
   if (!ports) return null;
 
   return (
-    <RacEditorStoreProvider ports={ports}>
-      <RacEditorEntryPoint/>
-    </RacEditorStoreProvider>
+    <RemoteSyncProvider value={storageState.sync}>
+      <div className='relative h-full'>
+        <RemoteSyncStatus/>
+        <RacEditorStoreProvider key={storageState.sync.revision} ports={ports}>
+          <RacEditorEntryPoint/>
+        </RacEditorStoreProvider>
+      </div>
+    </RemoteSyncProvider>
   );
 }
 

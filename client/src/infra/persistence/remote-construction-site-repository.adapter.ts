@@ -52,6 +52,10 @@ export class RemoteConstructionSiteRepositoryAdapter implements ConstructionSite
     });
     this.versions.delete(constructionSiteId);
   }
+
+  setDocumentVersion(constructionSiteId: string, documentVersion: number): void {
+    this.versions.set(constructionSiteId, documentVersion);
+  }
 }
 
 function withDocumentVersion(state: ConstructionSiteState, documentVersion: number): ConstructionSiteState {

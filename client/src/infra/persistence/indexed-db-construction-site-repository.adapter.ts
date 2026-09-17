@@ -62,3 +62,17 @@ export class IndexedDbConstructionSiteRepositoryAdapter implements ConstructionS
     return nextMutation;
   }
 }
+
+export async function hasLegacyIndexedDbConstructionSites(): Promise<boolean> {
+  const document = await createIndexedDbConstructionSiteStorageDriver().read();
+  return document.constructionSites.length > 0;
+}
+
+export async function clearLegacyIndexedDbConstructionSites(): Promise<void> {
+  const driver = createIndexedDbConstructionSiteStorageDriver();
+  if ('clear' in driver && typeof driver.clear === 'function') {
+    await driver.clear();
+    return;
+  }
+  await driver.write({version: 1, constructionSites: []});
+}

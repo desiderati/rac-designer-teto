@@ -100,6 +100,12 @@ export function createReactiveConstructionSiteSessionStorage(
         () => pendingWrite,
       );
     },
+    replace: (constructionSites) => {
+      document = {
+        version: document.version,
+        constructionSites: cloneConstructionSites(constructionSites),
+      };
+    },
   };
 }
 

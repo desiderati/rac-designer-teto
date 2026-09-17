@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
+import {Progress} from '@/components/ui/progress.tsx';
 import {getPhotoOrientation, type PhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {parseMapCoordinates} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
@@ -286,6 +287,15 @@ export function PhotoUploadField({
           disabled={disabled || storageImageUpload.isUploading}
         />
       </div>
+      {storageImageUpload.isUploading && storageImageUpload.progress ? (
+        <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
+          <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
+            <span>{storageImageUpload.progress.phase === 'reading' ? 'Preparando foto…' : 'Enviando foto…'}</span>
+            <span>{storageImageUpload.progress.percent}%</span>
+          </div>
+          <Progress value={storageImageUpload.progress.percent} className='h-1.5 bg-blue-100'/>
+        </div>
+      ) : null}
       {uploadError ? (
         <p role='alert' className='text-xs font-semibold text-red-600'>{uploadError}</p>
       ) : null}

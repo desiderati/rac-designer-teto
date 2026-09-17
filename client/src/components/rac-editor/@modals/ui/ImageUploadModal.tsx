@@ -2,6 +2,7 @@ import {ChangeEvent, DragEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUpload} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
+import {Progress} from '@/components/ui/progress.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
@@ -32,6 +33,7 @@ export function ImageUploadModal({
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const storageImageUpload = useStorageImageUpload();
+  const uploadProgress = storageImageUpload.progress;
 
   useEffect(() => {
     if (!isOpen) {
@@ -142,6 +144,17 @@ export function ImageUploadModal({
           </span>
         </span>
       </button>
+
+      {isUploading ? (
+        <div className='space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-3' aria-live='polite'>
+          <div className='flex items-center justify-between gap-3 text-xs font-semibold text-blue-800'>
+            <span>{uploadProgress?.phase === 'reading' ? 'Preparando imagem…' : uploadProgress?.phase === 'complete' ? 'Imagem pronta' : 'Enviando para o Storage…'}</span>
+            <span>{uploadProgress?.percent ?? 0}%</span>
+          </div>
+          <Progress value={uploadProgress?.percent ?? 8} className='h-2 bg-blue-100' />
+          <p className='truncate text-[11px] text-blue-700/80'>{uploadProgress?.fileName ?? 'Processando arquivo'}</p>
+        </div>
+      ) : null}
 
       <input
         ref={inputRef}

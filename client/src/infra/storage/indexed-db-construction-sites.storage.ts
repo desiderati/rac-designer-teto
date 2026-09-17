@@ -8,6 +8,7 @@ export interface StoredConstructionSitesDocument {
 export interface ConstructionSiteStorageDriver {
   read(): Promise<StoredConstructionSitesDocument>;
   write(document: StoredConstructionSitesDocument): Promise<void>;
+  clear?(): Promise<void>;
 }
 
 const DATABASE_NAME = 'rac-designer-teto';
@@ -57,6 +58,10 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
     } finally {
       database.close();
     }
+  }
+
+  async clear(): Promise<void> {
+    await this.write(EMPTY_DOCUMENT);
   }
 
   private openDatabase(): Promise<IDBDatabase> {
