@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Check, Cloud, CloudOff, RefreshCw, Server, X } from 'lucide-react';
+import { AlertTriangle, Cloud, Server } from 'lucide-react';
 import { useRemoteSync } from '@/contexts/RemoteSyncContext.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import {
@@ -11,41 +11,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 
+/**
+ * Conflitos exigem uma decisão explícita. O status transitório de sincronização
+ * fica no indicador compacto da TopBar, onde não compete com 3D/Exportar.
+ */
 export function RemoteSyncStatus() {
-  const sync = useRemoteSync();
-  const status = getStatusCopy(sync.status);
-
-  return (
-    <>
-      <div className='pointer-events-none fixed right-4 top-4 z-40 flex max-w-[min(92vw,420px)] flex-col items-end gap-2'>
-        <div
-          role='status'
-          aria-live='polite'
-          className={`pointer-events-auto flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold shadow-sm backdrop-blur-md ${status.className}`}
-        >
-          <status.Icon className={`h-3.5 w-3.5 ${sync.status === 'syncing' ? 'animate-spin' : ''}`} aria-hidden='true'/>
-          <span>{status.label}</span>
-          {sync.lastSyncedAt && sync.status === 'synced' ? (
-            <span className='hidden font-normal opacity-70 sm:inline'>· {formatTime(sync.lastSyncedAt)}</span>
-          ) : null}
-          {sync.status === 'error' ? (
-            <button type='button' aria-label='Fechar erro de sincronização' onClick={sync.dismissError} className='rounded-full p-0.5 hover:bg-black/10'>
-              <X className='h-3.5 w-3.5'/>
-            </button>
-          ) : null}
-        </div>
-        {sync.errorMessage && sync.status !== 'conflict' ? (
-          <div className='pointer-events-auto flex items-center gap-3 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs text-red-700 shadow-md'>
-            <span className='max-w-64'>{sync.errorMessage}</span>
-            <Button type='button' size='sm' variant='outline' className='h-7 bg-white text-xs' onClick={() => void sync.retry()}>
-              Tentar novamente
-            </Button>
-          </div>
-        ) : null}
-      </div>
-      <RemoteConflictDialog/>
-    </>
-  );
+  return <RemoteConflictDialog/>;
 }
 
 function RemoteConflictDialog() {
@@ -121,18 +92,6 @@ function ConflictVersion({
       <p className='mt-1 text-xs text-slate-600'>Status: {formatStatus(state.status)}</p>
     </div>
   );
-}
-
-function getStatusCopy(status: ReturnType<typeof useRemoteSync>['status']) {
-  if (status === 'syncing') return { label: 'Sincronizando…', className: 'border-blue-200 bg-blue-50 text-blue-700', Icon: RefreshCw };
-  if (status === 'pending') return { label: 'Alteração pendente', className: 'border-amber-200 bg-amber-50 text-amber-700', Icon: CloudOff };
-  if (status === 'conflict') return { label: 'Ação necessária', className: 'border-amber-300 bg-amber-100 text-amber-800', Icon: AlertTriangle };
-  if (status === 'error') return { label: 'Falha ao sincronizar', className: 'border-red-200 bg-red-50 text-red-700', Icon: CloudOff };
-  return { label: 'Sincronizado', className: 'border-emerald-200 bg-emerald-50 text-emerald-700', Icon: Check };
-}
-
-function formatTime(value: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 
 function formatStatus(value: string): string {

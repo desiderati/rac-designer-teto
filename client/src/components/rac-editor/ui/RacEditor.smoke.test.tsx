@@ -1,13 +1,22 @@
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {useIndexedDbConstructionSiteSessionStorage} from '@/bootstrap/useIndexedDbConstructionSiteSessionStorage.ts';
+import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
 import {useConstructionSiteManagementController} from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {RacEditor} from '@/components/rac-editor/ui/RacEditor.tsx';
 import type {StoredConstructionSitesDocument} from '@/components/rac-editor/lib/construction-site-session.ts';
+import {useAuth} from '@/_core/hooks/useAuth.ts';
 
-vi.mock('@/bootstrap/useIndexedDbConstructionSiteSessionStorage.ts', () => ({
-  useIndexedDbConstructionSiteSessionStorage: vi.fn(),
+vi.mock('@/bootstrap/useRemoteConstructionSiteSessionStorage.ts', () => ({
+  useRemoteConstructionSiteSessionStorage: vi.fn(),
+}));
+
+vi.mock('@/_core/hooks/useAuth.ts', () => ({
+  useAuth: vi.fn(),
+}));
+
+vi.mock('@/contexts/StorageImageUploadContext.tsx', () => ({
+  StorageImageUploadProvider: ({children}: {children: React.ReactNode}) => <>{children}</>,
 }));
 
 vi.mock('@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx', () => ({
@@ -71,13 +80,35 @@ function createConstructionSiteSessionStorage(
   };
 }
 
+function createSync() {
+  return {
+    status: 'synced' as const,
+    revision: 0,
+    lastSyncedAt: null,
+    errorMessage: null,
+    conflict: null,
+    dismissError: vi.fn(),
+    useRemoteVersion: vi.fn(),
+    keepLocalVersion: vi.fn(),
+    retry: vi.fn(),
+  };
+}
+
 describe('RacEditor.tsx', () => {
   beforeEach(() => {
-    vi.mocked(useIndexedDbConstructionSiteSessionStorage).mockReset();
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReset();
+    vi.mocked(useAuth).mockReturnValue({
+      user: {id: 1, openId: 'test-user', name: 'Teste', email: null, loginMethod: 'manus', role: 'user', createdAt: '2026-09-17T00:00:00.000Z', updatedAt: '2026-09-17T00:00:00.000Z', lastSignedIn: '2026-09-17T00:00:00.000Z'},
+      loading: false,
+      error: null,
+      isAuthenticated: true,
+      refresh: vi.fn(),
+      logout: vi.fn(),
+    });
   });
 
   it('exibe texto visível enquanto o canvas carrega', () => {
-    vi.mocked(useIndexedDbConstructionSiteSessionStorage).mockReturnValue({status: 'loading'});
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({status: 'loading'});
 
     render(<RacEditor/>);
 
@@ -85,8 +116,8 @@ describe('RacEditor.tsx', () => {
     expect(screen.getByText('Carregando o Canvas...')).toBeVisible();
   });
 
-  it('exibe a mensagem de erro quando o storage local falha', () => {
-    vi.mocked(useIndexedDbConstructionSiteSessionStorage).mockReturnValue({
+  it('exibe a mensagem de erro quando o storage remoto falha', () => {
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({
       status: 'error',
       message: 'Falha ao carregar construções.',
     });
@@ -98,9 +129,10 @@ describe('RacEditor.tsx', () => {
 
   it('prepara a construção apta antes de voltar da gestão para o Canvas', async () => {
     const user = userEvent.setup();
-    vi.mocked(useIndexedDbConstructionSiteSessionStorage).mockReturnValue({
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({
       status: 'ready',
       storage: createConstructionSiteSessionStorage(),
+      sync: createSync(),
     });
 
     render(<RacEditor/>);

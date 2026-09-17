@@ -1,6 +1,7 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {CircleAlert, CircleCheck, Loader2} from 'lucide-react';
+import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
@@ -17,6 +18,7 @@ interface TopBarProps {
   zoom: number;
   canvasToolMode: CanvasToolMode;
   isMobile: boolean;
+  /** Mantido no contrato do menu durante a migração para o status remoto. */
   documentSaveStatus: HouseDocumentSaveStatus;
   documentTransitioning: boolean;
   canExportPDF: boolean;
@@ -42,7 +44,7 @@ export function TopBar({
   zoom,
   canvasToolMode,
   isMobile,
-  documentSaveStatus,
+  documentSaveStatus: _documentSaveStatus,
   documentTransitioning,
   canExportPDF,
   isReadOnly = false,
@@ -76,7 +78,7 @@ export function TopBar({
 
       {/* Right: 3D / Exportar / Avatar */}
       <div className='fixed top-4 right-4 z-50 flex items-center gap-2'>
-        <DocumentSaveStatusIndicator status={documentSaveStatus}/>
+        <RemoteSyncIndicator/>
 
         <button
           type='button'
@@ -130,51 +132,45 @@ export function TopBar({
   );
 }
 
-function DocumentSaveStatusIndicator({status}: { status: HouseDocumentSaveStatus }) {
-  const labelByStatus: Record<HouseDocumentSaveStatus, string> = {
-    saved: 'Casa salva',
-    dirty: 'Salvando alterações',
-    saving: 'Salvando alterações',
-    error: 'Falha ao salvar alterações',
-  };
-
-  const toneByStatus: Record<HouseDocumentSaveStatus, string> = {
-    saved: 'text-emerald-600',
-    dirty: 'text-slate-500',
-    saving: 'text-slate-500',
+function RemoteSyncIndicator() {
+  const sync = useRemoteSync();
+  const status = sync.status;
+  const labelByStatus = {
+    synced: 'Sincronizado',
+    syncing: 'Sincronizando alterações',
+    pending: 'Alteração pendente',
+    conflict: 'Conflito de sincronização',
+    error: 'Falha ao sincronizar — clique para tentar novamente',
+  } as const;
+  const toneByStatus = {
+    synced: 'text-emerald-600',
+    syncing: 'text-slate-500',
+    pending: 'text-amber-600',
+    conflict: 'text-amber-700',
     error: 'text-red-600',
-  };
+  } as const;
+  const canRetry = status === 'error';
 
   return (
-    <span
-      role='status'
+    <button
+      type='button'
       aria-label={labelByStatus[status]}
       title={labelByStatus[status]}
+      disabled={!canRetry}
+      onClick={() => {
+        if (canRetry) void sync.retry();
+      }}
       className={cn(
-        'hidden sm:inline-flex h-7 w-7 shrink-0 items-center justify-center',
-        'pointer-events-none relative',
+        'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
+        'relative transition-colors',
+        canRetry ? 'cursor-pointer hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200' : 'pointer-events-none',
         toneByStatus[status],
       )}
     >
-      {status === 'saved' ? (
-        <CircleCheck
-          data-testid='document-save-check'
-          className='h-5 w-5'
-          aria-hidden='true'
-        />
-      ) : null}
-
-      {status === 'saving' || status === 'dirty' ? (
-        <Loader2
-          data-testid='document-save-spinner'
-          className='h-5 w-5 animate-spin'
-          aria-hidden='true'
-        />
-      ) : null}
-
-      {status === 'error' ? (
-        <CircleAlert className='h-5 w-5' aria-hidden='true'/>
-      ) : null}
-    </span>
+      {status === 'synced' ? <CircleCheck className='h-5 w-5' aria-hidden='true'/> : null}
+      {status === 'syncing' ? <RefreshCw className='h-5 w-5 animate-spin' aria-hidden='true'/> : null}
+      {status === 'pending' ? <CloudOff className='h-5 w-5' aria-hidden='true'/> : null}
+      {status === 'conflict' || status === 'error' ? <CircleAlert className='h-5 w-5' aria-hidden='true'/> : null}
+    </button>
   );
 }

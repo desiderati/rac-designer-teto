@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
+import {ArrowRight, CheckCircle2, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
 import {createEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
@@ -12,6 +13,9 @@ import {startLogin} from '@/const.ts';
 import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
+
+const PRODUCT_SCREENSHOT_URL = '/manus-storage/pasted_file_3D3Rgh_image_7992f010.png';
+const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-faithful_13746605.png';
 
 export function RacEditor() {
   const {isAuthenticated, loading, error} = useAuth();
@@ -87,23 +91,74 @@ function RemoteRacEditor() {
 
 function RacEditorAuthenticationState({error}: {error: unknown}) {
   return (
-    <div className='grid h-full place-items-center px-6 text-center' style={CANVAS_WORKSPACE_STYLE}>
-      <section className='max-w-md rounded-xl bg-white/90 p-7 shadow-sm ring-1 ring-slate-200'>
-        <p className='text-xs font-bold uppercase tracking-[0.16em] text-slate-500'>RAC Designer TETO</p>
-        <h1 className='mt-2 text-2xl font-semibold text-slate-900'>Entre para acessar as Construções TETO</h1>
-        <p className='mt-3 text-sm leading-6 text-slate-600'>
-          Use sua conta Manus para abrir a base global e sincronizada do editor.
-        </p>
-        {error ? <p role='alert' className='mt-3 text-sm text-red-700'>Não foi possível validar sua sessão atual.</p> : null}
-        <button
-          type='button'
-          className='mt-6 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-700'
-          onClick={startLogin}
-        >
-          Entrar com Manus
-        </button>
-      </section>
-    </div>
+    <main className='rac-login fixed inset-0 overflow-y-auto bg-[#eaf1f7] text-[#123d72]'>
+      <div className='rac-login__shell'>
+        <section className='rac-login__copy'>
+          <div className='rac-login__brand' aria-label='RAC Designer TETO'>
+            <span className='rac-login__brand-mark' aria-hidden='true'><House/></span>
+            <span>RAC Designer <strong>TETO</strong></span>
+          </div>
+
+          <div className='rac-login__divider' aria-hidden='true'/>
+          <p className='rac-login__eyebrow'>FERRAMENTA PARA QUEM<br/>CONSTRÓI IMPACTO</p>
+
+          <div className='rac-login__headline'>
+            <span className='rac-login__headline-line' aria-hidden='true'/>
+            <h1>Da ideia à planta<br/>que vira <em>abrigo.</em></h1>
+          </div>
+
+          <p className='rac-login__description'>
+            Registre, compartilhe e construa<br className='hidden sm:block'/>
+            juntos os projetos da sua comunidade,<br className='hidden sm:block'/>
+            com histórico claro e decisões mais seguras.
+          </p>
+
+          <button type='button' className='rac-login__cta' onClick={startLogin}>
+            <LogIn aria-hidden='true'/>
+            <span>Entrar com Manus</span>
+            <ArrowRight aria-hidden='true'/>
+          </button>
+
+          {error ? (
+            <p role='alert' className='rac-login__auth-error'>Não foi possível validar a sessão. Tente entrar novamente.</p>
+          ) : null}
+
+          <div className='rac-login__benefits' aria-label='Recursos principais'>
+            <span><Globe2 aria-hidden='true'/>Base global</span>
+            <span><History aria-hidden='true'/>Histórico</span>
+            <span><ShieldCheck aria-hidden='true'/>Storage seguro</span>
+          </div>
+        </section>
+
+        <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
+          <div className='rac-login__editor-wrap'>
+            <img
+              className='rac-login__editor-shot'
+              src={PRODUCT_SCREENSHOT_URL}
+              alt='Editor RAC Designer TETO com planta baixa e vistas da casa'
+            />
+            <span className='rac-login__sync-badge' aria-label='Editor sincronizado'>
+              <CheckCircle2 aria-hidden='true'/>
+            </span>
+          </div>
+          <div className='rac-login__connector rac-login__connector--top' aria-hidden='true'/>
+          <div className='rac-login__connector rac-login__connector--bottom' aria-hidden='true'/>
+
+          <div className='rac-login__callouts'>
+            <div><span className='rac-login__callout-icon'><History aria-hidden='true'/></span><p><strong>Projetos</strong><br/>com histórico<br/>e versões.</p></div>
+            <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><br/>que decide<br/>junto.</p></div>
+            <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><br/>mais segura<br/>e eficiente.</p></div>
+          </div>
+
+          <img
+            className='rac-login__house'
+            src={HOUSE_ILLUSTRATION_URL}
+            alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
+          />
+          <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
+        </section>
+      </div>
+    </main>
   );
 }
 

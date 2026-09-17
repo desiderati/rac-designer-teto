@@ -1,0 +1,9 @@
+# Login and sync UX validation — 2026-09-17
+
+- Replaced the unauthenticated gate with the requested responsive landing composition.
+- The landing uses the real RAC editor screenshot supplied by the user through Manus Storage, not the obsolete generic floor-plan screen.
+- The house image uses an updated architectural illustration preserving the 3D reference geometry (roof, facade, door, windows, pilotis and stair) while adopting the requested linework treatment.
+- Removed the fixed synchronization toast/error card that overlapped the 3D, export and user controls.
+- Remote state is now represented by the compact indicator immediately before the 3D control; failure is retryable from that icon and conflict resolution remains a modal.
+- Preview desktop review confirms no synchronization tooltip overlays the top-right controls.
+- Assets resolve through /manus-storage/ with signed redirects.
