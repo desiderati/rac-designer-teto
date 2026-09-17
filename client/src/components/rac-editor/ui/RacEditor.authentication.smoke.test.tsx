@@ -33,7 +33,7 @@ describe('RacEditor authentication landing', () => {
     expect(screen.getByRole('heading', { name: /Da ideia à planta/i })).toBeVisible();
     expect(screen.getByRole('img', { name: /Editor RAC Designer TETO/i })).toHaveAttribute(
       'src',
-      '/manus-storage/pasted_file_3D3Rgh_image_7992f010.png',
+      '/manus-storage/rac-editor-landing-screenshot-harmonized_a622cf88.png',
     );
     expect(screen.getByRole('img', { name: /casa TETO elevada/i })).toHaveAttribute(
       'src',

@@ -14,7 +14,7 @@ import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 
-const PRODUCT_SCREENSHOT_URL = '/manus-storage/pasted_file_3D3Rgh_image_7992f010.png';
+const PRODUCT_SCREENSHOT_URL = '/manus-storage/rac-editor-landing-screenshot-harmonized_a622cf88.png';
 const HOUSE_ILLUSTRATION_URL = '/manus-storage/teto-house-linework-transparent-cropped_28fd1656.png';
 
 export function RacEditor() {
