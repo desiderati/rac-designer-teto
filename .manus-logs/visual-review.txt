@@ -1,0 +1,12 @@
+Visual review, 2026-09-15:
+- Desktop layout renders with header, compact left toolbar, central grid canvas, and properties panel.
+- SVG wall DOM elements are present with expected geometry and dark stroke values; screenshot review will continue with functional interactions.
+- Build and TypeScript checks passed before visual review.
+Final visual review, 2026-09-15:
+The SVG filter was removed because Firefox rendered the wall elements without painting them. Desktop review now confirms a visible dark-wall floor-plan outline, openings, room labels, toolbar, export controls, and properties panel. Mobile review confirms the compact left toolbar and full editor canvas remain accessible at 375px wide; the properties panel is intentionally hidden to preserve drawing space.
+Interaction review, 2026-09-15:
+The desktop browser confirms that selecting the Wall toolbar control updates the active state and displays the drawing-mode banner. A synthetic pointer sequence was issued on the SVG canvas to exercise the wall-creation path; a follow-up render check is required because React state updates after the dispatched events are asynchronous.
+Wall creation verification, 2026-09-15:
+The sequential pointer test created two wall segments because an earlier draft point was still active; the event sequence therefore exercised the continuous-segment behavior. Both test segments were removed using the visible Undo control, returning the demonstration drawing to its original state.
+State restoration check, 2026-09-15:
+The editor is back in Selection mode with no active draft, and the rendered floor plan again contains its original seven walls.
