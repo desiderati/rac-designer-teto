@@ -33,11 +33,11 @@ describe('RacEditor authentication landing', () => {
     expect(screen.getByRole('heading', { name: /Da ideia à planta/i })).toBeVisible();
     expect(screen.getByRole('img', { name: /Editor RAC Designer TETO/i })).toHaveAttribute(
       'src',
-      '/manus-storage/rac-editor-landing-screenshot-harmonized_a622cf88.png',
+      '/manus-storage/rac-editor-landing-screenshot-harmonized_95473d21.png',
     );
     expect(screen.getByRole('img', { name: /casa TETO elevada/i })).toHaveAttribute(
       'src',
-      '/manus-storage/teto-house-linework-transparent-cropped_28fd1656.png',
+      '/manus-storage/teto-house-linework-transparent-cropped_770579e2.png',
     );
     expect(screen.queryByText('Imagens devem ser enviadas ao Storage do Manus')).not.toBeInTheDocument();
   });

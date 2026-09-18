@@ -297,12 +297,12 @@ export function ConstructionSiteManagementPanel({
   return (
     <main
       data-testid='construction-management-shell'
-      className='h-full overflow-x-auto overflow-y-auto px-4 py-10 sm:px-6 lg:px-10'
+      className='h-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:overflow-x-auto sm:px-6 sm:py-10 lg:px-10'
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div
         data-testid='construction-management-card'
-        className='mx-auto flex min-h-[calc(100dvh-5rem)] min-w-[450px] w-full max-w-4xl flex-col rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-8'
+        className='mx-auto flex min-h-full min-w-0 w-full max-w-none flex-col rounded-none border-0 bg-white p-4 shadow-none sm:min-h-[calc(100dvh-5rem)] sm:max-w-4xl sm:rounded-[24px] sm:border sm:border-slate-200/80 sm:p-6 sm:shadow-sm lg:p-8'
       >
         <header className='mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
           <div

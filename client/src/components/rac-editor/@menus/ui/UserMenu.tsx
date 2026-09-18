@@ -1,5 +1,6 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect, useRef, useState, type MouseEvent} from 'react';
+import {createPortal} from 'react-dom';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 
@@ -155,8 +156,8 @@ export function UserMenu({
         ) : null}
       </div>
 
-      {logoutOpen ? (
-        <div className='fixed inset-0 z-[100] flex items-center justify-center p-4' role='presentation'>
+      {logoutOpen ? createPortal(
+        <div className='fixed inset-0 z-[1000] flex items-center justify-center p-4' role='presentation'>
           <button
             type='button'
             aria-label='Fechar confirmação de saída'
@@ -170,7 +171,7 @@ export function UserMenu({
             aria-modal='true'
             aria-labelledby='logout-dialog-title'
             aria-describedby='logout-dialog-description'
-            className='relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl'
+            className='relative z-[1001] w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl'
           >
             <div className='space-y-2'>
               <h2 id='logout-dialog-title' className='text-lg font-semibold text-slate-900'>Sair do RAC Designer?</h2>
@@ -198,7 +199,8 @@ export function UserMenu({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );

@@ -80,6 +80,7 @@ describe('UserMenu.tsx', () => {
 
     expect(screen.getByRole('dialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Sair do RAC Designer?'})).toBeVisible();
+    expect(screen.getByRole('dialog').parentElement).toHaveClass('z-[1000]');
 
     fireEvent.click(screen.getByRole('button', {name: 'Cancelar'}));
 
