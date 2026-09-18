@@ -123,17 +123,17 @@ export const appRouter = router({
           messages: [
             {
               role: 'system',
-              content: 'Você descreve fotos de terrenos para uma ficha de visita técnica. Responda em português do Brasil, com apenas uma frase curta, objetiva e visual, sem inventar detalhes que não estejam na imagem.',
+              content: 'Você descreve fotos de terrenos para uma ficha de visita técnica. Observe somente o que está visível: vegetação, solo, relevo, acesso, estruturas, água, pedras ou entulho. Responda em português do Brasil com uma única frase curta, objetiva e visual, sem inventar detalhes nem usar linguagem genérica.',
             },
             {
               role: 'user',
               content: [
-                {type: 'text', text: 'Descreva esta foto do terreno em uma única frase curta, com no máximo 120 caracteres.'},
+                {type: 'text', text: 'Descreva exatamente o que aparece nesta foto do terreno em uma única frase curta, com no máximo 120 caracteres. Não escreva o nome do campo, não use JSON e não comece por “A imagem mostra”.'},
                 {
                   type: 'image_url',
                   image_url: {
                     url: `data:${input.mimeType};base64,${bytes.toString('base64')}`,
-                    detail: 'low',
+                    detail: 'high',
                   },
                 },
               ],
@@ -317,13 +317,36 @@ function toConstructionSiteTrpcError(error: unknown): TRPCError {
   return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Não foi possível persistir a Construção TETO.' });
 }
 
-function extractDescription(content: string | undefined): string {
+export function extractDescription(content: string | undefined): string {
   if (!content) return '';
+  const normalized = content
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
   try {
-    const parsed = JSON.parse(content) as {description?: unknown};
+    const parsed = JSON.parse(normalized) as {description?: unknown};
     if (typeof parsed.description === 'string') return parsed.description.trim().slice(0, 120);
   } catch {
-    // Fallback para texto simples quando o provedor não respeita o schema.
+    // Alguns provedores devolvem JSON parcial ou envolto em texto.
   }
-  return content.replace(/\s+/g, ' ').trim().replace(/^['"`]+|['"`]+$/g, '').slice(0, 120);
+
+  const quotedDescription = normalized.match(/["']description["']?\s*:\s*["']((?:\\.|[^"'\\])*)/i);
+  if (quotedDescription?.[1]) {
+    try {
+      return JSON.parse(`"${quotedDescription[1]}"`).trim().slice(0, 120);
+    } catch {
+      return quotedDescription[1].replace(/\\["']/g, '"').trim().slice(0, 120);
+    }
+  }
+
+  const partialDescription = normalized.match(/description["']?\s*:\s*(.*)$/i)?.[1];
+  const fallback = partialDescription ?? normalized;
+  return fallback
+    .replace(/[{}]/g, '')
+    .replace(/^\s*["'`]?(?:description)?["'`]?\s*[:=-]\s*/i, '')
+    .replace(/["'`}]+\s*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
 }

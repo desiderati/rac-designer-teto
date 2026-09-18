@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState, type ChangeEvent} from 'react';
-import {Camera, LoaderCircle, Plus, RefreshCw, Trash2} from 'lucide-react';
+import {Camera, Plus, RefreshCw, Trash2} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
@@ -7,11 +7,8 @@ import {
   PHOTO_UPLOAD_ACCEPT,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
-import {
-  dataUrlToStorageImageUploadPayload,
-  toStorageImageUploadPayload,
-} from '@/shared/lib/storage-image-upload.ts';
-import {TextArea} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
+import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 
@@ -33,7 +30,7 @@ export function TerrainPhotosField({
   const description = useTerrainPhotoDescription();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [describingId, setDescribingId] = useState<string | null>(null);
+  const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
 
@@ -48,13 +45,16 @@ export function TerrainPhotosField({
     onChange(next);
   };
 
-  const openPicker = () => {
-    if (disabled || storageUpload.isUploading || valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
+  const openPicker = (photoId?: string) => {
+    if (disabled || storageUpload.isUploading) return;
+    if (!photoId && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
+    setReplacePhotoId(photoId ?? null);
     inputRef.current?.click();
   };
 
-  const handleFile = async (file: File) => {
-    if (disabled || storageUpload.isUploading || valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
+  const handleFile = async (file: File, photoIdToReplace: string | null) => {
+    if (disabled || storageUpload.isUploading) return;
+    if (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
 
     const validationError = await validatePhotoFile(file);
     if (validationError) {
@@ -67,22 +67,30 @@ export function TerrainPhotosField({
     try {
       const payload = await toStorageImageUploadPayload(file);
       const url = await storageUpload.uploadImage(file, constructionSiteId);
-      const id = `terrain-photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-      const nextPhoto: TerrainPhoto = {id, url};
-      const nextIndex = valueRef.current.length;
-      updatePhotos((current) => current.length >= MAX_TERRAIN_PHOTOS ? current : [...current, nextPhoto]);
+      const id = photoIdToReplace ?? `terrain-photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const nextIndex = photoIdToReplace
+        ? Math.max(0, valueRef.current.findIndex((photo) => photo.id === photoIdToReplace))
+        : valueRef.current.length;
+      if (photoIdToReplace) {
+        updatePhotos((current) => current.map((photo) => (
+          photo.id === photoIdToReplace ? {id: photo.id, url} : photo
+        )));
+      } else {
+        updatePhotos((current) => current.length >= MAX_TERRAIN_PHOTOS ? current : [...current, {id, url}]);
+      }
       setSelectedIndex(nextIndex);
-      toast.success('Foto adicionada.', {id: uploadToastId});
+      toast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.', {id: uploadToastId});
       void generateDescription(id, payload);
     } catch (error) {
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);
       toast.error('Não foi possível enviar a foto. Tente novamente.', {id: uploadToastId});
+    } finally {
+      setReplacePhotoId(null);
     }
   };
 
   const generateDescription = async (photoId: string, input: TerrainPhotoDescriptionInput) => {
     const descriptionToastId = `terrain-description-${photoId}`;
-    setDescribingId(photoId);
     toast.loading('Gerando descrição da foto…', {id: descriptionToastId});
     try {
       const generatedDescription = await description.describePhoto(input);
@@ -94,26 +102,15 @@ export function TerrainPhotosField({
     } catch (error) {
       console.warn('[TerrainPhotosField] Falha ao gerar descrição da foto:', error);
       toast.error('Não foi possível gerar a descrição. Você pode preenchê-la manualmente.', {id: descriptionToastId});
-    } finally {
-      setDescribingId((current) => current === photoId ? null : current);
-    }
-  };
-
-  const refreshDescription = async (photo: TerrainPhoto) => {
-    if (disabled || describingId === photo.id) return;
-    try {
-      const payload = await loadImagePayload(photo.url);
-      await generateDescription(photo.id, payload);
-    } catch (error) {
-      console.warn('[TerrainPhotosField] Falha ao ler foto para nova descrição:', error);
-      toast.error('Não foi possível atualizar a descrição desta foto.');
     }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    const photoIdToReplace = replacePhotoId;
     event.target.value = '';
-    if (file) void handleFile(file);
+    setReplacePhotoId(null);
+    if (file) void handleFile(file, photoIdToReplace);
   };
 
   const removePhoto = (photoId: string) => {
@@ -153,7 +150,7 @@ export function TerrainPhotosField({
             ) : (
               <button
                 type='button'
-                onClick={openPicker}
+                onClick={() => openPicker()}
                 disabled={disabled || storageUpload.isUploading}
                 className='absolute inset-0 grid cursor-pointer place-items-center text-slate-400 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-60'
                 aria-label='Adicionar foto do terreno'
@@ -172,11 +169,10 @@ export function TerrainPhotosField({
               index={index}
               selected={index === selectedIndex}
               disabled={disabled}
-              isDescribing={photo?.id === describingId}
               dragging={photo?.id === draggingId}
               onSelect={() => setSelectedIndex(index)}
               onRemove={() => photo && removePhoto(photo.id)}
-              onRefresh={() => photo && void refreshDescription(photo)}
+              onReplace={() => photo && openPicker(photo.id)}
               onDragStart={() => photo && setDraggingId(photo.id)}
               onDragEnd={() => setDraggingId(null)}
               onDragOver={(event) => {
@@ -188,7 +184,7 @@ export function TerrainPhotosField({
                 movePhoto(fromIndex, index);
                 setDraggingId(null);
               }}
-              onAdd={openPicker}
+              onAdd={() => openPicker()}
               isUploading={storageUpload.isUploading}
             />
           ))}
@@ -196,13 +192,13 @@ export function TerrainPhotosField({
       </div>
 
       {selectedPhoto ? (
-        <TextArea
-          label='Descrição'
+        <TextField
+          label='Descrição da Foto Selecionada'
           placeholder='Descrição curta da foto'
           value={selectedPhoto.description ?? ''}
           onChange={(nextDescription) => updatePhotos((current) => current.map((photo) => (
             photo.id === selectedPhoto.id ? {...photo, description: nextDescription} : photo
-          )))}
+          ))) }
           maxLength={120}
           disabled={disabled}
         />
@@ -226,11 +222,10 @@ function TerrainPhotoThumb({
   index,
   selected,
   disabled,
-  isDescribing,
   dragging,
   onSelect,
   onRemove,
-  onRefresh,
+  onReplace,
   onDragStart,
   onDragEnd,
   onDragOver,
@@ -242,11 +237,10 @@ function TerrainPhotoThumb({
   index: number;
   selected: boolean;
   disabled: boolean;
-  isDescribing: boolean;
   dragging: boolean;
   onSelect(): void;
   onRemove(): void;
-  onRefresh(): void;
+  onReplace(): void;
   onDragStart(): void;
   onDragEnd(): void;
   onDragOver(event: React.DragEvent<HTMLDivElement>): void;
@@ -269,7 +263,7 @@ function TerrainPhotoThumb({
     >
       <button
         type='button'
-        onClick={photo ? onSelect : onAdd}
+        onClick={photo ? onSelect : () => onAdd()}
         disabled={disabled || isUploading}
         aria-label={photo ? `Selecionar foto ${index + 1} do terreno` : `Adicionar foto ${index + 1} do terreno`}
         className='absolute inset-0 z-0 grid cursor-pointer place-items-center bg-slate-100 text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60'
@@ -303,35 +297,16 @@ function TerrainPhotoThumb({
             type='button'
             onClick={(event) => {
               event.stopPropagation();
-              onRefresh();
+              onReplace();
             }}
-            disabled={disabled || isDescribing}
-            aria-label={`Atualizar descrição da foto ${index + 1}`}
+            disabled={disabled || isUploading}
+            aria-label={`Trocar foto ${index + 1} do terreno`}
             className='absolute bottom-1 right-1 z-20 grid h-6 w-6 place-items-center rounded-md bg-white/90 text-slate-700 shadow-sm backdrop-blur transition-colors hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
           >
-            {isDescribing ? <LoaderCircle className='h-3.5 w-3.5 animate-spin'/> : <RefreshCw className='h-3.5 w-3.5'/>}
+            <RefreshCw className='h-3.5 w-3.5'/>
           </button>
         </>
       ) : null}
     </div>
   );
-}
-
-async function loadImagePayload(url: string): Promise<TerrainPhotoDescriptionInput> {
-  if (url.startsWith('data:')) {
-    const payload = dataUrlToStorageImageUploadPayload(url, 'terrain-photo');
-    return {base64: payload.base64, mimeType: payload.mimeType};
-  }
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Não foi possível carregar a foto.');
-  const blob = await response.blob();
-  const dataUrl = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Imagem inválida.'));
-    reader.onerror = () => reject(new Error('Não foi possível ler a foto.'));
-    reader.readAsDataURL(blob);
-  });
-  const payload = dataUrlToStorageImageUploadPayload(dataUrl, 'terrain-photo');
-  return {base64: payload.base64, mimeType: payload.mimeType};
 }

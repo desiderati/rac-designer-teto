@@ -758,7 +758,7 @@ export function VisualSelectMenu<T extends string>({
           )}
         >
           <span className='min-w-0 flex-1 truncate text-left normal-case tracking-normal'>
-            {selectedOption?.triggerLabel ?? selectedOption?.label ?? placeholder ?? 'Selecionar'}
+            {selectedOption?.triggerLabel ?? selectedOption?.label ?? (placeholder !== undefined ? placeholder : 'Selecionar')}
           </span>
           <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open ? 'rotate-180' : null)}/>
         </button>

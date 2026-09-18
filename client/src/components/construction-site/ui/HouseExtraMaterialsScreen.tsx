@@ -111,7 +111,7 @@ export function HouseExtraMaterialsScreen({
               <VisualSelectField
                 label='Escada'
                 ariaLabel='Escada'
-                placeholder='Selecionar tipo de escada'
+                placeholder=''
                 value={field.value}
                 options={STAIR_OPTIONS}
                 onChange={field.onChange}
