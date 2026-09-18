@@ -48,21 +48,65 @@ test.describe('Landing pré-login responsiva', () => {
   test('mantém os cards abaixo do screenshot acima do breakpoint compacto', async ({page}) => {
     await page.setViewportSize({width: 1000, height: 800});
     await page.goto(landingPath);
+    await page.waitForTimeout(750);
+
+    const layout = await page.evaluate(() => {
+      const login = document.querySelector<HTMLElement>('.rac-login');
+      const copy = document.querySelector<HTMLElement>('.rac-login__copy');
+      const screenshot = document.querySelector<HTMLElement>('.rac-login__editor-wrap');
+      const visual = document.querySelector<HTMLElement>('.rac-login__visual');
+      const callouts = document.querySelector<HTMLElement>('.rac-login__callouts');
+      if (!login || !copy || !screenshot || !visual || !callouts) throw new Error('Landing incompleta.');
+
+      const copyBox = copy.getBoundingClientRect();
+      const screenshotBox = screenshot.getBoundingClientRect();
+      const visualBox = visual.getBoundingClientRect();
+      const calloutsBox = callouts.getBoundingClientRect();
+      const cardHeights = Array.from(callouts.children).map((card) => card.getBoundingClientRect().height);
+      return {
+        overflowX: login.scrollWidth > login.clientWidth,
+        calloutsBelowScreenshot: calloutsBox.top >= screenshotBox.bottom - 1,
+        loginTopAlignedWithVisual: Math.abs(copyBox.top - visualBox.top) < 1,
+        loginBottomAlignedWithCards: Math.abs(copyBox.bottom - calloutsBox.bottom) < 1,
+        cardsSameHeight: Math.max(...cardHeights) - Math.min(...cardHeights) < 1,
+      };
+    });
+
+    expect(layout).toEqual({
+      overflowX: false,
+      calloutsBelowScreenshot: true,
+      loginTopAlignedWithVisual: true,
+      loginBottomAlignedWithCards: true,
+      cardsSameHeight: true,
+    });
+  });
+
+  test('mantém o fluxo mobile rolável sem overflow horizontal', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await page.goto(landingPath);
+    await page.waitForTimeout(750);
 
     const layout = await page.evaluate(() => {
       const login = document.querySelector<HTMLElement>('.rac-login');
       const screenshot = document.querySelector<HTMLElement>('.rac-login__editor-wrap');
-      const callouts = document.querySelector<HTMLElement>('.rac-login__callouts');
-      if (!login || !screenshot || !callouts) throw new Error('Landing incompleta.');
+      const house = document.querySelector<HTMLElement>('.rac-login__house');
+      if (!login || !screenshot || !house) throw new Error('Landing incompleta.');
 
       const screenshotBox = screenshot.getBoundingClientRect();
-      const calloutsBox = callouts.getBoundingClientRect();
+      const houseBox = house.getBoundingClientRect();
       return {
         overflowX: login.scrollWidth > login.clientWidth,
-        calloutsBelowScreenshot: calloutsBox.top >= screenshotBox.bottom - 1,
+        canScrollVertically: login.scrollHeight > login.clientHeight,
+        screenshotHasArea: screenshotBox.width > 0 && screenshotBox.height > 0,
+        houseHasArea: houseBox.width > 0 && houseBox.height > 0,
       };
     });
 
-    expect(layout).toEqual({overflowX: false, calloutsBelowScreenshot: true});
+    expect(layout).toEqual({
+      overflowX: false,
+      canScrollVertically: true,
+      screenshotHasArea: true,
+      houseHasArea: true,
+    });
   });
 });
