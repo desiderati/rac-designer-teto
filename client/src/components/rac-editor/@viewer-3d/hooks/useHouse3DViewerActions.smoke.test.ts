@@ -5,6 +5,7 @@ import {useHouse3DViewerActions} from '@/components/rac-editor/@viewer-3d/hooks/
 import {
   getHouse3DViewerPreferencesStorageKey,
   readHouse3DViewerPreferences,
+  writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
 describe('useHouse3DViewerActions.ts', () => {
@@ -39,6 +40,41 @@ describe('useHouse3DViewerActions.ts', () => {
       hideBelowTerrain: true,
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('reenquadra a câmera sem apagar preferências do viewer', () => {
+    const onOpenChange = vi.fn();
+    const cameraStorageKey = 'rac-house-3d-camera-pose:v2:house_1';
+    const preferencesStorageKey = getHouse3DViewerPreferencesStorageKey('house_1');
+    writeHouse3DViewerPreferences(preferencesStorageKey, {
+      wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Rosa,
+      hideBelowTerrain: false,
+    });
+    localStorage.setItem(cameraStorageKey, JSON.stringify({
+      version: 1,
+      position: [420, 260, 480],
+      target: [12, 70, -8],
+      fov: 55,
+      zoom: 1.2,
+    }));
+
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange,
+      canvasRef: {current: null},
+      cameraPoseStorageKey: cameraStorageKey,
+      viewerPreferencesStorageKey: preferencesStorageKey,
+    }));
+
+    act(() => result.current.handleReset());
+
+    expect(localStorage.getItem(cameraStorageKey)).toBeNull();
+    expect(readHouse3DViewerPreferences(preferencesStorageKey)).toEqual({
+      wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Rosa,
+      hideBelowTerrain: false,
+    });
+    expect(result.current.resetKey).toBe(1);
   });
 
   it('insere a ilustração transparente e registra a URL do Storage no Canvas', async () => {

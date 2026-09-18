@@ -177,7 +177,8 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                 variant='outline'
                 size='icon'
                 onClick={handleReset}
-                title='Resetar Câmera'
+                title='Enquadrar casa'
+                aria-label='Enquadrar casa'
                 disabled={!isSceneReady}
               >
                 <FontAwesomeIcon icon={faRotateRight}/>
