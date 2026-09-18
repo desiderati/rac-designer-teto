@@ -1149,6 +1149,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Retirar obstáculo')).toBeVisible();
     expect(screen.getByLabelText('Liberar acesso')).toBeVisible();
     expect(screen.getByTestId('terrain-photos-field')).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Adicionar foto 1 do terreno'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Adicionar foto 2 do terreno'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Adicionar foto 3 do terreno'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Adicionar foto 4 do terreno'})).toBeVisible();
     expect(screen.getByTestId('house-configuration-form').className).toContain('sm:grid-cols-[220px_minmax(0,1fr)]');
     expect(screen.getByTestId('house-configuration-form').className).not.toContain('lg:grid-cols-[220px_minmax(0,1fr)]');
     expect(screen.queryByLabelText('Tipo da casa')).not.toBeInTheDocument();
@@ -1167,8 +1171,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const familySection = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section') as HTMLElement;
     const aboutHouseSection = screen.getByRole('heading', {name: 'Sobre a Casa'}).closest('section') as HTMLElement;
     const localRestrictionsSection = screen.getByRole('heading', {name: 'Restrições Locais'}).closest('section') as HTMLElement;
+    const terrainPhotosSection = screen.getByRole('heading', {name: 'Fotos do Terreno'}).closest('section') as HTMLElement;
+    const siteCharacteristicsSection = screen.getByRole('heading', {name: 'Características do Local'}).closest('section') as HTMLElement;
     expect(familySection.compareDocumentPosition(aboutHouseSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(aboutHouseSection.compareDocumentPosition(localRestrictionsSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(terrainPhotosSection.compareDocumentPosition(siteCharacteristicsSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(within(familySection).queryByLabelText('Notas')).not.toBeInTheDocument();
     expect(screen.getByTestId('about-house-grid').className).toContain('md:grid-cols-2');
     expect(within(aboutHouseSection).getByLabelText('Tamanho da Casa').textContent?.trim()).toBe('');
@@ -1508,6 +1515,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
     expect(screen.getByLabelText('Calhas')).toHaveValue('');
     expect(screen.getByLabelText('Escada')).toBeVisible();
+    expect(screen.queryByText('Em branco')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
     fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});

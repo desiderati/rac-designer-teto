@@ -111,6 +111,7 @@ export function HouseExtraMaterialsScreen({
               <VisualSelectField
                 label='Escada'
                 ariaLabel='Escada'
+                placeholder='Selecionar tipo de escada'
                 value={field.value}
                 options={STAIR_OPTIONS}
                 onChange={field.onChange}
@@ -189,7 +190,6 @@ function normalizeIntegerDraft(value: string, previousValue: string): string {
 }
 
 const STAIR_OPTIONS: VisualSelectOption<StairType | ''>[] = [
-  {value: '', label: 'Em branco'},
   {value: 'straight', label: 'Escada Reta'},
   {value: 'landing', label: 'Escada com Patamar'},
 ];

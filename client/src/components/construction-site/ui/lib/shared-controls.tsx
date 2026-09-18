@@ -669,6 +669,7 @@ export function VisualSelect<T extends string>({
 export function VisualSelectField<T extends string>({
   label,
   ariaLabel,
+  placeholder,
   value,
   options,
   onChange,
@@ -677,6 +678,7 @@ export function VisualSelectField<T extends string>({
 }: {
   label: string;
   ariaLabel: string;
+  placeholder?: string;
   value: T;
   options: VisualSelectOption<T>[];
   onChange(value: T): void;
@@ -690,6 +692,7 @@ export function VisualSelectField<T extends string>({
       <span>{label}</span>
       <VisualSelectMenu
         ariaLabel={ariaLabel}
+        placeholder={placeholder}
         value={value}
         options={options}
         onChange={onChange}
@@ -709,6 +712,7 @@ export function VisualSelectField<T extends string>({
 
 export function VisualSelectMenu<T extends string>({
   ariaLabel,
+  placeholder,
   value,
   options,
   onChange,
@@ -718,6 +722,7 @@ export function VisualSelectMenu<T extends string>({
   disabled = false,
 }: {
   ariaLabel: string;
+  placeholder?: string;
   value: T;
   options: VisualSelectOption<T>[];
   onChange(value: T): void;
@@ -727,7 +732,7 @@ export function VisualSelectMenu<T extends string>({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+  const selectedOption = options.find((option) => option.value === value);
 
   const selectOption = (nextValue: T) => {
     if (disabled) return;
@@ -753,7 +758,7 @@ export function VisualSelectMenu<T extends string>({
           )}
         >
           <span className='min-w-0 flex-1 truncate text-left normal-case tracking-normal'>
-            {selectedOption?.triggerLabel ?? selectedOption?.label ?? 'Selecionar'}
+            {selectedOption?.triggerLabel ?? selectedOption?.label ?? placeholder ?? 'Selecionar'}
           </span>
           <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform', open ? 'rotate-180' : null)}/>
         </button>

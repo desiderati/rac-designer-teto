@@ -445,71 +445,7 @@ export function HouseConfigurationScreen({
           />
         </HouseFormSection>
 
-        <HouseFormSection number='05' title='Características do Local'>
-          <div data-testid='site-characteristics-grid' className='grid gap-4 md:grid-cols-2'>
-            <Controller
-              control={form.control}
-              name='locationQuery'
-              render={({field, fieldState}) => (
-                <div className='space-y-2 md:col-span-2'>
-                  <div
-                    data-testid='location-geography-row'
-                    className='grid gap-4 md:grid-cols-2 md:items-start'
-                  >
-                    <TextField
-                      label='Localização Geográfica'
-                      placeholder='Carregar a partir de coordenadas'
-                      value={field.value}
-                      onChange={(value) => {
-                        setLocationLookupMessage(null);
-                        field.onChange(value);
-                      }}
-                      onBlur={field.onBlur}
-                      onKeyDown={handleLocationQueryKeyDown}
-                      error={fieldState.error?.message}
-                      disabled={isReadOnly}
-                    />
-                    <button
-                      type='button'
-                      aria-describedby={locationLookupMessage ? 'current-location-feedback' : undefined}
-                      className={cn(
-                        buttonClassName,
-                        'w-full gap-2 border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 md:mt-[1.45rem]',
-                      )}
-                      onClick={useCurrentLocation}
-                      disabled={isReadOnly || locationLookupStatus === 'loading'}
-                    >
-                      {locationLookupStatus === 'loading'
-                        ? <LoaderCircle className='h-4 w-4 animate-spin'/>
-                        : <LocateFixed className='h-4 w-4'/>}
-                      {locationLookupStatus === 'loading' ? 'Obtendo localização...' : 'Usar localização atual'}
-                    </button>
-                  </div>
-                  {locationLookupMessage ? (
-                    <p
-                      id='current-location-feedback'
-                      role={locationLookupMessage.tone === 'error' ? 'alert' : 'status'}
-                      className={cn(
-                        'text-xs font-medium',
-                        locationLookupMessage.tone === 'error' ? 'text-red-600' : 'text-blue-700',
-                      )}
-                    >
-                      {locationLookupMessage.text}
-                    </p>
-                  ) : null}
-                </div>
-              )}
-            />
-            <div data-testid='static-map-wrapper' className='md:col-span-2'>
-              <StaticMapPreview locationQuery={locationQuery}/>
-            </div>
-            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2'>
-              <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
-            </div>
-          </div>
-        </HouseFormSection>
-
-        <HouseFormSection number='06' title='Fotos do Terreno'>
+        <HouseFormSection number='05' title='Fotos do Terreno'>
           <Controller
             control={form.control}
             name='terrainPhotos'
@@ -526,6 +462,59 @@ export function HouseConfigurationScreen({
               />
             )}
           />
+        </HouseFormSection>
+
+        <HouseFormSection number='06' title='Características do Local'>
+          <div data-testid='site-characteristics-grid' className='grid gap-4 md:grid-cols-2'>
+            <Controller
+              control={form.control}
+              name='locationQuery'
+              render={({field, fieldState}) => (
+                <div className='space-y-2 md:col-span-2'>
+                  <div data-testid='location-geography-row' className='grid gap-4 md:grid-cols-2 md:items-start'>
+                    <TextField
+                      label='Localização Geográfica'
+                      placeholder='Carregar a partir de coordenadas'
+                      value={field.value}
+                      onChange={(value) => {
+                        setLocationLookupMessage(null);
+                        field.onChange(value);
+                      }}
+                      onBlur={field.onBlur}
+                      onKeyDown={handleLocationQueryKeyDown}
+                      error={fieldState.error?.message}
+                      disabled={isReadOnly}
+                    />
+                    <button
+                      type='button'
+                      aria-describedby={locationLookupMessage ? 'current-location-feedback' : undefined}
+                      className={cn(buttonClassName, 'w-full gap-2 border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 md:mt-[1.45rem]')}
+                      onClick={useCurrentLocation}
+                      disabled={isReadOnly || locationLookupStatus === 'loading'}
+                    >
+                      {locationLookupStatus === 'loading' ? <LoaderCircle className='h-4 w-4 animate-spin'/> : <LocateFixed className='h-4 w-4'/>}
+                      {locationLookupStatus === 'loading' ? 'Obtendo localização...' : 'Usar localização atual'}
+                    </button>
+                  </div>
+                  {locationLookupMessage ? (
+                    <p
+                      id='current-location-feedback'
+                      role={locationLookupMessage.tone === 'error' ? 'alert' : 'status'}
+                      className={cn('text-xs font-medium', locationLookupMessage.tone === 'error' ? 'text-red-600' : 'text-blue-700')}
+                    >
+                      {locationLookupMessage.text}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            />
+            <div data-testid='static-map-wrapper' className='md:col-span-2'>
+              <StaticMapPreview locationQuery={locationQuery}/>
+            </div>
+            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2'>
+              <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
+            </div>
+          </div>
         </HouseFormSection>
       </div>
     </form>
