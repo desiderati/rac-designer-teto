@@ -11,6 +11,16 @@ import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts'
 import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {toast} from '@/components/ui/sonner.tsx';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog.tsx';
 
 const MAX_TERRAIN_PHOTOS = 4;
 
@@ -31,6 +41,7 @@ export function TerrainPhotosField({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
+  const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
 
@@ -121,6 +132,17 @@ export function TerrainPhotosField({
     toast.success('Foto removida.');
   };
 
+  const requestRemovePhoto = (photoId: string) => {
+    if (disabled) return;
+    setPendingDeletePhotoId(photoId);
+  };
+
+  const confirmRemovePhoto = () => {
+    if (!pendingDeletePhotoId) return;
+    removePhoto(pendingDeletePhotoId);
+    setPendingDeletePhotoId(null);
+  };
+
   const movePhoto = (fromIndex: number, toIndex: number) => {
     if (disabled || fromIndex === toIndex) return;
     updatePhotos((current) => {
@@ -171,7 +193,7 @@ export function TerrainPhotosField({
               disabled={disabled}
               dragging={photo?.id === draggingId}
               onSelect={() => setSelectedIndex(index)}
-              onRemove={() => photo && removePhoto(photo.id)}
+              onRemove={() => photo && requestRemovePhoto(photo.id)}
               onReplace={() => photo && openPicker(photo.id)}
               onDragStart={() => photo && setDraggingId(photo.id)}
               onDragEnd={() => setDraggingId(null)}
@@ -213,6 +235,31 @@ export function TerrainPhotosField({
         onChange={handleFileChange}
         disabled={disabled || storageUpload.isUploading}
       />
+
+      <AlertDialog
+        open={pendingDeletePhotoId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeletePhotoId(null);
+        }}
+      >
+        <AlertDialogContent className='max-w-md rounded-2xl'>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir foto do terreno?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A foto selecionada será removida da ficha do terreno. Essa ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmRemovePhoto}
+              className='bg-red-600 text-white hover:bg-red-700'
+            >
+              Excluir foto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
