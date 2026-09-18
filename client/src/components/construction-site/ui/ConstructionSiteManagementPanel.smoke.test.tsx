@@ -799,6 +799,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       'rac-house-status',
       'rac-house-difficulty',
       'rac-house-extra-materials',
+      'rac-house-export-pdf',
       'rac-house-built',
       'rac-house-archive',
       'rac-house-back',

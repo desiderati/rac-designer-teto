@@ -348,6 +348,7 @@ export function HouseMobileCard({
             <RoundIconActionButton
               label={exportRacPdfLabel}
               onClick={exportRacPdf}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-export-pdf' : undefined}
               disabled={readOnly || isExportingRacPdf}
             >
               <Download className='h-4 w-4'/>
@@ -519,6 +520,7 @@ export function HouseTableRow({
             <RoundIconActionButton
               label={exportRacPdfLabel}
               onClick={exportRacPdf}
+              guidedTourId={showGuidedTourTargets ? 'rac-house-export-pdf' : undefined}
               disabled={readOnly || isExportingRacPdf}
             >
               <Download className='h-4 w-4'/>

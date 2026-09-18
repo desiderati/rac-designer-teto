@@ -77,11 +77,12 @@ const HOUSE_ACTIONS_TOUR_SEGMENT = {
   eventName: 'rac:house-actions-tour-ready',
   kind: 'house-actions',
   persistKey: 'guided-tour:rac-house-actions:completed',
-  storageRevision: 'house-actions-v1',
+  storageRevision: 'house-actions-v2',
   targetIds: [
     'rac-house-status',
     'rac-house-difficulty',
     'rac-house-extra-materials',
+    'rac-house-export-pdf',
     'rac-house-built',
     'rac-house-archive',
     'rac-house-back',

@@ -386,6 +386,7 @@ describe('GuidedTourHost', () => {
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
+            'rac-house-export-pdf': {left: 1060, top: 180, width: 36, height: 36},
             'rac-house-built': {left: 1084, top: 180, width: 36, height: 36},
             'rac-house-archive': {left: 1128, top: 180, width: 36, height: 36},
             'rac-house-back': {left: 32, top: 56, width: 40, height: 40},
@@ -395,13 +396,17 @@ describe('GuidedTourHost', () => {
     });
 
     expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(6);
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Dificuldade'})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Materiais Extras'})).toBeVisible();
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
+    const exportDialog = await screen.findByRole('dialog', {name: 'Exportar RAC PDF'});
+    expect(exportDialog).toHaveAccessibleDescription(/exporte a RAC PDF da casa/i);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const builtDialog = await screen.findByRole('dialog', {name: 'Casa Construída'});
@@ -418,7 +423,7 @@ describe('GuidedTourHost', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed:revision'))
-      .toBe('house-actions-v1');
+      .toBe('house-actions-v2');
   });
 
   it('replays the house actions tour when the stored completion predates the current revision', async () => {
@@ -436,6 +441,7 @@ describe('GuidedTourHost', () => {
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
+            'rac-house-export-pdf': {left: 1060, top: 180, width: 36, height: 36},
             'rac-house-built': {left: 1084, top: 180, width: 36, height: 36},
             'rac-house-archive': {left: 1128, top: 180, width: 36, height: 36},
             'rac-house-back': {left: 32, top: 56, width: 40, height: 40},

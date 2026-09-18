@@ -15,7 +15,7 @@ const RAC_CONSTRUCTION_ADD_STORAGE_REVISION = 'construction-add-v1';
 const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v2';
 const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
 const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
-const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v1';
+const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v2';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
   tours: [
@@ -327,8 +327,19 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'center',
           title: 'Materiais Extras',
           text: 'Use este atalho para registrar materiais extras e justificativas específicas da casa.',
-          next: 'rac-house-built',
+          next: 'rac-house-export-pdf',
           persistKey: 'guided-tour:rac-house-actions:extra-materials',
+          kind: 'flow',
+        },
+        {
+          id: 'rac-house-export-pdf',
+          targetId: 'rac-house-export-pdf',
+          placement: 'bottom',
+          alignment: 'center',
+          title: 'Exportar RAC PDF',
+          text: 'Exporte a RAC PDF da casa para compartilhar ou arquivar o desenho e as informações da família.',
+          next: 'rac-house-built',
+          persistKey: 'guided-tour:rac-house-actions:export-pdf',
           kind: 'flow',
         },
         {
