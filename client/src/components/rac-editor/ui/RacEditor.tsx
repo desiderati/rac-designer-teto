@@ -8,6 +8,8 @@ import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui
 import {RacEditorContent} from '@/components/rac-editor/ui/RacEditorContent.tsx';
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
 import {StorageImageUploadProvider} from '@/contexts/StorageImageUploadContext.tsx';
+import {House3DImageInsertionProvider} from '@/contexts/House3DImageInsertionContext.tsx';
+import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/House3DImagePendingToast.tsx';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {startLogin} from '@/const.ts';
 import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
@@ -29,7 +31,9 @@ export function RacEditor() {
   if (isLocalE2eMode) {
     return (
       <StorageImageUploadProvider>
-        <RemoteRacEditor onLogout={async () => undefined}/>
+        <House3DImageInsertionProvider>
+          <RemoteRacEditor onLogout={async () => undefined}/>
+        </House3DImageInsertionProvider>
       </StorageImageUploadProvider>
     );
   }
@@ -38,7 +42,9 @@ export function RacEditor() {
 
   return (
     <StorageImageUploadProvider>
-      <RemoteRacEditor onLogout={logout}/>
+      <House3DImageInsertionProvider>
+        <RemoteRacEditor onLogout={logout}/>
+      </House3DImageInsertionProvider>
     </StorageImageUploadProvider>
   );
 }
@@ -207,16 +213,19 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
     }
   }, [constructionSiteManagement.canOpenRacEditor]);
 
-  if (editorOpen && constructionSiteManagement.canOpenRacEditor) {
-    return <RacEditorContent onExit={onLogout}/>;
-  }
-
   return (
-    <div className='relative h-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
-      <ConstructionSiteManagementPanel
-        {...constructionSiteManagement}
-        onBackToCanvas={openRacEditor}
-      />
-    </div>
+    <>
+      {editorOpen && constructionSiteManagement.canOpenRacEditor ? (
+        <RacEditorContent onExit={onLogout}/>
+      ) : (
+        <div className='relative h-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
+          <ConstructionSiteManagementPanel
+            {...constructionSiteManagement}
+            onBackToCanvas={openRacEditor}
+          />
+        </div>
+      )}
+      <House3DImagePendingToast/>
+    </>
   );
 }

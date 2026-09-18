@@ -81,6 +81,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     isSceneReady,
     clearSceneReadiness,
     isGeneratingIllustration,
+    hasPendingIllustration,
     handleCanvasCreated,
     registerCameraPoseReader,
     handleReset,
@@ -161,7 +162,16 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
               <Button
                 variant='outline'
                 size='icon'
-                title={isGeneratingIllustration ? 'Gerando ilustração…' : 'Inserir no Canvas'}
+                title={isGeneratingIllustration
+                  ? 'Gerando ilustração…'
+                  : hasPendingIllustration
+                    ? 'Inserir imagem gerada no Canvas'
+                    : 'Gerar imagem para inserir no Canvas'}
+                aria-label={isGeneratingIllustration
+                  ? 'Gerando ilustração'
+                  : hasPendingIllustration
+                    ? 'Inserir imagem gerada no Canvas'
+                    : 'Gerar imagem para inserir no Canvas'}
                 onClick={handleInsertOnCanvas}
                 disabled={!canRenderHouse || !isSceneReady || isGeneratingIllustration}
               >

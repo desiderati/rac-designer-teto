@@ -109,6 +109,28 @@ export const appRouter = router({
         };
       }),
 
+    saveTemporaryHouseImage: protectedProcedure
+      .input(z.object({
+        fileName: z.string().trim().min(1).max(96),
+        base64: z.string().min(4).max(7 * 1024 * 1024),
+      }))
+      .mutation(async ({ input }) => {
+        const bytes = decodeBase64Image(input.base64, 'image/png');
+        const safeFileName = sanitizeFileName(input.fileName).replace(/\.[a-z0-9]+$/i, '') || 'house-3d';
+        const uploaded = await storagePut(
+          `rac-designer-teto/temp/house-3d/${safeFileName}-${Date.now()}.png`,
+          bytes,
+          'image/png',
+        );
+
+        return {
+          key: uploaded.key,
+          url: uploaded.url,
+          bytes: bytes.byteLength,
+          mimeType: 'image/png' as const,
+        };
+      }),
+
     generateHouseIllustration: protectedProcedure
       .input(z.object({
         base64: z.string().min(32).max(7 * 1024 * 1024),
@@ -150,7 +172,7 @@ export const appRouter = router({
           Buffer.from(generatedBase64, 'base64'),
         );
         const processed = await storagePut(
-          `rac-designer-teto/generated/house-illustration-${Date.now()}.png`,
+          `rac-designer-teto/temp/house-3d/illustration-${Date.now()}.png`,
           transparentPng,
           'image/png',
         );

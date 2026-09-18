@@ -1,12 +1,18 @@
 import {act, renderHook} from '@testing-library/react';
+import {createElement, type ReactNode} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {HOUSE_3D_WALL_COLOR_BY_NAME} from '@/shared/config.ts';
 import {useHouse3DViewerActions} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerActions.ts';
+import {House3DImageInsertionProvider} from '@/contexts/House3DImageInsertionContext.tsx';
 import {
   getHouse3DViewerPreferencesStorageKey,
   readHouse3DViewerPreferences,
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+
+function wrapper({children}: {children: ReactNode}) {
+  return createElement(House3DImageInsertionProvider, null, children);
+}
 
 describe('useHouse3DViewerActions.ts', () => {
   beforeEach(() => {
@@ -24,7 +30,7 @@ describe('useHouse3DViewerActions.ts', () => {
       canvasRef: {current: null},
       cameraPoseStorageKey: null,
       viewerPreferencesStorageKey: preferencesStorageKey,
-    }));
+    }), {wrapper});
 
     act(() => {
       result.current.setWallColor(HOUSE_3D_WALL_COLOR_BY_NAME.Rosa);
@@ -65,7 +71,7 @@ describe('useHouse3DViewerActions.ts', () => {
       canvasRef: {current: null},
       cameraPoseStorageKey: cameraStorageKey,
       viewerPreferencesStorageKey: preferencesStorageKey,
-    }));
+    }), {wrapper});
 
     act(() => result.current.handleReset());
 
@@ -77,7 +83,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(result.current.resetKey).toBe(1);
   });
 
-  it('insere a ilustração transparente e registra a URL do Storage no Canvas', async () => {
+  it('preserva a ilustração pronta sem inserir automaticamente e permite inseri-la depois', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
@@ -89,12 +95,10 @@ describe('useHouse3DViewerActions.ts', () => {
       },
     };
     const houseIllustrationPort = {
-      generateFromDataUrl: vi.fn().mockResolvedValue(
-        {
-          storageUrl: 'https://example.test/manus-storage/generated/house.png',
-          dataUrl: 'data:image/png;base64,illustrated-house',
-        },
-      ),
+      generateFromDataUrl: vi.fn().mockResolvedValue({
+        storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png',
+        dataUrl: 'data:image/png;base64,illustrated-house',
+      }),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -104,20 +108,58 @@ describe('useHouse3DViewerActions.ts', () => {
       cameraPoseStorageKey: null,
       viewerPreferencesStorageKey: null,
       houseIllustrationPort,
-    }));
+    }), {wrapper});
 
-    act(() => {
-      result.current.handleCanvasCreated(canvas);
-    });
+    act(() => result.current.handleCanvasCreated(canvas));
     await act(async () => {
       await result.current.handleInsertOnCanvas();
     });
 
     expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith('data:image/png;base64,3d-screenshot');
+    expect(insertImageSnapshot).not.toHaveBeenCalled();
+    expect(result.current.hasPendingIllustration).toBe(true);
+
+    await act(async () => {
+      await result.current.handleInsertOnCanvas();
+    });
+
     expect(insertImageSnapshot).toHaveBeenCalledWith(
       'data:image/png;base64,illustrated-house',
-      {storageUrl: 'https://example.test/manus-storage/generated/house.png'},
+      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png'},
     );
+    expect(result.current.hasPendingIllustration).toBe(false);
+  });
+
+  it('mantém a imagem pronta quando o Canvas não está disponível', async () => {
+    const houseIllustrationPort = {
+      generateFromDataUrl: vi.fn().mockResolvedValue({
+        storageUrl: '/manus-storage/temp/house-3d/illustration.png',
+        dataUrl: 'data:image/png;base64,illustrated-house',
+      }),
+    };
+    const canvas = document.createElement('canvas');
+    Object.defineProperty(canvas, 'toDataURL', {
+      value: vi.fn(() => 'data:image/png;base64,3d-screenshot'),
+    });
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange: vi.fn(),
+      canvasRef: {current: null},
+      cameraPoseStorageKey: null,
+      viewerPreferencesStorageKey: null,
+      houseIllustrationPort,
+    }), {wrapper});
+
+    act(() => result.current.handleCanvasCreated(canvas));
+    await act(async () => {
+      await result.current.handleInsertOnCanvas();
+    });
+    await act(async () => {
+      await result.current.handleInsertOnCanvas();
+    });
+
+    expect(result.current.hasPendingIllustration).toBe(true);
   });
 
   it('permite fechar o viewer enquanto a ilustração continua sendo gerada', async () => {
@@ -130,15 +172,16 @@ describe('useHouse3DViewerActions.ts', () => {
     Object.defineProperty(canvas, 'toDataURL', {
       value: vi.fn(() => 'data:image/png;base64,3d-screenshot'),
     });
+    const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
       hasHouseViews: true,
       onOpenChange,
-      canvasRef: {current: {createSnapshotPort: () => ({insertImageSnapshot: vi.fn().mockResolvedValue(true)})}},
+      canvasRef: {current: {createSnapshotPort: () => ({insertImageSnapshot})}},
       cameraPoseStorageKey: null,
       viewerPreferencesStorageKey: null,
       houseIllustrationPort: {generateFromDataUrl: vi.fn(() => pendingGeneration)},
-    }));
+    }), {wrapper});
 
     act(() => {
       result.current.handleCanvasCreated(canvas);
@@ -152,12 +195,14 @@ describe('useHouse3DViewerActions.ts', () => {
     await act(async () => {
       resolveGeneration?.({
         dataUrl: 'data:image/png;base64,illustrated-house',
-        storageUrl: '/manus-storage/generated/house.png',
+        storageUrl: '/manus-storage/temp/house-3d/illustration.png',
       });
       await pendingGeneration;
     });
 
     expect(result.current.isGeneratingIllustration).toBe(false);
+    expect(result.current.hasPendingIllustration).toBe(true);
+    expect(insertImageSnapshot).not.toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledTimes(1);
   });
 });

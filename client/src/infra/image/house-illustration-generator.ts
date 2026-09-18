@@ -1,5 +1,4 @@
 import {racTrpcClient} from '@/lib/trpc-client.ts';
-import {dataUrlToStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
 import type {HouseIllustrationPort, HouseIllustrationResult} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 export function createHouseIllustrationPort(): HouseIllustrationPort {
@@ -29,8 +28,13 @@ export async function generateHouseIllustrationFromDataUrl(dataUrl: string): Pro
 }
 
 export async function persistHouseImageDataUrl(dataUrl: string, fileName: string): Promise<string | null> {
-  const payload = dataUrlToStorageImageUploadPayload(dataUrl, fileName);
-  const result = await racTrpcClient.storage.uploadImage.mutate(payload);
+  const [, base64] = dataUrl.split(',', 2);
+  if (!base64) return null;
+
+  const result = await racTrpcClient.storage.saveTemporaryHouseImage.mutate({
+    base64,
+    fileName,
+  });
   return result.url ?? null;
 }
 

@@ -14,6 +14,7 @@ import {
   readHouse3DViewerPreferences,
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
 
 const EDITOR_TOAST_POSITION = 'bottom-right' as const;
 
@@ -42,7 +43,6 @@ export function useHouse3DViewerActions({
   viewerPreferencesStorageKey,
   houseIllustrationPort,
 }: UseHouse3DViewerActionsArgs) {
-
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(
@@ -52,16 +52,27 @@ export function useHouse3DViewerActions({
     () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).hideBelowTerrain,
   );
   const [isSceneReady, setIsSceneReady] = useState(false);
-  const [isGeneratingIllustration, setIsGeneratingIllustration] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraPoseReaderRef = useRef<House3DViewerCameraPoseReader | null>(null);
   const generationInFlightRef = useRef(false);
+  const {
+    pendingImage,
+    isGenerating: isGeneratingIllustration,
+    publishImage,
+    setGenerating,
+    insertPendingImage,
+    registerCanvasGetter,
+  } = useHouse3DImageInsertion();
 
   useEffect(() => {
     const preferences = readHouse3DViewerPreferences(viewerPreferencesStorageKey);
     setWallColor(preferences.wallColor);
     setHideBelowTerrain(preferences.hideBelowTerrain);
   }, [viewerPreferencesStorageKey]);
+
+  const getCanvasHandle = useCallback(() => canvasRef.current, [canvasRef]);
+
+  useEffect(() => registerCanvasGetter(getCanvasHandle), [getCanvasHandle, registerCanvasGetter]);
 
   const registerCameraPoseReader = useCallback((reader: House3DViewerCameraPoseReader | null) => {
     cameraPoseReaderRef.current = reader;
@@ -117,6 +128,11 @@ export function useHouse3DViewerActions({
   const handleInsertOnCanvas = useCallback(async () => {
     if (generationInFlightRef.current) return;
 
+    if (pendingImage) {
+      await insertPendingImage();
+      return;
+    }
+
     if (!houseType || !hasHouseViews) {
       toast.error(TOAST_MESSAGES.noHouse3DToInsert, {
         position: EDITOR_TOAST_POSITION,
@@ -129,52 +145,28 @@ export function useHouse3DViewerActions({
       toast.error(TOAST_MESSAGES.house3DCanvasUnavailable, {
         position: EDITOR_TOAST_POSITION,
         duration: 7000,
-        description: 'Abra o Canvas, aguarde a casa carregar e clique novamente em “Inserir no Canvas”.',
+        description: 'Abra o Canvas para habilitar a inserção e clique novamente em “Inserir”.',
       });
       return;
     }
 
     const screenshotDataUrl = webglCanvas.toDataURL('image/png');
-    const generationToastId = toast.loading('Gerando imagem 3D…', {
-      position: EDITOR_TOAST_POSITION,
-      duration: Infinity,
-      description: 'Você pode continuar editando; a imagem será inserida quando ficar pronta.',
-    });
     generationInFlightRef.current = true;
+    setGenerating(true);
 
     try {
-      setIsGeneratingIllustration(true);
       const illustration = houseIllustrationPort
         ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
         : null;
       const imageDataUrl = illustration?.dataUrl ?? screenshotDataUrl;
-      let storageUrl = illustration?.storageUrl ?? null;
+      let storageUrl = illustration?.dataUrl ? illustration.storageUrl : null;
+      const source: 'illustration' | 'fallback' = illustration?.dataUrl ? 'illustration' : 'fallback';
 
       if (!storageUrl && houseIllustrationPort?.persistDataUrl) {
         storageUrl = await houseIllustrationPort.persistDataUrl(imageDataUrl, 'casa-3d-fallback.png');
       }
 
-      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(imageDataUrl, {storageUrl}) ?? false;
-      if (inserted) {
-        toast.success(
-          illustration?.dataUrl
-            ? 'Imagem 3D pronta e inserida no Canvas.'
-            : TOAST_MESSAGES.house3DInsertedSuccessfully,
-          {
-            id: generationToastId,
-            position: EDITOR_TOAST_POSITION,
-            duration: 5000,
-            description: 'A imagem foi adicionada ao histórico do editor.',
-          },
-        );
-      } else {
-        toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas, {
-          id: generationToastId,
-          position: EDITOR_TOAST_POSITION,
-          duration: 6000,
-          description: 'Abra o Canvas e tente inserir a imagem novamente quando ele estiver disponível.',
-        });
-      }
+      publishImage({dataUrl: imageDataUrl, storageUrl, source});
     } catch (error) {
       console.error('[House3DViewer] Falha ao gerar ilustração da casa:', error);
       let storageUrl: string | null = null;
@@ -185,26 +177,13 @@ export function useHouse3DViewerActions({
       } catch (persistError) {
         console.error('[House3DViewer] Falha ao persistir fallback 3D:', persistError);
       }
-      const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(screenshotDataUrl, {storageUrl}) ?? false;
-      if (inserted) {
-        toast.warning('Imagem 3D inserida com o screenshot técnico como fallback.', {
-          id: generationToastId,
-          position: EDITOR_TOAST_POSITION,
-          duration: 6000,
-          description: 'A geração da ilustração falhou, mas seu trabalho foi preservado.',
-        });
-      } else {
-        toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage, {
-          id: generationToastId,
-          position: EDITOR_TOAST_POSITION,
-          duration: 6000,
-        });
-      }
+
+      publishImage({dataUrl: screenshotDataUrl, storageUrl, source: 'fallback'});
     } finally {
       generationInFlightRef.current = false;
-      setIsGeneratingIllustration(false);
+      setGenerating(false);
     }
-  }, [canvasRef, hasHouseViews, houseIllustrationPort, houseType]);
+  }, [hasHouseViews, houseIllustrationPort, houseType, insertPendingImage, pendingImage, publishImage, setGenerating]);
 
   return {
     resetKey,
@@ -215,6 +194,7 @@ export function useHouse3DViewerActions({
     setHideBelowTerrain,
     isSceneReady,
     isGeneratingIllustration,
+    hasPendingIllustration: Boolean(pendingImage),
     clearSceneReadiness,
     handleCanvasCreated,
     registerCameraPoseReader,
