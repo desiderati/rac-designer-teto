@@ -120,7 +120,7 @@ describe('useHouse3DViewerActions.ts', () => {
     );
   });
 
-  it('impede fechar o viewer enquanto a ilustração está sendo gerada', async () => {
+  it('permite fechar o viewer enquanto a ilustração continua sendo gerada', async () => {
     let resolveGeneration: ((value: {dataUrl: string; storageUrl: string}) => void) | null = null;
     const pendingGeneration = new Promise<{dataUrl: string; storageUrl: string}>((resolve) => {
       resolveGeneration = resolve;
@@ -146,8 +146,8 @@ describe('useHouse3DViewerActions.ts', () => {
     });
 
     expect(result.current.isGeneratingIllustration).toBe(true);
-    act(() => result.current.handleClose());
-    expect(onOpenChange).not.toHaveBeenCalled();
+    act(() => result.current.handleDialogOpenChange(false));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
 
     await act(async () => {
       resolveGeneration?.({
@@ -157,7 +157,7 @@ describe('useHouse3DViewerActions.ts', () => {
       await pendingGeneration;
     });
 
-    act(() => result.current.handleClose());
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(result.current.isGeneratingIllustration).toBe(false);
+    expect(onOpenChange).toHaveBeenCalledTimes(1);
   });
 });

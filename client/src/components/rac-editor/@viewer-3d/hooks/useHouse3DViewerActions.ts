@@ -53,6 +53,7 @@ export function useHouse3DViewerActions({
   const [isGeneratingIllustration, setIsGeneratingIllustration] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const cameraPoseReaderRef = useRef<House3DViewerCameraPoseReader | null>(null);
+  const generationInFlightRef = useRef(false);
 
   useEffect(() => {
     const preferences = readHouse3DViewerPreferences(viewerPreferencesStorageKey);
@@ -97,23 +98,23 @@ export function useHouse3DViewerActions({
   }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
 
   const handleClose = useCallback(() => {
-    if (isGeneratingIllustration) return;
     persistCurrentCameraPose();
     persistCurrentViewerPreferences();
     onOpenChange(false);
-  }, [isGeneratingIllustration, onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
+  }, [onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
 
   const handleDialogOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {
-      if (isGeneratingIllustration) return;
       handleClose();
       return;
     }
 
     onOpenChange(true);
-  }, [handleClose, isGeneratingIllustration, onOpenChange]);
+  }, [handleClose, onOpenChange]);
 
   const handleInsertOnCanvas = useCallback(async () => {
+    if (generationInFlightRef.current) return;
+
     if (!houseType || !hasHouseViews) {
       toast.error(TOAST_MESSAGES.noHouse3DToInsert);
       return;
@@ -126,10 +127,15 @@ export function useHouse3DViewerActions({
     }
 
     const screenshotDataUrl = webglCanvas.toDataURL('image/png');
+    const generationToastId = toast.loading('Gerando imagem 3D…', {
+      position: 'bottom-left',
+      duration: Infinity,
+      description: 'Você pode continuar editando; a imagem será inserida quando ficar pronta.',
+    });
+    generationInFlightRef.current = true;
 
     try {
       setIsGeneratingIllustration(true);
-      toast.info('Gerando ilustração arquitetônica transparente…');
       const illustration = houseIllustrationPort
         ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
         : null;
@@ -142,11 +148,23 @@ export function useHouse3DViewerActions({
 
       const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(imageDataUrl, {storageUrl}) ?? false;
       if (inserted) {
-        toast.success(illustration?.dataUrl
-          ? 'Ilustração transparente da casa inserida no Canvas.'
-          : TOAST_MESSAGES.house3DInsertedSuccessfully);
+        toast.success(
+          illustration?.dataUrl
+            ? 'Imagem 3D pronta e inserida no Canvas.'
+            : TOAST_MESSAGES.house3DInsertedSuccessfully,
+          {
+            id: generationToastId,
+            position: 'bottom-left',
+            duration: 5000,
+            description: 'A imagem foi adicionada ao histórico do editor.',
+          },
+        );
       } else {
-        toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas);
+        toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas, {
+          id: generationToastId,
+          position: 'bottom-left',
+          duration: 6000,
+        });
       }
     } catch (error) {
       console.error('[House3DViewer] Falha ao gerar ilustração da casa:', error);
@@ -160,11 +178,21 @@ export function useHouse3DViewerActions({
       }
       const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(screenshotDataUrl, {storageUrl}) ?? false;
       if (inserted) {
-        toast.warning('A ilustração não ficou disponível; o screenshot 3D foi inserido como fallback.');
+        toast.warning('Imagem 3D inserida com o screenshot técnico como fallback.', {
+          id: generationToastId,
+          position: 'bottom-left',
+          duration: 6000,
+          description: 'A geração da ilustração falhou, mas seu trabalho foi preservado.',
+        });
       } else {
-        toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage);
+        toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage, {
+          id: generationToastId,
+          position: 'bottom-left',
+          duration: 6000,
+        });
       }
     } finally {
+      generationInFlightRef.current = false;
       setIsGeneratingIllustration(false);
     }
   }, [canvasRef, hasHouseViews, houseIllustrationPort, houseType]);
