@@ -1172,7 +1172,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('Perfil do Solo')).toBeVisible();
     expect(screen.getByText('Obstáculos no Local')).toBeVisible();
     expect(screen.getByText('Canos ou fossas')).toBeVisible();
-    expect(screen.getByText('Raízes ou caliças (entulhos ou concreto)')).toBeVisible();
+    expect(screen.getByText('Raízes, pedras ou caliças (entulhos ou concreto)')).toBeVisible();
     expect(screen.getByText('Árvores, galhos ou fios de tensão')).toBeVisible();
     expect(screen.getByText('Recuo rígido de limite (esquadro apertado)')).toBeVisible();
     expect(screen.getByTestId('site-characteristics-grid').className).toContain('md:grid-cols-2');

@@ -377,7 +377,7 @@ export function HouseConfigurationScreen({
                   render={({field}) => (
                     <CheckboxField
                       label='Obstáculos Subterrâneos'
-                      description='Raízes ou caliças (entulhos ou concreto)'
+                      description='Raízes, pedras ou caliças (entulhos ou concreto)'
                       checked={field.value}
                       onChange={field.onChange}
                       disabled={isReadOnly}
