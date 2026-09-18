@@ -2,7 +2,11 @@ import {
   hasValidOptionalEmail,
   hasValidRequiredPhone,
 } from '@/shared/lib/contact-validation.ts';
-import {isManusStoragePhotoUrl, isSupportedPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
+import {
+  isManusStoragePhotoUrl,
+  isSupportedPhotoDataUrl,
+  normalizeOptionalPhotoDataUrl,
+} from '@/shared/lib/photo-data-url.ts';
 import {
   type ConstructionSiteStatus,
   type CommunityRecord,
@@ -11,8 +15,11 @@ import {
   type MonitorStatus,
   type PersistedHouseRecord,
   type PersistedHouseStatus,
+  type ResidentAction,
   type SiteAssessment,
   type SoilProfile,
+  type StairType,
+  type TerrainPhoto,
 } from '@/shared/types/construction-site.ts';
 import type {HouseType} from '@/shared/types/house.ts';
 
@@ -37,6 +44,10 @@ export function sanitizeSiteAssessment(input: Partial<SiteAssessment>): SiteAsse
   if (typeof input.locationQuery === 'string' && input.locationQuery.trim()) {
     assessment.locationQuery = input.locationQuery.trim();
   }
+  const residentActions = sanitizeResidentActions(input.residentActions);
+  if (residentActions) assessment.residentActions = residentActions;
+  const terrainPhotos = sanitizeTerrainPhotos(input.terrainPhotos);
+  if (terrainPhotos) assessment.terrainPhotos = terrainPhotos;
 
   return assessment;
 }
@@ -49,12 +60,16 @@ export function sanitizeHouseExtraMaterials(input: Partial<HouseExtraMaterials> 
   const rafters = normalizeOptionalNonNegativeInteger(input.rafters);
   const secondaryBeams = normalizeOptionalNonNegativeInteger(input.secondaryBeams);
   const gutters = normalizeOptionalNonNegativeInteger(input.gutters);
+  const gutterCount = normalizeOptionalNonNegativeInteger(input.gutterCount);
+  const stairType = normalizeStairType(input.stairType);
   const justification = normalizeOptionalText(input.justification);
 
   if (floorBeams !== undefined) extraMaterials.floorBeams = floorBeams;
   if (rafters !== undefined) extraMaterials.rafters = rafters;
   if (secondaryBeams !== undefined) extraMaterials.secondaryBeams = secondaryBeams;
   if (gutters !== undefined) extraMaterials.gutters = gutters;
+  if (gutterCount !== undefined) extraMaterials.gutterCount = gutterCount;
+  if (stairType !== undefined) extraMaterials.stairType = stairType;
   if (justification !== undefined) extraMaterials.justification = justification;
 
   return Object.keys(extraMaterials).length > 0 ? extraMaterials : undefined;
@@ -214,6 +229,39 @@ function normalizeOptionalNonNegativeInteger(value: unknown): number | undefined
   const parsed = typeof value === 'number' ? value : Number(String(value).trim());
   if (!Number.isInteger(parsed) || parsed < 0 || parsed > HOUSE_EXTRA_MATERIAL_MAX_COUNT) return undefined;
   return parsed;
+}
+
+function sanitizeResidentActions(value: unknown): ResidentAction[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const allowed: ResidentAction[] = [
+    'excavate',
+    'fill',
+    'remove_vegetation',
+    'remove_debris',
+    'remove_obstacle',
+    'clear_access',
+  ];
+  const normalized = value.filter((entry): entry is ResidentAction => allowed.includes(entry as ResidentAction));
+  const unique = [...new Set(normalized)];
+  return unique.length > 0 ? unique : undefined;
+}
+
+function sanitizeTerrainPhotos(value: unknown): TerrainPhoto[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const normalized = value.slice(0, 4).flatMap((entry, index) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const candidate = entry as Partial<TerrainPhoto>;
+    const url = normalizeOptionalPhotoDataUrl(candidate.url);
+    if (!url) return [];
+    const id = normalizeOptionalText(candidate.id) ?? `terrain-photo-${index + 1}`;
+    const description = normalizeOptionalText(candidate.description)?.slice(0, 180);
+    return [{id, url, ...(description ? {description} : {})}];
+  });
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeStairType(value: unknown): StairType | undefined {
+  return value === 'straight' || value === 'landing' ? value : undefined;
 }
 
 function createFallbackCommunity(now: string): CommunityRecord {

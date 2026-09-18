@@ -1139,7 +1139,16 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: 'Detalhes da Família'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Sobre a Casa'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Restrições Locais'})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Ações dos Moradores'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Características do Local'})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Fotos do Terreno'})).toBeVisible();
+    expect(screen.getByLabelText('Escavar')).toBeVisible();
+    expect(screen.getByLabelText('Aterrar')).toBeVisible();
+    expect(screen.getByLabelText('Retirar vegetação')).toBeVisible();
+    expect(screen.getByLabelText('Retirar entulho')).toBeVisible();
+    expect(screen.getByLabelText('Retirar obstáculo')).toBeVisible();
+    expect(screen.getByLabelText('Liberar acesso')).toBeVisible();
+    expect(screen.getByTestId('terrain-photos-field')).toBeVisible();
     expect(screen.getByTestId('house-configuration-form').className).toContain('sm:grid-cols-[220px_minmax(0,1fr)]');
     expect(screen.getByTestId('house-configuration-form').className).not.toContain('lg:grid-cols-[220px_minmax(0,1fr)]');
     expect(screen.queryByLabelText('Tipo da casa')).not.toBeInTheDocument();
@@ -1497,6 +1506,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Caibros')).toHaveValue('24');
     expect(screen.getByLabelText('Vigas Secundárias')).toHaveValue('8');
     expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
+    expect(screen.getByLabelText('Calhas')).toHaveValue('');
+    expect(screen.getByLabelText('Escada')).toBeVisible();
 
     fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
     fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});

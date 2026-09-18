@@ -81,6 +81,19 @@ export const houseConfigurationFormSchema = z.object({
     .refine((value) => value.length === 0 || parseMapCoordinates(value) !== null, {
       message: 'Use latitude e longitude, por exemplo: -25.4284, -49.2733.',
     }),
+  residentActions: z.array(z.enum([
+    'excavate',
+    'fill',
+    'remove_vegetation',
+    'remove_debris',
+    'remove_obstacle',
+    'clear_access',
+  ])).max(6).default([]),
+  terrainPhotos: z.array(z.object({
+    id: z.string().min(1),
+    url: z.string().min(1),
+    description: z.string().max(180).optional(),
+  })).max(4).default([]),
 });
 
 const optionalIntegerDraftSchema = z.string()
@@ -93,6 +106,8 @@ export const houseExtraMaterialsFormSchema = z.object({
   rafters: optionalIntegerDraftSchema,
   secondaryBeams: optionalIntegerDraftSchema,
   gutters: optionalIntegerDraftSchema,
+  gutterCount: optionalIntegerDraftSchema.default(''),
+  stairType: z.enum(['straight', 'landing']).or(z.literal('')).default(''),
   justification: z.string()
     .trim()
     .max(

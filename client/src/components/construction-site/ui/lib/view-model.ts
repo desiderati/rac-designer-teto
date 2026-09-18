@@ -12,7 +12,10 @@ import type {
   HouseSize,
   MonitorRecord,
   PersistedHouseRecord,
+  ResidentAction,
   SoilProfile,
+  StairType,
+  TerrainPhoto,
 } from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
 import type {HouseType} from '@/shared/types/house.ts';
@@ -53,7 +56,7 @@ export function getScreenSubtitle(screen: ConstructionSiteManagementScreen): str
   if (screen === 'monitor-create') return 'Cadastrar dados de contato do monitor.';
   if (screen === 'monitor-detail') return 'Atualizar dados do monitor sem duplicar o registro.';
   if (screen === 'houses') return 'Casas vinculadas à construção ativa.';
-  if (screen === 'house-extra-materials') return 'Quantitativos e justificativas adicionais vinculados à casa.';
+  if (screen === 'house-extra-materials') return 'Quantitativos, calhas e escada vinculados à casa.';
   return 'Família, restrições e características do local da casa.';
 }
 
@@ -203,6 +206,8 @@ export interface HouseConfigurationFormState {
   hasElevatedObstacles: boolean;
   hasNeighborSetbackConstraints: boolean;
   locationQuery: string;
+  residentActions: ResidentAction[];
+  terrainPhotos: TerrainPhoto[];
 }
 
 export function getHouseConfigurationInitialState(
@@ -227,6 +232,8 @@ export function getHouseConfigurationInitialState(
     hasElevatedObstacles: assessment?.hasElevatedObstacles ?? false,
     hasNeighborSetbackConstraints: assessment?.hasNeighborSetbackConstraints ?? false,
     locationQuery: assessment?.locationQuery ?? '',
+    residentActions: assessment?.residentActions ?? [],
+    terrainPhotos: assessment?.terrainPhotos ?? [],
   };
 }
 
@@ -247,6 +254,14 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
       hasElevatedObstacles: form.hasElevatedObstacles ?? false,
       hasNeighborSetbackConstraints: form.hasNeighborSetbackConstraints ?? false,
       locationQuery: form.locationQuery?.trim() || undefined,
+      residentActions: form.residentActions,
+      terrainPhotos: form.terrainPhotos
+        .map((photo, index) => ({
+          id: photo.id ?? `terrain-photo-${index + 1}`,
+          url: photo.url ?? '',
+          ...(photo.description ? {description: photo.description} : {}),
+        }))
+        .filter((photo) => photo.url.length > 0),
     },
   };
 }
@@ -256,6 +271,8 @@ export interface HouseExtraMaterialsFormState {
   rafters: string;
   secondaryBeams: string;
   gutters: string;
+  gutterCount: string;
+  stairType: StairType | '';
   justification: string;
 }
 
@@ -267,6 +284,8 @@ export function getHouseExtraMaterialsInitialState(house: PersistedHouseRecord |
     rafters: formatOptionalInteger(extraMaterials?.rafters),
     secondaryBeams: formatOptionalInteger(extraMaterials?.secondaryBeams),
     gutters: formatOptionalInteger(extraMaterials?.gutters),
+    gutterCount: formatOptionalInteger(extraMaterials?.gutterCount),
+    stairType: extraMaterials?.stairType ?? '',
     justification: extraMaterials?.justification ?? '',
   };
 }
@@ -277,6 +296,8 @@ export function toHouseExtraMaterialsInput(form: HouseExtraMaterialsFormValues):
     rafters: parseOptionalInteger(form.rafters),
     secondaryBeams: parseOptionalInteger(form.secondaryBeams),
     gutters: parseOptionalInteger(form.gutters),
+    gutterCount: parseOptionalInteger(form.gutterCount),
+    stairType: form.stairType || undefined,
     justification: form.justification?.trim() || undefined,
   };
 }

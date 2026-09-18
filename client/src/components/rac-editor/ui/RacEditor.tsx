@@ -9,6 +9,7 @@ import {RacEditorContent} from '@/components/rac-editor/ui/RacEditorContent.tsx'
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
 import {StorageImageUploadProvider} from '@/contexts/StorageImageUploadContext.tsx';
 import {House3DImageInsertionProvider} from '@/contexts/House3DImageInsertionContext.tsx';
+import {TerrainPhotoDescriptionProvider} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
 import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/House3DImagePendingToast.tsx';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {startLogin} from '@/const.ts';
@@ -31,9 +32,11 @@ export function RacEditor() {
   if (isLocalE2eMode) {
     return (
       <StorageImageUploadProvider>
-        <House3DImageInsertionProvider>
-          <RemoteRacEditor onLogout={async () => undefined}/>
-        </House3DImageInsertionProvider>
+        <TerrainPhotoDescriptionProvider>
+          <House3DImageInsertionProvider>
+            <RemoteRacEditor onLogout={async () => undefined}/>
+          </House3DImageInsertionProvider>
+        </TerrainPhotoDescriptionProvider>
       </StorageImageUploadProvider>
     );
   }
@@ -42,9 +45,11 @@ export function RacEditor() {
 
   return (
     <StorageImageUploadProvider>
-      <House3DImageInsertionProvider>
-        <RemoteRacEditor onLogout={logout}/>
-      </House3DImageInsertionProvider>
+      <TerrainPhotoDescriptionProvider>
+        <House3DImageInsertionProvider>
+          <RemoteRacEditor onLogout={logout}/>
+        </House3DImageInsertionProvider>
+      </TerrainPhotoDescriptionProvider>
     </StorageImageUploadProvider>
   );
 }

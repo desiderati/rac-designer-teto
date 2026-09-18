@@ -11,7 +11,7 @@ export interface StorageUploadProgress {
 }
 
 export interface StorageImageUploadPort {
-  uploadImage(file: File): Promise<string>;
+  uploadImage(file: File, constructionSiteId?: string): Promise<string>;
   isUploading: boolean;
   progress?: StorageUploadProgress | null;
 }
@@ -35,7 +35,7 @@ export function StorageImageUploadProvider({ children }: { children: ReactNode }
   const value = useMemo<StorageImageUploadPort>(() => ({
     isUploading: isUploading || mutation.isPending,
     progress,
-    uploadImage: async (file) => {
+    uploadImage: async (file, constructionSiteId) => {
       if (clearProgressTimer.current) clearTimeout(clearProgressTimer.current);
       setIsUploading(true);
       setProgress({ phase: 'reading', percent: 0, fileName: file.name });
@@ -46,7 +46,7 @@ export function StorageImageUploadProvider({ children }: { children: ReactNode }
         setProgress({ phase: 'uploading', percent: 60, fileName: file.name });
         const uploaded = await mutation.mutateAsync({
           ...payload,
-          constructionSiteId: undefined,
+          constructionSiteId,
         });
         setProgress({ phase: 'complete', percent: 100, fileName: file.name });
         clearProgressTimer.current = setTimeout(() => setProgress(null), 900);

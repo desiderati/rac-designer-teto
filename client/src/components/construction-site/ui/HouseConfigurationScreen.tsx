@@ -6,6 +6,7 @@ import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-si
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
+  ResidentAction,
   SoilProfile,
 } from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
@@ -40,6 +41,7 @@ import {
   toHouseConfigurationInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
+import {TerrainPhotosField} from './TerrainPhotosField.tsx';
 
 export function HouseConfigurationScreen({
   constructionSite,
@@ -415,7 +417,35 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
 
-        <HouseFormSection number='04' title='Características do Local'>
+        <HouseFormSection number='04' title='Ações dos Moradores'>
+          <Controller
+            control={form.control}
+            name='residentActions'
+            render={({field}) => (
+              <div data-testid='resident-actions-grid' className='grid gap-3 md:grid-cols-2'>
+                {RESIDENT_ACTION_OPTIONS.map((option) => (
+                  <CheckboxField
+                    key={option.value}
+                    label={option.label}
+                    description={option.description}
+                    checked={(field.value ?? []).includes(option.value)}
+                    onChange={(checked) => {
+                      const current = field.value ?? [];
+                      field.onChange(
+                        checked
+                          ? [...new Set([...current, option.value])]
+                          : current.filter((action) => action !== option.value),
+                      );
+                    }}
+                    disabled={isReadOnly}
+                  />
+                ))}
+              </div>
+            )}
+          />
+        </HouseFormSection>
+
+        <HouseFormSection number='05' title='Características do Local'>
           <div data-testid='site-characteristics-grid' className='grid gap-4 md:grid-cols-2'>
             <Controller
               control={form.control}
@@ -477,6 +507,25 @@ export function HouseConfigurationScreen({
               <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
             </div>
           </div>
+        </HouseFormSection>
+
+        <HouseFormSection number='06' title='Fotos do Terreno'>
+          <Controller
+            control={form.control}
+            name='terrainPhotos'
+            render={({field}) => (
+              <TerrainPhotosField
+                constructionSiteId={constructionSite.constructionSite.id}
+                value={(field.value ?? []).map((photo, index) => ({
+                  id: photo.id ?? `terrain-photo-${index + 1}`,
+                  url: photo.url ?? '',
+                  ...(photo.description ? {description: photo.description} : {}),
+                }))}
+                onChange={field.onChange}
+                disabled={isReadOnly}
+              />
+            )}
+          />
         </HouseFormSection>
       </div>
     </form>
@@ -550,6 +599,19 @@ export function HouseFormSection({
     </section>
   );
 }
+
+const RESIDENT_ACTION_OPTIONS: Array<{
+  value: ResidentAction;
+  label: string;
+  description: string;
+}> = [
+  {value: 'excavate', label: 'Escavar', description: 'Nivelar o terreno removendo terra excedente.'},
+  {value: 'fill', label: 'Aterrar', description: 'Preencher desníveis para criar uma base plana.'},
+  {value: 'remove_vegetation', label: 'Retirar vegetação', description: 'Remover mato alto, arbustos ou árvores da área.'},
+  {value: 'remove_debris', label: 'Retirar entulho', description: 'Limpar restos de obra, lixo ou materiais soltos.'},
+  {value: 'remove_obstacle', label: 'Retirar obstáculo', description: 'Remover pedras grandes, raízes ou estruturas antigas.'},
+  {value: 'clear_access', label: 'Liberar acesso', description: 'Garantir passagem livre para a equipe e materiais.'},
+];
 
 function formatGeolocationCoordinate(value: number): string {
   return value.toFixed(6);

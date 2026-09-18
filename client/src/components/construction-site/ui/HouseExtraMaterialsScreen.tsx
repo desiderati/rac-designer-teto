@@ -17,7 +17,14 @@ import {
   getHouseInitials,
   toHouseExtraMaterialsInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
-import {PrimaryButton, TextArea, TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {
+  PrimaryButton,
+  TextArea,
+  TextField,
+  VisualSelectField,
+} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import type {VisualSelectOption} from '@/components/construction-site/ui/lib/types.ts';
+import type {StairType} from '@/shared/types/construction-site.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 
 export function HouseExtraMaterialsScreen({
@@ -90,6 +97,28 @@ export function HouseExtraMaterialsScreen({
             placeholder='0'
             disabled={isReadOnly}
           />
+          <IntegerField
+            control={form.control}
+            name='gutterCount'
+            label='Calhas'
+            placeholder='0'
+            disabled={isReadOnly}
+          />
+          <Controller
+            control={form.control}
+            name='stairType'
+            render={({field, fieldState}) => (
+              <VisualSelectField
+                label='Escada'
+                ariaLabel='Escada'
+                value={field.value}
+                options={STAIR_OPTIONS}
+                onChange={field.onChange}
+                error={fieldState.error?.message}
+                disabled={isReadOnly}
+              />
+            )}
+          />
           <div className='md:col-span-2'>
             <Controller
               control={form.control}
@@ -126,7 +155,7 @@ function IntegerField({
   disabled = false,
 }: {
   control: Control<HouseExtraMaterialsFormValues>;
-  name: keyof Pick<HouseExtraMaterialsFormValues, 'floorBeams' | 'rafters' | 'secondaryBeams' | 'gutters'>;
+  name: keyof Pick<HouseExtraMaterialsFormValues, 'floorBeams' | 'rafters' | 'secondaryBeams' | 'gutters' | 'gutterCount'>;
   label: string;
   placeholder: string;
   disabled?: boolean;
@@ -158,6 +187,12 @@ function normalizeIntegerDraft(value: string, previousValue: string): string {
   if (/[.,+\-\s]/.test(value) || /e/i.test(value)) return previousValue;
   return value.replace(/\D/g, '');
 }
+
+const STAIR_OPTIONS: VisualSelectOption<StairType | ''>[] = [
+  {value: '', label: 'Em branco'},
+  {value: 'straight', label: 'Escada Reta'},
+  {value: 'landing', label: 'Escada com Patamar'},
+];
 
 function HouseExtraMaterialsSidebar({
   constructionSite,

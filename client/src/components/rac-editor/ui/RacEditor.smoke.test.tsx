@@ -19,6 +19,10 @@ vi.mock('@/contexts/StorageImageUploadContext.tsx', () => ({
   StorageImageUploadProvider: ({children}: {children: React.ReactNode}) => <>{children}</>,
 }));
 
+vi.mock('@/contexts/TerrainPhotoDescriptionContext.tsx', () => ({
+  TerrainPhotoDescriptionProvider: ({children}: {children: React.ReactNode}) => <>{children}</>,
+}));
+
 vi.mock('@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx', () => ({
   ConstructionSiteManagementPanel: ({
     actions,

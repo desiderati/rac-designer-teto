@@ -23,6 +23,16 @@ export type PilotiCode =
 
 export type SoilProfile = 'stable_clay' | 'firm_hard' | 'alluvial' | 'water_table';
 
+export type ResidentAction =
+  | 'excavate'
+  | 'fill'
+  | 'remove_vegetation'
+  | 'remove_debris'
+  | 'remove_obstacle'
+  | 'clear_access';
+
+export type StairType = 'straight' | 'landing';
+
 export type TerrainComplexity = 'flat' | 'moderate' | 'steep' | 'very_steep' | 'extreme';
 
 export interface CommunityRecord {
@@ -30,6 +40,12 @@ export interface CommunityRecord {
   name: string;
   city?: string;
   state?: string;
+}
+
+export interface TerrainPhoto {
+  id: string;
+  url: string;
+  description?: string;
 }
 
 export interface FamilyRecord {
@@ -63,13 +79,18 @@ export interface SiteAssessment {
   hasElevatedObstacles?: boolean;
   hasNeighborSetbackConstraints?: boolean;
   locationQuery?: string;
+  residentActions?: ResidentAction[];
+  terrainPhotos?: TerrainPhoto[];
 }
 
 export interface HouseExtraMaterials {
   floorBeams?: number;
   rafters?: number;
   secondaryBeams?: number;
+  /** Campo legado exibido como Mata-juntas na tela de Materiais Extras. */
   gutters?: number;
+  gutterCount?: number;
+  stairType?: StairType;
   justification?: string;
 }
 

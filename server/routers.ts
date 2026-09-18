@@ -13,6 +13,7 @@ import { getSessionCookieOptions } from './_core/cookies.ts';
 import { systemRouter } from './_core/systemRouter.ts';
 import { protectedProcedure, publicProcedure, router } from './_core/trpc.ts';
 import { generateImage } from './_core/imageGeneration.ts';
+import { invokeLLM } from './_core/llm.ts';
 import { storagePut } from './storage.ts';
 import { removeLightBackgroundFromPng } from './image-transparency.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
@@ -107,6 +108,54 @@ export const appRouter = router({
           bytes: bytes.byteLength,
           mimeType: input.mimeType,
         };
+      }),
+
+    describeImage: protectedProcedure
+      .input(z.object({
+        base64: z.string().min(4).max(7 * 1024 * 1024),
+        mimeType: z.enum(ALLOWED_IMAGE_MIME_TYPES),
+      }))
+      .mutation(async ({input}) => {
+        const bytes = decodeBase64Image(input.base64, input.mimeType);
+        const result = await invokeLLM({
+          model: 'gemini-3-flash-preview',
+          maxTokens: 120,
+          messages: [
+            {
+              role: 'system',
+              content: 'Você descreve fotos de terrenos para uma ficha de visita técnica. Responda em português do Brasil, com apenas uma frase curta, objetiva e visual, sem inventar detalhes que não estejam na imagem.',
+            },
+            {
+              role: 'user',
+              content: [
+                {type: 'text', text: 'Descreva esta foto do terreno em uma única frase curta, com no máximo 120 caracteres.'},
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:${input.mimeType};base64,${bytes.toString('base64')}`,
+                    detail: 'low',
+                  },
+                },
+              ],
+            },
+          ],
+          outputSchema: {
+            name: 'terrain_photo_description',
+            schema: {
+              type: 'object',
+              properties: {description: {type: 'string', maxLength: 120}},
+              required: ['description'],
+              additionalProperties: false,
+            },
+            strict: true,
+          },
+        });
+
+        const content = result.choices[0]?.message?.content;
+        const text = Array.isArray(content)
+          ? content.filter((part): part is {type: 'text'; text: string} => part.type === 'text').map((part) => part.text).join(' ')
+          : content;
+        return {description: extractDescription(text)};
       }),
 
     saveTemporaryHouseImage: protectedProcedure
@@ -266,4 +315,15 @@ function toConstructionSiteTrpcError(error: unknown): TRPCError {
   }
   console.error('[constructionSites] operação remota falhou:', error);
   return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Não foi possível persistir a Construção TETO.' });
+}
+
+function extractDescription(content: string | undefined): string {
+  if (!content) return '';
+  try {
+    const parsed = JSON.parse(content) as {description?: unknown};
+    if (typeof parsed.description === 'string') return parsed.description.trim().slice(0, 120);
+  } catch {
+    // Fallback para texto simples quando o provedor não respeita o schema.
+  }
+  return content.replace(/\s+/g, ' ').trim().replace(/^['"`]+|['"`]+$/g, '').slice(0, 120);
 }
