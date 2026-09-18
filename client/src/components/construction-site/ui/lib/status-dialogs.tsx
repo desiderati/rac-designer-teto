@@ -8,8 +8,85 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog.tsx';
-import {AlertTriangle} from 'lucide-react';
+import {
+  Archive,
+  ArchiveRestore,
+  CheckCircle2,
+  Download,
+  RotateCcw,
+  AlertTriangle,
+} from 'lucide-react';
 import type {StatusChangeAction} from './types.ts';
+
+type ConfirmationTone = 'export' | 'archive' | 'restore' | 'success' | 'warning';
+
+const CONFIRMATION_TONE_CLASS_NAMES: Record<ConfirmationTone, string> = {
+  export: 'bg-blue-50 text-blue-600',
+  archive: 'bg-red-50 text-red-600',
+  restore: 'bg-sky-50 text-sky-600',
+  success: 'bg-emerald-50 text-emerald-600',
+  warning: 'bg-amber-50 text-amber-600',
+};
+
+const CONFIRMATION_ICONS = {
+  export: Download,
+  archive: Archive,
+  restore: ArchiveRestore,
+  success: CheckCircle2,
+  warning: RotateCcw,
+} as const;
+
+const CONFIRMATION_CONTENT_CLASS = 'w-[calc(100vw-2rem)] max-w-md rounded-2xl border-slate-200 bg-white p-5 shadow-xl sm:p-6';
+
+function ConfirmationDialogHeader({
+  title,
+  description,
+  tone,
+}: {
+  title: string;
+  description: string;
+  tone: ConfirmationTone;
+}) {
+  const Icon = CONFIRMATION_ICONS[tone];
+
+  return (
+    <AlertDialogHeader className='space-y-3 text-left'>
+      <div className='flex items-center gap-3'>
+        <span
+          data-testid={`confirmation-icon-${tone}`}
+          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${CONFIRMATION_TONE_CLASS_NAMES[tone]}`}
+        >
+          <Icon aria-hidden='true' className='h-5 w-5'/>
+        </span>
+        <AlertDialogTitle className='text-xl font-semibold text-slate-950'>{title}</AlertDialogTitle>
+      </div>
+      <AlertDialogDescription className='text-sm leading-6 text-slate-600'>
+        {description}
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+  );
+}
+
+function ConfirmationDialogFooter({
+  actionLabel,
+  actionClassName,
+  onConfirm,
+}: {
+  actionLabel: string;
+  actionClassName: string;
+  onConfirm(): void;
+}) {
+  return (
+    <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
+      <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+        Cancelar
+      </AlertDialogCancel>
+      <AlertDialogAction onClick={onConfirm} className={`w-full sm:w-auto ${actionClassName}`}>
+        {actionLabel}
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  );
+}
 
 export function UnsavedChangesDialog({
   open,
@@ -24,7 +101,7 @@ export function UnsavedChangesDialog({
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='w-[calc(100vw-2rem)] max-w-md rounded-2xl border-slate-200 bg-white p-5 shadow-xl sm:p-6'>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
         <AlertDialogHeader className='space-y-3 text-left'>
           <div className='flex items-center gap-3'>
             <span
@@ -79,24 +156,17 @@ export function ConstructionStatusDialog({
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='bg-white'>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            {content.title}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
-            {content.description}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className={content.actionClassName}
-          >
-            {content.actionLabel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
+        <ConfirmationDialogHeader
+          title={content.title}
+          description={content.description}
+          tone={content.tone}
+        />
+        <ConfirmationDialogFooter
+          actionLabel={content.actionLabel}
+          actionClassName={content.actionClassName}
+          onConfirm={onConfirm}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -119,19 +189,17 @@ export function ConstructionRacsZipConfirmationDialog({
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='bg-white'>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Exportar RACs da construção?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Será gerado um arquivo ZIP com os RACs da construção {normalizedConstructionCode}.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className='bg-blue-600 text-white hover:bg-blue-700'>
-            Exportar RACs ZIP
-          </AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
+        <ConfirmationDialogHeader
+          title='Exportar RACs da construção?'
+          description={`Será gerado um arquivo ZIP com os RACs da construção ${normalizedConstructionCode}.`}
+          tone='export'
+        />
+        <ConfirmationDialogFooter
+          actionLabel='Exportar RACs ZIP'
+          actionClassName='bg-blue-600 text-white hover:bg-blue-700'
+          onConfirm={onConfirm}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -146,6 +214,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
       description: `A construção ${normalizedConstructionCode} voltará a ficar disponível para gestão e seleção.`,
       actionLabel: 'Desarquivar construção',
       actionClassName: 'bg-blue-600 text-white hover:bg-blue-700',
+      tone: 'restore' as const,
     };
   }
 
@@ -155,6 +224,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
       description: `A construção ${normalizedConstructionCode} ficará disponível para visualização, sem edição de casas e monitores.`,
       actionLabel: 'Concluir construção',
       actionClassName: 'bg-emerald-600 text-white hover:bg-emerald-700',
+      tone: 'success' as const,
     };
   }
 
@@ -164,6 +234,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
       description: `A construção ${normalizedConstructionCode} voltará a permitir edição de casas e monitores.`,
       actionLabel: 'Voltar para andamento',
       actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
+      tone: 'warning' as const,
     };
   }
 
@@ -172,6 +243,7 @@ function getConstructionStatusDialogContent(action: StatusChangeAction, construc
     description: `A construção ${normalizedConstructionCode} será arquivada e deixará de abrir no Canvas.`,
     actionLabel: 'Arquivar construção',
     actionClassName: 'bg-red-600 text-white hover:bg-red-700',
+    tone: 'archive' as const,
   };
 }
 
@@ -194,22 +266,17 @@ export function HouseStatusDialog({
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='bg-white'>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{content.title}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {content.description}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className={content.actionClassName}
-          >
-            {content.actionLabel}
-          </AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
+        <ConfirmationDialogHeader
+          title={content.title}
+          description={content.description}
+          tone={content.tone}
+        />
+        <ConfirmationDialogFooter
+          actionLabel={content.actionLabel}
+          actionClassName={content.actionClassName}
+          onConfirm={onConfirm}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -224,6 +291,7 @@ function getHouseStatusDialogContent(action: StatusChangeAction, familyName: str
       description: `A casa de ${normalizedFamilyName} voltará a ficar disponível no gerenciamento.`,
       actionLabel: 'Desarquivar casa',
       actionClassName: 'bg-blue-600 text-white hover:bg-blue-700',
+      tone: 'restore' as const,
     };
   }
 
@@ -233,6 +301,7 @@ function getHouseStatusDialogContent(action: StatusChangeAction, familyName: str
       description: `A casa de ${normalizedFamilyName} ficará bloqueada para edição no Canvas, configurações e materiais extras.`,
       actionLabel: 'Marcar como construída',
       actionClassName: 'bg-emerald-600 text-white hover:bg-emerald-700',
+      tone: 'success' as const,
     };
   }
 
@@ -242,6 +311,7 @@ function getHouseStatusDialogContent(action: StatusChangeAction, familyName: str
       description: `A casa de ${normalizedFamilyName} voltará a permitir edição no Canvas, configurações e materiais extras.`,
       actionLabel: 'Voltar para rascunho',
       actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
+      tone: 'warning' as const,
     };
   }
 
@@ -250,6 +320,7 @@ function getHouseStatusDialogContent(action: StatusChangeAction, familyName: str
     description: `A casa de ${normalizedFamilyName} será arquivada e deixará de aparecer no Canvas.`,
     actionLabel: 'Arquivar casa',
     actionClassName: 'bg-red-600 text-white hover:bg-red-700',
+    tone: 'archive' as const,
   };
 }
 
@@ -267,28 +338,27 @@ export function MonitorStatusDialog({
   onConfirm(): void;
 }) {
   const isReactivate = action === 'unarchive';
+  const title = isReactivate ? 'Reativar monitor?' : 'Inativar monitor?';
+  const description = isReactivate
+    ? `O monitor ${monitorName || 'sem nome'} voltará a aparecer na listagem ativa.`
+    : `O monitor ${monitorName || 'sem nome'} será inativado e ficará disponível pelo filtro de status.`;
+  const actionLabel = isReactivate ? 'Reativar monitor' : 'Inativar monitor';
+
   return (
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='bg-white'>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{isReactivate ? 'Reativar monitor?' : 'Inativar monitor?'}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {isReactivate
-              ? `O monitor ${monitorName || 'sem nome'} voltará a aparecer na listagem ativa.`
-              : `O monitor ${monitorName || 'sem nome'} será inativado e ficará disponível pelo filtro de status.`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className={isReactivate ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-600 text-white hover:bg-red-700'}
-          >
-            {isReactivate ? 'Reativar monitor' : 'Inativar monitor'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
+        <ConfirmationDialogHeader
+          title={title}
+          description={description}
+          tone={isReactivate ? 'restore' : 'archive'}
+        />
+        <ConfirmationDialogFooter
+          actionLabel={actionLabel}
+          actionClassName={isReactivate ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-600 text-white hover:bg-red-700'}
+          onConfirm={onConfirm}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );
@@ -313,19 +383,23 @@ export function PermanentDeleteDialog({
     <AlertDialog open={open} onOpenChange={(nextOpen) => {
       if (!nextOpen) onCancel();
     }}>
-      <AlertDialogContent className='bg-white'>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>
+      <AlertDialogContent className={CONFIRMATION_CONTENT_CLASS}>
+        <AlertDialogHeader className='space-y-3 text-left'>
+          <div className='flex items-center gap-3'>
+            <span className='inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600'>
+              <AlertTriangle aria-hidden='true' className='h-5 w-5'/>
+            </span>
+            <AlertDialogTitle className='text-xl font-semibold text-slate-950'>{title}</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className='text-sm leading-6 text-slate-600'>
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className='bg-red-700 text-white hover:bg-red-800'
-          >
+        <AlertDialogFooter className='flex-col gap-2 sm:flex-row sm:gap-2 sm:space-x-0'>
+          <AlertDialogCancel className='mt-0 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 sm:w-auto'>
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className='w-full bg-red-700 text-white hover:bg-red-800 sm:w-auto'>
             {actionLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

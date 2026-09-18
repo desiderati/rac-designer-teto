@@ -290,7 +290,11 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       return true;
     }
 
-    toast.error(TOAST_MESSAGES.failedToInsertImageOnCanvas);
+    toast.error(TOAST_MESSAGES.failedToInsertImageOnCanvas, {
+      position: 'bottom-right',
+      duration: 7000,
+      description: 'Abra o Canvas para habilitar a inserção e clique novamente em “Inserir imagem”.',
+    });
     return false;
   }, [canvasRef]);
 

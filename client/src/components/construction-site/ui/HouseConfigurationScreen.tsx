@@ -1,4 +1,4 @@
-import {type KeyboardEvent, type ReactNode, useEffect, useState} from 'react';
+import {type KeyboardEvent, type ReactNode, useEffect, useRef, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Droplets, Layers, LoaderCircle, LocateFixed, Pickaxe, Waves} from 'lucide-react';
@@ -67,13 +67,22 @@ export function HouseConfigurationScreen({
     reValidateMode: 'onChange',
     defaultValues: getHouseConfigurationInitialState(constructionSite, house),
   });
+  const formSourceKey = [
+    constructionSite.constructionSite.id,
+    house?.id ?? 'new-house',
+    house?.version ?? 0,
+    house?.updatedAt ?? '',
+  ].join(':');
+  const lastFormSourceKey = useRef(formSourceKey);
   const locationQuery = form.watch('locationQuery');
 
   useEffect(() => {
+    if (lastFormSourceKey.current === formSourceKey) return;
+    lastFormSourceKey.current = formSourceKey;
     form.reset(getHouseConfigurationInitialState(constructionSite, house));
     setLocationLookupStatus('idle');
     setLocationLookupMessage(null);
-  }, [house, constructionSite, form]);
+  }, [constructionSite, form, formSourceKey, house]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {

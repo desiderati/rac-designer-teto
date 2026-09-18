@@ -120,7 +120,7 @@ export const appRouter = router({
             'Transform the supplied 3D house render into a clean architectural watercolor-and-ink illustration for the RAC Designer TETO.',
             'Preserve the house geometry exactly: roof pitch and corrugated roof, facade proportions, every visible window and door, stairs, elevated pilotis, foundation and terrain footprint, camera angle and overall silhouette.',
             'Use fine dark architectural linework with restrained blue-gray walls, light roof details, soft natural colors and subtle shading.',
-            'Output the complete house and foundation as a true transparent PNG with clean alpha edges. No background, no checkerboard, no text, no labels, no arrows, no extra buildings, no crop.',
+            'Output the complete house and foundation as a true transparent PNG with clean alpha edges. The house, roof, windows, door, stairs, pilotis and terrain/grass must be fully opaque and continuous, with no transparent holes or missing patches inside the subject. No background, no checkerboard, no text, no labels, no arrows, no extra buildings, no crop.',
           ].join(' '),
           originalImages: [{b64Json: pngBytes.toString('base64'), mimeType: 'image/png'}],
           model: 'MODEL_GPT_IMAGE_2',

@@ -15,6 +15,8 @@ import {
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
+const EDITOR_TOAST_POSITION = 'bottom-right' as const;
+
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;
   hasHouseViews: boolean;
@@ -116,19 +118,25 @@ export function useHouse3DViewerActions({
     if (generationInFlightRef.current) return;
 
     if (!houseType || !hasHouseViews) {
-      toast.error(TOAST_MESSAGES.noHouse3DToInsert);
+      toast.error(TOAST_MESSAGES.noHouse3DToInsert, {
+        position: EDITOR_TOAST_POSITION,
+      });
       return;
     }
 
     const webglCanvas = webglCanvasRef.current;
     if (!webglCanvas) {
-      toast.error(TOAST_MESSAGES.house3DCanvasUnavailable);
+      toast.error(TOAST_MESSAGES.house3DCanvasUnavailable, {
+        position: EDITOR_TOAST_POSITION,
+        duration: 7000,
+        description: 'Abra o Canvas, aguarde a casa carregar e clique novamente em “Inserir no Canvas”.',
+      });
       return;
     }
 
     const screenshotDataUrl = webglCanvas.toDataURL('image/png');
     const generationToastId = toast.loading('Gerando imagem 3D…', {
-      position: 'bottom-left',
+      position: EDITOR_TOAST_POSITION,
       duration: Infinity,
       description: 'Você pode continuar editando; a imagem será inserida quando ficar pronta.',
     });
@@ -154,7 +162,7 @@ export function useHouse3DViewerActions({
             : TOAST_MESSAGES.house3DInsertedSuccessfully,
           {
             id: generationToastId,
-            position: 'bottom-left',
+            position: EDITOR_TOAST_POSITION,
             duration: 5000,
             description: 'A imagem foi adicionada ao histórico do editor.',
           },
@@ -162,8 +170,9 @@ export function useHouse3DViewerActions({
       } else {
         toast.error(TOAST_MESSAGES.failedToInsertHouse3DOnCanvas, {
           id: generationToastId,
-          position: 'bottom-left',
+          position: EDITOR_TOAST_POSITION,
           duration: 6000,
+          description: 'Abra o Canvas e tente inserir a imagem novamente quando ele estiver disponível.',
         });
       }
     } catch (error) {
@@ -180,14 +189,14 @@ export function useHouse3DViewerActions({
       if (inserted) {
         toast.warning('Imagem 3D inserida com o screenshot técnico como fallback.', {
           id: generationToastId,
-          position: 'bottom-left',
+          position: EDITOR_TOAST_POSITION,
           duration: 6000,
           description: 'A geração da ilustração falhou, mas seu trabalho foi preservado.',
         });
       } else {
         toast.error(TOAST_MESSAGES.failedToCaptureHouse3DImage, {
           id: generationToastId,
-          position: 'bottom-left',
+          position: EDITOR_TOAST_POSITION,
           duration: 6000,
         });
       }

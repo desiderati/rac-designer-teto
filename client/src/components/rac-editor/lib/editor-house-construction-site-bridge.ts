@@ -173,7 +173,7 @@ export class EditorHouseConstructionSiteBridge {
 
   updateActiveFamily(input: UpdateFamilyInput): void {
     this.session.updateActiveFamily(input);
-    this.reloadActiveHouseDrawingDocument();
+    this.args.notify();
   }
 
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void {
@@ -183,7 +183,7 @@ export class EditorHouseConstructionSiteBridge {
 
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
     this.session.updateActiveHouseConfiguration(input);
-    this.reloadActiveHouseDrawingDocument();
+    this.args.notify();
   }
 
   updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void {

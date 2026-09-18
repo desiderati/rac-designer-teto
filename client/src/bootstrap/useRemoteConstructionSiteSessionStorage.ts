@@ -12,6 +12,7 @@ import { RemoteConstructionSiteRepositoryAdapter } from '@/infra/persistence/rem
 import {
   clearLegacyIndexedDbConstructionSites,
   hasLegacyIndexedDbConstructionSites,
+  IndexedDbConstructionSiteRepositoryAdapter,
 } from '@/infra/persistence/indexed-db-construction-site-repository.adapter.ts';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
 import type {
@@ -27,8 +28,18 @@ export type RemoteConstructionSiteStorageLoadState =
   | { status: 'error'; message: string }
   | { status: 'ready'; storage: ConstructionSiteSessionStoragePort; sync: RemoteSyncController };
 
+type SessionRepository = ConstructionSiteRepositoryPort & {
+  setDocumentVersion?: (constructionSiteId: string, version: number) => void;
+};
+
+const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
+
 export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSiteStorageLoadState {
-  const repository = useMemo(() => new RemoteConstructionSiteRepositoryAdapter(racTrpcClient), []);
+  const repository = useMemo<SessionRepository>(() => (
+    isLocalE2eMode
+      ? new IndexedDbConstructionSiteRepositoryAdapter()
+      : new RemoteConstructionSiteRepositoryAdapter(racTrpcClient)
+  ), []);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'legacy_confirmation' | 'blocked' | 'ready' | 'error'>('loading');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [storage, setStorage] = useState<ConstructionSiteSessionStoragePort | null>(null);
@@ -82,6 +93,12 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
 
   useEffect(() => {
     let alive = true;
+
+    if (isLocalE2eMode) {
+      void loadRemote();
+      return () => { alive = false; };
+    }
+
     void hasLegacyIndexedDbConstructionSites()
       .then((hasLegacyData) => {
         if (!alive) return;
@@ -119,7 +136,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     const current = storage.read().constructionSites;
     const next = replaceConstructionSite(current, conflict.remoteState);
     storage.replace?.(next);
-    repository.setDocumentVersion(conflict.constructionSiteId, conflict.remoteVersion);
+    repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
     setRevision((value) => value + 1);
     setConflict(null);
     setErrorMessage(null);
@@ -132,7 +149,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     setSyncStatus('syncing');
     setErrorMessage(null);
     try {
-      repository.setDocumentVersion(conflict.constructionSiteId, conflict.remoteVersion);
+      repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
       await repository.save(conflict.localState);
       storage.replace?.(replaceConstructionSite(storage.read().constructionSites, conflict.localState));
       setRevision((value) => value + 1);

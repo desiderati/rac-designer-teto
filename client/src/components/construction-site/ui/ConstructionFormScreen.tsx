@@ -9,6 +9,7 @@ import type {
 import {
   CONSTRUCTION_COMMUNITY_MAX_LENGTH,
   constructionFormSchema,
+  isConstructionCodeUnavailable,
   normalizeConstructionCodeDraft,
   type ConstructionFormValues,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
@@ -73,7 +74,7 @@ export function ConstructionFormScreen({
     if (readOnly) return;
 
     const normalizedExternalCode = values.externalCode.trim().toUpperCase();
-    if (mode === 'create' && unavailableExternalCodes.includes(normalizedExternalCode)) {
+    if (mode === 'create' && isConstructionCodeUnavailable(normalizedExternalCode, unavailableExternalCodes)) {
       form.setError('externalCode', {
         type: 'validate',
         message: 'Já existe uma Construção TETO com este código.',
@@ -91,7 +92,7 @@ export function ConstructionFormScreen({
   });
 
   return (
-    <form className='w-full space-y-6' onSubmit={submitForm} noValidate>
+    <form data-testid='construction-form' className='w-full space-y-6' onSubmit={submitForm} noValidate>
       <div data-testid='construction-form-grid' className='grid gap-5 md:grid-cols-2 md:items-stretch'>
         <Controller
           control={form.control}

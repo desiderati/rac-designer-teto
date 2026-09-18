@@ -112,8 +112,8 @@ describe('RacEditor.tsx', () => {
 
     render(<RacEditor/>);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Preparando seu espaço de projeto...');
-    expect(screen.getByText('Preparando seu espaço de projeto...')).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando o Canvas...');
+    expect(screen.getByText('Carregando o Canvas...')).toBeVisible();
   });
 
   it('exibe a mensagem de erro quando o storage remoto falha', () => {

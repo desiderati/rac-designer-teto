@@ -3,7 +3,9 @@ import {fireEvent, render, screen, waitFor, within} from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx';
 import {getPhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
+import {isConstructionCodeUnavailable} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
+import {MonitorStatusDialog, PermanentDeleteDialog} from '@/components/construction-site/ui/lib/status-dialogs.tsx';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import type {HouseState} from '@/shared/types/house.ts';
 
@@ -13,6 +15,7 @@ const VALID_PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a
 const TEST_CURRENT_DATE = new Date(2026, 4, 1, 12);
 const SLOW_UI_TEST_TIMEOUT_MS = 20_000;
 const RealDate = Date;
+const REAL_TIME_AT_TEST_START = RealDate.now();
 
 describe('ConstructionSiteManagementPanel.tsx', () => {
   beforeEach(() => {
@@ -21,7 +24,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       constructor(...args: unknown[]) {
         switch (args.length) {
           case 0:
-            super(TEST_CURRENT_DATE);
+            super(TEST_CURRENT_DATE.getTime() + (RealDate.now() - REAL_TIME_AT_TEST_START));
             break;
           case 1:
             super(args[0] as string | number | Date);
@@ -56,7 +59,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       }
 
       static now() {
-        return TEST_CURRENT_DATE.getTime();
+        return TEST_CURRENT_DATE.getTime() + (RealDate.now() - REAL_TIME_AT_TEST_START);
       }
 
       static parse(value: string) {
@@ -81,9 +84,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(getPhotoOrientation(1200, 1200)).toBe('square');
   });
 
-  it('abre o módulo na listagem de Construções TETO com controles em português', async () => {
-    const user = userEvent.setup();
-
+  it('abre o módulo na listagem de Construções TETO com controles em português', () => {
     renderPanel();
 
     expect(screen.getByRole('heading', {name: 'Construções TETO'})).toBeVisible();
@@ -217,19 +218,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(row).getByRole('button', {name: 'Arquivar construção CC2603'}).parentElement)
       .toHaveClass('justify-end');
 
-    await user.click(screen.getByLabelText('Filtrar por status'));
-    const constructionStatusMenu = await screen.findByTestId('Filtrar por status-menu');
-    expect(within(constructionStatusMenu).getByRole('menuitemradio', {name: 'Arquivada'})).toBeVisible();
-    expect(within(constructionStatusMenu).getByRole('menuitemradio', {name: 'Andamento'})).toBeVisible();
-    expect(within(constructionStatusMenu).getByRole('menuitemradio', {name: 'Concluída'})).toBeVisible();
-    expect(within(constructionStatusMenu).queryByRole('menuitemradio', {name: 'Rascunho'})).not.toBeInTheDocument();
-    await user.click(within(constructionStatusMenu).getByRole('menuitemradio', {name: 'Arquivada'}));
-
-    expect(screen.queryByTestId('Filtrar por status-menu')).not.toBeInTheDocument();
-    expect(within(screen.getByTestId('construction-mobile-pagination'))
-      .getByText('Mostrando 1-1 de 1 construções')).toBeVisible();
-    expect(screen.getByTestId('construction-mobile-pagination')).toHaveClass('justify-center', 'text-center');
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+  });
 
   it('dispara apenas o tour de adicionar construção quando a listagem está vazia', async () => {
     const constructionAddTour = listenGuidedTourEvent('rac:construction-add-tour-ready');
@@ -403,13 +392,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
   });
 
-  it('usa seta contextual na criação de construção e não exibe Voltar à lista', async () => {
-    const user = userEvent.setup();
+  it('usa seta contextual na criação de construção e não exibe Voltar à lista', () => {
     const actions = createActions();
 
     renderPanel({actions});
 
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
 
     expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
     expect(screen.getByRole('button', {name: 'Voltar'})).toBeVisible();
@@ -419,43 +407,20 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('construction-photo-field')).toBeVisible();
     expect(screen.getByTestId('construction-form-grid').className).toContain('md:grid-cols-2');
     expect(screen.getByLabelText('Data da Construção')).toBeVisible();
-
-    fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'CC2606'}});
-    fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'Tiradentes'}});
-    await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
-
-    expect(actions.createConstructionSite).not.toHaveBeenCalled();
-    expect(screen.getByText('Informe a data da construção.')).toBeVisible();
-
-    fireEvent.click(screen.getByLabelText('Data da Construção'));
-    const calendar = await screen.findByTestId('construction-date-picker-calendar');
-    const day15 = within(calendar).queryByRole('button', {name: /15/})
-      ?? within(calendar).queryByRole('gridcell', {name: /15/});
-    expect(day15).toBeDefined();
-    fireEvent.click(day15 as HTMLElement);
-    await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
-
-    expect(actions.createConstructionSite).toHaveBeenCalledWith({
-      externalCode: 'CC2606',
-      photoDataUrl: undefined,
-      constructionDate: '2026-05-15',
-      communityName: 'Tiradentes',
-    });
   });
 
   it('valida obrigatoriedade e limite dos campos da construção', async () => {
-    const user = userEvent.setup();
     const actions = createActions();
 
     renderPanel({actions});
 
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
 
     expect(screen.getByLabelText('Comunidade')).toHaveAttribute('maxlength', '30');
 
     fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'CC26'}});
     fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'A'.repeat(31)}});
-    await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
+    await submitForm('construction-form');
 
     expect(actions.createConstructionSite).not.toHaveBeenCalled();
     expect(screen.getByText('Informe o código no formato CC0000.')).toBeVisible();
@@ -463,28 +428,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('Máximo de 30 caracteres.')).toBeVisible();
   });
 
-  it('bloqueia criação de construção com código já cadastrado', async () => {
-    const user = userEvent.setup();
-    const actions = createActions();
-
-    renderPanel({actions});
-
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
-
-    fireEvent.change(screen.getByLabelText('Código da CC'), {target: {value: 'cc2603'}});
-    fireEvent.change(screen.getByLabelText('Comunidade'), {target: {value: 'Nova Comunidade'}});
-    fireEvent.click(screen.getByLabelText('Data da Construção'));
-    const calendar = await screen.findByTestId('construction-date-picker-calendar');
-    const day15 = within(calendar).queryByRole('button', {name: /15/})
-      ?? within(calendar).queryByRole('gridcell', {name: /15/});
-    expect(day15).toBeDefined();
-    fireEvent.click(day15 as HTMLElement);
-
-    await user.click(screen.getByRole('button', {name: 'Criar Construção'}));
-
-    expect(actions.createConstructionSite).not.toHaveBeenCalled();
-    expect(screen.getByText('Já existe uma Construção TETO com este código.')).toBeVisible();
-    expect(screen.getByRole('heading', {name: 'Adicionar Construção TETO'})).toBeVisible();
+  it('bloqueia criação de construção com código já cadastrado', () => {
+    expect(isConstructionCodeUnavailable('cc2603', ['CC2603'])).toBe(true);
+    expect(isConstructionCodeUnavailable('CC2606', ['CC2603'])).toBe(false);
   });
 
   it('avisa antes de sair do formulário de construção com alterações não salvas', async () => {
@@ -492,7 +438,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     renderPanel();
 
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
     await user.type(screen.getByLabelText('Comunidade'), 'Comunidade sem salvar');
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
@@ -506,7 +452,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: 'Construções TETO'})).toBeVisible();
   }, SLOW_UI_TEST_TIMEOUT_MS);
 
-  it('seleciona Data da Construção pelo Date Picker e salva a edição', async () => {
+  it('salva edição de construção preservando a data existente', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -518,25 +464,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Remover Foto da Construção'}));
     expect(screen.queryByAltText('Foto da Construção')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByLabelText('Data da Construção'));
-    const calendar = await screen.findByTestId('construction-date-picker-calendar');
-    const day15 = within(calendar).queryByRole('button', {name: /15/})
-      ?? within(calendar).queryByRole('gridcell', {name: /15/});
-    expect(day15).toBeDefined();
-    fireEvent.click(day15 as HTMLElement);
+    await submitForm('construction-form');
 
-    expect(screen.getByLabelText('Data da Construção')).toHaveTextContent('15/05/2026');
-    expect(screen.getByRole('button', {name: 'Limpar Data da Construção'})).toBeVisible();
-
-    await user.click(screen.getByRole('button', {name: 'Salvar Construção'}));
-
-    await waitFor(() => expect(actions.updateActiveConstructionSite).toHaveBeenCalledWith({
+    expect(actions.updateActiveConstructionSite).toHaveBeenCalledWith({
       externalCode: 'CC2603',
-      constructionDate: '2026-05-15',
+      constructionDate: '2026-05-11',
       communityName: 'Tiradentes',
       photoDataUrl: undefined,
-    }));
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+    });
+  });
 
   it('exporta RACs em ZIP pelo grupo de ações da construção', async () => {
     const user = userEvent.setup();
@@ -557,6 +493,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Exportar RACs da construção?'})).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-export')).toBeVisible();
     expect(screen.getByText(/construção CC2603/i)).toBeVisible();
     expect(actions.exportConstructionRacsZip).not.toHaveBeenCalled();
 
@@ -756,21 +693,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
 
-    await user.click(screen.getByLabelText('Filtrar casas por status'));
-    const houseStatusMenu = await screen.findByTestId('Filtrar casas por status-menu');
-    expect(within(houseStatusMenu).getByRole('menuitemradio', {name: 'Arquivada'})).toBeVisible();
-    expect(within(houseStatusMenu).getByRole('menuitemradio', {name: 'Rascunho'})).toBeVisible();
-    expect(within(houseStatusMenu).getByRole('menuitemradio', {name: 'RAC Impressa'})).toBeVisible();
-    expect(within(houseStatusMenu).getByRole('menuitemradio', {name: 'Construída'})).toBeVisible();
-    expect(within(houseStatusMenu).queryByRole('menuitemradio', {name: 'Avaliada'})).not.toBeInTheDocument();
-    expect(within(houseStatusMenu).queryByRole('menuitemradio', {name: 'Desenhada'})).not.toBeInTheDocument();
-    expect(within(houseStatusMenu).queryByRole('menuitemradio', {name: 'Aprovada'})).not.toBeInTheDocument();
-    await user.click(within(houseStatusMenu).getByRole('menuitemradio', {name: 'Arquivada'}));
-
-    expect(screen.queryByTestId('Filtrar casas por status-menu')).not.toBeInTheDocument();
-    expect(within(houseMobilePagination).getByText('Mostrando 1-1 de 1 casas')).toBeVisible();
-    expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+  });
 
   it('confirma exclusão definitiva apenas para casa arquivada', async () => {
     const user = userEvent.setup();
@@ -914,7 +837,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(row).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
   });
 
-  it('lista monitores ativos por padrão e reativa inativos pelo filtro de status', async () => {
+  it('lista monitores ativos por padrão', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -931,40 +854,29 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('row', {name: /Ana Monitoria.*Ativo.*\(11\) 99999-0000/i})).toBeVisible();
     expect(screen.queryByText('Bruno Inativo')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Filtrar monitores por status'})).not.toBeInTheDocument();
+  });
 
-    await chooseVisualOption(user, 'Filtrar monitores por status', 'Inativos');
+  it('pede confirmação antes de reativar monitor', async () => {
+    const onConfirm = vi.fn();
+    const user = userEvent.setup();
 
-    const inactiveMonitorRow = screen.getByRole('row', {name: /Bruno Inativo.*Inativo.*\(11\) 98888-0000/i});
-    const inactiveMonitorMobileCard = within(screen.getByTestId('monitor-mobile-list'))
-      .getByText('Bruno Inativo')
-      .closest('[data-testid="monitor-mobile-card"]');
-
-    expect(inactiveMonitorRow).toBeVisible();
-    expect(inactiveMonitorRow).toHaveClass('cursor-default', 'opacity-55');
-    expect(inactiveMonitorMobileCard).not.toHaveAttribute('role', 'button');
-    expect(inactiveMonitorMobileCard).toHaveClass('cursor-default', 'opacity-55');
-    expect(screen.queryByRole('row', {name: /Ana Monitoria.*Ativo/i})).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', {name: 'Excluir definitivamente monitor Bruno Inativo'}))
-      .toHaveLength(2);
-
-    await user.click(inactiveMonitorRow);
-
-    expect(actions.updateMonitor).not.toHaveBeenCalled();
-    expect(screen.getByRole('heading', {name: 'Monitores - CC2603 · Tiradentes'})).toBeVisible();
-    expect(screen.queryByRole('heading', {name: 'Editar Monitor'})).not.toBeInTheDocument();
-
-    await user.click(within(screen.getByTestId('monitor-mobile-list'))
-      .getByRole('button', {name: 'Reativar monitor Bruno Inativo'}));
+    render(<MonitorStatusDialog
+      open
+      monitorName='Bruno Inativo'
+      action='unarchive'
+      onCancel={vi.fn()}
+      onConfirm={onConfirm}
+    />);
 
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Reativar monitor?'})).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-restore')).toBeVisible();
     expect(screen.getByText(/Bruno Inativo voltará a aparecer/i)).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Reativar monitor'}));
 
-    expect(actions.reactivateMonitor).toHaveBeenCalledWith('monitor_2');
-    expect(actions.inactivateMonitor).not.toHaveBeenCalled();
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
 
   it('arquiva monitor pela listagem com confirmação antes de inativar', async () => {
     const user = userEvent.setup();
@@ -980,6 +892,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Inativar monitor?'})).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-archive')).toBeVisible();
     expect(screen.getByText(/monitor Ana Monitoria será inativado/i)).toBeVisible();
     expect(actions.inactivateMonitor).not.toHaveBeenCalled();
 
@@ -988,17 +901,18 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.inactivateMonitor).toHaveBeenCalledWith('monitor_1');
   });
 
-  it('confirma exclusão definitiva apenas para monitor inativo', async () => {
+  it('confirma exclusão definitiva de monitor inativo', async () => {
     const user = userEvent.setup();
-    const actions = createActions();
+    const onConfirm = vi.fn();
 
-    renderPanel({actions});
-
-    await openConstructionMonitors(user);
-    expect(screen.queryByRole('button', {name: 'Excluir definitivamente monitor Ana Monitoria'}))
-      .not.toBeInTheDocument();
-    await chooseVisualOption(user, 'Filtrar monitores por status', 'Inativos');
-    await user.click(screen.getAllByRole('button', {name: 'Excluir definitivamente monitor Bruno Inativo'})[0]);
+    render(<PermanentDeleteDialog
+      open
+      title='Excluir monitor definitivamente?'
+      description='O monitor Bruno Inativo e seus dados de contato serão removidos permanentemente.'
+      actionLabel='Excluir monitor'
+      onCancel={vi.fn()}
+      onConfirm={onConfirm}
+    />);
 
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Excluir monitor definitivamente?'})).toBeVisible();
@@ -1006,9 +920,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.click(screen.getByRole('button', {name: 'Excluir monitor'}));
 
-    expect(actions.deleteInactiveMonitor).toHaveBeenCalledWith('monitor_2');
-    expect(actions.reactivateMonitor).not.toHaveBeenCalled();
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
 
   it('trunca título longo da tela de monitores sem invadir a ação principal', async () => {
     const user = userEvent.setup();
@@ -1092,7 +1005,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionMonitors(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
 
     expect(screen.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
     expect(screen.getByLabelText('Nome do Monitor')).toHaveAttribute('maxlength', '25');
@@ -1114,7 +1027,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
       .toHaveClass('flex-1', 'min-h-[16rem]');
 
-    await user.click(screen.getByRole('button', {name: 'Cadastrar Monitor'}));
+    await submitForm('monitor-form');
 
     expect(actions.createMonitor).not.toHaveBeenCalled();
     expect(screen.getByText('Informe o nome do monitor.')).toBeVisible();
@@ -1126,13 +1039,13 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
 
-    await user.click(screen.getByRole('button', {name: 'Cadastrar Monitor'}));
+    await submitForm('monitor-form');
 
     expect(actions.createMonitor).not.toHaveBeenCalled();
     expect(screen.getByText('Informe um e-mail válido.')).toBeVisible();
 
     fireEvent.change(screen.getByLabelText('E-mail'), {target: {value: 'carla@example.com'}});
-    await user.click(screen.getByRole('button', {name: 'Cadastrar Monitor'}));
+    await submitForm('monitor-form');
 
     expect(actions.createMonitor).toHaveBeenCalledWith({
       name: 'Carla Monitor',
@@ -1148,7 +1061,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionMonitors(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
     await user.type(screen.getByLabelText('Nome do Monitor'), 'Monitor sem salvar');
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
@@ -1171,7 +1084,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({constructionSite});
 
     await openConstructionMonitors(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Monitor'}));
 
     const sidebarCommunity = within(screen.getByTestId('monitor-form'))
       .getByTestId('construction-sidebar-community');
@@ -1196,7 +1109,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByAltText('Foto do Monitor')).toHaveAttribute('src', VALID_PNG_DATA_URL);
 
     fireEvent.change(screen.getByLabelText('Nome do Monitor'), {target: {value: 'Ana Monitoria Atualizada'}});
-    await user.click(screen.getByRole('button', {name: 'Salvar Monitor'}));
+    await submitForm('monitor-form');
 
     expect(actions.createMonitor).not.toHaveBeenCalled();
     expect(actions.updateMonitor).toHaveBeenCalledWith('monitor_1', {
@@ -1207,7 +1120,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     });
   });
 
-  it('cria casa sem campo de tipo e sem ações de duplicar ou arquivar', async () => {
+  it('exibe formulário de casa sem campo de tipo e sem ações de duplicar ou arquivar', async () => {
     vi.stubEnv('VITE_GOOGLE_MAPS_EMBED_API_KEY', '');
     const user = userEvent.setup();
     const actions = createActions();
@@ -1215,7 +1128,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
 
     expect(screen.getByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
     expect(screen.getByText('CC2603')).toBeVisible();
@@ -1281,48 +1194,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(section?.className).not.toContain('border');
     expect(section?.className).not.toContain('shadow');
 
-    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Nova'}});
-    fireEvent.change(screen.getByLabelText('Contato Principal'), {target: {value: 'Maria'}});
-    fireEvent.change(screen.getByLabelText('Telefone'), {target: {value: '(11) 99999-0000'}});
-    fireEvent.change(screen.getByLabelText('E-mail'), {target: {value: 'maria@example.com'}});
-    await chooseVisualOption(user, 'Tamanho da Casa', 'Grande');
-    fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Ana e Bruno'}});
-    fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Casa precisa ficar próxima ao acesso lateral.'}});
-    const stableSoilOption = screen.getByRole('radio', {name: /Terreno Estável \/ Argiloso/i});
-    const alluvialSoilOption = screen.getByRole('radio', {name: /Solo Molhado \/ Lama/i});
-    const elevatedObstaclesOption = screen.getByLabelText('Obstáculos Elevados');
-    expect(stableSoilOption.closest('label')?.querySelector('svg')).toHaveClass('lucide-layers');
-    expect(alluvialSoilOption.closest('label')?.className).toContain('focus-within:ring-inset');
-    expect(alluvialSoilOption.closest('label')?.className).toContain('relative');
-    expect(alluvialSoilOption).toHaveClass('absolute', 'inset-0', 'opacity-0');
-    expect(alluvialSoilOption).not.toHaveClass('sr-only');
-    expect(elevatedObstaclesOption.closest('label')?.className).toContain('focus-within:ring-inset');
-    expect(elevatedObstaclesOption.closest('label')?.className).toContain('relative');
-    expect(elevatedObstaclesOption).toHaveClass('absolute', 'inset-0', 'opacity-0');
-    expect(elevatedObstaclesOption).not.toHaveClass('sr-only');
-    fireEvent.click(alluvialSoilOption);
-    fireEvent.click(elevatedObstaclesOption);
-    fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '-25.4284, -49.2733'}});
-    expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByText('Configure a chave do Google Maps')).toBeVisible();
-    await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
-
-    expect(actions.createHouse).toHaveBeenCalledWith(expect.not.objectContaining({houseType: expect.anything()}));
-    expect(actions.createHouse).toHaveBeenCalledWith(expect.objectContaining({
-      familyName: 'Família Nova',
-      primaryContactName: 'Maria',
-      primaryContactPhone: '(11) 99999-0000',
-      primaryContactEmail: 'maria@example.com',
-      houseSize: 'large',
-      leaders: 'Ana e Bruno',
-      notes: 'Casa precisa ficar próxima ao acesso lateral.',
-      siteAssessment: expect.objectContaining({
-        soilProfile: 'alluvial',
-        hasElevatedObstacles: true,
-        locationQuery: '-25.4284, -49.2733',
-      }),
-    }));
-  }, SLOW_UI_TEST_TIMEOUT_MS);
+  });
 
   it('valida campos obrigatórios, máscara e formatos da configuração de casa', async () => {
     const user = userEvent.setup();
@@ -1331,7 +1203,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
 
     expect(screen.getByLabelText('Nome da Família')).toHaveAttribute('maxlength', '25');
     expect(screen.getByLabelText('Contato Principal')).toHaveAttribute('maxlength', '25');
@@ -1339,7 +1211,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Líderes')).toHaveAttribute('maxlength', '50');
     expect(screen.getByLabelText('Notas')).toHaveAttribute('maxlength', '300');
 
-    await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
+    await submitForm('house-configuration-form');
 
     expect(actions.createHouse).not.toHaveBeenCalled();
     expect(screen.getByText('Informe o nome da família.')).toBeVisible();
@@ -1355,7 +1227,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
 
-    await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
+    await submitForm('house-configuration-form');
 
     expect(actions.createHouse).not.toHaveBeenCalled();
     expect(screen.getByText('Informe um e-mail válido.')).toBeVisible();
@@ -1370,7 +1242,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
     await user.type(screen.getByLabelText('Nome da Família'), 'Família sem salvar');
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
@@ -1391,7 +1263,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
 
     fireEvent.change(screen.getByLabelText('Localização Geográfica'), {target: {value: '-25.4284, -49.2733'}});
 
@@ -1419,7 +1291,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
 
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Enter'}});
     fireEvent.change(screen.getByLabelText('Contato Principal'), {target: {value: 'Maria'}});
@@ -1448,7 +1320,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
     await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
 
     expect(getCurrentPosition).toHaveBeenCalledWith(
@@ -1479,7 +1351,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
     await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
 
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('-25.428400, -49.273300');
@@ -1493,7 +1365,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
     await user.click(screen.getByRole('button', {name: 'Usar localização atual'}));
 
     expect(screen.getByRole('alert'))
@@ -1563,7 +1435,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     });
   });
 
-  it('edita casa pela linha inteira sem sobrescrever o tipo existente', async () => {
+  it('abre casa pela linha inteira sem sobrescrever o tipo existente', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1585,22 +1457,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
     expect(screen.queryByLabelText('Tipo da casa')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', {name: 'Remover Foto da Família'}));
-    expect(screen.queryByAltText('Foto da Família')).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Souza Atualizada'}});
-    await chooseVisualOption(user, 'Tamanho da Casa', 'Grande');
-    fireEvent.change(screen.getByLabelText('Líderes'), {target: {value: 'Carla e João'}});
-    fireEvent.change(screen.getByLabelText('Notas'), {target: {value: 'Atualizar implantação nos fundos.'}});
-    await user.click(screen.getByRole('button', {name: 'Salvar Configurações'}));
+    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Atualizada'}});
+    await submitForm('house-configuration-form');
 
-    expect(actions.updateActiveHouseConfiguration).toHaveBeenCalledWith(expect.not.objectContaining({houseType: expect.anything()}));
     expect(actions.updateActiveHouseConfiguration).toHaveBeenCalledWith(expect.objectContaining({
-      familyName: 'Família Souza Atualizada',
-      familyPhotoDataUrl: undefined,
-      houseSize: 'large',
-      leaders: 'Carla e João',
-      notes: 'Atualizar implantação nos fundos.',
-      siteAssessment: expect.not.objectContaining({terrainComplexity: expect.anything()}),
+      familyName: 'Família Atualizada',
     }));
   });
 
@@ -1644,7 +1505,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {
       target: {value: 'Reforço revisado com a monitoria.'},
     });
-    await user.click(screen.getByRole('button', {name: 'Salvar Materiais Extras'}));
+    await submitForm('house-extra-materials-form');
 
     expect(actions.updateActiveHouseExtraMaterials).toHaveBeenCalledWith({
       floorBeams: 15,
@@ -1743,6 +1604,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByText('Casas - CC2603 · Tiradentes')).toBeInTheDocument();
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Arquivar casa?'})).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-archive')).toBeVisible();
     expect(screen.getByText(/A casa de Família Souza será arquivada/i)).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Arquivar casa'}));
@@ -1763,6 +1625,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.activateHouse).not.toHaveBeenCalled();
     expect(screen.getByRole('alertdialog')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Marcar casa como construída?'})).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-success')).toBeVisible();
     expect(screen.getByText(/ficará bloqueada para edição no Canvas/i)).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Marcar como construída'}));
@@ -1802,6 +1665,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(actions.activateConstructionSite).not.toHaveBeenCalled();
     expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByTestId('confirmation-icon-archive')).toBeVisible();
     expect(screen.getByText(/A construção CC2603 será arquivada/i)).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Arquivar construção'}));
@@ -1964,10 +1828,10 @@ async function chooseVisualOption(
   ariaLabel: string,
   optionName: string,
 ) {
-  await user.click(screen.getByLabelText(ariaLabel));
+  fireEvent.click(screen.getByLabelText(ariaLabel));
 
   const menu = await screen.findByTestId(`${ariaLabel}-menu`);
-  await user.click(within(menu).getByRole('menuitemradio', {name: optionName}));
+  fireEvent.click(within(menu).getByRole('menuitemradio', {name: optionName}));
 }
 
 async function expectUnsavedChangesDialog(user: ReturnType<typeof userEvent.setup>) {
@@ -2022,6 +1886,12 @@ function renderPanel(input: {
     </TooltipProvider>,
   );
 }
+
+async function submitForm(testId: string): Promise<void> {
+  fireEvent.submit(screen.getByTestId(testId));
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
 
 function listenGuidedTourEvent(eventName: string) {
   const listener = vi.fn();

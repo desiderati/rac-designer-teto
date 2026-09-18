@@ -497,6 +497,7 @@ export function ConstructionSiteManagementPanel({
             constructionSite={constructionSite}
             house={navigation.selectedHouse}
             onSave={async (input) => {
+              await actions.activateHouse(constructionSite.constructionSite.id, navigation.selectedHouse.id);
               await actions.updateActiveHouseConfiguration(input);
               finishFormNavigation(navigation.showHouses);
             }}

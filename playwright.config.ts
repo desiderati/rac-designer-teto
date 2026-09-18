@@ -1,7 +1,9 @@
 import {defineConfig, devices} from '@playwright/test';
+import {existsSync} from 'node:fs';
 
 const PORT = 5200;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+const chromiumExecutablePath = existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined;
 
 export default defineConfig({
   testDir: './e2e',
@@ -19,11 +21,14 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: {...devices['Desktop Chrome']},
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(chromiumExecutablePath ? {launchOptions: {executablePath: chromiumExecutablePath}} : {}),
+      },
     },
   ],
   webServer: {
-    command: `npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`,
+    command: 'VITE_E2E=true pnpm run dev:local',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

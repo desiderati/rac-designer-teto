@@ -129,6 +129,11 @@ export function normalizeConstructionCodeDraft(value: string): string {
     .slice(0, 6);
 }
 
+export function isConstructionCodeUnavailable(value: string, unavailableCodes: readonly string[]): boolean {
+  const normalizedCode = value.trim().toUpperCase();
+  return unavailableCodes.some((code) => code.trim().toUpperCase() === normalizedCode);
+}
+
 export function isDateOnly(value: string): boolean {
   if (!DATE_ONLY_PATTERN.test(value)) return false;
   const [year, month, day] = value.split('-').map(Number);
