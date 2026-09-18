@@ -555,6 +555,13 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await user.click(exportButton);
 
+    expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Exportar RACs da construção?'})).toBeVisible();
+    expect(screen.getByText(/construção CC2603/i)).toBeVisible();
+    expect(actions.exportConstructionRacsZip).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', {name: 'Exportar RACs ZIP'}));
+
     await waitFor(() => expect(actions.exportConstructionRacsZip).toHaveBeenCalledWith('construction_site_1'));
     expect(within(constructionRow)
       .getByRole('button', {name: 'Gerando ZIP das RACs da construção CC2603'}))
@@ -958,6 +965,28 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.reactivateMonitor).toHaveBeenCalledWith('monitor_2');
     expect(actions.inactivateMonitor).not.toHaveBeenCalled();
   }, SLOW_UI_TEST_TIMEOUT_MS);
+
+  it('arquiva monitor pela listagem com confirmação antes de inativar', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+
+    renderPanel({actions});
+
+    await openConstructionMonitors(user);
+    const archiveMonitorButton = within(screen.getByTestId('monitor-mobile-list'))
+      .getByRole('button', {name: 'Inativar monitor Ana Monitoria'});
+
+    await user.click(archiveMonitorButton);
+
+    expect(screen.getByRole('alertdialog')).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Inativar monitor?'})).toBeVisible();
+    expect(screen.getByText(/monitor Ana Monitoria será inativado/i)).toBeVisible();
+    expect(actions.inactivateMonitor).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', {name: 'Inativar monitor'}));
+
+    expect(actions.inactivateMonitor).toHaveBeenCalledWith('monitor_1');
+  });
 
   it('confirma exclusão definitiva apenas para monitor inativo', async () => {
     const user = userEvent.setup();

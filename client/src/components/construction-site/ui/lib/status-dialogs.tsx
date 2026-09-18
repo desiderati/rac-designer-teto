@@ -102,6 +102,41 @@ export function ConstructionStatusDialog({
   );
 }
 
+export function ConstructionRacsZipConfirmationDialog({
+  open,
+  constructionCode,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  constructionCode: string;
+  onCancel(): void;
+  onConfirm(): void;
+}) {
+  const normalizedConstructionCode = constructionCode || 'sem código';
+
+  return (
+    <AlertDialog open={open} onOpenChange={(nextOpen) => {
+      if (!nextOpen) onCancel();
+    }}>
+      <AlertDialogContent className='bg-white'>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Exportar RACs da construção?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Será gerado um arquivo ZIP com os RACs da construção {normalizedConstructionCode}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className='bg-blue-600 text-white hover:bg-blue-700'>
+            Exportar RACs ZIP
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function getConstructionStatusDialogContent(action: StatusChangeAction, constructionCode: string) {
   const normalizedConstructionCode = constructionCode || 'sem código';
 

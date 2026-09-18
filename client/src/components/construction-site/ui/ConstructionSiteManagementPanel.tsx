@@ -18,6 +18,7 @@ import {HousesScreen} from './HousesScreen.tsx';
 import {MonitorFormScreen} from './MonitorFormScreen.tsx';
 import {MonitorsScreen} from './MonitorsScreen.tsx';
 import {
+  ConstructionRacsZipConfirmationDialog,
   ConstructionStatusDialog,
   HouseStatusDialog,
   MonitorStatusDialog,
@@ -154,6 +155,7 @@ export function ConstructionSiteManagementPanel({
   const [pendingUnsavedNavigation, setPendingUnsavedNavigation] = useState<PendingNavigation | null>(null);
   const [guidedTourCompletionVersion, setGuidedTourCompletionVersion] = useState(0);
   const [exportingRacsZipConstructionId, setExportingRacsZipConstructionId] = useState<string | null>(null);
+  const [pendingConstructionRacsZip, setPendingConstructionRacsZip] = useState<ConstructionSiteSummary | null>(null);
   const [exportingRacPdfHouseId, setExportingRacPdfHouseId] = useState<string | null>(null);
   const [pendingHouseRacPdfExport, setPendingHouseRacPdfExport] = useState<PendingHouseRacPdfExport | null>(null);
   const hasUnsavedChangesRef = useRef(false);
@@ -204,6 +206,23 @@ export function ConstructionSiteManagementPanel({
       setExportingRacsZipConstructionId(null);
     }
   }, [actions, exportingRacsZipConstructionId]);
+
+  const requestExportRacsZip = useCallback(async (summary: ConstructionSiteSummary) => {
+    if (exportingRacsZipConstructionId) return;
+    setPendingConstructionRacsZip(summary);
+  }, [exportingRacsZipConstructionId]);
+
+  const cancelExportRacsZip = useCallback(() => {
+    if (exportingRacsZipConstructionId) return;
+    setPendingConstructionRacsZip(null);
+  }, [exportingRacsZipConstructionId]);
+
+  const confirmExportRacsZip = useCallback(() => {
+    const summary = pendingConstructionRacsZip;
+    if (!summary || exportingRacsZipConstructionId) return;
+    setPendingConstructionRacsZip(null);
+    void handleExportRacsZip(summary);
+  }, [exportingRacsZipConstructionId, handleExportRacsZip, pendingConstructionRacsZip]);
 
   const handleExportHouseRacPdf = useCallback(async (houseId: string) => {
     if (exportingRacPdfHouseId || pendingHouseRacPdfExport || !constructionSite) return;
@@ -351,7 +370,7 @@ export function ConstructionSiteManagementPanel({
             onOpenConstruction={navigation.openConstructionDetail}
             onOpenConstructionHouses={navigation.openConstructionHouses}
             onOpenConstructionMonitors={navigation.openConstructionMonitors}
-            onExportConstructionRacsZip={handleExportRacsZip}
+            onExportConstructionRacsZip={requestExportRacsZip}
             exportingRacsZipConstructionId={exportingRacsZipConstructionId}
             onRequestStatusChange={navigation.requestConstructionStatusChange}
             onRequestPermanentDelete={navigation.requestConstructionPermanentDelete}
@@ -511,6 +530,13 @@ export function ConstructionSiteManagementPanel({
           action={navigation.pendingConstructionStatusChange?.action ?? 'archive'}
           onCancel={navigation.cancelConstructionStatusChange}
           onConfirm={() => void navigation.confirmConstructionStatusChange()}
+        />
+
+        <ConstructionRacsZipConfirmationDialog
+          open={Boolean(pendingConstructionRacsZip)}
+          constructionCode={pendingConstructionRacsZip?.externalCode ?? ''}
+          onCancel={cancelExportRacsZip}
+          onConfirm={confirmExportRacsZip}
         />
 
         <HouseStatusDialog
