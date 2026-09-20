@@ -217,34 +217,29 @@ All colors MUST be HSL.
     to { transform: rotate(360deg); }
 }
 
-@keyframes rac-login-reveal {
-    from { opacity: 0; transform: translateY(0.75rem); }
-    to { opacity: 1; transform: translateY(0); }
+.rac-login__reveal {
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+        opacity 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--reveal-delay, 0ms),
+        transform 520ms cubic-bezier(0.23, 1, 0.32, 1) var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
 }
 
-.rac-login__identity,
-.rac-login__copy,
-.rac-login__visual,
-.rac-login__impact,
-.rac-login__house-stage,
-.rac-login__benefits {
-    animation: rac-login-reveal 520ms cubic-bezier(0.23, 1, 0.32, 1) both;
+.rac-login__reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.rac-login__identity { animation-delay: 0ms; }
-.rac-login__copy { animation-delay: 70ms; }
-.rac-login__visual { animation-delay: 140ms; }
-.rac-login__impact { animation-delay: 210ms; }
-.rac-login__house-stage { animation-delay: 280ms; }
-.rac-login__benefits { animation-delay: 350ms; }
+.rac-login__identity { --reveal-delay: 0ms; }
+.rac-login__copy { --reveal-delay: 60ms; }
+.rac-login__visual { --reveal-delay: 80ms; }
+.rac-login__impact { --reveal-delay: 80ms; }
+.rac-login__house-stage { --reveal-delay: 80ms; }
+.rac-login__benefits { --reveal-delay: 80ms; }
 
 @media (prefers-reduced-motion: reduce) {
-    .rac-login__identity,
-    .rac-login__copy,
-    .rac-login__visual,
-    .rac-login__impact,
-    .rac-login__house-stage,
-    .rac-login__benefits,
+    .rac-login__reveal,
     .rac-login-loading__card,
     .rac-login-loading__spinner {
         animation: none;
@@ -398,7 +393,7 @@ All colors MUST be HSL.
     width: 100%;
     min-width: 0;
     flex-direction: column;
-    gap: clamp(1rem, 2vw, 1.35rem);
+    gap: clamp(1.5rem, 3vw, 2.25rem);
     margin-top: clamp(1.5rem, 3.5vw, 2.4rem);
     box-sizing: border-box;
 }
@@ -482,7 +477,7 @@ All colors MUST be HSL.
 .rac-login__impact {
     width: 100%;
     min-width: 0;
-    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+    margin-top: clamp(3.5rem, 7vw, 5.5rem);
     padding: 0 clamp(0.25rem, 1.8vw, 1.75rem);
     text-align: center;
     box-sizing: border-box;
@@ -520,7 +515,7 @@ All colors MUST be HSL.
     min-width: 0;
     align-items: center;
     justify-items: center;
-    margin-top: clamp(1.25rem, 3.5vw, 2.25rem);
+    margin-top: clamp(2.25rem, 5vw, 3.5rem);
     box-sizing: border-box;
 }
 
@@ -586,7 +581,9 @@ All colors MUST be HSL.
     .rac-login__callouts { grid-template-columns: 1fr; gap: 0.65rem; }
     .rac-login__callouts > div { min-height: 3.85rem; padding: 0.7rem 0.8rem; }
     .rac-login__callouts p { font-size: 0.92rem; }
-    .rac-login__impact { margin-top: 3rem; }
+    .rac-login__visual { gap: 1.35rem; }
+    .rac-login__impact { margin-top: 3.5rem; }
+    .rac-login__house-stage { margin-top: 2.25rem; }
     .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
     .rac-login__impact-detail { margin-top: 0.9rem; font-size: 1rem; }
     .rac-login__benefits { gap: 0.8rem; }

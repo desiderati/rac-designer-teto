@@ -298,7 +298,7 @@ function TerrainPhotoThumb({
   return (
     <div
       className={cn(
-        'relative aspect-square min-w-0 overflow-hidden rounded-lg border bg-slate-100 transition-colors md:aspect-auto',
+        'relative min-h-14 aspect-square min-w-0 overflow-hidden rounded-lg border bg-slate-100 transition-colors md:aspect-auto',
         selected ? 'border-2 border-blue-600 ring-2 ring-blue-100' : 'border-slate-200',
         dragging ? 'opacity-50' : null,
       )}
@@ -327,7 +327,7 @@ function TerrainPhotoThumb({
       </span>
 
       {photo ? (
-        <>
+        <div data-testid='terrain-photo-actions' className='pointer-events-none absolute inset-y-1 right-1 z-20 flex flex-col items-end justify-between'>
           <button
             type='button'
             onClick={(event) => {
@@ -336,7 +336,7 @@ function TerrainPhotoThumb({
             }}
             disabled={disabled}
             aria-label={`Excluir foto ${index + 1} do terreno`}
-            className='absolute right-1 top-1 z-20 grid h-6 w-6 place-items-center rounded-md bg-white/90 text-slate-700 shadow-sm backdrop-blur transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50'
+            className='pointer-events-auto grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/90 text-slate-700 shadow-sm backdrop-blur transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50'
           >
             <Trash2 className='h-3.5 w-3.5'/>
           </button>
@@ -348,11 +348,11 @@ function TerrainPhotoThumb({
             }}
             disabled={disabled || isUploading}
             aria-label={`Trocar foto ${index + 1} do terreno`}
-            className='absolute bottom-1 right-1 z-20 grid h-6 w-6 place-items-center rounded-md bg-white/90 text-slate-700 shadow-sm backdrop-blur transition-colors hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
+            className='pointer-events-auto grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/90 text-slate-700 shadow-sm backdrop-blur transition-colors hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50'
           >
             <RefreshCw className='h-3.5 w-3.5'/>
           </button>
-        </>
+        </div>
       ) : null}
     </div>
   );

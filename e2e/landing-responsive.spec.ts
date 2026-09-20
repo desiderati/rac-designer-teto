@@ -136,4 +136,41 @@ test.describe('Landing pré-login responsiva', () => {
       houseHasArea: true,
     });
   });
+
+  test('revela as seções conforme entram na área visível', async ({page}) => {
+    await page.setViewportSize({width: 850, height: 620});
+    await page.goto(landingPath);
+    await page.waitForTimeout(700);
+
+    const beforeScroll = await page.evaluate(() => ({
+      impact: document.querySelector('.rac-login__impact')?.classList.contains('is-visible') ?? false,
+      house: document.querySelector('.rac-login__house-stage')?.classList.contains('is-visible') ?? false,
+    }));
+
+    await page.locator('.rac-login').evaluate((element) => {
+      const impact = element.querySelector<HTMLElement>('.rac-login__impact');
+      if (!impact) throw new Error('Seção de impacto ausente.');
+      element.scrollTop = Math.max(0, impact.offsetTop - element.clientHeight * 0.55);
+    });
+    await page.waitForTimeout(700);
+
+    const afterImpactScroll = await page.evaluate(() => ({
+      impact: document.querySelector('.rac-login__impact')?.classList.contains('is-visible') ?? false,
+    }));
+
+    await page.locator('.rac-login').evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await page.waitForTimeout(700);
+
+    const afterScroll = await page.evaluate(() => ({
+      impact: document.querySelector('.rac-login__impact')?.classList.contains('is-visible') ?? false,
+      house: document.querySelector('.rac-login__house-stage')?.classList.contains('is-visible') ?? false,
+      benefits: document.querySelector('.rac-login__benefits')?.classList.contains('is-visible') ?? false,
+    }));
+
+    expect(beforeScroll.impact || beforeScroll.house).toBe(false);
+    expect(afterImpactScroll.impact).toBe(true);
+    expect(afterScroll).toEqual({impact: true, house: true, benefits: true});
+  });
 });

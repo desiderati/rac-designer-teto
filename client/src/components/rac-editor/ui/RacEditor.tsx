@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {ArrowRight, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
 import {createEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
@@ -117,7 +117,7 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
   return (
     <main className='rac-login fixed inset-0 bg-[#eaf1f7] text-[#123d72]'>
       <div className='rac-login__shell'>
-        <section className='rac-login__identity' aria-label='Identidade do RAC Designer TETO'>
+        <LandingRevealSection className='rac-login__identity' aria-label='Identidade do RAC Designer TETO'>
           <div className='rac-login__brand' aria-label='RAC Designer TETO'>
             <span className='rac-login__brand-mark' aria-hidden='true'><House/></span>
             <span>RAC Designer <strong>TETO</strong></span>
@@ -125,9 +125,9 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
 
           <div className='rac-login__divider' aria-hidden='true'/>
           <p className='rac-login__eyebrow'>FERRAMENTA PARA QUEM<br/>CONSTRÓI IMPACTO</p>
-        </section>
+        </LandingRevealSection>
 
-        <section className='rac-login__copy' aria-label='Acesso ao RAC Designer TETO'>
+        <LandingRevealSection className='rac-login__copy' aria-label='Acesso ao RAC Designer TETO'>
           <div className='rac-login__headline'>
             <span className='rac-login__headline-line' aria-hidden='true'/>
             <h1>Da ideia à planta<br/>que vira <em>abrigo.</em></h1>
@@ -147,9 +147,9 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           {error ? (
             <p role='alert' className='rac-login__auth-error'>Não foi possível validar a sessão. Tente entrar novamente.</p>
           ) : null}
-        </section>
+        </LandingRevealSection>
 
-        <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
+        <LandingRevealSection className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
           <div className='rac-login__editor-wrap'>
             <img
               className='rac-login__editor-shot'
@@ -163,28 +163,75 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
             <div><span className='rac-login__callout-icon'><Globe2 aria-hidden='true'/></span><p><strong>Comunidade</strong><span>Decisão conjunta</span></p></div>
             <div><span className='rac-login__callout-icon'><ShieldCheck aria-hidden='true'/></span><p><strong>Construção</strong><span>Mais segura</span></p></div>
           </div>
-        </section>
+        </LandingRevealSection>
 
-        <section className='rac-login__impact' aria-label='Impacto social'>
+        <LandingRevealSection className='rac-login__impact' aria-label='Impacto social'>
           <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
           <p className='rac-login__impact-detail'>Cada traço organiza uma decisão. Cada decisão fortalece uma comunidade.</p>
-        </section>
+        </LandingRevealSection>
 
-        <section className='rac-login__house-stage' aria-label='Casa TETO'>
+        <LandingRevealSection className='rac-login__house-stage' aria-label='Casa TETO'>
           <img
             className='rac-login__house'
             src={HOUSE_ILLUSTRATION_URL}
             alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
           />
-        </section>
+        </LandingRevealSection>
 
-        <section className='rac-login__benefits' aria-label='Recursos principais'>
+        <LandingRevealSection className='rac-login__benefits' aria-label='Recursos principais'>
           <span><Globe2 aria-hidden='true'/>Base global</span>
           <span><History aria-hidden='true'/>Histórico</span>
           <span><ShieldCheck aria-hidden='true'/>Storage seguro</span>
-        </section>
+        </LandingRevealSection>
       </div>
     </main>
+  );
+}
+
+function LandingRevealSection({
+  className,
+  children,
+  'aria-label': ariaLabel,
+}: {
+  className: string;
+  children: ReactNode;
+  'aria-label': string;
+}) {
+  const elementRef = useRef<HTMLElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsVisible(true);
+        observer.unobserve(entry.target);
+      },
+      {
+        root: element.closest('.rac-login'),
+        rootMargin: '0px 0px -8% 0px',
+        threshold: 0.12,
+      },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section
+      ref={elementRef}
+      aria-label={ariaLabel}
+      className={`rac-login__reveal ${className}${isVisible ? ' is-visible' : ''}`}
+    >
+      {children}
+    </section>
   );
 }
 

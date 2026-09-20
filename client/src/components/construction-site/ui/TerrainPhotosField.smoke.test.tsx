@@ -75,4 +75,18 @@ describe('TerrainPhotosField', () => {
     expect(onChange).toHaveBeenCalledWith([]);
     expect(toastMock.success).toHaveBeenCalledWith('Foto removida.');
   });
+
+  it('mantém excluir e trocar em posições separadas na thumbnail', () => {
+    render(
+      <TerrainPhotosField
+        constructionSiteId='site-1'
+        value={[existingPhoto]}
+        onChange={vi.fn()}
+      />,
+    );
+
+    const actions = screen.getByTestId('terrain-photo-actions');
+    expect(actions).toHaveClass('inset-y-1', 'justify-between');
+    expect(actions.querySelectorAll('button')).toHaveLength(2);
+  });
 });
