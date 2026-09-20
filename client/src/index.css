@@ -244,6 +244,8 @@ All colors MUST be HSL.
     .rac-login-loading__spinner {
         animation: none;
     }
+
+    .rac-login__reveal { transition: none; }
 }
 
 .rac-login__shell {
@@ -563,6 +565,19 @@ All colors MUST be HSL.
     .rac-login {
         scrollbar-gutter: auto;
     }
+
+    .rac-login__reveal {
+        transform: translateY(0.5rem);
+        transition-duration: 280ms;
+        transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .rac-login__identity { --reveal-delay: 0ms; }
+    .rac-login__copy { --reveal-delay: 24ms; }
+    .rac-login__visual { --reveal-delay: 40ms; }
+    .rac-login__impact { --reveal-delay: 56ms; }
+    .rac-login__house-stage { --reveal-delay: 72ms; }
+    .rac-login__benefits { --reveal-delay: 80ms; }
 
     .rac-login__shell {
         padding-right: 0.75rem;

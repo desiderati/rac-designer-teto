@@ -125,6 +125,8 @@ test.describe('Landing pré-login responsiva', () => {
         canScrollVertically: login.scrollHeight > login.clientHeight,
         screenshotHasArea: screenshotBox.width > 0 && screenshotBox.height > 0,
         houseHasArea: houseBox.width > 0 && houseBox.height > 0,
+        mobileRevealDuration: getComputedStyle(sections[3]!).transitionDuration,
+        mobileRevealDelay: getComputedStyle(sections[3]!).transitionDelay,
       };
     }, sectionSelectors);
 
@@ -134,6 +136,8 @@ test.describe('Landing pré-login responsiva', () => {
       canScrollVertically: true,
       screenshotHasArea: true,
       houseHasArea: true,
+      mobileRevealDuration: '0.28s',
+      mobileRevealDelay: '0.056s, 0.056s',
     });
   });
 
