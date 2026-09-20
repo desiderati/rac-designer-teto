@@ -117,7 +117,7 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
   return (
     <main className='rac-login fixed inset-0 bg-[#eaf1f7] text-[#123d72]'>
       <div className='rac-login__shell'>
-        <section className='rac-login__copy'>
+        <section className='rac-login__identity' aria-label='Identidade do RAC Designer TETO'>
           <div className='rac-login__brand' aria-label='RAC Designer TETO'>
             <span className='rac-login__brand-mark' aria-hidden='true'><House/></span>
             <span>RAC Designer <strong>TETO</strong></span>
@@ -125,7 +125,9 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
 
           <div className='rac-login__divider' aria-hidden='true'/>
           <p className='rac-login__eyebrow'>FERRAMENTA PARA QUEM<br/>CONSTRÓI IMPACTO</p>
+        </section>
 
+        <section className='rac-login__copy' aria-label='Acesso ao RAC Designer TETO'>
           <div className='rac-login__headline'>
             <span className='rac-login__headline-line' aria-hidden='true'/>
             <h1>Da ideia à planta<br/>que vira <em>abrigo.</em></h1>
@@ -145,7 +147,6 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           {error ? (
             <p role='alert' className='rac-login__auth-error'>Não foi possível validar a sessão. Tente entrar novamente.</p>
           ) : null}
-
         </section>
 
         <section className='rac-login__visual' aria-label='Visão do RAC Designer TETO'>
@@ -167,11 +168,6 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
         <section className='rac-login__impact' aria-label='Impacto social'>
           <p className='rac-login__house-caption'>Mais que plantas.<br/><strong>São pessoas.</strong><br/>São comunidades.</p>
           <p className='rac-login__impact-detail'>Cada traço organiza uma decisão. Cada decisão fortalece uma comunidade.</p>
-          <div className='rac-login__benefits' aria-label='Recursos principais'>
-            <span><Globe2 aria-hidden='true'/>Base global</span>
-            <span><History aria-hidden='true'/>Histórico</span>
-            <span><ShieldCheck aria-hidden='true'/>Storage seguro</span>
-          </div>
         </section>
 
         <section className='rac-login__house-stage' aria-label='Casa TETO'>
@@ -180,6 +176,12 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
             src={HOUSE_ILLUSTRATION_URL}
             alt='Ilustração arquitetônica de uma casa TETO elevada sobre pilotis'
           />
+        </section>
+
+        <section className='rac-login__benefits' aria-label='Recursos principais'>
+          <span><Globe2 aria-hidden='true'/>Base global</span>
+          <span><History aria-hidden='true'/>Histórico</span>
+          <span><ShieldCheck aria-hidden='true'/>Storage seguro</span>
         </section>
       </div>
     </main>
