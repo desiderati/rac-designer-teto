@@ -58,6 +58,23 @@ test.describe('Landing pré-login responsiva', () => {
       cardsSameHeight: true,
       houseHasArea: true,
     });
+
+    const screenshotSpacing = await page.evaluate(() => {
+      const copy = document.querySelector<HTMLElement>('.rac-login__copy');
+      const screenshot = document.querySelector<HTMLElement>('.rac-login__editor-wrap');
+      const callouts = document.querySelector<HTMLElement>('.rac-login__callouts');
+      if (!copy || !screenshot || !callouts) throw new Error('Espaçamento do screenshot ausente.');
+      const copyBox = copy.getBoundingClientRect();
+      const screenshotBox = screenshot.getBoundingClientRect();
+      const calloutsBox = callouts.getBoundingClientRect();
+      return {
+        before: screenshotBox.top - copyBox.bottom,
+        after: calloutsBox.top - screenshotBox.bottom,
+      };
+    });
+
+    expect(screenshotSpacing.before).toBeGreaterThan(90);
+    expect(screenshotSpacing.after).toBeGreaterThan(85);
   });
 
   test('ativa rolagem somente quando o conteúdo excede a viewport', async ({page}) => {

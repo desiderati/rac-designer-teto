@@ -395,8 +395,8 @@ All colors MUST be HSL.
     width: 100%;
     min-width: 0;
     flex-direction: column;
-    gap: clamp(1.5rem, 3vw, 2.25rem);
-    margin-top: clamp(1.5rem, 3.5vw, 2.4rem);
+    gap: clamp(4.5rem, 9vw, 6.75rem);
+    margin-top: clamp(4.5rem, 10.5vw, 7.2rem);
     box-sizing: border-box;
 }
 
@@ -596,7 +596,10 @@ All colors MUST be HSL.
     .rac-login__callouts { grid-template-columns: 1fr; gap: 0.65rem; }
     .rac-login__callouts > div { min-height: 3.85rem; padding: 0.7rem 0.8rem; }
     .rac-login__callouts p { font-size: 0.92rem; }
-    .rac-login__visual { gap: 1.35rem; }
+    .rac-login__visual {
+        gap: 4.05rem;
+        margin-top: 4.5rem;
+    }
     .rac-login__impact { margin-top: 3.5rem; }
     .rac-login__house-stage { margin-top: 2.25rem; }
     .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
