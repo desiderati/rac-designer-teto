@@ -1,5 +1,6 @@
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {useHouseStoreVersion} from '@/components/rac-editor/lib/house-store.ts';
+import {useEffect, useMemo, useState} from 'react';
 import type {
   HousePiloti,
   HouseSide,
@@ -20,6 +21,7 @@ export interface House3DViewerModel {
   houseType: HouseType;
   hasHouseViews: boolean;
   canRenderHouse: boolean;
+  isProjectionLoading: boolean;
   pilotis: Record<string, HousePiloti>;
   tipo6FrontSide: 'top' | 'bottom' | null;
   tipo3OpenSide: 'left' | 'right' | null;
@@ -32,6 +34,7 @@ function createEmptyModel(): House3DViewerModel {
     houseType: null,
     hasHouseViews: false,
     canRenderHouse: false,
+    isProjectionLoading: false,
     pilotis: {},
     tipo6FrontSide: null,
     tipo3OpenSide: null,
@@ -65,7 +68,7 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
 
   if (!projection.hasHouseViews) {
     return {
-      ...createEmptyModel(),
+    ...createEmptyModel(),
       houseType: projection.houseType,
       pilotis: {...projection.pilotis},
     };
@@ -75,6 +78,7 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
     houseType: projection.houseType,
     hasHouseViews: projection.hasHouseViews,
     canRenderHouse: Boolean(projection.houseType && projection.hasHouseViews),
+    isProjectionLoading: false,
     pilotis: {...projection.pilotis},
     tipo6FrontSide: projection.houseType === 'tipo6' ? resolveTipo6FrontSide(projection.sideMappings) : null,
     tipo3OpenSide: projection.houseType === 'tipo3' ? resolveTipo3OpenSide(projection.sideMappings) : null,
@@ -87,8 +91,37 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
   };
 }
 
-export function useHouse3DViewerModel(): House3DViewerModel {
+export function useHouse3DViewerModel({retryProjection = false}: {retryProjection?: boolean} = {}): House3DViewerModel {
   const {house3DProjectionPort} = useEditorPorts();
-  useHouseStoreVersion();
-  return buildHouse3DViewerModel(house3DProjectionPort.getProjection());
+  const houseStoreVersion = useHouseStoreVersion();
+  const [projectionRetry, setProjectionRetry] = useState(0);
+  const projection = useMemo(
+    () => house3DProjectionPort.getProjection(),
+    [house3DProjectionPort, houseStoreVersion, projectionRetry],
+  );
+  const isProjectionLoading = retryProjection && projection === null;
+
+  useEffect(() => {
+    if (!isProjectionLoading) return;
+
+    let attempts = 0;
+    let timeoutId: number | null = null;
+    const retry = () => {
+      attempts += 1;
+      setProjectionRetry((current) => current + 1);
+      if (attempts < 30) {
+        timeoutId = window.setTimeout(retry, 100);
+      }
+    };
+
+    timeoutId = window.setTimeout(retry, 0);
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
+  }, [isProjectionLoading]);
+
+  return {
+    ...buildHouse3DViewerModel(projection),
+    isProjectionLoading,
+  };
 }

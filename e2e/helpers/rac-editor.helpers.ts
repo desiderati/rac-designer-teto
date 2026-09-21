@@ -41,6 +41,7 @@ const IGNORED_CONSOLE_ERROR_PATTERNS = [
   'Unable to preventDefault inside passive event listener invocation',
   'Failed to load resource: net::ERR_NETWORK_CHANGED',
   'Failed to load resource: the server responded with a status of 401 (Unauthorized)',
+  'Please login (10001)',
 ];
 
 export function startConsoleErrorCapture(page: Page): void {

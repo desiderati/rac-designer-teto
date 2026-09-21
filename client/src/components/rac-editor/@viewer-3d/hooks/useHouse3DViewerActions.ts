@@ -9,7 +9,9 @@ import type {House3DViewerCameraPoseReader} from '@/components/rac-editor/@viewe
 import {
   removeHouse3DViewerCameraPose,
   writeHouse3DViewerCameraPose,
+  createHouse3DDoorFacingCameraPose,
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
+import type {House3DDoorFace} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 import {
   readHouse3DViewerPreferences,
   writeHouse3DViewerPreferences,
@@ -21,6 +23,7 @@ const EDITOR_TOAST_POSITION = 'bottom-right' as const;
 interface UseHouse3DViewerActionsArgs {
   houseType: HouseType;
   hasHouseViews: boolean;
+  doorFace?: House3DDoorFace;
   onOpenChange: (open: boolean) => void;
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   cameraPoseStorageKey: string | null;
@@ -37,6 +40,7 @@ interface UseHouse3DViewerActionsArgs {
 export function useHouse3DViewerActions({
   houseType,
   hasHouseViews,
+  doorFace,
   onOpenChange,
   canvasRef,
   cameraPoseStorageKey,
@@ -99,9 +103,10 @@ export function useHouse3DViewerActions({
   }, []);
 
   const persistCurrentCameraPose = useCallback(() => {
-    const pose = cameraPoseReaderRef.current?.() ?? null;
+    const pose = cameraPoseReaderRef.current?.()
+      ?? (houseType ? createHouse3DDoorFacingCameraPose({doorFace: doorFace ?? 'front', compact: false}) : null);
     writeHouse3DViewerCameraPose(cameraPoseStorageKey, pose);
-  }, [cameraPoseStorageKey]);
+  }, [cameraPoseStorageKey, doorFace, houseType]);
 
   const persistCurrentViewerPreferences = useCallback(() => {
     writeHouse3DViewerPreferences(viewerPreferencesStorageKey, {

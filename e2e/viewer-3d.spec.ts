@@ -8,10 +8,10 @@ import {
   startConsoleErrorCapture,
 } from './helpers/rac-editor.helpers';
 
-const HOUSE_E2E_CAMERA_POSE_STORAGE_KEY = 'rac-house-3d-camera-pose:v1:house_e2e';
+const HOUSE_E2E_CAMERA_POSE_STORAGE_KEY = 'rac-house-3d-camera-pose:v2:house_e2e';
 const DOOR_FACING_TIPO6_TOP_POSE = {
-  position: [0, 140, 250],
-  target: [0, 28, 0],
+  position: [180, 140, 250],
+  target: [0, 40, 0],
 };
 
 function expectVectorCloseTo(actual: unknown, expected: number[], tolerance = 5) {
@@ -29,7 +29,7 @@ async function openViewer3D(page: Parameters<typeof ensureOverflowMenuOpen>[0]) 
   await page.getByRole('button', {name: 'Visualização 3D'}).click();
   await expect(page.getByRole('heading', {name: 'Visualizador 3D'})).toBeVisible();
   await expect.poll(async () => page.locator('canvas').count()).toBeGreaterThan(1);
-  await expect(page.locator('button[title="Resetar Câmera"]')).toBeEnabled();
+  await expect(page.locator('button[title="Enquadrar casa"]')).toBeEnabled();
 }
 
 async function readCameraPoseStorage(page: Parameters<typeof ensureOverflowMenuOpen>[0]) {
@@ -63,14 +63,17 @@ test.describe('RAC 3D viewer', () => {
     await page.locator('button[title="Cor das Paredes"]').click();
     await page.locator('button[title="Terracota"]').click();
 
-    await page.locator('button[title="Resetar Câmera"]').click();
+    await page.locator('button[title="Enquadrar casa"]').click();
     await page.locator('button[title="Fullscreen"]').click();
     await expect(page.locator('button[title="Sair do Fullscreen"]')).toBeVisible();
 
     await expect.poll(async () => page.locator('canvas').count()).toBeGreaterThan(1);
-    const insertButton = page.locator('button[title="Inserir no Canvas"]');
+    const insertButton = page.locator('button[title="Gerar imagem para inserir no Canvas"]');
     await expect(insertButton).toBeEnabled();
     await insertButton.click();
+    const pendingImageButton = page.locator('button[title="Inserir imagem gerada no Canvas"]');
+    await expect(pendingImageButton).toBeEnabled({timeout: 10000});
+    await pendingImageButton.click();
 
     await expect
       .poll(async () => {
@@ -120,8 +123,8 @@ test.describe('RAC 3D viewer', () => {
     expectVectorCloseTo(restoredPose.target, customPose.target, 15);
 
     await openViewer3D(page);
-    await page.locator('button[title="Resetar Câmera"]').click();
-    await expect(page.locator('button[title="Resetar Câmera"]')).toBeEnabled();
+    await page.locator('button[title="Enquadrar casa"]').click();
+    await expect(page.locator('button[title="Enquadrar casa"]')).toBeEnabled();
     await page.locator('button[title="Fechar"]').click();
     await expect(page.getByRole('heading', {name: 'Visualizador 3D'})).toBeHidden();
 
@@ -212,4 +215,3 @@ test.describe('RAC 3D viewer', () => {
     await expect(viewerDialog.locator('canvas')).toHaveCount(0);
   });
 });
-

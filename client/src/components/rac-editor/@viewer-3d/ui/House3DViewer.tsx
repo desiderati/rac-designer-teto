@@ -48,12 +48,13 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     houseType,
     hasHouseViews,
     canRenderHouse,
+    isProjectionLoading,
     pilotis,
     tipo6FrontSide,
     tipo3OpenSide,
     contraventamentos,
     stairs,
-  } = useHouse3DViewerModel();
+  } = useHouse3DViewerModel({retryProjection: open});
   const cameraPoseStorageKey = useMemo(
     () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
     [activeHouseId],
@@ -92,6 +93,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
   } = useHouse3DViewerActions({
     houseType,
     hasHouseViews,
+    doorFace,
     onOpenChange,
     canvasRef,
     cameraPoseStorageKey,
@@ -213,7 +215,12 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
         </DialogHeader>
 
         <div className='flex-1 bg-gradient-to-b from-muted to-muted/50 relative' style={{minHeight: '400px'}}>
-          {!canRenderHouse ? (
+          {isProjectionLoading ? (
+            <div className='absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground'>
+              <div className='animate-spin rounded-full h-10 w-10 border-4 border-muted-foreground/20 border-t-primary'/>
+              <p className='text-sm animate-pulse'>Carregando a planta da casa…</p>
+            </div>
+          ) : !canRenderHouse ? (
             <div className='absolute inset-0 flex items-center justify-center text-muted-foreground'>
               <p>Nenhuma casa criada. Adicione uma planta primeiro.</p>
             </div>

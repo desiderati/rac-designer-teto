@@ -620,7 +620,10 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     handleClosePdfPreview,
     is3DViewerOpen,
     setIs3DViewerOpen,
-    activeHouseId: activeHouse?.id ?? null,
+    activeHouseId:
+      activeHouse?.id
+      ?? constructionSiteManagement.constructionSite?.constructionSite.activeHouseId
+      ?? null,
     houseIllustrationPort,
     house3DPdfSnapshotRef,
     constructionSiteManagementOpen,

@@ -9,6 +9,7 @@ import {
   readHouse3DViewerPreferences,
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+import {readHouse3DViewerCameraPose} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 
 function wrapper({children}: {children: ReactNode}) {
   return createElement(House3DImageInsertionProvider, null, children);
@@ -44,6 +45,28 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(readHouse3DViewerPreferences(preferencesStorageKey)).toEqual({
       wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Rosa,
       hideBelowTerrain: true,
+    });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('persiste a pose inicial mesmo se o reader da câmera ainda não foi registrado', () => {
+    const onOpenChange = vi.fn();
+    const cameraStorageKey = 'rac-house-3d-camera-pose:v2:house_1';
+
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange,
+      canvasRef: {current: null},
+      cameraPoseStorageKey: cameraStorageKey,
+      viewerPreferencesStorageKey: null,
+    }), {wrapper});
+
+    act(() => result.current.handleClose());
+
+    expect(readHouse3DViewerCameraPose(cameraStorageKey)).toMatchObject({
+      position: [180, 140, 250],
+      target: [0, 40, 0],
     });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
