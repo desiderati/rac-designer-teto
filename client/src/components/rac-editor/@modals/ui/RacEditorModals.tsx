@@ -24,6 +24,10 @@ interface RacEditorOverlaysProps {
   isPdfPreviewOpen: boolean;
   pdfPreviewFileName: string | null;
   pdfPreviewUrl: string | null;
+  pdfPreviewPageCount: number;
+  pdfPreviewError: string | null;
+  isPdfPreviewPreparing: boolean;
+  onRetryPdfPreview: () => void;
   onDownloadPdfPreview: () => void;
   onClosePdfPreview: () => void;
 }
@@ -47,6 +51,10 @@ export function RacEditorModals({
   isPdfPreviewOpen,
   pdfPreviewFileName,
   pdfPreviewUrl,
+  pdfPreviewPageCount,
+  pdfPreviewError,
+  isPdfPreviewPreparing,
+  onRetryPdfPreview,
   onDownloadPdfPreview,
   onClosePdfPreview,
 }: RacEditorOverlaysProps) {
@@ -88,6 +96,10 @@ export function RacEditorModals({
         isOpen={isPdfPreviewOpen}
         fileName={pdfPreviewFileName}
         pdfUrl={pdfPreviewUrl}
+        pageCount={pdfPreviewPageCount}
+        errorMessage={pdfPreviewError}
+        isPreparing={isPdfPreviewPreparing}
+        onRetry={onRetryPdfPreview}
         onDownload={onDownloadPdfPreview}
         onClose={onClosePdfPreview}
       />

@@ -1,15 +1,27 @@
 import { defineConfig } from 'vite';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
 import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
 
 const projectRoot = import.meta.dirname;
+const gitVersion = (() => {
+  try {
+    return `dev+${execFileSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: projectRoot}).toString().trim()}`;
+  } catch {
+    return null;
+  }
+})();
+const appVersion = process.env.VITE_APP_VERSION ?? gitVersion ?? process.env.npm_package_version ?? 'dev';
 
 export default defineConfig({
   root: path.resolve(projectRoot, 'client'),
   publicDir: path.resolve(projectRoot, 'client', 'public'),
   plugins: [react(), vitePluginManusRuntime()],
   envDir: projectRoot,
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+  },
   resolve: {
     alias: {
       '@': path.resolve(projectRoot, 'client', 'src'),

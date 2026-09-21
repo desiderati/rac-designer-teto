@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { AlertTriangle, RotateCcw } from "lucide-react";
-import { Component, ReactNode } from "react";
+import {AlertTriangle, RefreshCw} from 'lucide-react';
+import {Component, ReactNode} from 'react';
+import {isChunkLoadError, requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 
 interface Props {
   children: ReactNode;
@@ -14,41 +14,49 @@ interface State {
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = {hasError: false, error: null};
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return {hasError: true, error};
   }
+
+  componentDidCatch(error: Error) {
+    if (isChunkLoadError(error)) requestChunkRecovery(error);
+  }
+
+  handleRetry = () => {
+    if (this.state.error && requestChunkRecovery(this.state.error)) return;
+    window.location.reload();
+  };
 
   render() {
     if (this.state.hasError) {
+      const chunkError = isChunkLoadError(this.state.error);
       return (
-        <div className="flex items-center justify-center min-h-screen p-8 bg-background">
-          <div className="flex flex-col items-center w-full max-w-2xl p-8">
-            <AlertTriangle
-              size={48}
-              className="text-destructive mb-6 flex-shrink-0"
-            />
+        <div className='flex min-h-screen items-center justify-center bg-background p-8'>
+          <div className='flex w-full max-w-lg flex-col items-center rounded-2xl border border-border bg-card p-8 text-center shadow-sm'>
+            {chunkError ? (
+              <RefreshCw size={44} className='mb-5 text-primary'/>
+            ) : (
+              <AlertTriangle size={44} className='mb-5 text-destructive'/>
+            )}
 
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
-
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
+            <h2 className='mb-3 text-xl font-semibold text-card-foreground'>
+              {chunkError ? 'Estamos atualizando o Editor de RAC' : 'Ocorreu um erro inesperado'}
+            </h2>
+            <p className='mb-6 text-sm leading-6 text-muted-foreground'>
+              {chunkError
+                ? 'Uma atualização da aplicação ainda não terminou de carregar. A página será atualizada automaticamente; se necessário, tente novamente.'
+                : 'Não foi possível concluir esta etapa. Atualize a página e tente novamente.'}
+            </p>
 
             <button
-              onClick={() => window.location.reload()}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg",
-                "bg-primary text-primary-foreground",
-                "hover:opacity-90 cursor-pointer"
-              )}
+              onClick={this.handleRetry}
+              className='flex cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90'
             >
-              <RotateCcw size={16} />
-              Reload Page
+              <RefreshCw size={16}/>
+              Tentar novamente
             </button>
           </div>
         </div>

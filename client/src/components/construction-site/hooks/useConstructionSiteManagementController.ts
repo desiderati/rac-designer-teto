@@ -23,6 +23,7 @@ import {
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
+import {requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -190,6 +191,7 @@ export function useConstructionSiteManagementController({
       toast.success('PDF da RAC gerado.');
     } catch (error) {
       console.error('[useConstructionSiteManagementController] Failed to export house RAC PDF:', error);
+      requestChunkRecovery(error);
       toast.error(error instanceof Error && error.message.trim()
         ? error.message
         : 'Falha ao imprimir RAC.');
@@ -242,6 +244,7 @@ export function useConstructionSiteManagementController({
       toast.success(`ZIP de RACs gerado com ${result.exportedHouseIds.length} PDF(s).${failureMessage}`);
     } catch (error) {
       console.error('[useConstructionSiteManagementController] Failed to export RAC ZIP:', error);
+      requestChunkRecovery(error);
       toast.error(error instanceof Error && error.message.trim()
         ? error.message
         : 'Falha ao exportar RACs em ZIP.');

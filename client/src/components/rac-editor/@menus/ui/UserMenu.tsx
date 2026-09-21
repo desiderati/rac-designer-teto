@@ -3,6 +3,7 @@ import {useEffect, useRef, useState, type MouseEvent} from 'react';
 import {createPortal} from 'react-dom';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {APP_VERSION} from '@/shared/app-version.ts';
 
 interface UserMenuProps {
   isMobile: boolean;
@@ -141,6 +142,13 @@ export function UserMenu({
             />
             <Divider/>
             <Item icon={TOP_BAR_ICONS.settings} label='Configurações' onClick={onOpenSettings}/>
+            <div
+              data-testid='account-app-version'
+              title={`Versão ${APP_VERSION}`}
+              className='px-3 py-1 text-[10px] font-medium tracking-[0.08em] text-slate-400'
+            >
+              v{APP_VERSION}
+            </div>
             <Divider/>
             <Item
               icon={TOP_BAR_ICONS.exit}

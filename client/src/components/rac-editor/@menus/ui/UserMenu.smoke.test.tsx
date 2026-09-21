@@ -65,6 +65,14 @@ describe('UserMenu.tsx', () => {
       .toHaveAttribute('data-guided-tour-start', 'rac-editor-intro');
   });
 
+  it('exibe um identificador discreto da versão no menu da conta', () => {
+    renderMenu();
+    openAccountMenu();
+
+    expect(screen.getByTestId('account-app-version')).toHaveTextContent(/^v.+/);
+    expect(screen.getByTestId('account-app-version')).toHaveAttribute('title', expect.stringMatching(/^Versão /));
+  });
+
   it('não exibe Construções TETO no menu do avatar', () => {
     renderMenu({isMobile: false});
     openAccountMenu();

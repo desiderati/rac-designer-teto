@@ -7,8 +7,15 @@ import { installManusPreviewSessionBridge } from '@/_core/preview-session-bridge
 import { startLogin } from '@/const.ts';
 import { racTrpcClient } from '@/lib/trpc-client.ts';
 import { trpc } from '@/lib/trpc.ts';
+import {installChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 import './index.css';
 
+installChunkRecovery();
+if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('chunkRecovery')) {
+  const cleanUrl = new URL(window.location.href);
+  cleanUrl.searchParams.delete('chunkRecovery');
+  window.history.replaceState({}, document.title, cleanUrl.toString());
+}
 installManusPreviewSessionBridge();
 
 let loginRedirectScheduled = false;

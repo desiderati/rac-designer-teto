@@ -100,6 +100,10 @@ interface BuildRacEditorLayoutPropsArgs {
   isPdfPreviewOpen: LayoutProps['modals']['isPdfPreviewOpen'];
   pdfPreviewFileName: LayoutProps['modals']['pdfPreviewFileName'];
   pdfPreviewUrl: LayoutProps['modals']['pdfPreviewUrl'];
+  pdfPreviewPageCount: LayoutProps['modals']['pdfPreviewPageCount'];
+  pdfPreviewError: LayoutProps['modals']['pdfPreviewError'];
+  isPdfPreviewPreparing: LayoutProps['modals']['isPdfPreviewPreparing'];
+  handleRetryPdfPreview: LayoutProps['modals']['onRetryPdfPreview'];
   handleDownloadPdfPreview: LayoutProps['modals']['onDownloadPdfPreview'];
   handleClosePdfPreview: LayoutProps['modals']['onClosePdfPreview'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
@@ -229,6 +233,10 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       isPdfPreviewOpen: args.isPdfPreviewOpen,
       pdfPreviewFileName: args.pdfPreviewFileName,
       pdfPreviewUrl: args.pdfPreviewUrl,
+      pdfPreviewPageCount: args.pdfPreviewPageCount,
+      pdfPreviewError: args.pdfPreviewError,
+      isPdfPreviewPreparing: args.isPdfPreviewPreparing,
+      onRetryPdfPreview: args.handleRetryPdfPreview,
       onDownloadPdfPreview: args.handleDownloadPdfPreview,
       onClosePdfPreview: args.handleClosePdfPreview,
     },

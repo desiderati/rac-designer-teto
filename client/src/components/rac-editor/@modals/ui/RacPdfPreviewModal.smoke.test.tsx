@@ -19,7 +19,7 @@ describe('RacPdfPreviewModal', () => {
     );
 
     expect(screen.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    expect(screen.getByTitle('Prévia do PDF da RAC')).toHaveAttribute('src', 'blob:rac-preview');
+    expect(screen.getByTitle('Prévia do PDF da RAC')).toHaveAttribute('src', 'blob:rac-preview#page=1&zoom=100');
     expect(screen.getByText('RAC-CC2603-FAMILIA-SILVA.pdf')).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', {name: 'Baixar PDF'}));
@@ -45,5 +45,47 @@ describe('RacPdfPreviewModal', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Fechar'}));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onDownload).not.toHaveBeenCalled();
+  });
+
+  it('permite navegar entre páginas e ajustar o zoom da prévia', () => {
+    render(
+      <RacPdfPreviewModal
+        isMobile={false}
+        isOpen
+        fileName='RAC.pdf'
+        pdfUrl='blob:rac-preview'
+        pageCount={3}
+        onDownload={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Aumentar zoom'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Próxima página'}));
+
+    expect(screen.getByTestId('pdf-preview-zoom')).toHaveTextContent('110%');
+    expect(screen.getByTestId('pdf-preview-page')).toHaveTextContent('Página 2 de 3');
+    expect(screen.getByTitle('Prévia do PDF da RAC')).toHaveAttribute('src', 'blob:rac-preview#page=2&zoom=110');
+  });
+
+  it('exibe erro recuperável e delega a nova tentativa', () => {
+    const onRetry = vi.fn();
+
+    render(
+      <RacPdfPreviewModal
+        isMobile
+        isOpen
+        fileName='RAC.pdf'
+        pdfUrl={null}
+        errorMessage='Falha ao preparar a prévia do PDF. Você pode tentar novamente.'
+        onRetry={onRetry}
+        onDownload={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Falha ao preparar a prévia');
+    fireEvent.click(screen.getByRole('button', {name: 'Tentar novamente'}));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });

@@ -165,6 +165,8 @@ export function ConstructionSiteManagementPanel({
   const [houseRacPdfPreview, setHouseRacPdfPreview] = useState<{
     result: RacPdfHouseExportResult;
     url: string;
+    constructionSiteId: string;
+    houseId: string;
   } | null>(null);
   const [isDownloadingHouseRacPdfPreview, setIsDownloadingHouseRacPdfPreview] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
@@ -261,7 +263,12 @@ export function ConstructionSiteManagementPanel({
         pendingHouseRacPdfExport.houseId,
         (result) => {
           const url = URL.createObjectURL(result.blob);
-          setHouseRacPdfPreview({result, url});
+          setHouseRacPdfPreview({
+            result,
+            url,
+            constructionSiteId: pendingHouseRacPdfExport.constructionSiteId,
+            houseId: pendingHouseRacPdfExport.houseId,
+          });
         },
       );
       setPendingHouseRacPdfExport(null);
@@ -269,6 +276,26 @@ export function ConstructionSiteManagementPanel({
       setExportingRacPdfHouseId(null);
     }
   }, [actions, exportingRacPdfHouseId, pendingHouseRacPdfExport]);
+
+  const retryHouseRacPdfPreview = useCallback(async () => {
+    if (!houseRacPdfPreview || exportingRacPdfHouseId || isDownloadingHouseRacPdfPreview) return;
+
+    setExportingRacPdfHouseId(houseRacPdfPreview.houseId);
+    try {
+      await actions.exportHouseRacPdf(
+        houseRacPdfPreview.constructionSiteId,
+        houseRacPdfPreview.houseId,
+        (result) => {
+          const url = URL.createObjectURL(result.blob);
+          setHouseRacPdfPreview((current) => current
+            ? {...current, result, url}
+            : current);
+        },
+      );
+    } finally {
+      setExportingRacPdfHouseId(null);
+    }
+  }, [actions, exportingRacPdfHouseId, houseRacPdfPreview, isDownloadingHouseRacPdfPreview]);
 
   useEffect(() => () => {
     if (houseRacPdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
@@ -620,6 +647,9 @@ export function ConstructionSiteManagementPanel({
           isOpen={Boolean(houseRacPdfPreview)}
           fileName={houseRacPdfPreview?.result.fileName ?? null}
           pdfUrl={houseRacPdfPreview?.url ?? null}
+          pageCount={houseRacPdfPreview?.result.pageCount ?? 1}
+          isPreparing={Boolean(exportingRacPdfHouseId)}
+          onRetry={() => void retryHouseRacPdfPreview()}
           isDownloading={isDownloadingHouseRacPdfPreview}
           onDownload={() => void downloadHouseRacPdfPreview()}
           onClose={closeHouseRacPdfPreview}

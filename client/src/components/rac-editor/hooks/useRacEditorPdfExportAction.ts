@@ -14,6 +14,7 @@ import {
   formatRacPdfExportChecklistSummary,
   type RacPdfExportChecklist,
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
+import {requestChunkRecovery, recordPdfExportTelemetry} from '@/shared/lib/runtime-resilience.ts';
 
 interface UseRacEditorPdfExportActionArgs {
   canvasRef: RefObject<CanvasDocumentHandle | null>;
@@ -23,10 +24,26 @@ interface UseRacEditorPdfExportActionArgs {
   onAfterExportPdf?: () => void;
 }
 
-interface RacPdfPreviewArtifact {
+export interface RacPdfPreviewArtifact {
   fileName: string;
-  blob: Blob;
-  url: string;
+  blob: Blob | null;
+  url: string | null;
+  pageCount: number;
+  errorMessage?: string;
+}
+
+function errorDetails(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message.slice(0, 240),
+    };
+  }
+
+  return {
+    errorName: 'UnknownError',
+    errorMessage: String(error).slice(0, 240),
+  };
 }
 
 export function useRacEditorPdfExportAction({
@@ -42,15 +59,27 @@ export function useRacEditorPdfExportAction({
   const [isPdfExporting, setIsPdfExporting] = useState(false);
   const [pdfPreview, setPdfPreview] = useState<RacPdfPreviewArtifact | null>(null);
   const preparedConstructionSiteRef = useRef<ConstructionSiteState | null>(null);
+  const lastPdfExportConstructionSiteRef = useRef<ConstructionSiteState | null>(null);
+  const lastPdfPreviewFileNameRef = useRef('RAC-preview.pdf');
+  const lastPdfPreviewPageCountRef = useRef(1);
 
-  const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState) => {
+  const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState): Promise<boolean> => {
+    const startedAt = Date.now();
+    lastPdfExportConstructionSiteRef.current = constructionSite;
+    recordPdfExportTelemetry('prepare_started');
+
     try {
       setIsPdfExporting(true);
 
       const canvasImageDataUrl = canvasRef.current?.createDocumentPort()?.exportImageDataUrl();
       if (!canvasImageDataUrl) {
-        toast.error('Falha ao capturar o canvas para o PDF.');
-        return;
+        const message = 'Falha ao capturar o canvas para o PDF.';
+        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, errorName: 'CanvasUnavailable', errorMessage: message});
+        setPdfPreview((current) => current?.url
+          ? {...current, errorMessage: message}
+          : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
+        toast.error(message);
+        return false;
       }
 
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
@@ -63,32 +92,44 @@ export function useRacEditorPdfExportAction({
       });
 
       if (!report) {
-        toast.error('Nenhuma casa ativa para gerar o PDF.');
-        return;
+        const message = 'Nenhuma casa ativa para gerar o PDF.';
+        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, errorName: 'ReportUnavailable', errorMessage: message});
+        setPdfPreview((current) => current?.url
+          ? {...current, errorMessage: message}
+          : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
+        toast.error(message);
+        return false;
       }
 
       const {jsPDF} = await import('jspdf');
-
-      const pdf = createRacPdfReportDocument({
-        report,
-        jsPDF,
-      });
+      const pdf = createRacPdfReportDocument({report, jsPDF});
       const blob = pdf.output('blob') as Blob;
       const url = URL.createObjectURL(blob);
-      setPdfPreview({fileName: report.fileName, blob, url});
-
+      const pageCount = Math.max(1, pdf.getNumberOfPages());
+      lastPdfPreviewFileNameRef.current = report.fileName;
+      lastPdfPreviewPageCountRef.current = pageCount;
+      setPdfPreview({fileName: report.fileName, blob, url, pageCount});
+      recordPdfExportTelemetry('prepare_succeeded', {durationMs: Date.now() - startedAt});
+      return true;
     } catch (error) {
-      console.error('[useRacEditorPdfExportAction] Failed to prepare PDF preview:', error);
+      const details = errorDetails(error);
+      recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, ...details});
+      const recovered = requestChunkRecovery(error);
+      const message = recovered
+        ? 'A aplicação será atualizada para corrigir o carregamento do PDF. Tente novamente em instantes.'
+        : 'Falha ao preparar a prévia do PDF. Você pode tentar novamente.';
+      setPdfPreview((current) => current?.url
+        ? {...current, errorMessage: message}
+        : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
       toast.error('Falha ao preparar a prévia do PDF.');
+      return false;
     } finally {
       setIsPdfExporting(false);
     }
-  }, [
-    canvasRef,
-    house3DPdfSnapshotRef,
-  ]);
+  }, [canvasRef, house3DPdfSnapshotRef]);
 
   const handleSavePDF = useCallback(async () => {
+    recordPdfExportTelemetry('checklist_started');
     try {
       await onBeforeExportPdf?.();
 
@@ -119,6 +160,7 @@ export function useRacEditorPdfExportAction({
         toast.warning(`Checklist da RAC: ${summary}`);
       }
     } catch (error) {
+      recordPdfExportTelemetry('prepare_failed', errorDetails(error));
       console.error('[useRacEditorPdfExportAction] Failed to prepare PDF checklist:', error);
       toast.error('Falha ao preparar checklist do PDF.');
     }
@@ -147,6 +189,14 @@ export function useRacEditorPdfExportAction({
     preparedConstructionSiteRef.current = null;
   }, [isPdfExporting, pdfExportChecklist?.hasBlockingItems, runPdfExport]);
 
+  const handleRetryPdfPreview = useCallback(async () => {
+    const constructionSite = lastPdfExportConstructionSiteRef.current;
+    if (!constructionSite || isPdfExporting) return;
+
+    recordPdfExportTelemetry('retry_requested');
+    await runPdfExport(constructionSite);
+  }, [isPdfExporting, runPdfExport]);
+
   useEffect(() => () => {
     if (pdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
       URL.revokeObjectURL(pdfPreview.url);
@@ -156,29 +206,34 @@ export function useRacEditorPdfExportAction({
   const handleClosePdfPreview = useCallback(() => {
     if (isPdfExporting) return;
     setPdfPreview(null);
+    lastPdfExportConstructionSiteRef.current = null;
   }, [isPdfExporting]);
 
   const handleDownloadPdfPreview = useCallback(() => {
-    if (!pdfPreview) return;
+    if (!pdfPreview?.blob) return;
 
     try {
       downloadBlob(pdfPreview.blob, pdfPreview.fileName);
+      recordPdfExportTelemetry('download_succeeded');
       toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
 
       try {
         constructionSiteManagementPort.markActiveHouseRacPrinted();
         onAfterExportPdf?.();
       } catch (error) {
+        recordPdfExportTelemetry('status_sync_failed', errorDetails(error));
         console.error('[useRacEditorPdfExportAction] PDF salvo, mas não foi possível atualizar o status da RAC:', error);
         toast.warning('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
       }
     } catch (error) {
+      recordPdfExportTelemetry('download_failed', errorDetails(error));
       console.error('[useRacEditorPdfExportAction] Failed to download PDF:', error);
       toast.error('Falha ao baixar PDF.');
       return;
     }
 
     setPdfPreview(null);
+    lastPdfExportConstructionSiteRef.current = null;
   }, [constructionSiteManagementPort, onAfterExportPdf, pdfPreview]);
 
   return {
@@ -189,8 +244,11 @@ export function useRacEditorPdfExportAction({
     isPdfPreviewOpen: Boolean(pdfPreview),
     pdfPreviewFileName: pdfPreview?.fileName ?? null,
     pdfPreviewUrl: pdfPreview?.url ?? null,
+    pdfPreviewPageCount: pdfPreview?.pageCount ?? 1,
+    pdfPreviewError: pdfPreview?.errorMessage ?? null,
     handleConfirmPdfExport,
     handleCancelPdfExport,
+    handleRetryPdfPreview,
     handleDownloadPdfPreview,
     handleClosePdfPreview,
   };

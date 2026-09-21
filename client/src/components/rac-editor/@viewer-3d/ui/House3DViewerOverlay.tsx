@@ -2,10 +2,16 @@ import {lazy, Suspense} from 'react';
 import type {RefObject} from 'react';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
+import {requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 
 const LazyHouse3DViewer = lazy(async () => {
-  const module = await import('@/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx');
-  return {default: module.House3DViewer};
+  try {
+    const module = await import('@/components/rac-editor/@viewer-3d/ui/House3DViewer.tsx');
+    return {default: module.House3DViewer};
+  } catch (error) {
+    requestChunkRecovery(error);
+    throw error;
+  }
 });
 
 interface RacEditor3DViewerOverlayProps {

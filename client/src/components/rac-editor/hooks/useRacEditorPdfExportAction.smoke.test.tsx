@@ -59,7 +59,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
   it('marca a casa ativa como RAC Impressa somente após confirmar o checklist e salvar o PDF', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf, getNumberOfPages: () => 2});
 
     const markActiveHouseRacPrinted = vi.fn();
     const onBeforeExportPdf = vi.fn().mockResolvedValue(undefined);
@@ -125,7 +125,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
   it('cancela a exportação no checklist sem alterar status da casa', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf, getNumberOfPages: () => 2});
 
     const markActiveHouseRacPrinted = vi.fn();
     const canvasRef = {
@@ -162,9 +162,41 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
   });
 
+  it('mantém a prévia aberta e exibe erro quando o retry falha', async () => {
+    pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
+    pdfMocks.createRacPdfReportDocument
+      .mockReturnValueOnce({save: pdfMocks.savePdf, output: pdfMocks.outputPdf, getNumberOfPages: () => 2})
+      .mockImplementationOnce(() => {
+        throw new Error('chunk do renderer indisponível');
+      });
+
+    const {result} = renderHook(
+      () => useRacEditorPdfExportAction({
+        canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'})}} as never,
+        house3DPdfSnapshotRef: {current: null} as never,
+        canExportPdf: () => true,
+      }),
+      {wrapper: createWrapper({
+        constructionSiteManagementPort: {
+          getConstructionSiteSnapshot: vi.fn(() => createConstructionSiteSnapshot()),
+          markActiveHouseRacPrinted: vi.fn(),
+        } as never,
+      })},
+    );
+
+    await act(async () => {
+      await result.current.handleSavePDF();
+      await result.current.handleConfirmPdfExport();
+      await result.current.handleRetryPdfPreview();
+    });
+
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(result.current.pdfPreviewError).toContain('Você pode tentar novamente');
+  });
+
   it('mantém o sucesso do PDF quando a sincronização posterior do status falha', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf, getNumberOfPages: () => 2});
 
     const onAfterExportPdf = vi.fn(() => {
       throw new Error('sincronização indisponível');

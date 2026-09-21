@@ -29,6 +29,7 @@ export interface RacPdfHouseExportResult {
   fileName: string;
   blob: Blob;
   exportedHouseId: string;
+  pageCount?: number;
 }
 
 export type RacPdfZipCanvasRenderer = (house: PersistedHouseRecord) => Promise<string>;
@@ -83,11 +84,15 @@ export async function buildRacPdfHouseExport({
     jsPDF,
   });
   const pdfData = pdf.output('arraybuffer') as ArrayBuffer;
+  const pageCount = typeof pdf.getNumberOfPages === 'function'
+    ? Math.max(1, pdf.getNumberOfPages())
+    : 1;
 
   return {
     fileName: report.fileName,
     blob: new Blob([pdfData], {type: 'application/pdf'}),
     exportedHouseId: house.id,
+    pageCount,
   };
 }
 
