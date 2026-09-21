@@ -26,6 +26,7 @@ import {
 import type {VisualSelectOption} from '@/components/construction-site/ui/lib/types.ts';
 import type {StairType} from '@/shared/types/construction-site.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion.tsx';
 
 export function HouseExtraMaterialsScreen({
   constructionSite,
@@ -67,80 +68,90 @@ export function HouseExtraMaterialsScreen({
     >
       <HouseExtraMaterialsSidebar constructionSite={constructionSite} house={house}/>
 
-      <div className='space-y-6'>
-        <div data-testid='extra-materials-grid' className='grid gap-4 md:grid-cols-2'>
-          <IntegerField
-            control={form.control}
-            name='floorBeams'
-            label='Vigas de Piso'
-            placeholder='0'
-            disabled={isReadOnly}
-          />
-          <IntegerField
-            control={form.control}
-            name='rafters'
-            label='Caibros'
-            placeholder='0'
-            disabled={isReadOnly}
-          />
-          <IntegerField
-            control={form.control}
-            name='secondaryBeams'
-            label='Vigas Secundárias'
-            placeholder='0'
-            disabled={isReadOnly}
-          />
-          <IntegerField
-            control={form.control}
-            name='gutters'
-            label='Mata-juntas'
-            placeholder='0'
-            disabled={isReadOnly}
-          />
-          <IntegerField
-            control={form.control}
-            name='gutterCount'
-            label='Calhas'
-            placeholder='0'
-            disabled={isReadOnly}
-          />
-          <Controller
-            control={form.control}
-            name='stairType'
-            render={({field, fieldState}) => (
-              <VisualSelectField
-                label='Escada'
-                ariaLabel='Escada'
-                placeholder=''
-                value={field.value}
-                options={STAIR_OPTIONS}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-                disabled={isReadOnly}
-              />
-            )}
-          />
-          <div className='md:col-span-2'>
-            <Controller
-              control={form.control}
-              name='justification'
-              render={({field, fieldState}) => (
-                <TextArea
-                  label='Outros / Justificativa'
-                  placeholder='Descreva materiais adicionais ou a justificativa para a solicitação...'
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  maxLength={HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH}
-                  error={fieldState.error?.message}
+      <div>
+        <Accordion type='multiple' defaultValue={['extra-materials']} className='space-y-2'>
+          <AccordionItem value='extra-materials' className='!border-0 bg-transparent px-0 shadow-none'>
+            <AccordionTrigger aria-label='Alternar seção Materiais Extras' className='gap-3 py-3 hover:no-underline'>
+              <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>07</span>
+              <span role='heading' aria-level={2} className='min-w-0 flex-1 text-left text-base font-semibold text-slate-950'>Materiais Extras</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div data-testid='extra-materials-grid' className='grid gap-4 md:grid-cols-2'>
+                <IntegerField
+                  control={form.control}
+                  name='floorBeams'
+                  label='Vigas de Piso'
+                  placeholder='0'
                   disabled={isReadOnly}
                 />
-              )}
-            />
-          </div>
-        </div>
+                <IntegerField
+                  control={form.control}
+                  name='rafters'
+                  label='Caibros'
+                  placeholder='0'
+                  disabled={isReadOnly}
+                />
+                <IntegerField
+                  control={form.control}
+                  name='secondaryBeams'
+                  label='Vigas Secundárias'
+                  placeholder='0'
+                  disabled={isReadOnly}
+                />
+                <IntegerField
+                  control={form.control}
+                  name='gutters'
+                  label='Mata-juntas'
+                  placeholder='0'
+                  disabled={isReadOnly}
+                />
+                <IntegerField
+                  control={form.control}
+                  name='gutterCount'
+                  label='Calhas'
+                  placeholder='0'
+                  disabled={isReadOnly}
+                />
+                <Controller
+                  control={form.control}
+                  name='stairType'
+                  render={({field, fieldState}) => (
+                    <VisualSelectField
+                      label='Escada'
+                      ariaLabel='Escada'
+                      placeholder=''
+                      value={field.value}
+                      options={STAIR_OPTIONS}
+                      onChange={field.onChange}
+                      error={fieldState.error?.message}
+                      disabled={isReadOnly}
+                    />
+                  )}
+                />
+                <div className='md:col-span-2'>
+                  <Controller
+                    control={form.control}
+                    name='justification'
+                    render={({field, fieldState}) => (
+                      <TextArea
+                        label='Outros / Justificativa'
+                        placeholder='Descreva materiais adicionais ou a justificativa para a solicitação...'
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        maxLength={HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH}
+                        error={fieldState.error?.message}
+                        disabled={isReadOnly}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
-        <div className='grid gap-4 md:grid-cols-2'>
+        <div data-testid='house-extra-materials-actions' className='mt-4 grid gap-4 md:grid-cols-2'>
           <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Materiais Extras</PrimaryButton>
         </div>
       </div>
@@ -190,6 +201,7 @@ function normalizeIntegerDraft(value: string, previousValue: string): string {
 }
 
 const STAIR_OPTIONS: VisualSelectOption<StairType | ''>[] = [
+  {value: '', label: 'Sem escada', triggerLabel: '', ariaLabel: 'Sem escada'},
   {value: 'straight', label: 'Escada Reta'},
   {value: 'landing', label: 'Escada com Patamar'},
 ];

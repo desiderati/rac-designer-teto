@@ -52,10 +52,14 @@ test.describe('Configuração da casa', () => {
   test('edita e reabre Materiais Extras preservando inteiros e justificativa', async ({page}) => {
     await openHouseExtraMaterials(page);
 
-    await expect(page.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     await expect(page.getByTestId('house-extra-materials-form')).toBeVisible();
     await expect(page.getByText('Família E2E')).toBeVisible();
     await expect(page.getByText('Liderança inicial')).toBeVisible();
+    await selectVisualOption(page, 'Escada', 'Sem escada');
+    const stairSelect = page.getByRole('button', {name: 'Escada', exact: true});
+    await expect(stairSelect).not.toContainText('Escada Reta');
+    await expect(stairSelect).not.toContainText('Escada com Patamar');
 
     await page.getByLabel('Vigas de Piso').fill('12a');
     await page.getByLabel('Caibros').fill('24');
@@ -94,7 +98,7 @@ async function openHouseExtraMaterials(page: Page) {
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})
     .getByRole('button', {name: 'Abrir materiais extras da casa Família E2E'})
     .click();
-  await expect(page.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
 }
 
 async function reopenHouseConfiguration(page: Page) {
@@ -108,7 +112,7 @@ async function reopenHouseExtraMaterials(page: Page) {
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})
     .getByRole('button', {name: 'Abrir materiais extras da casa Família E2E'})
     .click();
-  await expect(page.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
 }
 
 async function selectVisualOption(

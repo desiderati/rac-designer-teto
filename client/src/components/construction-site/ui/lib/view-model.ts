@@ -44,7 +44,7 @@ export function getScreenTitle(screen: ConstructionSiteManagementScreen, constru
     return constructionLabel ? `Casas - ${constructionLabel}` : 'Casas';
   }
   if (screen === 'house-create' || screen === 'house-detail') return 'Configuração da Casa';
-  if (screen === 'house-extra-materials') return 'Materiais Extras';
+  if (screen === 'house-extra-materials') return 'Configurações da Casa';
   return constructionLabel;
 }
 

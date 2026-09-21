@@ -33,7 +33,7 @@ test.describe('Bloqueios por status', () => {
 
     await page.getByRole('button', {name: 'Voltar'}).click();
     await builtRow.getByRole('button', {name: 'Abrir materiais extras da casa Família E2E'}).click();
-    await expect(page.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     await expect(page.getByRole('button', {name: 'Salvar Materiais Extras'})).toBeDisabled();
 
     await page.getByRole('button', {name: 'Voltar'}).click();

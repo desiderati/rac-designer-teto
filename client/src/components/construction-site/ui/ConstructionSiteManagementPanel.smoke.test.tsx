@@ -1517,10 +1517,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(within(housesTable).getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
 
     expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
-    expect(await screen.findByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
-    expect(screen.getAllByRole('heading', {name: 'Materiais Extras'})).toHaveLength(1);
+    expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
+    expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveAttribute('data-state', 'open');
     expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
-    expect(within(screen.getByTestId('house-extra-materials-form')).queryByText('01')).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();
     expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();
     expect(screen.getByText('Família Souza')).toBeVisible();
     expect(screen.getByText('Ana e Bruno')).toBeVisible();
@@ -1564,7 +1565,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
 
     await expectUnsavedChangesDialog(user);
-    expect(screen.getByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
     await confirmUnsavedChangesExit(user);
@@ -1586,7 +1587,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await user.click(within(screen.getByTestId('house-desktop-table'))
       .getByRole('button', {name: `Abrir materiais extras da casa ${longFamilyName}`}));
 
-    expect(await screen.findByRole('heading', {name: 'Materiais Extras', level: 1})).toBeVisible();
+    expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     const form = screen.getByTestId('house-extra-materials-form');
     const family = within(form).getByTestId('house-extra-materials-sidebar-family');
     const leaders = within(form).getByTestId('house-extra-materials-sidebar-leaders');
