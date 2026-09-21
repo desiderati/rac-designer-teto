@@ -23,34 +23,62 @@ const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
 
 export function RacEditor() {
   const {isAuthenticated, loading, error, logout} = useAuth();
+  const [isViewportTooNarrow, setIsViewportTooNarrow] = useState(false);
   const landingPreview = useMemo(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('landing') === 'preview';
   }, []);
 
-  if (landingPreview) return <RacEditorAuthenticationState error={null}/>;
+  useEffect(() => {
+    const updateViewportWarning = () => setIsViewportTooNarrow(window.innerWidth < 420);
+    updateViewportWarning();
+    window.addEventListener('resize', updateViewportWarning);
+    return () => window.removeEventListener('resize', updateViewportWarning);
+  }, []);
+
+  const withViewportWarning = (content: ReactNode) => (
+    <>
+      {content}
+      {isViewportTooNarrow ? <MinimumViewportWarning/> : null}
+    </>
+  );
+
+  if (landingPreview) return withViewportWarning(<RacEditorAuthenticationState error={null}/>);
   if (isLocalE2eMode) {
-    return (
+    return withViewportWarning(
       <StorageImageUploadProvider>
         <TerrainPhotoDescriptionProvider>
           <House3DImageInsertionProvider>
             <RemoteRacEditor onLogout={async () => undefined}/>
           </House3DImageInsertionProvider>
         </TerrainPhotoDescriptionProvider>
-      </StorageImageUploadProvider>
+      </StorageImageUploadProvider>,
     );
   }
-  if (loading) return <RacEditorLoadingState/>;
-  if (!isAuthenticated) return <RacEditorAuthenticationState error={error}/>;
+  if (loading) return withViewportWarning(<RacEditorLoadingState/>);
+  if (!isAuthenticated) return withViewportWarning(<RacEditorAuthenticationState error={error}/>);
 
-  return (
+  return withViewportWarning(
     <StorageImageUploadProvider>
       <TerrainPhotoDescriptionProvider>
         <House3DImageInsertionProvider>
           <RemoteRacEditor onLogout={logout}/>
         </House3DImageInsertionProvider>
       </TerrainPhotoDescriptionProvider>
-    </StorageImageUploadProvider>
+    </StorageImageUploadProvider>,
+  );
+}
+
+function MinimumViewportWarning() {
+  return (
+    <div
+      role='status'
+      aria-live='polite'
+      data-testid='minimum-viewport-warning'
+      className='pointer-events-none fixed inset-x-3 bottom-3 z-[1200] rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm'
+    >
+      Para uma experiência confortável, aumente a janela para pelo menos 420 px de largura ou gire o dispositivo.
+    </div>
   );
 }
 
@@ -272,7 +300,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
       {editorOpen && constructionSiteManagement.canOpenRacEditor ? (
         <RacEditorContent onExit={onLogout}/>
       ) : (
-        <div className='relative h-full min-h-[480px] min-w-[320px] overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
+        <div className='relative h-full min-h-[480px] min-w-[420px] overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel
             {...constructionSiteManagement}
             onBackToCanvas={openRacEditor}

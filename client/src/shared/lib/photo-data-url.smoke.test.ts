@@ -1,7 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {
   isSupportedPhotoDataUrl,
+  needsPhotoCompression,
   PHOTO_UPLOAD_ERROR_MESSAGE,
+  preparePhotoFileForUpload,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 
@@ -34,5 +36,21 @@ describe('photo-data-url.ts', () => {
       .resolves.toBeNull();
     await expect(validatePhotoFile(new File([aboveLimitPayload], 'acima.png', {type: 'image/png'})))
       .resolves.toBe(PHOTO_UPLOAD_ERROR_MESSAGE);
+    await expect(validatePhotoFile(new File([aboveLimitPayload], 'acima.png', {type: 'image/png'}), {allowCompression: true}))
+      .resolves.toBeNull();
+  });
+
+  it('identifica imagens acima de 4 MB e preserva arquivos menores sem reprocessar', async () => {
+    const smallFile = new File([new Uint8Array(4 * 1024 * 1024)], 'pequena.png', {type: 'image/png'});
+    const largeFile = new File([new Uint8Array((4 * 1024 * 1024) + 1)], 'grande.png', {type: 'image/png'});
+
+    expect(needsPhotoCompression(smallFile)).toBe(false);
+    expect(needsPhotoCompression(largeFile)).toBe(true);
+    await expect(preparePhotoFileForUpload(smallFile)).resolves.toMatchObject({
+      file: smallFile,
+      compressed: false,
+      originalBytes: smallFile.size,
+      finalBytes: smallFile.size,
+    });
   });
 });

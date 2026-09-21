@@ -174,7 +174,7 @@ export function PhotoUploadField({
   }, [value]);
 
   const updatePhoto = async (file: File) => {
-    const validationError = await validatePhotoFile(file);
+    const validationError = await validatePhotoFile(file, {allowCompression: true});
     if (validationError) {
       setUploadError(validationError);
       return;
@@ -186,7 +186,7 @@ export function PhotoUploadField({
       onChange(photoUrl);
     } catch (error) {
       console.error('[PhotoUploadField] Falha ao enviar foto:', error);
-      setUploadError('Não foi possível enviar a foto. Tente novamente.');
+      setUploadError(error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.');
     }
   };
 
@@ -290,7 +290,7 @@ export function PhotoUploadField({
       {storageImageUpload.isUploading && storageImageUpload.progress ? (
         <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
           <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
-            <span>{storageImageUpload.progress.phase === 'reading' ? 'Preparando foto…' : 'Enviando foto…'}</span>
+            <span>{storageImageUpload.progress.phase === 'compressing' ? 'Otimizando foto…' : storageImageUpload.progress.phase === 'reading' ? 'Preparando foto…' : 'Enviando foto…'}</span>
             <span>{storageImageUpload.progress.percent}%</span>
           </div>
           <Progress value={storageImageUpload.progress.percent} className='h-1.5 bg-blue-100'/>

@@ -138,6 +138,8 @@ test.describe('Landing pré-login responsiva', () => {
     await page.goto(landingPath);
     await page.waitForTimeout(750);
 
+    await expect(page.getByTestId('minimum-viewport-warning')).toContainText('pelo menos 420 px');
+
     const layout = await page.evaluate((selectors) => {
       const login = document.querySelector<HTMLElement>('.rac-login');
       const sections = selectors.map((selector) => document.querySelector<HTMLElement>(selector));

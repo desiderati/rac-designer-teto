@@ -52,7 +52,7 @@ export function ImageUploadModal({
   const processFile = async (file: File | null | undefined) => {
     if (!file || isUploading) return;
 
-    const validationMessage = await validatePhotoFile(file);
+    const validationMessage = await validatePhotoFile(file, {allowCompression: true});
     if (validationMessage) {
       setErrorMessage(validationMessage);
       if (inputRef.current) inputRef.current.value = '';
@@ -72,7 +72,7 @@ export function ImageUploadModal({
       setErrorMessage('Não foi possível inserir a imagem no canvas. Tente novamente.');
     } catch (error) {
       console.error('[ImageUploadModal] Falha ao enviar imagem:', error);
-      setErrorMessage('Não foi possível enviar a imagem ao Storage. Tente outra imagem.');
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível enviar a imagem ao Storage. Tente outra imagem.');
     } finally {
       setIsUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -148,7 +148,7 @@ export function ImageUploadModal({
       {isUploading ? (
         <div className='space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-3' aria-live='polite'>
           <div className='flex items-center justify-between gap-3 text-xs font-semibold text-blue-800'>
-            <span>{uploadProgress?.phase === 'reading' ? 'Preparando imagem…' : uploadProgress?.phase === 'complete' ? 'Imagem pronta' : 'Enviando para o Storage…'}</span>
+            <span>{uploadProgress?.phase === 'compressing' ? 'Otimizando imagem…' : uploadProgress?.phase === 'reading' ? 'Preparando imagem…' : uploadProgress?.phase === 'complete' ? 'Imagem pronta' : 'Enviando para o Storage…'}</span>
             <span>{uploadProgress?.percent ?? 0}%</span>
           </div>
           <Progress value={uploadProgress?.percent ?? 8} className='h-2 bg-blue-100' />

@@ -577,7 +577,7 @@ export const Canvas =
           ref={containerRef}
           data-testid='rac-canvas-container'
           data-guided-tour-id='rac-canvas'
-          className='relative h-full min-h-[480px] min-w-[320px] w-full overflow-hidden touch-none'
+          className='relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden touch-none'
           style={{
             ...CANVAS_WORKSPACE_STYLE,
             cursor: canvasCursor,

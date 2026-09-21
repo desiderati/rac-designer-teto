@@ -74,4 +74,16 @@ describe('RacEditor authentication landing', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Carregando o Canvas...');
   });
+
+  it('shows a friendly warning below the minimum viewport width', () => {
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', {configurable: true, value: 390});
+
+    try {
+      render(<RacEditor/>);
+      expect(screen.getByTestId('minimum-viewport-warning')).toHaveTextContent('pelo menos 420 px');
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalWidth});
+    }
+  });
 });

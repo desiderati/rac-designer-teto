@@ -2,13 +2,24 @@ const ALLOWED_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as co
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
 const MANUS_STORAGE_URL_PATTERN = /^\/manus-storage\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
 export const MAX_PHOTO_UPLOAD_BYTES = 7.5 * 1024 * 1024;
+export const PHOTO_COMPRESSION_THRESHOLD_BYTES = 4 * 1024 * 1024;
 const MAX_PHOTO_DATA_URL_LENGTH = Math.ceil(MAX_PHOTO_UPLOAD_BYTES * 4 / 3) + 64;
+const MAX_COMPRESSION_DIMENSION = 3200;
 
 type AllowedPhotoMimeType = typeof ALLOWED_PHOTO_MIME_TYPES[number];
 
 export const PHOTO_UPLOAD_ACCEPT = ALLOWED_PHOTO_MIME_TYPES.join(',');
 export const PHOTO_UPLOAD_LIMIT_LABEL = '7,5 MB';
 export const PHOTO_UPLOAD_ERROR_MESSAGE = `Use PNG, JPG ou WEBP com até ${PHOTO_UPLOAD_LIMIT_LABEL}.`;
+export const PHOTO_COMPRESSION_ERROR_MESSAGE = 'Não foi possível otimizar esta imagem no navegador. Tente uma imagem menor ou outro arquivo.';
+
+export interface PreparedPhotoFile {
+  file: File;
+  compressed: boolean;
+  originalBytes: number;
+  finalBytes: number;
+  warning?: string;
+}
 
 export function isSupportedPhotoDataUrl(value: unknown): value is string {
   if (typeof value !== 'string') return false;
@@ -36,13 +47,128 @@ export function isManusStoragePhotoUrl(value: unknown): value is string {
   return typeof value === 'string' && MANUS_STORAGE_URL_PATTERN.test(value.trim());
 }
 
-export async function validatePhotoFile(file: File): Promise<string | null> {
-  if (file.size > MAX_PHOTO_UPLOAD_BYTES) return PHOTO_UPLOAD_ERROR_MESSAGE;
+export async function validatePhotoFile(
+  file: File,
+  options: {allowCompression?: boolean} = {},
+): Promise<string | null> {
+  if (file.size > MAX_PHOTO_UPLOAD_BYTES && !options.allowCompression) return PHOTO_UPLOAD_ERROR_MESSAGE;
   const mimeType = file.type.toLowerCase();
   if (!isAllowedPhotoMimeType(mimeType)) return PHOTO_UPLOAD_ERROR_MESSAGE;
 
   const header = await readBlobHeader(file);
   return hasImageSignature(mimeType, header) ? null : PHOTO_UPLOAD_ERROR_MESSAGE;
+}
+
+export function needsPhotoCompression(file: File): boolean {
+  return file.size > PHOTO_COMPRESSION_THRESHOLD_BYTES;
+}
+
+export async function preparePhotoFileForUpload(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<PreparedPhotoFile> {
+  if (!needsPhotoCompression(file)) {
+    return {
+      file,
+      compressed: false,
+      originalBytes: file.size,
+      finalBytes: file.size,
+    };
+  }
+
+  onProgress?.(8);
+  try {
+    const compressedFile = await compressPhotoFile(file, onProgress);
+    if (compressedFile.size >= file.size) {
+      if (file.size > MAX_PHOTO_UPLOAD_BYTES) {
+        throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+      }
+      return {
+        file,
+        compressed: false,
+        originalBytes: file.size,
+        finalBytes: file.size,
+        warning: 'Não foi possível reduzir o arquivo; a imagem original será enviada.',
+      };
+    }
+
+    return {
+      file: compressedFile,
+      compressed: true,
+      originalBytes: file.size,
+      finalBytes: compressedFile.size,
+    };
+  } catch (error) {
+    if (file.size <= MAX_PHOTO_UPLOAD_BYTES) {
+      return {
+        file,
+        compressed: false,
+        originalBytes: file.size,
+        finalBytes: file.size,
+        warning: 'Não foi possível otimizar a imagem; a imagem original será enviada.',
+      };
+    }
+    throw error instanceof Error ? error : new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+  }
+}
+
+async function compressPhotoFile(file: File, onProgress?: (percent: number) => void): Promise<File> {
+  if (typeof document === 'undefined' || typeof Image === 'undefined' || typeof URL?.createObjectURL !== 'function') {
+    throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await loadImage(objectUrl);
+    const width = image.naturalWidth || image.width;
+    const height = image.naturalHeight || image.height;
+    if (!width || !height) throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+
+    const scale = Math.min(1, MAX_COMPRESSION_DIMENSION / Math.max(width, height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    onProgress?.(35);
+
+    const outputType = file.type === 'image/jpeg' ? 'image/jpeg' : 'image/webp';
+    const qualities = [0.86, 0.74, 0.62, 0.5];
+    let smallestBlob: Blob | null = null;
+
+    for (const [index, quality] of qualities.entries()) {
+      const blob = await canvasToBlob(canvas, outputType, quality);
+      if (!blob) continue;
+      if (!smallestBlob || blob.size < smallestBlob.size) smallestBlob = blob;
+      onProgress?.(40 + Math.round(((index + 1) / qualities.length) * 45));
+      if (blob.size <= PHOTO_COMPRESSION_THRESHOLD_BYTES) break;
+    }
+
+    if (!smallestBlob) throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
+    const extension = outputType === 'image/jpeg' ? 'jpg' : 'webp';
+    const baseName = file.name.replace(/\.[^.]+$/, '') || 'imagem';
+    return new File([smallestBlob], `${baseName}.${extension}`, {
+      type: outputType,
+      lastModified: file.lastModified,
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function loadImage(objectUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(PHOTO_COMPRESSION_ERROR_MESSAGE));
+    image.src = objectUrl;
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }
 
 function isAllowedPhotoMimeType(value: string): value is AllowedPhotoMimeType {

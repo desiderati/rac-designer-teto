@@ -5,6 +5,8 @@ import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
 import {
   PHOTO_UPLOAD_ACCEPT,
+  needsPhotoCompression,
+  preparePhotoFileForUpload,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
@@ -42,8 +44,10 @@ export function TerrainPhotosField({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
   const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
+  const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
+  const isBusy = storageUpload.isUploading || isPreparingPhoto;
 
   useEffect(() => {
     valueRef.current = value;
@@ -57,27 +61,31 @@ export function TerrainPhotosField({
   };
 
   const openPicker = (photoId?: string) => {
-    if (disabled || storageUpload.isUploading) return;
+    if (disabled || isBusy) return;
     if (!photoId && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
     setReplacePhotoId(photoId ?? null);
     inputRef.current?.click();
   };
 
   const handleFile = async (file: File, photoIdToReplace: string | null) => {
-    if (disabled || storageUpload.isUploading) return;
+    if (disabled || isBusy) return;
     if (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
 
-    const validationError = await validatePhotoFile(file);
+    const validationError = await validatePhotoFile(file, {allowCompression: true});
     if (validationError) {
       toast.error(validationError);
       return;
     }
 
     const uploadToastId = `terrain-upload-${Date.now()}`;
-    toast.loading('Enviando foto do terreno…', {id: uploadToastId});
+    toast.loading('Preparando foto do terreno…', {id: uploadToastId});
+    setIsPreparingPhoto(true);
     try {
-      const payload = await toStorageImageUploadPayload(file);
-      const url = await storageUpload.uploadImage(file, constructionSiteId);
+      if (needsPhotoCompression(file)) toast.loading('Otimizando foto do terreno…', {id: uploadToastId});
+      const prepared = await preparePhotoFileForUpload(file);
+      if (prepared.warning) toast.warning(prepared.warning, {id: uploadToastId, duration: 4800});
+      const payload = await toStorageImageUploadPayload(prepared.file);
+      const url = await storageUpload.uploadImage(prepared.file, constructionSiteId);
       const id = photoIdToReplace ?? `terrain-photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const nextIndex = photoIdToReplace
         ? Math.max(0, valueRef.current.findIndex((photo) => photo.id === photoIdToReplace))
@@ -94,9 +102,10 @@ export function TerrainPhotosField({
       void generateDescription(id, payload);
     } catch (error) {
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);
-      toast.error('Não foi possível enviar a foto. Tente novamente.', {id: uploadToastId});
+      toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.', {id: uploadToastId});
     } finally {
       setReplacePhotoId(null);
+      setIsPreparingPhoto(false);
     }
   };
 
@@ -173,7 +182,7 @@ export function TerrainPhotosField({
               <button
                 type='button'
                 onClick={() => openPicker()}
-                disabled={disabled || storageUpload.isUploading}
+                disabled={disabled || isBusy}
                 className='absolute inset-0 grid cursor-pointer place-items-center text-slate-400 transition-colors hover:bg-slate-200/70 disabled:cursor-not-allowed disabled:opacity-60'
                 aria-label='Adicionar foto do terreno'
               >
@@ -190,7 +199,7 @@ export function TerrainPhotosField({
               photo={photo}
               index={index}
               selected={index === selectedIndex}
-              disabled={disabled}
+              disabled={disabled || isBusy}
               dragging={photo?.id === draggingId}
               onSelect={() => setSelectedIndex(index)}
               onRemove={() => photo && requestRemovePhoto(photo.id)}
@@ -207,7 +216,7 @@ export function TerrainPhotosField({
                 setDraggingId(null);
               }}
               onAdd={() => openPicker()}
-              isUploading={storageUpload.isUploading}
+              isUploading={isBusy}
             />
           ))}
         </div>
@@ -233,7 +242,7 @@ export function TerrainPhotosField({
         className='sr-only'
         aria-label='Arquivo de foto do terreno'
         onChange={handleFileChange}
-        disabled={disabled || storageUpload.isUploading}
+        disabled={disabled || isBusy}
       />
 
       <AlertDialog
