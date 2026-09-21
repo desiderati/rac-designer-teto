@@ -1016,15 +1016,19 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(screen.getByTestId('monitor-form')).getByText('CC2603')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Comunidade')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Tiradentes')).toBeVisible();
-    expect(screen.queryByRole('heading', {name: 'Dados do Monitor'})).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: 'Dados do Monitor'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Alternar seção Dados do Monitor'})).toBeVisible();
     expect(screen.getByTestId('monitor-form')).toHaveClass('items-stretch');
     expect(screen.getByTestId('monitor-form-layout')).toHaveClass('h-full', 'items-stretch');
     expect(screen.getByTestId('monitor-fields-column'))
       .toHaveClass('h-full', 'flex', 'flex-col');
     expect(screen.getByTestId('monitor-fields-stack')).toHaveClass('flex', 'flex-col', 'gap-5');
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
-    expect(within(screen.getByTestId('monitor-fields-column')).getByRole('button', {name: 'Cadastrar Monitor'}))
-      .toHaveClass('mt-4', 'w-full', 'md:mt-auto');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]');
+    expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
+      .toHaveClass('w-full', 'md:col-start-2');
+    expect(within(screen.getByTestId('monitor-fields-column')).queryByRole('button', {name: 'Cadastrar Monitor'}))
+      .not.toBeInTheDocument();
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
       .toHaveClass('flex-1', 'min-h-[16rem]');
 

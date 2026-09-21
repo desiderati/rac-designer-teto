@@ -30,7 +30,7 @@ test.describe('Gerenciamento de monitores', () => {
     await expect(page.getByText('No. Monitores')).toHaveCount(0);
   });
 
-  test('alinha foto e salvar monitor ao rodapé do resumo da construção', async ({page}) => {
+  test('organiza os dados do monitor em acordeão e mantém o salvar fora dele', async ({page}) => {
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
     await page.getByRole('row', {name: /CC2603.*Andamento/i})
@@ -39,22 +39,13 @@ test.describe('Gerenciamento de monitores', () => {
     await page.getByRole('button', {name: '+ Adicionar Monitor'}).click();
 
     await expect(page.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
+    await expect(page.getByText('Dados do Monitor', {exact: true})).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Alternar seção Dados do Monitor'})).toHaveAttribute('data-state', 'open');
+    await expect(page.getByTestId('monitor-photo-field')).toBeVisible();
+    await expect(page.getByLabel('Nome do Monitor')).toBeVisible();
 
-    const constructionSummaryBox = await page.getByTestId('monitor-form').locator('aside').boundingBox();
-    const photoBox = await page.getByTestId('monitor-photo-field')
-      .getByRole('button', {name: 'Foto do Monitor', exact: true})
-      .boundingBox();
-    const saveButtonBox = await page.getByRole('button', {name: 'Cadastrar Monitor'}).boundingBox();
-
-    expect(constructionSummaryBox).not.toBeNull();
-    expect(photoBox).not.toBeNull();
-    expect(saveButtonBox).not.toBeNull();
-
-    const constructionSummaryBottom = constructionSummaryBox!.y + constructionSummaryBox!.height;
-    const photoBottom = photoBox!.y + photoBox!.height;
-    const saveButtonBottom = saveButtonBox!.y + saveButtonBox!.height;
-
-    expect(Math.abs(photoBottom - constructionSummaryBottom)).toBeLessThanOrEqual(1);
-    expect(Math.abs(saveButtonBottom - constructionSummaryBottom)).toBeLessThanOrEqual(1);
+    const actionsGrid = page.getByTestId('monitor-actions-grid');
+    await expect(actionsGrid.getByRole('button', {name: 'Cadastrar Monitor'})).toBeVisible();
+    expect(await actionsGrid.evaluate((element) => Boolean(element.closest('[data-radix-accordion-item]')))).toBe(false);
   });
 });
