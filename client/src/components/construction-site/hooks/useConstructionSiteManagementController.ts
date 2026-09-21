@@ -21,6 +21,7 @@ import {
   buildRacPdfExportChecklist,
   formatRacPdfExportChecklistSummary,
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
+import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -117,7 +118,17 @@ export function useConstructionSiteManagementController({
     });
   }, [constructionSiteManagementPort, runDocumentMutation]);
 
-  const exportHouseRacPdf = useCallback(async (constructionSiteId: string, houseId: string) => {
+  const markHouseRacPrinted = useCallback(async (houseId: string) => {
+    await runDocumentMutation(() => {
+      constructionSiteManagementPort.markHouseRacPrinted(houseId);
+    });
+  }, [constructionSiteManagementPort, runDocumentMutation]);
+
+  const exportHouseRacPdf = useCallback(async (
+    constructionSiteId: string,
+    houseId: string,
+    onPrepared?: (result: RacPdfHouseExportResult) => void | Promise<void>,
+  ) => {
     try {
       await flushActiveHouseDocumentSave({force: true});
 
@@ -169,6 +180,11 @@ export function useConstructionSiteManagementController({
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
       });
+
+      if (onPrepared) {
+        await onPrepared(result);
+        return;
+      }
 
       downloadBlob(result.blob, result.fileName);
       constructionSiteManagementPort.markHouseRacPrinted(result.exportedHouseId);
@@ -321,6 +337,7 @@ export function useConstructionSiteManagementController({
       deleteArchivedHouse,
       exportHouseRacPdf,
       exportConstructionRacsZip,
+      markHouseRacPrinted,
       markHouseBuilt,
       markHouseDraft,
       activateHouse,

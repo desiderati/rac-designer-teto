@@ -56,6 +56,9 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
+    await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
+    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await page.getByRole('button', {name: 'Baixar PDF'}).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');
@@ -74,6 +77,9 @@ test.describe('Exportação PDF do RAC', () => {
       const document = await readConstructionSiteDocument(page);
       return document?.constructionSites[0]?.houses[0]?.status ?? null;
     }).toBe('rac_printed');
+    const exportedDocument = await readConstructionSiteDocument(page);
+    expect(exportedDocument?.constructionSites[0]?.houses[0]?.lastRacExportedAt)
+      .toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
@@ -104,6 +110,8 @@ test.describe('Exportação PDF do RAC', () => {
     await exportButton.click();
     await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
+    await expect(page.getByText('Prévia da RAC em PDF')).toBeVisible();
+    await page.getByRole('button', {name: 'Baixar PDF'}).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');

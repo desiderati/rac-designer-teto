@@ -2,6 +2,7 @@ import {SettingsModal} from '@/components/rac-editor/@modals/ui/SettingsModal.ts
 import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
 import {ImageUploadModal} from '@/components/rac-editor/@modals/ui/ImageUploadModal.tsx';
 import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
+import {RacPdfPreviewModal} from '@/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx';
 import type {RacPdfExportChecklist} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 
 interface RacEditorOverlaysProps {
@@ -20,6 +21,11 @@ interface RacEditorOverlaysProps {
   isPdfExporting: boolean;
   onConfirmPdfExport: () => void;
   onCancelPdfExport: () => void;
+  isPdfPreviewOpen: boolean;
+  pdfPreviewFileName: string | null;
+  pdfPreviewUrl: string | null;
+  onDownloadPdfPreview: () => void;
+  onClosePdfPreview: () => void;
 }
 
 export function RacEditorModals({
@@ -38,6 +44,11 @@ export function RacEditorModals({
   isPdfExporting,
   onConfirmPdfExport,
   onCancelPdfExport,
+  isPdfPreviewOpen,
+  pdfPreviewFileName,
+  pdfPreviewUrl,
+  onDownloadPdfPreview,
+  onClosePdfPreview,
 }: RacEditorOverlaysProps) {
   return (
     <>
@@ -70,6 +81,15 @@ export function RacEditorModals({
         isExporting={isPdfExporting}
         onConfirm={onConfirmPdfExport}
         onCancel={onCancelPdfExport}
+      />
+
+      <RacPdfPreviewModal
+        isMobile={isMobile}
+        isOpen={isPdfPreviewOpen}
+        fileName={pdfPreviewFileName}
+        pdfUrl={pdfPreviewUrl}
+        onDownload={onDownloadPdfPreview}
+        onClose={onClosePdfPreview}
       />
     </>
   );

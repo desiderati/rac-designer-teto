@@ -103,6 +103,12 @@ export function normalizeOptionalText(value: unknown): string | undefined {
   return trimmed || undefined;
 }
 
+export function normalizeOptionalIsoTimestamp(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  const timestamp = new Date(value);
+  return Number.isNaN(timestamp.getTime()) ? undefined : timestamp.toISOString();
+}
+
 export function normalizeHouseSize(value: unknown): HouseSize | undefined {
   if (value === 'large' || value === 'small') return value;
   if (typeof value !== 'string') return undefined;

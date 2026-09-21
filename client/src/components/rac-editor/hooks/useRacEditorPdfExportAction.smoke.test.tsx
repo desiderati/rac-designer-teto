@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react';
 import type {ReactNode} from 'react';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {
   EditorPortsContext,
   type EditorPorts,
@@ -12,6 +12,8 @@ const pdfMocks = vi.hoisted(() => ({
   buildRacPdfReportModel: vi.fn(),
   createRacPdfReportDocument: vi.fn(),
   savePdf: vi.fn(),
+  outputPdf: vi.fn(),
+  downloadBlob: vi.fn(),
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
   toastWarning: vi.fn(),
@@ -23,6 +25,10 @@ vi.mock('@/components/rac-editor/lib/rac-pdf-report-model.ts', () => ({
 
 vi.mock('@/components/rac-editor/lib/rac-pdf-report-renderer.ts', () => ({
   createRacPdfReportDocument: pdfMocks.createRacPdfReportDocument,
+}));
+
+vi.mock('@/components/rac-editor/lib/rac-pdf-zip-export.ts', () => ({
+  downloadBlob: pdfMocks.downloadBlob,
 }));
 
 vi.mock('jspdf', () => ({
@@ -38,13 +44,22 @@ vi.mock('sonner', () => ({
 }));
 
 describe('useRacEditorPdfExportAction.ts', () => {
+  beforeEach(() => {
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => 'blob:rac-preview'),
+      revokeObjectURL: vi.fn(),
+    });
+    pdfMocks.outputPdf.mockReturnValue(new Blob(['%PDF'], {type: 'application/pdf'}));
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('marca a casa ativa como RAC Impressa somente após confirmar o checklist e salvar o PDF', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
 
     const markActiveHouseRacPrinted = vi.fn();
     const onBeforeExportPdf = vi.fn().mockResolvedValue(undefined);
@@ -91,7 +106,15 @@ describe('useRacEditorPdfExportAction.ts', () => {
     });
 
     expect(onBeforeExportPdf).toHaveBeenCalledTimes(1);
-    expect(pdfMocks.savePdf).toHaveBeenCalledWith('rac.pdf');
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(pdfMocks.downloadBlob).not.toHaveBeenCalled();
+    expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
+
+    await act(async () => {
+      result.current.handleDownloadPdfPreview();
+    });
+
+    expect(pdfMocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'rac.pdf');
     expect(markActiveHouseRacPrinted).toHaveBeenCalledTimes(1);
     expect(onAfterExportPdf).toHaveBeenCalledTimes(1);
     expect(pdfMocks.toastSuccess).toHaveBeenCalledTimes(1);
@@ -102,7 +125,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
   it('cancela a exportação no checklist sem alterar status da casa', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
 
     const markActiveHouseRacPrinted = vi.fn();
     const canvasRef = {
@@ -141,7 +164,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
   it('mantém o sucesso do PDF quando a sincronização posterior do status falha', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
-    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf, output: pdfMocks.outputPdf});
 
     const onAfterExportPdf = vi.fn(() => {
       throw new Error('sincronização indisponível');
@@ -170,7 +193,11 @@ describe('useRacEditorPdfExportAction.ts', () => {
       await result.current.handleConfirmPdfExport();
     });
 
-    expect(pdfMocks.savePdf).toHaveBeenCalledWith('rac.pdf');
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    await act(async () => {
+      result.current.handleDownloadPdfPreview();
+    });
+    expect(pdfMocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'rac.pdf');
     expect(pdfMocks.toastSuccess).toHaveBeenCalledWith(expect.any(String));
     expect(pdfMocks.toastWarning).toHaveBeenCalledWith('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
   });

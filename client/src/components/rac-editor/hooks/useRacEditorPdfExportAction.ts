@@ -1,9 +1,10 @@
-import {RefObject, useCallback, useRef, useState} from 'react';
+import {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import {buildRacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
 import {createRacPdfReportDocument} from '@/components/rac-editor/lib/rac-pdf-report-renderer.ts';
+import {downloadBlob} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
@@ -22,6 +23,12 @@ interface UseRacEditorPdfExportActionArgs {
   onAfterExportPdf?: () => void;
 }
 
+interface RacPdfPreviewArtifact {
+  fileName: string;
+  blob: Blob;
+  url: string;
+}
+
 export function useRacEditorPdfExportAction({
   canvasRef,
   house3DPdfSnapshotRef,
@@ -33,6 +40,7 @@ export function useRacEditorPdfExportAction({
   const [pdfExportChecklist, setPdfExportChecklist] = useState<RacPdfExportChecklist | null>(null);
   const [isPdfExportChecklistOpen, setIsPdfExportChecklistOpen] = useState(false);
   const [isPdfExporting, setIsPdfExporting] = useState(false);
+  const [pdfPreview, setPdfPreview] = useState<RacPdfPreviewArtifact | null>(null);
   const preparedConstructionSiteRef = useRef<ConstructionSiteState | null>(null);
 
   const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState) => {
@@ -65,28 +73,19 @@ export function useRacEditorPdfExportAction({
         report,
         jsPDF,
       });
-      pdf.save(report.fileName);
-      toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
-
-      try {
-        constructionSiteManagementPort.markActiveHouseRacPrinted();
-        onAfterExportPdf?.();
-      } catch (error) {
-        console.error('[useRacEditorPdfExportAction] PDF salvo, mas não foi possível atualizar o status da RAC:', error);
-        toast.warning('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
-      }
+      const blob = pdf.output('blob') as Blob;
+      const url = URL.createObjectURL(blob);
+      setPdfPreview({fileName: report.fileName, blob, url});
 
     } catch (error) {
-      console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);
-      toast.error('Falha ao salvar PDF.');
+      console.error('[useRacEditorPdfExportAction] Failed to prepare PDF preview:', error);
+      toast.error('Falha ao preparar a prévia do PDF.');
     } finally {
       setIsPdfExporting(false);
     }
   }, [
     canvasRef,
-    constructionSiteManagementPort,
     house3DPdfSnapshotRef,
-    onAfterExportPdf,
   ]);
 
   const handleSavePDF = useCallback(async () => {
@@ -148,12 +147,51 @@ export function useRacEditorPdfExportAction({
     preparedConstructionSiteRef.current = null;
   }, [isPdfExporting, pdfExportChecklist?.hasBlockingItems, runPdfExport]);
 
+  useEffect(() => () => {
+    if (pdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
+      URL.revokeObjectURL(pdfPreview.url);
+    }
+  }, [pdfPreview?.url]);
+
+  const handleClosePdfPreview = useCallback(() => {
+    if (isPdfExporting) return;
+    setPdfPreview(null);
+  }, [isPdfExporting]);
+
+  const handleDownloadPdfPreview = useCallback(() => {
+    if (!pdfPreview) return;
+
+    try {
+      downloadBlob(pdfPreview.blob, pdfPreview.fileName);
+      toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
+
+      try {
+        constructionSiteManagementPort.markActiveHouseRacPrinted();
+        onAfterExportPdf?.();
+      } catch (error) {
+        console.error('[useRacEditorPdfExportAction] PDF salvo, mas não foi possível atualizar o status da RAC:', error);
+        toast.warning('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
+      }
+    } catch (error) {
+      console.error('[useRacEditorPdfExportAction] Failed to download PDF:', error);
+      toast.error('Falha ao baixar PDF.');
+      return;
+    }
+
+    setPdfPreview(null);
+  }, [constructionSiteManagementPort, onAfterExportPdf, pdfPreview]);
+
   return {
     handleSavePDF,
     pdfExportChecklist,
     isPdfExportChecklistOpen,
     isPdfExporting,
+    isPdfPreviewOpen: Boolean(pdfPreview),
+    pdfPreviewFileName: pdfPreview?.fileName ?? null,
+    pdfPreviewUrl: pdfPreview?.url ?? null,
     handleConfirmPdfExport,
     handleCancelPdfExport,
+    handleDownloadPdfPreview,
+    handleClosePdfPreview,
   };
 }

@@ -46,6 +46,7 @@ import {
   normalizeMonitorEmail,
   normalizeMonitorPhotoDataUrl,
   normalizeNumberArray,
+  normalizeOptionalIsoTimestamp,
   normalizeOptionalText,
   normalizePersistedMonitorEmail,
   normalizePersistedMonitorPhone,
@@ -390,6 +391,7 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
         pilotiLayout: normalizePilotiLayout(house.pilotiLayout),
         drawingDocument: normalizePersistedDrawingDocument(house.drawingDocument, houseId),
         notes: normalizeOptionalText(house.notes) ?? normalizeOptionalText(family?.notes),
+        lastRacExportedAt: normalizeOptionalIsoTimestamp(house.lastRacExportedAt),
         version: Number.isFinite(house.version) ? house.version : 1,
         createdAt: house.createdAt || now,
         updatedAt: house.updatedAt || now,
@@ -819,14 +821,14 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   markActiveHouseRacPrinted(): void {
     const house = this.getActiveHouseOrNull();
     if (!house || house.status === 'built' || house.status === 'archived') return;
-    this.updateHouseStatus(house.id, 'rac_printed');
+    this.markHouseRacPrinted(house.id);
   }
 
   markHouseRacPrinted(houseId: string): void {
     const houseConstructionSite = this.findHouseConstructionSite(houseId);
     const house = houseConstructionSite?.house;
     if (!house || house.status === 'built' || house.status === 'archived') return;
-    this.updateHouseStatus(houseId, 'rac_printed');
+    this.updateHouseStatus(houseId, 'rac_printed', new Date().toISOString());
   }
 
   markHouseBuilt(houseId: string): void {
@@ -1180,17 +1182,22 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     this.persist();
   }
 
-  private updateHouseStatus(houseId: string, status: PersistedHouseRecord['status']): void {
+  private updateHouseStatus(
+    houseId: string,
+    status: PersistedHouseRecord['status'],
+    lastRacExportedAt?: string,
+  ): void {
     const houseConstructionSite = this.findHouseConstructionSite(houseId);
     if (!houseConstructionSite) return;
 
     const {constructionSite, house} = houseConstructionSite;
     if (this.isConstructionSiteReadOnly(constructionSite)) return;
-    if (house.status === 'archived' || house.status === status) return;
+    if (house.status === 'archived' || (house.status === status && !lastRacExportedAt)) return;
 
     const now = new Date().toISOString();
     house.status = status;
     house.updatedAt = now;
+    if (lastRacExportedAt) house.lastRacExportedAt = lastRacExportedAt;
     house.version += 1;
     constructionSite.constructionSite.updatedAt = now;
 

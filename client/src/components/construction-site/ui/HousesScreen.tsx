@@ -19,6 +19,7 @@ import type {HouseSortKey, HouseStatusFilter, StatusChangeAction} from '@/compon
 import {
   compareHouses,
   formatHouseType,
+  formatOptionalTimestampDate,
   formatPaginationText,
   formatTimestampDate,
   getAvatarPalette,
@@ -155,7 +156,7 @@ export function HousesScreen({
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Dificuldade</th>
             <th scope='col' className='px-3 pb-1 text-center align-middle leading-4'>
-              Última Modificação
+              Histórico
             </th>
             <th scope='col' className='w-[11.5rem] px-3 pb-1 text-center'>
               <span className='sr-only'>Ações</span>
@@ -322,6 +323,23 @@ export function HouseMobileCard({
             </span>
             <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
             <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
+            <span className='mt-2 block border-t border-slate-100 pt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
+              Última RAC exportada
+            </span>
+            {formatOptionalTimestampDate(house.lastRacExportedAt) ? (
+              <span data-testid='house-mobile-last-rac-exported-at' className='block'>
+                <time dateTime={house.lastRacExportedAt} className='mt-0.5 block'>
+                  {formatOptionalTimestampDate(house.lastRacExportedAt)?.date}
+                </time>
+                <span className='block text-[11px] text-slate-400'>
+                  {formatOptionalTimestampDate(house.lastRacExportedAt)?.time}
+                </span>
+              </span>
+            ) : (
+              <span data-testid='house-mobile-last-rac-exported-at' className='mt-0.5 block text-[11px] text-slate-400'>
+                Ainda não exportada
+              </span>
+            )}
           </div>
           <span
             data-guided-tour-id={showGuidedTourTargets ? 'rac-house-difficulty' : undefined}
@@ -503,6 +521,23 @@ export function HouseTableRow({
         <span data-testid='house-table-updated-at' className='block text-center'>
           <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
           <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
+        </span>
+        <span data-testid='house-table-last-rac-exported-at' className='mt-2 block border-t border-slate-100 pt-2 text-center'>
+          <span className='block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
+            Última RAC exportada
+          </span>
+          {formatOptionalTimestampDate(house.lastRacExportedAt) ? (
+            <>
+              <time dateTime={house.lastRacExportedAt} className='mt-0.5 block'>
+                {formatOptionalTimestampDate(house.lastRacExportedAt)?.date}
+              </time>
+              <span className='block text-[11px] text-slate-400'>
+                {formatOptionalTimestampDate(house.lastRacExportedAt)?.time}
+              </span>
+            </>
+          ) : (
+            <span className='mt-0.5 block text-[11px] text-slate-400'>Ainda não exportada</span>
+          )}
         </span>
       </td>
       <td className='w-[11.5rem] rounded-r-lg px-3 py-3 align-middle'>

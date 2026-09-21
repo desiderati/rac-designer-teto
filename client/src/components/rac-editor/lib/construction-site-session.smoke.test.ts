@@ -861,7 +861,7 @@ describe('constructionSite-session.ts', () => {
   });
 
   it('marca RAC Impressa por casa preservando construída e arquivada', () => {
-    const {storage} = createStorage();
+    const {storage, writes} = createStorage();
     const session = createConstructionSiteSession(storage);
     session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
     const draftHouse = session.createHouse({familyName: 'Família Rascunho'});
@@ -875,9 +875,15 @@ describe('constructionSite-session.ts', () => {
     session.markHouseRacPrinted(archivedHouse.id);
 
     const houses = session.getConstructionSite()?.houses ?? [];
-    expect(houses.find((house) => house.id === draftHouse.id)?.status).toBe('rac_printed');
+    const printedHouse = houses.find((house) => house.id === draftHouse.id);
+    expect(printedHouse?.status).toBe('rac_printed');
+    expect(printedHouse?.lastRacExportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(houses.find((house) => house.id === builtHouse.id)?.status).toBe('built');
     expect(houses.find((house) => house.id === archivedHouse.id)?.status).toBe('archived');
+
+    const persistedPrintedHouse = writes.at(-1)?.flatMap((state) => state.houses)
+      .find((house) => house.id === draftHouse.id);
+    expect(persistedPrintedHouse?.lastRacExportedAt).toBe(printedHouse?.lastRacExportedAt);
   });
 
   it('bloqueia mutações editoriais de casa construída e permite retornar para rascunho', () => {

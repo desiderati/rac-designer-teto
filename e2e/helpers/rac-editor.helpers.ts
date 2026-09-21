@@ -67,26 +67,29 @@ export function expectNoConsoleErrors(page: Page): void {
 
 export async function applyRacEditorInitScript(page: Page) {
   await page.addInitScript(() => {
-    localStorage.setItem('guided-tour:rac-editor-intro:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-top-view:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-top-view:completed:revision', 'piloti-target');
-    localStorage.setItem('guided-tour:rac-house-elevation-view:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-add:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-add:completed:revision', 'construction-add-v1');
-    localStorage.setItem('guided-tour:rac-construction-actions:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-actions:completed:revision', 'construction-actions-v2');
-    localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed', 'true');
-    localStorage.setItem('guided-tour:rac-construction-back-to-canvas:completed:revision', 'construction-back-to-canvas-v1');
-    localStorage.setItem('guided-tour:rac-house-add:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-add:completed:revision', 'house-add-v1');
-    localStorage.setItem('guided-tour:rac-house-actions:completed', 'true');
-    localStorage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v2');
-    localStorage.setItem('guided-tour:rac-tip:wall', 'true');
-    localStorage.setItem('guided-tour:rac-tip:line', 'true');
-    localStorage.setItem('guided-tour:rac-tip:arrow', 'true');
-    localStorage.setItem('guided-tour:rac-tip:distance', 'true');
-    localStorage.setItem('guided-tour:rac-tip:piloti-nivel-mode', 'true');
-    localStorage.setItem('rac-settings', JSON.stringify({
+    const storage = window.localStorage;
+    if (!storage) return;
+    try {
+      storage.setItem('guided-tour:rac-editor-intro:completed', 'true');
+      storage.setItem('guided-tour:rac-house-top-view:completed', 'true');
+      storage.setItem('guided-tour:rac-house-top-view:completed:revision', 'piloti-target');
+      storage.setItem('guided-tour:rac-house-elevation-view:completed', 'true');
+      storage.setItem('guided-tour:rac-construction-add:completed', 'true');
+      storage.setItem('guided-tour:rac-construction-add:completed:revision', 'construction-add-v1');
+      storage.setItem('guided-tour:rac-construction-actions:completed', 'true');
+      storage.setItem('guided-tour:rac-construction-actions:completed:revision', 'construction-actions-v2');
+      storage.setItem('guided-tour:rac-construction-back-to-canvas:completed', 'true');
+      storage.setItem('guided-tour:rac-construction-back-to-canvas:completed:revision', 'construction-back-to-canvas-v1');
+      storage.setItem('guided-tour:rac-house-add:completed', 'true');
+      storage.setItem('guided-tour:rac-house-add:completed:revision', 'house-add-v1');
+      storage.setItem('guided-tour:rac-house-actions:completed', 'true');
+      storage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v2');
+      storage.setItem('guided-tour:rac-tip:wall', 'true');
+      storage.setItem('guided-tour:rac-tip:line', 'true');
+      storage.setItem('guided-tour:rac-tip:arrow', 'true');
+      storage.setItem('guided-tour:rac-tip:distance', 'true');
+      storage.setItem('guided-tour:rac-tip:piloti-nivel-mode', 'true');
+      storage.setItem('rac-settings', JSON.stringify({
       autoNavigatePiloti: false,
       autoAdjustPilotiHeightsFromNivel: true,
       zoomEnabledByDefault: true,
@@ -96,8 +99,11 @@ export async function applyRacEditorInitScript(page: Page) {
       allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
-    }));
-    localStorage.removeItem('rac-projects');
+      }));
+      storage.removeItem('rac-projects');
+    } catch {
+      // O helper não deve transformar a indisponibilidade do Storage em pageerror.
+    }
   });
 }
 

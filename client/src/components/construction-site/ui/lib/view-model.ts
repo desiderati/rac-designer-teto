@@ -126,6 +126,12 @@ export function formatTimestampDate(value: string): { date: string; time: string
   };
 }
 
+export function formatOptionalTimestampDate(value?: string): { date: string; time: string } | null {
+  if (!value) return null;
+  const formatted = formatTimestampDate(value);
+  return formatted.date === 'Data inválida' ? null : formatted;
+}
+
 export function formatDateOnly(value?: string): string {
   const parsed = parseDateOnlyParts(value);
   if (!parsed) return 'Sem data';

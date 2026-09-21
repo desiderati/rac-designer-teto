@@ -5,6 +5,8 @@ import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
 import type {ConstructionSiteState, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {HEADER_ACTION_BUTTON_CLASS} from '@/components/construction-site/ui/lib/constants.ts';
 import {RacPdfExportChecklistModal} from '@/components/rac-editor/@modals/ui/RacPdfExportChecklistModal.tsx';
+import {RacPdfPreviewModal} from '@/components/rac-editor/@modals/ui/RacPdfPreviewModal.tsx';
+import {downloadBlob, type RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {
   buildRacPdfExportChecklist,
@@ -29,6 +31,7 @@ import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/s
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
 import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
+import {toast} from 'sonner';
 import {
   GUIDED_TOUR_COMPLETED_EVENT,
   isGuidedTourCompleted,
@@ -159,6 +162,11 @@ export function ConstructionSiteManagementPanel({
   const [pendingConstructionRacsZip, setPendingConstructionRacsZip] = useState<ConstructionSiteSummary | null>(null);
   const [exportingRacPdfHouseId, setExportingRacPdfHouseId] = useState<string | null>(null);
   const [pendingHouseRacPdfExport, setPendingHouseRacPdfExport] = useState<PendingHouseRacPdfExport | null>(null);
+  const [houseRacPdfPreview, setHouseRacPdfPreview] = useState<{
+    result: RacPdfHouseExportResult;
+    url: string;
+  } | null>(null);
+  const [isDownloadingHouseRacPdfPreview, setIsDownloadingHouseRacPdfPreview] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
 
@@ -251,12 +259,44 @@ export function ConstructionSiteManagementPanel({
       await actions.exportHouseRacPdf(
         pendingHouseRacPdfExport.constructionSiteId,
         pendingHouseRacPdfExport.houseId,
+        (result) => {
+          const url = URL.createObjectURL(result.blob);
+          setHouseRacPdfPreview({result, url});
+        },
       );
       setPendingHouseRacPdfExport(null);
     } finally {
       setExportingRacPdfHouseId(null);
     }
   }, [actions, exportingRacPdfHouseId, pendingHouseRacPdfExport]);
+
+  useEffect(() => () => {
+    if (houseRacPdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
+      URL.revokeObjectURL(houseRacPdfPreview.url);
+    }
+  }, [houseRacPdfPreview?.url]);
+
+  const closeHouseRacPdfPreview = useCallback(() => {
+    if (isDownloadingHouseRacPdfPreview) return;
+    setHouseRacPdfPreview(null);
+  }, [isDownloadingHouseRacPdfPreview]);
+
+  const downloadHouseRacPdfPreview = useCallback(async () => {
+    if (!houseRacPdfPreview || isDownloadingHouseRacPdfPreview) return;
+
+    setIsDownloadingHouseRacPdfPreview(true);
+    try {
+      downloadBlob(houseRacPdfPreview.result.blob, houseRacPdfPreview.result.fileName);
+      await actions.markHouseRacPrinted(houseRacPdfPreview.result.exportedHouseId);
+      toast.success('PDF da RAC gerado.');
+      setHouseRacPdfPreview(null);
+    } catch (error) {
+      console.error('[ConstructionSiteManagementPanel] Failed to download house RAC PDF:', error);
+      toast.error('Falha ao baixar PDF da RAC.');
+    } finally {
+      setIsDownloadingHouseRacPdfPreview(false);
+    }
+  }, [actions, houseRacPdfPreview, isDownloadingHouseRacPdfPreview]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -573,6 +613,16 @@ export function ConstructionSiteManagementPanel({
           isExporting={Boolean(exportingRacPdfHouseId)}
           onConfirm={() => void confirmHouseRacPdfExport()}
           onCancel={cancelHouseRacPdfExport}
+        />
+
+        <RacPdfPreviewModal
+          isMobile={isMobile}
+          isOpen={Boolean(houseRacPdfPreview)}
+          fileName={houseRacPdfPreview?.result.fileName ?? null}
+          pdfUrl={houseRacPdfPreview?.url ?? null}
+          isDownloading={isDownloadingHouseRacPdfPreview}
+          onDownload={() => void downloadHouseRacPdfPreview()}
+          onClose={closeHouseRacPdfPreview}
         />
       </div>
     </main>

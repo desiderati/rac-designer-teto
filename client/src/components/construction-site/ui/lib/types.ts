@@ -13,6 +13,7 @@ import type {
   PersistedHouseStatus,
   SiteAssessment,
 } from '@/shared/types/construction-site.ts';
+import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 
 export type ConstructionSiteManagementScreen =
   | 'construction-list'
@@ -65,8 +66,13 @@ export interface ConstructionSiteManagementActions {
   archiveHouse(houseId: string): Promise<void>;
   unarchiveHouse(houseId: string): Promise<void>;
   deleteArchivedHouse(houseId: string): Promise<void>;
-  exportHouseRacPdf(constructionSiteId: string, houseId: string): Promise<void>;
+  exportHouseRacPdf(
+    constructionSiteId: string,
+    houseId: string,
+    onPrepared?: (result: RacPdfHouseExportResult) => void | Promise<void>,
+  ): Promise<void>;
   exportConstructionRacsZip(constructionSiteId?: string): Promise<void>;
+  markHouseRacPrinted(houseId: string): Promise<void>;
   markHouseBuilt(houseId: string): Promise<void>;
   markHouseDraft(houseId: string): Promise<void>;
   activateHouse(constructionSiteId: string, houseId: string): Promise<void>;

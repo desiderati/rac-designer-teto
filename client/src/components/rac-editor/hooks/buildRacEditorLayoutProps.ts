@@ -97,6 +97,11 @@ interface BuildRacEditorLayoutPropsArgs {
   isPdfExporting: LayoutProps['modals']['isPdfExporting'];
   handleConfirmPdfExport: LayoutProps['modals']['onConfirmPdfExport'];
   handleCancelPdfExport: LayoutProps['modals']['onCancelPdfExport'];
+  isPdfPreviewOpen: LayoutProps['modals']['isPdfPreviewOpen'];
+  pdfPreviewFileName: LayoutProps['modals']['pdfPreviewFileName'];
+  pdfPreviewUrl: LayoutProps['modals']['pdfPreviewUrl'];
+  handleDownloadPdfPreview: LayoutProps['modals']['onDownloadPdfPreview'];
+  handleClosePdfPreview: LayoutProps['modals']['onClosePdfPreview'];
   is3DViewerOpen: LayoutProps['viewer']['open'];
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
   activeHouseId: LayoutProps['viewer']['activeHouseId'];
@@ -221,6 +226,11 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       isPdfExporting: args.isPdfExporting,
       onConfirmPdfExport: args.handleConfirmPdfExport,
       onCancelPdfExport: args.handleCancelPdfExport,
+      isPdfPreviewOpen: args.isPdfPreviewOpen,
+      pdfPreviewFileName: args.pdfPreviewFileName,
+      pdfPreviewUrl: args.pdfPreviewUrl,
+      onDownloadPdfPreview: args.handleDownloadPdfPreview,
+      onClosePdfPreview: args.handleClosePdfPreview,
     },
     viewer: {
       open: args.is3DViewerOpen,

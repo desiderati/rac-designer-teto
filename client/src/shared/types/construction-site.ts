@@ -150,6 +150,7 @@ export interface PersistedHouseRecord {
   pilotiLayout: PersistedPilotiLayout;
   drawingDocument: PersistedDrawingDocument;
   notes?: string;
+  lastRacExportedAt?: string;
   version: number;
   createdAt: string;
   updatedAt: string;
