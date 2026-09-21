@@ -519,7 +519,7 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
       </Accordion>
-      <div data-testid='site-actions-grid' className='grid gap-4 md:grid-cols-2'>
+      <div data-testid='site-actions-grid' className='grid gap-4 sm:col-start-2 md:grid-cols-2'>
         <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
       </div>
     </form>
@@ -582,7 +582,7 @@ export function HouseFormSection({
   children: ReactNode;
 }) {
   return (
-    <section className='space-y-0'>
+    <section className='space-y-2'>
       <AccordionItem value={`section-${number}`} className='!border-0 bg-transparent px-0 shadow-none'>
         <AccordionTrigger aria-label={`Alternar seção ${title}`} className='gap-3 py-3 hover:no-underline'>
           <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>
@@ -594,6 +594,7 @@ export function HouseFormSection({
           <div className='space-y-4'>{children}</div>
         </AccordionContent>
       </AccordionItem>
+      {number !== '06' ? <div aria-hidden='true' className='mx-4 h-px bg-slate-200/80' data-testid='house-section-divider'/> : null}
     </section>
   );
 }

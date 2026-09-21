@@ -1208,6 +1208,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
@@ -1216,6 +1217,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
     expect(section?.className).not.toContain('shadow');
+    expect(screen.getAllByTestId('house-section-divider')).toHaveLength(5);
 
   });
 
