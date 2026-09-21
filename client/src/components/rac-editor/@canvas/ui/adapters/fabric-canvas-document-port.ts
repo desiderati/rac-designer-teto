@@ -225,6 +225,13 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
   };
 }
 
+function normalizeStorageImageSource(source: unknown): unknown {
+  if (typeof source !== 'string') return source;
+
+  const storagePathMatch = source.match(/(?:^|https?:\/\/[^/]+)(\/manus-storage\/[^?#]+)/i);
+  return storagePathMatch?.[1] ?? source;
+}
+
 function toRuntimePayload(document: HouseDrawingElementDocument): Record<string, unknown> {
   const text = document.text !== undefined
     ? document.text
@@ -232,7 +239,7 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
       ? ''
       : undefined;
 
-  return {
+  const payload: Record<string, unknown> = {
     type: document.shape,
     ...document.geometry,
     ...document.style,
@@ -243,6 +250,17 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
     ...(text !== undefined ? {text} : {}),
     ...(document.children ? {objects: document.children.map(toRuntimePayload)} : {}),
   };
+
+  if (document.shape === 'image') {
+    payload.src = normalizeStorageImageSource(payload.src);
+    const source = payload.src;
+    const hasExternalSource = typeof source === 'string' && !/^(data:|blob:)/i.test(source);
+    if (hasExternalSource && (payload.crossOrigin === undefined || payload.crossOrigin === null || payload.crossOrigin === '')) {
+      payload.crossOrigin = 'anonymous';
+    }
+  }
+
+  return payload;
 }
 
 function collectExportVisualObjects(canvas: FabricCanvas): CanvasObject[] {

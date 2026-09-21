@@ -58,8 +58,25 @@ async function redirectToStorageAsset(key: string, _req: Request, res: Response)
       return;
     }
 
+    const assetResponse = await fetch(url);
+    if (!assetResponse.ok) {
+      const body = await assetResponse.text().catch(() => '');
+      console.error(`[StorageProxy] asset error: ${assetResponse.status} ${body}`);
+      res.status(502).send('Storage asset unavailable');
+      return;
+    }
+
+    const contentType = assetResponse.headers.get('content-type') ?? 'application/octet-stream';
+    const contentLength = assetResponse.headers.get('content-length');
+    const contentDisposition = assetResponse.headers.get('content-disposition');
+    const assetBytes = Buffer.from(await assetResponse.arrayBuffer());
+
     res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
-    res.redirect(307, url);
+    res.set('Content-Type', contentType);
+    res.set('X-Content-Type-Options', 'nosniff');
+    if (contentLength) res.set('Content-Length', contentLength);
+    if (contentDisposition) res.set('Content-Disposition', contentDisposition);
+    res.status(200).send(assetBytes);
   } catch (err) {
     console.error('[StorageProxy] failed:', err);
     res.status(502).send('Storage proxy error');

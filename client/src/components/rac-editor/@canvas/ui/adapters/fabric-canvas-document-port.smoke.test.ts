@@ -500,6 +500,41 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('reidrata imagens legadas do Storage pelo proxy same-origin para não contaminar a exportação', async () => {
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+    const port = createFabricCanvasDocumentPort(canvas as any);
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{
+        id: 'legacy-upload-1',
+        kind: 'image',
+        shape: 'image',
+        resource: {
+          src: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+          storageUrl: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+        },
+      }],
+    })).resolves.toBe(true);
+
+    expect(canvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [{
+        type: 'image',
+        src: '/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+        storageUrl: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+        crossOrigin: 'anonymous',
+        myType: 'image',
+        editorObjectId: 'legacy-upload-1',
+      }],
+    });
+  });
+
   it('captura imagem descartando seleção ativa antes de exportar', () => {
     const canvas = {
       getObjects: vi.fn(() => []),

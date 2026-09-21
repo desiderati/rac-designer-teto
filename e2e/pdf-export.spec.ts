@@ -116,4 +116,33 @@ test.describe('Exportação PDF do RAC', () => {
 
     expect(download.suggestedFilename()).toBe('RAC-CC2603-FAMILIA-E2E.pdf');
   });
+
+  test('gera a prévia quando o documento legado contém uma imagem persistida no Storage', async ({page}) => {
+    await page.route('**/manus-storage/**', async (route) => {
+      await route.fulfill({
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
+      });
+    });
+    await setupSeededRacEditorPage(page, {
+      ...pdfExportSeed,
+      insertInitialViews: true,
+      canvasObjects: [{
+        id: 'legacy-photo-e2e',
+        kind: 'image',
+        shape: 'image',
+        geometry: {left: 72, top: 64, width: 1, height: 1, scaleX: 100, scaleY: 100},
+        resource: {
+          src: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.png',
+          storageUrl: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.png',
+        },
+      }],
+    });
+
+    await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
+    await page.getByRole('button', {name: 'Gerar PDF'}).click();
+
+    await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
+    await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
+  });
 });

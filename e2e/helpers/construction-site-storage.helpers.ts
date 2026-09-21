@@ -2,6 +2,7 @@ import type {Page} from '@playwright/test';
 import type {HouseExtraMaterials, MonitorStatus, SiteAssessment} from '../../client/src/shared/types/construction-site';
 import type {HousePiloti, HouseSideMapping, HouseType, HouseViews} from '../../client/src/shared/types/house';
 import {getAllPilotiIds} from '../../client/src/shared/types/piloti';
+import type {HouseDrawingElementDocument} from '../../client/src/shared/types/house-drawing-document';
 
 type SeedHouseType = HouseType;
 type SeedHouseSize = 'large' | 'small';
@@ -27,6 +28,7 @@ export interface SeedConstructionSiteDocumentOptions {
   selectedPilotiHeights?: number[];
   pilotis?: Record<string, Partial<HousePiloti>>;
   insertInitialViews?: boolean;
+  canvasObjects?: HouseDrawingElementDocument[];
 }
 
 export async function seedConstructionSiteDocument(
@@ -173,7 +175,7 @@ function createSeedDocument(options: SeedConstructionSiteDocumentOptions) {
             sideMappings: initialViews.sideMappings,
             preAssignedSides: {},
           },
-          canvas: {schemaVersion: 1, objects: []},
+          canvas: {schemaVersion: 1, objects: options.canvasObjects ?? []},
           views: {},
         },
         ...(options.notes ? {notes: options.notes} : {}),
