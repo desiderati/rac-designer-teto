@@ -22,6 +22,7 @@ import {
   formatRacPdfExportChecklistSummary,
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
+import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -167,11 +168,9 @@ export function useConstructionSiteManagementController({
       const [
         {jsPDF},
         {buildRacPdfHouseExport, downloadBlob},
-        {renderHouseDrawingCanvasImageDataUrl},
       ] = await Promise.all([
         import('jspdf'),
         import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
-        import('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts'),
       ]);
 
       const result = await buildRacPdfHouseExport({
@@ -219,12 +218,10 @@ export function useConstructionSiteManagementController({
         {default: JSZip},
         {jsPDF},
         {buildRacPdfZipExport, downloadBlob},
-        {renderHouseDrawingCanvasImageDataUrl},
       ] = await Promise.all([
         import('jszip'),
         import('jspdf'),
         import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
-        import('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts'),
       ]);
 
       const result = await buildRacPdfZipExport({
