@@ -138,6 +138,42 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(pdfMocks.savePdf).not.toHaveBeenCalled();
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
   });
+
+  it('mantém o sucesso do PDF quando a sincronização posterior do status falha', async () => {
+    pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({save: pdfMocks.savePdf});
+
+    const onAfterExportPdf = vi.fn(() => {
+      throw new Error('sincronização indisponível');
+    });
+    const {result} = renderHook(
+      () => useRacEditorPdfExportAction({
+        canvasRef: {
+          current: {
+            createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'}),
+          },
+        } as never,
+        house3DPdfSnapshotRef: {current: null} as never,
+        canExportPdf: () => true,
+        onAfterExportPdf,
+      }),
+      {wrapper: createWrapper({
+        constructionSiteManagementPort: {
+          getConstructionSiteSnapshot: vi.fn(() => createConstructionSiteSnapshot()),
+          markActiveHouseRacPrinted: vi.fn(),
+        } as never,
+      })},
+    );
+
+    await act(async () => {
+      await result.current.handleSavePDF();
+      await result.current.handleConfirmPdfExport();
+    });
+
+    expect(pdfMocks.savePdf).toHaveBeenCalledWith('rac.pdf');
+    expect(pdfMocks.toastSuccess).toHaveBeenCalledWith(expect.any(String));
+    expect(pdfMocks.toastWarning).toHaveBeenCalledWith('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
+  });
 });
 
 function createWrapper(portOverrides: Partial<EditorPorts>) {

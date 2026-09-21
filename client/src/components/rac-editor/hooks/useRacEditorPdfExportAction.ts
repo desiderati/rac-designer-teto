@@ -66,9 +66,15 @@ export function useRacEditorPdfExportAction({
         jsPDF,
       });
       pdf.save(report.fileName);
-      constructionSiteManagementPort.markActiveHouseRacPrinted();
-      onAfterExportPdf?.();
       toast.success(TOAST_MESSAGES.pdfSavedSuccessfully);
+
+      try {
+        constructionSiteManagementPort.markActiveHouseRacPrinted();
+        onAfterExportPdf?.();
+      } catch (error) {
+        console.error('[useRacEditorPdfExportAction] PDF salvo, mas não foi possível atualizar o status da RAC:', error);
+        toast.warning('PDF salvo, mas o status da RAC não pôde ser sincronizado agora.');
+      }
 
     } catch (error) {
       console.error('[useRacEditorPdfExportAction] Failed to export PDF:', error);

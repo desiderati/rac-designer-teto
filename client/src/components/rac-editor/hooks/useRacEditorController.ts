@@ -281,8 +281,11 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     setIsImageUploadOpen(true);
   }, [closeAllMenus, disableDrawingMode, setIsImageUploadOpen]);
 
-  const handleInsertUploadedImage = useCallback(async (dataUrl: string) => {
-    const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(dataUrl) ?? false;
+  const handleInsertUploadedImage = useCallback(async (
+    dataUrl: string,
+    options?: {storageUrl?: string | null},
+  ) => {
+    const inserted = await canvasRef.current?.createSnapshotPort()?.insertImageSnapshot(dataUrl, options) ?? false;
 
     if (inserted) {
       canvasRef.current?.saveHistory();

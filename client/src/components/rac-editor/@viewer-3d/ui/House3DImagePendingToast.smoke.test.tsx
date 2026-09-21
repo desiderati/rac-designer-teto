@@ -60,6 +60,20 @@ describe('House3DImagePendingToast', () => {
     expect(screen.getByRole('button', {name: 'Descartar'})).toBeInTheDocument();
   });
 
+  it('mantém os botões Inserir e Descartar com a mesma largura', async () => {
+    const user = userEvent.setup();
+    render(
+      <House3DImageInsertionProvider>
+        <PendingToastHarness/>
+      </House3DImageInsertionProvider>,
+    );
+
+    await user.click(screen.getByRole('button', {name: 'preparar imagem'}));
+
+    expect(screen.getByRole('button', {name: 'Inserir'})).toHaveClass('w-full');
+    expect(screen.getByRole('button', {name: 'Descartar'})).toHaveClass('w-full');
+  });
+
   it('insere a imagem no Canvas e remove o toast somente após sucesso', async () => {
     const user = userEvent.setup();
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);

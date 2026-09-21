@@ -11,7 +11,7 @@ interface RacEditorOverlaysProps {
   onSettingsChange: () => void;
   isImageUploadOpen: boolean;
   onImageUploadOpenChange: (open: boolean) => void;
-  onInsertUploadedImage: (dataUrl: string) => Promise<boolean> | boolean;
+  onInsertUploadedImage: (dataUrl: string, options?: {storageUrl?: string | null}) => Promise<boolean> | boolean;
   showRestartConfirm: boolean;
   onConfirmRestartDrawing: () => void;
   onCloseRestartConfirm: () => void;

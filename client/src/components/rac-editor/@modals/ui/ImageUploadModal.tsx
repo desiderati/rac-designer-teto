@@ -13,6 +13,7 @@ import {
   PHOTO_SOURCE_UPLOAD_LIMIT_LABEL,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
+import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
 
 const ACCEPTED_IMAGE_TYPES_LABEL = 'PNG, JPG ou WEBP';
 
@@ -20,7 +21,7 @@ interface ImageUploadModalProps {
   isMobile: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onInsertImage: (dataUrl: string) => Promise<boolean> | boolean;
+  onInsertImage: (dataUrl: string, options?: {storageUrl?: string | null}) => Promise<boolean> | boolean;
 }
 
 export function ImageUploadModal({
@@ -67,8 +68,12 @@ export function ImageUploadModal({
     const uploadToastId = `canvas-upload-${Date.now()}`;
     toast.loading('Enviando imagem em segundo plano…', {id: uploadToastId});
     try {
-      const imageUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
-      const inserted = await onInsertImage(imageUrl);
+      const [imageUrl, localPayload] = await Promise.all([
+        storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile}),
+        toStorageImageUploadPayload(file),
+      ]);
+      const localDataUrl = `data:${localPayload.mimeType};base64,${localPayload.base64}`;
+      const inserted = await onInsertImage(localDataUrl, {storageUrl: imageUrl});
       if (!inserted) {
         throw new Error('Não foi possível inserir a imagem no Canvas. Abra o Canvas e tente novamente.');
       }

@@ -12,7 +12,7 @@ function createPngFile() {
 
 function renderImageUploadModal(overrides: {
   onOpenChange?: (open: boolean) => void;
-  onInsertImage?: (dataUrl: string) => Promise<boolean> | boolean;
+  onInsertImage?: (dataUrl: string, options?: {storageUrl?: string | null}) => Promise<boolean> | boolean;
 } = {}) {
   return render(
     <ImageUploadModal
@@ -33,7 +33,7 @@ describe('ImageUploadModal.tsx', () => {
   it('validates and inserts an uploaded image data URL', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
-    const onInsertImage = vi.fn(async (_dataUrl: string) => true);
+    const onInsertImage = vi.fn(async (_dataUrl: string, _options?: {storageUrl?: string | null}) => true);
     renderImageUploadModal({onOpenChange, onInsertImage});
 
     expect(screen.getByText(/PNG, JPG ou WEBP até 50 MB/)).toBeVisible();
@@ -51,6 +51,9 @@ describe('ImageUploadModal.tsx', () => {
 
     await waitFor(() => expect(onInsertImage).toHaveBeenCalledOnce());
     expect(onInsertImage.mock.calls[0][0]).toMatch(/^data:image\/png;base64,/);
+    expect(onInsertImage.mock.calls[0][1]).toEqual({
+      storageUrl: expect.stringMatching(/^data:image\/png;base64,/),
+    });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 

@@ -41,11 +41,11 @@ export function House3DImagePendingToast() {
           <p className='text-sm font-semibold'>{title}</p>
           <p className='mt-1 text-xs leading-5 text-slate-600'>{description}</p>
           {!isGenerating && pendingImage ? (
-            <div className='mt-3 flex flex-wrap items-center gap-2'>
+            <div className='mt-3 grid grid-cols-2 gap-2'>
               <Button
                 type='button'
                 size='sm'
-                className='h-8 gap-1.5 bg-sky-600 px-3 text-xs font-semibold text-white hover:bg-sky-700'
+                className='h-8 w-full justify-center gap-1.5 bg-sky-600 px-3 text-xs font-semibold text-white hover:bg-sky-700'
                 disabled={isInserting}
                 onClick={() => void insertPendingImage()}
               >
@@ -56,7 +56,7 @@ export function House3DImagePendingToast() {
                 type='button'
                 variant='outline'
                 size='sm'
-                className='h-8 gap-1.5 border-slate-300 px-3 text-xs font-semibold text-slate-700'
+                className='h-8 w-full justify-center gap-1.5 border-slate-300 px-3 text-xs font-semibold text-slate-700'
                 disabled={isInserting}
                 onClick={discardPendingImage}
               >
