@@ -3,13 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RacEditor } from './RacEditor';
 import { useAuth } from '@/_core/hooks/useAuth.ts';
-import { startLogin } from '@/const.ts';
+import { clearLoginLock, startLogin } from '@/const.ts';
 
 vi.mock('@/_core/hooks/useAuth.ts', () => ({
   useAuth: vi.fn(),
 }));
 
 vi.mock('@/const.ts', () => ({
+  clearLoginLock: vi.fn(),
   startLogin: vi.fn(),
 }));
 
@@ -24,6 +25,8 @@ describe('RacEditor authentication landing', () => {
       logout: vi.fn(),
     });
     vi.mocked(startLogin).mockReset();
+    vi.mocked(clearLoginLock).mockReset();
+    window.history.replaceState({}, document.title, '/');
   });
 
   it('shows the product landing with the real editor screenshot before login', () => {
@@ -88,5 +91,15 @@ describe('RacEditor authentication landing', () => {
     } finally {
       Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalWidth});
     }
+  });
+
+  it('shows a friendly recovery state when OAuth returns an invalid attempt', async () => {
+    window.history.replaceState({}, document.title, '/?oauthError=invalid_state');
+
+    render(<RacEditor/>);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('A sessão de login expirou');
+    expect(screen.getByRole('button', {name: 'Tentar novamente'})).toBeVisible();
+    expect(screen.queryByText(/invalid oauth state/i)).not.toBeInTheDocument();
   });
 });

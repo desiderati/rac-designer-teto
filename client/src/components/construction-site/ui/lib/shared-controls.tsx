@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
+import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {getPhotoOrientation, type PhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {parseMapCoordinates} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
@@ -166,7 +167,7 @@ export function PhotoUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
+  const [reviewFile, setReviewFile] = useState<File | null>(null);
   const storageImageUpload = useStorageImageUpload();
 
   useEffect(() => {
@@ -175,19 +176,24 @@ export function PhotoUploadField({
   }, [value]);
 
   const updatePhoto = async (file: File) => {
-    const validationError = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
+    const validationError = await validatePhotoFile(file, {allowCompression: true});
     if (validationError) {
       setUploadError(validationError);
       return;
     }
 
+    setUploadError(null);
+    setReviewFile(file);
+  };
+
+  const confirmPhotoUpload = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
     try {
-      const photoUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality});
+      const photoUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
       setUploadError(null);
       onChange(photoUrl);
     } catch (error) {
       console.error('[PhotoUploadField] Falha ao enviar foto:', error);
-      setUploadError(error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.');
+      throw error instanceof Error ? error : new Error('Não foi possível enviar a foto. Tente novamente.');
     }
   };
 
@@ -288,19 +294,6 @@ export function PhotoUploadField({
           disabled={disabled || storageImageUpload.isUploading}
         />
       </div>
-      <label className='flex items-start gap-2 text-xs text-slate-600'>
-        <input
-          type='checkbox'
-          checked={preserveOriginalQuality}
-          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
-          disabled={disabled || storageImageUpload.isUploading}
-          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
-        />
-        <span>
-          <span className='block font-semibold text-slate-700'>Manter qualidade original</span>
-          <span className='block text-[11px] text-slate-500'>Desativa a compressão automática acima de 4 MB.</span>
-        </span>
-      </label>
       {storageImageUpload.isUploading && storageImageUpload.progress ? (
         <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
           <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
@@ -318,6 +311,15 @@ export function PhotoUploadField({
       {uploadError ? (
         <p role='alert' className='text-xs font-semibold text-red-600'>{uploadError}</p>
       ) : null}
+      <ImageUploadReview
+        file={reviewFile}
+        isOpen={reviewFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewFile(null);
+        }}
+        onConfirm={confirmPhotoUpload}
+        title={`Revisar ${label.toLowerCase()}`}
+      />
     </div>
   );
 }

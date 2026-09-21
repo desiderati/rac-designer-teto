@@ -8,7 +8,7 @@ function isIpAddress(host: string) {
   return host.includes(":");
 }
 
-function isSecureRequest(req: Request) {
+export function isSecureRequest(req: Request) {
   if (req.secure) return true;
   if (req.protocol === "https") return true;
 
@@ -26,6 +26,17 @@ function isSecureRequest(req: Request) {
   // Plain HTTP remains supported only for local development hosts.
   const hostname = req.hostname ?? "";
   return !LOCAL_HOSTS.has(hostname) && !isIpAddress(hostname);
+}
+
+export function getOAuthStateCookieOptions(
+  req: Request,
+): Pick<CookieOptions, "path" | "sameSite" | "secure"> {
+  const secure = isSecureRequest(req);
+  return {
+    path: "/",
+    sameSite: secure ? "none" : "lax",
+    secure,
+  };
 }
 
 export function getSessionCookieOptions(

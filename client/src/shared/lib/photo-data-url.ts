@@ -2,7 +2,7 @@ const ALLOWED_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as co
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
 const MANUS_STORAGE_URL_PATTERN = /^\/manus-storage\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
 export const MAX_PHOTO_UPLOAD_BYTES = 7.5 * 1024 * 1024;
-export const PHOTO_COMPRESSION_THRESHOLD_BYTES = 4 * 1024 * 1024;
+export const PHOTO_COMPRESSION_THRESHOLD_BYTES = 2.5 * 1024 * 1024;
 const MAX_PHOTO_DATA_URL_LENGTH = Math.ceil(MAX_PHOTO_UPLOAD_BYTES * 4 / 3) + 64;
 const MAX_COMPRESSION_DIMENSION = 3200;
 
@@ -11,6 +11,7 @@ type AllowedPhotoMimeType = typeof ALLOWED_PHOTO_MIME_TYPES[number];
 export const PHOTO_UPLOAD_ACCEPT = ALLOWED_PHOTO_MIME_TYPES.join(',');
 export const PHOTO_UPLOAD_LIMIT_LABEL = '7,5 MB';
 export const PHOTO_UPLOAD_ERROR_MESSAGE = `Use PNG, JPG ou WEBP com até ${PHOTO_UPLOAD_LIMIT_LABEL}.`;
+export const PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE = `Mesmo após a otimização, a imagem continua acima do limite de ${PHOTO_UPLOAD_LIMIT_LABEL}. Tente uma imagem menor.`;
 export const PHOTO_COMPRESSION_ERROR_MESSAGE = 'Não foi possível otimizar esta imagem no navegador. Tente uma imagem menor ou outro arquivo.';
 
 export interface PreparedPhotoFile {
@@ -58,6 +59,10 @@ export async function validatePhotoFile(
 
   const header = await readBlobHeader(file);
   return hasImageSignature(mimeType, header) ? null : PHOTO_UPLOAD_ERROR_MESSAGE;
+}
+
+export function validatePreparedPhotoSize(file: File): string | null {
+  return file.size > MAX_PHOTO_UPLOAD_BYTES ? PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE : null;
 }
 
 export function needsPhotoCompression(file: File): boolean {

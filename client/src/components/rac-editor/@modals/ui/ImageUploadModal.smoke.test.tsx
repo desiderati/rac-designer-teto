@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {ImageUploadModal} from '@/components/rac-editor/@modals/ui/ImageUploadModal.tsx';
@@ -25,6 +25,11 @@ function renderImageUploadModal(overrides: {
 }
 
 describe('ImageUploadModal.tsx', () => {
+  beforeEach(() => {
+    URL.createObjectURL = vi.fn(() => 'blob:canvas-upload');
+    URL.revokeObjectURL = vi.fn();
+  });
+
   it('validates and inserts an uploaded image data URL', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn();
@@ -32,15 +37,17 @@ describe('ImageUploadModal.tsx', () => {
     renderImageUploadModal({onOpenChange, onInsertImage});
 
     expect(screen.getByText('PNG, JPG ou WEBP até 7,5 MB')).toBeVisible();
-    expect(screen.getByRole('checkbox', {name: /Manter qualidade original/i})).not.toBeChecked();
-
-    await user.click(screen.getByRole('checkbox', {name: /Manter qualidade original/i}));
-    expect(screen.getByRole('checkbox', {name: /Manter qualidade original/i})).toBeChecked();
 
     await user.upload(
       screen.getByLabelText('Selecionar imagem para inserir no canvas'),
       createPngFile(),
     );
+
+    const reviewCheckbox = await screen.findByRole('checkbox', {name: /Manter qualidade original/i});
+    expect(reviewCheckbox).not.toBeChecked();
+    await user.click(reviewCheckbox);
+    expect(reviewCheckbox).toBeChecked();
+    await user.click(screen.getByRole('button', {name: 'Usar esta imagem'}));
 
     await waitFor(() => expect(onInsertImage).toHaveBeenCalledOnce());
     expect(onInsertImage.mock.calls[0][0]).toMatch(/^data:image\/png;base64,/);

@@ -5,6 +5,7 @@ import {
   preparePhotoFileForUpload,
   PHOTO_COMPRESSION_THRESHOLD_BYTES,
   type PreparedPhotoFile,
+  validatePreparedPhotoSize,
 } from '@/shared/lib/photo-data-url.ts';
 import { toStorageImageUploadPayload } from '@/shared/lib/storage-image-upload.ts';
 
@@ -63,6 +64,8 @@ export function StorageImageUploadProvider({ children }: { children: ReactNode }
             preservedOriginalQuality: options.preserveOriginalQuality,
           });
         }, options);
+        const preparedSizeError = validatePreparedPhotoSize(prepared.file);
+        if (preparedSizeError) throw new Error(preparedSizeError);
 
         if (prepared.compressed) {
           toast.success(`Imagem otimizada em ${formatReduction(prepared.reductionPercent)}: ${formatFileSize(prepared.originalBytes)} → ${formatFileSize(prepared.finalBytes)}.`, {

@@ -3,14 +3,10 @@ import {Camera, Plus, RefreshCw, Trash2} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
-import {
-  PHOTO_UPLOAD_ACCEPT,
-  needsPhotoCompression,
-  preparePhotoFileForUpload,
-  validatePhotoFile,
-} from '@/shared/lib/photo-data-url.ts';
+import {PHOTO_UPLOAD_ACCEPT, validatePhotoFile} from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
 import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {toast} from '@/components/ui/sonner.tsx';
@@ -44,12 +40,12 @@ export function TerrainPhotosField({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
+  const [reviewFile, setReviewFile] = useState<{file: File; photoIdToReplace: string | null} | null>(null);
   const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
-  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
-  const isBusy = storageUpload.isUploading || isPreparingPhoto;
+  const isBusy = storageUpload.isUploading || isPreparingPhoto || reviewFile !== null;
 
   useEffect(() => {
     valueRef.current = value;
@@ -73,23 +69,27 @@ export function TerrainPhotosField({
     if (disabled || isBusy) return;
     if (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
 
-    const validationError = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
+    const validationError = await validatePhotoFile(file, {allowCompression: true});
     if (validationError) {
       toast.error(validationError);
       return;
     }
 
+    setReviewFile({file, photoIdToReplace});
+  };
+
+  const confirmPhotoSelection = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
+    const photoIdToReplace = reviewFile?.photoIdToReplace ?? null;
+    if (disabled || (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS)) return;
+
     const uploadToastId = `terrain-upload-${Date.now()}`;
-    toast.loading('Preparando foto do terreno…', {id: uploadToastId});
+    toast.loading('Enviando foto do terreno…', {id: uploadToastId});
     setIsPreparingPhoto(true);
     try {
-      if (needsPhotoCompression(file)) toast.loading('Otimizando foto do terreno…', {id: uploadToastId});
-      const prepared = await preparePhotoFileForUpload(file, undefined, {preserveOriginalQuality});
-      if (prepared.warning) toast.warning(prepared.warning, {id: uploadToastId, duration: 4800});
-      const payload = await toStorageImageUploadPayload(prepared.file);
-      const url = await storageUpload.uploadImage(prepared.file, constructionSiteId, {
+      const payload = await toStorageImageUploadPayload(file);
+      const url = await storageUpload.uploadImage(file, constructionSiteId, {
         preserveOriginalQuality,
-        preparedFile: prepared,
+        preparedFile,
       });
       const id = photoIdToReplace ?? `terrain-photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const nextIndex = photoIdToReplace
@@ -105,11 +105,13 @@ export function TerrainPhotosField({
       setSelectedIndex(nextIndex);
       toast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.', {id: uploadToastId});
       void generateDescription(id, payload);
+      setReviewFile(null);
     } catch (error) {
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);
-      toast.error(error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.', {id: uploadToastId});
+      const message = error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.';
+      toast.error(message, {id: uploadToastId});
+      throw error instanceof Error ? error : new Error(message);
     } finally {
-      setReplacePhotoId(null);
       setIsPreparingPhoto(false);
     }
   };
@@ -227,20 +229,6 @@ export function TerrainPhotosField({
         </div>
       </div>
 
-      <label className='flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600'>
-        <input
-          type='checkbox'
-          checked={preserveOriginalQuality}
-          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
-          disabled={disabled || isBusy}
-          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
-        />
-        <span>
-          <span className='block font-semibold text-slate-700'>Manter qualidade original</span>
-          <span className='block text-[11px] text-slate-500'>Desativa a compressão automática acima de 4 MB.</span>
-        </span>
-      </label>
-
       {storageUpload.isUploading && storageUpload.progress ? (
         <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
           <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
@@ -277,6 +265,16 @@ export function TerrainPhotosField({
         aria-label='Arquivo de foto do terreno'
         onChange={handleFileChange}
         disabled={disabled || isBusy}
+      />
+
+      <ImageUploadReview
+        file={reviewFile?.file ?? null}
+        isOpen={reviewFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewFile(null);
+        }}
+        onConfirm={confirmPhotoSelection}
+        title={reviewFile?.photoIdToReplace ? 'Trocar foto do terreno' : 'Adicionar foto do terreno'}
       />
 
       <AlertDialog

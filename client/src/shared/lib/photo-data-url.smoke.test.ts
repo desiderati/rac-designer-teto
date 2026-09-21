@@ -4,7 +4,10 @@ import {
   isSupportedPhotoDataUrl,
   needsPhotoCompression,
   PHOTO_UPLOAD_ERROR_MESSAGE,
+  PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE,
+  PHOTO_COMPRESSION_THRESHOLD_BYTES,
   preparePhotoFileForUpload,
+  validatePreparedPhotoSize,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 
@@ -41,9 +44,9 @@ describe('photo-data-url.ts', () => {
       .resolves.toBeNull();
   });
 
-  it('identifica imagens acima de 4 MB e preserva arquivos menores sem reprocessar', async () => {
-    const smallFile = new File([new Uint8Array(4 * 1024 * 1024)], 'pequena.png', {type: 'image/png'});
-    const largeFile = new File([new Uint8Array((4 * 1024 * 1024) + 1)], 'grande.png', {type: 'image/png'});
+  it('identifica imagens acima de 2,5 MB e preserva arquivos menores sem reprocessar', async () => {
+    const smallFile = new File([new Uint8Array(PHOTO_COMPRESSION_THRESHOLD_BYTES)], 'pequena.png', {type: 'image/png'});
+    const largeFile = new File([new Uint8Array(PHOTO_COMPRESSION_THRESHOLD_BYTES + 1)], 'grande.png', {type: 'image/png'});
 
     expect(needsPhotoCompression(smallFile)).toBe(false);
     expect(needsPhotoCompression(largeFile)).toBe(true);
@@ -63,5 +66,13 @@ describe('photo-data-url.ts', () => {
       reductionPercent: 0,
     });
     expect(calculateReductionPercent(10_000, 7_500)).toBe(25);
+  });
+
+  it('valida o limite efetivo depois da preparação', () => {
+    const oversized = new File([new Uint8Array((7.5 * 1024 * 1024) + 1)], 'grande.png', {type: 'image/png'});
+    const accepted = new File([new Uint8Array(7.5 * 1024 * 1024)], 'limite.png', {type: 'image/png'});
+
+    expect(validatePreparedPhotoSize(oversized)).toBe(PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE);
+    expect(validatePreparedPhotoSize(accepted)).toBeNull();
   });
 });

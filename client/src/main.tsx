@@ -17,9 +17,12 @@ function redirectToLoginIfUnauthorized(error: unknown): void {
   if (!(error instanceof TRPCClientError)) return;
   if (error.data?.code !== 'UNAUTHORIZED' && error.message !== UNAUTHED_ERR_MSG) return;
   if (typeof window === 'undefined' || loginRedirectScheduled) return;
+  if (new URLSearchParams(window.location.search).has('oauthError')) return;
 
   loginRedirectScheduled = true;
-  window.setTimeout(() => startLogin(), 0);
+  window.setTimeout(() => {
+    if (!new URLSearchParams(window.location.search).has('oauthError')) startLogin();
+  }, 0);
 }
 
 const queryClient = new QueryClient({

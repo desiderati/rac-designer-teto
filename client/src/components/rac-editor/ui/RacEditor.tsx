@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
-import {ArrowRight, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
+import {AlertCircle, ArrowRight, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
 import {createEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
@@ -12,7 +12,7 @@ import {House3DImageInsertionProvider} from '@/contexts/House3DImageInsertionCon
 import {TerrainPhotoDescriptionProvider} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
 import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/House3DImagePendingToast.tsx';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
-import {startLogin} from '@/const.ts';
+import {clearLoginLock, startLogin} from '@/const.ts';
 import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
@@ -20,10 +20,17 @@ import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyData
 const PRODUCT_SCREENSHOT_URL = '/api/public-assets/rac-editor-landing-screenshot-harmonized_95473d21.png';
 const HOUSE_ILLUSTRATION_URL = '/api/public-assets/teto-house-linework-transparent-cropped_770579e2.png';
 const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  missing_parameters: 'A tentativa de login foi interrompida antes de concluir. Volte e tente novamente.',
+  invalid_state: 'A sessão de login expirou ou foi aberta em outra tentativa. Inicie o acesso novamente.',
+  profile_unavailable: 'Não foi possível confirmar os dados da sua conta. Tente entrar novamente.',
+  callback_failed: 'O login não foi concluído desta vez. Tente novamente em alguns instantes.',
+};
 
 export function RacEditor() {
   const {isAuthenticated, loading, error, logout} = useAuth();
   const [isViewportTooNarrow, setIsViewportTooNarrow] = useState(false);
+  const [oauthErrorCode, setOauthErrorCode] = useState<string | null>(null);
   const landingPreview = useMemo(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('landing') === 'preview';
@@ -36,6 +43,21 @@ export function RacEditor() {
     return () => window.removeEventListener('resize', updateViewportWarning);
   }, []);
 
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('oauthError');
+    if (!code) return;
+    setOauthErrorCode(code);
+    clearLoginLock();
+  }, []);
+
+  const oauthErrorMessage = oauthErrorCode
+    ? OAUTH_ERROR_MESSAGES[oauthErrorCode] ?? OAUTH_ERROR_MESSAGES.callback_failed
+    : null;
+  const retryLogin = () => {
+    clearLoginLock();
+    startLogin();
+  };
+
   const withViewportWarning = (content: ReactNode) => (
     <>
       {content}
@@ -43,7 +65,7 @@ export function RacEditor() {
     </>
   );
 
-  if (landingPreview) return withViewportWarning(<RacEditorAuthenticationState error={null}/>);
+  if (landingPreview) return withViewportWarning(<RacEditorAuthenticationState error={null} oauthErrorMessage={oauthErrorMessage} onRetryLogin={retryLogin}/>);
   if (isLocalE2eMode) {
     return withViewportWarning(
       <StorageImageUploadProvider>
@@ -56,7 +78,7 @@ export function RacEditor() {
     );
   }
   if (loading) return withViewportWarning(<RacEditorLoadingState/>);
-  if (!isAuthenticated) return withViewportWarning(<RacEditorAuthenticationState error={error}/>);
+  if (!isAuthenticated) return withViewportWarning(<RacEditorAuthenticationState error={error} oauthErrorMessage={oauthErrorMessage} onRetryLogin={retryLogin}/>);
 
   return withViewportWarning(
     <StorageImageUploadProvider>
@@ -141,7 +163,17 @@ function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
   );
 }
 
-function RacEditorAuthenticationState({error}: {error: unknown}) {
+function RacEditorAuthenticationState({
+  error,
+  oauthErrorMessage,
+  onRetryLogin,
+}: {
+  error: unknown;
+  oauthErrorMessage?: string | null;
+  onRetryLogin?: () => void;
+}) {
+  const authErrorMessage = oauthErrorMessage ?? (error ? 'Não foi possível validar a sessão. Tente entrar novamente.' : null);
+
   return (
     <main className='rac-login fixed inset-0 bg-[#eaf1f7] text-[#123d72]'>
       <div className='rac-login__shell'>
@@ -172,8 +204,14 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
             <ArrowRight aria-hidden='true'/>
           </button>
 
-          {error ? (
-            <p role='alert' className='rac-login__auth-error'>Não foi possível validar a sessão. Tente entrar novamente.</p>
+          {authErrorMessage ? (
+            <div role='alert' className='rac-login__auth-error'>
+              <div className='rac-login__auth-error-copy'>
+                <AlertCircle aria-hidden='true'/>
+                <span>{authErrorMessage}</span>
+              </div>
+              {onRetryLogin ? <button type='button' className='rac-login__auth-retry' onClick={onRetryLogin}>Tentar novamente</button> : null}
+            </div>
           ) : null}
         </LandingRevealSection>
 

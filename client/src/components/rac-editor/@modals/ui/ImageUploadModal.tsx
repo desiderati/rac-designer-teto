@@ -2,9 +2,9 @@ import {ChangeEvent, DragEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUpload} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
-import {Progress} from '@/components/ui/progress.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {
@@ -30,31 +30,23 @@ export function ImageUploadModal({
 }: ImageUploadModalProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
+  const [reviewFile, setReviewFile] = useState<File | null>(null);
   const storageImageUpload = useStorageImageUpload();
-  const uploadProgress = storageImageUpload.progress;
 
   useEffect(() => {
     if (!isOpen) {
       setIsDragging(false);
-      setIsUploading(false);
       setErrorMessage('');
-      setPreserveOriginalQuality(false);
+      setReviewFile(null);
       if (inputRef.current) inputRef.current.value = '';
     }
   }, [isOpen]);
 
-  const requestClose = () => {
-    if (isUploading) return;
-    onOpenChange(false);
-  };
-
   const processFile = async (file: File | null | undefined) => {
-    if (!file || isUploading) return;
+    if (!file || reviewFile) return;
 
-    const validationMessage = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
+    const validationMessage = await validatePhotoFile(file, {allowCompression: true});
     if (validationMessage) {
       setErrorMessage(validationMessage);
       if (inputRef.current) inputRef.current.value = '';
@@ -62,22 +54,22 @@ export function ImageUploadModal({
     }
 
     setErrorMessage('');
-    setIsUploading(true);
+    setReviewFile(file);
+    if (inputRef.current) inputRef.current.value = '';
+  };
 
+  const confirmImage = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
     try {
-      const imageUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality});
+      const imageUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
       const inserted = await onInsertImage(imageUrl);
-      if (inserted) {
-        onOpenChange(false);
-        return;
+      if (!inserted) {
+        throw new Error('Não foi possível inserir a imagem no Canvas. Abra o Canvas e tente novamente.');
       }
-      setErrorMessage('Não foi possível inserir a imagem no canvas. Tente novamente.');
+      setReviewFile(null);
+      onOpenChange(false);
     } catch (error) {
-      console.error('[ImageUploadModal] Falha ao enviar imagem:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível enviar a imagem ao Storage. Tente outra imagem.');
-    } finally {
-      setIsUploading(false);
-      if (inputRef.current) inputRef.current.value = '';
+      console.error('[ImageUploadModal] Falha ao enviar ou inserir imagem:', error);
+      throw error instanceof Error ? error : new Error('Não foi possível enviar a imagem ao Storage. Tente outra imagem.');
     }
   };
 
@@ -95,13 +87,18 @@ export function ImageUploadModal({
   const handleDragOver = (event: DragEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!isUploading) setIsDragging(true);
+    if (!reviewFile) setIsDragging(true);
   };
 
   const handleDragLeave = (event: DragEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
+  };
+
+  const requestClose = () => {
+    setReviewFile(null);
+    onOpenChange(false);
   };
 
   const body = (
@@ -113,67 +110,25 @@ export function ImageUploadModal({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        disabled={isUploading}
+        disabled={Boolean(reviewFile)}
         aria-describedby='image-upload-modal-description image-upload-modal-hint'
         className={cn(
           'group flex min-h-[220px] w-full flex-col items-center justify-center gap-4 rounded-2xl',
           'border border-dashed bg-slate-50/80 px-6 py-8 text-center transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
           isDragging ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-slate-300 text-slate-900',
-          !isUploading && 'hover:border-blue-300 hover:bg-blue-50/70',
-          isUploading && 'cursor-wait opacity-75',
+          !reviewFile && 'hover:border-blue-300 hover:bg-blue-50/70',
         )}
       >
-        <span
-          className={cn(
-            'flex h-16 w-16 items-center justify-center rounded-2xl border transition-colors',
-            isDragging ? 'border-blue-200 bg-white text-blue-600' : 'border-slate-200 bg-white text-slate-700',
-          )}
-          aria-hidden
-        >
+        <span className='flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700' aria-hidden>
           <FontAwesomeIcon icon={faUpload} className='text-2xl'/>
         </span>
-
         <span className='space-y-2'>
-          <span className='block text-base font-bold uppercase tracking-[0.08em]'>
-            {isUploading ? 'Inserindo imagem' : 'Upload de imagem'}
-          </span>
-          <span id='image-upload-modal-description' className='block text-sm text-slate-600'>
-            Arraste uma imagem ou clique para selecionar
-          </span>
-          <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>
-            {ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_UPLOAD_LIMIT_LABEL}
-          </span>
+          <span className='block text-base font-bold uppercase tracking-[0.08em]'>Upload de imagem</span>
+          <span id='image-upload-modal-description' className='block text-sm text-slate-600'>Arraste uma imagem ou clique para selecionar</span>
+          <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>{ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_UPLOAD_LIMIT_LABEL}</span>
         </span>
       </button>
-
-      <label className='flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-600'>
-        <input
-          type='checkbox'
-          checked={preserveOriginalQuality}
-          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
-          disabled={isUploading}
-          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
-        />
-        <span>
-          <span className='block font-semibold text-slate-800'>Manter qualidade original</span>
-          <span className='block text-[11px] text-slate-500'>Não comprimir imagens acima de 4 MB. Arquivos acima de 7,5 MB ainda serão recusados.</span>
-        </span>
-      </label>
-
-      {isUploading ? (
-        <div className='space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-3' aria-live='polite'>
-          <div className='flex items-center justify-between gap-3 text-xs font-semibold text-blue-800'>
-            <span>{uploadProgress?.phase === 'compressing' ? 'Otimizando imagem…' : uploadProgress?.phase === 'reading' ? 'Preparando imagem…' : uploadProgress?.phase === 'complete' ? 'Imagem pronta' : 'Enviando para o Storage…'}</span>
-            <span>{uploadProgress?.percent ?? 0}%</span>
-          </div>
-          <Progress value={uploadProgress?.percent ?? 8} className='h-2 bg-blue-100' />
-          <p className='truncate text-[11px] text-blue-700/80'>
-            {uploadProgress?.fileName ?? 'Processando arquivo'}
-            {uploadProgress?.reductionPercent !== undefined ? ` · ${uploadProgress.preservedOriginalQuality ? 'Qualidade original' : `Redução: ${formatReduction(uploadProgress.reductionPercent)}`}` : ''}
-          </p>
-        </div>
-      ) : null}
 
       <input
         ref={inputRef}
@@ -184,57 +139,49 @@ export function ImageUploadModal({
         onChange={handleFileChange}
       />
 
-      {errorMessage && (
-        <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>
-          {errorMessage}
-        </p>
-      )}
+      {errorMessage ? (
+        <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>{errorMessage}</p>
+      ) : null}
 
-      <Button
-        type='button'
-        variant='outline'
-        className='w-full bg-white'
-        disabled={isUploading}
-        onClick={requestClose}
-      >
+      <Button type='button' variant='outline' className='w-full bg-white' onClick={requestClose} disabled={Boolean(reviewFile)}>
         Cancelar
       </Button>
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={(open) => !open && requestClose()}>
-        <DrawerContent>
-          <DrawerHeader className='text-center pb-2'>
-            <DrawerTitle className='text-center text-2xl'>Inserir imagem</DrawerTitle>
-            <DrawerDescription>
-              Envie uma imagem para posicioná-la no canvas.
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className='px-4 pb-4'>
-            {body}
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && requestClose()}>
-      <DialogContent className='sm:max-w-lg' hideCloseButton>
-        <DialogHeader className='text-center'>
-          <DialogTitle className='text-center text-2xl'>Inserir imagem</DialogTitle>
-          <DialogDescription>
-            Envie uma imagem para posicioná-la no canvas.
-          </DialogDescription>
-        </DialogHeader>
-        {body}
-      </DialogContent>
-    </Dialog>
-  );
-}
+    <>
+      {isMobile ? (
+        <Drawer open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
+          <DrawerContent>
+            <DrawerHeader className='pb-2 text-center'>
+              <DrawerTitle className='text-center text-2xl'>Inserir imagem</DrawerTitle>
+              <DrawerDescription>Envie uma imagem para posicioná-la no Canvas.</DrawerDescription>
+            </DrawerHeader>
+            <div className='px-4 pb-4'>{body}</div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
+          <DialogContent className='sm:max-w-lg' hideCloseButton>
+            <DialogHeader className='text-center'>
+              <DialogTitle className='text-center text-2xl'>Inserir imagem</DialogTitle>
+              <DialogDescription>Envie uma imagem para posicioná-la no Canvas.</DialogDescription>
+            </DialogHeader>
+            {body}
+          </DialogContent>
+        </Dialog>
+      )}
 
-function formatReduction(percent: number): string {
-  return `${percent.toFixed(1).replace('.', ',')}%`;
+      <ImageUploadReview
+        file={reviewFile}
+        isOpen={isOpen && reviewFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setReviewFile(null);
+        }}
+        onConfirm={confirmImage}
+        title='Revisar imagem para o Canvas'
+      />
+    </>
+  );
 }
