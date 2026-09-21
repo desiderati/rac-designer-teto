@@ -415,7 +415,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByRole('button', {name: 'Voltar à lista'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar Casas'})).not.toBeInTheDocument();
     expect(screen.getByTestId('construction-photo-field')).toBeVisible();
-    expect(screen.getByTestId('construction-form-grid').className).toContain('md:grid-cols-2');
+    expect(screen.getByTestId('construction-form-grid').className).toContain('space-y-5');
+    expect(screen.getByTestId('construction-fields-row').className).toContain('md:grid-cols-3');
+    expect(screen.getByTestId('construction-photo-field').compareDocumentPosition(screen.getByTestId('construction-fields-row')) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
     expect(screen.getByLabelText('Data da Construção')).toBeVisible();
   });
 
@@ -1214,7 +1217,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'sm:static');
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família com alteração'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
-    expect(screen.getByTestId('field-dirty-indicator')).toHaveAttribute('aria-label', 'Campo alterado: Nome da Família');
+    expect(screen.getByTestId('field-dirty-indicator')).toHaveAttribute('title', 'Campo alterado: Nome da Família');
     expect(screen.getByTestId('family-photo-field').className).toContain('w-full');
     expect(within(screen.getByTestId('family-photo-field'))
       .getByRole('button', {name: 'Foto da Família'})).toHaveClass('h-36');

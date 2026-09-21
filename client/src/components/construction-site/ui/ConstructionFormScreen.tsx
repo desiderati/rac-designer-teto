@@ -93,7 +93,7 @@ export function ConstructionFormScreen({
 
   return (
     <form data-testid='construction-form' className='w-full space-y-6' onSubmit={submitForm} noValidate>
-      <div data-testid='construction-form-grid' className='grid gap-5 md:grid-cols-2 md:items-stretch'>
+      <div data-testid='construction-form-grid' className='space-y-5'>
         <Controller
           control={form.control}
           name='photoDataUrl'
@@ -103,12 +103,13 @@ export function ConstructionFormScreen({
               testId='construction-photo-field'
               value={field.value ?? ''}
               onChange={field.onChange}
-              dropZoneClassName='h-56'
+              dropZoneClassName='h-56 w-full'
+              loadedDropZoneClassName='h-56 w-full'
               disabled={readOnly}
             />
           )}
         />
-        <div className='grid gap-4'>
+        <div data-testid='construction-fields-row' className='grid gap-4 md:grid-cols-3 md:items-start'>
           <Controller
             control={form.control}
             name='externalCode'

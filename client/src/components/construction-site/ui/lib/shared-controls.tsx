@@ -953,7 +953,7 @@ function DirtyFieldMarker({label, dirty}: { label: string; dirty: boolean }) {
     <span
       data-testid='field-dirty-indicator'
       title={`Campo alterado: ${label}`}
-      aria-label={`Campo alterado: ${label}`}
+      aria-hidden='true'
       className='inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-50'
     />
   );
