@@ -24,13 +24,13 @@ describe('photo-data-url.ts', () => {
       .resolves.toBe(PHOTO_UPLOAD_ERROR_MESSAGE);
   });
 
-  it('aceita fotos ate 5 MB e rejeita arquivos acima do limite', async () => {
-    const fiveMbPayload = new Uint8Array(5 * 1024 * 1024);
-    fiveMbPayload.set(PNG_SIGNATURE);
-    const aboveLimitPayload = new Uint8Array((5 * 1024 * 1024) + 1);
+  it('aceita fotos ate 7,5 MB e rejeita arquivos acima do limite', async () => {
+    const sevenPointFiveMbPayload = new Uint8Array(7.5 * 1024 * 1024);
+    sevenPointFiveMbPayload.set(PNG_SIGNATURE);
+    const aboveLimitPayload = new Uint8Array((7.5 * 1024 * 1024) + 1);
     aboveLimitPayload.set(PNG_SIGNATURE);
 
-    await expect(validatePhotoFile(new File([fiveMbPayload], 'limite.png', {type: 'image/png'})))
+    await expect(validatePhotoFile(new File([sevenPointFiveMbPayload], 'limite.png', {type: 'image/png'})))
       .resolves.toBeNull();
     await expect(validatePhotoFile(new File([aboveLimitPayload], 'acima.png', {type: 'image/png'})))
       .resolves.toBe(PHOTO_UPLOAD_ERROR_MESSAGE);

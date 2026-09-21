@@ -1,13 +1,13 @@
 const ALLOWED_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
 const MANUS_STORAGE_URL_PATTERN = /^\/manus-storage\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
-const MAX_PHOTO_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_PHOTO_UPLOAD_BYTES = 7.5 * 1024 * 1024;
 const MAX_PHOTO_DATA_URL_LENGTH = Math.ceil(MAX_PHOTO_UPLOAD_BYTES * 4 / 3) + 64;
 
 type AllowedPhotoMimeType = typeof ALLOWED_PHOTO_MIME_TYPES[number];
 
 export const PHOTO_UPLOAD_ACCEPT = ALLOWED_PHOTO_MIME_TYPES.join(',');
-export const PHOTO_UPLOAD_LIMIT_LABEL = '5 MB';
+export const PHOTO_UPLOAD_LIMIT_LABEL = '7,5 MB';
 export const PHOTO_UPLOAD_ERROR_MESSAGE = `Use PNG, JPG ou WEBP com até ${PHOTO_UPLOAD_LIMIT_LABEL}.`;
 
 export function isSupportedPhotoDataUrl(value: unknown): value is string {

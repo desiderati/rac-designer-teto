@@ -18,7 +18,8 @@ import { storagePut } from './storage.ts';
 import { removeLightBackgroundFromPng } from './image-transparency.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 7.5 * 1024 * 1024;
+const MAX_IMAGE_BASE64_LENGTH = Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 64;
 const ALLOWED_IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 /**
  * O documento completo é um contrato de domínio serializável. A fronteira de
@@ -35,7 +36,7 @@ const CONSTRUCTION_SITE_STATE_INPUT = z.custom<ConstructionSiteState>((value) =>
 const IMAGE_UPLOAD_INPUT = z.object({
   fileName: z.string().trim().min(1).max(160),
   mimeType: z.enum(ALLOWED_IMAGE_MIME_TYPES),
-  base64: z.string().min(4),
+  base64: z.string().min(4).max(MAX_IMAGE_BASE64_LENGTH),
   constructionSiteId: z.string().trim().min(1).max(128).optional(),
 });
 
@@ -112,7 +113,7 @@ export const appRouter = router({
 
     describeImage: protectedProcedure
       .input(z.object({
-        base64: z.string().min(4).max(7 * 1024 * 1024),
+        base64: z.string().min(4).max(MAX_IMAGE_BASE64_LENGTH),
         mimeType: z.enum(ALLOWED_IMAGE_MIME_TYPES),
       }))
       .mutation(async ({input}) => {
@@ -161,7 +162,7 @@ export const appRouter = router({
     saveTemporaryHouseImage: protectedProcedure
       .input(z.object({
         fileName: z.string().trim().min(1).max(96),
-        base64: z.string().min(4).max(7 * 1024 * 1024),
+        base64: z.string().min(4).max(MAX_IMAGE_BASE64_LENGTH),
       }))
       .mutation(async ({ input }) => {
         const bytes = decodeBase64Image(input.base64, 'image/png');
@@ -182,7 +183,7 @@ export const appRouter = router({
 
     generateHouseIllustration: protectedProcedure
       .input(z.object({
-        base64: z.string().min(32).max(7 * 1024 * 1024),
+        base64: z.string().min(32).max(MAX_IMAGE_BASE64_LENGTH),
       }))
       .mutation(async ({ input }) => {
         const pngBytes = decodeBase64Image(input.base64, 'image/png');
@@ -268,7 +269,7 @@ function decodeBase64Image(base64: string, mimeType: typeof ALLOWED_IMAGE_MIME_T
 
   const bytes = Buffer.from(normalized, 'base64');
   if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) {
-    throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Use uma imagem de até 5 MB.' });
+    throw new TRPCError({ code: 'PAYLOAD_TOO_LARGE', message: 'Use uma imagem de até 7,5 MB.' });
   }
 
   if (!hasImageSignature(bytes, mimeType)) {

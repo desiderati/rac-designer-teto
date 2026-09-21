@@ -23,7 +23,8 @@ test.describe('Landing pré-login responsiva', () => {
       const screenshot = document.querySelector<HTMLElement>('.rac-login__editor-wrap');
       const callouts = document.querySelector<HTMLElement>('.rac-login__callouts');
       const house = document.querySelector<HTMLElement>('.rac-login__house');
-      if (!login || !shell || sections.some((section) => !section) || !screenshot || !callouts || !house) {
+      const benefits = document.querySelector<HTMLElement>('.rac-login__benefits');
+      if (!login || !shell || sections.some((section) => !section) || !screenshot || !callouts || !house || !benefits) {
         throw new Error('Landing incompleta.');
       }
 
@@ -32,6 +33,7 @@ test.describe('Landing pré-login responsiva', () => {
       const screenshotBox = screenshot.getBoundingClientRect();
       const calloutsBox = callouts.getBoundingClientRect();
       const houseBox = house.getBoundingClientRect();
+      const benefitsBox = benefits.getBoundingClientRect();
       const calloutCards = Array.from(callouts.children).map((card) => card.getBoundingClientRect().height);
 
       return {
@@ -44,6 +46,7 @@ test.describe('Landing pré-login responsiva', () => {
         calloutsBelowScreenshot: calloutsBox.top >= screenshotBox.bottom - 1,
         cardsSameHeight: Math.max(...calloutCards) - Math.min(...calloutCards) < 1,
         houseHasArea: houseBox.width > 0 && houseBox.height > 0,
+        benefitsAfterHouse: benefitsBox.top >= houseBox.bottom - 1,
       };
     }, sectionSelectors);
 
@@ -57,6 +60,7 @@ test.describe('Landing pré-login responsiva', () => {
       calloutsBelowScreenshot: true,
       cardsSameHeight: true,
       houseHasArea: true,
+      benefitsAfterHouse: true,
     });
 
     const screenshotSpacing = await page.evaluate(() => {
@@ -73,8 +77,18 @@ test.describe('Landing pré-login responsiva', () => {
       };
     });
 
-    expect(screenshotSpacing.before).toBeGreaterThan(90);
-    expect(screenshotSpacing.after).toBeGreaterThan(85);
+    expect(screenshotSpacing.before).toBeGreaterThan(55);
+    expect(screenshotSpacing.after).toBeGreaterThan(60);
+
+    const screenshotScale = await page.evaluate(() => {
+      const shell = document.querySelector<HTMLElement>('.rac-login__shell');
+      const screenshot = document.querySelector<HTMLElement>('.rac-login__editor-wrap');
+      if (!shell || !screenshot) throw new Error('Escala do screenshot ausente.');
+      return screenshot.offsetWidth / shell.clientWidth;
+    });
+
+    expect(screenshotScale).toBeGreaterThan(0.74);
+    expect(screenshotScale).toBeLessThan(0.79);
   });
 
   test('ativa rolagem somente quando o conteúdo excede a viewport', async ({page}) => {

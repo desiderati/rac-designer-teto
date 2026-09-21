@@ -154,6 +154,8 @@ All colors MUST be HSL.
    served from Manus Storage so the repository does not carry large binaries. */
 .rac-login {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    min-width: 320px;
+    min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
     scrollbar-gutter: stable;
@@ -395,14 +397,15 @@ All colors MUST be HSL.
     width: 100%;
     min-width: 0;
     flex-direction: column;
-    gap: clamp(4.5rem, 9vw, 6.75rem);
-    margin-top: clamp(4.5rem, 10.5vw, 7.2rem);
+    gap: clamp(3rem, 6vw, 4.5rem);
+    margin-top: clamp(3rem, 7vw, 5rem);
     box-sizing: border-box;
 }
 
 .rac-login__editor-wrap {
     position: relative;
-    width: calc(100% - clamp(0.5rem, 2vw, 1.25rem));
+    width: 80%;
+    max-width: 680px;
     min-width: 0;
     margin: 0 auto;
     transform: rotate(-2deg);
@@ -597,10 +600,11 @@ All colors MUST be HSL.
     .rac-login__callouts > div { min-height: 3.85rem; padding: 0.7rem 0.8rem; }
     .rac-login__callouts p { font-size: 0.92rem; }
     .rac-login__visual {
-        gap: 4.05rem;
-        margin-top: 4.5rem;
+        gap: 2.5rem;
+        margin-top: 3rem;
     }
-    .rac-login__impact { margin-top: 3.5rem; }
+    .rac-login__editor-wrap { width: 92%; }
+    .rac-login__impact { margin-top: 2.25rem; }
     .rac-login__house-stage { margin-top: 2.25rem; }
     .rac-login__house-caption { font-size: clamp(1.45rem, 7vw, 2rem); }
     .rac-login__impact-detail { margin-top: 0.9rem; font-size: 1rem; }
