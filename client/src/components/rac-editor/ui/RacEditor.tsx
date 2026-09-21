@@ -341,7 +341,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
       {editorOpen && constructionSiteManagement.canOpenRacEditor ? (
         <RacEditorContent onExit={onLogout}/>
       ) : (
-        <div className='relative h-full min-h-[480px] min-w-[420px] overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
+        <div className='relative h-full min-h-[480px] min-w-0 w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel
             {...constructionSiteManagement}
             onBackToCanvas={openRacEditor}

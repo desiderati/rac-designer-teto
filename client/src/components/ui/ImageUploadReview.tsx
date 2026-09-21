@@ -99,12 +99,16 @@ export function ImageUploadReview({
     setConfirmError(null);
     setIsConfirming(true);
     try {
-      await onConfirm({
+      const confirmation = onConfirm({
         file: selectedFile,
         preparedFile: effectivePreparedFile,
         preserveOriginalQuality,
       });
+      // A preparação já terminou; o envio ao Storage pode continuar enquanto
+      // o usuário retoma o fluxo principal. O feedback de progresso permanece
+      // nos campos/Toasts dos consumidores.
       onOpenChange(false);
+      await confirmation;
     } catch (error: unknown) {
       setConfirmError(error instanceof Error ? error.message : 'Não foi possível enviar a imagem. Tente novamente.');
     } finally {

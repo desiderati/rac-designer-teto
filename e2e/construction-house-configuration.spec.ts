@@ -78,7 +78,7 @@ test.describe('Configuração da casa', () => {
 async function openHouseConfiguration(page: Page) {
   await page.getByRole('button', {name: 'Abrir menu principal'}).click();
   await page.getByRole('button', {name: 'Construções TETO'}).click();
-  await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+  await page.getByRole('row', {name: /CC2603.*Andamento/i})
     .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
     .click();
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i}).click();
@@ -88,7 +88,7 @@ async function openHouseConfiguration(page: Page) {
 async function openHouseExtraMaterials(page: Page) {
   await page.getByRole('button', {name: 'Abrir menu principal'}).click();
   await page.getByRole('button', {name: 'Construções TETO'}).click();
-  await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+  await page.getByRole('row', {name: /CC2603.*Andamento/i})
     .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
     .click();
   await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})

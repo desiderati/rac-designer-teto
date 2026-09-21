@@ -47,7 +47,7 @@ test.describe('Dificuldade da casa', () => {
 
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
-    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+    await page.getByRole('row', {name: /CC2603.*Andamento/i})
       .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
       .click();
 

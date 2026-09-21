@@ -317,7 +317,7 @@ export function ConstructionSiteManagementPanel({
   return (
     <main
       data-testid='construction-management-shell'
-      className='h-full min-h-[480px] min-w-[420px] overflow-x-hidden overflow-y-auto px-0 py-0 sm:overflow-x-auto sm:px-6 sm:py-10 lg:px-10'
+      className='h-full min-h-[480px] min-w-0 w-full overflow-x-hidden overflow-y-auto px-0 py-0 sm:overflow-x-auto sm:px-6 sm:py-10 lg:px-10'
       style={GRIDDED_WORKSPACE_STYLE}
     >
       <div

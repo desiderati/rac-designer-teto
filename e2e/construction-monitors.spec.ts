@@ -21,7 +21,7 @@ test.describe('Gerenciamento de monitores', () => {
     await expect(page.getByRole('button', {name: 'Construções TETO'})).toBeVisible();
     await expect(page.getByRole('button', {name: 'Monitores'})).toHaveCount(0);
     await page.getByRole('button', {name: 'Construções TETO'}).click();
-    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+    await page.getByRole('row', {name: /CC2603.*Andamento/i})
       .getByRole('button', {name: 'Gerenciar monitores da construção CC2603'})
       .click();
 
@@ -33,7 +33,7 @@ test.describe('Gerenciamento de monitores', () => {
   test('alinha foto e salvar monitor ao rodapé do resumo da construção', async ({page}) => {
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
-    await page.getByRole('row', {name: /CC2603.*Em andamento/i})
+    await page.getByRole('row', {name: /CC2603.*Andamento/i})
       .getByRole('button', {name: 'Gerenciar monitores da construção CC2603'})
       .click();
     await page.getByRole('button', {name: '+ Adicionar Monitor'}).click();

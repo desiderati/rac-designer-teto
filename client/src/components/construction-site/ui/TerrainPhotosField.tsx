@@ -82,6 +82,7 @@ export function TerrainPhotosField({
     const photoIdToReplace = reviewFile?.photoIdToReplace ?? null;
     if (disabled || (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS)) return;
 
+    setReviewFile(null);
     const uploadToastId = `terrain-upload-${Date.now()}`;
     toast.loading('Enviando foto do terreno…', {id: uploadToastId});
     setIsPreparingPhoto(true);

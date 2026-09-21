@@ -516,12 +516,12 @@ export function HouseConfigurationScreen({
             <div data-testid='static-map-wrapper' className='md:col-span-2'>
               <StaticMapPreview locationQuery={locationQuery}/>
             </div>
-            <div data-testid='site-actions-grid' className='grid gap-4 md:col-span-2 md:grid-cols-2'>
-              <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
-            </div>
           </div>
         </HouseFormSection>
       </Accordion>
+      <div data-testid='site-actions-grid' className='grid gap-4 md:grid-cols-2'>
+        <PrimaryButton type='submit' disabled={isReadOnly} className='w-full md:col-start-2'>Salvar Configurações</PrimaryButton>
+      </div>
     </form>
   );
 }
@@ -583,7 +583,7 @@ export function HouseFormSection({
 }) {
   return (
     <section className='space-y-0'>
-      <AccordionItem value={`section-${number}`} className='rounded-2xl border border-slate-200 bg-white px-4 shadow-sm'>
+      <AccordionItem value={`section-${number}`} className='!border-0 bg-transparent px-0 shadow-none'>
         <AccordionTrigger aria-label={`Alternar seção ${title}`} className='gap-3 py-3 hover:no-underline'>
           <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>
             {number}

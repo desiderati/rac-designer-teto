@@ -580,7 +580,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(constructionPhotoDropZone).toHaveAttribute('data-photo-orientation', 'portrait');
     expect(screen.getByRole('button', {name: 'Remover Foto da Construção'})).toBeVisible();
     expect(within(screen.getByTestId('construction-photo-field'))
-      .queryByText('Clique para fazer upload ou arraste uma foto')).not.toBeInTheDocument();
+      .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
     expect(screen.queryByRole('button', {name: 'Ativar construção'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Arquivar construção'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar Casas'})).not.toBeInTheDocument();
@@ -1207,7 +1207,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:col-span-2', 'md:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
       .toHaveClass('w-full', 'md:col-start-2');
@@ -1478,7 +1479,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByAltText('Foto da Família').className).not.toContain('min-h');
     expect(screen.getByRole('button', {name: 'Remover Foto da Família'})).toBeVisible();
     expect(within(screen.getByTestId('family-photo-field'))
-      .queryByText('Clique para fazer upload ou arraste uma foto')).not.toBeInTheDocument();
+      .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
     expect(screen.queryByLabelText('Tipo da casa')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Atualizada'}});

@@ -4,6 +4,7 @@ import {faUpload} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {toast} from '@/components/ui/sonner.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
@@ -32,6 +33,7 @@ export function ImageUploadModal({
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [reviewFile, setReviewFile] = useState<File | null>(null);
+  const reviewConfirmStartedRef = useRef(false);
   const storageImageUpload = useStorageImageUpload();
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export function ImageUploadModal({
       setIsDragging(false);
       setErrorMessage('');
       setReviewFile(null);
+      reviewConfirmStartedRef.current = false;
       if (inputRef.current) inputRef.current.value = '';
     }
   }, [isOpen]);
@@ -54,22 +57,26 @@ export function ImageUploadModal({
     }
 
     setErrorMessage('');
+    reviewConfirmStartedRef.current = false;
     setReviewFile(file);
     if (inputRef.current) inputRef.current.value = '';
   };
 
   const confirmImage = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
+    reviewConfirmStartedRef.current = true;
+    const uploadToastId = `canvas-upload-${Date.now()}`;
+    toast.loading('Enviando imagem em segundo plano…', {id: uploadToastId});
     try {
       const imageUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
       const inserted = await onInsertImage(imageUrl);
       if (!inserted) {
         throw new Error('Não foi possível inserir a imagem no Canvas. Abra o Canvas e tente novamente.');
       }
-      setReviewFile(null);
-      onOpenChange(false);
+      toast.success('Imagem enviada e inserida no Canvas.', {id: uploadToastId});
     } catch (error) {
       console.error('[ImageUploadModal] Falha ao enviar ou inserir imagem:', error);
-      throw error instanceof Error ? error : new Error('Não foi possível enviar a imagem ao Storage. Tente outra imagem.');
+      const message = error instanceof Error ? error.message : 'Não foi possível enviar a imagem ao Storage. Tente outra imagem.';
+      toast.error(message, {id: uploadToastId});
     }
   };
 
@@ -97,6 +104,7 @@ export function ImageUploadModal({
   };
 
   const requestClose = () => {
+    reviewConfirmStartedRef.current = false;
     setReviewFile(null);
     onOpenChange(false);
   };
@@ -177,7 +185,12 @@ export function ImageUploadModal({
         file={reviewFile}
         isOpen={isOpen && reviewFile !== null}
         onOpenChange={(open) => {
-          if (!open) setReviewFile(null);
+          if (!open) {
+            const confirmStarted = reviewConfirmStartedRef.current;
+            reviewConfirmStartedRef.current = false;
+            setReviewFile(null);
+            if (confirmStarted) onOpenChange(false);
+          }
         }}
         onConfirm={confirmImage}
         title='Revisar imagem para o Canvas'

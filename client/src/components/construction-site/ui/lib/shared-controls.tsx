@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
+import {toast} from '@/components/ui/sonner.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {getPhotoOrientation, type PhotoOrientation} from '@/components/construction-site/lib/photo-orientation.ts';
 import {parseMapCoordinates} from '@/components/construction-site/lib/construction-site-form-validation.ts';
@@ -187,13 +188,16 @@ export function PhotoUploadField({
   };
 
   const confirmPhotoUpload = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
+    setReviewFile(null);
     try {
       const photoUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
       setUploadError(null);
       onChange(photoUrl);
     } catch (error) {
       console.error('[PhotoUploadField] Falha ao enviar foto:', error);
-      throw error instanceof Error ? error : new Error('Não foi possível enviar a foto. Tente novamente.');
+      const message = error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.';
+      setUploadError(message);
+      toast.error(message);
     }
   };
 
@@ -273,6 +277,9 @@ export function PhotoUploadField({
             >
               <X className='h-4 w-4'/>
             </button>
+            <span className='absolute bottom-3 left-1/2 z-10 max-w-[calc(100%-1.5rem)] -translate-x-1/2 rounded-full bg-white/85 px-3 py-1.5 text-center text-xs font-semibold normal-case tracking-normal text-slate-700 shadow-sm backdrop-blur-sm'>
+              Clique para fazer upload ou arraste uma foto
+            </span>
           </>
         ) : (
           <>
