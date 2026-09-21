@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {CreateMonitorInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -22,6 +22,7 @@ import {
   toMonitorInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
+import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
 import {HouseConfigurationSidebar} from './HouseConfigurationScreen.tsx';
 
 export function MonitorFormScreen({
@@ -45,10 +46,18 @@ export function MonitorFormScreen({
     reValidateMode: 'onChange',
     defaultValues: getMonitorInitialState(monitor),
   });
+  const [openSections, setOpenSections] = useState(['monitor-data']);
+  const {errors, dirtyFields, submitCount} = form.formState;
+  const hasSectionError = Boolean(errors.name || errors.phone || errors.email || errors.photoDataUrl);
+  const hasSectionChanges = Boolean(dirtyFields.name || dirtyFields.phone || dirtyFields.email || dirtyFields.photoDataUrl);
 
   useEffect(() => {
     form.reset(getMonitorInitialState(monitor));
   }, [form, monitor]);
+  useEffect(() => {
+    if (!submitCount || !hasSectionError) return;
+    setOpenSections((current) => current.includes('monitor-data') ? current : [...current, 'monitor-data']);
+  }, [hasSectionError, submitCount]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
@@ -72,11 +81,10 @@ export function MonitorFormScreen({
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
 
       <div className='h-full'>
-        <Accordion type='multiple' defaultValue={['monitor-data']} className='space-y-2'>
+        <Accordion type='multiple' value={openSections} onValueChange={setOpenSections} className='space-y-2'>
           <AccordionItem value='monitor-data' className='!border-0 bg-transparent px-0 shadow-none'>
             <AccordionTrigger aria-label='Alternar seção Dados do Monitor' className='gap-3 py-3 hover:no-underline'>
-              <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>01</span>
-              <span role='heading' aria-level={2} className='min-w-0 flex-1 text-left text-base font-semibold text-slate-950'>Dados do Monitor</span>
+              <FormSectionHeader number='01' title='Dados do Monitor' dirty={hasSectionChanges}/>
             </AccordionTrigger>
             <AccordionContent>
               <div
@@ -159,7 +167,7 @@ export function MonitorFormScreen({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <div data-testid='monitor-actions-grid' className='mt-4 grid gap-4 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
+        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
           <PrimaryButton type='submit' className='w-full md:col-start-2' disabled={readOnly || isSubmitting}>
             {submitLabel}
           </PrimaryButton>

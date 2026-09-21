@@ -1025,6 +1025,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-fields-stack')).toHaveClass('flex', 'flex-col', 'gap-5');
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
       .toHaveClass('w-full', 'md:col-start-2');
     expect(within(screen.getByTestId('monitor-fields-column')).queryByRole('button', {name: 'Cadastrar Monitor'}))
@@ -1032,9 +1033,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
       .toHaveClass('flex-1', 'min-h-[16rem]');
 
+    await user.click(screen.getByRole('button', {name: 'Alternar seção Dados do Monitor'}));
+    expect(screen.queryByLabelText('Nome do Monitor')).not.toBeInTheDocument();
     await submitForm('monitor-form');
 
     expect(actions.createMonitor).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Nome do Monitor')).toBeVisible();
     expect(screen.getByText('Informe o nome do monitor.')).toBeVisible();
     expect(screen.getByText('Informe 11 dígitos com DDD.')).toBeVisible();
 
@@ -1043,6 +1047,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('E-mail'), {target: {value: 'email inválido'}});
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
+    await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
 
     await submitForm('monitor-form');
 
@@ -1169,6 +1174,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByRole('button', {name: 'Voltar às casas'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Duplicar'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Arquivar'})).not.toBeInTheDocument();
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'sm:static');
+    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família com alteração'}});
+    await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
     expect(screen.getByTestId('family-photo-field').className).toContain('w-full');
     expect(within(screen.getByTestId('family-photo-field'))
       .getByRole('button', {name: 'Foto da Família'})).toHaveClass('h-36');
@@ -1240,9 +1248,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Líderes')).toHaveAttribute('maxlength', '50');
     expect(screen.getByLabelText('Notas')).toHaveAttribute('maxlength', '300');
 
+    await user.click(screen.getByRole('button', {name: 'Alternar seção Detalhes da Família'}));
+    expect(screen.queryByLabelText('Nome da Família')).not.toBeInTheDocument();
     await submitForm('house-configuration-form');
 
     expect(actions.createHouse).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Nome da Família')).toBeVisible();
     expect(screen.getByText('Informe o nome da família.')).toBeVisible();
     expect(screen.getByText('Informe o contato principal.')).toBeVisible();
 
@@ -1520,6 +1531,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
     expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveAttribute('data-state', 'open');
+    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('sticky', 'sm:static');
     expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
     expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();
     expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();
@@ -1535,6 +1547,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
     fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});
+    await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
     expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
     expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
     fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {

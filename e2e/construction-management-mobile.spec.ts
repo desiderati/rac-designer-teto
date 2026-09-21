@@ -55,10 +55,17 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     await expect(page.getByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
     await expectMobileFormToFit(page, 'construction-management-shell', '[data-testid="house-configuration-form"]');
+    await expect(page.getByTestId('site-actions-grid')).toHaveClass(/sticky/);
+
+    await page.getByRole('button', {name: 'Alternar seção Detalhes da Família'}).click();
+    await expect(page.getByLabel('Nome da Família')).toBeHidden();
+    await page.getByRole('button', {name: 'Salvar Configurações'}).click();
+    await expect(page.getByLabel('Nome da Família')).toBeVisible();
 
     await page.getByLabel('Nome da Família').fill('Família Mobile Nova');
     await page.getByLabel('Contato Principal').fill('Maria Mobile');
     await page.getByLabel('Telefone').fill('41999990000');
+    await expect(page.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas');
     await page.getByRole('button', {name: 'Salvar Configurações'}).click();
 
     await expect(page.getByTestId('house-mobile-list')).toBeVisible();
@@ -92,9 +99,16 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     await expect(page.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
     await expectMobileFormToFit(page, 'construction-management-shell', '[data-testid="monitor-form"]');
+    await expect(page.getByTestId('monitor-actions-grid')).toHaveClass(/sticky/);
+
+    await page.getByRole('button', {name: 'Alternar seção Dados do Monitor'}).click();
+    await expect(page.getByLabel('Nome do Monitor')).toBeHidden();
+    await page.getByRole('button', {name: 'Cadastrar Monitor'}).click();
+    await expect(page.getByLabel('Nome do Monitor')).toBeVisible();
 
     await page.getByLabel('Nome do Monitor').fill('Monitor Mobile Novo');
     await page.getByLabel('Telefone').fill('41999990001');
+    await expect(page.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas');
     await page.getByRole('button', {name: 'Cadastrar Monitor'}).click();
 
     await expect(page.getByTestId('monitor-mobile-list')).toBeVisible();
