@@ -150,6 +150,7 @@ export function PhotoUploadField({
   label,
   value,
   onChange,
+  dirty = false,
   testId = 'family-photo-field',
   className,
   dropZoneClassName,
@@ -159,6 +160,7 @@ export function PhotoUploadField({
   label: string;
   value: string;
   onChange(value: string): void;
+  dirty?: boolean;
   testId?: string;
   className?: string;
   dropZoneClassName?: string;
@@ -239,7 +241,10 @@ export function PhotoUploadField({
 
   return (
     <div data-testid={testId} className={cn('flex w-full flex-col gap-2', className)}>
-      <span className='block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>{label}</span>
+      <span className='flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
+        {label}
+        <DirtyFieldMarker label={label} dirty={dirty}/>
+      </span>
       <div
         role='button'
         tabIndex={disabled || storageImageUpload.isUploading ? -1 : 0}
@@ -339,6 +344,7 @@ export function RadioField({
   value,
   checked,
   onChange,
+  dirty = false,
   disabled = false,
 }: {
   icon: ReactNode;
@@ -347,6 +353,7 @@ export function RadioField({
   value: string;
   checked: boolean;
   onChange(value: string): void;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -368,7 +375,10 @@ export function RadioField({
         className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
       />
       <span className={cn('shrink-0', checked ? 'text-blue-600' : 'text-slate-500')}>{icon}</span>
-      <span className='min-w-0 flex-1'>{label}</span>
+      <span className='min-w-0 flex-1'>
+        {label}
+        <DirtyFieldMarker label={label} dirty={dirty && checked}/>
+      </span>
       <span
         aria-hidden='true'
         className={cn(
@@ -610,6 +620,7 @@ export function TextField({
   pattern,
   inputMode,
   error,
+  dirty = false,
   disabled = false,
 }: {
   label: string;
@@ -624,6 +635,7 @@ export function TextField({
   pattern?: string;
   inputMode?: 'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search';
   error?: string;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   const inputId = `text-field-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`;
@@ -631,7 +643,10 @@ export function TextField({
 
   return (
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
-      <label htmlFor={inputId}>{label}</label>
+      <label htmlFor={inputId} className='flex items-center gap-2'>
+        {label}
+        <DirtyFieldMarker label={label} dirty={dirty}/>
+      </label>
       <span className='relative block h-10 w-full'>
         <input
           id={inputId}
@@ -703,6 +718,7 @@ export function VisualSelectField<T extends string>({
   options,
   onChange,
   error,
+  dirty = false,
   disabled = false,
 }: {
   label: string;
@@ -712,13 +728,17 @@ export function VisualSelectField<T extends string>({
   options: VisualSelectOption<T>[];
   onChange(value: T): void;
   error?: string;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   const errorId = `${ariaLabel.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}-error`;
 
   return (
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
-      <span>{label}</span>
+      <span className='flex items-center gap-2'>
+        {label}
+        <DirtyFieldMarker label={label} dirty={dirty}/>
+      </span>
       <VisualSelectMenu
         ariaLabel={ariaLabel}
         placeholder={placeholder}
@@ -832,6 +852,7 @@ export function TextArea({
   onBlur,
   maxLength,
   error,
+  dirty = false,
   disabled = false,
 }: {
   label: string;
@@ -841,6 +862,7 @@ export function TextArea({
   onBlur?: () => void;
   maxLength?: number;
   error?: string;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   const inputId = `textarea-${label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`;
@@ -848,7 +870,10 @@ export function TextArea({
 
   return (
     <div className='flex flex-col gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500'>
-      <label htmlFor={inputId}>{label}</label>
+      <label htmlFor={inputId} className='flex items-center gap-2'>
+        {label}
+        <DirtyFieldMarker label={label} dirty={dirty}/>
+      </label>
       <textarea
         id={inputId}
         placeholder={placeholder}
@@ -876,12 +901,14 @@ export function CheckboxField({
   description,
   checked,
   onChange,
+  dirty = false,
   disabled = false,
 }: {
   label: string;
   description: string;
   checked: boolean;
   onChange(value: boolean): void;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -909,10 +936,26 @@ export function CheckboxField({
         {checked ? <Check className='h-3 w-3'/> : null}
       </span>
       <span className='min-w-0'>
-        <span className='block font-semibold text-slate-950'>{label}</span>
+        <span className='flex items-center gap-2 font-semibold text-slate-950'>
+          {label}
+          <DirtyFieldMarker label={label} dirty={dirty}/>
+        </span>
         <span className='mt-0.5 block text-[11px] font-medium text-slate-500'>{description}</span>
       </span>
     </label>
+  );
+}
+
+function DirtyFieldMarker({label, dirty}: { label: string; dirty: boolean }) {
+  if (!dirty) return null;
+
+  return (
+    <span
+      data-testid='field-dirty-indicator'
+      title={`Campo alterado: ${label}`}
+      aria-label={`Campo alterado: ${label}`}
+      className='inline-block h-2 w-2 shrink-0 rounded-full bg-amber-500 ring-2 ring-amber-50'
+    />
   );
 }
 

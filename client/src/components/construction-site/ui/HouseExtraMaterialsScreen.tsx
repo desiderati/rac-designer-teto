@@ -106,6 +106,7 @@ export function HouseExtraMaterialsScreen({
                   name='floorBeams'
                   label='Vigas de Piso'
                   placeholder='0'
+                  dirty={Boolean(dirtyFields.floorBeams)}
                   disabled={isReadOnly}
                 />
                 <IntegerField
@@ -113,6 +114,7 @@ export function HouseExtraMaterialsScreen({
                   name='rafters'
                   label='Caibros'
                   placeholder='0'
+                  dirty={Boolean(dirtyFields.rafters)}
                   disabled={isReadOnly}
                 />
                 <IntegerField
@@ -120,6 +122,7 @@ export function HouseExtraMaterialsScreen({
                   name='secondaryBeams'
                   label='Vigas Secundárias'
                   placeholder='0'
+                  dirty={Boolean(dirtyFields.secondaryBeams)}
                   disabled={isReadOnly}
                 />
                 <IntegerField
@@ -127,6 +130,7 @@ export function HouseExtraMaterialsScreen({
                   name='gutters'
                   label='Mata-juntas'
                   placeholder='0'
+                  dirty={Boolean(dirtyFields.gutters)}
                   disabled={isReadOnly}
                 />
                 <IntegerField
@@ -134,6 +138,7 @@ export function HouseExtraMaterialsScreen({
                   name='gutterCount'
                   label='Calhas'
                   placeholder='0'
+                  dirty={Boolean(dirtyFields.gutterCount)}
                   disabled={isReadOnly}
                 />
                 <Controller
@@ -148,6 +153,7 @@ export function HouseExtraMaterialsScreen({
                       options={STAIR_OPTIONS}
                       onChange={field.onChange}
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.stairType)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -165,6 +171,7 @@ export function HouseExtraMaterialsScreen({
                         onBlur={field.onBlur}
                         maxLength={HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH}
                         error={fieldState.error?.message}
+                        dirty={Boolean(dirtyFields.justification)}
                         disabled={isReadOnly}
                       />
                     )}
@@ -188,12 +195,14 @@ function IntegerField({
   name,
   label,
   placeholder,
+  dirty = false,
   disabled = false,
 }: {
   control: Control<HouseExtraMaterialsFormValues>;
   name: keyof Pick<HouseExtraMaterialsFormValues, 'floorBeams' | 'rafters' | 'secondaryBeams' | 'gutters' | 'gutterCount'>;
   label: string;
   placeholder: string;
+  dirty?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -211,6 +220,7 @@ function IntegerField({
           pattern='[0-9]*'
           inputMode='numeric'
           error={fieldState.error?.message}
+          dirty={dirty}
           disabled={disabled}
         />
       )}

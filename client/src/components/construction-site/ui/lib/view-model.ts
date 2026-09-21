@@ -132,6 +132,19 @@ export function formatOptionalTimestampDate(value?: string): { date: string; tim
   return formatted.date === 'Data inválida' ? null : formatted;
 }
 
+export function formatHouseMaterialsSummary(materials?: HouseExtraMaterials): string {
+  if (!materials) return 'Sem materiais informados';
+
+  const stairLabel = materials.stairType === 'straight'
+    ? 'Reta'
+    : materials.stairType === 'landing'
+      ? 'Patamar'
+      : '—';
+  const count = (value?: number) => value ?? 0;
+
+  return `VP ${count(materials.floorBeams)} · Caibros ${count(materials.rafters)} · VS ${count(materials.secondaryBeams)} · MJ ${count(materials.gutters)} · Calhas ${count(materials.gutterCount)} · Escada ${stairLabel}`;
+}
+
 export function formatDateOnly(value?: string): string {
   const parsed = parseDateOnlyParts(value);
   if (!parsed) return 'Sem data';

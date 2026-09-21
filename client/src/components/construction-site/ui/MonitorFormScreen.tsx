@@ -89,7 +89,7 @@ export function MonitorFormScreen({
             <AccordionContent>
               <div
                 data-testid='monitor-form-layout'
-                className='grid h-full items-stretch gap-5 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'
+                className='h-full items-stretch space-y-5'
               >
                 <Controller
                   control={form.control}
@@ -99,10 +99,11 @@ export function MonitorFormScreen({
                       label='Foto do Monitor'
                       value={field.value ?? ''}
                       onChange={field.onChange}
+                      dirty={Boolean(dirtyFields.photoDataUrl)}
                       testId='monitor-photo-field'
-                      className='h-full'
-                      dropZoneClassName='min-h-[16rem] flex-1'
-                      loadedDropZoneClassName='min-h-[16rem] flex-1'
+                      className='flex-1 min-h-[16rem]'
+                      dropZoneClassName='h-56 min-h-[16rem] flex-1'
+                      loadedDropZoneClassName='h-56 min-h-[16rem] flex-1'
                       disabled={readOnly}
                     />
                   )}
@@ -122,45 +123,50 @@ export function MonitorFormScreen({
                           required
                           maxLength={MONITOR_NAME_MAX_LENGTH}
                           error={fieldState.error?.message}
+                          dirty={Boolean(dirtyFields.name)}
                           disabled={readOnly}
                         />
                       )}
                     />
-                    <Controller
-                      control={form.control}
-                      name='phone'
-                      render={({field, fieldState}) => (
-                        <TextField
-                          label='Telefone'
-                          placeholder='(41) 00000-0000'
-                          value={field.value}
-                          onChange={(phone) => field.onChange(formatPhoneInput(phone))}
-                          onBlur={field.onBlur}
-                          required
-                          maxLength={PHONE_MASK_MAX_LENGTH}
-                          inputMode='numeric'
-                          error={fieldState.error?.message}
-                          disabled={readOnly}
-                        />
-                      )}
-                    />
-                    <Controller
-                      control={form.control}
-                      name='email'
-                      render={({field, fieldState}) => (
-                        <TextField
-                          label='E-mail'
-                          type='email'
-                          placeholder='monitor@dominio.com'
-                          value={field.value}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                          maxLength={MONITOR_EMAIL_MAX_LENGTH}
-                          error={fieldState.error?.message}
-                          disabled={readOnly}
-                        />
-                      )}
-                    />
+                    <div data-testid='monitor-contact-grid' className='grid grid-cols-2 gap-5'>
+                      <Controller
+                        control={form.control}
+                        name='phone'
+                        render={({field, fieldState}) => (
+                          <TextField
+                            label='Telefone'
+                            placeholder='(41) 00000-0000'
+                            value={field.value}
+                            onChange={(phone) => field.onChange(formatPhoneInput(phone))}
+                            onBlur={field.onBlur}
+                            required
+                            maxLength={PHONE_MASK_MAX_LENGTH}
+                            inputMode='numeric'
+                            error={fieldState.error?.message}
+                            dirty={Boolean(dirtyFields.phone)}
+                            disabled={readOnly}
+                          />
+                        )}
+                      />
+                      <Controller
+                        control={form.control}
+                        name='email'
+                        render={({field, fieldState}) => (
+                          <TextField
+                            label='E-mail'
+                            type='email'
+                            placeholder='monitor@dominio.com'
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            maxLength={MONITOR_EMAIL_MAX_LENGTH}
+                            error={fieldState.error?.message}
+                            dirty={Boolean(dirtyFields.email)}
+                            disabled={readOnly}
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

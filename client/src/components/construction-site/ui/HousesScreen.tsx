@@ -18,6 +18,7 @@ import {
 import type {HouseSortKey, HouseStatusFilter, StatusChangeAction} from '@/components/construction-site/ui/lib/types.ts';
 import {
   compareHouses,
+  formatHouseMaterialsSummary,
   formatHouseType,
   formatOptionalTimestampDate,
   formatPaginationText,
@@ -315,6 +316,10 @@ export function HouseMobileCard({
           </div>
         </div>
       </div>
+      <HouseMaterialsSummary
+        house={house}
+        testId='house-mobile-materials-summary'
+      />
       <div className='mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2'>
         <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3'>
           <div className='min-w-0 text-xs font-medium text-slate-600'>
@@ -497,6 +502,10 @@ export function HouseTableRow({
             >
               {houseTypeLabel}
             </span>
+            <HouseMaterialsSummary
+              house={house}
+              testId='house-table-materials-summary'
+            />
           </span>
         </div>
       </td>
@@ -627,6 +636,27 @@ export function HouseThumbnail({
       style={{backgroundColor: palette.background, color: palette.foreground}}
     >
       {getHouseInitials(familyName)}
+    </span>
+  );
+}
+
+function HouseMaterialsSummary({
+  house,
+  testId,
+}: {
+  house: PersistedHouseRecord;
+  testId: string;
+}) {
+  const summary = formatHouseMaterialsSummary(house.extraMaterials);
+
+  return (
+    <span
+      data-testid={testId}
+      title={summary}
+      className='mt-2 block min-w-0 truncate text-left text-[10px] font-semibold leading-4 text-slate-500'
+    >
+      <span className='mr-1 font-bold uppercase tracking-[0.1em] text-slate-400'>Materiais</span>
+      {summary}
     </span>
   );
 }

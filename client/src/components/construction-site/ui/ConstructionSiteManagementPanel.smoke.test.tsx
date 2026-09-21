@@ -655,6 +655,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getAllByTestId('house-mobile-card')).toHaveLength(3);
     expect(within(houseMobileList).getByText('Família Souza')).toBeVisible();
     expect(within(houseMobileList).getAllByText('Tipo 6')[0]).toBeVisible();
+    expect(within(houseMobileList).getAllByTestId('house-mobile-materials-summary')).toHaveLength(3);
+    expect(within(houseMobileList).getAllByTestId('house-mobile-materials-summary')[0])
+      .toHaveTextContent('VP 12 · Caibros 24 · VS 8 · MJ 4 · Calhas 0 · Escada —');
     expect(within(houseMobileList).getAllByRole('meter', {name: 'Dificuldade da casa'})).toHaveLength(3);
     expect(within(houseMobilePagination).getByText('Mostrando 1-3 de 3 casas')).toBeVisible();
     expect(within(houseMobilePagination).queryAllByRole('button')).toHaveLength(0);
@@ -681,6 +684,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .not.toHaveClass('bg-emerald-50', 'text-emerald-700');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-archive');
+    expect(within(guidedTourHouseRow).getByTestId('house-table-materials-summary'))
+      .toHaveTextContent('VP 12 · Caibros 24 · VS 8 · MJ 4 · Calhas 0 · Escada —');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
       .toHaveClass('hover:bg-red-50', 'hover:text-red-600');
     expect(within(guidedTourHouseRow).getByTestId('house-table-last-rac-exported-at'))
@@ -696,6 +701,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(houseRow).getByTestId('house-table-updated-at').parentElement)
       .toHaveClass('text-center', 'align-middle');
     expect(within(houseRow).getByTestId('house-table-last-rac-exported-at')).toHaveTextContent('10/05/2026');
+    expect(within(houseRow).getByTestId('house-table-materials-summary'))
+      .toHaveTextContent('Sem materiais informados');
     expect(within(houseRow).getByTestId('house-table-actions'))
       .toHaveClass('min-h-14', 'items-center', 'justify-end');
     expect(screen.getAllByRole('button', {name: 'Excluir definitivamente casa Família Arquivada'}))
@@ -1049,6 +1056,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-fields-column'))
       .toHaveClass('h-full', 'flex', 'flex-col');
     expect(screen.getByTestId('monitor-fields-stack')).toHaveClass('flex', 'flex-col', 'gap-5');
+    expect(screen.getByTestId('monitor-contact-grid')).toHaveClass('grid', 'grid-cols-2');
+    expect(screen.getByTestId('monitor-photo-field').compareDocumentPosition(screen.getByTestId('monitor-fields-column')) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
@@ -1074,6 +1084,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     expect(screen.getByLabelText('Telefone')).toHaveValue('(41) 99999-8888');
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
+    expect(screen.getAllByTestId('field-dirty-indicator')).toHaveLength(3);
 
     await submitForm('monitor-form');
 
@@ -1203,6 +1214,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'sm:static');
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família com alteração'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
+    expect(screen.getByTestId('field-dirty-indicator')).toHaveAttribute('aria-label', 'Campo alterado: Nome da Família');
     expect(screen.getByTestId('family-photo-field').className).toContain('w-full');
     expect(within(screen.getByTestId('family-photo-field'))
       .getByRole('button', {name: 'Foto da Família'})).toHaveClass('h-36');
@@ -1574,6 +1586,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
     fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
+    expect(screen.getByTitle('Campo alterado: Vigas de Piso')).toBeVisible();
     expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
     expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
     fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {

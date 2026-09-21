@@ -212,6 +212,7 @@ export function HouseConfigurationScreen({
                   label='Foto da Família'
                   value={field.value ?? ''}
                   onChange={field.onChange}
+                  dirty={Boolean(dirtyFields.familyPhotoDataUrl)}
                   loadedDropZoneClassName='h-72'
                   disabled={isReadOnly}
                 />
@@ -232,6 +233,7 @@ export function HouseConfigurationScreen({
                       required
                       maxLength={HOUSE_FAMILY_NAME_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.familyName)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -249,6 +251,7 @@ export function HouseConfigurationScreen({
                       maxLength={PHONE_MASK_MAX_LENGTH}
                       inputMode='numeric'
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.primaryContactPhone)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -268,6 +271,7 @@ export function HouseConfigurationScreen({
                       required
                       maxLength={HOUSE_PRIMARY_CONTACT_NAME_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.primaryContactName)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -285,6 +289,7 @@ export function HouseConfigurationScreen({
                       onBlur={field.onBlur}
                       maxLength={HOUSE_PRIMARY_CONTACT_EMAIL_MAX_LENGTH}
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.primaryContactEmail)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -307,6 +312,7 @@ export function HouseConfigurationScreen({
                   options={HOUSE_SIZE_OPTIONS}
                   onChange={(houseSize) => field.onChange(houseSize)}
                   error={fieldState.error?.message}
+                  dirty={Boolean(dirtyFields.houseSize)}
                   disabled={isReadOnly}
                 />
               )}
@@ -323,6 +329,7 @@ export function HouseConfigurationScreen({
                   onBlur={field.onBlur}
                   maxLength={HOUSE_LEADERS_MAX_LENGTH}
                   error={fieldState.error?.message}
+                  dirty={Boolean(dirtyFields.leaders)}
                   disabled={isReadOnly}
                 />
               )}
@@ -340,6 +347,7 @@ export function HouseConfigurationScreen({
                     onBlur={field.onBlur}
                     maxLength={HOUSE_NOTES_MAX_LENGTH}
                     error={fieldState.error?.message}
+                    dirty={Boolean(dirtyFields.notes)}
                     disabled={isReadOnly}
                   />
                 )}
@@ -368,6 +376,7 @@ export function HouseConfigurationScreen({
                       value='stable_clay'
                       checked={field.value === 'stable_clay'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      dirty={Boolean(dirtyFields.soilProfile)}
                       disabled={isReadOnly}
                     />
                     <RadioField
@@ -377,6 +386,7 @@ export function HouseConfigurationScreen({
                       value='firm_hard'
                       checked={field.value === 'firm_hard'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      dirty={Boolean(dirtyFields.soilProfile)}
                       disabled={isReadOnly}
                     />
                     <RadioField
@@ -386,6 +396,7 @@ export function HouseConfigurationScreen({
                       value='alluvial'
                       checked={field.value === 'alluvial'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      dirty={Boolean(dirtyFields.soilProfile)}
                       disabled={isReadOnly}
                     />
                     <RadioField
@@ -395,6 +406,7 @@ export function HouseConfigurationScreen({
                       value='water_table'
                       checked={field.value === 'water_table'}
                       onChange={(soilProfile) => field.onChange(soilProfile as SoilProfile)}
+                      dirty={Boolean(dirtyFields.soilProfile)}
                       disabled={isReadOnly}
                     />
                   </div>
@@ -414,6 +426,7 @@ export function HouseConfigurationScreen({
                       description='Canos ou fossas'
                       checked={field.value}
                       onChange={field.onChange}
+                      dirty={Boolean(dirtyFields.hasHydraulicObstacles)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -427,6 +440,7 @@ export function HouseConfigurationScreen({
                       description='Raízes, pedras ou caliças (entulhos ou concreto)'
                       checked={field.value}
                       onChange={field.onChange}
+                      dirty={Boolean(dirtyFields.hasUndergroundObstacles)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -440,6 +454,7 @@ export function HouseConfigurationScreen({
                       description='Árvores, galhos ou fios de tensão'
                       checked={field.value}
                       onChange={field.onChange}
+                      dirty={Boolean(dirtyFields.hasElevatedObstacles)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -453,6 +468,7 @@ export function HouseConfigurationScreen({
                       description='Recuo rígido de limite (esquadro apertado)'
                       checked={field.value}
                       onChange={field.onChange}
+                      dirty={Boolean(dirtyFields.hasNeighborSetbackConstraints)}
                       disabled={isReadOnly}
                     />
                   )}
@@ -474,6 +490,7 @@ export function HouseConfigurationScreen({
                     label={option.label}
                     description={option.description}
                     checked={(field.value ?? []).includes(option.value)}
+                    dirty={Boolean(dirtyFields.residentActions)}
                     onChange={(checked) => {
                       const current = field.value ?? [];
                       field.onChange(
@@ -528,6 +545,7 @@ export function HouseConfigurationScreen({
                       onBlur={field.onBlur}
                       onKeyDown={handleLocationQueryKeyDown}
                       error={fieldState.error?.message}
+                      dirty={Boolean(dirtyFields.locationQuery)}
                       disabled={isReadOnly}
                     />
                     <button
