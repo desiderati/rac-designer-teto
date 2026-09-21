@@ -3,6 +3,8 @@ import {
   calculateReductionPercent,
   isSupportedPhotoDataUrl,
   needsPhotoCompression,
+  MAX_PHOTO_SOURCE_BYTES,
+  PHOTO_SOURCE_SIZE_ERROR_MESSAGE,
   PHOTO_UPLOAD_ERROR_MESSAGE,
   PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE,
   PHOTO_COMPRESSION_THRESHOLD_BYTES,
@@ -30,18 +32,20 @@ describe('photo-data-url.ts', () => {
       .resolves.toBe(PHOTO_UPLOAD_ERROR_MESSAGE);
   });
 
-  it('aceita fotos ate 7,5 MB e rejeita arquivos acima do limite', async () => {
+  it('aceita arquivos crus até 50 MB e deixa o limite de 7,5 MB para o pós-preparo', async () => {
     const sevenPointFiveMbPayload = new Uint8Array(7.5 * 1024 * 1024);
     sevenPointFiveMbPayload.set(PNG_SIGNATURE);
-    const aboveLimitPayload = new Uint8Array((7.5 * 1024 * 1024) + 1);
-    aboveLimitPayload.set(PNG_SIGNATURE);
+    const aboveFinalLimitPayload = new Uint8Array((7.5 * 1024 * 1024) + 1);
+    aboveFinalLimitPayload.set(PNG_SIGNATURE);
+    const aboveSourceLimitPayload = new Uint8Array(MAX_PHOTO_SOURCE_BYTES + 1);
+    aboveSourceLimitPayload.set(PNG_SIGNATURE);
 
     await expect(validatePhotoFile(new File([sevenPointFiveMbPayload], 'limite.png', {type: 'image/png'})))
       .resolves.toBeNull();
-    await expect(validatePhotoFile(new File([aboveLimitPayload], 'acima.png', {type: 'image/png'})))
-      .resolves.toBe(PHOTO_UPLOAD_ERROR_MESSAGE);
-    await expect(validatePhotoFile(new File([aboveLimitPayload], 'acima.png', {type: 'image/png'}), {allowCompression: true}))
+    await expect(validatePhotoFile(new File([aboveFinalLimitPayload], 'acima-final.png', {type: 'image/png'})))
       .resolves.toBeNull();
+    await expect(validatePhotoFile(new File([aboveSourceLimitPayload], 'acima-cru.png', {type: 'image/png'})))
+      .resolves.toBe(PHOTO_SOURCE_SIZE_ERROR_MESSAGE);
   });
 
   it('identifica imagens acima de 2,5 MB e preserva arquivos menores sem reprocessar', async () => {

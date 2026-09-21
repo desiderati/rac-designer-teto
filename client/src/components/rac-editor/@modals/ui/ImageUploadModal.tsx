@@ -9,7 +9,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {
   PHOTO_UPLOAD_ACCEPT,
-  PHOTO_UPLOAD_LIMIT_LABEL,
+  PHOTO_SOURCE_UPLOAD_LIMIT_LABEL,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 
@@ -126,7 +126,7 @@ export function ImageUploadModal({
         <span className='space-y-2'>
           <span className='block text-base font-bold uppercase tracking-[0.08em]'>Upload de imagem</span>
           <span id='image-upload-modal-description' className='block text-sm text-slate-600'>Arraste uma imagem ou clique para selecionar</span>
-          <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>{ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_UPLOAD_LIMIT_LABEL}</span>
+          <span id='image-upload-modal-hint' className='block text-xs text-slate-400'>{ACCEPTED_IMAGE_TYPES_LABEL} até {PHOTO_SOURCE_UPLOAD_LIMIT_LABEL}; a compactação acontece antes do envio</span>
         </span>
       </button>
 

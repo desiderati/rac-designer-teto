@@ -273,9 +273,6 @@ export function PhotoUploadField({
             >
               <X className='h-4 w-4'/>
             </button>
-            <span className='absolute bottom-4 left-1/2 z-10 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full bg-white/75 px-3 py-2 text-xs font-semibold normal-case tracking-normal text-slate-700/90 shadow-sm backdrop-blur-sm'>
-              Clique para fazer upload ou arraste uma foto
-            </span>
           </>
         ) : (
           <>

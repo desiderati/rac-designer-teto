@@ -34,6 +34,7 @@ import {
   buttonClassName,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion.tsx';
 import {
   formatDateOnly,
   getConstructionInitials,
@@ -160,7 +161,11 @@ export function HouseConfigurationScreen({
     >
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
 
-      <div className='space-y-6'>
+      <Accordion
+        type='multiple'
+        defaultValue={['section-01', 'section-02', 'section-03', 'section-04', 'section-05', 'section-06']}
+        className='space-y-3'
+      >
         <HouseFormSection number='01' title='Detalhes da Família'>
           <div className='space-y-5'>
             <Controller
@@ -516,7 +521,7 @@ export function HouseConfigurationScreen({
             </div>
           </div>
         </HouseFormSection>
-      </div>
+      </Accordion>
     </form>
   );
 }
@@ -577,14 +582,18 @@ export function HouseFormSection({
   children: ReactNode;
 }) {
   return (
-    <section className='space-y-4 py-2'>
-      <div className='mb-4 flex items-center gap-3'>
-        <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>
-          {number}
-        </span>
-        <h2 className='text-base font-semibold text-slate-950'>{title}</h2>
-      </div>
-      <div className='space-y-4'>{children}</div>
+    <section className='space-y-0'>
+      <AccordionItem value={`section-${number}`} className='rounded-2xl border border-slate-200 bg-white px-4 shadow-sm'>
+        <AccordionTrigger aria-label={`Alternar seção ${title}`} className='gap-3 py-3 hover:no-underline'>
+          <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>
+            {number}
+          </span>
+          <span role='heading' aria-level={2} className='min-w-0 flex-1 text-left text-base font-semibold text-slate-950'>{title}</span>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className='space-y-4'>{children}</div>
+        </AccordionContent>
+      </AccordionItem>
     </section>
   );
 }
@@ -598,7 +607,7 @@ const RESIDENT_ACTION_OPTIONS: Array<{
   {value: 'fill', label: 'Aterrar', description: 'Preencher desníveis para criar uma base plana.'},
   {value: 'remove_vegetation', label: 'Retirar vegetação', description: 'Remover mato alto, arbustos ou árvores da área.'},
   {value: 'remove_debris', label: 'Retirar entulho', description: 'Limpar restos de obra, lixo ou materiais soltos.'},
-  {value: 'remove_obstacle', label: 'Retirar obstáculo', description: 'Remover pedras grandes, raízes ou estruturas antigas.'},
+  {value: 'dismantle_house', label: 'Desmontar a Casa', description: 'Desmontar a casa existente antes de iniciar a nova construção.'},
   {value: 'clear_access', label: 'Liberar acesso', description: 'Garantir passagem livre para a equipe e materiais.'},
 ];
 

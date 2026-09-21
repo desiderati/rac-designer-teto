@@ -580,7 +580,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(constructionPhotoDropZone).toHaveAttribute('data-photo-orientation', 'portrait');
     expect(screen.getByRole('button', {name: 'Remover Foto da Construção'})).toBeVisible();
     expect(within(screen.getByTestId('construction-photo-field'))
-      .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
+      .queryByText('Clique para fazer upload ou arraste uma foto')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Ativar construção'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Arquivar construção'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Gerenciar Casas'})).not.toBeInTheDocument();
@@ -1143,11 +1143,16 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: 'Ações dos Moradores'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Características do Local'})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Fotos do Terreno'})).toBeVisible();
+    const aboutHouseToggle = screen.getByRole('button', {name: 'Alternar seção Sobre a Casa'});
+    await user.click(aboutHouseToggle);
+    expect(screen.queryByLabelText('Líderes')).not.toBeInTheDocument();
+    await user.click(aboutHouseToggle);
+    expect(screen.getByLabelText('Líderes')).toBeVisible();
     expect(screen.getByLabelText('Escavar')).toBeVisible();
     expect(screen.getByLabelText('Aterrar')).toBeVisible();
     expect(screen.getByLabelText('Retirar vegetação')).toBeVisible();
     expect(screen.getByLabelText('Retirar entulho')).toBeVisible();
-    expect(screen.getByLabelText('Retirar obstáculo')).toBeVisible();
+    expect(screen.getByLabelText('Desmontar a Casa')).toBeVisible();
     expect(screen.getByLabelText('Liberar acesso')).toBeVisible();
     expect(screen.getByTestId('terrain-photos-field')).toBeVisible();
     expect(screen.getByRole('button', {name: 'Adicionar foto 1 do terreno'})).toBeVisible();
@@ -1404,7 +1409,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Localização Geográfica')).toHaveValue('');
   });
 
-  it('mantém foto existente ao clicar no overlay e só remove pelo X', async () => {
+  it('mantém foto existente ao clicar na área da imagem e só remove pelo X', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1429,7 +1434,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const fileInput = within(photoField).getByLabelText('Foto da Família arquivo') as HTMLInputElement;
     const clickFileInput = vi.spyOn(fileInput, 'click');
 
-    await user.click(within(photoField).getByText('Clique para fazer upload ou arraste uma foto'));
+    await user.click(photoDropZone);
 
     expect(clickFileInput).toHaveBeenCalledTimes(1);
     expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', VALID_JPEG_DATA_URL);
@@ -1439,6 +1444,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByAltText('Foto da Família')).toHaveAttribute('src', VALID_JPEG_DATA_URL);
 
     await user.upload(fileInput, new File([VALID_PNG_BYTES], 'familia.png', {type: 'image/png'}));
+
+    await user.click(await screen.findByRole('button', {name: 'Usar esta imagem'}));
 
     await waitFor(() => {
       expect(screen.getByAltText('Foto da Família')).not.toHaveAttribute('src', VALID_JPEG_DATA_URL);
@@ -1471,7 +1478,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByAltText('Foto da Família').className).not.toContain('min-h');
     expect(screen.getByRole('button', {name: 'Remover Foto da Família'})).toBeVisible();
     expect(within(screen.getByTestId('family-photo-field'))
-      .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
+      .queryByText('Clique para fazer upload ou arraste uma foto')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Tipo da casa')).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família Atualizada'}});

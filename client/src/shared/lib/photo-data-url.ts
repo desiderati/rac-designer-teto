@@ -2,6 +2,7 @@ const ALLOWED_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as co
 const DATA_URL_PATTERN = /^data:(image\/png|image\/jpeg|image\/webp);base64,([A-Za-z0-9+/]+={0,2})$/i;
 const MANUS_STORAGE_URL_PATTERN = /^\/manus-storage\/[A-Za-z0-9][A-Za-z0-9._\-/]*$/;
 export const MAX_PHOTO_UPLOAD_BYTES = 7.5 * 1024 * 1024;
+export const MAX_PHOTO_SOURCE_BYTES = 50 * 1024 * 1024;
 export const PHOTO_COMPRESSION_THRESHOLD_BYTES = 2.5 * 1024 * 1024;
 const MAX_PHOTO_DATA_URL_LENGTH = Math.ceil(MAX_PHOTO_UPLOAD_BYTES * 4 / 3) + 64;
 const MAX_COMPRESSION_DIMENSION = 3200;
@@ -10,7 +11,9 @@ type AllowedPhotoMimeType = typeof ALLOWED_PHOTO_MIME_TYPES[number];
 
 export const PHOTO_UPLOAD_ACCEPT = ALLOWED_PHOTO_MIME_TYPES.join(',');
 export const PHOTO_UPLOAD_LIMIT_LABEL = '7,5 MB';
-export const PHOTO_UPLOAD_ERROR_MESSAGE = `Use PNG, JPG ou WEBP com até ${PHOTO_UPLOAD_LIMIT_LABEL}.`;
+export const PHOTO_SOURCE_UPLOAD_LIMIT_LABEL = '50 MB';
+export const PHOTO_UPLOAD_ERROR_MESSAGE = 'Use um arquivo PNG, JPG ou WEBP válido.';
+export const PHOTO_SOURCE_SIZE_ERROR_MESSAGE = `A imagem original ultrapassa o limite de ${PHOTO_SOURCE_UPLOAD_LIMIT_LABEL}. Escolha um arquivo menor.`;
 export const PHOTO_UPLOAD_FINAL_SIZE_ERROR_MESSAGE = `Mesmo após a otimização, a imagem continua acima do limite de ${PHOTO_UPLOAD_LIMIT_LABEL}. Tente uma imagem menor.`;
 export const PHOTO_COMPRESSION_ERROR_MESSAGE = 'Não foi possível otimizar esta imagem no navegador. Tente uma imagem menor ou outro arquivo.';
 
@@ -51,14 +54,14 @@ export function isManusStoragePhotoUrl(value: unknown): value is string {
 
 export async function validatePhotoFile(
   file: File,
-  options: {allowCompression?: boolean} = {},
+  _options: {allowCompression?: boolean} = {},
 ): Promise<string | null> {
-  if (file.size > MAX_PHOTO_UPLOAD_BYTES && !options.allowCompression) return PHOTO_UPLOAD_ERROR_MESSAGE;
   const mimeType = file.type.toLowerCase();
   if (!isAllowedPhotoMimeType(mimeType)) return PHOTO_UPLOAD_ERROR_MESSAGE;
 
   const header = await readBlobHeader(file);
-  return hasImageSignature(mimeType, header) ? null : PHOTO_UPLOAD_ERROR_MESSAGE;
+  if (!hasImageSignature(mimeType, header)) return PHOTO_UPLOAD_ERROR_MESSAGE;
+  return file.size > MAX_PHOTO_SOURCE_BYTES ? PHOTO_SOURCE_SIZE_ERROR_MESSAGE : null;
 }
 
 export function validatePreparedPhotoSize(file: File): string | null {
@@ -74,6 +77,7 @@ export async function preparePhotoFileForUpload(
   onProgress?: (percent: number) => void,
   options: {preserveOriginalQuality?: boolean} = {},
 ): Promise<PreparedPhotoFile> {
+  if (file.size > MAX_PHOTO_SOURCE_BYTES) throw new Error(PHOTO_SOURCE_SIZE_ERROR_MESSAGE);
   if (!needsPhotoCompression(file) || options.preserveOriginalQuality) {
     return {
       file,
@@ -88,9 +92,6 @@ export async function preparePhotoFileForUpload(
   try {
     const compressedFile = await compressPhotoFile(file, onProgress);
     if (compressedFile.size >= file.size) {
-      if (file.size > MAX_PHOTO_UPLOAD_BYTES) {
-        throw new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
-      }
       return {
         file,
         compressed: false,
@@ -109,7 +110,7 @@ export async function preparePhotoFileForUpload(
       reductionPercent: calculateReductionPercent(file.size, compressedFile.size),
     };
   } catch (error) {
-    if (file.size <= MAX_PHOTO_UPLOAD_BYTES) {
+    if (file.size <= MAX_PHOTO_SOURCE_BYTES) {
       return {
         file,
         compressed: false,
@@ -170,7 +171,7 @@ async function compressPhotoFile(file: File, onProgress?: (percent: number) => v
       lastModified: file.lastModified,
     });
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    if (typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(objectUrl);
   }
 }
 

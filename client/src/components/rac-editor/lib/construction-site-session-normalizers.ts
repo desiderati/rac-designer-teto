@@ -238,6 +238,7 @@ function sanitizeResidentActions(value: unknown): ResidentAction[] | undefined {
     'fill',
     'remove_vegetation',
     'remove_debris',
+    'dismantle_house',
     'remove_obstacle',
     'clear_access',
   ];

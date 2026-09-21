@@ -144,7 +144,7 @@ export function ImageUploadReview({
             <img
               src={preserveOriginalQuality ? originalPreviewUrl : optimizedPreviewUrl ?? originalPreviewUrl}
               alt={preserveOriginalQuality ? 'Prévia da imagem original' : 'Prévia da imagem que será enviada'}
-              className='h-52 w-full object-contain sm:h-64'
+              className='h-52 w-full object-cover object-center sm:h-64'
             />
           </div>
 
@@ -173,21 +173,20 @@ export function ImageUploadReview({
             <Metric label='Redução' value={prepared.compressed ? formatReduction(prepared.reductionPercent) : '0,0%'}/>
           </div>
 
-          <label className='flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
+          <label className='flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
             <Checkbox
               checked={preserveOriginalQuality}
               onCheckedChange={(checked) => setPreserveOriginalQuality(checked === true)}
               disabled={isConfirming}
               aria-label='Manter qualidade original'
-              className='mt-0.5'
             />
             <span>
               <span className='block font-semibold text-slate-800'>Manter qualidade original</span>
-              <span className='block text-xs text-slate-500'>A compactação automática é aplicada a partir de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. Arquivos acima de {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)} continuam sendo recusados.</span>
+              <span className='block text-xs text-slate-500'>A compactação automática ocorre acima de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. O arquivo final enviado precisa ter até {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)}.</span>
             </span>
           </label>
 
-          {preserveOriginalQuality && selectedSizeError ? (
+          {selectedSizeError ? (
             <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>{selectedSizeError}</p>
           ) : null}
           {!preserveOriginalQuality && prepared.warning ? (
@@ -249,7 +248,7 @@ function PreviewCard({label, file, src}: {label: string; file: File; src: string
         <span>{label}</span>
         <span>{formatFileSize(file.size)}</span>
       </div>
-      <img src={src} alt={`Prévia ${label.toLowerCase()}`} className='h-36 w-full object-contain sm:h-44'/>
+      <img src={src} alt={`Prévia ${label.toLowerCase()}`} className='h-36 w-full object-cover object-center sm:h-44'/>
     </div>
   );
 }
