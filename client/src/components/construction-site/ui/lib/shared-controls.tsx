@@ -166,6 +166,7 @@ export function PhotoUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
   const storageImageUpload = useStorageImageUpload();
 
   useEffect(() => {
@@ -174,14 +175,14 @@ export function PhotoUploadField({
   }, [value]);
 
   const updatePhoto = async (file: File) => {
-    const validationError = await validatePhotoFile(file, {allowCompression: true});
+    const validationError = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
     if (validationError) {
       setUploadError(validationError);
       return;
     }
 
     try {
-      const photoUrl = await storageImageUpload.uploadImage(file);
+      const photoUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality});
       setUploadError(null);
       onChange(photoUrl);
     } catch (error) {
@@ -287,6 +288,19 @@ export function PhotoUploadField({
           disabled={disabled || storageImageUpload.isUploading}
         />
       </div>
+      <label className='flex items-start gap-2 text-xs text-slate-600'>
+        <input
+          type='checkbox'
+          checked={preserveOriginalQuality}
+          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
+          disabled={disabled || storageImageUpload.isUploading}
+          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
+        />
+        <span>
+          <span className='block font-semibold text-slate-700'>Manter qualidade original</span>
+          <span className='block text-[11px] text-slate-500'>Desativa a compressão automática acima de 4 MB.</span>
+        </span>
+      </label>
       {storageImageUpload.isUploading && storageImageUpload.progress ? (
         <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
           <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
@@ -294,6 +308,11 @@ export function PhotoUploadField({
             <span>{storageImageUpload.progress.percent}%</span>
           </div>
           <Progress value={storageImageUpload.progress.percent} className='h-1.5 bg-blue-100'/>
+          {storageImageUpload.progress.reductionPercent !== undefined ? (
+            <p className='truncate text-[11px] text-blue-700/80'>
+              {storageImageUpload.progress.fileName} · {storageImageUpload.progress.preservedOriginalQuality ? 'Qualidade original' : `Redução: ${formatReduction(storageImageUpload.progress.reductionPercent)}`}
+            </p>
+          ) : null}
         </div>
       ) : null}
       {uploadError ? (
@@ -301,6 +320,10 @@ export function PhotoUploadField({
       ) : null}
     </div>
   );
+}
+
+function formatReduction(percent: number): string {
+  return `${percent.toFixed(1).replace('.', ',')}%`;
 }
 
 export function RadioField({

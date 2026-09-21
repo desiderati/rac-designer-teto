@@ -47,6 +47,7 @@ test.describe('Landing pré-login responsiva', () => {
         cardsSameHeight: Math.max(...calloutCards) - Math.min(...calloutCards) < 1,
         houseHasArea: houseBox.width > 0 && houseBox.height > 0,
         benefitsAfterHouse: benefitsBox.top >= houseBox.bottom - 1,
+        benefitsAreVisible: benefits.classList.contains('is-visible') && getComputedStyle(benefits).opacity === '1',
       };
     }, sectionSelectors);
 
@@ -61,6 +62,7 @@ test.describe('Landing pré-login responsiva', () => {
       cardsSameHeight: true,
       houseHasArea: true,
       benefitsAfterHouse: true,
+      benefitsAreVisible: true,
     });
 
     const screenshotSpacing = await page.evaluate(() => {

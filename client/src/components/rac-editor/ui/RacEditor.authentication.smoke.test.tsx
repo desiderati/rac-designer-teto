@@ -40,6 +40,9 @@ describe('RacEditor authentication landing', () => {
     expect(screen.getByText('Base global')).toBeVisible();
     expect(screen.getByText('Histórico')).toBeVisible();
     expect(screen.getByText('Storage seguro')).toBeVisible();
+    expect(screen.getByLabelText('Casa TETO')).toBeVisible();
+    expect(screen.getByLabelText('Recursos principais')).toBeVisible();
+    expect(screen.getByLabelText('Recursos principais')).toHaveTextContent('Base global');
     expect(screen.getByRole('img', { name: /Editor RAC Designer TETO/i })).toHaveAttribute(
       'src',
       '/api/public-assets/rac-editor-landing-screenshot-harmonized_95473d21.png',

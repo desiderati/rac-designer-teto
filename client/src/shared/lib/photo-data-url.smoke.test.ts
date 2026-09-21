@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {
+  calculateReductionPercent,
   isSupportedPhotoDataUrl,
   needsPhotoCompression,
   PHOTO_UPLOAD_ERROR_MESSAGE,
@@ -51,6 +52,16 @@ describe('photo-data-url.ts', () => {
       compressed: false,
       originalBytes: smallFile.size,
       finalBytes: smallFile.size,
+      reductionPercent: 0,
     });
+
+    await expect(preparePhotoFileForUpload(largeFile, undefined, {preserveOriginalQuality: true})).resolves.toMatchObject({
+      file: largeFile,
+      compressed: false,
+      originalBytes: largeFile.size,
+      finalBytes: largeFile.size,
+      reductionPercent: 0,
+    });
+    expect(calculateReductionPercent(10_000, 7_500)).toBe(25);
   });
 });

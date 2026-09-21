@@ -206,7 +206,7 @@ function RacEditorAuthenticationState({error}: {error: unknown}) {
           />
         </LandingRevealSection>
 
-        <LandingRevealSection className='rac-login__benefits' aria-label='Recursos principais'>
+        <LandingRevealSection className='rac-login__benefits' aria-label='Recursos principais' eager>
           <span><Globe2 aria-hidden='true'/>Base global</span>
           <span><History aria-hidden='true'/>Histórico</span>
           <span><ShieldCheck aria-hidden='true'/>Storage seguro</span>
@@ -220,15 +220,18 @@ function LandingRevealSection({
   className,
   children,
   'aria-label': ariaLabel,
+  eager = false,
 }: {
   className: string;
   children: ReactNode;
   'aria-label': string;
+  eager?: boolean;
 }) {
   const elementRef = useRef<HTMLElement | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(eager);
 
   useEffect(() => {
+    if (eager) return;
     const element = elementRef.current;
     if (!element || typeof IntersectionObserver === 'undefined') {
       setIsVisible(true);

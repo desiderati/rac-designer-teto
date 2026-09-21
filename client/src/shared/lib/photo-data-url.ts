@@ -18,6 +18,7 @@ export interface PreparedPhotoFile {
   compressed: boolean;
   originalBytes: number;
   finalBytes: number;
+  reductionPercent: number;
   warning?: string;
 }
 
@@ -66,13 +67,15 @@ export function needsPhotoCompression(file: File): boolean {
 export async function preparePhotoFileForUpload(
   file: File,
   onProgress?: (percent: number) => void,
+  options: {preserveOriginalQuality?: boolean} = {},
 ): Promise<PreparedPhotoFile> {
-  if (!needsPhotoCompression(file)) {
+  if (!needsPhotoCompression(file) || options.preserveOriginalQuality) {
     return {
       file,
       compressed: false,
       originalBytes: file.size,
       finalBytes: file.size,
+      reductionPercent: 0,
     };
   }
 
@@ -88,6 +91,7 @@ export async function preparePhotoFileForUpload(
         compressed: false,
         originalBytes: file.size,
         finalBytes: file.size,
+        reductionPercent: 0,
         warning: 'Não foi possível reduzir o arquivo; a imagem original será enviada.',
       };
     }
@@ -97,6 +101,7 @@ export async function preparePhotoFileForUpload(
       compressed: true,
       originalBytes: file.size,
       finalBytes: compressedFile.size,
+      reductionPercent: calculateReductionPercent(file.size, compressedFile.size),
     };
   } catch (error) {
     if (file.size <= MAX_PHOTO_UPLOAD_BYTES) {
@@ -105,11 +110,17 @@ export async function preparePhotoFileForUpload(
         compressed: false,
         originalBytes: file.size,
         finalBytes: file.size,
+        reductionPercent: 0,
         warning: 'Não foi possível otimizar a imagem; a imagem original será enviada.',
       };
     }
     throw error instanceof Error ? error : new Error(PHOTO_COMPRESSION_ERROR_MESSAGE);
   }
+}
+
+export function calculateReductionPercent(originalBytes: number, finalBytes: number): number {
+  if (originalBytes <= 0 || finalBytes >= originalBytes) return 0;
+  return Math.max(0, Math.min(100, ((originalBytes - finalBytes) / originalBytes) * 100));
 }
 
 async function compressPhotoFile(file: File, onProgress?: (percent: number) => void): Promise<File> {

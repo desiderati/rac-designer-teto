@@ -11,6 +11,7 @@ import {
 } from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
 import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {Progress} from '@/components/ui/progress.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {toast} from '@/components/ui/sonner.tsx';
 import {
@@ -45,6 +46,7 @@ export function TerrainPhotosField({
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
   const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
+  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
   const isBusy = storageUpload.isUploading || isPreparingPhoto;
@@ -71,7 +73,7 @@ export function TerrainPhotosField({
     if (disabled || isBusy) return;
     if (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
 
-    const validationError = await validatePhotoFile(file, {allowCompression: true});
+    const validationError = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
     if (validationError) {
       toast.error(validationError);
       return;
@@ -82,10 +84,13 @@ export function TerrainPhotosField({
     setIsPreparingPhoto(true);
     try {
       if (needsPhotoCompression(file)) toast.loading('Otimizando foto do terreno…', {id: uploadToastId});
-      const prepared = await preparePhotoFileForUpload(file);
+      const prepared = await preparePhotoFileForUpload(file, undefined, {preserveOriginalQuality});
       if (prepared.warning) toast.warning(prepared.warning, {id: uploadToastId, duration: 4800});
       const payload = await toStorageImageUploadPayload(prepared.file);
-      const url = await storageUpload.uploadImage(prepared.file, constructionSiteId);
+      const url = await storageUpload.uploadImage(prepared.file, constructionSiteId, {
+        preserveOriginalQuality,
+        preparedFile: prepared,
+      });
       const id = photoIdToReplace ?? `terrain-photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const nextIndex = photoIdToReplace
         ? Math.max(0, valueRef.current.findIndex((photo) => photo.id === photoIdToReplace))
@@ -222,6 +227,35 @@ export function TerrainPhotosField({
         </div>
       </div>
 
+      <label className='flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600'>
+        <input
+          type='checkbox'
+          checked={preserveOriginalQuality}
+          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
+          disabled={disabled || isBusy}
+          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
+        />
+        <span>
+          <span className='block font-semibold text-slate-700'>Manter qualidade original</span>
+          <span className='block text-[11px] text-slate-500'>Desativa a compressão automática acima de 4 MB.</span>
+        </span>
+      </label>
+
+      {storageUpload.isUploading && storageUpload.progress ? (
+        <div className='space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2' aria-live='polite'>
+          <div className='flex items-center justify-between text-[11px] font-semibold text-blue-800'>
+            <span>{storageUpload.progress.phase === 'compressing' ? 'Otimizando foto…' : storageUpload.progress.phase === 'reading' ? 'Preparando foto…' : 'Enviando foto…'}</span>
+            <span>{storageUpload.progress.percent}%</span>
+          </div>
+          <Progress value={storageUpload.progress.percent} className='h-1.5 bg-blue-100'/>
+          {storageUpload.progress.reductionPercent !== undefined ? (
+            <p className='truncate text-[11px] text-blue-700/80'>
+              {storageUpload.progress.fileName} · {storageUpload.progress.preservedOriginalQuality ? 'Qualidade original' : `Redução: ${formatReduction(storageUpload.progress.reductionPercent)}`}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {selectedPhoto ? (
         <TextField
           label='Descrição da Foto Selecionada'
@@ -271,6 +305,10 @@ export function TerrainPhotosField({
       </AlertDialog>
     </div>
   );
+}
+
+function formatReduction(percent: number): string {
+  return `${percent.toFixed(1).replace('.', ',')}%`;
 }
 
 function TerrainPhotoThumb({

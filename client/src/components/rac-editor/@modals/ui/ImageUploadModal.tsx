@@ -32,6 +32,7 @@ export function ImageUploadModal({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [preserveOriginalQuality, setPreserveOriginalQuality] = useState(false);
   const storageImageUpload = useStorageImageUpload();
   const uploadProgress = storageImageUpload.progress;
 
@@ -40,6 +41,7 @@ export function ImageUploadModal({
       setIsDragging(false);
       setIsUploading(false);
       setErrorMessage('');
+      setPreserveOriginalQuality(false);
       if (inputRef.current) inputRef.current.value = '';
     }
   }, [isOpen]);
@@ -52,7 +54,7 @@ export function ImageUploadModal({
   const processFile = async (file: File | null | undefined) => {
     if (!file || isUploading) return;
 
-    const validationMessage = await validatePhotoFile(file, {allowCompression: true});
+    const validationMessage = await validatePhotoFile(file, {allowCompression: !preserveOriginalQuality});
     if (validationMessage) {
       setErrorMessage(validationMessage);
       if (inputRef.current) inputRef.current.value = '';
@@ -63,7 +65,7 @@ export function ImageUploadModal({
     setIsUploading(true);
 
     try {
-      const imageUrl = await storageImageUpload.uploadImage(file);
+      const imageUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality});
       const inserted = await onInsertImage(imageUrl);
       if (inserted) {
         onOpenChange(false);
@@ -145,6 +147,20 @@ export function ImageUploadModal({
         </span>
       </button>
 
+      <label className='flex items-start gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-600'>
+        <input
+          type='checkbox'
+          checked={preserveOriginalQuality}
+          onChange={(event) => setPreserveOriginalQuality(event.target.checked)}
+          disabled={isUploading}
+          className='mt-0.5 h-4 w-4 shrink-0 accent-blue-600'
+        />
+        <span>
+          <span className='block font-semibold text-slate-800'>Manter qualidade original</span>
+          <span className='block text-[11px] text-slate-500'>Não comprimir imagens acima de 4 MB. Arquivos acima de 7,5 MB ainda serão recusados.</span>
+        </span>
+      </label>
+
       {isUploading ? (
         <div className='space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-3' aria-live='polite'>
           <div className='flex items-center justify-between gap-3 text-xs font-semibold text-blue-800'>
@@ -152,7 +168,10 @@ export function ImageUploadModal({
             <span>{uploadProgress?.percent ?? 0}%</span>
           </div>
           <Progress value={uploadProgress?.percent ?? 8} className='h-2 bg-blue-100' />
-          <p className='truncate text-[11px] text-blue-700/80'>{uploadProgress?.fileName ?? 'Processando arquivo'}</p>
+          <p className='truncate text-[11px] text-blue-700/80'>
+            {uploadProgress?.fileName ?? 'Processando arquivo'}
+            {uploadProgress?.reductionPercent !== undefined ? ` · ${uploadProgress.preservedOriginalQuality ? 'Qualidade original' : `Redução: ${formatReduction(uploadProgress.reductionPercent)}`}` : ''}
+          </p>
         </div>
       ) : null}
 
@@ -214,4 +233,8 @@ export function ImageUploadModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function formatReduction(percent: number): string {
+  return `${percent.toFixed(1).replace('.', ',')}%`;
 }

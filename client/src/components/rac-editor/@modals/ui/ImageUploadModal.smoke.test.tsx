@@ -32,6 +32,10 @@ describe('ImageUploadModal.tsx', () => {
     renderImageUploadModal({onOpenChange, onInsertImage});
 
     expect(screen.getByText('PNG, JPG ou WEBP até 7,5 MB')).toBeVisible();
+    expect(screen.getByRole('checkbox', {name: /Manter qualidade original/i})).not.toBeChecked();
+
+    await user.click(screen.getByRole('checkbox', {name: /Manter qualidade original/i}));
+    expect(screen.getByRole('checkbox', {name: /Manter qualidade original/i})).toBeChecked();
 
     await user.upload(
       screen.getByLabelText('Selecionar imagem para inserir no canvas'),

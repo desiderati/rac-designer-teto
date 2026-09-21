@@ -4,6 +4,7 @@ import { toast } from '@/components/ui/sonner.tsx';
 import {
   preparePhotoFileForUpload,
   PHOTO_COMPRESSION_THRESHOLD_BYTES,
+  type PreparedPhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 import { toStorageImageUploadPayload } from '@/shared/lib/storage-image-upload.ts';
 
@@ -13,10 +14,19 @@ export interface StorageUploadProgress {
   phase: StorageUploadPhase;
   percent: number;
   fileName: string;
+  originalBytes?: number;
+  finalBytes?: number;
+  reductionPercent?: number;
+  preservedOriginalQuality?: boolean;
+}
+
+export interface StorageImageUploadOptions {
+  preserveOriginalQuality?: boolean;
+  preparedFile?: PreparedPhotoFile;
 }
 
 export interface StorageImageUploadPort {
-  uploadImage(file: File, constructionSiteId?: string): Promise<string>;
+  uploadImage(file: File, constructionSiteId?: string, options?: StorageImageUploadOptions): Promise<string>;
   isUploading: boolean;
   progress?: StorageUploadProgress | null;
 }
@@ -40,36 +50,70 @@ export function StorageImageUploadProvider({ children }: { children: ReactNode }
   const value = useMemo<StorageImageUploadPort>(() => ({
     isUploading: isUploading || mutation.isPending,
     progress,
-    uploadImage: async (file, constructionSiteId) => {
+    uploadImage: async (file, constructionSiteId, options = {}) => {
       if (clearProgressTimer.current) clearTimeout(clearProgressTimer.current);
       setIsUploading(true);
       setProgress({ phase: 'reading', percent: 0, fileName: file.name });
       try {
-        const prepared = await preparePhotoFileForUpload(file, (percent) => {
+        const prepared = options.preparedFile ?? await preparePhotoFileForUpload(file, (percent) => {
           setProgress({
             phase: 'compressing',
             percent: Math.min(50, Math.max(8, Math.round(percent * 0.5))),
             fileName: file.name,
+            preservedOriginalQuality: options.preserveOriginalQuality,
           });
-        });
+        }, options);
 
         if (prepared.compressed) {
-          toast.success(`Imagem otimizada: ${formatFileSize(prepared.originalBytes)} → ${formatFileSize(prepared.finalBytes)}.`, {
+          toast.success(`Imagem otimizada em ${formatReduction(prepared.reductionPercent)}: ${formatFileSize(prepared.originalBytes)} → ${formatFileSize(prepared.finalBytes)}.`, {
             duration: 3600,
           });
         } else if (prepared.warning && file.size > PHOTO_COMPRESSION_THRESHOLD_BYTES) {
           toast.warning(prepared.warning, {duration: 4800});
         }
 
-        const payload = await toStorageImageUploadPayload(prepared.file, (percent) => {
-          setProgress({ phase: 'reading', percent: 50 + Math.min(10, Math.round(percent * 0.1)), fileName: prepared.file.name });
+        setProgress({
+          phase: 'reading',
+          percent: 55,
+          fileName: prepared.file.name,
+          originalBytes: prepared.originalBytes,
+          finalBytes: prepared.finalBytes,
+          reductionPercent: prepared.reductionPercent,
+          preservedOriginalQuality: options.preserveOriginalQuality,
         });
-        setProgress({ phase: 'uploading', percent: 65, fileName: prepared.file.name });
+        const payload = await toStorageImageUploadPayload(prepared.file, (percent) => {
+          setProgress({
+            phase: 'reading',
+            percent: 55 + Math.min(10, Math.round(percent * 0.1)),
+            fileName: prepared.file.name,
+            originalBytes: prepared.originalBytes,
+            finalBytes: prepared.finalBytes,
+            reductionPercent: prepared.reductionPercent,
+            preservedOriginalQuality: options.preserveOriginalQuality,
+          });
+        });
+        setProgress({
+          phase: 'uploading',
+          percent: 65,
+          fileName: prepared.file.name,
+          originalBytes: prepared.originalBytes,
+          finalBytes: prepared.finalBytes,
+          reductionPercent: prepared.reductionPercent,
+          preservedOriginalQuality: options.preserveOriginalQuality,
+        });
         const uploaded = await mutation.mutateAsync({
           ...payload,
           constructionSiteId,
         });
-        setProgress({ phase: 'complete', percent: 100, fileName: prepared.file.name });
+        setProgress({
+          phase: 'complete',
+          percent: 100,
+          fileName: prepared.file.name,
+          originalBytes: prepared.originalBytes,
+          finalBytes: prepared.finalBytes,
+          reductionPercent: prepared.reductionPercent,
+          preservedOriginalQuality: options.preserveOriginalQuality,
+        });
         clearProgressTimer.current = setTimeout(() => setProgress(null), 900);
         return uploaded.url;
       } catch (error) {
@@ -105,4 +149,8 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+}
+
+function formatReduction(percent: number): string {
+  return `${percent.toFixed(1).replace('.', ',')}%`;
 }
