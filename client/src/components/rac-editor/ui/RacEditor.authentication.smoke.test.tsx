@@ -81,16 +81,24 @@ describe('RacEditor authentication landing', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Carregando o Canvas...');
   });
 
-  it('shows a friendly warning below the minimum viewport width', () => {
+  it('shows a friendly warning below the minimum viewport width and allows collapsing it', async () => {
     const originalWidth = window.innerWidth;
     Object.defineProperty(window, 'innerWidth', {configurable: true, value: 390});
 
     try {
+      const user = userEvent.setup();
       render(<RacEditor/>);
       const warning = screen.getByTestId('minimum-viewport-warning');
       expect(warning).toHaveTextContent('pelo menos 420 px');
       expect(warning).toHaveClass('top-3', 'max-w-md');
       expect(warning).not.toHaveClass('bottom-3');
+
+      await user.click(screen.getByRole('button', {name: 'Ocultar aviso de viewport'}));
+      expect(screen.queryByTestId('minimum-viewport-warning')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', {name: 'Reabrir aviso de viewport'})).toBeVisible();
+
+      await user.click(screen.getByRole('button', {name: 'Reabrir aviso de viewport'}));
+      expect(screen.getByTestId('minimum-viewport-warning')).toBeVisible();
     } finally {
       Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalWidth});
     }

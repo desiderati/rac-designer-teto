@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
-import {AlertCircle, ArrowRight, Globe2, History, House, LogIn, ShieldCheck} from 'lucide-react';
+import {AlertCircle, ArrowRight, Globe2, History, House, LogIn, ShieldCheck, X} from 'lucide-react';
 import {createEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {RacEditorStoreProvider} from '@/bootstrap/editor-context.tsx';
 import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
@@ -30,6 +30,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 export function RacEditor() {
   const {isAuthenticated, loading, error, logout} = useAuth();
   const [isViewportTooNarrow, setIsViewportTooNarrow] = useState(false);
+  const [isViewportWarningCollapsed, setIsViewportWarningCollapsed] = useState(false);
   const [oauthErrorCode, setOauthErrorCode] = useState<string | null>(null);
   const landingPreview = useMemo(() => {
     if (!import.meta.env.DEV || typeof window === 'undefined') return false;
@@ -61,7 +62,13 @@ export function RacEditor() {
   const withViewportWarning = (content: ReactNode) => (
     <>
       {content}
-      {isViewportTooNarrow ? <MinimumViewportWarning/> : null}
+      {isViewportTooNarrow ? (
+        <MinimumViewportWarning
+          collapsed={isViewportWarningCollapsed}
+          onCollapse={() => setIsViewportWarningCollapsed(true)}
+          onExpand={() => setIsViewportWarningCollapsed(false)}
+        />
+      ) : null}
     </>
   );
 
@@ -91,15 +98,50 @@ export function RacEditor() {
   );
 }
 
-function MinimumViewportWarning() {
+function MinimumViewportWarning({
+  collapsed,
+  onCollapse,
+  onExpand,
+}: {
+  collapsed: boolean;
+  onCollapse: () => void;
+  onExpand: () => void;
+}) {
+  if (collapsed) {
+    return (
+      <button
+        type='button'
+        aria-label='Reabrir aviso de viewport'
+        title='Reabrir aviso de viewport'
+        data-testid='minimum-viewport-warning-reopen'
+        onClick={onExpand}
+        className='pointer-events-auto fixed right-3 top-3 z-[1200] grid h-9 w-9 place-items-center rounded-full border border-amber-300 bg-amber-50/95 text-amber-900 shadow-lg backdrop-blur-sm transition-colors hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2'
+      >
+        <AlertCircle className='h-4 w-4'/>
+      </button>
+    );
+  }
+
   return (
     <div
       role='status'
       aria-live='polite'
       data-testid='minimum-viewport-warning'
-      className='pointer-events-none fixed inset-x-3 top-3 z-[1200] mx-auto max-w-md rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm'
+      className='pointer-events-auto fixed inset-x-3 top-3 z-[1200] mx-auto flex max-w-md items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm'
     >
-      Para uma experiência confortável, aumente a janela para pelo menos 420 px de largura ou gire o dispositivo.
+      <p className='flex-1'>
+        Para uma experiência confortável, aumente a janela para pelo menos 420 px de largura ou gire o dispositivo.
+      </p>
+      <button
+        type='button'
+        aria-label='Ocultar aviso de viewport'
+        title='Ocultar aviso'
+        data-testid='minimum-viewport-warning-dismiss'
+        onClick={onCollapse}
+        className='mt-0.5 shrink-0 rounded-full p-1 text-amber-800 transition-colors hover:bg-amber-100 hover:text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1'
+      >
+        <X className='h-4 w-4'/>
+      </button>
     </div>
   );
 }
