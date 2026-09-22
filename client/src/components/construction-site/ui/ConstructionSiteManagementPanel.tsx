@@ -122,6 +122,15 @@ type PendingHouseRacPdfExport = {
   checklist: RacPdfExportChecklist;
 };
 
+function blobToPdfDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('Não foi possível preparar a prévia do PDF.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 export function ConstructionSiteManagementPanel({
   constructionSite,
   summaries,
@@ -261,8 +270,8 @@ export function ConstructionSiteManagementPanel({
       await actions.exportHouseRacPdf(
         pendingHouseRacPdfExport.constructionSiteId,
         pendingHouseRacPdfExport.houseId,
-        (result) => {
-          const url = URL.createObjectURL(result.blob);
+        async (result) => {
+          const url = await blobToPdfDataUrl(result.blob);
           setHouseRacPdfPreview({
             result,
             url,
@@ -285,8 +294,8 @@ export function ConstructionSiteManagementPanel({
       await actions.exportHouseRacPdf(
         houseRacPdfPreview.constructionSiteId,
         houseRacPdfPreview.houseId,
-        (result) => {
-          const url = URL.createObjectURL(result.blob);
+        async (result) => {
+          const url = await blobToPdfDataUrl(result.blob);
           setHouseRacPdfPreview((current) => current
             ? {...current, result, url}
             : current);
@@ -298,7 +307,7 @@ export function ConstructionSiteManagementPanel({
   }, [actions, exportingRacPdfHouseId, houseRacPdfPreview, isDownloadingHouseRacPdfPreview]);
 
   useEffect(() => () => {
-    if (houseRacPdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
+    if (houseRacPdfPreview?.url?.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') {
       URL.revokeObjectURL(houseRacPdfPreview.url);
     }
   }, [houseRacPdfPreview?.url]);

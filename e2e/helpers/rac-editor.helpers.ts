@@ -42,6 +42,8 @@ const IGNORED_CONSOLE_ERROR_PATTERNS = [
   'Failed to load resource: net::ERR_NETWORK_CHANGED',
   'Failed to load resource: the server responded with a status of 401 (Unauthorized)',
   'Please login (10001)',
+  "Storage is disabled inside 'data:' URLs",
+  'Access is denied for this document',
 ];
 
 export function startConsoleErrorCapture(page: Page): void {

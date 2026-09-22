@@ -38,6 +38,27 @@ const pdfExportSeed = {
   },
 };
 
+async function expectPdfPreviewBlobValid(page: Parameters<typeof test>[0]['page']) {
+  const preview = page.getByTitle('Prévia do PDF da RAC');
+  await expect(preview).toBeVisible();
+  const src = await preview.getAttribute('src');
+  expect(src).toMatch(/^data:application\/pdf;base64,/);
+
+  const result = await page.evaluate(async (previewSrc) => {
+    const response = await fetch(previewSrc!.split('#', 1)[0]!);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    return {
+      status: response.status,
+      contentType: response.headers.get('content-type'),
+      signature: String.fromCharCode(...bytes.slice(0, 4)),
+      byteLength: bytes.byteLength,
+    };
+  }, src);
+
+  expect(result).toMatchObject({status: 200, signature: '%PDF'});
+  expect(result.byteLength).toBeGreaterThan(1000);
+}
+
 test.describe('Exportação PDF do RAC', () => {
   test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
@@ -57,7 +78,7 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await expectPdfPreviewBlobValid(page);
     await page.getByRole('button', {name: 'Baixar PDF'}).click();
     const download = await downloadPromise;
 
@@ -253,15 +274,54 @@ test.describe('Exportação PDF do RAC', () => {
     expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
   });
 
-  test('recria o Canvas descartável quando a primeira captura isolada já está tainted', async ({page}) => {
+  test('renderer individual sanitiza Pattern legado sem CORS', async ({page}) => {
+    await page.route('https://uncors.example.test/legacy-pattern.png', async (route) => {
+      await route.fulfill({
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
+      });
+    });
+    await setupSeededRacEditorPage(page, pdfExportSeed);
+
+    const imageDataUrl = await page.evaluate(async () => {
+      const {renderHouseDrawingCanvasImageDataUrl} = await import(
+        `${location.origin}/@fs/home/ubuntu/editor-planta-baixa/client/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
+      );
+
+      return renderHouseDrawingCanvasImageDataUrl({
+        drawingDocument: {
+          canvas: {
+            schemaVersion: 1,
+            objects: [{
+              id: 'legacy-pattern',
+              kind: 'terrain',
+              shape: 'rect',
+              geometry: {left: 80, top: 80, width: 120, height: 80},
+              style: {
+                fill: {
+                  type: 'pattern',
+                  source: 'https://uncors.example.test/legacy-pattern.png',
+                  repeat: 'repeat',
+                },
+              },
+            }],
+          },
+        },
+      } as never);
+    });
+
+    expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
+  });
+
+  test('recria o Canvas descartável quando as duas primeiras capturas já estão tainted', async ({page}) => {
     await page.addInitScript(() => {
       const originalToDataUrl = HTMLCanvasElement.prototype.toDataURL;
-      let taintedFirstIsolatedCanvas = false;
+      let taintedIsolatedCanvasCount = 0;
       Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', {
         configurable: true,
         value(this: HTMLCanvasElement, ...args: Parameters<HTMLCanvasElement['toDataURL']>) {
-          if (!taintedFirstIsolatedCanvas && this.style.left === '-10000px') {
-            taintedFirstIsolatedCanvas = true;
+          if (taintedIsolatedCanvasCount < 2 && this.style.left === '-10000px') {
+            taintedIsolatedCanvasCount += 1;
             throw new DOMException('Tainted canvases may not be exported.', 'SecurityError');
           }
           return originalToDataUrl.apply(this, args);

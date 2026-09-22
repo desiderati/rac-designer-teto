@@ -47,6 +47,15 @@ function errorDetails(error: unknown) {
   };
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error ?? new Error('Não foi possível preparar a prévia do PDF.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 export function useRacEditorPdfExportAction({
   canvasRef,
   house3DPdfSnapshotRef,
@@ -123,7 +132,8 @@ export function useRacEditorPdfExportAction({
       const pdf = createRacPdfReportDocument({report, jsPDF});
       phase = 'create-preview-blob';
       const blob = pdf.output('blob') as Blob;
-      const url = URL.createObjectURL(blob);
+      phase = 'create-preview-data-url';
+      const url = await blobToDataUrl(blob);
       const pageCount = Math.max(1, pdf.getNumberOfPages());
       lastPdfPreviewFileNameRef.current = report.fileName;
       lastPdfPreviewPageCountRef.current = pageCount;
@@ -218,7 +228,7 @@ export function useRacEditorPdfExportAction({
   }, [isPdfExporting, runPdfExport]);
 
   useEffect(() => () => {
-    if (pdfPreview?.url && typeof URL.revokeObjectURL === 'function') {
+    if (pdfPreview?.url?.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') {
       URL.revokeObjectURL(pdfPreview.url);
     }
   }, [pdfPreview?.url]);

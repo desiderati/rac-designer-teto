@@ -288,7 +288,8 @@ function toFabricSerializableObject(object: FabricObject): Record<string, unknow
   if (object.type === 'image') {
     const image = object as FabricImage;
     const storageUrl = readString(readFabricProperty(image, 'storageUrl'));
-    const src = storageUrl ?? readImageSourceWithoutFabricSerialization(image);
+    const elementSource = readImageSourceWithoutFabricSerialization(image);
+    const src = storageUrl ?? elementSource;
     if (src) source.src = src;
     if (storageUrl) source.storageUrl = storageUrl;
     const crossOrigin = readFabricProperty(image, 'crossOrigin');
@@ -322,6 +323,16 @@ function normalizeStorageImageSource(source: unknown): unknown {
   return storagePathMatch?.[1] ?? source;
 }
 
+function isSameOriginSource(source: string): boolean {
+  if (/^(data:|blob:)/i.test(source)) return true;
+  if (source.startsWith('/')) return true;
+  try {
+    return new URL(source, globalThis.location?.href).origin === globalThis.location?.origin;
+  } catch {
+    return false;
+  }
+}
+
 function imageElementToDataUrl(element: Element): string {
   const width = 'naturalWidth' in element
     ? Number((element as HTMLImageElement).naturalWidth)
@@ -345,6 +356,48 @@ function imageElementToDataUrl(element: Element): string {
   // here means the image is not CORS-readable and must not enter the isolated
   // Fabric canvas at all.
   return raster.toDataURL('image/png');
+}
+
+async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
+  if (!isRecord(value) || (value.type !== 'pattern' && !('source' in value))) {
+    return value;
+  }
+
+  const source = readString(value.source);
+  if (!source) return 'transparent';
+  if (/^(data:|blob:)/i.test(source)) return value;
+  if (isSameOriginSource(source)) return value;
+
+  let probe: FabricImage | null = null;
+  try {
+    probe = await FabricImage.fromURL(String(normalizeStorageImageSource(source)), {
+      crossOrigin: 'anonymous',
+    });
+    return {
+      ...value,
+      source: imageElementToDataUrl(probe.getElement()),
+      crossOrigin: 'anonymous',
+    };
+  } catch (error) {
+    console.warn('[Canvas PDF export] Raster style omitted from isolated snapshot:', error);
+    return 'transparent';
+  } finally {
+    probe?.dispose();
+  }
+}
+
+async function sanitizeElementStyleForSafeExport(
+  style: JsonObject | undefined,
+): Promise<JsonObject | undefined> {
+  if (!style) return undefined;
+
+  const nextStyle = {...style};
+  for (const key of ['fill', 'stroke', 'backgroundColor']) {
+    const value = nextStyle[key];
+    if (value === undefined) continue;
+    nextStyle[key] = await sanitizeRasterStyleValue(value);
+  }
+  return nextStyle;
 }
 
 function toRuntimePayload(document: HouseDrawingElementDocument): Record<string, unknown> {
@@ -498,9 +551,11 @@ async function sanitizeElementForSafeExport(
       .filter((child): child is HouseDrawingElementDocument => child !== null)
     : undefined;
 
+  const style = await sanitizeElementStyleForSafeExport(element.style);
+
   if (element.shape !== 'image') {
-    return children
-      ? {...element, children}
+    return children || style
+      ? {...element, ...(style ? {style} : {}), ...(children ? {children} : {})}
       : element;
   }
 
@@ -511,6 +566,18 @@ async function sanitizeElementForSafeExport(
   }
 
   const normalizedSource = String(normalizeStorageImageSource(source));
+  if (isSameOriginSource(normalizedSource)) {
+    return {
+      ...element,
+      ...(style ? {style} : {}),
+      resource: {
+        ...resource,
+        src: normalizedSource,
+      },
+      ...(children ? {children} : {}),
+    };
+  }
+
   let probe: FabricImage | null = null;
   try {
     // This is deliberately performed before Fabric receives the document. If
@@ -521,6 +588,7 @@ async function sanitizeElementForSafeExport(
 
     return {
       ...element,
+      ...(style ? {style} : {}),
       resource: {
         ...resource,
         src: dataUrl,
@@ -551,18 +619,44 @@ function isSecurityError(error: unknown): boolean {
     : error instanceof Error && /tainted canvases|not be exported/i.test(error.message);
 }
 
-function removeImagesFromDocument(
+function isRasterBackedStyleValue(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.type === 'pattern') return true;
+  return 'source' in value && value.source !== undefined;
+}
+
+function removeRasterSourcesFromDocument(
   document: HouseDrawingCanvasDocument,
-): HouseDrawingCanvasDocument {
-  const removeImages = (objects: HouseDrawingElementDocument[]): HouseDrawingElementDocument[] => objects
-    .filter((object) => object.shape !== 'image')
-    .map((object) => object.children
-      ? {...object, children: removeImages(object.children)}
-      : object);
+): {document: HouseDrawingCanvasDocument; changed: boolean} {
+  let changed = false;
+  const removeRasterSources = (objects: HouseDrawingElementDocument[]): HouseDrawingElementDocument[] => objects
+    .flatMap((object) => {
+      if (object.shape === 'image') {
+        changed = true;
+        return [];
+      }
+
+      let style = object.style;
+      if (style) {
+        const nextStyle = {...style};
+        (['fill', 'stroke', 'backgroundColor'] as const).forEach((key) => {
+          if (!isRasterBackedStyleValue(nextStyle[key])) return;
+          nextStyle[key] = 'transparent';
+          changed = true;
+        });
+        style = nextStyle;
+      }
+
+      return [{
+        ...object,
+        ...(style ? {style} : {}),
+        ...(object.children ? {children: removeRasterSources(object.children)} : {}),
+      }];
+    });
 
   return {
-    ...document,
-    objects: removeImages(document.objects),
+    document: {...document, objects: removeRasterSources(document.objects)},
+    changed,
   };
 }
 
@@ -590,10 +684,145 @@ function createIsolatedCanvas(width: number, height: number): {
   };
 }
 
+function readFiniteNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function readStyleString(style: JsonObject | undefined, key: string, fallback: string): string {
+  const value = style?.[key];
+  return typeof value === 'string' ? value : fallback;
+}
+
+function applySafe2DStyle(context: CanvasRenderingContext2D, element: HouseDrawingElementDocument): void {
+  const style = element.style;
+  context.globalAlpha = Math.max(0, Math.min(1, readFiniteNumber(style?.opacity, 1)));
+  context.fillStyle = readStyleString(style, 'fill', 'transparent');
+  context.strokeStyle = readStyleString(style, 'stroke', 'transparent');
+  context.lineWidth = Math.max(0, readFiniteNumber(style?.strokeWidth, 1));
+  context.lineCap = readStyleString(style, 'strokeLineCap', 'butt') as CanvasLineCap;
+  context.lineJoin = readStyleString(style, 'strokeLineJoin', 'miter') as CanvasLineJoin;
+  context.font = `${readStyleString(style, 'fontWeight', 'normal')} ${readFiniteNumber(style?.fontSize, 16)}px ${readStyleString(style, 'fontFamily', 'sans-serif')}`;
+  context.textAlign = readStyleString(style, 'textAlign', 'left') as CanvasTextAlign;
+  context.textBaseline = 'middle';
+}
+
+function drawSafe2DElement(
+  context: CanvasRenderingContext2D,
+  element: HouseDrawingElementDocument,
+): void {
+  if (element.style?.visible === false) return;
+  if (element.shape === 'image') return;
+
+  const geometry = element.geometry ?? {};
+  const left = readFiniteNumber(geometry.left);
+  const top = readFiniteNumber(geometry.top);
+  const width = readFiniteNumber(geometry.width);
+  const height = readFiniteNumber(geometry.height);
+  const scaleX = readFiniteNumber(geometry.scaleX, 1);
+  const scaleY = readFiniteNumber(geometry.scaleY, 1);
+  const angle = readFiniteNumber(geometry.angle) * Math.PI / 180;
+
+  context.save();
+  context.translate(left, top);
+  context.rotate(angle);
+  context.scale(scaleX, scaleY);
+  applySafe2DStyle(context, element);
+
+  if (element.shape === 'group') {
+    element.children?.forEach((child) => drawSafe2DElement(context, child));
+    context.restore();
+    return;
+  }
+
+  const drawFillAndStroke = () => {
+    if (context.fillStyle !== 'transparent') context.fill();
+    if (context.strokeStyle !== 'transparent' && context.lineWidth > 0) context.stroke();
+  };
+
+  context.beginPath();
+  switch (element.shape) {
+    case 'circle':
+      context.arc(0, 0, readFiniteNumber(geometry.radius, Math.max(width, height) / 2), 0, Math.PI * 2);
+      drawFillAndStroke();
+      break;
+    case 'triangle':
+      context.moveTo(0, -height / 2);
+      context.lineTo(width / 2, height / 2);
+      context.lineTo(-width / 2, height / 2);
+      context.closePath();
+      drawFillAndStroke();
+      break;
+    case 'line':
+      context.moveTo(readFiniteNumber(geometry.x1, -width / 2), readFiniteNumber(geometry.y1));
+      context.lineTo(readFiniteNumber(geometry.x2, width / 2), readFiniteNumber(geometry.y2));
+      if (context.strokeStyle !== 'transparent' && context.lineWidth > 0) context.stroke();
+      break;
+    case 'polygon':
+    case 'polyline':
+      geometry.points?.forEach((point, index) => {
+        if (index === 0) context.moveTo(point.x, point.y);
+        else context.lineTo(point.x, point.y);
+      });
+      if (element.shape === 'polygon') context.closePath();
+      drawFillAndStroke();
+      break;
+    case 'path': {
+      const commands = Array.isArray(geometry.path) ? geometry.path : [];
+      commands.forEach((command) => {
+        if (!Array.isArray(command) || command.length === 0) return;
+        const [operation, x, y] = command;
+        if (operation === 'M') context.moveTo(readFiniteNumber(x), readFiniteNumber(y));
+        if (operation === 'L') context.lineTo(readFiniteNumber(x), readFiniteNumber(y));
+        if (operation === 'Q' && command.length >= 5) {
+          context.quadraticCurveTo(readFiniteNumber(command[1]), readFiniteNumber(command[2]), readFiniteNumber(command[3]), readFiniteNumber(command[4]));
+        }
+        if (operation === 'C' && command.length >= 7) {
+          context.bezierCurveTo(readFiniteNumber(command[1]), readFiniteNumber(command[2]), readFiniteNumber(command[3]), readFiniteNumber(command[4]), readFiniteNumber(command[5]), readFiniteNumber(command[6]));
+        }
+      });
+      drawFillAndStroke();
+      break;
+    }
+    case 'itext':
+    case 'text':
+    case 'textbox':
+      if (element.text) {
+        if (context.fillStyle !== 'transparent') context.fillText(element.text, 0, 0, width || undefined);
+        if (context.strokeStyle !== 'transparent' && context.lineWidth > 0) context.strokeText(element.text, 0, 0, width || undefined);
+      }
+      break;
+    case 'rect':
+    default:
+      context.rect(-width / 2, -height / 2, width, height);
+      drawFillAndStroke();
+      break;
+  }
+
+  context.restore();
+}
+
+function exportDocumentWithSafe2DCanvas(
+  document: HouseDrawingCanvasDocument,
+  width: number,
+  height: number,
+): string {
+  const canvas = globalThis.document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Não foi possível criar o canvas 2D de contingência.');
+
+  context.fillStyle = CANVAS_STYLE.backgroundColor;
+  context.fillRect(0, 0, width, height);
+  document.objects.forEach((object) => drawSafe2DElement(context, object));
+  return canvas.toDataURL('image/png');
+}
+
 async function exportDocumentFromFreshCanvas(
   document: HouseDrawingCanvasDocument,
   width: number,
   height: number,
+  allowRasterFallback = true,
 ): Promise<string | null> {
   const isolated = createIsolatedCanvas(width, height);
   try {
@@ -601,7 +830,20 @@ async function exportDocumentFromFreshCanvas(
     const loaded = await isolatedPort.loadCanvasDocument(document);
     if (!loaded) return null;
     isolated.canvas.renderAll();
-    return isolatedPort.exportImageDataUrl();
+    try {
+      return isolatedPort.exportImageDataUrl();
+    } catch (error) {
+      if (!allowRasterFallback || !isSecurityError(error)) {
+        if (isSecurityError(error)) return exportDocumentWithSafe2DCanvas(document, width, height);
+        throw error;
+      }
+
+      const fallback = removeRasterSourcesFromDocument(document);
+      if (!fallback.changed) return exportDocumentWithSafe2DCanvas(document, width, height);
+
+      console.warn('[Canvas PDF export] Fresh canvas was tainted; retrying after removing raster sources.', error);
+      return exportDocumentFromFreshCanvas(fallback.document, width, height, false);
+    }
   } finally {
     await isolated.canvas.dispose();
     isolated.element.remove();
@@ -633,7 +875,11 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
       // whole RAC: remove all image pixels from this disposable canvas and
       // retry the export. The user's live canvas is never touched.
       console.warn('[Canvas PDF export] Isolated canvas was tainted; retrying without image pixels.', error);
-      return exportDocumentFromFreshCanvas(removeImagesFromDocument(safeDocument), width, height);
+      return exportDocumentFromFreshCanvas(
+        removeRasterSourcesFromDocument(safeDocument).document,
+        width,
+        height,
+      );
     }
   } finally {
     await isolated.canvas.dispose();
