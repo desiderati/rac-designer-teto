@@ -74,13 +74,13 @@ export function MonitorFormScreen({
   return (
     <form
       data-testid='monitor-form'
-      className='grid items-stretch gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
+      className='grid min-w-0 items-stretch gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
       onSubmit={submitForm}
       noValidate
     >
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
 
-      <div className='h-full'>
+      <div className='h-full min-w-0'>
         <Accordion type='multiple' value={openSections} onValueChange={setOpenSections} className='space-y-2'>
           <AccordionItem value='monitor-data' className='!border-0 bg-transparent px-0 shadow-none'>
             <AccordionTrigger aria-label='Alternar seção Dados do Monitor' className='gap-3 py-3 hover:no-underline'>
@@ -173,8 +173,8 @@ export function MonitorFormScreen({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
-          <PrimaryButton type='submit' className='w-full md:col-start-2' disabled={readOnly || isSubmitting}>
+        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
+          <PrimaryButton type='submit' className='w-full min-w-0 md:col-start-2' disabled={readOnly || isSubmitting}>
             {submitLabel}
           </PrimaryButton>
         </div>

@@ -462,6 +462,7 @@ export function MobilePagination({
   entityLabel,
   onPageChange,
   testId,
+  visibilityClassName = 'sm:hidden',
 }: {
   text: string;
   page: number;
@@ -469,6 +470,7 @@ export function MobilePagination({
   entityLabel: string;
   onPageChange(page: number): void;
   testId?: string;
+  visibilityClassName?: string;
 }) {
   const paginationItems = pageCount > 1 ? getMobilePaginationItems(page, pageCount) : [];
   const hasPagination = paginationItems.length > 0;
@@ -477,7 +479,8 @@ export function MobilePagination({
     <div
       data-testid={testId}
       className={cn(
-        'flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-slate-500 sm:hidden',
+        'flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold text-slate-500',
+        visibilityClassName,
         hasPagination ? 'justify-between' : 'justify-center text-center',
       )}
     >

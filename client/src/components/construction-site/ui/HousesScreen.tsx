@@ -6,6 +6,7 @@ import type {
   PersistedHouseStatus,
 } from '@/shared/types/construction-site.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {isHouseIncompleteForRac} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import {
   HOUSE_SORT_OPTIONS,
   HOUSE_STATUS_BADGE_CLASS_NAMES,
@@ -18,7 +19,6 @@ import {
 import type {HouseSortKey, HouseStatusFilter, StatusChangeAction} from '@/components/construction-site/ui/lib/types.ts';
 import {
   compareHouses,
-  formatHouseMaterialsSummary,
   formatHouseType,
   formatOptionalTimestampDate,
   formatPaginationText,
@@ -67,7 +67,13 @@ export function HousesScreen({
 
   const filteredHouses = useMemo(() => {
     return [...constructionSite.houses]
-      .filter((house) => statusFilter === 'all' || house.status === statusFilter)
+      .filter((house) => {
+        if (statusFilter === 'all') return true;
+        if (statusFilter === 'incomplete') {
+          return house.status !== 'archived' && isHouseIncompleteForRac(constructionSite, house.id);
+        }
+        return house.status === statusFilter;
+      })
       .sort((a, b) => compareHouses(constructionSite, a, b, sortKey));
   }, [constructionSite, sortKey, statusFilter]);
 
@@ -120,7 +126,7 @@ export function HousesScreen({
         </div>
         <div
           data-testid='house-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:flex sm:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[680px]:flex min-[680px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}</span>
           <div className='flex items-center gap-1'>
@@ -142,7 +148,7 @@ export function HousesScreen({
         </div>
       </div>
 
-      <div data-testid='house-desktop-table' className='hidden overflow-x-auto sm:block'>
+      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[680px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[32%]'/>
@@ -185,7 +191,7 @@ export function HousesScreen({
         </table>
       </div>
 
-      <div data-testid='house-mobile-list' className='space-y-3 sm:hidden'>
+      <div data-testid='house-mobile-list' className='space-y-3 min-[680px]:hidden'>
         {pageHouses.map((house) => (
           <HouseMobileCard
             key={house.id}
@@ -206,6 +212,7 @@ export function HousesScreen({
 
       <MobilePagination
         testId='house-mobile-pagination'
+        visibilityClassName='min-[680px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}
         page={normalizedPage}
         pageCount={pageCount}
@@ -316,10 +323,6 @@ export function HouseMobileCard({
           </div>
         </div>
       </div>
-      <HouseMaterialsSummary
-        house={house}
-        testId='house-mobile-materials-summary'
-      />
       <div className='mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2'>
         <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3'>
           <div className='min-w-0 text-xs font-medium text-slate-600'>
@@ -502,10 +505,6 @@ export function HouseTableRow({
             >
               {houseTypeLabel}
             </span>
-            <HouseMaterialsSummary
-              house={house}
-              testId='house-table-materials-summary'
-            />
           </span>
         </div>
       </td>
@@ -636,27 +635,6 @@ export function HouseThumbnail({
       style={{backgroundColor: palette.background, color: palette.foreground}}
     >
       {getHouseInitials(familyName)}
-    </span>
-  );
-}
-
-function HouseMaterialsSummary({
-  house,
-  testId,
-}: {
-  house: PersistedHouseRecord;
-  testId: string;
-}) {
-  const summary = formatHouseMaterialsSummary(house.extraMaterials);
-
-  return (
-    <span
-      data-testid={testId}
-      title={summary}
-      className='mt-2 block min-w-0 truncate text-left text-[10px] font-semibold leading-4 text-slate-500'
-    >
-      <span className='mr-1 font-bold uppercase tracking-[0.1em] text-slate-400'>Materiais</span>
-      {summary}
     </span>
   );
 }

@@ -358,7 +358,7 @@ function drawExtraMaterialsSection(pdf: JsPDFDocument, report: RacPdfReportModel
       column === 0 ? 92 : 100,
     );
   });
-  cursorY += 56;
+  cursorY += getFirstPageExtraMaterialsFieldHeight(report.extraMaterials.fields.length);
 
   drawTinyLabel(pdf, 'Outros / Justificativa', LEFT_COLUMN_X, cursorY);
   setText(pdf, COLORS.muted);
@@ -839,8 +839,12 @@ function getFirstPageNotesSectionY(report: RacPdfReportModel): number {
 
 function getFirstPageExtraMaterialsSectionHeight(): number {
   return 22
-    + 56
+    + getFirstPageExtraMaterialsFieldHeight(6)
     + getFirstPageBodyPreviewHeight(FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT);
+}
+
+function getFirstPageExtraMaterialsFieldHeight(fieldCount: number): number {
+  return Math.ceil(fieldCount / 2) * 26 + 4;
 }
 
 function getFirstPageBodyPreviewHeight(lineLimit: number): number {

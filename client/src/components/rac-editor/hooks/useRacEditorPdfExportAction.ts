@@ -71,7 +71,14 @@ export function useRacEditorPdfExportAction({
     try {
       setIsPdfExporting(true);
 
-      const canvasImageDataUrl = canvasRef.current?.createDocumentPort()?.exportImageDataUrl();
+      const canvasPort = canvasRef.current?.createDocumentPort();
+      const restoreCanvasImages = await canvasPort?.prepareImageAssetsForExport?.();
+      let canvasImageDataUrl: string | null = null;
+      try {
+        canvasImageDataUrl = canvasPort?.exportImageDataUrl() ?? null;
+      } finally {
+        restoreCanvasImages?.();
+      }
       if (!canvasImageDataUrl) {
         const message = 'Falha ao capturar o canvas para o PDF.';
         recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, errorName: 'CanvasUnavailable', errorMessage: message});

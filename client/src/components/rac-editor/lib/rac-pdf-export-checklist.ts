@@ -209,6 +209,13 @@ export function formatRacPdfExportChecklistSummary(checklist: RacPdfExportCheckl
     : visibleLabels.join(', ');
 }
 
+export function isHouseIncompleteForRac(
+  constructionSite: ConstructionSiteState | null | undefined,
+  houseId: string,
+): boolean {
+  return buildRacPdfExportChecklist(constructionSite, houseId).hasBlockingItems;
+}
+
 function createChecklistItem(input: {
   id: string;
   label: string;

@@ -266,6 +266,8 @@ function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): R
       {label: 'Caibros', value: formatMaterialCount(extraMaterials?.rafters)},
       {label: 'Vigas Secundárias', value: formatMaterialCount(extraMaterials?.secondaryBeams)},
       {label: 'Mata-juntas', value: formatMaterialCount(extraMaterials?.gutters)},
+      {label: 'Calhas', value: formatMaterialCount(extraMaterials?.gutterCount ?? extraMaterials?.gutters)},
+      {label: 'Escada', value: formatStairType(extraMaterials?.stairType)},
     ],
     justification: appendStandardReportText(extraMaterials?.justification, DEFAULT_EXTRA_MATERIALS_NOTE),
   };
@@ -313,6 +315,12 @@ function appendStandardReportText(value: unknown, standardText: string): string 
 
 function formatMaterialCount(value: number | undefined): string {
   return Number.isInteger(value) && value >= 0 ? String(value) : '0';
+}
+
+function formatStairType(value: HouseExtraMaterials['stairType']): string {
+  if (value === 'straight') return 'Escada Reta';
+  if (value === 'landing') return 'Escada com Patamar';
+  return 'Não informada';
 }
 
 function formatDateLabel(date: Date): string {

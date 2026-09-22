@@ -1,4 +1,5 @@
-import type {Canvas as FabricCanvas} from 'fabric';
+import {Canvas as FabricCanvas, FabricImage} from 'fabric';
+import type {FabricObject} from 'fabric';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
 import {
   type CanvasObject,
@@ -192,7 +193,11 @@ function pickResource(source: Record<string, unknown>): JsonObject | undefined {
 
   const storageUrl = resource.storageUrl;
   const src = resource.src;
-  if (typeof storageUrl === 'string' && /^data:image\//i.test(String(src ?? ''))) {
+  if (typeof storageUrl === 'string' && (
+    /^data:image\//i.test(String(src ?? ''))
+    || /^https?:\/\//i.test(String(src ?? ''))
+    || /^\/manus-storage\//i.test(String(src ?? ''))
+  )) {
     resource.src = storageUrl;
   }
   return resource;
@@ -330,6 +335,51 @@ function restoreCanvasRuntimeBehaviors(canvas: FabricCanvas): void {
     .forEach(bindWallCanvasGroupScaling);
 }
 
+function collectFabricImages(objects: FabricObject[]): FabricImage[] {
+  return objects.flatMap((object) => {
+    if (object.type === 'image') return [object as FabricImage];
+
+    const nestedObjects = 'getObjects' in object && typeof object.getObjects === 'function'
+      ? object.getObjects()
+      : [];
+    return collectFabricImages(nestedObjects);
+  });
+}
+
+async function prepareImageAssetsForExport(canvas: FabricCanvas): Promise<() => void> {
+  const visibilitySnapshot = new Map<FabricImage, boolean>();
+  const images = collectFabricImages(canvas.getObjects());
+
+  await Promise.all(images.map(async (image) => {
+    const src = image.getSrc();
+    if (!src || /^(data:|blob:)/i.test(src)) return;
+
+    visibilitySnapshot.set(image, image.visible !== false);
+    try {
+      const rehydrated = await FabricImage.fromURL(src, {crossOrigin: 'anonymous'});
+      image.setElement(rehydrated.getElement());
+      image.set({crossOrigin: 'anonymous'});
+      image.setCoords();
+      image.dirty = true;
+    } catch (error) {
+      // Uma imagem legada sem CORS não pode contaminar a captura inteira. Ela
+      // fica temporariamente invisível e volta ao estado original ao final.
+      console.warn('[Canvas PDF export] Image could not be rehydrated:', error);
+      image.set({visible: false});
+      image.dirty = true;
+    }
+  }));
+
+  canvas.requestRenderAll();
+  return () => {
+    visibilitySnapshot.forEach((visible, image) => {
+      image.set({visible});
+      image.dirty = true;
+    });
+    canvas.requestRenderAll();
+  };
+}
+
 /**
  * Cria a borda documental do Fabric.
  *
@@ -384,5 +434,7 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
         canvas.renderAll();
       }
     },
+
+    prepareImageAssetsForExport: () => prepareImageAssetsForExport(canvas),
   };
 }

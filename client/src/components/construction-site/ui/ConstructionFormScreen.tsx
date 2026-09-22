@@ -17,7 +17,6 @@ import {Button} from '@/components/ui/button.tsx';
 import {Calendar} from '@/components/ui/calendar.tsx';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {FORM_ACTION_BUTTON_CLASS} from '@/components/construction-site/ui/lib/constants.ts';
 import {
   inputClassName,
   PhotoUploadField,
@@ -92,7 +91,7 @@ export function ConstructionFormScreen({
   });
 
   return (
-    <form data-testid='construction-form' className='w-full space-y-6' onSubmit={submitForm} noValidate>
+    <form data-testid='construction-form' className='w-full min-w-0 space-y-6' onSubmit={submitForm} noValidate>
       <div data-testid='construction-form-grid' className='space-y-5'>
         <Controller
           control={form.control}
@@ -156,8 +155,8 @@ export function ConstructionFormScreen({
           />
         </div>
       </div>
-      <div className='flex flex-col justify-end gap-3 sm:flex-row'>
-        <PrimaryButton type='submit' className={FORM_ACTION_BUTTON_CLASS} disabled={readOnly}>
+      <div className='grid w-full min-w-0 gap-3 md:grid-cols-3'>
+        <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap md:col-start-3' disabled={readOnly}>
           {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
         </PrimaryButton>
       </div>

@@ -28,4 +28,13 @@ export interface CanvasDocumentPort {
    * Retorna `null` quando a implementação visual não consegue gerar imagem.
    */
   exportImageDataUrl(): string | null;
+
+  /**
+   * Prepara imagens persistidas em Storage para uma captura segura.
+   *
+   * O retorno é uma função de restauração que deve ser chamada depois da
+   * captura. Implementações que não precisam de preflight podem omitir este
+   * método.
+   */
+  prepareImageAssetsForExport?(): Promise<() => void>;
 }

@@ -73,6 +73,7 @@ export const CONSTRUCTION_SORT_OPTIONS: VisualSelectOption<ConstructionSortKey>[
 
 export const HOUSE_STATUS_FILTER_OPTIONS: VisualSelectOption<HouseStatusFilter>[] = [
   {value: 'all', label: 'Todos'},
+  {value: 'incomplete', label: 'Incompletas para RAC'},
   {value: 'archived', label: 'Arquivada'},
   {value: 'draft', label: 'Rascunho'},
   {value: 'rac_printed', label: 'RAC Impressa'},

@@ -93,6 +93,17 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
     await expect(page.getByTestId('house-mobile-list').getByText('Família E2E Atualizada')).toBeVisible();
   });
 
+  test('mantém cards abaixo de 680px e tabela a partir de 680px', async ({page}) => {
+    await openHouseManagement(page);
+    await page.setViewportSize({width: 679, height: 900});
+    await expect(page.getByTestId('house-mobile-list')).toBeVisible();
+    await expect(page.getByTestId('house-desktop-table')).toBeHidden();
+
+    await page.setViewportSize({width: 680, height: 900});
+    await expect(page.getByTestId('house-mobile-list')).toBeHidden();
+    await expect(page.getByTestId('house-desktop-table')).toBeVisible();
+  });
+
   test('cria Monitor ocupando a largura disponível', async ({page}) => {
     await openMonitorManagement(page);
     await page.getByRole('button', {name: '+ Adicionar Monitor'}).click();
