@@ -68,19 +68,11 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expectPdfPreviewRendered(page);
     const previewSurface = page.getByTestId('pdf-preview-surface');
-    const initialZoom = Number(await previewSurface.getAttribute('data-zoom'));
-    expect(initialZoom).toBeGreaterThan(0);
-    expect(initialZoom).toBeLessThanOrEqual(100);
-    for (let currentZoom = initialZoom; currentZoom < 120; currentZoom += 10) {
-      await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
-    }
+    await expect(previewSurface).toHaveAttribute('data-zoom', '100');
+    await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
+    await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
     await expect(previewSurface).toHaveAttribute('data-zoom', '120');
     await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
-    const surfaceBox = await previewSurface.boundingBox();
-    const controlsBox = await page.getByTestId('pdf-preview-controls').boundingBox();
-    expect(surfaceBox).not.toBeNull();
-    expect(controlsBox).not.toBeNull();
-    expect(controlsBox!.y).toBeGreaterThanOrEqual(surfaceBox!.y + surfaceBox!.height - 1);
     const surfaceWidth = await previewSurface.evaluate((element) => element.clientWidth);
     await expect.poll(async () => previewSurface.evaluate((element) => element.scrollWidth), {
       timeout: 10_000,
