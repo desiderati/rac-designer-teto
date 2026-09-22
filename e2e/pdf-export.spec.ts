@@ -67,6 +67,10 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expectPdfPreviewRendered(page);
+    await page.getByRole('button', {name: 'Próxima página da prévia'}).click();
+    await expect(page.getByTestId('pdf-preview-canvas-2')).toBeVisible();
+    await page.getByRole('button', {name: 'Página anterior da prévia'}).click();
+    await expect(page.getByTestId('pdf-preview-canvas-1')).toBeVisible();
     await page.getByRole('button', {name: 'Baixar PDF'}).click();
     const download = await downloadPromise;
 

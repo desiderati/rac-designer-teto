@@ -59,7 +59,7 @@ const MAIN_CANVAS_FOOTER_GAP = 20;
 const FOOTER_CELL_HEIGHT = 42;
 const FOOTER_CELL_TOP_OFFSET = 14;
 const FOOTER_CELL_BORDER_WIDTH = 0.35;
-const FOOTER_LABELS = ['1,0 m', '1,2 m', '1,5 m', '2,0 m', '2,5 m', '3,0 m'];
+const FOOTER_LABELS = ['1,0 m', '1,2 m', '1,5 m', '1,8 m', '2,0 m', '2,5 m', '3,0 m'];
 const FIRST_PAGE_MONITOR_LIMIT = 4;
 const FIRST_PAGE_MONITOR_COLUMNS = 2;
 const FIRST_PAGE_MONITOR_COLUMN_WIDTH = 108;
@@ -124,10 +124,11 @@ export function createRacPdfReportDocument({
 
   drawPageBackground(pdf);
   drawHeader(pdf, report);
-  drawLeftColumn(pdf, report);
+  drawFirstPageLeftColumn(pdf, report);
   drawMainCanvas(pdf, report);
   drawFooter(pdf, report);
-  drawContinuationPages(pdf, report);
+  drawSecondPage(pdf, report);
+  drawOverflowPages(pdf, report);
 
   return pdf;
 }
@@ -301,7 +302,7 @@ function getTetoOfficialLogoVisualHeight(): number {
   );
 }
 
-function drawLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
+function drawFirstPageLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
   let cursorY = LEFT_COLUMN_Y;
 
   cursorY = drawHouseSection(pdf, report, cursorY);
@@ -310,12 +311,246 @@ function drawLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
   cursorY += LEFT_SECTION_GAP;
   cursorY = drawExtraMaterialsSection(pdf, report, cursorY);
   cursorY += LEFT_SECTION_GAP;
-  cursorY = drawMonitoringSection(pdf, report, cursorY);
+  drawResidentActionsSection(pdf, report, cursorY);
+}
 
-  if (report.notes.trim()) {
-    cursorY += LEFT_SECTION_GAP;
-    drawNotesSection(pdf, report, cursorY, getFirstPageNotesLineLimit(pdf, report, cursorY));
+function drawResidentActionsSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number) {
+  const cursorY = drawSectionTitle(pdf, 'AÇÕES DO MORADOR', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
+  if (report.residentActions.length === 0) {
+    drawMutedValue(pdf, 'Nenhuma ação informada.', LEFT_COLUMN_X, cursorY + 2, LEFT_COLUMN_WIDTH);
+    return;
   }
+
+  drawStatefulChipRow(
+    pdf,
+    report.residentActions.map((action) => ({text: action.label, selected: true})),
+    LEFT_COLUMN_X,
+    cursorY,
+    LEFT_COLUMN_WIDTH,
+  );
+}
+
+function drawSecondPage(pdf: JsPDFDocument, report: RacPdfReportModel) {
+  pdf.addPage('a4', 'landscape');
+  drawPageBackground(pdf);
+  drawHeader(pdf, report);
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const contentX = PAGE_MARGIN_X;
+  const contentY = 66;
+  const contentWidth = pageWidth - PAGE_MARGIN_X * 2;
+  const contentBottom = getFooterRowY(pdf) - FOOTER_CELL_TOP_OFFSET - 8;
+  const leftWidth = contentWidth * (2 / 3) - 8;
+  const rightX = contentX + leftWidth + 16;
+  const rightWidth = contentWidth - leftWidth - 16;
+
+  drawSecondPageTextBand(pdf, report, contentX, contentY, contentWidth);
+  drawSecondPageVisualColumn(pdf, report, contentX, contentY + 102, leftWidth, contentBottom);
+  drawSecondPagePhotos(pdf, report, rightX, contentY + 102, rightWidth, contentBottom);
+  drawFooter(pdf, report);
+}
+
+function drawSecondPageTextBand(
+  pdf: JsPDFDocument,
+  report: RacPdfReportModel,
+  x: number,
+  y: number,
+  width: number,
+) {
+  const columnWidth = width / 2 - 8;
+  let cursorY = drawSectionTitle(pdf, 'MONITORIA', x, y, columnWidth);
+  const visibleMonitors = report.monitors.slice(0, 6);
+  if (visibleMonitors.length === 0) {
+    drawMutedValue(pdf, 'Nenhum monitor ativo informado.', x, cursorY + 2, columnWidth);
+  } else {
+    visibleMonitors.forEach((monitor, index) => {
+      const column = index % 3;
+      const row = Math.floor(index / 3);
+      drawMonitorSummary(pdf, monitor, x + column * (columnWidth / 3), cursorY + row * 26, columnWidth / 3 - 8);
+    });
+  }
+
+  const notesX = x + columnWidth + 16;
+  const notesY = drawSectionTitle(pdf, 'OBSERVAÇÕES COMPLETAS', notesX, y, columnWidth);
+  drawWrappedText(pdf, report.notes, notesX, notesY, columnWidth, 88, 6.7, 8.5, 10);
+}
+
+function drawOverflowPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
+  const monitorOverflow = report.monitors.slice(6);
+  const noteLines = getWrappedBodyLines(pdf, report.notes, 6.7, LEFT_COLUMN_WIDTH);
+  const noteOverflow = noteLines.length > 10 ? noteLines : [];
+  const extraLines = getWrappedBodyLines(pdf, report.extraMaterials.justification, FIRST_PAGE_MUTED_BODY_FONT_SIZE, LEFT_COLUMN_WIDTH);
+  const extraOverflow = extraLines.length > 8 ? extraLines : [];
+  if (monitorOverflow.length === 0 && noteOverflow.length === 0 && extraOverflow.length === 0) return;
+
+  pdf.addPage('a4', 'landscape');
+  drawPageBackground(pdf);
+  drawHeader(pdf, report);
+  drawMutedValue(pdf, 'continua atrás...', PAGE_MARGIN_X, 58, 180);
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - PAGE_MARGIN_X * 2;
+  const columnWidth = contentWidth / 2 - 8;
+  const rightX = PAGE_MARGIN_X + columnWidth + 16;
+  const topY = 82;
+
+  if (monitorOverflow.length > 0) {
+    const titleY = drawSectionTitle(pdf, 'MONITORIA (CONTINUAÇÃO)', PAGE_MARGIN_X, topY, columnWidth);
+    monitorOverflow.forEach((monitor, index) => {
+      const column = index % 3;
+      const row = Math.floor(index / 3);
+      drawMonitorSummary(pdf, monitor, PAGE_MARGIN_X + column * (columnWidth / 3), titleY + row * 26, columnWidth / 3 - 8);
+    });
+  }
+
+  if (noteOverflow.length > 0) {
+    const titleY = drawSectionTitle(pdf, 'OBSERVAÇÕES COMPLETAS (CONTINUAÇÃO)', rightX, topY, columnWidth);
+    drawBodyLines(pdf, noteOverflow, rightX, titleY, 6.7, 7.2);
+  }
+
+  if (extraOverflow.length > 0) {
+    const extraY = noteOverflow.length > 0 ? 250 : 120;
+    const titleY = drawSectionTitle(pdf, 'OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS', PAGE_MARGIN_X, extraY, columnWidth);
+    drawBodyLines(pdf, extraOverflow, PAGE_MARGIN_X, titleY, FIRST_PAGE_MUTED_BODY_FONT_SIZE, FIRST_PAGE_MUTED_BODY_LINE_HEIGHT);
+  }
+  drawFooter(pdf, report);
+}
+
+function drawSecondPageVisualColumn(
+  pdf: JsPDFDocument,
+  report: RacPdfReportModel,
+  x: number,
+  y: number,
+  width: number,
+  bottomY: number,
+) {
+  const visualHeight = Math.max(160, bottomY - y - 4);
+  const houseHeight = Math.max(96, visualHeight * 0.63);
+  const houseRect = {x, y, width, height: houseHeight};
+  drawVisualPanel(pdf, houseRect, 'VISTA 3D DA CASA');
+
+  if (report.house3DImageDataUrl) {
+    const fitted = fitImageContain(
+      {x: x + 8, y: y + 18, width: width - 16, height: houseHeight - 26},
+      report.house3DImageAspectRatio,
+    );
+    pdf.addImage(
+      report.house3DImageDataUrl,
+      getImageFormat(report.house3DImageDataUrl),
+      fitted.x,
+      fitted.y,
+      fitted.width,
+      fitted.height,
+      undefined,
+      'FAST',
+    );
+    if (!report.house3DImageIsIllustration) {
+      drawMutedValue(pdf, 'Captura 3D usada como fallback.', x + 10, y + houseHeight - 7, width - 20);
+    }
+  } else {
+    drawPlaceholder(pdf, {x: x + 8, y: y + 20, width: width - 16, height: houseHeight - 30}, 'Vista 3D indisponível');
+  }
+
+  const mapY = y + houseHeight + 12;
+  const mapHeight = Math.max(54, visualHeight - houseHeight - 12);
+  drawVisualPanel(pdf, {x, y: mapY, width, height: mapHeight}, 'LOCALIZAÇÃO');
+  if (report.mapImageDataUrl) {
+    const fitted = fitImageContain(
+      {x: x + 8, y: mapY + 18, width: width - 16, height: mapHeight - 26},
+      16 / 9,
+    );
+    pdf.addImage(report.mapImageDataUrl, getImageFormat(report.mapImageDataUrl), fitted.x, fitted.y, fitted.width, fitted.height, undefined, 'FAST');
+  } else {
+    drawPlaceholder(
+      pdf,
+      {x: x + 8, y: mapY + 20, width: width - 16, height: mapHeight - 28},
+      report.locationQuery ? 'Mapa de satélite indisponível' : 'Localização não informada',
+    );
+  }
+}
+
+function drawSecondPagePhotos(
+  pdf: JsPDFDocument,
+  report: RacPdfReportModel,
+  x: number,
+  y: number,
+  width: number,
+  bottomY: number,
+) {
+  let cursorY = drawSectionTitle(pdf, 'FOTOS DO TERRENO', x, y, width);
+  const gap = 8;
+  const photoHeight = Math.max(56, (bottomY - cursorY - gap * 3) / 4);
+
+  report.terrainPhotos.slice(0, 4).forEach((photo, index) => {
+    const rect = {x, y: cursorY + index * (photoHeight + gap), width, height: photoHeight};
+    setFill(pdf, COLORS.surface);
+    setStroke(pdf, COLORS.line);
+    pdf.roundedRect(rect.x, rect.y, rect.width, rect.height, 4, 4, 'FD');
+    if (photo.dataUrl) {
+      const fitted = fitImageContain({x: rect.x + 4, y: rect.y + 4, width: rect.width - 8, height: rect.height - 8}, 4 / 3);
+      pdf.addImage(photo.dataUrl, getImageFormat(photo.dataUrl), fitted.x, fitted.y, fitted.width, fitted.height, undefined, 'FAST');
+    } else {
+      drawPlaceholder(pdf, {x: rect.x + 4, y: rect.y + 4, width: rect.width - 8, height: rect.height - 8}, `Foto ${index + 1} não enviada`);
+    }
+    setFill(pdf, COLORS.white);
+    pdf.roundedRect(rect.x + 6, rect.y + rect.height - 16, rect.width - 12, 11, 2, 2, 'F');
+    setText(pdf, COLORS.muted);
+    pdf.setFont(DEFAULT_FONT, 'normal');
+    setFontSize(pdf, 5.3);
+    pdf.text(limitText(pdf, photo.description, rect.width - 20), rect.x + 10, rect.y + rect.height - 8);
+  });
+}
+
+function drawVisualPanel(pdf: JsPDFDocument, rect: Rect, title: string) {
+  setFill(pdf, COLORS.surface);
+  setStroke(pdf, COLORS.line);
+  pdf.roundedRect(rect.x, rect.y, rect.width, rect.height, 5, 5, 'FD');
+  setText(pdf, COLORS.muted);
+  pdf.setFont(DEFAULT_FONT, 'bold');
+  setFontSize(pdf, 5.8);
+  pdf.text(title, rect.x + 10, rect.y + 11);
+}
+
+function drawPlaceholder(pdf: JsPDFDocument, rect: Rect, label: string) {
+  setFill(pdf, COLORS.surfaceStrong);
+  pdf.roundedRect(rect.x, rect.y, rect.width, rect.height, 3, 3, 'F');
+  setText(pdf, COLORS.faint);
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, 6.2);
+  pdf.text(limitText(pdf, label, rect.width - 12), rect.x + rect.width / 2, rect.y + rect.height / 2, {align: 'center'});
+}
+
+function drawWrappedText(
+  pdf: JsPDFDocument,
+  text: string,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  fontSize: number,
+  lineHeight: number,
+  maxLines?: number,
+) {
+  setText(pdf, COLORS.ink);
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, fontSize);
+  const lines = splitTextByWordsToWidth(pdf, text, width);
+  const visibleLines = Math.min(Math.max(0, Math.floor(height / lineHeight)), maxLines ?? Number.POSITIVE_INFINITY);
+  pdf.text(lines.slice(0, visibleLines), x, y, {lineHeightFactor: lineHeight / getFirstPageMutedBodyFontSize()});
+}
+
+function getWrappedBodyLines(pdf: JsPDFDocument, text: string, fontSize: number, width: number): string[] {
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, fontSize);
+  return splitTextByWordsToWidth(pdf, text, width);
+}
+
+function drawBodyLines(pdf: JsPDFDocument, lines: string[], x: number, y: number, fontSize: number, lineHeight: number) {
+  setText(pdf, COLORS.ink);
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, fontSize);
+  pdf.text(lines, x, y, {lineHeightFactor: lineHeight / getFirstPageMutedBodyFontSize()});
 }
 
 function drawHouseSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
@@ -470,12 +705,12 @@ function drawFooter(pdf: JsPDFDocument, report: RacPdfReportModel) {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const footerRowY = getFooterRowY(pdf);
   const contentWidth = pageWidth - PAGE_MARGIN_X * 2;
-  const columnWidth = contentWidth / 7;
   const masterLabel = formatMasterPilotiFooterLabel(report);
+  const totals = getFooterTotals(report.pilotis.totals);
+  const columnWidth = contentWidth / (totals.length + 1);
 
   drawFooterCell(pdf, 'PILOTIS MESTRE', masterLabel, PAGE_MARGIN_X, footerRowY, columnWidth, true);
 
-  const totals = getFooterTotals(report.pilotis.totals);
   totals.forEach((total, index) => {
     drawFooterCell(
       pdf,
@@ -525,8 +760,8 @@ function drawFooterCell(
 
   setText(pdf, highlighted ? COLORS.ink : COLORS.faint);
   pdf.setFont(DEFAULT_FONT, 'bold');
-  setFontSize(pdf, 7.4);
-  pdf.text(limitText(pdf, value, width - 10), x + width / 2, y + 17, {align: 'center'});
+  setFontSize(pdf, highlighted ? 5.2 : 7.4);
+  pdf.text(highlighted ? value : limitText(pdf, value, width - 10), x + width / 2, y + 17, {align: 'center'});
 }
 
 function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
@@ -1036,7 +1271,11 @@ function drawBrazilFlagIcon(pdf: JsPDFDocument, x: number, y: number, width: num
 
 function getFooterTotals(totals: RacPdfReportPilotiTotal[]): RacPdfReportPilotiTotal[] {
   const countByLabel = new Map(totals.map((total) => [total.heightLabel, total.count]));
-  return FOOTER_LABELS.map((heightLabel) => ({
+  const labels = [...new Set([
+    ...FOOTER_LABELS,
+    ...totals.map((total) => total.heightLabel),
+  ])].sort((left, right) => parseFloat(left.replace(',', '.')) - parseFloat(right.replace(',', '.')));
+  return labels.map((heightLabel) => ({
     heightLabel,
     count: countByLabel.get(heightLabel) ?? 0,
   }));

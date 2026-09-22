@@ -4,6 +4,7 @@ import type {
   HouseSize,
   MonitorRecord,
   PersistedHouseRecord,
+  ResidentAction,
   SiteAssessment,
   SoilProfile,
 } from '@/shared/types/construction-site.ts';
@@ -52,6 +53,16 @@ export interface RacPdfReportExtraMaterials {
   justification: string;
 }
 
+export interface RacPdfReportPhoto {
+  dataUrl: string | null;
+  description: string;
+}
+
+export interface RacPdfReportAction {
+  value: ResidentAction;
+  label: string;
+}
+
 export interface RacPdfReportTerrainVolumes {
   rachaoM3: number;
   britaM3: number;
@@ -68,6 +79,7 @@ export interface RacPdfReportModel {
   canvasImageAspectRatio: number;
   house3DImageDataUrl: string | null;
   house3DImageAspectRatio: number;
+  house3DImageIsIllustration: boolean;
   familyName: string;
   leaders: string;
   communityName: string;
@@ -95,6 +107,10 @@ export interface RacPdfReportModel {
   };
   monitors: RacPdfReportMonitor[];
   notes: string;
+  residentActions: RacPdfReportAction[];
+  terrainPhotos: RacPdfReportPhoto[];
+  locationQuery: string;
+  mapImageDataUrl: string | null;
 }
 
 interface BuildRacPdfReportModelArgs {
@@ -103,6 +119,9 @@ interface BuildRacPdfReportModelArgs {
   canvasImageAspectRatio?: number;
   house3DImageDataUrl?: string | null;
   house3DImageAspectRatio?: number;
+  house3DImageIsIllustration?: boolean;
+  terrainPhotoDataUrls?: Array<string | null>;
+  mapImageDataUrl?: string | null;
   generatedAt?: Date;
   houseId?: string;
 }
@@ -134,6 +153,9 @@ export function buildRacPdfReportModel({
   canvasImageAspectRatio = 1,
   house3DImageDataUrl = null,
   house3DImageAspectRatio = canvasImageAspectRatio,
+  house3DImageIsIllustration = false,
+  terrainPhotoDataUrls = [],
+  mapImageDataUrl = null,
   generatedAt = new Date(),
   houseId,
 }: BuildRacPdfReportModelArgs): RacPdfReportModel | null {
@@ -147,8 +169,9 @@ export function buildRacPdfReportModel({
   const constructionCodeDisplay = formatConstructionCodeDisplay(constructionCode);
   const houseState = activeHouse.drawingDocument.house;
   const pilotis = houseState?.pilotis ?? {};
-  const pilotiGrid = buildPilotiGrid(pilotis);
-  const pilotiTotals = buildPilotiTotals(pilotis, activeHouse.designSettings.selectedPilotiHeights);
+  const configuredPilotis = getConfiguredPilotis(activeHouse, pilotis);
+  const pilotiGrid = buildPilotiGrid(configuredPilotis);
+  const pilotiTotals = buildPilotiTotals(configuredPilotis, activeHouse.designSettings.selectedPilotiHeights);
   const master = pilotiGrid.flat().find((piloti) => piloti.isMaster) ?? null;
   const leaders = normalizeDisplayValue(activeHouse.leaders, '');
   const generatedAtLabel = formatDateLabel(generatedAt);
@@ -160,6 +183,7 @@ export function buildRacPdfReportModel({
     canvasImageAspectRatio: normalizeAspectRatio(canvasImageAspectRatio),
     house3DImageDataUrl,
     house3DImageAspectRatio: normalizeAspectRatio(house3DImageAspectRatio),
+    house3DImageIsIllustration: Boolean(house3DImageDataUrl && house3DImageIsIllustration),
     familyName,
     leaders,
     communityName,
@@ -193,6 +217,10 @@ export function buildRacPdfReportModel({
       .filter((monitor) => monitor.status === 'active')
       .map(toReportMonitor),
     notes: appendStandardReportText(activeHouse.notes, DEFAULT_RAC_GENERAL_NOTE),
+    residentActions: buildResidentActions(activeHouse.siteAssessment),
+    terrainPhotos: buildTerrainPhotos(activeHouse.siteAssessment, terrainPhotoDataUrls),
+    locationQuery: normalizeDisplayValue(activeHouse.siteAssessment.locationQuery, ''),
+    mapImageDataUrl,
   };
 }
 
@@ -218,6 +246,23 @@ function getReportHouse(constructionSite: ConstructionSiteState, houseId?: strin
   return constructionSite.houses.find((house) => house.id === activeHouseId && house.status !== 'archived')
     ?? constructionSite.houses.find((house) => house.status !== 'archived')
     ?? null;
+}
+
+function getConfiguredPilotis(
+  house: PersistedHouseRecord,
+  fallback: Record<string, HousePiloti>,
+): Record<string, HousePiloti> {
+  const persistedPoints = house.pilotiLayout?.points ?? [];
+  if (persistedPoints.length === 0) return fallback;
+
+  return Object.fromEntries(persistedPoints.map((point) => [
+    point.id,
+    {
+      height: point.height,
+      nivel: point.nivel,
+      isMaster: point.isMaster,
+    },
+  ]));
 }
 
 function buildPilotiGrid(pilotis: Record<string, HousePiloti>): RacPdfReportPilotiCell[][] {
@@ -291,6 +336,36 @@ function buildTerrainOptionGroups(assessment: SiteAssessment): RacPdfReportOptio
       ].filter((option): option is string => option !== null),
     },
   ];
+}
+
+const RESIDENT_ACTION_LABELS: Record<ResidentAction, string> = {
+  excavate: 'Escavar',
+  fill: 'Aterrar',
+  remove_vegetation: 'Retirar vegetação',
+  remove_debris: 'Retirar entulho',
+  dismantle_house: 'Desmontar a Casa',
+  remove_obstacle: 'Retirar obstáculo',
+  clear_access: 'Liberar acesso',
+};
+
+function buildResidentActions(assessment: SiteAssessment): RacPdfReportAction[] {
+  return (assessment.residentActions ?? [])
+    .filter((action): action is ResidentAction => action in RESIDENT_ACTION_LABELS)
+    .map((value) => ({value, label: RESIDENT_ACTION_LABELS[value]}));
+}
+
+function buildTerrainPhotos(
+  assessment: SiteAssessment,
+  dataUrls: Array<string | null>,
+): RacPdfReportPhoto[] {
+  return Array.from({length: 4}, (_, index) => {
+    const photo = assessment.terrainPhotos?.[index];
+    const dataUrl = dataUrls[index] ?? (photo?.url.startsWith('data:image/') ? photo.url : null);
+    return {
+      dataUrl,
+      description: normalizeDisplayValue(photo?.description, `Foto do terreno ${index + 1}`),
+    };
+  });
 }
 
 function toReportMonitor(monitor: MonitorRecord): RacPdfReportMonitor {

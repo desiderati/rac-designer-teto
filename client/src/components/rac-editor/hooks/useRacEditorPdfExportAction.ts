@@ -56,6 +56,76 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+const EXPORT_MEDIA_TIMEOUT_MS = 1_800;
+
+function normalizeExportImageSource(source: string): string {
+  const storagePath = /(?:^|https?:\/\/[^/]+)(\/manus-storage\/[^?#]+)/i.exec(source)?.[1];
+  return storagePath ?? source;
+}
+
+function loadImageDataUrl(source: string | undefined): Promise<string | null> {
+  if (!source?.trim()) return Promise.resolve(null);
+  if (/^data:image\//i.test(source)) return Promise.resolve(source);
+
+  return new Promise((resolve) => {
+    const image = new Image();
+    let settled = false;
+    let timeoutId = 0;
+    const finish = (value: string | null) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      image.onload = null;
+      image.onerror = null;
+      resolve(value);
+    };
+
+    timeoutId = window.setTimeout(() => finish(null), EXPORT_MEDIA_TIMEOUT_MS);
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      try {
+        const raster = document.createElement('canvas');
+        raster.width = image.naturalWidth || image.width;
+        raster.height = image.naturalHeight || image.height;
+        if (!raster.width || !raster.height) {
+          finish(null);
+          return;
+        }
+        raster.getContext('2d')?.drawImage(image, 0, 0);
+        finish(raster.toDataURL('image/png'));
+      } catch {
+        finish(null);
+      }
+    };
+    image.onerror = () => finish(null);
+    image.src = normalizeExportImageSource(source);
+  });
+}
+
+function getReportHouseForMedia(constructionSite: ConstructionSiteState) {
+  const activeHouseId = constructionSite.constructionSite.activeHouseId;
+  return constructionSite.houses.find((house) => house.id === activeHouseId && house.status !== 'archived')
+    ?? constructionSite.houses.find((house) => house.status !== 'archived')
+    ?? null;
+}
+
+async function prepareReportMedia(constructionSite: ConstructionSiteState) {
+  const house = getReportHouseForMedia(constructionSite);
+  const photos = house?.siteAssessment.terrainPhotos?.slice(0, 4) ?? [];
+  const terrainPhotoDataUrls = await Promise.all(photos.map((photo) => loadImageDataUrl(photo.url)));
+  const locationQuery = house?.siteAssessment.locationQuery?.trim() ?? '';
+  const coordinates = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(locationQuery);
+  const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY;
+  const mapSource = coordinates && mapsKey
+    ? `https://maps.googleapis.com/maps/api/staticmap?center=${coordinates[1]},${coordinates[2]}&zoom=17&size=900x500&maptype=satellite&markers=color:red%7C${coordinates[1]},${coordinates[2]}&key=${mapsKey}`
+    : undefined;
+
+  return {
+    terrainPhotoDataUrls,
+    mapImageDataUrl: await loadImageDataUrl(mapSource),
+  };
+}
+
 export function useRacEditorPdfExportAction({
   canvasRef,
   house3DPdfSnapshotRef,
@@ -76,13 +146,26 @@ export function useRacEditorPdfExportAction({
   const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState): Promise<boolean> => {
     const startedAt = Date.now();
     let phase = 'start';
+    let dismissProgressToast: (() => void) | null = null;
     lastPdfExportConstructionSiteRef.current = constructionSite;
     recordPdfExportTelemetry('prepare_started');
 
     try {
       setIsPdfExporting(true);
+      const progressToast = typeof toast.loading === 'function'
+        ? toast.loading('Preparando exportação da RAC…')
+        : null;
+      const updateProgress = (message: string) => {
+        if (progressToast !== null && typeof toast.loading === 'function') {
+          toast.loading(message, {id: progressToast});
+        }
+      };
+      dismissProgressToast = () => {
+        if (progressToast !== null && typeof toast.dismiss === 'function') toast.dismiss(progressToast);
+      };
 
       phase = 'capture-canvas';
+      updateProgress('Capturando a planta da casa…');
       const canvasPort = canvasRef.current?.createDocumentPort();
       let canvasImageDataUrl: string | null = null;
       if (canvasPort?.exportSafeImageDataUrl) {
@@ -99,6 +182,7 @@ export function useRacEditorPdfExportAction({
       }
       if (!canvasImageDataUrl) {
         const message = 'Falha ao capturar o canvas para o PDF.';
+        dismissProgressToast?.();
         recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, errorName: 'CanvasUnavailable', errorMessage: message});
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
@@ -108,7 +192,12 @@ export function useRacEditorPdfExportAction({
       }
 
       phase = 'capture-3d';
+      updateProgress('Preparando a vista 3D…');
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      const house3DImageIsIllustration = house3DPdfSnapshotRef.current?.getLastCaptureKind?.() === 'illustration';
+      phase = 'load-report-media';
+      updateProgress('Carregando fotos e localização…');
+      const reportMedia = await prepareReportMedia(constructionSite);
       phase = 'build-report-model';
       const report = buildRacPdfReportModel({
         constructionSite,
@@ -116,10 +205,13 @@ export function useRacEditorPdfExportAction({
         canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
         house3DImageDataUrl,
         house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+        house3DImageIsIllustration,
+        ...reportMedia,
       });
 
       if (!report) {
         const message = 'Nenhuma casa ativa para gerar o PDF.';
+        dismissProgressToast?.();
         recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, errorName: 'ReportUnavailable', errorMessage: message});
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
@@ -129,6 +221,7 @@ export function useRacEditorPdfExportAction({
       }
 
       phase = 'render-pdf';
+      updateProgress('Montando o PDF…');
       const pdf = createRacPdfReportDocument({report, jsPDF});
       phase = 'create-preview-blob';
       const blob = pdf.output('blob') as Blob;
@@ -138,9 +231,11 @@ export function useRacEditorPdfExportAction({
       lastPdfPreviewFileNameRef.current = report.fileName;
       lastPdfPreviewPageCountRef.current = pageCount;
       setPdfPreview({fileName: report.fileName, blob, url, pageCount});
+      dismissProgressToast?.();
       recordPdfExportTelemetry('prepare_succeeded', {durationMs: Date.now() - startedAt});
       return true;
     } catch (error) {
+      dismissProgressToast?.();
       const details = errorDetails(error);
       recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, ...details});
       console.error(`[useRacEditorPdfExportAction] PDF preparation failed during ${phase}:`, error);

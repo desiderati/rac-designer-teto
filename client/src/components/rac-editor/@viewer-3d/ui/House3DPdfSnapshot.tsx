@@ -62,6 +62,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
   } = useHouse3DViewerModel();
   const [captureRequestId, setCaptureRequestId] = useState(0);
   const pendingCaptureRef = useRef<PendingCapture | null>(null);
+  const lastCaptureKindRef = useRef<'illustration' | '3d-fallback' | null>(null);
   const cameraPoseStorageKey = useMemo(
     () => getHouse3DViewerCameraPoseStorageKey(activeHouseId),
     [activeHouseId],
@@ -92,6 +93,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
 
   const handleCapturedHouse = useCallback(async (screenshotDataUrl: string | null) => {
     if (!screenshotDataUrl) {
+      lastCaptureKindRef.current = null;
       finishCapture(null);
       return;
     }
@@ -106,6 +108,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
         ])
         : null;
       if (!illustration?.dataUrl) {
+        lastCaptureKindRef.current = '3d-fallback';
         if (houseIllustrationPort) {
           console.warn('[House3DPdfSnapshot] Ilustração excedeu o tempo limite; usando captura 3D no PDF.');
         }
@@ -113,6 +116,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
         return;
       }
 
+      lastCaptureKindRef.current = 'illustration';
       finishCapture(illustration.dataUrl);
     } catch (error) {
       console.warn('[House3DPdfSnapshot] Ilustração indisponível; usando captura 3D.', error);
@@ -123,6 +127,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
   useImperativeHandle(ref, () => ({
     captureImageDataUrl: () => {
       if (!canRenderHouse) return Promise.resolve(null);
+      lastCaptureKindRef.current = null;
 
       const currentPendingCapture = pendingCaptureRef.current;
       if (currentPendingCapture) {
@@ -137,6 +142,7 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
         setCaptureRequestId((current) => current + 1);
       });
     },
+    getLastCaptureKind: () => lastCaptureKindRef.current,
   }), [canRenderHouse, finishCapture]);
 
   useEffect(() => () => {
