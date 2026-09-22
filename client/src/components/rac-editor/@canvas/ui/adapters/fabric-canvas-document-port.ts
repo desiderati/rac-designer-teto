@@ -88,6 +88,7 @@ const resourceKeys = [
   'cropX',
   'cropY',
 ] as const;
+const EXTERNAL_IMAGE_PROBE_TIMEOUT_MS = 2500;
 
 const metadataKeys = canvasObjectProps.filter((key) => key !== 'myType' && key !== 'editorObjectId');
 const exportVisualStyleKeys = ['fill', 'stroke', 'strokeWidth', 'strokeUniform', 'hoverCursor'] as const;
@@ -358,6 +359,25 @@ function imageElementToDataUrl(element: Element): string {
   return raster.toDataURL('image/png');
 }
 
+function loadFabricImageForExport(source: string): Promise<FabricImage> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = globalThis.setTimeout(() => {
+      reject(new Error(`Tempo excedido ao carregar imagem externa após ${EXTERNAL_IMAGE_PROBE_TIMEOUT_MS} ms.`));
+    }, EXTERNAL_IMAGE_PROBE_TIMEOUT_MS);
+
+    FabricImage.fromURL(source, {crossOrigin: 'anonymous'}).then(
+      (image) => {
+        globalThis.clearTimeout(timeoutId);
+        resolve(image);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
 async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
   if (!isRecord(value) || (value.type !== 'pattern' && !('source' in value))) {
     return value;
@@ -370,9 +390,7 @@ async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
 
   let probe: FabricImage | null = null;
   try {
-    probe = await FabricImage.fromURL(String(normalizeStorageImageSource(source)), {
-      crossOrigin: 'anonymous',
-    });
+    probe = await loadFabricImageForExport(String(normalizeStorageImageSource(source)));
     return {
       ...value,
       source: imageElementToDataUrl(probe.getElement()),
@@ -583,7 +601,7 @@ async function sanitizeElementForSafeExport(
     // This is deliberately performed before Fabric receives the document. If
     // the response has no CORS permission, the object is omitted before any
     // pixel can reach the temporary canvas.
-    probe = await FabricImage.fromURL(normalizedSource, {crossOrigin: 'anonymous'});
+    probe = await loadFabricImageForExport(normalizedSource);
     const dataUrl = imageElementToDataUrl(probe.getElement());
 
     return {

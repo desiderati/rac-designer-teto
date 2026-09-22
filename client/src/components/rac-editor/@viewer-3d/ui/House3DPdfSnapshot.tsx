@@ -21,6 +21,7 @@ import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIll
 const SNAPSHOT_WIDTH = 1000;
 const SNAPSHOT_HEIGHT = Math.round(SNAPSHOT_WIDTH * (CANVAS_HEIGHT / CANVAS_WIDTH));
 const CAPTURE_TIMEOUT_MS = 30_000;
+const ILLUSTRATION_TIMEOUT_MS = 4_000;
 
 const OFFSCREEN_STYLE: CSSProperties = {
   position: 'fixed',
@@ -97,9 +98,17 @@ export const House3DPdfSnapshot = forwardRef<House3DPdfSnapshotHandle, House3DPd
 
     try {
       const illustration = houseIllustrationPort
-        ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
+        ? await Promise.race([
+          houseIllustrationPort.generateFromDataUrl(screenshotDataUrl),
+          new Promise<null>((resolve) => {
+            window.setTimeout(() => resolve(null), ILLUSTRATION_TIMEOUT_MS);
+          }),
+        ])
         : null;
       if (!illustration?.dataUrl) {
+        if (houseIllustrationPort) {
+          console.warn('[House3DPdfSnapshot] Ilustração excedeu o tempo limite; usando captura 3D no PDF.');
+        }
         finishCapture(screenshotDataUrl);
         return;
       }

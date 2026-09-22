@@ -38,25 +38,13 @@ const pdfExportSeed = {
   },
 };
 
-async function expectPdfPreviewBlobValid(page: Parameters<typeof test>[0]['page']) {
-  const preview = page.getByTitle('Prévia do PDF da RAC');
-  await expect(preview).toBeVisible();
-  const src = await preview.getAttribute('src');
-  expect(src).toMatch(/^data:application\/pdf;base64,/);
-
-  const result = await page.evaluate(async (previewSrc) => {
-    const response = await fetch(previewSrc!.split('#', 1)[0]!);
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    return {
-      status: response.status,
-      contentType: response.headers.get('content-type'),
-      signature: String.fromCharCode(...bytes.slice(0, 4)),
-      byteLength: bytes.byteLength,
-    };
-  }, src);
-
-  expect(result).toMatchObject({status: 200, signature: '%PDF'});
-  expect(result.byteLength).toBeGreaterThan(1000);
+async function expectPdfPreviewRendered(page: Parameters<typeof test>[0]['page']) {
+  await expect(page.getByTestId('pdf-preview-surface')).toBeVisible();
+  const canvas = page.getByTestId('pdf-preview-canvas');
+  await expect(canvas).toBeVisible();
+  await expect.poll(async () => Number(await canvas.getAttribute('width'))).toBeGreaterThan(0);
+  await expect.poll(async () => Number(await canvas.getAttribute('height'))).toBeGreaterThan(0);
+  await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
 }
 
 test.describe('Exportação PDF do RAC', () => {
@@ -78,7 +66,7 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByRole('dialog', {name: 'Checklist da RAC'})).toBeVisible();
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    await expectPdfPreviewBlobValid(page);
+    await expectPdfPreviewRendered(page);
     await page.getByRole('button', {name: 'Baixar PDF'}).click();
     const download = await downloadPromise;
 

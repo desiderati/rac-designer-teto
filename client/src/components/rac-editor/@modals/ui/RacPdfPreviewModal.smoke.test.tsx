@@ -19,7 +19,7 @@ describe('RacPdfPreviewModal', () => {
     );
 
     expect(screen.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    expect(screen.getByTitle('Prévia do PDF da RAC')).toHaveAttribute('src', 'blob:rac-preview#page=1&zoom=100');
+    expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
     expect(screen.getByText('RAC-CC2603-FAMILIA-SILVA.pdf')).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', {name: 'Baixar PDF'}));
@@ -63,9 +63,9 @@ describe('RacPdfPreviewModal', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Aumentar zoom'}));
     fireEvent.click(screen.getByRole('button', {name: 'Próxima página'}));
 
-    expect(screen.getByTestId('pdf-preview-zoom')).toHaveTextContent('110%');
+    expect(screen.getByTestId('pdf-preview-zoom')).toHaveTextContent('80%');
     expect(screen.getByTestId('pdf-preview-page')).toHaveTextContent('Página 2 de 3');
-    expect(screen.getByTitle('Prévia do PDF da RAC')).toHaveAttribute('src', 'blob:rac-preview#page=2&zoom=110');
+    expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
   });
 
   it('exibe erro recuperável e delega a nova tentativa', () => {

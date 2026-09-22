@@ -1,8 +1,9 @@
 import {ChevronLeft, ChevronRight, Download, FileText, RefreshCw, X, ZoomIn, ZoomOut} from 'lucide-react';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {PdfDocumentPagePreview} from './PdfDocumentPagePreview.tsx';
 
 interface RacPdfPreviewModalProps {
   isMobile: boolean;
@@ -32,18 +33,13 @@ export function RacPdfPreviewModal({
   onClose,
 }: RacPdfPreviewModalProps) {
   const [page, setPage] = useState(1);
-  const [zoom, setZoom] = useState(100);
+  const [zoom, setZoom] = useState(70);
   const totalPages = Math.max(1, pageCount);
 
   useEffect(() => {
     setPage(1);
-    setZoom(100);
+    setZoom(70);
   }, [pdfUrl]);
-
-  const previewSrc = useMemo(() => {
-    if (!pdfUrl) return null;
-    return `${pdfUrl}#page=${page}&zoom=${zoom}`;
-  }, [page, pdfUrl, zoom]);
 
   const body = (
     <div className='space-y-3'>
@@ -91,13 +87,9 @@ export function RacPdfPreviewModal({
         </div>
       </div>
 
-      <div className='relative overflow-auto rounded-xl border border-slate-200 bg-slate-100'>
-        {previewSrc ? (
-          <iframe
-            title='Prévia do PDF da RAC'
-            src={previewSrc}
-            className='h-[62vh] min-h-[360px] w-full bg-white sm:h-[68vh]'
-          />
+      <div className='relative overflow-hidden rounded-xl border border-slate-200 bg-slate-800'>
+        {pdfUrl ? (
+          <PdfDocumentPagePreview pdfUrl={pdfUrl} page={page} zoom={zoom}/>
         ) : (
           <div className='grid h-[62vh] min-h-[360px] place-items-center px-6 text-center text-sm text-slate-500'>
             {isPreparing ? 'Gerando uma nova prévia do PDF…' : 'A prévia do PDF ainda não está disponível.'}
