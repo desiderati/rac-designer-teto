@@ -252,4 +252,32 @@ test.describe('Exportação PDF do RAC', () => {
 
     expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
   });
+
+  test('recria o Canvas descartável quando a primeira captura isolada já está tainted', async ({page}) => {
+    await page.addInitScript(() => {
+      const originalToDataUrl = HTMLCanvasElement.prototype.toDataURL;
+      let taintedFirstIsolatedCanvas = false;
+      Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', {
+        configurable: true,
+        value(this: HTMLCanvasElement, ...args: Parameters<HTMLCanvasElement['toDataURL']>) {
+          if (!taintedFirstIsolatedCanvas && this.style.left === '-10000px') {
+            taintedFirstIsolatedCanvas = true;
+            throw new DOMException('Tainted canvases may not be exported.', 'SecurityError');
+          }
+          return originalToDataUrl.apply(this, args);
+        },
+      });
+    });
+    await setupSeededRacEditorPage(page, {
+      ...pdfExportSeed,
+      insertInitialViews: true,
+    });
+
+    await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
+    await page.getByRole('button', {name: 'Gerar PDF'}).click();
+
+    await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
+    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
+  });
 });

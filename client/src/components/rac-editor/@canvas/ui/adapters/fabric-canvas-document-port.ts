@@ -551,12 +551,61 @@ function isSecurityError(error: unknown): boolean {
     : error instanceof Error && /tainted canvases|not be exported/i.test(error.message);
 }
 
-function hideImagesOnIsolatedCanvas(canvas: FabricCanvas): void {
-  collectFabricImages(canvas.getObjects()).forEach((image) => {
-    image.set({visible: false});
-    image.dirty = true;
-  });
-  canvas.renderAll();
+function removeImagesFromDocument(
+  document: HouseDrawingCanvasDocument,
+): HouseDrawingCanvasDocument {
+  const removeImages = (objects: HouseDrawingElementDocument[]): HouseDrawingElementDocument[] => objects
+    .filter((object) => object.shape !== 'image')
+    .map((object) => object.children
+      ? {...object, children: removeImages(object.children)}
+      : object);
+
+  return {
+    ...document,
+    objects: removeImages(document.objects),
+  };
+}
+
+function createIsolatedCanvas(width: number, height: number): {
+  canvas: FabricCanvas;
+  element: HTMLCanvasElement;
+} {
+  const element = globalThis.document.createElement('canvas');
+  element.width = width;
+  element.height = height;
+  element.style.position = 'fixed';
+  element.style.left = '-10000px';
+  element.style.top = '0';
+  element.setAttribute('aria-hidden', 'true');
+  globalThis.document.body.appendChild(element);
+
+  return {
+    element,
+    canvas: new FabricCanvas(element, {
+      width,
+      height,
+      backgroundColor: CANVAS_STYLE.backgroundColor,
+      renderOnAddRemove: false,
+    }),
+  };
+}
+
+async function exportDocumentFromFreshCanvas(
+  document: HouseDrawingCanvasDocument,
+  width: number,
+  height: number,
+): Promise<string | null> {
+  const isolated = createIsolatedCanvas(width, height);
+  try {
+    const isolatedPort = createFabricCanvasDocumentPort(isolated.canvas);
+    const loaded = await isolatedPort.loadCanvasDocument(document);
+    if (!loaded) return null;
+    isolated.canvas.renderAll();
+    return isolatedPort.exportImageDataUrl();
+  } finally {
+    await isolated.canvas.dispose();
+    isolated.element.remove();
+  }
 }
 
 async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | null> {
@@ -565,27 +614,15 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
   if (!canvasDocument) return null;
 
   const safeDocument = await sanitizeDocumentForSafeExport(canvasDocument);
-  const canvasElement = globalThis.document.createElement('canvas');
-  canvasElement.width = canvas.getWidth() || CANVAS_WIDTH;
-  canvasElement.height = canvas.getHeight() || CANVAS_HEIGHT;
-  canvasElement.style.position = 'fixed';
-  canvasElement.style.left = '-10000px';
-  canvasElement.style.top = '0';
-  canvasElement.setAttribute('aria-hidden', 'true');
-  globalThis.document.body.appendChild(canvasElement);
-
-  const isolatedCanvas = new FabricCanvas(canvasElement, {
-    width: canvasElement.width,
-    height: canvasElement.height,
-    backgroundColor: CANVAS_STYLE.backgroundColor,
-    renderOnAddRemove: false,
-  });
+  const width = canvas.getWidth() || CANVAS_WIDTH;
+  const height = canvas.getHeight() || CANVAS_HEIGHT;
+  const isolated = createIsolatedCanvas(width, height);
 
   try {
-    const isolatedPort = createFabricCanvasDocumentPort(isolatedCanvas);
+    const isolatedPort = createFabricCanvasDocumentPort(isolated.canvas);
     const loaded = await isolatedPort.loadCanvasDocument(safeDocument);
     if (!loaded) return null;
-    isolatedCanvas.renderAll();
+    isolated.canvas.renderAll();
     try {
       return isolatedPort.exportImageDataUrl();
     } catch (error) {
@@ -596,12 +633,11 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
       // whole RAC: remove all image pixels from this disposable canvas and
       // retry the export. The user's live canvas is never touched.
       console.warn('[Canvas PDF export] Isolated canvas was tainted; retrying without image pixels.', error);
-      hideImagesOnIsolatedCanvas(isolatedCanvas);
-      return isolatedPort.exportImageDataUrl();
+      return exportDocumentFromFreshCanvas(removeImagesFromDocument(safeDocument), width, height);
     }
   } finally {
-    await isolatedCanvas.dispose();
-    canvasElement.remove();
+    await isolated.canvas.dispose();
+    isolated.element.remove();
   }
 }
 
