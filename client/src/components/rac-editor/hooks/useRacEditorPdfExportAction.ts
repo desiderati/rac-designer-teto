@@ -73,12 +73,18 @@ export function useRacEditorPdfExportAction({
       setIsPdfExporting(true);
 
       const canvasPort = canvasRef.current?.createDocumentPort();
-      const restoreCanvasImages = await canvasPort?.prepareImageAssetsForExport?.();
       let canvasImageDataUrl: string | null = null;
-      try {
-        canvasImageDataUrl = canvasPort?.exportImageDataUrl() ?? null;
-      } finally {
-        restoreCanvasImages?.();
+      if (canvasPort?.exportSafeImageDataUrl) {
+        canvasImageDataUrl = await canvasPort.exportSafeImageDataUrl();
+      } else {
+        // Compatibilidade com portas antigas e doubles de teste. O adapter
+        // Fabric atual sempre segue o caminho isolado acima.
+        const restoreCanvasImages = await canvasPort?.prepareImageAssetsForExport?.();
+        try {
+          canvasImageDataUrl = canvasPort?.exportImageDataUrl() ?? null;
+        } finally {
+          restoreCanvasImages?.();
+        }
       }
       if (!canvasImageDataUrl) {
         const message = 'Falha ao capturar o canvas para o PDF.';

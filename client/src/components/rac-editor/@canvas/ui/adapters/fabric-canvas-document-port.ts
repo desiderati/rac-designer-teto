@@ -10,6 +10,11 @@ import {
 import {bindWallCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+} from '@/shared/constants.ts';
+import {
+  CANVAS_STYLE,
   HOUSE_2D_STYLE,
   PILOTI_MASTER_STYLE,
   PILOTI_STYLE,
@@ -380,6 +385,107 @@ async function prepareImageAssetsForExport(canvas: FabricCanvas): Promise<() => 
   };
 }
 
+async function sanitizeElementForSafeExport(
+  element: HouseDrawingElementDocument,
+): Promise<HouseDrawingElementDocument | null> {
+  const children = element.children
+    ? (await Promise.all(element.children.map((child) => sanitizeElementForSafeExport(child))))
+      .filter((child): child is HouseDrawingElementDocument => child !== null)
+    : undefined;
+
+  if (element.shape !== 'image') {
+    return children
+      ? {...element, children}
+      : element;
+  }
+
+  const resource = element.resource;
+  const source = readString(resource?.src) ?? readString(resource?.storageUrl);
+  if (!source || /^(data:|blob:)/i.test(source)) {
+    return children
+      ? {...element, children}
+      : element;
+  }
+
+  const normalizedSource = String(normalizeStorageImageSource(source));
+  let probe: FabricImage | null = null;
+  try {
+    // This is deliberately performed before Fabric receives the document. If
+    // the response has no CORS permission, the object is omitted before any
+    // pixel can reach the temporary canvas.
+    probe = await FabricImage.fromURL(normalizedSource, {crossOrigin: 'anonymous'});
+    const elementSource = probe.getElement();
+    const width = 'naturalWidth' in elementSource
+      ? Number((elementSource as HTMLImageElement).naturalWidth)
+      : Number(elementSource.width);
+    const height = 'naturalHeight' in elementSource
+      ? Number((elementSource as HTMLImageElement).naturalHeight)
+      : Number(elementSource.height);
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      throw new Error('A imagem não possui dimensões renderizáveis.');
+    }
+
+    return {
+      ...element,
+      resource: {
+        ...resource,
+        src: normalizedSource,
+        crossOrigin: 'anonymous',
+      },
+      ...(children ? {children} : {}),
+    };
+  } catch (error) {
+    console.warn('[Canvas PDF export] Image omitted from isolated snapshot:', error);
+    return null;
+  } finally {
+    probe?.dispose();
+  }
+}
+
+async function sanitizeDocumentForSafeExport(
+  document: HouseDrawingCanvasDocument,
+): Promise<HouseDrawingCanvasDocument> {
+  const objects = await Promise.all(document.objects.map((object) => sanitizeElementForSafeExport(object)));
+  return {
+    ...document,
+    objects: objects.filter((object): object is HouseDrawingElementDocument => object !== null),
+  };
+}
+
+async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | null> {
+  const sourcePort = createFabricCanvasDocumentPort(canvas);
+  const canvasDocument = sourcePort.exportCanvasDocument();
+  if (!canvasDocument) return null;
+
+  const safeDocument = await sanitizeDocumentForSafeExport(canvasDocument);
+  const canvasElement = globalThis.document.createElement('canvas');
+  canvasElement.width = canvas.getWidth() || CANVAS_WIDTH;
+  canvasElement.height = canvas.getHeight() || CANVAS_HEIGHT;
+  canvasElement.style.position = 'fixed';
+  canvasElement.style.left = '-10000px';
+  canvasElement.style.top = '0';
+  canvasElement.setAttribute('aria-hidden', 'true');
+  globalThis.document.body.appendChild(canvasElement);
+
+  const isolatedCanvas = new FabricCanvas(canvasElement, {
+    width: canvasElement.width,
+    height: canvasElement.height,
+    backgroundColor: CANVAS_STYLE.backgroundColor,
+    renderOnAddRemove: false,
+  });
+
+  try {
+    const isolatedPort = createFabricCanvasDocumentPort(isolatedCanvas);
+    const loaded = await isolatedPort.loadCanvasDocument(safeDocument);
+    if (!loaded) return null;
+    isolatedCanvas.renderAll();
+    return isolatedPort.exportImageDataUrl();
+  } finally {
+    await isolatedCanvas.dispose();
+    canvasElement.remove();
+  }
+}
+
 /**
  * Cria a borda documental do Fabric.
  *
@@ -434,6 +540,8 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
         canvas.renderAll();
       }
     },
+
+    exportSafeImageDataUrl: () => exportSafeImageDataUrl(canvas),
 
     prepareImageAssetsForExport: () => prepareImageAssetsForExport(canvas),
   };

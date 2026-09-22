@@ -26,17 +26,14 @@ export async function renderHouseDrawingCanvasImageDataUrl(house: PersistedHouse
       throw new Error('Documento visual da casa inválido.');
     }
 
-    const restoreCanvasImages = await port.prepareImageAssetsForExport?.();
-    try {
-      const imageDataUrl = port.exportImageDataUrl();
-      if (!imageDataUrl) {
-        throw new Error('Não foi possível capturar a imagem do canvas.');
-      }
-
-      return imageDataUrl;
-    } finally {
-      restoreCanvasImages?.();
+    const imageDataUrl = port.exportSafeImageDataUrl
+      ? await port.exportSafeImageDataUrl()
+      : port.exportImageDataUrl();
+    if (!imageDataUrl) {
+      throw new Error('Não foi possível capturar a imagem do canvas.');
     }
+
+    return imageDataUrl;
   } finally {
     await canvas.dispose();
     canvasElement.remove();

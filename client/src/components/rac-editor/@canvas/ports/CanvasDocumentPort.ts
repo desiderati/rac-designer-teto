@@ -30,6 +30,14 @@ export interface CanvasDocumentPort {
   exportImageDataUrl(): string | null;
 
   /**
+   * Exporta a imagem a partir de um canvas Fabric descartável.
+   *
+   * A implementação deve reidratar o documento antes da primeira renderização
+   * para que uma imagem externa irrecuperável não contamine o canvas editado.
+   */
+  exportSafeImageDataUrl?(): Promise<string | null>;
+
+  /**
    * Prepara imagens persistidas em Storage para uma captura segura.
    *
    * O retorno é uma função de restauração que deve ser chamada depois da

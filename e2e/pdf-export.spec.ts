@@ -145,4 +145,44 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
   });
+
+  test('gera a prévia sem tocar um Canvas vivo que já esteja contaminado', async ({page}) => {
+    await page.route('https://uncors.example.test/photo.png', async (route) => {
+      await route.fulfill({
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
+      });
+    });
+    await setupSeededRacEditorPage(page, {
+      ...pdfExportSeed,
+      insertInitialViews: true,
+      canvasObjects: [{
+        id: 'uncors-photo-e2e',
+        kind: 'image',
+        shape: 'image',
+        geometry: {left: 72, top: 64, width: 1, height: 1, scaleX: 100, scaleY: 100},
+        resource: {src: 'https://uncors.example.test/photo.png'},
+      }],
+    });
+
+    await page.evaluate(() => {
+      const liveCanvas = Array.from(document.querySelectorAll('canvas'))
+        .find((candidate) => candidate.width === 1667 && candidate.height === 1300 && candidate.classList.contains('lower-canvas'));
+      if (!liveCanvas) throw new Error('Canvas Fabric vivo não encontrado para a regressão de taint.');
+
+      Object.defineProperty(liveCanvas, 'toDataURL', {
+        configurable: true,
+        value: () => {
+          throw new DOMException('Tainted canvases may not be exported.', 'SecurityError');
+        },
+      });
+    });
+
+    await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
+    await page.getByRole('button', {name: 'Gerar PDF'}).click();
+
+    await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
+    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
+  });
 });

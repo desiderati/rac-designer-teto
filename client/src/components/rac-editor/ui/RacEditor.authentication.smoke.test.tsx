@@ -91,9 +91,12 @@ describe('RacEditor authentication landing', () => {
       const warning = screen.getByTestId('minimum-viewport-warning');
       expect(warning).toHaveTextContent('pelo menos 420 px');
       expect(warning).toHaveClass('top-3', 'max-w-md');
+      expect(warning).toHaveClass('pointer-events-none');
       expect(warning).not.toHaveClass('bottom-3');
 
-      await user.click(screen.getByRole('button', {name: 'Ocultar aviso de viewport'}));
+      const dismissButton = screen.getByRole('button', {name: 'Ocultar aviso de viewport'});
+      expect(dismissButton).toHaveClass('pointer-events-auto');
+      await user.click(dismissButton);
       expect(screen.queryByTestId('minimum-viewport-warning')).not.toBeInTheDocument();
       expect(screen.getByRole('button', {name: 'Reabrir aviso de viewport'})).toBeVisible();
 
