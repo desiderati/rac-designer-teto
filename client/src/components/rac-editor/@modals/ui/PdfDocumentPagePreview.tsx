@@ -76,15 +76,16 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom}: Pd
 
   return (
     <div
-      className='relative flex h-[62vh] min-h-[360px] w-full items-center justify-center overflow-auto bg-slate-800 p-4 sm:h-[68vh]'
+      className='relative block aspect-[297/210] min-h-[360px] min-w-0 max-w-full w-full overflow-auto bg-slate-800 sm:min-h-0'
       data-testid='pdf-preview-surface'
       data-page-number={safePageNumber}
       data-page-count={pageCount}
+      data-zoom={zoom}
       title='Prévia do PDF da RAC'
     >
       <canvas
         ref={canvasRef}
-        className='block max-w-none bg-white shadow-xl'
+        className='m-auto block max-w-none bg-white shadow-xl'
         data-testid={`pdf-preview-canvas-${safePageNumber}`}
       />
       {isLoading ? (

@@ -42,12 +42,13 @@ describe('RacPdfPreviewModal', () => {
     );
 
     expect(screen.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
+    expect(screen.getByTestId('pdf-preview-surface')).toHaveAttribute('data-zoom', '70');
     fireEvent.click(screen.getByRole('button', {name: 'Fechar'}));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onDownload).not.toHaveBeenCalled();
   });
 
-  it('renderiza uma página por vez com comandos flutuantes e zoom inicial de 70%', () => {
+  it('renderiza uma página por vez com comandos flutuantes e zoom inicial de 100% no desktop', () => {
     render(
       <RacPdfPreviewModal
         isMobile={false}
@@ -63,7 +64,8 @@ describe('RacPdfPreviewModal', () => {
     expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
     expect(screen.getByTestId('pdf-preview-canvas-1')).toBeInTheDocument();
     expect(screen.queryByTestId('pdf-preview-canvas-2')).not.toBeInTheDocument();
-    expect(screen.getByText('70%')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    expect(screen.getByTestId('pdf-preview-surface')).toHaveAttribute('data-zoom', '100');
     expect(screen.getByRole('button', {name: 'Aumentar zoom da prévia'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Próxima página da prévia'})).toBeInTheDocument();
     expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();

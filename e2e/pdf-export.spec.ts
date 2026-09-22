@@ -67,6 +67,26 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expectPdfPreviewRendered(page);
+    const previewSurface = page.getByTestId('pdf-preview-surface');
+    await expect(previewSurface).toHaveAttribute('data-zoom', '100');
+    await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
+    await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
+    await expect(previewSurface).toHaveAttribute('data-zoom', '120');
+    await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
+    const surfaceWidth = await previewSurface.evaluate((element) => element.clientWidth);
+    await expect.poll(async () => previewSurface.evaluate((element) => element.scrollWidth), {
+      timeout: 10_000,
+    }).toBeGreaterThan(surfaceWidth);
+    const overflowMetrics = await page.evaluate(() => ({
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      bodyWidth: document.body.scrollWidth,
+      surfaceWidth: document.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]')?.clientWidth ?? 0,
+      surfaceScrollWidth: document.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]')?.scrollWidth ?? 0,
+    }));
+    expect(overflowMetrics.documentWidth).toBeLessThanOrEqual(overflowMetrics.viewportWidth);
+    expect(overflowMetrics.bodyWidth).toBeLessThanOrEqual(overflowMetrics.viewportWidth);
+    expect(overflowMetrics.surfaceScrollWidth).toBeGreaterThan(overflowMetrics.surfaceWidth);
     await page.getByRole('button', {name: 'Próxima página da prévia'}).click();
     await expect(page.getByTestId('pdf-preview-canvas-2')).toBeVisible();
     await page.getByRole('button', {name: 'Página anterior da prévia'}).click();

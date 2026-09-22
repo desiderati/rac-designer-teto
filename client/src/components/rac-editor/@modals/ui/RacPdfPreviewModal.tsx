@@ -33,17 +33,17 @@ export function RacPdfPreviewModal({
   onClose,
 }: RacPdfPreviewModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [zoom, setZoom] = useState(70);
+  const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
 
   useEffect(() => {
     setCurrentPage(1);
-    setZoom(70);
-  }, [pdfUrl, pageCount]);
+    setZoom(isMobile ? 70 : 100);
+  }, [isMobile, pdfUrl, pageCount]);
 
   const safePageCount = Math.max(1, pageCount);
   const safePage = Math.min(currentPage, safePageCount);
   const body = (
-    <div className='space-y-3'>
+    <div className='min-w-0 space-y-3'>
       <div className='flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600'>
         <FileText className='h-4 w-4 flex-none text-blue-600'/>
         <span className='min-w-0 flex-1 truncate' title={fileName ?? undefined}>{fileName ?? 'RAC.pdf'}</span>
@@ -149,7 +149,7 @@ export function RacPdfPreviewModal({
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className='w-[min(94vw,900px)] max-w-none' hideCloseButton>
+        <DialogContent className='min-w-0 w-[min(94vw,900px)] max-w-none' hideCloseButton>
           <DialogHeader>
             <DialogTitle className='text-xl'>Prévia da RAC em PDF</DialogTitle>
             <DialogDescription>Revise o documento antes de baixar o arquivo.</DialogDescription>

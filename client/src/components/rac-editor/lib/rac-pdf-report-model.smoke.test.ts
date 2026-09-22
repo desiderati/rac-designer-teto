@@ -322,8 +322,10 @@ describe('rac pdf report model', () => {
     expect(report?.pilotis.grid.flat().filter((piloti) => piloti.heightLabel === '2,2 m')).toHaveLength(2);
 
     const pdf = createRacPdfReportDocument({report: report!, jsPDF, compress: false});
-    expect(pdf.output()).toContain('PILOTIS 2,2 M');
-    expect(pdf.output()).toContain('2');
+    const output = pdf.output();
+    expect(output).toContain('PILOTIS 2,2 M');
+    expect(output).toContain('A1 / 2,2 m / Nível = 0,40 m');
+    expect(output).toContain('2');
   });
 
   it('gera pagina extra com visualizacao 3D no mesmo formato do canvas principal', () => {

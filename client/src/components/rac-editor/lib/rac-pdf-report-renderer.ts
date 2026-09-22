@@ -474,7 +474,7 @@ function drawFooter(pdf: JsPDFDocument, report: RacPdfReportModel) {
   const totals = getFooterTotals(report.pilotis.totals);
   const columnWidth = contentWidth / (totals.length + 1);
 
-  drawFooterCell(pdf, 'PILOTIS MESTRE', masterLabel, PAGE_MARGIN_X, footerRowY, columnWidth, true);
+  drawFooterCell(pdf, 'PILOTIS MESTRE', masterLabel, PAGE_MARGIN_X, footerRowY, columnWidth, true, 5.2);
 
   totals.forEach((total, index) => {
     drawFooterCell(
@@ -507,6 +507,7 @@ function drawFooterCell(
   y: number,
   width: number,
   highlighted: boolean,
+  valueFontSize = 7.4,
 ) {
   pdf.setLineWidth(FOOTER_CELL_BORDER_WIDTH);
   if (highlighted) {
@@ -525,8 +526,20 @@ function drawFooterCell(
 
   setText(pdf, highlighted ? COLORS.ink : COLORS.faint);
   pdf.setFont(DEFAULT_FONT, 'bold');
-  setFontSize(pdf, 7.4);
-  pdf.text(limitText(pdf, value, width - 10), x + width / 2, y + 17, {align: 'center'});
+  const valueText = fitFooterValueText(pdf, value, width - 10, valueFontSize);
+  pdf.text(valueText, x + width / 2, y + 17, {align: 'center'});
+}
+
+function fitFooterValueText(pdf: JsPDFDocument, value: string, maxWidth: number, preferredSize: number): string {
+  let fontSize = preferredSize;
+  setFontSize(pdf, fontSize);
+
+  while (fontSize > 3.8 && pdf.getTextWidth(value) > maxWidth) {
+    fontSize = Math.max(3.8, fontSize - 0.2);
+    setFontSize(pdf, fontSize);
+  }
+
+  return limitText(pdf, value, maxWidth);
 }
 
 function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
