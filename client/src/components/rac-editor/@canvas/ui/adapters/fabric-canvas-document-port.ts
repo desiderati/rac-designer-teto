@@ -322,6 +322,31 @@ function normalizeStorageImageSource(source: unknown): unknown {
   return storagePathMatch?.[1] ?? source;
 }
 
+function imageElementToDataUrl(element: Element): string {
+  const width = 'naturalWidth' in element
+    ? Number((element as HTMLImageElement).naturalWidth)
+    : Number((element as HTMLCanvasElement).width);
+  const height = 'naturalHeight' in element
+    ? Number((element as HTMLImageElement).naturalHeight)
+    : Number((element as HTMLCanvasElement).height);
+
+  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+    throw new Error('A imagem não possui dimensões renderizáveis.');
+  }
+
+  const raster = globalThis.document.createElement('canvas');
+  raster.width = width;
+  raster.height = height;
+  const context = raster.getContext('2d');
+  if (!context) throw new Error('Não foi possível criar o contexto de rasterização da imagem.');
+
+  context.drawImage(element as CanvasImageSource, 0, 0, width, height);
+  // This is intentionally done before Fabric receives the source. A failure
+  // here means the image is not CORS-readable and must not enter the isolated
+  // Fabric canvas at all.
+  return raster.toDataURL('image/png');
+}
+
 function toRuntimePayload(document: HouseDrawingElementDocument): Record<string, unknown> {
   const text = document.text !== undefined
     ? document.text
@@ -497,23 +522,13 @@ async function sanitizeElementForSafeExport(
     // the response has no CORS permission, the object is omitted before any
     // pixel can reach the temporary canvas.
     probe = await FabricImage.fromURL(normalizedSource, {crossOrigin: 'anonymous'});
-    const elementSource = probe.getElement();
-    const width = 'naturalWidth' in elementSource
-      ? Number((elementSource as HTMLImageElement).naturalWidth)
-      : Number(elementSource.width);
-    const height = 'naturalHeight' in elementSource
-      ? Number((elementSource as HTMLImageElement).naturalHeight)
-      : Number(elementSource.height);
-    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-      throw new Error('A imagem não possui dimensões renderizáveis.');
-    }
+    const dataUrl = imageElementToDataUrl(probe.getElement());
 
     return {
       ...element,
       resource: {
         ...resource,
-        src: normalizedSource,
-        crossOrigin: 'anonymous',
+        src: dataUrl,
       },
       ...(children ? {children} : {}),
     };
