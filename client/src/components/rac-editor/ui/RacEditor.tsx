@@ -97,7 +97,7 @@ function MinimumViewportWarning() {
       role='status'
       aria-live='polite'
       data-testid='minimum-viewport-warning'
-      className='pointer-events-none fixed inset-x-3 bottom-3 z-[1200] rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm'
+      className='pointer-events-none fixed inset-x-3 top-3 z-[1200] mx-auto max-w-md rounded-xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-center text-sm font-medium text-amber-950 shadow-lg backdrop-blur-sm'
     >
       Para uma experiência confortável, aumente a janela para pelo menos 420 px de largura ou gire o dispositivo.
     </div>

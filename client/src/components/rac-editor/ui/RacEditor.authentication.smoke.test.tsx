@@ -87,7 +87,10 @@ describe('RacEditor authentication landing', () => {
 
     try {
       render(<RacEditor/>);
-      expect(screen.getByTestId('minimum-viewport-warning')).toHaveTextContent('pelo menos 420 px');
+      const warning = screen.getByTestId('minimum-viewport-warning');
+      expect(warning).toHaveTextContent('pelo menos 420 px');
+      expect(warning).toHaveClass('top-3', 'max-w-md');
+      expect(warning).not.toHaveClass('bottom-3');
     } finally {
       Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalWidth});
     }
