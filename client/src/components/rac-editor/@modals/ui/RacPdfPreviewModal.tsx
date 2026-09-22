@@ -1,5 +1,5 @@
-import {ChevronLeft, ChevronRight, Download, FileText, Minus, Plus, RefreshCw, X} from 'lucide-react';
-import {useEffect, useState} from 'react';
+import {ChevronLeft, ChevronRight, Download, Maximize2, Minus, Plus, RefreshCw, X} from 'lucide-react';
+import {useEffect, useRef, useState} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
@@ -22,7 +22,7 @@ interface RacPdfPreviewModalProps {
 export function RacPdfPreviewModal({
   isMobile,
   isOpen,
-  fileName,
+  fileName: _fileName,
   pdfUrl,
   pageCount = 1,
   errorMessage = null,
@@ -34,6 +34,7 @@ export function RacPdfPreviewModal({
 }: RacPdfPreviewModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
+  const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -42,19 +43,124 @@ export function RacPdfPreviewModal({
 
   const safePageCount = Math.max(1, pageCount);
   const safePage = Math.min(currentPage, safePageCount);
-  const body = (
-    <div className='min-w-0 space-y-3'>
-      <div className='flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600'>
-        <FileText className='h-4 w-4 flex-none text-blue-600'/>
-        <span className='min-w-0 flex-1 truncate' title={fileName ?? undefined}>{fileName ?? 'RAC.pdf'}</span>
-        {onRetry && !errorMessage ? (
-          <Button type='button' variant='ghost' size='sm' className='h-8 shrink-0 px-2 text-slate-600' onClick={onRetry} disabled={isPreparing}>
-            <RefreshCw className='mr-1.5 h-3.5 w-3.5'/>
-            Gerar novamente
-          </Button>
-        ) : null}
-      </div>
 
+  const fitToPage = () => {
+    const surface = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');
+    if (!surface) {
+      setZoom(isMobile ? 70 : 100);
+      return;
+    }
+
+    const fitPercentage = Math.floor(
+      Math.min(surface.clientWidth / 841.89, surface.clientHeight / 595.28) * 10,
+    ) * 10;
+    setZoom(Math.max(40, Math.min(120, fitPercentage)));
+  };
+
+  const closeButton = (
+    <Button
+      type='button'
+      variant='ghost'
+      size='icon'
+      className='h-8 w-8 rounded-full'
+      aria-label='Fechar prévia do PDF'
+      onClick={onClose}
+      disabled={isDownloading || isPreparing}
+    >
+      <X className='h-4 w-4'/>
+    </Button>
+  );
+
+  const floatingControls = pdfUrl && !isPreparing ? (
+    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 rounded-full border border-white/80 bg-white/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 rounded-full'
+        aria-label='Ajustar à página'
+        onClick={fitToPage}
+      >
+        <Maximize2 className='h-4 w-4'/>
+      </Button>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 rounded-full'
+        aria-label='Diminuir zoom da prévia'
+        onClick={() => setZoom((value) => Math.max(40, value - 10))}
+        disabled={zoom <= 40}
+      >
+        <Minus className='h-4 w-4'/>
+      </Button>
+      <span className='min-w-11 px-0.5 text-center text-xs font-semibold text-slate-700'>{zoom}%</span>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 rounded-full'
+        aria-label='Aumentar zoom da prévia'
+        onClick={() => setZoom((value) => Math.min(120, value + 10))}
+        disabled={zoom >= 120}
+      >
+        <Plus className='h-4 w-4'/>
+      </Button>
+      <span className='mx-1 h-5 w-px bg-slate-200'/>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 rounded-full'
+        aria-label='Página anterior da prévia'
+        onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
+        disabled={safePage <= 1}
+      >
+        <ChevronLeft className='h-4 w-4'/>
+      </Button>
+      <span className='whitespace-nowrap px-1 text-xs font-semibold text-slate-700'>Página {safePage} de {safePageCount}</span>
+      <Button
+        type='button'
+        variant='ghost'
+        size='icon'
+        className='h-8 w-8 rounded-full'
+        aria-label='Próxima página da prévia'
+        onClick={() => setCurrentPage((value) => Math.min(safePageCount, value + 1))}
+        disabled={safePage >= safePageCount}
+      >
+        <ChevronRight className='h-4 w-4'/>
+      </Button>
+      {onRetry ? (
+        <>
+          <span className='mx-1 h-5 w-px bg-slate-200'/>
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8 rounded-full'
+            aria-label='Gerar PDF novamente'
+            onClick={onRetry}
+            disabled={isPreparing}
+          >
+            <RefreshCw className='h-4 w-4'/>
+          </Button>
+        </>
+      ) : null}
+      <Button
+        type='button'
+        size='icon'
+        className='ml-0.5 h-9 w-9 rounded-full bg-sky-600 text-white shadow-sm hover:bg-sky-700'
+        aria-label='Baixar PDF'
+        onClick={onDownload}
+        disabled={isDownloading}
+      >
+        <Download className='h-4 w-4'/>
+      </Button>
+    </div>
+  ) : null;
+
+  const body = (
+    <div ref={previewContainerRef} className='min-w-0 space-y-3'>
       {errorMessage ? (
         <div role='alert' className='flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
           <span className='min-w-0 flex-1'>{errorMessage}</span>
@@ -67,7 +173,7 @@ export function RacPdfPreviewModal({
         </div>
       ) : null}
 
-      <div className='relative overflow-hidden rounded-xl border border-slate-200 bg-slate-800'>
+      <div className='relative min-w-0'>
         {pdfUrl ? (
           <PdfDocumentPagePreview pdfUrl={pdfUrl} pageNumber={safePage} pageCount={safePageCount} zoom={zoom}/>
         ) : (
@@ -80,68 +186,7 @@ export function RacPdfPreviewModal({
             <div className='rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm'>Gerando prévia…</div>
           </div>
         ) : null}
-        {pdfUrl && !isPreparing ? (
-          <div className='absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-white/95 px-2 py-1 shadow-lg backdrop-blur-sm'>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 rounded-full'
-              aria-label='Diminuir zoom da prévia'
-              onClick={() => setZoom((value) => Math.max(50, value - 10))}
-              disabled={zoom <= 50}
-            >
-              <Minus className='h-4 w-4'/>
-            </Button>
-            <span className='min-w-12 text-center text-xs font-semibold text-slate-700'>{zoom}%</span>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 rounded-full'
-              aria-label='Aumentar zoom da prévia'
-              onClick={() => setZoom((value) => Math.min(120, value + 10))}
-              disabled={zoom >= 120}
-            >
-              <Plus className='h-4 w-4'/>
-            </Button>
-            <span className='mx-1 h-5 w-px bg-slate-200'/>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 rounded-full'
-              aria-label='Página anterior da prévia'
-              onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
-              disabled={safePage <= 1}
-            >
-              <ChevronLeft className='h-4 w-4'/>
-            </Button>
-            <span className='whitespace-nowrap text-xs font-semibold text-slate-700'>Página {safePage} de {safePageCount}</span>
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 rounded-full'
-              aria-label='Próxima página da prévia'
-              onClick={() => setCurrentPage((value) => Math.min(safePageCount, value + 1))}
-              disabled={safePage >= safePageCount}
-            >
-              <ChevronRight className='h-4 w-4'/>
-            </Button>
-          </div>
-        ) : null}
-      </div>
-
-      <div className='flex gap-3'>
-        <Button type='button' variant='outline' className='h-10 flex-1 bg-white' onClick={onClose} disabled={isDownloading || isPreparing}>
-          <X className='mr-2 h-4 w-4'/>
-          Fechar
-        </Button>
-        <Button type='button' className='h-10 flex-1' onClick={onDownload} disabled={!pdfUrl || isPreparing || isDownloading}>
-          <Download className='mr-2 h-4 w-4'/>
-          {isDownloading ? 'Baixando...' : 'Baixar PDF'}
-        </Button>
+        {floatingControls}
       </div>
     </div>
   );
@@ -150,9 +195,10 @@ export function RacPdfPreviewModal({
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className='min-w-0 w-[min(94vw,900px)] max-w-none' hideCloseButton>
-          <DialogHeader>
+          <DialogHeader className='relative pr-10'>
             <DialogTitle className='text-xl'>Prévia da RAC em PDF</DialogTitle>
             <DialogDescription>Revise o documento antes de baixar o arquivo.</DialogDescription>
+            <div className='absolute right-0 top-0'>{closeButton}</div>
           </DialogHeader>
           {body}
         </DialogContent>
@@ -163,11 +209,12 @@ export function RacPdfPreviewModal({
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent>
-        <DrawerHeader className='pb-2 text-left'>
+        <DrawerHeader className='relative pb-2 pr-12 text-left'>
           <DrawerTitle>Prévia da RAC em PDF</DrawerTitle>
           <DrawerDescription>Revise o documento antes de baixar o arquivo.</DrawerDescription>
+          <div className='absolute right-4 top-3'>{closeButton}</div>
         </DrawerHeader>
-        <div className='px-4 pb-4'>{body}</div>
+        <div className='min-w-0 px-4 pb-4'>{body}</div>
       </DrawerContent>
     </Drawer>
   );

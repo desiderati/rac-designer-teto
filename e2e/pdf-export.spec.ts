@@ -87,6 +87,10 @@ test.describe('Exportação PDF do RAC', () => {
     expect(overflowMetrics.documentWidth).toBeLessThanOrEqual(overflowMetrics.viewportWidth);
     expect(overflowMetrics.bodyWidth).toBeLessThanOrEqual(overflowMetrics.viewportWidth);
     expect(overflowMetrics.surfaceScrollWidth).toBeGreaterThan(overflowMetrics.surfaceWidth);
+    await page.getByRole('button', {name: 'Ajustar à página'}).click();
+    const fittedZoom = Number(await previewSurface.getAttribute('data-zoom'));
+    expect(fittedZoom).toBeGreaterThan(0);
+    expect(fittedZoom).toBeLessThanOrEqual(100);
     await page.getByRole('button', {name: 'Próxima página da prévia'}).click();
     await expect(page.getByTestId('pdf-preview-canvas-2')).toBeVisible();
     await page.getByRole('button', {name: 'Página anterior da prévia'}).click();

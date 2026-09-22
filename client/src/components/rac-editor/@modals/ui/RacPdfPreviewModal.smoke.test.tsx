@@ -20,7 +20,7 @@ describe('RacPdfPreviewModal', () => {
 
     expect(screen.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
-    expect(screen.getByText('RAC-CC2603-FAMILIA-SILVA.pdf')).toBeVisible();
+    expect(screen.queryByText('RAC-CC2603-FAMILIA-SILVA.pdf')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', {name: 'Baixar PDF'}));
     expect(onDownload).toHaveBeenCalledTimes(1);
@@ -43,7 +43,7 @@ describe('RacPdfPreviewModal', () => {
 
     expect(screen.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     expect(screen.getByTestId('pdf-preview-surface')).toHaveAttribute('data-zoom', '70');
-    fireEvent.click(screen.getByRole('button', {name: 'Fechar'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Fechar prévia do PDF'}));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onDownload).not.toHaveBeenCalled();
   });
@@ -56,6 +56,7 @@ describe('RacPdfPreviewModal', () => {
         fileName='RAC.pdf'
         pdfUrl='blob:rac-preview'
         pageCount={3}
+        onRetry={vi.fn()}
         onDownload={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -66,6 +67,10 @@ describe('RacPdfPreviewModal', () => {
     expect(screen.queryByTestId('pdf-preview-canvas-2')).not.toBeInTheDocument();
     expect(screen.getByText('100%')).toBeInTheDocument();
     expect(screen.getByTestId('pdf-preview-surface')).toHaveAttribute('data-zoom', '100');
+    expect(screen.getByRole('button', {name: 'Ajustar à página'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Gerar PDF novamente'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Baixar PDF'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Fechar'})).not.toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Aumentar zoom da prévia'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Próxima página da prévia'})).toBeInTheDocument();
     expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
