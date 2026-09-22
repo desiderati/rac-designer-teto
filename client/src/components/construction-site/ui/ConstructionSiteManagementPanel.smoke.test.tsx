@@ -1058,7 +1058,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-photo-field').compareDocumentPosition(screen.getByTestId('monitor-fields-column')) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-2');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
       .toHaveClass('w-full', 'md:col-start-2');

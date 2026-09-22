@@ -173,7 +173,7 @@ export function MonitorFormScreen({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]'>
+        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2'>
           <PrimaryButton type='submit' className='w-full min-w-0 md:col-start-2' disabled={readOnly || isSubmitting}>
             {submitLabel}
           </PrimaryButton>
