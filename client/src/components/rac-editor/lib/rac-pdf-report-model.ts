@@ -4,6 +4,7 @@ import type {
   HouseSize,
   MonitorRecord,
   PersistedHouseRecord,
+  PersistedPilotiLayout,
   SiteAssessment,
   SoilProfile,
 } from '@/shared/types/construction-site.ts';
@@ -146,9 +147,13 @@ export function buildRacPdfReportModel({
   const constructionCode = normalizeDisplayValue(constructionSite.constructionSite.externalCode);
   const constructionCodeDisplay = formatConstructionCodeDisplay(constructionCode);
   const houseState = activeHouse.drawingDocument.house;
-  const pilotis = houseState?.pilotis ?? {};
+  const pilotis = getReportPilotis(activeHouse);
   const pilotiGrid = buildPilotiGrid(pilotis);
-  const pilotiTotals = buildPilotiTotals(pilotis, activeHouse.designSettings.selectedPilotiHeights);
+  const pilotiTotals = buildPilotiTotals(
+    pilotis,
+    activeHouse.designSettings.selectedPilotiHeights,
+    activeHouse.pilotiLayout,
+  );
   const master = pilotiGrid.flat().find((piloti) => piloti.isMaster) ?? null;
   const leaders = normalizeDisplayValue(activeHouse.leaders, '');
   const generatedAtLabel = formatDateLabel(generatedAt);
@@ -178,7 +183,7 @@ export function buildRacPdfReportModel({
       selectedType: activeHouse.houseType ? HOUSE_TYPE_LABELS[activeHouse.houseType] : null,
     },
     terrain: {
-      desnivelCm: calculateDesnivelCm(houseState),
+      desnivelCm: calculateTerrainDesnivelCm(pilotis),
       volumes: houseState ? calculateTotalVolumes(houseState.terrainType, pilotis) : null,
       riskIndicator: calculateTerrainRiskIndicator(activeHouse.siteAssessment, pilotis),
       optionGroups: buildTerrainOptionGroups(activeHouse.siteAssessment),
@@ -241,10 +246,13 @@ function buildPilotiGrid(pilotis: Record<string, HousePiloti>): RacPdfReportPilo
 function buildPilotiTotals(
   pilotis: Record<string, HousePiloti>,
   selectedHeights: number[],
+  persistedLayout: PersistedPilotiLayout,
 ): RacPdfReportPilotiTotal[] {
+  const persistedCounts = getPersistedPilotiCounts(persistedLayout);
   const heights = [
     ...selectedHeights,
     ...Object.values(pilotis).map((piloti) => piloti.height),
+    ...persistedCounts.keys(),
   ]
     .filter((height) => Number.isFinite(height))
     .map((height) => Math.round(height * 10) / 10);
@@ -253,10 +261,43 @@ function buildPilotiTotals(
 
   return uniqueHeights.map((height) => ({
     heightLabel: `${formatPilotiHeight(height)} m`,
-    count: Object.values(pilotis).filter((piloti) => (
-      Math.round(piloti.height * 10) / 10 === height
-    )).length,
+    count: persistedCounts.has(height)
+      ? persistedCounts.get(height) ?? 0
+      : Object.values(pilotis).filter((piloti) => (
+        Math.round(piloti.height * 10) / 10 === height
+      )).length,
   }));
+}
+
+function getReportPilotis(house: PersistedHouseRecord): Record<string, HousePiloti> {
+  const persistedPoints = house.pilotiLayout?.points ?? [];
+  if (persistedPoints.length > 0) {
+    return Object.fromEntries(persistedPoints.map((point) => [point.id, {
+      height: point.height,
+      nivel: point.nivel,
+      isMaster: point.isMaster,
+    }]));
+  }
+
+  return house.drawingDocument.house?.pilotis ?? {};
+}
+
+function getPersistedPilotiCounts(layout: PersistedPilotiLayout): Map<number, number> {
+  const entries = Object.entries(layout.summary?.totalByHeight ?? {});
+  return new Map(
+    entries.flatMap(([rawHeight, rawCount]) => {
+      const height = parsePilotiHeight(rawHeight);
+      if (height === null || !Number.isFinite(rawCount) || rawCount < 0) return [];
+      return [[height, Math.trunc(rawCount)] as const];
+    }),
+  );
+}
+
+function parsePilotiHeight(value: string | number): number | null {
+  const numeric = typeof value === 'number'
+    ? value
+    : Number.parseFloat(value.replace(',', '.').match(/\d+(?:\.\d+)?/)?.[0] ?? '');
+  return Number.isFinite(numeric) ? Math.round(numeric * 10) / 10 : null;
 }
 
 function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): RacPdfReportExtraMaterials {

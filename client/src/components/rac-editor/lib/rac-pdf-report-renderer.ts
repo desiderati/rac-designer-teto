@@ -470,12 +470,12 @@ function drawFooter(pdf: JsPDFDocument, report: RacPdfReportModel) {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const footerRowY = getFooterRowY(pdf);
   const contentWidth = pageWidth - PAGE_MARGIN_X * 2;
-  const columnWidth = contentWidth / 7;
   const masterLabel = formatMasterPilotiFooterLabel(report);
+  const totals = getFooterTotals(report.pilotis.totals);
+  const columnWidth = contentWidth / (totals.length + 1);
 
   drawFooterCell(pdf, 'PILOTIS MESTRE', masterLabel, PAGE_MARGIN_X, footerRowY, columnWidth, true);
 
-  const totals = getFooterTotals(report.pilotis.totals);
   totals.forEach((total, index) => {
     drawFooterCell(
       pdf,
@@ -1036,7 +1036,11 @@ function drawBrazilFlagIcon(pdf: JsPDFDocument, x: number, y: number, width: num
 
 function getFooterTotals(totals: RacPdfReportPilotiTotal[]): RacPdfReportPilotiTotal[] {
   const countByLabel = new Map(totals.map((total) => [total.heightLabel, total.count]));
-  return FOOTER_LABELS.map((heightLabel) => ({
+  const labels = [...new Set([
+    ...FOOTER_LABELS,
+    ...totals.map((total) => total.heightLabel),
+  ])].sort((left, right) => parseFloat(left.replace(',', '.')) - parseFloat(right.replace(',', '.')));
+  return labels.map((heightLabel) => ({
     heightLabel,
     count: countByLabel.get(heightLabel) ?? 0,
   }));

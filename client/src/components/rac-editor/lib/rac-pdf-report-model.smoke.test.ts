@@ -290,6 +290,42 @@ describe('rac pdf report model', () => {
     expect(report?.fileName).toBe('RAC-CC2603-MARINA.pdf');
   });
 
+  it('usa a quantidade de pilotis persistida na casa que está sendo impressa', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.families.push({
+      id: 'family-2',
+      constructionSiteId: 'cc-1',
+      name: 'Marina',
+    });
+    const targetHouse = createHouseRecord({id: 'house-2', status: 'draft', familyId: 'family-2'});
+    targetHouse.houseType = 'tipo6';
+    targetHouse.designSettings.selectedPilotiHeights = [2.2];
+    targetHouse.pilotiLayout = {
+      masterCode: 'a1',
+      points: [
+        {id: 'piloti_0_0', code: 'a1', height: 2.2, nivel: 0.4, isMaster: true},
+        {id: 'piloti_1_0', code: 'a2', height: 2.2, nivel: 0.4, isMaster: false},
+      ],
+    };
+    constructionSite.houses.push(targetHouse);
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      houseId: targetHouse.id,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+      generatedAt: new Date('2026-06-16T12:00:00.000Z'),
+    });
+
+    expect(report).not.toBeNull();
+    expect(report?.house.selectedType).toBe('Tipo 6');
+    expect(report?.pilotis.totals).toEqual([{heightLabel: '2,2 m', count: 2}]);
+    expect(report?.pilotis.grid.flat().filter((piloti) => piloti.heightLabel === '2,2 m')).toHaveLength(2);
+
+    const pdf = createRacPdfReportDocument({report: report!, jsPDF, compress: false});
+    expect(pdf.output()).toContain('PILOTIS 2,2 M');
+    expect(pdf.output()).toContain('2');
+  });
+
   it('gera pagina extra com visualizacao 3D no mesmo formato do canvas principal', () => {
     const report = buildRacPdfReportModel({
       constructionSite: createConstructionSiteState(),
