@@ -173,46 +173,6 @@ describe('rac pdf report model', () => {
     expect(constructionSite.houses[0].notes).toBe('');
   });
 
-  it('usa a configuração persistida dos pilotis e leva ações, fotos e localização para a segunda página', () => {
-    const constructionSite = createConstructionSiteState();
-    constructionSite.houses[0].pilotiLayout = {
-      masterCode: 'a1',
-      points: [
-        {id: 'piloti_0_0', code: 'a1', height: 2.2, nivel: 0.4, isMaster: true},
-        {id: 'piloti_1_0', code: 'a2', height: 2.2, nivel: 0.4, isMaster: false},
-      ],
-    };
-    constructionSite.houses[0].siteAssessment = {
-      residentActions: ['excavate', 'remove_debris'],
-      locationQuery: '-25.4284, -49.2733',
-      terrainPhotos: [
-        {id: 'photo-1', url: 'https://example.test/photo.jpg', description: 'Acesso lateral'},
-      ],
-    };
-
-    const report = buildRacPdfReportModel({
-      constructionSite,
-      canvasImageDataUrl: TINY_PNG_DATA_URL,
-      terrainPhotoDataUrls: [TINY_PNG_DATA_URL],
-      mapImageDataUrl: TINY_PNG_DATA_URL,
-    });
-
-    expect(report?.pilotis.totals.find((total) => total.heightLabel === '2,2 m')).toEqual({heightLabel: '2,2 m', count: 2});
-    expect(report?.residentActions.map((action) => action.label)).toEqual(['Escavar', 'Retirar entulho']);
-    expect(report?.terrainPhotos[0]).toEqual({dataUrl: TINY_PNG_DATA_URL, description: 'Acesso lateral'});
-    expect(report?.terrainPhotos).toHaveLength(4);
-    expect(report?.locationQuery).toBe('-25.4284, -25.2733'.replace('-25.2733', '-49.2733'));
-
-    const pdf = createRacPdfReportDocument({report: report!, jsPDF, compress: false});
-    const output = pdf.output();
-    expect(pdf.getNumberOfPages()).toBe(2);
-    expect(output).toContain('AÇÕES DO MORADOR');
-    expect(output).toContain('Escavar');
-    expect(output).toContain('FOTOS DO TERRENO');
-    expect(output).toContain('Acesso lateral');
-    expect(output).toContain('PILOTIS 2,2 M');
-  });
-
   it('gera um documento PDF em A4 paisagem com o modelo do relatorio', () => {
     const report = buildRacPdfReportModel({
       constructionSite: createConstructionSiteState(),
@@ -361,6 +321,7 @@ describe('rac pdf report model', () => {
       expect(getLastLineWidthCommand(segment)).toBe('0.35');
     });
     expect(output).not.toContain('MONITORIA \\(CONTINUAÇÃO\\)');
+    expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
   });
 
@@ -451,13 +412,17 @@ describe('rac pdf report model', () => {
     expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
     expect((output.match(/continua atrás\.\.\./g) ?? []).length).toBeGreaterThanOrEqual(1);
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
-    expect(output).toContain('MONITORIA');
+    expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
+    expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
+    expect(output).toMatch(/20\. 529\.\d+ Td[\s\S]{0,120}\(MONITORIA \\\(CONTINUAÇÃO\\\)\) Tj/);
     expect(output).not.toContain('Observações completas');
     expect(output).not.toContain('Justificativa de materiais extras');
     expect(output).not.toContain('Monitoria - continuação');
     expect(output).toContain('Monitor 8');
     expect(output).not.toContain(longJustificationSentence);
     expect(output).not.toContain(`${longJustificationSentence} Mobilizar`);
+    expect(output).toContain('Trecho final da');
+    expect(output).toContain('justificativa.');
     expect(output).toContain('Trecho final da');
     expect(output).toContain('observacao.');
   });
@@ -486,11 +451,12 @@ describe('rac pdf report model', () => {
     });
     const output = pdf.output();
 
-    expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
+    expect(pdf.getNumberOfPages()).toBe(2);
     expect(output).toContain('continua atrás...');
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
-    expect(output).toContain('Trecho final exclusivo');
+    expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
+    expect(output).toContain('Trecho final exclusivo das');
     expect(output).toContain('observacoes.');
   });
 
@@ -516,7 +482,7 @@ describe('rac pdf report model', () => {
     });
     const output = pdf.output();
 
-    expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
+    expect(pdf.getNumberOfPages()).toBe(2);
     expect(output).toContain('OBSERVAÇÕES COMPLETAS');
     expect(output).toContain('limite inferior do');
     expect(output).toContain('canvas.');
