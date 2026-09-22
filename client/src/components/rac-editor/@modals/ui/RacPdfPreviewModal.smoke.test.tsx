@@ -47,7 +47,7 @@ describe('RacPdfPreviewModal', () => {
     expect(onDownload).not.toHaveBeenCalled();
   });
 
-  it('permite navegar entre páginas e ajustar o zoom da prévia', () => {
+  it('renderiza todas as páginas em sequência sem barra de controles', () => {
     render(
       <RacPdfPreviewModal
         isMobile={false}
@@ -60,11 +60,12 @@ describe('RacPdfPreviewModal', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', {name: 'Aumentar zoom'}));
-    fireEvent.click(screen.getByRole('button', {name: 'Próxima página'}));
-
-    expect(screen.getByTestId('pdf-preview-zoom')).toHaveTextContent('80%');
-    expect(screen.getByTestId('pdf-preview-page')).toHaveTextContent('Página 2 de 3');
+    expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
+    expect(screen.getByTestId('pdf-preview-canvas-1')).toBeInTheDocument();
+    expect(screen.getByTestId('pdf-preview-canvas-2')).toBeInTheDocument();
+    expect(screen.getByTestId('pdf-preview-canvas-3')).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Aumentar zoom'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Próxima página'})).not.toBeInTheDocument();
     expect(screen.getByTestId('pdf-preview-surface')).toBeVisible();
   });
 

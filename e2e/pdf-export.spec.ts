@@ -40,7 +40,7 @@ const pdfExportSeed = {
 
 async function expectPdfPreviewRendered(page: Parameters<typeof test>[0]['page']) {
   await expect(page.getByTestId('pdf-preview-surface')).toBeVisible();
-  const canvas = page.getByTestId('pdf-preview-canvas');
+  const canvas = page.getByTestId('pdf-preview-canvas-1');
   await expect(canvas).toBeVisible();
   await expect.poll(async () => Number(await canvas.getAttribute('width'))).toBeGreaterThan(0);
   await expect.poll(async () => Number(await canvas.getAttribute('height'))).toBeGreaterThan(0);

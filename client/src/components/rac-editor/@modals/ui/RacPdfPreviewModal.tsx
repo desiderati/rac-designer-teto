@@ -1,5 +1,4 @@
-import {ChevronLeft, ChevronRight, Download, FileText, RefreshCw, X, ZoomIn, ZoomOut} from 'lucide-react';
-import {useEffect, useState} from 'react';
+import {Download, FileText, RefreshCw, X} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
@@ -32,15 +31,6 @@ export function RacPdfPreviewModal({
   onDownload,
   onClose,
 }: RacPdfPreviewModalProps) {
-  const [page, setPage] = useState(1);
-  const [zoom, setZoom] = useState(70);
-  const totalPages = Math.max(1, pageCount);
-
-  useEffect(() => {
-    setPage(1);
-    setZoom(70);
-  }, [pdfUrl]);
-
   const body = (
     <div className='space-y-3'>
       <div className='flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600'>
@@ -66,30 +56,9 @@ export function RacPdfPreviewModal({
         </div>
       ) : null}
 
-      <div className='flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5'>
-        <div className='flex items-center gap-1' aria-label='Controles de zoom'>
-          <Button type='button' variant='ghost' size='icon' className='h-8 w-8' aria-label='Reduzir zoom' onClick={() => setZoom((value) => Math.max(60, value - 10))} disabled={!pdfUrl || isPreparing || zoom <= 60}>
-            <ZoomOut className='h-4 w-4'/>
-          </Button>
-          <span data-testid='pdf-preview-zoom' className='min-w-12 text-center text-xs font-semibold text-slate-600'>{zoom}%</span>
-          <Button type='button' variant='ghost' size='icon' className='h-8 w-8' aria-label='Aumentar zoom' onClick={() => setZoom((value) => Math.min(180, value + 10))} disabled={!pdfUrl || isPreparing || zoom >= 180}>
-            <ZoomIn className='h-4 w-4'/>
-          </Button>
-        </div>
-        <div className='flex items-center gap-1' aria-label='Paginação da prévia'>
-          <Button type='button' variant='ghost' size='icon' className='h-8 w-8' aria-label='Página anterior' onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={!pdfUrl || isPreparing || page <= 1}>
-            <ChevronLeft className='h-4 w-4'/>
-          </Button>
-          <span data-testid='pdf-preview-page' className='min-w-20 text-center text-xs font-semibold text-slate-600'>Página {page} de {totalPages}</span>
-          <Button type='button' variant='ghost' size='icon' className='h-8 w-8' aria-label='Próxima página' onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={!pdfUrl || isPreparing || page >= totalPages}>
-            <ChevronRight className='h-4 w-4'/>
-          </Button>
-        </div>
-      </div>
-
       <div className='relative overflow-hidden rounded-xl border border-slate-200 bg-slate-800'>
         {pdfUrl ? (
-          <PdfDocumentPagePreview pdfUrl={pdfUrl} page={page} zoom={zoom}/>
+          <PdfDocumentPagePreview pdfUrl={pdfUrl} pageCount={pageCount} zoom={70}/>
         ) : (
           <div className='grid h-[62vh] min-h-[360px] place-items-center px-6 text-center text-sm text-slate-500'>
             {isPreparing ? 'Gerando uma nova prévia do PDF…' : 'A prévia do PDF ainda não está disponível.'}
