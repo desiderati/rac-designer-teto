@@ -20,6 +20,7 @@ export interface PdfExportTelemetryEvent {
   timestamp: number;
   version: string;
   durationMs?: number;
+  phase?: string;
   errorName?: string;
   errorMessage?: string;
 }

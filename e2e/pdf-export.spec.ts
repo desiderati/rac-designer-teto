@@ -147,6 +147,28 @@ test.describe('Exportação PDF do RAC', () => {
   });
 
   test('gera a prévia sem tocar um Canvas vivo que já esteja contaminado', async ({page}) => {
+    await page.addInitScript(() => {
+      const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+      if (!descriptor?.set || !descriptor.get) throw new Error('API crossOrigin indisponível no navegador.');
+
+      let firstAnonymousAssignment = true;
+      Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', {
+        configurable: true,
+        get() {
+          return descriptor.get!.call(this);
+        },
+        set(value: string | null) {
+          // Simula o legado: a primeira hidratação ignora crossOrigin e carrega
+          // a imagem como uma fonte externa sem CORS. As tentativas posteriores
+          // do exportador ainda configuram anonymous normalmente.
+          if (firstAnonymousAssignment && value === 'anonymous') {
+            firstAnonymousAssignment = false;
+            return;
+          }
+          descriptor.set!.call(this, value);
+        },
+      });
+    });
     await page.route('https://uncors.example.test/photo.png', async (route) => {
       await route.fulfill({
         contentType: 'image/png',
@@ -165,18 +187,19 @@ test.describe('Exportação PDF do RAC', () => {
       }],
     });
 
-    await page.evaluate(() => {
+    const isLiveCanvasTainted = await page.evaluate(() => {
       const liveCanvas = Array.from(document.querySelectorAll('canvas'))
         .find((candidate) => candidate.width === 1667 && candidate.height === 1300 && candidate.classList.contains('lower-canvas'));
       if (!liveCanvas) throw new Error('Canvas Fabric vivo não encontrado para a regressão de taint.');
 
-      Object.defineProperty(liveCanvas, 'toDataURL', {
-        configurable: true,
-        value: () => {
-          throw new DOMException('Tainted canvases may not be exported.', 'SecurityError');
-        },
-      });
+      try {
+        liveCanvas.getContext('2d')?.getImageData(0, 0, 1, 1);
+        return false;
+      } catch (error) {
+        return error instanceof DOMException && error.name === 'SecurityError';
+      }
     });
+    expect(isLiveCanvasTainted).toBe(true);
 
     await page.getByRole('button', {name: 'Exportar RAC em PDF'}).click();
     await page.getByRole('button', {name: 'Gerar PDF'}).click();

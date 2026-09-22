@@ -235,6 +235,86 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
   };
 }
 
+function readFabricProperty(object: FabricObject, key: string): unknown {
+  return (object as unknown as Record<string, unknown>)[key];
+}
+
+function readImageSourceWithoutFabricSerialization(image: FabricImage): string | null {
+  const directSource = readString(readFabricProperty(image, 'src'));
+  if (directSource) return directSource;
+
+  const element = image.getElement();
+  if ('src' in element && typeof element.src === 'string' && element.src.length > 0) {
+    return element.src;
+  }
+
+  // A canvas-backed source is intentionally not converted to pixels here. If
+  // it has no Storage reference, the safe snapshot omits it instead of
+  // calling toDataURL and rethrowing a SecurityError from a tainted canvas.
+  return null;
+}
+
+function toFabricSerializableObject(object: FabricObject): Record<string, unknown> {
+  const group = 'getObjects' in object && typeof object.getObjects === 'function'
+    ? object as FabricObject & {getObjects: () => FabricObject[]}
+    : null;
+  let nativeObject: Record<string, unknown> | null = null;
+  if (!group && object.type !== 'image') {
+    try {
+      const serialized = object.toObject([...canvasObjectProps]);
+      nativeObject = isRecord(serialized) ? serialized : null;
+    } catch (error) {
+      console.warn('[Canvas PDF export] Object serialization skipped native properties:', error);
+    }
+  }
+  const source: Record<string, unknown> = isRecord(nativeObject)
+    ? {...nativeObject}
+    : {type: object.type};
+
+  if (!nativeObject) {
+    [...geometryKeys, ...styleKeys, ...metadataKeys].forEach((key) => {
+      const value = readFabricProperty(object, key);
+      if (value !== undefined) source[key] = value;
+    });
+  }
+
+  const myType = readString(readFabricProperty(object, 'myType'));
+  const editorObjectId = readString(readFabricProperty(object, 'editorObjectId'));
+  const text = readFabricProperty(object, 'text');
+  if (myType) source.myType = myType;
+  if (editorObjectId) source.editorObjectId = editorObjectId;
+  if (typeof text === 'string') source.text = text;
+
+  if (object.type === 'image') {
+    const image = object as FabricImage;
+    const storageUrl = readString(readFabricProperty(image, 'storageUrl'));
+    const src = storageUrl ?? readImageSourceWithoutFabricSerialization(image);
+    if (src) source.src = src;
+    if (storageUrl) source.storageUrl = storageUrl;
+    const crossOrigin = readFabricProperty(image, 'crossOrigin');
+    if (crossOrigin !== undefined) source.crossOrigin = crossOrigin;
+    for (const key of ['cropX', 'cropY']) {
+      const value = readFabricProperty(image, key);
+      if (value !== undefined) source[key] = value;
+    }
+  }
+
+  if (group) {
+    source.objects = group.getObjects().map((child) => toFabricSerializableObject(child));
+  }
+
+  return source;
+}
+
+function readCanvasObjectsForExport(canvas: FabricCanvas): unknown[] {
+  if (typeof canvas.getObjects === 'function') {
+    return canvas.getObjects().map(toFabricSerializableObject);
+  }
+
+  const rawDocument = canvas.toJSON() as {objects?: unknown[]};
+  return Array.isArray(rawDocument.objects) ? rawDocument.objects : [];
+}
+
 function normalizeStorageImageSource(source: unknown): unknown {
   if (typeof source !== 'string') return source;
 
@@ -401,7 +481,10 @@ async function sanitizeElementForSafeExport(
 
   const resource = element.resource;
   const source = readString(resource?.src) ?? readString(resource?.storageUrl);
-  if (!source || /^(data:|blob:)/i.test(source)) {
+  if (!source) {
+    return null;
+  }
+  if (/^(data:|blob:)/i.test(source)) {
     return children
       ? {...element, children}
       : element;
@@ -495,8 +578,7 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {
     exportCanvasDocument: () => {
-      const rawDocument = canvas.toJSON() as { objects?: unknown[] };
-      const objects = Array.isArray(rawDocument.objects) ? rawDocument.objects : [];
+      const objects = readCanvasObjectsForExport(canvas);
 
       return {
         schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,

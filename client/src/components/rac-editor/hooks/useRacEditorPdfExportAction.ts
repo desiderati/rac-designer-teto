@@ -66,12 +66,14 @@ export function useRacEditorPdfExportAction({
 
   const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState): Promise<boolean> => {
     const startedAt = Date.now();
+    let phase = 'start';
     lastPdfExportConstructionSiteRef.current = constructionSite;
     recordPdfExportTelemetry('prepare_started');
 
     try {
       setIsPdfExporting(true);
 
+      phase = 'capture-canvas';
       const canvasPort = canvasRef.current?.createDocumentPort();
       let canvasImageDataUrl: string | null = null;
       if (canvasPort?.exportSafeImageDataUrl) {
@@ -88,7 +90,7 @@ export function useRacEditorPdfExportAction({
       }
       if (!canvasImageDataUrl) {
         const message = 'Falha ao capturar o canvas para o PDF.';
-        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, errorName: 'CanvasUnavailable', errorMessage: message});
+        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, errorName: 'CanvasUnavailable', errorMessage: message});
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
@@ -96,7 +98,9 @@ export function useRacEditorPdfExportAction({
         return false;
       }
 
+      phase = 'capture-3d';
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      phase = 'build-report-model';
       const report = buildRacPdfReportModel({
         constructionSite,
         canvasImageDataUrl,
@@ -107,7 +111,7 @@ export function useRacEditorPdfExportAction({
 
       if (!report) {
         const message = 'Nenhuma casa ativa para gerar o PDF.';
-        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, errorName: 'ReportUnavailable', errorMessage: message});
+        recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, errorName: 'ReportUnavailable', errorMessage: message});
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
@@ -115,7 +119,9 @@ export function useRacEditorPdfExportAction({
         return false;
       }
 
+      phase = 'render-pdf';
       const pdf = createRacPdfReportDocument({report, jsPDF});
+      phase = 'create-preview-blob';
       const blob = pdf.output('blob') as Blob;
       const url = URL.createObjectURL(blob);
       const pageCount = Math.max(1, pdf.getNumberOfPages());
@@ -126,7 +132,8 @@ export function useRacEditorPdfExportAction({
       return true;
     } catch (error) {
       const details = errorDetails(error);
-      recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, ...details});
+      recordPdfExportTelemetry('prepare_failed', {durationMs: Date.now() - startedAt, phase, ...details});
+      console.error(`[useRacEditorPdfExportAction] PDF preparation failed during ${phase}:`, error);
       const recovered = requestChunkRecovery(error);
       const message = recovered
         ? 'A aplicação será atualizada para corrigir o carregamento do PDF. Tente novamente em instantes.'

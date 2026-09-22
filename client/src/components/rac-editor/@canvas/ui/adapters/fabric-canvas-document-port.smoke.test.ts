@@ -535,6 +535,40 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('serializa imagem baseada em canvas sem chamar toJSON ou toDataURL na fonte viva', () => {
+    const sourceCanvas = document.createElement('canvas');
+    Object.defineProperty(sourceCanvas, 'toDataURL', {
+      value: vi.fn(() => {
+        throw new DOMException('Tainted canvases may not be exported.', 'SecurityError');
+      }),
+    });
+    const image = {
+      type: 'image',
+      myType: 'image',
+      editorObjectId: 'canvas-image-1',
+      storageUrl: '/manus-storage/temp/house-3d/illustration.png',
+      getElement: vi.fn(() => sourceCanvas),
+    };
+    const canvas = {
+      toJSON: vi.fn(() => {
+        throw new Error('toJSON não deveria ser chamado para exportação segura.');
+      }),
+      getObjects: vi.fn(() => [image]),
+    };
+
+    const exported = createFabricCanvasDocumentPort(canvas as any).exportCanvasDocument();
+
+    expect(exported?.objects[0]).toMatchObject({
+      id: 'canvas-image-1',
+      shape: 'image',
+      resource: {
+        storageUrl: '/manus-storage/temp/house-3d/illustration.png',
+      },
+    });
+    expect(sourceCanvas.toDataURL).not.toHaveBeenCalled();
+    expect(canvas.toJSON).not.toHaveBeenCalled();
+  });
+
   it('captura imagem descartando seleção ativa antes de exportar', () => {
     const canvas = {
       getObjects: vi.fn(() => []),
