@@ -509,11 +509,6 @@ async function sanitizeElementForSafeExport(
   if (!source) {
     return null;
   }
-  if (/^(data:|blob:)/i.test(source)) {
-    return children
-      ? {...element, children}
-      : element;
-  }
 
   const normalizedSource = String(normalizeStorageImageSource(source));
   let probe: FabricImage | null = null;
@@ -550,6 +545,20 @@ async function sanitizeDocumentForSafeExport(
   };
 }
 
+function isSecurityError(error: unknown): boolean {
+  return error instanceof DOMException
+    ? error.name === 'SecurityError'
+    : error instanceof Error && /tainted canvases|not be exported/i.test(error.message);
+}
+
+function hideImagesOnIsolatedCanvas(canvas: FabricCanvas): void {
+  collectFabricImages(canvas.getObjects()).forEach((image) => {
+    image.set({visible: false});
+    image.dirty = true;
+  });
+  canvas.renderAll();
+}
+
 async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | null> {
   const sourcePort = createFabricCanvasDocumentPort(canvas);
   const canvasDocument = sourcePort.exportCanvasDocument();
@@ -577,7 +586,19 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
     const loaded = await isolatedPort.loadCanvasDocument(safeDocument);
     if (!loaded) return null;
     isolatedCanvas.renderAll();
-    return isolatedPort.exportImageDataUrl();
+    try {
+      return isolatedPort.exportImageDataUrl();
+    } catch (error) {
+      if (!isSecurityError(error)) throw error;
+
+      // A legacy image can still arrive through a browser-specific source
+      // path (for example a Blob URL). Do not let that single object abort the
+      // whole RAC: remove all image pixels from this disposable canvas and
+      // retry the export. The user's live canvas is never touched.
+      console.warn('[Canvas PDF export] Isolated canvas was tainted; retrying without image pixels.', error);
+      hideImagesOnIsolatedCanvas(isolatedCanvas);
+      return isolatedPort.exportImageDataUrl();
+    }
   } finally {
     await isolatedCanvas.dispose();
     canvasElement.remove();

@@ -208,4 +208,48 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
     await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
   });
+
+  test('renderer individual da casa não falha com imagem legada sem CORS', async ({page}) => {
+    await page.route('https://uncors.example.test/house-photo.png', async (route) => {
+      await route.fulfill({
+        contentType: 'image/png',
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC', 'base64'),
+      });
+    });
+
+    await setupSeededRacEditorPage(page, {
+      ...pdfExportSeed,
+      insertInitialViews: true,
+      canvasObjects: [{
+        id: 'legacy-house-photo',
+        kind: 'image',
+        shape: 'image',
+        geometry: {left: 72, top: 64, width: 1, height: 1, scaleX: 100, scaleY: 100},
+        resource: {src: 'https://uncors.example.test/house-photo.png'},
+      }],
+    });
+
+    const imageDataUrl = await page.evaluate(async () => {
+      const {renderHouseDrawingCanvasImageDataUrl} = await import(
+        `${location.origin}/@fs/home/ubuntu/editor-planta-baixa/client/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
+      );
+
+      return renderHouseDrawingCanvasImageDataUrl({
+        drawingDocument: {
+          canvas: {
+            schemaVersion: 1,
+            objects: [{
+              id: 'legacy-house-photo',
+              kind: 'image',
+              shape: 'image',
+              geometry: {left: 20, top: 20, width: 1, height: 1, scaleX: 100, scaleY: 100},
+              resource: {src: 'https://uncors.example.test/house-photo.png'},
+            }],
+          },
+        },
+      } as never);
+    });
+
+    expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
+  });
 });
