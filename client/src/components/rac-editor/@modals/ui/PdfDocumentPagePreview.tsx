@@ -76,7 +76,7 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom}: Pd
 
   return (
     <div
-      className='relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto bg-slate-800 sm:min-h-0'
+      className='relative mx-auto block min-h-[360px] min-w-0 max-w-full h-full w-auto flex-none overflow-auto bg-slate-800 aspect-[841.89/595.28] sm:max-h-[595.28px] sm:min-h-0'
       style={{aspectRatio: '841.89 / 595.28'}}
       data-testid='pdf-preview-surface'
       data-page-number={safePageNumber}
