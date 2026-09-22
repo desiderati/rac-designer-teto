@@ -150,6 +150,21 @@ All colors MUST be HSL.
     }
 }
 
+/* Shared minimum-width contract for the Canvas and construction-management
+   surfaces. Narrow devices keep the warning but use the viewport width so
+   forms remain usable and do not create horizontal document overflow. */
+.rac-min-width-shell {
+    min-width: 420px;
+}
+
+@media (max-width: 419px) {
+    .rac-min-width-shell {
+        min-width: 0;
+        max-width: 100vw;
+        width: 100%;
+    }
+}
+
 /* Pre-login RAC Designer composition. The product screenshot and house are
    served from Manus Storage so the repository does not carry large binaries. */
 .rac-login {

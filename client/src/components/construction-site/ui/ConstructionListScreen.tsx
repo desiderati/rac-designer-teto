@@ -99,7 +99,7 @@ export function ConstructionListScreen({
         </div>
         <div
           data-testid='construction-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:flex sm:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[680px]:flex min-[680px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredSummaries.length)}</span>
           <div className='flex items-center gap-1'>
@@ -121,7 +121,7 @@ export function ConstructionListScreen({
         </div>
       </div>
 
-      <div data-testid='construction-desktop-table' className='hidden overflow-x-auto sm:block'>
+      <div data-testid='construction-desktop-table' className='hidden overflow-x-auto min-[680px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[42%]'/>
@@ -159,7 +159,7 @@ export function ConstructionListScreen({
         </table>
       </div>
 
-      <div data-testid='construction-mobile-list' className='space-y-3 sm:hidden'>
+      <div data-testid='construction-mobile-list' className='space-y-3 min-[680px]:hidden'>
         {pageSummaries.map((summary) => (
           <ConstructionMobileCard
             key={summary.id}
@@ -179,6 +179,7 @@ export function ConstructionListScreen({
 
       <MobilePagination
         testId='construction-mobile-pagination'
+        visibilityClassName='min-[680px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredSummaries.length)}
         page={normalizedPage}
         pageCount={pageCount}

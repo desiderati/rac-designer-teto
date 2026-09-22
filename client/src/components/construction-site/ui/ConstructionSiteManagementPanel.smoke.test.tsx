@@ -116,6 +116,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-x-hidden');
     expect(screen.getByTestId('construction-management-shell').className).toContain('overflow-y-auto');
     expect(screen.getByTestId('construction-management-shell').className).toContain('py-0');
+    expect(screen.getByTestId('construction-management-shell').className).toContain('min-w-[420px]');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('min-h-full');
     expect(screen.getByTestId('construction-management-shell').className).not.toContain('pt-24');
     expect(screen.getByTestId('construction-management-card').className).toContain('min-w-0');
@@ -127,7 +128,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('button', {name: '+ Adicionar Construção'}).className).toContain('sm:shrink-0');
 
     expect(screen.getByTestId('construction-desktop-table').className).toContain('hidden');
-    expect(screen.getByTestId('construction-desktop-table').className).toContain('sm:block');
+    expect(screen.getByTestId('construction-desktop-table').className).toContain('min-[680px]:block');
     const constructionDesktopTable = within(screen.getByTestId('construction-desktop-table')).getByRole('table');
     expect(constructionDesktopTable).toHaveClass('table-fixed');
     expect(constructionDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[42%]');
@@ -138,11 +139,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const constructionMobilePagination = screen.getByTestId('construction-mobile-pagination');
 
     expect(screen.getByTestId('construction-desktop-pagination').className).toContain('hidden');
-    expect(screen.getByTestId('construction-desktop-pagination').className).toContain('sm:flex');
-    expect(constructionMobilePagination.className).toContain('sm:hidden');
+    expect(screen.getByTestId('construction-desktop-pagination').className).toContain('min-[680px]:flex');
+    expect(constructionMobilePagination.className).toContain('min-[680px]:hidden');
     expect(constructionMobileList.compareDocumentPosition(constructionMobilePagination) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
-    expect(constructionMobileList.className).toContain('sm:hidden');
+    expect(constructionMobileList.className).toContain('min-[680px]:hidden');
     expect(screen.getAllByTestId('construction-mobile-card')).toHaveLength(3);
     expect(within(constructionMobileList).getByText('CC2603')).toBeVisible();
     expect(within(constructionMobileList).getByText('Tiradentes')).toBeVisible();

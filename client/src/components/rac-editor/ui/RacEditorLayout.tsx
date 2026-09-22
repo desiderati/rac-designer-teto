@@ -54,7 +54,7 @@ export function RacEditorLayout({
 }: RacEditorLayoutProps) {
   return (
     <div
-      className={`relative h-full min-h-[480px] ${workspace.open ? 'min-w-0 w-full' : 'min-w-[420px]'} overflow-hidden`}
+      className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden'
       style={CANVAS_WORKSPACE_STYLE}
       onClick={root.onClick}
     >

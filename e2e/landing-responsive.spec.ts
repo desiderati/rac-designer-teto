@@ -41,6 +41,7 @@ test.describe('Landing pré-login responsiva', () => {
         sectionsAreVertical: boxes.every((box, index) => index === 0 || box.top >= boxes[index - 1].bottom - 1),
         shellIsCentered: Math.abs(shellBox.left - (login.clientWidth - shellBox.width) / 2) < 1,
         shellFits850: shellBox.width <= 850.5,
+        minimumWidth: getComputedStyle(login).minWidth,
         overflowX: login.scrollWidth > login.clientWidth,
         overflowYMode: getComputedStyle(login).overflowY,
         calloutsBelowScreenshot: calloutsBox.top >= screenshotBox.bottom - 1,
@@ -56,6 +57,7 @@ test.describe('Landing pré-login responsiva', () => {
       sectionsAreVertical: true,
       shellIsCentered: true,
       shellFits850: true,
+      minimumWidth: '420px',
       overflowX: false,
       overflowYMode: 'auto',
       calloutsBelowScreenshot: true,
@@ -156,6 +158,7 @@ test.describe('Landing pré-login responsiva', () => {
       const houseBox = house.getBoundingClientRect();
       return {
         sectionsAreVertical: boxes.every((box, index) => index === 0 || box.top >= boxes[index - 1].bottom - 1),
+        minimumWidth: getComputedStyle(login).minWidth,
         overflowX: login.scrollWidth > login.clientWidth,
         canScrollVertically: login.scrollHeight > login.clientHeight,
         screenshotHasArea: screenshotBox.width > 0 && screenshotBox.height > 0,
@@ -167,6 +170,7 @@ test.describe('Landing pré-login responsiva', () => {
 
     expect(layout).toEqual({
       sectionsAreVertical: true,
+      minimumWidth: '420px',
       overflowX: false,
       canScrollVertically: true,
       screenshotHasArea: true,

@@ -104,6 +104,28 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
     await expect(page.getByTestId('house-desktop-table')).toBeVisible();
   });
 
+  test('mantém cards de construções e monitores abaixo de 680px', async ({page}) => {
+    await openConstructionManagement(page);
+
+    await page.setViewportSize({width: 679, height: 900});
+    await expect(page.getByTestId('construction-mobile-list')).toBeVisible();
+    await expect(page.getByTestId('construction-desktop-table')).toBeHidden();
+
+    await page.setViewportSize({width: 680, height: 900});
+    await expect(page.getByTestId('construction-mobile-list')).toBeHidden();
+    await expect(page.getByTestId('construction-desktop-table')).toBeVisible();
+
+    await page.getByRole('button', {name: 'Gerenciar monitores da construção CC2603'}).click();
+    await expect(page.getByTestId('monitor-desktop-table')).toBeVisible();
+    await page.setViewportSize({width: 679, height: 900});
+    await expect(page.getByTestId('monitor-mobile-list')).toBeVisible();
+    await expect(page.getByTestId('monitor-desktop-table')).toBeHidden();
+
+    await page.setViewportSize({width: 680, height: 900});
+    await expect(page.getByTestId('monitor-mobile-list')).toBeHidden();
+    await expect(page.getByTestId('monitor-desktop-table')).toBeVisible();
+  });
+
   test('cria Monitor ocupando a largura disponível', async ({page}) => {
     await openMonitorManagement(page);
     await page.getByRole('button', {name: '+ Adicionar Monitor'}).click();

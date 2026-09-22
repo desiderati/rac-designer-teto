@@ -94,7 +94,7 @@ export function MonitorsScreen({
         </div>
         <div
           data-testid='monitor-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 sm:flex sm:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[680px]:flex min-[680px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}</span>
           <div className='flex items-center gap-1'>
@@ -116,7 +116,7 @@ export function MonitorsScreen({
         </div>
       </div>
 
-      <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto sm:block'>
+      <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto min-[680px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[48%]'/>
@@ -149,7 +149,7 @@ export function MonitorsScreen({
         </table>
       </div>
 
-      <div data-testid='monitor-mobile-list' className='space-y-3 sm:hidden'>
+      <div data-testid='monitor-mobile-list' className='space-y-3 min-[680px]:hidden'>
         {pageMonitors.map((monitor) => (
           <MonitorMobileCard
             key={monitor.id}
@@ -164,6 +164,7 @@ export function MonitorsScreen({
 
       <MobilePagination
         testId='monitor-mobile-pagination'
+        visibilityClassName='min-[680px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}
         page={normalizedPage}
         pageCount={pageCount}
