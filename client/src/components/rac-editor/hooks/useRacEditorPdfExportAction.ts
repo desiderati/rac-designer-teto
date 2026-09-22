@@ -1,5 +1,6 @@
 import {RefObject, useCallback, useEffect, useRef, useState} from 'react';
 import {toast} from 'sonner';
+import {jsPDF} from 'jspdf';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import {buildRacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
@@ -108,7 +109,6 @@ export function useRacEditorPdfExportAction({
         return false;
       }
 
-      const {jsPDF} = await import('jspdf');
       const pdf = createRacPdfReportDocument({report, jsPDF});
       const blob = pdf.output('blob') as Blob;
       const url = URL.createObjectURL(blob);

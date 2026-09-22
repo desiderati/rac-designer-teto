@@ -1,5 +1,6 @@
 import {type RefObject, useCallback, useEffect, useState} from 'react';
 import {toast} from 'sonner';
+import {jsPDF} from 'jspdf';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
@@ -21,7 +22,12 @@ import {
   buildRacPdfExportChecklist,
   formatRacPdfExportChecklistSummary,
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
-import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
+import {
+  buildRacPdfHouseExport,
+  buildRacPdfZipExport,
+  downloadBlob,
+  type RacPdfHouseExportResult,
+} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 import {requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 
@@ -166,14 +172,6 @@ export function useConstructionSiteManagementController({
         toast.warning(`Checklist da RAC: ${checklistSummary}`);
       }
 
-      const [
-        {jsPDF},
-        {buildRacPdfHouseExport, downloadBlob},
-      ] = await Promise.all([
-        import('jspdf'),
-        import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
-      ]);
-
       const result = await buildRacPdfHouseExport({
         constructionSite: targetConstructionSite,
         houseId,
@@ -216,15 +214,7 @@ export function useConstructionSiteManagementController({
         return;
       }
 
-      const [
-        {default: JSZip},
-        {jsPDF},
-        {buildRacPdfZipExport, downloadBlob},
-      ] = await Promise.all([
-        import('jszip'),
-        import('jspdf'),
-        import('@/components/rac-editor/lib/rac-pdf-zip-export.ts'),
-      ]);
+      const {default: JSZip} = await import('jszip');
 
       const result = await buildRacPdfZipExport({
         constructionSite: targetConstructionSite,
