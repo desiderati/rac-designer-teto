@@ -142,13 +142,6 @@ export function UserMenu({
             />
             <Divider/>
             <Item icon={TOP_BAR_ICONS.settings} label='Configurações' onClick={onOpenSettings}/>
-            <div
-              data-testid='account-app-version'
-              title={`Versão ${APP_VERSION}`}
-              className='px-3 py-1 text-[10px] font-medium tracking-[0.08em] text-slate-400'
-            >
-              v{APP_VERSION}
-            </div>
             <Divider/>
             <Item
               icon={TOP_BAR_ICONS.exit}
@@ -159,6 +152,16 @@ export function UserMenu({
                 setLogoutOpen(true);
               }}
               destructive
+              rightSlot={(
+                <span
+                  data-testid='account-app-version'
+                  aria-hidden='true'
+                  title={`Versão ${APP_VERSION}`}
+                  className='ml-auto pl-2 text-[10px] font-medium tracking-[0.08em] text-slate-400'
+                >
+                  v{APP_VERSION}
+                </span>
+              )}
             />
           </div>
         ) : null}
