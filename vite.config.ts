@@ -13,6 +13,7 @@ const gitVersion = (() => {
   }
 })();
 const appVersion = process.env.VITE_APP_VERSION ?? gitVersion ?? process.env.npm_package_version ?? 'dev';
+const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? new Date().toISOString();
 
 export default defineConfig({
   root: path.resolve(projectRoot, 'client'),
@@ -21,6 +22,7 @@ export default defineConfig({
   envDir: projectRoot,
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+    'import.meta.env.VITE_BUILD_TIMESTAMP': JSON.stringify(buildTimestamp),
   },
   resolve: {
     alias: {

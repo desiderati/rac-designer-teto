@@ -70,7 +70,10 @@ describe('UserMenu.tsx', () => {
     openAccountMenu();
 
     expect(screen.getByTestId('account-app-version')).toHaveTextContent(/^v.+/);
-    expect(screen.getByTestId('account-app-version')).toHaveAttribute('title', expect.stringMatching(/^Versão /));
+    expect(screen.getByTestId('account-app-version')).toHaveAttribute(
+      'title',
+      expect.stringMatching(/^Versão .+ · Build (\d{2}\/\d{2}\/\d{2,4}|indisponível)/),
+    );
   });
 
   it('não exibe Construções TETO no menu do avatar', () => {

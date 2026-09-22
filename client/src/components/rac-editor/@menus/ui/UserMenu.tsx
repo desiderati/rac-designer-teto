@@ -3,7 +3,7 @@ import {useEffect, useRef, useState, type MouseEvent} from 'react';
 import {createPortal} from 'react-dom';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {APP_VERSION} from '@/shared/app-version.ts';
+import {APP_BUILD_TIMESTAMP, APP_VERSION} from '@/shared/app-version.ts';
 
 interface UserMenuProps {
   isMobile: boolean;
@@ -156,7 +156,7 @@ export function UserMenu({
                 <span
                   data-testid='account-app-version'
                   aria-hidden='true'
-                  title={`Versão ${APP_VERSION}`}
+                  title={`Versão ${APP_VERSION} · Build ${formatBuildTimestamp(APP_BUILD_TIMESTAMP)}`}
                   className='ml-auto pl-2 text-[10px] font-medium tracking-[0.08em] text-slate-400'
                 >
                   v{APP_VERSION}
@@ -274,4 +274,15 @@ function ActiveDot() {
 
 function Divider() {
   return <div role='separator' className='h-px bg-slate-100 my-1 mx-2'/>;
+}
+
+function formatBuildTimestamp(value: string): string {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) return 'indisponível';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  }).format(timestamp);
 }
