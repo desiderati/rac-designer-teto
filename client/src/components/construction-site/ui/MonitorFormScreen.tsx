@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {CreateMonitorInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -16,7 +16,6 @@ import {
   PrimaryButton,
   TextField,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion.tsx';
 import {
   getMonitorInitialState,
   toMonitorInput,
@@ -46,18 +45,12 @@ export function MonitorFormScreen({
     reValidateMode: 'onChange',
     defaultValues: getMonitorInitialState(monitor),
   });
-  const [openSections, setOpenSections] = useState(['monitor-data']);
-  const {errors, dirtyFields, submitCount} = form.formState;
-  const hasSectionError = Boolean(errors.name || errors.phone || errors.email || errors.photoDataUrl);
+  const {dirtyFields} = form.formState;
   const hasSectionChanges = Boolean(dirtyFields.name || dirtyFields.phone || dirtyFields.email || dirtyFields.photoDataUrl);
 
   useEffect(() => {
     form.reset(getMonitorInitialState(monitor));
   }, [form, monitor]);
-  useEffect(() => {
-    if (!submitCount || !hasSectionError) return;
-    setOpenSections((current) => current.includes('monitor-data') ? current : [...current, 'monitor-data']);
-  }, [hasSectionError, submitCount]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
@@ -81,16 +74,14 @@ export function MonitorFormScreen({
       <HouseConfigurationSidebar constructionSite={constructionSite}/>
 
       <div className='h-full min-w-0'>
-        <Accordion type='multiple' value={openSections} onValueChange={setOpenSections} className='space-y-2'>
-          <AccordionItem value='monitor-data' className='!border-0 bg-transparent px-0 shadow-none'>
-            <AccordionTrigger aria-label='Alternar seção Dados do Monitor' className='gap-3 py-3 hover:no-underline'>
-              <FormSectionHeader number='01' title='Dados do Monitor' dirty={hasSectionChanges}/>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div
-                data-testid='monitor-form-layout'
-                className='h-full items-stretch space-y-5'
-              >
+        <section className='space-y-2'>
+          <div className='flex items-center gap-3 py-3'>
+            <FormSectionHeader number='01' title='Dados do Monitor' dirty={hasSectionChanges}/>
+          </div>
+          <div
+            data-testid='monitor-form-layout'
+            className='h-full items-stretch space-y-5'
+          >
                 <Controller
                   control={form.control}
                   name='photoDataUrl'
@@ -169,12 +160,10 @@ export function MonitorFormScreen({
                     </div>
                   </div>
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+          </div>
+        </section>
         <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2'>
-          <PrimaryButton type='submit' className='w-full min-w-0 md:col-start-2' disabled={readOnly || isSubmitting}>
+          <PrimaryButton type='submit' className='w-full min-w-0' disabled={readOnly || isSubmitting}>
             {submitLabel}
           </PrimaryButton>
         </div>

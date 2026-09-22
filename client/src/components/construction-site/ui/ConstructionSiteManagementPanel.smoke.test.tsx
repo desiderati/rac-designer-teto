@@ -159,12 +159,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Filtrar por status')).toBeVisible();
     expect(screen.getByLabelText('Ordenar por')).toBeVisible();
     expect(screen.getByTestId('construction-list-controls').className).toContain('grid-cols-2');
-    expect(screen.getByTestId('construction-list-controls').className).toContain('sm:flex');
-    expect(screen.getByTestId('construction-list-controls').className).toContain('sm:flex-wrap');
+    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[680px]:flex');
+    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[680px]:flex-wrap');
     expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('sm:w-[11.25rem]');
+    expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
     expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('sm:w-[11.25rem]');
+    expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
     expect(screen.queryByRole('combobox', {name: 'Filtrar por status'})).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Ordenar por'})).not.toBeInTheDocument();
     expect(within(constructionMobilePagination).getByText('Mostrando 1-3 de 3 construções')).toBeVisible();
@@ -623,12 +623,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(type6Metric as HTMLElement).getByText('2')).toBeVisible();
     expect(within(type3Metric as HTMLElement).getByText('1')).toBeVisible();
     expect(screen.getByTestId('house-list-controls').className).toContain('grid-cols-2');
-    expect(screen.getByTestId('house-list-controls').className).toContain('sm:flex');
-    expect(screen.getByTestId('house-list-controls').className).toContain('sm:flex-wrap');
+    expect(screen.getByTestId('house-list-controls').className).toContain('min-[680px]:flex');
+    expect(screen.getByTestId('house-list-controls').className).toContain('min-[680px]:flex-wrap');
     expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('sm:w-[11.25rem]');
+    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
     expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('sm:w-[11.25rem]');
+    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
     expect(screen.getByRole('columnheader', {name: 'Casas'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Status'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toBeVisible();
@@ -791,7 +791,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await waitFor(() => expect(screen.queryByRole('heading', {name: 'Checklist da RAC'}))
       .not.toBeInTheDocument());
     expect(screen.getByRole('heading', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    fireEvent.click(screen.getByRole('button', {name: 'Fechar'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Fechar prévia do PDF'}));
   });
 
   it('dispara apenas o tour de adicionar casa quando a construção ainda não tem casas', async () => {
@@ -1049,7 +1049,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(screen.getByTestId('monitor-form')).getByText('Comunidade')).toBeVisible();
     expect(within(screen.getByTestId('monitor-form')).getByText('Tiradentes')).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Dados do Monitor'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Alternar seção Dados do Monitor'})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Dados do Monitor'})).toBeVisible();
     expect(screen.getByTestId('monitor-form')).toHaveClass('items-stretch');
     expect(screen.getByTestId('monitor-form-layout')).toHaveClass('h-full', 'items-stretch');
     expect(screen.getByTestId('monitor-fields-column'))
@@ -1062,14 +1062,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-2');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
-      .toHaveClass('w-full', 'md:col-start-2');
+      .toHaveClass('w-full');
     expect(within(screen.getByTestId('monitor-fields-column')).queryByRole('button', {name: 'Cadastrar Monitor'}))
       .not.toBeInTheDocument();
     expect(within(screen.getByTestId('monitor-photo-field')).getByRole('button', {name: 'Foto do Monitor'}))
       .toHaveClass('flex-1', 'min-h-[16rem]');
 
-    await user.click(screen.getByRole('button', {name: 'Alternar seção Dados do Monitor'}));
-    expect(screen.queryByLabelText('Nome do Monitor')).not.toBeInTheDocument();
     await submitForm('monitor-form');
 
     expect(actions.createMonitor).not.toHaveBeenCalled();
@@ -1261,7 +1259,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
-      .toHaveClass('w-full', 'md:col-start-2');
+      .toHaveClass('w-full');
 
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
@@ -1567,7 +1565,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
     expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveAttribute('data-state', 'open');
+    expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
     expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('sticky', 'sm:static');
     expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
     expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();

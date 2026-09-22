@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {Controller, type Control, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {UpdateHouseExtraMaterialsInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -27,7 +27,6 @@ import type {VisualSelectOption} from '@/components/construction-site/ui/lib/typ
 import type {StairType} from '@/shared/types/construction-site.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion.tsx';
 
 export function HouseExtraMaterialsScreen({
   constructionSite,
@@ -49,17 +48,7 @@ export function HouseExtraMaterialsScreen({
     reValidateMode: 'onChange',
     defaultValues: getHouseExtraMaterialsInitialState(house),
   });
-  const [openSections, setOpenSections] = useState(['extra-materials']);
-  const {errors, dirtyFields, submitCount} = form.formState;
-  const hasSectionError = Boolean(
-    errors.floorBeams
-    || errors.rafters
-    || errors.secondaryBeams
-    || errors.gutters
-    || errors.gutterCount
-    || errors.stairType
-    || errors.justification,
-  );
+  const {dirtyFields} = form.formState;
   const hasSectionChanges = Boolean(
     dirtyFields.floorBeams
     || dirtyFields.rafters
@@ -73,10 +62,6 @@ export function HouseExtraMaterialsScreen({
   useEffect(() => {
     form.reset(getHouseExtraMaterialsInitialState(house));
   }, [house, form]);
-  useEffect(() => {
-    if (!submitCount || !hasSectionError) return;
-    setOpenSections((current) => current.includes('extra-materials') ? current : [...current, 'extra-materials']);
-  }, [hasSectionError, submitCount]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {
@@ -93,14 +78,12 @@ export function HouseExtraMaterialsScreen({
     >
       <HouseExtraMaterialsSidebar constructionSite={constructionSite} house={house}/>
 
-      <div>
-        <Accordion type='multiple' value={openSections} onValueChange={setOpenSections} className='space-y-2'>
-          <AccordionItem value='extra-materials' className='!border-0 bg-transparent px-0 shadow-none'>
-            <AccordionTrigger aria-label='Alternar seção Materiais Extras' className='gap-3 py-3 hover:no-underline'>
+        <div>
+          <section className='space-y-2'>
+            <div className='flex items-center gap-3 py-3'>
               <FormSectionHeader number='07' title='Materiais Extras' dirty={hasSectionChanges}/>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div data-testid='extra-materials-grid' className='grid gap-4 md:grid-cols-2'>
+            </div>
+            <div data-testid='extra-materials-grid' className='grid gap-4 md:grid-cols-2'>
                 <IntegerField
                   control={form.control}
                   name='floorBeams'
@@ -177,13 +160,11 @@ export function HouseExtraMaterialsScreen({
                     )}
                   />
                 </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            </div>
+          </section>
 
         <div data-testid='house-extra-materials-actions' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2'>
-          <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0 md:col-start-2'>Salvar Materiais Extras</PrimaryButton>
+          <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Materiais Extras</PrimaryButton>
         </div>
       </div>
     </form>

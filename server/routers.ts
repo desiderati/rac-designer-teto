@@ -154,7 +154,10 @@ export const appRouter = router({
 
         const content = result.choices[0]?.message?.content;
         const text = Array.isArray(content)
-          ? content.filter((part): part is {type: 'text'; text: string} => part.type === 'text').map((part) => part.text).join(' ')
+          ? content
+            .filter((part): part is {type: 'text'; text: string} => part.type === 'text')
+            .map((part) => part.text)
+            .join(' ')
           : content;
         return {description: extractDescription(text)};
       }),
@@ -318,8 +321,24 @@ function toConstructionSiteTrpcError(error: unknown): TRPCError {
   return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Não foi possível persistir a Construção TETO.' });
 }
 
-export function extractDescription(content: string | undefined): string {
+export function extractDescription(content: unknown): string {
   if (!content) return '';
+
+  if (typeof content === 'object' && !Array.isArray(content)) {
+    const structured = content as {description?: unknown};
+    if (typeof structured.description === 'string') {
+      return cleanDescription(structured.description);
+    }
+  }
+
+  if (Array.isArray(content)) {
+    return cleanDescription(content
+      .filter((part): part is {text: string} => Boolean(part && typeof part === 'object' && 'text' in part && typeof (part as {text?: unknown}).text === 'string'))
+      .map((part) => part.text)
+      .join(' '));
+  }
+
+  if (typeof content !== 'string') return '';
   const normalized = content
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```$/i, '')
@@ -327,7 +346,7 @@ export function extractDescription(content: string | undefined): string {
 
   try {
     const parsed = JSON.parse(normalized) as {description?: unknown};
-    if (typeof parsed.description === 'string') return parsed.description.trim().slice(0, 120);
+    if (typeof parsed.description === 'string') return cleanDescription(parsed.description);
   } catch {
     // Alguns provedores devolvem JSON parcial ou envolto em texto.
   }
@@ -335,17 +354,21 @@ export function extractDescription(content: string | undefined): string {
   const quotedDescription = normalized.match(/["']description["']?\s*:\s*["']((?:\\.|[^"'\\])*)/i);
   if (quotedDescription?.[1]) {
     try {
-      return JSON.parse(`"${quotedDescription[1]}"`).trim().slice(0, 120);
+      return cleanDescription(JSON.parse(`"${quotedDescription[1]}"`));
     } catch {
-      return quotedDescription[1].replace(/\\["']/g, '"').trim().slice(0, 120);
+      return cleanDescription(quotedDescription[1].replace(/\\["']/g, '"'));
     }
   }
 
   const partialDescription = normalized.match(/description["']?\s*:\s*(.*)$/i)?.[1];
   const fallback = partialDescription ?? normalized;
-  return fallback
+  return cleanDescription(fallback);
+}
+
+function cleanDescription(value: string): string {
+  return value
     .replace(/[{}]/g, '')
-    .replace(/^\s*["'`]?(?:description)?["'`]?\s*[:=-]\s*/i, '')
+    .replace(/^\s*["'`{]*(?:description)?["'`}]?\s*[:=-]\s*/i, '')
     .replace(/["'`}]+\s*$/, '')
     .replace(/\s+/g, ' ')
     .trim()

@@ -19,8 +19,8 @@ export const HOUSES_PER_PAGE = 10;
 export const MONITORS_PER_PAGE = 10;
 export const HEADER_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48 sm:shrink-0';
 export const FORM_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48';
-export const LIST_CONTROLS_CLASS = 'grid grid-cols-2 gap-2 sm:flex sm:flex-wrap';
-export const LIST_SELECT_CLASS = 'w-full min-w-0 sm:w-[11.25rem] sm:shrink-0';
+export const LIST_CONTROLS_CLASS = 'grid grid-cols-2 gap-2 min-[680px]:flex min-[680px]:flex-wrap';
+export const LIST_SELECT_CLASS = 'w-full min-w-0 min-[680px]:w-[11.25rem] min-[680px]:shrink-0';
 
 export const CONSTRUCTION_SITE_STATUS_LABELS: Record<ConstructionSiteStatus, string> = {
   in_progress: 'Andamento',
@@ -46,6 +46,13 @@ export const HOUSE_STATUS_BADGE_CLASS_NAMES: Record<PersistedHouseStatus, string
   rac_printed: 'bg-violet-50 text-violet-700 ring-violet-100',
   built: 'bg-slate-900 text-white ring-slate-900',
   archived: 'bg-slate-100 text-slate-500 ring-slate-200',
+};
+
+export const HOUSE_STATUS_CARD_CLASS_NAMES: Record<PersistedHouseStatus, string> = {
+  draft: 'bg-blue-50/80 shadow-blue-100/60',
+  rac_printed: 'bg-violet-50/80 shadow-violet-100/60',
+  built: 'bg-slate-100 shadow-slate-200/80',
+  archived: 'bg-slate-100 shadow-slate-200/70',
 };
 
 export const MONITOR_STATUS_LABELS: Record<MonitorStatus, string> = {

@@ -9,6 +9,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {isHouseIncompleteForRac} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import {
   HOUSE_SORT_OPTIONS,
+  HOUSE_STATUS_CARD_CLASS_NAMES,
   HOUSE_STATUS_BADGE_CLASS_NAMES,
   HOUSE_STATUS_FILTER_OPTIONS,
   HOUSE_STATUS_LABELS,
@@ -303,7 +304,8 @@ export function HouseMobileCard({
         openHouse();
       }}
       className={cn(
-        'cursor-pointer rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        'cursor-pointer rounded-2xl p-4 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        HOUSE_STATUS_CARD_CLASS_NAMES[house.status],
         active ? 'bg-blue-50/90 shadow-blue-100' : 'hover:bg-slate-100',
         house.status === 'archived' ? 'opacity-55 grayscale' : null,
       )}
@@ -483,6 +485,7 @@ export function HouseTableRow({
       }}
       className={cn(
         'cursor-pointer rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
+        HOUSE_STATUS_CARD_CLASS_NAMES[house.status],
         active ? 'bg-blue-50/90' : 'bg-transparent hover:bg-slate-50',
         house.status === 'archived' ? 'opacity-55' : null,
       )}

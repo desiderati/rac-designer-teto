@@ -155,8 +155,8 @@ export function ConstructionFormScreen({
           />
         </div>
       </div>
-      <div className='grid w-full min-w-0 gap-3 md:grid-cols-3'>
-        <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap md:col-start-3' disabled={readOnly}>
+      <div className='grid w-full min-w-0 gap-3'>
+        <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
           {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
         </PrimaryButton>
       </div>

@@ -184,7 +184,7 @@ export function TerrainPhotosField({
               <img
                 src={selectedPhoto.url}
                 alt={selectedPhoto.description || `Foto do terreno ${selectedIndex + 1}`}
-                className='absolute inset-0 h-full w-full object-cover'
+                className='absolute inset-0 block h-full w-full object-cover object-center'
               />
             ) : (
               <button

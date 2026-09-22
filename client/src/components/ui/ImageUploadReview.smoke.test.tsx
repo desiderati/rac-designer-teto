@@ -59,6 +59,8 @@ describe('ImageUploadReview', () => {
 
     expect(await screen.findByRole('dialog')).toBeVisible();
     expect(await screen.findByRole('button', {name: 'Comparar original e otimizada'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Cancelar'})).toHaveClass('w-full');
+    expect(screen.getByRole('button', {name: 'Usar esta imagem'})).toHaveClass('w-full');
     expect(screen.getByText('42,5%')).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Comparar original e otimizada'}));

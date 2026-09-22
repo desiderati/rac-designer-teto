@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TopBar} from './TopBar.tsx';
 import type {MenuActionMap} from '@/components/rac-editor/@menus/lib/menu-types.ts';
@@ -111,5 +111,26 @@ describe('TopBar.tsx', () => {
 
     await user.click(exportButton);
     expect(actions.savePDF).not.toHaveBeenCalled();
+  });
+
+  it('coloca 3D e Exportar no menu da conta abaixo de 740 px', async () => {
+    const originalWidth = window.innerWidth;
+    const user = userEvent.setup();
+
+    try {
+      Object.defineProperty(window, 'innerWidth', {configurable: true, value: 739});
+      configureRemoteSync('synced');
+      renderTopBar({isMobile: true});
+
+      expect(screen.getByRole('button', {name: 'Visualização 3D'})).toHaveClass('min-[740px]:flex');
+      expect(screen.getByRole('button', {name: 'Exportar RAC em PDF'})).toHaveClass('min-[740px]:flex');
+      await user.click(screen.getByRole('button', {name: 'Abrir menu da conta'}));
+
+      const accountMenu = screen.getByRole('menu', {name: 'Menu da conta'});
+      expect(within(accountMenu).getByRole('button', {name: 'Visualização 3D'})).toBeVisible();
+      expect(within(accountMenu).getByRole('button', {name: 'Exportar RAC em PDF'})).toBeVisible();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalWidth});
+    }
   });
 });

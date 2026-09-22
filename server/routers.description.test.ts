@@ -16,4 +16,11 @@ describe('extractDescription', () => {
     expect(extractDescription('{"description":"Terreno plano com pedras'))
       .toBe('Terreno plano com pedras');
   });
+
+  it('limpa resposta estruturada sem chaves externas e resposta já estruturada', () => {
+    expect(extractDescription('"description": "Foto com grupo de pessoas em área arborizada."'))
+      .toBe('Foto com grupo de pessoas em área arborizada.');
+    expect(extractDescription({description: 'Solo exposto com vegetação nas bordas.'}))
+      .toBe('Solo exposto com vegetação nas bordas.');
+  });
 });

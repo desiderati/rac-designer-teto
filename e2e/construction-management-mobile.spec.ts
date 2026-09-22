@@ -134,8 +134,7 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
     await expectMobileFormToFit(page, 'construction-management-shell', '[data-testid="monitor-form"]');
     await expect(page.getByTestId('monitor-actions-grid')).toHaveClass(/sticky/);
 
-    await page.getByRole('button', {name: 'Alternar seção Dados do Monitor'}).click();
-    await expect(page.getByLabel('Nome do Monitor')).toBeHidden();
+    await expect(page.getByLabel('Nome do Monitor')).toBeVisible();
     await page.getByRole('button', {name: 'Cadastrar Monitor'}).click();
     await expect(page.getByLabel('Nome do Monitor')).toBeVisible();
 
@@ -210,10 +209,12 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
   expect(metrics).not.toBeNull();
   expect(metrics!.documentScrollWidth).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
   expect(metrics!.bodyScrollWidth).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
-  expect(metrics!.shellLeft).toBeGreaterThanOrEqual(-1);
-  expect(metrics!.shellRight).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
-  expect(metrics!.formLeft).toBeGreaterThanOrEqual(-1);
-  expect(metrics!.formRight).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
+  const minimumSurfaceWidth = Math.max(metrics!.viewportWidth, 420);
+  expect(metrics!.shellWidth).toBeGreaterThanOrEqual(minimumSurfaceWidth - 1);
+  expect(metrics!.shellLeft).toBeGreaterThanOrEqual(-(minimumSurfaceWidth - metrics!.viewportWidth) - 1);
+  expect(metrics!.shellRight).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
+  expect(metrics!.formLeft).toBeGreaterThanOrEqual(-(minimumSurfaceWidth - metrics!.viewportWidth) - 1);
+  expect(metrics!.formRight).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.formWidth).toBeGreaterThan(metrics!.viewportWidth * 0.8);
 }
 

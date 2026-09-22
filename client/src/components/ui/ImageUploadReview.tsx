@@ -122,7 +122,7 @@ export function ImageUploadReview({
   };
 
   const body = (
-    <div className='space-y-4'>
+    <div className='min-w-0 space-y-4'>
       {prepareError ? (
         <div role='alert' className='flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800'>
           <AlertCircle className='mt-0.5 h-4 w-4 shrink-0'/>
@@ -148,7 +148,7 @@ export function ImageUploadReview({
             <img
               src={preserveOriginalQuality ? originalPreviewUrl : optimizedPreviewUrl ?? originalPreviewUrl}
               alt={preserveOriginalQuality ? 'Prévia da imagem original' : 'Prévia da imagem que será enviada'}
-              className='h-52 w-full object-cover object-center sm:h-64'
+              className='block h-52 w-full object-cover object-center sm:h-64'
             />
           </div>
 
@@ -202,12 +202,13 @@ export function ImageUploadReview({
         </>
       ) : null}
 
-      <div className='flex flex-col-reverse gap-2 sm:flex-row sm:justify-end'>
-        <Button type='button' variant='outline' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
+      <div className='grid w-full grid-cols-2 gap-2'>
+        <Button type='button' variant='outline' className='w-full' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
           Cancelar
         </Button>
         <Button
           type='button'
+          className='w-full'
           onClick={() => void handleConfirm()}
           disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}
         >
@@ -221,12 +222,12 @@ export function ImageUploadReview({
   if (isMobile) {
     return (
       <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-        <DrawerContent className='max-h-[92dvh] overflow-y-auto'>
+        <DrawerContent className='max-h-[92dvh] overflow-hidden'>
           <DrawerHeader className='pb-2 text-center'>
             <DrawerTitle className='text-center text-2xl'>{title}</DrawerTitle>
             <DrawerDescription>Confira a imagem e escolha como deseja enviá-la.</DrawerDescription>
           </DrawerHeader>
-          <div className='px-4 pb-5'>{body}</div>
+          <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-5'>{body}</div>
         </DrawerContent>
       </Drawer>
     );

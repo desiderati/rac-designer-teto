@@ -1,5 +1,6 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
+import {useEffect, useState} from 'react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
@@ -49,6 +50,17 @@ export function TopBar({
   canExportPDF,
   isReadOnly = false,
 }: TopBarProps) {
+  const [showCanvasActionsInAccountMenu, setShowCanvasActionsInAccountMenu] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 740,
+  );
+
+  useEffect(() => {
+    const updateCanvasActionBreakpoint = () => setShowCanvasActionsInAccountMenu(window.innerWidth < 740);
+    updateCanvasActionBreakpoint();
+    window.addEventListener('resize', updateCanvasActionBreakpoint);
+    return () => window.removeEventListener('resize', updateCanvasActionBreakpoint);
+  }, []);
+
   const exportPDFTitle = canExportPDF
     ? 'Exportar RAC em PDF'
     : 'Insira uma casa no canvas para exportar o RAC em PDF';
@@ -85,7 +97,7 @@ export function TopBar({
           onClick={actions.open3DViewer}
           data-guided-tour-id='rac-view-3d'
           className={cn(
-            'hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium',
+            'hidden min-[740px]:flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium',
             'bg-white/85 backdrop-blur-md border border-slate-200 shadow-sm',
             'hover:bg-slate-50 transition-colors text-slate-700',
           )}
@@ -102,7 +114,7 @@ export function TopBar({
           disabled={!canExportPDF}
           data-guided-tour-id='rac-export-pdf'
           className={cn(
-            'hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold',
+            'hidden min-[740px]:flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold',
             'border transition-transform',
             canExportPDF
               ? 'text-white bg-gradient-to-tr from-blue-500 to-blue-300 shadow-md border-blue-200 hover:scale-[1.03] active:scale-95'
@@ -116,7 +128,7 @@ export function TopBar({
         </button>
 
         <UserMenu
-          isMobile={isMobile}
+          isMobile={showCanvasActionsInAccountMenu}
           showTips={showTips}
           onRestartDrawing={actions.restartDrawing}
           restartDrawingDisabled={isReadOnly}
