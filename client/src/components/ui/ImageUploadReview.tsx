@@ -1,6 +1,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {AlertCircle, Check, Eye, FileImage, Loader2, RefreshCw} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {Checkbox} from '@/components/ui/checkbox.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
@@ -251,9 +252,9 @@ export function ImageUploadReview({
             <DrawerDescription>Confira a imagem e escolha como deseja enviá-la.</DrawerDescription>
           </DrawerHeader>
           <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-5'>{body}</div>
-          <div className='sticky bottom-0 z-20 border-t border-slate-200 bg-background/95 px-4 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm'>
+          <ActionDock testId='image-upload-review-actions' surface='drawer' spacing='flush' edgeToEdge>
             {actions}
-          </div>
+          </ActionDock>
         </DrawerContent>
       </Drawer>
     );
@@ -267,7 +268,9 @@ export function ImageUploadReview({
           <DialogDescription>Confira a imagem e escolha como deseja enviá-la.</DialogDescription>
         </DialogHeader>
         {body}
-        {actions}
+        <ActionDock testId='image-upload-review-actions' surface='dialog' spacing='flush'>
+          {actions}
+        </ActionDock>
       </DialogContent>
     </Dialog>
   );

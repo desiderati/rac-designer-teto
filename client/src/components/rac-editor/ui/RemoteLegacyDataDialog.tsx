@@ -4,10 +4,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 
 export function RemoteLegacyDataDialog({
   open,
@@ -44,14 +44,16 @@ export function RemoteLegacyDataDialog({
           <p className='border-t border-amber-200 pt-3 text-xs text-amber-800'>Esta ação é necessária para evitar misturar uma cópia antiga com a base compartilhada.</p>
         </div>
 
-        <DialogFooter className='gap-2 sm:justify-between'>
-          <Button type='button' variant='outline' disabled={busy} onClick={onKeepLocal}>
-            Manter e sair
-          </Button>
-          <Button type='button' disabled={busy} onClick={() => void onConfirmDiscard()}>
-            {busy ? 'Limpando dados…' : 'Apagar dados locais e continuar'}
-          </Button>
-        </DialogFooter>
+        <ActionDock testId='remote-legacy-data-actions' surface='dialog' spacing='flush'>
+          <div className='flex w-full flex-wrap gap-2 sm:justify-between'>
+            <Button type='button' variant='outline' disabled={busy} onClick={onKeepLocal}>
+              Manter e sair
+            </Button>
+            <Button type='button' disabled={busy} onClick={() => void onConfirmDiscard()}>
+              {busy ? 'Limpando dados…' : 'Apagar dados locais e continuar'}
+            </Button>
+          </div>
+        </ActionDock>
       </DialogContent>
     </Dialog>
   );

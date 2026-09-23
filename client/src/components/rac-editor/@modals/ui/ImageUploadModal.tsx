@@ -2,6 +2,7 @@ import {ChangeEvent, DragEvent, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faUpload} from '@fortawesome/free-solid-svg-icons';
 import {Button} from '@/components/ui/button.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
 import {toast} from '@/components/ui/sonner.tsx';
@@ -158,22 +159,28 @@ export function ImageUploadModal({
         <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>{errorMessage}</p>
       ) : null}
 
-      <Button type='button' variant='outline' className='w-full bg-white' onClick={requestClose} disabled={Boolean(reviewFile)}>
-        Cancelar
-      </Button>
     </div>
+  );
+
+  const actions = (
+    <Button type='button' variant='outline' className='w-full bg-white' onClick={requestClose} disabled={Boolean(reviewFile)}>
+      Cancelar
+    </Button>
   );
 
   return (
     <>
       {isMobile ? (
         <Drawer open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
-          <DrawerContent>
+          <DrawerContent className='max-h-[92dvh] overflow-hidden'>
             <DrawerHeader className='pb-2 text-center'>
               <DrawerTitle className='text-center text-2xl'>Inserir imagem</DrawerTitle>
               <DrawerDescription>Envie uma imagem para posicioná-la no Canvas.</DrawerDescription>
             </DrawerHeader>
-            <div className='px-4 pb-4'>{body}</div>
+            <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-4'>{body}</div>
+            <ActionDock testId='image-upload-modal-actions' surface='drawer' spacing='flush' edgeToEdge>
+              {actions}
+            </ActionDock>
           </DrawerContent>
         </Drawer>
       ) : (
@@ -184,6 +191,9 @@ export function ImageUploadModal({
               <DialogDescription>Envie uma imagem para posicioná-la no Canvas.</DialogDescription>
             </DialogHeader>
             {body}
+            <ActionDock testId='image-upload-modal-actions' surface='dialog' spacing='flush'>
+              {actions}
+            </ActionDock>
           </DialogContent>
         </Dialog>
       )}

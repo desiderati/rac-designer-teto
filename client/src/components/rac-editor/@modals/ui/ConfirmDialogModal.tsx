@@ -2,6 +2,7 @@ import {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 
 interface ConfirmDialogModalProps {
@@ -51,8 +52,8 @@ export function ConfirmDialogModal({
     </div> :
     modalBody;
 
-  const actionButtons = (extraClass = '') =>
-    <div className={cn('flex gap-[16px]', actionButtonsClassName, extraClass)}>
+  const actionButtons =
+    <div className={cn('flex w-full gap-[16px]', actionButtonsClassName)}>
       <Button
         variant='outline'
         className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
@@ -89,7 +90,9 @@ export function ConfirmDialogModal({
             </DialogDescription>
           </DialogHeader>
           {mainCard}
-          {actionButtons()}
+          <ActionDock testId='confirm-dialog-actions' surface='dialog' spacing='flush'>
+            {actionButtons}
+          </ActionDock>
         </DialogContent>
       </Dialog>);
   }
@@ -116,7 +119,9 @@ export function ConfirmDialogModal({
         </DrawerHeader>
         <div className='px-4 pb-4'>
           {mainCard}
-          {actionButtons('mt-4')}
+          <ActionDock testId='confirm-dialog-actions' surface='drawer' spacing='flush'>
+            {actionButtons}
+          </ActionDock>
         </div>
       </DrawerContent>
     </Drawer>);

@@ -1,5 +1,6 @@
 import React, {ReactNode} from 'react';
 import {Button} from '@/components/ui/button.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {
   Drawer,
   DrawerContent,
@@ -60,8 +61,12 @@ export function FloatingEditor({
         {cardContent}
       </div>
 
-      <div className='flex w-full flex-col gap-3' data-no-drag>
-        <div className='flex w-full gap-[16px]'>
+      <ActionDock
+        testId='floating-editor-actions'
+        surface={isMobile ? 'drawer' : 'dialog'}
+        spacing='flush'
+      >
+        <div className='flex w-full gap-[16px]' data-no-drag>
           <Button
             variant='outline'
             className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
@@ -75,7 +80,7 @@ export function FloatingEditor({
             {confirmLabel}
           </Button>
         </div>
-      </div>
+      </ActionDock>
     </div>;
 
   if (isMobile) {

@@ -83,6 +83,7 @@ describe('ImageUploadReview', () => {
 
     await waitFor(() => expect(screen.getByText('Confira a imagem e escolha como deseja enviá-la.')).toBeVisible());
     expect(screen.getByRole('dialog')).toBeVisible();
+    expect(screen.getByTestId('image-upload-review-actions')).toHaveClass('sticky', 'bottom-0', 'w-full');
   });
 
   it('solicita a troca do arquivo pelo seletor nativo', async () => {

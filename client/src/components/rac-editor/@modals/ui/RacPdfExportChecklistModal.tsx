@@ -2,6 +2,7 @@ import {AlertTriangle, CheckCircle2, XCircle} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import type {
   RacPdfExportChecklist,
@@ -55,23 +56,25 @@ export function RacPdfExportChecklistModal({
         />
       </div>
 
-      <div className='flex gap-3'>
-        <Button
-          variant='outline'
-          className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
-          onClick={onCancel}
-          disabled={isExporting}
-        >
-          Cancelar
-        </Button>
-        <Button
-          className='flex-1 disabled:pointer-events-auto disabled:cursor-not-allowed'
-          onClick={onConfirm}
-          disabled={!canConfirm}
-        >
-          {isExporting ? 'Gerando...' : 'Gerar PDF'}
-        </Button>
-      </div>
+      <ActionDock testId='rac-pdf-checklist-actions' surface={isMobile ? 'drawer' : 'dialog'} spacing='flush'>
+        <div className='flex w-full gap-3'>
+          <Button
+            variant='outline'
+            className='flex-1 bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'
+            onClick={onCancel}
+            disabled={isExporting}
+          >
+            Cancelar
+          </Button>
+          <Button
+            className='flex-1 disabled:pointer-events-auto disabled:cursor-not-allowed'
+            onClick={onConfirm}
+            disabled={!canConfirm}
+          >
+            {isExporting ? 'Gerando...' : 'Gerar PDF'}
+          </Button>
+        </div>
+      </ActionDock>
     </div>
   );
 

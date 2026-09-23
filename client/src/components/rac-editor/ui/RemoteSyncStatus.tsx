@@ -6,10 +6,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
+import {ActionDock} from '@/components/ui/ActionDock.tsx';
 
 /**
  * Conflitos exigem uma decisão explícita. O status transitório de sincronização
@@ -60,16 +60,18 @@ function RemoteConflictDialog() {
           <strong className='text-slate-800'>Importante:</strong> manter suas alterações substituirá a versão do servidor. Usar a versão remota descartará apenas as alterações locais deste documento.
         </div>
 
-        <DialogFooter className='gap-2 sm:justify-between'>
-          <Button type='button' variant='outline' disabled={isResolving} onClick={() => void resolve(sync.useRemoteVersion)}>
-            <Server className='mr-2 h-4 w-4'/>
-            Usar versão remota
-          </Button>
-          <Button type='button' disabled={isResolving} onClick={() => void resolve(sync.keepLocalVersion)}>
-            <Cloud className='mr-2 h-4 w-4'/>
-            Manter minhas alterações
-          </Button>
-        </DialogFooter>
+        <ActionDock testId='remote-sync-conflict-actions' surface='dialog' spacing='flush'>
+          <div className='flex w-full flex-wrap gap-2 sm:justify-between'>
+            <Button type='button' variant='outline' disabled={isResolving} onClick={() => void resolve(sync.useRemoteVersion)}>
+              <Server className='mr-2 h-4 w-4'/>
+              Usar versão remota
+            </Button>
+            <Button type='button' disabled={isResolving} onClick={() => void resolve(sync.keepLocalVersion)}>
+              <Cloud className='mr-2 h-4 w-4'/>
+              Manter minhas alterações
+            </Button>
+          </div>
+        </ActionDock>
       </DialogContent>
     </Dialog>
   );
