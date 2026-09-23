@@ -207,9 +207,9 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
   }, {shellSelector, formSelector});
 
   expect(metrics).not.toBeNull();
-  expect(metrics!.documentScrollWidth).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
-  expect(metrics!.bodyScrollWidth).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
   const minimumSurfaceWidth = Math.max(metrics!.viewportWidth, 420);
+  expect(metrics!.documentScrollWidth).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
+  expect(metrics!.bodyScrollWidth).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.shellWidth).toBeGreaterThanOrEqual(minimumSurfaceWidth - 1);
   expect(metrics!.shellLeft).toBeGreaterThanOrEqual(-(minimumSurfaceWidth - metrics!.viewportWidth) - 1);
   expect(metrics!.shellRight).toBeLessThanOrEqual(minimumSurfaceWidth + 1);

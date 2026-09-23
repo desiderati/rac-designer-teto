@@ -327,6 +327,7 @@ export function PhotoUploadField({
           if (!open) setReviewFile(null);
         }}
         onConfirm={confirmPhotoUpload}
+        onRequestFileChange={() => inputRef.current?.click()}
         title={`Revisar ${label.toLowerCase()}`}
       />
     </div>

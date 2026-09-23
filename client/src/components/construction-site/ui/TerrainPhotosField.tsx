@@ -66,7 +66,7 @@ export function TerrainPhotosField({
   };
 
   const handleFile = async (file: File, photoIdToReplace: string | null) => {
-    if (disabled || isBusy) return;
+    if (disabled || (isBusy && reviewFile === null)) return;
     if (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS) return;
 
     const validationError = await validatePhotoFile(file, {allowCompression: true});
@@ -135,7 +135,7 @@ export function TerrainPhotosField({
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    const photoIdToReplace = replacePhotoId;
+    const photoIdToReplace = reviewFile?.photoIdToReplace ?? replacePhotoId;
     event.target.value = '';
     setReplacePhotoId(null);
     if (file) void handleFile(file, photoIdToReplace);
@@ -177,7 +177,7 @@ export function TerrainPhotosField({
 
   return (
     <div data-testid='terrain-photos-field' className='space-y-4'>
-      <div className='grid min-w-0 gap-3 md:items-stretch md:grid-cols-[minmax(0,1fr)_148px]'>
+      <div className='grid min-w-0 gap-3 min-[840px]:items-stretch min-[840px]:grid-cols-[minmax(0,1fr)_148px]'>
         <div className='min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100'>
           <div className='relative aspect-[4/3] w-full'>
             {selectedPhoto ? (
@@ -200,7 +200,7 @@ export function TerrainPhotosField({
           </div>
         </div>
 
-        <div className='grid min-w-0 grid-cols-4 gap-2 md:h-full md:grid-cols-1 md:grid-rows-4'>
+        <div className='grid min-w-0 grid-cols-4 gap-2 min-[840px]:h-full min-[840px]:grid-cols-1 min-[840px]:grid-rows-4'>
           {slots.map((photo, index) => (
             <TerrainPhotoThumb
               key={photo?.id ?? `terrain-photo-slot-${index + 1}`}
@@ -265,7 +265,7 @@ export function TerrainPhotosField({
         className='sr-only'
         aria-label='Arquivo de foto do terreno'
         onChange={handleFileChange}
-        disabled={disabled || isBusy}
+        disabled={disabled || storageUpload.isUploading || isPreparingPhoto}
       />
 
       <ImageUploadReview
@@ -275,6 +275,7 @@ export function TerrainPhotosField({
           if (!open) setReviewFile(null);
         }}
         onConfirm={confirmPhotoSelection}
+        onRequestFileChange={() => inputRef.current?.click()}
         title={reviewFile?.photoIdToReplace ? 'Trocar foto do terreno' : 'Adicionar foto do terreno'}
       />
 

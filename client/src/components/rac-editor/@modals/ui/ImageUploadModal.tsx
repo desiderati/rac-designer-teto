@@ -48,7 +48,7 @@ export function ImageUploadModal({
   }, [isOpen]);
 
   const processFile = async (file: File | null | undefined) => {
-    if (!file || reviewFile) return;
+    if (!file) return;
 
     const validationMessage = await validatePhotoFile(file, {allowCompression: true});
     if (validationMessage) {
@@ -86,7 +86,9 @@ export function ImageUploadModal({
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    void processFile(event.target.files?.[0]);
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    void processFile(file);
   };
 
   const handleDrop = (event: DragEvent<HTMLButtonElement>) => {
@@ -123,7 +125,7 @@ export function ImageUploadModal({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        disabled={Boolean(reviewFile)}
+        disabled={false}
         aria-describedby='image-upload-modal-description image-upload-modal-hint'
         className={cn(
           'group flex min-h-[220px] w-full flex-col items-center justify-center gap-4 rounded-2xl',
@@ -198,6 +200,7 @@ export function ImageUploadModal({
           }
         }}
         onConfirm={confirmImage}
+        onRequestFileChange={() => inputRef.current?.click()}
         title='Revisar imagem para o Canvas'
       />
     </>

@@ -163,8 +163,8 @@ export function HouseExtraMaterialsScreen({
             </div>
           </section>
 
-        <div data-testid='house-extra-materials-actions' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2'>
-          <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Materiais Extras</PrimaryButton>
+        <div data-testid='house-extra-materials-actions' className='sticky bottom-0 z-20 -mx-2 mt-4 grid w-full min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:bg-transparent sm:px-0 sm:py-0 sm:grid-cols-2'>
+          <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0 sm:col-start-2'>Salvar Materiais Extras</PrimaryButton>
         </div>
       </div>
     </form>

@@ -84,4 +84,14 @@ describe('ImageUploadReview', () => {
     await waitFor(() => expect(screen.getByText('Confira a imagem e escolha como deseja enviá-la.')).toBeVisible());
     expect(screen.getByRole('dialog')).toBeVisible();
   });
+
+  it('solicita a troca do arquivo pelo seletor nativo', async () => {
+    const user = userEvent.setup();
+    const onRequestFileChange = vi.fn();
+    renderReview({onRequestFileChange});
+
+    await user.click(await screen.findByRole('button', {name: 'Trocar imagem selecionada'}));
+
+    expect(onRequestFileChange).toHaveBeenCalledOnce();
+  });
 });

@@ -106,7 +106,7 @@ export function HousesScreen({
         <MetricCard label='No. Tipo 3' value={metrics.tipo3}/>
       </div>
 
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+      <div className='flex flex-col gap-3 min-[680px]:flex-row min-[680px]:items-center min-[680px]:justify-between'>
         <div data-testid='house-list-controls' className={LIST_CONTROLS_CLASS}>
           <VisualSelect<HouseStatusFilter>
             label='Filtro'

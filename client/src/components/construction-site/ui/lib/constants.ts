@@ -19,7 +19,7 @@ export const HOUSES_PER_PAGE = 10;
 export const MONITORS_PER_PAGE = 10;
 export const HEADER_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48 sm:shrink-0';
 export const FORM_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48';
-export const LIST_CONTROLS_CLASS = 'grid grid-cols-2 gap-2 min-[680px]:flex min-[680px]:flex-wrap';
+export const LIST_CONTROLS_CLASS = 'grid w-full grid-cols-2 gap-2 min-[680px]:w-auto min-[680px]:flex min-[680px]:flex-wrap';
 export const LIST_SELECT_CLASS = 'w-full min-w-0 min-[680px]:w-[11.25rem] min-[680px]:shrink-0';
 
 export const CONSTRUCTION_SITE_STATUS_LABELS: Record<ConstructionSiteStatus, string> = {
@@ -42,7 +42,7 @@ export const HOUSE_STATUS_LABELS: Record<PersistedHouseStatus, string> = {
 };
 
 export const HOUSE_STATUS_BADGE_CLASS_NAMES: Record<PersistedHouseStatus, string> = {
-  draft: 'bg-blue-50 text-blue-700 ring-blue-100',
+  draft: 'bg-amber-50 text-amber-700 ring-amber-100',
   rac_printed: 'bg-violet-50 text-violet-700 ring-violet-100',
   built: 'bg-slate-900 text-white ring-slate-900',
   archived: 'bg-slate-100 text-slate-500 ring-slate-200',

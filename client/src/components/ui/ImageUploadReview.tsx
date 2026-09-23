@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {AlertCircle, Check, Eye, FileImage, Loader2} from 'lucide-react';
+import {AlertCircle, Check, Eye, FileImage, Loader2, RefreshCw} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import {Checkbox} from '@/components/ui/checkbox.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
@@ -25,6 +25,7 @@ interface ImageUploadReviewProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (selection: ImageUploadReviewSelection) => Promise<void> | void;
+  onRequestFileChange?: () => void;
   title?: string;
 }
 
@@ -33,6 +34,7 @@ export function ImageUploadReview({
   isOpen,
   onOpenChange,
   onConfirm,
+  onRequestFileChange,
   title = 'Revisar imagem',
 }: ImageUploadReviewProps) {
   const isMobile = useIsMobile();
@@ -141,7 +143,21 @@ export function ImageUploadReview({
         <>
           <div className='flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
             <span className='flex min-w-0 items-center gap-2'><FileImage className='h-4 w-4 shrink-0 text-blue-600'/><span className='truncate'>{file.name}</span></span>
-            <span className='shrink-0 font-semibold'>{formatFileSize(file.size)}</span>
+            <span className='flex shrink-0 items-center gap-2'>
+              <span className='font-semibold'>{formatFileSize(file.size)}</span>
+              {onRequestFileChange ? (
+                <button
+                  type='button'
+                  aria-label='Trocar imagem selecionada'
+                  title='Trocar imagem'
+                  onClick={onRequestFileChange}
+                  disabled={isConfirming}
+                  className='grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50'
+                >
+                  <RefreshCw className='h-4 w-4'/>
+                </button>
+              ) : null}
+            </span>
           </div>
 
           <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50'>
@@ -171,7 +187,7 @@ export function ImageUploadReview({
             </div>
           ) : null}
 
-          <div className='grid gap-2 sm:grid-cols-3'>
+          <div className='grid grid-cols-3 gap-2'>
             <Metric label='Original' value={formatFileSize(file.size)}/>
             <Metric label='Após preparo' value={formatFileSize(prepared.finalBytes)}/>
             <Metric label='Redução' value={prepared.compressed ? formatReduction(prepared.reductionPercent) : '0,0%'}/>
@@ -202,20 +218,23 @@ export function ImageUploadReview({
         </>
       ) : null}
 
-      <div className='grid w-full grid-cols-2 gap-2'>
-        <Button type='button' variant='outline' className='w-full' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
-          Cancelar
-        </Button>
-        <Button
-          type='button'
-          className='w-full'
-          onClick={() => void handleConfirm()}
-          disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}
-        >
-          {isConfirming ? <Loader2 className='mr-2 h-4 w-4 animate-spin'/> : <Check className='mr-2 h-4 w-4'/>}
-          {isConfirming ? 'Enviando…' : 'Usar esta imagem'}
-        </Button>
-      </div>
+    </div>
+  );
+
+  const actions = (
+    <div className='grid w-full grid-cols-2 gap-2'>
+      <Button type='button' variant='outline' className='w-full' onClick={() => handleOpenChange(false)} disabled={isConfirming}>
+        Cancelar
+      </Button>
+      <Button
+        type='button'
+        className='w-full'
+        onClick={() => void handleConfirm()}
+        disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}
+      >
+        {isConfirming ? <Loader2 className='mr-2 h-4 w-4 animate-spin'/> : <Check className='mr-2 h-4 w-4'/>}
+        {isConfirming ? 'Enviando…' : 'Usar esta imagem'}
+      </Button>
     </div>
   );
 
@@ -228,6 +247,9 @@ export function ImageUploadReview({
             <DrawerDescription>Confira a imagem e escolha como deseja enviá-la.</DrawerDescription>
           </DrawerHeader>
           <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-5'>{body}</div>
+          <div className='sticky bottom-0 z-20 border-t border-slate-200 bg-background/95 px-4 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm'>
+            {actions}
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -241,6 +263,7 @@ export function ImageUploadReview({
           <DialogDescription>Confira a imagem e escolha como deseja enviá-la.</DialogDescription>
         </DialogHeader>
         {body}
+        {actions}
       </DialogContent>
     </Dialog>
   );

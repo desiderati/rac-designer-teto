@@ -1059,7 +1059,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-photo-field').compareDocumentPosition(screen.getByTestId('monitor-fields-column')) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'md:grid-cols-2');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-4', 'grid', 'sm:grid-cols-2');
     expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
       .toHaveClass('w-full');
@@ -1254,12 +1254,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'sm:grid-cols-2');
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
-      .toHaveClass('w-full');
+      .toHaveClass('w-full', 'sm:col-start-2');
 
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
