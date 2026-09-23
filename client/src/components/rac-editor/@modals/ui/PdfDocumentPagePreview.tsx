@@ -49,8 +49,8 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fit
         const viewport = page.getViewport({scale: (zoom / 100) * devicePixelRatio});
         canvas.width = Math.max(1, Math.ceil(viewport.width));
         canvas.height = Math.max(1, Math.ceil(viewport.height));
-        canvas.style.width = `${Math.ceil(viewport.width / devicePixelRatio)}px`;
-        canvas.style.height = `${Math.ceil(viewport.height / devicePixelRatio)}px`;
+        canvas.style.width = `${viewport.width / devicePixelRatio}px`;
+        canvas.style.height = `${viewport.height / devicePixelRatio}px`;
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         const renderTask = page.render({canvas, canvasContext: context, viewport});
@@ -77,7 +77,7 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fit
 
   return (
     <div
-      className='relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto bg-slate-900 sm:min-h-0'
+      className={`relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto sm:min-h-0 ${fitToContainer ? 'bg-white' : 'bg-slate-900'}`}
       style={{aspectRatio: '841.89 / 595.28', width: fitToContainer ? '100%' : undefined}}
       data-testid='pdf-preview-surface'
       data-page-number={safePageNumber}

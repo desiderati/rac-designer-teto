@@ -69,6 +69,27 @@ test.describe('Exportação PDF do RAC', () => {
     await expectPdfPreviewRendered(page);
     await expect(page.getByText('Prévia do PDF pronta.')).toBeVisible();
     const previewSurface = page.getByTestId('pdf-preview-surface');
+    const initialGeometry = await page.evaluate(() => {
+      const surface = document.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');
+      const canvas = document.querySelector<HTMLElement>('[data-testid="pdf-preview-canvas-1"]');
+      if (!surface || !canvas) throw new Error('Superfície da prévia não encontrada.');
+      const surfaceRect = surface.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      return {
+        surfaceWidth: surfaceRect.width,
+        surfaceHeight: surfaceRect.height,
+        canvasWidth: canvasRect.width,
+        canvasHeight: canvasRect.height,
+        scrollWidth: surface.scrollWidth,
+        clientWidth: surface.clientWidth,
+        scrollHeight: surface.scrollHeight,
+        clientHeight: surface.clientHeight,
+      };
+    });
+    expect(Math.abs(initialGeometry.surfaceWidth - initialGeometry.canvasWidth)).toBeLessThanOrEqual(1);
+    expect(Math.abs(initialGeometry.surfaceHeight - initialGeometry.canvasHeight)).toBeLessThanOrEqual(1);
+    expect(initialGeometry.scrollWidth).toBeLessThanOrEqual(initialGeometry.clientWidth + 1);
+    expect(initialGeometry.scrollHeight).toBeLessThanOrEqual(initialGeometry.clientHeight + 1);
     const initialZoom = Number(await previewSurface.getAttribute('data-zoom'));
     expect(initialZoom).toBeGreaterThan(0);
     expect(initialZoom).toBeLessThanOrEqual(100);

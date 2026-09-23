@@ -54,8 +54,9 @@ export function RacPdfPreviewModal({
       return;
     }
 
-    const availableWidth = host?.clientWidth ?? surface.clientWidth;
-    const availableHeight = Math.min(window.innerHeight * 0.72, host?.clientHeight ?? 595.28);
+    const hostRect = host?.getBoundingClientRect();
+    const availableWidth = hostRect?.width ?? surface.getBoundingClientRect().width;
+    const availableHeight = hostRect?.height ?? Math.min(window.innerHeight * 0.72, 595.28);
     const fitPercentage = Math.floor(Math.min(availableWidth / 841.89, availableHeight / 595.28) * 100);
     setFitToContainer(true);
     setZoom(Math.max(40, Math.min(120, fitPercentage)));
@@ -64,8 +65,19 @@ export function RacPdfPreviewModal({
   useEffect(() => {
     if (!isOpen || !pdfUrl) return;
 
+    const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-host"]');
+    const observer = typeof ResizeObserver === 'undefined' || !host
+      ? null
+      : new ResizeObserver(() => fitToPage());
+    observer?.observe(host);
+
     const frame = requestAnimationFrame(() => fitToPage());
-    return () => cancelAnimationFrame(frame);
+    const settledFit = window.setTimeout(() => fitToPage(), 240);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settledFit);
+      observer?.disconnect();
+    };
   }, [fitToPage, isOpen, pageCount, pdfUrl]);
 
   const closeButton = (
@@ -211,7 +223,7 @@ export function RacPdfPreviewModal({
   if (!isMobile) {
     return (
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className='min-w-0 w-[min(94vw,900px)] max-w-none' hideCloseButton>
+        <DialogContent className='min-w-0 w-[min(94vw,892px)] max-w-none' hideCloseButton>
           <DialogHeader className='relative pr-10'>
             <DialogTitle className='text-xl'>Prévia da RAC em PDF</DialogTitle>
             <DialogDescription>Revise o documento antes de baixar o arquivo.</DialogDescription>
