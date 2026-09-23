@@ -9,12 +9,13 @@ interface PdfDocumentPagePreviewProps {
   pageNumber: number;
   pageCount: number;
   zoom: number;
+  fitToContainer?: boolean;
 }
 
 type PdfDocument = Awaited<ReturnType<typeof pdfjs.getDocument>['promise']>;
 type PdfRenderTask = {cancel: () => void; promise: Promise<unknown>};
 
-export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom}: PdfDocumentPagePreviewProps) {
+export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fitToContainer = false}: PdfDocumentPagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const documentRef = useRef<PdfDocument | null>(null);
   const renderTaskRef = useRef<PdfRenderTask | null>(null);
@@ -72,12 +73,12 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom}: Pd
       documentRef.current = null;
       void loadingTask.destroy();
     };
-  }, [pdfUrl, safePageNumber, zoom]);
+  }, [fitToContainer, pdfUrl, safePageNumber, zoom]);
 
   return (
     <div
-      className='relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto bg-slate-800 sm:min-h-0'
-      style={{aspectRatio: '841.89 / 595.28'}}
+      className='relative mx-auto block min-h-[360px] min-w-0 max-w-full w-[842px] overflow-auto bg-slate-900 sm:min-h-0'
+      style={{aspectRatio: '841.89 / 595.28', width: fitToContainer ? '100%' : undefined}}
       data-testid='pdf-preview-surface'
       data-page-number={safePageNumber}
       data-page-count={pageCount}
@@ -90,7 +91,7 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom}: Pd
         data-testid={`pdf-preview-canvas-${safePageNumber}`}
       />
       {isLoading ? (
-        <div className='absolute inset-0 grid place-items-center bg-slate-800/75 px-6 text-center text-sm font-semibold text-white' data-testid='pdf-preview-loading'>
+        <div className='absolute inset-0 grid place-items-center bg-slate-900/80 px-6 text-center text-sm font-semibold text-white' data-testid='pdf-preview-loading'>
           Renderizando página {safePageNumber}…
         </div>
       ) : null}

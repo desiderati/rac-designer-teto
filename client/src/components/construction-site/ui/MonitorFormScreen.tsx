@@ -120,7 +120,7 @@ export function MonitorFormScreen({
                         />
                       )}
                     />
-                    <div data-testid='monitor-contact-grid' className='grid grid-cols-2 gap-5'>
+                    <div data-testid='monitor-contact-grid' className='grid gap-5 min-[768px]:grid-cols-2'>
                       <Controller
                         control={form.control}
                         name='phone'

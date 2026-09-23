@@ -106,7 +106,7 @@ export function HousesScreen({
         <MetricCard label='No. Tipo 3' value={metrics.tipo3}/>
       </div>
 
-      <div className='flex flex-col gap-3 min-[680px]:flex-row min-[680px]:items-center min-[680px]:justify-between'>
+      <div className='flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between'>
         <div data-testid='house-list-controls' className={LIST_CONTROLS_CLASS}>
           <VisualSelect<HouseStatusFilter>
             label='Filtro'
@@ -127,7 +127,7 @@ export function HousesScreen({
         </div>
         <div
           data-testid='house-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[680px]:flex min-[680px]:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[700px]:flex min-[700px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}</span>
           <div className='flex items-center gap-1'>
@@ -149,7 +149,7 @@ export function HousesScreen({
         </div>
       </div>
 
-      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[680px]:block'>
+      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[700px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[32%]'/>
@@ -192,7 +192,7 @@ export function HousesScreen({
         </table>
       </div>
 
-      <div data-testid='house-mobile-list' className='space-y-3 min-[680px]:hidden'>
+      <div data-testid='house-mobile-list' className='space-y-3 min-[700px]:hidden'>
         {pageHouses.map((house) => (
           <HouseMobileCard
             key={house.id}
@@ -213,7 +213,7 @@ export function HousesScreen({
 
       <MobilePagination
         testId='house-mobile-pagination'
-        visibilityClassName='min-[680px]:hidden'
+        visibilityClassName='min-[700px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}
         page={normalizedPage}
         pageCount={pageCount}

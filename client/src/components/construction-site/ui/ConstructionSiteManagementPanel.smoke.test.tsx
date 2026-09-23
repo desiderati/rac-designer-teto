@@ -128,7 +128,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('button', {name: '+ Adicionar Construção'}).className).toContain('sm:shrink-0');
 
     expect(screen.getByTestId('construction-desktop-table').className).toContain('hidden');
-    expect(screen.getByTestId('construction-desktop-table').className).toContain('min-[680px]:block');
+    expect(screen.getByTestId('construction-desktop-table').className).toContain('min-[700px]:block');
     const constructionDesktopTable = within(screen.getByTestId('construction-desktop-table')).getByRole('table');
     expect(constructionDesktopTable).toHaveClass('table-fixed');
     expect(constructionDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[42%]');
@@ -139,11 +139,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const constructionMobilePagination = screen.getByTestId('construction-mobile-pagination');
 
     expect(screen.getByTestId('construction-desktop-pagination').className).toContain('hidden');
-    expect(screen.getByTestId('construction-desktop-pagination').className).toContain('min-[680px]:flex');
-    expect(constructionMobilePagination.className).toContain('min-[680px]:hidden');
+    expect(screen.getByTestId('construction-desktop-pagination').className).toContain('min-[700px]:flex');
+    expect(constructionMobilePagination.className).toContain('min-[700px]:hidden');
     expect(constructionMobileList.compareDocumentPosition(constructionMobilePagination) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
-    expect(constructionMobileList.className).toContain('min-[680px]:hidden');
+    expect(constructionMobileList.className).toContain('min-[700px]:hidden');
     expect(screen.getAllByTestId('construction-mobile-card')).toHaveLength(3);
     expect(within(constructionMobileList).getByText('CC2603')).toBeVisible();
     expect(within(constructionMobileList).getByText('Tiradentes')).toBeVisible();
@@ -159,12 +159,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByLabelText('Filtrar por status')).toBeVisible();
     expect(screen.getByLabelText('Ordenar por')).toBeVisible();
     expect(screen.getByTestId('construction-list-controls').className).toContain('grid-cols-2');
-    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[680px]:flex');
-    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[680px]:flex-wrap');
+    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[700px]:flex');
+    expect(screen.getByTestId('construction-list-controls').className).toContain('min-[700px]:flex-wrap');
     expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
+    expect(screen.getByLabelText('Filtrar por status').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
     expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
+    expect(screen.getByLabelText('Ordenar por').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
     expect(screen.queryByRole('combobox', {name: 'Filtrar por status'})).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', {name: 'Ordenar por'})).not.toBeInTheDocument();
     expect(within(constructionMobilePagination).getByText('Mostrando 1-3 de 3 construções')).toBeVisible();
@@ -623,12 +623,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(type6Metric as HTMLElement).getByText('2')).toBeVisible();
     expect(within(type3Metric as HTMLElement).getByText('1')).toBeVisible();
     expect(screen.getByTestId('house-list-controls').className).toContain('grid-cols-2');
-    expect(screen.getByTestId('house-list-controls').className).toContain('min-[680px]:flex');
-    expect(screen.getByTestId('house-list-controls').className).toContain('min-[680px]:flex-wrap');
+    expect(screen.getByTestId('house-list-controls').className).toContain('min-[700px]:flex');
+    expect(screen.getByTestId('house-list-controls').className).toContain('min-[700px]:flex-wrap');
     expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
+    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
     expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('min-[680px]:w-[11.25rem]');
+    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
     expect(screen.getByRole('columnheader', {name: 'Casas'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Status'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toBeVisible();
@@ -639,7 +639,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveClass('text-center', 'align-middle', 'leading-4');
     expect(screen.getByRole('columnheader', {name: 'Ações'})).toHaveClass('text-center');
     expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-table').className).toContain('min-[680px]:block');
+    expect(screen.getByTestId('house-desktop-table').className).toContain('min-[700px]:block');
     const houseDesktopTable = within(screen.getByTestId('house-desktop-table')).getByRole('table');
     expect(houseDesktopTable).toHaveClass('table-fixed');
     expect(houseDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[32%]');
@@ -651,11 +651,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const houseMobilePagination = screen.getByTestId('house-mobile-pagination');
 
     expect(screen.getByTestId('house-desktop-pagination').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-pagination').className).toContain('min-[680px]:flex');
-    expect(houseMobilePagination.className).toContain('min-[680px]:hidden');
+    expect(screen.getByTestId('house-desktop-pagination').className).toContain('min-[700px]:flex');
+    expect(houseMobilePagination.className).toContain('min-[700px]:hidden');
     expect(houseMobileList.compareDocumentPosition(houseMobilePagination) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
-    expect(houseMobileList.className).toContain('min-[680px]:hidden');
+    expect(houseMobileList.className).toContain('min-[700px]:hidden');
     expect(screen.getAllByTestId('house-mobile-card')).toHaveLength(3);
     expect(within(houseMobileList).getByText('Família Souza')).toBeVisible();
     expect(within(houseMobileList).getAllByText('Tipo 6')[0]).toBeVisible();
@@ -1055,12 +1055,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-fields-column'))
       .toHaveClass('h-full', 'flex', 'flex-col');
     expect(screen.getByTestId('monitor-fields-stack')).toHaveClass('flex', 'flex-col', 'gap-5');
-    expect(screen.getByTestId('monitor-contact-grid')).toHaveClass('grid', 'grid-cols-2');
+    expect(screen.getByTestId('monitor-contact-grid')).toHaveClass('grid', 'min-[768px]:grid-cols-2');
     expect(screen.getByTestId('monitor-photo-field').compareDocumentPosition(screen.getByTestId('monitor-fields-column')) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-6', 'w-[calc(100%+1rem)]', 'grid', 'sm:grid-cols-2');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'sm:static');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-12', 'w-[calc(100%+1rem)]', 'grid', 'min-[768px]:grid-cols-2');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'min-[768px]:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
       .toHaveClass('w-full');
     expect(within(screen.getByTestId('monitor-fields-column')).queryByRole('button', {name: 'Cadastrar Monitor'}))
@@ -1208,7 +1208,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByRole('button', {name: 'Voltar às casas'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Duplicar'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Arquivar'})).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'sm:static');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'min-[768px]:static');
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família com alteração'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
     expect(screen.getByTestId('field-dirty-indicator')).toHaveAttribute('title', 'Campo alterado: Nome da Família');
@@ -1254,12 +1254,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'sm:grid-cols-2');
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('mt-6', 'w-[calc(100%+1rem)]');
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'min-[768px]:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('mt-12', 'w-[calc(100%+1rem)]');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('min-[768px]:col-start-2');
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid').firstElementChild).toHaveClass('sm:col-start-2');
+    expect(screen.getByTestId('site-actions-grid').firstElementChild).not.toHaveClass('min-[768px]:col-start-2');
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
       .toHaveClass('w-full');
 
@@ -1568,7 +1568,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
-    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('sticky', 'sm:static');
+    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('sticky', 'min-[768px]:static');
     expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
     expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();
     expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();

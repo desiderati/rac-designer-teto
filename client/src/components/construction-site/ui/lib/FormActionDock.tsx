@@ -5,7 +5,7 @@ type FormActionDockProps = {
   testId: string;
   children: ReactNode;
   /** The house configuration form is a direct child of the outer two-column form. */
-  desktopPlacement?: 'content-column' | 'form-column';
+  desktopPlacement?: 'content-column' | 'form-column' | 'full';
   /** Keep the existing desktop rhythm of the surrounding form. */
   desktopSpacing?: 'standard' | 'flush';
   /** Short forms can opt out while still sharing the same action-footer API. */

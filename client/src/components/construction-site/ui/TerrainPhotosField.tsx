@@ -399,7 +399,7 @@ function TerrainPhotoThumb({
   return (
     <div
       className={cn(
-        'relative min-h-14 aspect-square min-w-0 overflow-hidden rounded-lg border bg-slate-100 transition-colors md:aspect-auto',
+        'relative min-h-14 aspect-square min-w-0 overflow-hidden rounded-lg border bg-slate-100 transition-colors min-[840px]:aspect-auto',
         selected ? 'border-2 border-blue-600 ring-2 ring-blue-100' : 'border-slate-200',
         dragging ? 'opacity-50' : null,
       )}

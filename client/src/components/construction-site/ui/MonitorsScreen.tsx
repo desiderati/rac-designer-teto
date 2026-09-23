@@ -73,7 +73,7 @@ export function MonitorsScreen({
 
   return (
     <section aria-label='Listagem de monitores' className='space-y-6'>
-      <div className='flex flex-col gap-3 min-[680px]:flex-row min-[680px]:items-center min-[680px]:justify-between'>
+      <div className='flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between'>
         <div data-testid='monitor-list-controls' className={LIST_CONTROLS_CLASS}>
           <VisualSelect<MonitorStatusFilter>
             label='Filtro'
@@ -94,7 +94,7 @@ export function MonitorsScreen({
         </div>
         <div
           data-testid='monitor-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[680px]:flex min-[680px]:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[700px]:flex min-[700px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}</span>
           <div className='flex items-center gap-1'>
@@ -116,7 +116,7 @@ export function MonitorsScreen({
         </div>
       </div>
 
-      <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto min-[680px]:block'>
+      <div data-testid='monitor-desktop-table' className='hidden overflow-x-auto min-[700px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[48%]'/>
@@ -149,7 +149,7 @@ export function MonitorsScreen({
         </table>
       </div>
 
-      <div data-testid='monitor-mobile-list' className='space-y-3 min-[680px]:hidden'>
+      <div data-testid='monitor-mobile-list' className='space-y-3 min-[700px]:hidden'>
         {pageMonitors.map((monitor) => (
           <MonitorMobileCard
             key={monitor.id}
@@ -164,7 +164,7 @@ export function MonitorsScreen({
 
       <MobilePagination
         testId='monitor-mobile-pagination'
-        visibilityClassName='min-[680px]:hidden'
+        visibilityClassName='min-[700px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredMonitors.length, 'monitores')}
         page={normalizedPage}
         pageCount={pageCount}

@@ -1,18 +1,10 @@
 import { defineConfig } from 'vite';
-import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
 import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
 
 const projectRoot = import.meta.dirname;
-const gitVersion = (() => {
-  try {
-    return `dev+${execFileSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: projectRoot}).toString().trim()}`;
-  } catch {
-    return null;
-  }
-})();
-const appVersion = process.env.VITE_APP_VERSION ?? gitVersion ?? process.env.npm_package_version ?? 'dev';
+const appVersion = process.env.VITE_APP_VERSION ?? '5.1.1';
 const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? new Date().toISOString();
 
 export default defineConfig({

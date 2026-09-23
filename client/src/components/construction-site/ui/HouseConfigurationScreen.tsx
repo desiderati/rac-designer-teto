@@ -578,7 +578,7 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
       </Accordion>
-      <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='flush'>
+      <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='standard'>
         <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Configurações</PrimaryButton>
       </FormActionDock>
     </form>

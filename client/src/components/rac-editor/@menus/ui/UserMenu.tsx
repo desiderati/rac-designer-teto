@@ -156,10 +156,10 @@ export function UserMenu({
                 <span
                   data-testid='account-app-version'
                   aria-hidden='true'
-                  title={`Versão ${APP_VERSION} · Build ${formatBuildTimestamp(APP_BUILD_TIMESTAMP)}`}
+                  title={`Versão ${formatCompactVersion(APP_VERSION, APP_BUILD_TIMESTAMP)} · Build ${formatBuildTimestamp(APP_BUILD_TIMESTAMP)}`}
                   className='ml-auto pl-2 text-[10px] font-medium tracking-[0.08em] text-slate-400'
                 >
-                  v{APP_VERSION}
+                  v{formatCompactVersion(APP_VERSION, APP_BUILD_TIMESTAMP)}
                 </span>
               )}
             />
@@ -285,4 +285,24 @@ function formatBuildTimestamp(value: string): string {
     timeStyle: 'short',
     timeZone: 'America/Sao_Paulo',
   }).format(timestamp);
+}
+
+function formatCompactVersion(version: string, timestamp: string): string {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return version;
+
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    year: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'America/Sao_Paulo',
+  }).formatToParts(date).reduce<Record<string, string>>((result, part) => {
+    if (part.type !== 'literal') result[part.type] = part.value;
+    return result;
+  }, {});
+
+  return `${version}.${parts.year ?? '00'}${parts.month ?? '00'}${parts.day ?? '00'}.${parts.hour ?? '00'}${parts.minute ?? '00'}`;
 }

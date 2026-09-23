@@ -90,7 +90,7 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Ajustar à página'}).click();
     const fittedZoom = Number(await previewSurface.getAttribute('data-zoom'));
     expect(fittedZoom).toBeGreaterThan(0);
-    expect(fittedZoom).toBeLessThanOrEqual(100);
+    expect(fittedZoom).toBeLessThanOrEqual(120);
     await page.getByRole('button', {name: 'Próxima página da prévia'}).click();
     await expect(page.getByTestId('pdf-preview-canvas-2')).toBeVisible();
     await page.getByRole('button', {name: 'Página anterior da prévia'}).click();

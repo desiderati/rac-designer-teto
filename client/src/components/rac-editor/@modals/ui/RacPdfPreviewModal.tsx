@@ -34,11 +34,13 @@ export function RacPdfPreviewModal({
 }: RacPdfPreviewModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
+  const [fitToContainer, setFitToContainer] = useState(false);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
     setZoom(isMobile ? 70 : 100);
+    setFitToContainer(false);
   }, [isMobile, pdfUrl, pageCount]);
 
   const safePageCount = Math.max(1, pageCount);
@@ -51,9 +53,11 @@ export function RacPdfPreviewModal({
       return;
     }
 
-    const fitPercentage = Math.floor(
-      Math.min(surface.clientWidth / 841.89, surface.clientHeight / 595.28) * 10,
-    ) * 10;
+    const host = surface.parentElement;
+    const availableWidth = host?.clientWidth ?? surface.clientWidth;
+    const availableHeight = Math.min(window.innerHeight * 0.72, host?.clientHeight ?? 595.28);
+    const fitPercentage = Math.floor(Math.min(availableWidth / 841.89, availableHeight / 595.28) * 100);
+    setFitToContainer(true);
     setZoom(Math.max(40, Math.min(120, fitPercentage)));
   };
 
@@ -72,7 +76,7 @@ export function RacPdfPreviewModal({
   );
 
   const floatingControls = pdfUrl && !isPreparing ? (
-    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 rounded-full border border-white/80 bg-white/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
+    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 rounded-full border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
       <Button
         type='button'
         variant='ghost'
@@ -89,24 +93,24 @@ export function RacPdfPreviewModal({
         size='icon'
         className='h-8 w-8 rounded-full'
         aria-label='Diminuir zoom da prévia'
-        onClick={() => setZoom((value) => Math.max(40, value - 10))}
+        onClick={() => { setFitToContainer(false); setZoom((value) => Math.max(40, value - 10)); }}
         disabled={zoom <= 40}
       >
         <Minus className='h-4 w-4'/>
       </Button>
-      <span className='min-w-11 px-0.5 text-center text-xs font-semibold text-slate-700'>{zoom}%</span>
+      <span className='min-w-11 px-0.5 text-center text-xs font-semibold text-slate-800'>{zoom}%</span>
       <Button
         type='button'
         variant='ghost'
         size='icon'
         className='h-8 w-8 rounded-full'
         aria-label='Aumentar zoom da prévia'
-        onClick={() => setZoom((value) => Math.min(120, value + 10))}
+        onClick={() => { setFitToContainer(false); setZoom((value) => Math.min(120, value + 10)); }}
         disabled={zoom >= 120}
       >
         <Plus className='h-4 w-4'/>
       </Button>
-      <span className='mx-1 h-5 w-px bg-slate-200'/>
+      <span className='mx-1 h-5 w-px bg-slate-300'/>
       <Button
         type='button'
         variant='ghost'
@@ -118,7 +122,7 @@ export function RacPdfPreviewModal({
       >
         <ChevronLeft className='h-4 w-4'/>
       </Button>
-      <span className='whitespace-nowrap px-1 text-xs font-semibold text-slate-700'>Página {safePage} de {safePageCount}</span>
+      <span className='whitespace-nowrap px-1 text-xs font-semibold text-slate-800'>Página {safePage} de {safePageCount}</span>
       <Button
         type='button'
         variant='ghost'
@@ -132,7 +136,7 @@ export function RacPdfPreviewModal({
       </Button>
       {onRetry ? (
         <>
-          <span className='mx-1 h-5 w-px bg-slate-200'/>
+          <span className='mx-1 h-5 w-px bg-slate-300'/>
           <Button
             type='button'
             variant='ghost'
@@ -175,7 +179,13 @@ export function RacPdfPreviewModal({
 
       <div className='relative min-w-0'>
         {pdfUrl ? (
-          <PdfDocumentPagePreview pdfUrl={pdfUrl} pageNumber={safePage} pageCount={safePageCount} zoom={zoom}/>
+          <PdfDocumentPagePreview
+            pdfUrl={pdfUrl}
+            pageNumber={safePage}
+            pageCount={safePageCount}
+            zoom={zoom}
+            fitToContainer={fitToContainer}
+          />
         ) : (
           <div className='grid h-[62vh] min-h-[360px] place-items-center px-6 text-center text-sm text-slate-500'>
             {isPreparing ? 'Gerando uma nova prévia do PDF…' : 'A prévia do PDF ainda não está disponível.'}

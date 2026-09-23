@@ -19,8 +19,8 @@ export const HOUSES_PER_PAGE = 10;
 export const MONITORS_PER_PAGE = 10;
 export const HEADER_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48 sm:shrink-0';
 export const FORM_ACTION_BUTTON_CLASS = 'w-full whitespace-nowrap sm:w-48';
-export const LIST_CONTROLS_CLASS = 'grid w-full grid-cols-2 gap-2 min-[680px]:w-auto min-[680px]:flex min-[680px]:flex-wrap';
-export const LIST_SELECT_CLASS = 'w-full min-w-0 min-[680px]:w-[11.25rem] min-[680px]:shrink-0';
+export const LIST_CONTROLS_CLASS = 'grid w-full grid-cols-2 gap-2 min-[700px]:w-auto min-[700px]:flex min-[700px]:flex-wrap';
+export const LIST_SELECT_CLASS = 'w-full min-w-0 min-[700px]:w-[11.25rem] min-[700px]:shrink-0';
 
 export const CONSTRUCTION_SITE_STATUS_LABELS: Record<ConstructionSiteStatus, string> = {
   in_progress: 'Andamento',

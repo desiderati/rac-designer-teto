@@ -11,8 +11,8 @@ describe('ActionDock', () => {
     );
 
     const dock = screen.getByTestId('form-dock');
-    expect(dock).toHaveClass('sticky', 'bottom-0', 'w-[calc(100%+1rem)]', 'sm:grid-cols-2');
-    expect(dock.firstElementChild).toHaveClass('sm:col-start-2');
+    expect(dock).toHaveClass('sticky', 'bottom-0', 'w-[calc(100%+1rem)]', 'min-[768px]:grid-cols-2');
+    expect(dock.firstElementChild).toHaveClass('min-[768px]:col-start-2');
   });
 
   it('encaixa no Dialog sem criar um scroll externo no desktop', () => {
@@ -23,7 +23,7 @@ describe('ActionDock', () => {
     );
 
     const dock = screen.getByTestId('dialog-dock');
-    expect(dock).toHaveClass('sticky', 'bottom-0', 'border-t', 'sm:static', 'sm:mt-0');
+    expect(dock).toHaveClass('sticky', 'bottom-0', 'border-t', 'sm:static', 'min-[768px]:mt-0');
     expect(screen.getByRole('button', {name: 'Confirmar'})).toBeVisible();
   });
 

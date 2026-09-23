@@ -24,8 +24,8 @@ export type ActionDockProps = {
 
 const SURFACE_CLASSES: Record<ActionDockSurface, { mobile: string; desktop: string }> = {
   form: {
-    mobile: 'sticky bottom-0 z-20 -mx-2 mt-6 grid w-[calc(100%+1rem)] min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm',
-    desktop: 'sm:static sm:mx-0 sm:w-full sm:bg-transparent sm:px-0 sm:py-0 sm:grid-cols-2',
+    mobile: 'sticky bottom-0 z-20 -mx-2 mt-12 grid w-[calc(100%+1rem)] min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm',
+    desktop: 'min-[768px]:static min-[768px]:mx-0 min-[768px]:w-full min-[768px]:bg-transparent min-[768px]:px-0 min-[768px]:py-0 min-[768px]:grid-cols-2',
   },
   dialog: {
     mobile: 'sticky bottom-0 z-20 -mx-6 mt-4 grid w-[calc(100%+3rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-6 py-3 backdrop-blur-sm',
@@ -57,8 +57,9 @@ export function ActionDock({
   const surfaceClasses = SURFACE_CLASSES[surface];
   const desktopClasses = cn(
     surfaceClasses.desktop,
-    spacing === 'flush' ? 'sm:mt-0' : 'sm:mt-4',
-    surface === 'form' && placement === 'form-column' ? 'sm:col-start-2' : null,
+    spacing === 'flush' ? 'min-[768px]:mt-0' : surface === 'form' ? 'min-[768px]:mt-8' : 'sm:mt-4',
+    surface === 'form' && placement === 'form-column' ? 'min-[768px]:col-start-2' : null,
+    placement === 'full' ? 'min-[768px]:grid-cols-1' : null,
   );
 
   if (!mobileDocked) {
@@ -71,7 +72,7 @@ export function ActionDock({
 
   const innerClassName = cn(
     'min-w-0 w-full',
-    surface === 'form' && placement === 'content-column' ? 'sm:col-start-2' : null,
+    surface === 'form' && placement === 'content-column' ? 'min-[768px]:col-start-2' : null,
   );
 
   return (

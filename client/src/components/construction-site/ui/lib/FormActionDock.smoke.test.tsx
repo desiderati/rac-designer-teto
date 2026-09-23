@@ -14,12 +14,12 @@ describe('FormActionDock', () => {
     expect(dock).toHaveClass(
       'sticky',
       'bottom-0',
-      'mt-6',
+      'mt-12',
       'w-[calc(100%+1rem)]',
-      'sm:static',
-      'sm:grid-cols-2',
+      'min-[768px]:static',
+      'min-[768px]:grid-cols-2',
     );
-    expect(dock.firstElementChild).toHaveClass('sm:col-start-2');
+    expect(dock.firstElementChild).toHaveClass('min-[768px]:col-start-2');
     expect(screen.getByRole('button', {name: 'Salvar'})).toBeVisible();
   });
 
@@ -42,6 +42,6 @@ describe('FormActionDock', () => {
       </FormActionDock>,
     );
 
-    expect(screen.getByTestId('house-actions')).toHaveClass('sm:col-start-2', 'sm:mt-0');
+    expect(screen.getByTestId('house-actions')).toHaveClass('min-[768px]:col-start-2', 'min-[768px]:mt-0');
   });
 });

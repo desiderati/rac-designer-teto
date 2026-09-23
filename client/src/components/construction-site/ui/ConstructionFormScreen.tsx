@@ -154,13 +154,17 @@ export function ConstructionFormScreen({
               />
             )}
           />
+          <FormActionDock
+            testId='construction-actions-grid'
+            desktopPlacement='full'
+            className='min-[768px]:col-start-3'
+          >
+            <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
+              {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
+            </PrimaryButton>
+          </FormActionDock>
         </div>
       </div>
-      <FormActionDock testId='construction-actions-grid' mobileDocked={false}>
-        <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
-          {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
-        </PrimaryButton>
-      </FormActionDock>
     </form>
   );
 }
