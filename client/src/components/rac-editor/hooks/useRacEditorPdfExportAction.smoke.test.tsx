@@ -14,6 +14,7 @@ const pdfMocks = vi.hoisted(() => ({
   savePdf: vi.fn(),
   outputPdf: vi.fn(),
   downloadBlob: vi.fn(),
+  toastLoading: vi.fn(),
   toastSuccess: vi.fn(),
   toastError: vi.fn(),
   toastWarning: vi.fn(),
@@ -37,6 +38,7 @@ vi.mock('jspdf', () => ({
 
 vi.mock('sonner', () => ({
   toast: {
+    loading: pdfMocks.toastLoading,
     success: pdfMocks.toastSuccess,
     error: pdfMocks.toastError,
     warning: pdfMocks.toastWarning,
@@ -107,6 +109,8 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
     expect(onBeforeExportPdf).toHaveBeenCalledTimes(1);
     expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(pdfMocks.toastLoading).toHaveBeenCalledWith('Capturando o desenho do Canvas…', {id: expect.any(String)});
+    expect(pdfMocks.toastSuccess).toHaveBeenCalledWith('Prévia do PDF pronta.', {id: expect.any(String)});
     expect(pdfMocks.downloadBlob).not.toHaveBeenCalled();
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
 
@@ -117,7 +121,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(pdfMocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'rac.pdf');
     expect(markActiveHouseRacPrinted).toHaveBeenCalledTimes(1);
     expect(onAfterExportPdf).toHaveBeenCalledTimes(1);
-    expect(pdfMocks.toastSuccess).toHaveBeenCalledTimes(1);
+    expect(pdfMocks.toastSuccess).toHaveBeenCalledTimes(2);
     expect(markActiveHouseRacPrinted.mock.invocationCallOrder[0]).toBeLessThan(
       onAfterExportPdf.mock.invocationCallOrder[0],
     );

@@ -74,15 +74,22 @@ export function useRacEditorPdfExportAction({
   const lastPdfPreviewPageCountRef = useRef(1);
 
   const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState): Promise<boolean> => {
-    const startedAt = Date.now();
-    let phase = 'start';
+  const startedAt = Date.now();
+  let phase = 'start';
+    const progressToastId = `rac-pdf-export-${startedAt}`;
+    const updateProgressToast = (message: string) => {
+      toast.loading(message, {id: progressToastId});
+    };
+
     lastPdfExportConstructionSiteRef.current = constructionSite;
     recordPdfExportTelemetry('prepare_started');
+    updateProgressToast('Preparando a exportação do PDF…');
 
     try {
       setIsPdfExporting(true);
 
       phase = 'capture-canvas';
+      updateProgressToast('Capturando o desenho do Canvas…');
       const canvasPort = canvasRef.current?.createDocumentPort();
       let canvasImageDataUrl: string | null = null;
       if (canvasPort?.exportSafeImageDataUrl) {
@@ -103,13 +110,15 @@ export function useRacEditorPdfExportAction({
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-        toast.error(message);
+        toast.error(message, {id: progressToastId});
         return false;
       }
 
       phase = 'capture-3d';
+      updateProgressToast('Capturando a visualização 3D…');
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
       phase = 'build-report-model';
+      updateProgressToast('Montando o relatório da RAC…');
       const report = buildRacPdfReportModel({
         constructionSite,
         canvasImageDataUrl,
@@ -124,21 +133,24 @@ export function useRacEditorPdfExportAction({
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-        toast.error(message);
+        toast.error(message, {id: progressToastId});
         return false;
       }
 
       phase = 'render-pdf';
+      updateProgressToast('Gerando o documento PDF…');
       const pdf = createRacPdfReportDocument({report, jsPDF});
       phase = 'create-preview-blob';
       const blob = pdf.output('blob') as Blob;
       phase = 'create-preview-data-url';
+      updateProgressToast('Preparando a prévia do PDF…');
       const url = await blobToDataUrl(blob);
       const pageCount = Math.max(1, pdf.getNumberOfPages());
       lastPdfPreviewFileNameRef.current = report.fileName;
       lastPdfPreviewPageCountRef.current = pageCount;
       setPdfPreview({fileName: report.fileName, blob, url, pageCount});
       recordPdfExportTelemetry('prepare_succeeded', {durationMs: Date.now() - startedAt});
+      toast.success('Prévia do PDF pronta.', {id: progressToastId});
       return true;
     } catch (error) {
       const details = errorDetails(error);
@@ -151,7 +163,7 @@ export function useRacEditorPdfExportAction({
       setPdfPreview((current) => current?.url
         ? {...current, errorMessage: message}
         : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-      toast.error('Falha ao preparar a prévia do PDF.');
+      toast.error('Falha ao preparar a prévia do PDF.', {id: progressToastId});
       return false;
     } finally {
       setIsPdfExporting(false);
