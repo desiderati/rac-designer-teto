@@ -1,0 +1,12 @@
+schema_version = 1
+
+# UNROUTED_EXECUTABLE and UNBOUNDED_FULL_READ are hard enforcement codes when the
+# global runtime is installed with --with-shell-enforcement; they are not user-configurable.
+default_mode = "warn"
+
+[patterns]
+FOREACH_PIPELINE = "deny"
+RG_POSITIONAL_GLOB = "deny"
+RTK_CMDLET_BOUNDARY = "deny"
+POWERSHELL_AMBIGUOUS_VARIABLE_BOUNDARY = "deny"
+NESTED_POWERSHELL_COMMAND = "warn"

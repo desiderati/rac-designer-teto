@@ -588,3 +588,33 @@ with a concrete handoff and retention reason. Do not wait for the user to ask fo
 explicitly. Chat archival or silence is not completion evidence. Do not wait for a final operator
 phrase when repository evidence is enough; otherwise keep the item `interrompido` or `ativo` with
 handoff.
+
+<!-- BEGIN SAT REPOSITORY GOVERNANCE -->
+## Repository Git Governance
+
+- Explicit profile: `single-environment-line`.
+- Single primary line: main.
+- Before Git operations, validate `.agents/repository-governance.toml` with
+  `$git-repository-governance`; never infer permission from topology.
+- `DELEGATE` requires the named governed workflow. `DENY`, `INVALID`, and
+  `UNCONFIGURED` are fail-closed.
+<!-- END SAT REPOSITORY GOVERNANCE -->
+
+---
+
+## Knowledge graph interoperability
+
+When a repository uses Graphify:
+
+- Use Graphify only when the structural relationship is unknown. If the file and symbol are known, open the source
+  directly.
+- Query an existing `graphify-out/graph.json` with `query`, `path`, or `explain`, use a small budget, and return at
+  most three source files before reading the canonical sources.
+- Never rebuild the graph or export an Obsidian vault automatically during a normal task. Build and incremental
+  update are deliberate index-maintenance operations.
+- Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the canonical source of
+  truth.
+- If Graphify output conflicts with source code, versioned docs, or explicit technical decisions, prefer those primary
+  sources.
+
+@RTK.md

@@ -7,26 +7,14 @@ dist/
 vendor/
 
 # Metadados e histórico operacional que não devem poluir o grafo
+.agents/
+.claude/
+.codex/
 .git/
 .obsidian/
-.agents/changelogs/
-.agents/code-reviews/
-.agents/councils/
-.agents/council-sessions/
-.agents/pruning-reports/
-.agents/examples/
-.agents/prompts/
-.agents/refactorings/
-.agents/references/
-.agents/releases/
-.agents/scripts/
-.agents/templates/
-.agents/work-items/
-.agents/worktrees/
-.agents/errors.md
-.codex/
+.playwright-mcp/
+.tmp/
 .worktrees/
 AGENTS.md
 CLAUDE.md
 OBSIDIAN.md
-.agents/knowledge-base/

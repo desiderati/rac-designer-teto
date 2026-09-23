@@ -1,0 +1,5 @@
+schema_version = 1
+profile = "single-environment-line"
+
+[parameters]
+primary_branch = "main"

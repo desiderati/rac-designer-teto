@@ -1,3 +1,4 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', 'Event', Justification = 'Preserve the existing public hook -Event parameter contract.')]
 param(
     [string]$Event = 'Stop'
 )
@@ -31,9 +32,9 @@ function Write-UserPromptContextResponse {
     )
 
     $response = @{
-        continue = $true
+        continue           = $true
         hookSpecificOutput = @{
-            hookEventName = 'UserPromptSubmit'
+            hookEventName     = 'UserPromptSubmit'
             additionalContext = $Message
         }
     }
@@ -91,7 +92,8 @@ function Get-PayloadObject {
 
     try {
         return $PayloadText | ConvertFrom-Json
-    } catch {
+    }
+    catch {
         return $null
     }
 }
@@ -141,10 +143,10 @@ function Write-SessionState {
     New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
 
     $state = @{
-        session_id = $sessionId
-        started_at_utc = [DateTimeOffset]::UtcNow.ToString('o')
-        source = [string]$Payload.source
-        model = [string]$Payload.model
+        session_id      = $sessionId
+        started_at_utc  = [DateTimeOffset]::UtcNow.ToString('o')
+        source          = [string]$Payload.source
+        model           = [string]$Payload.model
         transcript_path = [string]$Payload.transcript_path
     }
 
@@ -163,12 +165,14 @@ function Read-SessionState {
 
     try {
         return (Get-Content -LiteralPath $statePath -Raw) | ConvertFrom-Json
-    } catch {
+    }
+    catch {
         return $null
     }
 }
 
 function Remove-SessionState {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Noninteractive hook cleanup is bounded to its own completed session state; preserve the existing invocation contract.')]
     param(
         [string]$SessionId
     )
@@ -202,7 +206,8 @@ function ConvertTo-DateTimeOffsetSafe {
             [System.Globalization.CultureInfo]::InvariantCulture,
             [System.Globalization.DateTimeStyles]::RoundtripKind
         )
-    } catch {
+    }
+    catch {
         return $null
     }
 }
@@ -223,7 +228,8 @@ function Get-TranscriptStartTime {
 
         try {
             $entry = $line | ConvertFrom-Json
-        } catch {
+        }
+        catch {
             continue
         }
 
@@ -296,7 +302,8 @@ function Get-SafeTranscriptFileName {
 
     try {
         $fileName = [System.IO.Path]::GetFileName($TranscriptPath)
-    } catch {
+    }
+    catch {
         return $null
     }
 
@@ -379,6 +386,7 @@ function Get-SessionCorrelationContext {
 }
 
 function Handle-SessionStart {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Preserve the existing internal event-handler name and dispatch contract.')]
     param(
         $Payload
     )
@@ -393,6 +401,7 @@ function Handle-SessionStart {
 }
 
 function Handle-Stop {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Preserve the existing internal event-handler name and dispatch contract.')]
     param(
         $Payload
     )
@@ -436,6 +445,7 @@ function Handle-Stop {
 }
 
 function Handle-UserPromptSubmit {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Preserve the existing internal event-handler name and dispatch contract.')]
     param(
         $Payload
     )
@@ -460,6 +470,7 @@ try {
         'UserPromptSubmit' { Handle-UserPromptSubmit -Payload $payload }
         default { Write-HookResponse }
     }
-} catch {
+}
+catch {
     Write-HookResponse
 }

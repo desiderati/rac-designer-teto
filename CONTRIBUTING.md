@@ -118,3 +118,13 @@ Exemplos:
 - informe mudanças de contrato, migrações, impactos operacionais ou dependências externas
 - se o risco aparente for baixo, use uma formulação factual, como `baixo risco identificado pelo diff`
 - não declare `sem risco` quando isso não puder ser sustentado por evidência
+
+<!-- BEGIN SAT REPOSITORY GOVERNANCE -->
+## Governança Git do Repositório
+
+- Perfil explícito: `single-environment-line`.
+- Linha primária única: main.
+- Valide ações propostas pela skill `git-repository-governance` antes de operar.
+- A topologia observada não substitui a política versionada em
+  `.agents/repository-governance.toml`.
+<!-- END SAT REPOSITORY GOVERNANCE -->

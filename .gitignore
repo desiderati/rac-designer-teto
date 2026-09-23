@@ -66,3 +66,9 @@ graphify-out/
 /openai-image-output/
 .agents/knowledge-base/
 .project-config.json
+.agents/solution-reviews/
+.agents/housekeeping-review/
+.agents/worktree-archives/
+.agents/worktree-closeouts/
+.claude/settings.local.json
+rtk/history.db

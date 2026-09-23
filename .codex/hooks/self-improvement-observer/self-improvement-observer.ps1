@@ -1,3 +1,4 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', 'Event', Justification = 'Preserve the existing public hook -Event parameter contract.')]
 param(
     [string]$Event = 'Unknown'
 )
@@ -5,6 +6,9 @@ param(
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
+$script:StateLockTimeoutMilliseconds = 60000
+$script:StateLockRetryInitialMilliseconds = 25
+$script:StateLockRetryMaximumMilliseconds = 250
 
 function Write-HookResponse {
     param(
@@ -15,7 +19,7 @@ function Write-HookResponse {
     $response = [ordered]@{ continue = $true }
     if (-not [string]::IsNullOrWhiteSpace($AdditionalContext)) {
         $response['hookSpecificOutput'] = [ordered]@{
-            hookEventName = $Event
+            hookEventName     = $Event
             additionalContext = $AdditionalContext
         }
     }
@@ -34,7 +38,8 @@ function ConvertFrom-JsonSafe {
 
     try {
         return $Text | ConvertFrom-Json
-    } catch {
+    }
+    catch {
         return $null
     }
 }
@@ -46,6 +51,54 @@ function Get-StateDirectory {
 
 function Get-UtcNow {
     return [DateTimeOffset]::UtcNow.ToString('o')
+}
+
+function Invoke-WithStateLock {
+    param(
+        [string]$StateDirectory,
+        [scriptblock]$Action,
+        [int]$TimeoutMilliseconds = $script:StateLockTimeoutMilliseconds
+    )
+
+    New-Item -ItemType Directory -Path $StateDirectory -Force | Out-Null
+    $lockPath = Join-Path $StateDirectory '.observer.lock'
+    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+    $lockStream = $null
+    $retryDelayMilliseconds = $script:StateLockRetryInitialMilliseconds + ($PID % 25)
+
+    while ($null -eq $lockStream) {
+        try {
+            $lockStream = [System.IO.File]::Open(
+                $lockPath,
+                [System.IO.FileMode]::OpenOrCreate,
+                [System.IO.FileAccess]::ReadWrite,
+                [System.IO.FileShare]::None
+            )
+        }
+        catch [System.IO.IOException] {
+            $remainingMilliseconds = [int][Math]::Max(
+                0,
+                ($deadline - [DateTimeOffset]::UtcNow).TotalMilliseconds
+            )
+            if ($remainingMilliseconds -le 0) {
+                throw [System.TimeoutException]::new(
+                    "Timed out waiting for the Self Improvement Observer state lock."
+                )
+            }
+            Start-Sleep -Milliseconds ([Math]::Min($retryDelayMilliseconds, $remainingMilliseconds))
+            $retryDelayMilliseconds = [Math]::Min(
+                $retryDelayMilliseconds * 2,
+                $script:StateLockRetryMaximumMilliseconds
+            )
+        }
+    }
+
+    try {
+        return & $Action
+    }
+    finally {
+        $lockStream.Dispose()
+    }
 }
 
 function Get-SafeSessionId {
@@ -76,7 +129,8 @@ function Get-Hash {
         $bytes = [System.Text.Encoding]::UTF8.GetBytes($Value)
         $hashBytes = $sha.ComputeHash($bytes)
         return [System.BitConverter]::ToString($hashBytes).Replace('-', '').ToLowerInvariant()
-    } finally {
+    }
+    finally {
         $sha.Dispose()
     }
 }
@@ -93,7 +147,8 @@ function Get-ObjectHash {
 
     try {
         return Get-Hash -Value ($Value | ConvertTo-Json -Depth 20 -Compress)
-    } catch {
+    }
+    catch {
         return ''
     }
 }
@@ -110,12 +165,67 @@ function Get-ObjectLength {
 
     try {
         return (($Value | ConvertTo-Json -Depth 20 -Compress).Length)
-    } catch {
+    }
+    catch {
         return 0
     }
 }
 
+function Get-StructuredToolOutcome {
+    param(
+        [AllowNull()]
+        [string]$ToolName,
+        [AllowNull()]
+        $ToolResponse
+    )
+
+    $outcome = [ordered]@{}
+    if ($null -eq $ToolResponse -or $ToolResponse -isnot [PSCustomObject]) {
+        return $outcome
+    }
+
+    $properties = $ToolResponse.PSObject.Properties
+    $successProperty = $properties['success']
+    if ($null -ne $successProperty -and $successProperty.Value -is [bool]) {
+        $outcome['success'] = [bool]$successProperty.Value
+        return $outcome
+    }
+
+    foreach ($exitCodeName in @('exit_code', 'exitCode')) {
+        $exitCodeProperty = $properties[$exitCodeName]
+        if ($null -eq $exitCodeProperty -or $null -eq $exitCodeProperty.Value) {
+            continue
+        }
+
+        $exitCode = [string]$exitCodeProperty.Value
+        if ($exitCode -match '^-?\d+$') {
+            $outcome['exit_code'] = $exitCode
+            return $outcome
+        }
+    }
+
+    $isErrorProperty = $properties['isError']
+    if ($null -ne $isErrorProperty) {
+        if ($isErrorProperty.Value -is [bool]) {
+            $outcome['success'] = -not [bool]$isErrorProperty.Value
+        }
+        return $outcome
+    }
+
+    $hasMcpResultShape = (
+        -not [string]::IsNullOrWhiteSpace($ToolName) -and
+        $ToolName.StartsWith('mcp__', [System.StringComparison]::OrdinalIgnoreCase) -and
+        $null -ne $properties['content']
+    )
+    if ($hasMcpResultShape) {
+        $outcome['success'] = $true
+    }
+
+    return $outcome
+}
+
 function Get-PropertyNames {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', 'Get-PropertyNames', Justification = 'Preserve the existing internal collection-returning helper name and all callers.')]
     param(
         [AllowNull()]
         $Value
@@ -156,6 +266,50 @@ function Get-PromptCategory {
     return 'general'
 }
 
+function Get-PromptSignalFlags {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', 'Get-PromptSignalFlags', Justification = 'Preserve the existing internal collection-returning helper name and all callers.')]
+    param(
+        [AllowNull()]
+        [string]$Prompt
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Prompt)) {
+        return @()
+    }
+
+    $lower = $Prompt.ToLowerInvariant()
+    $flags = [System.Collections.Generic.List[string]]::new()
+    if (
+        $lower -match 'premissa.{0,40}(incorret|errad)' -or
+        $lower -match 'decis[aã]o.{0,40}(incorret|errad)' -or
+        $lower -match '(assumiu|assumption).{0,40}(incorret|wrong)' -or
+        $lower -match '(wrong|incorrect).{0,30}(decision|assumption)' -or
+        $lower -match '(modelo|model|voc[eê]|you).{0,30}(errou|was wrong)'
+    ) {
+        $flags.Add('decision-challenge')
+    }
+    if (
+        $lower -match '(saiu|desvi\w*|afast\w*).{0,40}(escopo|solu[cç][aã]o)' -or
+        $lower -match '(desvio|drift).{0,30}(escopo|scope)'
+    ) {
+        $flags.Add('scope-drift')
+    }
+    if (
+        $lower -match '(eu corrigi|estou corrigindo|na verdade).{0,60}(voc[eê]|modelo|decis[aã]o|premissa)' -or
+        $lower -match '(user correction|explicit correction)'
+    ) {
+        $flags.Add('explicit-correction')
+    }
+    if (
+        $lower -match '(refa[cç]a|tente novamente|retrabalho|rework|retry)' -or
+        $lower -match '(abandone|descarte).{0,40}(abordagem|approach)'
+    ) {
+        $flags.Add('retry-or-rework')
+    }
+
+    return @($flags)
+}
+
 function Get-ToolName {
     param(
         [AllowNull()]
@@ -177,6 +331,7 @@ function Get-ToolName {
 }
 
 function New-BaseRecord {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'Construct an in-memory event record only; this function does not mutate external state.')]
     param(
         [string]$EventName,
         [AllowNull()]
@@ -185,8 +340,8 @@ function New-BaseRecord {
 
     $record = [ordered]@{
         timestamp_utc = Get-UtcNow
-        event = $EventName
-        session_id = Get-SafeSessionId -Payload $Payload
+        event         = $EventName
+        session_id    = Get-SafeSessionId -Payload $Payload
     }
 
     if ($null -ne $Payload) {
@@ -214,7 +369,7 @@ function Add-JsonLine {
     [System.IO.File]::AppendAllText($Path, $line, $utf8NoBom)
 }
 
-function Read-JsonFileSafe {
+function Read-JsonFile {
     param(
         [string]$Path
     )
@@ -223,11 +378,7 @@ function Read-JsonFileSafe {
         return $null
     }
 
-    try {
-        return (Get-Content -LiteralPath $Path -Raw) | ConvertFrom-Json
-    } catch {
-        return $null
-    }
+    return (Get-Content -LiteralPath $Path -Raw) | ConvertFrom-Json
 }
 
 function Write-JsonFile {
@@ -240,7 +391,26 @@ function Write-JsonFile {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $text = ($Value | ConvertTo-Json -Depth 20) + [Environment]::NewLine
-    [System.IO.File]::WriteAllText($Path, $text, $utf8NoBom)
+    $temporaryPath = Join-Path $directory ('.{0}.{1}.tmp' -f ([System.IO.Path]::GetFileName($Path)), [guid]::NewGuid())
+    $backupPath = Join-Path $directory ('.{0}.{1}.bak' -f ([System.IO.Path]::GetFileName($Path)), [guid]::NewGuid())
+
+    try {
+        [System.IO.File]::WriteAllText($temporaryPath, $text, $utf8NoBom)
+        if (Test-Path -LiteralPath $Path) {
+            [System.IO.File]::Replace($temporaryPath, $Path, $backupPath)
+        }
+        else {
+            [System.IO.File]::Move($temporaryPath, $Path)
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $temporaryPath) {
+            Remove-Item -LiteralPath $temporaryPath -Force
+        }
+        if (Test-Path -LiteralPath $backupPath) {
+            Remove-Item -LiteralPath $backupPath -Force
+        }
+    }
 }
 
 function Get-ShortHash {
@@ -258,6 +428,7 @@ function Get-ShortHash {
 }
 
 function Get-ExistingEventCounts {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', 'Get-ExistingEventCounts', Justification = 'Preserve the existing internal collection-returning helper name and all callers.')]
     param(
         [AllowNull()]
         $Health
@@ -276,13 +447,14 @@ function Get-ExistingEventCounts {
 }
 
 function Update-HealthFile {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'The installed observer updates only its locked local state without interactive prompting.')]
     param(
         [string]$StateDirectory,
         $Record
     )
 
     $healthPath = Join-Path $StateDirectory 'health.json'
-    $existingHealth = Read-JsonFileSafe -Path $healthPath
+    $existingHealth = Read-JsonFile -Path $healthPath
     $eventCounts = Get-ExistingEventCounts -Health $existingHealth
     $eventName = [string]$Record['event']
     if (-not $eventCounts.Contains($eventName)) {
@@ -296,18 +468,18 @@ function Update-HealthFile {
     }
 
     $health = [ordered]@{
-        version = 1
-        observer = 'Self Improvement Observer'
-        status = 'observed'
-        last_event = $eventName
+        version                  = 1
+        observer                 = 'Self Improvement Observer'
+        status                   = 'observed'
+        last_event               = $eventName
         last_event_timestamp_utc = [string]$Record['timestamp_utc']
-        last_session_hash = Get-ShortHash -Value ([string]$Record['session_id'])
-        event_count = $eventCount
-        event_counts = $eventCounts
-        persisted = $true
-        raw_prompts = $false
-        raw_tool_inputs = $false
-        raw_tool_outputs = $false
+        last_session_hash        = Get-ShortHash -Value ([string]$Record['session_id'])
+        event_count              = $eventCount
+        event_counts             = $eventCounts
+        persisted                = $true
+        raw_prompts              = $false
+        raw_tool_inputs          = $false
+        raw_tool_outputs         = $false
     }
     Write-JsonFile -Path $healthPath -Value $health
     return $health
@@ -338,6 +510,8 @@ function Get-VisibilityMarkerPath {
 }
 
 function New-ObserverAdditionalContext {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'The installed observer writes only its local visibility marker under the existing noninteractive hook contract.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Health', Justification = 'Retain the existing Health parameter accepted by callers; no new interpretation of health data.')]
     param(
         [string]$StateDirectory,
         $Record,
@@ -360,11 +534,11 @@ function New-ObserverAdditionalContext {
 
     $reason = if ($firstVisibleInSession) { 'first-session-visibility' } else { 'prompt-requested-visibility' }
     $marker = [ordered]@{
-        version = 1
+        version       = 1
         timestamp_utc = [string]$Record['timestamp_utc']
-        session_hash = Get-ShortHash -Value ([string]$Record['session_id'])
-        reason = $reason
-        raw_prompts = $false
+        session_hash  = Get-ShortHash -Value ([string]$Record['session_id'])
+        reason        = $reason
+        raw_prompts   = $false
     }
     Write-JsonFile -Path $markerPath -Value $marker
 
@@ -376,6 +550,7 @@ function New-ObserverAdditionalContext {
 }
 
 function Ensure-ProfileFile {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification = 'Preserve the existing internal helper name and its create-if-missing local state behavior.')]
     param(
         [string]$StateDirectory
     )
@@ -385,20 +560,18 @@ function Ensure-ProfileFile {
         return
     }
 
-    $profile = [ordered]@{
-        version = 1
+    $observerProfile = [ordered]@{
+        version          = 1
         delivery_profile = [ordered]@{
-            mode = $null
-            source = 'unset'
-            last_updated = $null
+            mode                             = $null
+            source                           = 'unset'
+            last_updated                     = $null
             can_override_repository_contract = $false
-            can_override_user_instruction = $false
-            notes = @()
+            can_override_user_instruction    = $false
+            notes                            = @()
         }
     }
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    $text = ($profile | ConvertTo-Json -Depth 10) + [Environment]::NewLine
-    [System.IO.File]::WriteAllText($profilePath, $text, $utf8NoBom)
+    Write-JsonFile -Path $profilePath -Value $observerProfile
 }
 
 try {
@@ -407,26 +580,27 @@ try {
     $additionalContext = $null
     $stateDirectory = Get-StateDirectory
     New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
-    Ensure-ProfileFile -StateDirectory $stateDirectory
-
     $eventsPath = Join-Path $stateDirectory 'events.jsonl'
     $sessionsPath = Join-Path $stateDirectory 'sessions.jsonl'
     $record = New-BaseRecord -EventName $Event -Payload $payload
+    $prompt = ''
 
     switch ($Event) {
         'SessionStart' {
             $record['phase'] = 'start'
-            Add-JsonLine -Path $sessionsPath -Record $record
         }
 
         'UserPromptSubmit' {
-            $prompt = ''
             if ($null -ne $payload -and $null -ne $payload.PSObject.Properties['prompt']) {
                 $prompt = [string]$payload.prompt
             }
             $record['prompt_hash'] = Get-Hash -Value $prompt
             $record['prompt_length'] = $prompt.Length
             $record['prompt_category'] = Get-PromptCategory -Prompt $prompt
+            $promptSignalFlags = @(Get-PromptSignalFlags -Prompt $prompt)
+            if ($promptSignalFlags.Count -gt 0) {
+                $record['prompt_signal_flags'] = $promptSignalFlags
+            }
         }
 
         'PostToolUse' {
@@ -439,40 +613,60 @@ try {
             $record['tool_response_hash'] = Get-ObjectHash -Value $toolResponse
             $record['tool_response_length'] = Get-ObjectLength -Value $toolResponse
 
-            if ($null -ne $toolResponse -and $null -ne $toolResponse.PSObject.Properties['exit_code']) {
-                $record['exit_code'] = [string]$toolResponse.exit_code
+            $toolOutcome = Get-StructuredToolOutcome -ToolName $record['tool_name'] -ToolResponse $toolResponse
+            if ($toolOutcome.Contains('exit_code')) {
+                $record['exit_code'] = $toolOutcome['exit_code']
             }
-            if ($null -ne $toolResponse -and $null -ne $toolResponse.PSObject.Properties['success']) {
-                $record['success'] = [bool]$toolResponse.success
+            if ($toolOutcome.Contains('success')) {
+                $record['success'] = $toolOutcome['success']
             }
         }
 
         'Stop' {
             $record['phase'] = 'stop'
-            Add-JsonLine -Path $sessionsPath -Record $record
         }
     }
 
-    Add-JsonLine -Path $eventsPath -Record $record
-    $health = Update-HealthFile -StateDirectory $stateDirectory -Record $record
-    $additionalContext = New-ObserverAdditionalContext `
-        -StateDirectory $stateDirectory `
-        -Record $record `
-        -Prompt $prompt `
-        -Health $health
-} catch {
+    $stateResult = Invoke-WithStateLock -StateDirectory $stateDirectory -Action {
+        $healthPath = Join-Path $stateDirectory 'health.json'
+        if (Test-Path -LiteralPath $healthPath) {
+            Read-JsonFile -Path $healthPath | Out-Null
+        }
+
+        Ensure-ProfileFile -StateDirectory $stateDirectory
+        if ($Event -in @('SessionStart', 'Stop')) {
+            Add-JsonLine -Path $sessionsPath -Record $record
+        }
+
+        Add-JsonLine -Path $eventsPath -Record $record
+        $health = Update-HealthFile -StateDirectory $stateDirectory -Record $record
+        return [ordered]@{
+            additional_context = New-ObserverAdditionalContext `
+                -StateDirectory $stateDirectory `
+                -Record $record `
+                -Prompt $prompt `
+                -Health $health
+        }
+    }
+    $additionalContext = [string]$stateResult['additional_context']
+}
+catch {
     try {
         $stateDirectory = Get-StateDirectory
         $errorPath = Join-Path $stateDirectory 'errors.jsonl'
         $errorRecord = [ordered]@{
-            timestamp_utc = Get-UtcNow
-            event = $Event
-            error_type = $_.Exception.GetType().FullName
+            timestamp_utc      = Get-UtcNow
+            event              = $Event
+            error_type         = $_.Exception.GetType().FullName
             error_message_hash = Get-Hash -Value ([string]$_.Exception.Message)
         }
-        Add-JsonLine -Path $errorPath -Record $errorRecord
-    } catch {
+        Invoke-WithStateLock -StateDirectory $stateDirectory -TimeoutMilliseconds 2000 -Action {
+            Add-JsonLine -Path $errorPath -Record $errorRecord
+        } | Out-Null
+    }
+    catch {
         # The observer must never block the Codex session.
+        $null = $_
     }
 
     if ($Event -eq 'UserPromptSubmit') {

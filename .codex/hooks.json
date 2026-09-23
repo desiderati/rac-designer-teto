@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event SessionStart",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event SessionStart",
             "statusMessage": "Git Freshness Preflight",
             "timeout": 20
           }
@@ -15,7 +15,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -Command \"$msg = @{ systemMessage = 'Knowledge graphify exists. Read graphify-out/GRAPH_REPORT.md for god nodes and community structure before searching raw files.' }; if (Test-Path 'graphify-out/graph.json') { $msg | ConvertTo-Json -Compress }\""
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/graphify-context.ps1\" -Event SessionStart",
+            "statusMessage": "Graphify Context",
+            "timeout": 20
           }
         ]
       },
@@ -23,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event SessionStart",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event SessionStart",
             "statusMessage": "Resolution Time",
             "timeout": 20
           }
@@ -33,9 +35,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event SessionStart",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event SessionStart",
             "statusMessage": "Self Improvement Observer",
-            "timeout": 20
+            "timeout": 90
           }
         ]
       }
@@ -45,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event Stop",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event Stop",
             "statusMessage": "Resolution Time",
             "timeout": 20
           }
@@ -55,9 +57,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event Stop",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event Stop",
             "statusMessage": "Self Improvement Observer",
-            "timeout": 20
+            "timeout": 90
           }
         ]
       }
@@ -67,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event UserPromptSubmit",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/git-freshness-preflight/git-freshness-preflight.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Git Freshness Preflight",
             "timeout": 20
           }
@@ -77,27 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Resolution Time",
-            "timeout": 20
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
-            "statusMessage": "Self Improvement Observer",
-            "timeout": 20
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/scaffold-context-visibility.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Scaffold Context Visibility",
             "timeout": 20
           }
@@ -107,9 +89,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/production-change-audit.ps1\" -Event UserPromptSubmit",
             "statusMessage": "Production Change Audit",
             "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/resolution-time/resolution-time.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Resolution Time",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event UserPromptSubmit",
+            "statusMessage": "Self Improvement Observer",
+            "timeout": 90
           }
         ]
       }
@@ -119,12 +121,25 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event PostToolUse",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/self-improvement-observer/self-improvement-observer.ps1\" -Event PostToolUse",
             "statusMessage": "Self Improvement Observer",
-            "timeout": 20
+            "timeout": 90
           }
         ],
         "matcher": ".*"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|shell_command)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$ps = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source; if (-not $ps) { $ps = (Get-Command powershell.exe -ErrorAction Stop).Source }; & $ps -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$(git rev-parse --show-toplevel)/.codex/hooks/windows-shell-preflight.ps1\" -Event PreToolUse",
+            "statusMessage": "Windows Shell Preflight",
+            "timeout": 20
+          }
+        ]
       }
     ]
   }
