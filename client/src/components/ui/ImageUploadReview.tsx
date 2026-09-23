@@ -123,8 +123,31 @@ export function ImageUploadReview({
     onOpenChange(open);
   };
 
+  const isPreparing = Boolean(file && isOpen && !prepared && !prepareError);
+  const fileHeader = file && originalPreviewUrl ? (
+    <div className='flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+      <span className='flex min-w-0 items-center gap-2'><FileImage className='h-4 w-4 shrink-0 text-blue-600'/><span className='truncate'>{file.name}</span></span>
+      <span className='flex shrink-0 items-center gap-2'>
+        <span className='font-semibold'>{formatFileSize(file.size)}</span>
+        {onRequestFileChange ? (
+          <button
+            type='button'
+            aria-label={isPreparing ? 'Processando nova imagem' : 'Trocar imagem selecionada'}
+            title={isPreparing ? 'Processando nova imagem' : 'Trocar imagem'}
+            onClick={onRequestFileChange}
+            disabled={isConfirming || isPreparing}
+            className='grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-70'
+          >
+            {isPreparing ? <Loader2 className='h-4 w-4 animate-spin text-blue-600'/> : <RefreshCw className='h-4 w-4'/>}
+          </button>
+        ) : null}
+      </span>
+    </div>
+  ) : null;
+
   const body = (
     <div className='min-w-0 space-y-4'>
+      {fileHeader}
       {prepareError ? (
         <div role='alert' className='flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800'>
           <AlertCircle className='mt-0.5 h-4 w-4 shrink-0'/>
@@ -141,25 +164,6 @@ export function ImageUploadReview({
 
       {prepared && file && originalPreviewUrl ? (
         <>
-          <div className='flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600'>
-            <span className='flex min-w-0 items-center gap-2'><FileImage className='h-4 w-4 shrink-0 text-blue-600'/><span className='truncate'>{file.name}</span></span>
-            <span className='flex shrink-0 items-center gap-2'>
-              <span className='font-semibold'>{formatFileSize(file.size)}</span>
-              {onRequestFileChange ? (
-                <button
-                  type='button'
-                  aria-label='Trocar imagem selecionada'
-                  title='Trocar imagem'
-                  onClick={onRequestFileChange}
-                  disabled={isConfirming}
-                  className='grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50'
-                >
-                  <RefreshCw className='h-4 w-4'/>
-                </button>
-              ) : null}
-            </span>
-          </div>
-
           <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50'>
             <img
               src={preserveOriginalQuality ? originalPreviewUrl : optimizedPreviewUrl ?? originalPreviewUrl}

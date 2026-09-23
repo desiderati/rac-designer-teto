@@ -1,5 +1,5 @@
-import {useEffect, useRef, useState, type ChangeEvent} from 'react';
-import {Camera, Plus, RefreshCw, Trash2} from 'lucide-react';
+import {useEffect, useRef, useState, type ChangeEvent, type DragEvent} from 'react';
+import {Camera, Plus, RefreshCw, Trash2, UploadCloud} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
@@ -43,6 +43,7 @@ export function TerrainPhotosField({
   const [reviewFile, setReviewFile] = useState<{file: File; photoIdToReplace: string | null} | null>(null);
   const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
+  const [isMainPhotoDragActive, setIsMainPhotoDragActive] = useState(false);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
   const isBusy = storageUpload.isUploading || isPreparingPhoto || reviewFile !== null;
@@ -76,6 +77,40 @@ export function TerrainPhotosField({
     }
 
     setReviewFile({file, photoIdToReplace});
+  };
+
+  const handleMainPhotoDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!disabled && !isBusy && event.dataTransfer.types.includes('Files')) {
+      setIsMainPhotoDragActive(true);
+    }
+  };
+
+  const handleMainPhotoDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!disabled && !isBusy && event.dataTransfer.types.includes('Files')) {
+      event.dataTransfer.dropEffect = 'copy';
+      setIsMainPhotoDragActive(true);
+    }
+  };
+
+  const handleMainPhotoDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsMainPhotoDragActive(false);
+    }
+  };
+
+  const handleMainPhotoDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsMainPhotoDragActive(false);
+    if (disabled || isBusy) return;
+    const file = event.dataTransfer.files?.[0];
+    if (file) void handleFile(file, selectedPhoto?.id ?? null);
   };
 
   const confirmPhotoSelection = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
@@ -178,7 +213,18 @@ export function TerrainPhotosField({
   return (
     <div data-testid='terrain-photos-field' className='space-y-4'>
       <div className='grid min-w-0 gap-3 min-[840px]:items-stretch min-[840px]:grid-cols-[minmax(0,1fr)_148px]'>
-        <div className='min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100'>
+        <div
+          data-testid='terrain-main-photo-dropzone'
+          className={cn(
+            'relative min-w-0 overflow-hidden rounded-xl border bg-slate-100 transition-colors',
+            isMainPhotoDragActive ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200',
+          )}
+          onDragEnter={handleMainPhotoDragEnter}
+          onDragOver={handleMainPhotoDragOver}
+          onDragLeave={handleMainPhotoDragLeave}
+          onDrop={handleMainPhotoDrop}
+          aria-label='Área principal da foto do terreno. Solte uma imagem para adicionar ou trocar a foto.'
+        >
           <div className='relative aspect-[4/3] w-full'>
             {selectedPhoto ? (
               <img
@@ -198,6 +244,14 @@ export function TerrainPhotosField({
               </button>
             )}
           </div>
+          {isMainPhotoDragActive ? (
+            <div className='absolute inset-0 z-20 grid place-items-center bg-blue-600/80 px-4 text-center text-sm font-bold text-white'>
+              <span className='flex flex-col items-center gap-2'>
+                <UploadCloud className='h-8 w-8'/>
+                Solte para {selectedPhoto ? 'trocar' : 'adicionar'} a foto
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div className='grid min-w-0 grid-cols-4 gap-2 min-[840px]:h-full min-[840px]:grid-cols-1 min-[840px]:grid-rows-4'>
