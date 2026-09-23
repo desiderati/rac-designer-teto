@@ -43,6 +43,7 @@ import {
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
+import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
 import {TerrainPhotosField} from './TerrainPhotosField.tsx';
 
 export function HouseConfigurationScreen({
@@ -577,9 +578,9 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
       </Accordion>
-      <div data-testid='site-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-6 grid w-[calc(100%+1rem)] min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:col-start-2 sm:mx-0 sm:mt-0 sm:w-full sm:bg-transparent sm:px-0 sm:py-0 sm:grid-cols-2'>
-        <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0 sm:col-start-2'>Salvar Configurações</PrimaryButton>
-      </div>
+      <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='flush'>
+        <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Configurações</PrimaryButton>
+      </FormActionDock>
     </form>
   );
 }

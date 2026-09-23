@@ -25,6 +25,7 @@ import {
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {formatDateOnly, parseDateOnly, toDateOnly} from '@/components/construction-site/ui/lib/view-model.ts';
+import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
 
 export function ConstructionFormScreen({
   mode,
@@ -155,11 +156,11 @@ export function ConstructionFormScreen({
           />
         </div>
       </div>
-      <div className='grid w-full min-w-0 gap-3'>
+      <FormActionDock testId='construction-actions-grid' mobileDocked={false}>
         <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
           {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}
         </PrimaryButton>
-      </div>
+      </FormActionDock>
     </form>
   );
 }

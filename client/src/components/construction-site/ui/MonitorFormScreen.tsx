@@ -22,6 +22,7 @@ import {
 } from '@/components/construction-site/ui/lib/view-model.ts';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
 import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
+import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
 import {HouseConfigurationSidebar} from './HouseConfigurationScreen.tsx';
 
 export function MonitorFormScreen({
@@ -162,11 +163,11 @@ export function MonitorFormScreen({
                 </div>
           </div>
         </section>
-        <div data-testid='monitor-actions-grid' className='sticky bottom-0 z-20 -mx-2 mt-6 grid w-[calc(100%+1rem)] min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm sm:static sm:mx-0 sm:mt-4 sm:w-full sm:bg-transparent sm:px-0 sm:py-0 sm:grid-cols-2'>
-          <PrimaryButton type='submit' className='w-full min-w-0 sm:col-start-2' disabled={readOnly || isSubmitting}>
+        <FormActionDock testId='monitor-actions-grid'>
+          <PrimaryButton type='submit' className='w-full min-w-0' disabled={readOnly || isSubmitting}>
             {submitLabel}
           </PrimaryButton>
-        </div>
+        </FormActionDock>
       </div>
     </form>
   );

@@ -1259,8 +1259,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
+    expect(screen.getByTestId('site-actions-grid').firstElementChild).toHaveClass('sm:col-start-2');
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
-      .toHaveClass('w-full', 'sm:col-start-2');
+      .toHaveClass('w-full');
 
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
