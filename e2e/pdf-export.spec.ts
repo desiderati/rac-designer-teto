@@ -68,10 +68,15 @@ test.describe('Exportação PDF do RAC', () => {
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expectPdfPreviewRendered(page);
     const previewSurface = page.getByTestId('pdf-preview-surface');
-    await expect(previewSurface).toHaveAttribute('data-zoom', '100');
+    const initialZoom = Number(await previewSurface.getAttribute('data-zoom'));
+    expect(initialZoom).toBeGreaterThan(0);
+    expect(initialZoom).toBeLessThanOrEqual(100);
+    await expect.poll(async () => previewSurface.evaluate((element) => element.scrollWidth)).toBeLessThanOrEqual(
+      await previewSurface.evaluate((element) => element.clientWidth) + 1,
+    );
     await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
     await page.getByRole('button', {name: 'Aumentar zoom da prévia'}).click();
-    await expect(previewSurface).toHaveAttribute('data-zoom', '120');
+    await expect(previewSurface).toHaveAttribute('data-zoom', String(Math.min(120, initialZoom + 20)));
     await expect(page.getByTestId('pdf-preview-loading')).toHaveCount(0);
     const surfaceWidth = await previewSurface.evaluate((element) => element.clientWidth);
     await expect.poll(async () => previewSurface.evaluate((element) => element.scrollWidth), {

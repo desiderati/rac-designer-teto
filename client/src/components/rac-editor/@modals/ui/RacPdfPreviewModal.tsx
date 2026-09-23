@@ -1,5 +1,5 @@
 import {ChevronLeft, ChevronRight, Download, Maximize2, Minus, Plus, RefreshCw, X} from 'lucide-react';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {Button} from '@/components/ui/button.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
@@ -34,32 +34,39 @@ export function RacPdfPreviewModal({
 }: RacPdfPreviewModalProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
-  const [fitToContainer, setFitToContainer] = useState(false);
+  const [fitToContainer, setFitToContainer] = useState(true);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
     setZoom(isMobile ? 70 : 100);
-    setFitToContainer(false);
+    setFitToContainer(true);
   }, [isMobile, pdfUrl, pageCount]);
 
   const safePageCount = Math.max(1, pageCount);
   const safePage = Math.min(currentPage, safePageCount);
 
-  const fitToPage = () => {
+  const fitToPage = useCallback(() => {
+    const host = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-host"]');
     const surface = previewContainerRef.current?.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');
     if (!surface) {
       setZoom(isMobile ? 70 : 100);
       return;
     }
 
-    const host = surface.parentElement;
     const availableWidth = host?.clientWidth ?? surface.clientWidth;
     const availableHeight = Math.min(window.innerHeight * 0.72, host?.clientHeight ?? 595.28);
     const fitPercentage = Math.floor(Math.min(availableWidth / 841.89, availableHeight / 595.28) * 100);
     setFitToContainer(true);
     setZoom(Math.max(40, Math.min(120, fitPercentage)));
-  };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!isOpen || !pdfUrl) return;
+
+    const frame = requestAnimationFrame(() => fitToPage());
+    return () => cancelAnimationFrame(frame);
+  }, [fitToPage, isOpen, pageCount, pdfUrl]);
 
   const closeButton = (
     <Button
@@ -177,7 +184,7 @@ export function RacPdfPreviewModal({
         </div>
       ) : null}
 
-      <div className='relative min-w-0'>
+      <div className='relative min-w-0' data-testid='pdf-preview-host'>
         {pdfUrl ? (
           <PdfDocumentPagePreview
             pdfUrl={pdfUrl}
