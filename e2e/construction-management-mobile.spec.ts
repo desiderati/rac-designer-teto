@@ -193,6 +193,9 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
 
     const shellBox = shell.getBoundingClientRect();
     const formBox = form.getBoundingClientRect();
+    const actionGrid = form.querySelector<HTMLElement>('[data-testid$="-actions-grid"]');
+    const actionButton = actionGrid?.querySelector<HTMLElement>('button');
+    const actionButtonBox = actionButton?.getBoundingClientRect();
     return {
       viewportWidth,
       documentScrollWidth: document.documentElement.scrollWidth,
@@ -203,6 +206,8 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
       formLeft: formBox.left,
       formRight: formBox.right,
       formWidth: formBox.width,
+      actionButtonLeft: actionButtonBox?.left ?? null,
+      actionButtonRight: actionButtonBox?.right ?? null,
     };
   }, {shellSelector, formSelector});
 
@@ -216,6 +221,10 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
   expect(metrics!.formLeft).toBeGreaterThanOrEqual(-(minimumSurfaceWidth - metrics!.viewportWidth) - 1);
   expect(metrics!.formRight).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.formWidth).toBeGreaterThan(metrics!.viewportWidth * 0.8);
+  if (metrics!.actionButtonRight !== null) {
+    expect(metrics!.actionButtonRight).toBeGreaterThanOrEqual(metrics!.viewportWidth - 1);
+    expect(metrics!.actionButtonLeft).toBeGreaterThanOrEqual(0);
+  }
 }
 
 async function selectConstructionDate(page: Page) {
