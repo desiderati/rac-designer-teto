@@ -147,7 +147,6 @@ export function ImageUploadModal({
       </button>
 
       <input
-        ref={inputRef}
         type='file'
         accept={PHOTO_UPLOAD_ACCEPT}
         aria-label='Selecionar imagem para inserir no canvas'
@@ -170,6 +169,15 @@ export function ImageUploadModal({
 
   return (
     <>
+      <input
+        ref={inputRef}
+        type='file'
+        accept={PHOTO_UPLOAD_ACCEPT}
+        aria-label='Seletor nativo para trocar imagem'
+        className='sr-only'
+        onChange={handleFileChange}
+      />
+
       {isMobile ? (
         <Drawer open={isOpen && !reviewFile} onOpenChange={(open) => !open && requestClose()}>
           <DrawerContent className='max-h-[92dvh] overflow-hidden'>

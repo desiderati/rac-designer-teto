@@ -72,4 +72,21 @@ describe('ImageUploadModal.tsx', () => {
     expect(onInsertImage).not.toHaveBeenCalled();
     expect(onOpenChange).not.toHaveBeenCalled();
   });
+
+  it('opens the native file picker when replacing an image during review', async () => {
+    const user = userEvent.setup();
+    const nativeClick = vi.spyOn(HTMLInputElement.prototype, 'click');
+    renderImageUploadModal();
+
+    await user.upload(
+      screen.getByLabelText('Selecionar imagem para inserir no canvas'),
+      createPngFile(),
+    );
+    await screen.findByRole('button', {name: 'Trocar imagem selecionada'});
+
+    await user.click(screen.getByRole('button', {name: 'Trocar imagem selecionada'}));
+
+    expect(nativeClick).toHaveBeenCalled();
+    nativeClick.mockRestore();
+  });
 });
