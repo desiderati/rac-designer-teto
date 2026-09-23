@@ -1,0 +1,136 @@
+name: Publish Manus website
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Commit exato a publicar (opcional; vazio usa o commit do disparo)"
+        required: false
+        type: string
+
+concurrency:
+  group: manus-publish-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync-and-publish:
+    name: Sync and publish Manus project
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MANUS_API_URL: https://api.manus.ai
+      MANUS_PROJECT_ID: nEpDoRMLEzAXVgR2GaMYC8
+      REPOSITORY: desiderati/rac-designer-teto
+      BRANCH: main
+    steps:
+      - name: Validate required secret
+        env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+        run: |
+          if [ -z "$MANUS_API_KEY" ]; then
+            echo "::error::Configure o segredo MANUS_API_KEY em Settings > Secrets and variables > Actions antes de usar a publicação automática."
+            exit 1
+          fi
+
+      - name: Request Manus sync and publication
+        id: manus_task
+        env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+          COMMIT_SHA: ${{ inputs.commit_sha || github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'Manual publication' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          prompt=$(cat <<EOF
+          Sincronize e publique o projeto WebDev RAC Design TETO após um push externo ao Manus.
+
+          Repositório fonte: ${REPOSITORY}
+          Branch: ${BRANCH}
+          Commit obrigatório: ${COMMIT_SHA}
+          Mensagem do commit: ${COMMIT_MESSAGE}
+          Diretório do projeto WebDev: /home/ubuntu/editor-planta-baixa
+
+          Execute exatamente este fluxo, sem pedir confirmação e sem criar alterações de produto:
+          1. No diretório do projeto, faça fetch do remoto user_github para a branch main.
+          2. Verifique que o SHA de user_github/main corresponde ao commit obrigatório ${COMMIT_SHA}. Se não corresponder, faça fetch novamente e interrompa com erro caso o SHA não possa ser confirmado.
+          3. Alinhe o checkout ao SHA obrigatório com git reset --hard ${COMMIT_SHA}. Preserve arquivos locais de infraestrutura do WebDev que não são rastreados pelo Git; não use git clean.
+          4. Execute pnpm check e pnpm build. Se qualquer validação falhar, não publique e informe o erro.
+          5. Salve um checkpoint do WebDev com uma mensagem que contenha o SHA ${COMMIT_SHA} e indique que a origem foi um push do GitHub.
+          6. Confirme que o checkpoint foi aceito e que a publicação foi iniciada/concluída pelo WebDev.
+
+          Não faça commit, push, alterações cosméticas, migrações ou mudanças fora desse fluxo. Ao terminar, informe o SHA sincronizado, o resultado das validações, o identificador do checkpoint e o estado da publicação.
+          EOF
+          )
+
+          payload=$(jq -n \
+            --arg project_id "$MANUS_PROJECT_ID" \
+            --arg title "Publish RAC Design TETO ${COMMIT_SHA:0:7}" \
+            --arg content "$prompt" \
+            '{
+              project_id: $project_id,
+              title: $title,
+              agent_profile: "manus-1.6-lite",
+              interactive_mode: false,
+              hide_in_task_list: true,
+              message: {content: $content}
+            }')
+
+          response=$(curl --fail-with-body --silent --show-error \
+            -X POST "$MANUS_API_URL/v2/task.create" \
+            -H "x-manus-api-key: $MANUS_API_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$payload")
+
+          echo "$response" | jq .
+          task_id=$(echo "$response" | jq -er '.task_id // empty')
+          if [ -z "$task_id" ]; then
+            echo "::error::A API do Manus não retornou task_id."
+            exit 1
+          fi
+          echo "task_id=$task_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for Manus publication
+        env:
+          MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+          TASK_ID: ${{ steps.manus_task.outputs.task_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 135); do
+            response=$(curl --fail-with-body --silent --show-error \
+              "$MANUS_API_URL/v2/task.listMessages?task_id=$TASK_ID&limit=50&order=desc" \
+              -H "x-manus-api-key: $MANUS_API_KEY")
+
+            status=$(echo "$response" | jq -r '[.messages[] | select(.type == "status_update") | .status_update.agent_status] | first // "unknown"')
+            brief=$(echo "$response" | jq -r '[.messages[] | select(.type == "status_update") | .status_update.brief] | first // empty')
+            echo "[$attempt/135] Manus: $status${brief:+ — $brief}"
+
+            case "$status" in
+              stopped)
+                echo "Publicação solicitada ao Manus concluída."
+                exit 0
+                ;;
+              error)
+                echo "::error::A tarefa de sincronização do Manus terminou em erro."
+                echo "$response" | jq -r '[.messages[] | select(.type == "error_message") | .error_message.content] | first // "Erro sem detalhes adicionais."'
+                exit 1
+                ;;
+              waiting)
+                echo "::error::A tarefa do Manus pediu interação; o workflow automático não pode continuar sem confirmação."
+                exit 1
+                ;;
+            esac
+
+            sleep 20
+          done
+
+          echo "::error::Timeout aguardando a sincronização/publicação do Manus."
+          exit 1
