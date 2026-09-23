@@ -84,6 +84,9 @@ claramente estabelecida.
 - [docs/ui-definitions/UI-002-tabelas-largura-proporcional-colunas.md](docs/ui-definitions/UI-002-tabelas-largura-proporcional-colunas.md),
   para proporção de colunas em tabelas usando o tamanho máximo dos campos como referência
 
+- [docs/ui-definitions/UI-003-acoes-responsivas-de-formularios.md](docs/ui-definitions/UI-003-acoes-responsivas-de-formularios.md),
+  para o posicionamento e a largura da ação principal nos formulários do gerenciador
+
 - [docs/engineering-playbook/PLAY-006-ports-and-adapters.md](docs/engineering-playbook/PLAY-006-ports-and-adapters.md),
   para a disciplina de continuidade de Ports and Adapters no editor RAC
 

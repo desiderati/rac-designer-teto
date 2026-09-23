@@ -11,8 +11,8 @@ describe('ActionDock', () => {
     );
 
     const dock = screen.getByTestId('form-dock');
-    expect(dock).toHaveClass('sticky', 'bottom-0', 'w-[calc(100%+1rem)]', 'min-[768px]:grid-cols-2');
-    expect(dock.firstElementChild).toHaveClass('min-[768px]:col-start-2');
+    expect(dock).toHaveClass('fixed', 'inset-x-0', 'bottom-0', 'sm:static', 'sm:w-full', 'md:grid-cols-2');
+    expect(dock.firstElementChild).toHaveClass('md:col-start-2');
   });
 
   it('encaixa no Dialog sem criar um scroll externo no desktop', () => {

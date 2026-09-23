@@ -187,7 +187,7 @@ export function HouseConfigurationScreen({
   return (
     <form
       data-testid='house-configuration-form'
-      className='grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
+      className='construction-management-form grid min-w-0 gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
       onSubmit={submitForm}
       noValidate
     >

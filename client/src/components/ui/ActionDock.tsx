@@ -9,7 +9,7 @@ export type ActionDockProps = {
   /** Stable hook for tests and screen-specific automation. */
   testId: string;
   children: ReactNode;
-  /** The host surface determines the safe negative margin around the dock. */
+  /** The host surface determines the mobile action layout. */
   surface?: ActionDockSurface;
   /** Controls whether the action group is placed in a form's second column. */
   placement?: ActionDockPlacement;
@@ -24,8 +24,8 @@ export type ActionDockProps = {
 
 const SURFACE_CLASSES: Record<ActionDockSurface, { mobile: string; desktop: string }> = {
   form: {
-    mobile: 'sticky bottom-0 z-20 -mx-2 mt-12 grid w-[calc(100%+1rem)] min-w-0 gap-4 bg-white/95 px-2 py-3 backdrop-blur-sm',
-    desktop: 'min-[768px]:static min-[768px]:mx-0 min-[768px]:w-full min-[768px]:bg-transparent min-[768px]:px-0 min-[768px]:py-0 min-[768px]:grid-cols-2',
+    mobile: 'fixed inset-x-0 bottom-0 z-20 mt-12 grid min-w-0 gap-4 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
+    desktop: 'sm:static sm:mx-0 sm:w-full sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2',
   },
   dialog: {
     mobile: 'sticky bottom-0 z-20 -mx-6 mt-4 grid w-[calc(100%+3rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-6 py-3 backdrop-blur-sm',
@@ -40,9 +40,9 @@ const SURFACE_CLASSES: Record<ActionDockSurface, { mobile: string; desktop: stri
 /**
  * Shared action footer for forms, dialogs, and drawers.
  *
- * On narrow viewports the action group is sticky and compensates for the
- * padding of its host surface. On larger viewports it returns to normal flow,
- * so the component does not turn a desktop modal into a second scroll area.
+ * Full-screen mobile forms use a fixed action footer. Dialogs and drawers
+ * retain their sticky footer. When the surrounding form becomes a card at
+ * 640px, its action returns to normal flow.
  */
 export function ActionDock({
   testId,
@@ -57,9 +57,11 @@ export function ActionDock({
   const surfaceClasses = SURFACE_CLASSES[surface];
   const desktopClasses = cn(
     surfaceClasses.desktop,
-    spacing === 'flush' ? 'min-[768px]:mt-0' : surface === 'form' ? 'min-[768px]:mt-8' : 'sm:mt-4',
-    surface === 'form' && placement === 'form-column' ? 'min-[768px]:col-start-2' : null,
-    placement === 'full' ? 'min-[768px]:grid-cols-1' : null,
+    spacing === 'flush'
+      ? surface === 'form' ? 'sm:mt-0' : 'min-[768px]:mt-0'
+      : surface === 'form' ? 'sm:mt-8' : 'sm:mt-4',
+    surface === 'form' && placement === 'form-column' ? 'sm:col-start-2' : null,
+    placement === 'full' ? 'md:grid-cols-1' : null,
   );
 
   if (!mobileDocked) {
@@ -72,7 +74,7 @@ export function ActionDock({
 
   const innerClassName = cn(
     'min-w-0 w-full',
-    surface === 'form' && placement === 'content-column' ? 'min-[768px]:col-start-2' : null,
+    surface === 'form' && placement !== 'full' ? 'md:col-start-2' : null,
   );
 
   return (

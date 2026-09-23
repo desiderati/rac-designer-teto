@@ -1059,8 +1059,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('monitor-photo-field').compareDocumentPosition(screen.getByTestId('monitor-fields-column')) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
     expect(screen.getByLabelText('Telefone').parentElement).toHaveClass('relative', 'block', 'h-10', 'w-full');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-12', 'w-[calc(100%+1rem)]', 'grid', 'min-[768px]:grid-cols-2');
-    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('sticky', 'min-[768px]:static');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('mt-12', 'grid', 'md:grid-cols-2');
+    expect(screen.getByTestId('monitor-actions-grid')).toHaveClass('fixed', 'sm:static');
     expect(within(screen.getByTestId('monitor-actions-grid')).getByRole('button', {name: 'Cadastrar Monitor'}))
       .toHaveClass('w-full');
     expect(within(screen.getByTestId('monitor-fields-column')).queryByRole('button', {name: 'Cadastrar Monitor'}))
@@ -1208,7 +1208,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByRole('button', {name: 'Voltar às casas'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Duplicar'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Arquivar'})).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sticky', 'min-[768px]:static');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('fixed', 'sm:static');
     fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família com alteração'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
     expect(screen.getByTestId('field-dirty-indicator')).toHaveAttribute('title', 'Campo alterado: Nome da Família');
@@ -1254,12 +1254,12 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByTestId('static-map-wrapper').className).toContain('md:col-span-2');
     expect(screen.getByTestId('static-map-preview')).toBeVisible();
     expect(screen.queryByTestId('google-maps-embed')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'min-[768px]:grid-cols-2');
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('mt-12', 'w-[calc(100%+1rem)]');
-    expect(screen.getByTestId('site-actions-grid')).toHaveClass('min-[768px]:col-start-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('grid', 'gap-4', 'md:grid-cols-2');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('mt-12', 'sm:w-full');
+    expect(screen.getByTestId('site-actions-grid')).toHaveClass('sm:col-start-2');
     expect(screen.getByTestId('site-actions-grid').closest('section')).toBeNull();
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
-    expect(screen.getByTestId('site-actions-grid').firstElementChild).not.toHaveClass('min-[768px]:col-start-2');
+    expect(screen.getByTestId('site-actions-grid').firstElementChild).toHaveClass('md:col-start-2');
     expect(within(screen.getByTestId('site-actions-grid')).getByRole('button', {name: 'Salvar Configurações'}))
       .toHaveClass('w-full');
 
@@ -1568,7 +1568,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
     expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
-    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('sticky', 'min-[768px]:static');
+    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('fixed', 'sm:static');
     expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
     expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();
     expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();

@@ -92,7 +92,7 @@ export function ConstructionFormScreen({
   });
 
   return (
-    <form data-testid='construction-form' className='w-full min-w-0 space-y-6' onSubmit={submitForm} noValidate>
+    <form data-testid='construction-form' className='construction-management-form w-full min-w-0 space-y-6' onSubmit={submitForm} noValidate>
       <div data-testid='construction-form-grid' className='space-y-5'>
         <Controller
           control={form.control}
@@ -157,7 +157,7 @@ export function ConstructionFormScreen({
           <FormActionDock
             testId='construction-actions-grid'
             desktopPlacement='full'
-            className='min-[768px]:col-start-3'
+            className='md:col-start-3'
           >
             <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
               {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}

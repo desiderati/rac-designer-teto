@@ -22,3 +22,6 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
 
 - [UI-002-tabelas-largura-proporcional-colunas.md](UI-002-tabelas-largura-proporcional-colunas.md)
     - Define proporção de colunas em tabelas a partir do tamanho máximo dos campos exibidos.
+
+- [UI-003-acoes-responsivas-de-formularios.md](UI-003-acoes-responsivas-de-formularios.md)
+    - Define layout e posicionamento da ação principal nos quatro formulários do gerenciador.

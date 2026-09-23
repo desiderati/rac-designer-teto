@@ -3,7 +3,7 @@ import {render, screen} from '@testing-library/react';
 import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
 
 describe('FormActionDock', () => {
-  it('compensa a margem negativa no dock mobile e posiciona a ação na coluna direita no desktop', () => {
+  it('fixa a ação no mobile e a posiciona na coluna direita no desktop', () => {
     render(
       <FormActionDock testId='shared-actions' desktopPlacement='content-column'>
         <button type='submit'>Salvar</button>
@@ -12,14 +12,13 @@ describe('FormActionDock', () => {
 
     const dock = screen.getByTestId('shared-actions');
     expect(dock).toHaveClass(
-      'sticky',
+      'fixed',
       'bottom-0',
       'mt-12',
-      'w-[calc(100%+1rem)]',
-      'min-[768px]:static',
-      'min-[768px]:grid-cols-2',
+      'sm:static',
+      'md:grid-cols-2',
     );
-    expect(dock.firstElementChild).toHaveClass('min-[768px]:col-start-2');
+    expect(dock.firstElementChild).toHaveClass('md:col-start-2');
     expect(screen.getByRole('button', {name: 'Salvar'})).toBeVisible();
   });
 
@@ -42,6 +41,7 @@ describe('FormActionDock', () => {
       </FormActionDock>,
     );
 
-    expect(screen.getByTestId('house-actions')).toHaveClass('min-[768px]:col-start-2', 'min-[768px]:mt-0');
+    expect(screen.getByTestId('house-actions')).toHaveClass('sm:col-start-2', 'sm:mt-0');
+    expect(screen.getByTestId('house-actions').firstElementChild).toHaveClass('md:col-start-2');
   });
 });

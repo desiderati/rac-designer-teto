@@ -158,6 +158,17 @@ All colors MUST be HSL.
     min-width: 420px;
 }
 
+/* Leave scroll room for the fixed form action on full-screen mobile layouts. */
+.construction-management-form {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+    .construction-management-form {
+        padding-bottom: 0;
+    }
+}
+
 /* Pre-login RAC Designer composition. The product screenshot and house are
    served from Manus Storage so the repository does not carry large binaries. */
 .rac-login {

@@ -68,7 +68,7 @@ export function MonitorFormScreen({
   return (
     <form
       data-testid='monitor-form'
-      className='grid min-w-0 items-stretch gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
+      className='construction-management-form grid min-w-0 items-stretch gap-6 sm:grid-cols-[220px_minmax(0,1fr)]'
       onSubmit={submitForm}
       noValidate
     >
