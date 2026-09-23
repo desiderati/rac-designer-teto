@@ -82,11 +82,26 @@ jobs:
               message: {content: $content}
             }')
 
-          response=$(curl --fail-with-body --silent --show-error \
+          response_file=$(mktemp)
+          trap 'rm -f "$response_file"' EXIT
+          if ! http_status=$(curl --silent --show-error \
+            --output "$response_file" --write-out '%{http_code}' \
             -X POST "$MANUS_API_URL/v2/task.create" \
             -H "x-manus-api-key: $MANUS_API_KEY" \
             -H "Content-Type: application/json" \
-            --data "$payload")
+            --data "$payload"); then
+            echo "::error::Não foi possível conectar à API do Manus."
+            exit 1
+          fi
+
+          if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
+            error_code=$(jq -r '(.error.code // "não informado") | tostring | gsub("[^A-Za-z0-9_.-]"; "_") | .[0:120]' "$response_file" 2>/dev/null || echo "resposta_invalida")
+            request_id=$(jq -r '(.request_id // "não informado") | tostring | gsub("[^A-Za-z0-9_.-]"; "_") | .[0:120]' "$response_file" 2>/dev/null || echo "resposta_invalida")
+            echo "::error::Manus retornou HTTP $http_status; código: $error_code; request_id: $request_id."
+            exit 1
+          fi
+
+          response=$(cat "$response_file")
 
           echo "$response" | jq .
           task_id=$(echo "$response" | jq -er '.task_id // empty')
