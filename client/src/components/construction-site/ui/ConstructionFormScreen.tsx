@@ -157,7 +157,7 @@ export function ConstructionFormScreen({
           <FormActionDock
             testId='construction-actions-grid'
             desktopPlacement='full'
-            className='md:col-start-3'
+            className='sm:mt-4 md:col-start-3'
           >
             <PrimaryButton type='submit' className='w-full min-w-0 whitespace-nowrap' disabled={readOnly}>
               {mode === 'create' ? 'Criar Construção' : 'Salvar Construção'}

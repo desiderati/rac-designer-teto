@@ -39,7 +39,8 @@ coluna. No Mobile, a ação segue a mesma regra de rodapé dos demais formulári
 
 ## Espaçamento e rolagem
 
-- No Full e no Compact, a ação usa o mesmo espaçamento padrão após a última seção.
+- No Full e no Compact, a distância total entre o último campo ou seção e a ação é de 32 px,
+  incluindo o `gap` da grade e qualquer padding inferior da seção.
 
 - No Mobile, a área de ação respeita a área segura inferior do dispositivo.
 

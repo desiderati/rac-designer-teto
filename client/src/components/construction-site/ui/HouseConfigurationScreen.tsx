@@ -578,7 +578,7 @@ export function HouseConfigurationScreen({
           </div>
         </HouseFormSection>
       </Accordion>
-      <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='standard'>
+      <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='standard' className='sm:mt-2'>
         <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Configurações</PrimaryButton>
       </FormActionDock>
     </form>
@@ -648,7 +648,7 @@ export function HouseFormSection({
         <AccordionTrigger aria-label={`Alternar seção ${title}`} className='gap-3 py-3 hover:no-underline'>
           <FormSectionHeader number={number} title={title} dirty={dirty}/>
         </AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className={number === '06' ? 'pb-0' : undefined}>
           <div className='space-y-4'>{children}</div>
         </AccordionContent>
       </AccordionItem>
