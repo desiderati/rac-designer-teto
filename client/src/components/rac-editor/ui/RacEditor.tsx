@@ -14,6 +14,9 @@ import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/Ho
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {clearLoginLock, startLogin} from '@/const.ts';
 import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
+import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {useReportPwaUpdateSafety} from '@/components/pwa/PwaUpdateSafetyContext.ts';
+import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 
@@ -366,7 +369,21 @@ function RacEditorLoadingState() {
 
 function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
   const constructionSiteManagement = useConstructionSiteManagementController({});
+  const {status: syncStatus} = useRemoteSync();
+  const reportUpdateSafety = useReportPwaUpdateSafety();
+  const [documentSaveStatus, setDocumentSaveStatus] = useState<HouseDocumentSaveStatus>('saving');
+  const [hasUnsavedFormChanges, setHasUnsavedFormChanges] = useState(false);
   const [editorOpen, setEditorOpen] = useState(constructionSiteManagement.canOpenRacEditor);
+  const isEditorVisible = editorOpen && constructionSiteManagement.canOpenRacEditor;
+  const activeDocumentSaveStatus = isEditorVisible
+    ? documentSaveStatus
+    : constructionSiteManagement.documentSaveStatus;
+
+  useEffect(() => {
+    reportUpdateSafety({syncStatus, documentSaveStatus: activeDocumentSaveStatus, hasUnsavedFormChanges});
+  }, [activeDocumentSaveStatus, hasUnsavedFormChanges, reportUpdateSafety, syncStatus]);
+
+  useEffect(() => () => reportUpdateSafety(null), [reportUpdateSafety]);
   const openRacEditor = () => {
     if (!constructionSiteManagement.prepareRacEditorOpening()) return;
     setEditorOpen(true);
@@ -380,13 +397,14 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
 
   return (
     <>
-      {editorOpen && constructionSiteManagement.canOpenRacEditor ? (
-        <RacEditorContent onExit={onLogout}/>
+      {isEditorVisible ? (
+        <RacEditorContent onExit={onLogout} onDocumentSaveStatusChange={setDocumentSaveStatus}/>
       ) : (
         <div className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel
             {...constructionSiteManagement}
             onBackToCanvas={openRacEditor}
+            onUnsavedChangesChange={setHasUnsavedFormChanges}
           />
         </div>
       )}

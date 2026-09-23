@@ -134,6 +134,7 @@
     "typescript-eslint": "^8.38.0",
     "vite": "7.1.11",
     "vite-plugin-manus-runtime": "0.0.59",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^3.2.4"
   }
 }

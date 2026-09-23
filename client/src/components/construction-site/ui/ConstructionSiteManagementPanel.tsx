@@ -110,6 +110,7 @@ export interface ConstructionSiteManagementPanelProps {
   summaries: ConstructionSiteSummary[];
   canOpenRacEditor?: boolean;
   onBackToCanvas?: () => void;
+  onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void;
   actions: ConstructionSiteManagementActions;
   initialScreen?: ConstructionSiteManagementScreen;
 }
@@ -136,6 +137,7 @@ export function ConstructionSiteManagementPanel({
   summaries,
   canOpenRacEditor = false,
   onBackToCanvas,
+  onUnsavedChangesChange,
   actions,
   initialScreen,
 }: ConstructionSiteManagementPanelProps) {
@@ -180,6 +182,10 @@ export function ConstructionSiteManagementPanel({
   const [isDownloadingHouseRacPdfPreview, setIsDownloadingHouseRacPdfPreview] = useState(false);
   const hasUnsavedChangesRef = useRef(false);
   const dispatchedGuidedTourSegmentsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    onUnsavedChangesChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onUnsavedChangesChange]);
 
   const updateUnsavedChanges = useCallback((isDirty: boolean) => {
     hasUnsavedChangesRef.current = isDirty;
