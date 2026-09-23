@@ -28,6 +28,8 @@ function RemoteConflictDialog() {
 
   const local = conflict.localState.constructionSite;
   const remote = conflict.remoteState.constructionSite;
+  const hasMergeConflicts = conflict.conflicts.length > 0;
+  const remoteOnlySummary = summarizeRemoteOnlyEntities(conflict.remoteOnlyEntities);
 
   const resolve = async (action: () => Promise<void>) => {
     setIsResolving(true);
@@ -56,8 +58,28 @@ function RemoteConflictDialog() {
           <ConflictVersion label={`Versão do servidor · v${conflict.remoteVersion}`} state={remote} tone='amber'/>
         </div>
 
+        <div className={`rounded-lg px-3 py-2 text-xs leading-5 ${hasMergeConflicts ? 'bg-red-50 text-red-800' : 'bg-emerald-50 text-emerald-800'}`}>
+          <strong>{hasMergeConflicts ? 'Proteção contra perda:' : 'Merge seguro:'}</strong>{' '}
+          {hasMergeConflicts
+            ? 'não é seguro combinar automaticamente estas alterações. Nenhuma versão será substituída sem uma nova ação explícita.'
+            : 'as alterações independentes serão combinadas sem remover entidades criadas pela outra sessão.'}
+        </div>
+
+        {remoteOnlySummary && (
+          <div className='rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900'>
+            <strong>Atenção:</strong> {remoteOnlySummary}. Elas não serão apagadas pelo merge.
+          </div>
+        )}
+
+        {hasMergeConflicts && (
+          <div className='rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800'>
+            <p className='font-semibold'>Há alterações concorrentes no mesmo dado.</p>
+            <p className='mt-1'>Use a versão remota e reabra a Construção para reaplicar manualmente o que estava sendo editado.</p>
+          </div>
+        )}
+
         <div className='rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600'>
-          <strong className='text-slate-800'>Importante:</strong> manter suas alterações substituirá a versão do servidor. Usar a versão remota descartará apenas as alterações locais deste documento.
+          <strong className='text-slate-800'>Usar a versão remota</strong> preserva o que já está compartilhado e descarta apenas as alterações locais deste documento.
         </div>
 
         <ActionDock testId='remote-sync-conflict-actions' surface='dialog' spacing='flush'>
@@ -66,9 +88,9 @@ function RemoteConflictDialog() {
               <Server className='mr-2 h-4 w-4'/>
               Usar versão remota
             </Button>
-            <Button type='button' disabled={isResolving} onClick={() => void resolve(sync.keepLocalVersion)}>
+            <Button type='button' disabled={isResolving || hasMergeConflicts} onClick={() => void resolve(sync.keepLocalVersion)}>
               <Cloud className='mr-2 h-4 w-4'/>
-              Manter minhas alterações
+              Mesclar sem remover dados
             </Button>
           </div>
         </ActionDock>
@@ -94,6 +116,20 @@ function ConflictVersion({
       <p className='mt-1 text-xs text-slate-600'>Status: {formatStatus(state.status)}</p>
     </div>
   );
+}
+
+function summarizeRemoteOnlyEntities(entities: Array<{kind: string}>): string | null {
+  if (entities.length === 0) return null;
+  const counts = new Map<string, number>();
+  for (const entity of entities) counts.set(entity.kind, (counts.get(entity.kind) ?? 0) + 1);
+  const labels: Record<string, string> = {
+    houses: 'casas',
+    families: 'famílias',
+    monitors: 'monitores',
+    communities: 'comunidades',
+  };
+  const parts = [...counts.entries()].map(([kind, count]) => `${count} ${labels[kind] ?? kind}`);
+  return `a versão do servidor contém ${parts.join(', ')} que sua sessão ainda não tinha`;
 }
 
 function formatStatus(value: string): string {

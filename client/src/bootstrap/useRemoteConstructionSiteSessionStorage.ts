@@ -15,6 +15,7 @@ import {
   IndexedDbConstructionSiteRepositoryAdapter,
 } from '@/infra/persistence/indexed-db-construction-site-repository.adapter.ts';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
+import { mergeConstructionSiteStates } from '@/domain/construction-site/construction-site-conflict-merge.ts';
 import type {
   RemoteSyncConflict,
   RemoteSyncController,
@@ -149,9 +150,22 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     setSyncStatus('syncing');
     setErrorMessage(null);
     try {
+      const merged = mergeConstructionSiteStates(
+        conflict.baseState,
+        conflict.localState,
+        conflict.remoteState,
+      );
+      if (!merged.ok || !merged.state) {
+        setSyncStatus('conflict');
+        setErrorMessage('A resolução automática foi bloqueada porque existem alterações concorrentes no mesmo dado. Use a versão remota e reabra a Construção para reaplicar suas mudanças manualmente.');
+        return;
+      }
+
+      const mergedState = merged.state;
+      mergedState.constructionSite.documentVersion = conflict.remoteVersion;
       repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
-      await repository.save(conflict.localState);
-      storage.replace?.(replaceConstructionSite(storage.read().constructionSites, conflict.localState));
+      await repository.save(mergedState);
+      storage.replace?.(replaceConstructionSite(storage.read().constructionSites, mergedState));
       setRevision((value) => value + 1);
       setConflict(null);
       setSyncStatus('synced');
@@ -230,7 +244,9 @@ export async function persistReactiveConstructionSites(
         await repository.save(constructionSite);
       } catch (error) {
         if (!isConflictError(error)) throw error;
-        const remote = repository.load ? await loadConflictState(repository.load, constructionSite) : null;
+          const remote = repository.load
+            ? await loadConflictState(repository.load, constructionSite, previousById.get(constructionSite.constructionSite.id) ?? null)
+            : null;
         if (remote) {
           setConflict?.(remote);
           setStatus?.('conflict');
@@ -316,14 +332,19 @@ function replaceConstructionSite(list: ConstructionSiteState[], replacement: Con
 async function loadConflictState(
   load: (constructionSiteId: string) => Promise<ConstructionSiteState | null>,
   localState: ConstructionSiteState,
+  baseState: ConstructionSiteState | null,
 ): Promise<RemoteSyncConflict | null> {
   const remoteState = await load(localState.constructionSite.id);
   if (!remoteState) return null;
+  const merge = mergeConstructionSiteStates(baseState, localState, remoteState);
   return {
     constructionSiteId: localState.constructionSite.id,
+    baseState: baseState ? cloneConstructionSite(baseState) : null,
     localState: cloneConstructionSite(localState),
     remoteState: cloneConstructionSite(remoteState),
     remoteVersion: remoteState.constructionSite.documentVersion ?? 0,
+    conflicts: merge.conflicts,
+    remoteOnlyEntities: merge.remoteOnlyEntities,
   };
 }
 
