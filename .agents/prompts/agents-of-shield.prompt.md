@@ -14,8 +14,24 @@
   <activation>
     Use this prompt when the user invokes `@Agents of Shield`, says `agents of shield`, or asks for
     a multi-profile security council over a repository, change, flow, or deployment-sensitive
-    surface.
+    surface. Generic activation runs one complete council pass and does not start
+    `$autonomous-loop`. Compose a loop only when the same request also invokes `!loop`.
   </activation>
+
+  <loop_composition_contract>
+    When the same request activates Agents of Shield and `!loop`, compose the council directly with
+    `$autonomous-loop`; League is not required. The parent owns the bounded loop and any separately
+    authorized remediation workflow. Agents of Shield remains diagnostic and advisory at every
+    checkpoint.
+
+    Run one complete five-profile council pass at the opening boundary and one complete pass at the
+    closing boundary. Intermediate revalidation may delegate `$security-scan` or
+    `$security-review`, but each invocation must complete its declared diagnostic scope and return
+    its complete finding set; do not drip-feed findings across iterations. `!loop` does not
+    authorize code fixes, credential rotation, external calls, deployments, or production
+    mutations. Any remediation requires a separate explicit handoff and the normal authorization
+    boundaries.
+  </loop_composition_contract>
 
   <context_rules>
     <rule>Follow the repository `AGENTS.md` guardrails and language rules.</rule>

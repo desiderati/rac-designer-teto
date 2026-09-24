@@ -24,16 +24,16 @@ export type ActionDockProps = {
 
 const SURFACE_CLASSES: Record<ActionDockSurface, { mobile: string; desktop: string }> = {
   form: {
-    mobile: 'fixed inset-x-0 bottom-0 z-20 mt-12 grid min-w-0 gap-4 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
-    desktop: 'sm:static sm:mx-0 sm:w-full sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2',
+    mobile: 'fixed inset-x-0 bottom-0 z-20 mt-12 grid min-w-[420px] gap-4 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
+    desktop: 'sm:static sm:mx-0 sm:w-full sm:min-w-0 sm:bg-transparent sm:px-0 sm:py-0 md:grid-cols-2',
   },
   dialog: {
-    mobile: 'sticky bottom-0 z-20 -mx-6 mt-4 grid w-[calc(100%+3rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-6 py-3 backdrop-blur-sm',
-    desktop: 'sm:static sm:mx-0 sm:w-full sm:border-0 sm:bg-transparent sm:px-0 sm:py-0',
+    mobile: 'sticky bottom-0 z-20 -mx-6 mt-4 grid w-[calc(100%+3rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm',
+    desktop: 'min-[768px]:static min-[768px]:mx-0 min-[768px]:w-full min-[768px]:border-0 min-[768px]:bg-transparent min-[768px]:px-0 min-[768px]:py-0',
   },
   drawer: {
-    mobile: 'sticky bottom-0 z-20 -mx-4 mt-4 grid w-[calc(100%+2rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-4 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm',
-    desktop: 'sm:static sm:mx-0 sm:w-full sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none',
+    mobile: 'sticky bottom-0 z-20 -mx-4 mt-4 grid w-[calc(100%+2rem)] min-w-0 gap-3 border-t border-slate-200 bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm',
+    desktop: 'min-[768px]:static min-[768px]:mx-0 min-[768px]:w-full min-[768px]:border-0 min-[768px]:bg-transparent min-[768px]:px-0 min-[768px]:py-0 min-[768px]:shadow-none',
   },
 };
 

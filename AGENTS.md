@@ -1,66 +1,103 @@
 # AGENTS.md
 
-Installed from `agents-bootstrap` skill version `0.66.5-beta`.
+Installed from `agents-bootstrap` skill version `0.130.1-beta`.
 
 ## Context
 
-This repository uses a structured agent workflow to improve technical quality, reduce
-trial-and-error behavior, preserve continuity across sessions, and keep documentation aligned with
-the real system state.
+`.agents/` holds operational artifacts, `.codex/agents/` the role pack, and this file routes to
+`.agents/references/`.
 
-The `.agents/` directory is the repository-local operational workspace. It contains prompts,
-templates, examples, references, changelogs, work-items, and optional local diagnostic records.
+## Workspace Kind Resolution
 
-The `.codex/agents/` directory contains project-scoped Codex custom agents when the bootstrap
-installs the standard role pack.
+Before repository-scoped operations, resolve the workspace kind from the active workspace directory:
 
-This file is the kernel and router. Detailed workflow rules live under `.agents/references/` after
-bootstrap.
+1. Run `git rev-parse --show-toplevel`.
+
+2. If it succeeds, treat the returned path as the Git repository root, including linked worktrees
+   where `.git` is a file.
+
+3. If Git specifically reports that no work tree exists, inspect the active workspace root for at
+   least one independent child repository.
+
+4. Treat the workspace as an aggregator only when it contains at least one independent child
+   repository and already has both `AGENTS.md` and `.agents/`.
+
+5. If Git fails for any other reason, do not infer aggregator mode; report the failure and stop
+   repository-scoped operations.
+
+6. Never initialize aggregator-level agent scaffolding implicitly. Aggregator mode may only refresh
+   an existing installation.
+
+7. Never run repository-level Git operations from an aggregator root. Resolve commits, pushes,
+   stashes, branches, and bootstrap operations within the appropriate child repository.
+
+## Skill Development Contract
+
+- Resolve `sat.codex_skills_repo` via `codex-profile` to the canonical Git repository.
+- Use `skill-development-session` in a linked worktree; `.codex/skills` only as runtime.
+- Otherwise fail closed: never fall back silently to runtime. Require the `skill-validation` gate
+  and Ruff for changed Python.
 
 ## Mandatory Initial Reading
 
-Before non-trivial analysis, implementation, documentation updates, or knowledge consolidation:
-
-1. Read `README.md` if it exists.
-
-2. Read `SOUL.md` if it exists when interpreting repository agent philosophy, decision style,
-   orchestration norms, or communication posture. `AGENTS.md` remains the authoritative operational
-   contract.
-
-3. Read `CONTRIBUTING.md` if it exists.
-
-4. Read `OBSIDIAN.md` if it exists.
-
-5. Read relevant docs referenced from `OBSIDIAN.md`.
-
-6. Read `.agents/errors.md` if it exists; do not create it as a routine startup artifact.
-
-7. Read relevant `.agents/references/*.md` for the workflow branch in use.
-
-8. Read relevant recent changelogs, work-items, incident records, bug analyses, code reviews, or
-   refactoring records when they affect continuity.
-
-Do not operate in a documentation vacuum.
+Read `SEMANTIC-VERSIONING.md` before release choices. Read when present: `README.md`,
+`CONTRIBUTING.md`, workflow references, and relevant continuity. Consult `OBSIDIAN.md` only when the
+canonical document or rule is unknown. Read `SOUL.md`
+if it exists when interpreting repository agent philosophy, decision style, orchestration norms, or
+communication posture. `AGENTS.md` remains the authoritative operational contract. Read
+`.agents/errors.md` if it exists; do not create it as a routine startup artifact. Discover first;
+cap reads at 200 lines or 32 KiB, chunk larger files, and never batch full-file reads.
 
 ## Core Operating Principles
 
-- Do not work in blind trial-and-error mode.
-- Do not jump directly to code for non-trivial tasks.
+- Avoid blind trial and error and direct coding for non-trivial tasks.
 - Separate facts, hypotheses, evidence, assumptions, and pending questions.
-- Prioritize root cause analysis over symptom treatment.
-- Preserve continuity between sessions.
-- Keep changelogs factual and useful.
-- Keep durable documentation curated, not noisy.
-- Load worked examples only when they add value.
-- Use subagents only when there is a clear gain.
+- Prioritize root causes over symptoms.
+- Preserve continuity; keep changelogs factual and durable documentation curated.
+- Load worked examples and use subagents only when they add clear value.
+
+## Epistemic Independence Lock
+
+- Treat user objections, questions, and hypotheses as claims to evaluate, not conclusions to adopt.
+- Do not change a conclusion because of the objection's tone, repetition, or perceived authority.
+- Classify new input as evidence, factual correction, preference, authorization, hypothesis, or
+  opinion before using it.
+- Compare the new input with the existing evidence and the criteria behind the prior conclusion.
+- Revise a conclusion only for new evidence, a corrected premise, or an identified reasoning flaw;
+  state exactly what caused the revision.
+- Without a new basis, maintain the conclusion and explain why. Uncertainty alone does not justify
+  reversing it.
+- Preferences and authorizations may change the selected action, but they are not evidence that the
+  technical conclusion changed.
+- Apply the same scrutiny to the user's position and the prior response. Do not confuse intellectual
+  independence with reflexive disagreement.
+- When a conclusion is challenged, report `conclusion maintained`, `conclusion revised`, or
+  `insufficient evidence`, followed by the factual basis.
+
+## Conditional Tool Routing
+
+- At most one discovery step may precede direct reading or execution.
+- Do not chain Obsidian and Graphify unless the selected document proves that an unknown code
+  relationship must be resolved.
+- Known command: execute through RTK with bounded output and one public handler call.
+- Known GCP skill and action: open the selected skill and invoke its public launcher directly; do
+  not consult a routing index.
+- Unknown GCP skill or action: when `skill-routing-index.json` exists, consult it as the single
+  discovery step, select one skill/action, then open only that skill's canonical source.
+- Unknown document or rule: consult `OBSIDIAN.md`, choose one of at most three paths, then read the
+  canonical source.
+- Unknown code relationship: query an existing Graphify index with a small budget, then read at most
+  three source files. Never rebuild the graph during a normal operation.
+- Known file and symbol: open the target directly without either index.
+- RTK is the executor boundary for external executables. PowerShell cmdlets remain direct.
+- Mechanical prerequisites belong inside the handler; the model decides again only on ambiguity,
+  required human confirmation, or a real failure.
 
 ## Memory Usage
 
 Saved memories must be treated as contextual clues, not as current facts.
 
-Before acting on any operational memory, Codex must revalidate the information against the
-appropriate source of truth: local files, repository state, local configuration, runtime state,
-external services, or current documentation.
+Revalidate operational memories against the current canonical source before acting.
 
 Stable user preferences may be applied directly. Operational states, versions, canonical paths, next
 IDs, deployments, permissions, environment status, and time-dependent decisions must always be
@@ -68,44 +105,60 @@ revalidated before guiding execution or presenting conclusions.
 
 ## Execution Discipline
 
-- Before non-trivial implementation, make the objective, assumptions, and success evidence explicit
-  enough that the work can be checked.
+- State objective, assumptions, and success evidence before non-trivial implementation.
 
-- Do not choose silently between plausible interpretations when the ambiguity affects scope,
-  behavior, risk, data, or production safety.
+- Ask when ambiguity affects scope, behavior, risk, data, or production safety.
 
-- Prefer the smallest cohesive change that satisfies the current objective and preserves the local
-  code contract.
+- Prefer the smallest cohesive change that preserves the touched contract.
 
-- Do not introduce duplication, fragile shortcuts, or inconsistent local patterns merely to keep the
-  diff small.
+- Isolate broader refactors; close after objective and evidence checks.
 
-- Refactor within the implementation when it is necessary to keep the change coherent, avoid newly
-  introduced duplication, or preserve the touched code's contract.
+## Execution Efficiency
 
-- Split refactoring into a separate cycle when it broadens scope, touches unrelated behavior,
-  requires its own baseline or regression evidence, or would make review harder.
+Reuse valid evidence; justify repeats. Preserve gates.
+Details: `.agents/references/agents-roles.md`.
 
-- Do not close non-trivial work until the result has been checked against the stated objective and
-  the planned validation evidence.
+## Scope Checkpoint
+
+Track mission, total scope, trajectory, and one detour. Continue only for a deliverable, evidenced
+blocker, or `!sidequest`; otherwise recenter. Focus never contracts scope. Hook reminders are static
+and consultative: no blocking, persistence, tool-count inference, or state rehydration.
+
+## Operational Outcome Lock
+
+When an authorized operational outcome remains unresolved, finish it before hardening. A new command
+or package requires a scope-expansion checkpoint. Passing tests and code readiness do not replace
+validated state.
+
+## Scope Integrity Lock
+
+A focus subset never replaces the authorized multi-item universe unless explicitly narrowed. Before
+changes, reconcile total, focus, restriction source, and unresolved remainder; implicit contraction
+or expansion requires a checkpoint.
 
 ## Web Navigation and Testing
 
-When a task requires opening, navigating, testing, clicking, typing, inspecting, screenshotting, or
-verifying a web page or localhost app, first try to use the Codex Browser: the in-app Browser `iab`
-via the `browser:control-in-app-browser` skill.
+For web/local navigation, interaction, inspection, screenshots, or verification, first use the
+Codex Browser `iab` via the
+`browser:control-in-app-browser` skill. Use standalone Playwright only after a Browser attempt fails,
+lacks capability, or the user asks. If falling back, state why. Internal Playwright, such as
+`tab.playwright`, is allowed in `iab`.
 
-Do not use standalone Playwright as the first option.
+## Windows Shell Runtime
 
-Use standalone Playwright only when the Codex Browser is unavailable after a real load attempt, the
-task requires a capability the Codex Browser cannot provide, or the user explicitly asks for
-Playwright.
+On Windows, use `pwsh.exe -NoLogo -NoProfile -NonInteractive`; use `powershell.exe` only for 5.1 or
+when 7 is absent. RTK wraps executables, not cmdlets. With global enforcement, route executables via
+`rtk` (`rtk proxy` for raw output) and run cmdlets directly. Use `.ps1`/`-File`, never nested
+`pwsh -Command`; use `rg --glob`; collect `foreach` before pipes.
 
-Before falling back to standalone Playwright, briefly state that the Codex Browser was attempted and
-explain why the fallback is necessary.
-
-Using the Codex Browser's internal Playwright API, such as `tab.playwright`, is acceptable when it is
-used inside the Browser `iab`.
+Only a proven syntax or argument error with evidence that nothing executed permits a retry:
+correct the syntax once without asking, only if action, target, environment, effect, and
+authorization remain unchanged. If that attempt fails, stop and diagnose; do not retry again.
+A policy, security, or permission denial is not a syntax error. Never bypass such a refusal
+using another command, language, or API; stop the denied action and report the blocker.
+If the cause is inconclusive, restrict work to read-only diagnosis. If partial execution is
+possible, verify the resulting state in read-only mode before deciding whether any retry is safe
+and authorized. Never repeat blindly. The hook never edits/runs; this is not `!retry`.
 
 ## Interaction and Safety Guardrails
 
@@ -120,13 +173,12 @@ used inside the Browser `iab`.
   content, describe the exact intended change and why, then wait for explicit confirmation.
 
 - Do not send, post, publish, share, email, invite, schedule, deploy, migrate, or execute
-  irreversible or external state-changing actions unless the user explicitly confirms that exact
-  action in the current message.
+  irreversible or external state-changing actions unless the exact action is authorized in the
+  current message or by the narrow Jira/JSM route under Production Guardrails.
 
 - Deployments, pushes to environments, migrations, schema changes, external mutations, and commands
-  with irreversible side effects always require explicit in-session confirmation. User-requested
-  read-only inspection may proceed unless it touches sensitive data or an unrequested external
-  surface.
+  with irreversible side effects always require one of those authorization routes. User-requested
+  read-only inspection may proceed unless it touches sensitive data or an unrequested surface.
 
 - For architecture decisions, complex debugging, non-trivial features, or other long-term technical
   choices, work through the problem before implementation: identify uncertainty, compare trade-offs,
@@ -137,103 +189,9 @@ used inside the Browser `iab`.
 
 ## Chat Control Shortcuts
 
-The user may use compact `!` shortcuts to steer the current conversation. Treat them as explicit
-intent signals, not as permission to bypass repository, production, external-mutation, or
-irreversible-action guardrails.
+`!` shortcuts are scoped intent signals, never safety bypasses.
 
-- `!next-steps`: list the next steps, risks, and smallest useful action.
-
-- `!status`: summarize current state, progress, blockers, and pending items.
-
-- `!usage`: use `$codex-usage` when available to report current session tokens, models, and
-  estimated cost. Prefer visible hook session IDs, then `session_index.jsonl`/`payload.id`, then
-  explicit fallback assumptions; ask for a session ID when the current session cannot be identified.
-
-- `!hooks`: inspect and summarize hooks configured for the current project and hooks visibly active
-  in this session. Distinguish configured hooks from observed session signals; do not mutate hook
-  configuration.
-
-- `!summary`: summarize what has been said since the start of the session using the available
-  transcript and any explicit compaction summary. If earlier content is unavailable, state that
-  limit instead of inventing details.
-
-- `!time`: report elapsed session time using `codex-resolution-time` when available. Do not claim
-  the final current-turn duration before the `Stop` hook runs; if no timer signal is available, say
-  so. If the hook exposes sanitized session correlation metadata, it may be reused to identify the
-  current chat for `!usage`.
-
-- `!explain`: briefly state whether you understood the user's last instruction and how you would
-  proceed to solve it. This is not a plan and does not authorize execution.
-
-- `!continue`: accept the proposed approach and continue within the stated local scope.
-
-- `!confirm`: authorize the exact action most recently proposed by Codex in the current
-  conversation.
-
-- `!authorized`: same meaning as `!confirm`; use this alias only for the exact action most recently
-  proposed by Codex in the current conversation.
-
-- `!bootstrap-check`: run a dry-run of the default `agents-bootstrap` bundle in the current
-  repository with `--with-rtk`, `--with-resolution-time`, `--with-self-improvement`, and
-  `--with-graphify`; do not include `--with-graphify-hooks` or `--force`.
-
-- `!bootstrap`: run the same default `agents-bootstrap` bundle in the current repository without
-  `--dry-run`, preserving existing files. Do not add `--force` or `--with-graphify-hooks`; clarify
-  ambiguous or external targets. Because this includes `--with-rtk`, it may verify or install RTK
-  and initialize global Codex configuration under `~/.codex/`.
-
-- `!verify`: run or describe the relevant verification before closing the task. Use
-  `.agents/prompts/verification.prompt.md` when available and the verification is non-trivial or
-  drift is plausible.
-
-- `!test`: run the appropriate local tests or checks for the current scope. Use
-  `.agents/prompts/test-driven.prompt.md` only when the user wants test scenarios, behavior, or
-  strategy specified before implementation.
-
-- `!review`: review the current state in code-review posture. Use the local code-review workflow or
-  `code-reviewer` custom agent when available and coordination adds value.
-
-- `!changelog`: record the material work in the operational changelog. Use
-  `.agents/prompts/changelog.prompt.md` when available.
-
-- `!suggest`: suggest one grounded improvement, next action, or workflow refinement for the current
-  context. Do not implement it unless the user explicitly agrees.
-
-- `!example`: provide one concrete, realistic example for the proposal, suggestion, or approach
-  Codex just made. This is illustrative only and does not authorize execution.
-
-- `!retry` or `!again`: retry the last failed or blocked action after stating what failed and what
-  will change, or why the failure is likely transient. Do not repeat the same failing action
-  blindly; if the action touches external, production, destructive, irreversible, or remote state,
-  all normal confirmation guardrails still apply.
-
-- `!loop`: route to `$autonomous-loop` when available, only for bounded iterative work with clear
-  workflow, target, iteration budget, stop criteria, and safety policy; otherwise default to
-  planning or help.
-
-- `!handoff`: prepare a continuity summary for later resumption.
-
-- `!help`: provide human-facing help. Without an explicit skill, agent, or workflow, summarize
-  accepted shortcuts and help entrypoints. With an explicit skill, explain usage, inputs, expected
-  checks/actions, and authorization boundaries. Do not execute the skill.
-
-- `!pause`: stop with current state, pending items, and the next action made explicit.
-
-- `!commit`: authorize creation of a local commit for the current scoped changes according to the
-  repository convention. If changed files, staging scope, or message intent are ambiguous, stop and
-  ask for clarification.
-
-- `!pr`: prepare or create a pull request only when repository, branch, target, and readiness are
-  unambiguous.
-
-- `!deploy`: authorize deployment to Production by default.
-
-- `!deploy dev`, `!deploy qas`, `!deploy hml`, or `!deploy prod`: authorize deployment to the named
-  environment; `prod` is equivalent to the default `!deploy`.
-
-`!deploy` only applies to the concrete deploy candidate already identified in the current
-conversation. If environment, target, release, branch, artifact, repository, expected action, or
-production impact is ambiguous, stop and ask for clarification instead of deploying.
+Before interpreting or executing any shortcut, read `.agents/references/agents-shortcuts.md`.
 
 ## Git Branch Discipline
 
@@ -247,6 +205,10 @@ commits unless the user deliberately asks for a different branch strategy.
 
 If the branch target or intent is ambiguous, stop and ask for clarification before running branch,
 checkout, worktree, merge, rebase, cherry-pick, pull, or PR-preparation commands.
+
+SAT EAM direct `master`: only `.agents/**`, `.codex/**`, and manifest paths via
+`agents-bootstrap-repo-installer`; require DEVOPS HTTPS, isolated credentials, `[skip ci]`,
+non-force; exclude app/infra.
 
 ## Git Freshness Guardrail
 
@@ -297,16 +259,24 @@ narrow `$bitbucket-pull-request` scripted exception above.
   diagnosis, planning, `security-scan`/`security-review`, and documentation until the exact next
   action is classified.
 
-- `Prod/state-changing` requires literal current-session authorization naming the action, target,
-  environment, expected mutation, validation evidence, and rollback or stop condition.
+- `Prod/state-changing` requires literal current-session authorization naming the action,
+  target, environment, mutation, validation, and rollback or stop condition. As a narrow
+  alternative, a governed skill may consume fresh Jira/JSM approval only when it declares Jira as
+  its source and binds approval id, aggregate decision, completion, issue id/revision, request type,
+  full scope, mutation, validation, and rollback or stop condition.
+
+- The Jira/JSM route requires aggregate `finalDecision=approved` on the exact stage. Treat status,
+  Activity, transition timing, actor correlation, and individual votes only as supporting evidence.
+  Re-read the request and approval immediately before the first
+  mutation; missing, pending, declined, malformed, ambiguous, or drifted evidence fails closed.
 
 - Treat any GCP resource carrying the tag `Prod` as production-critical.
 
 - No state-changing action may be executed against a `Prod`-tagged resource without explicit user
-  confirmation in the current session.
+  confirmation in the current session or the exact governed Jira/JSM authorization route above.
 
-- Until explicit confirmation is granted, restrict work to read-only inspection, diagnosis,
-  planning, and documentation.
+- Until one of the allowed authorization routes is proven, restrict work to read-only inspection,
+  diagnosis, planning, and documentation.
 
 - When there is uncertainty about whether a target is production-critical, stop and request
   confirmation instead of assuming the change is safe.
@@ -321,6 +291,11 @@ narrow `$bitbucket-pull-request` scripted exception above.
 - Production change records and the final `Production audit:` section must use sanitized evidence
   only. Never include complete secrets, tokens, cookies, private keys, sensitive personal data,
   intact financial payloads, or raw logs containing credentials.
+
+- Preserve operational identity only when it is the minimum evidence needed to audit grant,
+  revocation, authorization, or execution. Prefer an immutable principal, ticket, or equivalent
+  reference; use a name or email only when no equivalent traceability exists and omit additional
+  personal attributes.
 
 - In the same final chat response, include a concise `Production audit:` section. Each bullet must
   be written in the final response language and capture the executed action, affected target, and
@@ -338,6 +313,9 @@ Use these references as the authoritative detailed contracts:
 
 - `.agents/references/prompt-routing.md`
   - prompt fitness, ambiguity rules, phrase routing, and chaining rules.
+
+- `.agents/references/code-review-routing.md`
+  - code-review modes, scope, shadow, and delegation.
 
 - `.agents/references/local-continuity.md`
   - `.agents/` structure, work-items, skips, deviations, and changelog rules.
@@ -392,8 +370,8 @@ Use these references as the authoritative detailed contracts:
     - `council of agents`
     - direct invocation through `@Council of Agents`
 
-- Use `.agents/prompts/agents-of-shield.prompt.md` when the user explicitly invokes
-  `@Agents of Shield` or asks for the `agents of shield` security council.
+- Use `.agents/prompts/agents-of-shield.prompt.md` when the user explicitly invokes `@Agents of
+  Shield` or asks for the `agents of shield` security council.
 
 - Use `.agents/prompts/fellowship-of-architects.prompt.md` when the user explicitly invokes
   `@Fellowship of Architects` or asks for the `fellowship of architects` architecture council.
@@ -414,17 +392,22 @@ Use these references as the authoritative detailed contracts:
 
 ## Custom Agent Roles
 
-When `.codex/agents/*.toml` exists, use `.agents/references/agents-roles.md` before delegating work
-to role-specific subagents.
+Before custom-agent delegation, read `.agents/references/agents-roles.md`; for review intent, read
+`.agents/references/code-review-routing.md`. Agents require explicit intent or router selection.
 
-Installed custom agents are not automatic triggers. Use them only when subagent decomposition has
-clear value and the parent agent can consolidate the results.
+Direct `@Brainstorm` loads `.agents/prompts/brainstorm.prompt.md` and
+`.agents/references/brainstorm.md`; it accepts only an unclear idea, requirement, or solution and
+hands off first to `product-owner` or `solutions-architect`. Clear incidents and clear
+maintenance/refactoring in unknown code bypass it to `support-analyst` and `code-explorer`;
+Brainstorm only reclassifies those cases. It authorizes orchestration, not writing, councils,
+implementation, Git, deploy, or external mutation.
 
 Treat these user phrases as explicit authorization to evaluate custom-agent delegation for the
 current task:
 
 - `league of agents`
 - direct invocation through the project-scoped `@League of Agents` custom agent
+- `!auto-review`
 
 When one of those phrases appears, read `.agents/prompts/league-of-agents.prompt.md`,
 `.agents/references/agents-usage.md`, and `.agents/references/agents-roles.md`, then decide whether
@@ -434,19 +417,12 @@ Treat these user phrases as explicit authorization to evaluate Council of Agents
 decision:
 
 - `council this`
-
 - `pressure test this`
-
 - `stress test this`
-
 - `war room this`
-
 - `premortem this`
-
 - `debate this`
-
 - `council of agents`
-
 - direct invocation through the project-scoped `@Council of Agents` custom agent
 
 When one of those phrases appears, read `.agents/prompts/council-of-agents.prompt.md`,
@@ -457,7 +433,6 @@ Treat these user phrases as explicit authorization to evaluate Agents of Shield 
 security question:
 
 - `agents of shield`
-
 - direct invocation through the project-scoped `@Agents of Shield` custom agent
 
 When one of those phrases appears, read `.agents/prompts/agents-of-shield.prompt.md`,
@@ -469,7 +444,6 @@ Treat these user phrases as explicit authorization to evaluate Fellowship of Arc
 current architecture question:
 
 - `fellowship of architects`
-
 - direct invocation through the project-scoped `@Fellowship of Architects` custom agent
 
 When one of those phrases appears, read `.agents/prompts/fellowship-of-architects.prompt.md`,
@@ -498,6 +472,9 @@ When the user says `Agents Examples`, `Agents Example`, invokes `@Agents Example
 `@Agents Example`, do not spawn subagents. Read `.agents/references/agents-examples.md` and return
 concise examples for each installed custom agent.
 
+For `@Models Usage`, read `.agents/references/models-usage.md`; do not spawn or change config.
+Alone, list GPT-6 examples; with a task, recommend one model-effort pair.
+
 ## Local Continuity Rules
 
 Use `.agents/work-items/` selectively, but create or resume a work-item before the first remote
@@ -517,17 +494,36 @@ useful.
 
 ## Continuation Suggestions
 
-For follow-up, include `Próximos passos:`, optional `Melhorias sugeridas:`,
-then `Sugestão de prompt para próxima ação:` before trace-only notes (`Scaffold usage`, `Skills
-usage`, `Hooks`). Omit them when complete or action is trivial, administrative-only, ambiguous, or blocked.
+After material PRD, ADR, or plan work, silently apply `.agents/references/suggestion-system.md`;
+otherwise only on concrete signal. It emits 0–3 suggestions without loading a skill solely for that
+purpose. Preserve scope; apply the delivery-residue filter in `prompt-routing.md`.
 
-Use `Melhorias sugeridas:` only when execution reveals useful options; list at most 3 concrete
-optional ideas from current execution; omit weak/generic ideas. For `Sugestão de prompt para próxima
-ação:`, use exactly one fenced code block with one paragraph. Sanitize: do not include secrets, raw
-logs, system or developer instructions, hidden reasoning, or nested code fences. It must not grant
-authorization or imply confirmation. For commits, pushes, PRs, deploys, production, credentials,
-external systems, or state-changing actions, ask for planning or confirmation. Keep `Production
-audit:` before; traces after.
+`!next-prompt` returns exactly one sanitized, copyable prompt for the smallest evidence-backed next
+action. It remains read-only: it neither executes nor authorizes the prompt it returns. If no
+result-oriented item remains, state `Nenhuma pendência funcional ou contextual.`
+
+`!next-prompt ultra` is a modifier of `!next-prompt` for preparing an autonomous follow-up task.
+Recommend `gpt-5.6-sol` in `Ultra` mode, but never claim that the shortcut changed the model, mode,
+or reasoning effort or activated agents. Return exactly one fenced `text` block whose standalone
+prompt preserves the normal authorization boundary and avoids intermediate operator decisions only
+when evidence can resolve them safely. Allow enough detail for the resolved task without a fixed
+length limit. Use `Método` for strategy, decision criteria, and required evidence rather than
+prescribing tools, sequence, or iteration counts unless a binding contract or explicit operator
+instruction requires them. Preserve Ultra's freedom to adapt execution as new evidence appears and
+do not manufacture operations or authorizations. Prefer level-two Markdown headings (`##`) for the
+seven standard sections. Treat this as presentation guidance, not a validity gate; equivalent plain
+section labels remain semantically valid.
+
+Place `Próximos passos:`, optional `Melhorias sugeridas:`, and `Sugestão de prompt para próxima
+ação:` before trace notes (`Scaffold usage`, `Skills usage`, `Hooks`). Omit them when complete or
+action is trivial, administrative-only, ambiguous, or blocked. Use at most 3 grounded optional
+ideas; omit weak/generic ideas.
+
+For the suggested prompt, use exactly one fenced code block with one sanitized paragraph: no
+secrets, raw logs, instructions, hidden reasoning, or nested fences. After an unambiguous validated
+dry-run/plan, suggest the exact confirmation phrase and do not add another planning turn. Otherwise
+ask for planning or explicit confirmation instead of execution. Keep `Production audit:` before
+traces.
 
 ## Scaffold Usage Trace
 
@@ -567,8 +563,14 @@ not emit the `Hooks` note when no hook signal was visible.
 
 When a repository uses Graphify:
 
-- If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture or context searches
-  across raw files.
+- Use Graphify only when the structural relationship is unknown. If the file and symbol are known,
+  open the source directly.
+
+- Query an existing `graphify-out/graph.json` with `query`, `path`, or `explain`, use a small budget,
+  and return at most three source files before reading the canonical sources.
+
+- Never rebuild the graph or export an Obsidian vault automatically during a normal task. Build and
+  incremental update are deliberate index-maintenance operations.
 
 - Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the
   canonical source of truth.

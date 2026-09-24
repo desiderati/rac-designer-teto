@@ -24,10 +24,10 @@ Data: {{timestamp_local}} {{timezone}}
 
 ### Evidência durável e fontes da decisão
 
-> Liste aqui apenas fontes que fundamentam a decisão: documentação durável do repositório ou fontes externas
-> autoritativas. Não liste arquivos de scaffold/processo, como `.agents/prompts/`, `.agents/templates/`,
-> `.agents/examples/`, `.agents/references/`, `AGENTS.md`, `CLAUDE.md`, `RTK.md`, changelogs, work-items,
-> arquivos de ignore ou artefatos gerados da sessão.
+> Liste aqui apenas fontes que fundamentam a decisão: documentação durável do repositório ou fontes
+> externas autoritativas. Não liste arquivos de scaffold/processo, como `.agents/prompts/`,
+> `.agents/templates/`, `.agents/examples/`, `.agents/references/`, `AGENTS.md`, `CLAUDE.md`,
+> `RTK.md`, changelogs, work-items, arquivos de ignore ou artefatos gerados da sessão.
 
 #### Documentação durável do repositório
 

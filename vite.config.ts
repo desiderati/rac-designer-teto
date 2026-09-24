@@ -1,16 +1,49 @@
 import { defineConfig } from 'vite';
 import path from 'node:path';
 import react from '@vitejs/plugin-react-swc';
+import { VitePWA } from 'vite-plugin-pwa';
 import { vitePluginManusRuntime } from 'vite-plugin-manus-runtime';
 
 const projectRoot = import.meta.dirname;
 const appVersion = process.env.VITE_APP_VERSION ?? '5.1.1';
 const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? new Date().toISOString();
 
-export default defineConfig({
+export default defineConfig(({command, mode}) => {
+  if (mode === 'isolated' && command !== 'serve') {
+    throw new Error('O perfil isolado é exclusivo do servidor de desenvolvimento.');
+  }
+  return ({
   root: path.resolve(projectRoot, 'client'),
   publicDir: path.resolve(projectRoot, 'client', 'public'),
-  plugins: [react(), vitePluginManusRuntime()],
+  plugins: [
+    react(),
+    ...(mode === 'isolated' ? [] : [vitePluginManusRuntime()]),
+    VitePWA({
+      registerType: 'prompt',
+      includeAssets: ['apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png', 'pwa-maskable-512.png'],
+      manifest: {
+        id: '/',
+        name: 'RAC Designer TETO',
+        short_name: 'RAC TETO',
+        description: 'Editor de plantas de casas para a ONG TETO.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        background_color: '#eaf1f7',
+        theme_color: '#123d72',
+        icons: [
+          {src: '/pwa-192.png', sizes: '192x192', type: 'image/png'},
+          {src: '/pwa-512.png', sizes: '512x512', type: 'image/png'},
+          {src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable'},
+        ],
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/manus-storage\//, /^\/__manus__\//],
+      },
+    }),
+  ],
   envDir: projectRoot,
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
@@ -47,4 +80,5 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['../e2e/**', '**/node_modules/**', '**/dist/**'],
   },
+  });
 });

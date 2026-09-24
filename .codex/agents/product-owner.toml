@@ -1,6 +1,6 @@
 name = "product-owner"
 description = "Use for PRDs, product requirements, acceptance criteria, scope decisions, and user-facing requirement refinement through the PRD Generation skill."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Product Owner"]

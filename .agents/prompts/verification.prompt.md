@@ -62,10 +62,15 @@
   <when_to_use>
     Use this prompt when:
       - a non-trivial implementation has been completed and the next step is documentation
+
       - the change involved multiple steps, files, or components where drift is plausible
+
       - a refactor carries risk of silent deviation between plan and result
+
       - a bug fix passed tests but "passing tests" alone does not prove the root cause was resolved
-      - the implementation was delegated to a coding agent and the output needs human-equivalent review
+
+      - the implementation was delegated to a coding agent and the output needs human-equivalent
+        review
 
     Do NOT use this prompt when:
       - the change is trivial and local (one file, obvious outcome)
@@ -132,44 +137,59 @@
 
     1. Gather upstream artifacts: objective, design decision, implementation plan, test specs, and
        the active work-item if one exists
+
     2. Inspect the actual implementation: changed files, new code, configuration, infrastructure
+
     3. Compare objective vs. result:
        - Does the implementation achieve the stated goal?
        - Is there anything the objective required that is missing?
+
     4. Compare design contract vs. result (if design exists):
        - Was the chosen approach followed?
        - Were architectural constraints respected?
        - Were out-of-scope boundaries honored (nothing added beyond what was designed)?
+
     5. Compare plan vs. result (if plan exists):
        - Were the planned steps executed?
        - Were any steps skipped or added?
        - Is the execution order consistent with the plan?
+
     6. Compare test specs vs. result (if specs exist):
        - Were the specified tests implemented?
        - Is there existing evidence that the implemented tests are passing?
        - Are there behavioral contracts that are not covered?
+
     7. Identify deviations:
        - Classify each deviation as decided (justified, documented) or silent (unjustified)
        - For silent deviations: assess whether they introduce risk
+
     8. Identify probable regressions:
        - Based on the change surface, what existing behavior is most likely to break?
        - Was this checked?
+
     9. Check implementation discipline:
        - Did the implementation use the smallest cohesive change that satisfies the objective?
        - Did it avoid new duplication, fragile shortcuts, and inconsistent local patterns?
        - Was any in-cycle refactoring necessary and bounded?
+
     10. Produce the verdict:
        - cite the strongest evidence that sustains it
        - state the main limitation when evidence is incomplete
 
     Before finalizing, challenge your own verification:
       - Am I judging against the actual upstream artifacts, or against my own expectation?
+
       - Am I penalizing something that was explicitly out of scope?
+
       - Am I crediting "tests pass" as sufficient when the objective requires broader validation?
+
       - Am I treating "the implementation matches the plan" as equivalent to "the implementation
         is correct"? These are different claims — a plan can be followed precisely while still
         failing to solve the original problem.
-      - Did I mistake a small diff for a coherent implementation, ignoring duplication or local inconsistency?
+
+      - Did I mistake a small diff for a coherent implementation, ignoring duplication or local
+        inconsistency?
+
       - Is there a failure mode I have not checked?
   </process>
 
@@ -239,12 +259,16 @@
     Escolher um:
       - **pass** — implementação satisfaz objetivo, design, plano e testes. Prosseguir
         para changelog.
+
       - **partial** — implementação satisfaz o objetivo principal mas tem desvios ou gaps
         que devem ser registrados. Prosseguir para changelog com ressalvas documentadas.
+
       - **fail** — implementação não satisfaz o objetivo, o design, ou tem desvios silenciosos
         de alto impacto. Retornar para execução com a lista de correções necessárias.
     Citar explicitamente:
+
       - as evidências principais que sustentam o veredito
+
       - a principal limitação remanescente, se houver
 
     ## 7. Próximo Passo

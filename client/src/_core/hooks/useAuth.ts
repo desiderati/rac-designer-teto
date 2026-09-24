@@ -1,14 +1,13 @@
-import { clearLoginLock, startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
-import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+import { clearLoginLock, startLogin } from '@/const';
+import { trpc } from '@/lib/trpc';
+import { TRPCClientError } from '@trpc/client';
+import { useCallback, useEffect, useMemo } from 'react';
+import {isLocalEditorMode} from '@/shared/local-runtime.ts';
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
   redirectPath?: string;
 };
-
-const isLocalE2eMode = import.meta.env.VITE_E2E === "true";
 
 export function useAuth(options?: UseAuthOptions) {
   // Login is started via startLogin() in the effect below, only when we actually
@@ -19,7 +18,7 @@ export function useAuth(options?: UseAuthOptions) {
   const utils = trpc.useUtils();
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    enabled: !isLocalE2eMode,
+    enabled: !isLocalEditorMode,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -36,7 +35,7 @@ export function useAuth(options?: UseAuthOptions) {
     } catch (error: unknown) {
       if (
         error instanceof TRPCClientError &&
-        error.data?.code === "UNAUTHORIZED"
+        error.data?.code === 'UNAUTHORIZED'
       ) {
         return;
       }
@@ -47,8 +46,10 @@ export function useAuth(options?: UseAuthOptions) {
       // header-based sessions (Safari ITP / WebView) are logged out too. The
       // backend cookie is cleared by the logout mutation.
       try {
-        sessionStorage.removeItem("manus-cookie");
-      } catch {}
+        sessionStorage.removeItem('manus-cookie');
+      } catch {
+        // O encerramento da sessão continua quando sessionStorage está indisponível.
+      }
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
     }
@@ -57,7 +58,7 @@ export function useAuth(options?: UseAuthOptions) {
   const state = useMemo(() => {
     try {
       window.localStorage?.setItem(
-        "manus-runtime-user-info",
+        'manus-runtime-user-info',
         JSON.stringify(meQuery.data)
       );
     } catch {
@@ -82,11 +83,11 @@ export function useAuth(options?: UseAuthOptions) {
   }, [state.user]);
 
   useEffect(() => {
-    if (!redirectOnUnauthenticated) return;
+    if (isLocalEditorMode || !redirectOnUnauthenticated) return;
     if (meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
-    if (typeof window === "undefined") return;
-    if (new URLSearchParams(window.location.search).has("oauthError")) return;
+    if (typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).has('oauthError')) return;
     if (redirectPath && window.location.pathname === redirectPath) return;
 
     // Navigate at this moment only. startLogin() mints the nonce + cookie itself.

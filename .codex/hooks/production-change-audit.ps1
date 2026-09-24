@@ -1,3 +1,6 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', 'Event', Justification = 'Event is the existing public hook parameter; renaming it would break callers.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'payload', Justification = 'Consume stdin for hook protocol compatibility even when its values are not used.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Scope = 'Function', Target = 'Resolve-RepositoryRoot', Justification = 'A failed Git-root probe deliberately falls through to the existing local heuristic.')]
 param(
     [string]$Event = "UserPromptSubmit"
 )
@@ -62,8 +65,8 @@ function Resolve-RepositoryRoot {
 
 if ($Event -ne "UserPromptSubmit") {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
@@ -71,16 +74,16 @@ $payload = Read-HookPayload
 $repositoryRoot = Resolve-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($repositoryRoot)) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
 $templatePath = Join-Path $repositoryRoot ".agents/templates/production-changes.template.md"
 if (-not (Test-Path -LiteralPath $templatePath)) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
@@ -99,9 +102,9 @@ $additionalContext = @(
 ) -join ([Environment]::NewLine + [Environment]::NewLine)
 
 Write-HookResult -Result ([pscustomobject]@{
-    continue = $true
-    hookSpecificOutput = [pscustomobject]@{
-        hookEventName = "UserPromptSubmit"
-        additionalContext = $additionalContext
-    }
-})
+        continue           = $true
+        hookSpecificOutput = [pscustomobject]@{
+            hookEventName     = "UserPromptSubmit"
+            additionalContext = $additionalContext
+        }
+    })

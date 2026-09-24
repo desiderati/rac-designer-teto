@@ -1,7 +1,7 @@
 name = "documentation-reviewer"
 description = "Use for read-only README and documentation review through the documentation skill."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
+model = "gpt-6-sol"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 nickname_candidates = ["Documentation Reviewer"]
 

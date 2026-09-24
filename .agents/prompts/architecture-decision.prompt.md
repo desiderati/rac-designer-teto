@@ -18,19 +18,31 @@
   <context_rules>
     Before deciding:
       - read `README.md`, `OBSIDIAN.md` when present, and relevant docs under `docs/`
+
       - scan `docs/architecture-decisions/` for existing ADRs on the same or adjacent topic
-      - read relevant changelog, solution-design, refactoring, code-review, incident, or bug-analysis artifacts
-      - use `graphify-out/GRAPH_REPORT.md` as a derived navigation aid when it exists, not as canonical truth
-      - use `.agents/templates/architecture-decision.template.md` as the local ADR shape when available
+
+      - read relevant changelog, solution-design, refactoring, code-review, incident, or
+        bug-analysis artifacts
+
+      - use `graphify-out/GRAPH_REPORT.md` as a derived navigation aid when it exists, not as
+        canonical truth
+
+      - use `.agents/templates/architecture-decision.template.md` as the local ADR shape when
+        available
   </context_rules>
 
   <when_to_use>
     Use this prompt when:
       - the user explicitly asks to record, create, update, or review an ADR
+
       - a solution-design decision has future architectural value
-      - a refactoring, incident, code review, or bug analysis surfaced a durable architectural decision
+
+      - a refactoring, incident, code review, or bug analysis surfaced a durable architectural
+        decision
+
       - the team chose between significant alternatives such as architecture pattern, persistence, integration,
         infrastructure, API shape, security approach, testing strategy, or repository governance
+
       - the user asks why an architectural choice was made and ADRs may already exist
 
     Do NOT use this prompt when:
@@ -73,11 +85,17 @@
   <local_contract>
     Standard SAT repositories use:
       - ADR directory: `docs/architecture-decisions/`
+
       - ADR naming: ADR-NNN-{slug}.md
+
       - ADR template: `.agents/templates/architecture-decision.template.md`
+
       - status values: `proposed`, `accepted`, `deprecated`, `superseded`
+
       - architecture decision validator: `.agents/scripts/validate_architecture_decisions.py`
-      - fallback validator: `documentation/scripts/validate_architecture_decisions.py` when the repo-local validator is absent
+
+      - fallback validator: `documentation/scripts/documentation_validate_architecture_decisions.py`
+        when the repo-local validator is absent
 
     Materialize `docs/architecture-decisions/` only when creating the first ADR.
     If local docs define a stricter ADR convention, follow the local convention.
@@ -96,16 +114,26 @@
   <process>
     Follow this sequence:
       1. Identify the decision mode: `prévio`, `promocional`, or `consulta`.
+
       2. Restate the architectural decision candidate in one sentence.
+
       3. Scan existing ADRs and adjacent docs for overlap.
+
       4. Decide the outcome: `não criar ADR`, `criar ADR proposto`, `criar ADR aceito`, `atualizar ADR existente`,
          or `consultar ADR existente`.
+
       5. If creating a new ADR, assign the next `ADR-NNN` by scanning existing files.
+
       6. Populate the local ADR template with context, decision, alternatives, consequences, MVP scope,
          related artifacts, deferred evolutions, review conditions, and references.
-      7. Update `OBSIDIAN.md` only with a localized index link when the repository uses it as the knowledge-base index.
+
+      7. Update `OBSIDIAN.md` only with a localized index link when the repository uses it as the
+         knowledge-base index.
+
       8. Record the documentation work in the changelog when repository policy requires it.
-      9. Validate path-like claims and ADR structure when validators exist, preferring the repo-local ADR validator.
+
+      9. Validate path-like claims and ADR structure when validators exist, preferring the
+         repo-local ADR validator.
   </process>
 
   <output_format>
@@ -115,7 +143,10 @@
 
     ## 1. Classificação
     - modo: `prévio | promocional | consulta`
-    - veredito: `não criar ADR | criar ADR proposto | criar ADR aceito | atualizar ADR existente | consultar ADR existente`
+
+    - veredito: `não criar ADR | criar ADR proposto | criar ADR aceito | atualizar ADR existente |
+      consultar ADR existente`
+
     - justificativa:
 
     ## 2. Evidências Consultadas

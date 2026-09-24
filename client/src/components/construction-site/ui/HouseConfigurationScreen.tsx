@@ -491,7 +491,8 @@ export function HouseConfigurationScreen({
                     label={option.label}
                     description={option.description}
                     checked={(field.value ?? []).includes(option.value)}
-                    dirty={Boolean(dirtyFields.residentActions)}
+                    dirty={(field.value ?? []).includes(option.value)
+                      !== (form.formState.defaultValues?.residentActions ?? []).includes(option.value)}
                     onChange={(checked) => {
                       const current = field.value ?? [];
                       field.onChange(

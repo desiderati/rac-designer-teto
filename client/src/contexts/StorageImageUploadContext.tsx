@@ -6,6 +6,7 @@ import {
   PHOTO_COMPRESSION_THRESHOLD_BYTES,
   type PreparedPhotoFile,
   validatePreparedPhotoSize,
+  isSupportedPhotoDataUrl,
 } from '@/shared/lib/photo-data-url.ts';
 import { toStorageImageUploadPayload } from '@/shared/lib/storage-image-upload.ts';
 
@@ -37,6 +38,30 @@ const StorageImageUploadContext = createContext<StorageImageUploadPort>({
   isUploading: false,
   progress: null,
 });
+
+/** Mantém as fotos no documento local, sem criar requisições de upload. */
+export function LocalStorageImageUploadProvider({children}: {children: ReactNode}) {
+  const [isUploading, setIsUploading] = useState(false);
+  const value = useMemo<StorageImageUploadPort>(() => ({
+    isUploading,
+    progress: null,
+    uploadImage: async (file, _constructionSiteId, options = {}) => {
+      setIsUploading(true);
+      try {
+        const prepared = options.preparedFile ?? await preparePhotoFileForUpload(file, undefined, options);
+        const sizeError = validatePreparedPhotoSize(prepared.file);
+        if (sizeError) throw new Error(sizeError);
+        const dataUrl = await readFileAsDataUrl(prepared.file);
+        if (!isSupportedPhotoDataUrl(dataUrl)) throw new Error('A imagem local é inválida.');
+        return dataUrl;
+      } finally {
+        setIsUploading(false);
+      }
+    },
+  }), [isUploading]);
+
+  return <StorageImageUploadContext.Provider value={value}>{children}</StorageImageUploadContext.Provider>;
+}
 
 export function StorageImageUploadProvider({ children }: { children: ReactNode }) {
   const mutation = trpc.storage.uploadImage.useMutation();

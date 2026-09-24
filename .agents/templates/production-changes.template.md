@@ -25,6 +25,11 @@ crie este arquivo antes da mutação; registre o que realmente foi executado.
 - Mascare valores semelhantes a credenciais e inclua apenas a menor evidência necessária para
   sustentar a auditoria.
 
+- Preserve a identidade operacional mínima necessária para comprovar quem solicitou, autorizou,
+  executou, recebeu ou perdeu acesso. Prefira principal imutável, ticket ou referência equivalente;
+  use nome ou e-mail somente quando não houver rastreabilidade equivalente e omita atributos
+  pessoais adicionais.
+
 - Reduza comandos, saídas de terminal, capturas e links para a forma operacionalmente útil e não
   sensível.
 

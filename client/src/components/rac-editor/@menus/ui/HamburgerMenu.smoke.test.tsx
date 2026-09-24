@@ -49,7 +49,7 @@ describe('HamburgerMenu.tsx', () => {
 
     await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
 
-    expect(screen.getByRole('dialog').className).toContain('w-[min(14.5rem,calc(100vw-1rem))]');
+    expect(screen.getByRole('dialog')).toHaveClass('w-[14.5rem]', 'min-w-[14.5rem]');
     const buttons = screen.getAllByRole('button').map((button) => button.textContent);
     expect(buttons.indexOf('Construções TETO')).toBeLessThan(
       buttons.indexOf('CC2603 - Tiradentes'),

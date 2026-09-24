@@ -8,6 +8,15 @@ vi.mock('@/shared/lib/photo-data-url.ts', async (importOriginal) => {
   return {
     ...actual,
     preparePhotoFileForUpload: vi.fn(async (file: File) => {
+      if (!actual.needsPhotoCompression(file)) {
+        return {
+          file,
+          compressed: false,
+          originalBytes: file.size,
+          finalBytes: file.size,
+          reductionPercent: 0,
+        };
+      }
       const optimized = new File(['optimized'], 'imagem.webp', {type: 'image/webp'});
       return {
         file: optimized,
@@ -83,7 +92,18 @@ describe('ImageUploadReview', () => {
 
     await waitFor(() => expect(screen.getByText('Confira a imagem e escolha como deseja enviá-la.')).toBeVisible());
     expect(screen.getByRole('dialog')).toBeVisible();
+    expect(screen.getByRole('dialog')).toHaveClass('min-w-[420px]');
     expect(screen.getByTestId('image-upload-review-actions')).toHaveClass('sticky', 'bottom-0', 'w-full');
+  });
+
+  it('omite a escolha de qualidade quando a imagem não foi reduzida', async () => {
+    const onConfirm = vi.fn();
+    renderReview({file: new File([new Uint8Array(600 * 1024)], 'foto.jpg', {type: 'image/jpeg'}), onConfirm});
+
+    expect(await screen.findByText('0,0%')).toBeVisible();
+    expect(screen.queryByRole('checkbox', {name: 'Manter qualidade original'})).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole('button', {name: 'Usar esta imagem'}));
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({preserveOriginalQuality: false})));
   });
 
   it('solicita a troca do arquivo pelo seletor nativo', async () => {

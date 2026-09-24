@@ -9,11 +9,13 @@ export type TerrainPhotoDescriptionInput = {
 export type TerrainPhotoDescriptionPort = {
   describePhoto(input: TerrainPhotoDescriptionInput): Promise<string | null>;
   isDescribing: boolean;
+  available: boolean;
 };
 
 const defaultPort: TerrainPhotoDescriptionPort = {
   describePhoto: async () => null,
   isDescribing: false,
+  available: false,
 };
 
 const TerrainPhotoDescriptionContext = createContext<TerrainPhotoDescriptionPort>(defaultPort);
@@ -22,6 +24,7 @@ export function TerrainPhotoDescriptionProvider({children}: {children: ReactNode
   const mutation = trpc.storage.describeImage.useMutation();
   const value = useMemo<TerrainPhotoDescriptionPort>(() => ({
     isDescribing: mutation.isPending,
+    available: true,
     describePhoto: async (input) => {
       const result = await mutation.mutateAsync(input);
       return normalizeTerrainPhotoDescription(result.description);

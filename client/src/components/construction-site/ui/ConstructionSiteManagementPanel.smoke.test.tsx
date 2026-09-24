@@ -1270,6 +1270,30 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   });
 
+  it('indica alteração apenas na ação dos moradores que mudou', async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await openConstructionHouses(user);
+    fireEvent.click(screen.getByRole('button', {name: '+ Adicionar Casa'}));
+
+    const actionsSection = screen.getByRole('heading', {name: 'Ações dos Moradores'}).closest('section') as HTMLElement;
+    const vegetation = within(actionsSection).getByLabelText('Retirar vegetação');
+    await user.click(vegetation);
+
+    expect(vegetation).toBeChecked();
+    expect(within(actionsSection).getAllByTestId('field-dirty-indicator')).toHaveLength(1);
+    expect(within(actionsSection).getByTestId('field-dirty-indicator'))
+      .toHaveAttribute('title', 'Campo alterado: Retirar vegetação');
+    expect(within(actionsSection).getByTestId('section-dirty-indicator')).toBeVisible();
+    expect(within(actionsSection).getByLabelText('Escavar')).not.toBeChecked();
+    expect(within(actionsSection).getByLabelText('Aterrar')).not.toBeChecked();
+
+    await user.click(vegetation);
+    expect(within(actionsSection).queryByTestId('field-dirty-indicator')).not.toBeInTheDocument();
+    expect(within(actionsSection).queryByTestId('section-dirty-indicator')).not.toBeInTheDocument();
+  });
+
   it('valida campos obrigatórios, máscara e formatos da configuração de casa', async () => {
     const user = userEvent.setup();
     const actions = createActions();

@@ -79,6 +79,13 @@ Este README concentra o contexto humano e operacional do repositório. Para qual
 - Exportação em PDF com jsPDF
 - Testes com Vitest, React Testing Library e Playwright
 
+### Instalação e atualização da interface
+
+- O build de produção gera um manifesto PWA e um service worker para permitir adicionar o RAC Designer à tela inicial e abrir os arquivos da interface sem conexão após a primeira visita online.
+- Os ícones de instalação e da aba usam o [isotipo do TETO](https://colabore-fichas-production.s3.amazonaws.com/13/favicon/Isotipo_Azul_Claro.png), com versões dimensionadas para o manifesto e para a tela inicial do iPhone.
+- Quando uma nova versão fica disponível, a aplicação mostra um aviso e só recarrega após a ação do usuário. A recarga é bloqueada enquanto houver edição local ou sincronização remota pendente.
+- O cache inicial cobre os arquivos da interface; dados remotos, autenticação e sincronização ainda exigem conexão. Edição de dados offline fica para uma etapa própria.
+
 ## 🏗️ Arquitetura Atual
 
 - `client/src/domain/house/` concentra agregado, casos de uso e contratos do domínio da casa
@@ -184,6 +191,13 @@ trabalho.
     ```bash
     npm run dev -- --host 0.0.0.0
     ```
+
+   Para trabalhar apenas com dados de teste neste computador, use `npm run dev:isolated` e abra
+   `http://127.0.0.1:5200/`. Esse perfil serve somente o frontend em loopback, dispensa login Manus e
+   guarda Construções TETO e fotos no IndexedDB `rac-designer-teto-isolated` deste navegador. Não há
+   sincronização entre dispositivos; descrição de fotos e ilustrações por IA ficam indisponíveis.
+   A visualização 3D e sua captura para PDF continuam locais. Limpar os dados do site no navegador
+   remove os projetos desse perfil. O perfil `isolated` não pode ser usado para gerar um build.
 
 3. Desenvolvimento local para E2E:
 

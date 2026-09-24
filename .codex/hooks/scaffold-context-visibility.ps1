@@ -1,3 +1,5 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', 'Event', Justification = 'Event is the existing public hook parameter; renaming it would break callers.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Scope = 'Function', Target = 'Resolve-RepositoryRoot', Justification = 'A failed Git-root probe deliberately falls through without breaking the hook.')]
 param(
     [string]$Event = "UserPromptSubmit"
 )
@@ -60,19 +62,99 @@ function Resolve-RepositoryRoot {
     return $null
 }
 
+function Resolve-GitMetadataPath {
+    param(
+        [string]$RepositoryRoot,
+        [string]$GitPath
+    )
+
+    if ([System.IO.Path]::IsPathRooted($GitPath)) {
+        $candidate = $GitPath
+    }
+    else {
+        $candidate = Join-Path $RepositoryRoot $GitPath
+    }
+
+    return (Resolve-Path -LiteralPath $candidate).ProviderPath.TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    )
+}
+
+function Resolve-CurrentWorktree {
+    param([string]$RepositoryRoot)
+
+    try {
+        $gitDirectoryOutput = @(& git -C $RepositoryRoot rev-parse --git-dir 2>$null)
+        if ($LASTEXITCODE -ne 0 -or $gitDirectoryOutput.Count -eq 0) {
+            return $null
+        }
+
+        $commonDirectoryOutput = @(& git -C $RepositoryRoot rev-parse --git-common-dir 2>$null)
+        if ($LASTEXITCODE -ne 0 -or $commonDirectoryOutput.Count -eq 0) {
+            return $null
+        }
+
+        $gitDirectory = Resolve-GitMetadataPath `
+            -RepositoryRoot $RepositoryRoot `
+            -GitPath ($gitDirectoryOutput[0].Trim())
+        $commonDirectory = Resolve-GitMetadataPath `
+            -RepositoryRoot $RepositoryRoot `
+            -GitPath ($commonDirectoryOutput[0].Trim())
+        $branchOutput = @(& git -C $RepositoryRoot symbolic-ref --quiet --short HEAD 2>$null)
+        $isDetached = $LASTEXITCODE -ne 0 -or $branchOutput.Count -eq 0
+
+        if ($isDetached) {
+            $kind = "detached HEAD"
+            $branch = "detached HEAD"
+        }
+        else {
+            $branch = $branchOutput[0].Trim()
+            if ([string]::Equals(
+                    $gitDirectory,
+                    $commonDirectory,
+                    [System.StringComparison]::OrdinalIgnoreCase
+                )) {
+                $kind = "primary checkout"
+            }
+            else {
+                $kind = "linked worktree"
+            }
+        }
+
+        return [pscustomobject]@{
+            Kind   = $kind
+            Name   = Split-Path -Leaf $RepositoryRoot
+            Branch = $branch
+            Path   = $RepositoryRoot
+        }
+    }
+    catch {
+        return $null
+    }
+}
+
 if ($Event -ne "UserPromptSubmit") {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
-$payload = Read-HookPayload
+$null = Read-HookPayload
 $repositoryRoot = Resolve-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($repositoryRoot)) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
+    exit 0
+}
+
+$currentWorktree = Resolve-CurrentWorktree -RepositoryRoot $repositoryRoot
+if ($null -eq $currentWorktree) {
+    Write-HookResult -Result ([pscustomobject]@{
+            continue = $true
+        })
     exit 0
 }
 
@@ -90,7 +172,7 @@ if (Test-Path -LiteralPath (Join-Path $repositoryRoot ".agents/references/local-
 
 if ((Test-Path -LiteralPath (Join-Path $repositoryRoot "graphify-out/graph.json")) -and
     (Test-Path -LiteralPath (Join-Path $repositoryRoot "graphify-out/GRAPH_REPORT.md"))) {
-    $signals.Add("Graphify: graphify-out/GRAPH_REPORT.md is available; prefer it before broad raw-file architecture searches.")
+    $signals.Add("Graphify: an existing index is available. Use query/path/explain only when the structural relationship is unknown, return at most three sources, and never rebuild automatically; open known targets directly.")
 }
 
 if (Test-Path -LiteralPath (Join-Path $repositoryRoot "RTK.md")) {
@@ -101,26 +183,37 @@ if (Test-Path -LiteralPath (Join-Path $repositoryRoot "KNOWLEDGE_BASE.md")) {
     $signals.Add("Knowledge Base: KNOWLEDGE_BASE.md is available for repository-local shared Knowledge Base guidance.")
 }
 
-if ($signals.Count -eq 0) {
-    Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
-    exit 0
-}
-
 $signalLines = ($signals | ForEach-Object { "- $_" }) -join [Environment]::NewLine
-$additionalContext = @(
+$worktreeLines = @(
+    "Current worktree:"
+    "- Kind: $($currentWorktree.Kind)"
+    "- Name: $($currentWorktree.Name)"
+    "- Branch: $($currentWorktree.Branch)"
+    "- Path: $($currentWorktree.Path)"
+) -join [Environment]::NewLine
+$additionalContextParts = @(
     "Scaffold Context Visibility for this repository:"
-    $signalLines
+    $worktreeLines
+)
+if (-not [string]::IsNullOrWhiteSpace($signalLines)) {
+    $additionalContextParts += $signalLines
+}
+$additionalContextParts += @(
+    'Preserve the AGENTS.md Continuation Suggestions: use `Próximos passos:`, optional `Melhorias sugeridas:` (0–3 grounded items), then one sanitized suggested-prompt block only when follow-up exists; keep scope and exclusions.'
+    'Preserve the AGENTS.md Suggestion System: after material PRD, ADR, or non-trivial plan creation/review, silently evaluate `.agents/references/suggestion-system.md`. `!suggest` returns one; `!suggest explore` maps up to 12 and shortlists 3. Never mutate or auto-load skills, agents, or councils solely to suggest.'
+    'Preserve the AGENTS.md Suggested Prompt: after a validated unambiguous plan/dry-run, suggest the exact confirmation phrase instead of another planning turn; if sensitive or state-changing scope is ambiguous, ask for planning or explicit confirmation instead of execution.'
     "Preserve the AGENTS.md Scaffold Usage Trace: report only .agents/prompts, .agents/templates, and .agents/examples files actually read or applied in this turn. Do not list files merely because they exist or would have been relevant."
     "Preserve the AGENTS.md Skills Usage Trace: in the final response, include 'Skills usage:' with one bullet per skill only when a skill's SKILL.md instructions were actually read or its workflow was actually applied in this turn; omit the note when no skill was used."
     'Preserve the AGENTS.md Hooks Trace: in the final response, include "Hooks" with bullets formatted "- `{hook-slug}`: description" only for hook signals visibly active in this session; omit the note when no hook signal was visible.'
-) -join ([Environment]::NewLine + [Environment]::NewLine)
+)
+$additionalContext = $additionalContextParts -join (
+    [Environment]::NewLine + [Environment]::NewLine
+)
 
 Write-HookResult -Result ([pscustomobject]@{
-    continue = $true
-    hookSpecificOutput = [pscustomobject]@{
-        hookEventName = "UserPromptSubmit"
-        additionalContext = $additionalContext
-    }
-})
+        continue           = $true
+        hookSpecificOutput = [pscustomobject]@{
+            hookEventName     = "UserPromptSubmit"
+            additionalContext = $additionalContext
+        }
+    })

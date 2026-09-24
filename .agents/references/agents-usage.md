@@ -3,36 +3,79 @@
 Use this reference when the repository has Codex custom agents under `.codex/agents/` and the user
 asks `Agents Usage`, enables team mode, or asks for automatic agent orchestration.
 
+If `.agents/references/agents-overlays/` exists, include the installed overlay entrypoints that
+match the role definitions present in `.codex/agents/`. The owning skill defines their activation,
+boundaries, and examples; this base catalog does not replace that contract.
+
 ## Intent Separation
 
 When called, `Agents Usage` should explain the orchestration entrypoints with a short usage
 description and a simple situation where each one fits. Do not list the compact `!` shortcuts here;
 point the user to `@Agents Shortcuts` for that catalog.
 
-| Command                                                                       | When to use                                                                                             | Simple example                                                                        |
-|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| `Agents Examples`, `Agents Example`, `@Agents Examples`, or `@Agents Example` | Show examples from `.agents/references/agents-examples.md` without spawning subagents.                  | "Show practical examples for the installed custom agents."                            |
-| `Agents Shortcuts`, `Agents Shortcut`, or `@Agents Shortcuts`                 | Show compact `!` chat control shortcuts with when-to-use guidance and examples, without executing them. | "Which `!` commands can I use here?"                                                  |
-| `Agents Usage` or `@Agents Usage`                                             | Explain how custom agent orchestration works in this repository.                                        | "When should I use subagents instead of keeping the work centralized?"                |
-| `@Agents of Shield`                                                           | Run the fixed five-profile security council built on `security-advisor` profiles.                       | "@Agents of Shield review this authentication flow before release."                   |
-| `agents of shield`                                                            | Use the security council by its natural-language name.                                                  | "agents of shield: review this webhook threat model."                                 |
-| `@Fellowship of Architects`                                                   | Run the fixed five-profile architecture council built on `solutions-architect` profiles.                | "@Fellowship of Architects assess this refactoring direction."                        |
-| `fellowship of architects`                                                    | Use the architecture council by its natural-language name.                                              | "fellowship of architects: compare these refactoring options."                        |
-| `@League of Agents`                                                           | Directly invoke the project-scoped League custom agent for team-mode orchestration.                     | "@League of Agents investigate this bug and use specialists only if useful."          |
-| `league of agents`                                                            | Evaluate whether subagents should be used for a non-trivial task with separable fronts.                 | "league of agents: investigate this bug and use specialists only if that adds value." |
-| `@Council of Agents`                                                          | Directly invoke the project-scoped Council custom agent for a qualifying decision.                      | "@Council of Agents pressure test this architecture choice."                          |
-| `council of agents`                                                           | Use the Council flow by its natural-language name.                                                      | "council of agents: should I build or buy this automation?"                           |
-| `council this`                                                                | Use a compact textual cue for the Council flow when a decision needs structured debate.                 | "council this: should I buy a tool or build an internal automation?"                  |
-| `debate this`                                                                 | Ask Council to compare competing positions before implementation.                                       | "debate this: should the integration live in the API or worker?"                      |
-| `premortem this`                                                              | Use the Council posture to identify likely failure modes before committing to a plan.                   | "premortem this: what will probably break in this rollout?"                           |
-| `pressure test this`                                                          | Challenge a proposal, plan, or decision before it becomes implementation work.                          | "pressure test this migration plan before I start changing code."                     |
-| `stress test this`                                                            | Stress-test a decision, plan, or assumption against likely failure pressure.                            | "stress test this: what breaks if traffic triples?"                                   |
-| `war room this`                                                               | Use the Council posture for a tense or risky decision where containment, trade-offs, and timing matter. | "war room this: production is failing and I need to choose containment."              |
+| Command                                                                       | When to use                                                                                                                | Simple example                                                                           |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+| `Agents Examples`, `Agents Example`, `@Agents Examples`, or `@Agents Example` | Show examples from `.agents/references/agents-examples.md` without spawning subagents.                                     | "Show practical examples for the installed custom agents."                               |
+| `Agents Shortcuts`, `Agents Shortcut`, or `@Agents Shortcuts`                 | Show compact `!` chat control shortcuts with when-to-use guidance and examples, without executing them.                    | "Which `!` commands can I use here?"                                                     |
+| `Agents Usage` or `@Agents Usage`                                             | Explain how custom agent orchestration works in this repository.                                                           | "When should I use subagents instead of keeping the work centralized?"                   |
+| `Models Usage` or `@Models Usage`                                             | List GPT-6 examples when called alone, or recommend one model and effort for a described task.                           | "@Models Usage: which GPT-6 model and effort fit this multiarquivo correction?"        |
+| `@Brainstorm`                                                                 | Enquadrar uma ideia, requisito ou solução nebulosa e encaminhá-la a Product Owner ou Solutions Architect, sem implementar. | "@Brainstorm enquadre esta ideia antes de decidir se preciso de PRD ou solution design." |
+| `@Agents of Shield`                                                           | Run one complete fixed-profile security council pass; add `!loop` only for explicit bounded composition.                   | "@Agents of Shield review this authentication flow before release."                      |
+| `agents of shield`                                                            | Use the security council by its natural-language name.                                                                     | "agents of shield: review this webhook threat model."                                    |
+| `@Fellowship of Architects`                                                   | Run the fixed five-profile architecture council built on `solutions-architect` profiles.                                   | "@Fellowship of Architects assess this refactoring direction."                           |
+| `fellowship of architects`                                                    | Use the architecture council by its natural-language name.                                                                 | "fellowship of architects: compare these refactoring options."                           |
+| `@League of Agents`                                                           | Invoke team-mode orchestration; add `!loop` in the same request only for explicit bounded composition.                     | "@League of Agents investigate this bug and use specialists only if useful."             |
+| `league of agents`                                                            | Evaluate useful delegation without automatically creating an autonomous loop.                                              | "league of agents: investigate this bug and use specialists only if that adds value."    |
+| `!auto-review`                                                                | Expand the preset League + `!loop` + `$code-review` over unpublished Git changes.                                          | "!auto-review"                                                                           |
+| `@Council of Agents`                                                          | Directly invoke the project-scoped Council custom agent for a qualifying decision.                                         | "@Council of Agents pressure test this architecture choice."                             |
+| `council of agents`                                                           | Use the Council flow by its natural-language name.                                                                         | "council of agents: should I build or buy this automation?"                              |
+| `council this`                                                                | Use a compact textual cue for the Council flow when a decision needs structured debate.                                    | "council this: should I buy a tool or build an internal automation?"                     |
+| `debate this`                                                                 | Ask Council to compare competing positions before implementation.                                                          | "debate this: should the integration live in the API or worker?"                         |
+| `premortem this`                                                              | Use the Council posture to identify likely failure modes before committing to a plan.                                      | "premortem this: what will probably break in this rollout?"                              |
+| `pressure test this`                                                          | Challenge a proposal, plan, or decision before it becomes implementation work.                                             | "pressure test this migration plan before I start changing code."                        |
+| `stress test this`                                                            | Stress-test a decision, plan, or assumption against likely failure pressure.                                               | "stress test this: what breaks if traffic triples?"                                      |
+| `war room this`                                                               | Use the Council posture for a tense or risky decision where containment, trade-offs, and timing matter.                    | "war room this: production is failing and I need to choose containment."                 |
 
 Do not treat a request for examples as permission to execute agents. Do not treat `@Agents Usage`,
 `@Agents Shortcuts`, or `@Agents Examples` as permission to execute agents or shortcuts. Do not
-treat an ordinary implementation request as a Council request unless the user asks for pressure
-testing or multiple decision perspectives.
+treat `@Models Usage` as permission to change configuration or migrate agents. Do not treat an
+ordinary implementation request as a Council request unless the user asks for pressure testing or
+multiple decision perspectives.
+
+## Brainstorm Flow
+
+When the user directly invokes `@Brainstorm`:
+
+1. Read `.agents/prompts/brainstorm.prompt.md` and
+   `.agents/references/brainstorm.md`.
+
+2. Aceite somente ideia, requisito ou solução nebulosa. Se receber incidente claro, reclassifique
+   para `support-analyst`; se receber manutenção ou refatoração clara em código desconhecido,
+   reclassifique para `code-explorer`. Em ambos os casos, encerre a passagem sem investigar.
+
+3. Keep the parent as controller, classify the target, frame the uncertainty, and hand off only to
+   `product-owner` or `solutions-architect` as the next owner.
+
+4. Use direct handoffs to PRD Generation, Solution Design, Architecture Decision, Solution Review,
+   Security Review, or Implementation Planning when the corresponding gate is met.
+
+5. Ask before authoring a new persistent artifact outside the current authorization and before
+   running Council, Fellowship, or Agents of Shield.
+
+6. End at `ready-for-execution`, `closed`, `deferred`, or `blocked`. Never interpret readiness as
+   authorization to implement or mutate state.
+
+The first version has no broad natural-language alias. Similar wording about ideas or solution
+design does not activate this entrypoint without the explicit agent invocation.
+
+## Code-Review Routing
+
+For `!review`, its `local` or `agent` modifiers, `@code-reviewer`, or equivalent natural-language
+intent, load `.agents/references/code-review-routing.md`. Local review is chat-first. Delegate only
+when an explicit independent pass, broad/unknown scope, comparative judgment, or context isolation
+justifies `code-reviewer`; fall back transparently when that role is unavailable. Artifact-only
+review stays with its artifact owner, and all review modes remain diagnostic. Shadow mode discloses
+the selected route without persisting raw prompts or changing behavior silently.
 
 ## Council-Mode Flow
 
@@ -66,12 +109,17 @@ When the user invokes `@Agents of Shield` or `agents of shield`:
 
 2. Read `.agents/references/security-advisor-profiles.md`.
 
-3. Apply the fixed Agents of Shield profile set every time: Threat Modeler,
-   Secrets & Supply Chain Auditor, Cloud & Runtime Guardian, Adversarial Abuse Tester, and
-   Compliance & Governance Analyst.
+3. Apply the fixed Agents of Shield profile set every time: Threat Modeler, Secrets & Supply Chain
+   Auditor, Cloud & Runtime Guardian, Adversarial Abuse Tester, and Compliance & Governance Analyst.
 
-4. Produce diagnostic security advisory output only. Code fixes, credential changes, external
-   calls, deployments, and production mutations require a separate explicit handoff.
+4. Produce diagnostic security advisory output only. Code fixes, credential changes, external calls,
+   deployments, and production mutations require a separate explicit handoff.
+
+Generic Agents of Shield activation performs one complete council pass without a loop. When the same
+request also invokes `!loop`, compose the council directly with `$autonomous-loop`; League is not
+required. Use complete five-profile opening and closing passes. Intermediate `$security-scan` or
+`$security-review` revalidation must still complete its declared diagnostic scope and return the
+complete finding set. The loop does not authorize remediation or mutation.
 
 When the user invokes `@Fellowship of Architects` or `fellowship of architects`:
 
@@ -96,8 +144,30 @@ When the user enables team mode:
 5. Define scope, out-of-scope, inputs, expected output, and write boundary for each delegated agent.
 6. Consolidate outputs before responding to the user.
 
-The `league of agents` phrase and direct `@League of Agents` invocation are shortcuts for this same
-flow. They are orchestration entrypoints, not additional specialist roles.
+When delegated analysis proposes a change, the parent must inspect relevant repository memory and
+adjudicate the finding as `investigate`, `fix`, `dismiss`, or `defer`. Only `fix` is handed to an
+implementation role. Dismissals and non-blocking deferrals do not interrupt the user; consolidate a
+human decision only when every useful remaining action depends on it.
+
+`!auto-review` is the preset expansion of League + `!loop` + `$code-review`, not a separate
+orchestration policy. Its first invocation is plan-only and must resolve the unpublished Git
+manifest plus a 15-iteration `$autonomous-loop` contract. A subsequent `!confirm` authorizes only
+the bounded local review, proven eligible fixes, validation, and atomic commits described by that
+contract; remote mutations and conflict resolution remain forbidden.
+
+In the canonical skill catalog, the confirmed mutation phase must use one governed
+`$skill-development-session` worktree for the complete changeset. The explicit ordered target set
+is frozen after diagnosis and before the first write; `BeginWork -TargetSkills`, live
+`WorkStatus = work-reusable`, and the `$autonomous-loop` authoring gate are mandatory before edits,
+staging or commits. `!confirm` does not replace that binding, and scope drift after the first write
+stops the wave. This is cooperative fail-closed governance; no Git or Codex hook is installed.
+
+The `league of agents` phrase and direct `@League of Agents` invocation enter the generic team-mode
+flow above, without the 15-iteration loop or commit contract. They are orchestration entrypoints,
+not additional specialist roles. When the same request also invokes `!loop`, compose League with
+`$autonomous-loop`: League owns roles, delegation, adjudication, validation, and consolidation; the
+loop owns bounded iteration and stop control. This generic composition does not imply code review, a
+Git manifest, fixes, or commits. `!loop` alone does not activate League.
 
 ## When To Use Agents
 
@@ -132,6 +202,8 @@ Keep work centralized when:
 | `@Agents Examples`                                                                                        | "Show examples for the installed custom agents."                                      |
 | `@Agents Shortcuts`                                                                                       | "List the accepted `!` shortcuts with simple examples."                               |
 | `@Agents Usage`                                                                                           | "Explain when to use agents, Council, or League in this repository."                  |
+| `@Models Usage`                                                                                           | "List GPT-6 examples by model and effort."                                          |
+| `@Models Usage` + task summary                                                                            | "Recommend exactly one GPT-6 model and effort for the described task."              |
 | `@Agents of Shield review this authentication flow before release.`                                       | Direct security council invocation using the fixed Agents of Shield profiles.         |
 | `agents of shield: review this webhook threat model.`                                                     | Natural-language security council request.                                            |
 | `@Fellowship of Architects assess this refactoring direction before I write the ADR.`                     | Direct architecture council invocation using the fixed Fellowship profiles.           |
@@ -155,5 +227,6 @@ The parent agent remains accountable for:
 - avoiding overlapping scopes
 - passing only necessary context
 - consolidating contradictions
+- adjudicating diagnostic findings before implementation handoff
 - preserving repository rules
 - producing the final user-facing answer

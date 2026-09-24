@@ -102,15 +102,25 @@
   <process>
     Follow this exact sequence for every solution design:
 
-    1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs, relevant docs, GRAPH_REPORT.md when available)
+    1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs,
+       relevant docs, GRAPH_REPORT.md when available)
+
     2. Restate the problem in your own words — what needs to be solved and why
+
     3. Identify the evaluation criteria that matter for this specific problem
+
     4. Identify at least two viable approaches (if only one exists, justify why)
+
     5. For each approach, evaluate against the criteria with specific evidence
+
     6. Identify disqualifying conditions for each approach
+
     7. Recommend the best-fit approach with a clear rationale
+
     8. State the trade-offs being accepted with the recommendation
+
     9. Define what would invalidate this design decision in the future
+
     10. Verify that section 7 of the output (Contrato para o Plano de Implementação) is
         fully populated — this is the primary artifact that `implementation-planning.prompt.md`
         will consume. A missing or incomplete contract makes the design decision unusable downstream.
@@ -165,9 +175,13 @@
     ## 7. Contrato para o Plano de Implementação
     Resumo conciso da decisão de design que `implementation-planning.prompt.md` pode consumir:
       - abordagem escolhida (uma frase)
+
       - principais restrições arquiteturais a respeitar
+
       - pontos de integração e fronteiras
+
       - o que está explicitamente fora do escopo para implementação
+
       - quando houver mais de um plano ou design no mesmo `work-item.assets/`, cada artefato deve explicitar phase,
         status, and substitution relation in the file metadata or equivalent front matter
   </output_format>

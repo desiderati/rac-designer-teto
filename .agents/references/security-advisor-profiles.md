@@ -11,10 +11,14 @@ Use this file when `security-advisor` is asked to operate through a specific sec
 ## Usage Contract
 
 - `security-advisor` may use any one requested profile on demand.
+
 - `agents-of-shield` always uses the fixed default set below.
+
 - Profiles are advisory lenses, not separate custom agents.
+
 - Security profiles do not implement remediation, rotate secrets, call external systems, deploy, or
   mutate runtime state.
+
 - Findings must remain evidence-backed and sanitized.
 
 ## Default Agents of Shield profile set
@@ -54,12 +58,13 @@ Focuses on sensitive data, privacy, retention, leakage, misuse cases, and user-h
 
 ### 6. Identity & Access Sentinel
 
-Examines RBAC, ABAC, least privilege, segregation of duties, impersonation, and privilege escalation.
+Examines RBAC, ABAC, least privilege, segregation of duties, impersonation, and privilege
+escalation.
 
 ### 7. Adversarial Abuse Tester
 
-Thinks like an attacker and looks for bypasses, chaining, unsafe defaults, policy gaps, and practical
-abuse of intended functionality.
+Thinks like an attacker and looks for bypasses, chaining, unsafe defaults, policy gaps, and
+practical abuse of intended functionality.
 
 ### 8. Detection & Incident Readiness Analyst
 

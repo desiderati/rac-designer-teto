@@ -15,6 +15,7 @@ import {
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 
 const ACCEPTED_IMAGE_TYPES_LABEL = 'PNG, JPG ou WEBP';
 
@@ -67,21 +68,21 @@ export function ImageUploadModal({
   const confirmImage = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
     reviewConfirmStartedRef.current = true;
     const uploadToastId = `canvas-upload-${Date.now()}`;
-    toast.loading('Enviando imagem em segundo plano…', {id: uploadToastId});
+    toast.loading(isIsolatedLocalMode ? 'Salvando imagem neste dispositivo…' : 'Enviando imagem em segundo plano…', {id: uploadToastId});
     try {
       const [imageUrl, localPayload] = await Promise.all([
         storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile}),
-        toStorageImageUploadPayload(file),
+        isIsolatedLocalMode ? Promise.resolve(null) : toStorageImageUploadPayload(file),
       ]);
-      const localDataUrl = `data:${localPayload.mimeType};base64,${localPayload.base64}`;
-      const inserted = await onInsertImage(localDataUrl, {storageUrl: imageUrl});
+      const localDataUrl = localPayload ? `data:${localPayload.mimeType};base64,${localPayload.base64}` : imageUrl;
+      const inserted = await onInsertImage(localDataUrl, {storageUrl: isIsolatedLocalMode ? null : imageUrl});
       if (!inserted) {
         throw new Error('Não foi possível inserir a imagem no Canvas. Abra o Canvas e tente novamente.');
       }
-      toast.success('Imagem enviada e inserida no Canvas.', {id: uploadToastId});
+      toast.success(isIsolatedLocalMode ? 'Imagem salva e inserida no Canvas.' : 'Imagem enviada e inserida no Canvas.', {id: uploadToastId});
     } catch (error) {
       console.error('[ImageUploadModal] Falha ao enviar ou inserir imagem:', error);
-      const message = error instanceof Error ? error.message : 'Não foi possível enviar a imagem ao Storage. Tente outra imagem.';
+      const message = error instanceof Error ? error.message : 'Não foi possível salvar a imagem. Tente outra imagem.';
       toast.error(message, {id: uploadToastId});
     }
   };

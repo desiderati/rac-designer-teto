@@ -1,6 +1,6 @@
 name = "quality-analyst"
 description = "Use for test strategy, test specification, quality review, and validation planning using test-driven.prompt.md and verification.prompt.md."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Quality Analyst"]

@@ -20,8 +20,8 @@ Exit codes:
 - 2: usage error
 
 Usage:
-    python scripts/validate_architecture_decisions.py --repo-root .
-    python scripts/validate_architecture_decisions.py --repo-root ../target-repo --adr-dir docs/architecture-decisions
+    python scripts/documentation_validate_architecture_decisions.py --repo-root .
+    python scripts/documentation_validate_architecture_decisions.py --repo-root ../target-repo --adr-dir docs/architecture-decisions
 """
 
 from __future__ import annotations
@@ -66,6 +66,7 @@ def _strip_quotes(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
         return value[1:-1].strip()
+
     return value
 
 
@@ -79,8 +80,10 @@ def _parse_frontmatter(text: str) -> dict[str, str]:
         line = raw_line.strip()
         if not line or line.startswith("#") or ":" not in line:
             continue
+
         key, value = line.split(":", 1)
         fields[key.strip()] = _strip_quotes(value)
+
     return fields
 
 
@@ -88,10 +91,12 @@ def _extract_title(text: str, fields: dict[str, str], fallback: str) -> str:
     title = fields.get("title", "").strip()
     if title:
         return title
+
     for line in text.splitlines():
         stripped = line.strip()
         if stripped.startswith("# "):
             return stripped[2:].strip()
+
     return fallback
 
 
@@ -107,7 +112,9 @@ def _references_from(value: str) -> tuple[str, ...]:
     return tuple(ADR_REFERENCE_RE.findall(value or ""))
 
 
-def _record_from_path(repo_root: Path, path: Path) -> tuple[AdrRecord | None, list[str]]:
+def _record_from_path(
+    repo_root: Path, path: Path
+) -> tuple[AdrRecord | None, list[str]]:
     violations: list[str] = []
     match = ADR_FILENAME_RE.match(path.name)
     if not match:
@@ -167,13 +174,17 @@ def _record_from_path(repo_root: Path, path: Path) -> tuple[AdrRecord | None, li
 def _validate_sequence(records: list[AdrRecord]) -> list[str]:
     if not records:
         return []
+
     numbers = sorted(record.number for record in records)
     expected = list(range(1, numbers[-1] + 1))
     if numbers == expected:
         return []
+
     expected_text = ", ".join(f"ADR-{number:03d}" for number in expected)
     actual_text = ", ".join(f"ADR-{number:03d}" for number in numbers)
-    return [f"ADR numbers must be sequential: expected {expected_text}; got {actual_text}"]
+    return [
+        f"ADR numbers must be sequential: expected {expected_text}; got {actual_text}"
+    ]
 
 
 def _validate_obsidian_links(
@@ -195,9 +206,8 @@ def _validate_obsidian_links(
             and relative_posix not in text
             and relative_without_suffix not in text
         ):
-            violations.append(
-                f"{obsidian_path}: missing link to {relative_posix}"
-            )
+            violations.append(f"{obsidian_path}: missing link to {relative_posix}")
+
     return violations
 
 
@@ -218,6 +228,7 @@ def _validate_duplicates(records: list[AdrRecord]) -> list[str]:
         normalized_title = _normalize_title(record.title)
         if not normalized_title:
             continue
+
         previous_title = by_title.get(normalized_title)
         if previous_title:
             violations.append(
@@ -238,13 +249,19 @@ def _validate_cross_references(records: list[AdrRecord]) -> list[str]:
                 violations.append(
                     f"{record.relative_path}: related ADR {related} does not exist"
                 )
+
     return violations
 
 
-def validate(repo_root: Path, adr_dir: Path, obsidian_path: Path) -> tuple[int, list[str]]:
+def validate(
+    repo_root: Path, adr_dir: Path, obsidian_path: Path
+) -> tuple[int, list[str]]:
     target_dir = repo_root / adr_dir
     if not target_dir.exists():
-        return 0, [f"[validate_architecture_decisions] OK: no ADR directory at {adr_dir}"]
+        return 0, [
+            f"[validate_architecture_decisions] OK: no ADR directory at {adr_dir}"
+        ]
+
     if not target_dir.is_dir():
         return 1, [f"{adr_dir}: ADR path exists but is not a directory"]
 
@@ -253,6 +270,7 @@ def validate(repo_root: Path, adr_dir: Path, obsidian_path: Path) -> tuple[int, 
     for path in sorted(target_dir.glob("*.md")):
         if path.name in NON_ADR_FILENAMES:
             continue
+
         record, record_violations = _record_from_path(repo_root, path)
         violations.extend(record_violations)
         if record is not None:
@@ -265,7 +283,10 @@ def validate(repo_root: Path, adr_dir: Path, obsidian_path: Path) -> tuple[int, 
 
     if violations:
         return 1, violations
-    return 0, [f"[validate_architecture_decisions] OK: {len(records)} ADR record(s) validated"]
+
+    return 0, [
+        f"[validate_architecture_decisions] OK: {len(records)} ADR record(s) validated"
+    ]
 
 
 def main() -> int:
@@ -276,18 +297,21 @@ def main() -> int:
         default=Path("."),
         help="Repository root. Defaults to the current directory.",
     )
+
     parser.add_argument(
         "--adr-dir",
         type=Path,
         default=DEFAULT_ADR_DIR,
         help="ADR directory relative to the repo root.",
     )
+
     parser.add_argument(
         "--obsidian",
         type=Path,
         default=DEFAULT_OBSIDIAN_PATH,
         help="OBSIDIAN.md path relative to the repo root.",
     )
+
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
@@ -301,11 +325,13 @@ def main() -> int:
             f"[validate_architecture_decisions] FAILED with {len(messages)} violation(s):",
             file=stream,
         )
+
         for message in messages:
             print(f"  - {message}", file=stream)
     else:
         for message in messages:
             print(message, file=stream)
+
     return code
 
 

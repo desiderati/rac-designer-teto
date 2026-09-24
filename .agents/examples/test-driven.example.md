@@ -1,8 +1,8 @@
 # Worked Examples for `test-driven.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/test-driven.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/test-driven.example.md`. Load only when you
+> need concrete calibration for depth, structure, anti-patterns, or output shape. Do not load this
+> file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -38,11 +38,11 @@
 
         ## 3. Convenções do Repositório
 
-        - Framework: Jest (já utilizado em `client/src/__tests__/`)
+        - Framework: Jest (já utilizado em `src/__tests__/`)
         - Convenção de nomes: `describe('ComponentName')` → `it('should [behavior]')`
         - Mocks: `jest.mock()` para dependências externas
-        - Fixtures: `client/src/__tests__/fixtures/` para dados de teste
-        - Estrutura: testes espelham a estrutura de `client/src/` sob `client/src/__tests__/`
+        - Fixtures: `src/__tests__/fixtures/` para dados de teste
+        - Estrutura: testes espelham a estrutura de `src/` sob `src/__tests__/`
 
         ## 4. Especificações por Componente
 
@@ -60,42 +60,64 @@
         ---
 
         - **Teste:** `it('should upsert without duplication when the same asset is synced twice')`
+
         - **Categoria:** edge case — idempotência
+
         - **Dado:** ativo com ID `ASSET-001` já existe no banco com dados da versão anterior
+
         - **Quando:** API retorna dados atualizados para `ASSET-001`; `AssetSyncJob.execute()` roda
+
         - **Então:** registro no banco é atualizado (não duplicado); contagem total de registros
           permanece igual; campos atualizados refletem a versão mais recente
+
         - **Notas:** testar com dados diferentes entre a versão existente e a nova para confirmar
           que o upsert realmente atualiza
 
         ---
 
         - **Teste:** `it('should mark asset as sync_failed when API returns 500 after all retries')`
+
         - **Categoria:** error handling
+
         - **Dado:** ativo `ASSET-002`; API mock retorna 500 em todas as 3 tentativas
+
         - **Quando:** `AssetSyncJob.execute()` processa `ASSET-002`
+
         - **Então:** registro no banco com `status: 'sync_failed'`, `last_error: '500 Internal Server Error'`,
           `last_attempt_at: [timestamp]`; demais ativos continuam sendo processados normalmente
+
         - **Notas:** confirmar que a falha de um ativo não interrompe a sincronização dos demais
 
         ---
 
         - **Teste:** `it('should retry with exponential backoff when API returns 429')`
+
         - **Categoria:** error handling — rate limit
+
         - **Dado:** ativo `ASSET-003`; API mock retorna 429 na primeira tentativa, 200 na segunda
+
         - **Quando:** `AssetSyncJob.execute()` processa `ASSET-003`
+
         - **Então:** ativo sincronizado com sucesso; intervalo entre tentativas ≥ backoff mínimo
           configurado; log registra retry
-        - **Notas:** usar `jest.useFakeTimers()` para verificar intervalos de backoff sem espera real
+
+        - **Notas:** usar `jest.useFakeTimers()` para verificar intervalos de backoff sem espera
+          real
 
         ---
 
         - **Teste:** `it('should not exceed 80 requests per minute regardless of asset count')`
+
         - **Categoria:** edge case — throttling
+
         - **Dado:** lista de 100 ativos; API mock retorna 200 para todos
+
         - **Quando:** `AssetSyncJob.execute()` é chamado
+
         - **Então:** nenhum intervalo de 60 segundos contém mais de 80 chamadas à API
-        - **Notas:** instrumentar o mock da API com timestamps de chamada; verificar janela deslizante
+
+        - **Notas:** instrumentar o mock da API com timestamps de chamada; verificar janela
+          deslizante
 
         ---
 
@@ -109,11 +131,16 @@
         ---
 
         - **Teste:** `it('should handle API timeout as a retryable failure')`
+
         - **Categoria:** error handling — timeout
+
         - **Dado:** ativo `ASSET-004`; API mock não responde dentro do timeout configurado (10s)
+
         - **Quando:** `AssetSyncJob.execute()` processa `ASSET-004`
+
         - **Então:** timeout tratado como falha retryável; se todas as tentativas falharem por
           timeout, ativo marcado como `sync_failed` com `last_error: 'Request timeout'`
+
         - **Notas:** mock de timeout via `jest.useFakeTimers()` ou abort controller
 
         ### AssetRepository — Persistência idempotente
@@ -121,10 +148,16 @@
         #### Nível: integration
 
         - **Teste:** `it('should insert new asset when ID does not exist')`
+
         - **Categoria:** happy path
+
         - **Dado:** banco sem registro para `ASSET-NEW`
+
         - **Quando:** `AssetRepository.upsert(assetData)` é chamado
-        - **Então:** novo registro criado com todos os campos; `created_at` e `updated_at` preenchidos
+
+        - **Então:** novo registro criado com todos os campos; `created_at` e `updated_at`
+          preenchidos
+
         - **Notas:** teste de integração contra banco de teste (não mock)
 
         ---
@@ -156,8 +189,10 @@
         - **Comportamento com dados parciais:** se a API retorna 200 mas com campos obrigatórios
           faltando, o ativo deve ser salvo com dados parciais ou marcado como `sync_failed`?
           Impacta: teste de validação de resposta da API
+
         - **Ordem de processamento:** os ativos devem ser sincronizados em ordem específica
           (ex: por prioridade ou data de última sincronização)? Impacta: teste de ordenação
+
         - **Limite de falhas:** se mais de X% dos ativos falham, o job deve abortar ou continuar?
           Impacta: teste de threshold de falha
 
@@ -165,10 +200,15 @@
 
         1. `AssetRepository.upsert()` — testes de integração (fundação: sem persistência
            correta, nada funciona)
+
         2. `AssetSyncJob` — happy path unitário (confirma o fluxo básico)
+
         3. `AssetSyncJob` — idempotência (confirma que reprocessamento é seguro)
+
         4. `AssetSyncJob` — error handling (429, 500, timeout)
+
         5. `AssetSyncJob` — throttling (confirma respeito ao rate limit)
+
         6. `AssetSyncJob` — edge cases (lista vazia, dados parciais se a pergunta for respondida)
       </content>
       <why>
@@ -216,9 +256,12 @@
         - Entry points: o método `calculateWorkedHours(orderId)` é público mas depende
           internamente de `OrderRepository` (injetado via construtor) e `Clock.systemUTC()`
           (chamada estática, não injetável)
+
         - Dependências: `OrderRepository` é injetável; `Clock` é hardcoded via chamada estática
+
         - Infraestrutura de teste: Jest existe no projeto (usado em outros módulos), mas
           `ReportService` não tem nenhum teste
+
         - Comportamento documentado: não existe documentação; o comportamento atual deve ser
           descoberto lendo o código
 
@@ -231,10 +274,13 @@
         ## 3. Convenções do Repositório
 
         - Framework: Jest
+
         - Convenção: `describe('ComponentName')` → `it('should [behavior]')`
-        - Fixtures: `client/src/__tests__/fixtures/`
+
+        - Fixtures: `src/__tests__/fixtures/`
+
         - Nota: `ReportService` não tem arquivo de teste — será criado como
-          `client/src/__tests__/services/ReportService.test.ts`
+          `src/__tests__/services/ReportService.test.ts`
 
         ## 4. Especificações por Componente
 
@@ -243,20 +289,31 @@
         #### Nível: integration (boundary — testando via método público com repositório mockado)
 
         - **Teste:** `it('should return 8 hours for an order from 08:00 to 16:00 same day')`
+
         - **Categoria:** characterization
+
         - **Dado:** OS com `start: 2026-04-14T08:00Z`, `end: 2026-04-14T16:00Z`
+
         - **Quando:** `calculateWorkedHours(orderId)` é chamado
+
         - **Então:** retorna `8.0`
+
         - **Notas:** captura o comportamento atual para OS intra-dia; se este teste quebrar
           após a correção, significa que a correção alterou comportamento existente
 
         ---
 
-        - **Teste:** `it('should return current value for an order from 22:00 to 06:00 next day — characterization')`
+        - **Teste:** `it('should return current value for an order from 22:00 to 06:00 next day —
+          characterization')`
+
         - **Categoria:** characterization
+
         - **Dado:** OS com `start: 2026-04-14T22:00Z`, `end: 2026-04-15T06:00Z`
+
         - **Quando:** `calculateWorkedHours(orderId)` é chamado
+
         - **Então:** registrar o valor retornado atual (provavelmente incorreto: -16 ou similar)
+
         - **Notas:** este teste documenta o bug. O valor esperado será atualizado após a
           correção para refletir o comportamento correto (8.0 horas)
 
@@ -292,11 +349,16 @@
         ---
 
         - **Teste:** `it('should throw or return error when end is before start')`
+
         - **Categoria:** error handling
+
         - **Dado:** OS com `start: 2026-04-15T10:00Z`, `end: 2026-04-14T08:00Z`
+
         - **Quando:** `calculateWorkedHours(orderId)` é chamado
+
         - **Então:** lança exceção ou retorna valor de erro (depende do contrato — ver
           pergunta em aberto)
+
         - **Notas:** comportamento atual desconhecido; characterization test deve capturar
           o que acontece hoje antes de decidir o que deveria acontecer
 
@@ -317,6 +379,7 @@
         - **Comportamento com end < start:** o método hoje lança exceção, retorna negativo,
           ou retorna zero? A resposta define se o teste de error handling deve esperar
           exceção ou valor de erro. Verificar o código antes de especificar.
+
         - **Dependência de Clock:** `Clock.systemUTC()` é chamada estaticamente. Se o cálculo
           depender da hora atual (não apenas de start/end), os testes precisam de um mecanismo
           para controlar o relógio. Verificar se o método usa `Clock` para algo além de logging.
@@ -325,10 +388,15 @@
 
         1. Characterization test intra-dia — confirma que o comportamento atual para o caso
            simples está estável e servirá como rede de segurança
+
         2. Characterization test cross-midnight — documenta o bug com o valor atual
+
         3. Behavioral test cross-midnight — define o comportamento correto
+
         4. Aplicar a correção em `calculateWorkedHours()`
+
         5. Atualizar o characterization test cross-midnight para refletir o valor correto
+
         6. Adicionar edge cases (24h, duração zero, end < start)
 
         Characterization tests primeiro, correção depois — a rede de segurança existe antes
@@ -338,15 +406,23 @@
         This example demonstrates the legacy code adaptation because:
           - the testability assessment is explicit: identifies hardcoded Clock dependency and
             absence of existing tests
+
           - the strategy choice is justified: characterization + change-only, not full coverage
+
           - characterization tests capture current behavior INCLUDING the bug, before any fix
+
           - the second characterization test documents the expected incorrect value with a note
             that it will be updated post-fix
+
           - behavioral tests for the fix are separate from characterization tests
+
           - the coverage matrix shows "Outros métodos de ReportService" as an intentional gap
             labeled "legacy trade-off" — not an oversight
+
           - open questions are honest about unknowns (Clock dependency, error behavior)
+
           - the implementation order puts characterization first: safety net before surgery
+
           - a developer working on legacy code sees exactly how to proceed without pretending
             the code is greenfield
       </why>

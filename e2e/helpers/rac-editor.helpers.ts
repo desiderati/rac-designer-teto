@@ -110,7 +110,10 @@ export async function applyRacEditorInitScript(page: Page) {
   });
 }
 
-export async function setupRacEditorPage(page: Page) {
+export async function setupRacEditorPage(
+  page: Page,
+  options: {leaveMobileToolbarCollapsed?: boolean} = {},
+) {
   await applyRacEditorInitScript(page);
 
   const houseButton = page.getByRole('button', {name: 'Casa TETO (Opções)'});
@@ -119,6 +122,12 @@ export async function setupRacEditorPage(page: Page) {
     await seedConstructionSiteDocument(page, {houseType: null, primaryContactName: 'Maria E2E'});
     await page.reload({waitUntil: 'domcontentloaded'});
     await page.waitForLoadState('networkidle', {timeout: 8000}).catch(() => undefined);
+
+    const openToolbar = page.getByRole('button', {name: 'Abrir menu lateral'});
+    if (await openToolbar.isVisible({timeout: 8000}).catch(() => false)) {
+      if (options.leaveMobileToolbarCollapsed) return;
+      await openToolbar.click();
+    }
 
     if (await houseButton.isVisible({timeout: 8000}).catch(() => false)) {
       return;

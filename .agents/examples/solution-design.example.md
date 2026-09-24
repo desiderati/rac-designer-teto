@@ -1,8 +1,8 @@
 # Worked Examples for `solution-design.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/solution-design.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/solution-design.example.md`. Load only when
+> you need concrete calibration for depth, structure, anti-patterns, or output shape. Do not load
+> this file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -48,10 +48,13 @@
 
         - **Pontos fortes:** menor complexidade operacional; equipe já conhece Cloud Run;
           sem dependência de fila ou broker
+
         - **Pontos fracos:** execução sequencial; tempo de sincronização cresce linearmente;
           próximo do timeout para 5k ativos
+
         - **Condições desqualificantes:** se a frota ultrapassar ~4.800 ativos sem aumento
           de rate limit, o job excede o timeout default
+
         - **Reversibilidade:** alta — migrar para fila depois é possível sem mudar o modelo
           de dados (o upsert e o status de falha continuam válidos)
 
@@ -74,10 +77,13 @@
 
         - **Pontos fortes:** paralelismo controlado; escala sem redesign; melhor observabilidade
           via DLQ
+
         - **Pontos fracos:** complexidade operacional significativa; debugging de mensagens
           individuais é mais difícil; equipe precisa aprender Pub/Sub
+
         - **Condições desqualificantes:** se a equipe não puder investir em aprender e operar
           Pub/Sub nos próximos 3 meses
+
         - **Reversibilidade:** média — migrar de volta para worker síncrono exige remover
           infra de fila e reescrever o fluxo de trigger
 
@@ -97,6 +103,7 @@
 
         **Trade-offs aceitos:**
         - tempo de sincronização cresce linearmente com a frota
+
         - se a frota crescer além de ~4.800 ativos, será necessário migrar para a alternativa B
           ou negociar aumento de rate limit com o fornecedor da API
 
@@ -119,9 +126,12 @@
 
         Este design deve ser revisitado se:
         - a frota ultrapassar 4.500 ativos (zona de risco para timeout)
+
         - o rate limit da API for reduzido
+
         - a equipe adquirir proficiência em Pub/Sub e a complexidade operacional deixar de
           ser um fator
+
         - a frequência de sincronização precisar ser maior que 1x/dia (worker síncrono não
           suporta frequências altas com frotas grandes)
 
@@ -129,10 +139,13 @@
 
         - **Abordagem:** worker síncrono (Cloud Run job + Cloud Scheduler) com throttling
           de 80 req/min, upsert por ID, retry com backoff, status `sync_failed` para falhas
+
         - **Restrições arquiteturais:** não usar fila; manter modelo de dados agnóstico ao
           mecanismo de execução (permitir migração futura para fila sem mudança de schema)
+
         - **Pontos de integração:** API SAP PM (REST, autenticação via service account),
           PostgreSQL via Cloud SQL para persistência
+
         - **Fora do escopo:** dead-letter queue, Pub/Sub, concorrência de workers, dashboard
           de monitoramento (tratados quando a migração para fila for necessária)
       </content>

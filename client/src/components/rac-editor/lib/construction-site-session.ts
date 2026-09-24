@@ -67,7 +67,8 @@ export interface StoredConstructionSitesDocument {
 export interface ConstructionSiteSessionStoragePort {
   read(): StoredConstructionSitesDocument;
   write(constructionSites: ConstructionSiteState[]): void;
-  replace?(constructionSites: ConstructionSiteState[]): void;
+  replace?(constructionSites: ConstructionSiteState[], synchronizedConstructionSiteId?: string): void;
+  resume?(): void;
 }
 
 export interface ConstructionSiteSessionPort {

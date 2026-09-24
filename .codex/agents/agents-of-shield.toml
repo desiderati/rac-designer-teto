@@ -1,6 +1,6 @@
 name = "agents-of-shield"
 description = "Use as the @Agents of Shield shortcut for a fixed five-profile security council built on the security-advisor profile catalog."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 nickname_candidates = ["Agents of Shield"]

@@ -1,6 +1,6 @@
 name = "agents-examples"
 description = "Use as the @Agents Examples shortcut to show repository-local custom agent examples without executing them."
-model = "gpt-5.4"
+model = "gpt-6-luna"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 nickname_candidates = ["Agents Examples", "Agents Example"]

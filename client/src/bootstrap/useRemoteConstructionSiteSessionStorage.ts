@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { TRPCClientError } from '@trpc/client';
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { startLogin } from '@/const.ts';
@@ -16,6 +16,8 @@ import {
 } from '@/infra/persistence/indexed-db-construction-site-repository.adapter.ts';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
 import { mergeConstructionSiteStates } from '@/domain/construction-site/construction-site-conflict-merge.ts';
+import {createIndexedDbConstructionSiteStorageDriver} from '@/infra/storage/indexed-db-construction-sites.storage.ts';
+import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
 import type {
   RemoteSyncConflict,
   RemoteSyncController,
@@ -33,12 +35,14 @@ type SessionRepository = ConstructionSiteRepositoryPort & {
   setDocumentVersion?: (constructionSiteId: string, version: number) => void;
 };
 
-const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
-
 export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSiteStorageLoadState {
   const repository = useMemo<SessionRepository>(() => (
-    isLocalE2eMode
-      ? new IndexedDbConstructionSiteRepositoryAdapter()
+    isLocalEditorMode
+      ? new IndexedDbConstructionSiteRepositoryAdapter(
+        isIsolatedLocalMode
+          ? createIndexedDbConstructionSiteStorageDriver('rac-designer-teto-isolated', true)
+          : createIndexedDbConstructionSiteStorageDriver(),
+      )
       : new RemoteConstructionSiteRepositoryAdapter(racTrpcClient)
   ), []);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'legacy_confirmation' | 'blocked' | 'ready' | 'error'>('loading');
@@ -48,9 +52,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflict, setConflict] = useState<RemoteSyncConflict | null>(null);
-  const conflictRef = useRef<RemoteSyncConflict | null>(null);
   const [revision, setRevision] = useState(0);
-  const retryWriteRef = useRef<{ next: ConstructionSiteState[]; previous: ConstructionSiteState[] } | null>(null);
   const [loadGeneration, setLoadGeneration] = useState(0);
 
   const loadRemote = useCallback(async () => {
@@ -67,28 +69,18 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
         constructionSites,
         async (next, previous) => {
           setSyncStatus('pending');
-          retryWriteRef.current = { next, previous };
-          if (conflictRef.current) {
-            setSyncStatus('conflict');
-            return;
-          }
-          const synchronized = await persistReactiveConstructionSites(
+          return persistReactiveConstructionSites(
             repository,
             next,
             previous,
             setSyncStatus,
             setLastSyncedAt,
             setErrorMessage,
-            (value) => {
-              conflictRef.current = value;
-              setConflict(value);
-            },
+            setConflict,
           );
-          if (synchronized) retryWriteRef.current = null;
         },
       );
       setStorage(nextStorage);
-      conflictRef.current = null;
       setConflict(null);
       setErrorMessage(null);
       setSyncStatus('synced');
@@ -104,7 +96,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   useEffect(() => {
     let alive = true;
 
-    if (isLocalE2eMode) {
+    if (isLocalEditorMode) {
       void loadRemote();
       return () => { alive = false; };
     }
@@ -145,10 +137,8 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     if (!conflict || !storage) return;
     const current = storage.read().constructionSites;
     const next = replaceConstructionSite(current, conflict.remoteState);
-    storage.replace?.(next);
+    storage.replace?.(next, conflict.constructionSiteId);
     repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
-    conflictRef.current = null;
-    retryWriteRef.current = null;
     setRevision((value) => value + 1);
     setConflict(null);
     setErrorMessage(null);
@@ -161,9 +151,13 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     setSyncStatus('syncing');
     setErrorMessage(null);
     try {
+      const latestLocal = storage.read().constructionSites.find(
+        (entry) => entry.constructionSite.id === conflict.constructionSiteId,
+      );
+      if (!latestLocal) throw new Error('A Construção TETO local não está mais disponível para mesclar.');
       const merged = mergeConstructionSiteStates(
         conflict.baseState,
-        conflict.localState,
+        latestLocal,
         conflict.remoteState,
       );
       if (!merged.ok || !merged.state) {
@@ -176,9 +170,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       mergedState.constructionSite.documentVersion = conflict.remoteVersion;
       repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
       await repository.save(mergedState);
-      storage.replace?.(replaceConstructionSite(storage.read().constructionSites, mergedState));
-      conflictRef.current = null;
-      retryWriteRef.current = null;
+      storage.replace?.(replaceConstructionSite(storage.read().constructionSites, mergedState), conflict.constructionSiteId);
       setRevision((value) => value + 1);
       setConflict(null);
       setSyncStatus('synced');
@@ -194,25 +186,12 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setSyncStatus('conflict');
       return;
     }
-    const pendingWrite = retryWriteRef.current;
-    if (pendingWrite) {
-      const synchronized = await persistReactiveConstructionSites(
-        repository,
-        pendingWrite.next,
-        pendingWrite.previous,
-        setSyncStatus,
-        setLastSyncedAt,
-        setErrorMessage,
-        (value) => {
-          conflictRef.current = value;
-          setConflict(value);
-        },
-      );
-      if (synchronized) retryWriteRef.current = null;
+    if (storage?.resume) {
+      storage.resume();
       return;
     }
     await loadRemote();
-  }, [conflict, loadRemote, repository]);
+  }, [conflict, loadRemote, storage]);
 
   const sync = useMemo<RemoteSyncController>(() => ({
     status: syncStatus,
@@ -260,9 +239,9 @@ export async function persistReactiveConstructionSites(
         await repository.save(constructionSite);
       } catch (error) {
         if (!isConflictError(error)) throw error;
-          const remote = repository.load
-            ? await loadConflictState(repository.load, constructionSite, previousById.get(constructionSite.constructionSite.id) ?? null)
-            : null;
+        const remote = repository.load
+          ? await loadConflictState((id) => repository.load!(id), constructionSite, previousById.get(constructionSite.constructionSite.id) ?? null)
+          : null;
         if (remote) {
           setConflict?.(remote);
           setStatus?.('conflict');
@@ -290,38 +269,63 @@ export async function persistReactiveConstructionSites(
 
 export function createReactiveConstructionSiteSessionStorage(
   initialConstructionSites: ConstructionSiteState[],
-  onWrite: (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => Promise<void>,
+  onWrite: (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => Promise<boolean>,
 ): ConstructionSiteSessionStoragePort {
   let pendingWrite: Promise<void> | null = null;
-  let writeSequence = 0;
+  let paused = false;
   let document: StoredConstructionSitesDocument = {
     version: 1,
     constructionSites: cloneConstructionSites(initialConstructionSites),
+  };
+  let synchronizedConstructionSites = cloneConstructionSites(initialConstructionSites);
+
+  const schedule = () => {
+    if (paused || pendingWrite || areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) return;
+    const run = async () => {
+      while (!paused && !areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) {
+        const next = cloneConstructionSites(document.constructionSites);
+        const previous = cloneConstructionSites(synchronizedConstructionSites);
+        if (!await onWrite(next, previous)) {
+          paused = true;
+          return;
+        }
+        synchronizedConstructionSites = cloneConstructionSites(next);
+        if (areConstructionSiteListsEqual(document.constructionSites, next)) {
+          document = {version: document.version, constructionSites: cloneConstructionSites(next)};
+        }
+      }
+    };
+    const tracked = run().catch((error) => {
+      paused = true;
+      console.error('[rac] Falha ao sincronizar Construções TETO remotas.', error);
+    });
+    pendingWrite = tracked;
+    void tracked.finally(() => {
+      if (pendingWrite === tracked) pendingWrite = null;
+      schedule();
+    });
   };
 
   return {
     read: () => cloneDocument(document),
     write: (constructionSites) => {
-      const sequence = ++writeSequence;
-      const previous = document.constructionSites;
       document = { version: document.version, constructionSites: cloneConstructionSites(constructionSites) };
-      const nextSnapshot = cloneConstructionSites(document.constructionSites);
-      const previousSnapshot = cloneConstructionSites(previous);
-      const run = async () => {
-        await onWrite(nextSnapshot, previousSnapshot);
-        if (sequence === writeSequence) {
-          document = { version: document.version, constructionSites: cloneConstructionSites(nextSnapshot) };
-        }
-      };
-      const scheduled = pendingWrite ? pendingWrite.then(run, run) : run();
-      const tracked = scheduled.catch((error) => console.error('[rac] Falha ao sincronizar Construções TETO remotas.', error));
-      pendingWrite = tracked;
-      void tracked.finally(() => {
-        if (pendingWrite === tracked) pendingWrite = null;
-      });
+      schedule();
     },
-    replace: (constructionSites) => {
+    replace: (constructionSites, synchronizedConstructionSiteId) => {
       document = { version: document.version, constructionSites: cloneConstructionSites(constructionSites) };
+      if (synchronizedConstructionSiteId) {
+        const synchronized = constructionSites.find((entry) => entry.constructionSite.id === synchronizedConstructionSiteId);
+        if (synchronized) synchronizedConstructionSites = replaceConstructionSite(synchronizedConstructionSites, synchronized);
+      } else {
+        synchronizedConstructionSites = cloneConstructionSites(constructionSites);
+      }
+      paused = false;
+      schedule();
+    },
+    resume: () => {
+      paused = false;
+      schedule();
     },
   };
 }
@@ -378,6 +382,10 @@ function areConstructionSitesEqual(next: ConstructionSiteState, previous: Constr
   const normalizedNext = { ...next, constructionSite: { ...next.constructionSite, documentVersion: undefined } };
   const normalizedPrevious = { ...previous, constructionSite: { ...previous.constructionSite, documentVersion: undefined } };
   return JSON.stringify(normalizedNext) === JSON.stringify(normalizedPrevious);
+}
+
+function areConstructionSiteListsEqual(next: ConstructionSiteState[], previous: ConstructionSiteState[]): boolean {
+  return next.length === previous.length && next.every((entry, index) => areConstructionSitesEqual(entry, previous[index]));
 }
 
 function cloneDocument(document: StoredConstructionSitesDocument): StoredConstructionSitesDocument {

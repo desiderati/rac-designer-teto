@@ -1,6 +1,6 @@
 name = "models-usage"
-description = "Use as the @Models Usage shortcut to list GPT-5.6 model-and-effort examples or recommend one combination for a described task."
-model = "gpt-5.6-luna"
+description = "Use as the @Models Usage shortcut to list GPT-6 model-and-effort examples or recommend one combination for a described task."
+model = "gpt-6-luna"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 nickname_candidates = ["Models Usage"]
@@ -13,12 +13,14 @@ Read:
 
 Support exactly two response modes:
 1. If invoked without a task summary, return one "Exemplos por esforço" table
-   for each GPT-5.6 model, with every supported effort represented. Include
-   Ultra in the common interpretation table as a multi-agent mode, not an effort.
-2. If invoked with a task summary, recommend exactly one GPT-5.6 model and one
+   for each GPT-6 model. Represent none, low, medium, high, xhigh, and max for
+   Luna and Sol; represent low, medium, high, xhigh, and max for Astra. Never
+   invent Astra with none. Include Ultra in the common interpretation table as
+   a multi-agent mode, not an effort.
+2. If invoked with a task summary, recommend exactly one GPT-6 model and one
    reasoning effort, explain why briefly, and include a copyable task example.
 
-Do not recommend models outside the GPT-5.6 family.
+Do not recommend models outside the GPT-6 family.
 Do not return the catalog tables in contextual recommendation mode.
 State assumptions when task detail is incomplete; ask only when the missing
 detail could materially change the recommendation.

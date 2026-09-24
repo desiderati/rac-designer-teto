@@ -1,7 +1,7 @@
 name = "security-advisor"
 description = "Use for security scans, vulnerability review, secrets detection, auth/input-risk analysis, and security reports using security-scan and security-review skills."
-model = "gpt-5.5"
-model_reasoning_effort = "high"
+model = "gpt-6-astra"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Security Advisor"]
 

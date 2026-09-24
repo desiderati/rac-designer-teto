@@ -1,8 +1,8 @@
 # Worked Examples for `bug-analysis.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/bug-analysis.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/bug-analysis.example.md`. Load only when you
+> need concrete calibration for depth, structure, anti-patterns, or output shape. Do not load this
+> file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -28,9 +28,13 @@
       <why>
         This summary is ideal because:
           - it identifies the service, its responsibility, and the data flow around it
+
           - it anchors the problem to a concrete event (2.4.1 deploy) with a specific change
+
           - it explains why staging does not reproduce the issue (fixture difference)
+
           - it records relevant operational constraints (migration applied, no immediate rollback)
+
           - it contains no undeclared assumptions or hypotheses embedded as facts
       </why>
     </example>
@@ -76,7 +80,9 @@
 
         **Validação realizada:**
         - reproduzido localmente com payload de 5 itens
+
         - confirmado que o buffer default do middleware é 8KB
+
         - confirmado que a exceção é mascarada como ConnectionTimeoutException pelo error handler
       </content>
       <why>
@@ -142,7 +148,9 @@
         # 4. Plano de Validação
 
         1. Confirmar que a query sem LIMIT é a causa raiz → executar com LIMIT 50 e medir
+
         2. Verificar se o endpoint tem contrato de paginação documentado → inspecionar openapi.yaml
+
         3. Verificar se consumers dependem de receber todos os registros → inspecionar frontend
            e integrações conhecidas
 
@@ -159,17 +167,23 @@
         # 6. Riscos e Impactos
 
         - **Risco:** consumers existentes que consomem a resposta completa vão quebrar
+
         - **Mitigação:** manter compatibilidade temporária com `?limit=0` retornando todos
           os registros (deprecated, com header `X-Deprecated: full-response`), remover após
           migração dos consumers
+
         - **Risco:** o frontend pode não suportar paginação ainda
+
         - **Mitigação:** verificar com a equipe de frontend antes de implementar
 
         # 7. Como Confirmar a Resolução
 
         - endpoint responde em <500ms para COMP-0042 com `limit=50`
+
         - `next_cursor` permite navegar todas as 847 entradas em páginas consecutivas
+
         - nenhum consumer reporta erro após o deploy (monitorar por 48h)
+
         - alerta de 504 no Cloud Monitoring não dispara para o endpoint nas 48h seguintes
       </content>
       <why>

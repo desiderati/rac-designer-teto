@@ -29,6 +29,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
     - Hovers do menu principal e dos submenus devem ser compactos e proporcionais ao formato de cápsula dos menus.
     - Em telas móveis, quando o menu lateral está aberto, a barra de recolhimento fica à direita do menu.
     - Em telas móveis, quando o menu lateral está recolhido, a barra de abertura fica no limite esquerdo da tela.
+    - As barras laterais esquerda e direita oferecem esse controle abaixo de 767 px. Abaixo de 640 px, ambas iniciam
+      recolhidas; de 640 a 766 px, iniciam abertas e podem ser recolhidas. A partir de 767 px, o controle não aparece.
 
 2. Submenus
     - Devem abrir/fechar de forma clara, sem conflito entre si.
@@ -41,6 +43,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
       específica e são acessados pela listagem de Construções TETO.
     - Cada construção não arquivada exibe suas casas como submenu, usando como rótulo o nome da família associada à
       casa.
+    - O seletor de construções e casas conserva sua largura integral de 14,5 rem e o alinhamento com o botão de abertura,
+      mesmo quando a viewport é menor que a superfície mínima de 420 px do editor.
     - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
     - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
     - A ação "Construções TETO" não fica no menu do usuário/avatar.
@@ -86,6 +90,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 5. Zoom
     - No desktop, o botão de zoom pode combinar ícone e percentual.
     - No mobile, o botão de zoom deve exibir o percentual visível no lugar da lupa.
+    - O submenu de modos permanece ancorado ao botão de zoom, sem se deslocar para acompanhar viewports abaixo da
+      largura mínima do editor.
 
 ## Regras de segurança
 

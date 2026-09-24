@@ -1,6 +1,6 @@
 name = "brainstorm"
 description = "Use as the @Brainstorm shortcut to frame an unclear idea, requirement, or solution and hand it to the appropriate owner."
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Brainstorm"]

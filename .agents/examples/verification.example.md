@@ -1,8 +1,8 @@
 # Worked Examples for `verification.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/verification.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/verification.example.md`. Load only when you
+> need concrete calibration for depth, structure, anti-patterns, or output shape. Do not load this
+> file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -10,9 +10,13 @@
       <quality>ideal</quality>
       <content>
         ## 1. Artefatos de Referência
-        - objetivo/tarefa: disponível — "adicionar retry com backoff e DLQ ao notification-dispatcher"
+        - objetivo/tarefa: disponível — "adicionar retry com backoff e DLQ ao
+          notification-dispatcher"
+
         - decisão de design: disponível — worker síncrono com throttling, contrato em seção 7
+
         - plano de implementação: disponível — 6 passos, validação em staging
+
         - especificações de teste: disponível — 9 testes especificados, cobertura em matriz
 
         ## 2. Verificação por Dimensão
@@ -32,18 +36,24 @@
 
         ### Plano vs. Resultado
         - passos 1-4 executados conforme planejado ✓
+
         - passo 5 (alerta Cloud Monitoring): **não executado**
+
         - passo 6 (validação integrada em staging): executado, retry confirmado, DLQ recebendo
           mensagens, falhas registradas no banco
+
         - desvio no passo 5 registrado no changelog da sessão: "Terraform para monitoring.tf
           requer permissão `monitoring.alertPolicies.create` que o service account de CI não tem.
           Aberto ticket INFRA-342 para solicitar permissão."
+
         - avaliação: ⚠️ desvio justificado — impedimento de permissão, não de design
 
         ### Testes vs. Resultado
         - 8 de 9 testes implementados e passando ✓
+
         - teste ausente: `should trigger alert when DLQ accumulates > 10 messages` — não
           implementável sem o alerta (depende do passo 5)
+
         - avaliação: ⚠️ gap intencional — vinculado ao mesmo impedimento do passo 5
 
         ## 3. Desvios Identificados
@@ -56,16 +66,23 @@
         ## 4. Regressões Prováveis
         - envio de notificações existente (sem retry): verificado — fluxo de item único
           continua funcionando, teste de regressão passando
+
         - transação principal do pedido: verificado — publicação na fila ocorre após commit,
           sem impacto na atomicidade
+
         - nenhuma regressão identificada
 
         ## 5. Disciplina de Implementação
 
-        - menor mudança coesa: mantida — retry, DLQ e rastreabilidade foram alterados no mesmo fluxo funcional
+        - menor mudança coesa: mantida — retry, DLQ e rastreabilidade foram alterados no mesmo fluxo
+          funcional
+
         - refatoração ampla: não executada — nenhum módulo fora do dispatcher foi reestruturado
+
         - alteração de conteúdo autoral: não aplicável
-        - mutação externa: Terraform aplicado somente após confirmação registrada na sessão de execução
+
+        - mutação externa: Terraform aplicado somente após confirmação registrada na sessão de
+          execução
 
         ## 6. Veredito
         **partial** — implementação satisfaz o objetivo principal (retry + DLQ + rastreabilidade).
@@ -75,7 +92,9 @@
         ## 7. Próximo Passo
         Prosseguir para `changelog.prompt.md`. Registrar:
         - o que foi implementado e validado
+
         - o desvio do passo 5 com referência a INFRA-342
+
         - o teste pendente vinculado ao alerta
       </content>
       <why>

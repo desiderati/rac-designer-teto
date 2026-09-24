@@ -1,6 +1,6 @@
 name = "solutions-architect"
 description = "Use for architecture decisions, solution design, and clean architecture refactoring strategy using architecture-decision.prompt.md, solution-design.prompt.md, and refactoring skills."
-model = "gpt-5.5"
+model = "gpt-6-astra"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Solutions Architect"]

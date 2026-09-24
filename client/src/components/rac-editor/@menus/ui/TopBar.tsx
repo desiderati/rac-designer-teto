@@ -3,6 +3,7 @@ import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
@@ -66,9 +67,9 @@ export function TopBar({
     : 'Insira uma casa no canvas para exportar o RAC em PDF';
 
   return (
-    <>
+    <div data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[420px] w-full'>
       {/* Left: Menu + Family */}
-      <div className='fixed top-4 left-4 z-50 flex items-center gap-3'>
+      <div className='absolute left-4 top-0 z-50 flex items-center gap-3'>
         <HamburgerMenu
           actions={actions}
           constructionGroups={constructionGroups}
@@ -78,7 +79,7 @@ export function TopBar({
       </div>
 
       {/* Center: Zoom indicator + canvas-tool submenu */}
-      <div className='fixed top-4 left-1/2 -translate-x-1/2 z-50'>
+      <div className='absolute left-1/2 top-0 z-50 -translate-x-1/2'>
         <ZoomMenu
           zoom={zoom}
           canvasToolMode={canvasToolMode}
@@ -89,7 +90,7 @@ export function TopBar({
       </div>
 
       {/* Right: 3D / Exportar / Avatar */}
-      <div className='fixed top-4 right-4 z-50 flex items-center gap-2'>
+      <div className='absolute right-4 top-0 z-50 flex items-center gap-2'>
         <RemoteSyncIndicator/>
 
         <button
@@ -140,7 +141,7 @@ export function TopBar({
           onExit={actions.exit}
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -148,11 +149,11 @@ function RemoteSyncIndicator() {
   const sync = useRemoteSync();
   const status = sync.status;
   const labelByStatus = {
-    synced: 'Sincronizado',
-    syncing: 'Sincronizando alterações',
-    pending: 'Alteração pendente',
+    synced: isIsolatedLocalMode ? 'Salvo neste dispositivo' : 'Sincronizado',
+    syncing: isIsolatedLocalMode ? 'Salvando neste dispositivo' : 'Sincronizando alterações',
+    pending: isIsolatedLocalMode ? 'Salvamento local pendente' : 'Alteração pendente',
     conflict: 'Conflito de sincronização',
-    error: 'Falha ao sincronizar — clique para tentar novamente',
+    error: isIsolatedLocalMode ? 'Falha ao salvar neste dispositivo — clique para tentar novamente' : 'Falha ao sincronizar — clique para tentar novamente',
   } as const;
   const toneByStatus = {
     synced: 'text-emerald-600',

@@ -14,6 +14,7 @@ import {
   validatePreparedPhotoSize,
 } from '@/shared/lib/photo-data-url.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 
 export interface ImageUploadReviewSelection {
   file: File;
@@ -113,7 +114,7 @@ export function ImageUploadReview({
       onOpenChange(false);
       await confirmation;
     } catch (error: unknown) {
-      setConfirmError(error instanceof Error ? error.message : 'Não foi possível enviar a imagem. Tente novamente.');
+      setConfirmError(error instanceof Error ? error.message : 'Não foi possível salvar a imagem. Tente novamente.');
     } finally {
       setIsConfirming(false);
     }
@@ -168,7 +169,7 @@ export function ImageUploadReview({
           <div className='overflow-hidden rounded-xl border border-slate-200 bg-slate-50'>
             <img
               src={preserveOriginalQuality ? originalPreviewUrl : optimizedPreviewUrl ?? originalPreviewUrl}
-              alt={preserveOriginalQuality ? 'Prévia da imagem original' : 'Prévia da imagem que será enviada'}
+              alt={preserveOriginalQuality ? 'Prévia da imagem original' : isIsolatedLocalMode ? 'Prévia da imagem que será salva' : 'Prévia da imagem que será enviada'}
               className='block h-52 w-full object-cover object-center sm:h-64'
             />
           </div>
@@ -198,7 +199,7 @@ export function ImageUploadReview({
             <Metric label='Redução' value={prepared.compressed ? formatReduction(prepared.reductionPercent) : '0,0%'}/>
           </div>
 
-          <label className='flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
+          {prepared.compressed ? <label className='flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
             <Checkbox
               checked={preserveOriginalQuality}
               onCheckedChange={(checked) => setPreserveOriginalQuality(checked === true)}
@@ -207,9 +208,9 @@ export function ImageUploadReview({
             />
             <span>
               <span className='block font-semibold text-slate-800'>Manter qualidade original</span>
-              <span className='block text-xs text-slate-500'>A compactação automática ocorre acima de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. O arquivo final enviado precisa ter até {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)}.</span>
+              <span className='block text-xs text-slate-500'>A compactação automática ocorre acima de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. O arquivo final {isIsolatedLocalMode ? 'salvo' : 'enviado'} precisa ter até {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)}.</span>
             </span>
-          </label>
+          </label> : null}
 
           {selectedSizeError ? (
             <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>{selectedSizeError}</p>
@@ -238,7 +239,7 @@ export function ImageUploadReview({
         disabled={!effectivePreparedFile || Boolean(prepareError) || Boolean(selectedSizeError) || isConfirming}
       >
         {isConfirming ? <Loader2 className='mr-2 h-4 w-4 animate-spin'/> : <Check className='mr-2 h-4 w-4'/>}
-        {isConfirming ? 'Enviando…' : 'Usar esta imagem'}
+        {isConfirming ? (isIsolatedLocalMode ? 'Salvando…' : 'Enviando…') : 'Usar esta imagem'}
       </Button>
     </div>
   );
@@ -249,7 +250,7 @@ export function ImageUploadReview({
         <DrawerContent className='max-h-[92dvh] overflow-hidden'>
           <DrawerHeader className='pb-2 text-center'>
             <DrawerTitle className='text-center text-2xl'>{title}</DrawerTitle>
-            <DrawerDescription>Confira a imagem e escolha como deseja enviá-la.</DrawerDescription>
+            <DrawerDescription>Confira a imagem e escolha como deseja {isIsolatedLocalMode ? 'salvá-la' : 'enviá-la'}.</DrawerDescription>
           </DrawerHeader>
           <div className='min-h-0 flex-1 overflow-y-auto px-4 pb-5'>{body}</div>
           <ActionDock testId='image-upload-review-actions' surface='drawer' spacing='flush' edgeToEdge>
@@ -265,7 +266,7 @@ export function ImageUploadReview({
       <DialogContent className={cn('max-h-[90dvh] overflow-y-auto sm:max-w-xl')} hideCloseButton>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Confira a imagem e escolha como deseja enviá-la.</DialogDescription>
+          <DialogDescription>Confira a imagem e escolha como deseja {isIsolatedLocalMode ? 'salvá-la' : 'enviá-la'}.</DialogDescription>
         </DialogHeader>
         {body}
         <ActionDock testId='image-upload-review-actions' surface='dialog' spacing='flush'>

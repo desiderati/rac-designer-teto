@@ -1,4 +1,4 @@
-import {PointerEvent, ReactElement, useRef, useState} from 'react';
+import {PointerEvent, ReactElement, useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.tsx';
@@ -44,7 +44,11 @@ export function CanvasToolsMenu({
 }: CanvasToolsMenuProps) {
   const houseMenuItems = houseType ? HOUSE_MENU_CONFIG[houseType] : [];
   const isHouseMenuOpen = activeSubmenu === 'house' && !!houseType;
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isToolbarCollapseViewport = useToolbarCollapseViewport();
+  const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
+  const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
+  const shouldShowMobileHandle = isMobile && isToolbarCollapseViewport;
+  const isCollapsed = shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
 
@@ -63,7 +67,7 @@ export function CanvasToolsMenu({
     if (Math.abs(deltaX) <= 24) return;
 
     didDragRef.current = true;
-    setIsCollapsed(deltaX < 0);
+    setCollapsedOverride(deltaX < 0);
   };
 
   const handleHandleClick = () => {
@@ -71,10 +75,10 @@ export function CanvasToolsMenu({
       didDragRef.current = false;
       return;
     }
-    setIsCollapsed((current) => !current);
+    setCollapsedOverride((current) => !(current ?? shouldDefaultCollapse));
   };
 
-  const mobileHandle = isMobile ? (
+  const mobileHandle = shouldShowMobileHandle ? (
     <button
       type='button'
       aria-label={isCollapsed ? 'Abrir menu lateral' : 'Recolher menu lateral'}
@@ -96,7 +100,7 @@ export function CanvasToolsMenu({
     </button>
   ) : null;
 
-  if (isMobile && isCollapsed) {
+  if (isCollapsed) {
     return mobileHandle;
   }
 
@@ -328,6 +332,44 @@ function RailItemWithSubmenu({
 
 function RailDivider() {
   return <div className='w-6 h-px bg-slate-200 my-0.5' aria-hidden/>;
+}
+
+function useToolbarCollapseViewport() {
+  const [isCollapseViewport, setIsCollapseViewport] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 767 : false
+  ));
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 766px)');
+    const syncViewport = () => {
+      setIsCollapseViewport(window.innerWidth < 767);
+    };
+
+    mediaQuery.addEventListener('change', syncViewport);
+    syncViewport();
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
+  return isCollapseViewport;
+}
+
+function usePhoneToolbarCollapseViewport() {
+  const [isPhoneViewport, setIsPhoneViewport] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  ));
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const syncViewport = () => {
+      setIsPhoneViewport(window.innerWidth < 640);
+    };
+
+    mediaQuery.addEventListener('change', syncViewport);
+    syncViewport();
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
+  return isPhoneViewport;
 }
 
 function resolveLimitState(

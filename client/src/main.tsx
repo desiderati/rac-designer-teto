@@ -8,6 +8,7 @@ import { startLogin } from '@/const.ts';
 import { racTrpcClient } from '@/lib/trpc-client.ts';
 import { trpc } from '@/lib/trpc.ts';
 import {installChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 import './index.css';
 
 installChunkRecovery();
@@ -16,11 +17,12 @@ if (typeof window !== 'undefined' && new URLSearchParams(window.location.search)
   cleanUrl.searchParams.delete('chunkRecovery');
   window.history.replaceState({}, document.title, cleanUrl.toString());
 }
-installManusPreviewSessionBridge();
+if (!isIsolatedLocalMode) installManusPreviewSessionBridge();
 
 let loginRedirectScheduled = false;
 
 function redirectToLoginIfUnauthorized(error: unknown): void {
+  if (isIsolatedLocalMode) return;
   if (!(error instanceof TRPCClientError)) return;
   if (error.data?.code !== 'UNAUTHORIZED' && error.message !== UNAUTHED_ERR_MSG) return;
   if (typeof window === 'undefined' || loginRedirectScheduled) return;

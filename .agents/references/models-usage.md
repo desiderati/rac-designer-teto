@@ -1,7 +1,7 @@
 # Models Usage
 
-Use esta referência para escolher um modelo da família GPT-5.6 e o esforço de raciocínio no Codex.
-Ela tem dois modos de resposta e não altera configuração.
+Use esta referência para escolher um modelo da família GPT-6 e o esforço de raciocínio no Codex. Ela
+tem dois modos de resposta e não altera configuração.
 
 ## Modos de uso
 
@@ -9,7 +9,7 @@ Ela tem dois modos de resposta e não altera configuração.
 
 Quando o usuário chamar somente `@Models Usage`, retorne as três tabelas de exemplos por esforço
 desta referência, uma para cada modelo. Não peça uma tarefa e não recomende modelos fora da família
-GPT-5.6.
+GPT-6.
 
 ```text
 @Models Usage
@@ -34,17 +34,21 @@ Preciso corrigir um contrato distribuído entre código, scaffold, documentaçã
 mudanças locais fora do escopo.
 ```
 
-## Família GPT-5.6
+## Família GPT-6
 
-| Modelo                     | Melhor encaixe                                                                                  |
-|----------------------------|-------------------------------------------------------------------------------------------------|
-| `gpt-5.6` ou `gpt-5.6-sol` | Trabalho complexo, aberto, ambíguo ou de alto valor que exige julgamento e acabamento.          |
-| `gpt-5.6-terra`            | Trabalho cotidiano que precisa equilibrar capacidade, ferramentas, velocidade e custo relativo. |
-| `gpt-5.6-luna`             | Trabalho claro, repetível, estruturado ou de alto volume com critério de sucesso objetivo.      |
+| Modelo        | Melhor encaixe                                                                                  |
+|---------------|-------------------------------------------------------------------------------------------------|
+| `gpt-6-astra` | Trabalho mais complexo, aberto ou de alto impacto que exige julgamento profundo.                |
+| `gpt-6-sol`   | Trabalho cotidiano ou complexo que precisa equilibrar capacidade, velocidade e custo relativo.  |
+| `gpt-6-luna`  | Trabalho claro, repetível, estruturado ou de alto volume com critério de sucesso objetivo.      |
 
-`gpt-5.6` é alias de `gpt-5.6-sol`; não os trate como modelos de capacidade diferente. Na dúvida
-entre as variantes, comece com Sol. Na dúvida sobre esforço, comece com `medium` e ajuste com uma
-tarefa representativa.
+Na dúvida entre as variantes, comece com Sol. Reserve Astra para decisões ou execuções em que a
+profundidade adicional justifique seu custo; use Luna para trabalho bem delimitado. Na dúvida sobre
+esforço, comece com `medium` e ajuste com uma tarefa representativa.
+
+As tabelas refletem os esforços aceitos por cada variante: Luna e Sol vão de `none` a `max`; Astra
+vai de `low` a `max` e não oferece `none`. Não invente uma combinação ausente para tornar as tabelas
+simétricas.
 
 ## Exemplos por esforço
 
@@ -63,7 +67,7 @@ historicamente usado em cada mudança.
 | `xhigh`  | Migrar em lote cinco pacotes de assets para um novo contrato visual, validando dimensões, transparência e regressão antes de promover cada pacote. |
 | `max`    | Inventariar centenas de recursos GCP, reconciliar projeto, pasta, billing e responsável com a política vigente e justificar cada exceção.          |
 
-### Terra
+### Sol
 
 | Esforço  | Exemplo concreto de uso                                                                                                                                        |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -74,11 +78,10 @@ historicamente usado em cada mudança.
 | `xhigh`  | Criar uma aplicação interna a partir de uma PRD pronta e arquitetura definida, com frontend React, API Node, login Keycloak, auditoria, testes e pipeline.     |
 | `max`    | Substituir um backend administrativo mockado pela Keycloak Admin API real, ajustando backend, UI, auditoria e testes de segurança sem perder o fallback local. |
 
-### Sol
+### Astra
 
 | Esforço  | Exemplo concreto de uso                                                                                                                                     |
 |----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `none`   | Converter um plano de migração produtiva já aprovado em runbook passo a passo, com checklists e rollback, sem mudar decisões.                               |
 | `low`    | Revisar o diff que habilita logging temporário em um load balancer produtivo e verificar exposição, evidência e rollback.                                   |
 | `medium` | Transformar um objetivo de negócio ainda incompleto em MVP de aplicação, definindo arquitetura, jornadas, Design System, implementação e testes.            |
 | `high`   | Configurar o ambiente produtivo de uma aplicação com VMs, containers, DNS, load balancer, segredos, CI/CD, observabilidade e plano de rollback.             |
@@ -103,13 +106,15 @@ quando a mesma variante precisa de mais planejamento, análise ou verificação.
 
 Os nomes exibidos podem variar por superfície. O Codex pode mostrar Light em vez de `low` e Extra
 High em vez de `xhigh`; algumas superfícies podem expor apenas parte dos valores. `Ultra` coordena
-subagentes: evite-o em tarefas simples, estritamente sequenciais ou tão acopladas que a orquestração
-custaria mais que o paralelismo.
+subagentes e não é um valor de esforço de raciocínio. Quando a superfície oferecer esse modo,
+prefira Sol para a maioria das execuções paralelas e Astra quando as frentes também exigirem o maior
+nível de julgamento. Evite-o em tarefas simples, estritamente sequenciais ou tão acopladas que a
+orquestração custaria mais que o paralelismo.
 
 ## Regras de recomendação
 
-1. Escolha Luna para volume e repetição, Terra para o cotidiano e Sol para ambiguidade ou qualidade
-   máxima.
+1. Escolha Luna para volume e repetição, Sol para o cotidiano e tarefas complexas, e Astra para o
+   trabalho mais exigente ou de alto impacto.
 
 2. Escolha o esforço separadamente; capacidade do modelo e profundidade de raciocínio não são a
    mesma decisão.
@@ -125,7 +130,7 @@ custaria mais que o paralelismo.
 ## Formato da recomendação contextual
 
 ```text
-Modelo: gpt-5.6-terra
+Modelo: gpt-6-sol
 Esforço: high
 Por quê: a tarefa é multiarquivo, usa ferramentas e exige regressão cuidadosa, mas tem contrato e
 critério de sucesso claros.
@@ -136,4 +141,4 @@ preserve mudanças fora do escopo e execute a suíte focal antes de concluir.
 ## Fontes atuais
 
 - [Seleção de modelos no Codex](https://learn.chatgpt.com/docs/models)
-- [Guia atual da família GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model)
+- [Guia atual da família GPT-6](https://developers.openai.com/api/docs/guides/latest-model)

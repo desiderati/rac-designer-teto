@@ -19,11 +19,17 @@
   <when_to_use>
     Use this prompt when:
       - a bug, regression, or unexpected behavior has been reported
+
       - a live, production-like, or critical failure needs disciplined debugging
+
       - tests are failing and the root cause is not obvious
+
       - a previous fix resolved symptoms but the problem recurred
+
       - behavior diverges from documented expectations
-      - the requester asks to trace root cause, explain why the failure happens, or inspect edge cases
+
+      - the requester asks to trace root cause, explain why the failure happens, or inspect edge
+        cases
 
     Do NOT use this prompt when:
       - the root cause is already known (go straight to implementation-planning)
@@ -107,19 +113,24 @@
 
   <process>
     Follow this exact sequence for every problem analysis:
-      1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs, relevant docs)
+      1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs,
+         relevant docs)
+
       2. Reconstruct the solution context from what was provided
+
       3. Define the observable failure contract before ranking hypotheses:
          - Original reported scenario, preserving user actions and system state as precisely as known
          - Observable boundary where the failure was reported
          - Minimal reproduction that should fail before the fix
          - Negative or control scenario that should continue to pass
          - Evidence required to call the bug resolved at the original boundary
+
       4. If the issue is live, production-like, outage-like, or operationally critical:
          - Record current impact, operating mode, affected environment, and known mitigation state
          - Keep inspection and validation read-only unless production mutation was explicitly authorized
          - Separate immediate containment from permanent code correction
          - Decide whether an incident record is also needed, without replacing this technical defect analysis
+
       5. Map the relevant layers and boundaries for this repository. Use generic categories
          and adapt them to the actual system, for example:
          - interaction or entry surface
@@ -129,42 +140,66 @@
          - persistence, external dependency, or asynchronous boundary
          - reload, navigation, session, or context transition boundary
          Mark each layer as observed, inferred, not applicable, or unverified.
+
       6. Map the expected flow vs. the actual flow, identifying the divergence point
+
       7. List root cause hypotheses, ranked by probability
+
       8. For each hypothesis, provide:
          - Evidence in favor
          - Evidence against
          - What is still unknown
          - How to validate it
+
       9. If this is a recurring regression or a previously attempted fix, enter strict recurrence mode:
          - Read prior bug analyses, changelogs, incident records, or review notes that describe the same symptom
          - List previous attempted fixes and what each one actually proved
          - Identify which original failure boundary was not covered
          - Require a failing reproduction, characterization test, or explicitly documented substitute evidence
            before proposing a new correction
-      10. Identify hidden edge cases and control scenarios that could make the issue recur or mask the fix
+
+      10. Identify hidden edge cases and control scenarios that could make the issue recur or mask
+          the fix
+
       11. Propose a validation plan before suggesting any fix
+
       12. Only after validation: propose the correction
+
       13. Assess risks and collateral impacts
+
       14. Define success criteria to confirm the fix worked.
          If the repository keeps versioned bug-analysis records, produce the artifact using
          `.agents/templates/bug-analysis.template.md` and place it under `.agents/bug-analysis/`.
 
     Use these evidence statuses consistently:
       - reproduced: the original or minimal scenario fails at the relevant observable boundary
-      - root-cause-confirmed: the divergence point is supported by direct evidence, not only inference
+
+      - root-cause-confirmed: the divergence point is supported by direct evidence, not only
+        inference
+
       - fixed-in-test: the failing reproduction or characterization now passes
-      - validated-at-original-boundary: the original reported boundary has been exercised successfully
+
+      - validated-at-original-boundary: the original reported boundary has been exercised
+        successfully
+
       - partial: only lower-level or substitute evidence has passed
+
       - blocked: validation cannot proceed; the blocker and residual risk are explicit
 
     Before finalizing, challenge your own analysis:
       - Have I ranked hypotheses by evidence weight, not by ease of fix?
+
       - Am I certain the divergence point I identified is the root cause and not a symptom?
+
       - Have I reproduced the symptom at the same boundary where it was reported?
+
       - If I validated a lower layer, did I state why that is or is not sufficient?
-      - Have I verified that similar symptoms have not been previously diagnosed in the knowledge base?
+
+      - Have I verified that similar symptoms have not been previously diagnosed in the knowledge
+        base?
+
       - What is the strongest argument against my leading hypothesis?
+
       - Would my proposed correction have unintended effects on adjacent components?
 
     If the diagnosis feels uncertain, add a validation step before proposing a correction.

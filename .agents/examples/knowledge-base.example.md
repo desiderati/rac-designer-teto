@@ -1,8 +1,9 @@
 # Worked Examples for `knowledge-base.prompt.md`
 
 > Use this file only when you need calibration for tone, structure, anti-patterns, or output shape.
-> In the standalone skill, this file lives under `scaffold/dot-agents/examples/knowledge-base.example.md`.
-> When installed by `agents-bootstrap`, it is copied to `.agents/examples/knowledge-base.example.md`.
+> In the standalone skill, this file lives under
+> `scaffold/dot-agents/examples/knowledge-base.example.md`. When installed by `agents-bootstrap`, it
+> is copied to `.agents/examples/knowledge-base.example.md`.
 
   <examples>
     <example>
@@ -24,11 +25,13 @@
 
         ### Evidências
         - três incidentes nos últimos 30 dias onde timeout do SendGrid causou perda de pedidos
+
         - análise de traces confirmou que p99 da transação subia de 120ms para 4s quando SendGrid
           estava degradado
 
         ### Riscos ou pendências
         - worker ainda não tem dead-letter queue implementada
+
         - monitoramento de fila não configurado
       </changelog_entry>
       <generated_note>
@@ -83,11 +86,16 @@
       </generated_note>
       <why>
         This note is ideal because:
-          - it does not copy the changelog: it extracts reusable learning and generalizes the pattern
+          - it does not copy the changelog: it extracts reusable learning and generalizes the
+            pattern
+
           - the Executive summary describes the class of problem, not the specific incident
+
           - Symptoms and Root cause are written so any engineer would recognize them in future
             projects, regardless of stack
+
           - Known pending items preserves operational context without turning it into a general rule
+
           - the source reference preserves the originating changelog as provenance without linking to local
             non-versioned material
       </why>
@@ -125,10 +133,13 @@
         **Por que NÃO promover:**
         - o ajuste é uma configuração pontual de um valor numérico (300s → 600s), não uma
           decisão arquitetural ou padrão reutilizável
+
         - não há aprendizado generalizável: "se o job demora mais que o timeout, aumente o
           timeout" não é conhecimento que precisa ser preservado em nota permanente
+
         - o valor específico (600s) é contextual ao volume de ativos e à latência da API —
           vai mudar novamente quando a frota crescer
+
         - se o problema de timeout se tornar recorrente (ex: a cada crescimento de frota),
           aí sim justificaria uma nota sobre padrão de dimensionamento de timeout para
           jobs de sincronização — mas com uma ocorrência, é ruído
@@ -141,13 +152,18 @@
       <why>
         This rejection is ideal because:
           - it explicitly classifies the item as no-durable-relevance
+
           - the justification is specific to the item, not generic ("it's just config")
+
           - it explains the threshold for when a similar item WOULD justify promotion
             (recurrence, pattern of dimensioning problems)
+
           - it acknowledges where the information already lives (changelog) and why that
             is sufficient
+
           - it prevents the knowledge base from filling with configuration tweaks that
             have no reuse value
+
           - the key phrase "falsa sabedoria permanente" captures the anti-pattern: turning
             every operational fact into a permanent note dilutes the knowledge base
       </why>
@@ -177,7 +193,9 @@
 
         ### Evidências
         - timeline no work-item local
+
         - logs e capturas no sidecar
+
         - changelog da correção aplicada
       </changelog_entry>
       <generated_note>
@@ -196,10 +214,13 @@
           - `20260422-worker-duplication.work-item.md`
           - `20260422-worker-duplication.work-item.assets/`
           - `.agents/changelogs/2026-04/20260422.changelog.md`
+
         - Fase executada:
           - investigação do worker em staging
+
         - Hipótese invalidada:
           - duplicidade na entrada do webhook
+
         - Desenho futuro ou follow-up:
           - idempotência no consumidor
 
@@ -230,8 +251,11 @@
       <why>
         This example is ideal because:
           - it shows work-item and sidecar as source evidence, not destination
+
           - it separates executed phase, invalidated hypothesis, and future design
+
           - the durable note stays reusable instead of becoming a dump of local files
+
           - the provenance section keeps the case auditable without confusing the
             role of the note
       </why>

@@ -51,6 +51,7 @@ export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, isMo
 
       <PopoverContent
         align='center'
+        avoidCollisions={false}
         sideOffset={8}
         className='w-auto p-1.5 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
       >

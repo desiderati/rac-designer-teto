@@ -8,8 +8,8 @@ import {
 test.describe('RAC responsive toolbar', () => {
   test.beforeEach(async ({page}) => {
     startConsoleErrorCapture(page);
-    await page.setViewportSize({width: 390, height: 844});
-    await setupRacEditorPage(page);
+    await page.setViewportSize({width: 420, height: 844});
+    await setupRacEditorPage(page, {leaveMobileToolbarCollapsed: true});
   });
 
   test.afterEach(async ({page}) => {
@@ -53,10 +53,50 @@ test.describe('RAC responsive toolbar', () => {
       .toBe('');
   });
 
-  test('mobile: menu lateral recolhe e reaparece por arraste', async ({page}) => {
-    const closeHandle = page.getByRole('button', {name: 'Recolher menu lateral'});
+  test('o seletor de construções mantém largura e âncora em viewports estreitos', async ({page}) => {
+    await page.getByRole('button', {name: 'Abrir menu principal'}).click();
+    const menu = page.getByRole('dialog');
+    const trigger = page.getByRole('button', {name: 'Abrir menu principal'});
+
+    for (const width of [420, 252]) {
+      await page.setViewportSize({width, height: 844});
+      await expect(menu).toHaveCSS('width', '232px');
+      await expect.poll(async () => {
+        const [menuBox, triggerBox] = await Promise.all([menu.boundingBox(), trigger.boundingBox()]);
+        if (!menuBox || !triggerBox) return Number.POSITIVE_INFINITY;
+        return Math.abs(menuBox.x - triggerBox.x);
+      }).toBeLessThan(2);
+    }
+  });
+
+  test('o submenu de zoom permanece centrado no botão com viewport abaixo da largura mínima', async ({page}) => {
+    await page.setViewportSize({width: 252, height: 844});
+    const zoomButton = page.getByRole('button', {name: /Zoom atual/});
+    await zoomButton.click();
+
+    const zoomDialog = page.getByRole('dialog').filter({has: page.getByRole('button', {name: 'Seleção'})});
+    const triggerBox = await zoomButton.boundingBox();
+    const menuBox = await zoomDialog.boundingBox();
+    expect(triggerBox).not.toBeNull();
+    expect(menuBox).not.toBeNull();
+    if (!triggerBox || !menuBox) return;
+    expect(Math.abs((triggerBox.x + triggerBox.width / 2) - (menuBox.x + menuBox.width / 2))).toBeLessThan(2);
+  });
+
+  test('abaixo de 640 px, as duas barras iniciam recolhidas e podem ser abertas', async ({page}) => {
     const rail = page.getByRole('toolbar', {name: 'Barra de ferramentas principal'});
+    const difficulty = page.getByRole('group', {name: 'Fatores da dificuldade da casa'});
+    await expect(rail).toHaveCount(0);
+    await expect(difficulty).toHaveCount(0);
+    await expect(page.getByRole('button', {name: 'Abrir menu lateral'})).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Abrir painel de dificuldade'})).toBeVisible();
+
+    await page.getByRole('button', {name: 'Abrir menu lateral'}).click();
+    await page.getByRole('button', {name: 'Abrir painel de dificuldade'}).click();
     await expect(rail).toBeVisible();
+    await expect(difficulty).toBeVisible();
+
+    const closeHandle = page.getByRole('button', {name: 'Recolher menu lateral'});
 
     const closeBox = await closeHandle.boundingBox();
     const railBox = await rail.boundingBox();
@@ -84,5 +124,21 @@ test.describe('RAC responsive toolbar', () => {
     await page.mouse.up();
 
     await expect(page.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+  });
+
+  test('de 640 a 766 px, as duas barras iniciam abertas com alças; em 767 px as alças somem', async ({page}) => {
+    for (const width of [640, 766]) {
+      await page.setViewportSize({width, height: 844});
+      await page.reload({waitUntil: 'domcontentloaded'});
+      await expect(page.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+      await expect(page.getByRole('group', {name: 'Fatores da dificuldade da casa'})).toBeVisible();
+      await expect(page.getByRole('button', {name: 'Recolher menu lateral'})).toBeVisible();
+      await expect(page.getByRole('button', {name: 'Recolher painel de dificuldade'})).toBeVisible();
+    }
+
+    await page.setViewportSize({width: 767, height: 844});
+    await page.reload({waitUntil: 'domcontentloaded'});
+    await expect(page.getByRole('button', {name: 'Recolher menu lateral'})).toHaveCount(0);
+    await expect(page.getByRole('button', {name: 'Recolher painel de dificuldade'})).toHaveCount(0);
   });
 });

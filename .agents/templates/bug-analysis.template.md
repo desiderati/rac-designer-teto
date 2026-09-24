@@ -27,13 +27,19 @@ aliases: [ <título curto do caso> ]
 ## 1. Identificação
 
 - tipo do registro: análise técnica de bug
+
 - bug, defeito ou regressão analisada:
+
 - origem do relato: incidente | QA | teste | code review | auditoria | outro
+
 - ambiente:
+
 - status analítico: confirmado | provável | inconclusivo | descartado
+
 - estado da correção: não aplicada | recomendada | aplicada | validada
-- status de evidência: reproduced | root-cause-confirmed | fixed-in-test | validated-at-original-boundary | partial |
-  blocked
+
+- status de evidência: reproduced | root-cause-confirmed | fixed-in-test |
+  validated-at-original-boundary | partial | blocked
 
 ## 2. Contexto e Sintoma Observado
 
