@@ -60,7 +60,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
       <PopoverContent
         align='start'
         sideOffset={8}
-        className='w-[min(14.5rem,calc(100vw-1rem))] p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
+        className='w-[14.5rem] min-w-[14.5rem] p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
       >
         <MenuItem
           icon={TOP_BAR_ICONS.constructionSites}

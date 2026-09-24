@@ -1,5 +1,5 @@
-import {describe, expect, it, vi} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
 import {CanvasToolsMenu} from './CanvasToolsMenu.tsx';
@@ -44,7 +44,9 @@ const actions = {
   openSettings: vi.fn(),
 };
 
-function renderCanvasToolsMenu() {
+function renderCanvasToolsMenu({viewportWidth = 700}: {viewportWidth?: number} = {}) {
+  setViewportWidth(viewportWidth);
+
   return render(
     <TooltipProvider>
       <MobileCanvasToolsMenu
@@ -62,7 +64,20 @@ function renderCanvasToolsMenu() {
   );
 }
 
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    writable: true,
+    value: width,
+  });
+}
+
 describe('CanvasToolsMenu.tsx', () => {
+  afterEach(() => {
+    setViewportWidth(1024);
+    vi.clearAllMocks();
+  });
+
   it('allows the mobile side rail to collapse and reopen from a thin handle', async () => {
     const user = userEvent.setup();
     renderCanvasToolsMenu();
@@ -74,6 +89,26 @@ describe('CanvasToolsMenu.tsx', () => {
 
     await user.click(screen.getByRole('button', {name: 'Abrir menu lateral'}));
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+  });
+
+  it('starts expanded on tablet mobile widths and collapsed on phone widths', () => {
+    renderCanvasToolsMenu();
+
+    expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Recolher menu lateral'})).toBeVisible();
+
+    cleanup();
+    renderCanvasToolsMenu({viewportWidth: 500});
+
+    expect(screen.queryByRole('toolbar', {name: 'Barra de ferramentas principal'})).not.toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Abrir menu lateral'})).toBeVisible();
+  });
+
+  it('treats 767px as the desktop rail threshold', () => {
+    renderCanvasToolsMenu({viewportWidth: 767});
+
+    expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'})).toBeVisible();
+    expect(screen.queryByRole('button', {name: 'Recolher menu lateral'})).not.toBeInTheDocument();
   });
 
   it('keeps mobile submenus with the same height as the main rail width', () => {

@@ -88,14 +88,14 @@ export function CanvasOverlays({
 
       {difficultyIndicator ? (
         <>
-          <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 sm:block'>
+          <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 min-[767px]:block'>
             <HouseDifficultyControls
               indicator={difficultyIndicator}
               siteAssessment={siteAssessment}
               onSiteAssessmentChange={onSiteAssessmentChange}
             />
           </div>
-          <div className='absolute right-1 top-1/2 z-10 -translate-y-1/2 sm:hidden'>
+          <div className='absolute right-1 top-1/2 z-10 -translate-y-1/2 min-[767px]:hidden'>
             <HouseDifficultyControls
               indicator={difficultyIndicator}
               siteAssessment={siteAssessment}

@@ -1,4 +1,4 @@
-import {type ComponentType, type PointerEvent, type SVGProps, useRef, useState} from 'react';
+import {type ComponentType, type PointerEvent, type SVGProps, useEffect, useRef, useState} from 'react';
 import {
   Check,
   Droplets,
@@ -130,7 +130,11 @@ export function HouseDifficultyControls({
   enableMobileCollapse = false,
   className,
 }: HouseDifficultyControlsProps) {
-  const [isMobileCollapsed, setIsMobileCollapsed] = useState(false);
+  const isToolbarCollapseViewport = useToolbarCollapseViewport();
+  const shouldDefaultCollapse = usePhoneToolbarCollapseViewport();
+  const [collapsedOverride, setCollapsedOverride] = useState<boolean | null>(null);
+  const shouldShowMobileHandle = enableMobileCollapse && isToolbarCollapseViewport;
+  const isMobileCollapsed = shouldShowMobileHandle && (collapsedOverride ?? shouldDefaultCollapse);
   const dragStartXRef = useRef<number | null>(null);
   const didDragRef = useRef(false);
   const selectedSoil = SOIL_PROFILE_OPTIONS.find((option) => option.value === (siteAssessment?.soilProfile ?? ''))
@@ -160,7 +164,7 @@ export function HouseDifficultyControls({
     if (Math.abs(deltaX) <= 24) return;
 
     didDragRef.current = true;
-    setIsMobileCollapsed(deltaX > 0);
+    setCollapsedOverride(deltaX > 0);
   };
 
   const handleMobileHandleClick = () => {
@@ -169,10 +173,10 @@ export function HouseDifficultyControls({
       return;
     }
 
-    setIsMobileCollapsed((current) => !current);
+    setCollapsedOverride((current) => !(current ?? shouldDefaultCollapse));
   };
 
-  const mobileHandle = enableMobileCollapse ? (
+  const mobileHandle = shouldShowMobileHandle ? (
     <button
       type='button'
       aria-label={isMobileCollapsed ? 'Abrir painel de dificuldade' : 'Recolher painel de dificuldade'}
@@ -181,7 +185,7 @@ export function HouseDifficultyControls({
       onPointerUp={handleMobileHandlePointerUp}
       onClick={handleMobileHandleClick}
       className={cn(
-        'pointer-events-auto flex h-24 w-5 touch-none items-center justify-center text-transparent sm:hidden',
+        'pointer-events-auto flex h-24 w-5 touch-none items-center justify-center text-transparent',
       )}
     >
       <span
@@ -199,7 +203,7 @@ export function HouseDifficultyControls({
       aria-label='Fatores da dificuldade da casa'
       className={cn(
         'pointer-events-none flex flex-col items-center gap-2',
-        enableMobileCollapse && isMobileCollapsed && 'hidden sm:flex',
+        enableMobileCollapse && isMobileCollapsed && 'hidden',
         !enableMobileCollapse && className,
       )}
     >
@@ -298,9 +302,47 @@ export function HouseDifficultyControls({
   if (!enableMobileCollapse) return controls;
 
   return (
-    <div className={cn('pointer-events-none flex items-center gap-1 sm:block', className)}>
+    <div className={cn('pointer-events-none flex items-center gap-1 min-[767px]:block', className)}>
       {mobileHandle}
       {controls}
     </div>
   );
+}
+
+function useToolbarCollapseViewport() {
+  const [isCollapseViewport, setIsCollapseViewport] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 767 : false
+  ));
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 766px)');
+    const syncViewport = () => {
+      setIsCollapseViewport(window.innerWidth < 767);
+    };
+
+    mediaQuery.addEventListener('change', syncViewport);
+    syncViewport();
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
+  return isCollapseViewport;
+}
+
+function usePhoneToolbarCollapseViewport() {
+  const [isPhoneViewport, setIsPhoneViewport] = useState(() => (
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  ));
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const syncViewport = () => {
+      setIsPhoneViewport(window.innerWidth < 640);
+    };
+
+    mediaQuery.addEventListener('change', syncViewport);
+    syncViewport();
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
+  return isPhoneViewport;
 }

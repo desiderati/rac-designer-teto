@@ -3,7 +3,7 @@ import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
 import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
 
 test.use({
-  viewport: {width: 390, height: 844},
+  viewport: {width: 420, height: 844},
   isMobile: true,
   hasTouch: true,
 });
@@ -33,6 +33,16 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     await expect(page.getByRole('heading', {name: 'Construções TETO'})).toBeVisible();
     await expect(page.getByTestId('construction-mobile-list').getByText('CC2610')).toBeVisible();
+  });
+
+  test('não comprime o dock do formulário abaixo da largura mínima', async ({page}) => {
+    await openConstructionManagement(page);
+    await page.getByRole('button', {name: '+ Adicionar Construção'}).click();
+    await page.setViewportSize({width: 252, height: 844});
+
+    const dockBox = await page.getByTestId('construction-actions-grid').boundingBox();
+    expect(dockBox).not.toBeNull();
+    expect(dockBox?.width).toBeGreaterThanOrEqual(420);
   });
 
   test('edita Construção TETO ocupando a largura disponível', async ({page}) => {

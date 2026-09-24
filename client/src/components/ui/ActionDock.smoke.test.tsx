@@ -11,7 +11,7 @@ describe('ActionDock', () => {
     );
 
     const dock = screen.getByTestId('form-dock');
-    expect(dock).toHaveClass('fixed', 'inset-x-0', 'bottom-0', 'sm:static', 'sm:w-full', 'md:grid-cols-2');
+    expect(dock).toHaveClass('fixed', 'inset-x-0', 'bottom-0', 'min-w-[420px]', 'sm:static', 'sm:min-w-0', 'sm:w-full', 'md:grid-cols-2');
     expect(dock.firstElementChild).toHaveClass('md:col-start-2');
   });
 

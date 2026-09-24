@@ -1,12 +1,25 @@
-import {describe, expect, it, vi} from 'vitest';
-import {render, screen} from '@testing-library/react';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {HouseDifficultyControls} from '@/components/rac-editor/ui/HouseDifficultyControls.tsx';
 import {TooltipProvider} from '@/components/ui/tooltip.tsx';
 
 const indicator = {score: 36, label: 'Média', level: 'medium'} as const;
 
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    writable: true,
+    value: width,
+  });
+}
+
 describe('HouseDifficultyControls', () => {
+  afterEach(() => {
+    setViewportWidth(1024);
+    vi.clearAllMocks();
+  });
+
   it('renderiza os fatores de dificuldade ao redor do gauge vertical', async () => {
     const user = userEvent.setup();
 
@@ -150,6 +163,7 @@ describe('HouseDifficultyControls', () => {
 
   it('permite recolher e reabrir o painel de dificuldade no modo mobile', async () => {
     const user = userEvent.setup();
+    setViewportWidth(700);
 
     render(
       <TooltipProvider delayDuration={0}>
@@ -166,9 +180,59 @@ describe('HouseDifficultyControls', () => {
     expect(controls).not.toHaveClass('hidden');
 
     await user.click(screen.getByRole('button', {name: 'Recolher painel de dificuldade'}));
-    expect(controls).toHaveClass('hidden', 'sm:flex');
+    expect(controls).toHaveClass('hidden');
 
     await user.click(screen.getByRole('button', {name: 'Abrir painel de dificuldade'}));
     expect(controls).not.toHaveClass('hidden');
+  });
+
+  it('inicia aberto em largura de tablet e recolhido em largura de phone', () => {
+    setViewportWidth(700);
+    render(
+      <TooltipProvider delayDuration={0}>
+        <HouseDifficultyControls
+          indicator={indicator}
+          siteAssessment={{soilProfile: 'stable_clay'}}
+          onSiteAssessmentChange={vi.fn()}
+          enableMobileCollapse
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByRole('group', {name: 'Fatores da dificuldade da casa'})).not.toHaveClass('hidden');
+    expect(screen.getByRole('button', {name: 'Recolher painel de dificuldade'})).toBeVisible();
+
+    cleanup();
+    setViewportWidth(500);
+    render(
+      <TooltipProvider delayDuration={0}>
+        <HouseDifficultyControls
+          indicator={indicator}
+          siteAssessment={{soilProfile: 'stable_clay'}}
+          onSiteAssessmentChange={vi.fn()}
+          enableMobileCollapse
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByRole('group', {name: 'Fatores da dificuldade da casa'})).toHaveClass('hidden');
+    expect(screen.getByRole('button', {name: 'Abrir painel de dificuldade'})).toBeVisible();
+  });
+
+  it('trata 767px como limite desktop do painel de dificuldade', () => {
+    setViewportWidth(767);
+    render(
+      <TooltipProvider delayDuration={0}>
+        <HouseDifficultyControls
+          indicator={indicator}
+          siteAssessment={{soilProfile: 'stable_clay'}}
+          onSiteAssessmentChange={vi.fn()}
+          enableMobileCollapse
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByRole('group', {name: 'Fatores da dificuldade da casa'})).not.toHaveClass('hidden');
+    expect(screen.queryByRole('button', {name: 'Recolher painel de dificuldade'})).not.toBeInTheDocument();
   });
 });
