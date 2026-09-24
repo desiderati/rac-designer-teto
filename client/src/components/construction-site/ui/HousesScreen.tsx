@@ -316,7 +316,17 @@ export function HouseMobileCard({
           <div className='flex items-start justify-between gap-3'>
             <div className='min-w-0'>
               <h2 className='truncate text-base font-semibold text-slate-950'>{familyName}</h2>
-              <p className='mt-1 truncate text-xs font-medium text-slate-500'>{houseTypeLabel}</p>
+              <p className='mt-1 flex min-w-0 items-center gap-1.5 text-xs font-medium text-slate-500'>
+                <span className='shrink-0'>{houseTypeLabel}</span>
+                <span aria-hidden='true' className='shrink-0 text-slate-400'>•</span>
+                <time
+                  dateTime={house.updatedAt}
+                  aria-label={`Última modificação: ${formattedDate.date} ${formattedDate.time}`}
+                  className='min-w-0 truncate whitespace-nowrap'
+                >
+                  {formattedDate.date} {formattedDate.time}
+                </time>
+              </p>
             </div>
             <HouseStatusBadge
               status={house.status}
@@ -328,12 +338,7 @@ export function HouseMobileCard({
       <div className='mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2'>
         <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3'>
           <div className='min-w-0 text-xs font-medium text-slate-600'>
-            <span className='block text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400'>
-              Última Modificação
-            </span>
-            <time dateTime={house.updatedAt} className='mt-0.5 block'>{formattedDate.date}</time>
-            <span className='block text-[11px] text-slate-400'>{formattedDate.time}</span>
-            <span className='mt-2 block border-t border-slate-100 pt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
+            <span className='block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
               Última RAC exportada
             </span>
             {formatOptionalTimestampDate(house.lastRacExportedAt) ? (
