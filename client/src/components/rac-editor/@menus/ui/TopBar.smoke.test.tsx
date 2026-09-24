@@ -57,6 +57,15 @@ function renderTopBar(overrides: Partial<React.ComponentProps<typeof TopBar>> = 
 }
 
 describe('TopBar.tsx', () => {
+  it('ancora as três zonas na superfície mínima de 420 px do editor', () => {
+    configureRemoteSync('synced');
+    renderTopBar();
+
+    expect(screen.getByTestId('top-bar-layout')).toHaveClass('min-w-[420px]');
+    expect(screen.getByTestId('top-bar-layout').querySelectorAll(':scope > div')).toHaveLength(3);
+    expect(screen.getByRole('button', {name: 'Abrir menu principal'}).parentElement).toHaveClass('absolute');
+  });
+
   it('trunca nome longo da família sem deslocar o menu e a edição', () => {
     configureRemoteSync('synced');
     const longFamilyName = 'M'.repeat(HOUSE_FAMILY_NAME_MAX_LENGTH + 5);

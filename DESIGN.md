@@ -262,6 +262,7 @@ The top bar has three zones:
 
 Keep these zones visually separated through placement, not heavy dividers. The top bar can use glassy white surfaces and
 soft blur because it floats over the canvas.
+Anchor all three zones to the editor's 420 px minimum-width surface so they do not overlap when the browser is narrower.
 
 ### Hamburger Menu
 
@@ -293,6 +294,15 @@ carry the strongest CTA treatment because it produces a deliverable.
 
 Contextual editors for pilotis, measures, lines, walls, and house settings should preserve the user's sense of where the
 selected object lives. Avoid large generic modals when a contextual panel or floating editor can keep continuity.
+
+Dialogs and bottom drawers share the editor's 420 px minimum usable width. Below that width, show the existing viewport
+warning instead of squeezing controls further. On phone and tablet widths below 768 px, two-action confirmation footers
+use the shared `ActionDock`: the actions remain together at the bottom, retain horizontal breathing room and safe-area
+spacing, and stay visible while long modal content scrolls. This includes administrative confirmations. Choice-card
+selectors and the PDF preview have distinct interaction patterns and do not require a two-action footer.
+
+In image review, offer “Preserve original quality” only when the image was actually reduced. If preparation kept the
+original file, present the result without a redundant quality choice.
 
 ## 10. Cross-Surface Navigation
 

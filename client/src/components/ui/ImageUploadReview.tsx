@@ -199,7 +199,7 @@ export function ImageUploadReview({
             <Metric label='Redução' value={prepared.compressed ? formatReduction(prepared.reductionPercent) : '0,0%'}/>
           </div>
 
-          <label className='flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
+          {prepared.compressed ? <label className='flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700'>
             <Checkbox
               checked={preserveOriginalQuality}
               onCheckedChange={(checked) => setPreserveOriginalQuality(checked === true)}
@@ -208,9 +208,9 @@ export function ImageUploadReview({
             />
             <span>
               <span className='block font-semibold text-slate-800'>Manter qualidade original</span>
-              <span className='block text-xs text-slate-500'>A compactação automática ocorre acima de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. O arquivo final enviado precisa ter até {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)}.</span>
+              <span className='block text-xs text-slate-500'>A compactação automática ocorre acima de {formatFileSize(PHOTO_COMPRESSION_THRESHOLD_BYTES)}. O arquivo final {isIsolatedLocalMode ? 'salvo' : 'enviado'} precisa ter até {formatFileSize(MAX_PHOTO_UPLOAD_BYTES)}.</span>
             </span>
-          </label>
+          </label> : null}
 
           {selectedSizeError ? (
             <p role='alert' className='rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700'>{selectedSizeError}</p>

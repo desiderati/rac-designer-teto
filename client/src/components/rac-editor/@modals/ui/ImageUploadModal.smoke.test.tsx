@@ -43,10 +43,8 @@ describe('ImageUploadModal.tsx', () => {
       createPngFile(),
     );
 
-    const reviewCheckbox = await screen.findByRole('checkbox', {name: /Manter qualidade original/i});
-    expect(reviewCheckbox).not.toBeChecked();
-    await user.click(reviewCheckbox);
-    expect(reviewCheckbox).toBeChecked();
+    await screen.findByRole('button', {name: 'Usar esta imagem'});
+    expect(screen.queryByRole('checkbox', {name: /Manter qualidade original/i})).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', {name: 'Usar esta imagem'}));
 
     await waitFor(() => expect(onInsertImage).toHaveBeenCalledOnce());

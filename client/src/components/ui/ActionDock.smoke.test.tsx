@@ -23,7 +23,8 @@ describe('ActionDock', () => {
     );
 
     const dock = screen.getByTestId('dialog-dock');
-    expect(dock).toHaveClass('sticky', 'bottom-0', 'border-t', 'sm:static', 'min-[768px]:mt-0');
+    expect(dock).toHaveClass('sticky', 'bottom-0', 'border-t', 'pb-[calc(0.75rem+env(safe-area-inset-bottom))]', 'min-[768px]:static', 'min-[768px]:mt-0');
+    expect(dock).not.toHaveClass('sm:static', 'sm:px-0');
     expect(screen.getByRole('button', {name: 'Confirmar'})).toBeVisible();
   });
 
@@ -34,7 +35,8 @@ describe('ActionDock', () => {
       </ActionDock>,
     );
 
-    expect(screen.getByTestId('drawer-dock')).toHaveClass('mx-0', 'w-full', 'px-4', 'sm:static');
+    expect(screen.getByTestId('drawer-dock')).toHaveClass('mx-0', 'w-full', 'px-4', 'pb-[calc(0.75rem+env(safe-area-inset-bottom))]', 'min-[768px]:static');
+    expect(screen.getByTestId('drawer-dock')).not.toHaveClass('sm:static', 'sm:px-0');
   });
 
   it('permite rodapé estático para ações curtas', () => {
