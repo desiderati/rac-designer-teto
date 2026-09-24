@@ -8,12 +8,16 @@ const projectRoot = import.meta.dirname;
 const appVersion = process.env.VITE_APP_VERSION ?? '5.1.1';
 const buildTimestamp = process.env.VITE_BUILD_TIMESTAMP ?? new Date().toISOString();
 
-export default defineConfig({
+export default defineConfig(({command, mode}) => {
+  if (mode === 'isolated' && command !== 'serve') {
+    throw new Error('O perfil isolado é exclusivo do servidor de desenvolvimento.');
+  }
+  return ({
   root: path.resolve(projectRoot, 'client'),
   publicDir: path.resolve(projectRoot, 'client', 'public'),
   plugins: [
     react(),
-    vitePluginManusRuntime(),
+    ...(mode === 'isolated' ? [] : [vitePluginManusRuntime()]),
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png', 'pwa-maskable-512.png'],
@@ -76,4 +80,5 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['../e2e/**', '**/node_modules/**', '**/dist/**'],
   },
+  });
 });

@@ -7,7 +7,7 @@ import {useConstructionSiteManagementController} from '@/components/construction
 import {ConstructionSiteManagementPanel} from '@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx';
 import {RacEditorContent} from '@/components/rac-editor/ui/RacEditorContent.tsx';
 import {CANVAS_WORKSPACE_STYLE} from '@/components/rac-editor/@canvas/ui/workspace-style.ts';
-import {StorageImageUploadProvider} from '@/contexts/StorageImageUploadContext.tsx';
+import {LocalStorageImageUploadProvider, StorageImageUploadProvider} from '@/contexts/StorageImageUploadContext.tsx';
 import {House3DImageInsertionProvider} from '@/contexts/House3DImageInsertionContext.tsx';
 import {TerrainPhotoDescriptionProvider} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
 import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/House3DImagePendingToast.tsx';
@@ -18,11 +18,11 @@ import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {useReportPwaUpdateSafety} from '@/components/pwa/PwaUpdateSafetyContext.ts';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
+import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
 
 const PRODUCT_SCREENSHOT_URL = '/api/public-assets/rac-editor-landing-screenshot-harmonized_95473d21.png';
 const HOUSE_ILLUSTRATION_URL = '/api/public-assets/teto-house-linework-transparent-cropped_770579e2.png';
-const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   missing_parameters: 'A tentativa de login foi interrompida antes de concluir. Volte e tente novamente.',
   invalid_state: 'A sessão de login expirou ou foi aberta em outra tentativa. Inicie o acesso novamente.',
@@ -76,7 +76,16 @@ export function RacEditor() {
   );
 
   if (landingPreview) return withViewportWarning(<RacEditorAuthenticationState error={null} oauthErrorMessage={oauthErrorMessage} onRetryLogin={retryLogin}/>);
-  if (isLocalE2eMode) {
+  if (isIsolatedLocalMode) {
+    return withViewportWarning(
+      <LocalStorageImageUploadProvider>
+        <House3DImageInsertionProvider>
+          <RemoteRacEditor onLogout={async () => undefined}/>
+        </House3DImageInsertionProvider>
+      </LocalStorageImageUploadProvider>,
+    );
+  }
+  if (isLocalEditorMode) {
     return withViewportWarning(
       <StorageImageUploadProvider>
         <TerrainPhotoDescriptionProvider>

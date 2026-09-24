@@ -119,10 +119,10 @@ export function TerrainPhotosField({
 
     setReviewFile(null);
     const uploadToastId = `terrain-upload-${Date.now()}`;
-    toast.loading('Enviando foto do terreno…', {id: uploadToastId});
+    toast.loading(description.available ? 'Enviando foto do terreno…' : 'Salvando foto neste dispositivo…', {id: uploadToastId});
     setIsPreparingPhoto(true);
     try {
-      const payload = await toStorageImageUploadPayload(file);
+      const payload = description.available ? await toStorageImageUploadPayload(file) : null;
       const url = await storageUpload.uploadImage(file, constructionSiteId, {
         preserveOriginalQuality,
         preparedFile,
@@ -140,7 +140,7 @@ export function TerrainPhotosField({
       }
       setSelectedIndex(nextIndex);
       toast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.', {id: uploadToastId});
-      void generateDescription(id, payload);
+      if (payload) void generateDescription(id, payload);
       setReviewFile(null);
     } catch (error) {
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);

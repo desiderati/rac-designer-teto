@@ -192,6 +192,13 @@ trabalho.
     npm run dev -- --host 0.0.0.0
     ```
 
+   Para trabalhar apenas com dados de teste neste computador, use `npm run dev:isolated` e abra
+   `http://127.0.0.1:5200/`. Esse perfil serve somente o frontend em loopback, dispensa login Manus e
+   guarda Construções TETO e fotos no IndexedDB `rac-designer-teto-isolated` deste navegador. Não há
+   sincronização entre dispositivos; descrição de fotos e ilustrações por IA ficam indisponíveis.
+   A visualização 3D e sua captura para PDF continuam locais. Limpar os dados do site no navegador
+   remove os projetos desse perfil. O perfil `isolated` não pode ser usado para gerar um build.
+
 3. Desenvolvimento local para E2E:
 
     ```bash

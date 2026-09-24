@@ -16,6 +16,8 @@ import {
 } from '@/infra/persistence/indexed-db-construction-site-repository.adapter.ts';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
 import { mergeConstructionSiteStates } from '@/domain/construction-site/construction-site-conflict-merge.ts';
+import {createIndexedDbConstructionSiteStorageDriver} from '@/infra/storage/indexed-db-construction-sites.storage.ts';
+import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
 import type {
   RemoteSyncConflict,
   RemoteSyncController,
@@ -33,12 +35,14 @@ type SessionRepository = ConstructionSiteRepositoryPort & {
   setDocumentVersion?: (constructionSiteId: string, version: number) => void;
 };
 
-const isLocalE2eMode = import.meta.env.VITE_E2E === 'true';
-
 export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSiteStorageLoadState {
   const repository = useMemo<SessionRepository>(() => (
-    isLocalE2eMode
-      ? new IndexedDbConstructionSiteRepositoryAdapter()
+    isLocalEditorMode
+      ? new IndexedDbConstructionSiteRepositoryAdapter(
+        isIsolatedLocalMode
+          ? createIndexedDbConstructionSiteStorageDriver('rac-designer-teto-isolated', true)
+          : createIndexedDbConstructionSiteStorageDriver(),
+      )
       : new RemoteConstructionSiteRepositoryAdapter(racTrpcClient)
   ), []);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'legacy_confirmation' | 'blocked' | 'ready' | 'error'>('loading');
@@ -92,7 +96,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   useEffect(() => {
     let alive = true;
 
-    if (isLocalE2eMode) {
+    if (isLocalEditorMode) {
       void loadRemote();
       return () => { alive = false; };
     }

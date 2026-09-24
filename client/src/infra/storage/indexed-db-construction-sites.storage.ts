@@ -22,11 +22,18 @@ const EMPTY_DOCUMENT: StoredConstructionSitesDocument = {
 };
 
 export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteStorageDriver {
-  constructor(private readonly indexedDb: IDBFactory | undefined = globalThis.indexedDB) {
+  constructor(
+    private readonly indexedDb: IDBFactory | undefined = globalThis.indexedDB,
+    private readonly databaseName: string = DATABASE_NAME,
+    private readonly requireAvailable = false,
+  ) {
   }
 
   async read(): Promise<StoredConstructionSitesDocument> {
-    if (!this.indexedDb) return cloneStorageDocument(EMPTY_DOCUMENT);
+    if (!this.indexedDb) {
+      if (this.requireAvailable) throw new Error('IndexedDB indisponível; os dados locais não podem ser carregados.');
+      return cloneStorageDocument(EMPTY_DOCUMENT);
+    }
 
     const database = await this.openDatabase();
     try {
@@ -45,7 +52,10 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
   }
 
   async write(document: StoredConstructionSitesDocument): Promise<void> {
-    if (!this.indexedDb) return;
+    if (!this.indexedDb) {
+      if (this.requireAvailable) throw new Error('IndexedDB indisponível; os dados locais não podem ser salvos.');
+      return;
+    }
 
     const database = await this.openDatabase();
     try {
@@ -71,7 +81,7 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
         return;
       }
 
-      const request = this.indexedDb.open(DATABASE_NAME, DATABASE_VERSION);
+      const request = this.indexedDb.open(this.databaseName, DATABASE_VERSION);
       request.onerror = () => reject(request.error ?? new Error('Falha ao abrir IndexedDB.'));
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = () => {
@@ -89,8 +99,8 @@ export class IndexedDbConstructionSiteStorageDriver implements ConstructionSiteS
   }
 }
 
-export function createIndexedDbConstructionSiteStorageDriver(): ConstructionSiteStorageDriver {
-  return new IndexedDbConstructionSiteStorageDriver();
+export function createIndexedDbConstructionSiteStorageDriver(databaseName?: string, requireAvailable = false): ConstructionSiteStorageDriver {
+  return new IndexedDbConstructionSiteStorageDriver(globalThis.indexedDB, databaseName, requireAvailable);
 }
 
 function requestToPromise<T = unknown>(request: IDBRequest<T>): Promise<T> {

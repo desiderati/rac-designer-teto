@@ -3,6 +3,7 @@ import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
+import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
@@ -148,11 +149,11 @@ function RemoteSyncIndicator() {
   const sync = useRemoteSync();
   const status = sync.status;
   const labelByStatus = {
-    synced: 'Sincronizado',
-    syncing: 'Sincronizando alterações',
-    pending: 'Alteração pendente',
+    synced: isIsolatedLocalMode ? 'Salvo neste dispositivo' : 'Sincronizado',
+    syncing: isIsolatedLocalMode ? 'Salvando neste dispositivo' : 'Sincronizando alterações',
+    pending: isIsolatedLocalMode ? 'Salvamento local pendente' : 'Alteração pendente',
     conflict: 'Conflito de sincronização',
-    error: 'Falha ao sincronizar — clique para tentar novamente',
+    error: isIsolatedLocalMode ? 'Falha ao salvar neste dispositivo — clique para tentar novamente' : 'Falha ao sincronizar — clique para tentar novamente',
   } as const;
   const toneByStatus = {
     synced: 'text-emerald-600',

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "dev:local": "NODE_ENV=development PORT=5200 tsx watch server/_core/index.ts",
+    "dev:isolated": "vite --mode isolated --host 127.0.0.1 --port 5200 --strictPort",
     "build": "rm -rf dist && vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:dev": "vite build --mode development",
     "start": "NODE_ENV=production node dist/index.js",
