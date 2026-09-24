@@ -35,8 +35,8 @@ direction.
 
 ### 2. Resilience Architect
 
-Assesses robustness, partial failure, idempotency, retries, timeouts, fallback behavior, and rollback
-posture.
+Assesses robustness, partial failure, idempotency, retries, timeouts, fallback behavior, and
+rollback posture.
 
 ### 3. Clarity Architect
 

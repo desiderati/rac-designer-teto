@@ -31,9 +31,9 @@ Exit codes:
 - 2: usage error (README or repo root not found)
 
 Usage:
-    python scripts/validate_readme_evidence.py path/to/README.md
-    python scripts/validate_readme_evidence.py path/to/REPOSITORY-OVERVIEW.md
-    python scripts/validate_readme_evidence.py --repo-root . path/to/README.md
+    python scripts/documentation_validate_readme_evidence.py path/to/README.md
+    python scripts/documentation_validate_readme_evidence.py path/to/REPOSITORY-OVERVIEW.md
+    python scripts/documentation_validate_readme_evidence.py --repo-root . path/to/README.md
 """
 
 from __future__ import annotations
@@ -105,6 +105,14 @@ _LOCAL_PATH_CLAIM_HINTS = (
     "módulo ",
     "modulo ",
 )
+
+_EXPLICIT_LOCAL_PATH_CLAIM_HINTS = (
+    "file ",
+    "path ",
+    "arquivo ",
+    "caminho ",
+)
+
 _NON_LOCAL_CONTRACT_HINTS = (
     "baseline",
     "contract",
@@ -149,6 +157,7 @@ _NON_LOCAL_CONTRACT_HINTS = (
     "saída",
     "saida",
 )
+
 # Well-known "virtual" path hints the skill mentions purely as concept.
 _CONCEPTUAL_PATHS = {
     "docs/",
@@ -172,14 +181,14 @@ _CONCEPTUAL_PATHS = {
     "graphify-out/",
     "nanobanana-output/",
 }
+
 _PATH_PREFIX_RE = "|".join(re.escape(prefix) for prefix in PATH_PREFIX_PATTERNS)
 _FENCE_PATH_RE = re.compile(
     r"(?<![A-Za-z0-9._/\\-])"
-    r"((?:"
-    + _PATH_PREFIX_RE
-    + r")"
-      r"[^\s`\"'()<>{}\[\],;:]+)"
+    r"((?:" + _PATH_PREFIX_RE + r")"
+    r"[^\s`\"'()<>{}\[\],;:]+)"
 )
+
 _PLACEHOLDER_HINTS = (
     "{",
     "}",
@@ -191,7 +200,65 @@ _PLACEHOLDER_HINTS = (
     "AAAAMMDD",
     "target-repo",
 )
+
 _EXTENSION_LITERAL_TOKENS = {".canvas", ".md"}
+_REPOSITORY_DOTFILES = {
+    ".dockerignore",
+    ".editorconfig",
+    ".env",
+    ".gitattributes",
+    ".gitignore",
+    ".npmrc",
+    ".nvmrc",
+}
+
+_BARE_EXTENSION_RE = re.compile(r"^\.[A-Za-z0-9]{1,10}$")
+_GENERATED_BUILD_DIRECTORIES = {
+    "build/",
+    "coverage/",
+    "dist/",
+    "out/",
+    "target/",
+}
+
+_GENERATED_BUILD_CONTEXT_HINTS = (
+    "build artifact",
+    "build output",
+    "compiled output",
+    "generated artifact",
+    "generated output",
+    "artefato de build",
+    "artefatos de build",
+    "artefato gerado",
+    "artefatos gerados",
+    "saída do build",
+    "saida do build",
+)
+
+_API_ROUTE_CONTEXT_HINTS = (
+    "api ",
+    "api endpoint",
+    "api rest",
+    "apis ",
+    "apis rest",
+    "endpoint",
+    "http endpoint",
+    "rest api",
+    "rota ",
+    "rota da api",
+    "webhook",
+)
+
+_NVM_RUNTIME_ARTIFACTS = {"npm.cmd", "npm.zip"}
+_NVM_RUNTIME_CONTEXT_HINTS = (
+    "nvm",
+    "node.js",
+    "do node",
+    "node foundation",
+    "mirror",
+    "download",
+)
+
 _DOMAIN_LIKE_RE = re.compile(r"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+){2,}$")
 PathClaim = Tuple[int, str]
 
@@ -205,41 +272,163 @@ def _is_command_like(token: str) -> bool:
     return any(hint in token for hint in _COMMAND_HINTS)
 
 
-def _has_local_path_claim_context(line: str) -> bool:
+def _has_unscoped_local_path_claim_context(line: str) -> bool:
     lowered = line.lower()
     if any(hint in lowered for hint in _NON_LOCAL_CONTRACT_HINTS):
         return False
+
     return any(hint in lowered for hint in _LOCAL_PATH_CLAIM_HINTS)
+
+
+def _nearest_context_kind(
+    token: str,
+    line: str,
+    *,
+    exception_hints: tuple[str, ...],
+) -> str | None:
+    """Classify the context nearest to a token instead of the entire line."""
+
+    lowered = line.lower()
+    token_start = lowered.find(token.lower())
+    if token_start < 0:
+        return None
+
+    token_end = token_start + len(token)
+    candidates: list[tuple[int, str]] = []
+    for kind, hints in (
+        ("local", _EXPLICIT_LOCAL_PATH_CLAIM_HINTS),
+        ("exception", exception_hints),
+    ):
+        for hint in hints:
+            before = lowered.rfind(hint, 0, token_start)
+            if before >= 0:
+                prefix = lowered[max(0, before - 32) : before]
+                if not (
+                    kind == "local"
+                    and any(
+                        prefix.rstrip().endswith(non_local)
+                        for non_local in _NON_LOCAL_CONTRACT_HINTS
+                    )
+                ):
+                    candidates.append((token_start - (before + len(hint)), kind))
+
+            after = lowered.find(hint, token_end)
+            if after >= 0:
+                candidates.append((after - token_end, kind))
+
+    nearby = [candidate for candidate in candidates if candidate[0] <= 48]
+    return min(nearby, default=(0, None))[1]
+
+
+def _has_local_path_claim_context(token: str, line: str) -> bool:
+    context = _nearest_context_kind(
+        token,
+        line,
+        exception_hints=_NON_LOCAL_CONTRACT_HINTS,
+    )
+
+    if context is not None:
+        return context == "local"
+
+    return _has_unscoped_local_path_claim_context(line)
+
+
+def _is_nvm_runtime_artifact(token: str, line: str) -> bool:
+    """Recognize npm package artifacts described outside the repository tree."""
+    if token.lower() not in _NVM_RUNTIME_ARTIFACTS:
+        return False
+
+    lowered = line.lower()
+    return any(hint in lowered for hint in _NVM_RUNTIME_CONTEXT_HINTS)
+
+
+def _is_bare_extension_literal(token: str) -> bool:
+    """Distinguish file-format suffixes from repository dotfiles."""
+    lowered = token.lower()
+    return (
+        lowered not in _REPOSITORY_DOTFILES
+        and _BARE_EXTENSION_RE.fullmatch(token) is not None
+    )
+
+
+def _is_generated_build_directory(token: str, line: str) -> bool:
+    """Recognize a generated output directory described as build behavior."""
+    normalized = token.replace("\\", "/").lower()
+    if normalized not in _GENERATED_BUILD_DIRECTORIES:
+        return False
+
+    return (
+        _nearest_context_kind(
+            token,
+            line,
+            exception_hints=_GENERATED_BUILD_CONTEXT_HINTS,
+        )
+        == "exception"
+    )
+
+
+def _is_api_route(token: str, line: str) -> bool:
+    """Recognize root-relative HTTP routes without masking POSIX paths."""
+    if not token.startswith("/") or token.startswith("//"):
+        return False
+
+    return (
+        _nearest_context_kind(
+            token,
+            line,
+            exception_hints=_API_ROUTE_CONTEXT_HINTS,
+        )
+        == "exception"
+    )
 
 
 def _looks_like_path(token: str, line: str = "") -> bool:
     token = token.strip()
     if not token:
         return False
+
     if _is_command_like(token):
         return False
+
     if token.startswith(("http://", "https://", "mailto:")):
         return False
-    if token in _EXTENSION_LITERAL_TOKENS:
+
+    if _is_nvm_runtime_artifact(token, line):
         return False
+
+    if token in _EXTENSION_LITERAL_TOKENS or _is_bare_extension_literal(token):
+        return False
+
+    if _is_generated_build_directory(token, line):
+        return False
+
+    if _is_api_route(token, line):
+        return False
+
     if "/" not in token and "\\" not in token and _DOMAIN_LIKE_RE.match(token):
         return False
+
     if token.startswith(PATH_PREFIX_PATTERNS):
-        has_explicit_file_extension = re.search(
-            r"\.[A-Za-z0-9]{1,6}(?:$|[/?#])", token.rstrip("/\\")
-        ) is not None
+        has_explicit_file_extension = (
+            re.search(r"\.[A-Za-z0-9]{1,6}(?:$|[/?#])", token.rstrip("/\\")) is not None
+        )
+
         if (
-                not has_explicit_file_extension
-                and _has_local_path_claim_context(line) is False
-                and any(hint in line.lower() for hint in _NON_LOCAL_CONTRACT_HINTS)
+            not has_explicit_file_extension
+            and _has_local_path_claim_context(token, line) is False
+            and any(hint in line.lower() for hint in _NON_LOCAL_CONTRACT_HINTS)
         ):
             return False
+
         return True
+
     has_extension = re.search(r"\.[A-Za-z0-9]{1,6}$", token) is not None
     if "/" in token or "\\" in token:
-        return _has_local_path_claim_context(line)
+        return _has_local_path_claim_context(token, line)
+
     if has_extension:
-        return _has_local_path_claim_context(line)
+        return _has_local_path_claim_context(token, line)
+
     return False
 
 
@@ -248,6 +437,7 @@ def _normalize(token: str) -> str:
     token = token.replace("\\", "/")
     if token.startswith("./"):
         token = token[2:]
+
     return token
 
 
@@ -261,6 +451,7 @@ def _extract_backticked_paths(text: str) -> Iterable[PathClaim]:
             token = match.group(1)
             if _looks_placeholder_like(token):
                 continue
+
             if _looks_like_path(token, line):
                 yield line_index, _normalize(token)
 
@@ -271,20 +462,25 @@ def _extract_fenced_code_paths(text: str) -> Iterable[PathClaim]:
         if FENCE_RE.match(line.strip()):
             in_fence = not in_fence
             continue
+
         if not in_fence:
             continue
+
         if any(hint in line.lower() for hint in _NON_LOCAL_CONTRACT_HINTS):
             continue
+
         for match in _FENCE_PATH_RE.finditer(line):
             token = _normalize(match.group(1))
             if _looks_placeholder_like(token):
                 continue
+
             yield line_index, token
 
 
 def _resolve(repo_root: Path, rel_path: str) -> Path:
     if rel_path.endswith("/"):
         rel_path = rel_path[:-1]
+
     return (repo_root / rel_path).resolve()
 
 
@@ -294,6 +490,7 @@ def _path_exists_under(root: Path, rel_path: str) -> bool:
         candidate.relative_to(root)
     except ValueError:
         return False
+
     if candidate.exists():
         return True
 
@@ -304,6 +501,7 @@ def _path_exists_under(root: Path, rel_path: str) -> bool:
             skill_local_candidate.relative_to(root)
         except ValueError:
             return False
+
         return skill_local_candidate.exists()
 
     return False
@@ -315,12 +513,14 @@ def _candidate_roots(repo_root: Path, readme_parent: Path) -> List[Path]:
         roots.append(readme_parent)
     elif (repo_root / "SKILL.md").is_file() and repo_root.parent != repo_root:
         roots.append(repo_root.parent)
+
     return roots
 
 
 def _resolves_on_disk(repo_root: Path, readme_parent: Path, rel_path: str) -> bool:
     if rel_path in _CONCEPTUAL_PATHS:
         return True
+
     return any(
         _path_exists_under(root, rel_path)
         for root in _candidate_roots(repo_root, readme_parent)
@@ -333,7 +533,7 @@ def _iter_path_claims(text: str) -> Iterator[PathClaim]:
 
 
 def _collect_unresolved_claims(
-        text: str, repo_root: Path, readme_parent: Path
+    text: str, repo_root: Path, readme_parent: Path
 ) -> tuple[Set[PathClaim], List[str]]:
     seen: Set[PathClaim] = set()
     violations: List[str] = []
@@ -341,6 +541,7 @@ def _collect_unresolved_claims(
     for claim in _iter_path_claims(text):
         if claim in seen:
             continue
+
         seen.add(claim)
 
         line_index, token = claim
@@ -354,13 +555,17 @@ def _collect_unresolved_claims(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("readme", type=Path, help="Path to the Markdown file to validate")
+    parser.add_argument(
+        "readme", type=Path, help="Path to the Markdown file to validate"
+    )
+
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=None,
         help="Repository root used to resolve path claims. Defaults to the README's parent directory.",
     )
+
     args = parser.parse_args()
 
     if not args.readme.is_file():
@@ -371,21 +576,26 @@ def main() -> int:
         _fail(f"repo root is not a directory: {repo_root}")
 
     text = args.readme.read_text(encoding="utf-8")
-    seen, violations = _collect_unresolved_claims(text, repo_root, args.readme.parent.resolve())
+    seen, violations = _collect_unresolved_claims(
+        text, repo_root, args.readme.parent.resolve()
+    )
 
     if violations:
         print(
             f"[validate_readme_evidence] FAILED with {len(violations)} unresolved claim(s):",
             file=sys.stderr,
         )
+
         for item in violations:
             print(f"  - {item}", file=sys.stderr)
+
         return 1
 
     checked = len(seen)
     print(
         f"[validate_readme_evidence] OK: {args.readme} ({checked} path claim(s) verified against {repo_root})"
     )
+
     return 0
 
 

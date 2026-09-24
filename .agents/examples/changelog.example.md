@@ -1,7 +1,7 @@
 # Worked Examples for `changelog.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/changelog.example.md`.
-> In standalone `changelog` skill mode, this file lives at `scaffold/dot-agents/examples/changelog.example.md`.
+> Installed by `agents-bootstrap` as `.agents/examples/changelog.example.md`. In standalone
+> `changelog` skill mode, this file lives at `scaffold/dot-agents/examples/changelog.example.md`.
 > Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
 > Do not load this file by default during normal prompt execution.
 
@@ -55,9 +55,15 @@
       <why>
         This is a bad changelog because:
           - four entries for a single investigation sequence that took 40 minutes
-          - each entry has minimal context and reads as a conversation log, not an operational record
+
+          - each entry has minimal context and reads as a conversation log, not an operational
+            record
+
           - hypotheses are scattered across entries instead of consolidated
-          - a future reader must reconstruct the full picture by reading all four entries in sequence
+
+          - a future reader must reconstruct the full picture by reading all four entries in
+            sequence
+
           - the final resolution is disconnected from the initial problem statement
       </why>
     </example>
@@ -84,14 +90,17 @@
         ### O que foi feito
         1. Inspecionado o controller — validação de input existe e permite `discount: null`
            (campo opcional por contrato)
+
         2. Inspecionado `OrderService.applyDiscount()` — o método chama `discount.multiply()`
            sem null-check
+
         3. Aplicada guard clause: se `discount` é `null`, o método retorna o valor original
            sem aplicar desconto
 
         ### Hipóteses consideradas
         - Validação ausente no controller → descartada — a validação existe e `null` é
           valor válido pelo contrato da API
+
         - Null-check ausente em `applyDiscount()` → confirmada — o método assume que
           `discount` nunca é `null`
 
@@ -113,8 +122,9 @@
         - considerar adicionar teste de contrato para campos nullable da API
 
         ### Arquivos afetados
-        - `client/src/main/java/com/app/service/OrderService.java`
-        - `client/src/test/java/com/app/service/OrderServiceTest.java`
+        - `src/main/java/com/app/service/OrderService.java`
+
+        - `src/test/java/com/app/service/OrderServiceTest.java`
       </content>
       <why>
         This is an ideal changelog entry because:

@@ -75,11 +75,12 @@ aliases: [ <short case title> ]
 
 ## Handling Rules
 
-- Never include complete secrets, tokens, cookies, private keys, session data,
-  payment data, or sensitive personal data.
-- Mask credential-like values and include only the minimum evidence needed to
-  support the finding.
-- Do not include exploit payloads unless they are essential, safe, and reduced
-  to non-sensitive form.
-- Promotion to `docs/security/` requires explicit approval or an explicit
-  parent-agent decision.
+- Never include complete secrets, tokens, cookies, private keys, session data, payment data, or
+  sensitive personal data.
+
+- Mask credential-like values and include only the minimum evidence needed to support the finding.
+
+- Do not include exploit payloads unless they are essential, safe, and reduced to non-sensitive
+  form.
+
+- Promotion to `docs/security/` requires explicit approval or an explicit parent-agent decision.

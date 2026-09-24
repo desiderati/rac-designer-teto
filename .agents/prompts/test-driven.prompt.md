@@ -38,15 +38,23 @@
   <when_to_use>
     Use this prompt when:
       - an implementation plan exists and the next step is writing code
+
       - behavior must be precisely defined before implementation begins
+
       - the task involves business logic, data transformation, or integration contracts
+
       - edge cases and failure modes need explicit attention
+
       - the implementation will be executed by a coding agent that benefits from verifiable targets
-      - legacy code is being changed and the current behavior needs to be stabilized before modification
+
+      - legacy code is being changed and the current behavior needs to be stabilized before
+        modification
 
     Do NOT use this prompt when:
       - the task is purely infrastructure or configuration (no testable behavior)
+
       - the change is a one-line fix with an obvious expected outcome
+
       - there are no existing testing conventions in the repository and setting them up
         is not part of the current task scope
   </when_to_use>
@@ -80,8 +88,11 @@
 
       1. Does the code have clear entry points (functions, methods, endpoints) that can be
          invoked independently?
+
       2. Are dependencies injectable or replaceable, or are they hardcoded?
+
       3. Is there existing test infrastructure (framework, fixtures, test database)?
+
       4. Is the current behavior documented or must it be discovered by reading the code?
 
       If the answer to most of these is "no", the code is in a low-testability state.
@@ -131,11 +142,15 @@
       When the task involves legacy code:
 
       1. Assess testability of the affected area
+
       2. If testability is high: use standard test-first as defined in this prompt
+
       3. If testability is low and the current behavior is unclear: start with characterization
          tests, then specify behavioral tests for the change
+
       4. If testability is low but the current behavior is known: use boundary testing or
          change-only testing, depending on the scope of the change
+
       5. In all cases: explicitly state the strategy chosen and why, so the decision is
          traceable in the changelog
     </decision_flow>
@@ -202,14 +217,19 @@
     Follow this exact sequence for every test specification:
 
     1. Review the implementation plan or task definition
+
     2. Review the solution design decision if one exists
+
     3. Inspect existing test patterns in the repository (framework, conventions, structure)
+
     4. Assess testability of the affected code:
        - Is this greenfield or legacy code?
        - Are there clear entry points, injectable dependencies, and existing test infrastructure?
        - If legacy with low testability, choose the adapted strategy (characterization,
          boundary, or change-only) and state the choice explicitly
+
     5. Identify the behaviors that must be specified (what does this component do?)
+
     6. For each behavior, define:
        - the expected input and preconditions
        - the expected output or side effect
@@ -219,11 +239,16 @@
        does it (internal implementation)? Specifications must capture behavior, not implementation
        details. If the test would break when refactoring internals without changing behavior,
        it is testing the wrong thing.
+
     7. Classify each test by level (unit, integration, contract, acceptance)
+
     8. Classify each test by category (happy path, edge case, error handling, regression,
        characterization)
+
     9. Order tests from most fundamental to most complex
+
     10. Identify open questions — behaviors that cannot be specified without more information
+
     11. Produce the test specification
 
     Before finalizing, challenge your own specifications:
@@ -250,9 +275,13 @@
     Declarar se o código afetado é greenfield ou legado.
     Se legado, avaliar:
       - pontos de entrada: são claros e invocáveis independentemente?
+
       - dependências: são injetáveis ou hardcoded?
+
       - infraestrutura de testes: o repositório tem framework, fixtures, test DB?
-      - documentação de comportamento: o comportamento atual está documentado ou precisa ser descoberto?
+
+      - documentação de comportamento: o comportamento atual está documentado ou precisa ser
+        descoberto?
 
     Declarar a estratégia escolhida:
       - test-first padrão (greenfield ou legado com alta testabilidade)

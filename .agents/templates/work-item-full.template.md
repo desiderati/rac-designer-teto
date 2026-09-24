@@ -1,15 +1,29 @@
+---
+title:
+artifact_role: work-item
+durable_curation:
+  schema_version: 1
+  classification: untriaged
+  promotion_plan: untriaged
+  destination:
+  already_covered_by: []
+  requires_operator: true
+  evidence_strength: ausente
+  gate_scope: none
+  reason:
+---
+
 # Work Item (Full)
 
 > Use este template apenas quando a tarefa realmente exigir rastreamento detalhado por fase,
-> múltiplas sessões, handoff frequente ou coordenação fina entre frentes.
-> Se a tarefa couber no fluxo normal da sessão, prefira `.agents/templates/work-item.template.md`.
-> Mesmo no modo full, evite duplicar changelog, commits, tickets ou documentação durável.
-> Quando a tarefa terminar e o conteúdo relevante já tiver sido promovido, colapse este
-> arquivo para um stub curto ou arquive-o localmente; não mantenha uma segunda narrativa completa.
-> Antes da resposta final de uma sessão que usou este item, reconcilie o status:
-> feche, cancele, interrompa ou deixe ativo com handoff concreto.
-> Não espere uma frase final do operador; se o chat for arquivado ou silenciar,
-> use evidência local. Sem evidência suficiente, preserve como interrompido ou ativo.
+> múltiplas sessões, handoff frequente ou coordenação fina entre frentes. Se a tarefa couber no
+> fluxo normal da sessão, prefira `.agents/templates/work-item.template.md`. Mesmo no modo full,
+> evite duplicar changelog, commits, tickets ou documentação durável. Quando a tarefa terminar e o
+> conteúdo relevante já tiver sido promovido, colapse este arquivo para um stub curto ou arquive-o
+> localmente; não mantenha uma segunda narrativa completa. Antes da resposta final de uma sessão que
+> usou este item, reconcilie o status: feche, cancele, interrompa ou deixe ativo com handoff
+> concreto. Não espere uma frase final do operador; se o chat for arquivado ou silenciar, use
+> evidência local. Sem evidência suficiente, preserve como interrompido ou ativo.
 
 ## 1. Metadados
 
@@ -23,22 +37,30 @@
 
 ## 2. Motivo de existência
 
-- gatilho de continuidade: compaction provável | pausa/handoff | investigação observacional | artefatos locais |
-  skip/desvio relevante | outro
+- gatilho de continuidade: compaction provável | pausa/handoff | investigação observacional |
+  artefatos locais | skip/desvio relevante | outro
+
 - motivo factual:
 
 ## 3. Objetivo e contexto factual
 
 - objetivo:
+
 - fatos confirmados:
+
 - restrições já conhecidas:
+
 - artefatos locais / evidências efêmeras:
+
 - sidecar local de assets: `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` | ausente
-- artefatos estruturados opcionais no sidecar: `task-plan.json` (derivado de `implementation-planning`, quando útil) |
-  `test-report.json` | `review-links.json` | ausentes
-- artefatos de fase no sidecar: quando houver mais de um plano ou design no mesmo `work-item.assets/`, use naming por
-  fase no basename e front matter ou metadata equivalente com `fase`, `status` (futuro | aprovado | implementado |
-  invalidado | equivalente local) e relação de substituição | ausente
+
+- artefatos estruturados opcionais no sidecar: `task-plan.json` (derivado de
+  `implementation-planning`, quando útil) | `test-report.json` | `review-links.json` | ausentes
+
+- artefatos de fase no sidecar: quando houver mais de um plano ou design no mesmo
+  `work-item.assets/`, use naming por fase no basename e front matter ou metadata equivalente com
+  `fase`, `status` (futuro | aprovado | implementado | invalidado | equivalente local) e relação de
+  substituição | ausente
 
 ## 4. Estado por fase
 
@@ -112,14 +134,28 @@
 ## 7. Promoção e fechamento
 
 - levar ao changelog:
+
 - promover para `docs/`:
+
+- curadoria estruturada: usar o frontmatter `durable_curation` como fonte primária parseável; manter
+  esta seção como leitura humana complementar.
+
 - elegível para colapso após promoção? sim | não | ainda não
+
 - motivo para manter localmente:
+
 - reter localmente? não | sim
+
 - motivo da retenção local:
+
 - critério de liberação da retenção local:
+
 - arquivamento pendente? não | sim
+
 - arquivamento pendente desde:
+
 - motivo do arquivamento pendente:
+
 - referência do changelog / artefato durável:
+
 - sidecar promovido para artefato durável:

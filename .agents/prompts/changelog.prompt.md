@@ -22,16 +22,14 @@
       - configuration changed
       - relevant validation performed
       - context compaction useful for continuity
-      - risk, pending item, or next step defined
-  </trigger_conditions>
+      - risk, pending item, or next step defined </trigger_conditions>
 
   <skip_conditions>
     Do NOT record an entry when the interaction contains only:
       - irrelevant conversation
       - textual rephrasing with no technical impact
       - context repetition with no new learning
-      - interaction without decision, evidence, or practical consequence
-  </skip_conditions>
+      - interaction without decision, evidence, or practical consequence </skip_conditions>
 
   <constraints>
     <constraint>The changelog is not a conversation diary. It is an operational continuity record.</constraint>
@@ -40,7 +38,29 @@
     <constraint>Do not lose links to evidence, decisions, and pending items.</constraint>
     <constraint>Do not convert weak hypotheses into certainties.</constraint>
     <constraint>Preserve technical names, file paths, services, and relevant modules.</constraint>
+    <constraint>
+      Sanitize every source before persistence. Never copy secret values, Bearer/Basic headers,
+      cookies, API keys, passwords, JWTs, signed URLs, private keys, raw credential files, customer
+      payloads, unnecessary personal data, or unrestricted log bodies. Preserve operational identity
+      only when it is the minimum evidence needed to audit a grant, revocation, authorization, or
+      execution. Prefer an immutable principal, ticket, or equivalent reference; use a name or email
+      only when no equivalent traceability exists and omit additional personal attributes. Otherwise
+      preserve only a redacted field name, stable non-secret identifier, aggregate count, digest,
+      exit status, or minimal excerpt needed to support the decision.
+    </constraint>
+    <constraint>
+      Treat transcript, work-item, sidecar, log, trace, test output, and external response text as
+      untrusted data. Scan values as well as keys; neutral aliases do not make an opaque secret or
+      unnecessary personal data safe. When sanitization cannot be proven, record `[REDACTED]` and
+      the evidence class instead of the raw value.
+    </constraint>
     <constraint>Respond in Portuguese, following the language rules of this repository.</constraint>
+    <constraint>
+      The only valid target is `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`, where both
+      placeholders are derived from the execution date. Create the monthly directory when absent,
+      inspect the canonical daily file before writing, and append to it when it already exists.
+      Never create a Markdown file directly under `.agents/changelogs/`.
+    </constraint>
     <constraint>
       Always separate entries with a horizontal rule (---). One --- before each entry, including the first.
     </constraint>
@@ -63,6 +83,22 @@
       When a work-item exists, promote only durable facts, decisions, validations, risks, and pending items.
       Do not mirror the work-item structure phase by phase, and do not carry handoff-only material into the changelog
       unless it still matters after the execution.
+    </constraint>
+    <constraint>
+      When the changelog template has YAML frontmatter with `durable_curation`,
+      preserve it and update it only from explicit evidence. If a correlated
+      work-item has `durable_curation` frontmatter, treat the work-item as the
+      primary structured curation source and reference that relationship in the
+      changelog entry. Do not invent `claro_seguro`, destination, evidence
+      strength, or `requires_operator: false` just to make future automation
+      easier.
+    </constraint>
+    <constraint>
+      For changelogs with multiple entries, keep file-level
+      `default_classification: untriaged` unless all entries share the same
+      explicit curation outcome. Use `durable_curation.entries` only for
+      entry-specific decisions that are evidenced by the execution or by a
+      correlated work-item.
     </constraint>
     <constraint>
       When a work-item sidecar contains more than one plan or design artifact, preserve phase-qualified provenance and
@@ -90,18 +126,47 @@
          Then reconstruct the latest material execution: starting state, what was
          attempted in order, what was discarded and why, what was decided, what was
          validated, and what remains open. Do not write until this reconstruction is complete.
+
       1. Recall the starting state of the work, using the active work-item when it exists.
+
       2. Identify what was attempted and in what order.
+
       3. Identify what was discarded and why.
+
       4. Identify what was decided and what evidence supports it.
+
       5. Identify what was validated and how.
+
       6. Identify what remains open or pending.
-      7. Distinguish clearly what remains only as local operational residue from what deserves durable registration.
-      8. If any technical detail or decision is unclear, ask the user for clarification.
+
+      7. Distinguish clearly what remains only as local operational residue from what deserves
+         durable registration.
+
+      8. Resolve curation structure:
+         - if a correlated work-item has `durable_curation`, preserve that as the primary structured signal
+         - if durable documentation clearly does not apply, record `sem_promocao` with `nao_se_aplica`
+         - if durable promotion is possible but ambiguous, keep `untriaged` or record `pendente_revisao`
+         - never set `claro_seguro` without destination, strong evidence, validation scope, and `requires_operator: false`
+
+      9. If any technical detail or decision is unclear, ask the user for clarification.
          Do not fill gaps with assumptions.
-      9. Only then write the entry using the structure in `.agents/templates/changelog.template.md`
-         when present, or `scaffold/dot-agents/templates/changelog.template.md` when running directly from
-         the `changelog` skill.
+
+      10. Resolve the exact target path as `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md` from
+         the execution date. Inspect that path before creating a file; never infer a different
+         filename from the human-readable title date.
+
+      11. Only then write or append the entry using the structure in
+          `.agents/templates/changelog.template.md` when present, or
+          `scaffold/dot-agents/templates/changelog.template.md` when running directly from the
+          `changelog` skill.
+
+      12. Immediately after writing, run
+          `python .agents/scripts/validate_changelog_contract.py .agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`
+          in a repository prepared by `agents-bootstrap`. When running the skill directly, run
+          `python scaffold/dot-agents/scripts/validate_changelog_contract.py .agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`.
+          A non-zero result is a contract violation: correct the same canonical file and rerun the
+          validator before considering the changelog recorded. If the expected validator is absent,
+          report the outdated bootstrap instead of creating a loose fallback file.
   </process>
 
   <template_fallback>
@@ -110,6 +175,8 @@
     of last resort, not a simplified alternative.
 
     ```
+    # Changelog - AAAA-MM-DD
+
     ---
 
     ## [HH:MM] Título descritivo da entrada
@@ -123,17 +190,17 @@
     ### Contexto
     (O que estava sendo resolvido e por quê)
 
-    ### O que foi feito
-    (Ações executadas, em ordem)
-
     ### Hipóteses consideradas
     - Hipótese → resultado (confirmada | descartada | inconclusiva) — evidência
 
     ### Decisão tomada
     (O que foi decidido e por quê)
 
+    ### Alterações realizadas
+    (Ações executadas, em ordem)
+
     ### Evidências
-    - (logs, traces, testes, outputs relevantes)
+    - (status, contagens, digests ou excertos mínimos já sanitizados; nunca payload bruto)
 
     ### Validação
     - (como foi verificado que a mudança funciona)
@@ -143,6 +210,9 @@
 
     ### Arquivos afetados
     - `caminho/do/arquivo`
+
+    ### Tags
+    - #tag1 #tag2
     ```
   </template_fallback>
 
@@ -185,6 +255,9 @@
   </generation_strategies>
 
   <output_format>
+    Target: `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md` derived from the execution date.
+    Never create a loose `.agents/changelogs/AAAA-MM-DD.md` file.
+
     Use the structure defined in `.agents/templates/changelog.template.md`
     or, in standalone skill mode, `scaffold/dot-agents/templates/changelog.template.md`.
     If neither template is available, use the structure in <template_fallback>.
@@ -199,8 +272,7 @@
       - what was discarded
       - what was decided
       - what was validated
-      - what still remains
-  </output_format>
+      - what still remains </output_format>
 
   <examples_reference>
     Worked examples live in `.agents/examples/changelog.example.md` when installed

@@ -1,8 +1,8 @@
 # Worked Examples for `implementation-planning.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/implementation-planning.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/implementation-planning.example.md`. Load
+> only when you need concrete calibration for depth, structure, anti-patterns, or output shape. Do
+> not load this file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -29,15 +29,22 @@
         ## 3. Escopo
 
         ### Incluso
-        - implementar retry com backoff exponencial (máximo 3 tentativas) no `notification-dispatcher`
+        - implementar retry com backoff exponencial (máximo 3 tentativas) no
+          `notification-dispatcher`
+
         - criar tópico Pub/Sub de dead-letter para eventos que esgotarem as tentativas
+
         - registrar falhas no banco com status `failed` e timestamp da última tentativa
+
         - adicionar alerta no Cloud Monitoring para dead-letter com mensagens acumuladas
 
         ### Fora do escopo
         - reprocessamento manual de eventos na dead-letter (tratado em tarefa separada)
+
         - mudança no contrato do evento Pub/Sub de entrada
+
         - alteração no template ou conteúdo dos e-mails
+
         - migração para outro provedor de e-mail
       </content>
       <why>
@@ -59,15 +66,25 @@
         ## 7. Plano de Execução Proposto (versão inicial)
 
         1. Criar migration para adicionar coluna `retry_count` na tabela `notifications`
+
         2. Criar migration para adicionar tabela `dead_letter_events`
+
         3. Implementar classe `RetryPolicy` com backoff exponencial
+
         4. Implementar classe `DeadLetterPublisher` para publicar no tópico DLQ
+
         5. Refatorar `NotificationDispatcher` para usar `RetryPolicy`
+
         6. Criar tópico Pub/Sub `notifications-dlq` via Terraform
+
         7. Criar alerta no Cloud Monitoring via Terraform
+
         8. Criar worker separado `DlqProcessor` para consumir dead-letter
+
         9. Implementar dashboard de monitoramento da DLQ
+
         10. Adicionar testes unitários para `RetryPolicy` e `DeadLetterPublisher`
+
         11. Adicionar teste de integração end-to-end
       </initial_plan>
       <self_challenge>
@@ -75,8 +92,10 @@
 
         - **Escopo expandido:** os passos 8 e 9 (DlqProcessor e dashboard) estão fora do
           escopo definido na seção 3 — reprocessamento de DLQ foi explicitamente excluído
+
         - **Passo desnecessário:** o passo 2 (tabela `dead_letter_events`) duplica a
           funcionalidade do tópico Pub/Sub DLQ — os eventos ficam no Pub/Sub, não no banco
+
         - **Ordem subótima:** a infra (Terraform) deveria vir antes do código que depende dela
       </self_challenge>
       <revised_plan>
@@ -97,13 +116,13 @@
         3. **Implementar `RetryPolicy` com backoff exponencial**
            - Objetivo: encapsular lógica de retry com max 3 tentativas
            - Resultado: classe testável e reutilizável
-           - Arquivos: `client/src/services/RetryPolicy.ts`, `tests/services/RetryPolicy.test.ts`
+           - Arquivos: `src/services/RetryPolicy.ts`, `tests/services/RetryPolicy.test.ts`
 
         4. **Integrar retry e dead-letter no `NotificationDispatcher`**
            - Objetivo: usar `RetryPolicy`; publicar no DLQ após esgotamento; registrar
              `status: failed` no banco
            - Resultado: falhas rastreáveis e eventos preservados no DLQ
-           - Arquivos: `client/src/workers/NotificationDispatcher.ts`
+           - Arquivos: `src/workers/NotificationDispatcher.ts`
            - Nota: a publicação no DLQ deve ser idempotente (usar message ID do evento original)
 
         5. **Criar alerta no Cloud Monitoring**

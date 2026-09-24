@@ -1,8 +1,8 @@
 # Worked Examples for `subagent-execution.prompt.md`
 
-> Installed by `agents-bootstrap` as `.agents/examples/subagent-execution.example.md`.
-> Load only when you need concrete calibration for depth, structure, anti-patterns, or output shape.
-> Do not load this file by default during normal prompt execution.
+> Installed by `agents-bootstrap` as `.agents/examples/subagent-execution.example.md`. Load only
+> when you need concrete calibration for depth, structure, anti-patterns, or output shape. Do not
+> load this file by default during normal prompt execution.
 
   <examples>
     <example id="1">
@@ -32,6 +32,7 @@
 
         ## 4. Riscos e Controles
         - **Risco:** o null handling pode ser necessário em outros métodos além de `applyDiscount()`
+
         - **Controle:** após a correção, buscar por outros usos de `discount` no mesmo serviço
       </content>
       <why>
@@ -71,31 +72,41 @@
 
         ### Subagente A: Diagnóstico de performance do `payment-processor`
         - **Objetivo:** identificar o gargalo principal de latência (banco, gateway ou ambos)
+
         - **Escopo:** análise de logs de latência, traces das queries PostgreSQL, traces das
           chamadas ao gateway, identificação do gargalo e hipóteses ranqueadas
+
         - **Fora do escopo:** documentação, variáveis de ambiente, README — não deve tocar
           nesses artefatos
+
         - **Inputs:**
           - logs de produção do `payment-processor` dos últimos 7 dias
           - traces disponíveis no sistema de observabilidade
           - schema atual das tabelas envolvidas nas queries lentas
+
         - **Output esperado:** relatório com hipótese principal do gargalo, evidências que
           sustentam e descartam cada hipótese, e recomendação de investigação adicional
           se necessário
+
         - **Método de consolidação:** output recebido no contexto principal para integrar
           ao resumo executivo
 
         ### Subagente B: Revisão de impacto no README
         - **Objetivo:** determinar se o README precisa ser atualizado com as novas variáveis
           de ambiente
+
         - **Escopo:** inspeção do README atual, identificação de variáveis adicionadas via
           changelogs recentes, proposta de mudanças mínimas se necessário
+
         - **Fora do escopo:** performance, logs, traces — não deve analisar nada de runtime
+
         - **Inputs:**
           - `README.md` atual
           - changelogs da última semana em `.agents/changelogs/`
+
         - **Output esperado:** decisão clara (atualizar ou não) com proposta de mudanças
           mínimas e conteúdo exato se atualização for necessária
+
         - **Método de consolidação:** output recebido no contexto principal; se houver
           atualização proposta, revisar antes de aplicar
 
@@ -107,9 +118,12 @@
         ## 4. Riscos e Controles
         - **Risco:** subagente A pode precisar de informação sobre variáveis de ambiente que
           o subagente B está analisando
+
         - **Controle:** se subagente A identificar que variáveis de config são relevantes para
           a latência, sinalizar no output para o contexto principal cruzar com o output de B
+
         - **Risco:** overhead de coordenação desproporcional ao ganho
+
         - **Controle:** apenas dois subagentes com domínios disjuntos; consolidação simples
       </content>
       <why>

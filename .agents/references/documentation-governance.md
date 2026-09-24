@@ -4,8 +4,14 @@
 
 When a repository uses Graphify:
 
-- If `graphify-out/GRAPH_REPORT.md` exists, read it before broad architecture or context searches
-  across raw files.
+- Use Graphify only when the structural relationship is unknown. If the file and symbol are known,
+  open the source directly.
+
+- Query an existing `graphify-out/graph.json` with `query`, `path`, or `explain`, use a small
+  budget, and return at most three source files before reading the canonical sources.
+
+- Never rebuild the graph or export an Obsidian vault automatically during a normal task. Build and
+  incremental update are deliberate index-maintenance operations.
 
 - Treat Graphify outputs as a derived structural index for navigation and retrieval, not as the
   canonical source of truth.
@@ -13,11 +19,28 @@ When a repository uses Graphify:
 - If Graphify output conflicts with source code, versioned docs, or explicit technical decisions,
   prefer those primary sources.
 
+## Conditional discovery
+
+- Consult `OBSIDIAN.md` only when the canonical document or rule is unknown. It should return one to
+  three candidate paths; read only the selected canonical source.
+
+- At most one discovery step may precede direct reading or execution. Do not chain Obsidian and
+  Graphify unless the selected document itself proves that a code relationship must be resolved.
+
+- A known external command goes directly through RTK. Discovery indexes are not generic preflight.
+
 ---
 
 ## Documentation update rules
 
 - Follow the instructions in `.agents/prompts/readme.prompt.md`
+
+- When an explicit request or governed automation owns repository-surface maintenance, create an
+  absent `README.md` from repository evidence and review an existing `README.md` incrementally from
+  the bounded Git delta.
+
+- Create automatically only when repository ownership, evidence, and write ownership are clear.
+  Otherwise return `pendente_revisao` or the applicable stabilization result.
 
 - Technical change does not automatically mean `README.md` update
 
@@ -110,6 +133,9 @@ repository's canonical documentation location when `OBSIDIAN.md` is absent:
 - treat `.agents/code-reviews/` as local operational input; promote only reusable conclusions, not
   the local review artifact itself
 
+- treat `.agents/solution-reviews/` as local operational input; promote only reusable conclusions,
+  not the local review artifact itself
+
 - extract reusable learning
 
 - remove redundancy
@@ -138,30 +164,102 @@ When performing broad curation of `docs/`, preserve release delivery artifacts:
 The `<number>` segment must be numeric, such as `89` or `102`. These documents may be formatted and
 validated for UTF-8, accents, frontmatter, and links, but must not be moved or renamed.
 
-Use `docs/README.md` as the GitHub-friendly root index for the `docs/` directory. This repository
-also uses domain-specific READMEs as curated indexes, explicitly configured in
-`.agents/documentation.toml`. Move loose `docs/*.md` files, except `docs/README.md`, into semantic
-subdirectories such as `system-specifications`, `bug-analysis`, `data-models`,
-`architecture-decisions`, `engineering-playbook`, `execution-runbooks`, `product-requirements`, or
-`incident-reports`.
+Reserve `docs/release-notes/` exclusively for direct numeric Markdown files. Nested directories,
+support files, indexes, and identified names such as `RN-001-release.md` are invalid there.
+Normalize the legacy alias `docs/releases-notes/` to `docs/release-notes/`, preserving `NN.md`
+exactly. Restore a redundant name produced by sanitation, such as `DOC-089-89.md`, as
+`docs/release-notes/89.md`.
 
-For Markdown documents under `docs/`, except indexes and protected release artifacts, use the
-filename families configured in `.agents/documentation.toml`. The generic fallback is
-`{REPO_ACRONYM}-{NNN}-{slug}.md`, with the repository acronym coming from explicit repository
-configuration such as `repo_acronym = "SAT"`, or from explicit user confirmation before any rename.
-Do not infer the acronym silently from the repository name.
+Use `docs/README.md` as the GitHub-friendly root index for the `docs/` directory. Identified
+documents may remain directly under `docs/` when they follow `SIGLA-NNN-slug.md` or
+`SIGLA-NNNN-slug.md`; use semantic subdirectories such as `system-specifications`, `bug-analysis`,
+`data-models`, `architecture-decisions`, `engineering-playbook`, `execution-runbooks`,
+`product-requirements`, or `incident-reports` when a cohesive family benefits from its own lifecycle
+or navigation.
+
+Curate `README.md`, `docs/README.md`, and `OBSIDIAN.md` as complete semantic surfaces. Do not use
+HTML comments to delimit generated navigation regions. Remove legacy `BEGIN SAT DOCUMENTATION
+INDEX`, `BEGIN SAT DOCUMENTATION ROOT`, and `BEGIN SAT DURABLE RECORDS INDEX` blocks during the next
+governed curation.
+
+Keep every resolved local destination unique within each surface. Treat direct Markdown links,
+reference links, and wikilinks as the same destination after path normalization; allow repeated
+files only when their anchors are different.
+
+Prefer the document's human-readable `title` as the link label. A canonical identity such as
+`ADR-009` may prefix the title; an index-only opaque identifier such as `PROD-20260527-EFFC` must
+not replace it.
+
+Require `title` and `doc_role` frontmatter on primary durable Markdown. A nested `README.md` is
+valid without local configuration when the nearest parent index links to it and it links to at least
+one document in its own subtree. Keep `OBSIDIAN.md` curated rather than exhaustive; transitive
+connections through `docs/README.md` and nested indexes are valid.
+
+For Markdown documents under `docs/`, except indexes, support assets, and protected release
+artifacts, use `{SIGLA}-{NNN}-{slug}.md` or `{SIGLA}-{NNNN}-{slug}.md`. `SIGLA` is the uppercase
+documentary-family code; prefer a semantic role such as `TECH`, `PRD`, `MER`, `BUG`, `KB`, `PROMPT`
+or `GIT` over a product acronym when the role is clear. A lowercase family qualifier such as `.prd`
+may appear before `.md`.
+
+Treat `PRD-NNN-slug.prd.json` and `PRD-NNNN-slug.prd.json` as primary structured durable documents.
+Validate JSON syntax, UTF-8 without BOM, Unicode NFC, metadata identity and index reachability; do
+not create an artificial Markdown owner. Reject duplicate primary identities.
+
+Preserve generator-owned Superpowers documents at `docs/superpowers/plans/YYYY-MM-DD-slug.md` and
+`docs/superpowers/specs/YYYY-MM-DD-slug-design.md`. This global exception applies only to the
+filename gate: keep frontmatter, durable links, index reachability, Markdown formatting, and UTF-8
+validation mandatory. Reject other `docs/superpowers/` subdirectories or filename shapes, and do not
+silently rename valid generator-owned files. New transient Superpowers output may still belong under
+`.agents/superpowers/`; this rule governs versioned documents intentionally present in `docs/`.
+
+Store assets for a root document in `docs/documentation-assets/<complete-document-stem>/`. Store
+assets for a nested document in an adjacent `<complete-document-stem>.assets/` directory. The owner
+document must link to its assets; reject orphaned or unlinked asset directories and loose `.puml`,
+`.mmd` or `.txt` support artifacts.
+
+The default contract works without repository-local configuration. Keep `.agents/documentation.toml`
+optional. Use `[docs_governance]` only for additive, localized filename or nested-index exceptions.
+Use `[documentation_surfaces].intentionally_absent` only to suppress creation of an intentionally
+absent root surface:
+
+```toml
+[documentation_surfaces]
+intentionally_absent = ["REPOSITORY-OVERVIEW.md"]
+```
+
+The allowed values are exactly `README.md` and `REPOSITORY-OVERVIEW.md`. Honor the exception only
+from valid Git-tracked config and only while the listed file is absent; an existing file remains
+eligible for incremental review.
 
 When `.agents/scripts/validate_documentation_metadata.py` is installed, run it with
-`--enforce-docs-governance` for broad `docs/` curation. In this repository, that gate reads
-`.agents/documentation.toml` and accepts the local `ADR-*`, `BUS-*`, `PRD-*`, `PLAY-*`, `BACK-*` and
-`UI-*` taxonomy. Use `--repo-acronym` only for one-off fallback validation when the config is absent
-and the operator has already confirmed the acronym.
+`--enforce-docs-governance` for broad `docs/` curation.
+
+Before returning organization-only findings during broad curation, run
+`.agents/scripts/repair_documentation_structure.py --repo-root <repo-root> --plan`. When the current
+phase explicitly authorizes sanitation, use `--apply` and pass every preexisting protected path with
+repeated `--protected-path`. The repairer materializes reviewable casing, names, semantic placement,
+frontmatter, indexes, links and assets; removes legacy navigation markers and exhaustive indices;
+restores human-readable labels; keeps one reference per resolved local destination; records inferred
+SIGLAs with rationale and confidence; preserves complete fenced blocks; and never stages, commits or
+pushes.
+
+After manual edits, rebuild the plan from the current tree and run an incremental finalization.
+Never replay the previous plan over operator changes. Reconcile indexes, links, assets and
+structured documents; restore only unambiguous prose accents; normalize non-fenced text to NFC;
+remove BOM in formatter write mode; run formatter write/check and full gates; then recalculate the
+approval hash.
 
 ---
 
 ## Repository overview rules
 
 - Follow the instructions in `.agents/prompts/repository-overview.prompt.md`
+
+- When an explicit request or governed automation owns repository-surface maintenance, create an
+  absent `REPOSITORY-OVERVIEW.md` from repository evidence and review an existing overview
+  incrementally from the bounded Git delta.
+
+- Do not regenerate an existing overview from scratch merely because the repository changed.
 
 - Use `REPOSITORY-OVERVIEW.md` as the default durable destination for a non-technical repository
   overview

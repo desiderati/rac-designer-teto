@@ -12,6 +12,21 @@ prevalecem sobre este documento.
   local
 - este arquivo não fixa estratégia de branches, plataforma de hospedagem, política de merge ou stack de CI/CD
 
+## Versionamento
+
+Use `SEMANTIC-VERSIONING.md` como contrato padrão para escolher versões, interpretar estágios de
+pré-lançamento e decidir quando retrocompatibilidade ou migração são necessárias. Regras locais mais
+específicas continuam prevalecendo.
+
+## Metadados gerenciados de agentes
+
+Quando o perfil explícito do repositório permitir a exceção SAT EAM, commits compostos somente por
+`.agents/**`, `.codex/**` e pelos demais paths do manifesto oficial do `agents-bootstrap` podem ser
+publicados diretamente na linha `master` aplicável. A publicação deve usar o
+`agents-bootstrap-repo-installer`, a identidade DEVOPS do Bitbucket, HTTPS endurecido, push não
+forçado e mensagem terminada em `[skip ci]`. A exceção não abrange código ou configuração da
+aplicação.
+
 ## Mensagens de commit
 
 As mensagens de commit devem seguir sempre o padrão Conventional Commits e ser escritas em português do Brasil.

@@ -1,3 +1,7 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', 'Event', Justification = 'Event is the existing public hook parameter; renaming it would break callers.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'payload', Justification = 'Consume stdin for hook protocol compatibility even when its values are not used.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', 'sessionStartUtc', Justification = 'Preserve the baseline session-state read during source-only migration.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingEmptyCatchBlock', '', Scope = 'Function', Target = 'Resolve-RepositoryRoot', Justification = 'A failed Git-root probe deliberately falls through without breaking the hook.')]
 param(
     [string]$Event = "UserPromptSubmit"
 )
@@ -91,11 +95,11 @@ function Get-DangerousGitState {
     param([string]$RepositoryRoot)
 
     $checks = [ordered]@{
-        "merge"       = "MERGE_HEAD"
-        "cherry-pick" = "CHERRY_PICK_HEAD"
-        "revert"      = "REVERT_HEAD"
-        "bisect"      = "BISECT_LOG"
-        "rebase"      = "rebase-merge"
+        "merge"        = "MERGE_HEAD"
+        "cherry-pick"  = "CHERRY_PICK_HEAD"
+        "revert"       = "REVERT_HEAD"
+        "bisect"       = "BISECT_LOG"
+        "rebase"       = "rebase-merge"
         "rebase-apply" = "rebase-apply"
     }
 
@@ -214,15 +218,15 @@ function Get-AheadBehind {
     }
 
     return [pscustomobject]@{
-        ahead = [int]$parts[0]
+        ahead  = [int]$parts[0]
         behind = [int]$parts[1]
     }
 }
 
 if ($Event -notin @("SessionStart", "UserPromptSubmit")) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
@@ -230,8 +234,8 @@ $payload = Read-HookPayload
 $repositoryRoot = Resolve-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($repositoryRoot)) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
@@ -241,6 +245,7 @@ if ($Event -eq "SessionStart") {
     }
     catch {
         # Missing state must not break session startup; UserPromptSubmit will warn.
+        $null = $_
     }
 }
 
@@ -280,8 +285,8 @@ if ($null -ne $aheadBehind) {
 
 if ($signals.Count -le 1) {
     Write-HookResult -Result ([pscustomobject]@{
-        continue = $true
-    })
+            continue = $true
+        })
     exit 0
 }
 
@@ -293,9 +298,9 @@ $additionalContext = @(
 ) -join ([Environment]::NewLine + [Environment]::NewLine)
 
 Write-HookResult -Result ([pscustomobject]@{
-    continue = $true
-    hookSpecificOutput = [pscustomobject]@{
-        hookEventName = $Event
-        additionalContext = $additionalContext
-    }
-})
+        continue           = $true
+        hookSpecificOutput = [pscustomobject]@{
+            hookEventName     = $Event
+            additionalContext = $additionalContext
+        }
+    })

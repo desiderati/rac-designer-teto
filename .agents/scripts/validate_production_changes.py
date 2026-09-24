@@ -23,7 +23,9 @@ RULES = (
     ),
     Rule(
         "jwt-token",
-        re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"),
+        re.compile(
+            r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"
+        ),
     ),
     Rule(
         "bearer-token",
@@ -98,6 +100,7 @@ def iter_record_paths(paths: list[Path]) -> list[Path]:
             records.extend(sorted(path.rglob("*.production-change.md")))
         elif path.is_file():
             records.append(path)
+
     return sorted(dict.fromkeys(records))
 
 
@@ -115,8 +118,12 @@ def scan_record(path: Path) -> list[Finding]:
     for line_number, line in enumerate(lines, start=1):
         for rule in RULES:
             if rule.pattern.search(line):
-                findings.append(Finding(path=path, line_number=line_number, rule=rule.name))
+                findings.append(
+                    Finding(path=path, line_number=line_number, rule=rule.name)
+                )
+
                 break
+
     return findings
 
 
@@ -127,6 +134,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
             "sensitive values. Findings do not print the matched content."
         )
     )
+
     parser.add_argument(
         "paths",
         nargs="*",
@@ -134,6 +142,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=[Path(".agents/production-changes")],
         help="Production change files or directories to scan.",
     )
+
     return parser.parse_args(argv)
 
 
@@ -150,6 +159,7 @@ def main(argv: list[str] | None = None) -> int:
         for finding in findings:
             line = "file" if finding.line_number == 0 else f"line {finding.line_number}"
             print(f"- {finding.path.as_posix()}:{line}: {finding.rule}")
+
         return 1
 
     print(f"Production change records validated: {len(records)} file(s).")

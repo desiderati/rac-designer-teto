@@ -48,9 +48,13 @@
       <why>
         This update is ideal because:
           - it replaces only the section affected by the real technical change
+
           - it removes the outdated instruction without preserving ambiguity
+
           - it adds relevant operational context (jobs do not expose a URL)
+
           - it does not modify any other README section
+
           - it does not add speculative or decorative content
       </why>
     </example>
@@ -101,9 +105,13 @@
       <why>
         This example demonstrates the correct "no update needed" decision because:
           - it explicitly assesses why the README is not affected (no public surface changed)
+
           - it does not force an update just because code was modified
+
           - it provides a forward-looking note about when the README would need updating
+
           - it suggests the appropriate alternative destination for internal documentation
+
           - it respects the principle that README documents external-facing behavior, not internal structure
       </why>
     </example>

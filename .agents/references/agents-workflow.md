@@ -1,5 +1,60 @@
 # Agent Workflow
 
+## Operational Outcome Lock
+
+When an explicitly requested or authorized operational outcome is still unresolved, keep that
+outcome ahead of internal engineering work. A code change is an unblocker only when it addresses the
+observed blocker directly and the existing governed path cannot safely complete the operation.
+
+Use this fallback ladder once per distinct failure hypothesis:
+
+1. Try the existing governed path.
+
+2. Run one bounded diagnostic pass that preserves the first causal error and changes the next
+   hypothesis.
+
+3. Offer or use an authorized operational fallback that stays within the approved target and
+   mutation boundary.
+
+4. Stop with the blocker and exact next action when neither path is safe or authorized.
+
+Do not repeat an equivalent attempt without new evidence. Passing tests, a ready changeset, or new
+documentation does not close the operational request; only the requested state plus its validation
+evidence does.
+
+Before adding a new command or package, changing another package, or starting a broad refactor while
+the outcome remains open, run a scope-expansion checkpoint. Record the unresolved outcome, concrete
+blocker, narrow fallback, proposed expansion, and why the expansion is necessary. Continue only
+after explicit approval; otherwise finish through the narrow path or stop.
+
+## Scope Integrity Lock
+
+For multi-item work, maintain a lightweight scope ledger:
+
+- `total_universe`: every item still covered by the requested or authorized outcome;
+- `focus_subset`: the items currently being inspected, discussed, or prioritized;
+- `restriction_source`: `explicit_user`, `tool_constraint`, or `analysis_only`;
+- `unresolved_remainder`: every item outside the focus that still belongs to the total universe.
+
+A focus subset never replaces the total universe by implication. A user question about some items, a
+tool result limited to those items, or a temporary diagnostic branch changes focus only. Narrow the
+authorized universe only when the user explicitly excludes, defers, cancels, or replaces items.
+
+Before a recommendation, mutation, delegation, or close-out changes the target set:
+
+1. Reconcile the planned targets with the current `total_universe`.
+
+2. If the target set expands, use the existing scope-expansion checkpoint.
+
+3. If it contracts, name the omitted `unresolved_remainder` and obtain explicit user direction
+   before dropping or deferring it.
+
+4. After bounded tool output, preserve items the tool did not inspect unless that tool was the
+   authoritative source for the complete universe.
+
+Surface the ledger in chat only when it resolves ambiguity or affects an operational decision. The
+ledger is a reasoning guardrail, not a requirement to add ceremony to simple single-item work.
+
 ## Prompt map and when to use each one
 
 The prompts below live under `.agents/prompts/`.
@@ -87,13 +142,42 @@ Purpose:
 - support both pre-implementation ADRs and post-execution promotion from refactoring or other
   evidence
 
-### 2b. `council-of-agents.prompt.md`
+### 2b. `brainstorm.prompt.md`
+
+Use when:
+
+- the user directly invokes `@Brainstorm`
+
+- an idea, requirement, or solution is unclear and needs guided discovery before a handoff to
+  `product-owner` or `solutions-architect`
+
+Do not use when:
+
+- the user asks only for one artifact and already selected its canonical workflow
+
+- the user asks to implement, deploy, or mutate state without first asking for solution-cycle
+  guidance
+
+- wording merely resembles idea discovery without the direct first-version trigger
+
+- the case is a clear incident (use `support-analyst`) or clear maintenance/refactoring in unknown
+  code (use `code-explorer`)
+
+Purpose:
+
+- keep one controller responsible for state, correlation, provenance, and operator checkpoints
+
+- route the framed input first to Product Owner or Solutions Architect; never use the controller as
+  an automatic support or code-exploration router
+
+- finish with a reviewed solution contract and separate execution handoff
+
+### 2c. `council-of-agents.prompt.md`
 
 Use when:
 
 - the user asks for `council this`, `pressure test this`, `stress test this`, `war room this`,
-  `premortem this`, `debate this`, `council of agents`, or directly invokes
-  `@Council of Agents`
+  `premortem this`, `debate this`, `council of agents`, or directly invokes `@Council of Agents`
 
 - there is a genuine decision with stakes, uncertainty, and competing options
 
@@ -105,7 +189,7 @@ Do not use when:
 - the question has one factual answer
 - the task is ordinary implementation or content generation
 
-### 2c. `agents-of-shield.prompt.md`
+### 2d. `agents-of-shield.prompt.md`
 
 Use when:
 
@@ -116,10 +200,11 @@ Use when:
 Do not use when:
 
 - the user asks for a single `security-advisor` profile
+
 - the user asks for code fixes, credential rotation, deployment, or external mutation without a
   separate explicit handoff
 
-### 2d. `fellowship-of-architects.prompt.md`
+### 2e. `fellowship-of-architects.prompt.md`
 
 Use when:
 
@@ -400,61 +485,231 @@ pause or handoff, observational investigation, local artifacts, or material skip
 11. `repository-overview.prompt.md` when the functional, non-technical description of the repository
     changes materially
 
-### Workflow visual
+## Contrato visual dos agentes
+
+Os três Mermaid são visões coordenadas do mesmo sistema, não alternativas concorrentes. O macro
+roteamento é a única visão que classifica a demanda inicial; o ciclo do Brainstorm expande somente
+`PORT_AMBIGUOUS_INTAKE`; entrega e assurance começam somente após trabalho delimitado. As portas
+mantêm os mesmos IDs em todas as visões.
+
+<!-- BEGIN AGENT DIAGRAM CONTRACT -->
+
+```json
+{
+  "schema_version": 1,
+  "edge_semantics": {
+    "-->": "ownership-or-state-transition",
+    "-.->": "consultation-evidence-return-or-optional-gate",
+    "==>": "cross-diagram-port-continuation"
+  },
+  "ports": {
+    "PORT_AMBIGUOUS_INTAKE": {
+      "producer_diagrams": [
+        "agent-routing"
+      ],
+      "consumer_diagrams": [
+        "brainstorm-cycle"
+      ]
+    },
+    "PORT_BOUNDED_INCIDENT": {
+      "producer_diagrams": [
+        "agent-routing",
+        "brainstorm-cycle"
+      ],
+      "consumer_diagrams": [
+        "delivery-assurance"
+      ]
+    },
+    "PORT_BOUNDED_MAINTENANCE": {
+      "producer_diagrams": [
+        "agent-routing",
+        "brainstorm-cycle"
+      ],
+      "consumer_diagrams": [
+        "delivery-assurance"
+      ]
+    },
+    "PORT_PLANNING_READY": {
+      "producer_diagrams": [
+        "agent-routing",
+        "brainstorm-cycle"
+      ],
+      "consumer_diagrams": [
+        "delivery-assurance"
+      ]
+    },
+    "PORT_COMPLETE": {
+      "producer_diagrams": [
+        "agent-routing",
+        "delivery-assurance"
+      ],
+      "consumer_diagrams": []
+    }
+  },
+  "diagram_responsibilities": {
+    "agent-routing": [
+      "initial-classification",
+      "first-owner",
+      "direct-review-entry",
+      "macro-handoffs"
+    ],
+    "brainstorm-cycle": [
+      "ambiguous-intake",
+      "controller-state",
+      "artifact-and-review-gates"
+    ],
+    "delivery-assurance": [
+      "implementation",
+      "quality",
+      "specialist-review",
+      "verification",
+      "documentation-closeout"
+    ]
+  }
+}
+```
+
+<!-- END AGENT DIAGRAM CONTRACT -->
+
+### Legenda comum
+
+- `-->`: transfere ownership ou avança um estado dentro da mesma visão;
+- `-.->`: consulta, devolve evidência ou executa um gate opcional sem transferir ownership;
+- `==>`: atravessa uma porta nomeada para continuar em outro Mermaid;
+- laranja: descoberta e classificação;
+- azul: produto, arquitetura e design;
+- amarelo: implementação;
+- verde: qualidade e revisão;
+- roxo: documentação e encerramento;
+- contorno tracejado espesso: porta compartilhada.
+
+### 1. Macro roteamento de agentes
+
+Esta é a única visão autorizada a classificar a demanda inicial. Ela mostra todos os agentes e os
+encadeamentos típicos; detalhes do Brainstorm e da entrega pertencem aos Mermaid seguintes.
+
+<!-- BEGIN AGENT ROUTING MERMAID -->
 
 ```mermaid
 flowchart TD
-    START{Task type}
-    START -->|Bug / Incident| BA["🔍 bug-analysis"]
-    START -->|Feature / Refactor| DESIGN_GATE
-    BA --> DESIGN_GATE{Multiple\napproaches?}
-    DESIGN_GATE -->|Yes| SD["🏗️ solution-design"]
-    DESIGN_GATE -->|" Obvious approach "| PLAN_GATE
-    SD --> ADR_GATE{ADR needed?}
-    ADR_GATE -->|Yes| ADR["🏛️ architecture-decision"]
-    ADR_GATE -->|No| IP["📋 implementation-planning"]
-    ADR -- " ADR decision " --> IP
-    PLAN_GATE{Non-trivial\ntask?}
-    PLAN_GATE -->|Yes| IP
-    PLAN_GATE -->|" Trivial "| EXEC
-    IP -- " execution plan " --> TDP["🧪 test-driven"]
-    TDP -- " test specs " --> PARALLEL_GATE{Independent\nfronts?}
-    PARALLEL_GATE -->|Yes| SE["🔀 subagent-execution"]
-    PARALLEL_GATE -->|No| EXEC
-    SE --> EXEC["⚡ Execution"]
-    EXEC --> VERIFY_GATE{Non-trivial\nchange?}
-    VERIFY_GATE -->|Yes| VER["✔️ verification"]
-    VERIFY_GATE -->|" Trivial "| CL
-    VER -->|" pass / partial "| CL["📝 changelog"]
-    VER -->|" fail "| EXEC
-    CL --> README_GATE{README\naffected?}
-    README_GATE -->|Yes| RM["📄 readme"]
-    README_GATE -->|No| KB_GATE
-    RM --> KB_GATE{Durable\nknowledge?}
-    KB_GATE -->|Yes| KB["🧠 knowledge-base"]
-    KB_GATE -->|No| DONE
-    KB --> OVERVIEW_GATE{Overview\naffected?}
-    OVERVIEW_GATE -->|Yes| RO["📖 repository-overview"]
-    OVERVIEW_GATE -->|No| DONE
-    RO --> DONE["✅ Completed"]
-    style BA fill: #fee2e2, stroke: #b91c1c, color: #000
-    style SD fill: #dbeafe, stroke: #1d4ed8, color: #000
-    style ADR fill: #fef9c3, stroke: #a16207, color: #000
-    style IP fill: #dbeafe, stroke: #1d4ed8, color: #000
-    style TDP fill: #dcfce7, stroke: #15803d, color: #000
-    style SE fill: #f3e8ff, stroke: #7e22ce, color: #000
-    style EXEC fill: #fef3c7, stroke: #b45309, color: #000
-    style VER fill: #d1fae5, stroke: #065f46, color: #000
-    style CL fill: #e0e7ff, stroke: #4338ca, color: #000
-    style RM fill: #e0e7ff, stroke: #4338ca, color: #000
-    style KB fill: #fce7f3, stroke: #be185d, color: #000
-    style RO fill: #fce7f3, stroke: #be185d, color: #000
+    INTAKE["Demanda recebida"] --> ROUTE{"Natureza predominante?"}
+
+    ROUTE -->|"Ideia, requisito ou solução nebulosa"| PORT_AMBIGUOUS_INTAKE["@Brainstorm<br/>PORT_AMBIGUOUS_INTAKE"]
+    PORT_AMBIGUOUS_INTAKE -->|"problema, valor, escopo ou aceite"| PRODUCT_OWNER["product-owner"]
+    PORT_AMBIGUOUS_INTAKE -->|"questão técnica delimitada"| SOLUTIONS_ARCHITECT["solutions-architect"]
+
+    ROUTE -->|"Incidente ou defeito claro"| SUPPORT_ANALYST["support-analyst"]
+    SUPPORT_ANALYST ==> PORT_BOUNDED_INCIDENT["PORT_BOUNDED_INCIDENT"]
+
+    ROUTE -->|"Manutenção/refatoração clara<br/>em código desconhecido"| CODE_EXPLORER["code-explorer"]
+    CODE_EXPLORER --> EXPLORE_GATE{"O que o mapeamento revelou?"}
+    EXPLORE_GATE -->|"mudança local delimitada"| PORT_BOUNDED_MAINTENANCE["PORT_BOUNDED_MAINTENANCE"]
+    EXPLORE_GATE -->|"decisão técnica material"| SOLUTIONS_ARCHITECT
+    SOLUTIONS_ARCHITECT -.->|"mapear código existente"| CODE_EXPLORER
+
+    ROUTE -->|"Requisito de produto claro"| PRODUCT_OWNER
+    ROUTE -->|"Decisão técnica clara"| SOLUTIONS_ARCHITECT
+    PRODUCT_OWNER -->|"questão técnica material"| SOLUTIONS_ARCHITECT
+    SOLUTIONS_ARCHITECT ==> PORT_PLANNING_READY["PORT_PLANNING_READY"]
+
+    ROUTE -->|"UI ou jornada"| UI_DESIGNER["ui-designer"]
+    UI_DESIGNER -.->|"craft opcional"| UI_IMPECCABLE["ui-impeccable-specialist"]
+    UI_DESIGNER --> UI_REVIEWER["ui-reviewer"]
+    UI_IMPECCABLE --> UI_REVIEWER
+    UI_REVIEWER ==>|"design aprovado"| PORT_PLANNING_READY
+
+    ROUTE -->|"Documentação"| DOCUMENTATION_REVIEWER["documentation-reviewer"]
+    DOCUMENTATION_REVIEWER -.->|"correção autorizada"| DOCUMENTATION_CURATOR["documentation-curator"]
+    DOCUMENTATION_CURATOR --> PORT_COMPLETE["PORT_COMPLETE"]
+
+    ROUTE -->|"Revisão diagnóstica direta"| DIRECT_REVIEW{"Especialidade?"}
+    DIRECT_REVIEW --> CODE_REVIEWER["code-reviewer"]
+    DIRECT_REVIEW --> UI_REVIEWER
+    DIRECT_REVIEW --> DOCUMENTATION_REVIEWER
+    DIRECT_REVIEW --> SECURITY_ADVISOR["security-advisor"]
+    CODE_REVIEWER -.->|"revisão direta"| OWNER_RETURN["Retorno ao owner"]
+    UI_REVIEWER -.->|"revisão direta"| OWNER_RETURN
+    DOCUMENTATION_REVIEWER -.->|"revisão direta"| OWNER_RETURN
+    SECURITY_ADVISOR -.->|"revisão direta"| OWNER_RETURN
+
+    PORT_BOUNDED_INCIDENT ==> SOFTWARE_DEVELOPER["software-developer"]
+    PORT_BOUNDED_MAINTENANCE ==> SOFTWARE_DEVELOPER
+    PORT_PLANNING_READY ==> QUALITY_ANALYST["quality-analyst"]
+    QUALITY_ANALYST --> SOFTWARE_DEVELOPER
+    SOFTWARE_DEVELOPER --> CODE_REVIEWER
+    SOFTWARE_DEVELOPER -.->|"fluxo sensível"| SECURITY_ADVISOR
+    SOFTWARE_DEVELOPER -.->|"mudança de UI"| UI_REVIEWER
+    CODE_REVIEWER ==>|"implementação aprovada"| PORT_COMPLETE
+
+    classDef discovery fill:#ffedd5,stroke:#c2410c,color:#111827
+    classDef definition fill:#dbeafe,stroke:#1d4ed8,color:#111827
+    classDef delivery fill:#fef3c7,stroke:#b45309,color:#111827
+    classDef assurance fill:#dcfce7,stroke:#15803d,color:#111827
+    classDef documentation fill:#f3e8ff,stroke:#7e22ce,color:#111827
+    classDef port fill:#ffffff,stroke:#334155,stroke-width:3px,stroke-dasharray:6 4,color:#111827
+    class INTAKE,ROUTE,PORT_AMBIGUOUS_INTAKE,SUPPORT_ANALYST,CODE_EXPLORER,EXPLORE_GATE discovery
+    class PRODUCT_OWNER,SOLUTIONS_ARCHITECT,UI_DESIGNER,UI_IMPECCABLE definition
+    class SOFTWARE_DEVELOPER delivery
+    class QUALITY_ANALYST,CODE_REVIEWER,UI_REVIEWER,SECURITY_ADVISOR,DIRECT_REVIEW,OWNER_RETURN assurance
+    class DOCUMENTATION_REVIEWER,DOCUMENTATION_CURATOR documentation
+    class PORT_AMBIGUOUS_INTAKE,PORT_BOUNDED_INCIDENT,PORT_BOUNDED_MAINTENANCE,PORT_PLANNING_READY,PORT_COMPLETE port
 ```
 
-**Legend:** the labeled edges between prompts (`ADR decision`, `execution plan`, `test specs`)
-represent explicit chaining — the output of one prompt is the input for the next. The verification
-step has two exits: `pass` or `partial` proceeds to changelog; `fail` loops back to execution with
-corrections. Diamond nodes are decision gates — the agent evaluates the condition and may skip the
-step entirely.
+<!-- END AGENT ROUTING MERMAID -->
 
----
+### 2. Ciclo interno do Brainstorm
+
+O drill-down de `PORT_AMBIGUOUS_INTAKE` está em `.agents/references/brainstorm.md`. Ele mantém o
+controller até um estado terminal e só transfere o primeiro ownership para `product-owner` ou
+`solutions-architect`. Incidentes e manutenção clara são reclassificados para as portas de entrega,
+sem investigação pelo Brainstorm.
+
+### 3. Entrega e assurance
+
+Esta visão começa exclusivamente nas portas de trabalho delimitado. Ela não classifica demanda,
+não contém Brainstorm, Product Owner ou Solutions Architect e não redefine decisões de solução.
+
+<!-- BEGIN DELIVERY ASSURANCE MERMAID -->
+
+```mermaid
+flowchart TD
+    PORT_BOUNDED_INCIDENT["PORT_BOUNDED_INCIDENT"] ==> SOFTWARE_DEVELOPER["software-developer"]
+    PORT_BOUNDED_MAINTENANCE["PORT_BOUNDED_MAINTENANCE"] ==> SOFTWARE_DEVELOPER
+    PORT_PLANNING_READY["PORT_PLANNING_READY"] ==> QUALITY_ANALYST["quality-analyst<br/>estratégia e critérios"]
+    QUALITY_ANALYST -->|"test specs"| SOFTWARE_DEVELOPER
+
+    SOFTWARE_DEVELOPER -.->|"evidência de implementação"| QUALITY_ANALYST
+    SOFTWARE_DEVELOPER --> CODE_REVIEWER["code-reviewer"]
+    SOFTWARE_DEVELOPER -.->|"mudança de UI"| UI_REVIEWER["ui-reviewer"]
+    SOFTWARE_DEVELOPER -.->|"fluxo sensível"| SECURITY_ADVISOR["security-advisor"]
+    SOFTWARE_DEVELOPER -.->|"documentação afetada"| DOCUMENTATION_REVIEWER["documentation-reviewer"]
+
+    CODE_REVIEWER --> REVIEW_RESULT{"Existe blocker factual?"}
+    UI_REVIEWER -.-> REVIEW_RESULT
+    SECURITY_ADVISOR -.-> REVIEW_RESULT
+    DOCUMENTATION_REVIEWER -.-> REVIEW_RESULT
+    REVIEW_RESULT -->|"sim"| SOFTWARE_DEVELOPER
+    REVIEW_RESULT -->|"não"| VERIFICATION["verification<br/>objetivo, contrato e evidência"]
+
+    VERIFICATION -->|"fail"| SOFTWARE_DEVELOPER
+    VERIFICATION -->|"pass ou partial aceito"| DOC_GATE{"Curadoria documental necessária?"}
+    DOC_GATE -.->|"sim"| DOCUMENTATION_CURATOR["documentation-curator"]
+    DOCUMENTATION_CURATOR --> CHANGELOG["changelog"]
+    DOC_GATE -->|"não"| CHANGELOG
+    CHANGELOG ==> PORT_COMPLETE["PORT_COMPLETE"]
+
+    classDef delivery fill:#fef3c7,stroke:#b45309,color:#111827
+    classDef assurance fill:#dcfce7,stroke:#15803d,color:#111827
+    classDef documentation fill:#f3e8ff,stroke:#7e22ce,color:#111827
+    classDef port fill:#ffffff,stroke:#334155,stroke-width:3px,stroke-dasharray:6 4,color:#111827
+    class SOFTWARE_DEVELOPER delivery
+    class QUALITY_ANALYST,CODE_REVIEWER,UI_REVIEWER,SECURITY_ADVISOR,REVIEW_RESULT,VERIFICATION assurance
+    class DOCUMENTATION_REVIEWER,DOCUMENTATION_CURATOR,DOC_GATE,CHANGELOG documentation
+    class PORT_BOUNDED_INCIDENT,PORT_BOUNDED_MAINTENANCE,PORT_PLANNING_READY,PORT_COMPLETE port
+```
+
+<!-- END DELIVERY ASSURANCE MERMAID -->
+
+As portas não autorizam execução por si mesmas: apenas preservam o tipo de handoff entre as visões.
+Um retorno `fail` ou blocker factual volta ao owner de implementação; mudança de escopo ou solução
+retorna ao owner upstream conforme os contratos de roteamento e revisão.

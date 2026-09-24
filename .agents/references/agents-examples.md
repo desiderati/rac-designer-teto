@@ -32,6 +32,36 @@ subagentes.
 Use este atalho apenas para listar os atalhos compactos `!` aceitos pelo contrato local. Não execute
 os atalhos e não acione subagentes.
 
+## `models-usage`
+
+```text
+@Models Usage
+```
+
+Use a chamada isolada para receber exemplos reais de Astra, Sol e Luna nos esforços suportados,
+além da orientação separada para o modo multiagente Ultra.
+
+```text
+@Models Usage
+Preciso corrigir um contrato distribuído entre código, scaffold, documentação e testes, preservando
+mudanças locais fora do escopo.
+```
+
+Use a chamada contextual para receber exatamente uma recomendação de modelo GPT-6 e esforço para a
+tarefa. O helper não altera configuração; revalide a disponibilidade antes de persistir um model ID.
+
+## `brainstorm`
+
+```text
+@Brainstorm
+Guie esta ideia desde a descoberta inicial até uma solução revisada e pronta para planejamento.
+Recomende o menor artefato útil, preserve os checkpoints e não implemente a solução.
+```
+
+Use a invocação direta para manter uma única identidade controladora durante o ciclo criativo. O
+Wingman pode encaminhar a autoria e a revisão aos workflows canônicos, mas não substitui esses
+owners nem trata a recomendação como autorização.
+
 ## `council-of-agents`
 
 ```text

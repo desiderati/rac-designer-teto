@@ -1,6 +1,6 @@
 name = "ui-reviewer"
 description = "Use for evidence-backed UI review, visual QA, accessibility-oriented interface critique, frontend design drift checks, and recommendations for Impeccable follow-up when available."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["UI Reviewer"]

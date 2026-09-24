@@ -68,6 +68,11 @@ function Get-CommandInvocation {
         $wrappedByRtk = $true
         $commandIndex = 1
         $commandName = Get-ExecutableLeafName -Value $values[$commandIndex]
+        if ($commandName -eq "proxy") {
+            if ($values.Count -lt 3) { return $null }
+            $commandIndex = 2
+            $commandName = Get-ExecutableLeafName -Value $values[$commandIndex]
+        }
     }
     $arguments = @()
     if (($commandIndex + 1) -lt $values.Count) {

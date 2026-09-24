@@ -1,6 +1,6 @@
 name = "fellowship-of-architects"
 description = "Use as the @Fellowship of Architects shortcut for a fixed five-profile architecture council built on the solutions-architect profile catalog."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Fellowship of Architects"]

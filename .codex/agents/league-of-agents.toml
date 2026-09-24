@@ -1,6 +1,6 @@
 name = "league-of-agents"
 description = "Use as the @League of Agents shortcut for repository-local team-mode orchestration through league-of-agents.prompt.md."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["League of Agents"]

@@ -89,25 +89,42 @@
 
     1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs, relevant docs)
        and, if it exists, the solution design decision for this task (section 7: contract for implementation)
+
     2. Identify business or technical objective
+
     3. Define scope included and scope excluded
+
     4. State assumptions and constraints
+
     5. List affected components, files, and file groups
+
     6. Identify dependencies
+
     7. Assess operational and architectural risks
+
     8. Define validation needs
+
     9. Consider rollback concerns
+
     10. Produce the execution plan
 
     Before finalizing, challenge your own plan:
       - Is there a simpler approach?
-      - Would the simpler approach introduce duplication, fragile shortcuts, or inconsistent patterns?
+
+      - Would the simpler approach introduce duplication, fragile shortcuts, or inconsistent
+        patterns?
+
       - Does any refactoring belong inside this implementation because it preserves coherence, or
         should it be split into a separate cycle?
+
       - Is any step unnecessary?
+
       - Is the scope larger than needed?
+
       - Would a staff engineer consider this a disciplined plan?
+
       - What is the most likely way this plan fails?
+
       - If an upstream design decision exists: am I silently overriding any of its constraints or
         out-of-scope boundaries? If yes, this is a planning error — stop and flag the conflict
         explicitly in section 4 (Premissas e Restrições).
@@ -134,6 +151,7 @@
 
     ### Fora do escopo
     - item
+
     - item
     (Inclui itens explicitamente excluídos pela decisão de design, se aplicável.)
 
@@ -144,6 +162,7 @@
 
     ### Restrições
     - item
+
     - item
     (Inclui restrições arquiteturais herdadas da decisão de design, se aplicável.
     Se alguma restrição do design parece problemática, declarar a preocupação aqui
@@ -190,10 +209,13 @@
     Quando aplicável, cobrir:
       - compatibilidade reversa: a mudança quebra consumers existentes? por quanto tempo
         a versão anterior precisa coexistir?
+
       - ordem de rollout: qual componente deve ser deployado primeiro? há dependência de
         ordem entre serviços, schemas, filas ou consumers?
+
       - janela de migração: quanto tempo a migração leva? há downtime? o sistema opera em
         estado degradado durante a transição?
+
       - estratégia de fallback por ambiente: staging e produção podem exigir estratégias
         diferentes (feature flag, blue-green, canary, rollback imediato)
 

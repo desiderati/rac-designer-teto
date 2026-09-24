@@ -1,6 +1,6 @@
 name = "code-explorer"
 description = "Use for codebase exploration, execution-flow tracing, architecture layer mapping, and technical overview inputs through the documentation skill."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Code Explorer"]

@@ -1,6 +1,6 @@
 name = "council-of-agents"
 description = "Use as the @Council of Agents shortcut for general decision-council pressure testing through council-of-agents.prompt.md."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Council of Agents"]

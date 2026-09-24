@@ -72,3 +72,7 @@ graphify-out/
 .agents/worktree-closeouts/
 .claude/settings.local.json
 rtk/history.db
+.agents/grafana-integration/
+.agents/service-desk/
+.agents/skill-development-session/
+/outputs/

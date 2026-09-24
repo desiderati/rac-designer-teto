@@ -34,6 +34,7 @@ Optional local-only directories when the repository adopts those conventions:
 
 ```text
 .agents/code-reviews/
+.agents/solution-reviews/
 .agents/council-sessions/
 .agents/pruning-reports/
 .agents/refactorings/
@@ -168,6 +169,15 @@ Optional local-only file:
     - reusable conclusions should later be consolidated into `docs/`, guidelines, or follow-up implementation work
       without treating the original local review as a documentary source
 
+- `.agents/solution-reviews/`
+    - optional, local, gitignored records of structured solution reviews kept beyond the current session
+    - stores the technical report generated from an executive solution-review response under `YYYY-MM/`
+    - if the report needs supporting files, keep them in a sidecar such as
+      `yyyyMMdd-hhmm-{review-slug}.solution-review.assets/` beside the main document
+    - not durable knowledge, not versioned, and must not be indexed by `OBSIDIAN.md`
+    - reusable conclusions should later be consolidated into `docs/`, guidelines, or follow-up implementation work
+      without treating the original local review as a documentary source
+
 - `.agents/council-sessions/`
     - optional, local, gitignored workspace for Council of Agents outputs
     - stores `council-report-[timestamp].html` and
@@ -206,9 +216,10 @@ Optional local-only file:
     - optional versioned entrypoint for the navigable knowledge base of the repository
     - must not index `AGENTS.md`, `CLAUDE.md`, or the ephemeral operational layer under `.agents/`, such as
       `prompts/`, `references/`, `templates/`, `examples/`, `changelogs/`, `errors.md`, and `work-items/`
-    - `.agents/bug-analysis/`, `.agents/incidents/`, `.agents/security-analysis/`, `.agents/security-scans/`, and
-      `.agents/security-reviews/`, when adopted as versioned documentary sources for concrete cases, are allowed
-      exceptions
+    - `.agents/production-changes/`, `.agents/risk-assessments/`, `.agents/bug-analysis/`,
+      `.agents/incidents/`, `.agents/security-analysis/`, `.agents/security-scans/`, and
+      `.agents/security-reviews/`, when adopted as versioned and sanitized documentary sources for
+      concrete cases, are allowed exceptions
 
 - versioned knowledge base
     - usually lives under `docs/` by default when the repository keeps a versioned knowledge base
@@ -234,25 +245,40 @@ Optional local-only file:
 Before non-trivial analysis or execution:
 
 1. Read `README.md` if it exists
-2. Read `CONTRIBUTING.md` if it exists
-3. Read `OBSIDIAN.md` if it exists
-4. Read `.agents/errors.md` if it exists; do not create it as a routine startup artifact
-5. Check relevant docs referenced from `OBSIDIAN.md` when that file exists
-6. Check recent `.agents/changelogs/` entries when they help explain current constraints,
-   previous attempts, or pending issues
-7. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous
-   defect history or bug continuity matters
-8. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident
-   history or case continuity matters
-9. Check relevant local `.agents/code-reviews/YYYY-MM/*.code-review.md` records when previous
-   review history or review continuity matters
-10. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous
-    refactoring history or front continuity matters
-11. If continuing a task with an active or otherwise relevant `.agents/work-items/YYYY-MM/*.work-item.md`,
-    read it before proceeding
-12. Only then proceed to analysis, planning, or documentation review
 
-Load `.agents/examples/*.example.md` only on demand. They are calibration aids, not mandatory initial context.
+2. Read `CONTRIBUTING.md` if it exists
+
+3. Read `OBSIDIAN.md` if it exists
+
+4. Read `.agents/errors.md` if it exists; do not create it as a routine startup artifact
+
+5. Check relevant docs referenced from `OBSIDIAN.md` when that file exists
+
+6. Check recent `.agents/changelogs/` entries when they help explain current constraints, previous
+   attempts, or pending issues
+
+7. Check relevant `.agents/bug-analysis/YYYY-MM/*.bug-analysis.md` records when previous defect
+   history or bug continuity matters
+
+8. Check relevant `.agents/incidents/YYYY-MM/*.incident.md` records when previous incident history
+   or case continuity matters
+
+9. Check relevant local `.agents/code-reviews/YYYY-MM/*.code-review.md` records when previous review
+   history or review continuity matters
+
+10. Check relevant local `.agents/solution-reviews/YYYY-MM/*.solution-review.md` records when prior
+    solution-review history or review continuity matters
+
+11. Check relevant local `.agents/refactorings/YYYY-MM/*.refactoring.md` records when previous
+    refactoring history or front continuity matters
+
+12. If continuing a task with an active or otherwise relevant
+    `.agents/work-items/YYYY-MM/*.work-item.md`, read it before proceeding
+
+13. Only then proceed to analysis, planning, or documentation review
+
+Load `.agents/examples/*.example.md` only on demand. They are calibration aids, not mandatory
+initial context.
 
 Do not operate in a documentation vacuum.
 
@@ -269,86 +295,113 @@ Only create or resume a local work-item when at least one of these is true:
 - skips or deviations need explicit local coordination across phases
 - the same work front already has local context and reopening it is cheaper than reconstructing it
 
-The following are mandatory triggers and remove discretion. Create or resume a
-work-item even if the task may still finish in the current session:
+The following are mandatory triggers and remove discretion. Create or resume a work-item even if the
+task may still finish in the current session:
 
-- any incident, diagnosis, or bug investigation that touches shared runtime,
-  production, or another remote operational surface
-- any remote or state-changing action outside the local workspace, including
-  `n8n`, Apps Script, GCP, hosts, containers, deployments, restarts, or secret
-  changes
-- any session that creates local backups, exports, temporary payloads, logs, or
-  evidence files that would be costly to reconstruct later
-- any session where losing the exact sequence of findings, decisions,
-  validations, or pending hardening work would materially harm the developer
+- any incident, diagnosis, or bug investigation that touches shared runtime, production, or another
+  remote operational surface
 
-If none of these is true and the task is likely to conclude inside the active context with direct promotion to
-changelog, do not open a work-item by default.
+- any remote or state-changing action outside the local workspace, including `n8n`, Apps Script,
+  GCP, hosts, containers, deployments, restarts, or secret changes
 
-- Create or resume a local work item under `.agents/work-items/YYYY-MM/YYYYMMDD-short-slug.work-item.md` only after that
-  eligibility gate
-- When a mandatory trigger exists, create or resume the work-item before the
-  first remote mutation. If the trigger becomes clear only later in the
-  session, stop and open or update the work-item immediately instead of
-  deferring it to the end
-- When the repository has access to `agents-housekeeping`, run only a non-destructive `check` for `work-items` before
-  opening a new work-item and report how many archived candidates exist; do not move files automatically during
-  work-item creation
+- any session that creates local backups, exports, temporary payloads, logs, or evidence files that
+  would be costly to reconstruct later
+
+- any session where losing the exact sequence of findings, decisions, validations, or pending
+  hardening work would materially harm the developer
+
+If none of these is true and the task is likely to conclude inside the active context with direct
+promotion to changelog, do not open a work-item by default.
+
+- Create or resume a local work item under
+  `.agents/work-items/YYYY-MM/YYYYMMDD-short-slug.work-item.md` only after that eligibility gate
+
+- When a mandatory trigger exists, create or resume the work-item before the first remote mutation.
+  If the trigger becomes clear only later in the session, stop and open or update the work-item
+  immediately instead of deferring it to the end
+
+- When the repository has access to `agents-housekeeping`, run only a non-destructive `check` for
+  `work-items` before opening a new work-item and report how many archived candidates exist; do not
+  move files automatically during work-item creation
+
 - Start from `.agents/templates/work-item.template.md` for the lite default
-- Switch to `.agents/templates/work-item-full.template.md` only when phase-by-phase tracking across sessions or work
-  fronts adds real value
-- Keep one active work-item per work front; if the work splits materially, open a new file instead of overloading one
-  record
-- Treat the work item as the primary local continuity artifact only while that continuity need really exists
-- Keep the lifecycle explicit with a status such as the exact local values
-  `ativo`, `bloqueado`, `interrompido`, `concluído`, or `cancelado`
-- Keep entries concise: store canonical summaries and references, not long pasted outputs, raw logs, or large diffs
-- When a work-item needs local files such as screenshots, exports, logs, or diffs, store them in a sidecar directory
-  `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note, not in a shared `.agents/assets/`
-  folder
-- When the work front benefits from structured helper artifacts such as task decomposition, validation summaries, or
-  review references, keep them as derived files in that same sidecar and treat the work-item as the primary
-  source of truth
-- When `task-plan.json` exists, treat it as an optional operational projection of the approved implementation plan, not
-  as a substitute for the human plan itself
-- When an external durable artifact exists (file, changelog, commit, ticket), reference it instead of duplicating it
-- Because `.agents/work-items/` is local and gitignored, do not treat it as durable knowledge and do not index it in
-  `OBSIDIAN.md`
-- Because `.agents/work-items/` is local and gitignored, never use `git status`
-  as evidence that the work-item exists, is current, or is unnecessary; inspect
-  the filesystem explicitly when continuity matters
-- Before ending a session with the task still open, update the handoff section with current state, next step,
-  blockers, recent decisions, and any skips or deviations that still matter
-- Before the final response of a session that used an active work-item, reconcile
-  that item. If the task finished, mark it as `concluído` or `cancelado` and
-  fill the closure fields. If the task did not finish, mark it as
-  `interrompido` or keep it `ativo` with a concrete next step and retention
+
+- Switch to `.agents/templates/work-item-full.template.md` only when phase-by-phase tracking across
+  sessions or work fronts adds real value
+
+- Keep one active work-item per work front; if the work splits materially, open a new file instead
+  of overloading one record
+
+- Treat the work item as the primary local continuity artifact only while that continuity need
+  really exists
+
+- Keep the lifecycle explicit with a status such as the exact local values `ativo`, `bloqueado`,
+  `interrompido`, `concluído`, or `cancelado`
+
+- Keep entries concise: store canonical summaries and references, not long pasted outputs, raw logs,
+  or large diffs
+
+- When a work-item needs local files such as screenshots, exports, logs, or diffs, store them in a
+  sidecar directory `.agents/work-items/YYYY-MM/AAAAMMDD-{slug}.work-item.assets/` beside the note,
+  not in a shared `.agents/assets/` folder
+
+- When the work front benefits from structured helper artifacts such as task decomposition,
+  validation summaries, or review references, keep them as derived files in that same sidecar and
+  treat the work-item as the primary source of truth
+
+- When `task-plan.json` exists, treat it as an optional operational projection of the approved
+  implementation plan, not as a substitute for the human plan itself
+
+- When an external durable artifact exists (file, changelog, commit, ticket), reference it instead
+  of duplicating it
+
+- Because `.agents/work-items/` is local and gitignored, do not treat it as durable knowledge and do
+  not index it in `OBSIDIAN.md`
+
+- Because `.agents/work-items/` is local and gitignored, never use `git status` as evidence that the
+  work-item exists, is current, or is unnecessary; inspect the filesystem explicitly when continuity
+  matters
+
+- Before ending a session with the task still open, update the handoff section with current state,
+  next step, blockers, recent decisions, and any skips or deviations that still matter
+
+- Before the final response of a session that used an active work-item, reconcile that item. If the
+  task finished, mark it as `concluído` or `cancelado` and fill the closure fields. If the task did
+  not finish, mark it as `interrompido` or keep it `ativo` with a concrete next step and retention
   reason. Do not depend on the user asking explicitly to close the item
-- Chat archival, compaction, or silence is not enough evidence by itself. Do
-  not wait for a final operator phrase when repository evidence proves
-  completion; otherwise preserve the item as `interrompido` or `ativo` with
-  handoff
-- If the task pauses without completion, mark the work-item as `interrompido`; if it is abandoned by decision, mark it
-  as `cancelado`
-- When the task ends, promote only the relevant facts, decisions, validations, risks, and pending items to changelog or
-  durable docs when appropriate
-- If local evidence from a work-item becomes part of an incident, local code review, or refactoring artifact, move or
-  regenerate only the relevant files under that artifact's own `.assets/` sidecar
+
+- Chat archival, compaction, or silence is not enough evidence by itself. Do not wait for a final
+  operator phrase when repository evidence proves completion; otherwise preserve the item as
+  `interrompido` or `ativo` with handoff
+
+- If the task pauses without completion, mark the work-item as `interrompido`; if it is abandoned by
+  decision, mark it as `cancelado`
+
+- When the task ends, promote only the relevant facts, decisions, validations, risks, and pending
+  items to changelog or durable docs when appropriate
+
+- If local evidence from a work-item becomes part of an incident, local code review, or refactoring
+  artifact, move or regenerate only the relevant files under that artifact's own `.assets/` sidecar
+
 - When concluding or canceling a work-item, validate before considering it closed:
     - `elegível para colapso após promoção?` must be explicitly decided
     - `referência do changelog / artefato durável` must be filled whenever promotion actually happened
     - if `reter localmente? sim`, also fill `motivo da retenção local`
-- After promotion, either collapse the work-item to a short local stub, archive it locally with references to the
-  durable artifacts, or keep it open only if continuity risk still remains
-- `reter localmente? sim` is an explicit local hold and blocks automatic archiving or purge until the flag is removed
-  or changed
-- If a work-item is no longer useful in the hot local layer but still lacks the
-  normal archival contract, it may be marked with `arquivamento pendente? sim`,
-  `arquivamento pendente desde` and `motivo do arquivamento pendente`.
-  Automated housekeeping may archive such marked items after the configured
-  cold period, but must still preserve active, blocked, interrupted, and
-  locally retained items.
-- Never auto-delete a work-item that is active, blocked, interrupted, unpromoted, or still carries local-only evidence
+
+- After promotion, either collapse the work-item to a short local stub, archive it locally with
+  references to the durable artifacts, or keep it open only if continuity risk still remains
+
+- `reter localmente? sim` is an explicit local hold and blocks automatic archiving or purge until
+  the flag is removed or changed
+
+- If a work-item is no longer useful in the hot local layer but still lacks the normal archival
+  contract, it may be marked with `arquivamento pendente? sim`, `arquivamento pendente desde` and
+  `motivo do arquivamento pendente`. Automated housekeeping may archive such marked items after the
+  configured cold period, but must still preserve active, blocked, interrupted, and locally retained
+  items.
+
+- Never auto-delete a work-item that is active, blocked, interrupted, unpromoted, or still carries
+  local-only evidence
 
 ---
 
@@ -356,18 +409,27 @@ changelog, do not open a work-item by default.
 
 For non-trivial tasks, do not let skipped phases or changed decisions remain implicit.
 
-- A `skip` is an applicable standard phase that was intentionally not executed. Record the skipped prompt or phase and
-  why it was not needed or not applicable.
-- A `decided deviation` is an intentional divergence from the chosen design, approved plan, or test specs that was
-  recorded before proceeding.
-- A `silent deviation` is a divergence discovered later with no prior record. Verification should treat silent
-  deviations as risk by default.
-- Record skips and decided deviations in the active work-item before moving to the next phase when a work-item exists.
+- A `skip` is an applicable standard phase that was intentionally not executed. Record the skipped
+  prompt or phase and why it was not needed or not applicable.
+
+- A `decided deviation` is an intentional divergence from the chosen design, approved plan, or test
+  specs that was recorded before proceeding.
+
+- A `silent deviation` is a divergence discovered later with no prior record. Verification should
+  treat silent deviations as risk by default.
+
+- Record skips and decided deviations in the active work-item before moving to the next phase when a
+  work-item exists.
+
 - Record them at the moment of the decision, not retroactively after the outcome is already known.
-- If no work-item was opened because the task stayed inside the active context, record only the skips or deviations
-  that materially affect scope, risk, validation, pending work, or future continuity directly in the changelog.
-- Promote skips or deviations to the changelog when they affect scope, risk, validation, pending work, or future
-  session continuity.
+
+- If no work-item was opened because the task stayed inside the active context, record only the
+  skips or deviations that materially affect scope, risk, validation, pending work, or future
+  continuity directly in the changelog.
+
+- Promote skips or deviations to the changelog when they affect scope, risk, validation, pending
+  work, or future session continuity.
+
 - "I will remember later" is not a record. If it matters, write it down.
 
 ---
@@ -375,9 +437,12 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
 ## Changelog rules
 
 - Follow the instructions in `.agents/prompts/changelog.prompt.md`.
-- Use daily changelogs under: `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`. If the monthly directory or the file
-  for the day does not exist, create them.
+
+- Use daily changelogs under: `.agents/changelogs/YYYY-MM/AAAAMMDD.changelog.md`. If the monthly
+  directory or the file for the day does not exist, create them.
+
 - The template is located at `.agents/templates/changelog.template.md`.
+
 - A daily changelog entry is mandatory in the same session whenever any of these
   happened:
     - material technical work, implementation, review, or validation with decisions
@@ -388,20 +453,24 @@ For non-trivial tasks, do not let skipped phases or changed decisions remain imp
     - security-relevant decision, drift discovery, or runtime correction
     - durable documentation updates based on newly established operational facts
     - evidence-backed technical decision that affects future repository behavior
-- When a session crosses one of the mandatory triggers above, do not postpone
-  changelog creation to a vague end-of-session intent. Create or update the
-  day's entry at the first stable checkpoint after the relevant facts are known
-- Because `.agents/changelogs/` is local and gitignored, never use `git
-  status` as evidence that the day's changelog exists or was updated; inspect
-  the filesystem explicitly
-- When a non-trivial task has an active work-item, use it as the primary local input when compacting the session into
-  changelog form.
-- Do not mirror the work-item structure verbatim in the changelog; promote only what remains durably relevant after the
-  session.
-- Leave handoff-only or evidence-staging details local unless they still matter for future sessions.
-- If the task is concluded and the work-item no longer carries operational value, collapse it to a stub or archive it
-  locally instead of keeping a second full narrative.
-- If a relevant technical fact, discarded path, or decision is still unclear, ask for clarification before writing the
-  entry.
 
----
+- When a session crosses one of the mandatory triggers above, do not postpone changelog creation to
+  a vague end-of-session intent. Create or update the day's entry at the first stable checkpoint
+  after the relevant facts are known
+
+- Because `.agents/changelogs/` is local and gitignored, never use `git status` as evidence that the
+  day's changelog exists or was updated; inspect the filesystem explicitly
+
+- When a non-trivial task has an active work-item, use it as the primary local input when compacting
+  the session into changelog form.
+
+- Do not mirror the work-item structure verbatim in the changelog; promote only what remains durably
+  relevant after the session.
+
+- Leave handoff-only or evidence-staging details local unless they still matter for future sessions.
+
+- If the task is concluded and the work-item no longer carries operational value, collapse it to a
+  stub or archive it locally instead of keeping a second full narrative.
+
+- If a relevant technical fact, discarded path, or decision is still unclear, ask for clarification
+  before writing the entry.

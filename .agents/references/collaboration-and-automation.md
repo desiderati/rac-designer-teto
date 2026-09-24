@@ -24,9 +24,9 @@ Git diffs and commits can help, but they do not replace reasoning about why the 
 
 ## Collaboration rule for large work
 
-Before starting large or high-impact work, confirm the objective and keep the
-scope explicit. Show 2-3 viable approaches and wait for the user to choose
-unless an approved upstream plan already selected the approach.
+Before starting large or high-impact work, confirm the objective and keep the scope explicit. Show
+2-3 viable approaches and wait for the user to choose unless an approved upstream plan already
+selected the approach.
 
 Large work includes:
 
@@ -36,26 +36,32 @@ Large work includes:
 - multi-module behavior changes
 - documentation moves with high coordination cost
 
-For architecture decisions, performance trade-offs, database design, complex
-debugging, non-trivial features, or long-term technical decisions, make the
-trade-offs, assumptions, uncertainty, and scale risks explicit before
-implementation. Do not hide a significant choice inside execution.
+For architecture decisions, performance trade-offs, database design, complex debugging, non-trivial
+features, or long-term technical decisions, make the trade-offs, assumptions, uncertainty, and scale
+risks explicit before implementation. Do not hide a significant choice inside execution.
 
 ---
 
 ## Workflow improvement signaling
 
-When working on this repository's agent workflow, prompts, templates, or related operational conventions, the agent may
-signal that there may be a useful improvement to the workflow itself, but only under strict conditions:
+When working on this repository's agent workflow, prompts, templates, or related operational
+conventions, the agent may signal that there may be a useful improvement to the workflow itself, but
+only under strict conditions:
 
 - only signal it at the end of the task or session, never in the middle of the main flow
+
 - only signal it when there is real evidence of friction, ambiguity, redundancy, or a workflow gap
+
 - signal at most one possible improvement per session
+
 - classify the suggestion explicitly as either:
     - core improvement to the repository workflow
     - local adjustment for the current repository context or working style
+
 - do not apply the improvement automatically
-- do not turn the signal into a parallel planning flow unless the developer explicitly asks to explore or implement it
+
+- do not turn the signal into a parallel planning flow unless the developer explicitly asks to
+  explore or implement it
 
 The preferred format is short and operational:
 
@@ -74,14 +80,20 @@ This is a signal, not a self-modification mechanism.
 Before considering a task complete, ask:
 
 - Was the relevant context read first?
-- Was the right prompt chosen for the task?
-- Were facts separated from hypotheses?
-- Was trial-and-error avoided?
-- Was the smallest useful change preferred?
-- Were production guardrails respected, including explicit confirmation before
-  any state-changing action on production-critical or external runtime surfaces?
-- Were external send, publish, share, invite, schedule, deploy, migration,
-  schema, and irreversible actions confirmed in the current user message?
-- If an agent execution error occurred, was `.agents/errors.md` updated only
-  when the error was clear and evidenced by the user or transcript?
 
+- Was the right prompt chosen for the task?
+
+- Were facts separated from hypotheses?
+
+- Was trial-and-error avoided?
+
+- Was the smallest useful change preferred?
+
+- Were production guardrails respected, including explicit confirmation before any state-changing
+  action on production-critical or external runtime surfaces?
+
+- Were external send, publish, share, invite, schedule, deploy, migration, schema, and irreversible
+  actions confirmed in the current user message?
+
+- If an agent execution error occurred, was `.agents/errors.md` updated only when the error was
+  clear and evidenced by the user or transcript?

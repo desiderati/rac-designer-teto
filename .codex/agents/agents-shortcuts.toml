@@ -1,6 +1,6 @@
 name = "agents-shortcuts"
 description = "Use as the @Agents Shortcuts shortcut to show repository-local ! chat controls with examples."
-model = "gpt-5.4"
+model = "gpt-6-luna"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 nickname_candidates = ["Agents Shortcuts", "Agents Shortcut"]

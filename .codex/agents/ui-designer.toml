@@ -1,6 +1,6 @@
 name = "ui-designer"
 description = "Use for pre-implementation UI design direction, DESIGN.md stewardship, lightweight design systems, visual standards, and UI acceptance criteria through the frontend-design skill."
-model = "gpt-5.5"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["UI Designer"]

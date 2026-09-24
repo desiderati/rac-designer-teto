@@ -84,9 +84,13 @@
 
   <process>
     Follow this exact sequence for every subagent decision:
-      1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs, existing plans)
+      1. Review repository documentation (`README.md`, `OBSIDIAN.md` when present, changelogs,
+         existing plans)
+
       2. Summarize the task and why decomposition is being considered
+
       3. Evaluate decomposition triggers vs no-decomposition conditions
+
       4. Explicitly determine:
          - What parts are actually independent
          - What must remain centralized
@@ -95,19 +99,32 @@
          - What information each subagent must NOT duplicate
          - What the consolidation method will be
          - What the risk of contradiction, overlap, or context fragmentation is
+
       5. If these cannot be answered clearly, do NOT use subagents
+
       6. If using subagents, define execution strategy
+         - Use a minimal-context handoff under `.agents/references/agents-roles.md`:
+           objective, revision, owned files, applicable contracts, acceptance criteria,
+           exclusions and existing evidence; do not inherit the full history by default
+         - Reuse valid evidence; identify completed work so neither parent nor child repeats it
+
       7. Define consolidation plan
+
       8. Assess risks and controls
 
     Before finalizing, challenge your own decomposition:
       - Would a single well-structured analysis be better?
+
       - Is the decomposition actually cleaner or just more complicated?
+
       - Are the proposed subagents truly independent?
+
       - Does the coordination overhead of managing N subagents — synchronization,
         consolidation, contradiction resolution — exceed the value gained from parallelization
         for this specific task and context size?
+
       - What is the biggest risk of fragmentation?
+
       - Is there a simpler orchestration pattern?
 
     If the subagent strategy feels excessive, reject it.
