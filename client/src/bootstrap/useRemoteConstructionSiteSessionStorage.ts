@@ -48,6 +48,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflict, setConflict] = useState<RemoteSyncConflict | null>(null);
+  const conflictRef = useRef<RemoteSyncConflict | null>(null);
   const [revision, setRevision] = useState(0);
   const retryWriteRef = useRef<{ next: ConstructionSiteState[]; previous: ConstructionSiteState[] } | null>(null);
   const [loadGeneration, setLoadGeneration] = useState(0);
@@ -67,6 +68,10 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
         async (next, previous) => {
           setSyncStatus('pending');
           retryWriteRef.current = { next, previous };
+          if (conflictRef.current) {
+            setSyncStatus('conflict');
+            return;
+          }
           const synchronized = await persistReactiveConstructionSites(
             repository,
             next,
@@ -74,12 +79,16 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
             setSyncStatus,
             setLastSyncedAt,
             setErrorMessage,
-            setConflict,
+            (value) => {
+              conflictRef.current = value;
+              setConflict(value);
+            },
           );
           if (synchronized) retryWriteRef.current = null;
         },
       );
       setStorage(nextStorage);
+      conflictRef.current = null;
       setConflict(null);
       setErrorMessage(null);
       setSyncStatus('synced');
@@ -138,6 +147,8 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
     const next = replaceConstructionSite(current, conflict.remoteState);
     storage.replace?.(next);
     repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
+    conflictRef.current = null;
+    retryWriteRef.current = null;
     setRevision((value) => value + 1);
     setConflict(null);
     setErrorMessage(null);
@@ -166,6 +177,8 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       repository.setDocumentVersion?.(conflict.constructionSiteId, conflict.remoteVersion);
       await repository.save(mergedState);
       storage.replace?.(replaceConstructionSite(storage.read().constructionSites, mergedState));
+      conflictRef.current = null;
+      retryWriteRef.current = null;
       setRevision((value) => value + 1);
       setConflict(null);
       setSyncStatus('synced');
@@ -190,7 +203,10 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
         setSyncStatus,
         setLastSyncedAt,
         setErrorMessage,
-        setConflict,
+        (value) => {
+          conflictRef.current = value;
+          setConflict(value);
+        },
       );
       if (synchronized) retryWriteRef.current = null;
       return;
