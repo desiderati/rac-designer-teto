@@ -27,6 +27,7 @@ export function refreshTopDoorMarkers(params: {
     refreshTopDoorMarkersInViews({
       houseType: params.house.houseType,
       sideMappings: params.house.sideMappings,
+      preAssignedSides: params.house.preAssignedSides,
       topViews: params.house.views.top,
     }),
     params.requestRender,

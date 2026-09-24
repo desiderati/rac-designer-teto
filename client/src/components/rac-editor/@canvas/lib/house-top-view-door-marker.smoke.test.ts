@@ -61,6 +61,26 @@ describe('house-top-view-door-marker.ts', () => {
     ).toBe('top');
   });
 
+  it('usa o lado configurado antes de existir a vista elevada e prioriza a vista quando inserida', () => {
+    expect(resolveTopDoorMarkerSide({
+      houseType: 'tipo6',
+      sideMappings: {top: null, bottom: null, left: null, right: null},
+      preAssignedSides: {front: 'bottom'},
+    })).toBe('bottom');
+
+    expect(resolveTopDoorMarkerSide({
+      houseType: 'tipo3',
+      sideMappings: {top: null, bottom: null, left: null, right: null},
+      preAssignedSides: {side2: 'left'},
+    })).toBe('left');
+
+    expect(resolveTopDoorMarkerSide({
+      houseType: 'tipo6',
+      sideMappings: {top: 'front', bottom: null, left: null, right: null},
+      preAssignedSides: {front: 'bottom'},
+    })).toBe('top');
+  });
+
   it('calculates marker coordinates for all sides and clamps door center', () => {
     expect(
       calculateTopDoorPlacement({

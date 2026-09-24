@@ -162,6 +162,47 @@ describe('editor house controller', () => {
     expect(houseController.getPilotiData('piloti_0_0').nivel).toBe(0.5);
   });
 
+  it('atualiza os objetos do canvas atual após trocar a instância visual', () => {
+    const {group: previousGroup} = createMockGroup({houseView: 'top'});
+    initializeHouseControllerCanvas(createMockCanvas([previousGroup]));
+    houseController.setHouseType('tipo6');
+    const instanceId = registerMockView('top', previousGroup);
+
+    const {group: currentGroup, objects} = createMockGroup({
+      houseView: 'top',
+      houseViewType: 'top',
+      houseInstanceId: instanceId,
+    });
+    const circle = createMockObject({
+      pilotiId: 'piloti_0_0',
+      isPilotiCircle: true,
+      pilotiHeight: 1,
+      pilotiNivel: 0.2,
+      left: 0,
+      top: 0,
+      radius: 8,
+    });
+    const heightText = createMockObject({
+      pilotiId: 'piloti_0_0',
+      isPilotiText: true,
+      text: '1,0',
+    });
+    const nivelText = createMockObject({
+      pilotiId: 'piloti_0_0',
+      isPilotiNivelText: true,
+      text: 'Nível = 0,20',
+    });
+    objects.push(circle, heightText, nivelText);
+
+    initializeHouseControllerCanvas(createMockCanvas([currentGroup]));
+    houseController.updatePiloti('piloti_0_0', {height: 1.5, nivel: 0.5});
+
+    expect(circle.pilotiHeight).toBe(1.5);
+    expect(circle.pilotiNivel).toBe(0.5);
+    expect(heightText.text).toBe('1,5');
+    expect(nivelText.text).toBe('Nível = 0,50');
+  });
+
   it('notifies subscribers when the family name changes', () => {
     const listener = vi.fn();
     const unsubscribe = houseController.subscribe(listener);
@@ -419,6 +460,27 @@ describe('editor house controller', () => {
     const expectedBottomLeft = -expectedBodyWidth / 2 + expectedDoorCenter;
 
     expect(topMarkerBottom.left).toBe(expectedBottomLeft);
+  });
+
+  it('mostra a porta na planta sem a vista elevada', () => {
+    const topMarkerTop = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'top', visible: false});
+    const topMarkerBottom = createMockObject({isTopDoorMarker: true, doorMarkerSide: 'bottom', visible: false});
+    const topBody = createMockObject({
+      isHouseBody: true,
+      width: HOUSE_DIMENSIONS.footprint.width * HOUSE_DIMENSIONS.view.scale,
+      height: HOUSE_DIMENSIONS.footprint.depth * HOUSE_DIMENSIONS.view.scale,
+    });
+    const {group: topGroup, objects: topObjects} = createMockGroup();
+    topObjects.push(topBody, topMarkerTop, topMarkerBottom);
+
+    initializeHouseControllerCanvas(createMockCanvas([topGroup]));
+    houseController.setHouseType('tipo6');
+    houseController.autoAssignAllSides('front', 'bottom');
+    registerMockView('top', topGroup);
+
+    expect(topMarkerBottom.visible).toBe(true);
+    expect(topMarkerTop.visible).toBe(false);
+    expect(houseController.getHouseViewCount('front')).toBe(0);
   });
 
   it('rebuilds stale side mappings before refreshing plant door markers', () => {

@@ -1,4 +1,4 @@
-import {HouseRuntimeViewInstance, HouseSide, HouseType, HouseViewType,} from '@/shared/types/house.ts';
+import {HouseRuntimeViewInstance, HouseSide, HouseType, HouseViewType, type HousePreAssignedSides} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/@canvas/lib';
@@ -27,17 +27,16 @@ export function resolveTopDoorSourceViewType(params: {
 export function resolveTopDoorMarkerSide(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
+  preAssignedSides?: HousePreAssignedSides;
 }): HouseSide | null {
   const sourceViewType = resolveTopDoorSourceViewType({
     houseType: params.houseType,
   });
   if (!sourceViewType) return null;
 
-  return (
-    (Object.keys(params.sideMappings) as HouseSide[]).find(
-      (side) => params.sideMappings[side] === sourceViewType,
-    ) ?? null
-  );
+  return (Object.keys(params.sideMappings) as HouseSide[]).find(
+    (side) => params.sideMappings[side] === sourceViewType,
+  ) ?? params.preAssignedSides?.[sourceViewType] ?? null;
 }
 
 /**
@@ -179,11 +178,13 @@ export function createTopDoorMarkerVisualPatch(params: {
 export function refreshTopDoorMarkersInViews(params: {
   houseType: HouseType;
   sideMappings: Record<HouseSide, HouseViewType | null>;
+  preAssignedSides?: HousePreAssignedSides;
   topViews: HouseRuntimeViewInstance<CanvasGroup>[];
 }): boolean {
   const doorMarkerSide = resolveTopDoorMarkerSide({
     houseType: params.houseType,
     sideMappings: params.sideMappings,
+    preAssignedSides: params.preAssignedSides,
   });
 
   let hasChanges = false;

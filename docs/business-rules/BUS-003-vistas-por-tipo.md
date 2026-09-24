@@ -68,7 +68,7 @@ remoção.
 
 1. Escolha de tipo de casa inicia configuração das primeiras vistas.
 2. Definição de níveis faz parte da preparação inicial.
-3. Após confirmar, o sistema cria a planta e a vista inicial do tipo escolhido.
+3. Após confirmar, o sistema cria a planta. As vistas elevadas podem ser inseridas depois.
 4. Se o fluxo inicial for cancelado, o estado parcial deve ser limpo.
 
 ## Regras de consistência
@@ -86,17 +86,19 @@ remoção.
 
 3. A planta exibe o marcador triangular correspondente a cada vista elevada inserida.
 
-4. O marcador triangular fica pareado com o lado da planta associado à vista.
+4. A porta aparece na planta no lado escolhido na configuração inicial da casa, mesmo antes de inserir a vista elevada correspondente. Inserir ou remover essa vista não oculta a porta.
 
-5. A base do triângulo deve ficar paralela ao lado da planta.
+5. O marcador triangular fica pareado com o lado da planta associado à vista.
 
-6. A ponta do triângulo deve apontar para o lado da planta correspondente.
+6. A base do triângulo deve ficar paralela ao lado da planta.
 
-7. O triângulo não deve exibir número interno.
+7. A ponta do triângulo deve apontar para o lado da planta correspondente.
 
-8. O texto do nome deve ficar paralelo à base do triângulo.
+8. O triângulo não deve exibir número interno.
 
-9. O nome da vista deve ficar do lado externo da base:
+9. O texto do nome deve ficar paralelo à base do triângulo.
+
+10. O nome da vista deve ficar do lado externo da base:
     - Superior: acima da base.
     - Inferior: abaixo da base.
     - Esquerdo: à esquerda da base.

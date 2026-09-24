@@ -31,6 +31,7 @@ function createEditorPorts(input: {
   updatePiloti?: ReturnType<typeof vi.fn>;
   updateSetting?: ReturnType<typeof vi.fn>;
   refreshElevationNivelLabelsForCurrentSettings?: ReturnType<typeof vi.fn>;
+  pilotiData?: Record<string, HousePiloti>;
 } = {}): EditorPorts {
   const settings = {
     ...defaultSettings,
@@ -40,12 +41,13 @@ function createEditorPorts(input: {
     ...pilotis[pilotiId],
     ...patch,
   }));
+  const currentPilotis = input.pilotiData ?? pilotis;
 
   return {
     houseReadPort: {
-      getPilotis: vi.fn(() => pilotis),
+      getPilotis: vi.fn(() => currentPilotis),
       getSelectedPilotiHeights: vi.fn(() => [1, 1.5, 2]),
-      getPilotiData: vi.fn((pilotiId: string) => pilotis[pilotiId] ?? pilotis.piloti_0_0),
+      getPilotiData: vi.fn((pilotiId: string) => currentPilotis[pilotiId] ?? currentPilotis.piloti_0_0),
     },
     houseWritePort: {
       updatePiloti,
@@ -80,6 +82,46 @@ function Wrapper({children}: { children: ReactNode }) {
 }
 
 describe('PilotiEditor.tsx', () => {
+  it('preserva altura e nível manuais de A2 ao confirmar', () => {
+    const currentPilotis: Record<string, HousePiloti> = {
+      ...pilotis,
+      piloti_1_0: {height: 1.8, isMaster: false, nivel: 0.4},
+    };
+    const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => {
+      currentPilotis[pilotiId] = {...currentPilotis[pilotiId], ...patch};
+      return currentPilotis[pilotiId];
+    });
+
+    render(
+      <PilotiEditor
+        isOpen
+        onClose={vi.fn()}
+        pilotiId='piloti_1_0'
+        currentHeight={1.8}
+        currentIsMaster={false}
+        currentNivel={0.4}
+        pilotiIds={['piloti_0_0', 'piloti_1_0']}
+        selectedPilotiHeights={[1, 1.5, 1.8]}
+        isMobile={false}
+        onHeightChange={vi.fn()}
+      />,
+      {wrapper: createWrapper({
+        settings: {autoAdjustPilotiHeightsFromNivel: false},
+        updatePiloti,
+        pilotiData: currentPilotis,
+      })},
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: '1,5'}));
+    const nivelEditor = screen.getByLabelText('Nível do piloti em metros');
+    nivelEditor.textContent = '035';
+    fireEvent.input(nivelEditor);
+    fireEvent.blur(nivelEditor);
+    fireEvent.click(screen.getByRole('button', {name: 'Confirmar'}));
+
+    expect(currentPilotis.piloti_1_0).toMatchObject({height: 1.5, nivel: 0.35});
+  });
+
   it('permite editar o nível de piloti não extremo no modo manual', () => {
     const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
       ...pilotis[pilotiId],

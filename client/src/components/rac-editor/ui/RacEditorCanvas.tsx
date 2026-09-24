@@ -11,6 +11,7 @@ import type {CanvasToolMode} from '@/components/rac-editor/@menus/lib/menu-types
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
+import {useCanvasHouseInitialization} from '@/components/rac-editor/@canvas/hooks/useCanvasHouseInitialization.ts';
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;
@@ -67,6 +68,7 @@ export function RacEditorCanvas({
   onCanvasDocumentChange,
   readOnly = false,
 }: RacEditorCanvasProps) {
+  useCanvasHouseInitialization({canvasRef});
   const [hasActiveSelection, setHasActiveSelection] = useState(false);
   const noop = useCallback(() => {}, []);
   const neverEligibleForContraventamento = useCallback(() => false, []);
