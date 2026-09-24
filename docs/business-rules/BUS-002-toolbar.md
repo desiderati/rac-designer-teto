@@ -43,7 +43,8 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
       específica e são acessados pela listagem de Construções TETO.
     - Cada construção não arquivada exibe suas casas como submenu, usando como rótulo o nome da família associada à
       casa.
-    - O seletor de construções e casas conserva sua largura integral de 14,5 rem na superfície mínima de 420 px.
+    - O seletor de construções e casas conserva sua largura integral de 14,5 rem e o alinhamento com o botão de abertura,
+      mesmo quando a viewport é menor que a superfície mínima de 420 px do editor.
     - Selecionar uma casa no FAB torna essa casa ativa e restaura seu último documento de desenho salvo.
     - Exportação em PDF pertence ao botão "Exportar" e ao menu do usuário no mobile.
     - A ação "Construções TETO" não fica no menu do usuário/avatar.

@@ -271,7 +271,8 @@ Anchor all three zones to the editor's 420 px minimum-width surface so they do n
 The hamburger menu is the bridge from the editor back to construction context. It must show `Construções TETO` first,
 then active constructions grouped by code and community, then houses under each construction. It must not become a
 generic overflow menu.
-Keep the construction and house selector at its full 14.5 rem width on the 420 px minimum editor surface.
+Keep the construction and house selector at its full 14.5 rem width and aligned to the hamburger trigger, including when
+the browser viewport is narrower than the editor's 420 px minimum surface.
 
 ### Family Name
 

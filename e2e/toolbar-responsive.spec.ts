@@ -53,11 +53,20 @@ test.describe('RAC responsive toolbar', () => {
       .toBe('');
   });
 
-  test('o seletor de construções mantém sua largura integral em 420 px', async ({page}) => {
+  test('o seletor de construções mantém largura e âncora em viewports estreitos', async ({page}) => {
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
-    const menuBox = await page.getByRole('dialog').boundingBox();
-    expect(menuBox).not.toBeNull();
-    expect(menuBox?.width).toBe(232);
+    const menu = page.getByRole('dialog');
+    const trigger = page.getByRole('button', {name: 'Abrir menu principal'});
+
+    for (const width of [420, 252]) {
+      await page.setViewportSize({width, height: 844});
+      await expect(menu).toHaveCSS('width', '232px');
+      await expect.poll(async () => {
+        const [menuBox, triggerBox] = await Promise.all([menu.boundingBox(), trigger.boundingBox()]);
+        if (!menuBox || !triggerBox) return Number.POSITIVE_INFINITY;
+        return Math.abs(menuBox.x - triggerBox.x);
+      }).toBeLessThan(2);
+    }
   });
 
   test('o submenu de zoom permanece centrado no botão com viewport abaixo da largura mínima', async ({page}) => {

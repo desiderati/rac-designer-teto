@@ -59,6 +59,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
 
       <PopoverContent
         align='start'
+        avoidCollisions={false}
         sideOffset={8}
         className='w-[14.5rem] min-w-[14.5rem] p-1 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200 shadow-xl'
       >
