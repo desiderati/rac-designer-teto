@@ -6,6 +6,7 @@ import {
 } from './useRemoteConstructionSiteSessionStorage.ts';
 import { mergeConstructionSiteStates } from '@/domain/construction-site/construction-site-conflict-merge.ts';
 import { RemoteConstructionSiteRepositoryAdapter } from '@/infra/persistence/remote-construction-site-repository.adapter.ts';
+import type { RemoteSyncConflict } from '@/contexts/RemoteSyncContext.tsx';
 import type { ConstructionSiteState } from '@/shared/types/construction-site.ts';
 
 function state(id: string, version = 1): ConstructionSiteState {
@@ -75,7 +76,7 @@ function createSharedCasServer(initialState: ConstructionSiteState) {
 
 describe('remote construction site session storage', () => {
   it('replaces local state without scheduling a remote write', () => {
-    const onWrite = vi.fn(async () => undefined);
+    const onWrite = vi.fn(async () => true);
     const storage = createReactiveConstructionSiteSessionStorage([state('old')], onWrite);
 
     storage.replace?.([state('remote', 4)]);
@@ -85,7 +86,7 @@ describe('remote construction site session storage', () => {
   });
 
   it('serializes writes and reports a successful sync', async () => {
-    const onWrite = vi.fn(async () => undefined);
+    const onWrite = vi.fn(async () => true);
     const storage = createReactiveConstructionSiteSessionStorage([state('site')], onWrite);
 
     storage.write([state('site', 1), state('new-site', 1)]);
@@ -95,6 +96,53 @@ describe('remote construction site session storage', () => {
       expect.arrayContaining([expect.objectContaining({ constructionSite: expect.objectContaining({ id: 'new-site' }) })]),
       expect.arrayContaining([expect.objectContaining({ constructionSite: expect.objectContaining({ id: 'site' }) })]),
     );
+  });
+
+  it('retoma uma escrita falha usando o estado local mais recente', async () => {
+    const onWrite = vi.fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const base = state('site-1');
+    const storage = createReactiveConstructionSiteSessionStorage([base], onWrite);
+    const first = structuredClone(base);
+    first.houses.push(house('house-1'));
+    storage.write([first]);
+    await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const latest = structuredClone(first);
+    latest.houses.push(house('house-2'));
+    storage.write([latest]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(onWrite).toHaveBeenCalledTimes(1);
+
+    storage.resume?.();
+    await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(2));
+    expect(onWrite.mock.calls[1][0][0].houses.map((entry: {id: string}) => entry.id)).toEqual(['house-1', 'house-2']);
+    expect(onWrite.mock.calls[1][1]).toEqual([base]);
+  });
+
+  it('envia o estado mais recente após concluir uma escrita em andamento', async () => {
+    let finishFirst!: () => void;
+    const firstWrite = new Promise<void>((resolve) => { finishFirst = resolve; });
+    const onWrite = vi.fn()
+      .mockImplementationOnce(async () => { await firstWrite; return true; })
+      .mockResolvedValueOnce(true);
+    const base = state('site-1');
+    const storage = createReactiveConstructionSiteSessionStorage([base], onWrite);
+    const first = structuredClone(base);
+    first.houses.push(house('house-1'));
+    const latest = structuredClone(first);
+    latest.houses.push(house('house-2'));
+
+    storage.write([first]);
+    storage.write([latest]);
+    expect(onWrite).toHaveBeenCalledTimes(1);
+    finishFirst();
+
+    await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(2));
+    expect(onWrite.mock.calls[1][0][0].houses.map((entry: {id: string}) => entry.id)).toEqual(['house-1', 'house-2']);
+    expect(onWrite.mock.calls[1][1][0].houses.map((entry: {id: string}) => entry.id)).toEqual(['house-1']);
   });
 });
 
@@ -145,5 +193,59 @@ describe('persistReactiveConstructionSites', () => {
     expect(merged.ok).toBe(true);
     expect(merged.state?.houses.map((entry) => entry.id)).toEqual(['house-thais', 'house-felipe']);
     expect(server.getState().state.houses.map((entry) => entry.id)).toEqual(['house-thais']);
+  });
+
+  it('não grava a próxima escrita enfileirada após conflito e preserva o estado local para o merge', async () => {
+    const server = createSharedCasServer(state('site-1', 1));
+    const operatorA = new RemoteConstructionSiteRepositoryAdapter(server.createClient() as never);
+    const clientB = server.createClient();
+    const operatorB = new RemoteConstructionSiteRepositoryAdapter(clientB as never);
+    const baseA = (await operatorA.load('site-1'))!;
+    const baseB = (await operatorB.load('site-1'))!;
+
+    const remote = structuredClone(baseA);
+    remote.houses.push(house('house-thais'));
+    await operatorA.save(remote);
+
+    let conflict: RemoteSyncConflict | null = null;
+    const onWrite = vi.fn(async (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => (
+      persistReactiveConstructionSites(operatorB, next, previous, undefined, undefined, undefined, (value) => {
+        conflict = value;
+      })
+    ));
+    const storage = createReactiveConstructionSiteSessionStorage([baseB], onWrite);
+    const first = structuredClone(baseB);
+    first.houses.push(house('house-felipe-1'));
+    const second = structuredClone(first);
+    second.houses.push(house('house-felipe-2'));
+
+    storage.write([first]);
+    storage.write([second]);
+    await vi.waitFor(() => expect(conflict).not.toBeNull());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(clientB.constructionSites.save.mutate).toHaveBeenCalledTimes(1);
+    expect(server.getState().state.houses.map((entry) => entry.id)).toEqual(['house-thais']);
+    expect(storage.read().constructionSites[0].houses.map((entry) => entry.id)).toEqual([
+      'house-felipe-1',
+      'house-felipe-2',
+    ]);
+
+    const merged = mergeConstructionSiteStates(
+      conflict!.baseState,
+      storage.read().constructionSites[0],
+      conflict!.remoteState,
+    );
+    expect(merged.ok).toBe(true);
+    merged.state!.constructionSite.documentVersion = conflict!.remoteVersion;
+    operatorB.setDocumentVersion('site-1', conflict!.remoteVersion);
+    await operatorB.save(merged.state!);
+    storage.replace?.([merged.state!], 'site-1');
+
+    expect(server.getState().state.houses.map((entry) => entry.id)).toEqual([
+      'house-thais',
+      'house-felipe-1',
+      'house-felipe-2',
+    ]);
   });
 });
