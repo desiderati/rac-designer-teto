@@ -41,20 +41,15 @@ describe('rac pdf report renderer', () => {
 
     expect(pdf.getNumberOfPages()).toBe(2);
     expect((output.match(/DATA DE GERAÇÃO/g) ?? [])).toHaveLength(2);
-    expect(output).toContain('MODELO 3D');
-    expect(output).toContain('FOTO FAMÍLIA');
-    expect(output).toContain('FOTO TERRENO 1');
-    expect(output).toContain('FOTO TERRENO 4');
-    expect(output).toContain('FOTO TERRENO 3');
-    expect(output).toContain('FOTO TERRENO 2');
+    expect(output).not.toContain('MODELO 3D');
+    expect(output).not.toContain('FOTO FAMÍLIA');
+    expect(output).not.toContain('FOTO TERRENO 1');
+    expect(output).not.toContain('FOTO TERRENO 4');
+    expect(output).not.toContain('FOTO TERRENO 3');
+    expect(output).not.toContain('FOTO TERRENO 2');
     expect(output).toContain('Modelo 3D indisponível');
     expect(output).toContain('Imagem não informada.');
     expect(output).toContain('Foto não informada.');
-    expect(output.indexOf('MODELO 3D')).toBeLessThan(output.indexOf('FOTO FAMÍLIA'));
-    expect(output.indexOf('FOTO FAMÍLIA')).toBeLessThan(output.indexOf('FOTO TERRENO 1'));
-    expect(output.indexOf('FOTO TERRENO 1')).toBeLessThan(output.indexOf('FOTO TERRENO 4'));
-    expect(output.indexOf('FOTO TERRENO 4')).toBeLessThan(output.indexOf('FOTO TERRENO 3'));
-    expect(output.indexOf('FOTO TERRENO 3')).toBeLessThan(output.indexOf('FOTO TERRENO 2'));
   });
 });
 

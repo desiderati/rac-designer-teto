@@ -591,7 +591,6 @@ function drawContinuationHouse3DView(pdf: JsPDFDocument, report: RacPdfReportMod
   const rect = getMainCanvasRect(pdf);
   const slots = getContinuationMediaSlots(rect);
   drawContinuationMediaCard(pdf, slots.house3D, {
-    label: 'MODELO 3D',
     imageDataUrl: report.house3DImageDataUrl,
     aspectRatio: report.house3DImageAspectRatio,
     placeholderTitle: 'Modelo 3D indisponível',
@@ -599,31 +598,26 @@ function drawContinuationHouse3DView(pdf: JsPDFDocument, report: RacPdfReportMod
     prominent: true,
   });
   drawContinuationMediaCard(pdf, slots.familyPhoto, {
-    label: 'FOTO FAMÍLIA',
     imageDataUrl: report.familyPhotoImageDataUrl,
     placeholderTitle: 'Foto da família',
     placeholderHint: 'Imagem não informada.',
   });
   drawContinuationMediaCard(pdf, slots.terrainPhoto1, {
-    label: 'FOTO TERRENO 1',
     imageDataUrl: report.terrainPhotoImageDataUrls[0] ?? null,
     placeholderTitle: 'Terreno 1',
     placeholderHint: 'Foto não informada.',
   });
   drawContinuationMediaCard(pdf, slots.terrainPhoto4, {
-    label: 'FOTO TERRENO 4',
     imageDataUrl: report.terrainPhotoImageDataUrls[3] ?? null,
     placeholderTitle: 'Terreno 4',
     placeholderHint: 'Foto não informada.',
   });
   drawContinuationMediaCard(pdf, slots.terrainPhoto3, {
-    label: 'FOTO TERRENO 3',
     imageDataUrl: report.terrainPhotoImageDataUrls[2] ?? null,
     placeholderTitle: 'Terreno 3',
     placeholderHint: 'Foto não informada.',
   });
   drawContinuationMediaCard(pdf, slots.terrainPhoto2, {
-    label: 'FOTO TERRENO 2',
     imageDataUrl: report.terrainPhotoImageDataUrls[1] ?? null,
     placeholderTitle: 'Terreno 2',
     placeholderHint: 'Foto não informada.',
@@ -640,7 +634,6 @@ type ContinuationMediaSlots = {
 };
 
 type ContinuationMediaCard = {
-  label: string;
   imageDataUrl: string | null;
   aspectRatio?: number;
   placeholderTitle: string;
@@ -712,8 +705,6 @@ function drawContinuationMediaCard(
     'FD',
   );
 
-  drawContinuationMediaLabel(pdf, card.label, rect);
-
   const imageRect = getContinuationMediaContentRect(rect);
   if (card.imageDataUrl) {
     const fitted = fitImageContain(
@@ -756,17 +747,10 @@ function getContinuationMediaImageAspectRatio(
 function getContinuationMediaContentRect(rect: Rect): Rect {
   return {
     x: rect.x + CONTINUATION_MEDIA_CARD_PADDING,
-    y: rect.y + CONTINUATION_MEDIA_CARD_PADDING + 10,
+    y: rect.y + CONTINUATION_MEDIA_CARD_PADDING,
     width: rect.width - CONTINUATION_MEDIA_CARD_PADDING * 2,
-    height: rect.height - CONTINUATION_MEDIA_CARD_PADDING * 2 - 10,
+    height: rect.height - CONTINUATION_MEDIA_CARD_PADDING * 2,
   };
-}
-
-function drawContinuationMediaLabel(pdf: JsPDFDocument, label: string, rect: Rect) {
-  setText(pdf, COLORS.brand);
-  pdf.setFont(DEFAULT_FONT, 'bold');
-  setFontSize(pdf, 5.6);
-  pdf.text(limitText(pdf, label, rect.width - CONTINUATION_MEDIA_CARD_PADDING * 2), rect.x + CONTINUATION_MEDIA_CARD_PADDING, rect.y + 9);
 }
 
 function drawContinuationMediaPlaceholder(
