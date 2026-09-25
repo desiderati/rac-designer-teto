@@ -6,6 +6,11 @@ import {TOP_BAR_ICONS, MAIN_MENU_ICONS} from '../lib/menu-config.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import type {MenuActionMap, MenuConstructionGroup} from '../lib/menu-types.ts';
 
+const houseLabelCollator = new Intl.Collator('pt-BR', {
+  sensitivity: 'base',
+  numeric: true,
+});
+
 interface HamburgerMenuProps {
   actions: Pick<MenuActionMap, 'activateHouse' | 'openConstructionSites'>;
   constructionGroups: MenuConstructionGroup[];
@@ -77,6 +82,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
         {constructionGroups.length ? constructionGroups.map((construction) => {
           const expanded = expandedConstructionIds.has(construction.id);
           const constructionLabel = formatConstructionMenuLabel(construction);
+          const houses = sortHousesAlphabetically(construction.houses);
 
           return (
             <div key={construction.id} className='py-0.5'>
@@ -102,7 +108,7 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
 
               {expanded ? (
                 <div className='ml-4 mt-0.5 space-y-0.5 border-l border-slate-100 pl-1.5'>
-                  {construction.houses.length ? construction.houses.map((house) => (
+                  {houses.length ? houses.map((house) => (
                     <MenuItem
                       key={house.id}
                       icon={MAIN_MENU_ICONS.house}
@@ -129,6 +135,13 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
       </PopoverContent>
     </Popover>
   );
+}
+
+function sortHousesAlphabetically(houses: MenuConstructionGroup['houses']): MenuConstructionGroup['houses'] {
+  return [...houses].sort((first, second) => (
+    houseLabelCollator.compare(first.label.trim(), second.label.trim())
+      || first.id.localeCompare(second.id)
+  ));
 }
 
 function formatConstructionMenuLabel(construction: MenuConstructionGroup): string {

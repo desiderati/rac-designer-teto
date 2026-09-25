@@ -19,6 +19,8 @@ function renderMenu(options: { documentTransitioning?: boolean } = {}) {
       active: true,
       houses: [
         {id: 'house-1', label: 'Família Souza', active: true},
+        {id: 'house-3', label: 'Aline', active: false},
+        {id: 'house-4', label: 'Adriana', active: false},
       ],
     },
     {
@@ -70,6 +72,9 @@ describe('HamburgerMenu.tsx', () => {
     expect(within(collapsedConstructionButton).getByTestId('construction-folder-icon'))
       .toHaveAttribute('data-icon', 'folder');
     expect(screen.getByRole('button', {name: 'Família Souza'})).toBeVisible();
+    const houseButtons = screen.getAllByRole('button').map((button) => button.textContent);
+    expect(houseButtons.indexOf('Adriana')).toBeLessThan(houseButtons.indexOf('Aline'));
+    expect(houseButtons.indexOf('Aline')).toBeLessThan(houseButtons.indexOf('Família Souza'));
     expect(screen.queryByRole('button', {name: 'Abrir Desenho da Casa (JSON)'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Exportar Desenho da Casa (JSON)'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Salvar PDF'})).not.toBeInTheDocument();
