@@ -118,6 +118,7 @@ describe('TopBar.tsx', () => {
     expect(detail).toBeVisible();
     expect(detail.parentElement).toHaveClass('w-[min(18rem,calc(100vw-1rem))]');
     expect(detail.parentElement).toHaveClass('max-w-[calc(100vw-1rem)]');
+    expect(detail).toHaveClass('whitespace-nowrap', 'text-[11px]');
     fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
   });
 

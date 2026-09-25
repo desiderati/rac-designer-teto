@@ -218,7 +218,10 @@ function RemoteSyncIndicator({isMobile}: {isMobile: boolean}) {
         )}
       >
         <p className='text-xs font-semibold text-slate-900'>{labelByStatus[status]}</p>
-        <p className='mt-1 text-xs leading-5 text-slate-600'>
+        <p className={cn(
+          'mt-1 leading-5 text-slate-600',
+          isMobile ? 'whitespace-nowrap text-[11px] tracking-[-0.01em]' : 'text-xs',
+        )}>
           {lastSyncedAtLabel
             ? `${lastSyncDescription}: ${lastSyncedAtLabel}`
             : 'Ainda não há horário de sincronização registrado.'}
