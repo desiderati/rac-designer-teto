@@ -10,6 +10,7 @@ export interface RemoteSyncConflict {
   localState: ConstructionSiteState;
   remoteState: ConstructionSiteState;
   remoteVersion: number;
+  remoteSavedAt?: string;
   conflicts: string[];
   remoteOnlyEntities: RemoteOnlyEntity[];
 }

@@ -102,10 +102,11 @@ export async function listConstructionSiteSummaries(): Promise<ConstructionSiteS
 export async function getConstructionSiteDocument(constructionSiteId: string): Promise<{
   state: ConstructionSiteState;
   documentVersion: number;
+  savedAt: string;
 } | null> {
   const db = await requireDb();
   const rows = await db
-    .select({ document: constructionSiteDocuments.document, documentVersion: constructionSiteDocuments.documentVersion })
+    .select({ document: constructionSiteDocuments.document, documentVersion: constructionSiteDocuments.documentVersion, updatedAt: constructionSiteDocuments.updatedAt })
     .from(constructionSiteDocuments)
     .where(and(
       eq(constructionSiteDocuments.scopeKey, RAC_GLOBAL_SCOPE_KEY),
@@ -119,6 +120,7 @@ export async function getConstructionSiteDocument(constructionSiteId: string): P
   return {
     state: withDocumentVersion(row.document, row.documentVersion),
     documentVersion: row.documentVersion,
+    savedAt: row.updatedAt.toISOString(),
   };
 }
 

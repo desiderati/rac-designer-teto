@@ -62,6 +62,18 @@ describe('constructionSites procedures', () => {
     vi.clearAllMocks();
   });
 
+  it('retorna o horário da versão remota junto ao documento carregado', async () => {
+    const result = {
+      state: constructionSiteState(),
+      documentVersion: 3,
+      savedAt: '2026-09-24T13:00:00.000Z',
+    };
+    db.getConstructionSiteDocument.mockResolvedValue(result);
+
+    const caller = appRouter.createCaller(createContext());
+    await expect(caller.constructionSites.load({ constructionSiteId: 'construction-1' })).resolves.toEqual(result);
+  });
+
   it('persists a canonical document behind a protected procedure', async () => {
     db.saveConstructionSiteDocument.mockResolvedValue({ documentVersion: 1 });
     const caller = appRouter.createCaller(createContext());

@@ -142,7 +142,7 @@ All colors MUST be HSL.
     html, body, #root {
         height: 100%;
         height: 100dvh;
-        min-width: 420px;
+        min-width: 0;
         overflow: hidden;
     }
 

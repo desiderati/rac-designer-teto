@@ -53,7 +53,7 @@ function createSharedCasServer(initialState: ConstructionSiteState) {
   const createClient = () => ({
     constructionSites: {
       list: {query: vi.fn(async () => [{id: 'site-1'}])},
-      load: {query: vi.fn(async () => ({state: structuredClone(currentState), documentVersion}))},
+      load: {query: vi.fn(async () => ({state: structuredClone(currentState), documentVersion, savedAt: '2026-09-24T13:00:00.000Z'}))},
       save: {mutate: vi.fn(async ({state: next, expectedDocumentVersion}: {state: ConstructionSiteState; expectedDocumentVersion: number}) => {
         if (expectedDocumentVersion !== documentVersion) {
           throw new TRPCClientError('conflict', {
@@ -230,7 +230,7 @@ describe('persistReactiveConstructionSites', () => {
     const onWrite = vi.fn(async (next: ConstructionSiteState[], previous: ConstructionSiteState[]) => (
       persistReactiveConstructionSites(operatorB, next, previous, undefined, undefined, undefined, (value) => {
         conflict = value;
-      })
+      }, (id) => storage.read().constructionSites.find((entry) => entry.constructionSite.id === id))
     ));
     const storage = createReactiveConstructionSiteSessionStorage([baseB], onWrite);
     const first = structuredClone(baseB);
@@ -243,9 +243,14 @@ describe('persistReactiveConstructionSites', () => {
     await vi.waitFor(() => expect(conflict).not.toBeNull());
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    expect(conflict!.remoteSavedAt).toBe('2026-09-24T13:00:00.000Z');
     expect(clientB.constructionSites.save.mutate).toHaveBeenCalledTimes(1);
     expect(server.getState().state.houses.map((entry) => entry.id)).toEqual(['house-thais']);
     expect(storage.read().constructionSites[0].houses.map((entry) => entry.id)).toEqual([
+      'house-felipe-1',
+      'house-felipe-2',
+    ]);
+    expect(conflict!.localState.houses.map((entry) => entry.id)).toEqual([
       'house-felipe-1',
       'house-felipe-2',
     ]);
@@ -266,5 +271,35 @@ describe('persistReactiveConstructionSites', () => {
       'house-felipe-1',
       'house-felipe-2',
     ]);
+  });
+
+  it('bloqueia o merge quando a edição enfileirada conflita com o mesmo campo remoto', async () => {
+    const server = createSharedCasServer(state('site-1', 1));
+    const operatorA = new RemoteConstructionSiteRepositoryAdapter(server.createClient() as never);
+    const operatorB = new RemoteConstructionSiteRepositoryAdapter(server.createClient() as never);
+    const baseA = (await operatorA.load('site-1'))!;
+    const baseB = (await operatorB.load('site-1'))!;
+    const remote = structuredClone(baseA);
+    remote.constructionSite.externalCode = 'THAIS';
+    await operatorA.save(remote);
+
+    let conflict: RemoteSyncConflict | null = null;
+    const storage = createReactiveConstructionSiteSessionStorage([baseB], (next, previous) => (
+      persistReactiveConstructionSites(operatorB, next, previous, undefined, undefined, undefined, (value) => {
+        conflict = value;
+      }, (id) => storage.read().constructionSites.find((entry) => entry.constructionSite.id === id))
+    ));
+    const first = structuredClone(baseB);
+    first.houses.push(house('house-felipe'));
+    const second = structuredClone(first);
+    second.constructionSite.externalCode = 'FELIPE';
+
+    storage.write([first]);
+    storage.write([second]);
+    await vi.waitFor(() => expect(conflict).not.toBeNull());
+
+    expect(conflict!.localState.constructionSite.externalCode).toBe('FELIPE');
+    expect(conflict!.conflicts).toContain('constructionSite.externalCode: alterações concorrentes no mesmo campo');
+    expect(server.getState().state.constructionSite.externalCode).toBe('THAIS');
   });
 });

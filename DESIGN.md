@@ -303,8 +303,9 @@ carry the strongest CTA treatment because it produces a deliverable.
 Contextual editors for pilotis, measures, lines, walls, and house settings should preserve the user's sense of where the
 selected object lives. Avoid large generic modals when a contextual panel or floating editor can keep continuity.
 
-Dialogs and bottom drawers share the editor's 420 px minimum usable width. Below that width, show the existing viewport
-warning instead of squeezing controls further. On phone and tablet widths below 768 px, two-action confirmation footers
+Most editor dialogs and bottom drawers share the editor's 420 px minimum usable width. The synchronization conflict dialog
+is an exception: it fits narrow viewports, scrolls its comparison content, and keeps its actions in a separate footer.
+Below the editor's minimum width, show the existing viewport warning for editor surfaces. On phone and tablet widths below 768 px, two-action confirmation footers
 use the shared `ActionDock`: the actions remain together at the bottom, retain horizontal breathing room and safe-area
 spacing, and stay visible while long modal content scrolls. This includes administrative confirmations. Choice-card
 selectors and the PDF preview have distinct interaction patterns and do not require a two-action footer.

@@ -12,6 +12,7 @@ import type {
  */
 export class RemoteConstructionSiteRepositoryAdapter implements ConstructionSiteRepositoryPort {
   private readonly versions = new Map<string, number>();
+  private readonly savedAt = new Map<string, string>();
 
   constructor(private readonly client: RacTrpcClient) {}
 
@@ -24,6 +25,8 @@ export class RemoteConstructionSiteRepositoryAdapter implements ConstructionSite
     if (!result) return null;
 
     this.versions.set(constructionSiteId, result.documentVersion);
+    if (result.savedAt) this.savedAt.set(constructionSiteId, result.savedAt);
+    else this.savedAt.delete(constructionSiteId);
     return withDocumentVersion(result.state as unknown as ConstructionSiteState, result.documentVersion);
   }
 
@@ -54,10 +57,15 @@ export class RemoteConstructionSiteRepositoryAdapter implements ConstructionSite
       expectedDocumentVersion,
     });
     this.versions.delete(constructionSiteId);
+    this.savedAt.delete(constructionSiteId);
   }
 
   setDocumentVersion(constructionSiteId: string, documentVersion: number): void {
     this.versions.set(constructionSiteId, documentVersion);
+  }
+
+  getSavedAt(constructionSiteId: string): string | undefined {
+    return this.savedAt.get(constructionSiteId);
   }
 }
 

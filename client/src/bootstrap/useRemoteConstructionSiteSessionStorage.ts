@@ -33,6 +33,7 @@ export type RemoteConstructionSiteStorageLoadState =
 
 type SessionRepository = ConstructionSiteRepositoryPort & {
   setDocumentVersion?: (constructionSiteId: string, version: number) => void;
+  getSavedAt?: (constructionSiteId: string) => string | undefined;
 };
 
 export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSiteStorageLoadState {
@@ -89,6 +90,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
             (value) => {
               if (isCurrentSyncSession()) setConflict(value);
             },
+            (id) => nextStorage.read().constructionSites.find((entry) => entry.constructionSite.id === id),
           );
           if (synchronized && isCurrentSyncSession()) {
             setSyncStatus('synced');
@@ -235,6 +237,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
 export async function persistReactiveConstructionSites(
   repository: Pick<ConstructionSiteRepositoryPort, 'save' | 'remove'> & {
     load?: (constructionSiteId: string) => Promise<ConstructionSiteState | null>;
+    getSavedAt?: (constructionSiteId: string) => string | undefined;
   },
   constructionSites: ConstructionSiteState[],
   previousConstructionSites: ConstructionSiteState[],
@@ -242,6 +245,7 @@ export async function persistReactiveConstructionSites(
   setLastSyncedAt?: (value: string) => void,
   setErrorMessage?: (value: string | null) => void,
   setConflict?: (value: RemoteSyncConflict | null) => void,
+  getLatestLocalState?: (constructionSiteId: string) => ConstructionSiteState | undefined,
 ): Promise<boolean> {
   setStatus?.('syncing');
   setErrorMessage?.(null);
@@ -259,7 +263,13 @@ export async function persistReactiveConstructionSites(
       } catch (error) {
         if (!isConflictError(error)) throw error;
         const remote = repository.load
-          ? await loadConflictState((id) => repository.load!(id), constructionSite, previousById.get(constructionSite.constructionSite.id) ?? null)
+          ? await loadConflictState(
+            (id) => repository.load!(id),
+            constructionSite,
+            previousById.get(constructionSite.constructionSite.id) ?? null,
+            (id) => repository.getSavedAt?.(id),
+            getLatestLocalState,
+          )
           : null;
         if (remote) {
           setConflict?.(remote);
@@ -379,16 +389,20 @@ async function loadConflictState(
   load: (constructionSiteId: string) => Promise<ConstructionSiteState | null>,
   localState: ConstructionSiteState,
   baseState: ConstructionSiteState | null,
+  getRemoteSavedAt?: (constructionSiteId: string) => string | undefined,
+  getLatestLocalState?: (constructionSiteId: string) => ConstructionSiteState | undefined,
 ): Promise<RemoteSyncConflict | null> {
   const remoteState = await load(localState.constructionSite.id);
   if (!remoteState) return null;
-  const merge = mergeConstructionSiteStates(baseState, localState, remoteState);
+  const latestLocalState = getLatestLocalState?.(localState.constructionSite.id) ?? localState;
+  const merge = mergeConstructionSiteStates(baseState, latestLocalState, remoteState);
   return {
     constructionSiteId: localState.constructionSite.id,
     baseState: baseState ? cloneConstructionSite(baseState) : null,
-    localState: cloneConstructionSite(localState),
+    localState: cloneConstructionSite(latestLocalState),
     remoteState: cloneConstructionSite(remoteState),
     remoteVersion: remoteState.constructionSite.documentVersion ?? 0,
+    remoteSavedAt: getRemoteSavedAt?.(localState.constructionSite.id),
     conflicts: merge.conflicts,
     remoteOnlyEntities: merge.remoteOnlyEntities,
   };
