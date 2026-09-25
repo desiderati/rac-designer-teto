@@ -76,3 +76,4 @@ rtk/history.db
 .agents/service-desk/
 .agents/skill-development-session/
 /outputs/
+/.playwright-cli/
