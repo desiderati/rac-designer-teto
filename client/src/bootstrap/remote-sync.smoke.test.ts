@@ -144,6 +144,25 @@ describe('remote construction site session storage', () => {
     expect(onWrite.mock.calls[1][0][0].houses.map((entry: {id: string}) => entry.id)).toEqual(['house-1', 'house-2']);
     expect(onWrite.mock.calls[1][1][0].houses.map((entry: {id: string}) => entry.id)).toEqual(['house-1']);
   });
+
+  it('adota a transformação feita pelo save sem reencaminhar o mesmo documento', async () => {
+    const onWrite = vi.fn(async (next: ConstructionSiteState[]) => {
+      next[0].constructionSite.photoDataUrl = 'https://storage.example/construction-photo.png';
+      return true;
+    });
+    const base = state('site-1');
+    const storage = createReactiveConstructionSiteSessionStorage([base], onWrite);
+    const withEmbeddedPhoto = structuredClone(base);
+    withEmbeddedPhoto.constructionSite.photoDataUrl = 'data:image/png;base64,ZmFrZQ==';
+
+    storage.write([withEmbeddedPhoto]);
+    await vi.waitFor(() => expect(onWrite).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onWrite).toHaveBeenCalledTimes(1);
+    expect(storage.read().constructionSites[0].constructionSite.photoDataUrl)
+      .toBe('https://storage.example/construction-photo.png');
+  });
 });
 
 describe('persistReactiveConstructionSites', () => {

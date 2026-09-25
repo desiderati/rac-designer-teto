@@ -66,6 +66,14 @@ describe('TopBar.tsx', () => {
     expect(screen.getByRole('button', {name: 'Abrir menu principal'}).parentElement).toHaveClass('absolute');
   });
 
+  it('não mantém a animação de sincronização quando o estado já está sincronizado', () => {
+    configureRemoteSync('synced');
+    renderTopBar();
+
+    const syncStatus = screen.getByRole('button', {name: 'Sincronizado'});
+    expect(syncStatus.querySelector('svg')).not.toHaveClass('animate-spin');
+  });
+
   it('trunca nome longo da família sem deslocar o menu e a edição', () => {
     configureRemoteSync('synced');
     const longFamilyName = 'M'.repeat(HOUSE_FAMILY_NAME_MAX_LENGTH + 5);

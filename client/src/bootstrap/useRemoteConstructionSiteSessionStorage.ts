@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TRPCClientError } from '@trpc/client';
 import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { startLogin } from '@/const.ts';
@@ -54,8 +54,11 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
   const [conflict, setConflict] = useState<RemoteSyncConflict | null>(null);
   const [revision, setRevision] = useState(0);
   const [loadGeneration, setLoadGeneration] = useState(0);
+  const syncSessionGenerationRef = useRef(0);
 
   const loadRemote = useCallback(async () => {
+    const syncSessionGeneration = syncSessionGenerationRef.current + 1;
+    syncSessionGenerationRef.current = syncSessionGeneration;
     setLoadStatus('loading');
     setLoadError(null);
     setSyncStatus('syncing');
@@ -68,18 +71,33 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       const nextStorage = createReactiveConstructionSiteSessionStorage(
         constructionSites,
         async (next, previous) => {
-          setSyncStatus('pending');
-          return persistReactiveConstructionSites(
+          const isCurrentSyncSession = () => syncSessionGenerationRef.current === syncSessionGeneration;
+          if (isCurrentSyncSession()) setSyncStatus('pending');
+          const synchronized = await persistReactiveConstructionSites(
             repository,
             next,
             previous,
-            setSyncStatus,
-            setLastSyncedAt,
-            setErrorMessage,
-            setConflict,
+            (status) => {
+              if (isCurrentSyncSession()) setSyncStatus(status);
+            },
+            (value) => {
+              if (isCurrentSyncSession()) setLastSyncedAt(value);
+            },
+            (value) => {
+              if (isCurrentSyncSession()) setErrorMessage(value);
+            },
+            (value) => {
+              if (isCurrentSyncSession()) setConflict(value);
+            },
           );
+          if (synchronized && isCurrentSyncSession()) {
+            setSyncStatus('synced');
+            setLastSyncedAt(new Date().toISOString());
+          }
+          return synchronized;
         },
       );
+      if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
       setStorage(nextStorage);
       setConflict(null);
       setErrorMessage(null);
@@ -87,6 +105,7 @@ export function useRemoteConstructionSiteSessionStorage(): RemoteConstructionSit
       setLastSyncedAt(new Date().toISOString());
       setLoadStatus('ready');
     } catch (error) {
+      if (syncSessionGenerationRef.current !== syncSessionGeneration) return;
       setLoadStatus('error');
       setLoadError(toRemoteSyncMessage(error, 'Falha ao carregar as Construções TETO remotas.'));
       setSyncStatus('error');
@@ -284,13 +303,20 @@ export function createReactiveConstructionSiteSessionStorage(
     const run = async () => {
       while (!paused && !areConstructionSiteListsEqual(document.constructionSites, synchronizedConstructionSites)) {
         const next = cloneConstructionSites(document.constructionSites);
+        const localSnapshot = cloneConstructionSites(next);
         const previous = cloneConstructionSites(synchronizedConstructionSites);
         if (!await onWrite(next, previous)) {
           paused = true;
           return;
         }
         synchronizedConstructionSites = cloneConstructionSites(next);
-        if (areConstructionSiteListsEqual(document.constructionSites, next)) {
+        // O adapter remoto pode transformar o documento durante o save, por
+        // exemplo, externalizando uma imagem data: em uma URL do Storage. Se
+        // nenhuma edição nova chegou enquanto a gravação estava em andamento,
+        // o documento em memória também deve adotar essa versão persistida.
+        // Caso contrário, a diferença local data: × URL dispara saves
+        // consecutivos e deixa o indicador preso em “Sincronizando”.
+        if (areConstructionSiteListsEqual(document.constructionSites, localSnapshot)) {
           document = {version: document.version, constructionSites: cloneConstructionSites(next)};
         }
       }
