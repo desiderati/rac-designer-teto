@@ -104,6 +104,21 @@ describe('TopBar.tsx', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
 
     expect(screen.getByText(`Última sincronização: ${expectedTimestamp}`)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
+  });
+
+  it('abre o detalhe e limita a largura do popover no modo mobile', () => {
+    const lastSyncedAt = '2026-09-24T22:04:00.000-03:00';
+    configureRemoteSync('synced', lastSyncedAt);
+    renderTopBar({isMobile: true});
+
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
+
+    const detail = screen.getByText(/Última sincronização:/);
+    expect(detail).toBeVisible();
+    expect(detail.parentElement).toHaveClass('w-[min(18rem,calc(100vw-1rem))]');
+    expect(detail.parentElement).toHaveClass('max-w-[calc(100vw-1rem)]');
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
   });
 
   it('trunca nome longo da família sem deslocar o menu e a edição', () => {

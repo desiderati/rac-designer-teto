@@ -92,7 +92,7 @@ export function TopBar({
 
       {/* Right: 3D / Exportar / Avatar */}
       <div className='absolute right-4 top-0 z-50 flex items-center gap-2'>
-        <RemoteSyncIndicator/>
+        <RemoteSyncIndicator isMobile={isMobile}/>
 
         <button
           type='button'
@@ -146,7 +146,7 @@ export function TopBar({
   );
 }
 
-function RemoteSyncIndicator() {
+function RemoteSyncIndicator({isMobile}: {isMobile: boolean}) {
   const sync = useRemoteSync();
   const status = sync.status;
   const labelByStatus = {
@@ -212,7 +212,10 @@ function RemoteSyncIndicator() {
         side='bottom'
         align='end'
         sideOffset={8}
-        className='z-[80] w-64 rounded-xl border border-emerald-200 bg-white/95 p-3 text-left shadow-xl backdrop-blur-xl'
+        className={cn(
+          'z-[80] max-w-[calc(100vw-1rem)] rounded-xl border border-emerald-200 bg-white/95 p-3 text-left shadow-xl backdrop-blur-xl',
+          isMobile ? 'w-[min(18rem,calc(100vw-1rem))]' : 'w-64',
+        )}
       >
         <p className='text-xs font-semibold text-slate-900'>{labelByStatus[status]}</p>
         <p className='mt-1 text-xs leading-5 text-slate-600'>
