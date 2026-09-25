@@ -139,6 +139,7 @@ describe('rac pdf report model', () => {
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Caibros', value: '24'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas Secundárias', value: '8'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Calhas', value: '0'});
     expect(report?.extraMaterials.justification).toBe([
       'Material para reforço do acesso lateral.',
       DEFAULT_EXTRA_MATERIALS_NOTE,
@@ -171,6 +172,35 @@ describe('rac pdf report model', () => {
     expect(report?.notes).toBe(DEFAULT_RAC_GENERAL_NOTE);
     expect(constructionSite.houses[0].extraMaterials?.justification).toBe('');
     expect(constructionSite.houses[0].notes).toBe('');
+  });
+
+  it('mantém calhas independentes de mata-juntas e seleciona as fotos da casa', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].extraMaterials!.gutterCount = 7;
+    constructionSite.families[0].photoDataUrl = TINY_PNG_DATA_URL;
+    constructionSite.houses[0].siteAssessment.terrainPhotos = [
+      {id: 'foto-1', url: TINY_PNG_DATA_URL},
+      {id: 'foto-2', url: '/manus-storage/foto-2.png'},
+    ];
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+    });
+
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Calhas', value: '7'});
+    expect(report?.familyPhotoImageDataUrl).toBe(TINY_PNG_DATA_URL);
+    expect(report?.terrainPhotoImageDataUrls).toEqual([TINY_PNG_DATA_URL, null, null, null]);
+
+    const unavailablePhotos = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+      familyPhotoImageDataUrl: null,
+      terrainPhotoImageDataUrls: [null, null, null, null],
+    });
+    expect(unavailablePhotos?.familyPhotoImageDataUrl).toBeNull();
+    expect(unavailablePhotos?.terrainPhotoImageDataUrls).toEqual([null, null, null, null]);
   });
 
   it('gera um documento PDF em A4 paisagem com o modelo do relatorio', () => {

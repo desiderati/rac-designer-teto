@@ -12,6 +12,7 @@ import {getConstructionSiteCommunityName} from '@/shared/types/construction-site
 import type {HousePiloti, HouseState, HouseType} from '@/shared/types/house.ts';
 import {formatNivel, formatPilotiHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
+import {isSupportedPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
 import {
   calculateTerrainDesnivelCm,
   calculateHouseDifficultyIndicator,
@@ -69,6 +70,8 @@ export interface RacPdfReportModel {
   canvasImageAspectRatio: number;
   house3DImageDataUrl: string | null;
   house3DImageAspectRatio: number;
+  familyPhotoImageDataUrl: string | null;
+  terrainPhotoImageDataUrls: (string | null)[];
   familyName: string;
   leaders: string;
   communityName: string;
@@ -104,6 +107,8 @@ interface BuildRacPdfReportModelArgs {
   canvasImageAspectRatio?: number;
   house3DImageDataUrl?: string | null;
   house3DImageAspectRatio?: number;
+  familyPhotoImageDataUrl?: string | null;
+  terrainPhotoImageDataUrls?: (string | null)[];
   generatedAt?: Date;
   houseId?: string;
 }
@@ -135,6 +140,8 @@ export function buildRacPdfReportModel({
   canvasImageAspectRatio = 1,
   house3DImageDataUrl = null,
   house3DImageAspectRatio = canvasImageAspectRatio,
+  familyPhotoImageDataUrl,
+  terrainPhotoImageDataUrls,
   generatedAt = new Date(),
   houseId,
 }: BuildRacPdfReportModelArgs): RacPdfReportModel | null {
@@ -157,6 +164,9 @@ export function buildRacPdfReportModel({
   const master = pilotiGrid.flat().find((piloti) => piloti.isMaster) ?? null;
   const leaders = normalizeDisplayValue(activeHouse.leaders, '');
   const generatedAtLabel = formatDateLabel(generatedAt);
+  const familyImageDataUrl = familyPhotoImageDataUrl === undefined
+    ? family?.photoDataUrl
+    : familyPhotoImageDataUrl;
 
   return {
     title: 'RAC - Relatório de Acompanhamento Construtivo',
@@ -165,6 +175,13 @@ export function buildRacPdfReportModel({
     canvasImageAspectRatio: normalizeAspectRatio(canvasImageAspectRatio),
     house3DImageDataUrl,
     house3DImageAspectRatio: normalizeAspectRatio(house3DImageAspectRatio),
+    familyPhotoImageDataUrl: isSupportedPhotoDataUrl(familyImageDataUrl) ? familyImageDataUrl : null,
+    terrainPhotoImageDataUrls: Array.from({length: 4}, (_, index) => {
+      const imageDataUrl = terrainPhotoImageDataUrls === undefined
+        ? activeHouse.siteAssessment.terrainPhotos?.[index]?.url
+        : terrainPhotoImageDataUrls[index];
+      return isSupportedPhotoDataUrl(imageDataUrl) ? imageDataUrl : null;
+    }),
     familyName,
     leaders,
     communityName,
@@ -307,7 +324,7 @@ function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): R
       {label: 'Caibros', value: formatMaterialCount(extraMaterials?.rafters)},
       {label: 'Vigas Secundárias', value: formatMaterialCount(extraMaterials?.secondaryBeams)},
       {label: 'Mata-juntas', value: formatMaterialCount(extraMaterials?.gutters)},
-      {label: 'Calhas', value: formatMaterialCount(extraMaterials?.gutterCount ?? extraMaterials?.gutters)},
+      {label: 'Calhas', value: formatMaterialCount(extraMaterials?.gutterCount)},
       {label: 'Escada', value: formatStairType(extraMaterials?.stairType)},
     ],
     justification: appendStandardReportText(extraMaterials?.justification, DEFAULT_EXTRA_MATERIALS_NOTE),

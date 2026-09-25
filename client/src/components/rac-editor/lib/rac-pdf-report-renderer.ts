@@ -70,6 +70,9 @@ const FIRST_PAGE_NOTES_LINE_LIMIT = 5;
 const FIRST_PAGE_BODY_CONTINUATION_HINT = '(continua atrás...)';
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
 const FIRST_PAGE_MUTED_BODY_LINE_HEIGHT = 8.6;
+const CONTINUATION_MEDIA_GAP = 8;
+const CONTINUATION_MEDIA_CARD_RADIUS = 4;
+const CONTINUATION_MEDIA_CARD_PADDING = 6;
 const CONTINUATION_LEFT_COLUMN_Y = LEFT_COLUMN_Y;
 const HEADER_RISK_GAUGE_X = PAGE_MARGIN_X;
 const HEADER_RISK_GAUGE_Y = PAGE_TOP + 4;
@@ -559,14 +562,6 @@ function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
     getFirstPageNotesSectionY(report),
   );
   const hasNotesContinuation = noteLines.length > notesLineLimit;
-  const hasHouse3DContinuation = Boolean(report.house3DImageDataUrl);
-
-  if (
-    hiddenMonitors.length === 0
-    && !hasExtraMaterialsContinuation
-    && !hasNotesContinuation
-    && !hasHouse3DContinuation
-  ) return;
 
   let page = createContinuationPage(pdf, report);
   page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
@@ -602,23 +597,226 @@ function createContinuationPage(pdf: JsPDFDocument, report: RacPdfReportModel): 
 }
 
 function drawContinuationHouse3DView(pdf: JsPDFDocument, report: RacPdfReportModel) {
-  if (!report.house3DImageDataUrl) return;
-
   const rect = getMainCanvasRect(pdf);
-  setFill(pdf, COLORS.surface);
-  pdf.roundedRect(rect.x, rect.y, rect.width, rect.height, 5, 5, 'F');
+  const slots = getContinuationMediaSlots(rect);
+  drawContinuationMediaCard(pdf, slots.house3D, {
+    label: 'MODELO 3D',
+    imageDataUrl: report.house3DImageDataUrl,
+    aspectRatio: report.house3DImageAspectRatio,
+    placeholderTitle: 'Modelo 3D indisponível',
+    placeholderHint: 'A visualização será exibida quando houver captura 3D.',
+    prominent: true,
+  });
+  drawContinuationMediaCard(pdf, slots.familyPhoto, {
+    label: 'FOTO FAMÍLIA',
+    imageDataUrl: report.familyPhotoImageDataUrl,
+    placeholderTitle: 'Foto da família',
+    placeholderHint: 'Imagem não informada.',
+  });
+  drawContinuationMediaCard(pdf, slots.terrainPhoto1, {
+    label: 'FOTO TERRENO 1',
+    imageDataUrl: report.terrainPhotoImageDataUrls[0] ?? null,
+    placeholderTitle: 'Terreno 1',
+    placeholderHint: 'Foto não informada.',
+  });
+  drawContinuationMediaCard(pdf, slots.terrainPhoto4, {
+    label: 'FOTO TERRENO 4',
+    imageDataUrl: report.terrainPhotoImageDataUrls[3] ?? null,
+    placeholderTitle: 'Terreno 4',
+    placeholderHint: 'Foto não informada.',
+  });
+  drawContinuationMediaCard(pdf, slots.terrainPhoto3, {
+    label: 'FOTO TERRENO 3',
+    imageDataUrl: report.terrainPhotoImageDataUrls[2] ?? null,
+    placeholderTitle: 'Terreno 3',
+    placeholderHint: 'Foto não informada.',
+  });
+  drawContinuationMediaCard(pdf, slots.terrainPhoto2, {
+    label: 'FOTO TERRENO 2',
+    imageDataUrl: report.terrainPhotoImageDataUrls[1] ?? null,
+    placeholderTitle: 'Terreno 2',
+    placeholderHint: 'Foto não informada.',
+  });
+}
 
-  const fitted = fitImageContain(rect, report.house3DImageAspectRatio);
-  pdf.addImage(
-    report.house3DImageDataUrl,
-    getImageFormat(report.house3DImageDataUrl),
-    fitted.x,
-    fitted.y,
-    fitted.width,
-    fitted.height,
-    undefined,
-    'FAST',
+type ContinuationMediaSlots = {
+  house3D: Rect;
+  familyPhoto: Rect;
+  terrainPhoto1: Rect;
+  terrainPhoto2: Rect;
+  terrainPhoto3: Rect;
+  terrainPhoto4: Rect;
+};
+
+type ContinuationMediaCard = {
+  label: string;
+  imageDataUrl: string | null;
+  aspectRatio?: number;
+  placeholderTitle: string;
+  placeholderHint: string;
+  prominent?: boolean;
+};
+
+export function getContinuationMediaSlots(rect: Rect): ContinuationMediaSlots {
+  const photoWidth = (rect.width - CONTINUATION_MEDIA_GAP * 2) / 3;
+  const photoHeight = (rect.height - CONTINUATION_MEDIA_GAP * 2) / 3;
+  const columnX = (column: number) => rect.x + column * (photoWidth + CONTINUATION_MEDIA_GAP);
+  const rowY = (row: number) => rect.y + row * (photoHeight + CONTINUATION_MEDIA_GAP);
+
+  return {
+    house3D: {
+      x: columnX(0),
+      y: rowY(0),
+      width: photoWidth * 2 + CONTINUATION_MEDIA_GAP,
+      height: photoHeight * 2 + CONTINUATION_MEDIA_GAP,
+    },
+    familyPhoto: {
+      x: columnX(2),
+      y: rowY(0),
+      width: photoWidth,
+      height: photoHeight,
+    },
+    terrainPhoto1: {
+      x: columnX(2),
+      y: rowY(1),
+      width: photoWidth,
+      height: photoHeight,
+    },
+    terrainPhoto4: {
+      x: columnX(0),
+      y: rowY(2),
+      width: photoWidth,
+      height: photoHeight,
+    },
+    terrainPhoto3: {
+      x: columnX(1),
+      y: rowY(2),
+      width: photoWidth,
+      height: photoHeight,
+    },
+    terrainPhoto2: {
+      x: columnX(2),
+      y: rowY(2),
+      width: photoWidth,
+      height: photoHeight,
+    },
+  };
+}
+
+function drawContinuationMediaCard(
+  pdf: JsPDFDocument,
+  rect: Rect,
+  card: ContinuationMediaCard,
+) {
+  setFill(pdf, COLORS.brandSoft);
+  setStroke(pdf, COLORS.brandLine);
+  pdf.setLineWidth(0.35);
+  pdf.roundedRect(
+    rect.x,
+    rect.y,
+    rect.width,
+    rect.height,
+    CONTINUATION_MEDIA_CARD_RADIUS,
+    CONTINUATION_MEDIA_CARD_RADIUS,
+    'FD',
   );
+
+  drawContinuationMediaLabel(pdf, card.label, rect);
+
+  const imageRect = getContinuationMediaContentRect(rect);
+  if (card.imageDataUrl) {
+    const fitted = fitImageContain(
+      imageRect,
+      getContinuationMediaImageAspectRatio(pdf, card.imageDataUrl, card.aspectRatio),
+    );
+    pdf.addImage(
+      card.imageDataUrl,
+      getImageFormat(card.imageDataUrl),
+      fitted.x,
+      fitted.y,
+      fitted.width,
+      fitted.height,
+      undefined,
+      'FAST',
+    );
+    return;
+  }
+
+  drawContinuationMediaPlaceholder(pdf, imageRect, card.placeholderTitle, card.placeholderHint, Boolean(card.prominent));
+}
+
+function getContinuationMediaImageAspectRatio(
+  pdf: JsPDFDocument,
+  imageDataUrl: string,
+  fallbackAspectRatio = 4 / 3,
+): number {
+  try {
+    const properties = pdf.getImageProperties(imageDataUrl);
+    const width = Number(properties.width);
+    const height = Number(properties.height);
+    if (width > 0 && height > 0) return width / height;
+  } catch {
+    return fallbackAspectRatio;
+  }
+
+  return fallbackAspectRatio;
+}
+
+function getContinuationMediaContentRect(rect: Rect): Rect {
+  return {
+    x: rect.x + CONTINUATION_MEDIA_CARD_PADDING,
+    y: rect.y + CONTINUATION_MEDIA_CARD_PADDING + 10,
+    width: rect.width - CONTINUATION_MEDIA_CARD_PADDING * 2,
+    height: rect.height - CONTINUATION_MEDIA_CARD_PADDING * 2 - 10,
+  };
+}
+
+function drawContinuationMediaLabel(pdf: JsPDFDocument, label: string, rect: Rect) {
+  setText(pdf, COLORS.brand);
+  pdf.setFont(DEFAULT_FONT, 'bold');
+  setFontSize(pdf, 5.6);
+  pdf.text(limitText(pdf, label, rect.width - CONTINUATION_MEDIA_CARD_PADDING * 2), rect.x + CONTINUATION_MEDIA_CARD_PADDING, rect.y + 9);
+}
+
+function drawContinuationMediaPlaceholder(
+  pdf: JsPDFDocument,
+  rect: Rect,
+  title: string,
+  hint: string,
+  prominent: boolean,
+) {
+  const centerX = rect.x + rect.width / 2;
+  const centerY = rect.y + rect.height / 2;
+  const markSize = prominent ? 24 : 15;
+  const markY = centerY - (prominent ? 28 : 19);
+  drawContinuationMediaPlaceholderMark(pdf, centerX, markY, markSize);
+
+  setText(pdf, COLORS.brand);
+  pdf.setFont(DEFAULT_FONT, 'bold');
+  setFontSize(pdf, prominent ? 8 : 6.2);
+  pdf.text(limitText(pdf, title, rect.width - 20), centerX, centerY + (prominent ? 8 : 2), {align: 'center'});
+
+  setText(pdf, COLORS.muted);
+  pdf.setFont(DEFAULT_FONT, 'normal');
+  setFontSize(pdf, prominent ? 6 : 4.9);
+  pdf.text(limitText(pdf, hint, rect.width - 20), centerX, centerY + (prominent ? 21 : 13), {align: 'center'});
+}
+
+function drawContinuationMediaPlaceholderMark(
+  pdf: JsPDFDocument,
+  centerX: number,
+  centerY: number,
+  size: number,
+) {
+  const half = size / 2;
+  setStroke(pdf, COLORS.chipSelectedLine);
+  pdf.setLineWidth(0.75);
+  pdf.roundedRect(centerX - half, centerY - half, size, size, 3, 3, 'S');
+  pdf.line(centerX - half + 3, centerY + half - 5, centerX - 2, centerY + 1);
+  pdf.line(centerX - 2, centerY + 1, centerX + 4, centerY + half - 5);
+  pdf.line(centerX + 1, centerY + half - 6, centerX + half - 3, centerY - 1);
+  setFill(pdf, COLORS.chipSelectedLine);
+  pdf.circle(centerX + half - 5, centerY - half + 5, 1.8, 'F');
 }
 
 function drawContinuationMonitors(

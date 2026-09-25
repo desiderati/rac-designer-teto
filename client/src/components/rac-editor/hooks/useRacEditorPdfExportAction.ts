@@ -4,6 +4,7 @@ import {jsPDF} from 'jspdf';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import {buildRacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
+import {prepareRacPdfReportPhotos} from '@/components/rac-editor/lib/rac-pdf-report-photos.ts';
 import {createRacPdfReportDocument} from '@/components/rac-editor/lib/rac-pdf-report-renderer.ts';
 import {downloadBlob} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
@@ -117,6 +118,9 @@ export function useRacEditorPdfExportAction({
       phase = 'capture-3d';
       updateProgressToast('Capturando a visualização 3D…');
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      phase = 'prepare-photos';
+      updateProgressToast('Preparando as fotos da família e do terreno…');
+      const photos = await prepareRacPdfReportPhotos(constructionSite);
       phase = 'build-report-model';
       updateProgressToast('Montando o relatório da RAC…');
       const report = buildRacPdfReportModel({
@@ -125,6 +129,7 @@ export function useRacEditorPdfExportAction({
         canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
         house3DImageDataUrl,
         house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+        ...photos,
       });
 
       if (!report) {

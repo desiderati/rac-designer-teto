@@ -3,6 +3,7 @@ import type {jsPDF as JsPDFDocument} from 'jspdf';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {buildRacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
+import {prepareRacPdfReportPhotos} from '@/components/rac-editor/lib/rac-pdf-report-photos.ts';
 import {createRacPdfReportDocument} from '@/components/rac-editor/lib/rac-pdf-report-renderer.ts';
 
 type JsPdfConstructor = new (options: {
@@ -65,6 +66,7 @@ export async function buildRacPdfHouseExport({
   }
 
   const canvasImageDataUrl = await renderCanvasImageDataUrl(house);
+  const photos = await prepareRacPdfReportPhotos(constructionSite, house.id);
   const report = buildRacPdfReportModel({
     constructionSite,
     houseId: house.id,
@@ -72,6 +74,7 @@ export async function buildRacPdfHouseExport({
     canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
     house3DImageDataUrl: null,
     house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+    ...photos,
     generatedAt,
   });
 
@@ -116,6 +119,7 @@ export async function buildRacPdfZipExport({
   for (const house of houses) {
     try {
       const canvasImageDataUrl = await renderCanvasImageDataUrl(house);
+      const photos = await prepareRacPdfReportPhotos(constructionSite, house.id);
       const report = buildRacPdfReportModel({
         constructionSite,
         houseId: house.id,
@@ -123,6 +127,7 @@ export async function buildRacPdfZipExport({
         canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
         house3DImageDataUrl: null,
         house3DImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
+        ...photos,
         generatedAt,
       });
 
