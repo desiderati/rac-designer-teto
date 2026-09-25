@@ -22,12 +22,15 @@ function createActions(): MenuActionMap {
   };
 }
 
-function configureRemoteSync(status: 'synced' | 'syncing' | 'pending' | 'conflict' | 'error') {
+function configureRemoteSync(
+  status: 'synced' | 'syncing' | 'pending' | 'conflict' | 'error',
+  lastSyncedAt: string | null = null,
+) {
   const retry = vi.fn().mockResolvedValue(undefined);
   vi.mocked(useRemoteSync).mockReturnValue({
     status,
     revision: 0,
-    lastSyncedAt: null,
+    lastSyncedAt,
     errorMessage: status === 'error' ? 'Falha de rede' : null,
     conflict: null,
     dismissError: vi.fn(),
@@ -72,6 +75,21 @@ describe('TopBar.tsx', () => {
 
     const syncStatus = screen.getByRole('button', {name: 'Sincronizado'});
     expect(syncStatus.querySelector('svg')).not.toHaveClass('animate-spin');
+  });
+
+  it('exibe a data e a hora da última sincronização no tooltip', () => {
+    const lastSyncedAt = '2026-09-24T22:04:00.000-03:00';
+    const expectedTimestamp = new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(lastSyncedAt));
+    configureRemoteSync('synced', lastSyncedAt);
+    renderTopBar();
+
+    expect(screen.getByRole('button', {name: 'Sincronizado'})).toHaveAttribute(
+      'title',
+      `Sincronizado · Última sincronização: ${expectedTimestamp}`,
+    );
   });
 
   it('trunca nome longo da família sem deslocar o menu e a edição', () => {

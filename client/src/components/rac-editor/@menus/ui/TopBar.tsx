@@ -163,12 +163,16 @@ function RemoteSyncIndicator() {
     error: 'text-red-600',
   } as const;
   const canRetry = status === 'error';
+  const lastSyncedAtLabel = sync.lastSyncedAt ? formatSyncTimestamp(sync.lastSyncedAt) : null;
+  const title = status === 'synced' && lastSyncedAtLabel
+    ? `${labelByStatus[status]} · Última sincronização: ${lastSyncedAtLabel}`
+    : labelByStatus[status];
 
   return (
     <button
       type='button'
       aria-label={labelByStatus[status]}
-      title={labelByStatus[status]}
+      title={title}
       disabled={!canRetry}
       onClick={() => {
         if (canRetry) void sync.retry();
@@ -186,4 +190,13 @@ function RemoteSyncIndicator() {
       {status === 'conflict' || status === 'error' ? <CircleAlert className='h-5 w-5' aria-hidden='true'/> : null}
     </button>
   );
+}
+
+function formatSyncTimestamp(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'horário indisponível';
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date);
 }
