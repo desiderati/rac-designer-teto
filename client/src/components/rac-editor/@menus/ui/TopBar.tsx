@@ -1,6 +1,7 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {CircleAlert, CircleCheck, CloudOff, RefreshCw} from 'lucide-react';
 import {useEffect, useState} from 'react';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
@@ -163,24 +164,35 @@ function RemoteSyncIndicator() {
     error: 'text-red-600',
   } as const;
   const canRetry = status === 'error';
+  const canShowDetails = status === 'synced';
   const lastSyncedAtLabel = sync.lastSyncedAt ? formatSyncTimestamp(sync.lastSyncedAt) : null;
+  const lastSyncDescription = isIsolatedLocalMode ? 'Último salvamento' : 'Última sincronização';
   const title = status === 'synced' && lastSyncedAtLabel
-    ? `${labelByStatus[status]} · Última sincronização: ${lastSyncedAtLabel}`
+    ? `${labelByStatus[status]} · ${lastSyncDescription}: ${lastSyncedAtLabel}`
     : labelByStatus[status];
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
-  return (
+  useEffect(() => {
+    if (!canShowDetails) setDetailsOpen(false);
+  }, [canShowDetails]);
+
+  const syncButton = (
     <button
       type='button'
       aria-label={labelByStatus[status]}
       title={title}
-      disabled={!canRetry}
+      disabled={!canRetry && !canShowDetails}
       onClick={() => {
         if (canRetry) void sync.retry();
       }}
       className={cn(
         'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
         'relative transition-colors',
-        canRetry ? 'cursor-pointer hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200' : 'pointer-events-none',
+        canRetry
+          ? 'cursor-pointer hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200'
+          : canShowDetails
+            ? 'cursor-pointer hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-200'
+            : 'pointer-events-none',
         toneByStatus[status],
       )}
     >
@@ -189,6 +201,27 @@ function RemoteSyncIndicator() {
       {status === 'pending' ? <CloudOff className='h-5 w-5' aria-hidden='true'/> : null}
       {status === 'conflict' || status === 'error' ? <CircleAlert className='h-5 w-5' aria-hidden='true'/> : null}
     </button>
+  );
+
+  if (!canShowDetails) return syncButton;
+
+  return (
+    <Popover open={detailsOpen} onOpenChange={setDetailsOpen}>
+      <PopoverTrigger asChild>{syncButton}</PopoverTrigger>
+      <PopoverContent
+        side='bottom'
+        align='end'
+        sideOffset={8}
+        className='z-[80] w-64 rounded-xl border border-emerald-200 bg-white/95 p-3 text-left shadow-xl backdrop-blur-xl'
+      >
+        <p className='text-xs font-semibold text-slate-900'>{labelByStatus[status]}</p>
+        <p className='mt-1 text-xs leading-5 text-slate-600'>
+          {lastSyncedAtLabel
+            ? `${lastSyncDescription}: ${lastSyncedAtLabel}`
+            : 'Ainda não há horário de sincronização registrado.'}
+        </p>
+      </PopoverContent>
+    </Popover>
   );
 }
 

@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {render, screen, within} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TopBar} from './TopBar.tsx';
 import type {MenuActionMap} from '@/components/rac-editor/@menus/lib/menu-types.ts';
@@ -90,6 +90,20 @@ describe('TopBar.tsx', () => {
       'title',
       `Sincronizado · Última sincronização: ${expectedTimestamp}`,
     );
+  });
+
+  it('abre o detalhe da última sincronização ao clicar no ícone', async () => {
+    const lastSyncedAt = '2026-09-24T22:04:00.000-03:00';
+    const expectedTimestamp = new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(lastSyncedAt));
+    configureRemoteSync('synced', lastSyncedAt);
+    renderTopBar();
+
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
+
+    expect(screen.getByText(`Última sincronização: ${expectedTimestamp}`)).toBeVisible();
   });
 
   it('trunca nome longo da família sem deslocar o menu e a edição', () => {
