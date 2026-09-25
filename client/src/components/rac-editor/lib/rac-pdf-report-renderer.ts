@@ -74,8 +74,9 @@ const RESIDENT_ACTION_COLUMN_WIDTH = 94;
 const RESIDENT_ACTION_COLUMN_GAP = 104;
 const RESIDENT_ACTION_TOP_GAP = 9;
 const RESIDENT_ACTION_SECTION_BASE_HEIGHT = 10;
-const RESIDENT_ACTION_ROW_HEIGHT = 10;
-const RESIDENT_ACTION_CHECK_FILL: RgbColor = [37, 99, 235];
+const RESIDENT_ACTION_ROW_HEIGHT = 13;
+const RESIDENT_ACTION_BOTTOM_GAP = 9;
+const RESIDENT_ACTION_CHECK_FILL: RgbColor = COLORS.chipSelectedLine;
 const CONTINUATION_MEDIA_GAP = 8;
 const CONTINUATION_MEDIA_CARD_RADIUS = 4;
 const CONTINUATION_MEDIA_CARD_PADDING = 6;
@@ -705,12 +706,23 @@ function drawContinuationMediaCard(
     'FD',
   );
 
-  const imageRect = getContinuationMediaContentRect(rect);
   if (card.imageDataUrl) {
-    const fitted = fitImageContain(
-      imageRect,
+    const fitted = fitImageCover(
+      rect,
       getContinuationMediaImageAspectRatio(pdf, card.imageDataUrl, card.aspectRatio),
     );
+    pdf.saveGraphicsState();
+    pdf.roundedRect(
+      rect.x,
+      rect.y,
+      rect.width,
+      rect.height,
+      CONTINUATION_MEDIA_CARD_RADIUS,
+      CONTINUATION_MEDIA_CARD_RADIUS,
+      null,
+    );
+    pdf.clip();
+    pdf.discardPath();
     pdf.addImage(
       card.imageDataUrl,
       getImageFormat(card.imageDataUrl),
@@ -721,10 +733,34 @@ function drawContinuationMediaCard(
       undefined,
       'FAST',
     );
+    pdf.restoreGraphicsState();
+    setStroke(pdf, COLORS.brandLine);
+    pdf.setLineWidth(0.35);
+    pdf.roundedRect(
+      rect.x,
+      rect.y,
+      rect.width,
+      rect.height,
+      CONTINUATION_MEDIA_CARD_RADIUS,
+      CONTINUATION_MEDIA_CARD_RADIUS,
+      'S',
+    );
     return;
   }
 
-  drawContinuationMediaPlaceholder(pdf, imageRect, card.placeholderTitle, card.placeholderHint, Boolean(card.prominent));
+  drawContinuationMediaPlaceholder(pdf, getContinuationMediaContentRect(rect), card.placeholderTitle, card.placeholderHint, Boolean(card.prominent));
+}
+
+function fitImageCover(rect: Rect, aspectRatio: number): Rect {
+  const rectRatio = rect.width / rect.height;
+  const width = rectRatio > aspectRatio ? rect.width : rect.height * aspectRatio;
+  const height = rectRatio > aspectRatio ? rect.width / aspectRatio : rect.height;
+  return {
+    x: rect.x + (rect.width - width) / 2,
+    y: rect.y + (rect.height - height) / 2,
+    width,
+    height,
+  };
 }
 
 function getContinuationMediaImageAspectRatio(
@@ -993,7 +1029,8 @@ function drawFirstPageBodyLines(pdf: JsPDFDocument, lines: string[], x: number, 
 function getResidentActionSectionHeight(actionCount: number): number {
   if (actionCount <= 0) return 0;
   return RESIDENT_ACTION_SECTION_BASE_HEIGHT
-    + Math.ceil(actionCount / RESIDENT_ACTION_COLUMNS) * RESIDENT_ACTION_ROW_HEIGHT;
+    + Math.ceil(actionCount / RESIDENT_ACTION_COLUMNS) * RESIDENT_ACTION_ROW_HEIGHT
+    + RESIDENT_ACTION_BOTTOM_GAP;
 }
 
 function getFirstPageExtraMaterialsFieldHeight(fieldCount: number): number {
