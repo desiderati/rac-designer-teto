@@ -5,6 +5,7 @@ import type {
   MonitorRecord,
   PersistedHouseRecord,
   PersistedPilotiLayout,
+  ResidentAction,
   SiteAssessment,
   SoilProfile,
 } from '@/shared/types/construction-site.ts';
@@ -133,6 +134,15 @@ const SOIL_PROFILE_LABELS: Record<SoilProfile, string> = {
   alluvial: 'Solo Molhado / Lama',
   water_table: 'Lençol Freático / Água no Fundo',
 };
+
+const RESIDENT_ACTION_OPTIONS: Array<{value: ResidentAction; label: string}> = [
+  {value: 'excavate', label: 'Escavar'},
+  {value: 'fill', label: 'Aterrar'},
+  {value: 'remove_vegetation', label: 'Retirar vegetação'},
+  {value: 'remove_debris', label: 'Retirar entulho'},
+  {value: 'dismantle_house', label: 'Desmontar a Casa'},
+  {value: 'clear_access', label: 'Liberar acesso'},
+];
 
 export function buildRacPdfReportModel({
   constructionSite,
@@ -347,6 +357,13 @@ function buildTerrainOptionGroups(assessment: SiteAssessment): RacPdfReportOptio
         assessment.hasElevatedObstacles ? 'Elevados' : null,
         assessment.hasNeighborSetbackConstraints ? 'Esquadro' : null,
       ].filter((option): option is string => option !== null),
+    },
+    {
+      label: 'Ações do Morador',
+      options: RESIDENT_ACTION_OPTIONS.map((action) => action.label),
+      selected: RESIDENT_ACTION_OPTIONS
+        .filter((action) => assessment.residentActions?.includes(action.value))
+        .map((action) => action.label),
     },
   ];
 }

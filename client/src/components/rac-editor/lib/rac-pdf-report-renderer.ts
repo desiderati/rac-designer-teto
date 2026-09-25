@@ -66,10 +66,16 @@ const FIRST_PAGE_MONITOR_COLUMN_WIDTH = 108;
 const FIRST_PAGE_MONITOR_ROW_HEIGHT = 30;
 const FIRST_PAGE_MONITOR_SUMMARY_WIDTH = 90;
 const FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT = 3;
-const FIRST_PAGE_NOTES_LINE_LIMIT = 5;
 const FIRST_PAGE_BODY_CONTINUATION_HINT = '(continua atrás...)';
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
 const FIRST_PAGE_MUTED_BODY_LINE_HEIGHT = 8.6;
+const RESIDENT_ACTION_COLUMNS = 2;
+const RESIDENT_ACTION_COLUMN_WIDTH = 94;
+const RESIDENT_ACTION_COLUMN_GAP = 104;
+const RESIDENT_ACTION_TOP_GAP = 9;
+const RESIDENT_ACTION_SECTION_BASE_HEIGHT = 10;
+const RESIDENT_ACTION_ROW_HEIGHT = 10;
+const RESIDENT_ACTION_CHECK_FILL: RgbColor = [37, 99, 235];
 const CONTINUATION_MEDIA_GAP = 8;
 const CONTINUATION_MEDIA_CARD_RADIUS = 4;
 const CONTINUATION_MEDIA_CARD_PADDING = 6;
@@ -313,12 +319,7 @@ function drawLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
   cursorY += LEFT_SECTION_GAP;
   cursorY = drawExtraMaterialsSection(pdf, report, cursorY);
   cursorY += LEFT_SECTION_GAP;
-  cursorY = drawMonitoringSection(pdf, report, cursorY);
-
-  if (report.notes.trim()) {
-    cursorY += LEFT_SECTION_GAP;
-    drawNotesSection(pdf, report, cursorY, getFirstPageNotesLineLimit(pdf, report, cursorY));
-  }
+  drawMonitoringSection(pdf, report, cursorY);
 }
 
 function drawHouseSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
@@ -343,6 +344,14 @@ function drawTerrainSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: nu
   }));
   drawCompactStatefulChipRow(pdf, obstacles, LEFT_COLUMN_X, cursorY + 9, LEFT_COLUMN_WIDTH);
   cursorY += 32;
+
+  const selectedActions = getSelectedTerrainOptions(report, 'Ações do Morador');
+  if (selectedActions.length > 0) {
+    cursorY += RESIDENT_ACTION_TOP_GAP;
+    drawTinyLabel(pdf, 'Ações do Morador', LEFT_COLUMN_X, cursorY);
+    drawResidentActionList(pdf, selectedActions, LEFT_COLUMN_X, cursorY + 13);
+    cursorY += getResidentActionSectionHeight(selectedActions.length);
+  }
 
   return cursorY;
 }
@@ -407,17 +416,6 @@ function drawMonitoringSection(pdf: JsPDFDocument, report: RacPdfReportModel, y:
   }
 
   return cursorY + Math.ceil(visibleMonitors.length / FIRST_PAGE_MONITOR_COLUMNS) * FIRST_PAGE_MONITOR_ROW_HEIGHT + 12;
-}
-
-function drawNotesSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number, maxLines: number) {
-  const cursorY = drawSectionTitle(pdf, 'OBSERVAÇÕES', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
-  if (maxLines <= 0) return;
-
-  setText(pdf, COLORS.muted);
-  pdf.setFont(DEFAULT_FONT, 'italic');
-  setFontSize(pdf, FIRST_PAGE_MUTED_BODY_FONT_SIZE);
-  const lines = splitFirstPageBodyTextToFit(pdf, report.notes, maxLines);
-  drawFirstPageBodyLines(pdf, lines, LEFT_COLUMN_X, cursorY + 2);
 }
 
 function getMainCanvasRect(pdf: JsPDFDocument): Rect {
@@ -555,15 +553,11 @@ function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
     extraJustificationLines.length > FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT
   );
   const notesText = report.notes.trim();
-  const noteLines = notesText ? splitFirstPageBodyText(pdf, notesText) : [];
-  const notesLineLimit = getFirstPageNotesLineLimit(
-    pdf,
-    report,
-    getFirstPageNotesSectionY(report),
-  );
-  const hasNotesContinuation = noteLines.length > notesLineLimit;
 
   let page = createContinuationPage(pdf, report);
+  if (notesText) {
+    page = drawContinuationTextSection(pdf, report, 'OBSERVAÇÕES', notesText, page);
+  }
   page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
 
   if (hasExtraMaterialsContinuation) {
@@ -576,9 +570,6 @@ function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
     );
   }
 
-  if (hasNotesContinuation) {
-    drawContinuationTextSection(pdf, report, 'OBSERVAÇÕES COMPLETAS', notesText, page);
-  }
 }
 
 function createContinuationPage(pdf: JsPDFDocument, report: RacPdfReportModel): ContinuationPage {
@@ -1015,43 +1006,10 @@ function drawFirstPageBodyLines(pdf: JsPDFDocument, lines: string[], x: number, 
   });
 }
 
-function getFirstPageNotesLineLimit(
-  pdf: JsPDFDocument,
-  report: RacPdfReportModel,
-  sectionY: number,
-): number {
-  const firstLineY = sectionY + 24;
-  const canvasImageRect = getMainCanvasImageRect(pdf, report);
-  const bottomY = canvasImageRect.y + canvasImageRect.height - 3;
-  if (firstLineY > bottomY) return 0;
-
-  return Math.min(
-    FIRST_PAGE_NOTES_LINE_LIMIT,
-    Math.floor((bottomY - firstLineY) / FIRST_PAGE_MUTED_BODY_LINE_HEIGHT) + 1,
-  );
-}
-
-function getFirstPageNotesSectionY(report: RacPdfReportModel): number {
-  const visibleMonitors = Math.min(report.monitors.length, FIRST_PAGE_MONITOR_LIMIT);
-  const monitoringHeight = visibleMonitors === 0
-    ? 40
-    : 34 + Math.ceil(visibleMonitors / FIRST_PAGE_MONITOR_COLUMNS) * FIRST_PAGE_MONITOR_ROW_HEIGHT;
-
-  return LEFT_COLUMN_Y
-    + 54
-    + LEFT_SECTION_GAP
-    + 86
-    + LEFT_SECTION_GAP
-    + getFirstPageExtraMaterialsSectionHeight()
-    + LEFT_SECTION_GAP
-    + monitoringHeight
-    + LEFT_SECTION_GAP;
-}
-
-function getFirstPageExtraMaterialsSectionHeight(): number {
-  return 22
-    + getFirstPageExtraMaterialsFieldHeight(6)
-    + getFirstPageBodyPreviewHeight(FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT);
+function getResidentActionSectionHeight(actionCount: number): number {
+  if (actionCount <= 0) return 0;
+  return RESIDENT_ACTION_SECTION_BASE_HEIGHT
+    + Math.ceil(actionCount / RESIDENT_ACTION_COLUMNS) * RESIDENT_ACTION_ROW_HEIGHT;
 }
 
 function getFirstPageExtraMaterialsFieldHeight(fieldCount: number): number {
@@ -1091,6 +1049,35 @@ function drawMutedValue(pdf: JsPDFDocument, value: string, x: number, y: number,
   pdf.setFont(DEFAULT_FONT, 'normal');
   setFontSize(pdf, 6.5);
   pdf.text(limitText(pdf, value, width), x, y);
+}
+
+function drawResidentActionList(pdf: JsPDFDocument, actions: string[], x: number, y: number) {
+  pdf.setFont(DEFAULT_FONT, 'bold');
+  setFontSize(pdf, 6.5);
+  setText(pdf, COLORS.ink);
+
+  actions.forEach((action, index) => {
+    const column = index % RESIDENT_ACTION_COLUMNS;
+    const row = Math.floor(index / RESIDENT_ACTION_COLUMNS);
+    const itemX = x + column * RESIDENT_ACTION_COLUMN_GAP;
+    const baselineY = y + row * RESIDENT_ACTION_ROW_HEIGHT;
+
+    drawResidentActionCheck(pdf, itemX, baselineY);
+    pdf.text(limitText(pdf, action, RESIDENT_ACTION_COLUMN_WIDTH - 13), itemX + 13, baselineY);
+  });
+}
+
+function drawResidentActionCheck(pdf: JsPDFDocument, x: number, baselineY: number) {
+  const centerX = x + 4.6;
+  const centerY = baselineY - 3.4;
+
+  setFill(pdf, RESIDENT_ACTION_CHECK_FILL);
+  pdf.circle(centerX, centerY, 4.4, 'F');
+
+  setStroke(pdf, COLORS.white);
+  pdf.setLineWidth(0.8);
+  pdf.line(centerX - 2.1, centerY, centerX - 0.5, centerY + 1.6);
+  pdf.line(centerX - 0.5, centerY + 1.6, centerX + 2.5, centerY - 2);
 }
 
 function drawChipRow(pdf: JsPDFDocument, values: string[], x: number, y: number, width: number) {
@@ -1259,6 +1246,12 @@ function getFooterTotals(totals: RacPdfReportPilotiTotal[]): RacPdfReportPilotiT
 
 function getSelectedTerrainValues(report: RacPdfReportModel, groupLabel: string): string[] {
   return getTerrainOptionGroup(report, groupLabel)?.selected ?? [];
+}
+
+function getSelectedTerrainOptions(report: RacPdfReportModel, groupLabel: string): string[] {
+  const group = getTerrainOptionGroup(report, groupLabel);
+  const selectedOptions = new Set(group?.selected ?? []);
+  return (group?.options ?? []).filter((option) => selectedOptions.has(option));
 }
 
 function getTerrainOptionGroup(report: RacPdfReportModel, groupLabel: string): RacPdfReportOptionGroup | null {

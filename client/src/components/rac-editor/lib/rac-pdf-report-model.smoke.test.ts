@@ -174,6 +174,68 @@ describe('rac pdf report model', () => {
     expect(constructionSite.houses[0].notes).toBe('');
   });
 
+  it('mostra apenas as ações do morador selecionadas no PDF', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].siteAssessment.residentActions = [
+      'excavate',
+      'remove_vegetation',
+      'clear_access',
+    ];
+
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+    });
+    const actions = report?.terrain.optionGroups.find((group) => group.label === 'Ações do Morador');
+
+    expect(actions?.options).toEqual([
+      'Escavar', 'Aterrar',
+      'Retirar vegetação', 'Retirar entulho',
+      'Desmontar a Casa', 'Liberar acesso',
+    ]);
+    expect(actions?.selected).toEqual(['Escavar', 'Retirar vegetação', 'Liberar acesso']);
+
+    const pdf = createRacPdfReportDocument({report: report!, jsPDF, compress: false});
+    const output = pdf.output();
+    expect(output).toContain('AÇÕES DO MORADOR');
+    actions?.selected.forEach((action) => expect(output).toContain(action));
+    ['Aterrar', 'Retirar entulho', 'Desmontar a Casa'].forEach((action) => {
+      expect(output).not.toContain(action);
+    });
+
+    constructionSite.houses[0].siteAssessment.residentActions = [];
+    const reportWithoutActions = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+    });
+    const pdfWithoutActions = createRacPdfReportDocument({
+      report: reportWithoutActions!,
+      jsPDF,
+      compress: false,
+    });
+    expect(pdfWithoutActions.output()).not.toContain('AÇÕES DO MORADOR');
+  });
+
+  it('exibe observações curtas apenas na segunda página', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].notes = 'Observação breve da visita.';
+    const report = buildRacPdfReportModel({
+      constructionSite,
+      canvasImageDataUrl: TINY_PNG_DATA_URL,
+    });
+
+    const pdf = createRacPdfReportDocument({report: report!, jsPDF, compress: false});
+    const output = pdf.output();
+    const firstPageEnd = output.indexOf('endstream');
+    const secondPageEnd = output.indexOf('endstream', firstPageEnd + 1);
+    const notesPosition = output.indexOf('OBSERVAÇÕES');
+
+    expect(pdf.getNumberOfPages()).toBe(2);
+    expect(notesPosition).toBeGreaterThan(firstPageEnd);
+    expect(notesPosition).toBeLessThan(secondPageEnd);
+    expect(output).toContain('Observação breve da visita.');
+  });
+
   it('mantém calhas independentes de mata-juntas e seleciona as fotos da casa', () => {
     const constructionSite = createConstructionSiteState();
     constructionSite.houses[0].extraMaterials!.gutterCount = 7;
@@ -390,7 +452,7 @@ describe('rac pdf report model', () => {
     });
     expect(output).not.toContain('MONITORIA \\(CONTINUAÇÃO\\)');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
-    expect(output).toContain('OBSERVAÇÕES COMPLETAS');
+    expect(output).toContain('OBSERVAÇÕES');
   });
 
   it('limita o cabecalho do PDF quando familia e lideres usam texto continuo longo', () => {
@@ -479,7 +541,7 @@ describe('rac pdf report model', () => {
 
     expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
     expect((output.match(/continua atrás\.\.\./g) ?? []).length).toBeGreaterThanOrEqual(1);
-    expect(output).toContain('OBSERVAÇÕES COMPLETAS');
+    expect(output).toContain('OBSERVAÇÕES');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
     expect(output).toMatch(/20\. 529\.\d+ Td[\s\S]{0,120}\(MONITORIA \\\(CONTINUAÇÃO\\\)\) Tj/);
@@ -521,14 +583,14 @@ describe('rac pdf report model', () => {
 
     expect(pdf.getNumberOfPages()).toBe(2);
     expect(output).toContain('continua atrás...');
-    expect(output).toContain('OBSERVAÇÕES COMPLETAS');
+    expect(output).toContain('OBSERVAÇÕES');
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('Trecho final exclusivo das');
     expect(output).toContain('observacoes.');
   });
 
-  it('move observacoes para continuacao quando a previa ultrapassaria o canvas', () => {
+  it('mantém observações na segunda página com a primeira página preenchida', () => {
     const constructionSite = createConstructionSiteState();
     constructionSite.monitors = Array.from({length: 4}, (_, index) => (
       createMonitor(`monitor-visible-${index + 1}`, `Monitor ${index + 1}`, 'active')
@@ -551,7 +613,7 @@ describe('rac pdf report model', () => {
     const output = pdf.output();
 
     expect(pdf.getNumberOfPages()).toBe(2);
-    expect(output).toContain('OBSERVAÇÕES COMPLETAS');
+    expect(output).toContain('OBSERVAÇÕES');
     expect(output).toContain('limite inferior do');
     expect(output).toContain('canvas.');
   });
@@ -579,7 +641,7 @@ describe('rac pdf report model', () => {
 
     expect(pdf.getNumberOfPages()).toBeGreaterThan(2);
     expect(output).toContain('MV 42');
-    expect(output).toContain('OBSERVAÇÕES COMPLETAS \\(CONTINUAÇÃO\\)');
+    expect(output).toContain('OBSERVAÇÕES \\(CONTINUAÇÃO\\)');
     expect(output).toContain('Fim');
     expect(output).toContain('integral.');
   });
