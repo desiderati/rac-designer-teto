@@ -64,6 +64,8 @@ export interface MenuConstructionGroup {
   id: string;
   code: string;
   communityName?: string;
+  /** Versão CAS do documento remoto desta Construção, quando disponível. */
+  documentVersion?: number;
   active: boolean;
   houses: MenuHouseOption[];
 }

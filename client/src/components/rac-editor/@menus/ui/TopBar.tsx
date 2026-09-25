@@ -92,7 +92,10 @@ export function TopBar({
 
       {/* Right: 3D / Exportar / Avatar */}
       <div className='absolute right-4 top-0 z-50 flex items-center gap-2'>
-        <RemoteSyncIndicator isMobile={isMobile}/>
+        <RemoteSyncIndicator
+          isMobile={isMobile}
+          documentVersion={constructionGroups.find((group) => group.active)?.documentVersion ?? null}
+        />
 
         <button
           type='button'
@@ -146,7 +149,13 @@ export function TopBar({
   );
 }
 
-function RemoteSyncIndicator({isMobile}: {isMobile: boolean}) {
+function RemoteSyncIndicator({
+  isMobile,
+  documentVersion,
+}: {
+  isMobile: boolean;
+  documentVersion: number | null;
+}) {
   const sync = useRemoteSync();
   const status = sync.status;
   const labelByStatus = {
@@ -226,6 +235,14 @@ function RemoteSyncIndicator({isMobile}: {isMobile: boolean}) {
             ? `${lastSyncDescription}: ${lastSyncedAtLabel}`
             : 'Ainda não há horário de sincronização registrado.'}
         </p>
+        {documentVersion !== null ? (
+          <p className={cn(
+            'mt-1 text-slate-500',
+            isMobile ? 'text-[11px]' : 'text-xs',
+          )}>
+            Versão do documento: {documentVersion}
+          </p>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

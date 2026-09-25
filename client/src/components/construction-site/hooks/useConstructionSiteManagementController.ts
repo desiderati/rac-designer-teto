@@ -351,6 +351,7 @@ function getConstructionGroups(constructionSites: ConstructionSiteState[], activ
       id: constructionSite.constructionSite.id,
       code: getConstructionCode(constructionSite),
       communityName: getConstructionSiteCommunityName(constructionSite),
+      documentVersion: constructionSite.constructionSite.documentVersion,
       active: constructionSite.constructionSite.id === activeConstructionSiteId,
       houses: constructionSite.houses
         .filter((house) => house.status !== 'archived')

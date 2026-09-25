@@ -107,6 +107,24 @@ describe('TopBar.tsx', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
   });
 
+  it('exibe a versão atual do documento abaixo do horário', () => {
+    configureRemoteSync('synced', '2026-09-24T22:04:00.000-03:00');
+    renderTopBar({
+      constructionGroups: [{
+        id: 'construction-1',
+        code: 'CC2603',
+        active: true,
+        documentVersion: 12,
+        houses: [],
+      }],
+    });
+
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
+
+    expect(screen.getByText('Versão do documento: 12')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'Sincronizado'}));
+  });
+
   it('abre o detalhe e limita a largura do popover no modo mobile', () => {
     const lastSyncedAt = '2026-09-24T22:04:00.000-03:00';
     configureRemoteSync('synced', lastSyncedAt);
