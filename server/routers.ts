@@ -16,22 +16,54 @@ import { generateImage } from './_core/imageGeneration.ts';
 import { invokeLLM } from './_core/llm.ts';
 import { storagePut } from './storage.ts';
 import { removeLightBackgroundFromPng } from './image-transparency.ts';
+import { logSafeServerError } from './_core/safe-error-log.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
 const MAX_IMAGE_BYTES = 7.5 * 1024 * 1024;
 const MAX_IMAGE_BASE64_LENGTH = Math.ceil(MAX_IMAGE_BYTES * 4 / 3) + 64;
 const ALLOWED_IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
-/**
- * O documento completo é um contrato de domínio serializável. A fronteira de
- * transporte valida a forma mínima, tamanho e ausência de base64; validações
- * de regras de negócio permanecem centralizadas na sessão do editor.
- */
-const CONSTRUCTION_SITE_STATE_INPUT = z.custom<ConstructionSiteState>((value) => (
-  Boolean(value)
-  && typeof value === 'object'
-  && !Array.isArray(value)
-  && Boolean((value as Partial<ConstructionSiteState>).constructionSite?.id)
-));
+/** Valida a estrutura persistida sem transformar o documento nem assumir as regras da sessão. */
+const CONSTRUCTION_SITE_STATE_SHAPE = z.object({
+  constructionSite: z.object({
+    id: z.string().min(1),
+    externalCode: z.string(),
+    constructionDate: z.string(),
+    communityId: z.string(),
+    status: z.enum(['in_progress', 'completed', 'archived']),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+  communities: z.array(z.object({id: z.string(), name: z.string()})),
+  families: z.array(z.object({
+    id: z.string(), constructionSiteId: z.string(), name: z.string(),
+  })),
+  monitors: z.array(z.object({
+    id: z.string(), constructionSiteId: z.string(), name: z.string(),
+    phone: z.string(), status: z.enum(['active', 'inactive']),
+    createdAt: z.string(), updatedAt: z.string(),
+  })),
+  houses: z.array(z.object({
+    id: z.string(), constructionSiteId: z.string(), familyId: z.string(),
+    houseType: z.enum(['tipo6', 'tipo3']).nullable(),
+    terrainType: z.number(),
+    status: z.enum(['draft', 'rac_printed', 'built', 'archived']),
+    designSettings: z.object({selectedPilotiHeights: z.array(z.number())}),
+    siteAssessment: z.object({}),
+    pilotiLayout: z.object({points: z.array(z.object({
+      id: z.string(), code: z.enum(['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4', 'c1', 'c2', 'c3', 'c4']),
+      height: z.number(), nivel: z.number(), isMaster: z.boolean(),
+    }))}),
+    drawingDocument: z.object({
+      schemaVersion: z.number(),
+      house: z.unknown().nullable(),
+      canvas: z.object({schemaVersion: z.number(), objects: z.array(z.unknown())}),
+    }),
+    version: z.number(), createdAt: z.string(), updatedAt: z.string(),
+  })),
+});
+const CONSTRUCTION_SITE_STATE_INPUT = z.custom<ConstructionSiteState>((value) =>
+  CONSTRUCTION_SITE_STATE_SHAPE.safeParse(value).success,
+);
 
 const IMAGE_UPLOAD_INPUT = z.object({
   fileName: z.string().trim().min(1).max(160),
@@ -317,7 +349,7 @@ function toConstructionSiteTrpcError(error: unknown): TRPCError {
   if (error instanceof ConstructionSiteDeleteNotAllowedError) {
     return new TRPCError({ code: 'PRECONDITION_FAILED', message: error.message });
   }
-  console.error('[constructionSites] operação remota falhou:', error);
+  logSafeServerError('[constructionSites] operação remota falhou', error);
   return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Não foi possível persistir a Construção TETO.' });
 }
 

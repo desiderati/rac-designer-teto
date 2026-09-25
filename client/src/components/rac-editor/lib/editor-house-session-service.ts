@@ -44,6 +44,10 @@ export class EditorHouseSessionService {
     this.args.notify();
   }
 
+  setFamilyNameFromConstructionSite(name: string): void {
+    this.metadata.setFamilyName(name);
+  }
+
   getSelectedPilotiHeights(): readonly number[] {
     return this.metadata.getSelectedPilotiHeights();
   }

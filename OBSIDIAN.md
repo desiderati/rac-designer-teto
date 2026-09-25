@@ -26,8 +26,6 @@ claramente estabelecida.
 
 ## Navegação inicial
 
-- [docs/](docs/), quando esse diretório existir
-
 - [docs/README.md](docs/README.md), para o índice versionado do diretório de documentação
 
 - [docs/product-requirements/README.md](docs/product-requirements/README.md), para o índice de PRDs

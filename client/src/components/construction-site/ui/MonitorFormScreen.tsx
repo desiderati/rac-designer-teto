@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {CreateMonitorInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -46,12 +46,16 @@ export function MonitorFormScreen({
     reValidateMode: 'onChange',
     defaultValues: getMonitorInitialState(monitor),
   });
+  const formSourceKey = [constructionSite.constructionSite.id, monitor?.id ?? 'new-monitor', monitor?.updatedAt ?? ''].join(':');
+  const lastFormSourceKey = useRef(formSourceKey);
   const {dirtyFields} = form.formState;
   const hasSectionChanges = Boolean(dirtyFields.name || dirtyFields.phone || dirtyFields.email || dirtyFields.photoDataUrl);
 
   useEffect(() => {
+    if (lastFormSourceKey.current === formSourceKey) return;
+    lastFormSourceKey.current = formSourceKey;
     form.reset(getMonitorInitialState(monitor));
-  }, [form, monitor]);
+  }, [form, formSourceKey, monitor]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {

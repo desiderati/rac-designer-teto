@@ -215,7 +215,7 @@ describe('editor house controller', () => {
   });
 
   it('atualiza o nome da família do editor ao salvar configuração da casa', () => {
-    const listener = vi.fn();
+    const listener = vi.fn(() => houseController.getFamilyName());
     const unsubscribe = houseController.subscribe(listener);
 
     houseController.updateActiveHouseConfiguration({
@@ -223,8 +223,33 @@ describe('editor house controller', () => {
     });
 
     expect(houseController.getFamilyName()).toBe('Família Formulário');
+    expect(houseController.getActiveHouseDrawingDocument()?.setup.familyName).toBe('Família Formulário');
     expect(listener).toHaveBeenCalled();
+    expect(listener.mock.results.at(-1)?.value).toBe('Família Formulário');
     unsubscribe();
+  });
+
+  it('não sincroniza nome solicitado quando a casa construída recusa a edição', () => {
+    const site = houseController.getConstructionSiteSnapshot();
+    const houseId = site?.houses[0]?.id;
+    expect(houseId).toBeDefined();
+    houseController.markHouseBuilt(houseId!);
+    const nameBefore = houseController.getFamilyName();
+
+    houseController.updateActiveHouseConfiguration({familyName: 'Nome recusado'});
+
+    expect(houseController.getFamilyName()).toBe(nameBefore);
+    expect(houseController.getActiveHouseDrawingDocument()?.setup.familyName).not.toBe('Nome recusado');
+  });
+
+  it('não sincroniza nome solicitado quando a casa está arquivada', () => {
+    const nameBefore = houseController.getFamilyName();
+    houseController.archiveActiveHouse();
+
+    houseController.updateActiveHouseConfiguration({familyName: 'Nome recusado'});
+
+    expect(houseController.getFamilyName()).toBe(nameBefore);
+    expect(houseController.getActiveHouseDrawingDocument()).toBeNull();
   });
 
   it('recalcula níveis intermediários e alturas recomendadas quando um nível de canto é alterado', () => {

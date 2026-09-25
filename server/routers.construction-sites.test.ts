@@ -83,6 +83,71 @@ describe('constructionSites procedures', () => {
     expect(db.saveConstructionSiteDocument).toHaveBeenCalledWith(state, 0);
   });
 
+  it('preserves canonical records and additional editor data in the saved document', async () => {
+    db.saveConstructionSiteDocument.mockResolvedValue({documentVersion: 1});
+    const caller = appRouter.createCaller(createContext());
+    const state = {
+      ...constructionSiteState(),
+      communities: [{id: 'community-1', name: 'Comunidade', city: 'São Paulo'}],
+      families: [{id: 'family-1', constructionSiteId: 'construction-1', name: 'Família', notes: 'Nota'}],
+      monitors: [{
+        id: 'monitor-1', constructionSiteId: 'construction-1', name: 'Monitor', phone: '',
+        status: 'active' as const, createdAt: '2026-09-17', updatedAt: '2026-09-17',
+      }],
+      houses: [{
+        id: 'house-1', constructionSiteId: 'construction-1', familyId: 'family-1',
+        houseType: 'tipo6' as const, terrainType: 1, status: 'draft' as const,
+        designSettings: {selectedPilotiHeights: []}, siteAssessment: {residentActions: ['excavate' as const]},
+        pilotiLayout: {points: []},
+        drawingDocument: {schemaVersion: 1, house: null, canvas: {schemaVersion: 1 as const, objects: []}, views: {}},
+        version: 1, createdAt: '2026-09-17', updatedAt: '2026-09-17',
+      }],
+    };
+
+    await expect(caller.constructionSites.save({state, expectedDocumentVersion: 0}))
+      .resolves.toEqual({documentVersion: 1});
+    expect(db.saveConstructionSiteDocument).toHaveBeenCalledWith(state, 0);
+  });
+
+  it('rejects incomplete documents and malformed canonical collections before writing', async () => {
+    const caller = appRouter.createCaller(createContext());
+    const canonical = constructionSiteState();
+    const invalidDocuments = [
+      {constructionSite: {id: 'construction-1'}},
+      {...canonical, communities: null},
+      {...canonical, communities: [null]},
+      {...canonical, families: [{id: 'family-1'}]},
+      {...canonical, houses: [{id: 'house-1'}]},
+    ];
+
+    for (const state of invalidDocuments) {
+      await expect(caller.constructionSites.save({
+        state: state as typeof canonical,
+        expectedDocumentVersion: 0,
+      })).rejects.toMatchObject({code: 'BAD_REQUEST'});
+    }
+    expect(db.saveConstructionSiteDocument).not.toHaveBeenCalled();
+  });
+
+  it('does not log a document carried by a database error', async () => {
+    const marker = 'DOCUMENTO_SINTETICO_SECRETO';
+    const error = new Error(`SQL params: ${marker}`);
+    Object.assign(error, {code: 'ER_LOCK_DEADLOCK'});
+    db.saveConstructionSiteDocument.mockRejectedValue(error);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      const caller = appRouter.createCaller(createContext());
+      await expect(caller.constructionSites.save({
+        state: constructionSiteState(), expectedDocumentVersion: 0,
+      })).rejects.toMatchObject({code: 'INTERNAL_SERVER_ERROR'});
+      expect(JSON.stringify(log.mock.calls)).not.toContain(marker);
+      expect(log).toHaveBeenCalledWith('[constructionSites] operação remota falhou', {code: 'ER_LOCK_DEADLOCK'});
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it('rejects embedded image data instead of writing base64 into the document', async () => {
     const caller = appRouter.createCaller(createContext());
     const state = constructionSiteState();
@@ -136,7 +201,7 @@ describe('constructionSites procedures', () => {
         dataUrl: expect.stringMatching(/^data:image\/png;base64,/),
       });
     expect(storage.storagePut).toHaveBeenCalledWith(
-      expect.stringMatching(/^rac-designer-teto\/generated\/house-illustration-/),
+      expect.stringMatching(/^rac-designer-teto\/temp\/house-3d\/illustration-/),
       expect.any(Buffer),
       'image/png',
     );

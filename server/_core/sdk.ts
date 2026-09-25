@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
+import { logSafeServerError } from "./safe-error-log";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -214,7 +215,7 @@ class SDKServer {
       if (
         !isNonEmptyString(openId) ||
         !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
+        typeof name !== "string"
       ) {
         console.warn("[Auth] Session payload missing required fields");
         return null;
@@ -302,7 +303,7 @@ class SDKServer {
         });
         user = await db.getUserByOpenId(userInfo.openId);
       } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
+        logSafeServerError("[Auth] Failed to sync user from OAuth", error);
         throw ForbiddenError("Failed to sync user info");
       }
     }

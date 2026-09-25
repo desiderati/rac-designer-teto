@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'VITE_E2E=true pnpm run dev:local',
+    command: 'node scripts/run.mjs e2e-server',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

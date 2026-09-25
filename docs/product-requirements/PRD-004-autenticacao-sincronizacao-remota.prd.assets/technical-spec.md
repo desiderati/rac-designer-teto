@@ -68,7 +68,7 @@ client/src/components/
 
 drizzle/
 server/
-storage/
+server/storage.ts
 shared/
 ```
 
@@ -88,7 +88,7 @@ O caminho `client/src/` já está aplicado e o backend Manus foi incorporado. O 
 - `server/routers.ts` contém procedures de aplicação e regras de autorização.
 - `server/db.ts` contém helpers de acesso Drizzle.
 - `drizzle/schema.ts` contém tabelas e tipos do banco.
-- `storage/` contém helpers para upload, leitura e remoção de objetos.
+- `server/storage.ts` contém helpers para upload e obtenção de URLs de leitura de objetos.
 
 ## 5. Identidade e escopo remoto
 

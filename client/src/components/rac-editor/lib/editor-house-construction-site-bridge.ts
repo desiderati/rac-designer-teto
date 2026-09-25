@@ -21,6 +21,7 @@ import type {
 interface EditorHouseConstructionSiteBridgeArgs {
   constructionSiteSession: ConstructionSiteSessionPort;
   loadHouseDrawingDocument(document: HouseDrawingDocument | null): void;
+  onActiveHouseConfigurationSaved(familyName: string): void;
   notify(): void;
 }
 
@@ -182,7 +183,12 @@ export class EditorHouseConstructionSiteBridge {
   }
 
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): void {
+    const activeDocument = this.session.getActiveHouseDrawingDocument();
+    const previousVersion = activeDocument ? this.session.getActiveHouse().version : null;
     this.session.updateActiveHouseConfiguration(input);
+    if (previousVersion !== null && this.session.getActiveHouse().version !== previousVersion) {
+      this.args.onActiveHouseConfigurationSaved(this.session.getActiveFamily().name);
+    }
     this.args.notify();
   }
 

@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {Controller, type Control, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {UpdateHouseExtraMaterialsInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -49,6 +49,8 @@ export function HouseExtraMaterialsScreen({
     reValidateMode: 'onChange',
     defaultValues: getHouseExtraMaterialsInitialState(house),
   });
+  const formSourceKey = [constructionSite.constructionSite.id, house.id, house.version, house.updatedAt].join(':');
+  const lastFormSourceKey = useRef(formSourceKey);
   const {dirtyFields} = form.formState;
   const hasSectionChanges = Boolean(
     dirtyFields.floorBeams
@@ -61,8 +63,10 @@ export function HouseExtraMaterialsScreen({
   );
 
   useEffect(() => {
+    if (lastFormSourceKey.current === formSourceKey) return;
+    lastFormSourceKey.current = formSourceKey;
     form.reset(getHouseExtraMaterialsInitialState(house));
-  }, [house, form]);
+  }, [form, formSourceKey, house]);
   useFormDirtyChange(form.formState.isDirty, onDirtyChange);
 
   const submitForm = form.handleSubmit(async (values) => {

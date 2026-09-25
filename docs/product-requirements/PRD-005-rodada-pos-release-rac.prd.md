@@ -560,3 +560,8 @@ de `Solo Aluvial`, usando terminologia mais adequada ao uso de campo.
 - O PDF adiciona textos padrão não editáveis depois da justificativa de materiais extras e das
   observações gerais da casa/RAC; esses textos não aparecem nos formulários nem substituem o
   preenchimento de justificativa pelo usuário.
+
+### Documentos complementares
+
+- [Plano de exclusão física de Construções TETO arquivadas](PRD-005-rodada-pos-release-rac.prd.assets/exclusao-fisica-construcao-arquivada-plan.md)
+- [Checklist de validação manual](PRD-005-rodada-pos-release-rac.prd.assets/manual-validation-checklist.md)

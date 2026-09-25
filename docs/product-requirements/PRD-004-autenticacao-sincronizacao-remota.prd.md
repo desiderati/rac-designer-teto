@@ -188,3 +188,8 @@ A persistência poderá normalizar entidades administrativas quando relatórios,
 - Mensagem e ação para conflito de versão.
 - Política futura para limpeza de objetos órfãos no Storage.
 - Momento de ativar restrições por papel ou allowlist.
+
+## 11. Documentos complementares
+
+- [Especificação técnica](PRD-004-autenticacao-sincronizacao-remota.prd.assets/technical-spec.md)
+- [Alternativas de backend](PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md)

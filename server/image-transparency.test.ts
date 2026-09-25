@@ -110,4 +110,27 @@ describe('removeLightBackgroundFromPng', () => {
 
     expect(data[centerOffset]).toBe(255);
   });
+
+  it('preserva a transparência original conectada à borda mesmo sob RGB do objeto', async () => {
+    const width = 5;
+    const height = 5;
+    const pixels = Buffer.alloc(width * height * 4);
+    for (let index = 0; index < width * height; index += 1) {
+      const offset = index * 4;
+      pixels[offset] = 40;
+      pixels[offset + 1] = 110;
+      pixels[offset + 2] = 160;
+      pixels[offset + 3] = index === 12 ? 255 : 0;
+    }
+
+    const result = await removeLightBackgroundFromPng(
+      await sharp(pixels, {raw: {width, height, channels: 4}}).png().toBuffer(),
+    );
+    const {data, info} = await sharp(result).ensureAlpha().raw().toBuffer({resolveWithObject: true});
+    const alphaAt = (x: number, y: number) => data[(y * width + x) * info.channels + 3];
+
+    expect(alphaAt(0, 0)).toBe(0);
+    expect(alphaAt(2, 1)).toBe(0);
+    expect(alphaAt(2, 2)).toBe(255);
+  });
 });

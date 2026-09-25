@@ -1294,6 +1294,29 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(actionsSection).queryByTestId('section-dirty-indicator')).not.toBeInTheDocument();
   });
 
+  it('preserva rascunho de monitor em novo snapshot e reinicia após atualização persistida', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const actions = createActions();
+    const rendered = renderPanel({constructionSite, actions});
+
+    await openConstructionMonitors(user);
+    await user.click(screen.getByRole('row', {name: /Ana Monitoria.*Ativo/i}));
+    fireEvent.change(screen.getByLabelText('Nome do Monitor'), {target: {value: 'Ana em edição'}});
+    await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toBeVisible());
+
+    rendered.rerender(createPanelElement({constructionSite: structuredClone(constructionSite), actions}));
+    expect(screen.getByLabelText('Nome do Monitor')).toHaveValue('Ana em edição');
+    expect(screen.getByTestId('section-dirty-indicator')).toBeVisible();
+
+    const updatedSite = structuredClone(constructionSite);
+    updatedSite.monitors[0].name = 'Ana persistida';
+    updatedSite.monitors[0].updatedAt = '2026-05-10T12:00:00.000Z';
+    rendered.rerender(createPanelElement({constructionSite: updatedSite, actions}));
+    await waitFor(() => expect(screen.getByLabelText('Nome do Monitor')).toHaveValue('Ana persistida'));
+    expect(screen.queryByTestId('section-dirty-indicator')).not.toBeInTheDocument();
+  });
+
   it('valida campos obrigatórios, máscara e formatos da configuração de casa', async () => {
     const user = userEvent.setup();
     const actions = createActions();
@@ -1624,6 +1647,31 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       gutters: 4,
       justification: 'Reforço revisado com a monitoria.',
     });
+  });
+
+  it('preserva rascunho de materiais em novo snapshot e reinicia após atualização persistida', async () => {
+    const user = userEvent.setup();
+    const constructionSite = createConstructionSite();
+    const actions = createActions();
+    const rendered = renderPanel({constructionSite, actions});
+
+    await openConstructionHouses(user);
+    await user.click(within(screen.getByTestId('house-desktop-table'))
+      .getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
+    fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15'}});
+    await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toBeVisible());
+
+    rendered.rerender(createPanelElement({constructionSite: structuredClone(constructionSite), actions}));
+    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
+    expect(screen.getByTestId('section-dirty-indicator')).toBeVisible();
+
+    const updatedSite = structuredClone(constructionSite);
+    updatedSite.houses[0].extraMaterials = {...updatedSite.houses[0].extraMaterials, floorBeams: 18};
+    updatedSite.houses[0].version += 1;
+    updatedSite.houses[0].updatedAt = '2026-05-10T12:00:00.000Z';
+    rendered.rerender(createPanelElement({constructionSite: updatedSite, actions}));
+    await waitFor(() => expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('18'));
+    expect(screen.queryByTestId('section-dirty-indicator')).not.toBeInTheDocument();
   });
 
   it('avisa antes de sair do formulário de materiais extras com alterações não salvas', async () => {
@@ -1994,14 +2042,16 @@ async function openConstructionMonitors(user: ReturnType<typeof userEvent.setup>
     .getByRole('button', {name: 'Gerenciar monitores da construção CC2603'}));
 }
 
-function renderPanel(input: {
+type PanelTestInput = {
   constructionSite?: ConstructionSiteState | null;
   summaries?: ConstructionSiteSummary[];
   actions?: ReturnType<typeof createActions>;
   canOpenRacEditor?: boolean;
   onBackToCanvas?: () => void;
-} = {}) {
-  render(
+};
+
+function createPanelElement(input: PanelTestInput = {}) {
+  return (
     <TooltipProvider delayDuration={0}>
       <ConstructionSiteManagementPanel
         constructionSite={'constructionSite' in input ? input.constructionSite ?? null : createConstructionSite()}
@@ -2010,8 +2060,12 @@ function renderPanel(input: {
         onBackToCanvas={input.onBackToCanvas}
         actions={(input.actions ?? createActions()) as never}
       />
-    </TooltipProvider>,
+    </TooltipProvider>
   );
+}
+
+function renderPanel(input: PanelTestInput = {}) {
+  return render(createPanelElement(input));
 }
 
 async function submitForm(testId: string): Promise<void> {

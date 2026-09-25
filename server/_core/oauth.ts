@@ -10,6 +10,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getOAuthStateCookieOptions, getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { logSafeServerError } from "./safe-error-log";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -71,7 +72,7 @@ export function registerOAuthRoutes(app: Express) {
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
+      logSafeServerError("[OAuth] Callback failed", error);
       redirectToOAuthError(res, "callback_failed");
     }
   });

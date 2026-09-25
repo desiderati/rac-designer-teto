@@ -60,7 +60,8 @@ export async function removeLightBackgroundFromPng(input: Buffer): Promise<Buffe
   // A generated subject can carry partial alpha even when its RGB clearly
   // identifies grass, walls, roof, wood or linework. Keep those pixels solid.
   for (let index = 0; index < pixelCount; index += 1) {
-    if (isLikelySubjectRgb(readRgb(data, index, channels))) alpha[index] = 255;
+    const sourceAlpha = data[index * channels + 3] ?? 255;
+    if (sourceAlpha > 0 && isLikelySubjectRgb(readRgb(data, index, channels))) alpha[index] = 255;
   }
   fillEnclosedTransparentRegions(alpha, width, height);
 

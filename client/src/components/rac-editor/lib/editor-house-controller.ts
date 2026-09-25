@@ -104,6 +104,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
     this.constructionSites = new EditorHouseConstructionSiteBridge({
       constructionSiteSession: this.constructionSiteSession,
       loadHouseDrawingDocument: (document) => this.loadNullableHouseDrawingDocument(document),
+      onActiveHouseConfigurationSaved: (familyName) => this.session.setFamilyNameFromConstructionSite(familyName),
       notify: () => this.notify(),
     });
     this.session = new EditorHouseSessionService({

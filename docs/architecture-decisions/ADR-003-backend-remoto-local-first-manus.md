@@ -46,7 +46,7 @@ drizzle/schema.ts       # schema e tipos do banco
 server/db.ts            # helpers de persistência
 server/routers.ts       # procedimentos tRPC
 server/_core/           # infraestrutura Manus
-storage/                # helpers do Storage nativo
+server/storage.ts       # helpers do Storage nativo
 shared/                 # constantes compartilhadas do backend
 ```
 
@@ -133,7 +133,7 @@ Um backend Node/Nest.js com banco próprio daria controle máximo, mas adicionar
 
 ### 4.4. Riscos e mitigação
 
-- **Acoplamento do editor à infraestrutura:** manter SDKs apenas em `client/src/infra`, `client/src/bootstrap`, `server/` e `storage/`.
+- **Acoplamento do editor à infraestrutura:** manter SDKs apenas em `client/src/infra`, `client/src/bootstrap` e `server/`, com helpers do Storage em `server/storage.ts`.
 - **Conflito de edição:** exigir `expectedDocumentVersion` e rejeitar escrita quando a versão remota divergir.
 - **Perda de imagem:** usar referências de storage estáveis, checksum opcional e limpeza controlada de objetos órfãos.
 - **Payloads grandes:** guardar arquivos no Storage e limitar o payload JSON a metadados e referências.
