@@ -4,3 +4,6 @@ allowBuilds:
   core-js: true
   esbuild: true
   sharp: true
+
+overrides:
+  nwsapi: 2.2.28

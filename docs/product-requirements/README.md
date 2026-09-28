@@ -14,14 +14,14 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 ## Convenção de nomes
 
 - Markdown primário: `PRD-{id_number}-{slug}.prd.md`
-- JSON derivado opcional: `PRD-{id_number}-{slug}.prd.json`
+- JSON derivado opcional: `PRD-{id_number}-{slug}.prd.assets/derived/*.json`
 - Sidecar de assets: `PRD-{id_number}-{slug}.prd.assets/`
 
 ## Regras
 
 1. O Markdown é a fonte humana principal.
 
-2. O JSON derivado adjacente só existe quando houver valor real para automação, validação estrutural
+2. O JSON derivado no sidecar só existe quando houver valor real para automação, validação estrutural
    ou consumo por outro agente.
 
 3. Diagramas, evidências, exportações brutas, scripts e derivados auxiliares ficam no sidecar
@@ -39,6 +39,7 @@ Este diretório reúne os PRDs canônicos do `RAC Designer TETO`.
 
 ## Artefatos auxiliares versionados
 
+- [PRD-001 JSON estruturado](./PRD-001-evolucao-multicasa.prd.assets/derived/prd-001-structured.json)
 - [PRD-001 multi-house persistence plan](./PRD-001-evolucao-multicasa.prd.assets/derived/multi_house_persistence_plan.md)
 - [PRD-004 technical spec](./PRD-004-autenticacao-sincronizacao-remota.prd.assets/technical-spec.md)
 - [PRD-004 backend alternatives](./PRD-004-autenticacao-sincronizacao-remota.prd.assets/backend-alternatives.md)

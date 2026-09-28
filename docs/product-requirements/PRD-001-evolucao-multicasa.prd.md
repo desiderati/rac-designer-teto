@@ -12,8 +12,8 @@ lang: pt-BR
 
 # Evolução Multicasa do RAC Designer TETO
 
-> Este é o artefato humano primário da iniciativa. O JSON derivado adjacente existe para consumo
-> estruturado e o sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas,
+> Este é o artefato humano primário da iniciativa. O [JSON derivado](./PRD-001-evolucao-multicasa.prd.assets/derived/prd-001-structured.json) existe para consumo
+> estruturado, e o sidecar `PRD-001-evolucao-multicasa.prd.assets/` concentra evidências, diagramas,
 > exportações brutas e material auxiliar.
 
 ## 1. Visão Geral
