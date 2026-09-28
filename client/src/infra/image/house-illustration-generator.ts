@@ -1,4 +1,5 @@
 import {racTrpcClient} from '@/lib/trpc-client.ts';
+import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 import type {HouseIllustrationPort, HouseIllustrationResult} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 export function createHouseIllustrationPort(): HouseIllustrationPort {
@@ -40,6 +41,13 @@ export async function persistHouseImageDataUrl(dataUrl: string, fileName: string
 
 export async function imageUrlToDataUrl(url: string): Promise<string | null> {
   if (url.startsWith('data:')) return url;
+  if (isProtectedImageSource(url)) {
+    try {
+      return await resolveProtectedImageSource(url);
+    } catch {
+      return null;
+    }
+  }
 
   const response = await fetch(toAbsoluteUrl(url), {credentials: 'include'});
   if (!response.ok) return null;

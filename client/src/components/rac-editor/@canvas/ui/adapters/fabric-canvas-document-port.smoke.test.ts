@@ -1,4 +1,5 @@
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+afterEach(() => vi.unstubAllGlobals());
 import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
 import {createFabricCanvasDocumentPort} from './fabric-canvas-document-port.ts';
 import {
@@ -39,6 +40,17 @@ function createCanvasObject(props: Record<string, unknown>): TestCanvasObject {
 }
 
 describe('fabric-canvas-document-port.ts', () => {
+  it('preserva o canvas atual quando uma imagem privada não pode ser autenticada', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: false, status: 401}));
+    const canvas = {clear: vi.fn(), loadFromJSON: vi.fn()};
+    await expect(createFabricCanvasDocumentPort(canvas as never).loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'private', kind: 'image', shape: 'image', resource: {src: '/manus-storage/private.png'}}],
+    })).rejects.toThrow('imagem protegida');
+    expect(canvas.clear).not.toHaveBeenCalled();
+    expect(canvas.loadFromJSON).not.toHaveBeenCalled();
+  });
+
   it('serializa o canvas como documento visual canônico', () => {
     const canvas = {
       toJSON: vi.fn(() => ({
@@ -501,6 +513,8 @@ describe('fabric-canvas-document-port.ts', () => {
   });
 
   it('reidrata imagens legadas do Storage pelo proxy same-origin para não contaminar a exportação', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ok: true, blob: async () => new Blob(['image'], {type: 'image/png'})});
+    vi.stubGlobal('fetch', fetchMock);
     const canvas = {
       clear: vi.fn(),
       loadFromJSON: vi.fn().mockResolvedValue(undefined),
@@ -526,13 +540,14 @@ describe('fabric-canvas-document-port.ts', () => {
     expect(canvas.loadFromJSON).toHaveBeenCalledWith({
       objects: [{
         type: 'image',
-        src: '/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+        src: expect.stringMatching(/^data:image\/png;base64,/),
         storageUrl: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
         crossOrigin: 'anonymous',
         myType: 'image',
         editorObjectId: 'legacy-upload-1',
       }],
     });
+    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg', expect.objectContaining({credentials: 'include', cache: 'no-store'}));
   });
 
   it('serializa imagem baseada em canvas sem chamar toJSON ou toDataURL na fonte viva', () => {

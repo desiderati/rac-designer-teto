@@ -620,3 +620,9 @@ When a repository uses Graphify:
   sources.
 
 @RTK.md
+
+## Identidade documental deste projeto
+
+O RAC Designer TETO usa a identidade TETO e não deve receber o banner SAT. A política
+`.agents/documentation-policy.json` define `sat_banner: forbidden` para o validador local;
+esta decisão específica prevalece sobre os modelos genéricos de documentação SAT.

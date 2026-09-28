@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {useEffect, useRef, useState, type ChangeEvent, type DragEvent} from 'react';
 import {Camera, Plus, RefreshCw, Trash2, UploadCloud} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
@@ -227,7 +228,7 @@ export function TerrainPhotosField({
         >
           <div className='relative aspect-[4/3] w-full'>
             {selectedPhoto ? (
-              <img
+              <ProtectedImage
                 src={selectedPhoto.url}
                 alt={selectedPhoto.description || `Foto do terreno ${selectedIndex + 1}`}
                 className='absolute inset-0 block h-full w-full object-cover object-center'
@@ -417,7 +418,7 @@ function TerrainPhotoThumb({
         className='absolute inset-0 z-0 grid cursor-pointer place-items-center bg-slate-100 text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60'
       >
         {photo ? (
-          <img src={photo.url} alt={photo.description || `Miniatura da foto ${index + 1}`} className='h-full w-full object-cover'/>
+          <ProtectedImage src={photo.url} alt={photo.description || `Miniatura da foto ${index + 1}`} className='h-full w-full object-cover'/>
         ) : (
           <Plus className='h-5 w-5 text-slate-400'/>
         )}

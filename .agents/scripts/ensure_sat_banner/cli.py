@@ -16,6 +16,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -175,12 +176,17 @@ def _remove_banner_lines(lines: Sequence[str]) -> list[str]:
     return cleaned
 
 
-def normalize_banner(text: str) -> str:
+def normalize_banner(text: str, *, required: bool = True) -> str:
     masked, protected = _protect_fenced_blocks(text)
     newline = _newline_for(masked)
     had_final_newline = text.endswith(("\n", "\r"))
     lines = masked.splitlines()
     cleaned = _remove_banner_lines(lines)
+    if not required:
+        if cleaned == lines:
+            return text
+        normalized = newline.join(cleaned) + (newline if had_final_newline else "")
+        return _restore_fenced_blocks(normalized, protected, newline)
     insert_at = _frontmatter_end(cleaned)
     prefix = cleaned[:insert_at]
     suffix = cleaned[insert_at:]
@@ -256,10 +262,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not repo_root.is_dir():
         _fail(f"repository root not found: {repo_root}")
 
+    policy_path = repo_root / '.agents' / 'documentation-policy.json'
+    banner_policy = 'required'
+    if policy_path.exists():
+        try:
+            banner_policy = json.loads(_read_utf8(policy_path))['sat_banner']
+        except (ValueError, KeyError, TypeError):
+            _fail('invalid documentation-policy.json')
+        if banner_policy not in ('required', 'forbidden'):
+            _fail('sat_banner must be required or forbidden')
+
     changed: list[Path] = []
     for path in _eligible_files(repo_root):
         original = _read_utf8(path)
-        normalized = normalize_banner(original)
+        normalized = normalize_banner(original, required=banner_policy == 'required')
         if normalized == original:
             continue
 

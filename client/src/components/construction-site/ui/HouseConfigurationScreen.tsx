@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type ReactNode, useEffect, useRef, useState} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -594,7 +595,7 @@ export function HouseConfigurationSidebar({constructionSite}: { constructionSite
   return (
     <aside className='h-fit rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:sticky lg:top-4'>
       {constructionSite.constructionSite.photoDataUrl ? (
-        <img
+        <ProtectedImage
           src={constructionSite.constructionSite.photoDataUrl}
           alt={`Foto da construção ${code}`}
           className='h-28 w-full rounded-xl object-cover'

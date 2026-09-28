@@ -9,6 +9,8 @@ afterEach(() => {
 
 describe('preparação de fotos para o PDF', () => {
   it('seleciona as fotos da casa correta e converte imagens disponíveis para JPEG', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ok: true, blob: async () => new Blob(['image'], {type: 'image/png'})});
+    vi.stubGlobal('fetch', fetchMock);
     const loadedSources: string[] = [];
     class FakeImage {
       naturalWidth = 1600;
@@ -49,13 +51,14 @@ describe('preparação de fotos para o PDF', () => {
       ],
       families: [
         {id: 'family-1', photoDataUrl: '/wrong-family.jpg'},
-        {id: 'family-2', photoDataUrl: '/family-2.jpg'},
+        {id: 'family-2', photoDataUrl: '/manus-storage/family-2.jpg'},
       ],
     } as unknown as ConstructionSiteState;
 
     const photos = await prepareRacPdfReportPhotos(constructionSite, 'house-2');
 
-    expect(loadedSources).toEqual(['/family-2.jpg', '/terrain-1.jpg', '/terrain-2.jpg']);
+    expect(loadedSources).toEqual(expect.arrayContaining([expect.stringMatching(/^data:image\/png;base64,/), '/terrain-1.jpg', '/terrain-2.jpg']));
+    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/family-2.jpg', expect.objectContaining({credentials: 'include', cache: 'no-store'}));
     expect(photos.familyPhotoImageDataUrl).toBe('data:image/jpeg;base64,prepared');
     expect(photos.terrainPhotoImageDataUrls).toEqual([
       'data:image/jpeg;base64,prepared',

@@ -1,4 +1,5 @@
 import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
+import {resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 
 export interface RacPdfPreparedPhotos {
   familyPhotoImageDataUrl: string | null;
@@ -28,6 +29,11 @@ export async function prepareRacPdfReportPhotos(
 
 async function preparePhoto(source: string | undefined): Promise<string | null> {
   if (!source) return null;
+  try {
+    source = await resolveProtectedImageSource(source);
+  } catch {
+    return null;
+  }
 
   return new Promise((resolve) => {
     const image = new Image();

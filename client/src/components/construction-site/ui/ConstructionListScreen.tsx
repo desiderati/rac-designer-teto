@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
 import {Download, Home, UsersRound} from 'lucide-react';
 import type {ConstructionSiteStatus, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
@@ -547,7 +548,7 @@ export function ConstructionTableRow({
 export function ConstructionAvatar({label, photoDataUrl}: { label: string; photoDataUrl?: string }) {
   if (photoDataUrl) {
     return (
-      <img
+      <ProtectedImage
         src={photoDataUrl}
         alt={`Foto da construção ${label}`}
         className='h-11 w-11 shrink-0 rounded-full object-cover object-center ring-2 ring-white'

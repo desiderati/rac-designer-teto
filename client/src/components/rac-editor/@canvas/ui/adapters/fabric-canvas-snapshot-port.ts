@@ -2,6 +2,7 @@ import {FabricImage, type Canvas as FabricCanvas} from 'fabric';
 import type {CanvasSnapshotPort} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotPort.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {create3DSnapshotImagePatch} from '@/components/rac-editor/lib/house-snapshot.ts';
+import {resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 
 /**
  * Adapta o canvas Fabric ao contrato de inserção de snapshots.
@@ -27,7 +28,7 @@ async function insertImageSnapshotOnFabricCanvas(params: {
 
   try {
     const image =
-      await FabricImage.fromURL(params.dataUrl, {crossOrigin: 'anonymous'});
+      await FabricImage.fromURL(await resolveProtectedImageSource(params.dataUrl), {crossOrigin: 'anonymous'});
     const center = params.canvas.getVpCenter();
 
     image.set({

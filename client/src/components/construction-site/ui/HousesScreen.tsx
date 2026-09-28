@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
 import {Download, PackagePlus} from 'lucide-react';
 import type {
@@ -626,7 +627,7 @@ export function HouseThumbnail({
 }) {
   if (photoDataUrl) {
     return (
-      <img
+      <ProtectedImage
         src={photoDataUrl}
         alt={`Foto da casa ${familyName}`}
         className='h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white'

@@ -22,6 +22,11 @@ A aplicação usará o mesmo padrão nativo de autenticação e banco utilizado 
 
 No MVP, qualquer conta Manus autenticada terá acesso à base global. O campo `role` será mantido para evolução futura, mas não haverá restrição adicional por papel, allowlist ou organização nesta fase.
 
+Todas as imagens armazenadas da aplicação exigem sessão válida para leitura, incluindo fotos de famílias,
+terrenos e imagens 3D. Somente os arquivos explicitamente usados na Landing Page são públicos, por uma
+lista fechada no servidor. Imagens privadas não podem usar cache público; os consumidores de interface,
+Canvas e PDF devem suportar autenticação por cookie e pelo Bearer utilizado no preview em iframe.
+
 Dados locais legados não serão migrados nem enviados automaticamente. Ao entrar no modo remoto, a aplicação deverá descartar esses dados após aviso e confirmação explícitos, quando houver dados a limpar.
 
 ### Estado atual da iniciativa

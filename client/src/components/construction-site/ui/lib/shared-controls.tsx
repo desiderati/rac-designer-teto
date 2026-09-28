@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {
   type ButtonHTMLAttributes,
   type ChangeEvent,
@@ -265,7 +266,7 @@ export function PhotoUploadField({
       >
         {value ? (
           <>
-            <img
+            <ProtectedImage
               src={value}
               alt={label}
               onLoad={(event) => {

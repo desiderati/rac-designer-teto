@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
 import type {
   ConstructionSiteState,
@@ -365,7 +366,7 @@ function MonitorTableRow({
 function MonitorAvatar({monitor}: { monitor: MonitorRecord }) {
   if (monitor.photoDataUrl) {
     return (
-      <img
+      <ProtectedImage
         src={monitor.photoDataUrl}
         alt={`Foto do monitor ${monitor.name}`}
         className='h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white'

@@ -1,5 +1,6 @@
 import {Canvas as FabricCanvas, FabricImage} from 'fabric';
 import type {FabricObject} from 'fabric';
+import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
 import {
   type CanvasObject,
@@ -359,7 +360,8 @@ function imageElementToDataUrl(element: Element): string {
   return raster.toDataURL('image/png');
 }
 
-function loadFabricImageForExport(source: string): Promise<FabricImage> {
+async function loadFabricImageForExport(source: string): Promise<FabricImage> {
+  source = await resolveProtectedImageSource(source);
   return new Promise((resolve, reject) => {
     const timeoutId = globalThis.setTimeout(() => {
       reject(new Error(`Tempo excedido ao carregar imagem externa após ${EXTERNAL_IMAGE_PROBE_TIMEOUT_MS} ms.`));
@@ -463,6 +465,18 @@ function collectExportVisualObjects(canvas: FabricCanvas): CanvasObject[] {
     });
 }
 
+async function hydrateProtectedImages(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const result = {...payload};
+  if (typeof result.src === 'string' && isProtectedImageSource(result.src)) {
+    result.storageUrl = result.storageUrl ?? result.src;
+    result.src = await resolveProtectedImageSource(result.src);
+  }
+  if (Array.isArray(result.objects)) {
+    result.objects = await Promise.all(result.objects.map(hydrateProtectedImages));
+  }
+  return result;
+}
+
 function captureExportVisualState(canvas: FabricCanvas): ExportVisualSnapshot[] {
   return collectExportVisualObjects(canvas).map((object) => ({
     object,
@@ -537,7 +551,7 @@ async function prepareImageAssetsForExport(canvas: FabricCanvas): Promise<() => 
 
     visibilitySnapshot.set(image, image.visible !== false);
     try {
-      const rehydrated = await FabricImage.fromURL(src, {crossOrigin: 'anonymous'});
+      const rehydrated = await FabricImage.fromURL(await resolveProtectedImageSource(src), {crossOrigin: 'anonymous'});
       image.setElement(rehydrated.getElement());
       image.set({crossOrigin: 'anonymous'});
       image.setCoords();
@@ -927,9 +941,10 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
     loadCanvasDocument: async (document: HouseDrawingCanvasDocument) => {
       if (!isHouseDrawingCanvasDocument(document)) return false;
 
+      const objects = await Promise.all(document.objects.map(toRuntimePayload).map(hydrateProtectedImages));
       canvas.clear();
       await canvas.loadFromJSON({
-        objects: document.objects.map(toRuntimePayload),
+        objects,
       });
       refreshHouseGroupsOnCanvas(canvas);
       restoreCanvasRuntimeBehaviors(canvas);

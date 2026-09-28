@@ -1,3 +1,4 @@
+import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {useEffect, useRef} from 'react';
 import {Controller, type Control, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -265,7 +266,7 @@ function HouseSummaryPhoto({
 }) {
   if (photoDataUrl) {
     return (
-      <img
+      <ProtectedImage
         src={photoDataUrl}
         alt={`Foto da família ${familyName}`}
         className='h-28 w-full rounded-xl object-cover'
