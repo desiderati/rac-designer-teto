@@ -16,6 +16,7 @@ interface ZoomMenuProps {
 
   /** Reposiciona a viewport para encaixar o canvas no contêiner visível. */
   onFitToView: () => void;
+  onFitContent: () => void;
 
   /** Modo mobile mantém controles compactos com nomes acessíveis. */
   isMobile: boolean;
@@ -27,7 +28,7 @@ interface ZoomMenuProps {
  * Mostra o percentual de zoom atual e abre um submenu horizontal com seleção,
  * pan e ajuste à viewport, seguindo a referência visual refinada do Stitch.
  */
-export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, isMobile}: ZoomMenuProps) {
+export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, onFitContent, isMobile}: ZoomMenuProps) {
   const zoomPercent = Math.round(zoom * 100);
 
   return (
@@ -78,6 +79,14 @@ export function ZoomMenu({zoom, canvasToolMode, onSetToolMode, onFitToView, isMo
             shortcut='F'
             isActive={false}
             onClick={onFitToView}
+            isMobile={isMobile}
+          />
+          <ToolPill
+            icon={TOP_BAR_ICONS.toolFitContent}
+            label='Localizar'
+            shortcut='L'
+            isActive={false}
+            onClick={onFitContent}
             isMobile={isMobile}
           />
         </div>

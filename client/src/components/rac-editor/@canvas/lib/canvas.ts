@@ -56,7 +56,7 @@ type CanvasProperties = {
   isTopSlopeIndicator?: boolean;
   isTopSlopeIndicatorText?: boolean;
 
-  streetVariant?: 'straight' | 'corner';
+  streetVariant?: 'straight' | 'corner' | 'dirt';
 
   isPilotiCircle?: boolean;
   isPilotiRect?: boolean;

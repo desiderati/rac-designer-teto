@@ -148,7 +148,7 @@ export function RacEditorModalEditors({
       />
 
       <GenericObjectEditor
-        editorType='wall'
+        editorType={wallSelection?.editorType ?? 'wall'}
         currentValue={wallSelection?.currentLabel ?? ''}
         currentColor={wallEditorColor ?? CANVAS_ELEMENT_STYLE.strokeColor.wallElement}
         isOpen={isWallEditorOpen}

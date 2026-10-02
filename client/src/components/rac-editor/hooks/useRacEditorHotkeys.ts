@@ -7,11 +7,13 @@ interface UseHotkeysOptions {
   onToggleZoomControls: () => void;
   onSetCanvasToolMode: (mode: CanvasToolMode) => void;
   onFitToView: () => void;
+  onFitContent: () => void;
 }
 
 /**
  * Atalhos globais de teclado para o canvas:
- *  - L: alternar modo de desenho a lápis
+ *  - D: alternar modo de desenho a lápis
+ *  - L: localizar elementos fora da área visível, sem alterar o zoom
  *  - Z: alternar visibilidade de zoom/minimapa
  *  - S: alternar para ferramenta de seleção
  *  - P: alternar para ferramenta de pan
@@ -25,11 +27,13 @@ export function useRacEditorHotkeys({
   onToggleZoomControls,
   onSetCanvasToolMode,
   onFitToView,
+  onFitContent,
 }: UseHotkeysOptions) {
   const drawModeHandlerRef = useRef(onToggleDrawMode);
   const zoomHandlerRef = useRef(onToggleZoomControls);
   const setToolModeRef = useRef(onSetCanvasToolMode);
   const fitToViewRef = useRef(onFitToView);
+  const fitContentRef = useRef(onFitContent);
 
   useEffect(() => {
     drawModeHandlerRef.current = onToggleDrawMode;
@@ -48,6 +52,10 @@ export function useRacEditorHotkeys({
   }, [onFitToView]);
 
   useEffect(() => {
+    fitContentRef.current = onFitContent;
+  }, [onFitContent]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (shouldIgnoreShortcut(event)) return;
 
@@ -55,6 +63,11 @@ export function useRacEditorHotkeys({
       const isMobileDevice = window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches;
       switch (key) {
         case 'l':
+          event.preventDefault();
+          fitContentRef.current();
+          return;
+
+        case 'd':
           event.preventDefault();
           drawModeHandlerRef.current();
           return;

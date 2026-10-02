@@ -5,11 +5,13 @@ import {HamburgerMenu} from './HamburgerMenu.tsx';
 
 const SLOW_UI_TEST_TIMEOUT_MS = 20_000;
 
-function renderMenu(options: { documentTransitioning?: boolean } = {}) {
+function renderMenu(options: { documentTransitioning?: boolean; canAddHouse?: boolean; houseLabel?: string } = {}) {
   const user = userEvent.setup();
   const actions = {
     activateHouse: vi.fn().mockResolvedValue(undefined),
     openConstructionSites: vi.fn(),
+    openHouseEdit: vi.fn().mockResolvedValue(undefined),
+    addHouse: vi.fn().mockResolvedValue(undefined),
   };
   const constructionGroups = [
     {
@@ -17,8 +19,9 @@ function renderMenu(options: { documentTransitioning?: boolean } = {}) {
       code: 'CC2603',
       communityName: 'Tiradentes',
       active: true,
+      canAddHouse: options.canAddHouse,
       houses: [
-        {id: 'house-1', label: 'Família Souza', active: true},
+        {id: 'house-1', label: options.houseLabel ?? 'Família Souza', active: true},
         {id: 'house-3', label: 'Aline', active: false},
         {id: 'house-4', label: 'Adriana', active: false},
       ],
@@ -46,6 +49,39 @@ function renderMenu(options: { documentTransitioning?: boolean } = {}) {
 }
 
 describe('HamburgerMenu.tsx', () => {
+  it('preserva seleção e edição da mesma casa com nome longo sem espaços', async () => {
+    const houseLabel = 'CasaComNomeMuitoLongoSemEspacos'.repeat(4);
+    const {user, actions} = renderMenu({houseLabel});
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    await user.click(screen.getByRole('button', {name: houseLabel}));
+    expect(actions.activateHouse).toHaveBeenCalledWith('construction-2603', 'house-1');
+
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    const editButton = screen.getByRole('button', {name: `Editar casa ${houseLabel}`});
+    expect(editButton).toHaveAttribute('title', `Editar casa ${houseLabel}`);
+    await user.click(editButton);
+    expect(actions.openHouseEdit).toHaveBeenCalledWith('construction-2603', 'house-1');
+    expect(actions.activateHouse).toHaveBeenCalledTimes(1);
+  });
+  it('desabilita cadastro em construção concluída', async () => {
+    const {user, actions} = renderMenu({canAddHouse: false});
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    const button = screen.getByRole('button', {name: 'Adicionar casa em CC2603 - Tiradentes'});
+    expect(button).toBeDisabled();
+    await user.click(button);
+    expect(actions.addHouse).not.toHaveBeenCalled();
+  });
+  it('abre edição direta e cadastro vinculados inequivocamente à construção', async () => {
+    const {user, actions} = renderMenu();
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    await user.click(screen.getByRole('button', {name: 'Editar casa Aline'}));
+    expect(actions.openHouseEdit).toHaveBeenCalledWith('construction-2603', 'house-3');
+    expect(actions.activateHouse).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', {name: 'Abrir menu principal'}));
+    await user.click(screen.getByRole('button', {name: 'CC2604 - Heliópolis'}));
+    await user.click(screen.getByRole('button', {name: 'Adicionar casa em CC2604 - Heliópolis'}));
+    expect(actions.addHouse).toHaveBeenCalledWith('construction-2604');
+  });
   it('lista Construções TETO primeiro e organiza casas por código e comunidade da construção', async () => {
     const {user, actions} = renderMenu();
 

@@ -13,12 +13,13 @@ vi.mock('@/contexts/RemoteSyncContext.tsx', () => ({
 function createActions(): MenuActionMap {
   return {
     openHouseTypeSelector: vi.fn(), addHouseFront: vi.fn(), addHouseBack: vi.fn(), addHouseSide1: vi.fn(), addHouseSide2: vi.fn(),
-    addWall: vi.fn(), addStreetStraight: vi.fn(), addStreetCorner: vi.fn(), addDoor: vi.fn(), addStairs: vi.fn(), addTree: vi.fn(),
+    addWall: vi.fn(), addStreetStraight: vi.fn(), addStreetCorner: vi.fn(), addDirtRoad: vi.fn(), addSquare: vi.fn(),
+    addTriangle: vi.fn(), addCircle: vi.fn(), addDoor: vi.fn(), addStairs: vi.fn(), addTree: vi.fn(),
     addWater: vi.fn(), addFossa: vi.fn(), addLine: vi.fn(), addArrow: vi.fn(), addDistance: vi.fn(), toggleDrawMode: vi.fn(),
     addText: vi.fn(), openImageUpload: vi.fn(), openConstructionSites: vi.fn(), activateHouse: vi.fn().mockResolvedValue(undefined),
-    deleteSelection: vi.fn(), savePDF: vi.fn(), toggleHouseMenu: vi.fn(), toggleElementsMenu: vi.fn(), toggleLinesMenu: vi.fn(),
+    deleteSelection: vi.fn(), savePDF: vi.fn(), toggleHouseMenu: vi.fn(), toggleElementsMenu: vi.fn(), toggleGeometryMenu: vi.fn(), toggleLinesMenu: vi.fn(),
     toggleOverflowMenu: vi.fn(), toggleTips: vi.fn(), toggleZoomControls: vi.fn(), open3DViewer: vi.fn(), toggleMenu: vi.fn(),
-    restartDrawing: vi.fn(), exit: vi.fn(), renameFamily: vi.fn(), setCanvasToolMode: vi.fn(), fitToView: vi.fn(), openSettings: vi.fn(),
+    restartDrawing: vi.fn(), exit: vi.fn(), renameFamily: vi.fn(), setCanvasToolMode: vi.fn(), fitToView: vi.fn(), fitContent: vi.fn(), openSettings: vi.fn(),
   };
 }
 
@@ -181,7 +182,7 @@ describe('TopBar.tsx', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
-  it('desabilita exportação quando nenhuma casa foi inserida no canvas', async () => {
+  it('desabilita exportação e orienta inserir a planta no Canvas', async () => {
     const user = userEvent.setup();
     configureRemoteSync('synced');
     const actions = createActions();
@@ -190,7 +191,7 @@ describe('TopBar.tsx', () => {
 
     const exportButton = screen.getByRole('button', {name: 'Exportar RAC em PDF'});
     expect(exportButton).toBeDisabled();
-    expect(exportButton).toHaveAttribute('title', 'Insira uma casa no canvas para exportar o RAC em PDF');
+    expect(exportButton).toHaveAttribute('title', 'Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.');
 
     await user.click(exportButton);
     expect(actions.savePDF).not.toHaveBeenCalled();

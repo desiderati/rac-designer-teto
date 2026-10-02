@@ -41,6 +41,8 @@ export interface PilotiCanvasSelection {
 }
 
 export interface WallCanvasSelection {
+  /** Variante visual tratada pelo editor genérico compartilhado. */
+  editorType?: 'wall' | 'square' | 'triangle' | 'circle' | 'text' | 'freehand';
   /** Identidade serializável do objeto visual selecionado. */
   objectId: string;
 
@@ -57,8 +59,8 @@ export interface WallCanvasSelection {
   screenPosition: { x: number; y: number };
 }
 
-export type GenericCanvasObjectEditorType = 'wall' | 'line' | 'arrow' | 'distance';
-export type LinearCanvasSelectionType = Exclude<GenericCanvasObjectEditorType, 'wall'>;
+export type GenericCanvasObjectEditorType = 'wall' | 'square' | 'triangle' | 'circle' | 'text' | 'freehand' | 'line' | 'arrow' | 'distance';
+export type LinearCanvasSelectionType = 'line' | 'arrow' | 'distance';
 
 export interface LinearCanvasSelection {
   /** Identidade serializável do objeto visual selecionado. */

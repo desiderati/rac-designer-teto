@@ -5,6 +5,7 @@ import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.t
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {isIsolatedLocalMode} from '@/shared/local-runtime.ts';
+import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {TOP_BAR_ICONS} from '../lib/menu-config.ts';
 import {FamilyName} from './FamilyName.tsx';
 import {HamburgerMenu} from './HamburgerMenu.tsx';
@@ -65,7 +66,7 @@ export function TopBar({
 
   const exportPDFTitle = canExportPDF
     ? 'Exportar RAC em PDF'
-    : 'Insira uma casa no canvas para exportar o RAC em PDF';
+    : TOAST_MESSAGES.addHouseBeforePdfExport;
 
   return (
     <div data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[420px] w-full'>
@@ -86,6 +87,7 @@ export function TopBar({
           canvasToolMode={canvasToolMode}
           onSetToolMode={actions.setCanvasToolMode}
           onFitToView={actions.fitToView}
+          onFitContent={actions.fitContent}
           isMobile={isMobile}
         />
       </div>

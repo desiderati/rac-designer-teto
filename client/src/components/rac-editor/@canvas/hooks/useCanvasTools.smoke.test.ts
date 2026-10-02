@@ -120,7 +120,7 @@ describe('useCanvasTools guided tour events', () => {
     }
   });
 
-  it('does not dispatch guided-tour events for non-tip object kinds', () => {
+  it('dispatches the text color tip only after inserting text', () => {
     const listener = vi.fn();
     const {result} = renderCanvasTools(createCanvasObject());
     document.addEventListener(INSERTED_EVENT, listener as EventListener);
@@ -133,7 +133,8 @@ describe('useCanvasTools guided tour events', () => {
         vi.runOnlyPendingTimers();
       });
 
-      expect(listener).not.toHaveBeenCalled();
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect((listener.mock.calls[0][0] as CustomEvent).detail.kind).toBe('text');
     } finally {
       document.removeEventListener(INSERTED_EVENT, listener as EventListener);
     }

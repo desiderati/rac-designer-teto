@@ -21,7 +21,12 @@ export interface GenericObjectEditorStrategy {
 }
 
 const genericObjectEditorStrategyRegistry: Record<GenericObjectEditorType, GenericObjectEditorStrategy> = {
-  wall: createWallStrategy(),
+  wall: createWallStrategy('wall'),
+  square: createWallStrategy('square'),
+  triangle: createWallStrategy('triangle'),
+  circle: createWallStrategy('circle'),
+  text: createColorStrategy('text'),
+  freehand: createColorStrategy('freehand'),
   line: createLinearStrategy('line'),
   arrow: createLinearStrategy('arrow'),
   distance: createLinearStrategy('distance'),
@@ -31,9 +36,9 @@ export function getGenericObjectEditorStrategy(kind: GenericObjectEditorType): G
   return genericObjectEditorStrategyRegistry[kind];
 }
 
-function createWallStrategy(): GenericObjectEditorStrategy {
+function createWallStrategy(kind: 'wall' | 'square' | 'triangle' | 'circle'): GenericObjectEditorStrategy {
   return {
-    kind: 'wall',
+    kind,
     apply: ({canvas, object, color, label}) => {
       const groupChildren = object.getObjects();
       const wallColor = color || CANVAS_ELEMENT_STYLE.strokeColor.wallElement;
@@ -43,6 +48,8 @@ function createWallStrategy(): GenericObjectEditorStrategy {
             stroke: wallColor,
             fill: toPastelWallFill(wallColor),
           });
+        } else if (child.myType === 'wallBrick') {
+          child.set({fill: wallColor, stroke: toPastelWallFill(wallColor)});
         } else if (child.myType !== 'wallLabel') {
           child.set({stroke: wallColor});
         }
@@ -61,6 +68,22 @@ function createWallStrategy(): GenericObjectEditorStrategy {
       canvas.requestRenderAll();
     },
     getInfoMessage: () => 'Objeto atualizado.',
+  };
+}
+
+function createColorStrategy(kind: 'text' | 'freehand'): GenericObjectEditorStrategy {
+  return {
+    kind,
+    apply: ({canvas, object, color, label}) => {
+      if (kind === 'text') {
+        object.set({fill: color, text: label});
+        (object as IText).initDimensions();
+      }
+      else object.set({stroke: color});
+      object.setCoords();
+      canvas.requestRenderAll();
+    },
+    getInfoMessage: () => kind === 'text' ? 'Texto atualizado.' : 'Desenho atualizado.',
   };
 }
 

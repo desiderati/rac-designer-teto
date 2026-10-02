@@ -19,6 +19,7 @@ export function useRacEditorDocumentHotkeysController({
   onToggleZoomControls,
   onSetCanvasToolMode,
   onFitToView,
+  onFitContent,
 }: UseRacEditorDocumentHotkeysControllerArgs) {
   const actions = useRacEditorDocumentActions({
     canvasRef,
@@ -33,6 +34,7 @@ export function useRacEditorDocumentHotkeysController({
     onToggleZoomControls,
     onSetCanvasToolMode,
     onFitToView,
+    onFitContent,
   });
 
   return actions;

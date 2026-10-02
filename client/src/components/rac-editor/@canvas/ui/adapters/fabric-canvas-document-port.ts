@@ -380,13 +380,16 @@ async function loadFabricImageForExport(source: string): Promise<FabricImage> {
   });
 }
 
-async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
+async function sanitizeRasterStyleValue(value: JsonValue, markOmitted: () => void): Promise<JsonValue> {
   if (!isRecord(value) || (value.type !== 'pattern' && !('source' in value))) {
     return value;
   }
 
   const source = readString(value.source);
-  if (!source) return 'transparent';
+  if (!source) {
+    markOmitted();
+    return 'transparent';
+  }
   if (/^(data:|blob:)/i.test(source)) return value;
   if (isSameOriginSource(source)) return value;
 
@@ -400,6 +403,7 @@ async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
     };
   } catch (error) {
     console.warn('[Canvas PDF export] Raster style omitted from isolated snapshot:', error);
+    markOmitted();
     return 'transparent';
   } finally {
     probe?.dispose();
@@ -408,6 +412,7 @@ async function sanitizeRasterStyleValue(value: JsonValue): Promise<JsonValue> {
 
 async function sanitizeElementStyleForSafeExport(
   style: JsonObject | undefined,
+  markOmitted: () => void,
 ): Promise<JsonObject | undefined> {
   if (!style) return undefined;
 
@@ -415,7 +420,7 @@ async function sanitizeElementStyleForSafeExport(
   for (const key of ['fill', 'stroke', 'backgroundColor']) {
     const value = nextStyle[key];
     if (value === undefined) continue;
-    nextStyle[key] = await sanitizeRasterStyleValue(value);
+    nextStyle[key] = await sanitizeRasterStyleValue(value, markOmitted);
   }
   return nextStyle;
 }
@@ -577,13 +582,14 @@ async function prepareImageAssetsForExport(canvas: FabricCanvas): Promise<() => 
 
 async function sanitizeElementForSafeExport(
   element: HouseDrawingElementDocument,
+  markOmitted: () => void,
 ): Promise<HouseDrawingElementDocument | null> {
   const children = element.children
-    ? (await Promise.all(element.children.map((child) => sanitizeElementForSafeExport(child))))
+    ? (await Promise.all(element.children.map((child) => sanitizeElementForSafeExport(child, markOmitted))))
       .filter((child): child is HouseDrawingElementDocument => child !== null)
     : undefined;
 
-  const style = await sanitizeElementStyleForSafeExport(element.style);
+  const style = await sanitizeElementStyleForSafeExport(element.style, markOmitted);
 
   if (element.shape !== 'image') {
     return children || style
@@ -594,6 +600,7 @@ async function sanitizeElementForSafeExport(
   const resource = element.resource;
   const source = readString(resource?.src) ?? readString(resource?.storageUrl);
   if (!source) {
+    markOmitted();
     return null;
   }
 
@@ -629,19 +636,25 @@ async function sanitizeElementForSafeExport(
     };
   } catch (error) {
     console.warn('[Canvas PDF export] Image omitted from isolated snapshot:', error);
+    markOmitted();
     return null;
   } finally {
     probe?.dispose();
   }
 }
 
-async function sanitizeDocumentForSafeExport(
+export async function sanitizeCanvasDocumentForSafeExport(
   document: HouseDrawingCanvasDocument,
-): Promise<HouseDrawingCanvasDocument> {
-  const objects = await Promise.all(document.objects.map((object) => sanitizeElementForSafeExport(object)));
+): Promise<{document: HouseDrawingCanvasDocument; hasOmittedRasterSources: boolean}> {
+  let hasOmittedRasterSources = false;
+  const markOmitted = () => { hasOmittedRasterSources = true; };
+  const objects = await Promise.all(document.objects.map((object) => sanitizeElementForSafeExport(object, markOmitted)));
   return {
-    ...document,
-    objects: objects.filter((object): object is HouseDrawingElementDocument => object !== null),
+    document: {
+      ...document,
+      objects: objects.filter((object): object is HouseDrawingElementDocument => object !== null),
+    },
+    hasOmittedRasterSources,
   };
 }
 
@@ -882,12 +895,15 @@ async function exportDocumentFromFreshCanvas(
   }
 }
 
-async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | null> {
+async function exportSafeImageDataUrlWithStatus(canvas: FabricCanvas): Promise<{
+  imageDataUrl: string | null;
+  hasOmittedRasterSources: boolean;
+}> {
   const sourcePort = createFabricCanvasDocumentPort(canvas);
   const canvasDocument = sourcePort.exportCanvasDocument();
-  if (!canvasDocument) return null;
+  if (!canvasDocument) return {imageDataUrl: null, hasOmittedRasterSources: false};
 
-  const safeDocument = await sanitizeDocumentForSafeExport(canvasDocument);
+  const {document: safeDocument, hasOmittedRasterSources} = await sanitizeCanvasDocumentForSafeExport(canvasDocument);
   const width = canvas.getWidth() || CANVAS_WIDTH;
   const height = canvas.getHeight() || CANVAS_HEIGHT;
   const isolated = createIsolatedCanvas(width, height);
@@ -895,10 +911,10 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
   try {
     const isolatedPort = createFabricCanvasDocumentPort(isolated.canvas);
     const loaded = await isolatedPort.loadCanvasDocument(safeDocument);
-    if (!loaded) return null;
+    if (!loaded) return {imageDataUrl: null, hasOmittedRasterSources};
     isolated.canvas.renderAll();
     try {
-      return isolatedPort.exportImageDataUrl();
+      return {imageDataUrl: isolatedPort.exportImageDataUrl(), hasOmittedRasterSources};
     } catch (error) {
       if (!isSecurityError(error)) throw error;
 
@@ -907,11 +923,15 @@ async function exportSafeImageDataUrl(canvas: FabricCanvas): Promise<string | nu
       // whole RAC: remove all image pixels from this disposable canvas and
       // retry the export. The user's live canvas is never touched.
       console.warn('[Canvas PDF export] Isolated canvas was tainted; retrying without image pixels.', error);
-      return exportDocumentFromFreshCanvas(
-        removeRasterSourcesFromDocument(safeDocument).document,
-        width,
-        height,
-      );
+      const withoutRasterSources = removeRasterSourcesFromDocument(safeDocument);
+      return {
+        imageDataUrl: await exportDocumentFromFreshCanvas(
+          withoutRasterSources.document,
+          width,
+          height,
+        ),
+        hasOmittedRasterSources: hasOmittedRasterSources || withoutRasterSources.changed,
+      };
     }
   } finally {
     await isolated.canvas.dispose();
@@ -974,7 +994,8 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
       }
     },
 
-    exportSafeImageDataUrl: () => exportSafeImageDataUrl(canvas),
+    exportSafeImageDataUrl: async () => (await exportSafeImageDataUrlWithStatus(canvas)).imageDataUrl,
+    exportSafeImageDataUrlWithStatus: () => exportSafeImageDataUrlWithStatus(canvas),
 
     prepareImageAssetsForExport: () => prepareImageAssetsForExport(canvas),
   };

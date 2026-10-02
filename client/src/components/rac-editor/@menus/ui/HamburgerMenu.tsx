@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {HousePlus, Pencil} from 'lucide-react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import type {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover.tsx';
@@ -12,7 +13,7 @@ const houseLabelCollator = new Intl.Collator('pt-BR', {
 });
 
 interface HamburgerMenuProps {
-  actions: Pick<MenuActionMap, 'activateHouse' | 'openConstructionSites'>;
+  actions: Pick<MenuActionMap, 'activateHouse' | 'openConstructionSites' | 'openHouseEdit' | 'addHouse'>;
   constructionGroups: MenuConstructionGroup[];
   documentTransitioning?: boolean;
 }
@@ -109,8 +110,8 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
               {expanded ? (
                 <div className='ml-4 mt-0.5 space-y-0.5 border-l border-slate-100 pl-1.5'>
                   {houses.length ? houses.map((house) => (
+                    <div key={house.id} className='flex items-center gap-1'>
                     <MenuItem
-                      key={house.id}
                       icon={MAIN_MENU_ICONS.house}
                       label={house.label}
                       active={house.active}
@@ -122,9 +123,24 @@ export function HamburgerMenu({actions, constructionGroups, documentTransitionin
                         setOpen(false);
                       }}
                     />
+                    {actions.openHouseEdit ? (
+                      <button type='button' aria-label={`Editar casa ${house.label}`} title={`Editar casa ${house.label}`} disabled={documentTransitioning}
+                        className='grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50'
+                        onClick={() => {void actions.openHouseEdit(construction.id, house.id); setOpen(false);}}>
+                        <Pencil className='h-3.5 w-3.5' aria-hidden='true'/>
+                      </button>
+                    ) : null}
+                    </div>
                   )) : (
                     <p className='px-3 py-2 text-xs font-medium text-slate-400'>Nenhuma casa cadastrada.</p>
                   )}
+                  {actions.addHouse ? (
+                    <button type='button' disabled={documentTransitioning || construction.canAddHouse === false} aria-label={`Adicionar casa em ${constructionLabel}`}
+                      className='mt-1 flex min-h-10 w-full items-center gap-2 rounded-lg px-2.5 text-left text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50'
+                      onClick={() => {void actions.addHouse(construction.id); setOpen(false);}}>
+                      <HousePlus className='h-4 w-4' aria-hidden='true'/><span>Adicionar casa</span>
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -171,7 +187,7 @@ function MenuItem({icon, label, onClick, active = false, nested = false, iconTes
         'w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-medium',
         'transition-colors',
         'disabled:cursor-not-allowed disabled:opacity-50',
-        nested ? 'text-xs' : null,
+        nested ? 'min-w-0 flex-1 text-xs' : null,
         active
           ? 'bg-blue-50 text-blue-900'
           : 'text-slate-700 hover:bg-slate-100',

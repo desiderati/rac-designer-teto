@@ -91,4 +91,29 @@ describe('generic-object-editor-strategy.ts', () => {
     expect(wallBody.fill).toBe('rgb(255, 189, 189)');
     expect(wallLabel.fill).toBe('#ff0000');
   });
+
+  it('reutiliza a edição do muro nas formas e altera o traçado de texto e desenho livre', () => {
+    const canvas = {requestRenderAll: vi.fn()};
+    const body = createChild({myType: 'wallBody', fill: '#eee'});
+    const label = createChild({myType: 'wallLabel', text: '', fill: '#111'});
+    getGenericObjectEditorStrategy('circle').apply({
+      canvas: canvas as never, object: createObject([body, label]), color: '#00f', label: 'Ponto A',
+    });
+    expect(body.stroke).toBe('#00f');
+    expect(label.text).toBe('Ponto A');
+
+    const text = {
+      fill: '#111', text: 'Texto', set(values: Record<string, unknown>) {Object.assign(this, values);},
+      initDimensions: vi.fn(), setCoords: vi.fn(),
+    } as unknown as CanvasObject;
+    getGenericObjectEditorStrategy('text').apply({canvas: canvas as never, object: text, color: '#f00', label: 'Novo'});
+    expect(text.fill).toBe('#f00');
+    expect(text.text).toBe('Novo');
+
+    const path = {
+      stroke: '#111', set(values: Record<string, unknown>) {Object.assign(this, values);}, setCoords: vi.fn(),
+    } as unknown as CanvasObject;
+    getGenericObjectEditorStrategy('freehand').apply({canvas: canvas as never, object: path, color: '#0f0', label: ''});
+    expect(path.stroke).toBe('#0f0');
+  });
 });

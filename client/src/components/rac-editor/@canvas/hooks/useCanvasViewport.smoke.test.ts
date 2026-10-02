@@ -36,4 +36,13 @@ describe('useCanvasViewport.ts', () => {
       viewportY: 140,
     });
   });
+
+  it('enquadra objetos distantes usando a área real ocupada', () => {
+    const {result} = renderHook(() => useCanvasViewport({}));
+    act(() => result.current.setContainerSize({width: 600, height: 400}));
+    act(() => result.current.fitContent({left: 1100, top: 800, width: 160, height: 90}));
+    expect(result.current.zoom).toBeGreaterThan(0.25);
+    expect(result.current.viewportX).toBeGreaterThan(0);
+    expect(result.current.viewportY).toBeGreaterThan(0);
+  });
 });

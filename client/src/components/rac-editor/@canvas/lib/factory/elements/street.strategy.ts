@@ -3,7 +3,7 @@ import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
 import type {CanvasGroup, CanvasObject} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 
-export type StreetVariant = 'straight' | 'corner';
+export type StreetVariant = 'straight' | 'corner' | 'dirt';
 
 const STREET_BODY_COLOR = '#9ca3af';
 const STREET_BORDER_COLOR = '#6b7280';
@@ -19,13 +19,14 @@ const CORNER_VERTICAL_MARKING_BOTTOM_INSET = 46;
 
 export const streetStraightStrategy = createStreetStrategy('straight');
 export const streetCornerStrategy = createStreetStrategy('corner');
+export const dirtRoadStrategy = createStreetStrategy('dirt');
 
 function createStreetStrategy(variant: StreetVariant): ElementStrategy {
   return {
     create(canvas: FabricCanvas): CanvasGroup {
       const group = variant === 'straight'
         ? createStraightStreetGroup()
-        : createCornerStreetGroup();
+        : variant === 'corner' ? createCornerStreetGroup() : createDirtRoadGroup();
 
       group.set({
         left: canvas.width! / 2,
@@ -124,6 +125,31 @@ function createStraightStreetGroup(): FabricGroup {
     originX: 'center',
     originY: 'center',
     objectCaching: false,
+  });
+}
+
+function createDirtRoadGroup(): FabricGroup {
+  const width = STRAIGHT_STREET_WIDTH;
+  const height = STREET_DEPTH;
+  const body = setCanvasObjectMyType(new Rect({
+    width, height, fill: '#c59b70', stroke: '#896747', strokeWidth: 2,
+    originX: 'center', originY: 'center', selectable: false, evented: false,
+  }), 'streetBody');
+  const texture = Array.from({length: 15}, (_, index) => {
+    const row = Math.floor(index / 5);
+    const column = index % 5;
+    return setCanvasObjectMyType(new Line([
+      -width / 2 + 28 + column * 53,
+      -height / 2 + 14 + row * 21,
+      -width / 2 + 39 + column * 53,
+      -height / 2 + 14 + row * 21,
+    ], {
+      stroke: index % 3 === 0 ? '#e0be91' : '#a57b53', strokeWidth: 2,
+      originX: 'center', originY: 'center', selectable: false, evented: false,
+    }), 'streetTexture');
+  });
+  return new FabricGroup([body, ...texture], {
+    originX: 'center', originY: 'center', objectCaching: false,
   });
 }
 

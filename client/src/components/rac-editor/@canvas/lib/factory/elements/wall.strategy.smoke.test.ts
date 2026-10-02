@@ -65,6 +65,7 @@ describe('wall.strategy.ts', () => {
       fontSize: 15,
       scaleX: 1,
       scaleY: 1,
+      top: 63,
     }));
     expect(group).toEqual(expect.objectContaining({
       width: 320,
@@ -72,6 +73,16 @@ describe('wall.strategy.ts', () => {
       scaleX: 1,
       scaleY: 1,
     }));
+  });
+
+  it('mantém o rótulo abaixo da base do muro', () => {
+    const wall = wallStrategy.create({width: 800, height: 600} as any);
+    const children = wall.getObjects();
+    const body = children.find((child) => child.myType === 'wallBody');
+    const label = children.find((child) => child.myType === 'wallLabel');
+    expect(body).toBeDefined();
+    expect(label).toBeDefined();
+    expect((label?.top ?? 0) - (body?.top ?? 0)).toBeGreaterThan((body?.height ?? 0) / 2);
   });
 });
 

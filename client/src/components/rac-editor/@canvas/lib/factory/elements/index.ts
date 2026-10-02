@@ -9,9 +9,11 @@ import {treeStrategy} from './tree.strategy.ts';
 import {wallStrategy} from './wall.strategy.ts';
 import {stairsStrategy} from './stairs.strategy.ts';
 import {waterStrategy} from './water.strategy.ts';
+import {circleStrategy, squareStrategy, triangleStrategy} from './geometry.strategy.ts';
 import {
   streetCornerStrategy,
   streetStraightStrategy,
+  dirtRoadStrategy,
 } from './street.strategy.ts';
 
 export const elementStrategies: Record<ElementStrategyKey, ElementStrategy> = {
@@ -21,6 +23,10 @@ export const elementStrategies: Record<ElementStrategyKey, ElementStrategy> = {
   wall: wallStrategy,
   streetStraight: streetStraightStrategy,
   streetCorner: streetCornerStrategy,
+  dirtRoad: dirtRoadStrategy,
+  square: squareStrategy,
+  triangle: triangleStrategy,
+  circle: circleStrategy,
   water: waterStrategy,
   stairs: stairsStrategy,
   door: doorStrategy,

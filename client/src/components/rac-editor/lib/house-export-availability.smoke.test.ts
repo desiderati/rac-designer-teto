@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {HouseViewType} from '@/shared/types/house.ts';
-import {hasHouseViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
+import {hasHouseTopViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
 
 function createHouseReadPortWithViews(insertedViews: Partial<Record<HouseViewType, number>>) {
   return {
@@ -13,11 +13,11 @@ function createHouseReadPortWithViews(insertedViews: Partial<Record<HouseViewTyp
 
 describe('house-export-availability.ts', () => {
   it('bloqueia exportação quando nenhuma vista de casa foi inserida no canvas', () => {
-    expect(hasHouseViewInsertedInCanvas(createHouseReadPortWithViews({}))).toBe(false);
+    expect(hasHouseTopViewInsertedInCanvas(createHouseReadPortWithViews({}))).toBe(false);
   });
 
-  it('libera exportação quando existe ao menos uma vista de casa no canvas', () => {
-    expect(hasHouseViewInsertedInCanvas(createHouseReadPortWithViews({top: 1}))).toBe(true);
-    expect(hasHouseViewInsertedInCanvas(createHouseReadPortWithViews({front: 1}))).toBe(true);
+  it('exige a planta mesmo quando existem elevações no Canvas', () => {
+    expect(hasHouseTopViewInsertedInCanvas(createHouseReadPortWithViews({top: 1}))).toBe(true);
+    expect(hasHouseTopViewInsertedInCanvas(createHouseReadPortWithViews({front: 1, back: 1, side1: 1, side2: 1}))).toBe(false);
   });
 });

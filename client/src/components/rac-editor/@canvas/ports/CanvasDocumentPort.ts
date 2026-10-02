@@ -37,6 +37,12 @@ export interface CanvasDocumentPort {
    */
   exportSafeImageDataUrl?(): Promise<string | null>;
 
+  /** Informa se a captura segura precisou omitir alguma imagem ou textura. */
+  exportSafeImageDataUrlWithStatus?(): Promise<{
+    imageDataUrl: string | null;
+    hasOmittedRasterSources: boolean;
+  }>;
+
   /**
    * Prepara imagens persistidas em Storage para uma captura segura.
    *

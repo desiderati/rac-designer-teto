@@ -23,7 +23,7 @@ export function useWallEditorActions({
     if (!objectId) return;
 
     const infoMessage = canvasRef.current?.applyGenericObjectEdit({
-      kind: 'wall',
+      kind: wallSelection?.editorType ?? 'wall',
       objectId,
       color: newColor,
       label: newValue,

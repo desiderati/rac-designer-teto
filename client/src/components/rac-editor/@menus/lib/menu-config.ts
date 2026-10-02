@@ -5,8 +5,11 @@ import {
   faArrowsLeftRight,
   faBars,
   faCircleQuestion,
+  faCircle,
+  faCaretUp,
   faCircleUser,
   faCube,
+  faCrosshairs,
   faDoorOpen,
   faEllipsisVertical,
   faExpand,
@@ -23,6 +26,7 @@ import {
   faHouseChimney,
   faHouseChimneyWindow,
   faLightbulb,
+  faLayerGroup,
   faLock,
   faLockOpen,
   faMagnifyingGlass,
@@ -37,7 +41,6 @@ import {
   faShapes,
   faSlash,
   faSquareFull,
-  faStairs,
   faTimes,
   faToilet,
   faTrash,
@@ -99,7 +102,8 @@ export const MAIN_MENU_ICONS = {
   house: faHome,
   unlock: faLockOpen,
   lock: faLock,
-  elements: faShapes,
+  elements: faLayerGroup,
+  geometry: faShapes,
   lines: faBars,
   pencil: faPenNib,
   text: faFont,
@@ -124,6 +128,7 @@ export const TOP_BAR_ICONS = {
   toolSelect: faArrowPointer,
   toolPan: faHand,
   toolFitView: faExpand,
+  toolFitContent: faCrosshairs,
   // Avatar dropdown
   restart: faRotateLeft,
   tips: faLightbulb,
@@ -159,16 +164,20 @@ export const ELEMENTS_MENU_CONFIG: MenuCommandConfig[] = [
   {
     action: 'addWall',
     icon: faTrowelBricks,
-    title: 'Objeto / Muro',
+    title: 'Muro',
     guidedTourId: 'rac-tool-wall',
   },
   {action: 'addStreetStraight', icon: faRoad, title: 'Rua Reta'},
-  {action: 'addStreetCorner', icon: faRoadBridge, title: 'Rua em Quina'},
-  {action: 'addDoor', icon: faDoorOpen, title: 'Porta - Out Of Service', disabled: true},
-  {action: 'addStairs', icon: faStairs, title: 'Escada - Out Of Service', disabled: true},
+  {action: 'addDirtRoad', icon: faRoadBridge, title: 'Estrada de Chão'},
   {action: 'addTree', icon: faTree, title: 'Árvore'},
   {action: 'addWater', icon: faWater, title: 'Água / Rio'},
   {action: 'addFossa', icon: faToilet, title: 'Fossa'},
+];
+
+export const GEOMETRY_MENU_CONFIG: MenuCommandConfig[] = [
+  {action: 'addSquare', icon: faSquareFull, title: 'Quadrado'},
+  {action: 'addTriangle', icon: faCaretUp, title: 'Triângulo'},
+  {action: 'addCircle', icon: faCircle, title: 'Círculo'},
 ];
 
 export const LINES_MENU_CONFIG: MenuCommandConfig[] = [

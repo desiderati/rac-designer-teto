@@ -272,7 +272,11 @@ export function useCanvasSelectionActions() {
         (typeof activeObjectGetter === 'function' ? activeObjectGetter.call(canvas) : null)
         ?? (canvas.getObjects().find((item) => isCanvasGroup(item)) ?? null);
       const object = toCanvasObject(activeObjectRaw) ?? null;
-      onSelectionChange(getHintForObject(object));
+      onSelectionChange(
+        object?.myType === 'text' || object?.myType === 'freehand' || object?.type === 'path'
+          ? 'Clique com o botão direito no objeto para alterar a cor.'
+          : getHintForObject(object),
+      );
 
       if (isContraventamentoMode()) {
         return;

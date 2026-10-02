@@ -15,4 +15,7 @@ export interface CanvasViewportHandle {
 
   /** Ajusta a viewport para enquadrar o canvas na área visível. */
   fitToView(): void;
+
+  /** Localiza e enquadra os objetos do documento na viewport. */
+  fitContent(): void;
 }

@@ -1,7 +1,11 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-afterEach(() => vi.unstubAllGlobals());
-import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION} from '@/shared/types/house-drawing-document.ts';
-import {createFabricCanvasDocumentPort} from './fabric-canvas-document-port.ts';
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, type HouseDrawingCanvasDocument} from '@/shared/types/house-drawing-document.ts';
+import {Image as FabricImage} from 'fabric';
+import {createFabricCanvasDocumentPort, sanitizeCanvasDocumentForSafeExport} from './fabric-canvas-document-port.ts';
 import {
   HOUSE_2D_STYLE,
   PILOTI_MASTER_STYLE,
@@ -40,6 +44,19 @@ function createCanvasObject(props: Record<string, unknown>): TestCanvasObject {
 }
 
 describe('fabric-canvas-document-port.ts', () => {
+  it('sinaliza omissão de imagem externa para evitar cache de captura incompleta', async () => {
+    vi.spyOn(FabricImage, 'fromURL').mockRejectedValueOnce(new Error('imagem temporariamente indisponível'));
+    const source = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'external-1', kind: 'image', shape: 'image', resource: {src: 'https://example.net/image.png'}}],
+    } satisfies HouseDrawingCanvasDocument;
+
+    const failed = await sanitizeCanvasDocumentForSafeExport(source);
+
+    expect(failed.document.objects).toEqual([]);
+    expect(failed.hasOmittedRasterSources).toBe(true);
+  });
+
   it('preserva o canvas atual quando uma imagem privada não pode ser autenticada', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: false, status: 401}));
     const canvas = {clear: vi.fn(), loadFromJSON: vi.fn()};

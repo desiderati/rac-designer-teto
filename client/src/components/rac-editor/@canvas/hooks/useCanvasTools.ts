@@ -25,7 +25,7 @@ interface UseCanvasToolsArgs {
 
 type CanvasInsertedObjectKind = Extract<RacCanvasObjectEventKind, ElementStrategyKey>;
 
-const GUIDED_TIP_OBJECT_KINDS = new Set<ElementStrategyKey>(['wall', 'line', 'arrow', 'distance']);
+const GUIDED_TIP_OBJECT_KINDS = new Set<ElementStrategyKey>(['wall', 'line', 'arrow', 'distance', 'text']);
 
 function isGuidedTipObjectKind(kind: ElementStrategyKey): kind is CanvasInsertedObjectKind {
   return GUIDED_TIP_OBJECT_KINDS.has(kind);
@@ -102,6 +102,11 @@ export function useCanvasTools({
     addCanvasObject('streetCorner');
   }, [addCanvasObject]);
 
+  const handleAddDirtRoad = useCallback(() => addCanvasObject('dirtRoad'), [addCanvasObject]);
+  const handleAddSquare = useCallback(() => addCanvasObject('square'), [addCanvasObject]);
+  const handleAddTriangle = useCallback(() => addCanvasObject('triangle'), [addCanvasObject]);
+  const handleAddCircle = useCallback(() => addCanvasObject('circle'), [addCanvasObject]);
+
   const handleAddDoor =
     useCallback(() =>
       addCanvasObject('door'), [addCanvasObject]
@@ -163,6 +168,10 @@ export function useCanvasTools({
     handleAddWall,
     handleAddStreetStraight,
     handleAddStreetCorner,
+    handleAddDirtRoad,
+    handleAddSquare,
+    handleAddTriangle,
+    handleAddCircle,
     handleAddDoor,
     handleAddStairs,
     handleAddTree,

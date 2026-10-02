@@ -1,9 +1,6 @@
 import React from 'react';
-import {Button} from '@/components/ui/button.tsx';
 import {Input} from '@/components/ui/input.tsx';
 import {Separator} from '@/components/ui/separator.tsx';
-import {X} from 'lucide-react';
-import {GenericObjectEditorIcon} from './GenericObjectEditorIcon.tsx';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {GENERIC_OBJECT_EDITOR_COLOR_PALETTE} from '@/shared/config.ts';
@@ -40,7 +37,8 @@ export function GenericObjectEditor({
   const tempColor = draft.color;
 
   const handleApply = () => {
-    onApply(tempValue.trim(), tempColor);
+    const value = tempValue.trim();
+    onApply(editorType === 'text' ? value : value.slice(0, 50), tempColor);
     onClose();
   };
 
@@ -59,7 +57,13 @@ export function GenericObjectEditor({
   const getTitle = (): string => {
     switch (editorType) {
       case 'wall':
-        return 'Muro/Vizinho';
+        return 'Muro';
+
+      case 'square': return 'Quadrado';
+      case 'triangle': return 'Triângulo';
+      case 'circle': return 'Círculo';
+      case 'text': return 'Texto';
+      case 'freehand': return 'Desenho Livre';
 
       case 'distance':
         return 'Distância';
@@ -76,6 +80,12 @@ export function GenericObjectEditor({
     switch (editorType) {
       case 'wall':
         return 'Ex.: Muro, Vizinho, etc.';
+
+      case 'square':
+      case 'triangle':
+      case 'circle': return 'Nome do objeto';
+      case 'text': return 'Texto';
+      case 'freehand': return '';
 
       case 'distance':
         return 'Ex.: 1,0m';
@@ -118,36 +128,24 @@ export function GenericObjectEditor({
 
   return (
     <FloatingEditor
-      header={
-        <div className='flex items-center gap-3'>
-          <GenericObjectEditorIcon type={editorType} className='w-16 h-12 flex-shrink-0'/>
-
-          <span className='font-bold text-2xl flex-1 text-center'>{title}</span>
-
-          <Button
-            variant='outline'
-            size='icon'
-            onClick={handleCancel}
-            className='h-8 w-8 rounded-full bg-white flex-shrink-0'>
-            <X className='h-4 w-4'/>
-          </Button>
-        </div>
-      }
+      ariaLabel={`Editar ${title}`}
       cardContent={
         <>
-          <Input
+          {editorType !== 'freehand' && <Input
             type='text'
+            aria-label={title}
             value={tempValue}
+            maxLength={editorType === 'text' ? undefined : 50}
             onChange={
               (e) =>
-                setDraft((prev) => ({...prev, value: e.target.value}))
+                setDraft((prev) => ({...prev, value: editorType === 'text' ? e.target.value : e.target.value.slice(0, 50)}))
             }
             onKeyDown={handleKeyDown}
             className='text-center placeholder:text-muted-foreground/50'
             placeholder={getPlaceholder()}
-            autoFocus/>
+            autoFocus/>}
 
-          <Separator/>
+          {editorType !== 'freehand' && <Separator/>}
 
           {colorPalette}
         </>

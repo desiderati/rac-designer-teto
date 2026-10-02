@@ -1,5 +1,5 @@
 import {MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import type {CanvasHandle} from '@/components/rac-editor/@canvas/ports/CanvasHandle.ts';
 import type {RacEditorLayoutProps} from '@/components/rac-editor/ui/RacEditorLayout.tsx';
 import {useHouseTypeFlow} from '@/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts';
@@ -25,7 +25,7 @@ import {
 } from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {restartActiveHouseDrawing} from '@/components/rac-editor/hooks/restart-active-house-drawing.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
-import {hasHouseViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
+import {hasHouseTopViewInsertedInCanvas} from '@/components/rac-editor/lib/house-export-availability.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {
   useRacEditorConstructionSitePanelController,
@@ -153,6 +153,8 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
   const {
     constructionSiteManagementInitialScreen,
     handleOpenConstructionSites,
+    handleOpenHouseEdit,
+    handleAddHouse,
     handleCanvasDocumentChange,
     handleActivateHouse,
     closeConstructionSiteManagement,
@@ -229,6 +231,10 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     handleAddHouseView,
     handleHouseTypeSelectedFromFlow,
     handleAddWall,
+    handleAddDirtRoad,
+    handleAddSquare,
+    handleAddTriangle,
+    handleAddCircle,
     handleAddStreetStraight,
     handleAddStreetCorner,
     handleAddDoor,
@@ -384,13 +390,14 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
   } = useRacEditorDocumentHotkeysController({
     canvasRef,
     house3DPdfSnapshotRef,
-    canExportPdf: () => hasHouseViewInsertedInCanvas(houseReadPort),
+    canExportPdf: () => hasHouseTopViewInsertedInCanvas(houseReadPort),
     onBeforeExportPdf: () => constructionSiteManagement.flushActiveHouseDocumentSave({force: true}),
     onAfterExportPdf: constructionSiteManagement.acknowledgeActiveHouseDocumentSaved,
     onToggleDrawMode: isEditorReadOnly ? noopEditorAction : handleToggleDrawMode,
     onToggleZoomControls: handleToggleZoomControls,
     onSetCanvasToolMode: handleSetCanvasToolMode,
     onFitToView: handleFitToView,
+    onFitContent: () => canvasRef.current?.fitContent(),
   });
 
   const {
@@ -438,6 +445,10 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       handleOpenHouseTypeSelector,
       handleAddHouseView,
       handleAddWall,
+      handleAddDirtRoad,
+      handleAddSquare,
+      handleAddTriangle,
+      handleAddCircle,
       handleAddStreetStraight,
       handleAddStreetCorner,
       handleAddDoor,
@@ -452,6 +463,8 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       handleAddText,
       handleOpenImageUpload,
       handleOpenConstructionSites,
+      handleOpenHouseEdit,
+      handleAddHouse,
       handleActivateHouse,
       handleDelete,
       handleSavePDF,
@@ -467,6 +480,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       handleRenameFamily,
       handleSetCanvasToolMode,
       handleFitToView,
+      handleFitContent: () => canvasRef.current?.fitContent(),
       setIs3DViewerOpen,
       setActiveSubmenu,
       setIsSettingsOpen,
@@ -626,6 +640,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       ?? null,
     houseIllustrationPort,
     house3DPdfSnapshotRef,
+    handleViewerDocumentChange: handleCanvasDocumentChange,
     constructionSiteManagementOpen,
     closeConstructionSiteManagement,
     constructionSiteManagementPanel: {

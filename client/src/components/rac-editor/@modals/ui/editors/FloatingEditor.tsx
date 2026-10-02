@@ -15,7 +15,8 @@ interface FloatingEditorProps {
   isOpen: boolean;
   isMobile: boolean;
   anchorPosition?: { x: number; y: number; };
-  header: ReactNode;
+  header?: ReactNode;
+  ariaLabel?: string;
   cardContent: ReactNode;
   confirmLabel: string;
   cancelLabel?: string;
@@ -30,6 +31,7 @@ export function FloatingEditor({
   isMobile,
   anchorPosition,
   header,
+  ariaLabel = 'Editor do item selecionado',
   cardContent,
   confirmLabel,
   cancelLabel = 'Cancelar',
@@ -55,7 +57,7 @@ export function FloatingEditor({
 
   const editorBody =
     <div className='flex flex-col gap-4'>
-      <div className='cursor-move' onMouseDown={handleDragStart}>{header}</div>
+      {header ? <div className='cursor-move' onMouseDown={handleDragStart}>{header}</div> : null}
 
       <div className='bg-white rounded-xl p-4 space-y-4' data-no-drag>
         {cardContent}
@@ -88,7 +90,7 @@ export function FloatingEditor({
       <Drawer open={isOpen} onOpenChange={(open) => !open && onCancel()}>
         <DrawerContent>
           <DrawerHeader className='sr-only'>
-            <DrawerTitle>Editor do item selecionado</DrawerTitle>
+            <DrawerTitle>{ariaLabel}</DrawerTitle>
             <DrawerDescription>
               Edite as propriedades do item selecionado e confirme ou cancele a alteração.
             </DrawerDescription>
@@ -108,6 +110,9 @@ export function FloatingEditor({
       <div className='fixed inset-0 z-40' onClick={onCancel}/>
       <div
         className='fixed z-50 bg-background rounded-xl border shadow-md p-6 min-w-[280px] select-none'
+        role='dialog'
+        aria-label={ariaLabel}
+        onMouseDown={header ? undefined : handleDragStart}
         data-guided-tour-id={dataGuidedTourId}
         style={
           panelPos

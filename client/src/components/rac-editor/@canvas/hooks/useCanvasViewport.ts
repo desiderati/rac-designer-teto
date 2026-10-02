@@ -207,6 +207,27 @@ export function useCanvasViewport({
     onZoomInteraction?.();
   }, [onZoomInteraction]);
 
+  /** Enquadra os limites dos objetos existentes, inclusive após pan/zoom salvos. */
+  const fitContent = useCallback((bounds: {left: number; top: number; width: number; height: number} | null) => {
+    if (!bounds) {
+      fitToView();
+      return;
+    }
+    const {width, height} = containerSizeRef.current;
+    if (width <= 0 || height <= 0) return;
+    const margin = 0.88;
+    const fitZoom = Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max,
+      Math.min(width * margin / Math.max(bounds.width, 1), height * margin / Math.max(bounds.height, 1))));
+    const centerX = (bounds.left + bounds.width / 2) * fitZoom;
+    const centerY = (bounds.top + bounds.height / 2) * fitZoom;
+    dispatch({type: 'setZoom', value: fitZoom});
+    dispatch({type: 'setViewport', value: {
+      x: Math.max(0, Math.min(centerX - width / 2, Math.max(0, CANVAS_WIDTH * fitZoom - width))),
+      y: Math.max(0, Math.min(centerY - height / 2, Math.max(0, CANVAS_HEIGHT * fitZoom - height))),
+    }});
+    onZoomInteraction?.();
+  }, [fitToView, onZoomInteraction]);
+
   return {
     zoom: state.zoom,
     setZoom,
@@ -235,5 +256,6 @@ export function useCanvasViewport({
     handleViewportChange,
     handleZoomChange,
     fitToView,
+    fitContent,
   };
 }

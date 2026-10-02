@@ -15,6 +15,10 @@ const actions = {
   addWall: vi.fn(),
   addStreetStraight: vi.fn(),
   addStreetCorner: vi.fn(),
+  addDirtRoad: vi.fn(),
+  addSquare: vi.fn(),
+  addTriangle: vi.fn(),
+  addCircle: vi.fn(),
   addDoor: vi.fn(),
   addStairs: vi.fn(),
   addTree: vi.fn(),
@@ -30,6 +34,7 @@ const actions = {
   savePDF: vi.fn(),
   toggleHouseMenu: vi.fn(),
   toggleElementsMenu: vi.fn(),
+  toggleGeometryMenu: vi.fn(),
   toggleLinesMenu: vi.fn(),
   toggleOverflowMenu: vi.fn(),
   toggleTips: vi.fn(),
@@ -41,10 +46,11 @@ const actions = {
   renameFamily: vi.fn(),
   setCanvasToolMode: vi.fn(),
   fitToView: vi.fn(),
+  fitContent: vi.fn(),
   openSettings: vi.fn(),
 };
 
-function renderCanvasToolsMenu({viewportWidth = 700}: {viewportWidth?: number} = {}) {
+function renderCanvasToolsMenu({viewportWidth = 700, activeSubmenu = 'elements'}: {viewportWidth?: number; activeSubmenu?: 'elements' | 'geometry'} = {}) {
   setViewportWidth(viewportWidth);
 
   return render(
@@ -53,7 +59,7 @@ function renderCanvasToolsMenu({viewportWidth = 700}: {viewportWidth?: number} =
         isMobile
         actions={actions}
         isDrawing={false}
-        activeSubmenu='elements'
+        activeSubmenu={activeSubmenu}
         houseType='tipo6'
         frontViewCount={{current: 0, max: 1}}
         backViewCount={{current: 0, max: 1}}
@@ -122,9 +128,9 @@ describe('CanvasToolsMenu.tsx', () => {
 
     const houseButton = screen.getByRole('button', {name: 'Casa TETO (Opções)'});
     const elementsButton = screen.getByRole('button', {name: 'Elementos'});
-    const wallButton = screen.getByRole('button', {name: 'Objeto / Muro'});
+    const wallButton = screen.getByRole('button', {name: 'Muro'});
     const streetButton = screen.getByRole('button', {name: 'Rua Reta'});
-    const streetCornerButton = screen.getByRole('button', {name: 'Rua em Quina'});
+    const streetCornerButton = screen.getByRole('button', {name: 'Estrada de Chão'});
     const uploadButton = screen.getByRole('button', {name: 'Upload de Imagem'});
 
     expect(houseButton).not.toHaveAttribute('title');
@@ -150,7 +156,22 @@ describe('CanvasToolsMenu.tsx', () => {
 
     expect(screen.getByRole('toolbar', {name: 'Barra de ferramentas principal'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-toolbar');
-    expect(screen.getByRole('button', {name: 'Objeto / Muro'}))
+    expect(screen.getByRole('button', {name: 'Muro'}))
       .not.toHaveAttribute('data-guided-tour-tip');
+  });
+
+  it('oferece formas geométricas e retira ferramentas obsoletas', () => {
+    renderCanvasToolsMenu();
+    const elementsButton = screen.getByRole('button', {name: 'Elementos'});
+    const geometryButton = screen.getByRole('button', {name: 'Objetos Geométricos'});
+    expect(elementsButton.compareDocumentPosition(geometryButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole('button', {name: 'Porta - Out Of Service'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Escada - Out Of Service'})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Rua em Quina'})).not.toBeInTheDocument();
+    cleanup();
+    renderCanvasToolsMenu({activeSubmenu: 'geometry'});
+    expect(screen.getByRole('button', {name: 'Quadrado'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Triângulo'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'Círculo'})).toBeInTheDocument();
   });
 });

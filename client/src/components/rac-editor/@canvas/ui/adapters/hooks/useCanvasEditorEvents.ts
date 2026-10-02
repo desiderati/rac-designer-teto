@@ -58,6 +58,8 @@ export function useCanvasEditorEvents() {
 
       onWallSelect({
         objectId,
+        editorType: wallObject.myType === 'square' || wallObject.myType === 'triangle' || wallObject.myType === 'circle'
+          ? wallObject.myType : 'wall',
         editorSelection: {
           type: 'wall',
           objectId,
@@ -233,7 +235,8 @@ export function useCanvasEditorEvents() {
       if (isMobileDevice || !targetRuntime) return;
       if (isAnyEditorOpen()) return;
 
-      if (targetRuntime?.myType === 'wall') {
+      if (targetRuntime?.myType === 'wall' || targetRuntime?.myType === 'square'
+        || targetRuntime?.myType === 'triangle' || targetRuntime?.myType === 'circle') {
         handleWallSelection(targetRuntime);
         return;
       }
@@ -303,7 +306,8 @@ export function useCanvasEditorEvents() {
       if (!isMobileDevice || !runtimeTarget) return;
       if (isAnyEditorOpen()) return;
 
-      if (runtimeTarget.myType === 'wall') {
+      if (runtimeTarget.myType === 'wall' || runtimeTarget.myType === 'square'
+        || runtimeTarget.myType === 'triangle' || runtimeTarget.myType === 'circle') {
         setTimeout(() => {
           if (canvas.getActiveObject() === runtimeTarget) {
             handleWallSelection(runtimeTarget);

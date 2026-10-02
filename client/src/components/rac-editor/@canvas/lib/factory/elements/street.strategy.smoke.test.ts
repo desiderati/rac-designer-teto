@@ -2,8 +2,10 @@ import {describe, expect, it} from 'vitest';
 import type {CanvasObject} from '../../canvas.ts';
 import {
   streetCornerStrategy,
+  dirtRoadStrategy,
   streetStraightStrategy,
 } from './street.strategy.ts';
+import {createFabricCanvasDocumentPort} from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts';
 
 const fakeCanvas = {width: 800, height: 600};
 
@@ -11,6 +13,16 @@ describe('street.strategy.ts', () => {
   it('exposes create functions for street variants', () => {
     expect(typeof streetStraightStrategy.create).toBe('function');
     expect(typeof streetCornerStrategy.create).toBe('function');
+    expect(typeof dirtRoadStrategy.create).toBe('function');
+  });
+
+  it('cria estrada de chão distinguível da rua asfaltada', () => {
+    const road = dirtRoadStrategy.create(fakeCanvas as any);
+    expect(road.streetVariant).toBe('dirt');
+    expect(road.getObjects().some((child) => child.myType === 'streetTexture')).toBe(true);
+    expect(road.getObjects().some((child) => child.myType === 'streetMarking')).toBe(false);
+    const document = createFabricCanvasDocumentPort({getObjects: () => [road]} as any).exportCanvasDocument();
+    expect(document?.objects[0]?.metadata?.streetVariant).toBe('dirt');
   });
 
   it('creates a straight street with road borders and dashed center marking', () => {

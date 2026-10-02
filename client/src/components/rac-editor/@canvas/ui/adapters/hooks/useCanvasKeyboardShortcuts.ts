@@ -30,12 +30,13 @@ export function useCanvasKeyboardShortcuts() {
       const isTypingTarget =
         !!target &&
         (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable);
-      if (isTypingTarget) return;
+      const activeObject = canvas.getActiveObject();
+      const isEditingCanvasText = activeObject?.type === 'i-text' && (activeObject as IText).isEditing;
+      if (isTypingTarget || isEditingCanvasText) return;
 
       if (event.key === 'Delete' || event.key === 'Backspace') {
         if (isAnyEditorOpen()) return;
 
-        const activeObject = canvas.getActiveObject();
         if (!activeObject || (activeObject.type !== 'i-text' || !(activeObject as IText).isEditing)) {
           if (tryDelete()) {
             event.preventDefault();

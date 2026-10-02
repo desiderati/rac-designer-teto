@@ -110,6 +110,7 @@ interface BuildRacEditorLayoutPropsArgs {
   setIs3DViewerOpen: LayoutProps['viewer']['onOpenChange'];
   activeHouseId: LayoutProps['viewer']['activeHouseId'];
   houseIllustrationPort?: HouseIllustrationPort;
+  handleViewerDocumentChange?: () => void;
   house3DPdfSnapshotRef: LayoutProps['house3DPdfSnapshot']['snapshotRef'];
   constructionSiteManagementOpen: LayoutProps['workspace']['open'];
   closeConstructionSiteManagement: LayoutProps['workspace']['onClose'];
@@ -246,6 +247,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       canvasRef: args.canvasRef,
       activeHouseId: args.activeHouseId,
       houseIllustrationPort: args.houseIllustrationPort,
+      onDocumentChange: args.handleViewerDocumentChange,
     },
     house3DPdfSnapshot: {
       snapshotRef: args.house3DPdfSnapshotRef,

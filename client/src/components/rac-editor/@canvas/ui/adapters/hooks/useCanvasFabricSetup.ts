@@ -1,5 +1,5 @@
 import {MutableRefObject, useLayoutEffect, useRef} from 'react';
-import {Canvas as FabricCanvas, PencilBrush} from 'fabric';
+import {Canvas as FabricCanvas, IText, PencilBrush} from 'fabric';
 import {buildPilotiSelectionHandler} from '@/components/rac-editor/@canvas/lib';
 import {CanvasObject, CanvasPointerPayload} from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {useCanvasSelectionActions} from './useCanvasSelectionActions.ts';
@@ -17,6 +17,8 @@ import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {SaveCanvasHistoryOptions} from './useCanvasHistory.ts';
 import {bindEmptyFreeTextCleanup} from '@/components/rac-editor/@canvas/lib/free-text-cleanup.ts';
+import {preventTextFocusScroll} from '@/components/rac-editor/@canvas/lib/non-scrolling-text-focus.ts';
+import {queueCompletedFreehandTip} from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 
 interface UseCanvasFabricSetupArgs {
   canvasRef: MutableRefObject<HTMLCanvasElement | null>;
@@ -152,7 +154,12 @@ export function useCanvasFabricSetup({
       if (latestArgsRef.current.documentRestoringRef.current) return;
       latestArgsRef.current.saveHistory(options);
     };
-    const handleCanvasMutation = () => runSaveHistory();
+    const handleCanvasMutation = (event?: {target?: unknown}) => {
+      if (event?.target instanceof IText) preventTextFocusScroll(event.target);
+      // O traçado recebe myType no evento path:created; grave apenas o estado final.
+      if (canvas.isDrawingMode && (event?.target as CanvasObject | undefined)?.type === 'path') return;
+      runSaveHistory();
+    };
 
     const emitSelectionChange =
       (hint: string) => latestArgsRef.current.onSelectionChange(hint);
@@ -169,7 +176,14 @@ export function useCanvasFabricSetup({
     const emitTerrainSelection =
       (selection: TerrainCanvasSelection | null) => latestArgsRef.current.onTerrainSelect?.(selection);
 
-    const handlePathCreated = () => {
+    const handlePathCreated = (event?: {path?: CanvasObject}) => {
+      if (event?.path) {
+        event.path.myType = 'freehand';
+        runSaveHistory();
+        // O evento do tour nasce somente após Fabric concluir o traço.
+        event.path.setCoords();
+        queueCompletedFreehandTip(event.path.getBoundingRect(), latestArgsRef.current.getCurrentScreenPoint);
+      }
       if (!settingsPort.getSettings().disableDrawModeAfterFreehand || !canvas.isDrawingMode) return;
       canvas.isDrawingMode = false;
       canvas.selection = true;

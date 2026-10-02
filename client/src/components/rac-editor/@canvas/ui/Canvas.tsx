@@ -14,6 +14,7 @@ import {BringToFront, SendToBack} from 'lucide-react';
 import {
   CanvasGroup,
   CanvasObject,
+  ensureCanvasObjectId,
   toCanvasObject,
 } from '@/components/rac-editor/@canvas/lib';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
@@ -49,6 +50,7 @@ import type {
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {SiteAssessment} from '@/shared/types/construction-site.ts';
 import {INTERACTION_THRESHOLDS, TIMINGS} from '@/shared/config.ts';
+import {recoverCanvasObjects} from '@/components/rac-editor/@canvas/lib/recover-canvas-objects.ts';
 
 interface CanvasProps {
   children?: ReactNode;
@@ -103,6 +105,10 @@ type FabricCanvasTargetFinder = FabricCanvasRuntime & {
 
 function isImageCanvasObject(object: CanvasObject | null): object is CanvasObject {
   return object?.myType === 'image' || object?.type === 'image';
+}
+
+function isColorEditableObject(object: CanvasObject | null): object is CanvasObject {
+  return object?.myType === 'text' || object?.myType === 'freehand' || object?.type === 'path';
 }
 
 export const Canvas =
@@ -312,8 +318,29 @@ export const Canvas =
         },
         getVisibleCenter,
         fitToView,
+        fitContent: () => {
+          const canvas = fabricCanvasRef.current;
+          const objects = canvas?.getObjects() ?? [];
+          if (objects.length === 0) return;
+          const {canvasX, canvasY} = getCanvasOffsetFromState({
+            zoom, viewportX, viewportY,
+            containerWidth: containerSize.width,
+            containerHeight: containerSize.height,
+          });
+          const recovered = recoverCanvasObjects(objects, CANVAS_WIDTH, CANVAS_HEIGHT, readOnly, {
+            left: -canvasX / zoom,
+            top: -canvasY / zoom,
+            width: containerSize.width / zoom,
+            height: containerSize.height / zoom,
+          });
+          if (recovered > 0) {
+            canvas?.requestRenderAll();
+            saveHistory();
+            onSelectionChange(`${recovered} elemento(s) trazido(s) para a área visível. Use Ctrl-Z para desfazer.`);
+          }
+        },
       };
-      }, [clearHistory, copy, createCanvasDocumentPort, fitToView, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, paste, saveHistory, undo, viewportX, viewportY, zoom]);
+      }, [clearHistory, containerSize, copy, createCanvasDocumentPort, fitToView, getCanvasOffsetFromState, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, onSelectionChange, paste, readOnly, saveHistory, undo, viewportX, viewportY, zoom]);
 
       const clearImageLongPress = useCallback(() => {
         const pendingLongPress = imageLongPressRef.current;
@@ -333,13 +360,32 @@ export const Canvas =
         };
       }, []);
 
-      const findImageObjectAtPointer = useCallback((event: unknown): CanvasObject | null => {
+      const findObjectAtPointer = useCallback((event: unknown): CanvasObject | null => {
         const canvas = fabricCanvasRef.current as FabricCanvasTargetFinder | null;
         if (!canvas) return null;
 
         const target = toCanvasObject(canvas.findTarget?.(event, false));
-        return isImageCanvasObject(target) ? target : null;
+        return target;
       }, []);
+
+      const openColorEditor = useCallback((target: CanvasObject) => {
+        if (!onWallSelect || isAnyEditorOpenRef.current) return;
+        const center = target.getCenterPoint();
+        const screenPoint = getCurrentScreenPoint({x: center.x, y: center.y});
+        if (!screenPoint) return;
+        const objectId = ensureCanvasObjectId(target);
+        const editorType = target.myType === 'text' ? 'text' : 'freehand';
+        const currentLabel = editorType === 'text' ? target.text ?? '' : '';
+        const currentColor = editorType === 'text' ? target.fill : target.stroke;
+        onWallSelect({
+          objectId,
+          editorType,
+          currentLabel,
+          currentColor: typeof currentColor === 'string' ? currentColor : '#333333',
+          screenPosition: screenPoint,
+          editorSelection: {type: 'wall', objectId, currentLabel, screenPosition: screenPoint},
+        });
+      }, [getCurrentScreenPoint, onWallSelect]);
 
       const openImageLayerMenu = useCallback((target: CanvasObject, clientX: number, clientY: number) => {
         const canvas = fabricCanvasRef.current;
@@ -353,8 +399,14 @@ export const Canvas =
       const handleImageContextMenu = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
         if (readOnly) return;
 
-        const target = findImageObjectAtPointer(event.nativeEvent);
-        if (!target) {
+        const target = findObjectAtPointer(event.nativeEvent);
+        if (isColorEditableObject(target)) {
+          event.preventDefault();
+          event.stopPropagation();
+          openColorEditor(target);
+          return;
+        }
+        if (!target || !isImageCanvasObject(target)) {
           setImageLayerMenu(null);
           return;
         }
@@ -362,7 +414,15 @@ export const Canvas =
         event.preventDefault();
         event.stopPropagation();
         openImageLayerMenu(target, event.clientX, event.clientY);
-      }, [findImageObjectAtPointer, openImageLayerMenu, readOnly]);
+      }, [findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly]);
+
+      const handleFreehandDoubleClick = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+        if (readOnly || fabricCanvasRef.current?.isDrawingMode) return;
+        const target = findObjectAtPointer(event.nativeEvent);
+        if (target?.myType !== 'freehand' && target?.type !== 'path') return;
+        event.preventDefault();
+        openColorEditor(target);
+      }, [findObjectAtPointer, openColorEditor, readOnly]);
 
       const moveActiveImageLayer = useCallback((direction: 'front' | 'back') => {
         if (readOnly) return;
@@ -386,8 +446,8 @@ export const Canvas =
         const touch = event.touches.item(0);
         if (!touch) return;
 
-        const target = findImageObjectAtPointer(touch);
-        if (!target) return;
+        const target = findObjectAtPointer(touch);
+        if (!target || (!isImageCanvasObject(target) && !isColorEditableObject(target))) return;
 
         clearImageLongPress();
         imageLongPressRef.current = {
@@ -396,10 +456,11 @@ export const Canvas =
           target,
           timeoutId: window.setTimeout(() => {
             imageLongPressRef.current = null;
-            openImageLayerMenu(target, touch.clientX, touch.clientY);
+            if (isImageCanvasObject(target)) openImageLayerMenu(target, touch.clientX, touch.clientY);
+            else openColorEditor(target);
           }, TIMINGS.mobileLongPressDelayMs),
         };
-      }, [clearImageLongPress, findImageObjectAtPointer, openImageLayerMenu, readOnly]);
+      }, [clearImageLongPress, findObjectAtPointer, openColorEditor, openImageLayerMenu, readOnly]);
 
       const cancelImageLongPressOnMove = useCallback((event: ReactTouchEvent<HTMLDivElement>) => {
         const pendingLongPress = imageLongPressRef.current;
@@ -588,6 +649,7 @@ export const Canvas =
           onMouseLeave={handleMouseUp}
           onWheel={handleCanvasWheel}
           onContextMenu={handleImageContextMenu}
+          onDoubleClick={handleFreehandDoubleClick}
           onTouchStart={handleCanvasTouchStart}
           onTouchMove={handleCanvasTouchMove}
           onTouchEnd={handleCanvasTouchEnd}

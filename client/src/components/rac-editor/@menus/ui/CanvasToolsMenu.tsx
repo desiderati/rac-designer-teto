@@ -5,6 +5,7 @@ import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip.t
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
   ELEMENTS_MENU_CONFIG,
+  GEOMETRY_MENU_CONFIG,
   HOUSE_MENU_CONFIG,
   HouseMenuLimitKey,
   LINES_MENU_CONFIG,
@@ -163,6 +164,26 @@ export function CanvasToolsMenu({
             onClick: actions[item.action],
             isDisabled: disabled || item.disabled,
             guidedTourId: item.guidedTourId,
+          }))}
+        />
+
+        <RailItemWithSubmenu
+          anchorOpen={!disabled && activeSubmenu === 'geometry'}
+          anchor={(
+            <RailButton
+              icon={MAIN_MENU_ICONS.geometry}
+              title='Objetos Geométricos'
+              onClick={actions.toggleGeometryMenu}
+              isActive={activeSubmenu === 'geometry'}
+              isDisabled={disabled}
+              hideTooltip={activeSubmenu === 'geometry'}
+            />
+          )}
+          items={GEOMETRY_MENU_CONFIG.map((item) => ({
+            icon: item.icon,
+            title: item.title,
+            onClick: actions[item.action],
+            isDisabled: disabled,
           }))}
         />
 

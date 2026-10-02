@@ -62,6 +62,11 @@ export function GenericObjectEditorIcon({type, className}: GenericObjectEditorIc
       aria-hidden='true'
     >
       {type === 'wall' && <WallIcon/>}
+      {type === 'square' && <rect x='27' y='10' width='46' height='46' fill='#eef1f5' stroke='hsl(var(--primary))' strokeWidth='3'/>}
+      {type === 'triangle' && <polygon points='50,8 80,62 20,62' fill='#eef1f5' stroke='hsl(var(--primary))' strokeWidth='3'/>}
+      {type === 'circle' && <circle cx='50' cy='36' r='28' fill='#eef1f5' stroke='hsl(var(--primary))' strokeWidth='3'/>}
+      {type === 'text' && <text x='50' y='50' textAnchor='middle' fontSize='38' fill='hsl(var(--primary))'>T</text>}
+      {type === 'freehand' && <path d='M10 52 Q 28 10 45 42 T 90 26' fill='none' stroke='hsl(var(--primary))' strokeWidth='5' strokeLinecap='round'/>}
       {type === 'line' && <LineIcon/>}
       {type === 'arrow' && <ArrowIcon/>}
       {type === 'distance' && <DistanceIcon/>}

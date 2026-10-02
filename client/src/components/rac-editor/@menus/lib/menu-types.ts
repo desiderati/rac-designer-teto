@@ -12,6 +12,10 @@ export interface MenuActionMap {
   addWall: () => void;
   addStreetStraight: () => void;
   addStreetCorner: () => void;
+  addDirtRoad: () => void;
+  addSquare: () => void;
+  addTriangle: () => void;
+  addCircle: () => void;
   addDoor: () => void;
   addStairs: () => void;
   addTree: () => void;
@@ -24,11 +28,14 @@ export interface MenuActionMap {
   addText: () => void;
   openImageUpload: () => void;
   openConstructionSites: () => void;
+  openHouseEdit?: (constructionId: string, houseId: string) => Promise<void>;
+  addHouse?: (constructionId: string) => Promise<void>;
   activateHouse: (constructionId: string, houseId: string) => Promise<void>;
   deleteSelection: () => void;
   savePDF: () => void;
   toggleHouseMenu: () => void;
   toggleElementsMenu: () => void;
+  toggleGeometryMenu: () => void;
   toggleLinesMenu: () => void;
   toggleOverflowMenu: () => void;
   toggleTips: () => void;
@@ -45,9 +52,10 @@ export interface MenuActionMap {
   setCanvasToolMode: (mode: CanvasToolMode) => void;
   /** Resets viewport to fit the canvas in the visible container. */
   fitToView: () => void;
+  fitContent: () => void;
 }
 
-export type MenuSubmenu = 'house' | 'elements' | 'lines' | 'overflow' | null;
+export type MenuSubmenu = 'house' | 'elements' | 'geometry' | 'lines' | 'overflow' | null;
 
 export interface MenuViewCount {
   current: number;
@@ -68,6 +76,7 @@ export interface MenuConstructionGroup {
   documentVersion?: number;
   active: boolean;
   houses: MenuHouseOption[];
+  canAddHouse?: boolean;
 }
 
 export interface RacEditorMenusProps {
@@ -95,7 +104,7 @@ export interface RacEditorMenusProps {
   documentSaveStatus: HouseDocumentSaveStatus;
   /** Indica se uma troca/hidratação de documento de casa está em andamento. */
   documentTransitioning: boolean;
-  /** Indica se já existe ao menos uma vista de casa inserida no canvas para exportar em PDF. */
+  /** Indica se a planta (vista superior) já está inserida no Canvas para exportar em PDF. */
   canExportPDF: boolean;
   /** Bloqueia ações editoriais quando a casa ativa foi marcada como construída. */
   isReadOnly?: boolean;

@@ -11,6 +11,10 @@ export interface UseMenuActionsArgs {
   handleAddWall: () => void;
   handleAddStreetStraight: () => void;
   handleAddStreetCorner: () => void;
+  handleAddDirtRoad: () => void;
+  handleAddSquare: () => void;
+  handleAddTriangle: () => void;
+  handleAddCircle: () => void;
   handleAddDoor: () => void;
   handleAddStairs: () => void;
   handleAddTree: () => void;
@@ -23,6 +27,8 @@ export interface UseMenuActionsArgs {
   handleAddText: () => void;
   handleOpenImageUpload: () => void;
   handleOpenConstructionSites: () => void;
+  handleOpenHouseEdit?: (constructionId: string, houseId: string) => Promise<void>;
+  handleAddHouse?: (constructionId: string) => Promise<void>;
   handleActivateHouse: (constructionId: string, houseId: string) => Promise<void>;
   handleDelete: () => void;
   handleSavePDF: () => void;
@@ -38,6 +44,7 @@ export interface UseMenuActionsArgs {
   handleRenameFamily: (newName: string) => void;
   handleSetCanvasToolMode: (mode: CanvasToolMode) => void;
   handleFitToView: () => void;
+  handleFitContent: () => void;
   setIs3DViewerOpen: Dispatch<SetStateAction<boolean>>;
   setActiveSubmenu: Dispatch<SetStateAction<MenuSubmenu>>;
   setIsSettingsOpen: Dispatch<SetStateAction<boolean>>;
@@ -49,6 +56,10 @@ export function useRacEditorMenuActions({
   handleAddWall,
   handleAddStreetStraight,
   handleAddStreetCorner,
+  handleAddDirtRoad,
+  handleAddSquare,
+  handleAddTriangle,
+  handleAddCircle,
   handleAddDoor,
   handleAddStairs,
   handleAddTree,
@@ -61,6 +72,8 @@ export function useRacEditorMenuActions({
   handleAddText,
   handleOpenImageUpload,
   handleOpenConstructionSites,
+  handleOpenHouseEdit,
+  handleAddHouse,
   handleActivateHouse,
   handleDelete,
   handleSavePDF,
@@ -76,6 +89,7 @@ export function useRacEditorMenuActions({
   handleRenameFamily,
   handleSetCanvasToolMode,
   handleFitToView,
+  handleFitContent,
   setIs3DViewerOpen,
   setActiveSubmenu,
   setIsSettingsOpen,
@@ -90,6 +104,10 @@ export function useRacEditorMenuActions({
     addWall: handleAddWall,
     addStreetStraight: handleAddStreetStraight,
     addStreetCorner: handleAddStreetCorner,
+    addDirtRoad: handleAddDirtRoad,
+    addSquare: handleAddSquare,
+    addTriangle: handleAddTriangle,
+    addCircle: handleAddCircle,
     addDoor: handleAddDoor,
     addStairs: handleAddStairs,
     addTree: handleAddTree,
@@ -102,11 +120,14 @@ export function useRacEditorMenuActions({
     addText: handleAddText,
     openImageUpload: handleOpenImageUpload,
     openConstructionSites: handleOpenConstructionSites,
+    openHouseEdit: handleOpenHouseEdit,
+    addHouse: handleAddHouse,
     activateHouse: handleActivateHouse,
     deleteSelection: handleDelete,
     savePDF: handleSavePDF,
     toggleHouseMenu: handleToggleHouseMenu,
     toggleElementsMenu: handleToggleElementsMenu,
+    toggleGeometryMenu: () => setActiveSubmenu((current) => current === 'geometry' ? null : 'geometry'),
     toggleLinesMenu: handleToggleLinesMenu,
     toggleOverflowMenu: handleToggleOverflowMenu,
     toggleTips: handleToggleTips,
@@ -118,12 +139,19 @@ export function useRacEditorMenuActions({
     renameFamily: handleRenameFamily,
     setCanvasToolMode: handleSetCanvasToolMode,
     fitToView: handleFitToView,
+    fitContent: handleFitContent,
     openSettings: () => {
       setActiveSubmenu(null);
       setIsSettingsOpen(true);
     },
   }), [
+    handleOpenHouseEdit,
+    handleAddHouse,
     handleAddArrow,
+    handleAddDirtRoad,
+    handleAddSquare,
+    handleAddTriangle,
+    handleAddCircle,
     handleAddDistance,
     handleAddDoor,
     handleAddFossa,
@@ -139,6 +167,7 @@ export function useRacEditorMenuActions({
     handleDelete,
     handleExit,
     handleFitToView,
+    handleFitContent,
     handleOpenImageUpload,
     handleOpenConstructionSites,
     handleActivateHouse,
