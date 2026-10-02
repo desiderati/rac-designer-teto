@@ -44,7 +44,7 @@ export function getScreenTitle(screen: ConstructionSiteManagementScreen, constru
     return constructionLabel ? `Casas - ${constructionLabel}` : 'Casas';
   }
   if (screen === 'house-create' || screen === 'house-detail') return 'Configuração da Casa';
-  if (screen === 'house-extra-materials') return 'Configurações da Casa';
+  if (screen === 'house-extra-materials') return 'Materiais Extras';
   return constructionLabel;
 }
 
@@ -197,7 +197,7 @@ export function getAvatarPalette(label: string): { background: string; foregroun
   return palettes[hash % palettes.length];
 }
 
-export interface HouseConfigurationFormState {
+export interface HouseConfigurationFormState extends HouseExtraMaterialsFormState {
   familyName: string;
   primaryContactName: string;
   primaryContactPhone: string;
@@ -240,6 +240,7 @@ export function getHouseConfigurationInitialState(
     locationQuery: assessment?.locationQuery ?? '',
     residentActions: assessment?.residentActions ?? [],
     terrainPhotos: assessment?.terrainPhotos ?? [],
+    ...getHouseExtraMaterialsInitialState(house),
   };
 }
 
@@ -253,6 +254,7 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
     houseSize: form.houseSize || undefined,
     leaders: form.leaders?.trim() || undefined,
     notes: form.notes ?? '',
+    extraMaterials: toHouseExtraMaterialsInput(form),
     siteAssessment: {
       soilProfile: form.soilProfile || undefined,
       hasHydraulicObstacles: form.hasHydraulicObstacles ?? false,
@@ -273,11 +275,16 @@ export function toHouseConfigurationInput(form: HouseConfigurationFormValues): C
 }
 
 export interface HouseExtraMaterialsFormState {
+  stairBeams: string;
   floorBeams: string;
   rafters: string;
   secondaryBeams: string;
   gutters: string;
   gutterCount: string;
+  gutterCaps: string;
+  gutterElbows: string;
+  asphaltBlanket: 'yes' | 'no';
+  bracing: string;
   stairType: StairType | '';
   justification: string;
 }
@@ -286,11 +293,16 @@ export function getHouseExtraMaterialsInitialState(house: PersistedHouseRecord |
   const extraMaterials = house?.extraMaterials;
 
   return {
+    stairBeams: formatOptionalInteger(extraMaterials?.stairBeams),
     floorBeams: formatOptionalInteger(extraMaterials?.floorBeams),
     rafters: formatOptionalInteger(extraMaterials?.rafters),
     secondaryBeams: formatOptionalInteger(extraMaterials?.secondaryBeams),
     gutters: formatOptionalInteger(extraMaterials?.gutters),
     gutterCount: formatOptionalInteger(extraMaterials?.gutterCount),
+    gutterCaps: formatOptionalInteger(extraMaterials?.gutterCaps),
+    gutterElbows: formatOptionalInteger(extraMaterials?.gutterElbows),
+    asphaltBlanket: extraMaterials?.asphaltBlanket ? 'yes' : 'no',
+    bracing: formatOptionalInteger(extraMaterials?.bracing),
     stairType: extraMaterials?.stairType ?? '',
     justification: extraMaterials?.justification ?? '',
   };
@@ -298,11 +310,16 @@ export function getHouseExtraMaterialsInitialState(house: PersistedHouseRecord |
 
 export function toHouseExtraMaterialsInput(form: HouseExtraMaterialsFormValues): HouseExtraMaterials {
   return {
+    stairBeams: parseOptionalInteger(form.stairBeams),
     floorBeams: parseOptionalInteger(form.floorBeams),
     rafters: parseOptionalInteger(form.rafters),
     secondaryBeams: parseOptionalInteger(form.secondaryBeams),
     gutters: parseOptionalInteger(form.gutters),
     gutterCount: parseOptionalInteger(form.gutterCount),
+    gutterCaps: parseOptionalInteger(form.gutterCaps),
+    gutterElbows: parseOptionalInteger(form.gutterElbows),
+    asphaltBlanket: form.asphaltBlanket === 'yes',
+    bracing: parseOptionalInteger(form.bracing),
     stairType: form.stairType || undefined,
     justification: form.justification?.trim() || undefined,
   };

@@ -307,9 +307,9 @@ function getHouseStatusDialogContent(action: StatusChangeAction, familyName: str
 
   if (action === 'markDraft') {
     return {
-      title: 'Voltar casa para rascunho?',
+      title: 'Liberar edição da casa?',
       description: `A casa de ${normalizedFamilyName} voltará a permitir edição no Canvas, configurações e materiais extras.`,
-      actionLabel: 'Voltar para rascunho',
+      actionLabel: 'Liberar edição',
       actionClassName: 'bg-amber-600 text-white hover:bg-amber-700',
       tone: 'warning' as const,
     };

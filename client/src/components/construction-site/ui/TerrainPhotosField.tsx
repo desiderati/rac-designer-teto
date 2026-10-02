@@ -9,8 +9,9 @@ import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts'
 import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
+import {PhotoViewer} from '@/components/ui/PhotoViewer.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
-import {toast} from '@/components/ui/sonner.tsx';
+import {beginToastTask, toast} from '@/components/ui/sonner.tsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ export function TerrainPhotosField({
   const storageUpload = useStorageImageUpload();
   const description = useTerrainPhotoDescription();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [viewerPhotoId, setViewerPhotoId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
   const [reviewFile, setReviewFile] = useState<{file: File; photoIdToReplace: string | null} | null>(null);
@@ -120,7 +122,7 @@ export function TerrainPhotosField({
 
     setReviewFile(null);
     const uploadToastId = `terrain-upload-${Date.now()}`;
-    toast.loading(description.available ? 'Enviando foto do terreno…' : 'Salvando foto neste dispositivo…', {id: uploadToastId});
+    const uploadToast = beginToastTask(uploadToastId, description.available ? 'Enviando foto do terreno…' : 'Salvando foto neste dispositivo…');
     setIsPreparingPhoto(true);
     try {
       const payload = description.available ? await toStorageImageUploadPayload(file) : null;
@@ -140,13 +142,13 @@ export function TerrainPhotosField({
         updatePhotos((current) => current.length >= MAX_TERRAIN_PHOTOS ? current : [...current, {id, url}]);
       }
       setSelectedIndex(nextIndex);
-      toast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.', {id: uploadToastId});
+      uploadToast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.');
       if (payload) void generateDescription(id, payload);
       setReviewFile(null);
     } catch (error) {
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);
       const message = error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.';
-      toast.error(message, {id: uploadToastId});
+      uploadToast.error(message);
       throw error instanceof Error ? error : new Error(message);
     } finally {
       setIsPreparingPhoto(false);
@@ -155,17 +157,17 @@ export function TerrainPhotosField({
 
   const generateDescription = async (photoId: string, input: TerrainPhotoDescriptionInput) => {
     const descriptionToastId = `terrain-description-${photoId}`;
-    toast.loading('Gerando descrição da foto…', {id: descriptionToastId});
+    const descriptionToast = beginToastTask(descriptionToastId, 'Gerando descrição da foto…');
     try {
       const generatedDescription = await description.describePhoto(input);
       if (!generatedDescription) throw new Error('Descrição vazia.');
       updatePhotos((current) => current.map((photo) => (
         photo.id === photoId && !photo.description?.trim() ? {...photo, description: generatedDescription} : photo
       )));
-      toast.success('Descrição gerada.', {id: descriptionToastId});
+      descriptionToast.success('Descrição gerada.');
     } catch (error) {
       console.warn('[TerrainPhotosField] Falha ao gerar descrição da foto:', error);
-      toast.error('Não foi possível gerar a descrição. Você pode preenchê-la manualmente.', {id: descriptionToastId});
+      descriptionToast.error('Não foi possível gerar a descrição. Você pode preenchê-la manualmente.');
     }
   };
 
@@ -228,11 +230,13 @@ export function TerrainPhotosField({
         >
           <div className='relative aspect-[4/3] w-full'>
             {selectedPhoto ? (
+              <button type='button' aria-label='Ampliar foto do terreno' onClick={() => setViewerPhotoId(selectedPhoto.id)} className='absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
               <ProtectedImage
                 src={selectedPhoto.url}
                 alt={selectedPhoto.description || `Foto do terreno ${selectedIndex + 1}`}
                 className='absolute inset-0 block h-full w-full object-cover object-center'
               />
+              </button>
             ) : (
               <button
                 type='button'
@@ -333,6 +337,7 @@ export function TerrainPhotosField({
         onRequestFileChange={() => inputRef.current?.click()}
         title={reviewFile?.photoIdToReplace ? 'Trocar foto do terreno' : 'Adicionar foto do terreno'}
       />
+      <PhotoViewer photos={value} photoId={viewerPhotoId} onPhotoChange={setViewerPhotoId} onClose={() => setViewerPhotoId(null)}/>
 
       <AlertDialog
         open={pendingDeletePhotoId !== null}

@@ -233,6 +233,11 @@ export function useConstructionSiteManagementNavigation({
       return;
     }
 
+    if (screen === 'house-create' && initialScreen === 'house-create' && onBackToCanvas) {
+      onBackToCanvas();
+      return;
+    }
+
     setScreen('houses');
   };
 

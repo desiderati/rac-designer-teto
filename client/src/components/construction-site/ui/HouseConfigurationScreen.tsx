@@ -1,6 +1,6 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type ReactNode, useEffect, useRef, useState} from 'react';
-import {Controller, useForm} from 'react-hook-form';
+import {Controller, type Control, useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Droplets, Layers, LoaderCircle, LocateFixed, Pickaxe, Waves} from 'lucide-react';
 import type {CreateHouseInput} from '@/components/rac-editor/lib/construction-site-session.ts';
@@ -21,6 +21,7 @@ import {
   houseConfigurationFormSchema,
   PHONE_MASK_MAX_LENGTH,
   type HouseConfigurationFormValues,
+  type HouseExtraMaterialsFormValues,
 } from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {HOUSE_SIZE_OPTIONS} from '@/components/construction-site/ui/lib/constants.ts';
 import {
@@ -46,6 +47,8 @@ import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form
 import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
 import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
 import {TerrainPhotosField} from './TerrainPhotosField.tsx';
+import {HOUSE_EXTRA_MATERIAL_FIELDS, HouseExtraMaterialsFields} from './HouseExtraMaterialsFields.tsx';
+import {VIEWPORT} from '@/shared/config.ts';
 
 export function HouseConfigurationScreen({
   constructionSite,
@@ -81,13 +84,14 @@ export function HouseConfigurationScreen({
   ].join(':');
   const lastFormSourceKey = useRef(formSourceKey);
   const locationQuery = form.watch('locationQuery');
-  const [openSections, setOpenSections] = useState([
+  const [openSections, setOpenSections] = useState(() => typeof window !== 'undefined' && window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches ? ['section-01'] : [
     'section-01',
     'section-02',
     'section-03',
     'section-04',
     'section-05',
     'section-06',
+    'section-07',
   ]);
   const {errors, dirtyFields, submitCount} = form.formState;
 
@@ -105,7 +109,7 @@ export function HouseConfigurationScreen({
             ? 'section-05'
             : sectionHasError('locationQuery')
               ? 'section-06'
-              : undefined;
+              : sectionHasError(...HOUSE_EXTRA_MATERIAL_FIELDS) ? 'section-07' : undefined;
 
   useEffect(() => {
     if (lastFormSourceKey.current === formSourceKey) return;
@@ -579,6 +583,15 @@ export function HouseConfigurationScreen({
             </div>
           </div>
         </HouseFormSection>
+        <HouseFormSection number='07' title='Materiais Extras' dirty={sectionHasDirtyChanges(...HOUSE_EXTRA_MATERIAL_FIELDS)}>
+          <div data-testid='house-configuration-extra-materials' className='min-w-0'>
+            <HouseExtraMaterialsFields
+              control={form.control as unknown as Control<HouseExtraMaterialsFormValues>}
+              dirtyFields={dirtyFields}
+              disabled={isReadOnly}
+            />
+          </div>
+        </HouseFormSection>
       </Accordion>
       <FormActionDock testId='site-actions-grid' desktopPlacement='form-column' desktopSpacing='standard' className='sm:mt-2'>
         <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Configurações</PrimaryButton>
@@ -650,11 +663,11 @@ export function HouseFormSection({
         <AccordionTrigger aria-label={`Alternar seção ${title}`} className='gap-3 py-3 hover:no-underline'>
           <FormSectionHeader number={number} title={title} dirty={dirty}/>
         </AccordionTrigger>
-        <AccordionContent className={number === '06' ? 'pb-0' : undefined}>
+        <AccordionContent className={number === '07' ? 'pb-0' : undefined}>
           <div className='space-y-4'>{children}</div>
         </AccordionContent>
       </AccordionItem>
-      {number !== '06' ? <div aria-hidden='true' className='mx-4 h-px bg-slate-200/80' data-testid='house-section-divider'/> : null}
+      {number !== '07' ? <div aria-hidden='true' className='mx-4 h-px bg-slate-200/80' data-testid='house-section-divider'/> : null}
     </section>
   );
 }

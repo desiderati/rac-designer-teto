@@ -632,10 +632,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('columnheader', {name: 'Casas'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Status'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toBeVisible();
-    expect(screen.getByRole('columnheader', {name: 'Histórico'})).toBeVisible();
+    expect(screen.getByRole('columnheader', {name: 'Última RAC Exportada'})).toBeVisible();
     expect(screen.getByRole('columnheader', {name: 'Status'})).toHaveClass('text-center');
     expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toHaveClass('text-center');
-    expect(screen.getByRole('columnheader', {name: 'Histórico'}))
+    expect(screen.getByRole('columnheader', {name: 'Última RAC Exportada'}))
       .toHaveClass('text-center', 'align-middle', 'leading-4');
     expect(screen.getByRole('columnheader', {name: 'Ações'})).toHaveClass('text-center');
     expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
@@ -671,10 +671,10 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveAttribute('data-guided-tour-id', 'rac-house-difficulty');
     expect(within(guidedTourHouseRow).getByTestId('house-table-difficulty-gauge').parentElement)
       .toHaveClass('max-w-[8rem]');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}))
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-extra-materials');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}))
-      .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
+      .toHaveClass('rounded-full', 'bg-amber-100', 'hover:bg-amber-200', 'hover:text-amber-800');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'}))
       .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
@@ -689,16 +689,15 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveClass('hover:bg-red-50', 'hover:text-red-600');
     expect(within(guidedTourHouseRow).getByTestId('house-table-last-rac-exported-at'))
       .toHaveTextContent('Ainda não exportada');
-    const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*RAC Impressa/i});
-    expect(within(houseRow).getByText('RAC Impressa')).not.toHaveAttribute('data-guided-tour-id');
-    expect(within(houseRow).getByRole('button', {name: 'Abrir materiais extras da casa Família Santos'}))
+    const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*Impressa/i});
+    expect(within(houseRow).getByText('Impressa')).not.toHaveAttribute('data-guided-tour-id');
+    expect(within(houseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Santos'}))
       .not.toHaveAttribute('data-guided-tour-id');
-    expect(within(houseRow).getByText('RAC Impressa').closest('td')).toHaveClass('text-center');
+    expect(within(houseRow).getByText('Impressa').closest('td')).toHaveClass('text-center');
     expect(within(houseRow).getByRole('meter', {name: 'Dificuldade da casa'}))
       .toHaveAttribute('aria-valuetext', 'Dificuldade Baixa, 4 de 100');
-    expect(within(houseRow).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
-    expect(within(houseRow).getByTestId('house-table-updated-at').parentElement)
-      .toHaveClass('text-center', 'align-middle');
+    expect(within(houseRow).getByTestId('house-table-type'))
+      .toContainElement(within(houseRow).getByTestId('house-table-updated-at'));
     expect(within(houseRow).getByTestId('house-table-last-rac-exported-at')).toHaveTextContent('10/05/2026');
     expect(within(houseRow).getByTestId('house-table-actions'))
       .toHaveClass('min-h-14', 'items-center', 'justify-end');
@@ -864,10 +863,39 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(familyName).toHaveAttribute('title', longFamilyName);
     expect(familyName).toHaveClass('block', 'truncate');
     expect(houseType).toHaveTextContent('Tipo 6');
-    expect(houseType).toHaveAttribute('title', 'Tipo 6');
+    expect(houseType.getAttribute('title')).toMatch(/^Tipo 6 •/);
     expect(houseType).toHaveClass('block', 'truncate');
     expect(within(row).getByText('Rascunho').closest('td')).toHaveClass('text-center');
-    expect(within(row).getByText('09/05/2026').closest('td')).toHaveClass('text-center');
+    expect(houseType).toContainElement(within(row).getByTestId('house-table-updated-at'));
+  });
+
+  it('abre o Canvas da casa selecionada e respeita alterações não salvas', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+    const onBackToCanvas = vi.fn();
+    renderPanel({actions, onBackToCanvas, canOpenRacEditor: true});
+    await openConstructionHouses(user);
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    const canvasButton = screen.getByRole('button', {name: 'Abrir Canvas da casa'});
+    expect(canvasButton).toHaveClass('h-10', 'w-10', 'shrink-0');
+    expect(canvasButton.parentElement).toHaveClass('items-center');
+    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Família editada'}});
+    await user.click(canvasButton);
+    await expectUnsavedChangesDialog(user);
+    expect(onBackToCanvas).not.toHaveBeenCalled();
+    await user.click(canvasButton);
+    await confirmUnsavedChangesExit(user);
+    await waitFor(() => expect(onBackToCanvas).toHaveBeenCalledOnce());
+    expect(actions.activateHouse).toHaveBeenLastCalledWith('construction_site_1', 'house_1');
+  });
+
+  it('volta diretamente ao Canvas ao sair do cadastro aberto pelo menu do editor', async () => {
+    const user = userEvent.setup();
+    const onBackToCanvas = vi.fn();
+    renderPanel({initialScreen: 'house-create', onBackToCanvas, canOpenRacEditor: true});
+    expect(screen.getByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
+    await user.click(screen.getByRole('button', {name: 'Voltar'}));
+    expect(onBackToCanvas).toHaveBeenCalledOnce();
   });
 
   it('lista monitores ativos por padrão', async () => {
@@ -1266,7 +1294,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const section = screen.getByRole('heading', {name: 'Detalhes da Família'}).closest('section');
     expect(section?.className).not.toContain('border');
     expect(section?.className).not.toContain('shadow');
-    expect(screen.getAllByTestId('house-section-divider')).toHaveLength(5);
+    expect(screen.getAllByTestId('house-section-divider')).toHaveLength(6);
 
   });
 
@@ -1601,7 +1629,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
   });
 
-  it('abre e salva materiais extras a partir da listagem de casas', async () => {
+  it('edita os materiais extras nas três abas da seção 07 da configuração da casa', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
@@ -1609,44 +1637,42 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     const housesTable = screen.getByTestId('house-desktop-table');
-    await user.click(within(housesTable).getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
+    await user.click(within(housesTable).getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
 
     expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
-    expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
-    expect(screen.getByText('Materiais Extras', {exact: true})).toBeVisible();
+    expect(await screen.findByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
-    expect(screen.getByTestId('house-extra-materials-actions')).toHaveClass('fixed', 'sm:static');
-    expect(screen.getByTestId('house-extra-materials-form')).toBeVisible();
-    expect(within(screen.getByTestId('house-extra-materials-form')).getByText('07')).toBeVisible();
-    expect(screen.getByRole('img', {name: 'Foto da família Família Souza'})).toBeVisible();
-    expect(screen.getByText('Família Souza')).toBeVisible();
-    expect(screen.getByText('Ana e Bruno')).toBeVisible();
-    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('12');
+    expect(screen.getByTestId('house-configuration-form')).toBeVisible();
+    expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveTextContent('07');
+    expect(screen.getByLabelText('Vigas p/ Escada')).toHaveValue('12');
     expect(screen.getByLabelText('Caibros')).toHaveValue('24');
-    expect(screen.getByLabelText('Vigas Secundárias')).toHaveValue('8');
-    expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
+    expect(screen.getByLabelText('Secundárias')).toHaveValue('8');
+    expect(screen.getByLabelText('Mata-Juntas')).toHaveValue('4');
     expect(screen.getByLabelText('Calhas')).toHaveValue('');
-    expect(screen.getByLabelText('Escada')).toBeVisible();
+    expect(screen.getByLabelText('Tipo Escada')).toBeVisible();
     expect(screen.queryByText('Em branco')).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15a'}});
-    fireEvent.change(screen.getByLabelText('Mata-juntas'), {target: {value: '2.5'}});
+    fireEvent.change(screen.getByLabelText('Vigas p/ Escada'), {target: {value: '15a'}});
+    fireEvent.change(screen.getByLabelText('Mata-Juntas'), {target: {value: '2.5'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toHaveAttribute('aria-label', 'Alterações não salvas'));
-    expect(screen.getByTitle('Campo alterado: Vigas de Piso')).toBeVisible();
-    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
-    expect(screen.getByLabelText('Mata-juntas')).toHaveValue('4');
-    fireEvent.change(screen.getByLabelText('Outros / Justificativa'), {
+    expect(screen.getByTitle('Campo alterado: Vigas p/ Escada')).toBeVisible();
+    expect(screen.getByLabelText('Vigas p/ Escada')).toHaveValue('15');
+    expect(screen.getByLabelText('Mata-Juntas')).toHaveValue('4');
+    await user.click(screen.getByRole('tab', {name: 'Reparos'}));
+    fireEvent.change(screen.getByLabelText('Outros / Justificativas'), {
       target: {value: 'Reforço revisado com a monitoria.'},
     });
-    await submitForm('house-extra-materials-form');
+    await submitForm('house-configuration-form');
 
-    expect(actions.updateActiveHouseExtraMaterials).toHaveBeenCalledWith({
-      floorBeams: 15,
+    expect(actions.updateActiveHouseConfiguration).toHaveBeenCalledWith(expect.objectContaining({extraMaterials: expect.objectContaining({
+      floorBeams: 12,
+      stairBeams: 15,
       rafters: 24,
       secondaryBeams: 8,
       gutters: 4,
+      asphaltBlanket: false,
       justification: 'Reforço revisado com a monitoria.',
-    });
+    })}));
   });
 
   it('preserva rascunho de materiais em novo snapshot e reinicia após atualização persistida', async () => {
@@ -1657,38 +1683,38 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
-    fireEvent.change(screen.getByLabelText('Vigas de Piso'), {target: {value: '15'}});
+      .getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    fireEvent.change(screen.getByLabelText('Vigas p/ Escada'), {target: {value: '15'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toBeVisible());
 
     rendered.rerender(createPanelElement({constructionSite: structuredClone(constructionSite), actions}));
-    expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('15');
+    expect(screen.getByLabelText('Vigas p/ Escada')).toHaveValue('15');
     expect(screen.getByTestId('section-dirty-indicator')).toBeVisible();
 
     const updatedSite = structuredClone(constructionSite);
-    updatedSite.houses[0].extraMaterials = {...updatedSite.houses[0].extraMaterials, floorBeams: 18};
+    updatedSite.houses[0].extraMaterials = {...updatedSite.houses[0].extraMaterials, stairBeams: 18};
     updatedSite.houses[0].version += 1;
     updatedSite.houses[0].updatedAt = '2026-05-10T12:00:00.000Z';
     rendered.rerender(createPanelElement({constructionSite: updatedSite, actions}));
-    await waitFor(() => expect(screen.getByLabelText('Vigas de Piso')).toHaveValue('18'));
+    await waitFor(() => expect(screen.getByLabelText('Vigas p/ Escada')).toHaveValue('18'));
     expect(screen.queryByTestId('section-dirty-indicator')).not.toBeInTheDocument();
   });
 
-  it('avisa antes de sair do formulário de materiais extras com alterações não salvas', async () => {
+  it('avisa antes de sair da configuração com materiais extras alterados', async () => {
     const user = userEvent.setup();
 
     renderPanel();
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
-    await user.clear(screen.getByLabelText('Vigas de Piso'));
-    await user.type(screen.getByLabelText('Vigas de Piso'), '20');
+      .getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.clear(screen.getByLabelText('Vigas p/ Escada'));
+    await user.type(screen.getByLabelText('Vigas p/ Escada'), '20');
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
 
     await expectUnsavedChangesDialog(user);
-    expect(screen.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
     await confirmUnsavedChangesExit(user);
@@ -1696,7 +1722,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.getByRole('heading', {name: /Casas - CC2603/i, hidden: true})).toBeInTheDocument();
   });
 
-  it('trunca família e líderes longos no resumo lateral de materiais extras', async () => {
+  it('mantém materiais extras na configuração da casa com família e líderes longos', async () => {
     const user = userEvent.setup();
     const constructionSite = createConstructionSite();
     const longFamilyName = 'M'.repeat(25);
@@ -1708,21 +1734,13 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('button', {name: `Abrir materiais extras da casa ${longFamilyName}`}));
+      .getByRole('row', {name: new RegExp(`${longFamilyName}.*Tipo 6.*Rascunho`, 'i')}));
 
-    expect(await screen.findByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
-    const form = screen.getByTestId('house-extra-materials-form');
-    const family = within(form).getByTestId('house-extra-materials-sidebar-family');
-    const leaders = within(form).getByTestId('house-extra-materials-sidebar-leaders');
-
-    expect(family).toHaveTextContent(longFamilyName);
-    expect(family).toHaveAttribute('title', longFamilyName);
-    expect(family).toHaveClass('block', 'max-w-full', 'truncate');
-    expect(family.closest('dd')).toHaveClass('min-w-0');
-    expect(leaders).toHaveTextContent(longLeaders);
-    expect(leaders).toHaveAttribute('title', longLeaders);
-    expect(leaders).toHaveClass('block', 'max-w-full', 'truncate');
-    expect(leaders.closest('dd')).toHaveClass('min-w-0');
+    expect(await screen.findByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
+    expect(screen.getByLabelText('Nome da Família')).toHaveValue(longFamilyName);
+    expect(screen.getByLabelText('Líderes')).toHaveValue(longLeaders);
+    expect(screen.getByLabelText('Vigas p/ Escada')).toBeVisible();
   });
 
   it('não abre edição ao clicar em casa arquivada na listagem', async () => {
@@ -1801,13 +1819,13 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-mobile-list'))
-      .getByRole('button', {name: 'Voltar casa Família Souza para rascunho'}));
+      .getByRole('button', {name: 'Liberar edição da casa Família Souza'}));
 
     expect(screen.getByRole('alertdialog')).toBeVisible();
-    expect(screen.getByRole('heading', {name: 'Voltar casa para rascunho?'})).toBeVisible();
+    expect(screen.getByRole('heading', {name: 'Liberar edição da casa?'})).toBeVisible();
     expect(screen.getByText(/voltará a permitir edição no Canvas/i)).toBeVisible();
 
-    await user.click(screen.getByRole('button', {name: 'Voltar para rascunho'}));
+    await user.click(screen.getByRole('button', {name: 'Liberar edição'}));
 
     expect(actions.markHouseDraft).toHaveBeenCalledWith('house_1');
   });
@@ -1869,13 +1887,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByLabelText('Nome da Família')).toBeDisabled();
     expect(screen.getByLabelText('Telefone')).toBeDisabled();
     expect(screen.getByRole('button', {name: 'Salvar Configurações'})).toBeDisabled();
-
-    await user.click(screen.getByRole('button', {name: 'Voltar'}));
-    await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('button', {name: 'Abrir materiais extras da casa Família Souza'}));
-
-    expect(await screen.findByLabelText('Vigas de Piso')).toBeDisabled();
-    expect(screen.getByRole('button', {name: 'Salvar Materiais Extras'})).toBeDisabled();
+    expect(screen.getByLabelText('Vigas p/ Escada')).toBeDisabled();
+    await user.click(screen.getByRole('tab', {name: 'Telhado'}));
+    expect(screen.getByRole('button', {name: 'Manta Asfáltica'})).toBeDisabled();
   });
 
   it('não abre formulário de construção arquivada pela listagem', async () => {
@@ -2048,6 +2062,7 @@ type PanelTestInput = {
   actions?: ReturnType<typeof createActions>;
   canOpenRacEditor?: boolean;
   onBackToCanvas?: () => void;
+  initialScreen?: 'house-create';
 };
 
 function createPanelElement(input: PanelTestInput = {}) {
@@ -2058,6 +2073,7 @@ function createPanelElement(input: PanelTestInput = {}) {
         summaries={input.summaries ?? createSummaries()}
         canOpenRacEditor={input.canOpenRacEditor}
         onBackToCanvas={input.onBackToCanvas}
+        initialScreen={input.initialScreen}
         actions={(input.actions ?? createActions()) as never}
       />
     </TooltipProvider>
@@ -2385,6 +2401,7 @@ function createConstructionSite(): ConstructionSiteState {
         leaders: 'Ana e Bruno',
         extraMaterials: {
           floorBeams: 12,
+          stairBeams: 12,
           rafters: 24,
           secondaryBeams: 8,
           gutters: 4,

@@ -1,4 +1,4 @@
-import {ArrowLeft} from 'lucide-react';
+import {ArrowLeft, PanelsTopLeft} from 'lucide-react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useConstructionSiteManagementNavigation} from '@/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
@@ -31,7 +31,7 @@ import {EmptyState, PrimaryButton} from '@/components/construction-site/ui/lib/s
 import type {ConstructionSiteManagementActions, ConstructionSiteManagementScreen} from '@/components/construction-site/ui/lib/types.ts';
 import {getScreenSubtitle, getScreenTitle} from '@/components/construction-site/ui/lib/view-model.ts';
 import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-targets.ts';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {
   GUIDED_TOUR_COMPLETED_EVENT,
   isGuidedTourCompleted,
@@ -109,7 +109,7 @@ export interface ConstructionSiteManagementPanelProps {
   constructionSite: ConstructionSiteState | null;
   summaries: ConstructionSiteSummary[];
   canOpenRacEditor?: boolean;
-  onBackToCanvas?: () => void;
+  onBackToCanvas?: (preferSelectedHouse?: boolean) => void;
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void;
   actions: ConstructionSiteManagementActions;
   initialScreen?: ConstructionSiteManagementScreen;
@@ -406,7 +406,7 @@ export function ConstructionSiteManagementPanel({
         data-testid='construction-management-card'
         className='mx-auto flex min-h-full min-w-0 w-full max-w-none flex-col rounded-none border-0 bg-white p-4 shadow-none sm:min-h-[calc(100dvh-5rem)] sm:max-w-4xl sm:rounded-[24px] sm:border sm:border-slate-200/80 sm:p-6 sm:shadow-sm lg:p-8'
       >
-        <header className='mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
+        <header className='relative mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
           <div
             data-testid='construction-management-header-row'
             className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3'
@@ -435,6 +435,18 @@ export function ConstructionSiteManagementPanel({
                   {getScreenSubtitle(navigation.screen)}
                 </p>
               </div>
+              {navigation.screen === 'house-detail' && navigation.selectedHouse && onBackToCanvas ? (
+                <button type='button' aria-label='Abrir Canvas da casa' title='Abrir Canvas da casa'
+                  disabled={isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'archived'}
+                  className='grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50'
+                  onClick={() => requestNavigation(async () => {
+                    if (!constructionSite || !navigation.selectedHouse || isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'archived') return;
+                    await actions.activateHouse(constructionSite.constructionSite.id, navigation.selectedHouse.id);
+                    onBackToCanvas(true);
+                  })}>
+                  <PanelsTopLeft className='h-5 w-5' strokeWidth={1.75} aria-hidden='true'/>
+                </button>
+              ) : null}
             </div>
             <HeaderAction
               screen={navigation.screen}
@@ -548,7 +560,6 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
-              onOpenHouseExtraMaterials={navigation.openHouseExtraMaterials}
               onExportHouseRacPdf={handleExportHouseRacPdf}
               exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}

@@ -46,6 +46,31 @@ export const constructionFormSchema = z.object({
     .max(CONSTRUCTION_COMMUNITY_MAX_LENGTH, `Máximo de ${CONSTRUCTION_COMMUNITY_MAX_LENGTH} caracteres.`),
 });
 
+const optionalIntegerDraftSchema = z.string()
+  .trim()
+  .max(HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH, `Máximo de ${HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH} dígitos.`)
+  .refine((value) => value === '' || /^\d+$/.test(value), 'Use apenas números inteiros.');
+
+export const houseExtraMaterialsFormSchema = z.object({
+  stairBeams: optionalIntegerDraftSchema.default(''),
+  floorBeams: optionalIntegerDraftSchema.default(''),
+  rafters: optionalIntegerDraftSchema.default(''),
+  secondaryBeams: optionalIntegerDraftSchema.default(''),
+  gutters: optionalIntegerDraftSchema.default(''),
+  gutterCount: optionalIntegerDraftSchema.default(''),
+  gutterCaps: optionalIntegerDraftSchema.default(''),
+  gutterElbows: optionalIntegerDraftSchema.default(''),
+  asphaltBlanket: z.enum(['yes', 'no']).default('no'),
+  bracing: optionalIntegerDraftSchema.default(''),
+  stairType: z.enum(['straight', 'landing', 'access_ramp']).or(z.literal('')).default(''),
+  justification: z.string()
+    .trim()
+    .max(
+      HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH,
+      `Máximo de ${HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH} caracteres.`,
+    ).default(''),
+});
+
 export const houseConfigurationFormSchema = z.object({
   familyName: z.string()
     .trim()
@@ -95,27 +120,7 @@ export const houseConfigurationFormSchema = z.object({
     url: z.string().min(1),
     description: z.string().max(180).optional(),
   })).max(4).default([]),
-});
-
-const optionalIntegerDraftSchema = z.string()
-  .trim()
-  .max(HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH, `Máximo de ${HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH} dígitos.`)
-  .refine((value) => value === '' || /^\d+$/.test(value), 'Use apenas números inteiros.');
-
-export const houseExtraMaterialsFormSchema = z.object({
-  floorBeams: optionalIntegerDraftSchema,
-  rafters: optionalIntegerDraftSchema,
-  secondaryBeams: optionalIntegerDraftSchema,
-  gutters: optionalIntegerDraftSchema,
-  gutterCount: optionalIntegerDraftSchema.default(''),
-  stairType: z.enum(['straight', 'landing']).or(z.literal('')).default(''),
-  justification: z.string()
-    .trim()
-    .max(
-      HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH,
-      `Máximo de ${HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH} caracteres.`,
-    ),
-});
+}).merge(houseExtraMaterialsFormSchema);
 
 export const monitorFormSchema = z.object({
   name: z.string()

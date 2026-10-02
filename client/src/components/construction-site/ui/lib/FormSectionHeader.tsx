@@ -4,11 +4,13 @@ export function FormSectionHeader({
   number,
   title,
   dirty = false,
+  singleLine = false,
   children,
 }: {
   number: string;
   title: string;
   dirty?: boolean;
+  singleLine?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -16,7 +18,7 @@ export function FormSectionHeader({
       <span className='grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white'>
         {number}
       </span>
-      <span role='heading' aria-level={2} className='min-w-0 flex-1 text-left text-base font-semibold text-slate-950'>
+      <span role='heading' aria-level={2} className={`min-w-0 flex-1 text-left text-base font-semibold text-slate-950 ${singleLine ? 'whitespace-nowrap' : ''}`}>
         {title}
       </span>
       {dirty ? (

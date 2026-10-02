@@ -1,6 +1,6 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {Download, PackagePlus} from 'lucide-react';
+import {Download} from 'lucide-react';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -41,12 +41,12 @@ import {
   VisualSelect,
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {HouseDifficultyGauge} from '@/components/rac-editor/ui/HouseDifficultyGauge.tsx';
+import {HouseMaterialsSummary} from './HouseMaterialsSummary.tsx';
 
 export function HousesScreen({
   constructionSite,
   activeHouse,
   onEditHouse,
-  onOpenHouseExtraMaterials,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -56,7 +56,6 @@ export function HousesScreen({
   constructionSite: ConstructionSiteState;
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
-  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -165,7 +164,7 @@ export function HousesScreen({
             <th scope='col' className='px-3 pb-1 text-center'>Status</th>
             <th scope='col' className='px-3 pb-1 text-center'>Dificuldade</th>
             <th scope='col' className='px-3 pb-1 text-center align-middle leading-4'>
-              Histórico
+              Última RAC Exportada
             </th>
             <th scope='col' className='w-[11.5rem] px-3 pb-1 text-center'>
               <span className='sr-only'>Ações</span>
@@ -181,7 +180,6 @@ export function HousesScreen({
               active={activeHouse?.id === house.id}
               showGuidedTourTargets={house.id === guidedTourHouseId}
               onOpenHouse={onEditHouse}
-              onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
               onExportHouseRacPdf={onExportHouseRacPdf}
               exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
@@ -202,7 +200,6 @@ export function HousesScreen({
             active={activeHouse?.id === house.id}
             showGuidedTourTargets={house.id === guidedTourHouseId}
             onOpenHouse={onEditHouse}
-            onOpenHouseExtraMaterials={onOpenHouseExtraMaterials}
             onExportHouseRacPdf={onExportHouseRacPdf}
             exportingRacPdfHouseId={exportingRacPdfHouseId}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
@@ -238,7 +235,6 @@ export function HouseMobileCard({
   active,
   showGuidedTourTargets = false,
   onOpenHouse,
-  onOpenHouseExtraMaterials,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -250,7 +246,6 @@ export function HouseMobileCard({
   active: boolean;
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
-  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -282,10 +277,6 @@ export function HouseMobileCard({
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'built' ? 'markDraft' : 'markBuilt');
   };
-  const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    void onOpenHouseExtraMaterials(house.id);
-  };
   const exportRacPdf = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (isExportingRacPdf || house.status === 'archived' || readOnly) return;
@@ -300,6 +291,7 @@ export function HouseMobileCard({
       aria-label={`Abrir casa ${familyName} ${houseTypeLabel} ${statusLabel}`}
       onClick={openHouse}
       onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
+        if (event.target !== event.currentTarget) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         openHouse();
@@ -369,15 +361,8 @@ export function HouseMobileCard({
           </span>
         </div>
         <div className='flex shrink-0 items-center gap-1'>
-          {house.status !== 'archived' ? (
-            <RoundIconActionButton
-              label={`Abrir materiais extras da casa ${familyName}`}
-              onClick={openExtraMaterials}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}
-            >
-              <PackagePlus className='h-4 w-4'/>
-            </RoundIconActionButton>
-          ) : null}
+          <HouseMaterialsSummary familyName={familyName} materials={house.extraMaterials}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
           {house.status !== 'archived' ? (
             <RoundIconActionButton
               label={exportRacPdfLabel}
@@ -392,7 +377,7 @@ export function HouseMobileCard({
             <StatusActionButton
               action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
               label={house.status === 'built'
-                ? `Voltar casa ${familyName} para rascunho`
+                ? `Liberar edição da casa ${familyName}`
                 : `Marcar casa ${familyName} como construída`}
               onClick={requestBuiltStatusChange}
               guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
@@ -425,7 +410,6 @@ export function HouseTableRow({
   active,
   showGuidedTourTargets = false,
   onOpenHouse,
-  onOpenHouseExtraMaterials,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -437,7 +421,6 @@ export function HouseTableRow({
   active: boolean;
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
-  onOpenHouseExtraMaterials(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -469,10 +452,6 @@ export function HouseTableRow({
     event.stopPropagation();
     onRequestHouseStatusChange(house.id, house.status === 'built' ? 'markDraft' : 'markBuilt');
   };
-  const openExtraMaterials = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    void onOpenHouseExtraMaterials(house.id);
-  };
   const exportRacPdf = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (isExportingRacPdf || house.status === 'archived' || readOnly) return;
@@ -485,6 +464,7 @@ export function HouseTableRow({
       aria-label={`${familyName} ${houseTypeLabel} ${statusLabel}`}
       onClick={openHouse}
       onKeyDown={(event: KeyboardEvent<HTMLTableRowElement>) => {
+        if (event.target !== event.currentTarget) return;
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         openHouse();
@@ -509,10 +489,10 @@ export function HouseTableRow({
             </span>
             <span
               data-testid='house-table-type'
-              title={houseTypeLabel}
+              title={`${houseTypeLabel} • ${formattedDate.date} ${formattedDate.time}`}
               className='mt-0.5 block truncate text-xs font-medium text-slate-500'
             >
-              {houseTypeLabel}
+              {houseTypeLabel} <span aria-hidden='true'>•</span> <time data-testid='house-table-updated-at' dateTime={house.updatedAt}>{formattedDate.date} {formattedDate.time}</time>
             </span>
           </span>
         </div>
@@ -535,14 +515,7 @@ export function HouseTableRow({
         </span>
       </td>
       <td className='px-3 py-3 text-center align-middle text-xs font-medium text-slate-700'>
-        <span data-testid='house-table-updated-at' className='block text-center'>
-          <time dateTime={house.updatedAt} className='block'>{formattedDate.date}</time>
-          <span className='mt-0.5 block text-[11px] text-slate-400'>{formattedDate.time}</span>
-        </span>
-        <span data-testid='house-table-last-rac-exported-at' className='mt-2 block border-t border-slate-100 pt-2 text-center'>
-          <span className='block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
-            Última RAC exportada
-          </span>
+        <span data-testid='house-table-last-rac-exported-at' className='block text-center'>
           {formatOptionalTimestampDate(house.lastRacExportedAt) ? (
             <>
               <time dateTime={house.lastRacExportedAt} className='mt-0.5 block'>
@@ -559,15 +532,8 @@ export function HouseTableRow({
       </td>
       <td className='w-[11.5rem] rounded-r-lg px-3 py-3 align-middle'>
         <div data-testid='house-table-actions' className='flex min-h-14 items-center justify-end gap-2'>
-          {house.status !== 'archived' ? (
-            <RoundIconActionButton
-              label={`Abrir materiais extras da casa ${familyName}`}
-              onClick={openExtraMaterials}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}
-            >
-              <PackagePlus className='h-4 w-4'/>
-            </RoundIconActionButton>
-          ) : null}
+          <HouseMaterialsSummary familyName={familyName} materials={house.extraMaterials}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
           {house.status !== 'archived' ? (
             <RoundIconActionButton
               label={exportRacPdfLabel}
@@ -582,7 +548,7 @@ export function HouseTableRow({
             <StatusActionButton
               action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
               label={house.status === 'built'
-                ? `Voltar casa ${familyName} para rascunho`
+                ? `Liberar edição da casa ${familyName}`
                 : `Marcar casa ${familyName} como construída`}
               onClick={requestBuiltStatusChange}
               guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}

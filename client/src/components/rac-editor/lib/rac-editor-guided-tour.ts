@@ -326,7 +326,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           placement: 'bottom',
           alignment: 'center',
           title: 'Materiais Extras',
-          text: 'Use este atalho para registrar materiais extras e justificativas específicas da casa.',
+          text: 'Abra o resumo dos materiais extras desta casa. Para editar as seções 7, 8 e 9, abra a configuração da casa.',
           next: 'rac-house-export-pdf',
           persistKey: 'guided-tour:rac-house-actions:extra-materials',
           kind: 'flow',
@@ -378,6 +378,24 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
     },
   ],
   tips: [
+    {
+      id: 'rac-tip-text-color',
+      triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'text'},
+      placement: 'left',
+      alignment: 'middle',
+      text: 'Para alterar a cor deste texto, clique nele com o botão direito e escolha a cor no editor.',
+      persistKey: 'guided-tour:rac-tip:text-color-v1',
+      kind: 'tip',
+    },
+    {
+      id: 'rac-tip-freehand-color',
+      triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'freehand'},
+      placement: 'left',
+      alignment: 'middle',
+      text: 'Depois de terminar o desenho, dê dois cliques no traço para alterar sua cor.',
+      persistKey: 'guided-tour:rac-tip:freehand-color-v1',
+      kind: 'tip',
+    },
     {
       id: 'rac-tip-wall',
       triggerEvent: {name: RAC_CANVAS_OBJECT_INSERTED_EVENT, objectKind: 'wall'},

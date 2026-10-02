@@ -36,7 +36,7 @@ export const STATUS_BADGE_CLASS_NAMES: Record<ConstructionSiteStatus, string> = 
 
 export const HOUSE_STATUS_LABELS: Record<PersistedHouseStatus, string> = {
   draft: 'Rascunho',
-  rac_printed: 'RAC Impressa',
+  rac_printed: 'Impressa',
   built: 'Construída',
   archived: 'Arquivada',
 };
@@ -83,7 +83,7 @@ export const HOUSE_STATUS_FILTER_OPTIONS: VisualSelectOption<HouseStatusFilter>[
   {value: 'incomplete', label: 'Incompletas para RAC'},
   {value: 'archived', label: 'Arquivada'},
   {value: 'draft', label: 'Rascunho'},
-  {value: 'rac_printed', label: 'RAC Impressa'},
+  {value: 'rac_printed', label: 'Impressa'},
   {value: 'built', label: 'Construída'},
 ];
 

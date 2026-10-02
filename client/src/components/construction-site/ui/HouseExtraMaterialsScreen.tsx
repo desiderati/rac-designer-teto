@@ -1,15 +1,10 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {useEffect, useRef} from 'react';
-import {Controller, type Control, useForm} from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
 import type {UpdateHouseExtraMaterialsInput} from '@/components/rac-editor/lib/construction-site-session.ts';
 import type {ConstructionSiteState, PersistedHouseRecord} from '@/shared/types/construction-site.ts';
-import {
-  HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH,
-  HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH,
-  houseExtraMaterialsFormSchema,
-  type HouseExtraMaterialsFormValues,
-} from '@/components/construction-site/lib/construction-site-form-validation.ts';
+import {houseExtraMaterialsFormSchema, type HouseExtraMaterialsFormValues} from '@/components/construction-site/lib/construction-site-form-validation.ts';
 import {
   getAvatarPalette,
   getHouseExtraMaterialsInitialState,
@@ -18,17 +13,10 @@ import {
   getHouseInitials,
   toHouseExtraMaterialsInput,
 } from '@/components/construction-site/ui/lib/view-model.ts';
-import {
-  PrimaryButton,
-  TextArea,
-  TextField,
-  VisualSelectField,
-} from '@/components/construction-site/ui/lib/shared-controls.tsx';
-import type {VisualSelectOption} from '@/components/construction-site/ui/lib/types.ts';
-import type {StairType} from '@/shared/types/construction-site.ts';
+import {PrimaryButton} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {useFormDirtyChange} from '@/components/construction-site/ui/lib/use-form-dirty-change.ts';
-import {FormSectionHeader} from '@/components/construction-site/ui/lib/FormSectionHeader.tsx';
 import {FormActionDock} from '@/components/construction-site/ui/lib/FormActionDock.tsx';
+import {HouseExtraMaterialsFields} from './HouseExtraMaterialsFields.tsx';
 
 export function HouseExtraMaterialsScreen({
   constructionSite,
@@ -53,15 +41,6 @@ export function HouseExtraMaterialsScreen({
   const formSourceKey = [constructionSite.constructionSite.id, house.id, house.version, house.updatedAt].join(':');
   const lastFormSourceKey = useRef(formSourceKey);
   const {dirtyFields} = form.formState;
-  const hasSectionChanges = Boolean(
-    dirtyFields.floorBeams
-    || dirtyFields.rafters
-    || dirtyFields.secondaryBeams
-    || dirtyFields.gutters
-    || dirtyFields.gutterCount
-    || dirtyFields.stairType
-    || dirtyFields.justification,
-  );
 
   useEffect(() => {
     if (lastFormSourceKey.current === formSourceKey) return;
@@ -85,89 +64,7 @@ export function HouseExtraMaterialsScreen({
       <HouseExtraMaterialsSidebar constructionSite={constructionSite} house={house}/>
 
         <div>
-          <section className='space-y-2'>
-            <div className='flex items-center gap-3 py-3'>
-              <FormSectionHeader number='07' title='Materiais Extras' dirty={hasSectionChanges}/>
-            </div>
-            <div data-testid='extra-materials-grid' className='grid gap-4 md:grid-cols-2'>
-                <IntegerField
-                  control={form.control}
-                  name='floorBeams'
-                  label='Vigas de Piso'
-                  placeholder='0'
-                  dirty={Boolean(dirtyFields.floorBeams)}
-                  disabled={isReadOnly}
-                />
-                <IntegerField
-                  control={form.control}
-                  name='rafters'
-                  label='Caibros'
-                  placeholder='0'
-                  dirty={Boolean(dirtyFields.rafters)}
-                  disabled={isReadOnly}
-                />
-                <IntegerField
-                  control={form.control}
-                  name='secondaryBeams'
-                  label='Vigas Secundárias'
-                  placeholder='0'
-                  dirty={Boolean(dirtyFields.secondaryBeams)}
-                  disabled={isReadOnly}
-                />
-                <IntegerField
-                  control={form.control}
-                  name='gutters'
-                  label='Mata-juntas'
-                  placeholder='0'
-                  dirty={Boolean(dirtyFields.gutters)}
-                  disabled={isReadOnly}
-                />
-                <IntegerField
-                  control={form.control}
-                  name='gutterCount'
-                  label='Calhas'
-                  placeholder='0'
-                  dirty={Boolean(dirtyFields.gutterCount)}
-                  disabled={isReadOnly}
-                />
-                <Controller
-                  control={form.control}
-                  name='stairType'
-                  render={({field, fieldState}) => (
-                    <VisualSelectField
-                      label='Escada'
-                      ariaLabel='Escada'
-                      placeholder=''
-                      value={field.value}
-                      options={STAIR_OPTIONS}
-                      onChange={field.onChange}
-                      error={fieldState.error?.message}
-                      dirty={Boolean(dirtyFields.stairType)}
-                      disabled={isReadOnly}
-                    />
-                  )}
-                />
-                <div className='md:col-span-2'>
-                  <Controller
-                    control={form.control}
-                    name='justification'
-                    render={({field, fieldState}) => (
-                      <TextArea
-                        label='Outros / Justificativa'
-                        placeholder='Descreva materiais adicionais ou a justificativa para a solicitação...'
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        maxLength={HOUSE_EXTRA_MATERIAL_JUSTIFICATION_MAX_LENGTH}
-                        error={fieldState.error?.message}
-                        dirty={Boolean(dirtyFields.justification)}
-                        disabled={isReadOnly}
-                      />
-                    )}
-                  />
-                </div>
-            </div>
-          </section>
+          <HouseExtraMaterialsFields control={form.control} dirtyFields={dirtyFields} disabled={isReadOnly}/>
 
         <FormActionDock testId='house-extra-materials-actions'>
           <PrimaryButton type='submit' disabled={isReadOnly} className='w-full min-w-0'>Salvar Materiais Extras</PrimaryButton>
@@ -176,56 +73,6 @@ export function HouseExtraMaterialsScreen({
     </form>
   );
 }
-
-function IntegerField({
-  control,
-  name,
-  label,
-  placeholder,
-  dirty = false,
-  disabled = false,
-}: {
-  control: Control<HouseExtraMaterialsFormValues>;
-  name: keyof Pick<HouseExtraMaterialsFormValues, 'floorBeams' | 'rafters' | 'secondaryBeams' | 'gutters' | 'gutterCount'>;
-  label: string;
-  placeholder: string;
-  dirty?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({field, fieldState}) => (
-        <TextField
-          label={label}
-          placeholder={placeholder}
-          value={field.value}
-          onChange={(value) => field.onChange(normalizeIntegerDraft(value, field.value))}
-          onBlur={field.onBlur}
-          maxLength={HOUSE_EXTRA_MATERIAL_INTEGER_MAX_LENGTH}
-          pattern='[0-9]*'
-          inputMode='numeric'
-          error={fieldState.error?.message}
-          dirty={dirty}
-          disabled={disabled}
-        />
-      )}
-    />
-  );
-}
-
-function normalizeIntegerDraft(value: string, previousValue: string): string {
-  if (/^\d*$/.test(value)) return value;
-  if (/[.,+\-\s]/.test(value) || /e/i.test(value)) return previousValue;
-  return value.replace(/\D/g, '');
-}
-
-const STAIR_OPTIONS: VisualSelectOption<StairType | ''>[] = [
-  {value: '', label: 'Sem escada', triggerLabel: '', ariaLabel: 'Sem escada'},
-  {value: 'straight', label: 'Escada Reta'},
-  {value: 'landing', label: 'Escada com Patamar'},
-];
 
 function HouseExtraMaterialsSidebar({
   constructionSite,

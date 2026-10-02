@@ -23,7 +23,16 @@ vi.mock('@/contexts/TerrainPhotoDescriptionContext.tsx', () => ({
   }),
 }));
 
-vi.mock('@/components/ui/sonner.tsx', () => ({toast: toastMock}));
+vi.mock('@/components/ui/sonner.tsx', () => ({
+  toast: toastMock,
+  beginToastTask: (id: string, title: string) => {
+    toastMock.loading(title, {id});
+    return {
+      success: (message: string) => toastMock.success(message, {id}),
+      error: (message: string) => toastMock.error(message, {id}),
+    };
+  },
+}));
 
 const existingPhoto: TerrainPhoto = {
   id: 'terrain-photo-1',
@@ -34,6 +43,18 @@ const existingPhoto: TerrainPhoto = {
 describe('TerrainPhotosField', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('amplia a foto clicada, navega apenas pelas enviadas e volta ao formulário', () => {
+    render(<TerrainPhotosField constructionSiteId='site-1' value={[existingPhoto, {id: 'photo-2', url: 'data:image/png;base64,iVBORw0KGgo=', description: 'Segunda foto'}]} onChange={vi.fn()}/>);
+    fireEvent.click(screen.getByRole('button', {name: 'Ampliar foto do terreno'}));
+    expect(screen.getByRole('heading', {name: 'Fotos do Terreno'})).toBeVisible();
+    expect(screen.getByText('1 / 2')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', {name: 'Próxima foto'}));
+    expect(screen.getByText('2 / 2')).toBeVisible();
+    expect(screen.getByRole('img', {name: 'Segunda foto'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', {name: 'Fechar visualizador de fotos'}));
+    expect(screen.queryByRole('heading', {name: 'Fotos do Terreno'})).not.toBeInTheDocument();
   });
 
   it('pede confirmação antes de excluir e mantém a foto ao cancelar', () => {
