@@ -1,7 +1,7 @@
 name = "ui-impeccable-specialist"
 description = "Use for Impeccable-driven UI shape, craft, polish, critique, audit, extract, and clean production asset preparation when high-craft frontend work is explicitly needed."
-model = "gpt-5.5"
-model_reasoning_effort = "high"
+model = "gpt-6-sol"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["UI Impeccable Specialist"]
 
