@@ -106,7 +106,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(result.current.resetKey).toBe(1);
   });
 
-  it('preserva a ilustração pronta sem inserir automaticamente e permite inseri-la depois', async () => {
+  it('preserva a captura 3D pronta sem inserir automaticamente e permite inseri-la depois', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
@@ -138,7 +138,7 @@ describe('useHouse3DViewerActions.ts', () => {
       await result.current.handleInsertOnCanvas();
     });
 
-    expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith('data:image/png;base64,3d-screenshot');
+    expect(houseIllustrationPort.generateFromDataUrl).not.toHaveBeenCalled();
     expect(insertImageSnapshot).not.toHaveBeenCalled();
     expect(result.current.hasPendingIllustration).toBe(true);
 
@@ -147,10 +147,36 @@ describe('useHouse3DViewerActions.ts', () => {
     });
 
     expect(insertImageSnapshot).toHaveBeenCalledWith(
-      'data:image/png;base64,illustrated-house',
-      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png'},
+      'data:image/png;base64,3d-screenshot',
+      {storageUrl: null},
     );
     expect(result.current.hasPendingIllustration).toBe(false);
+  });
+
+  it('mantém a cor vermelha capturada ao inserir mesmo se a ilustração opcional vier azul', async () => {
+    const insertImageSnapshot = vi.fn().mockResolvedValue(true);
+    const canvas = document.createElement('canvas');
+    Object.defineProperty(canvas, 'toDataURL', {
+      value: vi.fn(() => 'data:image/png;base64,casa-vermelha'),
+    });
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange: vi.fn(),
+      canvasRef: {current: {createSnapshotPort: () => ({insertImageSnapshot})}},
+      cameraPoseStorageKey: null,
+      viewerPreferencesStorageKey: null,
+      houseIllustrationPort: {generateFromDataUrl: vi.fn().mockResolvedValue({
+        dataUrl: 'data:image/png;base64,casa-azul',
+        storageUrl: '/manus-storage/temp/house-3d/azul.png',
+      })},
+    }), {wrapper});
+
+    act(() => result.current.handleCanvasCreated(canvas));
+    await act(async () => result.current.handleInsertOnCanvas());
+    await act(async () => result.current.handleInsertOnCanvas());
+
+    expect(insertImageSnapshot).toHaveBeenCalledWith('data:image/png;base64,casa-vermelha', {storageUrl: null});
   });
 
   it('mantém a imagem pronta quando o Canvas não está disponível', async () => {
@@ -185,7 +211,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(result.current.hasPendingIllustration).toBe(true);
   });
 
-  it('permite fechar o viewer enquanto a ilustração continua sendo gerada', async () => {
+  it('permite fechar o viewer enquanto a captura continua sendo persistida', async () => {
     let resolveGeneration: ((value: {dataUrl: string; storageUrl: string}) => void) | null = null;
     const pendingGeneration = new Promise<{dataUrl: string; storageUrl: string}>((resolve) => {
       resolveGeneration = resolve;
@@ -203,7 +229,10 @@ describe('useHouse3DViewerActions.ts', () => {
       canvasRef: {current: {createSnapshotPort: () => ({insertImageSnapshot})}},
       cameraPoseStorageKey: null,
       viewerPreferencesStorageKey: null,
-      houseIllustrationPort: {generateFromDataUrl: vi.fn(() => pendingGeneration)},
+      houseIllustrationPort: {
+        generateFromDataUrl: vi.fn(),
+        persistDataUrl: vi.fn(() => pendingGeneration.then((value) => value.storageUrl)),
+      },
     }), {wrapper});
 
     act(() => {

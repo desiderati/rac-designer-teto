@@ -51,6 +51,9 @@ e apresentação.
 6. Escadas 3D
     - Devem seguir métricas derivadas do projeto.
     - Quantidade e posicionamento de degraus devem ser coerentes com dados recebidos.
+    - Devem aparecer mesmo quando apenas a planta foi inserida. Sem escada projetada por uma elevação,
+      derivar posição da porta, altura e degraus dos dados da casa e dos níveis dos pilotis.
+    - A configuração de exibição da escada na planta 2D não oculta a escada da cena 3D.
 
 7. Contraventamentos 3D
     - Devem respeitar orientação vertical ou horizontal.
@@ -81,11 +84,16 @@ e apresentação.
 
 9. Ao reabrir o viewer da mesma casa, a cor e a preferência de ocultação devem ser restauradas.
 
+10. Cor e pose de câmera (posição, alvo, campo de visão e zoom) são persistidas no documento da própria casa,
+    incluindo exportação/importação e sincronização. Preferências locais legadas são somente fallback por casa.
+
 ## Regras de snapshot para 2D
 
 1. Captura do 3D deve gerar imagem válida.
 
 2. Inserção no canvas 2D deve ocorrer sem quebrar o estado do projeto.
+
+   A imagem inserida deve preservar a cor de parede escolhida no viewer, usando a captura local da cena.
 
 3. O PDF deve usar a última pose salva do viewer 3D da casa ativa para capturar a imagem 3D.
 

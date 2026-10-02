@@ -1,4 +1,5 @@
-import {House3DFace, HouseSide, HouseType, HouseViewType} from '@/shared/types/house.ts';
+import {House3DFace, HouseSide, HouseType, HouseViewType, type HousePiloti} from '@/shared/types/house.ts';
+import {resolveTopStairMetrics} from '@/domain/house/use-cases/house-stair-metrics.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
 import type {House3DElevationViewProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 
@@ -9,6 +10,40 @@ export interface Stairs3DData {
   stairWidth: number;
   stairHeightMts: number;
   stepCount: number;
+}
+
+/** Mantém a escada na porta mesmo quando a elevação ainda não foi inserida no Canvas. */
+export function deriveStairsFromHouse(params: {
+  houseType: HouseType;
+  sideMappings: Record<HouseSide, HouseViewType | null>;
+  pilotis: Record<string, HousePiloti>;
+}): Stairs3DData | null {
+  if (!params.houseType) return null;
+  const viewType = params.houseType === 'tipo6' ? 'front' : 'side2';
+  const face = resolveStairFace({...params, viewType});
+  if (!face) return null;
+  const doorSide = face === 'front' ? 'top' : face === 'back' ? 'bottom' : face === 'right' ? 'left' : 'right';
+  const {footprint, elements, view} = HOUSE_DIMENSIONS;
+  const isFrontBack = params.houseType === 'tipo6';
+  const axisLength = isFrontBack ? footprint.width : footprint.depth;
+  const doorX = isFrontBack
+    ? axisLength - elements.common.windowWidth - elements.frontBack.windowShiftX - elements.common.doorWidth - elements.frontBack.doorShiftX
+    : axisLength - elements.common.doorWidth - elements.side.doorShiftX;
+  const stairWidth = Math.max(elements.common.doorWidth, elements.common.windowWidth);
+  const center = doorX + stairWidth / 2;
+  const metrics = resolveTopStairMetrics({
+    pilotis: params.pilotis, doorSide,
+    bodyWidth: footprint.width, bodyHeight: footprint.depth,
+    stairSpan: stairWidth,
+    stairCenter: doorSide === 'top' || doorSide === 'right' ? axisLength / 2 - center : center - axisLength / 2,
+  });
+  return {
+    id: `house-${viewType}-stairs`, face,
+    centerFromLeft: center * view.scale,
+    stairWidth: stairWidth * view.scale,
+    stairHeightMts: metrics.stairHeight,
+    stepCount: metrics.steps,
+  };
 }
 
 export function parseStairsFromElevationViews(params: {

@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import type {HouseType} from '@/shared/types/house.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
@@ -17,6 +17,7 @@ import {
   writeHouse3DViewerPreferences,
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
+import type {HouseDrawingViewer3DDocument} from '@/shared/types/house-drawing-document.ts';
 
 const EDITOR_TOAST_POSITION = 'bottom-right' as const;
 
@@ -29,6 +30,11 @@ interface UseHouse3DViewerActionsArgs {
   cameraPoseStorageKey: string | null;
   viewerPreferencesStorageKey: string | null;
   houseIllustrationPort?: HouseIllustrationPort;
+  viewer3DPort?: {
+    getViewer3D?: () => HouseDrawingViewer3DDocument | null;
+    setViewer3D?: (value: HouseDrawingViewer3DDocument) => void;
+  };
+  onDocumentChange?: () => void;
 }
 
 /**
@@ -46,14 +52,16 @@ export function useHouse3DViewerActions({
   cameraPoseStorageKey,
   viewerPreferencesStorageKey,
   houseIllustrationPort,
+  viewer3DPort,
+  onDocumentChange,
 }: UseHouse3DViewerActionsArgs) {
   const [resetKey, setResetKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wallColor, setWallColor] = useState(
-    () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).wallColor,
+    () => (viewer3DPort?.getViewer3D?.() ?? readHouse3DViewerPreferences(viewerPreferencesStorageKey)).wallColor,
   );
   const [hideBelowTerrain, setHideBelowTerrain] = useState(
-    () => readHouse3DViewerPreferences(viewerPreferencesStorageKey).hideBelowTerrain,
+    () => (viewer3DPort?.getViewer3D?.() ?? readHouse3DViewerPreferences(viewerPreferencesStorageKey)).hideBelowTerrain,
   );
   const [isSceneReady, setIsSceneReady] = useState(false);
   const webglCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -69,10 +77,10 @@ export function useHouse3DViewerActions({
   } = useHouse3DImageInsertion();
 
   useEffect(() => {
-    const preferences = readHouse3DViewerPreferences(viewerPreferencesStorageKey);
+    const preferences = viewer3DPort?.getViewer3D?.() ?? readHouse3DViewerPreferences(viewerPreferencesStorageKey);
     setWallColor(preferences.wallColor);
     setHideBelowTerrain(preferences.hideBelowTerrain);
-  }, [viewerPreferencesStorageKey]);
+  }, [viewerPreferencesStorageKey, viewer3DPort]);
 
   const getCanvasHandle = useCallback(() => canvasRef.current, [canvasRef]);
 
@@ -95,8 +103,13 @@ export function useHouse3DViewerActions({
   const handleReset = useCallback(() => {
     clearSceneReadiness();
     removeHouse3DViewerCameraPose(cameraPoseStorageKey);
+    const previous = viewer3DPort?.getViewer3D?.();
+    if (previous) {
+      viewer3DPort?.setViewer3D?.({...previous, cameraPose: null});
+      onDocumentChange?.();
+    }
     setResetKey((key) => key + 1);
-  }, [cameraPoseStorageKey, clearSceneReadiness]);
+  }, [cameraPoseStorageKey, clearSceneReadiness, onDocumentChange, viewer3DPort]);
 
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((fullscreen) => !fullscreen);
@@ -116,10 +129,23 @@ export function useHouse3DViewerActions({
   }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
 
   const handleClose = useCallback(() => {
+    const pose = cameraPoseReaderRef.current?.()
+      ?? (houseType ? createHouse3DDoorFacingCameraPose({doorFace: doorFace ?? 'front', compact: false}) : null);
     persistCurrentCameraPose();
     persistCurrentViewerPreferences();
+    viewer3DPort?.setViewer3D?.({
+      cameraPose: pose ? {
+        position: [...pose.position],
+        target: [...pose.target],
+        fov: pose.fov,
+        zoom: pose.zoom,
+      } : null,
+      wallColor,
+      hideBelowTerrain,
+    });
+    onDocumentChange?.();
     onOpenChange(false);
-  }, [onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences]);
+  }, [doorFace, hideBelowTerrain, houseType, onDocumentChange, onOpenChange, persistCurrentCameraPose, persistCurrentViewerPreferences, viewer3DPort, wallColor]);
 
   const handleDialogOpenChange = useCallback((nextOpen: boolean) => {
     if (!nextOpen) {
@@ -160,12 +186,11 @@ export function useHouse3DViewerActions({
     setGenerating(true);
 
     try {
-      const illustration = houseIllustrationPort
-        ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
-        : null;
-      const imageDataUrl = illustration?.dataUrl ?? screenshotDataUrl;
-      let storageUrl = illustration?.dataUrl ? illustration.storageUrl : null;
-      const source: 'illustration' | 'fallback' = illustration?.dataUrl ? 'illustration' : 'fallback';
+      // A ilustração remota pode reinterpretar a cor da parede. A imagem local
+      // é o registro fiel do estado visível da modal no instante da captura.
+      const imageDataUrl = screenshotDataUrl;
+      let storageUrl: string | null = null;
+      const source: 'illustration' | 'fallback' = 'fallback';
 
       if (!storageUrl && houseIllustrationPort?.persistDataUrl) {
         storageUrl = await houseIllustrationPort.persistDataUrl(imageDataUrl, 'casa-3d-fallback.png');

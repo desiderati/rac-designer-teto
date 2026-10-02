@@ -14,6 +14,7 @@ import {
 } from '@/components/rac-editor/@viewer-3d/lib/parsers/contraventamento-parser.ts';
 import {
   parseStairsFromElevationViews,
+  deriveStairsFromHouse,
   type Stairs3DData,
 } from '@/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts';
 
@@ -87,7 +88,7 @@ export function buildHouse3DViewerModel(projection: House3DProjection | null): H
       houseType: projection.houseType,
       sideMappings: projection.sideMappings,
       elevationViews: projection.elevationViews,
-    }),
+    }) ?? deriveStairsFromHouse(projection),
   };
 }
 

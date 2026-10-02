@@ -29,6 +29,7 @@ import {
 } from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
 import {getHouse3DViewerPreferencesStorageKey} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 import type {HouseIllustrationPort} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
+import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface House3DViewerProps {
   open: boolean;
@@ -36,6 +37,7 @@ interface House3DViewerProps {
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   activeHouseId: string | null;
   houseIllustrationPort?: HouseIllustrationPort;
+  onDocumentChange?: () => void;
 }
 
 function readPersistedCameraPose(storageKey: string | null, storageRevision: number) {
@@ -43,7 +45,8 @@ function readPersistedCameraPose(storageKey: string | null, storageRevision: num
   return readHouse3DViewerCameraPose(storageKey);
 }
 
-export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort}: House3DViewerProps) {
+export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, houseIllustrationPort, onDocumentChange}: House3DViewerProps) {
+  const {houseDrawingDocumentPort} = useEditorPorts();
   const {
     houseType,
     hasHouseViews,
@@ -99,10 +102,17 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     cameraPoseStorageKey,
     viewerPreferencesStorageKey,
     houseIllustrationPort,
+    viewer3DPort: houseDrawingDocumentPort,
+    onDocumentChange,
   });
   const persistedCameraPose = useMemo(
-    () => readPersistedCameraPose(cameraPoseStorageKey, resetKey),
-    [cameraPoseStorageKey, resetKey],
+    () => {
+      const savedViewer3D = houseDrawingDocumentPort.getViewer3D?.();
+      return savedViewer3D
+        ? savedViewer3D.cameraPose
+        : readPersistedCameraPose(cameraPoseStorageKey, resetKey);
+    },
+    [cameraPoseStorageKey, houseDrawingDocumentPort, resetKey],
   );
 
   useEffect(() => {

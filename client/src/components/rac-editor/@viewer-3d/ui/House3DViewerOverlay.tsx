@@ -20,6 +20,7 @@ interface RacEditor3DViewerOverlayProps {
   canvasRef: RefObject<CanvasSnapshotHandle | null>;
   activeHouseId: string | null;
   houseIllustrationPort?: HouseIllustrationPort;
+  onDocumentChange?: () => void;
 }
 
 export function House3DViewerOverlay({
@@ -28,6 +29,7 @@ export function House3DViewerOverlay({
   canvasRef,
   activeHouseId,
   houseIllustrationPort,
+  onDocumentChange,
 }: RacEditor3DViewerOverlayProps) {
   if (!open) return null;
 
@@ -39,6 +41,7 @@ export function House3DViewerOverlay({
         canvasRef={canvasRef}
         activeHouseId={activeHouseId}
         houseIllustrationPort={houseIllustrationPort}
+        onDocumentChange={onDocumentChange}
       />
     </Suspense>
   );

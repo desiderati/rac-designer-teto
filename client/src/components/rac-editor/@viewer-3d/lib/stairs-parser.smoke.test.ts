@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {parseStairsFromElevationViews} from '@/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts';
+import {deriveStairsFromHouse, parseStairsFromElevationViews} from '@/components/rac-editor/@viewer-3d/lib/parsers/stairs-parser.ts';
+import {buildHouse3DViewerModel} from '@/components/rac-editor/@viewer-3d/hooks/useHouse3DViewerModel.ts';
 import type {House3DElevationViewProjection} from '@/components/rac-editor/ports/House3DProjectionPort.ts';
 
 function createElevationViewWithStairs(params: {
@@ -33,6 +34,27 @@ function createElevationViewWithStairs(params: {
 }
 
 describe('stairs-parser.ts', () => {
+  it.each([
+    ['tipo6', {top: 'front', bottom: 'back', left: 'side1', right: 'side1'}, 'front'],
+    ['tipo6', {top: 'back', bottom: 'front', left: 'side1', right: 'side1'}, 'back'],
+    ['tipo3', {top: 'back', bottom: 'back', left: 'side2', right: 'side1'}, 'right'],
+    ['tipo3', {top: 'back', bottom: 'back', left: 'side1', right: 'side2'}, 'left'],
+  ] as const)('mantém escada %s na porta sem depender de elevação: %s', (houseType, sideMappings, face) => {
+    const projection = {houseType, sideMappings, pilotis: {}, hasHouseViews: true, topView: null, elevationViews: []};
+    const model = buildHouse3DViewerModel(projection);
+    expect(model.canRenderHouse).toBe(true);
+    expect(model.stairs).toMatchObject({face, stairHeightMts: 0.8, stepCount: 3});
+    expect(model.stairs?.stairWidth).toBeGreaterThan(0);
+    expect(buildHouse3DViewerModel({...projection, hasHouseViews: false}).stairs).toBeNull();
+  });
+
+  it('recalcula a escada derivada quando o terreno muda', () => {
+    const sideMappings = {top: 'front', bottom: 'back', left: 'side1', right: 'side1'} as const;
+    const pilotis = Object.fromEntries(['piloti_0_0', 'piloti_1_0', 'piloti_2_0', 'piloti_3_0'].map((id) => [id, {nivel: 1.2, height: 2, isMaster: false}]));
+    const stairs = deriveStairsFromHouse({houseType: 'tipo6', sideMappings, pilotis});
+    expect(stairs?.stairHeightMts).toBe(1.8);
+    expect(stairs?.stepCount).toBe(6);
+  });
   it('mapeia escada de tipo6 para a face frontal correta', () => {
     const parsed = parseStairsFromElevationViews({
       houseType: 'tipo6',
