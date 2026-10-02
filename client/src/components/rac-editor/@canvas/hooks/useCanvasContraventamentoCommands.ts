@@ -1,5 +1,5 @@
 import {Dispatch, RefObject, SetStateAction, useCallback} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import type {
   ContraventamentoCanvasSelection,
   PilotiCanvasSelection,

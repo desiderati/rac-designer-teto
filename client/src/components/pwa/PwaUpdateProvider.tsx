@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState, type ReactNode} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {PwaUpdateSafetyContext, type PwaUpdateSafety} from './PwaUpdateSafetyContext.ts';
 
 const UPDATE_TOAST_ID = 'rac-new-version';

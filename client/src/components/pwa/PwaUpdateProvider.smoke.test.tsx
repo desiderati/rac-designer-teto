@@ -1,7 +1,7 @@
 import {act, render, waitFor} from '@testing-library/react';
 import {useEffect, type MouseEvent} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {PwaUpdateProvider} from './PwaUpdateProvider.tsx';
 import {useReportPwaUpdateSafety} from './PwaUpdateSafetyContext.ts';
 
@@ -21,7 +21,7 @@ vi.mock('virtual:pwa-register', () => ({
   },
 }));
 
-vi.mock('sonner', () => ({
+vi.mock('@/components/ui/sonner.tsx', () => ({
   toast: Object.assign(vi.fn(), {warning: vi.fn(), error: vi.fn()}),
 }));
 

@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button.tsx';
 import {ActionDock} from '@/components/ui/ActionDock.tsx';
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from '@/components/ui/dialog.tsx';
 import {Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle} from '@/components/ui/drawer.tsx';
-import {toast} from '@/components/ui/sonner.tsx';
+import {beginToastTask} from '@/components/ui/sonner.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
@@ -68,7 +68,7 @@ export function ImageUploadModal({
   const confirmImage = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
     reviewConfirmStartedRef.current = true;
     const uploadToastId = `canvas-upload-${Date.now()}`;
-    toast.loading(isIsolatedLocalMode ? 'Salvando imagem neste dispositivo…' : 'Enviando imagem em segundo plano…', {id: uploadToastId});
+    const uploadToast = beginToastTask(uploadToastId, isIsolatedLocalMode ? 'Salvando imagem neste dispositivo…' : 'Enviando imagem em segundo plano…');
     try {
       const [imageUrl, localPayload] = await Promise.all([
         storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile}),
@@ -79,11 +79,11 @@ export function ImageUploadModal({
       if (!inserted) {
         throw new Error('Não foi possível inserir a imagem no Canvas. Abra o Canvas e tente novamente.');
       }
-      toast.success(isIsolatedLocalMode ? 'Imagem salva e inserida no Canvas.' : 'Imagem enviada e inserida no Canvas.', {id: uploadToastId});
+      uploadToast.success(isIsolatedLocalMode ? 'Imagem salva e inserida no Canvas.' : 'Imagem enviada e inserida no Canvas.');
     } catch (error) {
       console.error('[ImageUploadModal] Falha ao enviar ou inserir imagem:', error);
       const message = error instanceof Error ? error.message : 'Não foi possível salvar a imagem. Tente outra imagem.';
-      toast.error(message, {id: uploadToastId});
+      uploadToast.error(message);
     }
   };
 

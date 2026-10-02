@@ -9,7 +9,7 @@ import type {CanvasViewportHandle} from '@/components/rac-editor/@canvas/ports/C
 import type {HouseReadPort} from '@/components/rac-editor/ports/HouseReadPort.ts';
 import type {HouseWritePort} from '@/components/rac-editor/ports/HouseWritePort.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 
 interface UseCanvasActionsArgs {

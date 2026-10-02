@@ -25,3 +25,6 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
 
 - [UI-003-acoes-responsivas-de-formularios.md](UI-003-acoes-responsivas-de-formularios.md)
     - Define layout e posicionamento da ação principal nos quatro formulários do gerenciador.
+
+- [UI-004 — Identidade visual e comportamento dos Toasts](UI-004-avisos-e-progresso-pdf.md)
+    - Define anatomia, cores, ações, responsividade e reutilização de mensagens, tarefas PDF e imagem 3D.

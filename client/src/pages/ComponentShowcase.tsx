@@ -170,7 +170,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast } from "@/components/ui/sonner.tsx";
 import { AIChatBox, type Message } from "@/components/AIChatBox";
 
 export default function ComponentsShowcase() {

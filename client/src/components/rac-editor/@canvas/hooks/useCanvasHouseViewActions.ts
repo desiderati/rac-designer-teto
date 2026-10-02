@@ -1,5 +1,5 @@
 import {Dispatch, MutableRefObject, RefObject, SetStateAction, useRef} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {NivelDefinition} from '@/components/rac-editor/@modals/ui/editors/NivelDefinitionEditor.tsx';
 import {
   shouldResetHouseTypeOnSideSelectorCancel,

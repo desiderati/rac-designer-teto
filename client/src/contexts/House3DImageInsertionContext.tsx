@@ -1,5 +1,5 @@
 import {createContext, type ReactNode, useCallback, useContext, useMemo, useRef, useState} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/CanvasSnapshotHandle.ts';
 
 export type PendingHouse3DImage = {

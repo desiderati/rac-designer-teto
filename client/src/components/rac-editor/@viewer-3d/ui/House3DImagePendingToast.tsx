@@ -1,5 +1,6 @@
-import {AlertCircle, CheckCircle2, ImagePlus, Loader2, X} from 'lucide-react';
+import {CircleAlert, CircleCheck, ImagePlus, LoaderCircle, X} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
+import {ToastMessage} from '@/components/ui/ToastMessage.tsx';
 import {useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
 
 export function House3DImagePendingToast() {
@@ -30,22 +31,21 @@ export function House3DImagePendingToast() {
     <aside
       aria-live='polite'
       aria-label='Imagem 3D pendente'
-      className='pointer-events-auto fixed bottom-4 right-4 z-[120] w-[min(27rem,calc(100vw-2rem))] rounded-xl border border-slate-200/90 bg-white/95 p-4 text-slate-800 shadow-xl shadow-slate-900/10 backdrop-blur sm:bottom-6 sm:right-6'
+      className='rac-toast-surface rac-toast-pending pointer-events-auto'
+      data-tone={feedback ? 'error' : 'info'}
       role='status'
     >
-      <div className='flex items-start gap-3'>
-        <span className='mt-0.5 shrink-0 text-sky-600' aria-hidden='true'>
-          {isGenerating ? <Loader2 className='h-5 w-5 animate-spin'/> : feedback ? <AlertCircle className='h-5 w-5 text-slate-700'/> : <CheckCircle2 className='h-5 w-5'/>}
+      <div className='rac-toast-pending-inner'>
+        <span className='rac-toast-pending-mark' aria-hidden='true'>
+          {isGenerating ? <LoaderCircle className='h-4 w-4 animate-spin'/> : feedback ? <CircleAlert className='h-4 w-4'/> : <CircleCheck className='h-4 w-4'/>}
         </span>
-        <div className='min-w-0 flex-1'>
-          <p className='text-sm font-semibold'>{title}</p>
-          <p className='mt-1 text-xs leading-5 text-slate-600'>{description}</p>
+        <div className='min-w-0'>
+          <ToastMessage title={title} detail={description}>
           {!isGenerating && pendingImage ? (
-            <div className='mt-3 grid grid-cols-2 gap-2'>
+            <div className='rac-toast-decisions'>
               <Button
                 type='button'
-                size='sm'
-                className='h-8 w-full justify-center gap-1.5 bg-sky-600 px-3 text-xs font-semibold text-white hover:bg-sky-700'
+                className='rac-toast-decision rac-toast-decision-primary w-full'
                 disabled={isInserting}
                 onClick={() => void insertPendingImage()}
               >
@@ -55,8 +55,7 @@ export function House3DImagePendingToast() {
               <Button
                 type='button'
                 variant='outline'
-                size='sm'
-                className='h-8 w-full justify-center gap-1.5 border-slate-300 px-3 text-xs font-semibold text-slate-700'
+                className='rac-toast-decision w-full'
                 disabled={isInserting}
                 onClick={discardPendingImage}
               >
@@ -65,6 +64,7 @@ export function House3DImagePendingToast() {
               </Button>
             </div>
           ) : null}
+          </ToastMessage>
         </div>
       </div>
     </aside>

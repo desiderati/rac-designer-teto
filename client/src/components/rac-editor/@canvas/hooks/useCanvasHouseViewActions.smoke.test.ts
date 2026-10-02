@@ -13,7 +13,7 @@ const houseStoreMocks = vi.hoisted(() => ({
   emitHouseStoreChange: vi.fn(),
 }));
 
-vi.mock('sonner', () => ({
+vi.mock('@/components/ui/sonner.tsx', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
