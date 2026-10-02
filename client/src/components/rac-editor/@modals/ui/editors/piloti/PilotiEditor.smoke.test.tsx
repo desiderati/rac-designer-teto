@@ -187,6 +187,7 @@ describe('PilotiEditor.tsx', () => {
       />,
       {
         wrapper: createWrapper({
+          settings: {autoAdjustPilotiHeightsFromNivel: false},
           updatePiloti,
         }),
       },
@@ -200,13 +201,13 @@ describe('PilotiEditor.tsx', () => {
     fireEvent.blur(nivelEditor);
 
     expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', expect.objectContaining({
-      height: 1.5,
+      height: 1,
       isMaster: true,
       nivel: 0.45,
     }));
   });
 
-  it('mantém o nível de piloti não extremo oculto no modo automático', () => {
+  it('mantém tamanho editável no automático, bloqueando nível e mestre fora das quinas', () => {
     render(
       <PilotiEditor
         isOpen
@@ -223,8 +224,41 @@ describe('PilotiEditor.tsx', () => {
       {wrapper: Wrapper},
     );
 
-    expect(screen.queryByText('Nível do Piloti (Auto)')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText('Nível do piloti em metros')).not.toBeInTheDocument();
+    expect(screen.getByText('Nível do Piloti')).toBeVisible();
+    expect(screen.getByRole('switch', {name: 'Definir como Mestre?'})).toBeDisabled();
+    expect(screen.getByLabelText('Nível do piloti em metros')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', {name: '1,5'})).toBeEnabled();
+    expect(screen.getByText('Contraventamento')).toBeVisible();
+  });
+
+  it('foca o nível editável ao abrir no modo manual', () => {
+    render(
+      <PilotiEditor isOpen onClose={vi.fn()} pilotiId='piloti_1_0' currentHeight={1}
+        currentNivel={0.2} pilotiIds={['piloti_0_0', 'piloti_1_0']}
+        selectedPilotiHeights={[1, 1.5, 2]} isMobile={false} onHeightChange={vi.fn()}/>,
+      {wrapper: createWrapper({settings: {autoAdjustPilotiHeightsFromNivel: false}})},
+    );
+    expect(screen.getByLabelText('Nível do piloti em metros')).toHaveFocus();
+    expect(screen.getByRole('button', {name: '1,5'})).toBeEnabled();
+  });
+
+  it('mantém mestre editável em quina no automático sem alterar nível ou tamanho', () => {
+    const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
+      ...pilotis[pilotiId], ...patch,
+    }));
+    render(
+      <PilotiEditor isOpen onClose={vi.fn()} pilotiId='piloti_0_0' currentHeight={1}
+        currentIsMaster={false} currentNivel={0.2} pilotiIds={['piloti_0_0', 'piloti_1_0']}
+        selectedPilotiHeights={[1, 1.5, 2]} isMobile={false} onHeightChange={vi.fn()}/>,
+      {wrapper: createWrapper({updatePiloti})},
+    );
+    expect(screen.getByRole('switch', {name: 'Definir como Mestre?'})).toBeEnabled();
+    expect(screen.getByLabelText('Nível do piloti em metros')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByLabelText('Nível do piloti em metros')).not.toHaveFocus();
+    fireEvent.click(screen.getByRole('switch', {name: 'Definir como Mestre?'}));
+    expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', {
+      height: 1, isMaster: true, nivel: 0.2,
+    });
   });
 
   it('alterna o modo global de nível pelo botão do editor', () => {

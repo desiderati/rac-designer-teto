@@ -184,6 +184,7 @@ export function NivelDefinitionEditor(
           <Button
             variant='outline'
             size='icon'
+            aria-label='Piloti anterior'
             onClick={() => handleNavigate('prev')}
             disabled={!hasPrev}
             className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
@@ -193,6 +194,7 @@ export function NivelDefinitionEditor(
           <Button
             variant='outline'
             size='icon'
+            aria-label='Próximo piloti'
             onClick={() => handleNavigate('next')}
             disabled={!hasNext}
             className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
@@ -216,6 +218,8 @@ export function NivelDefinitionEditor(
 
         {/* Nivel section */}
         <NivelSlider
+          autoFocusInput={isOpen}
+          focusKey={currentCorner}
           nivel={entry.nivel}
           minNivel={minNivel}
           maxNivel={maxNivel}

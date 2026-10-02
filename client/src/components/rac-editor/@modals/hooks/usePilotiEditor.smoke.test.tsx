@@ -81,12 +81,27 @@ function Harness() {
       <button type='button' onClick={() => editor.commitDraftChanges()}>confirmar draft</button>
       <button type='button' onClick={() => editor.handleNivelModeToggle()}>alternar modo</button>
       <button type='button' onClick={() => editor.handleNivelCommit(0.5)}>confirmar slider</button>
+      <button type='button' onClick={() => editor.handleHeightClick(1.5)}>alterar tamanho</button>
     </>
   );
 }
 
 describe('usePilotiEditor', () => {
-  it('recalcula altura recomendada ao confirmar draft de nivel no modo automatico', () => {
+  it('mantém o tamanho escolhido no automático ao confirmar sem liberar a edição de nível', () => {
+    const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
+      ...pilotis[pilotiId], ...patch,
+    }));
+    render(<Wrapper updatePiloti={updatePiloti}><Harness/></Wrapper>);
+    fireEvent.click(screen.getByRole('button', {name: 'alterar tamanho'}));
+    fireEvent.click(screen.getByRole('button', {name: 'confirmar slider'}));
+    fireEvent.click(screen.getByRole('button', {name: 'confirmar draft'}));
+    expect(updatePiloti).toHaveBeenLastCalledWith('piloti_0_0', {
+      height: 1.5, isMaster: true, nivel: 0.2,
+    });
+    expect(updatePiloti.mock.calls.every(([, patch]) => patch.nivel === 0.2)).toBe(true);
+  });
+
+  it('ignora tentativa de alterar nível enquanto o modo automático bloqueia a edição', () => {
     const updatePiloti = vi.fn((pilotiId: string, patch: Partial<HousePiloti>) => ({
       ...pilotis[pilotiId],
       ...patch,
@@ -101,11 +116,7 @@ describe('usePilotiEditor', () => {
     fireEvent.click(screen.getByRole('button', {name: 'alterar draft'}));
     fireEvent.click(screen.getByRole('button', {name: 'confirmar draft'}));
 
-    expect(updatePiloti).toHaveBeenCalledWith('piloti_0_0', expect.objectContaining({
-      height: 2,
-      isMaster: true,
-      nivel: 0.6,
-    }));
+    expect(updatePiloti).not.toHaveBeenCalled();
   });
 
   it('usa o modo manual vigente ao confirmar slider logo apos sair do automatico', () => {

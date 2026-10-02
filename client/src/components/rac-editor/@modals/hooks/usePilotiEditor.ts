@@ -203,6 +203,7 @@ export function usePilotiEditor({
   // Sem clamp por altura durante o drag — o slider já limita ao máximo global.
   // A limitação pela altura do piloti só ocorre no commit (handleNivelCommit / commitDraftChanges).
   const handleNivelChange = (value: number) => {
+    if (autoAdjustPilotiHeightsFromNivelRef.current) return;
     setSyncedTempNivel(
       clampNivel(
         value,
@@ -216,7 +217,7 @@ export function usePilotiEditor({
   };
 
   const handleNivelCommit = (value: number) => {
-    if (!pilotiId) return;
+    if (!pilotiId || autoAdjustPilotiHeightsFromNivelRef.current) return;
 
     const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
     const height = tempHeightRef.current;
@@ -246,6 +247,7 @@ export function usePilotiEditor({
   };
 
   const handleNivelIncrement = (delta: number) => {
+    if (autoAdjustPilotiHeightsFromNivelRef.current) return;
     const newVal = Math.round((tempNivelRef.current + delta) * 100) / 100;
     const clamped = Math.max(
       PILOTI_DEFAULT_NIVEL,
@@ -333,18 +335,14 @@ export function usePilotiEditor({
           : tempNivelRef.current;
 
       const resolvedIsMaster =
-        typeof params?.isMasterOverride === 'boolean'
+        !isCornerPiloti ? false : typeof params?.isMasterOverride === 'boolean'
           ? params.isMasterOverride
           : tempIsMasterRef.current;
 
       const autoMode = autoAdjustPilotiHeightsFromNivelRef.current;
       const height = tempHeightRef.current;
-      const nivelToApply = autoMode
-        ? clampNivel(resolvedNivel, PILOTI_DEFAULT_NIVEL, getMaxNivelForMode(autoMode, height))
-        : clampNivelByHeight(resolvedNivel, height);
-      const heightToApply = autoMode
-        ? getRecommendedHeight(nivelToApply, selectedHeightsRef.current)
-        : height;
+      const nivelToApply = clampNivelByHeight(autoMode ? currentNivel : resolvedNivel, height);
+      const heightToApply = height;
       const hasChanges = heightToApply !== currentHeight
         || resolvedIsMaster !== currentIsMaster
         || nivelToApply !== currentNivel;

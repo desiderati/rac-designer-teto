@@ -14,6 +14,9 @@ import {
 } from './nivel-input-format.ts';
 
 interface NivelSliderProps {
+  disabled?: boolean;
+  autoFocusInput?: boolean;
+  focusKey?: string | number | null;
   nivel: number;
   minNivel: number;
   maxNivel: number;
@@ -30,6 +33,9 @@ interface NivelSliderProps {
 const NIVEL_MODE_TOUR_TARGET_ID = 'rac-piloti-nivel-mode-toggle';
 
 export function NivelSlider({
+  disabled = false,
+  autoFocusInput = false,
+  focusKey,
   nivel,
   minNivel,
   maxNivel,
@@ -50,6 +56,10 @@ export function NivelSlider({
     latestSliderNivelRef.current = nivel;
     setInputDigits(nivelToInputDigits(nivel));
   }, [nivel]);
+
+  useEffect(() => {
+    if (autoFocusInput && enableInput && !disabled) editableNivelRef.current?.focus({preventScroll: true});
+  }, [autoFocusInput, disabled, enableInput, focusKey]);
 
   const moveCaretToEnd = () => {
     const element = editableNivelRef.current;
@@ -74,6 +84,7 @@ export function NivelSlider({
   };
 
   const commitInput = () => {
+    if (disabled) return;
     const nextNivel = clampNivel(nivelInputDigitsToValue(getEditableDigits()), minNivel, maxNivel);
     const nextDigits = nivelToInputDigits(nextNivel);
     setInputDigits(nextDigits);
@@ -83,6 +94,7 @@ export function NivelSlider({
   };
 
   const commitLatestSliderNivel = () => {
+    if (disabled) return;
     if (!onNivelCommit) return;
     const nextNivel = clampNivel(latestSliderNivelRef.current, minNivel, maxNivel);
     latestSliderNivelRef.current = nextNivel;
@@ -159,7 +171,7 @@ export function NivelSlider({
           size='icon'
           className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
           onClick={() => onNivelIncrement(-0.01)}
-          disabled={nivel <= minNivel}>
+          disabled={disabled || nivel <= minNivel}>
 
           <FontAwesomeIcon icon={faMinus} className='h-3 w-3'/>
         </Button>
@@ -170,8 +182,9 @@ export function NivelSlider({
               ref={editableNivelRef}
               aria-label='Nível do piloti em metros'
               role='textbox'
-              tabIndex={0}
-              contentEditable
+              tabIndex={disabled ? -1 : 0}
+              contentEditable={!disabled}
+              aria-disabled={disabled}
               suppressContentEditableWarning
               inputMode='numeric'
               onInput={handleEditableInput}
@@ -199,7 +212,7 @@ export function NivelSlider({
           size='icon'
           className='h-9 w-9 rounded-full disabled:pointer-events-auto disabled:cursor-not-allowed'
           onClick={() => onNivelIncrement(0.01)}
-          disabled={nivel >= maxNivel}>
+          disabled={disabled || nivel >= maxNivel}>
 
           <FontAwesomeIcon icon={faPlus} className='h-3 w-3'/>
         </Button>
@@ -207,6 +220,7 @@ export function NivelSlider({
 
       <div className='space-y-3 px-2'>
         <Slider
+          disabled={disabled}
           value={[nivel]}
           onBlur={commitLatestSliderNivel}
           onKeyUp={commitLatestSliderNivel}

@@ -109,7 +109,7 @@ export function PilotiEditor({
   if (!isOpen) return null;
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
-  const canEditNivel = isCornerPiloti || !autoAdjustPilotiHeightsFromNivel;
+  const canEditNivel = !autoAdjustPilotiHeightsFromNivel;
 
   return (
     <FloatingEditor
@@ -145,45 +145,41 @@ export function PilotiEditor({
       }
       cardContent={
         <>
-          {isCornerPiloti &&
-            <>
-              <div className='flex items-center justify-between'>
-                <Label htmlFor='is-master' className='text-sm font-medium select-none'>
-                  Definir como Mestre?
-                </Label>
-                <Switch
-                  id='is-master'
-                  checked={tempIsMaster}
-                  onCheckedChange={(checked) => {
-                    // Aplica imediatamente ao alternar on/off do mestre.
-                    setTempIsMaster(checked);
-                    commitDraftChanges({isMasterOverride: checked});
-                  }}
-                />
-              </div>
+          <div className='flex items-center justify-between'>
+            <Label htmlFor='is-master' className='text-sm font-medium select-none'>
+              Definir como Mestre?
+            </Label>
+            <Switch
+              id='is-master'
+              checked={tempIsMaster}
+              disabled={!isCornerPiloti}
+              onCheckedChange={(checked) => {
+                // Aplica imediatamente ao alternar on/off do mestre.
+                setTempIsMaster(checked);
+                commitDraftChanges({isMasterOverride: checked});
+              }}
+            />
+          </div>
 
-              <Separator/>
-            </>
-          }
+          <Separator/>
 
-          {canEditNivel &&
-            <>
-              <NivelSlider
-                nivel={tempNivel}
-                minNivel={0.20}
-                maxNivel={maxNivel}
-                onNivelIncrement={handleNivelIncrement}
-                onNivelChange={handleNivelChange}
-                onNivelCommit={handleNivelCommit}
-                enableInput
-                autoMode={autoAdjustPilotiHeightsFromNivel}
-                onAutoModeToggle={handleNivelModeToggle}
-                showModeTourTarget={!isMobile}
-              />
+          <NivelSlider
+            disabled={!canEditNivel}
+            autoFocusInput={isOpen && canEditNivel}
+            focusKey={pilotiId}
+            nivel={tempNivel}
+            minNivel={0.20}
+            maxNivel={maxNivel}
+            onNivelIncrement={handleNivelIncrement}
+            onNivelChange={handleNivelChange}
+            onNivelCommit={handleNivelCommit}
+            enableInput
+            autoMode={autoAdjustPilotiHeightsFromNivel}
+            onAutoModeToggle={handleNivelModeToggle}
+            showModeTourTarget={!isMobile}
+          />
 
-              <Separator/>
-            </>
-          }
+          <Separator/>
 
           <div className='space-y-4'>
             <p className='text-sm font-medium text-center'>Tamanho dos Pilotis</p>

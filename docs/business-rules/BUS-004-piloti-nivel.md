@@ -33,8 +33,10 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 
 1. **Modo automático**
     - É o comportamento padrão.
-    - Alterar nível pode recomendar e aplicar nova altura de piloti.
-    - Ao alterar níveis de canto, a interpolação pode recalcular níveis intermediários e alturas recomendadas.
+    - Na modal de edição de um piloti existente, o nível permanece visível e desabilitado; o tamanho
+      do piloti pode ser alterado nos dois modos.
+    - A definição inicial de níveis de canto e os cálculos automáticos continuam usando interpolação e alturas
+      recomendadas; esta regra não altera o fluxo de inserção inicial.
 
 2. **Modo manual**
     - Alterar nível não sugere nem aplica novas alturas de piloti.
@@ -99,9 +101,9 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 
 2. Ao confirmar alteração, o valor deve ser aplicado imediatamente.
 
-3. Ao alterar o nível pelo slider ou pela digitação no modo automático:
-    - o nível escolhido é mantido exatamente como o usuário deixou;
-    - a altura do piloti é recalculada com a menor altura disponível que satisfaça `altura >= nível * 3`.
+3. Na modal de edição de piloti existente em modo automático, slider e digitação de nível são
+   desabilitados. Os botões de tamanho continuam habilitados. A altura escolhida é preservada;
+   sua redução continua respeitando o limite `nível <= altura / 2`.
 
 4. Ao alterar o nível pelo slider ou pela digitação no modo manual:
     - a altura atual do piloti é preservada;
@@ -115,6 +117,13 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
     - se a nova altura continuar compatível, o nível permanece como estava.
 
 6. A modal de edição de piloti exibe as 8 alturas habilitadas para a casa em 2 linhas de 4 opções.
+
+7. Tipo, mestre, altura, nível e contraventamento ficam visíveis nos dois modos. Somente pilotis de canto podem
+   ser definidos como mestre; a revisão não altera as regras de contraventamento.
+
+8. Ao abrir a modal em modo manual e ao navegar entre pilotis, o campo de nível recebe foco. Em modo
+   automático, o foco respeita o bloqueio do campo. Na definição inicial da casa, o nível é editável
+   e recebe foco ao abrir e a cada mudança de canto, em desktop e mobile.
 
 ### Digitação de nível
 
@@ -136,7 +145,7 @@ alturas dos pilotis. Essa preferência pertence ao editor/usuário e não ao reg
 
 | Ação do usuário                  | Altura recalculada?                                | Nível recalculado?                                     |
 |----------------------------------|----------------------------------------------------|--------------------------------------------------------|
-| Alterar nível no modo automático | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido dentro do limite global) |
+| Definir nível na inserção automática | **Sim**, pela recomendação (`altura >= nível * 3`) | Não (mantém o valor escolhido dentro do limite global) |
 | Alterar nível no modo manual     | Não                                                | Sim, se nível > altura atual / 2                       |
 | Botão de altura (menor)          | Não                                                | Sim, se nível > nova altura / 2                        |
 | Botão de altura (maior)          | Não                                                | Não                                                    |
