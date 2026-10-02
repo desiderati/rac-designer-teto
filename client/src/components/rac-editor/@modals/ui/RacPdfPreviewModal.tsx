@@ -35,6 +35,9 @@ export function RacPdfPreviewModal({
   const [currentPage, setCurrentPage] = useState(1);
   const [zoom, setZoom] = useState(() => (isMobile ? 70 : 100));
   const [fitToContainer, setFitToContainer] = useState(true);
+  const [isToolbarMinimized, setIsToolbarMinimized] = useState(false);
+  const toolbarDragStartYRef = useRef<number | null>(null);
+  const toolbarWasDraggedRef = useRef(false);
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -42,6 +45,10 @@ export function RacPdfPreviewModal({
     setZoom(isMobile ? 70 : 100);
     setFitToContainer(true);
   }, [isMobile, pdfUrl, pageCount]);
+
+  useEffect(() => {
+    if (!isOpen) setIsToolbarMinimized(false);
+  }, [isOpen]);
 
   const safePageCount = Math.max(1, pageCount);
   const safePage = Math.min(currentPage, safePageCount);
@@ -95,7 +102,36 @@ export function RacPdfPreviewModal({
   );
 
   const floatingControls = pdfUrl && !isPreparing ? (
-    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-0.5 rounded-full border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
+    <div className='absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-col items-center gap-1'>
+      <button
+        type='button'
+        aria-label={isToolbarMinimized ? 'Restaurar barra de ferramentas do PDF' : 'Minimizar barra de ferramentas do PDF'}
+        title={isToolbarMinimized ? 'Restaurar barra de ferramentas do PDF' : 'Minimizar barra de ferramentas do PDF'}
+        onPointerDown={(event) => {
+          toolbarDragStartYRef.current = event.clientY;
+          toolbarWasDraggedRef.current = false;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+        }}
+        onPointerUp={(event) => {
+          const startY = toolbarDragStartYRef.current;
+          toolbarDragStartYRef.current = null;
+          if (startY === null || Math.abs(event.clientY - startY) <= 24) return;
+          toolbarWasDraggedRef.current = true;
+          setIsToolbarMinimized(event.clientY > startY);
+        }}
+        onClick={() => {
+          if (toolbarWasDraggedRef.current) {
+            toolbarWasDraggedRef.current = false;
+            return;
+          }
+          setIsToolbarMinimized((value) => !value);
+        }}
+        className='grid h-5 w-24 touch-none place-items-center'
+      >
+        <span className='block h-1.5 w-16 rounded-full border border-white/70 bg-slate-400/70 shadow-sm' aria-hidden='true'/>
+      </button>
+      {!isToolbarMinimized ? (
+      <div className='flex max-w-full items-center gap-0.5 rounded-full border border-slate-300/90 bg-slate-100/95 px-1.5 py-1 shadow-lg backdrop-blur-sm'>
       <Button
         type='button'
         variant='ghost'
@@ -179,6 +215,8 @@ export function RacPdfPreviewModal({
       >
         <Download className='h-4 w-4'/>
       </Button>
+      </div>
+      ) : null}
     </div>
   ) : null;
 

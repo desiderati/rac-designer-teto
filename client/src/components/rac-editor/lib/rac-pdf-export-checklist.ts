@@ -103,8 +103,8 @@ export function buildRacPdfExportChecklist(
     createChecklistItem({
       id: 'top-view',
       label: 'Vista planta',
-      description: 'A RAC inclui uma planta da casa.',
-      severity: 'recommended',
+      description: 'Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.',
+      severity: 'required',
       ok: getHouseViewCount(activeHouse, 'top') > 0,
     }),
     createChecklistItem({

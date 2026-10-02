@@ -135,11 +135,18 @@ describe('rac pdf report model', () => {
     expect(report?.pilotis.grid[0]).toHaveLength(4);
     expect(report?.pilotis.totals).toContainEqual({heightLabel: '1,0 m', count: 1});
     expect(report?.pilotis.totals).toContainEqual({heightLabel: '2,0 m', count: 1});
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas de Piso', value: '12'});
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Caibros', value: '24'});
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Vigas Secundárias', value: '8'});
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Calhas', value: '0'});
+    expect(report?.extraMaterials.fields).toEqual([
+      {label: 'Vigas p/ Escada', value: '0'},
+      {label: 'Tipo Escada', value: 'Não informada'},
+      {label: 'Calhas', value: '0'},
+      {label: 'Tampão', value: '0'},
+      {label: 'Joelhos', value: '0'},
+      {label: 'Manta Asfáltica', value: 'Não'},
+      {label: 'Contraventamento', value: '0'},
+      {label: 'Caibros', value: '24'},
+      {label: 'Secundárias', value: '8'},
+      {label: 'Mata-Juntas', value: '4'},
+    ]);
     expect(report?.extraMaterials.justification).toBe([
       'Material para reforço do acesso lateral.',
       DEFAULT_EXTRA_MATERIALS_NOTE,
@@ -250,7 +257,7 @@ describe('rac pdf report model', () => {
       canvasImageDataUrl: TINY_PNG_DATA_URL,
     });
 
-    expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-juntas', value: '4'});
+    expect(report?.extraMaterials.fields).toContainEqual({label: 'Mata-Juntas', value: '4'});
     expect(report?.extraMaterials.fields).toContainEqual({label: 'Calhas', value: '7'});
     expect(report?.familyPhotoImageDataUrl).toBe(TINY_PNG_DATA_URL);
     expect(report?.terrainPhotoImageDataUrls).toEqual([TINY_PNG_DATA_URL, null, null, null]);
@@ -263,6 +270,29 @@ describe('rac pdf report model', () => {
     });
     expect(unavailablePhotos?.familyPhotoImageDataUrl).toBeNull();
     expect(unavailablePhotos?.terrainPhotoImageDataUrls).toEqual([null, null, null, null]);
+  });
+
+  it('inclui rampa de acesso e novos materiais na ordem do formulário sem converter vigas de piso legadas', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.houses[0].extraMaterials = {
+      floorBeams: 99,
+      stairBeams: 2,
+      stairType: 'access_ramp',
+      gutterCount: 3,
+      gutterCaps: 4,
+      gutterElbows: 5,
+      asphaltBlanket: true,
+      bracing: 7,
+      rafters: 8,
+      secondaryBeams: 9,
+      gutters: 10,
+    };
+
+    const report = buildRacPdfReportModel({constructionSite, canvasImageDataUrl: TINY_PNG_DATA_URL});
+    expect(report?.extraMaterials.fields.map(({value}) => value)).toEqual([
+      '2', 'Rampa de Acesso', '3', '4', '5', 'Sim', '7', '8', '9', '10',
+    ]);
+    expect(report?.extraMaterials.fields.some(({value}) => value === '99')).toBe(false);
   });
 
   it('gera um documento PDF em A4 paisagem com o modelo do relatorio', () => {
@@ -289,7 +319,7 @@ describe('rac pdf report model', () => {
     expect(output).toContain('CONSTRUÇÃO');
     expect(output).toContain('CC2603');
     expect(output).not.toContain('CONSTRU...');
-    expect(output).toContain('continua atrás...');
+    expect((pdf.internal.pages as unknown as string[][])[1].join(' ')).not.toContain('Outros / Justificativa');
     expect(output).toContain('Math Almeida + Calfa');
     expect(output).toContain('DATA DE GERAÇÃO');
     expect(output).not.toContain('DATA DE GERA...');
@@ -312,13 +342,14 @@ describe('rac pdf report model', () => {
     expect(output).not.toContain('COMPLEXIDADE');
     expect(output).not.toContain('Moderado');
     expect(output).toContain('MATERIAL EXTRA');
-    expect(output).toContain('VIGAS DE PISO');
+    expect(output).toContain('VIGAS P/ ESCADA');
     expect(output).toContain('CAIBROS');
     expect(output).toContain('MATA-JUNTAS');
     expect(output).toContain('CALHAS');
-    expect(output).toContain('12');
+    expect(output).toContain('TIPO ESCADA');
     expect(output).toContain('24');
-    expect(getPrecedingSegments(output, 'Material para reforço', 240).at(0)).toContain('0.42 0.447 0.502 rg');
+    expect((pdf.internal.pages as unknown as string[][])[1].join(' ')).not.toContain('Material para reforço');
+    expect((pdf.internal.pages as unknown as string[][])[2].join(' ')).toContain('Material para reforço');
     expect(output).toContain('MONITORIA');
     expect(output).toContain('PILOTIS MESTRE');
     expect(output).toContain('A1 / 1,0 m / Nível = 0,10 m');
@@ -450,7 +481,7 @@ describe('rac pdf report model', () => {
     getPrecedingSegments(output, 'PILOTIS MESTRE').forEach((segment) => {
       expect(getLastLineWidthCommand(segment)).toBe('0.35');
     });
-    expect(output).not.toContain('MONITORIA \\(CONTINUAÇÃO\\)');
+    expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES');
   });
@@ -540,11 +571,10 @@ describe('rac pdf report model', () => {
     const output = pdf.output();
 
     expect(pdf.getNumberOfPages()).toBeGreaterThanOrEqual(2);
-    expect((output.match(/continua atrás\.\.\./g) ?? []).length).toBeGreaterThanOrEqual(1);
+    expect((pdf.internal.pages as unknown as string[][])[1].join(' ')).not.toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('MONITORIA \\(CONTINUAÇÃO\\)');
-    expect(output).toMatch(/20\. 529\.\d+ Td[\s\S]{0,120}\(MONITORIA \\\(CONTINUAÇÃO\\\)\) Tj/);
     expect(output).not.toContain('Observações completas');
     expect(output).not.toContain('Justificativa de materiais extras');
     expect(output).not.toContain('Monitoria - continuação');
@@ -582,7 +612,7 @@ describe('rac pdf report model', () => {
     const output = pdf.output();
 
     expect(pdf.getNumberOfPages()).toBe(2);
-    expect(output).toContain('continua atrás...');
+    expect((pdf.internal.pages as unknown as string[][])[1].join(' ')).not.toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');
     expect(output).toContain('OBSERVAÇÕES');
     expect(output).not.toContain('MONITORIA (CONTINUAÇÃO)');
     expect(output).toContain('OUTROS / JUSTIFICATIVAS MATERIAIS EXTRAS');

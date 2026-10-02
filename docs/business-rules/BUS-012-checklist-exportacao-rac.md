@@ -20,7 +20,7 @@ Definir quais verificações o editor apresenta antes da exportação padrão de
 1. A exportação padrão de PDF deve abrir um checklist antes de gerar o arquivo.
 2. A geração do PDF só ocorre depois de confirmação explícita no checklist.
 3. Cancelar o checklist não deve gerar PDF nem alterar status da casa.
-4. A casa só muda para `RAC Impressa` depois que o PDF é salvo com sucesso.
+4. A casa só muda para `Impressa` depois que o PDF é salvo com sucesso.
 
 ## Itens Obrigatórios
 
@@ -29,7 +29,7 @@ Itens obrigatórios bloqueiam a geração do PDF:
 1. Existe Construção TETO ativa.
 2. Existe casa ativa ou primeira casa não arquivada disponível.
 3. A casa possui documento de desenho sincronizado.
-4. Ao menos uma vista da casa está inserida no canvas.
+4. A planta (vista superior) da casa está inserida no Canvas. Elevações isoladas não substituem a planta.
 5. O tipo da casa está definido.
 
 ## Itens Recomendados
@@ -40,17 +40,16 @@ Itens recomendados não bloqueiam a geração, mas aparecem como alertas:
 2. Código da construção.
 3. Comunidade.
 4. Tamanho da casa.
-5. Vista planta.
-6. Ao menos uma vista elevada, frontal, traseira ou lateral.
-7. Exatamente um piloti mestre.
-8. Altura e nível numéricos para todos os pilotis esperados.
-9. Solo informado.
-10. Data da construção.
-11. Localização do terreno.
-12. Contato principal da família.
-13. Lideranças responsáveis.
-14. Ao menos um monitor ativo.
-15. Justificativa preenchida quando houver material extra com quantidade maior que zero.
+5. Ao menos uma vista elevada, frontal, traseira ou lateral.
+6. Exatamente um piloti mestre.
+7. Altura e nível numéricos para todos os pilotis esperados.
+8. Solo informado.
+9. Data da construção.
+10. Localização do terreno.
+11. Contato principal da família.
+12. Lideranças responsáveis.
+13. Ao menos um monitor ativo.
+14. Justificativa preenchida quando houver material extra com quantidade maior que zero.
 
 ## Consistência
 
@@ -60,6 +59,15 @@ Itens recomendados não bloqueiam a geração, mas aparecem como alertas:
    causados por estado visual ainda não sincronizado.
 
 3. Alertas não devem impedir a geração, pois parte dos campos é operacionalmente opcional.
+
+4. Sem planta, o checklist bloqueia a geração antes de abrir a prévia, consultar o cache ou
+   capturar imagens. Orientação exibida: `Insira a planta (vista superior) da casa no Canvas antes de gerar o PDF.`
+
+5. No editor, a confirmação e a tentativa posterior devem revalidar o documento atual e a presença
+   da planta no estado corrente do Canvas. Se a casa ativa mudar, exigir revisão do checklist.
+
+6. A mesma exigência de planta vale para a impressão individual pela listagem e para cada casa no ZIP.
+   Falha técnica de captura 3D com planta presente continua sendo erro, sem gerar PDF incompleto.
 
 ## Conteúdo padrão do PDF
 

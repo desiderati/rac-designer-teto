@@ -7,6 +7,7 @@ import {
 } from '@/bootstrap/editor-bootstrap.ts';
 import {useRacEditorPdfExportAction} from '@/components/rac-editor/hooks/useRacEditorPdfExportAction.ts';
 import {getAllPilotiIds} from '@/shared/types/piloti.ts';
+import {clearRacPdfCache} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
 
 const pdfMocks = vi.hoisted(() => ({
   buildRacPdfReportModel: vi.fn(),
@@ -36,7 +37,7 @@ vi.mock('jspdf', () => ({
   jsPDF: vi.fn(),
 }));
 
-vi.mock('sonner', () => ({
+vi.mock('@/components/ui/sonner.tsx', () => ({
   toast: {
     loading: pdfMocks.toastLoading,
     success: pdfMocks.toastSuccess,
@@ -47,6 +48,7 @@ vi.mock('sonner', () => ({
 
 describe('useRacEditorPdfExportAction.ts', () => {
   beforeEach(() => {
+    clearRacPdfCache();
     vi.stubGlobal('URL', {
       createObjectURL: vi.fn(() => 'blob:rac-preview'),
       revokeObjectURL: vi.fn(),
@@ -75,7 +77,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     };
     const house3DPdfSnapshotRef = {
       current: {
-        captureImageDataUrl: vi.fn().mockResolvedValue(null),
+        captureImageDataUrl: vi.fn().mockResolvedValue('data:image/png;base64,3d'),
       },
     };
 
@@ -100,6 +102,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     });
 
     expect(result.current.isPdfExportChecklistOpen).toBe(true);
+    expect(pdfMocks.toastWarning).not.toHaveBeenCalled();
     expect(pdfMocks.savePdf).not.toHaveBeenCalled();
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
 
@@ -109,8 +112,13 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
     expect(onBeforeExportPdf).toHaveBeenCalledTimes(1);
     expect(result.current.isPdfPreviewOpen).toBe(true);
-    expect(pdfMocks.toastLoading).toHaveBeenCalledWith('Capturando o desenho do Canvas…', {id: expect.any(String)});
-    expect(pdfMocks.toastSuccess).toHaveBeenCalledWith('Prévia do PDF pronta.', {id: expect.any(String)});
+    expect(result.current.pdfPreviewUrl).toBe('blob:rac-preview');
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(pdfMocks.toastLoading.mock.calls[0][0]().props.statuses).toEqual({
+      'capture-canvas': 'active', 'capture-3d': 'pending', 'prepare-photos': 'pending',
+      'build-report-model': 'pending', 'render-pdf': 'pending', 'create-preview': 'pending',
+    });
+    expect(pdfMocks.toastSuccess.mock.calls[0][0]().props.statuses['create-preview']).toBe('success');
     expect(pdfMocks.downloadBlob).not.toHaveBeenCalled();
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
 
@@ -125,6 +133,122 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(markActiveHouseRacPrinted.mock.invocationCallOrder[0]).toBeLessThan(
       onAfterExportPdf.mock.invocationCallOrder[0],
     );
+  });
+
+  it('fechar o progresso não cancela o PDF nem reabre o aviso após a captura', async () => {
+    pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({output: pdfMocks.outputPdf, getNumberOfPages: () => 1});
+    let finishCapture!: (image: {imageDataUrl: string; hasOmittedRasterSources: boolean}) => void;
+    const capture = new Promise<{imageDataUrl: string; hasOmittedRasterSources: boolean}>((resolve) => { finishCapture = resolve; });
+    const {result} = renderHook(() => useRacEditorPdfExportAction({
+      canvasRef: {current: {createDocumentPort: () => ({exportSafeImageDataUrlWithStatus: () => capture})}} as never,
+      house3DPdfSnapshotRef: {current: {captureImageDataUrl: () => Promise.resolve('data:image/png;base64,3d')}} as never,
+    }), {wrapper: createWrapper({constructionSiteManagementPort: {
+      getConstructionSiteSnapshot: () => createConstructionSiteSnapshot(),
+    } as never})});
+
+    await act(async () => { await result.current.handleSavePDF(); });
+    let preparation!: Promise<void>;
+    await act(async () => {
+      preparation = result.current.handleConfirmPdfExport();
+      await Promise.resolve();
+    });
+    const options = pdfMocks.toastLoading.mock.calls[0][1];
+    expect(options.id).toEqual(expect.stringMatching(/^rac-pdf-export-/));
+    act(() => { options.onDismiss({id: options.id}); });
+
+    await act(async () => {
+      finishCapture({imageDataUrl: 'data:image/png;base64,canvas', hasOmittedRasterSources: false});
+      await preparation;
+    });
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(pdfMocks.toastSuccess).not.toHaveBeenCalled();
+    expect(pdfMocks.toastError).not.toHaveBeenCalled();
+  });
+
+  it.each(['sem-desenho', 'somente-elevação', 'runtime-ausente'])(
+    'bloqueia %s no checklist antes da captura e da prévia', async (scenario) => {
+      const site = createConstructionSiteSnapshot();
+      if (scenario !== 'runtime-ausente') {
+        site.houses[0].drawingDocument.views.top = [];
+        site.houses[0].drawingDocument.house.views.top = [];
+        if (scenario === 'sem-desenho') site.houses[0].drawingDocument.house = null as never;
+      }
+      const captureCanvas = vi.fn(() => 'data:image/png;base64,canvas');
+      const capture3D = vi.fn();
+      const markActiveHouseRacPrinted = vi.fn();
+      const {result} = renderHook(() => useRacEditorPdfExportAction({
+        canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: captureCanvas})}} as never,
+        house3DPdfSnapshotRef: {current: {captureImageDataUrl: capture3D}} as never,
+        canExportPdf: () => scenario !== 'runtime-ausente',
+      }), {wrapper: createWrapper({constructionSiteManagementPort: {
+        getConstructionSiteSnapshot: () => site, markActiveHouseRacPrinted,
+      } as never})});
+
+      await act(async () => { await result.current.handleSavePDF(); });
+      expect(result.current.isPdfExportChecklistOpen).toBe(true);
+      expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(true);
+      expect(result.current.pdfExportChecklist?.missingRequiredItems).toEqual(expect.arrayContaining([
+        expect.objectContaining({description: expect.stringContaining('Insira a planta (vista superior)')}),
+      ]));
+      await act(async () => { await result.current.handleConfirmPdfExport(); });
+      expect(result.current.isPdfPreviewOpen).toBe(false);
+      expect(captureCanvas).not.toHaveBeenCalled();
+      expect(capture3D).not.toHaveBeenCalled();
+      expect(pdfMocks.toastLoading).not.toHaveBeenCalled();
+      expect(pdfMocks.downloadBlob).not.toHaveBeenCalled();
+      expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['documento', 'runtime'])('revalida a planta no %s ao confirmar um checklist já aberto', async (source) => {
+    const site = createConstructionSiteSnapshot();
+    let runtimeHasTop = true;
+    const capture = vi.fn();
+    const {result} = renderHook(() => useRacEditorPdfExportAction({
+      canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: capture})}} as never,
+      house3DPdfSnapshotRef: {current: {captureImageDataUrl: capture}} as never,
+      canExportPdf: () => runtimeHasTop,
+    }), {wrapper: createWrapper({constructionSiteManagementPort: {
+      getConstructionSiteSnapshot: () => site, markActiveHouseRacPrinted: vi.fn(),
+    } as never})});
+    await act(async () => { await result.current.handleSavePDF(); });
+    expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(false);
+    if (source === 'runtime') runtimeHasTop = false;
+    else {
+      site.houses[0].drawingDocument.views.top = [];
+      site.houses[0].drawingDocument.house.views.top = [];
+    }
+    await act(async () => { await result.current.handleConfirmPdfExport(); });
+    expect(result.current.isPdfExportChecklistOpen).toBe(true);
+    expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(true);
+    expect(result.current.isPdfPreviewOpen).toBe(false);
+    expect(capture).not.toHaveBeenCalled();
+    expect(pdfMocks.toastLoading).not.toHaveBeenCalled();
+  });
+
+  it('mantém falha real de captura 3D como erro e bloqueia retry se a planta for removida', async () => {
+    const site = createConstructionSiteSnapshot();
+    let hasTop = true;
+    const capture3D = vi.fn().mockResolvedValue(null);
+    const {result} = renderHook(() => useRacEditorPdfExportAction({
+      canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'})}} as never,
+      house3DPdfSnapshotRef: {current: {captureImageDataUrl: capture3D}} as never,
+      canExportPdf: () => hasTop,
+    }), {wrapper: createWrapper({constructionSiteManagementPort: {
+      getConstructionSiteSnapshot: () => site, markActiveHouseRacPrinted: vi.fn(),
+    } as never})});
+    await act(async () => { await result.current.handleSavePDF(); });
+    await act(async () => { await result.current.handleConfirmPdfExport(); });
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(result.current.pdfPreviewError).toContain('Falha ao preparar');
+    expect(pdfMocks.toastError).toHaveBeenCalledWith(expect.any(Function), {id: expect.any(String), onDismiss: expect.any(Function)});
+    expect(pdfMocks.createRacPdfReportDocument).not.toHaveBeenCalled();
+    hasTop = false;
+    await act(async () => { await result.current.handleRetryPdfPreview(); });
+    expect(result.current.isPdfPreviewOpen).toBe(false);
+    expect(result.current.pdfExportChecklist?.hasBlockingItems).toBe(true);
+    expect(capture3D).toHaveBeenCalledTimes(1);
   });
 
   it('cancela a exportação no checklist sem alterar status da casa', async () => {
@@ -143,7 +267,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     const {result} = renderHook(
       () => useRacEditorPdfExportAction({
         canvasRef: canvasRef as never,
-        house3DPdfSnapshotRef: {current: null} as never,
+        house3DPdfSnapshotRef: {current: {captureImageDataUrl: async () => 'data:image/png;base64,3d'}} as never,
         canExportPdf: () => true,
       }),
       {wrapper: createWrapper({
@@ -166,6 +290,43 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(markActiveHouseRacPrinted).not.toHaveBeenCalled();
   });
 
+  it('reabre o PDF atualizado da mesma casa a partir do Blob em cache', async () => {
+    pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({output: pdfMocks.outputPdf, getNumberOfPages: () => 2});
+    const constructionSite = createConstructionSiteSnapshot();
+    const {result} = renderHook(
+      () => useRacEditorPdfExportAction({
+        canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'})}} as never,
+        house3DPdfSnapshotRef: {current: {captureImageDataUrl: async () => 'data:image/png;base64,3d'}} as never,
+        canExportPdf: () => true,
+      }),
+      {wrapper: createWrapper({
+        constructionSiteManagementPort: {
+          getConstructionSiteSnapshot: vi.fn(() => constructionSite),
+          markActiveHouseRacPrinted: vi.fn(),
+        } as never,
+      })},
+    );
+
+    await act(async () => {
+      await result.current.handleSavePDF();
+    });
+    await act(async () => {
+      await result.current.handleConfirmPdfExport();
+    });
+    act(() => result.current.handleClosePdfPreview());
+    await act(async () => {
+      await result.current.handleSavePDF();
+    });
+    await act(async () => {
+      await result.current.handleConfirmPdfExport();
+    });
+
+    expect(result.current.isPdfPreviewOpen).toBe(true);
+    expect(pdfMocks.createRacPdfReportDocument).toHaveBeenCalledTimes(1);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+  });
+
   it('mantém a prévia aberta e exibe erro quando o retry falha', async () => {
     pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
     pdfMocks.createRacPdfReportDocument
@@ -177,7 +338,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
     const {result} = renderHook(
       () => useRacEditorPdfExportAction({
         canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'})}} as never,
-        house3DPdfSnapshotRef: {current: null} as never,
+        house3DPdfSnapshotRef: {current: {captureImageDataUrl: async () => 'data:image/png;base64,3d'}} as never,
         canExportPdf: () => true,
       }),
       {wrapper: createWrapper({
@@ -196,6 +357,9 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
     expect(result.current.isPdfPreviewOpen).toBe(true);
     expect(result.current.pdfPreviewError).toContain('Você pode tentar novamente');
+    expect(pdfMocks.toastError).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({
+      id: expect.any(String), onDismiss: expect.any(Function),
+    }));
   });
 
   it('mantém o sucesso do PDF quando a sincronização posterior do status falha', async () => {
@@ -212,7 +376,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
             createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'}),
           },
         } as never,
-        house3DPdfSnapshotRef: {current: null} as never,
+        house3DPdfSnapshotRef: {current: {captureImageDataUrl: async () => 'data:image/png;base64,3d'}} as never,
         canExportPdf: () => true,
         onAfterExportPdf,
       }),

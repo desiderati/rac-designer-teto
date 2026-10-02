@@ -96,4 +96,24 @@ describe('RacPdfPreviewModal', () => {
     fireEvent.click(screen.getByRole('button', {name: 'Tentar novamente'}));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
+
+  it.each([false, true])('minimiza e restaura a barra do PDF com controle acessível em mobile=%s', (isMobile) => {
+    render(
+      <RacPdfPreviewModal
+        isMobile={isMobile}
+        isOpen
+        fileName='RAC.pdf'
+        pdfUrl='blob:rac-preview'
+        onDownload={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', {name: 'Minimizar barra de ferramentas do PDF'}));
+    expect(screen.queryByRole('button', {name: 'Baixar PDF'})).not.toBeInTheDocument();
+    const restore = screen.getByRole('button', {name: 'Restaurar barra de ferramentas do PDF'});
+    expect(restore).toBeVisible();
+    fireEvent.click(restore);
+    expect(screen.getByRole('button', {name: 'Baixar PDF'})).toBeVisible();
+  });
 });

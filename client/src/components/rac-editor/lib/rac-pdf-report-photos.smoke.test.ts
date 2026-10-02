@@ -34,7 +34,7 @@ describe('preparação de fotos para o PDF', () => {
         getContext: () => ({fillRect: vi.fn(), drawImage: vi.fn()}),
         toDataURL: () => {
           canvases.push({width: canvas.width, height: canvas.height});
-          return 'data:image/jpeg;base64,prepared';
+          return 'data:image/jpeg;base64,/9j/';
         },
       };
       return canvas as unknown as HTMLCanvasElement;
@@ -59,10 +59,11 @@ describe('preparação de fotos para o PDF', () => {
 
     expect(loadedSources).toEqual(expect.arrayContaining([expect.stringMatching(/^data:image\/png;base64,/), '/terrain-1.jpg', '/terrain-2.jpg']));
     expect(fetchMock).toHaveBeenCalledWith('/manus-storage/family-2.jpg', expect.objectContaining({credentials: 'include', cache: 'no-store'}));
-    expect(photos.familyPhotoImageDataUrl).toBe('data:image/jpeg;base64,prepared');
+    expect(photos.familyPhotoImageDataUrl).toBe('data:image/jpeg;base64,/9j/');
+    expect(photos.hasUnresolvedPhotoSources).toBe(false);
     expect(photos.terrainPhotoImageDataUrls).toEqual([
-      'data:image/jpeg;base64,prepared',
-      'data:image/jpeg;base64,prepared',
+      'data:image/jpeg;base64,/9j/',
+      'data:image/jpeg;base64,/9j/',
       null,
       null,
     ]);

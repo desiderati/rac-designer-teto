@@ -35,7 +35,7 @@ const controllerMocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('sonner', () => ({
+vi.mock('@/components/ui/sonner.tsx', () => ({
   toast: controllerMocks.toast,
 }));
 
@@ -390,6 +390,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       JSZip: controllerMocks.JSZip,
       jsPDF: controllerMocks.jsPDF,
       renderCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
+      renderHouse3DImageDataUrl: expect.any(Function),
     });
     expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(blob, 'RACS-CC2603.zip');
     expect(constructionSiteManagementPort.markHouseRacPrinted.mock.calls).toEqual([
@@ -430,6 +431,7 @@ describe('useConstructionSiteManagementController.ts', () => {
       houseId: 'house_draft',
       jsPDF: controllerMocks.jsPDF,
       renderCanvasImageDataUrl: controllerMocks.renderHouseDrawingCanvasImageDataUrl,
+      renderHouse3DImageDataUrl: expect.any(Function),
     });
     expect(controllerMocks.downloadBlob).toHaveBeenCalledWith(blob, 'RAC-CC2603-FAMILIA-RASCUNHO.pdf');
     expect(constructionSiteManagementPort.markHouseRacPrinted).toHaveBeenCalledWith('house_draft');

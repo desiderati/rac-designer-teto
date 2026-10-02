@@ -1,5 +1,5 @@
 import {type RefObject, useCallback, useEffect, useState} from 'react';
-import {toast} from 'sonner';
+import {toast} from '@/components/ui/sonner.tsx';
 import {jsPDF} from 'jspdf';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
 import type {CanvasHistoryHandle} from '@/components/rac-editor/@canvas/ports/CanvasHistoryHandle.ts';
@@ -29,10 +29,25 @@ import {
   type RacPdfHouseExportResult,
 } from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
+import {renderHouse3DPdfSnapshotImageDataUrl} from '@/components/rac-editor/@viewer-3d/lib/render-house-3d-pdf-snapshot.tsx';
+import {HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION, HOUSE_DRAWING_DOCUMENT_TYPE} from '@/shared/types/house-drawing-document.ts';
+import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
+}
+
+function renderPersistedHouse3D(house: PersistedHouseRecord) {
+  if (!house.drawingDocument.house) return Promise.resolve(null);
+  return renderHouse3DPdfSnapshotImageDataUrl({
+    documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
+    schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+    setup: {familyName: '', selectedPilotiHeights: [...house.designSettings.selectedPilotiHeights]},
+    house: {...house.drawingDocument.house, id: house.id, houseType: house.houseType, terrainType: house.terrainType},
+    canvas: house.drawingDocument.canvas,
+    viewer3D: house.drawingDocument.viewer3D,
+  });
 }
 
 export function useConstructionSiteManagementController({
@@ -177,6 +192,7 @@ export function useConstructionSiteManagementController({
         houseId,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
+        renderHouse3DImageDataUrl: renderPersistedHouse3D,
       });
 
       if (onPrepared) {
@@ -221,6 +237,7 @@ export function useConstructionSiteManagementController({
         JSZip,
         jsPDF,
         renderCanvasImageDataUrl: renderHouseDrawingCanvasImageDataUrl,
+        renderHouse3DImageDataUrl: renderPersistedHouse3D,
       });
 
       downloadBlob(result.blob, result.fileName);
@@ -352,6 +369,7 @@ function getConstructionGroups(constructionSites: ConstructionSiteState[], activ
       code: getConstructionCode(constructionSite),
       communityName: getConstructionSiteCommunityName(constructionSite),
       documentVersion: constructionSite.constructionSite.documentVersion,
+      canAddHouse: constructionSite.constructionSite.status === 'in_progress',
       active: constructionSite.constructionSite.id === activeConstructionSiteId,
       houses: constructionSite.houses
         .filter((house) => house.status !== 'archived')

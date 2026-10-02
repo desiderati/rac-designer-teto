@@ -18,6 +18,7 @@ describe('rac-pdf-export-checklist.ts', () => {
       'house-drawing',
       'any-view',
       'house-type',
+      'top-view',
     ]);
   });
 
@@ -59,7 +60,25 @@ describe('rac-pdf-export-checklist.ts', () => {
     expect(checklist.missingRequiredItems.map((item) => item.id)).toEqual([
       'house-drawing',
       'any-view',
+      'top-view',
     ]);
+  });
+
+  it('bloqueia elevações sem planta, mas permite planta sem elevações', () => {
+    const site = createCompleteConstructionSite();
+    const drawing = site.houses[0].drawingDocument;
+    drawing.views.top = [];
+    drawing.house!.views.top = [];
+    const blocked = buildRacPdfExportChecklist(site);
+    expect(blocked.missingRequiredItems.map((item) => item.id)).toEqual(['top-view']);
+    expect(blocked.missingRequiredItems[0].description).toContain('Insira a planta (vista superior)');
+    drawing.views.top = [{instanceId: 'top_1', viewType: 'top', payload: {}}];
+    drawing.house!.views.top = [{instanceId: 'top_1'}];
+    drawing.views.front = [];
+    drawing.house!.views.front = [];
+    const allowed = buildRacPdfExportChecklist(site);
+    expect(allowed.hasBlockingItems).toBe(false);
+    expect(allowed.missingRecommendedItems.map((item) => item.id)).toContain('elevation-view');
   });
 
   it('classifica dados complementares ausentes como alertas', () => {

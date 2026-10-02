@@ -14,6 +14,7 @@ import type {HousePiloti, HouseState, HouseType} from '@/shared/types/house.ts';
 import {formatNivel, formatPilotiHeight, getAllPilotiIds, getPilotiName} from '@/shared/types/piloti.ts';
 import {calculateTotalVolumes} from '@/components/rac-editor/lib/terrain-volume.ts';
 import {isSupportedPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
+import {EXTRA_MATERIAL_LABELS, STAIR_TYPE_LABELS} from '@/shared/lib/house-extra-materials.ts';
 import {
   calculateTerrainDesnivelCm,
   calculateHouseDifficultyIndicator,
@@ -329,14 +330,14 @@ function parsePilotiHeight(value: string | number): number | null {
 
 function buildExtraMaterials(extraMaterials: HouseExtraMaterials | undefined): RacPdfReportExtraMaterials {
   return {
-    fields: [
-      {label: 'Vigas de Piso', value: formatMaterialCount(extraMaterials?.floorBeams)},
-      {label: 'Caibros', value: formatMaterialCount(extraMaterials?.rafters)},
-      {label: 'Vigas Secundárias', value: formatMaterialCount(extraMaterials?.secondaryBeams)},
-      {label: 'Mata-juntas', value: formatMaterialCount(extraMaterials?.gutters)},
-      {label: 'Calhas', value: formatMaterialCount(extraMaterials?.gutterCount)},
-      {label: 'Escada', value: formatStairType(extraMaterials?.stairType)},
-    ],
+    fields: EXTRA_MATERIAL_LABELS.map(([key, label]) => ({
+      label,
+      value: key === 'stairType'
+        ? formatStairType(extraMaterials?.stairType)
+        : key === 'asphaltBlanket'
+          ? extraMaterials?.asphaltBlanket ? 'Sim' : 'Não'
+        : formatMaterialCount(extraMaterials?.[key]),
+    })),
     justification: appendStandardReportText(extraMaterials?.justification, DEFAULT_EXTRA_MATERIALS_NOTE),
   };
 }
@@ -393,9 +394,7 @@ function formatMaterialCount(value: number | undefined): string {
 }
 
 function formatStairType(value: HouseExtraMaterials['stairType']): string {
-  if (value === 'straight') return 'Escada Reta';
-  if (value === 'landing') return 'Escada com Patamar';
-  return 'Não informada';
+  return value ? STAIR_TYPE_LABELS[value] : 'Não informada';
 }
 
 function formatDateLabel(date: Date): string {

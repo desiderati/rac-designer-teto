@@ -1,5 +1,5 @@
-import {RefObject, useCallback, useEffect, useRef, useState} from 'react';
-import {toast} from 'sonner';
+import {createElement, RefObject, useCallback, useEffect, useRef, useState} from 'react';
+import {toast} from '@/components/ui/sonner.tsx';
 import {jsPDF} from 'jspdf';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import type {CanvasDocumentHandle} from '@/components/rac-editor/@canvas/ports/CanvasDocumentHandle.ts';
@@ -13,10 +13,16 @@ import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/
 import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
 import {
   buildRacPdfExportChecklist,
-  formatRacPdfExportChecklistSummary,
   type RacPdfExportChecklist,
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 import {requestChunkRecovery, recordPdfExportTelemetry} from '@/shared/lib/runtime-resilience.ts';
+import {cacheRacPdf, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
+import {
+  RAC_PDF_EXPORT_STEPS,
+  RacPdfExportProgress,
+  createInitialRacPdfExportStatuses,
+  type RacPdfExportStepId,
+} from '@/components/rac-editor/@modals/ui/RacPdfExportProgress.tsx';
 
 interface UseRacEditorPdfExportActionArgs {
   canvasRef: RefObject<CanvasDocumentHandle | null>;
@@ -57,6 +63,13 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+function blobToPreviewUrl(blob: Blob): Promise<string> {
+  if (typeof URL.createObjectURL === 'function') {
+    return Promise.resolve(URL.createObjectURL(blob));
+  }
+  return blobToDataUrl(blob);
+}
+
 export function useRacEditorPdfExportAction({
   canvasRef,
   house3DPdfSnapshotRef,
@@ -74,26 +87,105 @@ export function useRacEditorPdfExportAction({
   const lastPdfPreviewFileNameRef = useRef('RAC-preview.pdf');
   const lastPdfPreviewPageCountRef = useRef(1);
 
-  const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState): Promise<boolean> => {
-  const startedAt = Date.now();
-  let phase = 'start';
+  const buildCurrentChecklist = useCallback((constructionSite: ConstructionSiteState | null) => {
+    const checklist = buildRacPdfExportChecklist(constructionSite);
+    if (canExportPdf && !canExportPdf() && !checklist.missingRequiredItems.some((item) => item.id === 'top-view')) {
+      const runtimeItem = {
+        id: 'canvas-view-runtime',
+        label: 'Vista planta no Canvas',
+        description: TOAST_MESSAGES.addHouseBeforePdfExport,
+        severity: 'required' as const,
+        status: 'missing' as const,
+      };
+      checklist.items.push(runtimeItem);
+      checklist.missingRequiredItems.push(runtimeItem);
+      checklist.hasBlockingItems = true;
+    }
+    return checklist;
+  }, [canExportPdf]);
+
+  const runPdfExport = useCallback(async (constructionSite: ConstructionSiteState, force = false): Promise<boolean> => {
+    // Revalidar antes do cache, das capturas e da prévia: o Canvas pode ter mudado
+    // desde a abertura do checklist ou desde a tentativa anterior.
+    const current = constructionSiteManagementPort.getConstructionSiteSnapshot();
+    const checklist = buildCurrentChecklist(current);
+    const changedHouse = current?.constructionSite.id !== constructionSite.constructionSite.id
+      || current?.constructionSite.activeHouseId !== constructionSite.constructionSite.activeHouseId;
+    if (!current || checklist.hasBlockingItems || changedHouse) {
+      preparedConstructionSiteRef.current = current;
+      setPdfExportChecklist(checklist);
+      setIsPdfExportChecklistOpen(true);
+      setPdfPreview(null);
+      if (changedHouse && current) toast.warning('A casa ativa mudou. Revise o checklist antes de gerar o PDF.');
+      return false;
+    }
+    constructionSite = current;
+    const startedAt = Date.now();
+    let phase: RacPdfExportStepId = 'capture-canvas';
     const progressToastId = `rac-pdf-export-${startedAt}`;
-    const updateProgressToast = (message: string) => {
-      toast.loading(message, {id: progressToastId});
+    let progressDismissed = false;
+    const progressToastOptions = {id: progressToastId, onDismiss: () => { progressDismissed = true; }};
+    let statuses = createInitialRacPdfExportStatuses();
+    const updateProgressToast = (nextPhase: RacPdfExportStepId) => {
+      phase = nextPhase;
+      const activeIndex = RAC_PDF_EXPORT_STEPS.findIndex((step) => step.id === nextPhase);
+      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}, index) => [
+        id,
+        index < activeIndex ? 'success' : index === activeIndex ? 'active' : 'pending',
+      ])) as typeof statuses;
+      if (!progressDismissed) {
+        const content = createElement(RacPdfExportProgress, {statuses});
+        toast.loading(() => content, progressToastOptions);
+      }
+    };
+    const finishProgressToast = () => {
+      statuses = Object.fromEntries(RAC_PDF_EXPORT_STEPS.map(({id}) => [id, 'success'])) as typeof statuses;
+      if (!progressDismissed) {
+        const content = createElement(RacPdfExportProgress, {statuses});
+        toast.success(() => content, progressToastOptions);
+      }
+    };
+    const failProgressToast = () => {
+      statuses = {...statuses, [phase]: 'error'};
+      if (!progressDismissed) {
+        const content = createElement(RacPdfExportProgress, {statuses});
+          toast.error(() => content, progressToastOptions);
+      }
     };
 
     lastPdfExportConstructionSiteRef.current = constructionSite;
     recordPdfExportTelemetry('prepare_started');
-    updateProgressToast('Preparando a exportação do PDF…');
+    updateProgressToast('capture-canvas');
 
     try {
       setIsPdfExporting(true);
+      const house = constructionSite.houses.find((entry) => (
+        entry.id === constructionSite.constructionSite.activeHouseId && entry.status !== 'archived'
+      )) ?? constructionSite.houses.find((entry) => entry.status !== 'archived');
+      const fingerprint = house ? getRacPdfFingerprint(constructionSite, house.id) : null;
+      const cached = !force && house && fingerprint
+        ? getCachedRacPdf(constructionSite, house.id, fingerprint)
+        : null;
+      if (cached) {
+        updateProgressToast('create-preview');
+        const url = await blobToPreviewUrl(cached.blob);
+        lastPdfPreviewFileNameRef.current = cached.fileName;
+        lastPdfPreviewPageCountRef.current = cached.pageCount;
+        setPdfPreview({fileName: cached.fileName, blob: cached.blob, url, pageCount: cached.pageCount});
+        recordPdfExportTelemetry('prepare_succeeded', {durationMs: Date.now() - startedAt});
+        finishProgressToast();
+        return true;
+      }
 
-      phase = 'capture-canvas';
-      updateProgressToast('Capturando o desenho do Canvas…');
+      updateProgressToast('capture-canvas');
       const canvasPort = canvasRef.current?.createDocumentPort();
       let canvasImageDataUrl: string | null = null;
-      if (canvasPort?.exportSafeImageDataUrl) {
+      let hasOmittedRasterSources = false;
+      if (canvasPort?.exportSafeImageDataUrlWithStatus) {
+        const capture = await canvasPort.exportSafeImageDataUrlWithStatus();
+        canvasImageDataUrl = capture.imageDataUrl;
+        hasOmittedRasterSources = capture.hasOmittedRasterSources;
+      } else if (canvasPort?.exportSafeImageDataUrl) {
         canvasImageDataUrl = await canvasPort.exportSafeImageDataUrl();
       } else {
         // Compatibilidade com portas antigas e doubles de teste. O adapter
@@ -111,18 +203,16 @@ export function useRacEditorPdfExportAction({
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-        toast.error(message, {id: progressToastId});
+        failProgressToast();
         return false;
       }
 
-      phase = 'capture-3d';
-      updateProgressToast('Capturando a visualização 3D…');
+      updateProgressToast('capture-3d');
       const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
-      phase = 'prepare-photos';
-      updateProgressToast('Preparando as fotos da família e do terreno…');
+      if (!house3DImageDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
+      updateProgressToast('prepare-photos');
       const photos = await prepareRacPdfReportPhotos(constructionSite);
-      phase = 'build-report-model';
-      updateProgressToast('Montando o relatório da RAC…');
+      updateProgressToast('build-report-model');
       const report = buildRacPdfReportModel({
         constructionSite,
         canvasImageDataUrl,
@@ -138,24 +228,27 @@ export function useRacEditorPdfExportAction({
         setPdfPreview((current) => current?.url
           ? {...current, errorMessage: message}
           : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-        toast.error(message, {id: progressToastId});
+        failProgressToast();
         return false;
       }
 
-      phase = 'render-pdf';
-      updateProgressToast('Gerando o documento PDF…');
+      updateProgressToast('render-pdf');
       const pdf = createRacPdfReportDocument({report, jsPDF});
-      phase = 'create-preview-blob';
       const blob = pdf.output('blob') as Blob;
-      phase = 'create-preview-data-url';
-      updateProgressToast('Preparando a prévia do PDF…');
-      const url = await blobToDataUrl(blob);
+      updateProgressToast('create-preview');
+      const url = await blobToPreviewUrl(blob);
       const pageCount = Math.max(1, pdf.getNumberOfPages());
+      if (house && fingerprint && !photos.hasUnresolvedPhotoSources && !hasOmittedRasterSources) cacheRacPdf(constructionSite, house.id, {
+        fingerprint,
+        blob,
+        fileName: report.fileName,
+        pageCount,
+      });
       lastPdfPreviewFileNameRef.current = report.fileName;
       lastPdfPreviewPageCountRef.current = pageCount;
       setPdfPreview({fileName: report.fileName, blob, url, pageCount});
       recordPdfExportTelemetry('prepare_succeeded', {durationMs: Date.now() - startedAt});
-      toast.success('Prévia do PDF pronta.', {id: progressToastId});
+      finishProgressToast();
       return true;
     } catch (error) {
       const details = errorDetails(error);
@@ -168,12 +261,12 @@ export function useRacEditorPdfExportAction({
       setPdfPreview((current) => current?.url
         ? {...current, errorMessage: message}
         : {fileName: lastPdfPreviewFileNameRef.current, blob: null, url: null, pageCount: lastPdfPreviewPageCountRef.current, errorMessage: message});
-      toast.error('Falha ao preparar a prévia do PDF.', {id: progressToastId});
+      failProgressToast();
       return false;
     } finally {
       setIsPdfExporting(false);
     }
-  }, [canvasRef, house3DPdfSnapshotRef]);
+  }, [buildCurrentChecklist, canvasRef, constructionSiteManagementPort, house3DPdfSnapshotRef]);
 
   const handleSavePDF = useCallback(async () => {
     recordPdfExportTelemetry('checklist_started');
@@ -181,37 +274,19 @@ export function useRacEditorPdfExportAction({
       await onBeforeExportPdf?.();
 
       const constructionSite = constructionSiteManagementPort.getConstructionSiteSnapshot();
-      const checklist = buildRacPdfExportChecklist(constructionSite);
-
-      if (canExportPdf && !canExportPdf() && !checklist.missingRequiredItems.some((item) => item.id === 'any-view')) {
-        const runtimeChecklistItem = {
-          id: 'canvas-view-runtime',
-          label: 'Vista no canvas',
-          description: TOAST_MESSAGES.addHouseBeforePdfExport,
-          severity: 'required' as const,
-          status: 'missing' as const,
-        };
-        checklist.items.push(runtimeChecklistItem);
-        checklist.missingRequiredItems.push(runtimeChecklistItem);
-        checklist.hasBlockingItems = true;
-      }
+      const checklist = buildCurrentChecklist(constructionSite);
 
       preparedConstructionSiteRef.current = constructionSite;
       setPdfExportChecklist(checklist);
       setIsPdfExportChecklistOpen(true);
 
       if (checklist.hasBlockingItems) return;
-
-      const summary = formatRacPdfExportChecklistSummary(checklist);
-      if (summary !== 'Checklist sem pendências.') {
-        toast.warning(`Checklist da RAC: ${summary}`);
-      }
     } catch (error) {
       recordPdfExportTelemetry('prepare_failed', errorDetails(error));
       console.error('[useRacEditorPdfExportAction] Failed to prepare PDF checklist:', error);
       toast.error('Falha ao preparar checklist do PDF.');
     }
-  }, [canExportPdf, constructionSiteManagementPort, onBeforeExportPdf]);
+  }, [buildCurrentChecklist, constructionSiteManagementPort, onBeforeExportPdf]);
 
   const handleCancelPdfExport = useCallback(() => {
     if (isPdfExporting) return;
@@ -230,10 +305,10 @@ export function useRacEditorPdfExportAction({
       return;
     }
 
-    await runPdfExport(constructionSite);
     setIsPdfExportChecklistOpen(false);
     setPdfExportChecklist(null);
     preparedConstructionSiteRef.current = null;
+    await runPdfExport(constructionSite);
   }, [isPdfExporting, pdfExportChecklist?.hasBlockingItems, runPdfExport]);
 
   const handleRetryPdfPreview = useCallback(async () => {
@@ -241,7 +316,7 @@ export function useRacEditorPdfExportAction({
     if (!constructionSite || isPdfExporting) return;
 
     recordPdfExportTelemetry('retry_requested');
-    await runPdfExport(constructionSite);
+    await runPdfExport(constructionSite, true);
   }, [isPdfExporting, runPdfExport]);
 
   useEffect(() => () => {

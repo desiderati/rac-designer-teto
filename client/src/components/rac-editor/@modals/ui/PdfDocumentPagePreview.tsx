@@ -17,33 +17,48 @@ type PdfRenderTask = {cancel: () => void; promise: Promise<unknown>};
 
 export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fitToContainer = false}: PdfDocumentPagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const documentRef = useRef<PdfDocument | null>(null);
   const renderTaskRef = useRef<PdfRenderTask | null>(null);
+  const [loadedDocument, setLoadedDocument] = useState<{url: string; document: PdfDocument} | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const safePageNumber = Math.min(Math.max(1, pageNumber), Math.max(1, pageCount));
 
   useEffect(() => {
     let disposed = false;
+    setLoadedDocument(null);
     setIsLoading(true);
     setErrorMessage(null);
-    renderTaskRef.current?.cancel();
-    renderTaskRef.current = null;
-
     const loadingTask = pdfjs.getDocument({url: pdfUrl});
     void loadingTask.promise
-      .then(async (pdfDocument) => {
-        if (disposed) {
-          await pdfDocument.cleanup();
-          return;
-        }
+      .then((pdfDocument) => {
+        if (disposed) return;
+        setLoadedDocument({url: pdfUrl, document: pdfDocument});
+      })
+      .catch((error: unknown) => {
+        if (disposed) return;
+        console.error('[PdfDocumentPagePreview] Falha ao abrir PDF:', error);
+        setErrorMessage('Não foi possível abrir a prévia do PDF.');
+        setIsLoading(false);
+      });
 
-        documentRef.current = pdfDocument;
-        const page = await pdfDocument.getPage(safePageNumber);
+    return () => {
+      disposed = true;
+      void loadingTask.destroy();
+    };
+  }, [pdfUrl]);
+
+  useEffect(() => {
+    if (!loadedDocument || loadedDocument.url !== pdfUrl) return;
+    let disposed = false;
+    setIsLoading(true);
+    setErrorMessage(null);
+    const renderPage = async () => {
+      try {
+        const page = await loadedDocument.document.getPage(safePageNumber);
+        if (disposed) return;
         const canvas = canvasRef.current;
         const context = canvas?.getContext('2d', {alpha: false});
         if (!canvas || !context) throw new Error('Não foi possível preparar a área de prévia do PDF.');
-        if (disposed) return;
 
         const devicePixelRatio = Math.min(globalThis.devicePixelRatio || 1, 2);
         const viewport = page.getViewport({scale: (zoom / 100) * devicePixelRatio});
@@ -57,23 +72,21 @@ export function PdfDocumentPagePreview({pdfUrl, pageNumber, pageCount, zoom, fit
         renderTaskRef.current = renderTask;
         await renderTask.promise;
         if (!disposed) setIsLoading(false);
-      })
-      .catch((error: unknown) => {
+      } catch (error) {
         if (disposed || (error instanceof Error && error.name === 'RenderingCancelledException')) return;
         console.error('[PdfDocumentPagePreview] Falha ao renderizar prévia:', error);
         setErrorMessage('Não foi possível renderizar a prévia do PDF.');
         setIsLoading(false);
-      });
+      }
+    };
+    void renderPage();
 
     return () => {
       disposed = true;
       renderTaskRef.current?.cancel();
       renderTaskRef.current = null;
-      documentRef.current?.cleanup();
-      documentRef.current = null;
-      void loadingTask.destroy();
     };
-  }, [fitToContainer, pdfUrl, safePageNumber, zoom]);
+  }, [loadedDocument, pdfUrl, safePageNumber, zoom]);
 
   return (
     <div

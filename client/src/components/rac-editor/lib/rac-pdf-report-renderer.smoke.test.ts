@@ -1,5 +1,5 @@
 import {jsPDF} from 'jspdf';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import type {RacPdfReportModel} from '@/components/rac-editor/lib/rac-pdf-report-model.ts';
 import {
   createRacPdfReportDocument,
@@ -10,6 +10,36 @@ const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
 describe('rac pdf report renderer', () => {
+  it('duplica o recuo dos materiais e leva monitores excedentes para continuação sem cortar conteúdo', () => {
+    const report = createMinimalReport();
+    report.extraMaterials.fields = Array.from({length: 10}, (_, index) => ({label: `Material ${index}`, value: `${index}`}));
+    const actions = ['Escavar', 'Aterrar', 'Retirar vegetação', 'Retirar entulho', 'Desmontar a Casa', 'Liberar acesso'];
+    report.terrain.optionGroups.push({label: 'Ações do Morador', options: actions, selected: actions});
+    report.monitors = Array.from({length: 6}, (_, index) => ({name: `Monitor ${index}`, phone: '11999999999'}));
+    const drawn: Array<{text: string; y: number; page: number}> = [];
+    function ObservedPdf(options: ConstructorParameters<typeof jsPDF>[0]) {
+      const pdf = new jsPDF(options);
+      const text = pdf.text.bind(pdf);
+      vi.spyOn(pdf, 'text').mockImplementation((...args: Parameters<typeof pdf.text>) => {
+        drawn.push({text: String(args[0]), y: args[2], page: pdf.getNumberOfPages()});
+        return text(...args);
+      });
+      return pdf;
+    }
+    createRacPdfReportDocument({report, jsPDF: ObservedPdf as never});
+    const first = drawn.find((row) => row.text === 'MATERIAL 0')!;
+    const second = drawn.find((row) => row.text === 'MATERIAL 2')!;
+    const title = drawn.find((row) => row.text === 'MATERIAL EXTRA')!;
+    expect(first.y - (title.y + 8)).toBeCloseTo(28);
+    expect(second.y - (first.y + 13)).toBeCloseTo(22);
+    const last = drawn.find((row) => row.text === 'MATERIAL 8')!;
+    expect(last.y + 13).toBeLessThan(513);
+    report.monitors.forEach((monitor) => {
+      const row = drawn.find((entry) => entry.text === monitor.name);
+      expect(row?.page).toBeGreaterThan(1);
+      expect(row?.y).toBeLessThan(513);
+    });
+  });
   it('mantém as cinco áreas de foto com largura e altura idênticas', () => {
     const rect = {x: 238, y: 58, width: 584, height: 454};
     const slots = getContinuationMediaSlots(rect);

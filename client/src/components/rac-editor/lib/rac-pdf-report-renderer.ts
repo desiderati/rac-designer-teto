@@ -53,6 +53,7 @@ const LEFT_COLUMN_X = PAGE_MARGIN_X;
 const LEFT_COLUMN_Y = 66;
 const LEFT_COLUMN_WIDTH = 198;
 const LEFT_SECTION_GAP = 12;
+const EXTRA_MATERIAL_TO_MONITOR_GAP = 10;
 const MAIN_CANVAS_GAP = 20;
 const MAIN_CANVAS_Y = 58;
 const MAIN_CANVAS_FOOTER_GAP = 20;
@@ -65,8 +66,8 @@ const FIRST_PAGE_MONITOR_COLUMNS = 2;
 const FIRST_PAGE_MONITOR_COLUMN_WIDTH = 108;
 const FIRST_PAGE_MONITOR_ROW_HEIGHT = 30;
 const FIRST_PAGE_MONITOR_SUMMARY_WIDTH = 90;
-const FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT = 3;
-const FIRST_PAGE_BODY_CONTINUATION_HINT = '(continua atrás...)';
+// O valor termina 13 pt após o rótulo; o recuo até o próximo campo passa de 11 para 22 pt.
+const EXTRA_MATERIAL_ROW_HEIGHT = 13 + 22;
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
 const FIRST_PAGE_MUTED_BODY_LINE_HEIGHT = 8.6;
 const RESIDENT_ACTION_COLUMNS = 2;
@@ -134,10 +135,10 @@ export function createRacPdfReportDocument({
 
   drawPageBackground(pdf);
   drawHeader(pdf, report);
-  drawLeftColumn(pdf, report);
+  const firstPageMonitorCount = drawLeftColumn(pdf, report);
   drawMainCanvas(pdf, report);
   drawFooter(pdf, report);
-  drawContinuationPages(pdf, report);
+  drawContinuationPages(pdf, report, firstPageMonitorCount);
 
   return pdf;
 }
@@ -319,8 +320,15 @@ function drawLeftColumn(pdf: JsPDFDocument, report: RacPdfReportModel) {
   cursorY = drawTerrainSection(pdf, report, cursorY);
   cursorY += LEFT_SECTION_GAP;
   cursorY = drawExtraMaterialsSection(pdf, report, cursorY);
-  cursorY += LEFT_SECTION_GAP;
-  drawMonitoringSection(pdf, report, cursorY);
+  cursorY += EXTRA_MATERIAL_TO_MONITOR_GAP;
+  const canvasRect = getMainCanvasRect(pdf);
+  const remainingHeight = canvasRect.y + canvasRect.height - cursorY;
+  const monitorRows = Math.max(0, Math.floor((remainingHeight - 22 - 12) / FIRST_PAGE_MONITOR_ROW_HEIGHT));
+  const monitorCount = Math.min(report.monitors.length, FIRST_PAGE_MONITOR_LIMIT, monitorRows * FIRST_PAGE_MONITOR_COLUMNS);
+  if (monitorCount > 0 || (!report.monitors.length && remainingHeight >= 40)) {
+    drawMonitoringSection(pdf, report, cursorY, monitorCount);
+  }
+  return monitorCount;
 }
 
 function drawHouseSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
@@ -358,7 +366,8 @@ function drawTerrainSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: nu
 }
 
 function drawExtraMaterialsSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
-  let cursorY = drawSectionTitle(pdf, 'MATERIAL EXTRA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
+  // Duplica também o recuo entre o separador do título e a primeira linha: 14 → 28 pt.
+  let cursorY = drawSectionTitle(pdf, 'MATERIAL EXTRA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH) + 14;
   report.extraMaterials.fields.forEach((field, index) => {
     const column = index % 2;
     const row = Math.floor(index / 2);
@@ -367,29 +376,19 @@ function drawExtraMaterialsSection(pdf: JsPDFDocument, report: RacPdfReportModel
       field.label,
       field.value,
       LEFT_COLUMN_X + column * 104,
-      cursorY + row * 26,
+      cursorY + row * EXTRA_MATERIAL_ROW_HEIGHT,
       column === 0 ? 92 : 100,
     );
   });
   cursorY += getFirstPageExtraMaterialsFieldHeight(report.extraMaterials.fields.length);
 
-  drawTinyLabel(pdf, 'Outros / Justificativa', LEFT_COLUMN_X, cursorY);
-  setText(pdf, COLORS.muted);
-  pdf.setFont(DEFAULT_FONT, 'italic');
-  setFontSize(pdf, FIRST_PAGE_MUTED_BODY_FONT_SIZE);
-  const lines = splitFirstPageBodyTextToFit(
-    pdf,
-    report.extraMaterials.justification,
-    FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT,
-  );
-  drawFirstPageBodyLines(pdf, lines, LEFT_COLUMN_X, cursorY + 13);
-  return cursorY + getFirstPageBodyPreviewHeight(FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT);
+  return cursorY;
 }
 
-function drawMonitoringSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
+function drawMonitoringSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number, monitorCount: number): number {
   const cursorY = drawSectionTitle(pdf, 'MONITORIA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
 
-  const visibleMonitors = report.monitors.slice(0, FIRST_PAGE_MONITOR_LIMIT);
+  const visibleMonitors = report.monitors.slice(0, monitorCount);
   if (visibleMonitors.length === 0) {
     drawMutedValue(pdf, 'Nenhum monitor ativo informado.', LEFT_COLUMN_X, cursorY + 2, LEFT_COLUMN_WIDTH);
     return cursorY + 18;
@@ -544,24 +543,13 @@ function fitFooterValueText(pdf: JsPDFDocument, value: string, maxWidth: number,
   return limitText(pdf, value, maxWidth);
 }
 
-function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
-  const hiddenMonitors = report.monitors.slice(FIRST_PAGE_MONITOR_LIMIT);
+function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel, firstPageMonitorCount: number) {
+  const hiddenMonitors = report.monitors.slice(firstPageMonitorCount);
   const extraJustificationText = report.extraMaterials.justification.trim();
-  const extraJustificationLines = extraJustificationText
-    ? splitFirstPageBodyText(pdf, extraJustificationText)
-    : [];
-  const hasExtraMaterialsContinuation = (
-    extraJustificationLines.length > FIRST_PAGE_EXTRA_MATERIALS_JUSTIFICATION_LINE_LIMIT
-  );
   const notesText = report.notes.trim();
 
   let page = createContinuationPage(pdf, report);
-  if (notesText) {
-    page = drawContinuationTextSection(pdf, report, 'OBSERVAÇÕES', notesText, page);
-  }
-  page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
-
-  if (hasExtraMaterialsContinuation) {
+  if (extraJustificationText) {
     page = drawContinuationTextSection(
       pdf,
       report,
@@ -570,6 +558,10 @@ function drawContinuationPages(pdf: JsPDFDocument, report: RacPdfReportModel) {
       page,
     );
   }
+  if (notesText) {
+    page = drawContinuationTextSection(pdf, report, 'OBSERVAÇÕES', notesText, page);
+  }
+  page = drawContinuationMonitors(pdf, report, hiddenMonitors, page);
 
 }
 
@@ -983,49 +975,6 @@ function wrapParagraphByWordsToWidth(pdf: JsPDFDocument, paragraph: string, maxW
   return lines;
 }
 
-function splitFirstPageBodyText(pdf: JsPDFDocument, text: string): string[] {
-  pdf.setFont(DEFAULT_FONT, 'italic');
-  setFontSize(pdf, FIRST_PAGE_MUTED_BODY_FONT_SIZE);
-  return pdf.splitTextToSize(text, LEFT_COLUMN_WIDTH);
-}
-
-function splitFirstPageBodyTextToFit(pdf: JsPDFDocument, text: string, maxLines: number): string[] {
-  if (maxLines <= 0) return [];
-
-  const lines = splitFirstPageBodyText(pdf, text);
-  if (lines.length <= maxLines) return lines;
-  const visible = lines.slice(0, maxLines);
-  visible[visible.length - 1] = appendFirstPageBodyContinuationHint(pdf, visible.at(-1) ?? '');
-  return visible;
-}
-
-function appendFirstPageBodyContinuationHint(pdf: JsPDFDocument, line: string): string {
-  if (pdf.getTextWidth(FIRST_PAGE_BODY_CONTINUATION_HINT) > LEFT_COLUMN_WIDTH) {
-    return limitText(pdf, FIRST_PAGE_BODY_CONTINUATION_HINT, LEFT_COLUMN_WIDTH);
-  }
-
-  const suffix = ` ${FIRST_PAGE_BODY_CONTINUATION_HINT}`;
-  let prefix = line.trimEnd();
-  while (prefix.length > 0 && pdf.getTextWidth(`${prefix}${suffix}`) > LEFT_COLUMN_WIDTH) {
-    prefix = removeLastWordForContinuationHint(prefix);
-  }
-
-  return prefix ? `${prefix}${suffix}` : FIRST_PAGE_BODY_CONTINUATION_HINT;
-}
-
-function removeLastWordForContinuationHint(text: string): string {
-  const withoutLastWord = text.replace(/\s+\S+$/, '').trimEnd();
-  return withoutLastWord && withoutLastWord !== text ? withoutLastWord : text.slice(0, -1).trimEnd();
-}
-
-function drawFirstPageBodyLines(pdf: JsPDFDocument, lines: string[], x: number, y: number) {
-  if (lines.length === 0) return;
-
-  pdf.text(lines, x, y, {
-    lineHeightFactor: FIRST_PAGE_MUTED_BODY_LINE_HEIGHT / getFirstPageMutedBodyFontSize(),
-  });
-}
-
 function getResidentActionSectionHeight(actionCount: number): number {
   if (actionCount <= 0) return 0;
   return RESIDENT_ACTION_SECTION_BASE_HEIGHT
@@ -1034,11 +983,7 @@ function getResidentActionSectionHeight(actionCount: number): number {
 }
 
 function getFirstPageExtraMaterialsFieldHeight(fieldCount: number): number {
-  return Math.ceil(fieldCount / 2) * 26 + 4;
-}
-
-function getFirstPageBodyPreviewHeight(lineLimit: number): number {
-  return 13 + Math.max(0, lineLimit - 1) * FIRST_PAGE_MUTED_BODY_LINE_HEIGHT + 7;
+  return Math.ceil(fieldCount / 2) * EXTRA_MATERIAL_ROW_HEIGHT;
 }
 
 function drawSectionTitle(pdf: JsPDFDocument, title: string, x: number, y: number, width: number): number {
@@ -1293,8 +1238,4 @@ function getInitials(value: string): string {
     .map((word) => word[0]?.toUpperCase())
     .join('');
   return initials || 'M';
-}
-
-function getFirstPageMutedBodyFontSize(): number {
-  return FIRST_PAGE_MUTED_BODY_FONT_SIZE + PDF_FONT_SIZE_INCREMENT;
 }

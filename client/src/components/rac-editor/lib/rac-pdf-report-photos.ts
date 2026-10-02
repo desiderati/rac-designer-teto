@@ -1,9 +1,12 @@
 import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
 import {resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
+import {isSupportedPhotoDataUrl} from '@/shared/lib/photo-data-url.ts';
 
 export interface RacPdfPreparedPhotos {
   familyPhotoImageDataUrl: string | null;
   terrainPhotoImageDataUrls: (string | null)[];
+  /** Uma fonte informada que falhou não pode validar o cache do PDF incompleto. */
+  hasUnresolvedPhotoSources: boolean;
 }
 
 /** Reduz fotos para a resolução útil no PDF antes de incorporá-las ao documento. */
@@ -24,7 +27,14 @@ export async function prepareRacPdfReportPhotos(
     sources.map(preparePhoto),
   );
 
-  return {familyPhotoImageDataUrl, terrainPhotoImageDataUrls};
+  const prepared = [familyPhotoImageDataUrl, ...terrainPhotoImageDataUrls];
+  return {
+    familyPhotoImageDataUrl,
+    terrainPhotoImageDataUrls,
+    hasUnresolvedPhotoSources: sources.some((source, index) => (
+      Boolean(source?.trim()) && !isSupportedPhotoDataUrl(prepared[index])
+    )),
+  };
 }
 
 async function preparePhoto(source: string | undefined): Promise<string | null> {
