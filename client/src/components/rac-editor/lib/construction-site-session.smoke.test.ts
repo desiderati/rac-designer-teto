@@ -823,8 +823,8 @@ describe('constructionSite-session.ts', () => {
     expect(session.activateHouse(firstConstructionSiteId, 'house_missing')).toBeNull();
   });
 
-  it('marca a casa ativa como RAC Impressa e volta para rascunho ao salvar alteração editorial', () => {
-    const {storage} = createStorage();
+  it('preserva RAC Impressa ao salvar alteração editorial e reabrir a casa', () => {
+    const {storage, writes} = createStorage();
     const session = createConstructionSiteSession(storage);
     session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
     const house = session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
@@ -839,8 +839,51 @@ describe('constructionSite-session.ts', () => {
       houseType: 'tipo3',
     }));
 
-    expect(session.getActiveHouse().status).toBe('draft');
+    expect(session.getActiveHouse().status).toBe('rac_printed');
     expect(session.getActiveHouse().houseType).toBe('tipo3');
+    session.updateActiveHouseExtraMaterials({stairBeams: 3});
+    session.markHouseDraft(house.id);
+    expect(session.getActiveHouse().status).toBe('rac_printed');
+    const reopened = createConstructionSiteSession(createStorage(writes.at(-1)).storage);
+    expect(reopened.getActiveHouse().status).toBe('rac_printed');
+  });
+
+  it('persiste visualização 3D por casa e preserva os materiais adicionais após reabertura', () => {
+    const {storage, writes} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const firstHouse = session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
+    const firstDocument = session.getActiveHouseDrawingDocument()!;
+    firstDocument.viewer3D = {wallColor: '#ee2222', hideBelowTerrain: true, cameraPose: {position: [3, 4, 5], target: [0, 1, 0], fov: 48, zoom: 1.4}};
+    session.saveActiveHouseDrawingDocument(firstDocument);
+    session.updateActiveHouseExtraMaterials({stairBeams: 3, gutterCaps: 2, gutterElbows: 1, asphaltBlanket: true, bracing: 5, stairType: 'access_ramp'});
+    const secondHouse = session.createHouse({familyName: 'Família 02', houseType: 'tipo3'});
+    const secondDocument = session.getActiveHouseDrawingDocument()!;
+    secondDocument.viewer3D = {wallColor: '#3366aa', hideBelowTerrain: false, cameraPose: null};
+    session.saveActiveHouseDrawingDocument(secondDocument);
+    const reopened = createConstructionSiteSession(createStorage(writes.at(-1)).storage);
+    const siteId = reopened.getConstructionSite()!.constructionSite.id;
+    reopened.activateHouse(siteId, firstHouse.id);
+    expect(reopened.getActiveHouseDrawingDocument()?.viewer3D).toEqual(firstDocument.viewer3D);
+    expect(reopened.getActiveHouse().extraMaterials).toMatchObject({stairBeams: 3, gutterCaps: 2, gutterElbows: 1, asphaltBlanket: true, bracing: 5, stairType: 'access_ramp'});
+    reopened.activateHouse(siteId, secondHouse.id);
+    expect(reopened.getActiveHouseDrawingDocument()?.viewer3D).toEqual(secondDocument.viewer3D);
+  });
+
+  it('salva materiais na configuração da casa e normaliza contagens legadas de Manta Asfáltica', () => {
+    const {storage, writes} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2699', constructionDate: '2026-10-02', communityName: 'Teste'});
+    session.createHouse({familyName: 'Família teste', extraMaterials: {asphaltBlanket: false}});
+    session.updateActiveHouseConfiguration({extraMaterials: {stairBeams: 5, asphaltBlanket: true}});
+    const reopened = createConstructionSiteSession(createStorage(writes.at(-1)).storage);
+    expect(reopened.getActiveHouse().extraMaterials).toMatchObject({stairBeams: 5, asphaltBlanket: true});
+
+    const legacy = structuredClone(writes.at(-1)) as typeof writes[number];
+    const legacyHouse = legacy[0].houses[0];
+    (legacyHouse.extraMaterials as unknown as {asphaltBlanket: number}).asphaltBlanket = 0;
+    const migrated = createConstructionSiteSession(createStorage(legacy).storage);
+    expect(migrated.getActiveHouse().extraMaterials?.asphaltBlanket).toBe(false);
   });
 
   it('preserva RAC Impressa quando o flush do documento não muda a casa ativa', () => {
@@ -858,6 +901,24 @@ describe('constructionSite-session.ts', () => {
 
     expect(session.getActiveHouse().status).toBe('rac_printed');
     expect(session.getActiveHouse().version).toBe(printedVersion);
+  });
+
+  it('preserva histórico de RAC Impressa legado sem inventar data ao arquivar e liberar edição', () => {
+    const {storage} = createStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Tiradentes'});
+    const house = session.createHouse({familyName: 'Família 01', houseType: 'tipo6'});
+    const persisted = session.getConstructionSite()!;
+    persisted.houses[0].status = 'rac_printed';
+    delete persisted.houses[0].lastRacExportedAt;
+    const legacy = createConstructionSiteSession(createStorage([persisted]).storage);
+    legacy.archiveHouse(house.id);
+    legacy.unarchiveHouse(house.id);
+    expect(legacy.getActiveHouse().status).toBe('rac_printed');
+    legacy.markHouseBuilt(house.id);
+    legacy.markHouseDraft(house.id);
+    expect(legacy.getActiveHouse().status).toBe('rac_printed');
+    expect(legacy.getActiveHouse().lastRacExportedAt).toBeUndefined();
   });
 
   it('marca RAC Impressa por casa preservando construída e arquivada', () => {

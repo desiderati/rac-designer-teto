@@ -56,6 +56,17 @@ export function sanitizeHouseExtraMaterials(input: Partial<HouseExtraMaterials> 
   if (!input) return undefined;
 
   const extraMaterials: HouseExtraMaterials = {};
+  for (const key of ['stairBeams', 'gutterCaps', 'gutterElbows', 'bracing'] as const) {
+    const count = normalizeOptionalNonNegativeInteger(input[key]);
+    if (count !== undefined) extraMaterials[key] = count;
+  }
+  if (typeof input.asphaltBlanket === 'boolean') {
+    extraMaterials.asphaltBlanket = input.asphaltBlanket;
+  } else {
+    // Documentos anteriores armazenavam a manta como quantidade numérica.
+    const legacyCount = normalizeOptionalNonNegativeInteger(input.asphaltBlanket as number | undefined);
+    if (legacyCount !== undefined) extraMaterials.asphaltBlanket = legacyCount > 0;
+  }
   const floorBeams = normalizeOptionalNonNegativeInteger(input.floorBeams);
   const rafters = normalizeOptionalNonNegativeInteger(input.rafters);
   const secondaryBeams = normalizeOptionalNonNegativeInteger(input.secondaryBeams);
@@ -268,7 +279,7 @@ function sanitizeTerrainPhotos(value: unknown): TerrainPhoto[] | undefined {
 }
 
 function normalizeStairType(value: unknown): StairType | undefined {
-  return value === 'straight' || value === 'landing' ? value : undefined;
+  return value === 'straight' || value === 'landing' || value === 'access_ramp' ? value : undefined;
 }
 
 function createFallbackCommunity(now: string): CommunityRecord {

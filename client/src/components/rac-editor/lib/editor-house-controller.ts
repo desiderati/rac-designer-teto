@@ -37,7 +37,7 @@ import type {
   HouseRuntimeGroupRef,
   HouseVisualRuntimePort,
 } from '@/components/rac-editor/lib/editor-house-runtime-port.ts';
-import type {HouseDrawingDocument} from '@/shared/types/house-drawing-document.ts';
+import {normalizeHouseDrawingViewer3D, type HouseDrawingDocument, type HouseDrawingViewer3DDocument} from '@/shared/types/house-drawing-document.ts';
 import type {
   MonitorRecord,
   PersistedHouseRecord,
@@ -97,6 +97,8 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   private readonly constructionSiteSession: ConstructionSiteSessionPort;
 
   private readonly constructionSites: EditorHouseConstructionSiteBridge;
+
+  private viewer3D: HouseDrawingViewer3DDocument | null = null;
 
   constructor(args: EditorHouseControllerArgs<TGroup>) {
     this.constructionSiteSession = args.constructionSiteSession;
@@ -231,6 +233,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   }
 
   reset(): void {
+    this.viewer3D = null;
     this.state.reset();
     this.visualRuntime.clearViewGroups();
     this.invalidateRuntimeHouseCache();
@@ -299,10 +302,22 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   }
 
   loadHouseDrawingDocument(document: HouseDrawingDocument): void {
+    this.viewer3D = normalizeHouseDrawingViewer3D(document.viewer3D);
     this.house = createHouseStateSnapshot(document.house);
     this.session.setSelectedPilotiHeights(document.setup.selectedPilotiHeights);
     this.session.setFamilyName(document.setup.familyName);
     this.session.syncConstructionSiteSession();
+    this.notify();
+  }
+
+  getViewer3D(): HouseDrawingViewer3DDocument | null {
+    return this.viewer3D ? normalizeHouseDrawingViewer3D(this.viewer3D) : null;
+  }
+
+  setViewer3D(value: HouseDrawingViewer3DDocument): void {
+    const normalized = normalizeHouseDrawingViewer3D(value);
+    if (!normalized || JSON.stringify(normalized) === JSON.stringify(this.viewer3D)) return;
+    this.viewer3D = normalized;
     this.notify();
   }
 
@@ -452,6 +467,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   private loadNullableHouseDrawingDocument(document: HouseDrawingDocument | null): void {
     if (!document) {
+      this.viewer3D = null;
       this.house = null;
       this.notify();
       return;

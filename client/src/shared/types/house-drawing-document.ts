@@ -42,7 +42,20 @@ const HOUSE_DRAWING_DOCUMENT_KEYS = [
   'setup',
   'house',
   'canvas',
+  'viewer3D',
 ] as const;
+
+/** Configuração visual 3D própria da casa, usada também na exportação do PDF. */
+export interface HouseDrawingViewer3DDocument {
+  cameraPose: {
+    position: [number, number, number];
+    target: [number, number, number];
+    fov: number;
+    zoom: number;
+  } | null;
+  wallColor: string;
+  hideBelowTerrain: boolean;
+}
 
 const HOUSE_DRAWING_SETUP_KEYS = [
   'familyName',
@@ -176,6 +189,7 @@ export interface HouseDrawingDocument {
   setup: HouseDrawingSetupDocument;
   house: HouseState;
   canvas: HouseDrawingCanvasDocument;
+  viewer3D?: HouseDrawingViewer3DDocument;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -191,6 +205,34 @@ function hasOnlyKeys(value: Record<string, unknown>, allowedKeys: readonly strin
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isViewer3DVector(value: unknown): value is [number, number, number] {
+  return Array.isArray(value) && value.length === 3 && value.every(isFiniteNumber);
+}
+
+/** Rejeita configurações parciais ou não finitas antes de persistir/sincronizar. */
+export function normalizeHouseDrawingViewer3D(value: unknown): HouseDrawingViewer3DDocument | null {
+  if (!isRecord(value) || !hasOnlyKeys(value, ['cameraPose', 'wallColor', 'hideBelowTerrain'])) return null;
+  if (typeof value.wallColor !== 'string' || !/^#[0-9a-f]{6}$/i.test(value.wallColor)
+    || typeof value.hideBelowTerrain !== 'boolean') return null;
+  const pose = value.cameraPose;
+  if (pose !== null) {
+    if (!isRecord(pose) || !hasOnlyKeys(pose, ['position', 'target', 'fov', 'zoom'])
+      || !isViewer3DVector(pose.position) || !isViewer3DVector(pose.target)
+      || !isFiniteNumber(pose.fov) || pose.fov <= 0
+      || !isFiniteNumber(pose.zoom) || pose.zoom <= 0) return null;
+  }
+  return {
+    cameraPose: pose === null ? null : {
+      position: [...(pose as {position: [number, number, number]}).position],
+      target: [...(pose as {target: [number, number, number]}).target],
+      fov: (pose as {fov: number}).fov,
+      zoom: (pose as {zoom: number}).zoom,
+    },
+    wallColor: value.wallColor,
+    hideBelowTerrain: value.hideBelowTerrain,
+  };
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -344,7 +386,8 @@ export function isHouseDrawingDocument(value: unknown): value is HouseDrawingDoc
     && value.schemaVersion === HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION
     && isHouseDrawingSetupDocument(value.setup)
     && isHouseState(value.house)
-    && isHouseDrawingCanvasDocument(value.canvas);
+    && isHouseDrawingCanvasDocument(value.canvas)
+    && (value.viewer3D === undefined || normalizeHouseDrawingViewer3D(value.viewer3D) !== null);
 }
 
 /** Converte conteúdo textual em `HouseDrawingDocument` ou falha com erro semântico de arquivo inválido. */

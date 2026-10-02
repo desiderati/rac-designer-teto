@@ -6,6 +6,7 @@ import {
   HOUSE_DRAWING_DOCUMENT_TYPE,
   isHouseDrawingDocument,
   parseHouseDrawingDocument,
+  normalizeHouseDrawingViewer3D,
   type HouseDrawingDocument,
 } from '@/shared/types/house-drawing-document.ts';
 
@@ -73,6 +74,17 @@ function createDocument(): HouseDrawingDocument {
 }
 
 describe('house-drawing-document.ts', () => {
+  it('aceita configuração 3D serializável e rejeita pose inválida', () => {
+    const document = createDocument();
+    document.viewer3D = {
+      wallColor: '#ff0000', hideBelowTerrain: true,
+      cameraPose: {position: [1, 2, 3], target: [0, 0, 0], fov: 50, zoom: 1.5},
+    };
+    expect(parseHouseDrawingDocument(JSON.stringify(document)).viewer3D).toEqual(document.viewer3D);
+    expect(normalizeHouseDrawingViewer3D({...document.viewer3D, cameraPose: {
+      position: [1, Number.POSITIVE_INFINITY, 3], target: [0, 0, 0], fov: 50, zoom: 1,
+    }})).toBeNull();
+  });
   it('aceita documento canônico completo e parseável', () => {
     const document = createDocument();
 

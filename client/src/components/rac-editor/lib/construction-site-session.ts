@@ -30,6 +30,7 @@ import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
   HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
   HOUSE_DRAWING_DOCUMENT_TYPE,
+  normalizeHouseDrawingViewer3D,
   type HouseDrawingDocument,
 } from '@/shared/types/house-drawing-document.ts';
 import {
@@ -184,6 +185,7 @@ export interface UpdateHouseConfigurationInput {
   familyPhotoDataUrl?: string;
   houseSize?: HouseSize;
   leaders?: string;
+  extraMaterials?: HouseExtraMaterials;
   siteAssessment?: Partial<SiteAssessment>;
   notes?: string;
 }
@@ -393,6 +395,7 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
         drawingDocument: normalizePersistedDrawingDocument(house.drawingDocument, houseId),
         notes: normalizeOptionalText(house.notes) ?? normalizeOptionalText(family?.notes),
         lastRacExportedAt: normalizeOptionalIsoTimestamp(house.lastRacExportedAt),
+        hasRacBeenPrinted: house.hasRacBeenPrinted === true || house.status === 'rac_printed' || Boolean(normalizeOptionalIsoTimestamp(house.lastRacExportedAt)),
         version: Number.isFinite(house.version) ? house.version : 1,
         createdAt: house.createdAt || now,
         updatedAt: house.updatedAt || now,
@@ -716,6 +719,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     house.id = createId('house');
     house.familyId = family.id;
     house.status = 'draft';
+    delete house.lastRacExportedAt;
+    delete house.hasRacBeenPrinted;
     house.siteAssessment = sanitizeSiteAssessment(house.siteAssessment);
     house.extraMaterials = sanitizeHouseExtraMaterials(house.extraMaterials);
     house.version = 1;
@@ -773,7 +778,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if (this.isConstructionSiteReadOnly(constructionSite)) return;
     if (house.status !== 'archived') return;
 
-    house.status = 'draft';
+    house.status = house.hasRacBeenPrinted || house.lastRacExportedAt ? 'rac_printed' : 'draft';
     house.updatedAt = now;
     house.version += 1;
 
@@ -837,7 +842,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   }
 
   markHouseDraft(houseId: string): void {
-    this.updateHouseStatus(houseId, 'draft');
+    const house = this.findHouseConstructionSite(houseId)?.house;
+    this.updateHouseStatus(houseId, house?.status === 'rac_printed' || house?.hasRacBeenPrinted || house?.lastRacExportedAt ? 'rac_printed' : 'draft');
   }
 
   activateHouse(constructionSiteId: string, houseId: string): HouseDrawingDocument | null {
@@ -892,6 +898,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if ('familyPhotoDataUrl' in input) family.photoDataUrl = normalizeOptionalPhotoDataUrl(input.familyPhotoDataUrl);
     if ('houseSize' in input) house.houseSize = normalizeHouseSize(input.houseSize);
     if ('leaders' in input) house.leaders = normalizeOptionalText(input.leaders);
+    if ('extraMaterials' in input) house.extraMaterials = sanitizeHouseExtraMaterials(input.extraMaterials);
     if ('notes' in input) {
       house.notes = normalizeOptionalText(input.notes);
       family.notes = undefined;
@@ -933,12 +940,12 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       schemaVersion: 1,
       house: cloneConstructionSiteValue(document.house),
       canvas: cloneConstructionSiteValue(document.canvas),
+      ...(document.viewer3D ? {viewer3D: cloneConstructionSiteValue(document.viewer3D)} : {}),
       views: {},
     };
 
     house.updatedAt = now;
     house.version += 1;
-    if (house.status === 'rac_printed') house.status = 'draft';
     family.name = document.setup.familyName || family.name;
     this.state.constructionSite.updatedAt = now;
     this.persist();
@@ -966,7 +973,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
         document.setup.selectedPilotiHeights,
       )
       && areConstructionSiteValuesEqual(currentHouseState, document.house)
-      && areConstructionSiteValuesEqual(house.drawingDocument.canvas, document.canvas);
+      && areConstructionSiteValuesEqual(house.drawingDocument.canvas, document.canvas)
+      && areConstructionSiteValuesEqual(house.drawingDocument.viewer3D, document.viewer3D);
   }
 
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null {
@@ -987,6 +995,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
       },
       house: houseState,
       canvas: cloneConstructionSiteValue(house.drawingDocument.canvas),
+      ...(house.drawingDocument.viewer3D ? {viewer3D: cloneConstructionSiteValue(house.drawingDocument.viewer3D)} : {}),
     };
   }
 
@@ -994,7 +1003,6 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     const now = new Date().toISOString();
     const house = this.getActiveHouse();
     if (house.status === 'built') return;
-    if (house.status === 'rac_printed') house.status = 'draft';
     house.updatedAt = now;
     house.version += 1;
     this.state.constructionSite.updatedAt = now;
@@ -1196,6 +1204,7 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     if (house.status === 'archived' || (house.status === status && !lastRacExportedAt)) return;
 
     const now = new Date().toISOString();
+    if (status === 'rac_printed' || house.status === 'rac_printed') house.hasRacBeenPrinted = true;
     house.status = status;
     house.updatedAt = now;
     if (lastRacExportedAt) house.lastRacExportedAt = lastRacExportedAt;
@@ -1277,6 +1286,9 @@ function normalizePersistedDrawingDocument(
     objects: [],
   };
   normalized.views ??= {};
+  const viewer3D = normalizeHouseDrawingViewer3D(normalized.viewer3D);
+  if (viewer3D) normalized.viewer3D = viewer3D;
+  else delete normalized.viewer3D;
   return normalized;
 }
 

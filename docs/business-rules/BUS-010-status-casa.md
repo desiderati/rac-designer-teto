@@ -22,40 +22,40 @@ arquivamento.
     - Estado editável padrão.
     - Permite alterações no canvas, configurações da casa e materiais extras.
 
-2. `RAC Impressa`
+2. `Impressa`
     - Estado aplicado quando o PDF do RAC é gerado com sucesso.
     - Continua editável.
-    - Qualquer alteração editorial posterior deve retornar a casa para `Rascunho`.
+    - Alterações editoriais preservam `Impressa`; o PDF fica desatualizado e deve ser regenerado.
 
 3. `Construída`
     - Estado aplicado manualmente pela pessoa usuária.
     - Bloqueia edição do canvas, barra de ferramentas, controles laterais, nome da família, reinício do desenho,
       configurações da casa e materiais extras.
     - A casa ainda pode ser consultada e exportada.
-    - Para voltar a editar, deve ser retornada manualmente para `Rascunho`.
+    - Ao liberar a edição, retorna para `Impressa` se já houve exportação; caso contrário, para `Rascunho`.
 
 4. `Arquivada`
     - Remove a casa do canvas e dos fluxos de edição ativos.
     - Bloqueia edição de configuração da casa e materiais extras.
-    - Pode ser desarquivada, retornando para `Rascunho`.
+    - Ao desarquivar, retorna para `Impressa` se já houve exportação; caso contrário, para `Rascunho`.
     - Pode ser excluída definitivamente somente quando a Construção TETO pai estiver navegável e em andamento.
 
 ## Transições
 
 1. Geração de PDF
-    - Se a casa ativa não estiver `Construída` nem `Arquivada`, gerar o PDF muda o status para `RAC Impressa`.
+    - Se a casa ativa não estiver `Construída` nem `Arquivada`, gerar o PDF muda o status para `Impressa`.
     - Se a casa estiver `Construída`, gerar o PDF não altera o status.
 
 2. Geração de ZIP de RACs
     - A exportação em lote considera apenas casas não arquivadas da construção.
-    - Cada casa exportada com sucesso muda para `RAC Impressa`, exceto casas `Construídas`, que permanecem
+    - Cada casa exportada com sucesso muda para `Impressa`, exceto casas `Construídas`, que permanecem
       `Construídas`.
     - Casas com falha individual de exportação não devem ter status alterado.
     - Casas `Arquivadas` não entram na impressão de RACs e não têm status alterado pelo ZIP.
 
 3. Alteração editorial
     - Alterações no canvas, níveis, pilotis, família, configurações da casa, avaliação do terreno ou materiais extras
-      devem mudar `RAC Impressa` para `Rascunho`.
+      preservam `Impressa` e invalidam o PDF armazenado quando afetam seu conteúdo.
 
 4. Marcar como construída
     - A ação deve pedir confirmação.
@@ -63,11 +63,11 @@ arquivamento.
 
 5. Voltar para rascunho
     - A ação deve pedir confirmação.
-    - Ao confirmar, a casa muda para `Rascunho` e volta a permitir edição.
+    - Ao confirmar, a casa volta a permitir edição, preservando `Impressa` quando há exportação anterior.
 
 6. Arquivar e desarquivar
     - Arquivar mantém o comportamento próprio de retirada da casa dos fluxos ativos.
-    - Desarquivar retorna a casa para `Rascunho`.
+    - Desarquivar preserva o histórico: `Impressa` se houve exportação anterior; `Rascunho` caso contrário.
 
 7. Exclusão definitiva
     - A ação deve pedir confirmação destrutiva explícita.

@@ -1,6 +1,7 @@
 import type {
   HouseDrawingCanvasDocument,
   HouseDrawingDocument,
+  HouseDrawingViewer3DDocument,
 } from '@/shared/types/house-drawing-document.ts';
 
 /**
@@ -11,6 +12,8 @@ import type {
  * entre arquivo RAC e estado de editor, não a API do canvas.
  */
 export interface HouseDrawingDocumentPort {
+  getViewer3D?(): HouseDrawingViewer3DDocument | null;
+  setViewer3D?(value: HouseDrawingViewer3DDocument): void;
   /**
    * Cria o documento canônico da casa ativa a partir do documento visual do canvas.
    *

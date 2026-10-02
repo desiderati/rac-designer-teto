@@ -42,7 +42,10 @@ import {
   HOUSE_DRAWING_DOCUMENT_TYPE,
   type HouseDrawingDocument,
   type HouseDrawingCanvasDocument,
+  type HouseDrawingViewer3DDocument,
 } from '@/shared/types/house-drawing-document.ts';
+import {getHouse3DViewerCameraPoseStorageKey, readHouse3DViewerCameraPose} from '@/components/rac-editor/@viewer-3d/lib/camera-pose.ts';
+import {getHouse3DViewerPreferencesStorageKey, readHouse3DViewerPreferences} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 import type {
   MonitorRecord,
   PersistedHouseRecord,
@@ -99,6 +102,8 @@ export interface EditorHouseStateSource<TGroup extends HouseRuntimeGroupRef = Ho
 }
 
 export interface EditorHouseDocumentSource {
+  getViewer3D(): HouseDrawingViewer3DDocument | null;
+  setViewer3D(value: HouseDrawingViewer3DDocument): void;
   getFamilyName(): string;
   getSelectedPilotiHeights(): readonly number[];
   getHouseState(): HouseState | null;
@@ -224,9 +229,24 @@ export function createEditorHouseDrawingDocumentPort(
   source: EditorHouseDocumentSource,
 ): HouseDrawingDocumentPort {
   return {
+    getViewer3D: () => source.getViewer3D(),
+    setViewer3D: (value) => source.setViewer3D(value),
     exportHouseDrawingDocument: (canvas: HouseDrawingCanvasDocument) => {
       const house = source.getHouseState();
       if (!house) return null;
+
+      const storedViewer = source.getViewer3D();
+      const cameraPose = readHouse3DViewerCameraPose(getHouse3DViewerCameraPoseStorageKey(house.id));
+      const preferences = readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id));
+      const viewer3D = storedViewer ?? {
+        cameraPose: cameraPose ? {
+          position: [...cameraPose.position] as [number, number, number],
+          target: [...cameraPose.target] as [number, number, number],
+          fov: cameraPose.fov,
+          zoom: cameraPose.zoom,
+        } : null,
+        ...preferences,
+      };
 
       return {
         documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
@@ -237,6 +257,7 @@ export function createEditorHouseDrawingDocumentPort(
         },
         house,
         canvas,
+        viewer3D,
       };
     },
     importHouseDrawingDocument: (document) => source.loadHouseDrawingDocument(document),

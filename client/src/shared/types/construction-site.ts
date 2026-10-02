@@ -2,6 +2,7 @@ import type {HouseSide, HouseState, HouseType, HouseViewType} from '@/shared/typ
 import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
   type HouseDrawingCanvasDocument,
+  type HouseDrawingDocument,
 } from '@/shared/types/house-drawing-document.ts';
 
 export type ConstructionSiteStatus = 'in_progress' | 'completed' | 'archived';
@@ -32,7 +33,7 @@ export type ResidentAction =
   | 'remove_obstacle'
   | 'clear_access';
 
-export type StairType = 'straight' | 'landing';
+export type StairType = 'straight' | 'landing' | 'access_ramp';
 
 export type TerrainComplexity = 'flat' | 'moderate' | 'steep' | 'very_steep' | 'extreme';
 
@@ -85,12 +86,18 @@ export interface SiteAssessment {
 }
 
 export interface HouseExtraMaterials {
+  stairBeams?: number;
   floorBeams?: number;
   rafters?: number;
   secondaryBeams?: number;
   /** Campo legado exibido como Mata-juntas na tela de Materiais Extras. */
   gutters?: number;
   gutterCount?: number;
+  gutterCaps?: number;
+  gutterElbows?: number;
+  /** Presença da manta asfáltica; contagens numéricas legadas são normalizadas na leitura. */
+  asphaltBlanket?: boolean;
+  bracing?: number;
   stairType?: StairType;
   justification?: string;
 }
@@ -130,6 +137,7 @@ export interface PersistedDrawingDocument {
   schemaVersion: number;
   house: HouseState | null;
   canvas: HouseDrawingCanvasDocument;
+  viewer3D?: HouseDrawingDocument['viewer3D'];
   views?: Partial<Record<HouseViewType, PersistedHouseViewDocument[]>>;
   canvasMeta?: Record<string, unknown>;
 }
@@ -151,6 +159,8 @@ export interface PersistedHouseRecord {
   drawingDocument: PersistedDrawingDocument;
   notes?: string;
   lastRacExportedAt?: string;
+  /** Histórico irreversível, inclusive quando um registro legado não tem data de exportação. */
+  hasRacBeenPrinted?: boolean;
   version: number;
   createdAt: string;
   updatedAt: string;

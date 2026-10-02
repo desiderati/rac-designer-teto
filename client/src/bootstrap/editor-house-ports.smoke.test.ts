@@ -126,6 +126,22 @@ describe('editor house ports', () => {
     expect(ports.houseReadPort.getCurrentHouseType()).toBe('tipo6');
   });
 
+  it('mantém cor e pose 3D no documento da casa após exportar e importar', () => {
+    ports.houseWritePort.setHouseType('tipo6');
+    ports.houseDrawingDocumentPort.setViewer3D?.({
+      wallColor: '#ff0000', hideBelowTerrain: false,
+      cameraPose: {position: [100, 120, 180], target: [5, 40, 0], fov: 50, zoom: 1.4},
+    });
+    const document = ports.houseDrawingDocumentPort.exportHouseDrawingDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, objects: [],
+    });
+
+    expect(document?.viewer3D).toMatchObject({wallColor: '#ff0000', cameraPose: {zoom: 1.4}});
+    ports.houseDrawingDocumentPort.setViewer3D?.({wallColor: '#0000ff', hideBelowTerrain: true, cameraPose: null});
+    ports.houseDrawingDocumentPort.importHouseDrawingDocument(document!);
+    expect(ports.houseDrawingDocumentPort.getViewer3D?.()).toEqual(document?.viewer3D);
+  });
+
   it('expõe gerenciamento de Construção TETO sem acessar a sessão concreta', () => {
     const ports = createDefaultEditorHousePorts({
       constructionSiteSessionStorage: createConstructionSiteSessionStorage(),
