@@ -202,6 +202,15 @@ export class EditorHouseConstructionSiteBridge {
     this.args.notify();
   }
 
+  getHouseFieldAnalysis(siteId: string, houseId: string) {
+    return this.session.getHouseFieldAnalysis(siteId, houseId);
+  }
+
+  saveHouseFieldAnalysis(siteId: string, houseId: string, draft: import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft): void {
+    this.session.saveHouseFieldAnalysis(siteId, houseId, draft);
+    this.args.notify();
+  }
+
   getActiveHouseDrawingDocument(): HouseDrawingDocument | null {
     return this.session.getActiveHouseDrawingDocument();
   }

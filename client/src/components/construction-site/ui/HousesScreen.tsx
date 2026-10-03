@@ -1,10 +1,10 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {Download} from 'lucide-react';
+import {ClipboardList, Download} from 'lucide-react';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
-  PersistedHouseStatus,
+  HousePresentationStatus,
 } from '@/shared/types/construction-site.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {isHouseIncompleteForRac} from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
@@ -42,11 +42,14 @@ import {
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {HouseDifficultyGauge} from '@/components/rac-editor/ui/HouseDifficultyGauge.tsx';
 import {HouseMaterialsSummary} from './HouseMaterialsSummary.tsx';
+import {getHouseFieldAnalysisDisabledReason} from '@/components/construction-site/lib/house-field-analysis.ts';
+import {getHousePresentationStatus} from '@/components/construction-site/lib/house-status.ts';
 
 export function HousesScreen({
   constructionSite,
   activeHouse,
   onEditHouse,
+  onOpenHouseFieldAnalysis,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -56,6 +59,7 @@ export function HousesScreen({
   constructionSite: ConstructionSiteState;
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
+  onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -73,7 +77,7 @@ export function HousesScreen({
         if (statusFilter === 'incomplete') {
           return house.status !== 'archived' && isHouseIncompleteForRac(constructionSite, house.id);
         }
-        return house.status === statusFilter;
+        return getHousePresentationStatus(house) === statusFilter;
       })
       .sort((a, b) => compareHouses(constructionSite, a, b, sortKey));
   }, [constructionSite, sortKey, statusFilter]);
@@ -106,7 +110,7 @@ export function HousesScreen({
         <MetricCard label='No. Tipo 3' value={metrics.tipo3}/>
       </div>
 
-      <div className='flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-center min-[700px]:justify-between'>
+      <div className='flex flex-col gap-3 min-[768px]:flex-row min-[768px]:items-center min-[768px]:justify-between'>
         <div data-testid='house-list-controls' className={LIST_CONTROLS_CLASS}>
           <VisualSelect<HouseStatusFilter>
             label='Filtro'
@@ -127,7 +131,7 @@ export function HousesScreen({
         </div>
         <div
           data-testid='house-desktop-pagination'
-          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[700px]:flex min-[700px]:justify-start'
+          className='hidden items-center justify-between gap-3 text-xs font-semibold text-slate-500 min-[768px]:flex min-[768px]:justify-start'
         >
           <span>{formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}</span>
           <div className='flex items-center gap-1'>
@@ -149,7 +153,7 @@ export function HousesScreen({
         </div>
       </div>
 
-      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[700px]:block'>
+      <div data-testid='house-desktop-table' className='hidden overflow-x-auto min-[768px]:block'>
         <table className='min-w-full table-fixed border-separate border-spacing-y-3'>
           <colgroup>
             <col className='w-[32%]'/>
@@ -191,7 +195,7 @@ export function HousesScreen({
         </table>
       </div>
 
-      <div data-testid='house-mobile-list' className='space-y-3 min-[700px]:hidden'>
+      <div data-testid='house-mobile-list' className='space-y-3 min-[768px]:hidden'>
         {pageHouses.map((house) => (
           <HouseMobileCard
             key={house.id}
@@ -200,6 +204,7 @@ export function HousesScreen({
             active={activeHouse?.id === house.id}
             showGuidedTourTargets={house.id === guidedTourHouseId}
             onOpenHouse={onEditHouse}
+            onOpenHouseFieldAnalysis={onOpenHouseFieldAnalysis}
             onExportHouseRacPdf={onExportHouseRacPdf}
             exportingRacPdfHouseId={exportingRacPdfHouseId}
             onRequestHouseStatusChange={onRequestHouseStatusChange}
@@ -211,7 +216,7 @@ export function HousesScreen({
 
       <MobilePagination
         testId='house-mobile-pagination'
-        visibilityClassName='min-[700px]:hidden'
+        visibilityClassName='min-[768px]:hidden'
         text={formatPaginationText(firstIndex, lastIndex, filteredHouses.length, 'casas')}
         page={normalizedPage}
         pageCount={pageCount}
@@ -235,6 +240,7 @@ export function HouseMobileCard({
   active,
   showGuidedTourTargets = false,
   onOpenHouse,
+  onOpenHouseFieldAnalysis,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -246,6 +252,7 @@ export function HouseMobileCard({
   active: boolean;
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
+  onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -255,10 +262,16 @@ export function HouseMobileCard({
   const family = getHouseFamily(constructionSite, house);
   const familyName = family?.name ?? getHouseFamilyName(constructionSite, house);
   const houseTypeLabel = formatHouseType(house.houseType);
-  const statusLabel = HOUSE_STATUS_LABELS[house.status];
+  const presentationStatus = getHousePresentationStatus(house);
+  const statusLabel = HOUSE_STATUS_LABELS[presentationStatus];
   const formattedDate = formatTimestampDate(house.updatedAt);
   const difficultyIndicator = getHouseDifficultyIndicator(house);
   const isExportingRacPdf = exportingRacPdfHouseId === house.id;
+  const fieldAnalysisDisabledReason = readOnly
+    ? 'A construção está bloqueada para edição.'
+    : getHouseFieldAnalysisDisabledReason(constructionSite, house);
+  const fieldAnalysisDisabledDescription = readOnly || constructionSite.constructionSite.status !== 'in_progress'
+    || house.status === 'built' || house.status === 'archived' ? fieldAnalysisDisabledReason : null;
   const exportRacPdfLabel = isExportingRacPdf
     ? `Gerando PDF da RAC da casa ${familyName}`
     : `Exportar RAC PDF da casa ${familyName}`;
@@ -298,7 +311,7 @@ export function HouseMobileCard({
       }}
       className={cn(
         'cursor-pointer rounded-2xl p-4 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        HOUSE_STATUS_CARD_CLASS_NAMES[house.status],
+        HOUSE_STATUS_CARD_CLASS_NAMES[presentationStatus],
         active ? 'bg-blue-50/90 shadow-blue-100' : 'hover:bg-slate-100',
         house.status === 'archived' ? 'opacity-55 grayscale' : null,
       )}
@@ -322,7 +335,7 @@ export function HouseMobileCard({
               </p>
             </div>
             <HouseStatusBadge
-              status={house.status}
+              status={presentationStatus}
               guidedTourId={showGuidedTourTargets ? 'rac-house-status' : undefined}
             />
           </div>
@@ -400,6 +413,29 @@ export function HouseMobileCard({
           ) : null}
         </div>
       </div>
+      {onOpenHouseFieldAnalysis ? (
+        <div className='mt-3' onClick={(event) => event.stopPropagation()}>
+          <button
+            type='button'
+            aria-label={`Análise de Campo da casa ${familyName}`}
+            aria-describedby={fieldAnalysisDisabledDescription ? `field-analysis-reason-${house.id}` : undefined}
+            disabled={Boolean(fieldAnalysisDisabledReason)}
+            onClick={(event) => {
+              event.stopPropagation();
+              void onOpenHouseFieldAnalysis(house.id);
+            }}
+            className='flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500'
+          >
+            <ClipboardList className='h-4 w-4' aria-hidden='true'/>
+            Análise de Campo
+          </button>
+          {fieldAnalysisDisabledDescription ? (
+            <p id={`field-analysis-reason-${house.id}`} className='mt-1.5 text-xs leading-5 text-slate-600'>
+              {fieldAnalysisDisabledDescription}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -430,7 +466,8 @@ export function HouseTableRow({
   const family = getHouseFamily(constructionSite, house);
   const familyName = family?.name ?? getHouseFamilyName(constructionSite, house);
   const houseTypeLabel = formatHouseType(house.houseType);
-  const statusLabel = HOUSE_STATUS_LABELS[house.status];
+  const presentationStatus = getHousePresentationStatus(house);
+  const statusLabel = HOUSE_STATUS_LABELS[presentationStatus];
   const formattedDate = formatTimestampDate(house.updatedAt);
   const difficultyIndicator = getHouseDifficultyIndicator(house);
   const isExportingRacPdf = exportingRacPdfHouseId === house.id;
@@ -471,7 +508,7 @@ export function HouseTableRow({
       }}
       className={cn(
         'cursor-pointer rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
-        HOUSE_STATUS_CARD_CLASS_NAMES[house.status],
+        HOUSE_STATUS_CARD_CLASS_NAMES[presentationStatus],
         active ? 'bg-blue-50/90' : 'bg-transparent hover:bg-slate-50',
         house.status === 'archived' ? 'opacity-55' : null,
       )}
@@ -499,7 +536,7 @@ export function HouseTableRow({
       </td>
       <td className='px-3 py-3 text-center align-middle'>
         <HouseStatusBadge
-          status={house.status}
+          status={presentationStatus}
           guidedTourId={showGuidedTourTargets ? 'rac-house-status' : undefined}
         />
       </td>
@@ -618,7 +655,7 @@ export function HouseStatusBadge({
   status,
   guidedTourId,
 }: {
-  status: PersistedHouseStatus;
+  status: HousePresentationStatus;
   guidedTourId?: string;
 }) {
   return (

@@ -1,6 +1,7 @@
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {createConstructionSiteSession} from '@/components/rac-editor/lib/construction-site-session.ts';
 import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteConstructionSiteSessionStorage.ts';
 import {useConstructionSiteManagementController} from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {RacEditor} from '@/components/rac-editor/ui/RacEditor.tsx';
@@ -99,6 +100,22 @@ function createSync() {
 }
 
 describe('RacEditor.tsx', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it.each([420, 767, 768])('escolhe a entrada antes de montar o Canvas em %i px', (width) => {
+    vi.stubGlobal('matchMedia', vi.fn(() => ({matches: width < 768, addEventListener: vi.fn(), removeEventListener: vi.fn()})));
+    const storage = createConstructionSiteSessionStorage();
+    const session = createConstructionSiteSession(storage);
+    session.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-10-03', communityName: 'Campo'});
+    session.createHouse({familyName: 'Casa preparada'});
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({status: 'ready', storage, sync: createSync()});
+    render(<RacEditor/>);
+    if (width < 768) {
+      expect(screen.getByText('Gestão CC2603')).toBeVisible();
+      expect(screen.queryByText('Canvas carregado CC2603')).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByText('Canvas carregado CC2603')).toBeVisible();
+    }
+  });
   beforeEach(() => {
     vi.mocked(useRemoteConstructionSiteSessionStorage).mockReset();
     vi.mocked(useAuth).mockReturnValue({

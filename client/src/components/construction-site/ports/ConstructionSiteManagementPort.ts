@@ -18,6 +18,8 @@ import type {
 } from '@/shared/types/construction-site.ts';
 
 export interface ConstructionSiteManagementPort {
+  getHouseFieldAnalysis(constructionSiteId: string, houseId: string): import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft;
+  saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft): void;
   subscribe(listener: () => void): () => void;
   getConstructionSiteSummaries(): ConstructionSiteSummary[];
   getConstructionSiteSnapshots(): ConstructionSiteState[];

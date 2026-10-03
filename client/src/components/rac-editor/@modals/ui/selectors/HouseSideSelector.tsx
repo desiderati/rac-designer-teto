@@ -23,8 +23,6 @@ export function HouseSideSelector({
   houseSideSlots
 }: HouseSideSelectorProps) {
 
-  const house = useHouseStateSnapshot();
-  const houseType = house?.houseType ?? null;
   const isLongSide = houseViewType === 'front' || houseViewType === 'back';
   const slots = houseSideSlots || [];
 
@@ -75,6 +73,20 @@ export function HouseSideSelector({
       );
     }
   }
+
+  return <HouseInstanceSideSelector houseViewType={houseViewType} isOpen={isOpen}
+    onClose={onClose} handleSelect={handleSelect} slots={slots}/>;
+}
+
+function HouseInstanceSideSelector({houseViewType, isOpen, onClose, handleSelect, slots}: {
+  houseViewType: HouseViewType;
+  isOpen: boolean;
+  onClose: () => void;
+  handleSelect: (side: HouseSide) => void;
+  slots: HousePreAssignedSideDisplay[];
+}) {
+  const house = useHouseStateSnapshot();
+  const houseType = house?.houseType ?? null;
 
   // --- Choose-instance mode ---
   if (houseViewType === 'back' && houseType === 'tipo3') {

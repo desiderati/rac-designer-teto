@@ -14,8 +14,7 @@ import type {
 } from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import type {HousePiloti, HouseSide, HouseViewInstanceId, HouseViewType} from '@/shared/types/house.ts';
 import {CANVAS_STYLE} from '@/shared/config.ts';
-import {createHouseGroupForView} from '@/components/rac-editor/@canvas/lib/house-view-groups.ts';
-import {applyPilotiDataToGroup} from '@/components/rac-editor/@canvas/lib/piloti-visual.ts';
+import {createConfiguredHouseViewGroup} from '@/components/rac-editor/@canvas/lib/house-view-groups.ts';
 import {
   applyPilotiEditorCloseVisuals,
   applyPilotiSelectionVisuals,
@@ -24,7 +23,6 @@ import {
   projectCanvasPointToScreenPoint,
   transformGroupLocalPointToCanvasPoint,
 } from '@/components/rac-editor/@canvas/lib/piloti-screen-position.ts';
-import {createViewGroupMetadataPatch} from '@/components/rac-editor/lib/house-view.ts';
 
 export interface FabricCanvasCommandPort {
   createElementObject: (kind: ElementStrategyKey) => CanvasObject | null;
@@ -157,24 +155,7 @@ export function createFabricCanvasCommandPort({
   return {
     createElementObject: (kind) => getElementStrategy(kind).create(canvas),
 
-    createHouseViewGroup: ({viewType, instanceId, side, pilotis, terrainType, showAllElevationNivelLabels}) => {
-      const group = createHouseGroupForView({
-        canvas,
-        viewType,
-        side,
-      });
-      Object.assign(
-        group,
-        createViewGroupMetadataPatch<HouseViewType, HouseSide>({
-          viewType,
-          instanceId,
-          side,
-        }),
-      );
-      group.groundTerrainType = terrainType;
-      applyPilotiDataToGroup(group, pilotis, {showAllElevationNivelLabels});
-      return group;
-    },
+    createHouseViewGroup: (payload) => createConfiguredHouseViewGroup({canvas, ...payload}),
 
     addObjectAtVisibleCenter: (object) => {
       const center = getVisibleCenter();

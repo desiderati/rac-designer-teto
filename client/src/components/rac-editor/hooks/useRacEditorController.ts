@@ -265,10 +265,16 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     setSideSelectorOpen,
     setNivelDefinitionOpen,
     onHouseDrawingChange: handleCanvasDocumentChange,
+    runHouseInsertion: constructionSiteManagement.runCanvasDocumentTransaction,
   });
 
   const handleOpenHouseTypeSelector = useCallback(() => {
     closeAllMenus();
+
+    if (activeHouse?.fieldAnalysis?.status === 'prepared') {
+      handleAddHouseView('top');
+      return;
+    }
 
     if (settingsPort.getSettings().allowPilotiHeightDefinitionOnHouseInsert) {
       setPilotisSetupOpen(true);
@@ -279,7 +285,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       selectedPilotiHeights: [...DEFAULT_HOUSE_PILOTI_HEIGHTS],
     });
     setHouseTypeSelectorOpen(true);
-  }, [closeAllMenus, houseWritePort, settingsPort, setHouseTypeSelectorOpen, setPilotisSetupOpen]);
+  }, [activeHouse?.fieldAnalysis?.status, handleAddHouseView, closeAllMenus, houseWritePort, settingsPort, setHouseTypeSelectorOpen, setPilotisSetupOpen]);
 
   const handleOpenImageUpload = useCallback(() => {
     disableDrawingMode();
@@ -321,12 +327,16 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
 
   const handleToggleHouseMenu = useCallback(() => {
     disableDrawingMode();
+    if (activeHouse?.fieldAnalysis?.status === 'prepared') {
+      handleOpenHouseTypeSelector();
+      return;
+    }
     if (houseReadPort.getCurrentHouseType()) {
       setActiveSubmenu((current) => current === 'house' ? null : 'house');
       return;
     }
     handleOpenHouseTypeSelector();
-  }, [disableDrawingMode, handleOpenHouseTypeSelector, houseReadPort, setActiveSubmenu]);
+  }, [activeHouse?.fieldAnalysis?.status, disableDrawingMode, handleOpenHouseTypeSelector, houseReadPort, setActiveSubmenu]);
 
   const toggleSubmenu = useCallback((submenu: 'elements' | 'lines' | 'overflow') => {
     disableDrawingMode();

@@ -13,14 +13,14 @@ interface PilotisSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (result: PilotisSetupResult) => void;
+  initialSelectedHeights?: readonly number[];
 }
 
 const REQUIRED_SELECTED_COUNT = DEFAULT_HOUSE_PILOTI_HEIGHTS.length;
-const DEFAULT_SELECTED: Set<number> = new Set(DEFAULT_HOUSE_PILOTI_HEIGHTS);
 
-export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModalProps) {
+export function PilotisSetupModal({isOpen, onClose, onConfirm, initialSelectedHeights = DEFAULT_HOUSE_PILOTI_HEIGHTS}: PilotisSetupModalProps) {
   const isMobile = useIsMobile();
-  const [selectedHeights, setSelectedHeights] = useState<Set<number>>(() => new Set(DEFAULT_SELECTED));
+  const [selectedHeights, setSelectedHeights] = useState<Set<number>>(() => new Set(initialSelectedHeights));
 
   const toggleHeight = useCallback((h: number) => {
     setSelectedHeights((prev) => {
@@ -40,13 +40,13 @@ export function PilotisSetupModal({isOpen, onClose, onConfirm}: PilotisSetupModa
     if (!canConfirm) return;
     const sorted = [...selectedHeights].sort((a, b) => a - b);
     onConfirm({selectedHeights: sorted});
-    setSelectedHeights(new Set(DEFAULT_SELECTED));
-  }, [canConfirm, selectedHeights, onConfirm]);
+    setSelectedHeights(new Set(initialSelectedHeights));
+  }, [canConfirm, selectedHeights, onConfirm, initialSelectedHeights]);
 
   const handleCancel = useCallback(() => {
-    setSelectedHeights(new Set(DEFAULT_SELECTED));
+    setSelectedHeights(new Set(initialSelectedHeights));
     onClose();
-  }, [onClose]);
+  }, [onClose, initialSelectedHeights]);
 
   const getHeightButtonClassName = (height: number, isSelected: boolean, isDisabled: boolean) => {
     if (!isMobile) {

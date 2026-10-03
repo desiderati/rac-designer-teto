@@ -2,7 +2,7 @@ import type {
   ConstructionSiteStatus,
   HouseSize,
   MonitorStatus,
-  PersistedHouseStatus,
+  HousePresentationStatus,
 } from '@/shared/types/construction-site.ts';
 import type {
   ConstructionSortKey,
@@ -34,22 +34,28 @@ export const STATUS_BADGE_CLASS_NAMES: Record<ConstructionSiteStatus, string> = 
   archived: 'bg-slate-100 text-slate-500 ring-slate-200',
 };
 
-export const HOUSE_STATUS_LABELS: Record<PersistedHouseStatus, string> = {
-  draft: 'Rascunho',
+export const HOUSE_STATUS_LABELS: Record<HousePresentationStatus, string> = {
+  initial: 'Inicial',
+  defined: 'Definida',
+  undefined: 'Indefinida',
   rac_printed: 'Impressa',
   built: 'Construída',
   archived: 'Arquivada',
 };
 
-export const HOUSE_STATUS_BADGE_CLASS_NAMES: Record<PersistedHouseStatus, string> = {
-  draft: 'bg-amber-50 text-amber-700 ring-amber-100',
+export const HOUSE_STATUS_BADGE_CLASS_NAMES: Record<HousePresentationStatus, string> = {
+  initial: 'bg-slate-100 text-slate-600 ring-slate-200',
+  defined: 'bg-blue-50 text-blue-700 ring-blue-100',
+  undefined: 'bg-amber-50 text-amber-700 ring-amber-100',
   rac_printed: 'bg-violet-50 text-violet-700 ring-violet-100',
   built: 'bg-slate-900 text-white ring-slate-900',
   archived: 'bg-slate-100 text-slate-500 ring-slate-200',
 };
 
-export const HOUSE_STATUS_CARD_CLASS_NAMES: Record<PersistedHouseStatus, string> = {
-  draft: 'bg-blue-50/80 shadow-blue-100/60',
+export const HOUSE_STATUS_CARD_CLASS_NAMES: Record<HousePresentationStatus, string> = {
+  initial: 'bg-blue-50/80 shadow-blue-100/60',
+  defined: 'bg-blue-50/80 shadow-blue-100/60',
+  undefined: 'bg-amber-50/80 shadow-amber-100/60',
   rac_printed: 'bg-violet-50/80 shadow-violet-100/60',
   built: 'bg-slate-100 shadow-slate-200/80',
   archived: 'bg-slate-100 shadow-slate-200/70',
@@ -82,7 +88,9 @@ export const HOUSE_STATUS_FILTER_OPTIONS: VisualSelectOption<HouseStatusFilter>[
   {value: 'all', label: 'Todos'},
   {value: 'incomplete', label: 'Incompletas para RAC'},
   {value: 'archived', label: 'Arquivada'},
-  {value: 'draft', label: 'Rascunho'},
+  {value: 'initial', label: 'Inicial'},
+  {value: 'defined', label: 'Definida'},
+  {value: 'undefined', label: 'Indefinida'},
   {value: 'rac_printed', label: 'Impressa'},
   {value: 'built', label: 'Construída'},
 ];

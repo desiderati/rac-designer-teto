@@ -639,7 +639,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveClass('text-center', 'align-middle', 'leading-4');
     expect(screen.getByRole('columnheader', {name: 'Ações'})).toHaveClass('text-center');
     expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-table').className).toContain('min-[700px]:block');
+    expect(screen.getByTestId('house-desktop-table').className).toContain('min-[768px]:block');
     const houseDesktopTable = within(screen.getByTestId('house-desktop-table')).getByRole('table');
     expect(houseDesktopTable).toHaveClass('table-fixed');
     expect(houseDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[32%]');
@@ -651,11 +651,11 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const houseMobilePagination = screen.getByTestId('house-mobile-pagination');
 
     expect(screen.getByTestId('house-desktop-pagination').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-pagination').className).toContain('min-[700px]:flex');
-    expect(houseMobilePagination.className).toContain('min-[700px]:hidden');
+    expect(screen.getByTestId('house-desktop-pagination').className).toContain('min-[768px]:flex');
+    expect(houseMobilePagination.className).toContain('min-[768px]:hidden');
     expect(houseMobileList.compareDocumentPosition(houseMobilePagination) & Node.DOCUMENT_POSITION_FOLLOWING)
       .toBeTruthy();
-    expect(houseMobileList.className).toContain('min-[700px]:hidden');
+    expect(houseMobileList.className).toContain('min-[768px]:hidden');
     expect(screen.getAllByTestId('house-mobile-card')).toHaveLength(3);
     expect(within(houseMobileList).getByText('Família Souza')).toBeVisible();
     expect(within(houseMobileList).getAllByText('Tipo 6')[0]).toBeVisible();
@@ -664,8 +664,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(houseMobilePagination).queryAllByRole('button')).toHaveLength(0);
     expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
     expect(screen.getAllByText('Família Arquivada')[0]).toBeVisible();
-    const guidedTourHouseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i});
-    expect(within(guidedTourHouseRow).getByText('Rascunho'))
+    const guidedTourHouseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i});
+    expect(within(guidedTourHouseRow).getByText('Definida'))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-status');
     expect(within(guidedTourHouseRow).getByTestId('house-table-difficulty-gauge').parentElement)
       .toHaveAttribute('data-guided-tour-id', 'rac-house-difficulty');
@@ -709,6 +709,49 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
 
+  });
+
+  it('oferece Análise de Campo apenas na lista mobile e explica o bloqueio da casa arquivada', async () => {
+    const actions = createActions();
+    actions.openHouseFieldAnalysis = vi.fn(() => new Promise<never>(() => undefined));
+    renderPanel({actions, initialScreen: 'houses'});
+
+    const mobileList = screen.getByTestId('house-mobile-list');
+    const enabled = within(mobileList).getByRole('button', {name: 'Análise de Campo da casa Família Souza'});
+    const blocked = within(mobileList).getByRole('button', {name: 'Análise de Campo da casa Família Arquivada'});
+    expect(enabled).toBeEnabled();
+    expect(blocked).toBeDisabled();
+    expect(blocked.parentElement).toHaveTextContent('A casa está bloqueada para edição.');
+    expect(screen.getByTestId('house-mobile-list')).toHaveClass('min-[768px]:hidden');
+    expect(screen.getByTestId('house-desktop-table')).toHaveClass('min-[768px]:block');
+
+    fireEvent.click(enabled);
+    expect(actions.openHouseFieldAnalysis).toHaveBeenCalledWith('construction_site_1', 'house_1');
+    expect(actions.activateHouse).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {label: 'Inicial', patch: {houseType: null}, disabled: false},
+    {label: 'Definida', patch: {fieldAnalysis: {status: 'inserted' as const, contraventamentos: []}}, disabled: true},
+    {label: 'Indefinida', patch: {houseType: null, hasHouseBeenDefined: true}, disabled: false},
+    {label: 'Impressa', patch: {status: 'rac_printed' as const}, disabled: false},
+  ])('mostra $label no card e no filtro sem o aviso de casa inserida', ({label, patch, disabled}) => {
+    const constructionSite = createConstructionSite();
+    Object.assign(constructionSite.houses[0], patch);
+    renderPanel({constructionSite, initialScreen: 'houses'});
+    const mobileList = within(screen.getByTestId('house-mobile-list'));
+    const card = mobileList.getByRole('button', {name: new RegExp(`Abrir casa Família Souza.*${label}`)});
+    expect(within(card).getByText(label)).toBeVisible();
+    expect(within(card).queryByText(/A casa já foi inserida/)).not.toBeInTheDocument();
+    expect(within(card).queryByText('Rascunho')).not.toBeInTheDocument();
+    const action = within(card).getByRole('button', {name: 'Análise de Campo da casa Família Souza'});
+    if (disabled) expect(action).toBeDisabled();
+    else expect(action).toBeEnabled();
+    fireEvent.click(screen.getByLabelText('Filtrar casas por status'));
+    fireEvent.click(screen.getByRole('menuitemradio', {name: label}));
+    expect(mobileList.getByText('Família Souza')).toBeVisible();
+    expect(mobileList.queryByText('Família Arquivada')).not.toBeInTheDocument();
+    if (label !== 'Impressa') expect(mobileList.queryByText('Família Santos')).not.toBeInTheDocument();
   });
 
   it('confirma exclusão definitiva apenas para casa arquivada', async () => {
@@ -756,7 +799,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     fireEvent.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
       .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
     await screen.findByTestId('house-mobile-list');
-    const houseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i});
+    const houseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i});
     const exportButton = within(houseRow)
       .getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'});
 
@@ -851,7 +894,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     const houseTable = screen.getByTestId('house-desktop-table');
     const row = within(houseTable).getByRole('row', {
-      name: new RegExp(`${longFamilyName}.*Tipo 6.*Rascunho`),
+      name: new RegExp(`${longFamilyName}.*Tipo 6.*Definida`),
     });
     const identity = within(row).getByTestId('house-table-identity');
     const familyName = within(row).getByTestId('house-table-family-name');
@@ -865,7 +908,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(houseType).toHaveTextContent('Tipo 6');
     expect(houseType.getAttribute('title')).toMatch(/^Tipo 6 •/);
     expect(houseType).toHaveClass('block', 'truncate');
-    expect(within(row).getByText('Rascunho').closest('td')).toHaveClass('text-center');
+    expect(within(row).getByText('Definida').closest('td')).toHaveClass('text-center');
     expect(houseType).toContainElement(within(row).getByTestId('house-table-updated-at'));
   });
 
@@ -875,7 +918,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const onBackToCanvas = vi.fn();
     renderPanel({actions, onBackToCanvas, canOpenRacEditor: true});
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
     const canvasButton = screen.getByRole('button', {name: 'Abrir Canvas da casa'});
     expect(canvasButton).toHaveClass('h-10', 'w-10', 'shrink-0');
     expect(canvasButton.parentElement).toHaveClass('items-center');
@@ -1546,7 +1589,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
 
     const photoField = screen.getByTestId('family-photo-field');
     const photoDropZone = within(photoField).getByRole('button', {name: 'Foto da Família'});
@@ -1596,7 +1639,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel({actions});
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
 
     expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
     expect(await screen.findByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
@@ -1624,7 +1667,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     renderPanel();
 
     await openConstructionHouses(user);
-    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.click(screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
 
     expect(screen.queryByLabelText('Complexidade do Terreno')).not.toBeInTheDocument();
   });
@@ -1637,7 +1680,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     const housesTable = screen.getByTestId('house-desktop-table');
-    await user.click(within(housesTable).getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+    await user.click(within(housesTable).getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
 
     expect(actions.activateHouse).toHaveBeenCalledWith('construction_site_1', 'house_1');
     expect(await screen.findByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
@@ -1683,7 +1726,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+      .getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
     fireEvent.change(screen.getByLabelText('Vigas p/ Escada'), {target: {value: '15'}});
     await waitFor(() => expect(screen.getByTestId('section-dirty-indicator')).toBeVisible());
 
@@ -1707,7 +1750,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('row', {name: /Família Souza.*Tipo 6.*Rascunho/i}));
+      .getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i}));
     await user.clear(screen.getByLabelText('Vigas p/ Escada'));
     await user.type(screen.getByLabelText('Vigas p/ Escada'), '20');
 
@@ -1734,7 +1777,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     await openConstructionHouses(user);
     await user.click(within(screen.getByTestId('house-desktop-table'))
-      .getByRole('row', {name: new RegExp(`${longFamilyName}.*Tipo 6.*Rascunho`, 'i')}));
+      .getByRole('row', {name: new RegExp(`${longFamilyName}.*Tipo 6.*Definida`, 'i')}));
 
     expect(await screen.findByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
@@ -2062,7 +2105,7 @@ type PanelTestInput = {
   actions?: ReturnType<typeof createActions>;
   canOpenRacEditor?: boolean;
   onBackToCanvas?: () => void;
-  initialScreen?: 'house-create';
+  initialScreen?: 'house-create' | 'houses';
 };
 
 function createPanelElement(input: PanelTestInput = {}) {
@@ -2161,6 +2204,9 @@ function createActions() {
     updateActiveHouseSiteAssessment: vi.fn(),
     updateActiveHouseConfiguration: vi.fn(),
     updateActiveHouseExtraMaterials: vi.fn(),
+    openHouseFieldAnalysis: vi.fn(),
+    saveHouseFieldAnalysis: vi.fn().mockResolvedValue(undefined),
+    closeHouseFieldAnalysis: vi.fn().mockResolvedValue(undefined),
   };
 }
 

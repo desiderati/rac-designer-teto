@@ -97,6 +97,10 @@ describe('constructionSites procedures', () => {
       houses: [{
         id: 'house-1', constructionSiteId: 'construction-1', familyId: 'family-1',
         houseType: 'tipo6' as const, terrainType: 1, status: 'draft' as const,
+        hasHouseBeenDefined: true,
+        fieldAnalysis: {status: 'prepared' as const, contraventamentos: [{
+          originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_0_2', side: 'left' as const, isAuto: true,
+        }]},
         designSettings: {selectedPilotiHeights: []}, siteAssessment: {residentActions: ['excavate' as const]},
         pilotiLayout: {points: []},
         drawingDocument: {schemaVersion: 1, house: null, canvas: {schemaVersion: 1 as const, objects: []}, views: {}},
@@ -126,6 +130,22 @@ describe('constructionSites procedures', () => {
         expectedDocumentVersion: 0,
       })).rejects.toMatchObject({code: 'BAD_REQUEST'});
     }
+    expect(db.saveConstructionSiteDocument).not.toHaveBeenCalled();
+  });
+
+  it('rejeita metadado de campo malformado antes de persistir', async () => {
+    const caller = appRouter.createCaller(createContext());
+    const state = {...constructionSiteState(), houses: [{
+      id: 'house-1', constructionSiteId: 'construction-1', familyId: 'family-1',
+      houseType: 'tipo6' as const, terrainType: 1, status: 'draft' as const,
+      designSettings: {selectedPilotiHeights: []}, siteAssessment: {}, pilotiLayout: {points: []},
+      drawingDocument: {schemaVersion: 1, house: null, canvas: {schemaVersion: 1 as const, objects: []}, views: {}},
+      version: 1, createdAt: '2026-10-03', updatedAt: '2026-10-03',
+      fieldAnalysis: {status: 'prepared' as const, contraventamentos: [{
+        originPilotiId: 'piloti_99_0', destinationPilotiId: 'piloti_0_2', side: 'left' as const, isAuto: false,
+      }]},
+    }]};
+    await expect(caller.constructionSites.save({state, expectedDocumentVersion: 0})).rejects.toMatchObject({code: 'BAD_REQUEST'});
     expect(db.saveConstructionSiteDocument).not.toHaveBeenCalled();
   });
 

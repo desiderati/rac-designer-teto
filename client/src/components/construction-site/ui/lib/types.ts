@@ -10,10 +10,11 @@ import type {
 import type {
   ConstructionSiteStatus,
   MonitorStatus,
-  PersistedHouseStatus,
+  HousePresentationStatus,
   SiteAssessment,
 } from '@/shared/types/construction-site.ts';
 import type {RacPdfHouseExportResult} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
 
 export type ConstructionSiteManagementScreen =
   | 'construction-list'
@@ -25,13 +26,14 @@ export type ConstructionSiteManagementScreen =
   | 'houses'
   | 'house-create'
   | 'house-detail'
+  | 'house-field-analysis'
   | 'house-extra-materials';
 
 export type ConstructionStatusFilter = 'all' | ConstructionSiteStatus;
 export type ConstructionSortKey = 'constructionDate' | 'externalCode' | 'status';
 export type MonitorStatusFilter = 'all' | MonitorStatus;
 export type MonitorSortKey = 'updatedAt' | 'name' | 'status';
-export type HouseStatusFilter = 'all' | 'incomplete' | PersistedHouseStatus;
+export type HouseStatusFilter = 'all' | 'incomplete' | HousePresentationStatus;
 export type HouseSortKey = 'updatedAt' | 'familyName' | 'status' | 'houseType';
 export type ArchiveStatusChangeAction = 'archive' | 'unarchive';
 export type HouseStatusChangeAction = ArchiveStatusChangeAction | 'markBuilt' | 'markDraft';
@@ -79,4 +81,7 @@ export interface ConstructionSiteManagementActions {
   updateActiveHouseSiteAssessment(input: Partial<SiteAssessment>): void;
   updateActiveHouseConfiguration(input: UpdateHouseConfigurationInput): Promise<void>;
   updateActiveHouseExtraMaterials(input: UpdateHouseExtraMaterialsInput): void;
+  openHouseFieldAnalysis(constructionSiteId: string, houseId: string): Promise<HouseFieldAnalysisDraft>;
+  saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: HouseFieldAnalysisDraft): Promise<void>;
+  closeHouseFieldAnalysis(): Promise<void>;
 }

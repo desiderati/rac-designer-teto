@@ -47,6 +47,16 @@ const CONSTRUCTION_SITE_STATE_SHAPE = z.object({
     houseType: z.enum(['tipo6', 'tipo3']).nullable(),
     terrainType: z.number(),
     status: z.enum(['draft', 'rac_printed', 'built', 'archived']),
+    hasHouseBeenDefined: z.boolean().optional(),
+    fieldAnalysis: z.object({
+      status: z.enum(['prepared', 'inserted']),
+      contraventamentos: z.array(z.object({
+        originPilotiId: z.string().regex(/^piloti_[0-3]_[0-2]$/),
+        destinationPilotiId: z.string().regex(/^piloti_[0-3]_[0-2]$/),
+        side: z.enum(['left', 'right', 'top', 'bottom']),
+        isAuto: z.boolean(),
+      }).strict()).max(32),
+    }).strict().optional(),
     designSettings: z.object({selectedPilotiHeights: z.array(z.number())}),
     siteAssessment: z.object({}),
     pilotiLayout: z.object({points: z.array(z.object({

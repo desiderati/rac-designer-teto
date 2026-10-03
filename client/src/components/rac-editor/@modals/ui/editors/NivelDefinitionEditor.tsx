@@ -28,6 +28,7 @@ export interface NivelDefinition {
 }
 
 interface NivelDefinitionProps {
+  selectedPilotiHeights?: readonly number[];
   isOpen: boolean;
   onClose: () => void;
   onApply: (niveis: Record<string, NivelDefinition>) => void;
@@ -40,7 +41,7 @@ function cornerToId(name: string): string {
 }
 
 export function NivelDefinitionEditor(
-  {isOpen, onClose, onApply}: NivelDefinitionProps
+  {isOpen, onClose, onApply, selectedPilotiHeights}: NivelDefinitionProps
 ) {
   const {houseReadPort} = useEditorPorts();
   const isMobile = useIsMobile();
@@ -56,7 +57,7 @@ export function NivelDefinitionEditor(
 
   const currentCorner = CORNER_ORDER[currentIdx];
   const entry = entries[currentCorner];
-  const selectedHeights = houseReadPort.getSelectedPilotiHeights();
+  const selectedHeights = selectedPilotiHeights ?? houseReadPort.getSelectedPilotiHeights();
   const hasMaster = CORNER_ORDER.some((c) => entries[c].isMaster);
   const hasNavigatedAllCorners =
     CORNER_ORDER.every(

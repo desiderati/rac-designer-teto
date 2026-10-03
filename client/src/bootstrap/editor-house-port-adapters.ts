@@ -111,6 +111,8 @@ export interface EditorHouseDocumentSource {
 }
 
 export interface EditorConstructionSiteManagementSource {
+  getHouseFieldAnalysis(constructionSiteId: string, houseId: string): import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft;
+  saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: import('@/shared/types/house-field-analysis.ts').HouseFieldAnalysisDraft): void;
   subscribe(listener: () => void): () => void;
   getConstructionSiteSummaries(): ConstructionSiteSummary[];
   getConstructionSiteSnapshots(): ConstructionSiteState[];
@@ -304,6 +306,8 @@ export function createEditorConstructionSiteManagementPort(
     updateActiveHouseConfiguration: (input) => source.updateActiveHouseConfiguration(input),
     updateActiveHouseExtraMaterials: (input) => source.updateActiveHouseExtraMaterials(input),
     saveActiveHouseDrawingDocument: (document) => source.saveActiveHouseDrawingDocument(document),
+    getHouseFieldAnalysis: (siteId, houseId) => source.getHouseFieldAnalysis(siteId, houseId),
+    saveHouseFieldAnalysis: (siteId, houseId, draft) => source.saveHouseFieldAnalysis(siteId, houseId, draft),
     getActiveHouseDrawingDocument: () => source.getActiveHouseDrawingDocument(),
   };
 }

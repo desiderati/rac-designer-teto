@@ -56,7 +56,7 @@ este é o ponto de entrada correto.
     - Regra de materiais de base do terreno e definição de pedras como rachão + brita.
 
 10. [BUS-010-status-casa.md](BUS-010-status-casa.md)
-    - Regra de status da casa, impressão do RAC, bloqueio de casa construída, retorno para rascunho
+    - Regra de status da casa, impressão do RAC, bloqueio de casa construída, liberação de edição
       e exclusão definitiva de casa arquivada em construção navegável.
 
 11. [BUS-011-status-construcao.md](BUS-011-status-construcao.md)
@@ -69,7 +69,11 @@ este é o ponto de entrada correto.
 13. [BUS-013-exportacao-racs-zip.md](BUS-013-exportacao-racs-zip.md)
     - Regra da exportação em lote das RACs de uma construção para arquivo ZIP.
 
+14. [BUS-014-analise-de-campo.md](BUS-014-analise-de-campo.md)
+    - Preparação mobile da casa e dos pilotis, retomada e primeira inclusão no Canvas.
+
 ## Quando atualizar
+
 
 Atualize estes documentos quando houver mudança em:
 

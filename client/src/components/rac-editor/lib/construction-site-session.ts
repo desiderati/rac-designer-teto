@@ -1,4 +1,6 @@
 import {HouseAggregate} from '@/domain/house/house.aggregate.ts';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
+import {createHouseFieldAnalysisDraft, getHouseFieldAnalysisDisabledReason, hasPersistedHouseView, normalizeHouseFieldAnalysis, validateHouseFieldAnalysisDraft} from '@/components/construction-site/lib/house-field-analysis.ts';
 import {
   DEFAULT_HOUSE_PILOTI,
   DEFAULT_HOUSE_PILOTI_HEIGHTS,
@@ -73,6 +75,8 @@ export interface ConstructionSiteSessionStoragePort {
 }
 
 export interface ConstructionSiteSessionPort {
+  getHouseFieldAnalysis(constructionSiteId: string, houseId: string): HouseFieldAnalysisDraft;
+  saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: HouseFieldAnalysisDraft): void;
   getConstructionSiteSummaries(): ConstructionSiteSummary[];
   getConstructionSiteSnapshots(): ConstructionSiteState[];
   getConstructionSite(): ConstructionSiteState | null;
@@ -377,6 +381,9 @@ function normalizeConstructionSiteState(input: ConstructionSiteState): Construct
       const family = families.find((entry) => entry.id === house.familyId);
       return {
         id: houseId,
+        ...(normalizeHouseFieldAnalysis(house.fieldAnalysis) ? {fieldAnalysis: normalizeHouseFieldAnalysis(house.fieldAnalysis)} : {}),
+        hasHouseBeenDefined: house.hasHouseBeenDefined === true || Boolean(house.houseType)
+          || Boolean(normalizeHouseFieldAnalysis(house.fieldAnalysis)),
         constructionSiteId: house.constructionSiteId || constructionSite.id,
         familyId: house.familyId,
         communityId: house.communityId,
@@ -927,6 +934,9 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     const family = this.getActiveFamily();
     if (this.isActiveHouseDrawingDocumentUnchanged(house, family, document)) return;
     const now = new Date().toISOString();
+    const previousHouse = cloneConstructionSiteValue(house);
+    const previousFamilyName = family.name;
+    const previousSiteUpdatedAt = this.state.constructionSite.updatedAt;
 
     house.houseType = document.house.houseType;
     house.terrainType = document.house.terrainType;
@@ -948,7 +958,65 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
     house.version += 1;
     family.name = document.setup.familyName || family.name;
     this.state.constructionSite.updatedAt = now;
-    this.persist();
+    if (house.fieldAnalysis?.status === 'prepared' && hasPersistedHouseView(house)) {
+      house.fieldAnalysis = {status: 'inserted', contraventamentos: []};
+    }
+    if (previousHouse.houseType || house.houseType || hasPersistedHouseView(house)) house.hasHouseBeenDefined = true;
+    if (!house.houseType && !hasPersistedHouseView(house)) delete house.fieldAnalysis;
+    try {
+      this.persist();
+    } catch (error) {
+      delete house.fieldAnalysis;
+      delete house.hasHouseBeenDefined;
+      Object.assign(house, previousHouse);
+      family.name = previousFamilyName;
+      this.state.constructionSite.updatedAt = previousSiteUpdatedAt;
+      throw error;
+    }
+  }
+
+  private getFieldAnalysisTarget(constructionSiteId: string, houseId: string) {
+    const site = this.constructionSites.find((entry) => entry.constructionSite.id === constructionSiteId);
+    const house = site?.houses.find((entry) => entry.id === houseId);
+    if (!site || !house) throw new Error('Casa não encontrada para a Análise de Campo.');
+    const reason = getHouseFieldAnalysisDisabledReason(site, house);
+    if (reason) throw new Error(reason);
+    return {site, house};
+  }
+
+  getHouseFieldAnalysis(constructionSiteId: string, houseId: string): HouseFieldAnalysisDraft {
+    return createHouseFieldAnalysisDraft(this.getFieldAnalysisTarget(constructionSiteId, houseId).house);
+  }
+
+  saveHouseFieldAnalysis(constructionSiteId: string, houseId: string, draft: HouseFieldAnalysisDraft): void {
+    const {site, house} = this.getFieldAnalysisTarget(constructionSiteId, houseId);
+    validateHouseFieldAnalysisDraft(draft);
+    if (draft.house.id !== house.id || Object.values(draft.house.views).some((views) => views.length)) {
+      throw new Error('A Análise de Campo deve conter somente a configuração desta casa.');
+    }
+    const previous = cloneConstructionSiteValue(house);
+    const previousUpdatedAt = site.constructionSite.updatedAt;
+    const next = cloneConstructionSiteValue(draft);
+    house.houseType = next.house.houseType;
+    house.terrainType = next.house.terrainType;
+    house.designSettings.selectedPilotiHeights = next.selectedPilotiHeights;
+    house.drawingDocument = {...house.drawingDocument, house: next.house};
+    const points = toPersistedPilotiPoints(next.house);
+    house.pilotiLayout = {masterCode: points.find((point) => point.isMaster)?.code, points};
+    house.fieldAnalysis = {status: 'prepared', contraventamentos: next.contraventamentos};
+    house.hasHouseBeenDefined = true;
+    house.updatedAt = new Date().toISOString();
+    house.version += 1;
+    site.constructionSite.updatedAt = house.updatedAt;
+    try {
+      this.persist();
+    } catch (error) {
+      delete house.fieldAnalysis;
+      delete house.hasHouseBeenDefined;
+      Object.assign(house, previous);
+      site.constructionSite.updatedAt = previousUpdatedAt;
+      throw error;
+    }
   }
 
   private isActiveHouseDrawingDocumentUnchanged(

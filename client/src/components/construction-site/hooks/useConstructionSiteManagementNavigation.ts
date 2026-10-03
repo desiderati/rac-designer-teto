@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
 import type {
   ConstructionSiteState,
   ConstructionSiteSummary,
@@ -41,6 +42,7 @@ export function useConstructionSiteManagementNavigation({
   );
 
   const [selectedHouseId, setSelectedHouseId] = useState<string | null>(null);
+  const [fieldAnalysisDraft, setFieldAnalysisDraft] = useState<HouseFieldAnalysisDraft | null>(null);
   const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(null);
 
   const [pendingHouseStatusChange, setPendingHouseStatusChange] = useState<{
@@ -203,6 +205,23 @@ export function useConstructionSiteManagementNavigation({
     setScreen('house-extra-materials');
   };
 
+  const openHouseFieldAnalysis = async (houseId: string) => {
+    if (!constructionSite) return;
+    const house = constructionSite.houses.find((entry) => entry.id === houseId);
+    if (!house) return;
+    const draft = await actions.openHouseFieldAnalysis(constructionSite.constructionSite.id, houseId);
+    setSelectedHouseId(houseId);
+    setFieldAnalysisDraft(draft);
+    setScreen('house-field-analysis');
+  };
+
+  const closeHouseFieldAnalysis = async () => {
+    await actions.closeHouseFieldAnalysis();
+    setFieldAnalysisDraft(null);
+    setSelectedHouseId(null);
+    setScreen('houses');
+  };
+
   const openMonitorDetail = (monitorId: string) => {
     if (!constructionSite) return;
     const monitor = constructionSite.monitors.find((entry) => entry.id === monitorId);
@@ -213,6 +232,10 @@ export function useConstructionSiteManagementNavigation({
   };
 
   const navigateBack = () => {
+    if (screen === 'house-field-analysis') {
+      void closeHouseFieldAnalysis();
+      return;
+    }
     if (screen === 'construction-list') {
       if (canOpenRacEditor) onBackToCanvas?.();
       return;
@@ -334,6 +357,7 @@ export function useConstructionSiteManagementNavigation({
     screen,
     activeHouse,
     selectedHouse,
+    fieldAnalysisDraft,
     selectedMonitor,
     selectedSummary,
     selectedConstructionFields,
@@ -361,6 +385,8 @@ export function useConstructionSiteManagementNavigation({
     openMonitorCreate,
     openHouseDetail,
     openHouseExtraMaterials,
+    openHouseFieldAnalysis,
+    closeHouseFieldAnalysis,
     openMonitorDetail,
     showConstructionList,
     showHouses,

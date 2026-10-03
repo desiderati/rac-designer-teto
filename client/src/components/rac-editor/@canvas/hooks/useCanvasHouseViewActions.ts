@@ -30,8 +30,12 @@ import {
   RAC_HOUSE_INITIAL_VIEWS_ELEVATION_INSERTED_EVENT,
 } from '@/components/rac-editor/@canvas/lib/canvas-object-dom-events.ts';
 import {useHouseStoreEmitter} from '@/components/rac-editor/lib/house-store.ts';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
+import {applyFieldAnalysisContraventamentos} from '../lib/field-analysis-contraventamentos.ts';
 
 interface UseCanvasHouseViewActionsArgs {
+  getPreparedHouse?: () => HouseFieldAnalysisDraft | null;
+  runHouseInsertion?: (insert: () => void) => Promise<void>;
   canvasRef: RefObject<(
     CanvasObjectCreationHandle
     & CanvasRenderHandle
@@ -231,12 +235,15 @@ export function useCanvasHouseViewActions({
   shouldConfigureCornerPilotiNiveisOnHouseInsert,
   setSideSelectorOpen,
   setNivelDefinitionOpen,
+  getPreparedHouse,
+  runHouseInsertion,
 }: UseCanvasHouseViewActionsArgs) {
   const emitHouseStoreChange = useHouseStoreEmitter();
   const hasDispatchedFirstElevationViewRef = useRef(false);
+  const preparedInsertionPendingRef = useRef(false);
 
   const addViewToCanvas =
-    (viewType: HouseViewType, side?: HouseSide): CanvasGroup | null => {
+    (viewType: HouseViewType, side?: HouseSide, prepared?: HouseFieldAnalysisDraft): CanvasGroup | null => {
 
       closeAllMenus();
       const instanceId = createViewInstanceId(viewType);
@@ -249,6 +256,7 @@ export function useCanvasHouseViewActions({
         showAllElevationNivelLabels: shouldShowAllElevationNivelLabels?.() ?? false,
       });
       if (!house) return null;
+      if (prepared) applyFieldAnalysisContraventamentos(house, prepared.contraventamentos);
 
       const registration = houseWritePort.registerView({
         viewType,
@@ -264,10 +272,10 @@ export function useCanvasHouseViewActions({
       }
       houseWritePort.refreshTopDoorMarkersForCurrentHouse();
       houseWritePort.refreshHouseViewReferenceMarkersForCurrentHouse();
-      houseWritePort.refreshAutoContraventamentoForCurrentHouse();
+      if (!prepared) houseWritePort.refreshAutoContraventamentoForCurrentHouse();
       emitHouseStoreChange();
 
-      onHouseDrawingChange();
+      if (!prepared) onHouseDrawingChange();
 
       if (isElevationView(viewType) && !hasDispatchedFirstElevationViewRef.current) {
         hasDispatchedFirstElevationViewRef.current = true;
@@ -275,7 +283,7 @@ export function useCanvasHouseViewActions({
       }
 
       const label = getViewLabelForHouseType(viewType, houseReadPort.getCurrentHouseType());
-      toast.success(TOAST_MESSAGES.houseViewAdded(label));
+      if (!prepared) toast.success(TOAST_MESSAGES.houseViewAdded(label));
       return house;
     };
 
@@ -434,6 +442,19 @@ export function useCanvasHouseViewActions({
   const handleAddHouseView =
     (viewType: HouseViewType) => {
       closeAllMenus();
+      if (preparedInsertionPendingRef.current) return;
+      const prepared = getPreparedHouse?.();
+      if (prepared && runHouseInsertion) {
+        preparedInsertionPendingRef.current = true;
+        void runHouseInsertion(() => {
+          if (!addViewToCanvas('top', undefined, prepared)) throw new Error('Não foi possível inserir a planta preparada.');
+        }).then(() => {
+          toast.success('Casa inserida com a Análise de Campo.');
+        }).catch(() => {
+          toast.error('Não foi possível salvar a inclusão. A Análise de Campo foi preservada; tente novamente.');
+        }).finally(() => { preparedInsertionPendingRef.current = false; });
+        return;
+      }
       requestAddView(viewType);
     };
 

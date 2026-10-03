@@ -103,6 +103,39 @@ function createHouseWritePort(): HouseWritePort {
 }
 
 describe('useCanvasHouseViewActions house insertion events', () => {
+  it('insere a planta preparada uma só vez sem reaplicar defaults ou reforços removidos', async () => {
+    const read = createHouseReadPort();
+    const write = createHouseWritePort();
+    const group = createGroup({height: 100, bounds: {left: 0, top: 0, width: 300, height: 100}, objects: []});
+    const createHouseViewGroup = vi.fn(() => group);
+    const onHouseDrawingChange = vi.fn();
+    let release: () => void;
+    const runHouseInsertion = vi.fn(async (insert: () => void) => {
+      insert();
+      await new Promise<void>((resolve) => {release = resolve;});
+    });
+    const {result} = renderHook(() => useCanvasHouseViewActions({
+      canvasRef: {current: {createHouseViewGroup}} as any,
+      getVisibleCenter: () => ({x: 0, y: 0}), closeAllMenus: vi.fn(), addObjectToCanvas: vi.fn(() => true),
+      onHouseDrawingChange, houseReadPort: read, houseWritePort: write,
+      pendingViewType: null, setPendingViewType: vi.fn(), sideSelectorMode: 'position',
+      setSideSelectorMode: vi.fn(), setHouseSideSlots: vi.fn(), pendingNivelSide: null,
+      setPendingNivelSide: vi.fn(), niveisAppliedRef: {current: false}, transitionToNivelRef: {current: false},
+      setSideSelectorOpen: vi.fn(), setNivelDefinitionOpen: vi.fn(), runHouseInsertion,
+      getPreparedHouse: () => ({contraventamentos: []} as any),
+    }));
+    act(() => {
+      result.current.handleAddHouseView('front');
+      result.current.handleAddHouseView('top');
+    });
+    expect(runHouseInsertion).toHaveBeenCalledOnce();
+    expect(createHouseViewGroup).toHaveBeenCalledWith(expect.objectContaining({viewType: 'top', pilotis: read.getPilotis()}));
+    expect(write.applyInitialPilotiNiveis).not.toHaveBeenCalled();
+    expect(write.applyPilotisSetup).not.toHaveBeenCalled();
+    expect(write.refreshAutoContraventamentoForCurrentHouse).not.toHaveBeenCalled();
+    expect(onHouseDrawingChange).not.toHaveBeenCalled();
+    await act(async () => {release();});
+  });
   beforeEach(() => {
     vi.useFakeTimers();
     houseStoreMocks.emitHouseStoreChange.mockClear();

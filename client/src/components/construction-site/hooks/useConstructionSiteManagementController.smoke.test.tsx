@@ -63,6 +63,48 @@ type ConstructionSiteManagementPortMock = EditorPorts['constructionSiteManagemen
 };
 
 describe('useConstructionSiteManagementController.ts', () => {
+  it('conclui autosave pendente, suspende sobrescrita e reidrata após a análise de outra casa', async () => {
+    const document = createDrawingDocument('house_a', 'Família A', {schemaVersion: 1, objects: []});
+    const loadCanvasDocument = vi.fn(async () => true);
+    const handle = {createDocumentPort: () => ({exportCanvasDocument: () => document.canvas, loadCanvasDocument}), saveHistory: vi.fn()} as unknown as CanvasHandle;
+    const getHouseFieldAnalysis = vi.fn(() => ({house: {...document.house, id: 'house_b'}, selectedPilotiHeights: [], contraventamentos: []}));
+    const port = createConstructionSiteManagementPort({getActiveHouseDrawingDocument: vi.fn(() => document), getHouseFieldAnalysis, saveHouseFieldAnalysis: vi.fn()});
+    const ports = createEditorPorts({constructionSiteManagementPort: port, houseDrawingDocumentPort: {
+      exportHouseDrawingDocument: vi.fn(() => document), importHouseDrawingDocument: vi.fn(),
+    }});
+    const {result} = renderHook(() => useConstructionSiteManagementController({canvasRef: {current: handle}}), {wrapper: createWrapper(ports)});
+    await act(async () => { await result.current.loadHouseDocument(document); });
+    let pending: Promise<void>;
+    act(() => { pending = result.current.notifyActiveHouseDocumentChanged(); });
+    await act(async () => { await result.current.actions.openHouseFieldAnalysis('site_b', 'house_b'); await pending; });
+    expect(port.saveActiveHouseDrawingDocument).toHaveBeenCalledTimes(1);
+    expect(port.saveActiveHouseDrawingDocument.mock.invocationCallOrder[0]).toBeLessThan(getHouseFieldAnalysis.mock.invocationCallOrder[0]);
+    await act(async () => {
+      await result.current.actions.saveHouseFieldAnalysis('site_b', 'house_b', getHouseFieldAnalysis());
+      await result.current.notifyActiveHouseDocumentChanged();
+      result.current.saveActiveHouseDocument();
+    });
+    expect(port.saveActiveHouseDrawingDocument).toHaveBeenCalledTimes(1);
+    expect(port.activateHouse).not.toHaveBeenCalled();
+    await act(async () => { await result.current.actions.closeHouseFieldAnalysis(); });
+    expect(loadCanvasDocument).toHaveBeenLastCalledWith(document.canvas);
+  });
+
+  it('remove inserção parcial quando a gravação da transação falha', async () => {
+    const previous = createDrawingDocument('house_a', 'Família A', {schemaVersion: 1, objects: []});
+    const loadCanvasDocument = vi.fn(async () => true);
+    const handle = {createDocumentPort: () => ({exportCanvasDocument: () => previous.canvas, loadCanvasDocument}), saveHistory: vi.fn()} as unknown as CanvasHandle;
+    const port = createConstructionSiteManagementPort({getActiveHouseDrawingDocument: vi.fn(() => previous), saveActiveHouseDrawingDocument: vi.fn(() => {throw new Error('falha');})});
+    const ports = createEditorPorts({constructionSiteManagementPort: port, houseDrawingDocumentPort: {
+      exportHouseDrawingDocument: vi.fn(() => previous), importHouseDrawingDocument: vi.fn(),
+    }});
+    const {result} = renderHook(() => useConstructionSiteManagementController({canvasRef: {current: handle}}), {wrapper: createWrapper(ports)});
+    const insert = vi.fn();
+    await act(async () => {await expect(result.current.runCanvasDocumentTransaction(insert)).rejects.toThrow('falha');});
+    expect(insert).toHaveBeenCalledOnce();
+    expect(loadCanvasDocument).toHaveBeenCalledWith(previous.canvas);
+    expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(previous);
+  });
   beforeEach(() => {
     controllerMocks.buildRacPdfHouseExport.mockReset();
     controllerMocks.buildRacPdfZipExport.mockReset();
@@ -657,6 +699,8 @@ function createConstructionSiteManagementPort(
 ): ConstructionSiteManagementPortMock {
   return {
     subscribe: vi.fn(() => () => {}),
+    getHouseFieldAnalysis: vi.fn(),
+    saveHouseFieldAnalysis: vi.fn(),
     getConstructionSiteSummaries: vi.fn(() => []),
     getConstructionSiteSnapshots: vi.fn(() => []),
     getConstructionSiteSnapshot: vi.fn(() => null),

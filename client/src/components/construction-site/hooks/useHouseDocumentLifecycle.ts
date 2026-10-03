@@ -37,6 +37,7 @@ export function useHouseDocumentLifecycle({
   const documentTransitionDepthRef = useRef(0);
   const documentSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const documentRevisionRef = useRef(0);
+  const fieldAnalysisOpenRef = useRef(false);
   const savedDocumentRevisionRef = useRef(0);
   const documentSaveStatusRef = useRef<HouseDocumentSaveStatus>('saved');
   const documentSaveTimerRef = useRef<number | null>(null);
@@ -154,6 +155,7 @@ export function useHouseDocumentLifecycle({
   }, []);
 
   const saveActiveHouseDocument = useCallback(() => {
+    if (fieldAnalysisOpenRef.current) return null;
     cancelScheduledHydration();
 
     const canvasDocument = canvasRef?.current?.createDocumentPort()?.exportCanvasDocument();
@@ -231,6 +233,7 @@ export function useHouseDocumentLifecycle({
   }, [runPendingDocumentSave]);
 
   const notifyActiveHouseDocumentChanged = useCallback(() => {
+    if (fieldAnalysisOpenRef.current) return Promise.resolve();
     documentRevisionRef.current += 1;
     setTrackedDocumentSaveStatus('saving');
 
@@ -290,6 +293,40 @@ export function useHouseDocumentLifecycle({
     runDocumentMutation(select, {forceSave: false})
   ), [runDocumentMutation]);
 
+  const runCanvasDocumentTransaction = useCallback((mutate: () => void) => runDocumentTransition(async () => {
+    await flushActiveHouseDocumentSave();
+    const previous = constructionSiteManagementPort.getActiveHouseDrawingDocument();
+    fieldAnalysisOpenRef.current = true;
+    try {
+      mutate();
+      const canvasDocument = canvasRef?.current?.createDocumentPort()?.exportCanvasDocument();
+      const document = canvasDocument && houseDrawingDocumentPort.exportHouseDrawingDocument(canvasDocument);
+      if (!document) throw new Error('Não foi possível salvar a inclusão da casa.');
+      constructionSiteManagementPort.saveActiveHouseDrawingDocument(document);
+      acknowledgeActiveHouseDocumentSaved();
+      canvasRef?.current?.saveHistory({notifyDocumentChange: false});
+    } catch (error) {
+      if (previous) await loadHouseDocument(previous);
+      acknowledgeActiveHouseDocumentSaved();
+      throw error;
+    } finally {
+      fieldAnalysisOpenRef.current = false;
+    }
+  }), [acknowledgeActiveHouseDocumentSaved, canvasRef, constructionSiteManagementPort, flushActiveHouseDocumentSave,
+    houseDrawingDocumentPort, loadHouseDocument, runDocumentTransition]);
+
+  const suspendForFieldAnalysis = useCallback(() => runDocumentTransition(async () => {
+    await flushActiveHouseDocumentSave();
+    fieldAnalysisOpenRef.current = true;
+    cancelScheduledHydration();
+  }), [cancelScheduledHydration, flushActiveHouseDocumentSave, runDocumentTransition]);
+
+  const resumeAfterFieldAnalysis = useCallback(() => runDocumentTransition(async () => {
+    await loadOrQueueHouseDocument(constructionSiteManagementPort.getActiveHouseDrawingDocument());
+    acknowledgeActiveHouseDocumentSaved();
+    fieldAnalysisOpenRef.current = false;
+  }), [acknowledgeActiveHouseDocumentSaved, constructionSiteManagementPort, loadOrQueueHouseDocument, runDocumentTransition]);
+
   useEffect(() => () => {
     if (documentSaveTimerRef.current !== null) {
       window.clearTimeout(documentSaveTimerRef.current);
@@ -307,6 +344,9 @@ export function useHouseDocumentLifecycle({
   }, [cancelScheduledHydration, hydrateActiveHouseDocument]);
 
   return {
+    runCanvasDocumentTransaction,
+    suspendForFieldAnalysis,
+    resumeAfterFieldAnalysis,
     documentSaveStatus,
     isDocumentTransitioning,
     saveActiveHouseDocument,

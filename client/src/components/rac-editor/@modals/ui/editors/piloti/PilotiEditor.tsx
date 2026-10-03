@@ -11,16 +11,24 @@ import {
 } from '@/components/rac-editor/@modals/ui/editors/piloti/ContraventamentoSideIcon.tsx';
 import {usePilotiEditor} from '../../../hooks/usePilotiEditor.ts';
 import type {
+  ContraventamentoSide,
   ContraventamentoHorizontalSide,
   ContraventamentoVerticalSide,
 } from '@/shared/types/contraventamento.ts';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {FloatingEditor} from '@/components/rac-editor/@modals/ui/editors/FloatingEditor.tsx';
 import {NivelSlider} from '@/components/rac-editor/@modals/ui/editors/NivelSlider.tsx';
 import {PILOTI_DEFAULT_NIVEL} from '@/shared/constants.ts';
-import {formatPilotiHeight} from '@/shared/types/piloti.ts';
+import {formatPilotiHeight, getPilotiName} from '@/shared/types/piloti.ts';
+import type {HousePilotiReadPort, HousePilotiWritePort} from '@/components/rac-editor/ports/HousePilotiPort.ts';
+import {VisualSelect} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 
 interface PilotiEditorProps {
+  presentation?: 'floating' | 'inline';
+  pilotiReadPort?: HousePilotiReadPort;
+  pilotiWritePort?: HousePilotiWritePort;
+  getInlineContraventamentoDestinations?: (side: ContraventamentoSide) => readonly string[];
+  onInlineContraventamentoChange?: (side: ContraventamentoSide, destinationPilotiId?: string) => void;
   isOpen: boolean;
   onClose: () => void;
   pilotiId: string | null;
@@ -47,6 +55,11 @@ interface PilotiEditorProps {
 }
 
 export function PilotiEditor({
+  presentation = 'floating',
+  pilotiReadPort,
+  pilotiWritePort,
+  getInlineContraventamentoDestinations,
+  onInlineContraventamentoChange,
   isOpen,
   onClose,
   pilotiId,
@@ -70,6 +83,13 @@ export function PilotiEditor({
   onContraventamentoSelect,
   onHorizontalContraventamentoSelect
 }: PilotiEditorProps) {
+  const [pendingSide, setPendingSide] = useState<ContraventamentoSide | null>(null);
+  const [selectedDestination, setSelectedDestination] = useState('');
+
+  useEffect(() => {
+    setPendingSide(null);
+    setSelectedDestination('');
+  }, [pilotiId]);
 
   const {
     tempIsMaster,
@@ -104,15 +124,36 @@ export function PilotiEditor({
     pilotiIds,
     onHeightChange,
     onNavigate,
+    pilotiReadPort,
+    pilotiWritePort,
   });
 
   if (!isOpen) return null;
 
   // ---- Shared content renderers (inline to avoid remount/focus-loss) ----
   const canEditNivel = !autoAdjustPilotiHeightsFromNivel;
+  const inlineDestinations = pendingSide ? getInlineContraventamentoDestinations?.(pendingSide) ?? [] : [];
+  const destination = inlineDestinations.includes(selectedDestination)
+    ? selectedDestination : inlineDestinations[0] ?? '';
+  const onBraceClick = (side: ContraventamentoSide, active: boolean) => {
+    commitDraftChanges();
+    if (presentation === 'inline') {
+      if (active) {
+        onInlineContraventamentoChange?.(side);
+        setPendingSide(null);
+      } else {
+        setPendingSide(side);
+        setSelectedDestination('');
+      }
+      return;
+    }
+    if (side === 'left' || side === 'right') onContraventamentoSelect?.(side, pilotiId ?? undefined);
+    else onHorizontalContraventamentoSelect?.(side, pilotiId ?? undefined);
+  };
 
   return (
     <FloatingEditor
+      presentation={presentation}
       header={
         <div className='flex items-center gap-3'>
           <PilotiGridIcon
@@ -126,6 +167,7 @@ export function PilotiEditor({
             <Button
               variant='outline'
               size='icon'
+              aria-label='Piloti anterior'
               onClick={() => handleNavigate('prev')}
               disabled={!hasPrev}
               className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
@@ -135,6 +177,7 @@ export function PilotiEditor({
             <Button
               variant='outline'
               size='icon'
+              aria-label='Próximo piloti'
               onClick={() => handleNavigate('next')}
               disabled={!hasNext}
               className='h-8 w-8 rounded-full bg-white disabled:pointer-events-auto disabled:cursor-not-allowed'>
@@ -207,10 +250,7 @@ export function PilotiEditor({
                 aria-label='Esquerdo'
                 title='Esquerdo'
                 disabled={contraventamentoLeftDisabled}
-                onClick={() => {
-                  commitDraftChanges();
-                  onContraventamentoSelect?.('left', pilotiId ?? undefined);
-                }}
+                onClick={() => onBraceClick('left', contraventamentoLeftActive)}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoLeftActive, contraventamentoLeftDisabled
@@ -226,10 +266,7 @@ export function PilotiEditor({
                 aria-label='Direito'
                 title='Direito'
                 disabled={contraventamentoRightDisabled}
-                onClick={() => {
-                  commitDraftChanges();
-                  onContraventamentoSelect?.('right', pilotiId ?? undefined);
-                }}
+                onClick={() => onBraceClick('right', contraventamentoRightActive)}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoRightActive,
@@ -246,10 +283,7 @@ export function PilotiEditor({
                 aria-label='Superior'
                 title='Superior'
                 disabled={contraventamentoTopDisabled}
-                onClick={() => {
-                  commitDraftChanges();
-                  onHorizontalContraventamentoSelect?.('top', pilotiId ?? undefined);
-                }}
+                onClick={() => onBraceClick('top', contraventamentoTopActive)}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoTopActive,
@@ -266,10 +300,7 @@ export function PilotiEditor({
                 aria-label='Inferior'
                 title='Inferior'
                 disabled={contraventamentoBottomDisabled}
-                onClick={() => {
-                  commitDraftChanges();
-                  onHorizontalContraventamentoSelect?.('bottom', pilotiId ?? undefined);
-                }}
+                onClick={() => onBraceClick('bottom', contraventamentoBottomActive)}
                 className={
                   getContraventamentoButtonClasses(
                     contraventamentoBottomActive,
@@ -281,6 +312,29 @@ export function PilotiEditor({
                 </span>
               </button>
             </div>
+            {presentation === 'inline' && pendingSide ? (
+              <div className='space-y-2 rounded-xl bg-blue-50 p-3'>
+                <VisualSelect
+                  label='Destino'
+                  ariaLabel='Piloti de destino do contraventamento'
+                  value={destination}
+                  options={inlineDestinations.map((id) => ({value: id, label: `Piloti ${getPilotiName(id)}`}))}
+                  onChange={setSelectedDestination}
+                  disabled={!inlineDestinations.length}
+                  className='bg-white'
+                />
+                <button type='button' disabled={!destination}
+                  onClick={() => {
+                    if (!destination) return;
+                    onInlineContraventamentoChange?.(pendingSide, destination);
+                    setPendingSide(null);
+                  }}
+                  className='min-h-10 w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50'>
+                  Adicionar contraventamento
+                </button>
+                {!inlineDestinations.length ? <p className='text-xs text-slate-600'>Nenhum piloti de destino disponível para este lado.</p> : null}
+              </div>
+            ) : null}
           </div>
         </>
       }

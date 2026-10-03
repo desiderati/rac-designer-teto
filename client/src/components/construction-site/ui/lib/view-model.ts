@@ -19,6 +19,7 @@ import type {
 } from '@/shared/types/construction-site.ts';
 import {getConstructionSiteCommunityName} from '@/shared/types/construction-site.ts';
 import type {HouseType} from '@/shared/types/house.ts';
+import {getHousePresentationStatus} from '@/components/construction-site/lib/house-status.ts';
 import {calculateHouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import type {HouseDifficultyIndicator} from '@/components/rac-editor/lib/house-difficulty-indicator.ts';
 import {
@@ -44,6 +45,7 @@ export function getScreenTitle(screen: ConstructionSiteManagementScreen, constru
     return constructionLabel ? `Casas - ${constructionLabel}` : 'Casas';
   }
   if (screen === 'house-create' || screen === 'house-detail') return 'Configuração da Casa';
+  if (screen === 'house-field-analysis') return 'Análise de Campo';
   if (screen === 'house-extra-materials') return 'Materiais Extras';
   return constructionLabel;
 }
@@ -56,6 +58,7 @@ export function getScreenSubtitle(screen: ConstructionSiteManagementScreen): str
   if (screen === 'monitor-create') return 'Cadastrar dados de contato do monitor.';
   if (screen === 'monitor-detail') return 'Atualizar dados do monitor sem duplicar o registro.';
   if (screen === 'houses') return 'Casas vinculadas à construção ativa.';
+  if (screen === 'house-field-analysis') return 'Prepare os pilotis desta casa antes de inserir a planta no Canvas.';
   if (screen === 'house-extra-materials') return 'Quantitativos, calhas e escada vinculados à casa.';
   return 'Família, restrições e características do local da casa.';
 }
@@ -376,7 +379,7 @@ export function compareHouses(
     return getHouseFamilyName(constructionSite, a).localeCompare(getHouseFamilyName(constructionSite, b), 'pt-BR');
   }
   if (sortKey === 'houseType') return formatHouseType(a.houseType).localeCompare(formatHouseType(b.houseType), 'pt-BR');
-  return HOUSE_STATUS_LABELS[a.status].localeCompare(HOUSE_STATUS_LABELS[b.status], 'pt-BR');
+  return HOUSE_STATUS_LABELS[getHousePresentationStatus(a)].localeCompare(HOUSE_STATUS_LABELS[getHousePresentationStatus(b)], 'pt-BR');
 }
 
 export function formatHouseType(type: HouseType): string {

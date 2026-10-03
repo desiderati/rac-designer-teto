@@ -21,6 +21,10 @@ const stateWithEmbeddedSnapshot = {
     houseType: 'tipo6' as const,
     terrainType: 0,
     status: 'draft' as const,
+    hasHouseBeenDefined: true,
+    fieldAnalysis: {status: 'prepared' as const, contraventamentos: [{
+      originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_0_2', side: 'left' as const, isAuto: true,
+    }]},
     designSettings: {selectedPilotiHeights: []},
     siteAssessment: {},
     pilotiLayout: {points: []},
@@ -64,6 +68,8 @@ describe('RemoteConstructionSiteRepositoryAdapter', () => {
       expectedDocumentVersion: 0,
       state: expect.objectContaining({
         houses: [expect.objectContaining({
+          fieldAnalysis: stateWithEmbeddedSnapshot.houses[0].fieldAnalysis,
+          hasHouseBeenDefined: true,
           drawingDocument: expect.objectContaining({
             canvas: expect.objectContaining({
               objects: [expect.objectContaining({

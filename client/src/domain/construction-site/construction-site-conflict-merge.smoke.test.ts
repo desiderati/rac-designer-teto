@@ -40,6 +40,19 @@ function state(houses: PersistedHouseRecord[] = []): ConstructionSiteState {
 }
 
 describe('mergeConstructionSiteStates', () => {
+  it('preserva a preparação de campo ao combinar alteração independente de outra casa', () => {
+    const base = state([house('campo'), house('outra')]);
+    const local = structuredClone(base);
+    const remote = structuredClone(base);
+    local.houses[0].fieldAnalysis = {status: 'prepared', contraventamentos: [{
+      originPilotiId: 'piloti_0_0', destinationPilotiId: 'piloti_0_2', side: 'left', isAuto: true,
+    }]};
+    remote.houses[1].terrainType = 4;
+    const result = mergeConstructionSiteStates(base, local, remote);
+    expect(result.ok).toBe(true);
+    expect(result.state?.houses[0].fieldAnalysis).toEqual(local.houses[0].fieldAnalysis);
+    expect(result.state?.houses[1].terrainType).toBe(4);
+  });
   it('preserva casas criadas independentemente por duas sessões', () => {
     const base = state([house('house-base')]);
     const local = state([house('house-base'), house('house-local')]);

@@ -13,6 +13,8 @@ export type PersistedHouseStatus =
   | 'built'
   | 'archived';
 
+export type HousePresentationStatus = 'initial' | 'defined' | 'undefined' | Exclude<PersistedHouseStatus, 'draft'>;
+
 export type MonitorStatus = 'active' | 'inactive';
 
 export type HouseSize = 'large' | 'small';
@@ -143,6 +145,9 @@ export interface PersistedDrawingDocument {
 }
 
 export interface PersistedHouseRecord {
+  /** Distingue uma casa inicial daquela cuja configuração foi removida do Canvas. */
+  hasHouseBeenDefined?: boolean;
+  fieldAnalysis?: import('./house-field-analysis.ts').HouseFieldAnalysisMetadata;
   id: string;
   constructionSiteId: string;
   familyId: string;

@@ -30,6 +30,7 @@ interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   setSideSelectorOpen: Dispatch<SetStateAction<boolean>>;
   setNivelDefinitionOpen: Dispatch<SetStateAction<boolean>>;
   onHouseDrawingChange: () => void;
+  runHouseInsertion?: (insert: () => void) => Promise<void>;
 }
 
 /**
@@ -53,9 +54,10 @@ export function useCanvasController({
   setSideSelectorOpen,
   setNivelDefinitionOpen,
   onHouseDrawingChange,
+  runHouseInsertion,
 }: UseRacEditorCanvasControllerArgs) {
   const editorStore = useEditorStore();
-  const {houseReadPort, houseWritePort, settingsPort} = useEditorPorts();
+  const {houseReadPort, houseWritePort, settingsPort, constructionSiteManagementPort} = useEditorPorts();
 
   const {
     getVisibleCenter,
@@ -98,6 +100,13 @@ export function useCanvasController({
     handleAddHouseView,
     handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
   } = useCanvasHouseViewActions({
+    runHouseInsertion,
+    getPreparedHouse: () => {
+      const site = constructionSiteManagementPort.getConstructionSiteSnapshot();
+      const house = site?.houses.find((entry) => entry.id === site.constructionSite.activeHouseId);
+      return house?.fieldAnalysis?.status === 'prepared'
+        ? constructionSiteManagementPort.getHouseFieldAnalysis(site.constructionSite.id, house.id) : null;
+    },
     canvasRef,
     getVisibleCenter,
     closeAllMenus,

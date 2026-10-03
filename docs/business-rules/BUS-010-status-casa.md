@@ -18,26 +18,29 @@ arquivamento.
 
 ## Estados
 
-1. `Rascunho`
-    - Estado editável padrão.
-    - Permite alterações no canvas, configurações da casa e materiais extras.
+1. `Inicial`, `Definida` e `Indefinida`
+    - Estados editáveis exibidos no lugar de Rascunho, conforme a configuração atual.
+    - Inicial ainda não tem casa definida; Definida tem configuração, inclusive pela Análise de Campo.
+    - Indefinida indica que a configuração da casa foi removida do Canvas após uma definição anterior.
+    - Permitem alterações no canvas, configurações da casa e materiais extras, respeitando a construção.
 
 2. `Impressa`
     - Estado aplicado quando o PDF do RAC é gerado com sucesso.
     - Continua editável.
     - Alterações editoriais preservam `Impressa`; o PDF fica desatualizado e deve ser regenerado.
+    - Remover a casa do Canvas exibe `Indefinida`, sem apagar o histórico de impressão.
 
 3. `Construída`
     - Estado aplicado manualmente pela pessoa usuária.
     - Bloqueia edição do canvas, barra de ferramentas, controles laterais, nome da família, reinício do desenho,
       configurações da casa e materiais extras.
     - A casa ainda pode ser consultada e exportada.
-    - Ao liberar a edição, retorna para `Impressa` se já houve exportação; caso contrário, para `Rascunho`.
+    - Ao liberar a edição, a listagem volta a refletir a configuração atual e o histórico de impressão.
 
 4. `Arquivada`
     - Remove a casa do canvas e dos fluxos de edição ativos.
     - Bloqueia edição de configuração da casa e materiais extras.
-    - Ao desarquivar, retorna para `Impressa` se já houve exportação; caso contrário, para `Rascunho`.
+    - Ao desarquivar, a listagem volta a refletir a configuração atual e o histórico de impressão.
     - Pode ser excluída definitivamente somente quando a Construção TETO pai estiver navegável e em andamento.
 
 ## Transições
@@ -61,13 +64,13 @@ arquivamento.
     - A ação deve pedir confirmação.
     - Ao confirmar, a casa muda para `Construída` e passa a ficar bloqueada para edição.
 
-5. Voltar para rascunho
+5. Liberar edição
     - A ação deve pedir confirmação.
-    - Ao confirmar, a casa volta a permitir edição, preservando `Impressa` quando há exportação anterior.
+    - Ao confirmar, a casa volta a permitir edição, preservando o histórico de exportação.
 
 6. Arquivar e desarquivar
     - Arquivar mantém o comportamento próprio de retirada da casa dos fluxos ativos.
-    - Desarquivar preserva o histórico: `Impressa` se houve exportação anterior; `Rascunho` caso contrário.
+    - Desarquivar preserva o histórico e restaura a apresentação conforme a configuração atual.
 
 7. Exclusão definitiva
     - A ação deve pedir confirmação destrutiva explícita.
@@ -85,6 +88,11 @@ arquivamento.
       indisponível.
 
 ## Segurança
+
+A listagem deriva Inicial/Definida/Indefinida dos dados canônicos e do histórico opcional
+`hasHouseBeenDefined`. O estado interno `draft` continua aceito no transporte, sem exigir migração.
+Filtros, ordenação e badges seguem a mesma classificação descrita em
+[Análise de Campo](BUS-014-analise-de-campo.md).
 
 O bloqueio de `Construída` deve existir na interface e na camada de sessão/persistência. Se uma
 chamada interna tentar salvar uma mudança editorial em casa construída, a sessão deve ignorar a

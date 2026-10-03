@@ -33,6 +33,7 @@ import {renderHouse3DPdfSnapshotImageDataUrl} from '@/components/rac-editor/@vie
 import {HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION, HOUSE_DRAWING_DOCUMENT_TYPE} from '@/shared/types/house-drawing-document.ts';
 import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
 import {requestChunkRecovery} from '@/shared/lib/runtime-resilience.ts';
+import type {HouseFieldAnalysisDraft} from '@/shared/types/house-field-analysis.ts';
 
 interface UseConstructionSiteManagementControllerArgs {
   canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
@@ -63,6 +64,9 @@ export function useConstructionSiteManagementController({
   const [version, setVersion] = useState(0);
   const {
     documentSaveStatus,
+    runCanvasDocumentTransaction,
+    suspendForFieldAnalysis,
+    resumeAfterFieldAnalysis,
     isDocumentTransitioning,
     saveActiveHouseDocument,
     notifyActiveHouseDocumentChanged,
@@ -86,6 +90,20 @@ export function useConstructionSiteManagementController({
   const activateHouse = useCallback(async (constructionSiteId: string, houseId: string) => {
     await runDocumentSelection(() => constructionSiteManagementPort.activateHouse(constructionSiteId, houseId));
   }, [constructionSiteManagementPort, runDocumentSelection]);
+
+  const openHouseFieldAnalysis = useCallback(async (siteId: string, houseId: string) => {
+    await suspendForFieldAnalysis();
+    try {
+      return constructionSiteManagementPort.getHouseFieldAnalysis(siteId, houseId);
+    } catch (error) {
+      await resumeAfterFieldAnalysis();
+      throw error;
+    }
+  }, [constructionSiteManagementPort, resumeAfterFieldAnalysis, suspendForFieldAnalysis]);
+
+  const saveHouseFieldAnalysis = useCallback(async (siteId: string, houseId: string, draft: HouseFieldAnalysisDraft) => {
+    constructionSiteManagementPort.saveHouseFieldAnalysis(siteId, houseId, draft);
+  }, [constructionSiteManagementPort]);
 
   const createHouse = useCallback(async (input: CreateHouseInput) => {
     await runDocumentMutation(() => {
@@ -307,6 +325,7 @@ export function useConstructionSiteManagementController({
   const constructionSiteSnapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
 
   return {
+    runCanvasDocumentTransaction,
     constructionSite,
     summaries: constructionSiteManagementPort.getConstructionSiteSummaries(),
     canOpenRacEditor: constructionSiteManagementPort.canOpenRacEditor(),
@@ -321,6 +340,9 @@ export function useConstructionSiteManagementController({
     hydrateActiveHouseDocument,
     prepareRacEditorOpening,
     actions: {
+      openHouseFieldAnalysis,
+      saveHouseFieldAnalysis,
+      closeHouseFieldAnalysis: resumeAfterFieldAnalysis,
       createConstructionSite,
       updateActiveConstructionSite: (input: UpdateConstructionSiteInput) => constructionSiteManagementPort.updateActiveConstructionSite(input),
       archiveActiveConstructionSite: () => constructionSiteManagementPort.archiveActiveConstructionSite(),

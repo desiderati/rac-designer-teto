@@ -17,6 +17,7 @@ import {ConstructionListScreen} from './ConstructionListScreen.tsx';
 import {HouseConfigurationScreen} from './HouseConfigurationScreen.tsx';
 import {HouseExtraMaterialsScreen} from './HouseExtraMaterialsScreen.tsx';
 import {HousesScreen} from './HousesScreen.tsx';
+import {HouseFieldAnalysisScreen} from './HouseFieldAnalysisScreen.tsx';
 import {MonitorFormScreen} from './MonitorFormScreen.tsx';
 import {MonitorsScreen} from './MonitorsScreen.tsx';
 import {
@@ -406,7 +407,7 @@ export function ConstructionSiteManagementPanel({
         data-testid='construction-management-card'
         className='mx-auto flex min-h-full min-w-0 w-full max-w-none flex-col rounded-none border-0 bg-white p-4 shadow-none sm:min-h-[calc(100dvh-5rem)] sm:max-w-4xl sm:rounded-[24px] sm:border sm:border-slate-200/80 sm:p-6 sm:shadow-sm lg:p-8'
       >
-        <header className='relative mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
+        {navigation.screen !== 'house-field-analysis' ? <header className='relative mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
           <div
             data-testid='construction-management-header-row'
             className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3'
@@ -456,7 +457,7 @@ export function ConstructionSiteManagementPanel({
               onAddMonitor={navigation.openMonitorCreate}
             />
           </div>
-        </header>
+        </header> : null}
 
         {navigation.screen === 'construction-list' ? (
           <ConstructionListScreen
@@ -560,6 +561,10 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
+              onOpenHouseFieldAnalysis={async (houseId) => {
+                try { await navigation.openHouseFieldAnalysis(houseId); }
+                catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir a Análise de Campo.'); }
+              }}
               onExportHouseRacPdf={handleExportHouseRacPdf}
               exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={navigation.requestHouseStatusChange}
@@ -569,6 +574,18 @@ export function ConstructionSiteManagementPanel({
           ) : (
             <EmptyState title='Nenhuma construção ativa' description='Crie uma Construção TETO antes de cadastrar casas.'/>
           )
+        ) : null}
+
+        {navigation.screen === 'house-field-analysis' && constructionSite && navigation.selectedHouse && navigation.fieldAnalysisDraft ? (
+          <HouseFieldAnalysisScreen
+            constructionSite={constructionSite}
+            house={navigation.selectedHouse}
+            initialDraft={navigation.fieldAnalysisDraft}
+            onSave={(draft) => actions.saveHouseFieldAnalysis(
+              constructionSite.constructionSite.id, navigation.selectedHouse!.id, draft,
+            )}
+            onBack={navigation.closeHouseFieldAnalysis}
+          />
         ) : null}
 
         {navigation.screen === 'house-create' && constructionSite ? (

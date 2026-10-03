@@ -20,6 +20,7 @@ import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseD
 import {RemoteSyncStatus} from './RemoteSyncStatus.tsx';
 import {isIsolatedLocalMode, isLocalEditorMode} from '@/shared/local-runtime.ts';
 import {LegacyDataBlockedState, RemoteLegacyDataDialog} from './RemoteLegacyDataDialog.tsx';
+import {VIEWPORT} from '@/shared/config.ts';
 
 const PRODUCT_SCREENSHOT_URL = '/api/public-assets/rac-editor-landing-screenshot-harmonized_95473d21.png';
 const HOUSE_ILLUSTRATION_URL = '/api/public-assets/teto-house-linework-transparent-cropped_770579e2.png';
@@ -382,7 +383,8 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
   const reportUpdateSafety = useReportPwaUpdateSafety();
   const [documentSaveStatus, setDocumentSaveStatus] = useState<HouseDocumentSaveStatus>('saving');
   const [hasUnsavedFormChanges, setHasUnsavedFormChanges] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(constructionSiteManagement.canOpenRacEditor);
+  const [editorOpen, setEditorOpen] = useState(() => constructionSiteManagement.canOpenRacEditor
+    && (typeof window === 'undefined' || !window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches));
   const isEditorVisible = editorOpen && constructionSiteManagement.canOpenRacEditor;
   const activeDocumentSaveStatus = isEditorVisible
     ? documentSaveStatus

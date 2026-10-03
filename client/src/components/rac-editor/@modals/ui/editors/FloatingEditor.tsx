@@ -12,6 +12,7 @@ import {useFloatingEditor} from '@/components/rac-editor/@modals/hooks/useFloati
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 
 interface FloatingEditorProps {
+  presentation?: 'floating' | 'inline';
   isOpen: boolean;
   isMobile: boolean;
   anchorPosition?: { x: number; y: number; };
@@ -27,6 +28,7 @@ interface FloatingEditorProps {
 }
 
 export function FloatingEditor({
+  presentation = 'floating',
   isOpen,
   isMobile,
   anchorPosition,
@@ -57,7 +59,7 @@ export function FloatingEditor({
 
   const editorBody =
     <div className='flex flex-col gap-4'>
-      {header ? <div className='cursor-move' onMouseDown={handleDragStart}>{header}</div> : null}
+      {header ? <div className={presentation === 'inline' ? '' : 'cursor-move'} onMouseDown={presentation === 'inline' ? undefined : handleDragStart}>{header}</div> : null}
 
       <div className='bg-white rounded-xl p-4 space-y-4' data-no-drag>
         {cardContent}
@@ -67,6 +69,7 @@ export function FloatingEditor({
         testId='floating-editor-actions'
         surface={isMobile ? 'drawer' : 'dialog'}
         spacing='flush'
+        mobileDocked={presentation !== 'inline'}
       >
         <div className='flex w-full gap-[16px]' data-no-drag>
           <Button
@@ -84,6 +87,14 @@ export function FloatingEditor({
         </div>
       </ActionDock>
     </div>;
+
+  if (presentation === 'inline') {
+    return isOpen ? (
+      <section aria-label={ariaLabel} className='rounded-2xl bg-slate-100 p-3 text-slate-950 sm:p-4'>
+        {editorBody}
+      </section>
+    ) : null;
+  }
 
   if (isMobile) {
     return (
