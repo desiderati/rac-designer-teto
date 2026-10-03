@@ -32,6 +32,7 @@ import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {
   PHOTO_UPLOAD_ACCEPT,
+  isManusStoragePhotoUrl,
   validatePhotoFile,
 } from '@/shared/lib/photo-data-url.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
@@ -172,7 +173,15 @@ export function PhotoUploadField({
   const [photoOrientation, setPhotoOrientation] = useState<PhotoOrientation | undefined>();
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [reviewFile, setReviewFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<{localUrl: string; remoteUrl: string | null} | null>(null);
   const storageImageUpload = useStorageImageUpload();
+
+  useEffect(() => {
+    const localUrl = pendingPreview?.localUrl;
+    return () => {
+      if (localUrl?.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(localUrl);
+    };
+  }, [pendingPreview?.localUrl]);
 
   useEffect(() => {
     if (!value) setPhotoOrientation(undefined);
@@ -191,16 +200,22 @@ export function PhotoUploadField({
   };
 
   const confirmPhotoUpload = async ({file, preparedFile, preserveOriginalQuality}: ImageUploadReviewSelection) => {
+    const localUrl = createLocalPreviewUrl(preparedFile?.file ?? file);
+    if (localUrl) setPendingPreview({localUrl, remoteUrl: null});
     setReviewFile(null);
     try {
       const photoUrl = await storageImageUpload.uploadImage(file, undefined, {preserveOriginalQuality, preparedFile});
       setUploadError(null);
       onChange(photoUrl);
+      setPendingPreview((current) => isManusStoragePhotoUrl(photoUrl) && current
+        ? {...current, remoteUrl: photoUrl}
+        : null);
     } catch (error) {
       console.error('[PhotoUploadField] Falha ao enviar foto:', error);
       const message = error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.';
       setUploadError(message);
       toast.error(message);
+      setPendingPreview(null);
     }
   };
 
@@ -237,6 +252,7 @@ export function PhotoUploadField({
     event.stopPropagation();
     if (disabled) return;
     setUploadError(null);
+    setPendingPreview(null);
     onChange('');
   };
 
@@ -261,24 +277,37 @@ export function PhotoUploadField({
           disabled || storageImageUpload.isUploading ? 'cursor-not-allowed opacity-60 hover:border-blue-200 hover:bg-blue-50/80 focus:ring-0' : null,
           uploadError ? 'border-red-300 bg-red-50/70 text-red-700 hover:border-red-300 hover:bg-red-50 focus:ring-red-100' : null,
           dropZoneClassName,
-          value ? cn('p-0', loadedDropZoneClassName) : null,
+          value || pendingPreview ? cn('p-0', loadedDropZoneClassName) : null,
         )}
       >
-        {value ? (
+        {value || pendingPreview ? (
           <>
-            <ProtectedImage
-              src={value}
-              alt={label}
-              onLoad={(event) => {
-                setPhotoOrientation(getPhotoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
-              }}
-              className='absolute inset-0 h-full w-full rounded-xl object-cover object-center'
-            />
+            {pendingPreview ? (
+              <img
+                src={pendingPreview.localUrl}
+                alt={label}
+                onLoad={(event) => {
+                  setPhotoOrientation(getPhotoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
+                }}
+                className='absolute inset-0 z-[1] h-full w-full rounded-xl object-cover object-center'
+              />
+            ) : null}
+            {value ? (
+              <ProtectedImage
+                src={value}
+                alt={label}
+                onLoad={(event) => {
+                  setPhotoOrientation(getPhotoOrientation(event.currentTarget.naturalWidth, event.currentTarget.naturalHeight));
+                  if (pendingPreview?.remoteUrl === value) setPendingPreview(null);
+                }}
+                className='absolute inset-0 z-0 h-full w-full rounded-xl object-cover object-center'
+              />
+            ) : null}
             <button
               type='button'
               aria-label={`Remover ${label}`}
               onClick={clearPhoto}
-              disabled={disabled || storageImageUpload.isUploading}
+              disabled={disabled || storageImageUpload.isUploading || pendingPreview !== null}
               className='absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/75 text-slate-700/90 shadow-sm backdrop-blur-sm transition-colors hover:bg-white/90 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-blue-200'
             >
               <X className='h-4 w-4'/>
@@ -337,6 +366,11 @@ export function PhotoUploadField({
 
 function formatReduction(percent: number): string {
   return `${percent.toFixed(1).replace('.', ',')}%`;
+}
+
+export function createLocalPreviewUrl(file: File): string {
+  if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') return '';
+  return URL.createObjectURL(file);
 }
 
 export function RadioField({

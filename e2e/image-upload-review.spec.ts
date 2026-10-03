@@ -151,6 +151,7 @@ test.describe('Revisão de imagem — Drawer mobile', () => {
 
     const reviewDrawer = page.getByRole('dialog').filter({hasText: 'Revisar imagem para o Canvas'});
     await expect(reviewDrawer).toBeVisible();
+    await expect(reviewDrawer.getByRole('img', {name: 'Prévia da imagem que será enviada'})).toBeVisible();
     const checkbox = reviewDrawer.getByRole('checkbox', {name: 'Manter qualidade original'});
     await checkbox.check();
     await expect(checkbox).toBeChecked();

@@ -4,9 +4,9 @@ import {Camera, Plus, RefreshCw, Trash2, UploadCloud} from 'lucide-react';
 import type {TerrainPhoto} from '@/shared/types/construction-site.ts';
 import {useStorageImageUpload} from '@/contexts/StorageImageUploadContext.tsx';
 import {useTerrainPhotoDescription, type TerrainPhotoDescriptionInput} from '@/contexts/TerrainPhotoDescriptionContext.tsx';
-import {PHOTO_UPLOAD_ACCEPT, validatePhotoFile} from '@/shared/lib/photo-data-url.ts';
+import {isManusStoragePhotoUrl, PHOTO_UPLOAD_ACCEPT, validatePhotoFile} from '@/shared/lib/photo-data-url.ts';
 import {toStorageImageUploadPayload} from '@/shared/lib/storage-image-upload.ts';
-import {TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
+import {createLocalPreviewUrl, TextField} from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {ImageUploadReview, type ImageUploadReviewSelection} from '@/components/ui/ImageUploadReview.tsx';
 import {Progress} from '@/components/ui/progress.tsx';
 import {PhotoViewer} from '@/components/ui/PhotoViewer.tsx';
@@ -44,12 +44,21 @@ export function TerrainPhotosField({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [replacePhotoId, setReplacePhotoId] = useState<string | null>(null);
   const [reviewFile, setReviewFile] = useState<{file: File; photoIdToReplace: string | null} | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<{localUrl: string; photoIdToReplace: string | null; previewIndex: number; remoteUrl: string | null} | null>(null);
   const [pendingDeletePhotoId, setPendingDeletePhotoId] = useState<string | null>(null);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
   const [isMainPhotoDragActive, setIsMainPhotoDragActive] = useState(false);
   const valueRef = useRef(value);
   const selectedPhoto = value[selectedIndex];
+  const pendingPreviewIsSelected = pendingPreview?.previewIndex === selectedIndex;
   const isBusy = storageUpload.isUploading || isPreparingPhoto || reviewFile !== null;
+
+  useEffect(() => {
+    const localUrl = pendingPreview?.localUrl;
+    return () => {
+      if (localUrl?.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(localUrl);
+    };
+  }, [pendingPreview?.localUrl]);
 
   useEffect(() => {
     valueRef.current = value;
@@ -120,6 +129,12 @@ export function TerrainPhotosField({
     const photoIdToReplace = reviewFile?.photoIdToReplace ?? null;
     if (disabled || (!photoIdToReplace && valueRef.current.length >= MAX_TERRAIN_PHOTOS)) return;
 
+    const previewIndex = photoIdToReplace
+      ? Math.max(0, valueRef.current.findIndex((photo) => photo.id === photoIdToReplace))
+      : valueRef.current.length;
+    const localUrl = createLocalPreviewUrl(preparedFile?.file ?? file);
+    if (localUrl) setPendingPreview({localUrl, photoIdToReplace, previewIndex, remoteUrl: null});
+    setSelectedIndex(previewIndex);
     setReviewFile(null);
     const uploadToastId = `terrain-upload-${Date.now()}`;
     const uploadToast = beginToastTask(uploadToastId, description.available ? 'Enviando foto do terreno…' : 'Salvando foto neste dispositivo…');
@@ -142,6 +157,9 @@ export function TerrainPhotosField({
         updatePhotos((current) => current.length >= MAX_TERRAIN_PHOTOS ? current : [...current, {id, url}]);
       }
       setSelectedIndex(nextIndex);
+      setPendingPreview((current) => isManusStoragePhotoUrl(url) && current
+        ? {...current, remoteUrl: url}
+        : null);
       uploadToast.success(photoIdToReplace ? 'Foto substituída.' : 'Foto adicionada.');
       if (payload) void generateDescription(id, payload);
       setReviewFile(null);
@@ -149,6 +167,7 @@ export function TerrainPhotosField({
       console.error('[TerrainPhotosField] Falha ao enviar foto:', error);
       const message = error instanceof Error ? error.message : 'Não foi possível enviar a foto. Tente novamente.';
       uploadToast.error(message);
+      setPendingPreview(null);
       throw error instanceof Error ? error : new Error(message);
     } finally {
       setIsPreparingPhoto(false);
@@ -229,13 +248,25 @@ export function TerrainPhotosField({
           aria-label='Área principal da foto do terreno. Solte uma imagem para adicionar ou trocar a foto.'
         >
           <div className='relative aspect-[4/3] w-full'>
-            {selectedPhoto ? (
-              <button type='button' aria-label='Ampliar foto do terreno' onClick={() => setViewerPhotoId(selectedPhoto.id)} className='absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
-              <ProtectedImage
-                src={selectedPhoto.url}
-                alt={selectedPhoto.description || `Foto do terreno ${selectedIndex + 1}`}
-                className='absolute inset-0 block h-full w-full object-cover object-center'
-              />
+            {selectedPhoto || pendingPreviewIsSelected ? (
+              <button type='button' aria-label='Ampliar foto do terreno' onClick={() => selectedPhoto && setViewerPhotoId(selectedPhoto.id)} className='absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
+              {pendingPreviewIsSelected ? (
+                <img
+                  src={pendingPreview.localUrl}
+                  alt={selectedPhoto?.description || `Foto do terreno ${selectedIndex + 1}`}
+                  className='absolute inset-0 z-[1] block h-full w-full object-cover object-center'
+                />
+              ) : null}
+              {selectedPhoto ? (
+                <ProtectedImage
+                  src={selectedPhoto.url}
+                  alt={selectedPhoto.description || `Foto do terreno ${selectedIndex + 1}`}
+                  className='absolute inset-0 z-0 block h-full w-full object-cover object-center'
+                  onLoad={() => {
+                    if (pendingPreview?.remoteUrl === selectedPhoto.url) setPendingPreview(null);
+                  }}
+                />
+              ) : null}
               </button>
             ) : (
               <button
