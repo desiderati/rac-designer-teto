@@ -186,19 +186,40 @@ export function useHouse3DViewerActions({
     setGenerating(true);
 
     try {
-      // A ilustração remota pode reinterpretar a cor da parede. A imagem local
-      // é o registro fiel do estado visível da modal no instante da captura.
-      const imageDataUrl = screenshotDataUrl;
+      let imageDataUrl = screenshotDataUrl;
       let storageUrl: string | null = null;
-      const source: 'illustration' | 'fallback' = 'fallback';
+      let source: 'illustration' | 'fallback' = 'fallback';
+
+      try {
+        const illustration = houseIllustrationPort?.generateFromDataUrl
+          ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl)
+          : null;
+        const illustrationDataUrl = illustration?.dataUrl;
+        if (illustrationDataUrl?.startsWith('data:image/')) {
+          imageDataUrl = illustrationDataUrl;
+          storageUrl = illustration.storageUrl;
+          source = 'illustration';
+        }
+      } catch (error) {
+        // A ilustração é uma melhoria opcional. Se o serviço de IA falhar,
+        // o screenshot fiel do viewer continua disponível para inserção.
+        console.error('[House3DViewer] Falha ao gerar ilustração da casa; usando screenshot:', error);
+      }
 
       if (!storageUrl && houseIllustrationPort?.persistDataUrl) {
-        storageUrl = await houseIllustrationPort.persistDataUrl(imageDataUrl, 'casa-3d-fallback.png');
+        try {
+          storageUrl = await houseIllustrationPort.persistDataUrl(
+            imageDataUrl,
+            source === 'illustration' ? 'casa-3d-ilustracao.png' : 'casa-3d-fallback.png',
+          );
+        } catch (error) {
+          console.error('[House3DViewer] Falha ao persistir imagem 3D:', error);
+        }
       }
 
       publishImage({dataUrl: imageDataUrl, storageUrl, source});
     } catch (error) {
-      console.error('[House3DViewer] Falha ao gerar ilustração da casa:', error);
+      console.error('[House3DViewer] Falha inesperada ao preparar imagem 3D:', error);
       let storageUrl: string | null = null;
       try {
         storageUrl = houseIllustrationPort?.persistDataUrl
