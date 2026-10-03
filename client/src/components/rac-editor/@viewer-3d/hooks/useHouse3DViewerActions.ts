@@ -128,6 +128,20 @@ export function useHouse3DViewerActions({
     });
   }, [hideBelowTerrain, viewerPreferencesStorageKey, wallColor]);
 
+  const handleWallColorChange = useCallback((nextWallColor: string) => {
+    setWallColor(nextWallColor);
+    writeHouse3DViewerPreferences(viewerPreferencesStorageKey, {
+      wallColor: nextWallColor,
+      hideBelowTerrain,
+    });
+
+    const previous = viewer3DPort?.getViewer3D?.();
+    if (!previous) return;
+
+    viewer3DPort?.setViewer3D?.({...previous, wallColor: nextWallColor});
+    onDocumentChange?.();
+  }, [hideBelowTerrain, onDocumentChange, viewer3DPort, viewerPreferencesStorageKey]);
+
   const handleClose = useCallback(() => {
     const pose = cameraPoseReaderRef.current?.()
       ?? (houseType ? createHouse3DDoorFacingCameraPose({doorFace: doorFace ?? 'front', compact: false}) : null);
@@ -239,6 +253,7 @@ export function useHouse3DViewerActions({
     isFullscreen,
     wallColor,
     setWallColor,
+    handleWallColorChange,
     hideBelowTerrain,
     setHideBelowTerrain,
     isSceneReady,

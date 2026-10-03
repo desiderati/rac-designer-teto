@@ -10,7 +10,7 @@ import {
 } from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
 
 // Incrementar quando o layout, os textos fixos ou a captura do PDF mudarem.
-const RAC_PDF_CACHE_VERSION = 6;
+const RAC_PDF_CACHE_VERSION = 7;
 
 interface CachedRacPdf {
   fingerprint: string;

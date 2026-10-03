@@ -20,6 +20,9 @@ const pdfMocks = vi.hoisted(() => ({
   toastError: vi.fn(),
   toastWarning: vi.fn(),
 }));
+const snapshotMocks = vi.hoisted(() => ({
+  render: vi.fn(),
+}));
 
 vi.mock('@/components/rac-editor/lib/rac-pdf-report-model.ts', () => ({
   buildRacPdfReportModel: pdfMocks.buildRacPdfReportModel,
@@ -27,6 +30,10 @@ vi.mock('@/components/rac-editor/lib/rac-pdf-report-model.ts', () => ({
 
 vi.mock('@/components/rac-editor/lib/rac-pdf-report-renderer.ts', () => ({
   createRacPdfReportDocument: pdfMocks.createRacPdfReportDocument,
+}));
+
+vi.mock('@/components/rac-editor/@viewer-3d/lib/render-house-3d-pdf-snapshot.tsx', () => ({
+  renderHouse3DPdfSnapshotImageDataUrl: snapshotMocks.render,
 }));
 
 vi.mock('@/components/rac-editor/lib/rac-pdf-zip-export.ts', () => ({
@@ -54,6 +61,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
       revokeObjectURL: vi.fn(),
     });
     pdfMocks.outputPdf.mockReturnValue(new Blob(['%PDF'], {type: 'application/pdf'}));
+    snapshotMocks.render.mockResolvedValue('data:image/png;base64,offscreen-3d');
   });
 
   afterEach(() => {
@@ -145,6 +153,38 @@ describe('useRacEditorPdfExportAction.ts', () => {
     expect(markActiveHouseRacPrinted.mock.invocationCallOrder[0]).toBeLessThan(
       onAfterExportPdf.mock.invocationCallOrder[0],
     );
+  });
+
+  it('usa um snapshot offscreen persistido quando o ref visual do 3D não responde', async () => {
+    pdfMocks.buildRacPdfReportModel.mockReturnValue({fileName: 'rac.pdf'});
+    pdfMocks.createRacPdfReportDocument.mockReturnValue({output: pdfMocks.outputPdf, getNumberOfPages: () => 2});
+
+    const {result} = renderHook(() => useRacEditorPdfExportAction({
+      canvasRef: {current: {createDocumentPort: () => ({exportImageDataUrl: () => 'data:image/png;base64,canvas'})}} as never,
+      house3DPdfSnapshotRef: {current: null},
+      canExportPdf: () => true,
+    }), {wrapper: createWrapper({
+      constructionSiteManagementPort: {getConstructionSiteSnapshot: () => createConstructionSiteSnapshot()} as never,
+      houseIllustrationPort: {generateFromDataUrl: vi.fn().mockResolvedValue(null)} as never,
+    })});
+
+    await act(async () => {
+      await result.current.handleSavePDF();
+      await result.current.handleConfirmPdfExport();
+    });
+
+    expect(snapshotMocks.render).toHaveBeenCalledWith(
+      expect.objectContaining({
+        documentType: 'rac-house-drawing',
+        schemaVersion: 1,
+        house: expect.objectContaining({id: 'house_1', houseType: 'tipo6'}),
+        viewer3D: expect.objectContaining({wallColor: '#c4967a'}),
+      }),
+      'house_1',
+    );
+    expect(pdfMocks.buildRacPdfReportModel).toHaveBeenCalledWith(expect.objectContaining({
+      house3DImageDataUrl: 'data:image/png;base64,offscreen-3d',
+    }));
   });
 
   it('fechar o progresso não cancela o PDF nem reabre o aviso após a captura', async () => {
@@ -241,6 +281,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
 
   it('mantém falha real de captura 3D como erro e bloqueia retry se a planta for removida', async () => {
     const site = createConstructionSiteSnapshot();
+    snapshotMocks.render.mockResolvedValue(null);
     let hasTop = true;
     const capture3D = vi.fn().mockResolvedValue(null);
     const {result} = renderHook(() => useRacEditorPdfExportAction({

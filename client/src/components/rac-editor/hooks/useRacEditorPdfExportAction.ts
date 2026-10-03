@@ -10,7 +10,12 @@ import {downloadBlob} from '@/components/rac-editor/lib/rac-pdf-zip-export.ts';
 import {TOAST_MESSAGES} from '@/shared/config.ts';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import type {House3DPdfSnapshotHandle} from '@/components/rac-editor/@viewer-3d/ports/House3DPdfSnapshotHandle.ts';
+import {renderHouse3DPdfSnapshotImageDataUrl} from '@/components/rac-editor/@viewer-3d/lib/render-house-3d-pdf-snapshot.tsx';
 import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
+import {
+  HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+  HOUSE_DRAWING_DOCUMENT_TYPE,
+} from '@/shared/types/house-drawing-document.ts';
 import {
   buildRacPdfExportChecklist,
   type RacPdfExportChecklist,
@@ -212,7 +217,32 @@ export function useRacEditorPdfExportAction({
       }
 
       updateProgressToast('capture-3d');
-      const house3DScreenshotDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      let house3DScreenshotDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      if (!house3DScreenshotDataUrl && house?.drawingDocument.house) {
+        try {
+          house3DScreenshotDataUrl = await renderHouse3DPdfSnapshotImageDataUrl(
+            {
+              documentType: HOUSE_DRAWING_DOCUMENT_TYPE,
+              schemaVersion: HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
+              setup: {
+                familyName: '',
+                selectedPilotiHeights: [...house.designSettings.selectedPilotiHeights],
+              },
+              house: {
+                ...house.drawingDocument.house,
+                id: house.id,
+                houseType: house.houseType,
+                terrainType: house.terrainType,
+              },
+              canvas: house.drawingDocument.canvas,
+              viewer3D: house.drawingDocument.viewer3D,
+            },
+            house.id,
+          );
+        } catch (error) {
+          console.error('[useRacEditorPdfExportAction] Falha ao renderizar snapshot 3D persistido:', error);
+        }
+      }
       if (!house3DScreenshotDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
       let house3DImageDataUrl = house3DScreenshotDataUrl;
       try {

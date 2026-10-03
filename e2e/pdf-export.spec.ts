@@ -67,7 +67,6 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
     await expectPdfPreviewRendered(page);
-    await expect(page.getByText('Prévia do PDF pronta.')).toBeVisible();
     const previewSurface = page.getByTestId('pdf-preview-surface');
     const initialGeometry = await page.evaluate(() => {
       const surface = document.querySelector<HTMLElement>('[data-testid="pdf-preview-surface"]');

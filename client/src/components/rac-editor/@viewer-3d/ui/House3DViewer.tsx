@@ -79,7 +79,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
     resetKey,
     isFullscreen,
     wallColor,
-    setWallColor,
+    handleWallColorChange,
     hideBelowTerrain,
     setHideBelowTerrain,
     isSceneReady,
@@ -156,7 +156,7 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                         className={`w-7 h-7 rounded border-2 transition-all ${wallColor === colorOption.value ? 'border-primary scale-110' : 'border-border hover:border-primary/50'}`}
                         style={{backgroundColor: colorOption.value}}
                         title={colorOption.name}
-                        onClick={() => setWallColor(colorOption.value)}
+                        onClick={() => handleWallColorChange(colorOption.value)}
                       />
                     ))}
                   </div>

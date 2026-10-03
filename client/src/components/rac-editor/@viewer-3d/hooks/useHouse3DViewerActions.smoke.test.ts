@@ -49,6 +49,35 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('persiste a nova cor no documento antes de gerar a imagem ou o PDF', () => {
+    const viewer3D = {
+      cameraPose: null,
+      wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Azul,
+      hideBelowTerrain: true,
+    };
+    const setViewer3D = vi.fn((next) => Object.assign(viewer3D, next));
+    const onDocumentChange = vi.fn();
+    const {result} = renderHook(() => useHouse3DViewerActions({
+      houseType: 'tipo6',
+      hasHouseViews: true,
+      onOpenChange: vi.fn(),
+      canvasRef: {current: null},
+      cameraPoseStorageKey: null,
+      viewerPreferencesStorageKey: getHouse3DViewerPreferencesStorageKey('house_1'),
+      viewer3DPort: {
+        getViewer3D: () => viewer3D,
+        setViewer3D,
+      },
+      onDocumentChange,
+    }), {wrapper});
+
+    act(() => result.current.handleWallColorChange(HOUSE_3D_WALL_COLOR_BY_NAME.Terracota));
+
+    expect(setViewer3D).toHaveBeenCalledWith(expect.objectContaining({wallColor: '#c4967a'}));
+    expect(viewer3D.wallColor).toBe('#c4967a');
+    expect(onDocumentChange).toHaveBeenCalledTimes(1);
+  });
+
   it('persiste a pose inicial mesmo se o reader da câmera ainda não foi registrado', () => {
     const onOpenChange = vi.fn();
     const cameraStorageKey = 'rac-house-3d-camera-pose:v2:house_1';

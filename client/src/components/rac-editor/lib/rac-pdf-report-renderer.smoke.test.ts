@@ -81,6 +81,26 @@ describe('rac pdf report renderer', () => {
     expect(output).toContain('Imagem não informada.');
     expect(output).toContain('Foto não informada.');
   });
+
+  it('insere o desenho 3D recebido na página de mídia do relatório', () => {
+    const report = createMinimalReport();
+    report.house3DImageDataUrl = TINY_PNG_DATA_URL;
+    const addedImages: Array<{source: string; page: number}> = [];
+
+    function ObservedPdf(options: ConstructorParameters<typeof jsPDF>[0]) {
+      const pdf = new jsPDF(options);
+      const addImage = pdf.addImage.bind(pdf);
+      vi.spyOn(pdf, 'addImage').mockImplementation((...args: Parameters<typeof pdf.addImage>) => {
+        addedImages.push({source: String(args[0]), page: pdf.getNumberOfPages()});
+        return addImage(...args);
+      });
+      return pdf;
+    }
+
+    createRacPdfReportDocument({report, jsPDF: ObservedPdf as never});
+
+    expect(addedImages.some((image) => image.source === TINY_PNG_DATA_URL && image.page === 2)).toBe(true);
+  });
 });
 
 function createMinimalReport(): RacPdfReportModel {

@@ -16,6 +16,7 @@ import { generateImage } from './_core/imageGeneration.ts';
 import { invokeLLM } from './_core/llm.ts';
 import { storagePut } from './storage.ts';
 import { removeLightBackgroundFromPng } from './image-transparency.ts';
+import { preserveWallColorInIllustration } from './house-illustration-color.ts';
 import { logSafeServerError } from './_core/safe-error-log.ts';
 import type { ConstructionSiteState } from '../client/src/shared/types/construction-site.ts';
 
@@ -267,15 +268,22 @@ export const appRouter = router({
         const transparentPng = await removeLightBackgroundFromPng(
           Buffer.from(generatedBase64, 'base64'),
         );
+        const colorCorrectedPng = input.wallColor
+          ? await preserveWallColorInIllustration(
+            transparentPng,
+            pngBytes,
+            input.wallColor,
+          )
+          : transparentPng;
         const processed = await storagePut(
           `rac-designer-teto/temp/house-3d/illustration-${Date.now()}.png`,
-          transparentPng,
+          colorCorrectedPng,
           'image/png',
         );
 
         return {
           url: processed.url,
-          dataUrl: `data:image/png;base64,${transparentPng.toString('base64')}`,
+          dataUrl: `data:image/png;base64,${colorCorrectedPng.toString('base64')}`,
         };
       }),
   }),
