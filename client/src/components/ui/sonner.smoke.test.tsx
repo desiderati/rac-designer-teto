@@ -5,7 +5,7 @@ import {beginToastTask, toast, Toaster, ERROR_TOAST_DURATION} from './sonner.tsx
 
 const mocks = vi.hoisted(() => ({toaster: vi.fn((_props: unknown) => null)}));
 vi.mock('next-themes', () => ({useTheme: () => ({theme: 'light'})}));
-vi.mock('sonner', () => ({toast: Object.assign(vi.fn(), {error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(), loading: vi.fn(), message: vi.fn(), custom: vi.fn(), promise: vi.fn(), dismiss: vi.fn()}), Toaster: mocks.toaster}));
+vi.mock('sonner', () => ({toast: Object.assign(vi.fn(), {error: vi.fn(), success: vi.fn(), info: vi.fn(), warning: vi.fn(), loading: vi.fn(), message: vi.fn(), custom: vi.fn(), promise: vi.fn(), dismiss: vi.fn()}), Toaster: mocks.toaster, useSonner: () => ({toasts: []})}));
 
 afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals();});
 
@@ -65,7 +65,7 @@ describe('avisos compartilhados', () => {
     expect(rawToast.error).not.toHaveBeenCalled();
   });
 
-  it('mantém promise e sua duração na fila nativa do Sonner', () => {
+  it('mantém promise na fila nativa para o host aplicar a política de erro', () => {
     const operation = Promise.resolve();
     toast.promise(operation, {loading: 'Processando', success: 'Concluído', error: 'Falhou'});
     const [, data] = vi.mocked(rawToast.promise).mock.lastCall!;

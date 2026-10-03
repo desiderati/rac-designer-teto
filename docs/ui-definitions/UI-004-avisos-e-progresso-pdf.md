@@ -65,12 +65,13 @@ inferior direito com até três avisos visíveis; no celular, no topo central, r
 segura e o limite de dois. Conteúdo longo no celular pode rolar sem ampliar o aviso indefinidamente.
 
 O tempo padrão permanece o da biblioteca quando o fluxo não define duração. Erros emitidos por
-`toast.error`, incluindo falhas de PDF, fecham após 30 segundos de contagem ativa, independentemente
-de uma duração solicitada pelo emissor. Com o mouse sobre a pilha de toasts, o Sonner pausa a
-contagem; ao sair, retoma o tempo restante, sem reiniciar os 30 segundos. O fechamento manual
-continua disponível. `toast.promise`, usado pela vitrine, mantém o ciclo e a duração nativos,
-inclusive no erro. O aviso de atualização da aplicação é persistente e só inicia a atualização pela
-ação existente, que revalida as condições do domínio.
+`toast.error` e pelos estados de erro de `toast.promise`, incluindo falhas de PDF, fecham após 30
+segundos de contagem ativa, independentemente de uma duração solicitada pelo emissor. Com o mouse
+sobre a pilha de toasts, o Sonner pausa a contagem; ao sair, retoma o tempo restante, sem reiniciar
+os 30 segundos. O fechamento manual continua disponível. `toast.promise` mantém callbacks, retorno
+de `unwrap()`, carregamento e duração de sucesso nativos. O host padroniza somente a duração do
+erro, inclusive quando não há mensagem de carregamento. O aviso de atualização da aplicação é
+persistente e só inicia a atualização pela ação existente, que revalida as condições do domínio.
 
 ## PDF com etapas
 

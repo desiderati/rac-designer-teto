@@ -1,4 +1,5 @@
-import {toast as sonnerToast, Toaster as Sonner, type ExternalToast} from 'sonner';
+import {useEffect} from 'react';
+import {toast as sonnerToast, Toaster as Sonner, useSonner, type ExternalToast} from 'sonner';
 import {CircleAlert, CircleCheck, Info, LoaderCircle, TriangleAlert} from 'lucide-react';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {VIEWPORT} from '@/shared/config.ts';
@@ -62,6 +63,18 @@ export function beginToastTask(id: string, loadingTitle: Parameters<typeof toast
 
 const Toaster = ({...props}: ToasterProps) => {
   const isMobile = useIsMobile();
+  const {toasts} = useSonner();
+
+  useEffect(() => {
+    // Promise resolve/reject permanece nativo; só a duração do estado de erro é padronizada.
+    for (const {id} of toasts) {
+      // Eventos são assíncronos: não reabrir um toast já dispensado nem sobrescrever um sucesso posterior.
+      const current = sonnerToast.getToasts().find((entry) => entry.id === id);
+      if (current && 'type' in current && current.type === 'error' && current.duration !== ERROR_TOAST_DURATION) {
+        sonnerToast.error(current.title, {id, duration: ERROR_TOAST_DURATION, dismissible: current.dismissible});
+      }
+    }
+  }, [toasts]);
 
   return (
     <Sonner
