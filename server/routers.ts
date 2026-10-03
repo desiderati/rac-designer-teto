@@ -219,6 +219,7 @@ export const appRouter = router({
     generateHouseIllustration: protectedProcedure
       .input(z.object({
         base64: z.string().min(32).max(MAX_IMAGE_BASE64_LENGTH),
+        wallColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
       }))
       .mutation(async ({ input }) => {
         const pngBytes = decodeBase64Image(input.base64, 'image/png');
@@ -226,7 +227,7 @@ export const appRouter = router({
           prompt: [
             'Transform the supplied 3D house render into a clean architectural watercolor-and-ink illustration for the RAC Designer TETO.',
             'Preserve the house geometry exactly: roof pitch and corrugated roof, facade proportions, every visible window and door, stairs, elevated pilotis, foundation and terrain footprint, camera angle and overall silhouette.',
-            'Use fine dark architectural linework with restrained blue-gray walls, light roof details, soft natural colors and subtle shading.',
+            `Preserve the exact base wall color from the source render${input.wallColor ? `; the mandatory target wall color is ${input.wallColor}; do not shift it toward blue, gray, or another hue` : ''}. Use fine dark architectural linework, light roof details, soft natural colors and subtle shading.`,
             'Output the complete house and foundation as a true transparent PNG with clean alpha edges. The house, roof, windows, door, stairs, pilotis and terrain/grass must be fully opaque and continuous, with no transparent holes or missing patches inside the subject. No background, no checkerboard, no text, no labels, no arrows, no extra buildings, no crop.',
           ].join(' '),
           originalImages: [{b64Json: pngBytes.toString('base64'), mimeType: 'image/png'}],

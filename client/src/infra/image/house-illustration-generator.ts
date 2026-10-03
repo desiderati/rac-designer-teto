@@ -1,6 +1,6 @@
 import {racTrpcClient} from '@/lib/trpc-client.ts';
 import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
-import type {HouseIllustrationPort, HouseIllustrationResult} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
+import type {HouseIllustrationOptions, HouseIllustrationPort, HouseIllustrationResult} from '@/components/rac-editor/ports/HouseIllustrationPort.ts';
 
 export function createHouseIllustrationPort(): HouseIllustrationPort {
   return {
@@ -14,12 +14,16 @@ export function createHouseIllustrationPort(): HouseIllustrationPort {
  * devolve simultaneamente a representação transitória para o Canvas e a
  * referência persistente do Storage Manus.
  */
-export async function generateHouseIllustrationFromDataUrl(dataUrl: string): Promise<HouseIllustrationResult | null> {
+export async function generateHouseIllustrationFromDataUrl(
+  dataUrl: string,
+  options: HouseIllustrationOptions = {},
+): Promise<HouseIllustrationResult | null> {
   const [, base64] = dataUrl.split(',', 2);
   if (!base64) return null;
 
   const result = await racTrpcClient.storage.generateHouseIllustration.mutate({
     base64,
+    wallColor: options.wallColor,
   });
 
   return {

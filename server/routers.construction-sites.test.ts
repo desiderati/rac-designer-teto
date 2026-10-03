@@ -195,7 +195,7 @@ describe('constructionSites procedures', () => {
     const caller = appRouter.createCaller(createContext());
 
     const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-    await expect(caller.storage.generateHouseIllustration({base64}))
+    await expect(caller.storage.generateHouseIllustration({base64, wallColor: '#c4967a'}))
       .resolves.toMatchObject({
         url: '/manus-storage/rac-designer-teto/generated/house-illustration-processed.png',
         dataUrl: expect.stringMatching(/^data:image\/png;base64,/),
@@ -208,6 +208,7 @@ describe('constructionSites procedures', () => {
     expect(imageGeneration.generateImage).toHaveBeenCalledWith(expect.objectContaining({
       model: 'MODEL_GPT_IMAGE_2',
       quality: 'medium',
+      prompt: expect.stringContaining('mandatory target wall color is #c4967a'),
       originalImages: [{
         b64Json: base64,
         mimeType: 'image/png',

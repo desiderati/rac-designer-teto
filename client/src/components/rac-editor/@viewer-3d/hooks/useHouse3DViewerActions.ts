@@ -186,19 +186,36 @@ export function useHouse3DViewerActions({
     setGenerating(true);
 
     try {
+      let imageDataUrl = screenshotDataUrl;
       let storageUrl: string | null = null;
-      if (houseIllustrationPort?.persistDataUrl) {
+      let source: 'illustration' | 'screenshot' = 'screenshot';
+
+      try {
+        const illustration = houseIllustrationPort?.generateFromDataUrl
+          ? await houseIllustrationPort.generateFromDataUrl(screenshotDataUrl, {wallColor})
+          : null;
+        const illustrationDataUrl = illustration?.dataUrl;
+        if (illustrationDataUrl?.startsWith('data:image/')) {
+          imageDataUrl = illustrationDataUrl;
+          storageUrl = illustration.storageUrl;
+          source = 'illustration';
+        }
+      } catch (error) {
+        console.error('[House3DViewer] Falha ao gerar ilustração da casa; usando captura 3D:', error);
+      }
+
+      if (!storageUrl && houseIllustrationPort?.persistDataUrl) {
         try {
           storageUrl = await houseIllustrationPort.persistDataUrl(
-            screenshotDataUrl,
-            'casa-3d-screenshot.png',
+            imageDataUrl,
+            source === 'illustration' ? 'casa-3d-ilustracao.png' : 'casa-3d-screenshot.png',
           );
         } catch (error) {
           console.error('[House3DViewer] Falha ao persistir imagem 3D:', error);
         }
       }
 
-      publishImage({dataUrl: screenshotDataUrl, storageUrl, source: 'screenshot'});
+      publishImage({dataUrl: imageDataUrl, storageUrl, source});
     } catch (error) {
       console.error('[House3DViewer] Falha inesperada ao preparar captura 3D:', error);
       let storageUrl: string | null = null;
@@ -215,7 +232,7 @@ export function useHouse3DViewerActions({
       generationInFlightRef.current = false;
       setGenerating(false);
     }
-  }, [hasHouseViews, houseIllustrationPort, houseType, insertPendingImage, pendingImage, publishImage, setGenerating]);
+  }, [hasHouseViews, houseIllustrationPort, houseType, insertPendingImage, pendingImage, publishImage, setGenerating, wallColor]);
 
   return {
     resetKey,

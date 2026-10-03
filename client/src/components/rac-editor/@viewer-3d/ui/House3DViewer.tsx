@@ -177,13 +177,13 @@ export function House3DViewer({open, onOpenChange, canvasRef, activeHouseId, hou
                 title={isGeneratingIllustration
                   ? 'Preparando imagem 3D…'
                   : hasPendingIllustration
-                    ? 'Inserir captura 3D no Canvas'
-                    : 'Capturar imagem para inserir no Canvas'}
+                    ? 'Inserir imagem 3D no Canvas'
+                    : 'Gerar imagem 3D para inserir no Canvas'}
                 aria-label={isGeneratingIllustration
                   ? 'Preparando imagem 3D'
                   : hasPendingIllustration
-                    ? 'Inserir captura 3D no Canvas'
-                    : 'Capturar imagem para inserir no Canvas'}
+                    ? 'Inserir imagem 3D no Canvas'
+                    : 'Gerar imagem 3D para inserir no Canvas'}
                 onClick={handleInsertOnCanvas}
                 disabled={!canRenderHouse || !isSceneReady || isGeneratingIllustration}
               >

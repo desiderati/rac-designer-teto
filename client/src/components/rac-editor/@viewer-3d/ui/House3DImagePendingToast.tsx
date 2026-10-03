@@ -16,6 +16,7 @@ export function House3DImagePendingToast() {
   if (!isGenerating && !pendingImage && !feedback) return null;
 
   const isScreenshot = pendingImage?.source === 'screenshot';
+  const isIllustration = pendingImage?.source === 'illustration';
   const title = isGenerating
     ? 'Preparando imagem 3D…'
     : isScreenshot
@@ -24,7 +25,9 @@ export function House3DImagePendingToast() {
   const description = isGenerating
     ? 'Você pode continuar editando; a imagem será mantida aqui até você inseri-la ou descartá-la.'
     : feedback ?? (isScreenshot
-      ? 'Captura fiel do viewer 3D, com a cor configurada, pronta para inserir no Canvas ou no PDF.'
+      ? 'A captura 3D foi preservada como fallback, com a cor configurada, pronta para inserir no Canvas ou no PDF.'
+      : isIllustration
+        ? 'Ilustração gerada por IA com a cor configurada do viewer 3D, pronta para inserir no Canvas ou no PDF.'
       : 'A imagem foi preservada. Insira no Canvas ou descarte quando quiser.');
 
   return (

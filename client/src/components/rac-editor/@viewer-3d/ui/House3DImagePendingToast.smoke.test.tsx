@@ -86,7 +86,7 @@ describe('House3DImagePendingToast', () => {
 
     await user.click(screen.getByRole('button', {name: 'preparar imagem'}));
 
-    expect(screen.getByText(/Captura fiel do viewer 3D, com a cor configurada/)).toBeInTheDocument();
+    expect(screen.getByText(/captura 3D foi preservada como fallback, com a cor configurada/)).toBeInTheDocument();
   });
 
   it('insere a imagem no Canvas e remove o toast somente após sucesso', async () => {

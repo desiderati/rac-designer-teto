@@ -68,6 +68,10 @@ describe('useRacEditorPdfExportAction.ts', () => {
     const markActiveHouseRacPrinted = vi.fn();
     const onBeforeExportPdf = vi.fn().mockResolvedValue(undefined);
     const onAfterExportPdf = vi.fn();
+    const generateHouseIllustration = vi.fn().mockResolvedValue({
+      dataUrl: 'data:image/png;base64,illustrated-pdf',
+      storageUrl: '/manus-storage/temp/house-3d/illustration.png',
+    });
     const canvasRef = {
       current: {
         createDocumentPort: () => ({
@@ -94,6 +98,7 @@ describe('useRacEditorPdfExportAction.ts', () => {
           getConstructionSiteSnapshot: vi.fn(() => createConstructionSiteSnapshot()),
           markActiveHouseRacPrinted,
         } as never,
+        houseIllustrationPort: {generateFromDataUrl: generateHouseIllustration} as never,
       })},
     );
 
@@ -111,6 +116,13 @@ describe('useRacEditorPdfExportAction.ts', () => {
     });
 
     expect(onBeforeExportPdf).toHaveBeenCalledTimes(1);
+    expect(generateHouseIllustration).toHaveBeenCalledWith(
+      'data:image/png;base64,3d',
+      {wallColor: '#c4967a'},
+    );
+    expect(pdfMocks.buildRacPdfReportModel).toHaveBeenCalledWith(expect.objectContaining({
+      house3DImageDataUrl: 'data:image/png;base64,illustrated-pdf',
+    }));
     expect(result.current.isPdfPreviewOpen).toBe(true);
     expect(result.current.pdfPreviewUrl).toBe('blob:rac-preview');
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
@@ -475,6 +487,7 @@ function createConstructionSiteSnapshot() {
       pilotiLayout: {points: []},
       drawingDocument: {
         schemaVersion: 1,
+        viewer3D: {cameraPose: null, wallColor: '#c4967a', hideBelowTerrain: true},
         house: {
           id: 'house_state_1',
           houseType: 'tipo6',

@@ -106,7 +106,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(result.current.resetKey).toBe(1);
   });
 
-  it('captura a imagem 3D sem inserir automaticamente e permite inseri-la depois', async () => {
+  it('gera a ilustração 3D com a cor do viewer e permite inseri-la depois', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
@@ -118,8 +118,11 @@ describe('useHouse3DViewerActions.ts', () => {
       },
     };
     const houseIllustrationPort = {
-      generateFromDataUrl: vi.fn(),
-      persistDataUrl: vi.fn().mockResolvedValue('https://example.test/manus-storage/temp/house-3d/screenshot.png'),
+      generateFromDataUrl: vi.fn().mockResolvedValue({
+        storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png',
+        dataUrl: 'data:image/png;base64,illustrated-house',
+      }),
+      persistDataUrl: vi.fn(),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -131,16 +134,19 @@ describe('useHouse3DViewerActions.ts', () => {
       houseIllustrationPort,
     }), {wrapper});
 
-    act(() => result.current.handleCanvasCreated(canvas));
+    act(() => {
+      result.current.setWallColor(HOUSE_3D_WALL_COLOR_BY_NAME.Terracota);
+      result.current.handleCanvasCreated(canvas);
+    });
     await act(async () => {
       await result.current.handleInsertOnCanvas();
     });
 
-    expect(houseIllustrationPort.generateFromDataUrl).not.toHaveBeenCalled();
-    expect(houseIllustrationPort.persistDataUrl).toHaveBeenCalledWith(
+    expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith(
       'data:image/png;base64,3d-screenshot',
-      'casa-3d-screenshot.png',
+      {wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Terracota},
     );
+    expect(houseIllustrationPort.persistDataUrl).not.toHaveBeenCalled();
     expect(insertImageSnapshot).not.toHaveBeenCalled();
     expect(result.current.hasPendingIllustration).toBe(true);
 
@@ -149,21 +155,21 @@ describe('useHouse3DViewerActions.ts', () => {
     });
 
     expect(insertImageSnapshot).toHaveBeenCalledWith(
-      'data:image/png;base64,3d-screenshot',
-      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/screenshot.png'},
+      'data:image/png;base64,illustrated-house',
+      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png'},
     );
     expect(result.current.hasPendingIllustration).toBe(false);
   });
 
-  it('mantém a captura 3D mesmo quando a persistência falha', async () => {
+  it('usa a captura 3D quando a geração IA falha', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
       value: vi.fn(() => 'data:image/png;base64,casa-vermelha'),
     });
     const houseIllustrationPort = {
-      generateFromDataUrl: vi.fn(),
-      persistDataUrl: vi.fn().mockRejectedValue(new Error('Storage indisponível')),
+      generateFromDataUrl: vi.fn().mockRejectedValue(new Error('serviço de ilustração indisponível')),
+      persistDataUrl: vi.fn().mockResolvedValue('/manus-storage/temp/house-3d/fallback.png'),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -175,18 +181,24 @@ describe('useHouse3DViewerActions.ts', () => {
       houseIllustrationPort,
     }), {wrapper});
 
-    act(() => result.current.handleCanvasCreated(canvas));
+    act(() => {
+      result.current.setWallColor(HOUSE_3D_WALL_COLOR_BY_NAME.Terracota);
+      result.current.handleCanvasCreated(canvas);
+    });
     await act(async () => result.current.handleInsertOnCanvas());
     await act(async () => result.current.handleInsertOnCanvas());
 
-    expect(houseIllustrationPort.generateFromDataUrl).not.toHaveBeenCalled();
+    expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith(
+      'data:image/png;base64,casa-vermelha',
+      {wallColor: HOUSE_3D_WALL_COLOR_BY_NAME.Terracota},
+    );
     expect(houseIllustrationPort.persistDataUrl).toHaveBeenCalledWith(
       'data:image/png;base64,casa-vermelha',
       'casa-3d-screenshot.png',
     );
     expect(insertImageSnapshot).toHaveBeenCalledWith(
       'data:image/png;base64,casa-vermelha',
-      {storageUrl: null},
+      {storageUrl: '/manus-storage/temp/house-3d/fallback.png'},
     );
   });
 

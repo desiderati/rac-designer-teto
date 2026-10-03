@@ -18,6 +18,10 @@ import {
 import {requestChunkRecovery, recordPdfExportTelemetry} from '@/shared/lib/runtime-resilience.ts';
 import {cacheRacPdf, getCachedRacPdf, getRacPdfFingerprint} from '@/components/rac-editor/lib/rac-pdf-cache.ts';
 import {
+  getHouse3DViewerPreferencesStorageKey,
+  readHouse3DViewerPreferences,
+} from '@/components/rac-editor/@viewer-3d/lib/viewer-preferences.ts';
+import {
   RAC_PDF_EXPORT_STEPS,
   RacPdfExportProgress,
   createInitialRacPdfExportStatuses,
@@ -77,7 +81,7 @@ export function useRacEditorPdfExportAction({
   onBeforeExportPdf,
   onAfterExportPdf,
 }: UseRacEditorPdfExportActionArgs) {
-  const {constructionSiteManagementPort} = useEditorPorts();
+  const {constructionSiteManagementPort, houseIllustrationPort} = useEditorPorts();
   const [pdfExportChecklist, setPdfExportChecklist] = useState<RacPdfExportChecklist | null>(null);
   const [isPdfExportChecklistOpen, setIsPdfExportChecklistOpen] = useState(false);
   const [isPdfExporting, setIsPdfExporting] = useState(false);
@@ -208,8 +212,24 @@ export function useRacEditorPdfExportAction({
       }
 
       updateProgressToast('capture-3d');
-      const house3DImageDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
-      if (!house3DImageDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
+      const house3DScreenshotDataUrl = await house3DPdfSnapshotRef.current?.captureImageDataUrl() ?? null;
+      if (!house3DScreenshotDataUrl) throw new Error('Não foi possível capturar a visualização 3D da casa.');
+      let house3DImageDataUrl = house3DScreenshotDataUrl;
+      try {
+        const wallColor = house?.drawingDocument.viewer3D?.wallColor
+          ?? (house ? readHouse3DViewerPreferences(getHouse3DViewerPreferencesStorageKey(house.id)).wallColor : undefined);
+        const illustration = houseIllustrationPort?.generateFromDataUrl
+          ? await houseIllustrationPort.generateFromDataUrl(
+            house3DScreenshotDataUrl,
+            {wallColor},
+          )
+          : null;
+        if (illustration?.dataUrl?.startsWith('data:image/')) {
+          house3DImageDataUrl = illustration.dataUrl;
+        }
+      } catch (error) {
+        console.error('[useRacEditorPdfExportAction] Falha ao gerar ilustração 3D para o PDF; usando captura:', error);
+      }
       updateProgressToast('prepare-photos');
       const photos = await prepareRacPdfReportPhotos(constructionSite);
       updateProgressToast('build-report-model');
@@ -266,7 +286,7 @@ export function useRacEditorPdfExportAction({
     } finally {
       setIsPdfExporting(false);
     }
-  }, [buildCurrentChecklist, canvasRef, constructionSiteManagementPort, house3DPdfSnapshotRef]);
+  }, [buildCurrentChecklist, canvasRef, constructionSiteManagementPort, house3DPdfSnapshotRef, houseIllustrationPort]);
 
   const handleSavePDF = useCallback(async () => {
     recordPdfExportTelemetry('checklist_started');
