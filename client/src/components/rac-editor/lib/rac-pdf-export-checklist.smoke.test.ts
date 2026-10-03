@@ -8,6 +8,27 @@ import {
 } from '@/components/rac-editor/lib/rac-pdf-export-checklist.ts';
 
 describe('rac-pdf-export-checklist.ts', () => {
+  it.each(['stairBeams', 'floorBeams', 'rafters', 'secondaryBeams', 'gutters', 'gutterCount', 'gutterCaps', 'gutterElbows', 'bracing'] as const)(
+    'recomenda justificativa para quantidade positiva isolada em %s', (field) => {
+      const site = createCompleteConstructionSite();
+      const pending = () => buildRacPdfExportChecklist(site).missingRecommendedItems.map((item) => item.id);
+      site.houses[0].extraMaterials = {[field]: 3, justification: '  '};
+      expect(pending()).toContain('extra-materials-justification');
+      expect(buildRacPdfExportChecklist(site).hasBlockingItems).toBe(false);
+      site.houses[0].extraMaterials.justification = 'Reforço necessário.';
+      expect(pending()).not.toContain('extra-materials-justification');
+      site.houses[0].extraMaterials = {[field]: 0};
+      expect(pending()).not.toContain('extra-materials-justification');
+    },
+  );
+
+  it('não trata opções sem quantidade como material que exige justificativa', () => {
+    const site = createCompleteConstructionSite();
+    site.houses[0].extraMaterials = {asphaltBlanket: true, stairType: 'access_ramp'};
+    expect(buildRacPdfExportChecklist(site).missingRecommendedItems.map((item) => item.id))
+      .not.toContain('extra-materials-justification');
+  });
+
   it('bloqueia exportação quando não há construção/casa mínima', () => {
     const checklist = buildRacPdfExportChecklist(null);
 

@@ -282,9 +282,14 @@ function hasExtraMaterialCount(house: PersistedHouseRecord | null): boolean {
   if (!extraMaterials) return false;
 
   return [
+    extraMaterials.stairBeams,
     extraMaterials.floorBeams,
     extraMaterials.rafters,
     extraMaterials.secondaryBeams,
     extraMaterials.gutters,
+    extraMaterials.gutterCount,
+    extraMaterials.gutterCaps,
+    extraMaterials.gutterElbows,
+    extraMaterials.bracing,
   ].some((value) => Number.isInteger(value) && value > 0);
 }
