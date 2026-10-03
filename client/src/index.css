@@ -72,6 +72,10 @@
     color: var(--rac-toast-state);
 }
 
+.toaster [data-sonner-toast] [data-icon] svg {
+    margin: 0;
+}
+
 .toaster [data-sonner-toast] [data-content] { grid-column: 2; min-width: 0; }
 .toaster [data-sonner-toast] [data-title] { font-size: 14px; font-weight: 700; line-height: 1.3; }
 .toaster [data-sonner-toast] [data-description] { margin-top: 4px; color: inherit; font-size: 12px; line-height: 1.5; }
