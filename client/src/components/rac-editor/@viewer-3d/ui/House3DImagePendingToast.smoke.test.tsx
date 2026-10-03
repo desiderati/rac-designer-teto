@@ -2,15 +2,17 @@ import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useEffect} from 'react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {House3DImageInsertionProvider, useHouse3DImageInsertion} from '@/contexts/House3DImageInsertionContext.tsx';
+import {House3DImageInsertionProvider, useHouse3DImageInsertion, type PendingHouse3DImage} from '@/contexts/House3DImageInsertionContext.tsx';
 import {House3DImagePendingToast} from './House3DImagePendingToast.tsx';
 
 function PendingToastHarness({
   registerCanvas = false,
   insertImageSnapshot = vi.fn().mockResolvedValue(true),
+  source = 'illustration',
 }: {
   registerCanvas?: boolean;
   insertImageSnapshot?: ReturnType<typeof vi.fn>;
+  source?: PendingHouse3DImage['source'];
 }) {
   const {publishImage, registerCanvasGetter} = useHouse3DImageInsertion();
   const canvas = {
@@ -29,7 +31,7 @@ function PendingToastHarness({
         onClick={() => publishImage({
           dataUrl: 'data:image/png;base64,illustrated-house',
           storageUrl: '/manus-storage/temp/house-3d/illustration.png',
-          source: 'illustration',
+          source,
         })}
       >
         preparar imagem
@@ -72,6 +74,19 @@ describe('House3DImagePendingToast', () => {
 
     expect(screen.getByRole('button', {name: 'Inserir'})).toHaveClass('w-full');
     expect(screen.getByRole('button', {name: 'Descartar'})).toHaveClass('w-full');
+  });
+
+  it('informa que a captura fiel preserva a cor do viewer 3D', async () => {
+    const user = userEvent.setup();
+    render(
+      <House3DImageInsertionProvider>
+        <PendingToastHarness source='screenshot'/>
+      </House3DImageInsertionProvider>,
+    );
+
+    await user.click(screen.getByRole('button', {name: 'preparar imagem'}));
+
+    expect(screen.getByText(/Captura fiel do viewer 3D, com a cor configurada/)).toBeInTheDocument();
   });
 
   it('insere a imagem no Canvas e remove o toast somente após sucesso', async () => {

@@ -5,7 +5,7 @@ import type {CanvasSnapshotHandle} from '@/components/rac-editor/@canvas/ports/C
 export type PendingHouse3DImage = {
   dataUrl: string;
   storageUrl: string | null;
-  source: 'illustration' | 'fallback';
+  source: 'illustration' | 'screenshot';
 };
 
 type House3DCanvasHandle = CanvasSnapshotHandle & {

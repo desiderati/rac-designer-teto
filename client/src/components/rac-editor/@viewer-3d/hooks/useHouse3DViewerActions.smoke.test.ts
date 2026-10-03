@@ -106,7 +106,7 @@ describe('useHouse3DViewerActions.ts', () => {
     expect(result.current.resetKey).toBe(1);
   });
 
-  it('gera a ilustração 3D sem inserir automaticamente e permite inseri-la depois', async () => {
+  it('captura a imagem 3D sem inserir automaticamente e permite inseri-la depois', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
@@ -118,10 +118,8 @@ describe('useHouse3DViewerActions.ts', () => {
       },
     };
     const houseIllustrationPort = {
-      generateFromDataUrl: vi.fn().mockResolvedValue({
-        storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png',
-        dataUrl: 'data:image/png;base64,illustrated-house',
-      }),
+      generateFromDataUrl: vi.fn(),
+      persistDataUrl: vi.fn().mockResolvedValue('https://example.test/manus-storage/temp/house-3d/screenshot.png'),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -138,7 +136,11 @@ describe('useHouse3DViewerActions.ts', () => {
       await result.current.handleInsertOnCanvas();
     });
 
-    expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith('data:image/png;base64,3d-screenshot');
+    expect(houseIllustrationPort.generateFromDataUrl).not.toHaveBeenCalled();
+    expect(houseIllustrationPort.persistDataUrl).toHaveBeenCalledWith(
+      'data:image/png;base64,3d-screenshot',
+      'casa-3d-screenshot.png',
+    );
     expect(insertImageSnapshot).not.toHaveBeenCalled();
     expect(result.current.hasPendingIllustration).toBe(true);
 
@@ -147,21 +149,21 @@ describe('useHouse3DViewerActions.ts', () => {
     });
 
     expect(insertImageSnapshot).toHaveBeenCalledWith(
-      'data:image/png;base64,illustrated-house',
-      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/illustration.png'},
+      'data:image/png;base64,3d-screenshot',
+      {storageUrl: 'https://example.test/manus-storage/temp/house-3d/screenshot.png'},
     );
     expect(result.current.hasPendingIllustration).toBe(false);
   });
 
-  it('usa o screenshot quando a geração da ilustração falha', async () => {
+  it('mantém a captura 3D mesmo quando a persistência falha', async () => {
     const insertImageSnapshot = vi.fn().mockResolvedValue(true);
     const canvas = document.createElement('canvas');
     Object.defineProperty(canvas, 'toDataURL', {
       value: vi.fn(() => 'data:image/png;base64,casa-vermelha'),
     });
     const houseIllustrationPort = {
-      generateFromDataUrl: vi.fn().mockRejectedValue(new Error('serviço de ilustração indisponível')),
-      persistDataUrl: vi.fn().mockResolvedValue('/manus-storage/temp/house-3d/fallback.png'),
+      generateFromDataUrl: vi.fn(),
+      persistDataUrl: vi.fn().mockRejectedValue(new Error('Storage indisponível')),
     };
     const {result} = renderHook(() => useHouse3DViewerActions({
       houseType: 'tipo6',
@@ -177,14 +179,14 @@ describe('useHouse3DViewerActions.ts', () => {
     await act(async () => result.current.handleInsertOnCanvas());
     await act(async () => result.current.handleInsertOnCanvas());
 
-    expect(houseIllustrationPort.generateFromDataUrl).toHaveBeenCalledWith('data:image/png;base64,casa-vermelha');
+    expect(houseIllustrationPort.generateFromDataUrl).not.toHaveBeenCalled();
     expect(houseIllustrationPort.persistDataUrl).toHaveBeenCalledWith(
       'data:image/png;base64,casa-vermelha',
-      'casa-3d-fallback.png',
+      'casa-3d-screenshot.png',
     );
     expect(insertImageSnapshot).toHaveBeenCalledWith(
       'data:image/png;base64,casa-vermelha',
-      {storageUrl: '/manus-storage/temp/house-3d/fallback.png'},
+      {storageUrl: null},
     );
   });
 

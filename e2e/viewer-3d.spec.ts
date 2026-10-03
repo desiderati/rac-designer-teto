@@ -68,10 +68,10 @@ test.describe('RAC 3D viewer', () => {
     await expect(page.locator('button[title="Sair do Fullscreen"]')).toBeVisible();
 
     await expect.poll(async () => page.locator('canvas').count()).toBeGreaterThan(1);
-    const insertButton = page.locator('button[title="Gerar imagem para inserir no Canvas"]');
+    const insertButton = page.locator('button[title="Capturar imagem para inserir no Canvas"]');
     await expect(insertButton).toBeEnabled();
     await insertButton.click();
-    const pendingImageButton = page.locator('button[title="Inserir imagem gerada no Canvas"]');
+    const pendingImageButton = page.locator('button[title="Inserir captura 3D no Canvas"]');
     await expect(pendingImageButton).toBeEnabled({timeout: 10000});
     await pendingImageButton.click();
 
