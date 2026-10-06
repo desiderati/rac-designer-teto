@@ -11,6 +11,32 @@ import {
 } from '@/components/rac-editor/@modals/ui/editors/nivel-input-format.ts';
 
 describe('NivelSlider.tsx', () => {
+  it('foca no fim do valor ao abrir ou trocar o piloti e respeita o campo desabilitado', () => {
+    const props = {nivel: 0.2, minNivel: 0.2, maxNivel: 1.75, onNivelIncrement: vi.fn(), onNivelChange: vi.fn(), enableInput: true, autoFocusInput: true};
+    const {rerender} = render(<NivelSlider {...props} focusKey='P1'/>);
+    const input = screen.getByLabelText('Nível do piloti em metros');
+    const expectCaretAtEnd = () => {
+      expect(input).toHaveFocus();
+      const range = window.getSelection()!.getRangeAt(0);
+      expect(range.collapsed).toBe(true);
+      const remaining = document.createRange();
+      remaining.selectNodeContents(input);
+      remaining.setStart(range.endContainer, range.endOffset);
+      expect(remaining.toString()).toBe('');
+    };
+    expectCaretAtEnd();
+    const start = document.createRange();
+    start.selectNodeContents(input);
+    start.collapse(true);
+    window.getSelection()!.removeAllRanges();
+    window.getSelection()!.addRange(start);
+    rerender(<NivelSlider {...props} nivel={1.2} focusKey='P2'/>);
+    expectCaretAtEnd();
+    input.blur();
+    rerender(<NivelSlider {...props} focusKey='P3' disabled/>);
+    expect(input).not.toHaveFocus();
+  });
+
   it('normaliza a máscara N,NN a partir de dígitos', () => {
     expect(sanitizeNivelInputDigits('a1,20b')).toBe('120');
     expect(formatNivelInputDigits('7')).toBe('0,07');

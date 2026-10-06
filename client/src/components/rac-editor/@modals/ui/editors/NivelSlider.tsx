@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {KeyboardEvent} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faMinus, faPlus} from '@fortawesome/free-solid-svg-icons';
@@ -57,11 +57,7 @@ export function NivelSlider({
     setInputDigits(nivelToInputDigits(nivel));
   }, [nivel]);
 
-  useEffect(() => {
-    if (autoFocusInput && enableInput && !disabled) editableNivelRef.current?.focus({preventScroll: true});
-  }, [autoFocusInput, disabled, enableInput, focusKey]);
-
-  const moveCaretToEnd = () => {
+  const moveCaretToEnd = useCallback(() => {
     const element = editableNivelRef.current;
     const selection = window.getSelection?.();
     if (!element || !selection || !document.createRange) return;
@@ -71,7 +67,14 @@ export function NivelSlider({
     range.collapse(false);
     selection.removeAllRanges();
     selection.addRange(range);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (autoFocusInput && enableInput && !disabled) {
+      editableNivelRef.current?.focus({preventScroll: true});
+      moveCaretToEnd();
+    }
+  }, [autoFocusInput, disabled, enableInput, focusKey, moveCaretToEnd]);
 
   const replaceEditableText = (text: string) => {
     const element = editableNivelRef.current;
