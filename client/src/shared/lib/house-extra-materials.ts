@@ -9,7 +9,7 @@ export const EXTRA_MATERIAL_LABELS = [
 ] as const;
 
 export const STAIR_TYPE_LABELS: Record<StairType, string> = {
-  straight: 'Escada Reta', landing: 'Escada com Patamar', access_ramp: 'Rampa de Acesso',
+  straight: 'Reta', landing: 'Com Patamar', access_ramp: 'Rampa de Acesso',
 };
 
 export function getExtraMaterialSummary(materials?: HouseExtraMaterials) {

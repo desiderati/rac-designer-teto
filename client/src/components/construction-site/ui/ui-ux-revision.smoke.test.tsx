@@ -82,7 +82,10 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     render(<HouseConfigurationScreen mode='edit' constructionSite={site} house={house} onSave={onSave}/>);
     expect(screen.getAllByTestId('house-section-divider')).toHaveLength(6);
     const trigger = screen.getByRole('button', {name: 'Alternar seção Materiais Extras'});
-    expect(trigger).toHaveTextContent('07');
+    expect(trigger).toHaveTextContent('06');
+    const location = screen.getByRole('button', {name: 'Alternar seção Características do Local'});
+    expect(location).toHaveTextContent('07');
+    expect(trigger.compareDocumentPosition(location) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await user.click(screen.getByRole('tab', {name: 'Telhado'}));
     fireEvent.change(screen.getByLabelText('Joelhos'), {target: {value: '12'}});
     await user.click(screen.getByRole('tab', {name: 'Casa'}));
@@ -93,6 +96,15 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     await user.click(screen.getByRole('tab', {name: /Telhado/}));
     expect(screen.getByLabelText('Joelhos')).toHaveValue('12');
     expect(screen.queryByRole('heading', {name: 'Benfeitorias Telhado'})).not.toBeInTheDocument();
+  });
+
+  it.each([['straight', 'Reta'], ['landing', 'Com Patamar']] as const)('abrevia %s no resumo sem alterar o valor salvo', async (stairType, label) => {
+    render(<HouseMaterialsSummary familyName='Família teste' materials={{stairType}}/>);
+    const trigger = screen.getByRole('button', {name: /Resumo dos materiais extras/});
+    await userEvent.click(trigger);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(within(tooltip).getByText(label)).toBeVisible();
+    expect(within(tooltip).getAllByTestId('materials-summary-divider')).toHaveLength(2);
   });
 
   it('abre a aba com erro ao salvar e permite navegar entre abas pelo teclado', async () => {

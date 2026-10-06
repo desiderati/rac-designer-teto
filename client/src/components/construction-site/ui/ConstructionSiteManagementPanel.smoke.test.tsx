@@ -674,7 +674,9 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
       .toHaveAttribute('data-guided-tour-id', 'rac-house-extra-materials');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
-      .toHaveClass('rounded-full', 'bg-amber-100', 'hover:bg-amber-200', 'hover:text-amber-800');
+      .toHaveClass('rounded-full', 'bg-transparent', 'text-slate-400', 'cursor-pointer', 'transition-colors', 'hover:bg-amber-100', 'hover:text-amber-800');
+    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
+      .not.toHaveClass('text-amber-700', 'text-amber-800', 'bg-amber-100');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'}))
       .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
@@ -932,13 +934,43 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.activateHouse).toHaveBeenLastCalledWith('construction_site_1', 'house_1');
   });
 
-  it('volta diretamente ao Canvas ao sair do cadastro aberto pelo menu do editor', async () => {
+  it('volta à listagem pelo botão esquerdo no cadastro aberto pelo Canvas', async () => {
     const user = userEvent.setup();
     const onBackToCanvas = vi.fn();
     renderPanel({initialScreen: 'house-create', onBackToCanvas, canOpenRacEditor: true});
     expect(screen.getByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
-    expect(onBackToCanvas).toHaveBeenCalledOnce();
+    expect(onBackToCanvas).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', {name: 'Construções TETO', level: 1})).toBeVisible();
+  });
+
+  it('retorna à última casa do Canvas pelo botão direito sem ativar a casa não salva', async () => {
+    const user = userEvent.setup();
+    const actions = createActions();
+    const onBackToCanvas = vi.fn();
+    renderPanel({actions, initialScreen: 'house-create', onBackToCanvas, canOpenRacEditor: true});
+    const canvasButton = screen.getByRole('button', {name: 'Abrir Canvas da casa'});
+    fireEvent.change(screen.getByLabelText('Nome da Família'), {target: {value: 'Ainda não salva'}});
+    await user.click(canvasButton);
+    await expectUnsavedChangesDialog(user);
+    expect(onBackToCanvas).not.toHaveBeenCalled();
+    await user.click(canvasButton);
+    await confirmUnsavedChangesExit(user);
+    await waitFor(() => expect(onBackToCanvas).toHaveBeenCalledWith(false));
+    expect(actions.activateHouse).not.toHaveBeenCalled();
+    expect(actions.createHouse).not.toHaveBeenCalled();
+  });
+
+  it('oferece retorno ao Canvas de origem mesmo quando a construção de destino ainda não tem casa', async () => {
+    const onBackToCanvas = vi.fn();
+    renderPanel({initialScreen: 'house-create', onBackToCanvas, canOpenRacEditor: false});
+    await userEvent.click(screen.getByRole('button', {name: 'Abrir Canvas da casa'}));
+    expect(onBackToCanvas).toHaveBeenCalledWith(false);
+  });
+
+  it('não oferece retorno ao Canvas sem uma ação de retorno disponível', () => {
+    renderPanel({initialScreen: 'house-create', canOpenRacEditor: false});
+    expect(screen.queryByRole('button', {name: 'Abrir Canvas da casa'})).not.toBeInTheDocument();
   });
 
   it('lista monitores ativos por padrão', async () => {
@@ -1686,7 +1718,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(await screen.findByRole('heading', {name: 'Configuração da Casa', level: 1})).toBeVisible();
     expect(screen.getByRole('heading', {name: 'Materiais Extras'})).toBeVisible();
     expect(screen.getByTestId('house-configuration-form')).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveTextContent('07');
+    expect(screen.getByRole('button', {name: 'Alternar seção Materiais Extras'})).toHaveTextContent('06');
     expect(screen.getByLabelText('Vigas p/ Escada')).toHaveValue('12');
     expect(screen.getByLabelText('Caibros')).toHaveValue('24');
     expect(screen.getByLabelText('Secundárias')).toHaveValue('8');

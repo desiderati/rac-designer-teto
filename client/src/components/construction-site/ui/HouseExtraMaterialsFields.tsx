@@ -9,6 +9,7 @@ import {TextArea, TextField, VisualSelectField} from '@/components/construction-
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.tsx';
 import type {VisualSelectOption} from '@/components/construction-site/ui/lib/types.ts';
 import type {StairType} from '@/shared/types/construction-site.ts';
+import {STAIR_TYPE_LABELS} from '@/shared/lib/house-extra-materials.ts';
 
 type IntegerFieldName = keyof Pick<HouseExtraMaterialsFormValues,
   'stairBeams' | 'rafters' | 'secondaryBeams' | 'gutters' | 'gutterCount' | 'gutterCaps' | 'gutterElbows' | 'bracing'>;
@@ -107,9 +108,9 @@ function normalizeIntegerDraft(value: string, previousValue: string): string {
 
 const STAIR_OPTIONS: VisualSelectOption<StairType | ''>[] = [
   {value: '', label: 'Sem escada', triggerLabel: '', ariaLabel: 'Sem escada'},
-  {value: 'straight', label: 'Escada Reta'},
-  {value: 'landing', label: 'Escada com Patamar'},
-  {value: 'access_ramp', label: 'Rampa de Acesso'},
+  {value: 'straight', label: STAIR_TYPE_LABELS.straight},
+  {value: 'landing', label: STAIR_TYPE_LABELS.landing},
+  {value: 'access_ramp', label: STAIR_TYPE_LABELS.access_ramp},
 ];
 
 const ASPHALT_OPTIONS: VisualSelectOption<'yes' | 'no'>[] = [

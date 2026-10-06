@@ -256,8 +256,8 @@ export function useConstructionSiteManagementNavigation({
       return;
     }
 
-    if (screen === 'house-create' && initialScreen === 'house-create' && onBackToCanvas) {
-      onBackToCanvas();
+    if (screen === 'house-create' && initialScreen === 'house-create') {
+      showConstructionList();
       return;
     }
 
