@@ -25,7 +25,8 @@ function createGeometryStrategy(kind: GeometryKind): ElementStrategy {
       const label = new IText('', {
         fontSize: CANVAS_STYLE.fontSize, fontFamily: CANVAS_STYLE.fontFamily,
         fill: color, originX: 'center', originY: 'center', textAlign: 'center',
-        left: 0, top: kind === 'triangle' ? 86 / 2 + 18 : 88 / 2 + 18,
+        left: 0, top: kind === 'triangle' ? 86 * 0.22 : 0,
+        visible: false,
         selectable: false, evented: false,
       });
       const group = new FabricGroup([

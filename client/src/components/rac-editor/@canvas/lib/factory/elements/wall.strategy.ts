@@ -37,7 +37,7 @@ export const wallStrategy: ElementStrategy = {
       selectable: false,
       evented: false,
     });
-    textLabel.set({left: 0, top: height / 2 + 18});
+    textLabel.set({left: 0, top: 0, visible: false});
     const textLabelObject = setCanvasObjectMyType(textLabel, 'wallLabel');
 
     const bricks = createWallBricks(width, height);
@@ -59,10 +59,12 @@ export function bindWallCanvasGroupScaling(canvasGroup: CanvasGroup): void {
   if (typeof canvasGroup.on !== 'function') return;
 
   withScalingGuard(canvasGroup, function (this: CanvasGroup) {
+    const body = this.getCanvasObjects().find((child) => child.myType === 'wallBody');
+    if (!body) return;
     normalizeWallCanvasGroupToSize(
       this,
-      (this.width || 1) * (this.scaleX || 1),
-      (this.height || 1) * (this.scaleY || 1)
+      (body.width || 1) * (this.scaleX || 1),
+      (body.height || 1) * (this.scaleY || 1)
     );
   });
 }
@@ -75,8 +77,11 @@ export function normalizeWallCanvasGroupToSize(
   const normalizedWidth = Math.max(newWidth, 1);
   const normalizedHeight = Math.max(newHeight, 1);
   const children = canvasGroup.getCanvasObjects?.() ?? [];
-  const widthRatio = normalizedWidth / Math.max(canvasGroup.width || 1, 1);
-  const heightRatio = normalizedHeight / Math.max(canvasGroup.height || 1, 1);
+  const body = children.find((child) => child.myType === 'wallBody');
+  if (!body) return;
+  const bodyCenter = body.getCenterPoint?.();
+  const brickLayout = createWallBrickLayout(normalizedWidth, normalizedHeight);
+  let brickIndex = 0;
 
   children.forEach((child) => {
     if (child.myType === 'wallBody') {
@@ -92,10 +97,7 @@ export function normalizeWallCanvasGroupToSize(
       });
     } else if (child.myType === 'wallBrick') {
       child.set({
-        left: (child.left || 0) * widthRatio,
-        top: (child.top || 0) * heightRatio,
-        width: (child.width || 1) * widthRatio,
-        height: (child.height || 1) * heightRatio,
+        ...brickLayout[brickIndex++],
         scaleX: 1,
         scaleY: 1,
       });
@@ -103,7 +105,8 @@ export function normalizeWallCanvasGroupToSize(
       const label = child as IText;
       label.set({
         left: 0,
-        top: normalizedHeight / 2 + 18,
+        top: label.text?.trim() ? normalizedHeight / 2 + 18 : 0,
+        visible: Boolean(label.text?.trim()),
         scaleX: 1,
         scaleY: 1,
         fontSize: CANVAS_STYLE.fontSize,
@@ -112,33 +115,51 @@ export function normalizeWallCanvasGroupToSize(
   });
 
   canvasGroup.set({width: normalizedWidth, height: normalizedHeight, scaleX: 1, scaleY: 1});
+  canvasGroup.triggerLayout?.();
+  if (bodyCenter) {
+    const nextCenter = body.getCenterPoint();
+    canvasGroup.set({
+      left: canvasGroup.left + bodyCenter.x - nextCenter.x,
+      top: canvasGroup.top + bodyCenter.y - nextCenter.y,
+    });
+  }
+  canvasGroup.setCoords?.();
 }
 
-function createWallBricks(width: number, height: number): CanvasObject[] {
+function createWallBrickLayout(width: number, height: number) {
   const rows = 3;
   const rowHeight = height / rows;
   const brickWidth = width / 4;
-  const bricks: CanvasObject[] = [];
+  const bricks: Array<{left: number; top: number; width: number; height: number}> = [];
   for (let row = 0; row < rows; row += 1) {
     const offset = row % 2 === 0 ? 0 : brickWidth / 2;
-    for (let left = -width / 2 - offset; left < width / 2; left += brickWidth) {
+    const columns = row % 2 === 0 ? 4 : 5;
+    for (let column = 0; column < columns; column += 1) {
+      const left = -width / 2 - offset + column * brickWidth;
       const start = Math.max(left, -width / 2);
       const end = Math.min(left + brickWidth, width / 2);
-      if (end - start < 2) continue;
-      bricks.push(setCanvasObjectMyType(new Rect({
+      bricks.push({
         left: (start + end) / 2,
         top: -height / 2 + rowHeight * (row + 0.5),
-        width: end - start - 2,
-        height: rowHeight - 2,
-        fill: row % 2 === 0 ? '#cb7956' : '#d58a62',
-        stroke: '#f4dfc8',
-        strokeWidth: 1,
-        originX: 'center', originY: 'center',
-        selectable: false, evented: false,
-      }), 'wallBrick'));
+        width: Math.max(end - start - 2, 0.1),
+        height: Math.max(rowHeight - 2, 0.1),
+      });
     }
   }
   return bricks;
+}
+
+function createWallBricks(width: number, height: number): CanvasObject[] {
+  return createWallBrickLayout(width, height).map((layout, index) =>
+    setCanvasObjectMyType(new Rect({
+      ...layout,
+      fill: index >= 4 && index < 9 ? '#d58a62' : '#cb7956',
+      stroke: '#f4dfc8',
+      strokeWidth: 1,
+      originX: 'center', originY: 'center',
+      selectable: false, evented: false,
+    }), 'wallBrick'),
+  );
 }
 
 export function toPastelWallFill(color: string): string {
