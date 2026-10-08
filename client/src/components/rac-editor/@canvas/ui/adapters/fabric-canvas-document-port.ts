@@ -90,6 +90,7 @@ const resourceKeys = [
   'cropY',
 ] as const;
 const EXTERNAL_IMAGE_PROBE_TIMEOUT_MS = 2500;
+const TRANSPARENT_IMAGE_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
 const metadataKeys = canvasObjectProps.filter((key) => key !== 'myType' && key !== 'editorObjectId');
 const exportVisualStyleKeys = ['fill', 'stroke', 'strokeWidth', 'strokeUniform', 'hoverCursor'] as const;
@@ -474,7 +475,15 @@ async function hydrateProtectedImages(payload: Record<string, unknown>): Promise
   const result = {...payload};
   if (typeof result.src === 'string' && isProtectedImageSource(result.src)) {
     result.storageUrl = result.storageUrl ?? result.src;
-    result.src = await resolveProtectedImageSource(result.src);
+    try {
+      result.src = await resolveProtectedImageSource(result.src);
+    } catch (error) {
+      // Uma foto protegida não pode impedir que paredes, portas e demais
+      // objetos vetoriais sejam restaurados. O recurso continua referenciado
+      // em storageUrl para que uma nova hidratação possa tentar carregá-lo.
+      console.debug('[Canvas] Imagem protegida indisponível durante a hidratação; mantendo o desenho restante.', error);
+      result.src = TRANSPARENT_IMAGE_DATA_URL;
+    }
   }
   if (Array.isArray(result.objects)) {
     result.objects = await Promise.all(result.objects.map(hydrateProtectedImages));

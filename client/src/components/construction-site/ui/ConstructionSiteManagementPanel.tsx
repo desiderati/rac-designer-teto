@@ -51,10 +51,10 @@ const CONSTRUCTION_ACTIONS_TOUR_SEGMENT = {
   eventName: 'rac:construction-actions-tour-ready',
   kind: 'construction-actions',
   persistKey: 'guided-tour:rac-construction-actions:completed',
-  storageRevision: 'construction-actions-v2',
+  storageRevision: 'construction-actions-v3',
   targetIds: [
     'rac-construction-monitors',
-    'rac-construction-houses',
+    'rac-construction-edit',
     'rac-construction-export-racs',
     'rac-construction-completed',
     'rac-construction-archive',

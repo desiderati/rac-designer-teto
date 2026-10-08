@@ -57,15 +57,23 @@ describe('fabric-canvas-document-port.ts', () => {
     expect(failed.hasOmittedRasterSources).toBe(true);
   });
 
-  it('preserva o canvas atual quando uma imagem privada não pode ser autenticada', async () => {
+  it('preserva o restante do desenho quando uma imagem privada não pode ser autenticada', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: false, status: 401}));
-    const canvas = {clear: vi.fn(), loadFromJSON: vi.fn()};
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
     await expect(createFabricCanvasDocumentPort(canvas as never).loadCanvasDocument({
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
       objects: [{id: 'private', kind: 'image', shape: 'image', resource: {src: '/manus-storage/private.png'}}],
-    })).rejects.toThrow('imagem protegida');
-    expect(canvas.clear).not.toHaveBeenCalled();
-    expect(canvas.loadFromJSON).not.toHaveBeenCalled();
+    })).resolves.toBe(true);
+    expect(canvas.clear).toHaveBeenCalledOnce();
+    expect(canvas.loadFromJSON).toHaveBeenCalledWith({
+      objects: [expect.objectContaining({src: expect.stringMatching(/^data:image\/gif;base64,/)})],
+    });
   });
 
   it('serializa o canvas como documento visual canônico', () => {

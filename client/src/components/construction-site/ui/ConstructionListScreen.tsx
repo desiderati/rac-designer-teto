@@ -1,6 +1,6 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {Download, Home, UsersRound} from 'lucide-react';
+import {Download, Pencil, UsersRound} from 'lucide-react';
 import type {ConstructionSiteStatus, ConstructionSiteSummary} from '@/shared/types/construction-site.ts';
 import {cn} from '@/components/rac-editor/lib/utils.ts';
 import {
@@ -226,8 +226,13 @@ export function ConstructionMobileCard({
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
   const isArchived = summary.status === 'archived';
-  const openConstruction = () => {
+  const openConstructionHouses = () => {
     if (isArchived) return;
+    void onOpenConstructionHouses(summary);
+  };
+
+  const editConstruction = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     void onOpenConstruction(summary);
   };
 
@@ -262,11 +267,6 @@ export function ConstructionMobileCard({
     void onOpenConstructionMonitors(summary);
   };
 
-  const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    void onOpenConstructionHouses(summary);
-  };
-
   const exportRacsZip = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!canExportRacsZip || isExportingRacsZip) return;
@@ -278,12 +278,12 @@ export function ConstructionMobileCard({
       data-testid='construction-mobile-card'
       role={isArchived ? undefined : 'button'}
       tabIndex={isArchived ? undefined : 0}
-      aria-label={isArchived ? undefined : `Abrir construção ${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
-      onClick={isArchived ? undefined : openConstruction}
+      aria-label={isArchived ? undefined : `Abrir casas da construção ${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
+      onClick={isArchived ? undefined : openConstructionHouses}
       onKeyDown={isArchived ? undefined : (event: KeyboardEvent<HTMLElement>) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
-          openConstruction();
+          openConstructionHouses();
         }}
       className={cn(
         'rounded-2xl bg-slate-50 p-4 text-sm shadow-sm shadow-slate-200/70 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
@@ -326,11 +326,11 @@ export function ConstructionMobileCard({
                 <UsersRound className='h-4 w-4'/>
               </RoundIconActionButton>
               <RoundIconActionButton
-                label={`Gerenciar casas da construção ${constructionCode}`}
-                guidedTourId={showGuidedTourTargets ? 'rac-construction-houses' : undefined}
-                onClick={openHouses}
+                label={`Editar construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-edit' : undefined}
+                onClick={editConstruction}
               >
-                <Home className='h-4 w-4'/>
+                <Pencil className='h-4 w-4'/>
               </RoundIconActionButton>
               <RoundIconActionButton
                 label={exportRacsZipLabel}
@@ -396,8 +396,13 @@ export function ConstructionTableRow({
   const communityLabel = summary.communityName?.trim() || 'Sem comunidade';
   const constructionDateLabel = formatDateOnly(summary.constructionDate);
   const isArchived = summary.status === 'archived';
-  const openConstruction = () => {
+  const openConstructionHouses = () => {
     if (isArchived) return;
+    void onOpenConstructionHouses(summary);
+  };
+
+  const editConstruction = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
     void onOpenConstruction(summary);
   };
 
@@ -432,11 +437,6 @@ export function ConstructionTableRow({
     void onOpenConstructionMonitors(summary);
   };
 
-  const openHouses = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    void onOpenConstructionHouses(summary);
-  };
-
   const exportRacsZip = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!canExportRacsZip || isExportingRacsZip) return;
@@ -446,12 +446,12 @@ export function ConstructionTableRow({
   return (
     <tr
       tabIndex={isArchived ? undefined : 0}
-      aria-label={`${isArchived ? '' : 'Abrir construção '}${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
-      onClick={isArchived ? undefined : openConstruction}
+      aria-label={`${isArchived ? '' : 'Abrir casas da construção '}${constructionCode} ${CONSTRUCTION_SITE_STATUS_LABELS[summary.status]}`}
+      onClick={isArchived ? undefined : openConstructionHouses}
       onKeyDown={isArchived ? undefined : (event: KeyboardEvent<HTMLTableRowElement>) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
-          openConstruction();
+          openConstructionHouses();
         }}
       className={cn(
         'rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200',
@@ -503,11 +503,11 @@ export function ConstructionTableRow({
                 <UsersRound className='h-4 w-4'/>
               </RoundIconActionButton>
               <RoundIconActionButton
-                label={`Gerenciar casas da construção ${constructionCode}`}
-                guidedTourId={showGuidedTourTargets ? 'rac-construction-houses' : undefined}
-                onClick={openHouses}
+                label={`Editar construção ${constructionCode}`}
+                guidedTourId={showGuidedTourTargets ? 'rac-construction-edit' : undefined}
+                onClick={editConstruction}
               >
-                <Home className='h-4 w-4'/>
+                <Pencil className='h-4 w-4'/>
               </RoundIconActionButton>
               <RoundIconActionButton
                 label={exportRacsZipLabel}

@@ -183,7 +183,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     screen.getAllByRole('button', {name: 'Gerenciar monitores da construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     });
-    screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
+    screen.getAllByRole('button', {name: 'Editar construção CC2603'}).forEach((button) => {
       expect(button).toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
     });
     screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'}).forEach((button) => {
@@ -200,8 +200,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     screen.getAllByRole('button', {name: 'Gerenciar monitores da construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-monitors');
     });
-    screen.getAllByRole('button', {name: 'Gerenciar casas da construção CC2603'}).forEach((button) => {
-      expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-houses');
+    screen.getAllByRole('button', {name: 'Editar construção CC2603'}).forEach((button) => {
+      expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-edit');
     });
     screen.getAllByRole('button', {name: 'Exportar RACs ZIP da construção CC2603'}).forEach((button) => {
       expect(button).toHaveAttribute('data-guided-tour-id', 'rac-construction-export-racs');
@@ -257,7 +257,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await waitFor(() => expect(constructionActionsTour.listener).toHaveBeenCalledTimes(1));
     expect(getGuidedTourEventTargetIds(constructionActionsTour.listener)).toEqual([
       'rac-construction-monitors',
-      'rac-construction-houses',
+      'rac-construction-edit',
       'rac-construction-export-racs',
       'rac-construction-completed',
       'rac-construction-archive',
@@ -270,7 +270,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   it('dispara retorno ao canvas apenas quando a casa ativa pode abrir o editor', async () => {
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
     const backToCanvasTour = listenGuidedTourEvent('rac:construction-back-to-canvas-tour-ready');
 
     renderPanel({canOpenRacEditor: true, onBackToCanvas: vi.fn()});
@@ -388,17 +388,17 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .toHaveAttribute('aria-current', 'page');
   });
 
-  it('abre edição pelos cards mobile de construções sem adicionar navegação mobile', async () => {
+  it('abre casas pelos cards mobile de construções sem adicionar navegação mobile', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
     renderPanel({actions});
 
     const mobileList = screen.getByTestId('construction-mobile-list');
-    await user.click(within(mobileList).getByRole('button', {name: /Abrir construção CC2604/i}));
+    await user.click(within(mobileList).getByRole('button', {name: /Abrir casas da construção CC2604/i}));
 
     expect(actions.activateConstructionSite).toHaveBeenCalledWith('construction_site_2');
-    expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
+    expect(await screen.findByRole('heading', {name: /^Casas - /, hidden: true})).toBeVisible();
     expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
     expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
   });
@@ -472,7 +472,8 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     renderPanel({actions});
 
-    await user.click(screen.getByRole('row', {name: /CC2603.*Andamento/i}));
+    await user.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
+      .getByRole('button', {name: 'Editar construção CC2603'}));
     expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', {name: 'Remover Foto da Construção'}));
@@ -561,154 +562,28 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.unarchiveConstructionSite).not.toHaveBeenCalled();
   });
 
-  it('abre edição pela linha inteira e acessa a listagem de casas sem ações redundantes', async () => {
+  it('abre casas pelo clique da linha e edição pelo ícone de lápis', async () => {
     const user = userEvent.setup();
     const actions = createActions();
 
     renderPanel({actions});
 
     const constructionRow = screen.getByRole('row', {name: /CC2603.*Andamento/i});
-    expect(within(constructionRow).getByRole('button', {name: 'Gerenciar monitores da construção CC2603'})).toBeVisible();
-    expect(within(constructionRow).getByRole('button', {name: 'Gerenciar casas da construção CC2603'})).toBeVisible();
-    expect(within(constructionRow).getByRole('button', {name: 'Arquivar construção CC2603'})).toBeVisible();
+    expect(within(constructionRow).getByRole('button', {name: 'Editar construção CC2603'})).toBeVisible();
 
     await user.click(constructionRow);
 
+    expect(await screen.findByRole('heading', {name: 'Casas - CC2603 · Tiradentes', hidden: true}))
+      .toBeInTheDocument();
     expect(actions.activateConstructionSite).not.toHaveBeenCalled();
-    expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
-    expect(screen.getByRole('button', {name: 'Voltar'})).toBeVisible();
-    expect(screen.queryByRole('button', {name: 'Voltar à lista'})).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Código da CC')).toHaveValue('CC2603');
-    expect(screen.getByTestId('construction-photo-field')).toBeVisible();
-    expect(screen.getByLabelText('Data da Construção')).toHaveTextContent('11/05/2026');
-    const constructionPhotoDropZone = within(screen.getByTestId('construction-photo-field'))
-      .getByRole('button', {name: 'Foto da Construção'});
-    const constructionPhoto = screen.getByAltText('Foto da Construção');
-
-    expect(constructionPhotoDropZone).toHaveClass('h-56');
-    expect(constructionPhoto).toHaveClass('absolute', 'inset-0', 'h-full', 'w-full', 'object-cover', 'object-center');
-    expect(constructionPhoto.className).not.toContain('min-h');
-    Object.defineProperty(constructionPhoto, 'naturalWidth', {configurable: true, value: 900});
-    Object.defineProperty(constructionPhoto, 'naturalHeight', {configurable: true, value: 1600});
-    fireEvent.load(constructionPhoto);
-    expect(constructionPhotoDropZone).toHaveAttribute('data-photo-orientation', 'portrait');
-    expect(screen.getByRole('button', {name: 'Remover Foto da Construção'})).toBeVisible();
-    expect(within(screen.getByTestId('construction-photo-field'))
-      .getByText('Clique para fazer upload ou arraste uma foto')).toBeVisible();
-    expect(screen.queryByRole('button', {name: 'Ativar construção'})).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: 'Arquivar construção'})).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: 'Gerenciar Casas'})).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: 'Gerenciar Monitores'})).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', {name: 'Voltar'}));
     await user.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
+      .getByRole('button', {name: 'Editar construção CC2603'}));
 
-    expect(screen.getByRole('heading', {name: 'Casas - CC2603 · Tiradentes', hidden: true}))
-      .toBeInTheDocument();
-    expect(screen.getByRole('button', {name: 'Voltar'}))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-back');
-    expect(screen.getByRole('button', {name: '+ Adicionar Casa'})).toBeVisible();
-    expect(screen.getAllByRole('button', {name: '+ Adicionar Casa'})).toHaveLength(1);
-    expect(screen.getByRole('button', {name: '+ Adicionar Casa'}))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-add');
-    const totalMetric = screen.getByText('No. Casas').closest('article');
-    const type6Metric = screen.getByText('No. Tipo 6').closest('article');
-    const type3Metric = screen.getByText('No. Tipo 3').closest('article');
-
-    expect(totalMetric).toHaveClass('text-center');
-    expect(type6Metric).toHaveClass('text-center');
-    expect(type3Metric).toHaveClass('text-center');
-    expect(within(totalMetric as HTMLElement).getByText('3')).toBeVisible();
-    expect(within(type6Metric as HTMLElement).getByText('2')).toBeVisible();
-    expect(within(type3Metric as HTMLElement).getByText('1')).toBeVisible();
-    expect(screen.getByTestId('house-list-controls').className).toContain('grid-cols-2');
-    expect(screen.getByTestId('house-list-controls').className).toContain('min-[700px]:flex');
-    expect(screen.getByTestId('house-list-controls').className).toContain('min-[700px]:flex-wrap');
-    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Filtrar casas por status').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
-    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('w-full');
-    expect(screen.getByLabelText('Ordenar casas por').parentElement?.className).toContain('min-[700px]:w-[11.25rem]');
-    expect(screen.getByRole('columnheader', {name: 'Casas'})).toBeVisible();
-    expect(screen.getByRole('columnheader', {name: 'Status'})).toBeVisible();
-    expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toBeVisible();
-    expect(screen.getByRole('columnheader', {name: 'Última RAC Exportada'})).toBeVisible();
-    expect(screen.getByRole('columnheader', {name: 'Status'})).toHaveClass('text-center');
-    expect(screen.getByRole('columnheader', {name: 'Dificuldade'})).toHaveClass('text-center');
-    expect(screen.getByRole('columnheader', {name: 'Última RAC Exportada'}))
-      .toHaveClass('text-center', 'align-middle', 'leading-4');
-    expect(screen.getByRole('columnheader', {name: 'Ações'})).toHaveClass('text-center');
-    expect(screen.getByTestId('house-desktop-table').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-table').className).toContain('min-[768px]:block');
-    const houseDesktopTable = within(screen.getByTestId('house-desktop-table')).getByRole('table');
-    expect(houseDesktopTable).toHaveClass('table-fixed');
-    expect(houseDesktopTable.querySelectorAll('col')[0]).toHaveClass('w-[32%]');
-    expect(houseDesktopTable.querySelectorAll('col')[1]).toHaveClass('w-[13%]');
-    expect(houseDesktopTable.querySelectorAll('col')[2]).toHaveClass('w-[21%]');
-    expect(houseDesktopTable.querySelectorAll('col')[3]).toHaveClass('w-[14%]');
-    expect(houseDesktopTable.querySelectorAll('col')[4]).toHaveClass('w-[20%]');
-    const houseMobileList = screen.getByTestId('house-mobile-list');
-    const houseMobilePagination = screen.getByTestId('house-mobile-pagination');
-
-    expect(screen.getByTestId('house-desktop-pagination').className).toContain('hidden');
-    expect(screen.getByTestId('house-desktop-pagination').className).toContain('min-[768px]:flex');
-    expect(houseMobilePagination.className).toContain('min-[768px]:hidden');
-    expect(houseMobileList.compareDocumentPosition(houseMobilePagination) & Node.DOCUMENT_POSITION_FOLLOWING)
-      .toBeTruthy();
-    expect(houseMobileList.className).toContain('min-[768px]:hidden');
-    expect(screen.getAllByTestId('house-mobile-card')).toHaveLength(3);
-    expect(within(houseMobileList).getByText('Família Souza')).toBeVisible();
-    expect(within(houseMobileList).getAllByText('Tipo 6')[0]).toBeVisible();
-    expect(within(houseMobileList).getAllByRole('meter', {name: 'Dificuldade da casa'})).toHaveLength(3);
-    expect(within(houseMobilePagination).getByText('Mostrando 1-3 de 3 casas')).toBeVisible();
-    expect(within(houseMobilePagination).queryAllByRole('button')).toHaveLength(0);
-    expect(houseMobilePagination).toHaveClass('justify-center', 'text-center');
-    expect(screen.getAllByText('Família Arquivada')[0]).toBeVisible();
-    const guidedTourHouseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i});
-    expect(within(guidedTourHouseRow).getByText('Definida'))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-status');
-    expect(within(guidedTourHouseRow).getByTestId('house-table-difficulty-gauge').parentElement)
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-difficulty');
-    expect(within(guidedTourHouseRow).getByTestId('house-table-difficulty-gauge').parentElement)
-      .toHaveClass('max-w-[8rem]');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-extra-materials');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Souza'}))
-      .toHaveClass('rounded-full', 'bg-amber-100', 'hover:bg-amber-200', 'hover:text-amber-800');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Exportar RAC PDF da casa Família Souza'}))
-      .toHaveClass('hover:bg-blue-100', 'hover:text-blue-600');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-built');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
-      .toHaveClass('text-slate-400', 'hover:bg-emerald-50', 'hover:text-emerald-700');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Marcar casa Família Souza como construída'}))
-      .not.toHaveClass('bg-emerald-50', 'text-emerald-700');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
-      .toHaveAttribute('data-guided-tour-id', 'rac-house-archive');
-    expect(within(guidedTourHouseRow).getByRole('button', {name: 'Arquivar casa Família Souza'}))
-      .toHaveClass('hover:bg-red-50', 'hover:text-red-600');
-    expect(within(guidedTourHouseRow).getByTestId('house-table-last-rac-exported-at'))
-      .toHaveTextContent('Ainda não exportada');
-    const houseRow = screen.getByRole('row', {name: /Família Santos.*Tipo 3.*Impressa/i});
-    expect(within(houseRow).getByText('Impressa')).not.toHaveAttribute('data-guided-tour-id');
-    expect(within(houseRow).getByRole('button', {name: 'Resumo dos materiais extras da casa Família Santos'}))
-      .not.toHaveAttribute('data-guided-tour-id');
-    expect(within(houseRow).getByText('Impressa').closest('td')).toHaveClass('text-center');
-    expect(within(houseRow).getByRole('meter', {name: 'Dificuldade da casa'}))
-      .toHaveAttribute('aria-valuetext', 'Dificuldade Baixa, 4 de 100');
-    expect(within(houseRow).getByTestId('house-table-type'))
-      .toContainElement(within(houseRow).getByTestId('house-table-updated-at'));
-    expect(within(houseRow).getByTestId('house-table-last-rac-exported-at')).toHaveTextContent('10/05/2026');
-    expect(within(houseRow).getByTestId('house-table-actions'))
-      .toHaveClass('min-h-14', 'items-center', 'justify-end');
-    expect(screen.getAllByRole('button', {name: 'Excluir definitivamente casa Família Arquivada'}))
-      .toHaveLength(2);
-    expect(screen.queryByRole('button', {name: 'Excluir definitivamente casa Família Souza'}))
-      .not.toBeInTheDocument();
-    expect(screen.queryByRole('combobox', {name: 'Filtrar casas por status'})).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mobile-bottom-navigation')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mobile-floating-action-button')).not.toBeInTheDocument();
-
+    expect(await screen.findByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
+    expect(screen.getByLabelText('Código da CC')).toHaveValue('CC2603');
+    expect(actions.activateConstructionSite).not.toHaveBeenCalled();
   });
 
   it('oferece Análise de Campo apenas na lista mobile e explica o bloqueio da casa arquivada', async () => {
@@ -759,8 +634,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     renderPanel({actions});
 
-    fireEvent.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
+    fireEvent.click(screen.getByRole('row', {name: /CC2603.*Andamento/i}));
     const deleteButtons = await screen.findAllByRole('button', {name: 'Excluir definitivamente casa Família Arquivada'});
     fireEvent.click(deleteButtons[0]);
 
@@ -796,8 +670,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
     renderPanel({actions, constructionSite});
 
-    fireEvent.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
+    fireEvent.click(screen.getByRole('row', {name: /CC2603.*Andamento/i}));
     await screen.findByTestId('house-mobile-list');
     const houseRow = screen.getByRole('row', {name: /Família Souza.*Tipo 6.*Definida/i});
     const exportButton = within(houseRow)
@@ -841,7 +714,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const constructionSite = createConstructionSite();
     constructionSite.houses = [];
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
     const houseAddTour = listenGuidedTourEvent('rac:house-add-tour-ready');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -860,7 +733,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
   it('dispara ações da casa depois que existe casa cadastrada', async () => {
     const user = userEvent.setup();
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
     markGuidedTourSegmentCompleted('guided-tour:rac-house-add:completed', 'house-add-v1');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -1970,14 +1843,14 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
       .closest('[data-testid="construction-mobile-card"]');
 
     expect(within(archivedRow).getByRole('button', {name: 'Desarquivar construção CC2603'})).toBeVisible();
-    expect(within(archivedRow).queryByRole('button', {name: 'Gerenciar casas da construção CC2603'}))
+    expect(within(archivedRow).queryByRole('button', {name: 'Editar construção CC2603'}))
       .not.toBeInTheDocument();
     expect(within(archivedRow).queryByRole('button', {name: 'Gerenciar monitores da construção CC2603'}))
       .not.toBeInTheDocument();
     expect(archivedMobileCard).not.toHaveAttribute('role', 'button');
     expect(within(archivedMobileCard as HTMLElement).getByRole('button', {name: 'Desarquivar construção CC2603'}))
       .toBeVisible();
-    expect(within(archivedMobileCard as HTMLElement).queryByRole('button', {name: 'Gerenciar casas da construção CC2603'}))
+    expect(within(archivedMobileCard as HTMLElement).queryByRole('button', {name: 'Editar construção CC2603'}))
       .not.toBeInTheDocument();
     expect(within(archivedMobileCard as HTMLElement).queryByRole('button', {name: 'Gerenciar monitores da construção CC2603'}))
       .not.toBeInTheDocument();
@@ -2041,8 +1914,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     makeHousePdfChecklistExportableWithWarnings(constructionSite, 'house_2');
 
     renderPanel({constructionSite});
-    fireEvent.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
+    fireEvent.click(screen.getByRole('row', {name: /CC2603.*Andamento/i}));
     await screen.findAllByTestId('house-mobile-card');
 
     fireEvent.click(screen.getByLabelText('Filtrar casas por status'));
@@ -2090,8 +1962,7 @@ async function confirmUnsavedChangesExit(user: ReturnType<typeof userEvent.setup
 }
 
 async function openConstructionHouses(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(within(screen.getByRole('row', {name: /CC2603.*Andamento/i}))
-    .getByRole('button', {name: 'Gerenciar casas da construção CC2603'}));
+  await user.click(screen.getByRole('row', {name: /CC2603.*Andamento/i}));
 }
 
 async function openConstructionMonitors(user: ReturnType<typeof userEvent.setup>) {

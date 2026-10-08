@@ -109,6 +109,13 @@ export function useHouseDocumentLifecycle({
         if (attempts <= 60) {
           hydrationFrameRef.current = window.requestAnimationFrame(hydrate);
         }
+      }).catch((error) => {
+        if (hydrationRunIdRef.current !== hydrationRunId) return;
+        attempts += 1;
+        console.debug('[HouseDocumentLifecycle] Falha transitória ao hidratar o Canvas; tentando novamente.', error);
+        if (attempts <= 60) {
+          hydrationFrameRef.current = window.requestAnimationFrame(hydrate);
+        }
       });
     };
 
