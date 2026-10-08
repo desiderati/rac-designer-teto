@@ -533,7 +533,16 @@ export function HouseConfigurationScreen({
           />
         </HouseFormSection>
 
-        <HouseFormSection number='06' title='Características do Local' dirty={sectionHasDirtyChanges('locationQuery')}>
+        <HouseFormSection number='06' title='Materiais Extras' dirty={sectionHasDirtyChanges(...HOUSE_EXTRA_MATERIAL_FIELDS)}>
+          <div data-testid='house-configuration-extra-materials' className='min-w-0'>
+            <HouseExtraMaterialsFields
+              control={form.control as unknown as Control<HouseExtraMaterialsFormValues>}
+              dirtyFields={dirtyFields}
+              disabled={isReadOnly}
+            />
+          </div>
+        </HouseFormSection>
+        <HouseFormSection number='07' title='Características do Local' dirty={sectionHasDirtyChanges('locationQuery')}>
           <div data-testid='site-characteristics-grid' className='grid gap-4 md:grid-cols-2'>
             <Controller
               control={form.control}
@@ -581,15 +590,6 @@ export function HouseConfigurationScreen({
             <div data-testid='static-map-wrapper' className='md:col-span-2'>
               <StaticMapPreview locationQuery={locationQuery}/>
             </div>
-          </div>
-        </HouseFormSection>
-        <HouseFormSection number='07' title='Materiais Extras' dirty={sectionHasDirtyChanges(...HOUSE_EXTRA_MATERIAL_FIELDS)}>
-          <div data-testid='house-configuration-extra-materials' className='min-w-0'>
-            <HouseExtraMaterialsFields
-              control={form.control as unknown as Control<HouseExtraMaterialsFormValues>}
-              dirtyFields={dirtyFields}
-              disabled={isReadOnly}
-            />
           </div>
         </HouseFormSection>
       </Accordion>

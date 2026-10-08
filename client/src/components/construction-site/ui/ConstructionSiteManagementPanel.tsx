@@ -436,11 +436,15 @@ export function ConstructionSiteManagementPanel({
                   {getScreenSubtitle(navigation.screen)}
                 </p>
               </div>
-              {navigation.screen === 'house-detail' && navigation.selectedHouse && onBackToCanvas ? (
+              {onBackToCanvas && ((navigation.screen === 'house-detail' && navigation.selectedHouse) || (navigation.screen === 'house-create' && (canOpenRacEditor || initialScreen === 'house-create'))) ? (
                 <button type='button' aria-label='Abrir Canvas da casa' title='Abrir Canvas da casa'
-                  disabled={isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'archived'}
+                  disabled={navigation.screen === 'house-detail' && (isSelectedConstructionReadOnly || navigation.selectedHouse?.status === 'archived')}
                   className='grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-700 transition-colors hover:bg-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50'
                   onClick={() => requestNavigation(async () => {
+                    if (navigation.screen === 'house-create') {
+                      onBackToCanvas(false);
+                      return;
+                    }
                     if (!constructionSite || !navigation.selectedHouse || isSelectedConstructionReadOnly || navigation.selectedHouse.status === 'archived') return;
                     await actions.activateHouse(constructionSite.constructionSite.id, navigation.selectedHouse.id);
                     onBackToCanvas(true);

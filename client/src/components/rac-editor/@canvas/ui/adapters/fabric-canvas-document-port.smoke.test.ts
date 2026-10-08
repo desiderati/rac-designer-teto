@@ -5,6 +5,7 @@ afterEach(() => {
 });
 import {HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, type HouseDrawingCanvasDocument} from '@/shared/types/house-drawing-document.ts';
 import {Image as FabricImage} from 'fabric';
+import {triangleStrategy} from '../../lib/factory/elements/geometry.strategy.ts';
 import {createFabricCanvasDocumentPort, sanitizeCanvasDocumentForSafeExport} from './fabric-canvas-document-port.ts';
 import {
   HOUSE_2D_STYLE,
@@ -433,6 +434,26 @@ describe('fabric-canvas-document-port.ts', () => {
     })).resolves.toBe(true);
 
     expect(wallGroup.on).toHaveBeenCalledWith('scaling', expect.any(Function));
+  });
+
+  it('reposiciona o texto de uma forma antiga ao carregar o desenho sem alterar o corpo', async () => {
+    const group = triangleStrategy.create({width: 800, height: 600} as any);
+    const body = group.getObjects().find((child) => child.myType === 'wallBody')!;
+    const label = group.getObjects().find((child) => child.myType === 'wallLabel')!;
+    label.set({text: 'Terreno', top: 120, visible: true});
+    const bodyCenter = body.getCenterPoint();
+    const canvas = {
+      clear: vi.fn(), loadFromJSON: vi.fn().mockResolvedValue(undefined),
+      getObjects: vi.fn(() => [group]), renderAll: vi.fn(), requestRenderAll: vi.fn(),
+    };
+    await createFabricCanvasDocumentPort(canvas as any).loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'triangle-1', kind: 'triangle', shape: 'group'}],
+    });
+    expect(label.top - body.top).toBeCloseTo(body.getScaledHeight() * 0.22);
+    expect(label.top - body.top + label.getScaledHeight() / 2).toBeLessThan(body.height / 2);
+    expect(body.getCenterPoint().x).toBeCloseTo(bodyCenter.x);
+    expect(body.getCenterPoint().y).toBeCloseTo(bodyCenter.y);
   });
 
   it('recusa documento visual com payload opaco antes de tocar o canvas', async () => {

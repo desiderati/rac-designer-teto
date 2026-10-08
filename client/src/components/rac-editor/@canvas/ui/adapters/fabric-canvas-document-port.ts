@@ -9,6 +9,7 @@ import {
   toCanvasGroup,
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {bindWallCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
+import {positionShapeLabel} from '@/components/rac-editor/@canvas/lib/factory/elements/shape-label-layout.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
   CANVAS_HEIGHT,
@@ -538,10 +539,15 @@ function restoreExportVisualState(snapshot: ExportVisualSnapshot[]): void {
 }
 
 function restoreCanvasRuntimeBehaviors(canvas: FabricCanvas): void {
-  canvas.getObjects()
-    .map((object) => toCanvasGroup(object))
-    .filter((group): group is NonNullable<ReturnType<typeof toCanvasGroup>> => group?.myType === 'wall')
-    .forEach(bindWallCanvasGroupScaling);
+  canvas.getObjects().forEach((object) => {
+    const group = toCanvasGroup(object);
+    if (!group) return;
+    const kind = group.myType;
+    if (kind === 'wall') bindWallCanvasGroupScaling(group);
+    if (kind === 'wall' || kind === 'square' || kind === 'circle' || kind === 'triangle') {
+      positionShapeLabel(group, kind);
+    }
+  });
 }
 
 function collectFabricImages(objects: FabricObject[]): FabricImage[] {

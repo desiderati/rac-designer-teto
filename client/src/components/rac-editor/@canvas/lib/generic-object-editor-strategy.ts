@@ -4,6 +4,7 @@ import {LINEAR_LABEL_TOP} from '@/components/rac-editor/@canvas/lib/factory/elem
 import {CANVAS_ELEMENT_STYLE} from '@/shared/config.ts';
 import type {GenericCanvasObjectEditorType} from '@/components/rac-editor/@canvas/ports/CanvasSelectionPort.ts';
 import {toPastelWallFill} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
+import {positionShapeLabel} from '@/components/rac-editor/@canvas/lib/factory/elements/shape-label-layout.ts';
 
 export type GenericObjectEditorType = GenericCanvasObjectEditorType;
 
@@ -65,6 +66,7 @@ function createWallStrategy(kind: 'wall' | 'square' | 'triangle' | 'circle'): Ge
         text: label,
         color: wallColor
       });
+      positionShapeLabel(object, kind);
       canvas.requestRenderAll();
     },
     getInfoMessage: () => 'Objeto atualizado.',

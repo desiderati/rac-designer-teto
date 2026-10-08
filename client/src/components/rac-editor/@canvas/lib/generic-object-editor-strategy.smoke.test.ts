@@ -24,7 +24,10 @@ function createChild(initial: Omit<FakeCanvasChild, 'set'>): FakeCanvasChild {
       Object.assign(child, values);
     },
   };
-  return child;
+  return Object.assign(child, {
+    getScaledWidth: () => 100,
+    getScaledHeight: () => 60,
+  });
 }
 
 function createObject(children: FakeCanvasChild[]): CanvasObject {

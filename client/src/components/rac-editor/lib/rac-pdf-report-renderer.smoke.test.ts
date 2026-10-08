@@ -10,7 +10,7 @@ const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
 describe('rac pdf report renderer', () => {
-  it('duplica o recuo dos materiais e leva monitores excedentes para continuação sem cortar conteúdo', () => {
+  it('alinha o primeiro material a Terreno e reduz 25% das demais distâncias sem cortar a continuação', () => {
     const report = createMinimalReport();
     report.extraMaterials.fields = Array.from({length: 10}, (_, index) => ({label: `Material ${index}`, value: `${index}`}));
     const actions = ['Escavar', 'Aterrar', 'Retirar vegetação', 'Retirar entulho', 'Desmontar a Casa', 'Liberar acesso'];
@@ -30,15 +30,18 @@ describe('rac pdf report renderer', () => {
     const first = drawn.find((row) => row.text === 'MATERIAL 0')!;
     const second = drawn.find((row) => row.text === 'MATERIAL 2')!;
     const title = drawn.find((row) => row.text === 'MATERIAL EXTRA')!;
-    expect(first.y - (title.y + 8)).toBeCloseTo(28);
-    expect(second.y - (first.y + 13)).toBeCloseTo(22);
+    const terrainTitle = drawn.find((row) => row.text === 'TERRENO')!;
+    const terrainFirst = drawn.find((row) => row.text === 'DESNÍVEL')!;
+    expect(first.y - title.y).toBeCloseTo(terrainFirst.y - terrainTitle.y);
+    expect(second.y - first.y).toBeCloseTo(35 * 0.75);
     const last = drawn.find((row) => row.text === 'MATERIAL 8')!;
     expect(last.y + 13).toBeLessThan(513);
     report.monitors.forEach((monitor) => {
       const row = drawn.find((entry) => entry.text === monitor.name);
-      expect(row?.page).toBeGreaterThan(1);
+      expect(row).toBeDefined();
       expect(row?.y).toBeLessThan(513);
     });
+    expect(drawn.find((entry) => entry.text === 'Monitor 5')?.page).toBeGreaterThan(1);
   });
   it('mantém as cinco áreas de foto com largura e altura idênticas', () => {
     const rect = {x: 238, y: 58, width: 584, height: 454};

@@ -67,7 +67,7 @@ const FIRST_PAGE_MONITOR_COLUMN_WIDTH = 108;
 const FIRST_PAGE_MONITOR_ROW_HEIGHT = 30;
 const FIRST_PAGE_MONITOR_SUMMARY_WIDTH = 90;
 // O valor termina 13 pt após o rótulo; o recuo até o próximo campo passa de 11 para 22 pt.
-const EXTRA_MATERIAL_ROW_HEIGHT = 13 + 22;
+const EXTRA_MATERIAL_ROW_HEIGHT = (13 + 22) * 0.75;
 const FIRST_PAGE_MUTED_BODY_FONT_SIZE = 6.4;
 const FIRST_PAGE_MUTED_BODY_LINE_HEIGHT = 8.6;
 const RESIDENT_ACTION_COLUMNS = 2;
@@ -366,8 +366,7 @@ function drawTerrainSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: nu
 }
 
 function drawExtraMaterialsSection(pdf: JsPDFDocument, report: RacPdfReportModel, y: number): number {
-  // Duplica também o recuo entre o separador do título e a primeira linha: 14 → 28 pt.
-  let cursorY = drawSectionTitle(pdf, 'MATERIAL EXTRA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH) + 14;
+  let cursorY = drawSectionTitle(pdf, 'MATERIAL EXTRA', LEFT_COLUMN_X, y, LEFT_COLUMN_WIDTH);
   report.extraMaterials.fields.forEach((field, index) => {
     const column = index % 2;
     const row = Math.floor(index / 2);

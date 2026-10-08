@@ -21,11 +21,11 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId}: {fa
             data-guided-tour-id={guidedTourId}
             onClick={(event) => {event.stopPropagation(); setOpen((current) => !current);}}
             onKeyDown={(event) => event.stopPropagation()}
-            className='grid h-9 w-9 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'>
+            className='grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full bg-transparent text-slate-400 transition-colors hover:bg-amber-100 hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'>
             <ClipboardList className='h-4 w-4' aria-hidden='true'/>
           </button>
         </TooltipTrigger>
-        <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-72 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
+        <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
           <div className='space-y-3'>
             {MATERIAL_SECTIONS.map((section, index) => {
               const sectionRows = rows.filter((row) => section.labels.some((label) => label === row.label));

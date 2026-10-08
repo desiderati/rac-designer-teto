@@ -6,7 +6,6 @@ import {
   faBars,
   faCircleQuestion,
   faCircle,
-  faCaretUp,
   faCircleUser,
   faCube,
   faCrosshairs,
@@ -174,9 +173,15 @@ export const ELEMENTS_MENU_CONFIG: MenuCommandConfig[] = [
   {action: 'addFossa', icon: faToilet, title: 'Fossa'},
 ];
 
+// O triângulo ocupa o viewBox; o caret tipográfico deixava o desenho minúsculo.
+const geometryTriangleIcon: IconDefinition = {
+  prefix: 'fas', iconName: 'caret-up',
+  icon: [100, 100, [], 'f0d8', 'M50 5L98 95H2Z'],
+};
+
 export const GEOMETRY_MENU_CONFIG: MenuCommandConfig[] = [
   {action: 'addSquare', icon: faSquareFull, title: 'Quadrado'},
-  {action: 'addTriangle', icon: faCaretUp, title: 'Triângulo'},
+  {action: 'addTriangle', icon: geometryTriangleIcon, title: 'Triângulo'},
   {action: 'addCircle', icon: faCircle, title: 'Círculo'},
 ];
 
