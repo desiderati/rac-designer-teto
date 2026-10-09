@@ -27,6 +27,21 @@ import {toast} from '@/components/ui/sonner.tsx';
 type SetupStage = 'pilotis' | 'type' | 'side' | 'nivel' | 'saving-setup' | 'ready';
 const SAVE_TOAST_WINDOW_MS = 10_000;
 
+function getPersistedSetupSelection(house: PersistedHouseRecord, draft: HouseFieldAnalysisDraft): {
+  houseType: Exclude<HouseType, null> | null;
+  side: HouseSide | null;
+} {
+  const houseType = house.houseType ?? draft.house.houseType;
+  if (!houseType) return {houseType: null, side: null};
+
+  const sourceView = houseType === 'tipo6' ? 'front' : 'side2';
+  const side = draft.house.preAssignedSides[sourceView];
+  const validSides: HouseSide[] = houseType === 'tipo6'
+    ? ['top', 'bottom']
+    : ['left', 'right'];
+  return {houseType, side: validSides.includes(side) ? side : null};
+}
+
 interface HouseFieldAnalysisScreenProps {
   constructionSite: ConstructionSiteState;
   house: PersistedHouseRecord;
@@ -40,17 +55,25 @@ export function HouseFieldAnalysisScreen({
 }: HouseFieldAnalysisScreenProps) {
   const {settingsPort} = useEditorPorts();
   const settings = settingsPort.getSettings();
-  const [stage, setStage] = useState<SetupStage>(() => house.fieldAnalysis?.status === 'prepared'
+  const persistedSetupSelection = getPersistedSetupSelection(house, initialDraft);
+  const initialStage: SetupStage = house.fieldAnalysis?.status === 'prepared'
     ? 'ready'
-    : settings.allowPilotiHeightDefinitionOnHouseInsert ? 'pilotis' : 'type');
+    : settings.allowPilotiHeightDefinitionOnHouseInsert
+      ? 'pilotis'
+      : persistedSetupSelection.houseType
+        ? persistedSetupSelection.side
+          ? settings.configureCornerPilotiNiveisOnHouseInsert ? 'nivel' : 'saving-setup'
+          : 'side'
+        : 'type';
+  const [stage, setStage] = useState<SetupStage>(initialStage);
   const [draft, setDraft] = useState(initialDraft);
   const draftRef = useRef(initialDraft);
   const [selectedHeights, setSelectedHeights] = useState<number[]>(() =>
     settings.allowPilotiHeightDefinitionOnHouseInsert
       ? initialDraft.selectedPilotiHeights
       : [...DEFAULT_HOUSE_PILOTI_HEIGHTS]);
-  const [houseType, setHouseType] = useState<Exclude<HouseType, null> | null>(null);
-  const [selectedSide, setSelectedSide] = useState<HouseSide | null>(null);
+  const [houseType, setHouseType] = useState<Exclude<HouseType, null> | null>(persistedSetupSelection.houseType);
+  const [selectedSide, setSelectedSide] = useState<HouseSide | null>(persistedSetupSelection.side);
   const [selectedPilotiId, setSelectedPilotiId] = useState(() => getAllPilotiIds()[0]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -143,6 +166,12 @@ export function HouseFieldAnalysisScreen({
       }
     }
   }, [queueSave, selectedHeights]);
+
+  useEffect(() => {
+    if (stage !== 'saving-setup' || !houseType || !selectedSide) return;
+    if (saveRevisionRef.current > 0) return;
+    void finishSetup(houseType, selectedSide);
+  }, [finishSetup, houseType, selectedSide, stage]);
 
   const retrySave = useCallback(async () => {
     try {

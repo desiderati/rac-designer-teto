@@ -7,10 +7,56 @@ import {
   sanitizeCanvasDocumentForSafeExport,
 } from '@/components/rac-editor/@canvas/ui/adapters/fabric-canvas-document-port.ts';
 
-export async function renderHouseDrawingCanvasImageDataUrl(house: PersistedHouseRecord): Promise<{
+export interface HouseDrawingCanvasImageCapture {
   imageDataUrl: string;
   hasOmittedRasterSources: boolean;
-}> {
+}
+
+const houseDrawingImageCache = new Map<string, Promise<HouseDrawingCanvasImageCapture>>();
+const MAX_HOUSE_DRAWING_CACHE_ENTRIES = 24;
+
+function fingerprint(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
+function getHouseDrawingImageCacheKey(house: PersistedHouseRecord): string {
+  return [
+    house.id,
+    house.version,
+    house.updatedAt,
+    house.drawingDocument.schemaVersion,
+    house.drawingDocument.canvas.schemaVersion,
+    fingerprint(JSON.stringify(house.drawingDocument.canvas)),
+  ].join(':');
+}
+
+export function clearHouseDrawingCanvasImageCache(): void {
+  houseDrawingImageCache.clear();
+}
+
+export async function renderHouseDrawingCanvasImageDataUrl(house: PersistedHouseRecord): Promise<HouseDrawingCanvasImageCapture> {
+  const cacheKey = getHouseDrawingImageCacheKey(house);
+  const cached = houseDrawingImageCache.get(cacheKey);
+  if (cached) return cached;
+
+  const rendering = renderHouseDrawingCanvasImageDataUrlUncached(house).catch((error: unknown) => {
+    houseDrawingImageCache.delete(cacheKey);
+    throw error;
+  });
+  if (houseDrawingImageCache.size >= MAX_HOUSE_DRAWING_CACHE_ENTRIES) {
+    const oldestKey = houseDrawingImageCache.keys().next().value;
+    if (oldestKey) houseDrawingImageCache.delete(oldestKey);
+  }
+  houseDrawingImageCache.set(cacheKey, rendering);
+  return rendering;
+}
+
+async function renderHouseDrawingCanvasImageDataUrlUncached(house: PersistedHouseRecord): Promise<HouseDrawingCanvasImageCapture> {
   const canvasElement = document.createElement('canvas');
   canvasElement.width = CANVAS_WIDTH;
   canvasElement.height = CANVAS_HEIGHT;

@@ -15,7 +15,7 @@ const RAC_CONSTRUCTION_ADD_STORAGE_REVISION = 'construction-add-v1';
 const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v2';
 const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
 const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
-const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v2';
+const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v3';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
   tours: [
@@ -290,7 +290,7 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
     },
     {
       id: 'rac-house-actions',
-      initialStepId: 'rac-house-status',
+      initialStepId: 'rac-house-canvas-preview',
       persistKey: 'guided-tour:rac-house-actions:completed',
       storageRevision: RAC_HOUSE_ACTIONS_STORAGE_REVISION,
       triggerEvent: {
@@ -298,6 +298,17 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
         objectKind: 'house-actions',
       },
       steps: [
+        {
+          id: 'rac-house-canvas-preview',
+          targetId: 'rac-house-canvas-preview',
+          placement: 'right',
+          alignment: 'middle',
+          title: 'Prévia do Canvas',
+          text: 'Passe o mouse sobre a imagem para uma prévia rápida do desenho. No celular, toque no thumbnail para abrir a prévia e use o ícone no canto superior esquerdo para ir ao Canvas.',
+          next: 'rac-house-status',
+          persistKey: 'guided-tour:rac-house-actions:canvas-preview',
+          kind: 'flow',
+        },
         {
           id: 'rac-house-status',
           targetId: 'rac-house-status',

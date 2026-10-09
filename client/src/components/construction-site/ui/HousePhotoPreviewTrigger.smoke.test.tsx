@@ -26,6 +26,7 @@ it('abre uma prévia ampliada do Canvas ao clicar no thumbnail', () => {
   fireEvent.click(screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Família Silva'}));
 
   expect(screen.getByRole('dialog')).toBeInTheDocument();
-  expect(screen.getByText('Carregando Canvas…')).toBeInTheDocument();
+  expect(screen.getByText('Desenho indisponível')).toBeInTheDocument();
+  expect(screen.getByRole('button', {name: 'Recarregar'})).toBeInTheDocument();
   expect(screen.queryByText('Pré-visualização da casa')).not.toBeInTheDocument();
 });

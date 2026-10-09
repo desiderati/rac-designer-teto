@@ -329,6 +329,7 @@ export function HouseMobileCard({
           familyName={familyName}
           photoDataUrl={family?.photoDataUrl}
           onOpenCanvas={onOpenHouseCanvas ? () => onOpenHouseCanvas(house.id) : undefined}
+          guidedTourId={showGuidedTourTargets ? 'rac-house-canvas-preview' : undefined}
         />
         <div className='min-w-0 flex-1'>
           <div className='flex items-start justify-between gap-3'>
@@ -534,6 +535,7 @@ export function HouseTableRow({
             familyName={familyName}
             photoDataUrl={family?.photoDataUrl}
             onOpenCanvas={onOpenHouseCanvas ? () => onOpenHouseCanvas(house.id) : undefined}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-canvas-preview' : undefined}
           />
           <span data-testid='house-table-identity' className='min-w-0 flex-1'>
             <span
@@ -645,11 +647,13 @@ export function HouseThumbnail({
   familyName,
   photoDataUrl,
   onOpenCanvas,
+  guidedTourId,
 }: {
   house: PersistedHouseRecord;
   familyName: string;
   photoDataUrl?: string;
   onOpenCanvas?: () => void | Promise<void>;
+  guidedTourId?: string;
 }) {
   const thumbnail = photoDataUrl ? (
     <ProtectedImage
@@ -676,6 +680,7 @@ export function HouseThumbnail({
       house={house}
       familyName={familyName}
       onOpenCanvas={onOpenCanvas}
+      guidedTourId={guidedTourId}
     >
       {thumbnail}
     </HousePhotoPreviewTrigger>

@@ -1,5 +1,5 @@
 import {useEffect, useState, type ReactNode} from 'react';
-import {ArrowUpRight, LoaderCircle, X} from 'lucide-react';
+import {ArrowUpRight, LoaderCircle, RotateCw, X} from 'lucide-react';
 import {HoverCard, HoverCardContent, HoverCardTrigger} from '@/components/ui/hover-card.tsx';
 import {
   Dialog,
@@ -9,13 +9,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog.tsx';
 import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
-import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
+import {
+  clearHouseDrawingCanvasImageCache,
+  renderHouseDrawingCanvasImageDataUrl,
+} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 
 interface HousePhotoPreviewTriggerProps {
   house: PersistedHouseRecord;
   familyName: string;
   children: ReactNode;
   onOpenCanvas?: () => void | Promise<void>;
+  guidedTourId?: string;
 }
 
 /**
@@ -27,6 +31,7 @@ export function HousePhotoPreviewTrigger({
   familyName,
   children,
   onOpenCanvas,
+  guidedTourId,
 }: HousePhotoPreviewTriggerProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [canvasImageDataUrl, setCanvasImageDataUrl] = useState<string | null>(null);
@@ -34,9 +39,17 @@ export function HousePhotoPreviewTrigger({
   const [loadError, setLoadError] = useState(false);
   const normalizedFamilyName = familyName.trim() || 'casa';
   const previewLabel = `Pré-visualizar Canvas da casa ${normalizedFamilyName}`;
+  const hasPersistedDrawing = house.drawingDocument.canvas.objects.length > 0;
 
-  const loadCanvasPreview = async () => {
-    if (isLoading || canvasImageDataUrl) return;
+  const loadCanvasPreview = async (force = false) => {
+    if (isLoading || (canvasImageDataUrl && !force)) return;
+
+    if (!hasPersistedDrawing) {
+      setLoadError(false);
+      return;
+    }
+
+    if (force) clearHouseDrawingCanvasImageCache();
 
     setIsLoading(true);
     setLoadError(false);
@@ -54,12 +67,17 @@ export function HousePhotoPreviewTrigger({
   useEffect(() => {
     setCanvasImageDataUrl(null);
     setLoadError(false);
-  }, [house.id, house.updatedAt]);
+  }, [house.id, house.updatedAt, house.version]);
 
   const handleOpenCanvas = async () => {
     if (!onOpenCanvas) return;
     setDialogOpen(false);
     await onOpenCanvas();
+  };
+
+  const retryCanvasPreview = () => {
+    setCanvasImageDataUrl(null);
+    void loadCanvasPreview(true);
   };
 
   const previewSurface = (
@@ -78,9 +96,17 @@ export function HousePhotoPreviewTrigger({
               Carregando Canvas…
             </span>
           ) : loadError ? (
-            'Não foi possível carregar o Canvas.'
+            <span className='inline-flex flex-col items-center gap-2'>
+              <span>Não foi possível carregar o Canvas.</span>
+              <button type='button' className='inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-blue-700 shadow-sm ring-1 ring-slate-200' onClick={(event) => { event.stopPropagation(); retryCanvasPreview(); }}>
+                <RotateCw className='h-3.5 w-3.5' aria-hidden='true'/> Recarregar
+              </button>
+            </span>
           ) : (
-            'Canvas ainda não disponível.'
+            <span className='inline-flex flex-col items-center gap-1'>
+              <strong className='font-semibold text-slate-700'>Desenho indisponível</strong>
+              <span>Esta casa ainda não possui um desenho salvo.</span>
+            </span>
           )}
         </div>
       )}
@@ -97,13 +123,16 @@ export function HousePhotoPreviewTrigger({
           <button
             type='button'
             aria-label={previewLabel}
-            className='group block shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2'
+            data-guided-tour-id={guidedTourId}
+            className='group block shrink-0 touch-manipulation rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2'
             onClick={(event) => {
               event.stopPropagation();
               setDialogOpen(true);
               void loadCanvasPreview();
             }}
             onMouseDown={(event) => event.stopPropagation()}
+            onContextMenu={(event) => event.preventDefault()}
+            onTouchStart={(event) => event.stopPropagation()}
           >
             {children}
           </button>
@@ -142,7 +171,22 @@ export function HousePhotoPreviewTrigger({
                 />
               ) : (
                 <div className='flex h-[min(70vh,32rem)] w-full items-center justify-center px-4 text-center text-sm text-slate-500'>
-                  {isLoading ? 'Carregando Canvas…' : loadError ? 'Não foi possível carregar o Canvas.' : 'Canvas ainda não disponível.'}
+                  {isLoading ? 'Carregando Canvas…' : loadError ? (
+                    <span className='flex flex-col items-center gap-3'>
+                      <span>Não foi possível carregar o Canvas.</span>
+                      <button type='button' onClick={retryCanvasPreview} className='inline-flex min-h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
+                        <RotateCw className='h-4 w-4' aria-hidden='true'/> Recarregar prévia
+                      </button>
+                    </span>
+                  ) : (
+                    <span className='flex flex-col items-center gap-1 text-center'>
+                      <strong className='font-semibold text-slate-700'>Desenho indisponível</strong>
+                      <span>Esta casa ainda não possui um desenho salvo.</span>
+                      <button type='button' onClick={retryCanvasPreview} className='mt-2 inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500'>
+                        <RotateCw className='h-4 w-4' aria-hidden='true'/> Recarregar
+                      </button>
+                    </span>
+                  )}
                 </div>
               )}
             </div>

@@ -352,6 +352,34 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('serializa a fonte canvas do Pattern de água para preservar as ondas', () => {
+    const toDataURL = vi.fn(() => 'data:image/png;base64,waves');
+    const sourceCanvas = {
+      toJSON: vi.fn(() => ({
+        objects: [{
+          type: 'Rect',
+          myType: 'waterBody',
+          editorObjectId: 'water-body-1',
+          fill: {type: 'pattern', repeat: 'repeat-x', source: {toDataURL}},
+        }],
+      })),
+    };
+
+    const exported = createFabricCanvasDocumentPort(sourceCanvas as any).exportCanvasDocument();
+
+    expect(toDataURL).toHaveBeenCalledWith('image/png');
+    expect(exported?.objects[0]).toMatchObject({
+      kind: 'waterBody',
+      style: {
+        fill: {
+          type: 'pattern',
+          source: 'data:image/png;base64,waves',
+          crossOrigin: 'anonymous',
+        },
+      },
+    });
+  });
+
   it('preserva variante semântica de rua no documento visual', async () => {
     const sourceCanvas = {
       toJSON: vi.fn(() => ({

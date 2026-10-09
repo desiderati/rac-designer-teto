@@ -257,7 +257,7 @@ describe('GuidedTourHost', () => {
           kind: 'construction-actions',
           targets: {
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
-            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-edit': {left: 804, top: 180, width: 36, height: 36},
             'rac-construction-export-racs': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-completed': {left: 892, top: 180, width: 36, height: 36},
             'rac-construction-archive': {left: 936, top: 180, width: 36, height: 36},
@@ -270,7 +270,7 @@ describe('GuidedTourHost', () => {
     expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(5);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
-    expect(await screen.findByRole('dialog', {name: 'Casas e Famílias'})).toBeVisible();
+    expect(await screen.findByRole('dialog', {name: 'Editar Construção'})).toBeVisible();
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     const exportDialog = await screen.findByRole('dialog', {name: 'Exportar RACs'});
@@ -332,7 +332,7 @@ describe('GuidedTourHost', () => {
           kind: 'construction-actions',
           targets: {
             'rac-construction-monitors': {left: 760, top: 180, width: 36, height: 36},
-            'rac-construction-houses': {left: 804, top: 180, width: 36, height: 36},
+            'rac-construction-edit': {left: 804, top: 180, width: 36, height: 36},
             'rac-construction-export-racs': {left: 848, top: 180, width: 36, height: 36},
             'rac-construction-completed': {left: 892, top: 180, width: 36, height: 36},
             'rac-construction-archive': {left: 936, top: 180, width: 36, height: 36},
@@ -383,6 +383,7 @@ describe('GuidedTourHost', () => {
         detail: {
           kind: 'house-actions',
           targets: {
+            'rac-house-canvas-preview': {left: 700, top: 180, width: 44, height: 44},
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
@@ -395,8 +396,11 @@ describe('GuidedTourHost', () => {
       }));
     });
 
+    expect(await screen.findByRole('dialog', {name: 'Prévia do Canvas'})).toBeVisible();
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(8);
+
+    await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(7);
 
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Dificuldade'})).toBeVisible();
@@ -423,7 +427,7 @@ describe('GuidedTourHost', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed:revision'))
-      .toBe('house-actions-v2');
+      .toBe('house-actions-v3');
   });
 
   it('replays the house actions tour when the stored completion predates the current revision', async () => {
@@ -438,6 +442,7 @@ describe('GuidedTourHost', () => {
         detail: {
           kind: 'house-actions',
           targets: {
+            'rac-house-canvas-preview': {left: 700, top: 180, width: 44, height: 44},
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
@@ -450,7 +455,7 @@ describe('GuidedTourHost', () => {
       }));
     });
 
-    expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
+    expect(await screen.findByRole('dialog', {name: 'Prévia do Canvas'})).toBeVisible();
   });
 
   it('shows the piloti nivel mode tip when the desktop toggle first appears', async () => {

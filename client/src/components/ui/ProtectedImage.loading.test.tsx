@@ -19,3 +19,14 @@ it('exibe carregando enquanto a referência protegida aguarda autenticação', a
 
   await waitFor(() => expect(screen.queryByTestId('protected-image-loading-indicator')).not.toBeInTheDocument());
 });
+
+it('usa somente o spinner dentro de thumbnails redondos', () => {
+  vi.stubGlobal('fetch', vi.fn(() => new Promise(() => undefined)));
+
+  render(<ProtectedImage src='/manus-storage/house.png' alt='Foto da casa' className='h-11 w-11 rounded-full object-cover'/>);
+
+  const indicator = screen.getByTestId('protected-image-loading-indicator');
+  expect(indicator).toHaveAttribute('aria-label', 'Carregando imagem');
+  expect(indicator).not.toHaveTextContent('Carregando…');
+  expect(indicator.parentElement).toHaveClass('overflow-hidden', 'rounded-full');
+});

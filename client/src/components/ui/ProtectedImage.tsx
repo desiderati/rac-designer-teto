@@ -61,6 +61,7 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
     props.onError?.(event);
   };
   const imageClassName = props.className;
+  const isRoundThumbnail = Boolean(imageClassName && /\brounded-full\b/.test(imageClassName));
   const isReconnecting = loadState === 'retrying';
   const showLoadingIndicator = protectedSource && (loadState === 'loading' || isReconnecting);
   const hideUnresolvedProtectedImage = protectedSource && !nativeLoaded && loaded?.source !== src;
@@ -69,7 +70,7 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
       data-protected-image='true'
       data-image-load-state={loadState}
       aria-busy={showLoadingIndicator || undefined}
-      className={`relative inline-flex min-h-0 min-w-0 ${imageClassName ?? ''}`}
+      className={`relative inline-flex min-h-0 min-w-0 ${isRoundThumbnail ? 'overflow-hidden rounded-full' : ''} ${imageClassName ?? ''}`}
     >
       <img {...props} className={`${imageClassName ?? ''} ${hideUnresolvedProtectedImage ? 'opacity-0' : 'transition-opacity duration-150'}`} src={resolved} onError={handleError} onLoad={(event) => {
         setNativeLoaded(true);
@@ -81,11 +82,13 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
           data-testid='protected-image-loading-indicator'
           role='status'
           aria-label={isReconnecting ? 'Reconectando imagem' : 'Carregando imagem'}
-          className='pointer-events-none absolute inset-0 z-10 grid place-items-center'
+          className={`pointer-events-none absolute inset-0 z-10 grid place-items-center ${isRoundThumbnail ? 'bg-slate-900/35' : ''}`}
         >
-          <span className='inline-flex items-center gap-1 rounded-full bg-slate-900/55 px-2 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur-sm'>
-            <LoaderCircle className='h-3 w-3 animate-spin' aria-hidden='true'/>
-            <span>{isReconnecting ? 'Reconectando…' : 'Carregando…'}</span>
+          <span className={isRoundThumbnail
+            ? 'inline-flex rounded-full bg-slate-900/55 p-1.5 text-white shadow-sm backdrop-blur-sm'
+            : 'inline-flex items-center gap-1 rounded-full bg-slate-900/55 px-2 py-1 text-[10px] font-semibold text-white shadow-sm backdrop-blur-sm'}>
+            <LoaderCircle className={isRoundThumbnail ? 'h-4 w-4 animate-spin' : 'h-3 w-3 animate-spin'} aria-hidden='true'/>
+            {!isRoundThumbnail ? <span>{isReconnecting ? 'Reconectando…' : 'Carregando…'}</span> : null}
           </span>
         </span>
       ) : null}

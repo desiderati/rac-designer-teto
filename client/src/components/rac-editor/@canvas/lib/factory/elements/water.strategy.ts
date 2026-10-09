@@ -3,6 +3,7 @@ import {CANVAS_ELEMENT_STYLE, CANVAS_STYLE} from '@/shared/config.ts';
 import {ElementStrategy} from './element.strategy.ts';
 import {setCanvasGroupMyType, setCanvasObjectMyType} from './shared.ts';
 import {CanvasGroup} from '@/components/rac-editor/@canvas/lib/canvas.ts';
+import {createWaterPatternSource} from './water-pattern.ts';
 
 export const waterStrategy: ElementStrategy = {
   create(canvas: FabricCanvas): CanvasGroup {
@@ -42,25 +43,3 @@ export const waterStrategy: ElementStrategy = {
     return setCanvasGroupMyType(group, 'water');
   },
 };
-
-function createWaterPatternSource(): HTMLCanvasElement {
-  const patternCanvas = document.createElement('canvas');
-  const ctx = patternCanvas.getContext('2d')!;
-  patternCanvas.width = 40;
-  patternCanvas.height = 50;
-  ctx.lineWidth = CANVAS_ELEMENT_STYLE.strokeWidth;
-  ctx.strokeStyle = CANVAS_ELEMENT_STYLE.strokeColor.waterElement;
-  ctx.lineCap = 'round';
-
-  const drawWave = (y: number) => {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(10, y - 5, 30, y + 5, 40, y);
-    ctx.stroke();
-  };
-
-  drawWave(15);
-  drawWave(25);
-  drawWave(35);
-  return patternCanvas;
-}

@@ -196,6 +196,37 @@ function pickJsonObject(source: Record<string, unknown>, keys: readonly string[]
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+function serializeRasterStyleValue(value: unknown): JsonValue | undefined {
+  if (!isRecord(value) || value.type !== 'pattern') return toJsonValue(value);
+
+  const patternSource = value.source;
+  if (isRecord(patternSource) && typeof patternSource.toDataURL === 'function') {
+    try {
+      return {
+        ...value,
+        source: patternSource.toDataURL('image/png'),
+        crossOrigin: 'anonymous',
+      } as JsonObject;
+    } catch (error) {
+      console.warn('[Canvas] Não foi possível serializar a textura raster do Pattern:', error);
+    }
+  }
+
+  return toJsonValue(value);
+}
+
+function pickStyle(source: Record<string, unknown>): JsonObject | undefined {
+  const style = pickJsonObject(source, styleKeys);
+  if (!style) return undefined;
+
+  for (const key of ['fill', 'stroke', 'backgroundColor'] as const) {
+    if (!(key in source)) continue;
+    const serialized = serializeRasterStyleValue(source[key]);
+    if (serialized !== undefined) style[key] = serialized;
+  }
+  return style;
+}
+
 function pickResource(source: Record<string, unknown>): JsonObject | undefined {
   const resource = pickJsonObject(source, resourceKeys);
   if (!resource) return undefined;
@@ -231,7 +262,7 @@ function toDrawingElement(source: unknown, index: number, path = `${index}`): Ho
     kind,
     shape,
     geometry: pickGeometry(source),
-    style: pickJsonObject(source, styleKeys),
+    style: pickStyle(source),
     text: readString(source.text) ?? undefined,
     metadata: pickJsonObject(source, metadataKeys),
     resource: pickResource(source),
