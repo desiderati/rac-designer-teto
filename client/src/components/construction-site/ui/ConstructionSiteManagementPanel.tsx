@@ -82,10 +82,9 @@ const HOUSE_ACTIONS_TOUR_SEGMENT = {
   eventName: 'rac:house-actions-tour-ready',
   kind: 'house-actions',
   persistKey: 'guided-tour:rac-house-actions:completed',
-  storageRevision: 'house-actions-v4',
+  storageRevision: 'house-actions-v3',
   targetIds: [
     'rac-house-canvas-preview',
-    'rac-house-edit',
     'rac-house-status',
     'rac-house-difficulty',
     'rac-house-extra-materials',

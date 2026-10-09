@@ -1,6 +1,6 @@
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {ClipboardList, Download, Pencil} from 'lucide-react';
+import {ClipboardList, Download} from 'lucide-react';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -391,19 +391,6 @@ export function HouseMobileCard({
             guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
           {house.status !== 'archived' ? (
             <RoundIconActionButton
-              label={`Editar casa ${familyName}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                void onOpenHouse(house.id);
-              }}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-edit' : undefined}
-              disabled={readOnly}
-            >
-              <Pencil className='h-4 w-4'/>
-            </RoundIconActionButton>
-          ) : null}
-          {house.status !== 'archived' ? (
-            <RoundIconActionButton
               label={exportRacPdfLabel}
               onClick={exportRacPdf}
               guidedTourId={showGuidedTourTargets ? 'rac-house-export-pdf' : undefined}
@@ -605,19 +592,6 @@ export function HouseTableRow({
         <div data-testid='house-table-actions' className='flex min-h-14 items-center justify-end gap-2'>
           <HouseMaterialsSummary familyName={familyName} materials={house.extraMaterials}
             guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
-          {house.status !== 'archived' ? (
-            <RoundIconActionButton
-              label={`Editar casa ${familyName}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                void onOpenHouse(house.id);
-              }}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-edit' : undefined}
-              disabled={readOnly}
-            >
-              <Pencil className='h-4 w-4'/>
-            </RoundIconActionButton>
-          ) : null}
           {house.status !== 'archived' ? (
             <RoundIconActionButton
               label={exportRacPdfLabel}

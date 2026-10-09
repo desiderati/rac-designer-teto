@@ -384,7 +384,6 @@ describe('GuidedTourHost', () => {
           kind: 'house-actions',
           targets: {
             'rac-house-canvas-preview': {left: 700, top: 180, width: 44, height: 44},
-            'rac-house-edit': {left: 748, top: 180, width: 36, height: 36},
             'rac-house-status': {left: 760, top: 180, width: 72, height: 24},
             'rac-house-difficulty': {left: 840, top: 188, width: 152, height: 18},
             'rac-house-extra-materials': {left: 1040, top: 180, width: 36, height: 36},
@@ -398,11 +397,7 @@ describe('GuidedTourHost', () => {
     });
 
     expect(await screen.findByRole('dialog', {name: 'Prévia do Canvas'})).toBeVisible();
-    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(9);
-
-    await user.click(screen.getByRole('button', {name: 'OK'}));
-    expect(await screen.findByRole('dialog', {name: 'Editar casa'})).toBeVisible();
-
+    expect(screen.getAllByTestId('guided-tour-progress-dot')).toHaveLength(8);
     await user.click(screen.getByRole('button', {name: 'OK'}));
     expect(await screen.findByRole('dialog', {name: 'Status da Casa'})).toBeVisible();
 
@@ -431,7 +426,7 @@ describe('GuidedTourHost', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed')).toBe('true');
     expect(localStorage.getItem('guided-tour:rac-house-actions:completed:revision'))
-      .toBe('house-actions-v4');
+      .toBe('house-actions-v3');
   });
 
   it('replays the house actions tour when the stored completion predates the current revision', async () => {

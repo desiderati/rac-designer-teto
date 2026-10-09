@@ -138,7 +138,7 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     expect(openHouse).not.toHaveBeenCalled();
   });
 
-  it('expõe Editar casa separadamente do clique do card e da prévia, em mobile e desktop', () => {
+  it('abre a edição pelo card ou pela linha, sem exibir lápis extra na listagem', () => {
     const {house, site} = makeSite();
     const openHouse = vi.fn().mockResolvedValue(undefined);
     render(<TooltipProvider><HousesScreen
@@ -150,10 +150,9 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
       onRequestHousePermanentDelete={vi.fn()}
     /></TooltipProvider>);
 
-    const mobileEdit = within(screen.getByTestId('house-mobile-list')).getByRole('button', {name: 'Editar casa Família teste'});
-    const desktopEdit = within(screen.getByTestId('house-desktop-table')).getByRole('button', {name: 'Editar casa Família teste'});
-    fireEvent.click(mobileEdit);
-    fireEvent.click(desktopEdit);
+    expect(screen.queryByRole('button', {name: 'Editar casa Família teste'})).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByTestId('house-mobile-list')).getByRole('button', {name: /Abrir casa Família teste/}));
+    fireEvent.click(within(screen.getByTestId('house-desktop-table')).getByRole('row', {name: /Família teste/}));
     expect(openHouse).toHaveBeenNthCalledWith(1, house.id);
     expect(openHouse).toHaveBeenNthCalledWith(2, house.id);
   });

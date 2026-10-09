@@ -410,7 +410,6 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
     <>
       {isEditorVisible ? (
         <RacEditorContent
-          key={constructionSiteManagement.constructionSite?.constructionSite.activeHouseId ?? 'no-active-house'}
           onExit={onLogout}
           onDocumentSaveStatusChange={setDocumentSaveStatus}
         />

@@ -854,7 +854,6 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await waitFor(() => expect(houseActionsTour.listener).toHaveBeenCalledTimes(1));
     expect(getGuidedTourEventTargetIds(houseActionsTour.listener)).toEqual([
       'rac-house-canvas-preview',
-      'rac-house-edit',
       'rac-house-status',
       'rac-house-difficulty',
       'rac-house-extra-materials',

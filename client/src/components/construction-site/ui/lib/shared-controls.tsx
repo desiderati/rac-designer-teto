@@ -67,7 +67,7 @@ export function StatusActionButton({
         disabled={disabled}
       >
         {action === 'markBuilt' || action === 'markCompleted'
-          ? <CheckCircle2 className='h-4 w-4'/>
+          ? <CheckCircle2 className='relative top-px h-4 w-4'/>
           : <RotateCcw className='h-4 w-4'/>}
       </RoundIconActionButton>
     );
