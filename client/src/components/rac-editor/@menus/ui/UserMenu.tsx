@@ -10,6 +10,8 @@ interface UserMenuProps {
   showTips: boolean;
   onRestartDrawing: () => void;
   restartDrawingDisabled?: boolean;
+  onReloadDrawing?: () => void | Promise<void>;
+  reloadDrawingDisabled?: boolean;
   onOpen3DViewer: () => void;
   onSavePDF: () => void;
   canExportPDF: boolean;
@@ -26,6 +28,8 @@ export function UserMenu({
   showTips,
   onRestartDrawing,
   restartDrawingDisabled = false,
+  onReloadDrawing,
+  reloadDrawingDisabled = false,
   onOpen3DViewer,
   onSavePDF,
   canExportPDF,
@@ -110,6 +114,14 @@ export function UserMenu({
               onClick={onRestartDrawing}
               disabled={restartDrawingDisabled}
             />
+            {isMobile && onReloadDrawing ? (
+              <Item
+                icon={TOP_BAR_ICONS.reload}
+                label='Recarregar desenho'
+                onClick={() => void onReloadDrawing()}
+                disabled={reloadDrawingDisabled}
+              />
+            ) : null}
             <Divider/>
             {isMobile ? (
               <>

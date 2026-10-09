@@ -213,6 +213,15 @@ export function ConstructionSiteManagementPanel({
     void action();
   }, [clearUnsavedChanges]);
 
+  const openHouseCanvasFromPreview = useCallback(async (houseId: string) => {
+    if (!constructionSite || !canOpenRacEditor || !onBackToCanvas) return;
+
+    requestNavigation(async () => {
+      await actions.activateHouse(constructionSite.constructionSite.id, houseId);
+      onBackToCanvas(true);
+    });
+  }, [actions, canOpenRacEditor, constructionSite, onBackToCanvas, requestNavigation]);
+
   const cancelUnsavedNavigation = useCallback(() => {
     setPendingUnsavedNavigation(null);
   }, []);
@@ -565,6 +574,7 @@ export function ConstructionSiteManagementPanel({
               constructionSite={constructionSite}
               activeHouse={navigation.activeHouse}
               onEditHouse={navigation.openHouseDetail}
+              onOpenHouseCanvas={openHouseCanvasFromPreview}
               onOpenHouseFieldAnalysis={async (houseId) => {
                 try { await navigation.openHouseFieldAnalysis(houseId); }
                 catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível abrir a Análise de Campo.'); }

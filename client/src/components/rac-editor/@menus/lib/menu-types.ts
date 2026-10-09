@@ -41,6 +41,8 @@ export interface MenuActionMap {
   toggleTips: () => void;
   toggleZoomControls: () => void;
   open3DViewer: () => void;
+  /** Reidrata o desenho persistido sem apagar o documento atual. */
+  reloadDrawing?: () => void | Promise<boolean>;
   toggleMenu: () => void;
   restartDrawing: () => void;
   openSettings?: () => void;

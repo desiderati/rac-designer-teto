@@ -40,6 +40,7 @@ export interface UseMenuActionsArgs {
   handleToggleZoomControls: () => void;
   handleToggleMenu: () => void;
   handleRestartDrawing: () => void;
+  handleReloadDrawing?: () => void | Promise<boolean>;
   handleExit: () => void;
   handleRenameFamily: (newName: string) => void;
   handleSetCanvasToolMode: (mode: CanvasToolMode) => void;
@@ -85,6 +86,7 @@ export function useRacEditorMenuActions({
   handleToggleZoomControls,
   handleToggleMenu,
   handleRestartDrawing,
+  handleReloadDrawing,
   handleExit,
   handleRenameFamily,
   handleSetCanvasToolMode,
@@ -133,6 +135,7 @@ export function useRacEditorMenuActions({
     toggleTips: handleToggleTips,
     toggleZoomControls: handleToggleZoomControls,
     open3DViewer: () => setIs3DViewerOpen(true),
+    reloadDrawing: handleReloadDrawing,
     toggleMenu: handleToggleMenu,
     restartDrawing: handleRestartDrawing,
     exit: handleExit,
@@ -174,6 +177,7 @@ export function useRacEditorMenuActions({
     handleOpenHouseTypeSelector,
     handleRenameFamily,
     handleRestartDrawing,
+    handleReloadDrawing,
     handleSavePDF,
     handleSetCanvasToolMode,
     handleToggleDrawMode,

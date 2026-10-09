@@ -50,6 +50,7 @@ export function HousesScreen({
   constructionSite,
   activeHouse,
   onEditHouse,
+  onOpenHouseCanvas,
   onOpenHouseFieldAnalysis,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
@@ -60,6 +61,7 @@ export function HousesScreen({
   constructionSite: ConstructionSiteState;
   activeHouse: PersistedHouseRecord | null;
   onEditHouse(houseId: string): Promise<void>;
+  onOpenHouseCanvas?(houseId: string): Promise<void>;
   onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
@@ -185,6 +187,7 @@ export function HousesScreen({
               active={activeHouse?.id === house.id}
               showGuidedTourTargets={house.id === guidedTourHouseId}
               onOpenHouse={onEditHouse}
+              onOpenHouseCanvas={onOpenHouseCanvas}
               onExportHouseRacPdf={onExportHouseRacPdf}
               exportingRacPdfHouseId={exportingRacPdfHouseId}
               onRequestHouseStatusChange={onRequestHouseStatusChange}
@@ -205,6 +208,7 @@ export function HousesScreen({
             active={activeHouse?.id === house.id}
             showGuidedTourTargets={house.id === guidedTourHouseId}
             onOpenHouse={onEditHouse}
+            onOpenHouseCanvas={onOpenHouseCanvas}
             onOpenHouseFieldAnalysis={onOpenHouseFieldAnalysis}
             onExportHouseRacPdf={onExportHouseRacPdf}
             exportingRacPdfHouseId={exportingRacPdfHouseId}
@@ -241,6 +245,7 @@ export function HouseMobileCard({
   active,
   showGuidedTourTargets = false,
   onOpenHouse,
+  onOpenHouseCanvas,
   onOpenHouseFieldAnalysis,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
@@ -253,6 +258,7 @@ export function HouseMobileCard({
   active: boolean;
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
+  onOpenHouseCanvas?(houseId: string): Promise<void>;
   onOpenHouseFieldAnalysis?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
@@ -318,7 +324,12 @@ export function HouseMobileCard({
       )}
     >
       <div className='flex items-start gap-3'>
-        <HouseThumbnail familyName={familyName} photoDataUrl={family?.photoDataUrl}/>
+        <HouseThumbnail
+          house={house}
+          familyName={familyName}
+          photoDataUrl={family?.photoDataUrl}
+          onOpenCanvas={onOpenHouseCanvas ? () => onOpenHouseCanvas(house.id) : undefined}
+        />
         <div className='min-w-0 flex-1'>
           <div className='flex items-start justify-between gap-3'>
             <div className='min-w-0'>
@@ -447,6 +458,7 @@ export function HouseTableRow({
   active,
   showGuidedTourTargets = false,
   onOpenHouse,
+  onOpenHouseCanvas,
   onExportHouseRacPdf,
   exportingRacPdfHouseId,
   onRequestHouseStatusChange,
@@ -458,6 +470,7 @@ export function HouseTableRow({
   active: boolean;
   showGuidedTourTargets?: boolean;
   onOpenHouse(houseId: string): Promise<void>;
+  onOpenHouseCanvas?(houseId: string): Promise<void>;
   onExportHouseRacPdf(houseId: string): Promise<void>;
   exportingRacPdfHouseId?: string | null;
   onRequestHouseStatusChange(houseId: string, action: StatusChangeAction): void;
@@ -516,7 +529,12 @@ export function HouseTableRow({
     >
       <td className='max-w-0 rounded-l-lg px-3 py-3'>
         <div className='flex min-h-14 min-w-0 w-full items-center gap-3 rounded-lg text-left'>
-          <HouseThumbnail familyName={familyName} photoDataUrl={family?.photoDataUrl}/>
+          <HouseThumbnail
+            house={house}
+            familyName={familyName}
+            photoDataUrl={family?.photoDataUrl}
+            onOpenCanvas={onOpenHouseCanvas ? () => onOpenHouseCanvas(house.id) : undefined}
+          />
           <span data-testid='house-table-identity' className='min-w-0 flex-1'>
             <span
               data-testid='house-table-family-name'
@@ -623,34 +641,44 @@ export function MetricCard({label, value}: { label: string; value: number }) {
 }
 
 export function HouseThumbnail({
+  house,
   familyName,
   photoDataUrl,
+  onOpenCanvas,
 }: {
+  house: PersistedHouseRecord;
   familyName: string;
   photoDataUrl?: string;
+  onOpenCanvas?: () => void | Promise<void>;
 }) {
-  if (photoDataUrl) {
-    return (
-      <HousePhotoPreviewTrigger familyName={familyName} photoDataUrl={photoDataUrl}>
-        <ProtectedImage
-          src={photoDataUrl}
-          alt={`Foto da casa ${familyName}`}
-          className='h-11 w-11 rounded-full object-cover ring-2 ring-white transition-transform duration-150 group-hover:scale-105'
-        />
-      </HousePhotoPreviewTrigger>
-    );
-  }
-
-  const palette = getAvatarPalette(familyName);
-  return (
+  const thumbnail = photoDataUrl ? (
+    <ProtectedImage
+      src={photoDataUrl}
+      alt={`Foto da casa ${familyName}`}
+      className='h-11 w-11 rounded-full object-cover ring-2 ring-white transition-transform duration-150 group-hover:scale-105'
+    />
+  ) : (
     <span
       role='img'
-      aria-label={`Foto gerada da casa ${familyName}`}
+      aria-label={`Prévia do Canvas da casa ${familyName}`}
       className='grid h-11 w-11 shrink-0 place-items-center rounded-full text-xs font-bold ring-2 ring-white'
-      style={{backgroundColor: palette.background, color: palette.foreground}}
+      style={(() => {
+        const palette = getAvatarPalette(familyName);
+        return {backgroundColor: palette.background, color: palette.foreground};
+      })()}
     >
       {getHouseInitials(familyName)}
     </span>
+  );
+
+  return (
+    <HousePhotoPreviewTrigger
+      house={house}
+      familyName={familyName}
+      onOpenCanvas={onOpenCanvas}
+    >
+      {thumbnail}
+    </HousePhotoPreviewTrigger>
   );
 }
 

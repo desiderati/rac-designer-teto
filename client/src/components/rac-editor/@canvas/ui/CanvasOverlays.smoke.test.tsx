@@ -1,27 +1,23 @@
-import {expect, it, vi} from 'vitest';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {expect, it} from 'vitest';
+import {render, screen} from '@testing-library/react';
 import {CanvasOverlays} from './CanvasOverlays.tsx';
 
-it('disponibiliza recarga do desenho sem depender de refresh da página', () => {
-  const onReloadDrawing = vi.fn();
-
+it('não renderiza um segundo botão de recarga sobre o Canvas', () => {
   render(
     <CanvasOverlays
       showZoomControls={false}
       isPinching={false}
       zoom={1}
-      onZoomChange={vi.fn()}
+      onZoomChange={() => {}}
       containerWidth={800}
       containerHeight={600}
       viewportX={0}
       viewportY={0}
-      onViewportChange={vi.fn()}
+      onViewportChange={() => {}}
       minimapObjects={[]}
       showTips={false}
-      onReloadDrawing={onReloadDrawing}
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', {name: 'Recarregar desenho do Canvas'}));
-  expect(onReloadDrawing).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('button', {name: 'Recarregar desenho do Canvas'})).not.toBeInTheDocument();
 });

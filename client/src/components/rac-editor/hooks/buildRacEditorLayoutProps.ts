@@ -30,7 +30,6 @@ interface BuildRacEditorLayoutPropsArgs {
   difficultyIndicator: LayoutProps['canvas']['difficultyIndicator'];
   siteAssessment: LayoutProps['canvas']['siteAssessment'];
   handleSiteAssessmentChange: LayoutProps['canvas']['onSiteAssessmentChange'];
-  onReloadDrawing: LayoutProps['canvas']['onReloadDrawing'];
   isAnyEditorOpen: LayoutProps['canvas']['isAnyEditorOpen'];
   isContraventamentoMode: LayoutProps['canvas']['isContraventamentoMode'];
   isPilotiEligibleAsDestination: LayoutProps['canvas']['isPilotiEligibleForContraventamento'];
@@ -153,7 +152,6 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       difficultyIndicator: args.difficultyIndicator,
       siteAssessment: args.siteAssessment,
       onSiteAssessmentChange: args.handleSiteAssessmentChange,
-      onReloadDrawing: args.onReloadDrawing,
       isAnyEditorOpen: args.isAnyEditorOpen,
       isContraventamentoMode: args.isContraventamentoMode,
       isPilotiEligibleForContraventamento: args.isPilotiEligibleAsDestination,
