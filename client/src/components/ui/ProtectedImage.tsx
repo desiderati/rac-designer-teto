@@ -1,6 +1,10 @@
 import {LoaderCircle} from 'lucide-react';
 import {useEffect, useState, type ImgHTMLAttributes, type SyntheticEvent} from 'react';
-import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
+import {
+  getCachedProtectedImageSource,
+  isProtectedImageSource,
+  resolveProtectedImageSource,
+} from '@/shared/lib/protected-image.ts';
 
 const TRANSPARENT_IMAGE_DATA_URL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
@@ -17,6 +21,15 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
     setLoaded(null);
     setLoadState(protectedSource ? 'loading' : 'loaded');
     if (!src || !protectedSource) return;
+
+    const cachedSource = getCachedProtectedImageSource(src);
+    if (cachedSource) {
+      setLoaded({source: src, data: cachedSource});
+      setNativeLoaded(true);
+      setLoadState('loaded');
+      return;
+    }
+
     const controller = new AbortController();
     let attempt = 0;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;

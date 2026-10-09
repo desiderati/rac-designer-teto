@@ -23,7 +23,9 @@ export function hasPersistedHouseView(house: PersistedHouseRecord): boolean {
 export function getHouseFieldAnalysisDisabledReason(site: ConstructionSiteState, house: PersistedHouseRecord): string | null {
   if (site.constructionSite.status !== 'in_progress') return 'A construção está bloqueada para edição.';
   if (house.status === 'built' || house.status === 'archived') return 'A casa está bloqueada para edição.';
-  if (house.fieldAnalysis?.status === 'inserted' || hasPersistedHouseView(house)) return 'A casa já foi inserida no Canvas.';
+  // Uma vista persistida pode ser uma edição parcial ou um documento legado;
+  // somente o estado explícito informa que a análise já foi consumida.
+  if (house.fieldAnalysis?.status === 'inserted') return 'A casa já foi inserida no Canvas.';
   return null;
 }
 

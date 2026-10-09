@@ -1,8 +1,9 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {cleanup, render, screen, waitFor} from '@testing-library/react';
 import {ProtectedImage} from './ProtectedImage.tsx';
+import {clearProtectedImageCache} from '@/shared/lib/protected-image.ts';
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); clearProtectedImageCache(); vi.unstubAllGlobals(); });
 
 it('só fornece pixels ao elemento depois de autenticar, e descarta a foto anterior na troca', async () => {
   const fetchMock = vi.fn().mockResolvedValueOnce({ok: true, blob: async () => new Blob(['image'], {type: 'image/png'})})

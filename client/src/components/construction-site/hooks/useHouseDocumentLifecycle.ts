@@ -48,11 +48,22 @@ export function useHouseDocumentLifecycle({
     setDocumentSaveStatus(status);
   }, []);
 
+  const waitForCanvasDocumentPort = useCallback(async () => {
+    if (!canvasRef) return null;
+    for (let attempt = 0; attempt <= 60; attempt += 1) {
+      const documentPort = canvasRef.current?.createDocumentPort();
+      if (documentPort) return documentPort;
+      if (typeof window === 'undefined') return null;
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+    }
+    return null;
+  }, [canvasRef]);
+
   const loadHouseDocument = useCallback(async (
     document = constructionSiteManagementPort.getActiveHouseDrawingDocument(),
   ) => {
     if (!document || !canvasRef) return false;
-    const documentPort = canvasRef.current?.createDocumentPort();
+    const documentPort = await waitForCanvasDocumentPort();
     if (!documentPort) return false;
 
     const loaded = await documentPort.loadCanvasDocument(document.canvas);
@@ -71,6 +82,7 @@ export function useHouseDocumentLifecycle({
     emitHouseStoreChange,
     houseDrawingDocumentPort,
     setTrackedDocumentSaveStatus,
+    waitForCanvasDocumentPort,
   ]);
 
   const cancelScheduledHydration = useCallback(() => {

@@ -270,7 +270,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   it('dispara retorno ao canvas apenas quando a casa ativa pode abrir o editor', async () => {
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     const backToCanvasTour = listenGuidedTourEvent('rac:construction-back-to-canvas-tour-ready');
 
     renderPanel({canOpenRacEditor: true, onBackToCanvas: vi.fn()});
@@ -824,7 +824,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     const constructionSite = createConstructionSite();
     constructionSite.houses = [];
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     const houseAddTour = listenGuidedTourEvent('rac:house-add-tour-ready');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -843,7 +843,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
   it('dispara ações da casa depois que existe casa cadastrada', async () => {
     const user = userEvent.setup();
     markGuidedTourSegmentCompleted('guided-tour:rac-construction-add:completed', 'construction-add-v1');
-    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v3');
+    markGuidedTourSegmentCompleted('guided-tour:rac-construction-actions:completed', 'construction-actions-v2');
     markGuidedTourSegmentCompleted('guided-tour:rac-house-add:completed', 'house-add-v1');
     const houseActionsTour = listenGuidedTourEvent('rac:house-actions-tour-ready');
 
@@ -854,6 +854,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     await waitFor(() => expect(houseActionsTour.listener).toHaveBeenCalledTimes(1));
     expect(getGuidedTourEventTargetIds(houseActionsTour.listener)).toEqual([
       'rac-house-canvas-preview',
+      'rac-house-edit',
       'rac-house-status',
       'rac-house-difficulty',
       'rac-house-extra-materials',

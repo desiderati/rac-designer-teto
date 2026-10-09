@@ -137,4 +137,24 @@ describe('Revisão UI/UX dos formulários e listagens', () => {
     fireEvent.keyDown(summary, {key: 'Enter'});
     expect(openHouse).not.toHaveBeenCalled();
   });
+
+  it('expõe Editar casa separadamente do clique do card e da prévia, em mobile e desktop', () => {
+    const {house, site} = makeSite();
+    const openHouse = vi.fn().mockResolvedValue(undefined);
+    render(<TooltipProvider><HousesScreen
+      constructionSite={site}
+      activeHouse={house}
+      onEditHouse={openHouse}
+      onExportHouseRacPdf={vi.fn()}
+      onRequestHouseStatusChange={vi.fn()}
+      onRequestHousePermanentDelete={vi.fn()}
+    /></TooltipProvider>);
+
+    const mobileEdit = within(screen.getByTestId('house-mobile-list')).getByRole('button', {name: 'Editar casa Família teste'});
+    const desktopEdit = within(screen.getByTestId('house-desktop-table')).getByRole('button', {name: 'Editar casa Família teste'});
+    fireEvent.click(mobileEdit);
+    fireEvent.click(desktopEdit);
+    expect(openHouse).toHaveBeenNthCalledWith(1, house.id);
+    expect(openHouse).toHaveBeenNthCalledWith(2, house.id);
+  });
 });

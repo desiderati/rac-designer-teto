@@ -105,19 +105,6 @@ export function TopBar({
 
       {/* Right: 3D / Exportar / Avatar */}
       <div className='absolute right-4 top-0 z-50 flex items-center gap-2'>
-        {actions.reloadDrawing ? (
-          <button
-            type='button'
-            onClick={() => void reloadDrawing()}
-            disabled={isReloadingDrawing}
-            className='hidden min-[740px]:grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white/85 text-slate-600 shadow-sm backdrop-blur-md transition-colors hover:bg-slate-50 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-wait disabled:opacity-70'
-            title='Recarregar desenho do Canvas'
-            aria-label='Recarregar desenho do Canvas'
-            aria-busy={isReloadingDrawing}
-          >
-            <RefreshCw className={cn('h-4 w-4', isReloadingDrawing ? 'animate-spin' : null)} aria-hidden='true'/>
-          </button>
-        ) : null}
         <RemoteSyncIndicator
           isMobile={isMobile}
           documentVersion={constructionGroups.find((group) => group.active)?.documentVersion ?? null}
@@ -138,6 +125,20 @@ export function TopBar({
           <FontAwesomeIcon icon={TOP_BAR_ICONS.view3d} className='text-base text-slate-500'/>
           <span>3D</span>
         </button>
+
+        {actions.reloadDrawing ? (
+          <button
+            type='button'
+            onClick={() => void reloadDrawing()}
+            disabled={isReloadingDrawing}
+            className='hidden min-[740px]:grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white/85 text-slate-600 shadow-sm backdrop-blur-md transition-colors hover:bg-slate-50 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-wait disabled:opacity-70'
+            title='Recarregar desenho do Canvas'
+            aria-label='Recarregar desenho do Canvas'
+            aria-busy={isReloadingDrawing}
+          >
+            <RefreshCw className={cn('h-4 w-4', isReloadingDrawing ? 'animate-spin' : null)} aria-hidden='true'/>
+          </button>
+        ) : null}
 
         <button
           type='button'

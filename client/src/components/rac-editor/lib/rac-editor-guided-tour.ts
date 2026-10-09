@@ -15,7 +15,7 @@ const RAC_CONSTRUCTION_ADD_STORAGE_REVISION = 'construction-add-v1';
 const RAC_CONSTRUCTION_ACTIONS_STORAGE_REVISION = 'construction-actions-v2';
 const RAC_CONSTRUCTION_BACK_TO_CANVAS_STORAGE_REVISION = 'construction-back-to-canvas-v1';
 const RAC_HOUSE_ADD_STORAGE_REVISION = 'house-add-v1';
-const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v3';
+const RAC_HOUSE_ACTIONS_STORAGE_REVISION = 'house-actions-v4';
 
 export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
   tours: [
@@ -305,8 +305,19 @@ export const racEditorGuidedTourRegistry: GuidedTourRegistry = {
           alignment: 'middle',
           title: 'Prévia do Canvas',
           text: 'Passe o mouse sobre a imagem para uma prévia rápida do desenho. No celular, toque no thumbnail para abrir a prévia e use o ícone no canto superior esquerdo para ir ao Canvas.',
-          next: 'rac-house-status',
+          next: 'rac-house-edit',
           persistKey: 'guided-tour:rac-house-actions:canvas-preview',
+          kind: 'flow',
+        },
+        {
+          id: 'rac-house-edit',
+          targetId: 'rac-house-edit',
+          placement: 'bottom',
+          alignment: 'center',
+          title: 'Editar casa',
+          text: 'Use o lápis para abrir o formulário de configuração da casa e ajustar seus dados sem abrir o Canvas.',
+          next: 'rac-house-status',
+          persistKey: 'guided-tour:rac-house-actions:edit',
           kind: 'flow',
         },
         {

@@ -1,9 +1,11 @@
 import {afterEach, expect, it, vi} from 'vitest';
 import {cleanup, render, screen, waitFor} from '@testing-library/react';
 import {ProtectedImage} from './ProtectedImage.tsx';
+import {clearProtectedImageCache} from '@/shared/lib/protected-image.ts';
 
 afterEach(() => {
   cleanup();
+  clearProtectedImageCache();
   vi.unstubAllGlobals();
 });
 

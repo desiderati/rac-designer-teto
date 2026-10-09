@@ -35,7 +35,8 @@ import {getVisibleTargetRect} from '@/components/guided-tour/lib/guided-tour-tar
 import {toast} from '@/components/ui/sonner.tsx';
 import {
   GUIDED_TOUR_COMPLETED_EVENT,
-  isGuidedTourCompleted,
+  isGuidedTourSeen,
+  markGuidedTourSeen,
 } from '@/components/guided-tour/store/guided-tour-storage.ts';
 
 const CONSTRUCTION_ADD_TOUR_SEGMENT = {
@@ -51,7 +52,7 @@ const CONSTRUCTION_ACTIONS_TOUR_SEGMENT = {
   eventName: 'rac:construction-actions-tour-ready',
   kind: 'construction-actions',
   persistKey: 'guided-tour:rac-construction-actions:completed',
-  storageRevision: 'construction-actions-v3',
+  storageRevision: 'construction-actions-v2',
   targetIds: [
     'rac-construction-monitors',
     'rac-construction-edit',
@@ -81,9 +82,10 @@ const HOUSE_ACTIONS_TOUR_SEGMENT = {
   eventName: 'rac:house-actions-tour-ready',
   kind: 'house-actions',
   persistKey: 'guided-tour:rac-house-actions:completed',
-  storageRevision: 'house-actions-v3',
+  storageRevision: 'house-actions-v4',
   targetIds: [
     'rac-house-canvas-preview',
+    'rac-house-edit',
     'rac-house-status',
     'rac-house-difficulty',
     'rac-house-extra-materials',
@@ -387,6 +389,7 @@ export function ConstructionSiteManagementPanel({
           targets,
         },
       }));
+      markGuidedTourSeen(segment);
     });
   }, [guidedTourCompletionVersion, isBackToCanvasButton, navigation.screen, summaries]);
 
@@ -404,6 +407,7 @@ export function ConstructionSiteManagementPanel({
           targets,
         },
       }));
+      markGuidedTourSeen(segment);
     });
   }, [constructionSite?.houses, guidedTourCompletionVersion, navigation.screen]);
 
@@ -867,7 +871,7 @@ function collectNextGuidedTourSegment(
   for (const candidate of candidates) {
     if (!candidate.enabled) continue;
     if (dispatchedSegments.has(candidate.segment.key)) continue;
-    if (isGuidedTourCompleted(candidate.segment)) continue;
+    if (isGuidedTourSeen(candidate.segment)) continue;
 
     const targets = collectGuidedTourTargets(candidate.segment.targetIds);
     if (targets) return {segment: candidate.segment, targets};

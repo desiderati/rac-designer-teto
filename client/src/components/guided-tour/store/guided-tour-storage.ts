@@ -65,6 +65,14 @@ function getStorageRevisionKey(persistKey: string): string {
   return `${persistKey}:revision`;
 }
 
+function getSeenKey(persistKey: string): string {
+  return `${persistKey}:seen`;
+}
+
+function getSeenRevisionKey(persistKey: string): string {
+  return `${getSeenKey(persistKey)}:revision`;
+}
+
 export function isGuidedTourCompleted(target: GuidedTourCompletionTarget): boolean {
   const persistKey = getPersistKey(target);
   const storageRevision = getStorageRevision(target);
@@ -86,11 +94,32 @@ export function isGuidedTourCompleted(target: GuidedTourCompletionTarget): boole
 export function markGuidedTourCompleted(target: GuidedTourCompletionTarget): void {
   const persistKey = getPersistKey(target);
   const storageRevision = getStorageRevision(target);
+  markGuidedTourSeen(target);
   setFlag(persistKey, true);
   if (storageRevision) {
     setValue(getStorageRevisionKey(persistKey), storageRevision);
   }
   dispatchGuidedTourCompletedEvent(persistKey, storageRevision);
+}
+
+/** Um tour automático deve aparecer uma única vez, mesmo se for fechado antes do último passo. */
+export function isGuidedTourSeen(target: GuidedTourCompletionTarget): boolean {
+  const persistKey = getPersistKey(target);
+  const storageRevision = getStorageRevision(target);
+  if (isGuidedTourCompleted(target)) return true;
+  if (!getFlag(getSeenKey(persistKey))) return false;
+  if (!storageRevision) return true;
+  if (getValue(getSeenRevisionKey(persistKey)) === storageRevision) return true;
+  setFlag(getSeenKey(persistKey), false);
+  setValue(getSeenRevisionKey(persistKey), null);
+  return false;
+}
+
+export function markGuidedTourSeen(target: GuidedTourCompletionTarget): void {
+  const persistKey = getPersistKey(target);
+  const storageRevision = getStorageRevision(target);
+  setFlag(getSeenKey(persistKey), true);
+  if (storageRevision) setValue(getSeenRevisionKey(persistKey), storageRevision);
 }
 
 export function isGuidedTourTipShown(persistKey: string): boolean {
@@ -109,6 +138,8 @@ export function markGuidedTourTipShown(persistKey: string): void {
 export function resetGuidedTourProgress(tour: GuidedTourDefinition, tips: GuidedTourTip[] = []): void {
   [tour.persistKey, LEGACY_KEYS_BY_PERSIST_KEY[tour.persistKey]].filter(Boolean).forEach((key) => setFlag(key, false));
   setValue(getStorageRevisionKey(tour.persistKey), null);
+  setFlag(getSeenKey(tour.persistKey), false);
+  setValue(getSeenRevisionKey(tour.persistKey), null);
   tour.steps.forEach((step) => setFlag(step.persistKey, false));
   tips.forEach((tip) => {
     [tip.persistKey, LEGACY_KEYS_BY_PERSIST_KEY[tip.persistKey]].filter(Boolean).forEach((key) => setFlag(key, false));

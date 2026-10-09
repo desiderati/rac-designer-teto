@@ -172,15 +172,17 @@ describe('TopBar.tsx', () => {
     expect(screen.queryByText('Falha de rede')).not.toBeInTheDocument();
   });
 
-  it('mantém a recarga do desenho antes do indicador de sincronização', () => {
+  it('mantém a recarga do desenho depois do indicador de sincronização e do 3D', () => {
     configureRemoteSync('synced');
     const actions = createActions();
     renderTopBar({actions});
 
     const reloadButton = screen.getByRole('button', {name: 'Recarregar desenho do Canvas'});
     const syncButton = screen.getByRole('button', {name: 'Sincronizado'});
+    const view3dButton = screen.getByRole('button', {name: 'Visualização 3D'});
 
-    expect(reloadButton.compareDocumentPosition(syncButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(syncButton.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(view3dButton.compareDocumentPosition(reloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(reloadButton);
     expect(actions.reloadDrawing).toHaveBeenCalledOnce();
   });

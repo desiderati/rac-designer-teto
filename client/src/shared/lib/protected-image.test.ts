@@ -1,9 +1,10 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {COOKIE_NAME} from '@shared/const';
-import {resolveProtectedImageSource} from './protected-image.ts';
+import {clearProtectedImageCache, resolveProtectedImageSource} from './protected-image.ts';
 
 afterEach(() => {
   sessionStorage.clear();
+  clearProtectedImageCache();
   vi.unstubAllGlobals();
 });
 
@@ -44,5 +45,22 @@ describe('transporte de imagens protegidas', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok: false, status: 401, blob}));
     await expect(resolveProtectedImageSource('/manus-storage/private/photo.png')).rejects.toThrow('imagem protegida');
     expect(blob).not.toHaveBeenCalled();
+  });
+
+  it('compartilha a carga e reutiliza os pixels resolvidos para a mesma referência', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => new Blob(['image'], {type: 'image/png'}),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = resolveProtectedImageSource('/manus-storage/shared/photo.png');
+    const second = resolveProtectedImageSource('/manus-storage/shared/photo.png');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [firstValue, secondValue] = await Promise.all([first, second]);
+    expect(firstValue).toBe(secondValue);
+
+    await resolveProtectedImageSource('/manus-storage/shared/photo.png');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

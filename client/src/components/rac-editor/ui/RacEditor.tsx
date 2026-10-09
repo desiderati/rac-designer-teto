@@ -409,7 +409,11 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
   return (
     <>
       {isEditorVisible ? (
-        <RacEditorContent onExit={onLogout} onDocumentSaveStatusChange={setDocumentSaveStatus}/>
+        <RacEditorContent
+          key={constructionSiteManagement.constructionSite?.constructionSite.activeHouseId ?? 'no-active-house'}
+          onExit={onLogout}
+          onDocumentSaveStatusChange={setDocumentSaveStatus}
+        />
       ) : (
         <div className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel

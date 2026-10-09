@@ -143,4 +143,10 @@ describe('Análise de Campo: preparação persistida e domínio', () => {
     expect(normalizeHouseFieldAnalysis(undefined)).toBeUndefined();
     expect(normalizeHouseFieldAnalysis({status: 'prepared', contraventamentos: [{originPilotiId: 'piloti_9_9'}]})).toBeUndefined();
   });
+
+  it('mantém a Análise de Campo aberta quando há uma vista persistida sem estado inserido', () => {
+    const {site, house} = setup();
+    house.drawingDocument.house?.views.front.push({instanceId: 'legacy_view'});
+    expect(getHouseFieldAnalysisDisabledReason(site, house)).toBeNull();
+  });
 });
