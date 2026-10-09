@@ -78,6 +78,8 @@ interface CanvasProps {
   canvasToolMode?: CanvasToolMode;
   /** Notifica o componente pai sempre que o zoom interno muda. */
   onZoomChange?: (zoom: number) => void;
+  /** Reidrata o desenho da casa ativa sem recarregar a página. */
+  onReloadDrawing?: () => Promise<boolean>;
 
   // Contraventamento
   isContraventamentoMode?: boolean;
@@ -136,6 +138,7 @@ export const Canvas =
       onSiteAssessmentChange,
       canvasToolMode = 'select',
       onZoomChange,
+      onReloadDrawing,
 
       isContraventamentoMode = false,
       isPilotiEligibleForContraventamento,
@@ -150,6 +153,7 @@ export const Canvas =
       const documentRestoringRef = useRef(false);
       const imageLongPressRef = useRef<ImageLongPressState | null>(null);
       const [imageLayerMenu, setImageLayerMenu] = useState<ImageLayerMenuState | null>(null);
+      const [isReloadingDrawing, setIsReloadingDrawing] = useState(false);
       const noop = useCallback(() => {}, []);
       const {houseDrawingDocumentPort} = useEditorPorts();
 
@@ -260,6 +264,16 @@ export const Canvas =
         viewportXRef,
         viewportYRef,
       });
+
+      const handleReloadDrawing = useCallback(async () => {
+        if (!onReloadDrawing || isReloadingDrawing) return;
+        setIsReloadingDrawing(true);
+        try {
+          await onReloadDrawing();
+        } finally {
+          setIsReloadingDrawing(false);
+        }
+      }, [isReloadingDrawing, onReloadDrawing]);
 
       useImperativeHandle(ref, () => {
         const createCommandPort = () => {
@@ -681,6 +695,8 @@ export const Canvas =
             difficultyIndicator={difficultyIndicator}
             siteAssessment={siteAssessment}
             onSiteAssessmentChange={onSiteAssessmentChange}
+            onReloadDrawing={onReloadDrawing ? () => { void handleReloadDrawing(); } : undefined}
+            isReloadingDrawing={isReloadingDrawing}
 
             viewportX={viewportX}
             viewportY={viewportY}

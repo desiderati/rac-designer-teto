@@ -42,6 +42,7 @@ import {
 } from '@/components/construction-site/ui/lib/shared-controls.tsx';
 import {HouseDifficultyGauge} from '@/components/rac-editor/ui/HouseDifficultyGauge.tsx';
 import {HouseMaterialsSummary} from './HouseMaterialsSummary.tsx';
+import {HousePhotoPreviewTrigger} from './HousePhotoPreviewTrigger.tsx';
 import {getHouseFieldAnalysisDisabledReason} from '@/components/construction-site/lib/house-field-analysis.ts';
 import {getHousePresentationStatus} from '@/components/construction-site/lib/house-status.ts';
 
@@ -630,11 +631,13 @@ export function HouseThumbnail({
 }) {
   if (photoDataUrl) {
     return (
-      <ProtectedImage
-        src={photoDataUrl}
-        alt={`Foto da casa ${familyName}`}
-        className='h-11 w-11 shrink-0 rounded-full object-cover ring-2 ring-white'
-      />
+      <HousePhotoPreviewTrigger familyName={familyName} photoDataUrl={photoDataUrl}>
+        <ProtectedImage
+          src={photoDataUrl}
+          alt={`Foto da casa ${familyName}`}
+          className='h-11 w-11 rounded-full object-cover ring-2 ring-white transition-transform duration-150 group-hover:scale-105'
+        />
+      </HousePhotoPreviewTrigger>
     );
   }
 

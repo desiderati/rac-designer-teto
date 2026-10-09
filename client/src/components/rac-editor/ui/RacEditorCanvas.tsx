@@ -26,6 +26,7 @@ interface RacEditorCanvasProps {
   isPilotiEligibleForContraventamento: (pilotiId: string) => boolean;
   canvasToolMode: CanvasToolMode;
   onZoomChange: (zoom: number) => void;
+  onReloadDrawing?: () => Promise<boolean>;
   onSelectionMessage: (message: string) => void;
   onSelectionAuxCleanup: () => void;
   onZoomInteraction: () => void;
@@ -54,6 +55,7 @@ export function RacEditorCanvas({
   isPilotiEligibleForContraventamento,
   canvasToolMode,
   onZoomChange,
+  onReloadDrawing,
   onSelectionMessage,
   onSelectionAuxCleanup,
   onZoomInteraction,
@@ -97,6 +99,7 @@ export function RacEditorCanvas({
         onZoomInteraction={onZoomInteraction}
         onMinimapInteraction={onZoomInteraction}
         onZoomChange={onZoomChange}
+        onReloadDrawing={onReloadDrawing}
         canvasToolMode={canvasToolMode}
         difficultyIndicator={difficultyIndicator}
         siteAssessment={siteAssessment}

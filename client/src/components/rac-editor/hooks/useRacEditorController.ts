@@ -566,6 +566,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     difficultyIndicator,
     siteAssessment: activeHouse?.siteAssessment ?? null,
     handleSiteAssessmentChange,
+    onReloadDrawing: constructionSiteManagement.reloadActiveHouseDrawing,
     isAnyEditorOpen,
     isContraventamentoMode,
     isPilotiEligibleAsDestination,

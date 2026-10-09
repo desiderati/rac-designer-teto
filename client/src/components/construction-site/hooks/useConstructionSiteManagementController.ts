@@ -320,6 +320,23 @@ export function useConstructionSiteManagementController({
     constructionSiteManagementPort.prepareRacEditorOpening()
   ), [constructionSiteManagementPort]);
 
+  const reloadActiveHouseDrawing = useCallback(async () => {
+    const document = constructionSiteManagementPort.getActiveHouseDrawingDocument();
+    if (!document) {
+      toast.error('Não foi possível recarregar o desenho porque nenhuma casa está ativa.');
+      return false;
+    }
+
+    const loaded = await loadHouseDocument(document);
+    if (loaded) {
+      toast.success('Desenho da casa recarregado.');
+      return true;
+    }
+
+    toast.error('O desenho ainda não pôde ser carregado. Tente novamente em instantes.');
+    return false;
+  }, [constructionSiteManagementPort, loadHouseDocument]);
+
   void version;
   const constructionSite = constructionSiteManagementPort.getConstructionSiteSnapshot();
   const constructionSiteSnapshots = constructionSiteManagementPort.getConstructionSiteSnapshots();
@@ -338,6 +355,7 @@ export function useConstructionSiteManagementController({
     acknowledgeActiveHouseDocumentSaved,
     loadHouseDocument,
     hydrateActiveHouseDocument,
+    reloadActiveHouseDrawing,
     prepareRacEditorOpening,
     actions: {
       openHouseFieldAnalysis,

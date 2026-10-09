@@ -1,4 +1,5 @@
 import {ReactNode} from 'react';
+import {LoaderCircle, RefreshCw} from 'lucide-react';
 import {Minimap} from '@/components/rac-editor/ui/Minimap.tsx';
 import {CANVAS_HEIGHT, CANVAS_WIDTH} from '@/shared/constants.ts';
 import {HouseDifficultyControls} from '@/components/rac-editor/ui/HouseDifficultyControls.tsx';
@@ -27,6 +28,8 @@ interface CanvasOverlaysProps {
   difficultyIndicator?: HouseDifficultyIndicator | null;
   siteAssessment?: SiteAssessment | null;
   onSiteAssessmentChange?: (input: Partial<SiteAssessment>) => void;
+  onReloadDrawing?: () => void;
+  isReloadingDrawing?: boolean;
   children?: ReactNode;
 }
 
@@ -52,6 +55,8 @@ export function CanvasOverlays({
   difficultyIndicator,
   siteAssessment,
   onSiteAssessmentChange,
+  onReloadDrawing,
+  isReloadingDrawing = false,
   children,
 }: CanvasOverlaysProps) {
 
@@ -66,6 +71,27 @@ export function CanvasOverlays({
           </div>
         </div>
       )}
+
+      {onReloadDrawing ? (
+        <button
+          type='button'
+          aria-label='Recarregar desenho do Canvas'
+          title='Recarregar desenho do Canvas'
+          aria-busy={isReloadingDrawing}
+          disabled={isReloadingDrawing}
+          onClick={(event) => {
+            event.stopPropagation();
+            onReloadDrawing();
+          }}
+          className='absolute right-3 top-3 z-20 grid h-10 w-10 place-items-center rounded-full border border-white/70 bg-white/90 text-slate-600 shadow-md backdrop-blur-sm transition-colors hover:bg-white hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-wait disabled:opacity-70'
+        >
+          {isReloadingDrawing ? (
+            <LoaderCircle className='h-4 w-4 animate-spin' aria-hidden='true'/>
+          ) : (
+            <RefreshCw className='h-4 w-4' aria-hidden='true'/>
+          )}
+        </button>
+      ) : null}
 
       {/* Desktop: minimapa em posição fixa */}
       {showZoomControls && (
