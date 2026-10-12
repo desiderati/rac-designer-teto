@@ -29,8 +29,8 @@ const initialCanvasViewPortState: CanvasViewportState = {
   isSingleFingerPanning: false,
 };
 
-function createInitialCanvasViewPortState(): CanvasViewportState {
-  const storedViewport = readCanvasViewportStorage();
+function createInitialCanvasViewPortState(houseId?: string | null): CanvasViewportState {
+  const storedViewport = readCanvasViewportStorage(houseId);
   return {
     ...initialCanvasViewPortState,
     zoom: storedViewport.zoom,
@@ -81,16 +81,21 @@ function reducer(state: CanvasViewportState, action: CanvasViewportAction): Canv
 }
 
 interface UseCanvasViewportArgs {
+  houseId?: string | null;
   onMinimapInteraction?: () => void;
   onZoomInteraction?: () => void;
 }
 
 export function useCanvasViewport({
+  houseId,
   onMinimapInteraction,
-  onZoomInteraction
+  onZoomInteraction,
 }: UseCanvasViewportArgs) {
-
-  const [state, dispatch] = useReducer(reducer, initialCanvasViewPortState, createInitialCanvasViewPortState);
+  const [state, dispatch] = useReducer(
+    reducer,
+    houseId,
+    createInitialCanvasViewPortState,
+  );
 
   const lastPanPoint = useRef({x: 0, y: 0});
   const lastPinchDistance = useRef<number | null>(null);
@@ -103,6 +108,8 @@ export function useCanvasViewport({
   const viewportXRef = useRef(state.viewportX);
   const viewportYRef = useRef(state.viewportY);
   const containerSizeRef = useRef(state.containerSize);
+  const previousHouseIdRef = useRef(houseId);
+  const skipViewportPersistenceRef = useRef(false);
 
   useEffect(() => {
     zoomRef.current = state.zoom;
@@ -111,13 +118,32 @@ export function useCanvasViewport({
     containerSizeRef.current = state.containerSize;
   }, [state]);
 
+  // O Canvas é reutilizado quando a casa ativa muda. Reidratar o viewport
+  // explicitamente aqui impede que a casa seguinte herde o pan/zoom anterior.
   useEffect(() => {
+    if (previousHouseIdRef.current === houseId) return;
+    previousHouseIdRef.current = houseId;
+    skipViewportPersistenceRef.current = true;
+    const storedViewport = readCanvasViewportStorage(houseId);
+    dispatch({type: 'setZoom', value: storedViewport.zoom});
+    dispatch({type: 'setViewport', value: {
+      x: storedViewport.viewportX,
+      y: storedViewport.viewportY,
+    }});
+  }, [houseId]);
+
+  useEffect(() => {
+    if (skipViewportPersistenceRef.current) {
+      skipViewportPersistenceRef.current = false;
+      return;
+    }
+
     writeCanvasViewportStorage({
       zoom: state.zoom,
       viewportX: state.viewportX,
       viewportY: state.viewportY,
-    });
-  }, [state.zoom, state.viewportX, state.viewportY]);
+    }, houseId);
+  }, [houseId, state.zoom, state.viewportX, state.viewportY]);
 
   const handleViewportChange = useCallback((x: number, y: number) => {
     dispatch({type: 'setViewport', value: {x, y}});
@@ -150,24 +176,24 @@ export function useCanvasViewport({
   const setZoom = useCallback((value: SetStateAction<number>) => {
     const resolved = typeof value === 'function' ? value(zoomRef.current) : value;
     dispatch({type: 'setZoom', value: resolved});
-  }, [zoomRef]);
+  }, []);
 
   const setViewportX = useCallback((value: SetStateAction<number>) => {
     const resolved = typeof value === 'function' ? value(viewportXRef.current) : value;
     dispatch({type: 'setViewportX', value: resolved});
-  }, [viewportXRef]);
+  }, []);
 
   const setViewportY = useCallback((value: SetStateAction<number>) => {
     const resolved = typeof value === 'function' ? value(viewportYRef.current) : value;
     dispatch({type: 'setViewportY', value: resolved});
-  }, [viewportYRef]);
+  }, []);
 
   const setContainerSize = useCallback((value: SetStateAction<{ width: number; height: number }>) => {
     const resolved = typeof value === 'function'
       ? value(containerSizeRef.current)
       : value;
     dispatch({type: 'setContainerSize', value: resolved});
-  }, [containerSizeRef]);
+  }, []);
 
   const setIsPanning = useCallback((value: boolean) => {
     dispatch({type: 'setIsPanning', value});
@@ -181,13 +207,7 @@ export function useCanvasViewport({
     dispatch({type: 'setIsSingleFingerPanning', value});
   }, []);
 
-  /**
-   * Fit the canvas inside the visible container.
-   *
-   * Computes the largest zoom that keeps the entire canvas visible (with a
-   * small margin) and re-centers the viewport. No-op while the container has
-   * not been measured yet.
-   */
+  /** Fit the canvas inside the visible container. */
   const fitToView = useCallback(() => {
     const {width, height} = containerSizeRef.current;
     if (width <= 0 || height <= 0) return;

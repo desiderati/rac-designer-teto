@@ -42,8 +42,10 @@ export function resolveConfiguredHouseAnalysisStatus(params: {
   persistedPilotiCount: number;
 }): 'prepared' | 'inserted' | undefined {
   if (params.explicitStatus) return params.explicitStatus;
-  return params.houseType
-    && (params.persistedHouseType || params.persistedPilotiCount > 0)
+  const effectiveHouseType = params.houseType ?? params.persistedHouseType;
+  if (!effectiveHouseType) return undefined;
+
+  return params.hasHouseBeenDefined || params.persistedHouseType || params.persistedPilotiCount > 0
     ? 'prepared'
     : undefined;
 }
@@ -116,7 +118,7 @@ export function useCanvasController({
       ? resolveConfiguredHouseAnalysisStatus({
         explicitStatus: house.fieldAnalysis?.status,
         hasHouseBeenDefined: house.hasHouseBeenDefined,
-        houseType: house.houseType,
+        houseType: house.houseType ?? house.drawingDocument.house?.houseType ?? null,
         persistedHouseType: house.drawingDocument.house?.houseType,
         persistedPilotiCount: house.pilotiLayout.points.length,
       })

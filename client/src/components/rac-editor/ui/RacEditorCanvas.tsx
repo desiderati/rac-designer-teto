@@ -15,6 +15,7 @@ import {useCanvasHouseInitialization} from '@/components/rac-editor/@canvas/hook
 
 interface RacEditorCanvasProps {
   canvasRef: React.RefObject<CanvasHandle | null>;
+  activeHouseId?: string | null;
   showTips: boolean;
   showZoomControls: boolean;
   infoMessage: string;
@@ -43,6 +44,7 @@ interface RacEditorCanvasProps {
 
 export function RacEditorCanvas({
   canvasRef,
+  activeHouseId = null,
   showTips,
   showZoomControls,
   infoMessage,
@@ -91,6 +93,7 @@ export function RacEditorCanvas({
     <div className='relative h-full min-h-[480px] min-w-[420px] overflow-hidden'>
       <Canvas
         ref={canvasRef}
+        activeHouseId={activeHouseId}
         readOnly={readOnly}
         onSelectionChange={handleSelectionChange}
         onHistorySave={readOnly ? noop : onCanvasDocumentChange}

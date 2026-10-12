@@ -421,11 +421,23 @@ function areConstructionSitesEqual(next: ConstructionSiteState, previous: Constr
   if (!previous) return false;
   const normalizedNext = { ...next, constructionSite: { ...next.constructionSite, documentVersion: undefined } };
   const normalizedPrevious = { ...previous, constructionSite: { ...previous.constructionSite, documentVersion: undefined } };
-  return JSON.stringify(normalizedNext) === JSON.stringify(normalizedPrevious);
+  return JSON.stringify(canonicalizeForComparison(normalizedNext))
+    === JSON.stringify(canonicalizeForComparison(normalizedPrevious));
 }
 
 function areConstructionSiteListsEqual(next: ConstructionSiteState[], previous: ConstructionSiteState[]): boolean {
   return next.length === previous.length && next.every((entry, index) => areConstructionSitesEqual(entry, previous[index]));
+}
+
+function canonicalizeForComparison(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeForComparison);
+  if (!value || typeof value !== 'object') return value;
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => [key, canonicalizeForComparison(nested)]),
+  );
 }
 
 function cloneDocument(document: StoredConstructionSitesDocument): StoredConstructionSitesDocument {

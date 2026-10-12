@@ -45,4 +45,28 @@ describe('useCanvasViewport.ts', () => {
     expect(result.current.viewportX).toBeGreaterThan(0);
     expect(result.current.viewportY).toBeGreaterThan(0);
   });
+
+  it('troca a viewport quando a casa ativa muda', () => {
+    localStorage.setItem(`${STORAGE_KEYS.canvasViewport}:v2:house-a`, JSON.stringify({
+      zoom: 0.6,
+      viewportX: 380,
+      viewportY: 160,
+    }));
+    localStorage.setItem(`${STORAGE_KEYS.canvasViewport}:v2:house-b`, JSON.stringify({
+      zoom: 1,
+      viewportX: 0,
+      viewportY: 0,
+    }));
+
+    const {result, rerender} = renderHook(({houseId}) => useCanvasViewport({houseId}), {
+      initialProps: {houseId: 'house-a'},
+    });
+    expect(result.current.viewportX).toBe(380);
+
+    rerender({houseId: 'house-b'});
+
+    expect(result.current.zoom).toBe(1);
+    expect(result.current.viewportX).toBe(0);
+    expect(result.current.viewportY).toBe(0);
+  });
 });

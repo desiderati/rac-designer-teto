@@ -54,6 +54,7 @@ import {recoverCanvasObjects} from '@/components/rac-editor/@canvas/lib/recover-
 
 interface CanvasProps {
   children?: ReactNode;
+  activeHouseId?: string | null;
   isAnyEditorOpen?: boolean;
   readOnly?: boolean;
 
@@ -115,6 +116,7 @@ export const Canvas =
   forwardRef<CanvasHandle, CanvasProps>(
     ({
       children,
+      activeHouseId = null,
       isAnyEditorOpen = false,
       readOnly = false,
 
@@ -179,7 +181,7 @@ export const Canvas =
         handleViewportChange,
         handleZoomChange,
         fitToView,
-      } = useCanvasViewport({onMinimapInteraction, onZoomInteraction});
+      } = useCanvasViewport({houseId: activeHouseId, onMinimapInteraction, onZoomInteraction});
 
       const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
       const isAnyEditorOpenRef = useRef(isAnyEditorOpen);

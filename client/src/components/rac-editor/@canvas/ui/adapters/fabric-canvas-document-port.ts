@@ -523,6 +523,88 @@ async function hydrateProtectedImages(payload: Record<string, unknown>): Promise
   return result;
 }
 
+type FabricRuntimePayload = Record<string, unknown>;
+
+/**
+ * Tenta restaurar exatamente o conjunto recebido, sem deixar uma falha
+ * parcial contaminar o estado visual anterior da tentativa.
+ */
+async function tryLoadRuntimePayloads(
+  canvas: FabricCanvas,
+  payloads: FabricRuntimePayload[],
+): Promise<boolean> {
+  canvas.clear();
+  try {
+    await canvas.loadFromJSON({objects: payloads});
+    return true;
+  } catch {
+    canvas.clear();
+    return false;
+  }
+}
+
+/**
+ * Recupera grupos Fabric em que apenas um filho legado/incompatível quebrou a
+ * hidratação. O preview já faz esse tipo de sanitização; o Canvas vivo precisa
+ * aplicar a mesma tolerância sem descartar os demais objetos.
+ */
+async function recoverRuntimePayload(
+  canvas: FabricCanvas,
+  payload: FabricRuntimePayload,
+): Promise<FabricRuntimePayload | null> {
+  if (!Array.isArray(payload.objects)) return null;
+
+  const recoveredChildren: FabricRuntimePayload[] = [];
+  for (const child of payload.objects) {
+    if (!isRecord(child)) continue;
+    const childPayload = child as FabricRuntimePayload;
+    if (await tryLoadRuntimePayloads(canvas, [childPayload])) {
+      recoveredChildren.push(childPayload);
+      continue;
+    }
+
+    const recoveredChild = await recoverRuntimePayload(canvas, childPayload);
+    if (recoveredChild && await tryLoadRuntimePayloads(canvas, [recoveredChild])) {
+      recoveredChildren.push(recoveredChild);
+    }
+  }
+
+  return recoveredChildren.length > 0
+    ? {...payload, objects: recoveredChildren}
+    : null;
+}
+
+async function loadRuntimePayloadsWithRecovery(
+  canvas: FabricCanvas,
+  payloads: FabricRuntimePayload[],
+): Promise<{loaded: boolean; omittedCount: number}> {
+  if (await tryLoadRuntimePayloads(canvas, payloads)) {
+    return {loaded: true, omittedCount: 0};
+  }
+
+  const recoveredPayloads: FabricRuntimePayload[] = [];
+  let omittedCount = 0;
+  for (const payload of payloads) {
+    if (await tryLoadRuntimePayloads(canvas, [...recoveredPayloads, payload])) {
+      recoveredPayloads.push(payload);
+      continue;
+    }
+
+    const recovered = await recoverRuntimePayload(canvas, payload);
+    if (recovered && await tryLoadRuntimePayloads(canvas, [...recoveredPayloads, recovered])) {
+      recoveredPayloads.push(recovered);
+      omittedCount += Array.isArray(payload.objects)
+        ? payload.objects.length - (Array.isArray(recovered.objects) ? recovered.objects.length : 0)
+        : 0;
+    } else {
+      omittedCount += 1;
+    }
+  }
+
+  const loaded = await tryLoadRuntimePayloads(canvas, recoveredPayloads);
+  return {loaded, omittedCount};
+}
+
 function captureExportVisualState(canvas: FabricCanvas): ExportVisualSnapshot[] {
   return collectExportVisualObjects(canvas).map((object) => ({
     object,
@@ -1008,24 +1090,12 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
       if (!isHouseDrawingCanvasDocument(document)) return false;
 
       const objects = await Promise.all(document.objects.map(toRuntimePayload).map(hydrateProtectedImages));
-      canvas.clear();
-
-      try {
-        await canvas.loadFromJSON({objects});
-      } catch (error) {
-        // Um objeto legado incompatível não pode deixar o editor sem estado de
-        // casa. Retenta com uma superfície vazia; o estado canônico da casa é
-        // importado pelo lifecycle logo após esta porta concluir a carga.
-        console.warn('[Canvas] Não foi possível restaurar parte do desenho; abrindo a superfície para recuperação.', error);
-        canvas.clear();
-        try {
-          await canvas.loadFromJSON({objects: []});
-        } catch (fallbackError) {
-          // Fabric pode estar desmontando durante uma troca de tela. A carga
-          // visual ainda é considerada concluída para não bloquear a casa
-          // preparada, mas o próximo ciclo de hidratação poderá tentar de novo.
-          console.debug('[Canvas] Falha ao limpar a superfície durante a recuperação.', fallbackError);
-        }
+      const recovery = await loadRuntimePayloadsWithRecovery(canvas, objects);
+      if (!recovery.loaded) return false;
+      if (recovery.omittedCount > 0) {
+        console.warn(
+          `[Canvas] ${recovery.omittedCount} objeto(s) incompatível(is) foram omitidos; o restante do desenho foi restaurado.`,
+        );
       }
 
       refreshHouseGroupsOnCanvas(canvas);

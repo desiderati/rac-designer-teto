@@ -42,4 +42,14 @@ describe('shouldRestoreConfiguredHouseTopView', () => {
       persistedPilotiCount: 0,
     })).toBeUndefined();
   });
+
+  it('reconhece casa configurada quando o tipo foi preservado apenas no documento visual', () => {
+    expect(resolveConfiguredHouseAnalysisStatus({
+      explicitStatus: undefined,
+      hasHouseBeenDefined: false,
+      houseType: null,
+      persistedHouseType: 'tipo3',
+      persistedPilotiCount: 0,
+    })).toBe('prepared');
+  });
 });

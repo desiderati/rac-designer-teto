@@ -163,6 +163,33 @@ describe('remote construction site session storage', () => {
     expect(storage.read().constructionSites[0].constructionSite.photoDataUrl)
       .toBe('https://storage.example/construction-photo.png');
   });
+
+  it('não considera a ordem das chaves JSON uma alteração do documento', async () => {
+    const onWrite = vi.fn(async () => true);
+    const base = state('site-1');
+    const storage = createReactiveConstructionSiteSessionStorage([base], onWrite);
+    const reordered = {
+      houses: base.houses,
+      monitors: base.monitors,
+      families: base.families,
+      communities: base.communities,
+      constructionSite: {
+        updatedAt: base.constructionSite.updatedAt,
+        status: base.constructionSite.status,
+        communityId: base.constructionSite.communityId,
+        constructionDate: base.constructionSite.constructionDate,
+        createdAt: base.constructionSite.createdAt,
+        externalCode: base.constructionSite.externalCode,
+        documentVersion: base.constructionSite.documentVersion,
+        id: base.constructionSite.id,
+      },
+    } satisfies ConstructionSiteState;
+
+    storage.write([reordered]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onWrite).not.toHaveBeenCalled();
+  });
 });
 
 describe('persistReactiveConstructionSites', () => {

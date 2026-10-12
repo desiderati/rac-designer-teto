@@ -146,6 +146,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
     },
     canvas: {
       canvasRef: args.canvasRef,
+      activeHouseId: args.activeHouseId,
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
       infoMessage: args.infoMessage,

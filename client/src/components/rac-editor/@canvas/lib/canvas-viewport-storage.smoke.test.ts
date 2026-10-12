@@ -49,4 +49,16 @@ describe('canvas-viewport-storage.ts', () => {
 
     expect(() => writeCanvasViewportStorage({zoom: 1, viewportX: 0, viewportY: 0})).not.toThrow();
   });
+
+  it('isola a viewport por casa e não herda a posição de outro documento', () => {
+    writeCanvasViewportStorage({zoom: 0.6, viewportX: 420, viewportY: 180}, 'house-patricia');
+    writeCanvasViewportStorage({zoom: 1, viewportX: 0, viewportY: 0}, 'house-rose');
+
+    expect(readCanvasViewportStorage('house-patricia')).toEqual({
+      zoom: 0.6,
+      viewportX: 420,
+      viewportY: 180,
+    });
+    expect(readCanvasViewportStorage('house-rose')).toEqual(DEFAULT_CANVAS_VIEWPORT_STORAGE);
+  });
 });

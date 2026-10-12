@@ -77,12 +77,14 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
-  it('limpa o Fabric e conclui a carga quando um objeto incompatível quebra a primeira restauração', async () => {
+  it('preserva objetos válidos quando um objeto incompatível quebra a primeira restauração', async () => {
     const canvas = {
       clear: vi.fn(),
-      loadFromJSON: vi.fn()
-        .mockRejectedValueOnce(new Error('objeto legado incompatível'))
-        .mockResolvedValueOnce(undefined),
+      loadFromJSON: vi.fn(async ({objects}: {objects: Array<{editorObjectId?: string}>}) => {
+        if (objects.some((object) => object.editorObjectId === 'legacy-object')) {
+          throw new Error('objeto legado incompatível');
+        }
+      }),
       getObjects: vi.fn(() => []),
       renderAll: vi.fn(),
       requestRenderAll: vi.fn(),
@@ -90,11 +92,14 @@ describe('fabric-canvas-document-port.ts', () => {
 
     await expect(createFabricCanvasDocumentPort(canvas as never).loadCanvasDocument({
       schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
-      objects: [{id: 'house-top-1', kind: 'house', shape: 'group', children: []}],
+      objects: [
+        {id: 'house-top-1', kind: 'house', shape: 'group', children: []},
+        {id: 'legacy-object', kind: 'pilotiNivelText', shape: 'itext'},
+      ],
     })).resolves.toBe(true);
 
-    expect(canvas.clear).toHaveBeenCalledTimes(2);
-    expect(canvas.loadFromJSON).toHaveBeenNthCalledWith(2, {objects: []});
+    expect(canvas.clear).toHaveBeenCalled();
+    expect(canvas.loadFromJSON).toHaveBeenLastCalledWith({objects: [expect.any(Object)]});
   });
 
   it('serializa o canvas como documento visual canônico', () => {
