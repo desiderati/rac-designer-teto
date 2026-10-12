@@ -31,6 +31,20 @@ export function shouldRestoreConfiguredHouseTopView(
     && topHouseGroupOnCanvas === false;
 }
 
+export function resolveConfiguredHouseAnalysisStatus(params: {
+  explicitStatus: 'prepared' | 'inserted' | undefined;
+  hasHouseBeenDefined?: boolean;
+  houseType: string | null;
+  persistedHouseType: string | null | undefined;
+  persistedPilotiCount: number;
+}): 'prepared' | 'inserted' | undefined {
+  if (params.explicitStatus) return params.explicitStatus;
+  return params.hasHouseBeenDefined && params.houseType
+    && (params.persistedHouseType || params.persistedPilotiCount > 0)
+    ? 'prepared'
+    : undefined;
+}
+
 interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   canvasRef: RefObject<CanvasControllerHandle | null>;
   isDrawing: boolean;
@@ -95,7 +109,15 @@ export function useCanvasController({
   const getConfiguredHouseForInsertion = useCallback(() => {
     const site = constructionSiteManagementPort.getConstructionSiteSnapshot();
     const house = site?.houses.find((entry) => entry.id === site.constructionSite.activeHouseId);
-    const analysisStatus = house?.fieldAnalysis?.status;
+    const analysisStatus = house
+      ? resolveConfiguredHouseAnalysisStatus({
+        explicitStatus: house.fieldAnalysis?.status,
+        hasHouseBeenDefined: house.hasHouseBeenDefined,
+        houseType: house.houseType,
+        persistedHouseType: house.drawingDocument.house?.houseType,
+        persistedPilotiCount: house.pilotiLayout.points.length,
+      })
+      : undefined;
     if (!house || (analysisStatus !== 'prepared' && analysisStatus !== 'inserted')) return null;
 
     // Remove registros que apontam para uma vista inexistente e não duplique a

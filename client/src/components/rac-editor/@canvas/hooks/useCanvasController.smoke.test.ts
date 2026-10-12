@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {shouldRestoreConfiguredHouseTopView} from './useCanvasController.ts';
+import {
+  resolveConfiguredHouseAnalysisStatus,
+  shouldRestoreConfiguredHouseTopView,
+} from './useCanvasController.ts';
 
 describe('shouldRestoreConfiguredHouseTopView', () => {
   it('recupera uma casa preparada sem Planta visual', () => {
@@ -18,5 +21,22 @@ describe('shouldRestoreConfiguredHouseTopView', () => {
   it('não tenta inserir uma casa sem Análise de Campo configurada ou sem runtime', () => {
     expect(shouldRestoreConfiguredHouseTopView(undefined, false)).toBe(false);
     expect(shouldRestoreConfiguredHouseTopView('prepared', null)).toBe(false);
+  });
+
+  it('reconhece configuração legada persistida sem fieldAnalysis.status', () => {
+    expect(resolveConfiguredHouseAnalysisStatus({
+      explicitStatus: undefined,
+      hasHouseBeenDefined: true,
+      houseType: 'tipo6',
+      persistedHouseType: 'tipo6',
+      persistedPilotiCount: 12,
+    })).toBe('prepared');
+    expect(resolveConfiguredHouseAnalysisStatus({
+      explicitStatus: undefined,
+      hasHouseBeenDefined: true,
+      houseType: null,
+      persistedHouseType: null,
+      persistedPilotiCount: 0,
+    })).toBeUndefined();
   });
 });
