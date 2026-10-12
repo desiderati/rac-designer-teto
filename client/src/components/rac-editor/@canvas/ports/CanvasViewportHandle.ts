@@ -18,4 +18,7 @@ export interface CanvasViewportHandle {
 
   /** Localiza e enquadra os objetos do documento na viewport. */
   fitContent(): void;
+
+  /** Reenquadra o conteúdo carregado sem alterar coordenadas nem histórico. */
+  fitContentInView(force?: boolean): void;
 }

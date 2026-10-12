@@ -181,6 +181,7 @@ export const Canvas =
         handleViewportChange,
         handleZoomChange,
         fitToView,
+        fitContentInView,
       } = useCanvasViewport({houseId: activeHouseId, onMinimapInteraction, onZoomInteraction});
 
       const {minimapObjects, updateMinimapObjects} = useCanvasMinimapObjects();
@@ -320,6 +321,58 @@ export const Canvas =
         },
         getVisibleCenter,
         fitToView,
+        fitContentInView: (force = false) => {
+          const canvas = fabricCanvasRef.current;
+          const objects = canvas?.getObjects() ?? [];
+          if (objects.length === 0) return;
+
+          objects.forEach((object) => object.setCoords?.());
+          const bounds = objects.reduce<{left: number; top: number; right: number; bottom: number} | null>((current, object) => {
+            const rect = object.getBoundingRect();
+            const next = {
+              left: rect.left,
+              top: rect.top,
+              right: rect.left + rect.width,
+              bottom: rect.top + rect.height,
+            };
+            if (!current) return next;
+            return {
+              left: Math.min(current.left, next.left),
+              top: Math.min(current.top, next.top),
+              right: Math.max(current.right, next.right),
+              bottom: Math.max(current.bottom, next.bottom),
+            };
+          }, null);
+          if (!bounds || containerSize.width <= 0 || containerSize.height <= 0 || zoom <= 0) return;
+
+          const {canvasX, canvasY} = getCanvasOffsetFromState({
+            zoom,
+            viewportX,
+            viewportY,
+            containerWidth: containerSize.width,
+            containerHeight: containerSize.height,
+          });
+          const visible = {
+            left: -canvasX / zoom,
+            top: -canvasY / zoom,
+            right: (-canvasX + containerSize.width) / zoom,
+            bottom: (-canvasY + containerSize.height) / zoom,
+          };
+          const padding = 24 / zoom;
+          const contentIsWithinView = bounds.left >= visible.left + padding
+            && bounds.top >= visible.top + padding
+            && bounds.right <= visible.right - padding
+            && bounds.bottom <= visible.bottom - padding;
+
+          if (force || !contentIsWithinView) {
+            fitContentInView({
+              left: bounds.left,
+              top: bounds.top,
+              width: Math.max(1, bounds.right - bounds.left),
+              height: Math.max(1, bounds.bottom - bounds.top),
+            });
+          }
+        },
         fitContent: () => {
           const canvas = fabricCanvasRef.current;
           const objects = canvas?.getObjects() ?? [];
@@ -342,7 +395,7 @@ export const Canvas =
           }
         },
       };
-      }, [clearHistory, containerSize, copy, createCanvasDocumentPort, fitToView, getCanvasOffsetFromState, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, onSelectionChange, paste, readOnly, saveHistory, undo, viewportX, viewportY, zoom]);
+      }, [clearHistory, containerSize, copy, createCanvasDocumentPort, fitContentInView, fitToView, getCanvasOffsetFromState, getCurrentScreenPoint, getVisibleCenter, handleViewportChange, onSelectionChange, paste, readOnly, saveHistory, undo, viewportX, viewportY, zoom]);
 
       const clearImageLongPress = useCallback(() => {
         const pendingLongPress = imageLongPressRef.current;

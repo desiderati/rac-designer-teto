@@ -14,7 +14,9 @@ interface PendingDocumentSaveWaiter {
 }
 
 interface UseHouseDocumentLifecycleArgs {
-  canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle) | null>;
+  canvasRef?: RefObject<(CanvasDocumentHandle & CanvasHistoryHandle & {
+    fitContentInView?: (force?: boolean) => void;
+  }) | null>;
   houseDrawingDocumentPort: EditorPorts['houseDrawingDocumentPort'];
   constructionSiteManagementPort: EditorPorts['constructionSiteManagementPort'];
   emitHouseStoreChange: () => void;
@@ -75,6 +77,14 @@ export function useHouseDocumentLifecycle({
       const loaded = await documentPort.loadCanvasDocument(document.canvas);
       if (!loaded) return false;
 
+      const currentDocument = constructionSiteManagementPort.getActiveHouseDrawingDocument();
+      if (currentDocument && currentDocument.house.id !== document.house.id) {
+        // Uma troca de casa aconteceu enquanto Fabric carregava. Não permita
+        // que a carga antiga importe metadados nem reenquadre a superfície
+        // atual.
+        return false;
+      }
+
       // O estado canônico precisa ser importado somente depois que a porta
       // visual concluir a limpeza/restauração. Assim, uma troca ou retry não
       // consegue deixar o Fabric e a casa ativa apontando para documentos
@@ -82,6 +92,19 @@ export function useHouseDocumentLifecycle({
       houseDrawingDocumentPort.importHouseDrawingDocument(document);
       emitHouseStoreChange();
       canvasRef.current?.saveHistory({notifyDocumentChange: false});
+      // A troca de casa pode ocorrer enquanto a viewport anterior ainda está
+      // sendo substituída pela viewport da nova casa. Reenquadrar no próximo
+      // frame corrige apenas a apresentação; não move objetos nem grava o
+      // documento remoto.
+      if (typeof window !== 'undefined') {
+        window.requestAnimationFrame(() => {
+          const latestDocument = constructionSiteManagementPort.getActiveHouseDrawingDocument();
+          if (latestDocument && latestDocument.house.id !== document.house.id) return;
+          canvasRef.current?.fitContentInView?.(true);
+        });
+      } else {
+        canvasRef.current?.fitContentInView?.(true);
+      }
       documentRevisionRef.current = 0;
       savedDocumentRevisionRef.current = 0;
       setTrackedDocumentSaveStatus('saved');

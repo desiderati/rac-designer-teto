@@ -248,6 +248,39 @@ export function useCanvasViewport({
     onZoomInteraction?.();
   }, [fitToView, onZoomInteraction]);
 
+  /** Centraliza limites carregados sem tocar nos objetos Fabric. */
+  const fitContentInView = useCallback((
+    bounds: {left: number; top: number; width: number; height: number} | null,
+    force = false,
+  ) => {
+    if (!bounds) return;
+    const {width, height} = containerSizeRef.current;
+    if (width <= 0 || height <= 0) return;
+
+    const currentZoom = zoomRef.current;
+    const contentZoom = Math.min(
+      width * 0.88 / Math.max(bounds.width, 1),
+      height * 0.88 / Math.max(bounds.height, 1),
+    );
+    const targetZoom = Math.max(
+      ZOOM_LIMITS.min,
+      Math.min(ZOOM_LIMITS.max, currentZoom, contentZoom),
+    );
+    const centerX = (bounds.left + bounds.width / 2) * targetZoom;
+    const centerY = (bounds.top + bounds.height / 2) * targetZoom;
+    const maxViewportX = Math.max(0, CANVAS_WIDTH * targetZoom - width);
+    const maxViewportY = Math.max(0, CANVAS_HEIGHT * targetZoom - height);
+
+    if (force || targetZoom !== currentZoom) {
+      dispatch({type: 'setZoom', value: targetZoom});
+      dispatch({type: 'setViewport', value: {
+        x: Math.max(0, Math.min(centerX - width / 2, maxViewportX)),
+        y: Math.max(0, Math.min(centerY - height / 2, maxViewportY)),
+      }});
+      onZoomInteraction?.();
+    }
+  }, [onZoomInteraction]);
+
   return {
     zoom: state.zoom,
     setZoom,
@@ -277,5 +310,6 @@ export function useCanvasViewport({
     handleZoomChange,
     fitToView,
     fitContent,
+    fitContentInView,
   };
 }

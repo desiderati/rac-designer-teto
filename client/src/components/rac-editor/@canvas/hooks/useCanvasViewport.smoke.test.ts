@@ -46,6 +46,20 @@ describe('useCanvasViewport.ts', () => {
     expect(result.current.viewportY).toBeGreaterThan(0);
   });
 
+  it('centraliza conteúdo carregado sem alterar sua geometria', () => {
+    const {result} = renderHook(() => useCanvasViewport({houseId: 'house-a'}));
+    act(() => result.current.setContainerSize({width: 600, height: 400}));
+    act(() => result.current.setZoom(0.65));
+    act(() => result.current.setViewportX(900));
+    act(() => result.current.setViewportY(700));
+
+    act(() => result.current.fitContentInView({left: 900, top: 600, width: 300, height: 240}, true));
+
+    expect(result.current.zoom).toBe(0.65);
+    expect(result.current.viewportX).toBeCloseTo(382.5);
+    expect(result.current.viewportY).toBeCloseTo(268);
+  });
+
   it('troca a viewport quando a casa ativa muda', () => {
     localStorage.setItem(`${STORAGE_KEYS.canvasViewport}:v2:house-a`, JSON.stringify({
       zoom: 0.6,
