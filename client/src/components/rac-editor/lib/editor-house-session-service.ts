@@ -57,6 +57,17 @@ export class EditorHouseSessionService {
     this.syncConstructionSiteSession();
   }
 
+  hydrateFromPersistedDocument(params: {
+    familyName: string;
+    selectedPilotiHeights: readonly number[];
+  }): void {
+    // Hidratação é leitura de um snapshot já persistido. Os setters públicos
+    // acima são comandos de edição e sincronizam a sessão; misturá-los aqui
+    // cria uma gravação remota só por abrir o Canvas.
+    this.metadata.setFamilyName(params.familyName);
+    this.metadata.setSelectedPilotiHeights(params.selectedPilotiHeights);
+  }
+
   private hydrateFromConstructionSiteSession(): void {
     this.metadata.hydrateFromConstructionSiteSession({
       aggregate: this.args.getAggregate(),

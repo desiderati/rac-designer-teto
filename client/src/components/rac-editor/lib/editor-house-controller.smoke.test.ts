@@ -125,6 +125,34 @@ describe('editor house controller', () => {
     viewSequence = 0;
   });
 
+  it('hidrata documento remoto sem gravar a Construção TETO novamente', () => {
+    const writes = vi.fn();
+    const constructionSiteSession = createConstructionSiteSession({
+      read: () => ({version: 1, constructionSites: []}),
+      write: writes,
+    });
+    constructionSiteSession.createConstructionSite({
+      externalCode: 'CC2604',
+      constructionDate: '2026-05-11',
+      communityName: 'Rio Negro',
+    });
+    constructionSiteSession.createHouse({familyName: 'Patrícia', houseType: 'tipo6'});
+    writes.mockClear();
+
+    const controller = createCanvasHouseController({
+      persistence: new InMemoryHousePersistenceAdapter(),
+      settingsPort: createSettingsPort(),
+      constructionSiteSession,
+    });
+    const document = constructionSiteSession.getActiveHouseDrawingDocument();
+    if (!document) throw new Error('Documento da casa não foi criado.');
+    writes.mockClear();
+
+    controller.loadHouseDrawingDocument(document);
+
+    expect(writes).not.toHaveBeenCalled();
+  });
+
   it('creates house state for tipo6 and tipo3 with expected view limits', () => {
     houseController.setHouseType('tipo6');
 

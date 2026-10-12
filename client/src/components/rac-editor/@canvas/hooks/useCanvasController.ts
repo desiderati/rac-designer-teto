@@ -28,7 +28,10 @@ export function shouldRestoreConfiguredHouseTopView(
   topHouseGroupOnCanvas: boolean | null,
 ): boolean {
   return (analysisStatus === 'prepared' || analysisStatus === 'inserted')
-    && topHouseGroupOnCanvas === false;
+    // `null` significa que o handle Fabric ainda não expôs o runtime. O
+    // comando de inserção aguarda a hidratação no lifecycle; tratar esse caso
+    // como “já existe” deixava casas configuradas presas no Canvas vazio.
+    && topHouseGroupOnCanvas !== true;
 }
 
 export function resolveConfiguredHouseAnalysisStatus(params: {
@@ -39,7 +42,7 @@ export function resolveConfiguredHouseAnalysisStatus(params: {
   persistedPilotiCount: number;
 }): 'prepared' | 'inserted' | undefined {
   if (params.explicitStatus) return params.explicitStatus;
-  return params.hasHouseBeenDefined && params.houseType
+  return params.houseType
     && (params.persistedHouseType || params.persistedPilotiCount > 0)
     ? 'prepared'
     : undefined;
@@ -120,9 +123,10 @@ export function useCanvasController({
       : undefined;
     if (!house || (analysisStatus !== 'prepared' && analysisStatus !== 'inserted')) return null;
 
-    // Remove registros que apontam para uma vista inexistente e não duplique a
-    // Planta quando o grupo top já estiver efetivamente montado no Fabric.
-    houseReadPort.isViewAtLimit('top');
+    // Não consultar `isViewAtLimit` aqui: essa consulta também limpa registros
+    // órfãos e persiste a casa. Durante o bootstrap, o Fabric ainda pode estar
+    // vazio enquanto o documento válido aguarda hidratação, o que transformava
+    // a abertura do menu em uma alteração remota e apagava a Planta lógica.
     if (!shouldRestoreConfiguredHouseTopView(analysisStatus, hasTopHouseGroupOnCanvas())) return null;
 
     return analysisStatus === 'prepared'

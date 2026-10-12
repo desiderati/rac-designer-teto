@@ -37,6 +37,24 @@ describe('constructionSite-session.ts', () => {
     expect(writes).toHaveLength(0);
   });
 
+  it('não persiste seleção de construção/casa nem abertura automática do editor', () => {
+    const seed = createStorage();
+    const session = createConstructionSiteSession(seed.storage);
+    const construction = session.createConstructionSite({
+      externalCode: 'CC2603',
+      constructionDate: '2026-05-11',
+      communityName: 'Rio Negro',
+    });
+    const house = session.createHouse({familyName: 'Patrícia', houseType: 'tipo6'});
+    const writesBeforeNavigation = seed.writes.length;
+
+    expect(session.activateConstructionSite(construction.constructionSite.id)).toBeTruthy();
+    expect(session.activateHouse(construction.constructionSite.id, house.id)).toBeTruthy();
+    expect(session.prepareRacEditorOpening()).toBeTruthy();
+
+    expect(seed.writes).toHaveLength(writesBeforeNavigation);
+  });
+
   it('normaliza Canvas legado inválido na fronteira da sessão sem bloquear a casa', () => {
     const seed = createStorage();
     const sourceSession = createConstructionSiteSession(seed.storage);

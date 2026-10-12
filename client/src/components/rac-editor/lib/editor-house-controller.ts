@@ -304,9 +304,14 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
   loadHouseDrawingDocument(document: HouseDrawingDocument): void {
     this.viewer3D = normalizeHouseDrawingViewer3D(document.viewer3D);
     this.house = createHouseStateSnapshot(document.house);
-    this.session.setSelectedPilotiHeights(document.setup.selectedPilotiHeights);
-    this.session.setFamilyName(document.setup.familyName);
-    this.session.syncConstructionSiteSession();
+    this.session.hydrateFromPersistedDocument({
+      familyName: document.setup.familyName,
+      selectedPilotiHeights: document.setup.selectedPilotiHeights,
+    });
+    // Este método hidrata um snapshot já persistido. Sincronizar os metadados
+    // novamente aqui chamava `touchActiveHouse()` e gravava uma nova versão
+    // remota apenas por abrir o Canvas — inclusive quando outro operador havia
+    // salvado entre o load e a montagem do Fabric.
     this.notify();
   }
 

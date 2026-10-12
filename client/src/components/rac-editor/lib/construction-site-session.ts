@@ -603,7 +603,9 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     this.state = constructionSite;
     this.normalizeConstructionSiteActiveHouse(constructionSite);
-    this.persist();
+    // A seleção da construção é estado de navegação local. Persisti-la aqui
+    // transformava uma simples abertura de tela em uma alteração do documento
+    // remoto, criando conflitos mesmo quando o usuário não editava nada.
     return this.getActiveHouseDrawingDocument();
   }
 
@@ -867,8 +869,8 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
 
     this.state = constructionSite;
     this.state.constructionSite.activeHouseId = house.id;
-    this.state.constructionSite.updatedAt = new Date().toISOString();
-    this.persist();
+    // activeHouseId orienta apenas o editor desta sessão. Não atualizar
+    // updatedAt nem persistir a seleção evita uma escrita concorrente falsa.
     return this.getActiveHouseDrawingDocument();
   }
 
@@ -1124,7 +1126,6 @@ class ConstructionSiteSession implements ConstructionSiteSessionPort {
   private selectRacEditorOpeningCandidate(candidate: HouseConstructionSiteCandidate): HouseDrawingDocument | null {
     this.state = candidate.constructionSite;
     this.state.constructionSite.activeHouseId = candidate.house.id;
-    this.persist();
 
     return this.getActiveHouseDrawingDocument();
   }

@@ -18,9 +18,12 @@ describe('shouldRestoreConfiguredHouseTopView', () => {
     expect(shouldRestoreConfiguredHouseTopView('inserted', true)).toBe(false);
   });
 
-  it('não tenta inserir uma casa sem Análise de Campo configurada ou sem runtime', () => {
+  it('não tenta inserir uma casa sem Análise de Campo configurada', () => {
     expect(shouldRestoreConfiguredHouseTopView(undefined, false)).toBe(false);
-    expect(shouldRestoreConfiguredHouseTopView('prepared', null)).toBe(false);
+  });
+
+  it('permite enfileirar a inserção enquanto o runtime ainda está sendo montado', () => {
+    expect(shouldRestoreConfiguredHouseTopView('prepared', null)).toBe(true);
   });
 
   it('reconhece configuração legada persistida sem fieldAnalysis.status', () => {
