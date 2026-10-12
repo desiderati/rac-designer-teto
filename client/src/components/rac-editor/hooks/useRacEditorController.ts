@@ -229,6 +229,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
     handleNivelDefinitionClose,
     handleSideSelectorClose,
     handleAddHouseView,
+    shouldAutoInsertConfiguredHouse,
     handleHouseTypeSelectedFromFlow,
     handleAddWall,
     handleAddDirtRoad,
@@ -271,7 +272,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
   const handleOpenHouseTypeSelector = useCallback(() => {
     closeAllMenus();
 
-    if (activeHouse?.fieldAnalysis?.status === 'prepared') {
+    if (shouldAutoInsertConfiguredHouse()) {
       handleAddHouseView('top');
       return;
     }
@@ -285,7 +286,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       selectedPilotiHeights: [...DEFAULT_HOUSE_PILOTI_HEIGHTS],
     });
     setHouseTypeSelectorOpen(true);
-  }, [activeHouse?.fieldAnalysis?.status, handleAddHouseView, closeAllMenus, houseWritePort, settingsPort, setHouseTypeSelectorOpen, setPilotisSetupOpen]);
+  }, [shouldAutoInsertConfiguredHouse, handleAddHouseView, closeAllMenus, houseWritePort, settingsPort, setHouseTypeSelectorOpen, setPilotisSetupOpen]);
 
   const handleOpenImageUpload = useCallback(() => {
     disableDrawingMode();
@@ -327,7 +328,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
 
   const handleToggleHouseMenu = useCallback(() => {
     disableDrawingMode();
-    if (activeHouse?.fieldAnalysis?.status === 'prepared') {
+    if (shouldAutoInsertConfiguredHouse()) {
       handleOpenHouseTypeSelector();
       return;
     }
@@ -336,7 +337,7 @@ export function useRacEditorController({onExit}: {onExit: () => void | Promise<v
       return;
     }
     handleOpenHouseTypeSelector();
-  }, [activeHouse?.fieldAnalysis?.status, disableDrawingMode, handleOpenHouseTypeSelector, houseReadPort, setActiveSubmenu]);
+  }, [disableDrawingMode, handleOpenHouseTypeSelector, houseReadPort, setActiveSubmenu, shouldAutoInsertConfiguredHouse]);
 
   const toggleSubmenu = useCallback((submenu: 'elements' | 'lines' | 'overflow') => {
     disableDrawingMode();

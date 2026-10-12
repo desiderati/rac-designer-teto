@@ -7,6 +7,8 @@ import {useRacEditorTerrainActions} from '@/components/rac-editor/hooks/useRacEd
 import {useCanvasHouseViewActions} from '@/components/rac-editor/@canvas/hooks/useCanvasHouseViewActions.ts';
 import {useCanvasTools} from '@/components/rac-editor/@canvas/hooks/useCanvasTools.ts';
 import type {useHouseTypeFlow} from '@/components/rac-editor/@modals/hooks/useHouseTypeFlow.ts';
+import type {CanvasHouseRuntimeHandle} from '@/components/rac-editor/@canvas/ports/CanvasHouseRuntimeHandle.ts';
+import {createHouseFieldAnalysisDraft} from '@/components/construction-site/lib/house-field-analysis.ts';
 
 type HouseTypeFlowState = Pick<
   ReturnType<typeof useHouseTypeFlow>,
@@ -20,6 +22,14 @@ type HouseTypeFlowState = Pick<
   | 'niveisAppliedRef'
   | 'transitionToNivelRef'
 >;
+
+export function shouldRestoreConfiguredHouseTopView(
+  analysisStatus: 'prepared' | 'inserted' | undefined,
+  topHouseGroupOnCanvas: boolean | null,
+): boolean {
+  return (analysisStatus === 'prepared' || analysisStatus === 'inserted')
+    && topHouseGroupOnCanvas === false;
+}
 
 interface UseRacEditorCanvasControllerArgs extends HouseTypeFlowState {
   canvasRef: RefObject<CanvasControllerHandle | null>;
@@ -75,6 +85,29 @@ export function useCanvasController({
     onCloseSubmenus: () => setActiveSubmenu(null),
   });
 
+  const hasTopHouseGroupOnCanvas = useCallback(() => {
+    const runtimeHandle = canvasRef.current as (CanvasControllerHandle & Partial<CanvasHouseRuntimeHandle>) | null;
+    const runtimePort = runtimeHandle?.createCanvasHouseRuntimePort?.();
+    if (!runtimePort) return null;
+    return runtimePort.getHouseGroups().some((group) => group.houseViewType === 'top' || group.houseView === 'top');
+  }, [canvasRef]);
+
+  const getConfiguredHouseForInsertion = useCallback(() => {
+    const site = constructionSiteManagementPort.getConstructionSiteSnapshot();
+    const house = site?.houses.find((entry) => entry.id === site.constructionSite.activeHouseId);
+    const analysisStatus = house?.fieldAnalysis?.status;
+    if (!house || (analysisStatus !== 'prepared' && analysisStatus !== 'inserted')) return null;
+
+    // Remove registros que apontam para uma vista inexistente e não duplique a
+    // Planta quando o grupo top já estiver efetivamente montado no Fabric.
+    houseReadPort.isViewAtLimit('top');
+    if (!shouldRestoreConfiguredHouseTopView(analysisStatus, hasTopHouseGroupOnCanvas())) return null;
+
+    return analysisStatus === 'prepared'
+      ? constructionSiteManagementPort.getHouseFieldAnalysis(site.constructionSite.id, house.id)
+      : createHouseFieldAnalysisDraft(house);
+  }, [constructionSiteManagementPort, hasTopHouseGroupOnCanvas, houseReadPort]);
+
   const {
     terrainSelection,
     isTerrainEditorOpen,
@@ -101,12 +134,7 @@ export function useCanvasController({
     handleHouseTypeSelected: handleHouseTypeSelectedFromFlow,
   } = useCanvasHouseViewActions({
     runHouseInsertion,
-    getPreparedHouse: () => {
-      const site = constructionSiteManagementPort.getConstructionSiteSnapshot();
-      const house = site?.houses.find((entry) => entry.id === site.constructionSite.activeHouseId);
-      return house?.fieldAnalysis?.status === 'prepared'
-        ? constructionSiteManagementPort.getHouseFieldAnalysis(site.constructionSite.id, house.id) : null;
-    },
+    getPreparedHouse: getConfiguredHouseForInsertion,
     canvasRef,
     getVisibleCenter,
     closeAllMenus,
@@ -159,6 +187,11 @@ export function useCanvasController({
     setInfoMessage,
   });
 
+  const shouldAutoInsertConfiguredHouse = useCallback(
+    () => Boolean(getConfiguredHouseForInsertion()),
+    [getConfiguredHouseForInsertion],
+  );
+
   return {
     closeAllMenus,
     disableDrawingMode,
@@ -174,6 +207,7 @@ export function useCanvasController({
     handleNivelDefinitionClose,
     handleSideSelectorClose,
     handleAddHouseView,
+    shouldAutoInsertConfiguredHouse,
     handleHouseTypeSelectedFromFlow,
     handleAddWall,
     handleAddStreetStraight,
