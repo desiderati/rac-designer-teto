@@ -1,9 +1,8 @@
 import {useEffect, useState, type ReactNode} from 'react';
-import {ArrowUpRight, LoaderCircle, RotateCw, X} from 'lucide-react';
+import {ArrowUpRight, LoaderCircle, Menu, RotateCw, X} from 'lucide-react';
 import {HoverCard, HoverCardContent, HoverCardTrigger} from '@/components/ui/hover-card.tsx';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -37,6 +36,7 @@ export function HousePhotoPreviewTrigger({
   const [canvasImageDataUrl, setCanvasImageDataUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const normalizedFamilyName = familyName.trim() || 'casa';
   const previewLabel = `Pré-visualizar Canvas da casa ${normalizedFamilyName}`;
   const hasPersistedDrawing = house.drawingDocument.canvas.objects.length > 0;
@@ -67,12 +67,19 @@ export function HousePhotoPreviewTrigger({
   useEffect(() => {
     setCanvasImageDataUrl(null);
     setLoadError(false);
+    setActionMenuOpen(false);
   }, [house.id, house.updatedAt, house.version]);
 
   const handleOpenCanvas = async () => {
     if (!onOpenCanvas) return;
+    setActionMenuOpen(false);
     setDialogOpen(false);
     await onOpenCanvas();
+  };
+
+  const handleClosePreview = () => {
+    setActionMenuOpen(false);
+    setDialogOpen(false);
   };
 
   const retryCanvasPreview = () => {
@@ -150,7 +157,10 @@ export function HousePhotoPreviewTrigger({
         </HoverCardContent>
       </HoverCard>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) setActionMenuOpen(false);
+      }}>
         <DialogContent
           hideCloseButton
           aria-describedby='house-canvas-preview-description'
@@ -190,26 +200,61 @@ export function HousePhotoPreviewTrigger({
                 </div>
               )}
             </div>
-            <DialogClose
-              aria-label='Fechar prévia do Canvas'
-              className='absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-white/80 bg-white/90 text-slate-600 shadow-md backdrop-blur-sm transition-colors hover:bg-white hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
-            >
-              <X className='h-4 w-4' aria-hidden='true'/>
-            </DialogClose>
-            {onOpenCanvas ? (
+            <div className='absolute right-3 top-3 z-10 flex flex-col items-end gap-2'>
+              {actionMenuOpen ? (
+                <div
+                  id='house-canvas-preview-actions'
+                  role='menu'
+                  data-testid='house-canvas-preview-actions'
+                  className='order-2 flex min-w-44 flex-col gap-1 rounded-2xl border border-white/80 bg-white/95 p-1.5 text-slate-700 shadow-xl backdrop-blur-md'
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {onOpenCanvas ? (
+                    <button
+                      type='button'
+                      role='menuitem'
+                      aria-label='Ir pro Canvas'
+                      title='Ir pro Canvas'
+                      className='inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleOpenCanvas();
+                      }}
+                    >
+                      <ArrowUpRight className='h-4 w-4 shrink-0' aria-hidden='true'/>
+                      <span>Ir pro Canvas</span>
+                    </button>
+                  ) : null}
+                  <button
+                    type='button'
+                    role='menuitem'
+                    aria-label='Fechar Modal'
+                    title='Fechar Modal'
+                    className='inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleClosePreview();
+                    }}
+                  >
+                    <X className='h-4 w-4 shrink-0' aria-hidden='true'/>
+                    <span>Fechar Modal</span>
+                  </button>
+                </div>
+              ) : null}
               <button
                 type='button'
-                aria-label='Ir para o Canvas desta casa'
-                title='Ir para o Canvas desta casa'
-                className='absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-white/80 bg-white/90 text-blue-700 shadow-md backdrop-blur-sm transition-colors hover:bg-white hover:text-blue-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
+                aria-label={actionMenuOpen ? 'Fechar menu da prévia do Canvas' : 'Abrir ações da prévia do Canvas'}
+                aria-expanded={actionMenuOpen}
+                aria-controls='house-canvas-preview-actions'
+                className='order-1 grid h-11 w-11 place-items-center rounded-full border border-white/80 bg-white/95 text-slate-600 shadow-lg backdrop-blur-sm transition-colors hover:bg-white hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400'
                 onClick={(event) => {
                   event.stopPropagation();
-                  void handleOpenCanvas();
+                  setActionMenuOpen((open) => !open);
                 }}
               >
-                <ArrowUpRight className='h-4 w-4' aria-hidden='true'/>
+                {actionMenuOpen ? <X className='h-5 w-5' aria-hidden='true'/> : <Menu className='h-5 w-5' aria-hidden='true'/>}
               </button>
-            ) : null}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

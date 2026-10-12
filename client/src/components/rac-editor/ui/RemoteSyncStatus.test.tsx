@@ -16,6 +16,29 @@ function state(version: number): ConstructionSiteState {
 }
 
 describe('modal de conflito remoto', () => {
+  it('não monta a resolução quando o usuário está preenchendo um formulário', () => {
+    const conflict: RemoteSyncConflict = {
+      constructionSiteId: 'site-1',
+      baseState: state(3),
+      localState: state(3),
+      remoteState: state(4),
+      remoteVersion: 4,
+      conflicts: [],
+      remoteOnlyEntities: [],
+    };
+
+    render(
+      <RemoteSyncProvider value={{
+        status: 'conflict', revision: 0, lastSyncedAt: null, errorMessage: null, conflict,
+        dismissError: vi.fn(), useRemoteVersion: vi.fn(), keepLocalVersion: vi.fn(), retry: vi.fn(),
+      }}>
+        <RemoteSyncStatus visible={false}/>
+      </RemoteSyncProvider>,
+    );
+
+    expect(screen.queryByRole('dialog', {name: 'Conflito de sincronização'})).not.toBeInTheDocument();
+  });
+
   it('mantém comparação rolável e ações em rodapé próprio em telas estreitas', () => {
     const baseState = state(3);
     const localState = structuredClone(baseState);

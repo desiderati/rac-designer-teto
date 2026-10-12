@@ -16,7 +16,8 @@ import {ActionDock} from '@/components/ui/ActionDock.tsx';
  * Conflitos exigem uma decisão explícita. O status transitório de sincronização
  * fica no indicador compacto da TopBar, onde não compete com 3D/Exportar.
  */
-export function RemoteSyncStatus() {
+export function RemoteSyncStatus({visible = true}: {visible?: boolean}) {
+  if (!visible) return null;
   return <RemoteConflictDialog/>;
 }
 

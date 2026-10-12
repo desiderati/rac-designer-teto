@@ -209,7 +209,6 @@ function RemoteRacEditor({onLogout}: {onLogout: () => Promise<void>}) {
   return (
     <RemoteSyncProvider value={storageState.sync}>
       <div className='relative h-full'>
-        <RemoteSyncStatus/>
         <RacEditorStoreProvider key={storageState.sync.revision} ports={ports}>
           <RacEditorEntryPoint onLogout={onLogout}/>
         </RacEditorStoreProvider>
@@ -408,6 +407,7 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
 
   return (
     <>
+      <RemoteSyncStatus visible={isEditorVisible}/>
       {isEditorVisible ? (
         <RacEditorContent
           onExit={onLogout}
