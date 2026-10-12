@@ -77,6 +77,26 @@ describe('fabric-canvas-document-port.ts', () => {
     });
   });
 
+  it('limpa o Fabric e conclui a carga quando um objeto incompatível quebra a primeira restauração', async () => {
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn()
+        .mockRejectedValueOnce(new Error('objeto legado incompatível'))
+        .mockResolvedValueOnce(undefined),
+      getObjects: vi.fn(() => []),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+
+    await expect(createFabricCanvasDocumentPort(canvas as never).loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'house-top-1', kind: 'house', shape: 'group', children: []}],
+    })).resolves.toBe(true);
+
+    expect(canvas.clear).toHaveBeenCalledTimes(2);
+    expect(canvas.loadFromJSON).toHaveBeenNthCalledWith(2, {objects: []});
+  });
+
   it('serializa o canvas como documento visual canônico', () => {
     const canvas = {
       toJSON: vi.fn(() => ({

@@ -33,6 +33,8 @@ export function useHouseDocumentLifecycle({
   const pendingHouseDocumentRef = useRef<HouseDrawingDocument | null>(null);
   const hydrationFrameRef = useRef<number | null>(null);
   const hydrationRunIdRef = useRef(0);
+  const documentLoadQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const activeDocumentLoadRef = useRef<{document: HouseDrawingDocument; promise: Promise<boolean>} | null>(null);
   const documentTransitionRef = useRef<Promise<void>>(Promise.resolve());
   const documentTransitionDepthRef = useRef(0);
   const documentSaveQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -63,19 +65,38 @@ export function useHouseDocumentLifecycle({
     document = constructionSiteManagementPort.getActiveHouseDrawingDocument(),
   ) => {
     if (!document || !canvasRef) return false;
-    const documentPort = await waitForCanvasDocumentPort();
-    if (!documentPort) return false;
+    const activeLoad = activeDocumentLoadRef.current;
+    if (activeLoad?.document === document) return activeLoad.promise;
 
-    const loaded = await documentPort.loadCanvasDocument(document.canvas);
-    if (!loaded) return false;
+    const load = async () => {
+      const documentPort = await waitForCanvasDocumentPort();
+      if (!documentPort) return false;
 
-    houseDrawingDocumentPort.importHouseDrawingDocument(document);
-    emitHouseStoreChange();
-    canvasRef.current?.saveHistory({notifyDocumentChange: false});
-    documentRevisionRef.current = 0;
-    savedDocumentRevisionRef.current = 0;
-    setTrackedDocumentSaveStatus('saved');
-    return true;
+      const loaded = await documentPort.loadCanvasDocument(document.canvas);
+      if (!loaded) return false;
+
+      // O estado canônico precisa ser importado somente depois que a porta
+      // visual concluir a limpeza/restauração. Assim, uma troca ou retry não
+      // consegue deixar o Fabric e a casa ativa apontando para documentos
+      // diferentes.
+      houseDrawingDocumentPort.importHouseDrawingDocument(document);
+      emitHouseStoreChange();
+      canvasRef.current?.saveHistory({notifyDocumentChange: false});
+      documentRevisionRef.current = 0;
+      savedDocumentRevisionRef.current = 0;
+      setTrackedDocumentSaveStatus('saved');
+      return true;
+    };
+
+    const queuedLoad = documentLoadQueueRef.current.then(load, load);
+    const trackedLoad = queuedLoad.finally(() => {
+      if (activeDocumentLoadRef.current?.promise === trackedLoad) {
+        activeDocumentLoadRef.current = null;
+      }
+    });
+    activeDocumentLoadRef.current = {document, promise: trackedLoad};
+    documentLoadQueueRef.current = trackedLoad.then(() => undefined, () => undefined);
+    return trackedLoad;
   }, [
     canvasRef,
     constructionSiteManagementPort,
@@ -84,6 +105,8 @@ export function useHouseDocumentLifecycle({
     setTrackedDocumentSaveStatus,
     waitForCanvasDocumentPort,
   ]);
+
+  const waitForDocumentLoads = useCallback(() => documentLoadQueueRef.current, []);
 
   const cancelScheduledHydration = useCallback(() => {
     hydrationRunIdRef.current += 1;
@@ -313,6 +336,17 @@ export function useHouseDocumentLifecycle({
   ), [runDocumentMutation]);
 
   const runCanvasDocumentTransaction = useCallback((mutate: () => void) => runDocumentTransition(async () => {
+    // A casa preparada pode aparecer antes de uma hidratação Fabric lenta
+    // (especialmente quando há imagens protegidas). Aguarde a carga atual
+    // antes de inserir para que o comando não encontre o estado interno vazio
+    // nem seja apagado por um retry posterior.
+    const pendingDocument = pendingHouseDocumentRef.current;
+    cancelScheduledHydration();
+    if (pendingDocument && activeDocumentLoadRef.current?.document !== pendingDocument) {
+      const loaded = await loadHouseDocument(pendingDocument);
+      if (loaded) pendingHouseDocumentRef.current = null;
+    }
+    await waitForDocumentLoads();
     await flushActiveHouseDocumentSave();
     const previous = constructionSiteManagementPort.getActiveHouseDrawingDocument();
     fieldAnalysisOpenRef.current = true;
@@ -331,8 +365,9 @@ export function useHouseDocumentLifecycle({
     } finally {
       fieldAnalysisOpenRef.current = false;
     }
-  }), [acknowledgeActiveHouseDocumentSaved, canvasRef, constructionSiteManagementPort, flushActiveHouseDocumentSave,
-    houseDrawingDocumentPort, loadHouseDocument, runDocumentTransition]);
+  }), [acknowledgeActiveHouseDocumentSaved, cancelScheduledHydration, canvasRef, constructionSiteManagementPort,
+    flushActiveHouseDocumentSave, houseDrawingDocumentPort, loadHouseDocument, runDocumentTransition,
+    waitForDocumentLoads]);
 
   const suspendForFieldAnalysis = useCallback(() => runDocumentTransition(async () => {
     await flushActiveHouseDocumentSave();

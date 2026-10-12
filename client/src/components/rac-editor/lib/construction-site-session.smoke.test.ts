@@ -37,6 +37,29 @@ describe('constructionSite-session.ts', () => {
     expect(writes).toHaveLength(0);
   });
 
+  it('normaliza Canvas legado inválido na fronteira da sessão sem bloquear a casa', () => {
+    const seed = createStorage();
+    const sourceSession = createConstructionSiteSession(seed.storage);
+    sourceSession.createConstructionSite({externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Rio Negro'});
+    sourceSession.createHouse({familyName: 'Patrícia'});
+    const persistedSites = structuredClone(seed.writes.at(-1) ?? []);
+    const persistedHouse = persistedSites[0]?.houses[0];
+    if (!persistedHouse) throw new Error('Casa de teste não criada.');
+    persistedHouse.drawingDocument.canvas = {
+      schemaVersion: 0,
+      objects: [{id: 'legacy', kind: 'house', shape: 'group', payload: {type: 'group'}}],
+    } as never;
+
+    const {storage} = createStorage(persistedSites);
+    const session = createConstructionSiteSession(storage);
+    const document = session.getActiveHouseDrawingDocument();
+
+    expect(document?.canvas).toEqual({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [],
+    });
+  });
+
   it('sincroniza metadados da casa ativa e persiste a sessão', () => {
     const {storage, writes} = createStorage();
     const session = createConstructionSiteSession(storage);

@@ -1009,9 +1009,25 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
 
       const objects = await Promise.all(document.objects.map(toRuntimePayload).map(hydrateProtectedImages));
       canvas.clear();
-      await canvas.loadFromJSON({
-        objects,
-      });
+
+      try {
+        await canvas.loadFromJSON({objects});
+      } catch (error) {
+        // Um objeto legado incompatível não pode deixar o editor sem estado de
+        // casa. Retenta com uma superfície vazia; o estado canônico da casa é
+        // importado pelo lifecycle logo após esta porta concluir a carga.
+        console.warn('[Canvas] Não foi possível restaurar parte do desenho; abrindo a superfície para recuperação.', error);
+        canvas.clear();
+        try {
+          await canvas.loadFromJSON({objects: []});
+        } catch (fallbackError) {
+          // Fabric pode estar desmontando durante uma troca de tela. A carga
+          // visual ainda é considerada concluída para não bloquear a casa
+          // preparada, mas o próximo ciclo de hidratação poderá tentar de novo.
+          console.debug('[Canvas] Falha ao limpar a superfície durante a recuperação.', fallbackError);
+        }
+      }
+
       refreshHouseGroupsOnCanvas(canvas);
       restoreCanvasRuntimeBehaviors(canvas);
 

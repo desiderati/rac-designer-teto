@@ -105,6 +105,62 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(loadCanvasDocument).toHaveBeenCalledWith(previous.canvas);
     expect(ports.houseDrawingDocumentPort.importHouseDrawingDocument).toHaveBeenCalledWith(previous);
   });
+
+  it('aguarda a hidratação Fabric pendente antes de inserir uma casa preparada', async () => {
+    vi.stubGlobal('requestAnimationFrame', vi.fn());
+    const document = createDrawingDocument('house_prepared', 'Patrícia', {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [],
+    });
+    let resolveLoad!: (loaded: boolean) => void;
+    const loadCanvasDocument = vi.fn(() => new Promise<boolean>((resolve) => {
+      resolveLoad = resolve;
+    }));
+    const handle = {
+      createDocumentPort: () => ({
+        exportCanvasDocument: vi.fn(() => document.canvas),
+        loadCanvasDocument,
+      }),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const managementPort = createConstructionSiteManagementPort({
+      getActiveHouseDrawingDocument: vi.fn(() => document),
+    });
+    const ports = createEditorPorts({
+      constructionSiteManagementPort: managementPort,
+      houseDrawingDocumentPort: {
+        exportHouseDrawingDocument: vi.fn(() => document),
+        importHouseDrawingDocument: vi.fn(),
+      },
+    });
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef: {current: handle}}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    let loading!: Promise<boolean>;
+    act(() => {
+      loading = result.current.loadHouseDocument(document);
+    });
+    await waitFor(() => expect(loadCanvasDocument).toHaveBeenCalledOnce());
+
+    const insert = vi.fn();
+    let transaction!: Promise<void>;
+    act(() => {
+      transaction = result.current.runCanvasDocumentTransaction(insert);
+    });
+    await Promise.resolve();
+    expect(insert).not.toHaveBeenCalled();
+
+    resolveLoad(true);
+    await act(async () => {
+      await Promise.all([loading, transaction]);
+    });
+
+    expect(insert).toHaveBeenCalledOnce();
+    expect(managementPort.saveActiveHouseDrawingDocument).toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     controllerMocks.buildRacPdfHouseExport.mockReset();
     controllerMocks.buildRacPdfZipExport.mockReset();

@@ -32,6 +32,8 @@ import {
   HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
   HOUSE_DRAWING_DOCUMENT_SCHEMA_VERSION,
   HOUSE_DRAWING_DOCUMENT_TYPE,
+  isHouseDrawingCanvasDocument,
+  isHouseDrawingElementDocument,
   normalizeHouseDrawingViewer3D,
   type HouseDrawingDocument,
 } from '@/shared/types/house-drawing-document.ts';
@@ -1353,6 +1355,15 @@ function normalizePersistedDrawingDocument(
     schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
     objects: [],
   };
+  if (!isHouseDrawingCanvasDocument(normalized.canvas)) {
+    const rawCanvas = normalized.canvas as unknown as {objects?: unknown[]};
+    normalized.canvas = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: Array.isArray(rawCanvas.objects)
+        ? rawCanvas.objects.filter(isHouseDrawingElementDocument)
+        : [],
+    };
+  }
   normalized.views ??= {};
   const viewer3D = normalizeHouseDrawingViewer3D(normalized.viewer3D);
   if (viewer3D) normalized.viewer3D = viewer3D;
