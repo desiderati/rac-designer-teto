@@ -249,10 +249,6 @@ export function updatePilotiHeight(group: CanvasGroup, pilotiId: string, newHeig
   // We disable caching + force a refresh to guarantee the new rect is actually redrawn.
   group.objectCaching = false;
 
-  // Track delta to keep the house centered while piloti rect grows downwards.
-  // (Rects in front/back/side use originY="top", so growth increases maxY only.)
-  let rectHeightDelta = 0;
-
   objects.forEach(obj => {
     if (obj.pilotiId !== pilotiId) return;
 
@@ -266,13 +262,11 @@ export function updatePilotiHeight(group: CanvasGroup, pilotiId: string, newHeig
       // Disable caching for the rect itself as well (prevents "corte" after resize)
       obj.objectCaching = false;
 
-      const oldHeight = (obj.getScaledHeight?.() ?? obj.height ?? 0) as number;
       obj.pilotiHeight = newHeight;
 
       const baseHeight = obj.pilotiBaseHeight ?? PILOTI_BASE_HEIGHT_PX_WITH_SCALE;
       const s = baseHeight / PILOTI_BASE_HEIGHT_PX;
       const newVisualHeight = baseHeight * newHeight;
-      rectHeightDelta = newVisualHeight - oldHeight;
 
       // IMPORTANT: reset scaling so height is the real source of truth
       obj.set({height: newVisualHeight, scaleY: 1});
@@ -322,11 +316,6 @@ export function updatePilotiHeight(group: CanvasGroup, pilotiId: string, newHeig
       obj.dirty = true;
     }
   });
-
-  // Keep the house centered in the canvas when the piloti grows (avoid bottom cut by viewport).
-  if (rectHeightDelta !== 0) {
-    group.set('top', (group.top || 0) - rectHeightDelta / 2);
-  }
 
   group.canvas?.requestRenderAll();
 }

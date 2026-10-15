@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import {Group, Rect} from 'fabric';
 import {
   normalizeTerrainSolidityLevel,
   PILOTI_VISUAL_FEEDBACK_COLORS,
@@ -19,7 +20,7 @@ import {
   MAX_AVAILABLE_PILOTI_NIVEL
 } from '@/shared/types/piloti.ts';
 import {getTerrainRachaoThicknessCm} from '@/components/rac-editor/@canvas/lib/terrain.ts';
-import {refreshHouseGroupRendering} from '@/components/rac-editor/@canvas/lib/piloti.ts';
+import {refreshHouseGroupRendering, updatePilotiHeight} from '@/components/rac-editor/@canvas/lib/piloti.ts';
 
 type TestCanvasObject = {
   dirty: boolean;
@@ -184,5 +185,56 @@ describe('piloti.ts', () => {
       nivelLabel,
     ]);
   });
-});
 
+  it('não desloca o grupo nem acumula drift ao alterar a altura do piloti', () => {
+    const piloti = new Rect({
+      left: 0,
+      top: 0,
+      width: 40,
+      height: 100,
+      originX: 'left',
+      originY: 'top',
+    });
+    Object.assign(piloti, {
+      isPilotiRect: true,
+      pilotiId: 'piloti_0_0',
+      pilotiBaseHeight: 100,
+      pilotiHeight: 1,
+    });
+
+    const houseBody = new Rect({
+      left: 0,
+      top: -80,
+      width: 40,
+      height: 80,
+      originX: 'left',
+      originY: 'top',
+    });
+    const group = new Group([piloti, houseBody], {left: 500, top: 400});
+    Object.assign(group, {
+      myType: 'house',
+      getCanvasObjects: () => group.getObjects(),
+    });
+
+    const initialTop = group.top;
+    const initialBounds = group.getBoundingRect();
+
+    updatePilotiHeight(group as never, 'piloti_0_0', 2);
+    refreshHouseGroupRendering(group as never);
+    const firstTop = group.top;
+    const firstBounds = group.getBoundingRect();
+
+    updatePilotiHeight(group as never, 'piloti_0_0', 1);
+    refreshHouseGroupRendering(group as never);
+    updatePilotiHeight(group as never, 'piloti_0_0', 2);
+    refreshHouseGroupRendering(group as never);
+
+    expect(firstTop).toBe(initialTop);
+    expect(group.top).toBe(initialTop);
+    expect(firstBounds.left).toBeCloseTo(initialBounds.left);
+    expect(firstBounds.top).toBeCloseTo(initialBounds.top);
+    expect(group.getBoundingRect().left).toBeCloseTo(initialBounds.left);
+    expect(group.getBoundingRect().top).toBeCloseTo(initialBounds.top);
+    expect(piloti.height).toBe(200);
+  });
+});

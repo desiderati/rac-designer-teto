@@ -555,7 +555,7 @@ describe('contraventamento.ts', () => {
     const initialFrontGroup = createMockGroup({
       houseSide: 'top',
       _clearCache: vi.fn(),
-      _calcBounds: vi.fn(),
+      triggerLayout: vi.fn(),
       _objects: [
         {isGroundElement: true, isGroundFill: true},
         createPilotiRect('piloti_0_0', 10, 100),
@@ -570,6 +570,6 @@ describe('contraventamento.ts', () => {
     );
 
     expect(initialFrontGroup._clearCache).toHaveBeenCalled();
-    expect(initialFrontGroup._calcBounds).toHaveBeenCalled();
+    expect(initialFrontGroup.triggerLayout).toHaveBeenCalled();
   });
 });

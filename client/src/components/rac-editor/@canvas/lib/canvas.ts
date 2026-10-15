@@ -7,7 +7,6 @@ type CanvasProperties = {
   // Internal Fabric properties and methods
   _objects?: FabricObject[];
   _clearCache?: () => void;
-  _calcBounds?: () => void;
 
   myType?: string;
   editorObjectId?: string;
@@ -201,7 +200,10 @@ export function refreshCanvasGroup(
 ): void {
   if (options.recalculateBounds) {
     group._clearCache?.();
-    group._calcBounds?.();
+    // Fabric 6 substituiu `_calcBounds` pelo LayoutManager. Usar a API
+    // legada deixa width/height desatualizados e o próximo refresh pode
+    // reposicionar os filhos com base em um centro incorreto.
+    group.triggerLayout?.();
   }
 
   group.setCoords();
