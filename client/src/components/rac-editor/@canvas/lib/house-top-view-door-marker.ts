@@ -1,7 +1,7 @@
 import {HouseRuntimeViewInstance, HouseSide, HouseType, HouseViewType, type HousePreAssignedSides} from '@/shared/types/house.ts';
 import {TopDoorMarkerBodySize, TopDoorMarkerVisualPatch, TopDoorPlacement} from '@/shared/types/house-door.ts';
 import {HOUSE_DIMENSIONS} from '@/shared/types/house-dimensions.ts';
-import {CanvasGroup, getCanvasGroupObjects} from '@/components/rac-editor/@canvas/lib';
+import {CanvasGroup, getCanvasGroupObjects, type CanvasObject} from '@/components/rac-editor/@canvas/lib';
 
 /**
  * Resolve qual tipo de vista define a posição da porta na planta,
@@ -51,6 +51,8 @@ export function calculateTopDoorPlacement(params: {
   doorWidth: number;
   bodyWidth: number;
   bodyHeight: number;
+  /** Espessura transversal do marcador; usada para encaixá-lo dentro da borda. */
+  markerThickness?: number;
 }): TopDoorPlacement {
   if (!params.doorMarkerSide) {
     return {doorMarkerSide: null};
@@ -63,32 +65,33 @@ export function calculateTopDoorPlacement(params: {
 
   const rawDoorCenter = params.doorX + params.doorWidth / 2;
   const doorCenter = Math.max(0, Math.min(axisLength, rawDoorCenter));
+  const markerInset = Math.max(0, Number(params.markerThickness ?? 0)) / 2;
 
   if (params.doorMarkerSide === 'top') {
     return {
       doorMarkerSide: 'top',
       targetLeft: params.bodyWidth / 2 - doorCenter,
-      targetTop: -params.bodyHeight / 2,
+      targetTop: -params.bodyHeight / 2 + markerInset,
     };
   }
   if (params.doorMarkerSide === 'bottom') {
     return {
       doorMarkerSide: 'bottom',
       targetLeft: -params.bodyWidth / 2 + doorCenter,
-      targetTop: params.bodyHeight / 2,
+      targetTop: params.bodyHeight / 2 - markerInset,
     };
   }
   if (params.doorMarkerSide === 'left') {
     return {
       doorMarkerSide: 'left',
-      targetLeft: -params.bodyWidth / 2,
+      targetLeft: -params.bodyWidth / 2 + markerInset,
       targetTop: -params.bodyHeight / 2 + doorCenter,
     };
   }
 
   return {
     doorMarkerSide: 'right',
-    targetLeft: params.bodyWidth / 2,
+    targetLeft: params.bodyWidth / 2 - markerInset,
     targetTop: params.bodyHeight / 2 - doorCenter,
   };
 }
@@ -216,12 +219,23 @@ export function refreshTopDoorMarkersInViews(params: {
         bodyHeight,
       });
 
+    const activeMarker = topDoorMarker.find((marker) => {
+      const markerMetadata = marker as CanvasObject & { markerSide?: HouseSide };
+      return (markerMetadata.doorMarkerSide ?? markerMetadata.markerSide) === doorMarkerSide;
+    });
+    const markerThickness = activeMarker
+      ? (doorMarkerSide === 'top' || doorMarkerSide === 'bottom'
+        ? Math.abs((activeMarker.height ?? 0) * (activeMarker.scaleY ?? 1))
+        : Math.abs((activeMarker.width ?? 0) * (activeMarker.scaleX ?? 1)))
+      : 0;
+
     const placement = calculateTopDoorPlacement({
       doorMarkerSide,
       doorX: renderedDoorGeometry.doorX,
       doorWidth: renderedDoorGeometry.doorWidth,
       bodyWidth,
       bodyHeight,
+      markerThickness,
     });
 
     for (const canvasObjectMarker of topDoorMarker) {

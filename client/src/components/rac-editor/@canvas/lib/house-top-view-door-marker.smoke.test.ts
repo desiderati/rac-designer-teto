@@ -123,6 +123,23 @@ describe('house-top-view-door-marker.ts', () => {
     ).toEqual({doorMarkerSide: 'right', targetLeft: 100, targetTop: -50});
   });
 
+  it('encaixa o marcador dentro da borda sem alterar a posição longitudinal', () => {
+    expect(calculateTopDoorPlacement({
+      doorMarkerSide: 'bottom', doorX: 195, doorWidth: 40,
+      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
+    })).toEqual({doorMarkerSide: 'bottom', targetLeft: 62.5, targetTop: 69.25});
+
+    expect(calculateTopDoorPlacement({
+      doorMarkerSide: 'right', doorX: 87.5, doorWidth: 40,
+      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
+    })).toEqual({doorMarkerSide: 'right', targetLeft: 146.75, targetTop: -32.5});
+
+    expect(calculateTopDoorPlacement({
+      doorMarkerSide: 'left', doorX: 87.5, doorWidth: 40,
+      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
+    })).toEqual({doorMarkerSide: 'left', targetLeft: -146.75, targetTop: 32.5});
+  });
+
   it('returns null placement when marker side is unknown', () => {
     expect(
       calculateTopDoorPlacement({
