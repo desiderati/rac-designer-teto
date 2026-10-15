@@ -36,6 +36,7 @@ interface EditorHouseCommandServiceArgs<TGroup extends HouseRuntimeGroupRef> {
   requestCanvasRender: () => void;
   notify: () => void;
   refreshAutoContraventamento: () => void;
+  refreshTopDoorMarkers: () => void;
 }
 
 /**
@@ -53,6 +54,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
       persistHouse: args.persistHouse,
       syncConstructionSiteSession: args.syncConstructionSiteSession,
       notify: args.notify,
+      refreshTopDoorMarkers: args.refreshTopDoorMarkers,
     });
     this.terrainCommands = new EditorHouseTerrainCommandService<TGroup>({
       getAggregate: args.getAggregate,
@@ -71,6 +73,7 @@ export class EditorHouseCommandService<TGroup extends HouseRuntimeGroupRef> {
       persistHouse: args.persistHouse,
       notify: args.notify,
       refreshAutoContraventamento: args.refreshAutoContraventamento,
+      refreshTopDoorMarkers: args.refreshTopDoorMarkers,
     });
     this.pilotiCommands = new EditorHousePilotiCommandService<TGroup>({
       getHouse: args.getHouse,

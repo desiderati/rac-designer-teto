@@ -496,6 +496,7 @@ describe('editor house controller', () => {
 
     registerMockView('top', topGroup as any);
     registerMockView('front', frontGroup as any, 'bottom');
+    houseController.refreshTopDoorMarkersForCurrentHouse();
 
     expect(topMarkerBottom.visible).toBe(true);
     expect(topMarkerTop.visible).toBe(false);

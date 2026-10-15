@@ -180,6 +180,8 @@ export function refreshTopDoorMarkersInViews(params: {
   sideMappings: Record<HouseSide, HouseViewType | null>;
   preAssignedSides?: HousePreAssignedSides;
   topViews: HouseRuntimeViewInstance<CanvasGroup>[];
+  /** Reposiciona a porta; false preserva coordenadas legadas no refresh passivo. */
+  reposition?: boolean;
 }): boolean {
   const doorMarkerSide = resolveTopDoorMarkerSide({
     houseType: params.houseType,
@@ -230,14 +232,13 @@ export function refreshTopDoorMarkersInViews(params: {
       const side = markerMetadata.doorMarkerSide ?? markerMetadata.markerSide;
       if (!side) continue;
 
-      canvasObjectMarker.set(
-        createTopDoorMarkerVisualPatch({
-          doorMarkerSide: placement.doorMarkerSide,
-          markerCandidateSide: side,
-          targetLeft: placement.targetLeft,
-          targetTop: placement.targetTop,
-        }),
-      );
+      canvasObjectMarker.set(createTopDoorMarkerVisualPatch({
+        doorMarkerSide: placement.doorMarkerSide,
+        markerCandidateSide: side,
+        ...(params.reposition === false
+          ? {}
+          : {targetLeft: placement.targetLeft, targetTop: placement.targetTop}),
+      }));
       canvasObjectMarker.setCoords?.();
       canvasObjectMarker.dirty = true;
       hasChanges = true;

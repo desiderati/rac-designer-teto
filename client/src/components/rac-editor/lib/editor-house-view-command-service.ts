@@ -17,6 +17,7 @@ interface EditorHouseViewCommandServiceArgs<TGroup extends HouseRuntimeGroupRef>
   persistHouse: () => void;
   notify: () => void;
   refreshAutoContraventamento: () => void;
+  refreshTopDoorMarkers: () => void;
 }
 
 /**
@@ -70,6 +71,7 @@ export class EditorHouseViewCommandService<TGroup extends HouseRuntimeGroupRef> 
 
     aggregate.autoAssignAllSides(initialSide);
     this.args.persistHouse();
+    this.args.refreshTopDoorMarkers();
     this.args.notify();
   }
 }

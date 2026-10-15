@@ -48,7 +48,7 @@ import type {
 import type {InitialPilotiNivelDefinition} from '@/components/rac-editor/ports/HousePilotiPort.ts';
 
 interface EditorHouseEffectsPort {
-  refreshTopDoorMarkers(): void;
+  refreshTopDoorMarkers(reposition?: boolean): void;
 
   refreshAutoStairs(): void;
 
@@ -139,6 +139,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
       requestCanvasRender: () => this.requestCanvasRender(),
       notify: () => this.notify(),
       refreshAutoContraventamento: () => this.effects.refreshAutoContraventamento(),
+      refreshTopDoorMarkers: () => this.effects.refreshTopDoorMarkers(true),
     });
 
     this.queries = new EditorHouseQueryService<TGroup>({
@@ -204,7 +205,7 @@ export class EditorHouseController<TGroup extends HouseRuntimeGroupRef> {
 
   refreshTopDoorMarkersForCurrentHouse(): void {
     this.invalidateRuntimeHouseCache();
-    this.effects.refreshTopDoorMarkers();
+    this.effects.refreshTopDoorMarkers(true);
   }
 
   refreshHouseViewReferenceMarkersForCurrentHouse(): void {

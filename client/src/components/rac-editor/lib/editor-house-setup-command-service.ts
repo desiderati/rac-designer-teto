@@ -6,6 +6,7 @@ interface EditorHouseSetupCommandServiceArgs {
   persistHouse: () => void;
   syncConstructionSiteSession: () => void;
   notify: () => void;
+  refreshTopDoorMarkers: () => void;
 }
 
 /**
@@ -22,6 +23,7 @@ export class EditorHouseSetupCommandService {
     aggregate.setHouseType(type);
     this.args.persistHouse();
     this.args.syncConstructionSiteSession();
+    this.args.refreshTopDoorMarkers();
     this.args.notify();
   }
 }

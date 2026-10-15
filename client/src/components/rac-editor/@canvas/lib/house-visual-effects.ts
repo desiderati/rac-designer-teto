@@ -20,6 +20,7 @@ function renderWhenChanged(changed: boolean, requestRender: () => void): void {
 export function refreshTopDoorMarkers(params: {
   house: HouseRuntimeSnapshot<CanvasGroup> | null;
   requestRender: () => void;
+  reposition?: boolean;
 }): void {
   if (!params.house) return;
 
@@ -29,6 +30,7 @@ export function refreshTopDoorMarkers(params: {
       sideMappings: params.house.sideMappings,
       preAssignedSides: params.house.preAssignedSides,
       topViews: params.house.views.top,
+      reposition: params.reposition ?? false,
     }),
     params.requestRender,
   );
@@ -178,10 +180,11 @@ export class HouseVisualEffects {
   constructor(private readonly args: HouseVisualEffectsArgs) {
   }
 
-  refreshTopDoorMarkers(): void {
+  refreshTopDoorMarkers(reposition = false): void {
     refreshTopDoorMarkers({
       house: this.args.getHouse(),
       requestRender: () => this.args.requestCanvasRender(),
+      reposition,
     });
   }
 

@@ -4,6 +4,7 @@ import {PILOTI_BASE_HEIGHT_PX} from '@/shared/constants.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
 import {
   refreshElevationNivelLabels,
+  refreshTopDoorMarkers,
   refreshTopSlopeIndicators,
 } from '@/components/rac-editor/@canvas/lib/house-visual-effects.ts';
 import type {HouseRuntimeSnapshot} from '@/components/rac-editor/lib/house-runtime-snapshot.ts';
@@ -166,6 +167,33 @@ describe('house-visual-effects.ts', () => {
     expect(slopeObjects[0].isTopSlopeIndicatorText).toBeUndefined();
     expect(slopeObjects[1].text).toBe('Desnível 0,70 m');
     expect(requestRender).toHaveBeenCalledOnce();
+  });
+
+  it('não reposiciona a porta de uma casa antiga durante refresh passivo', () => {
+    const topMarker = createCanvasObject({
+      isTopDoorMarker: true,
+      doorMarkerSide: 'top',
+      left: 17,
+      top: -91,
+      visible: true,
+    });
+    const topGroup = createGroup([
+      createCanvasObject({isHouseBody: true, width: 366, height: 132, scaleX: 1, scaleY: 1}),
+      topMarker,
+    ], 'top');
+    const house = createHouseSnapshot(topGroup, createGroup([], 'side'));
+    house.sideMappings = {top: 'front', bottom: null, left: null, right: null} as any;
+    const requestRender = vi.fn();
+
+    refreshTopDoorMarkers({house, requestRender});
+
+    expect(topMarker.left).toBe(17);
+    expect(topMarker.top).toBe(-91);
+
+    refreshTopDoorMarkers({house, requestRender, reposition: true});
+
+    expect(topMarker.left).not.toBe(17);
+    expect(topMarker.top).not.toBe(-91);
   });
 });
 

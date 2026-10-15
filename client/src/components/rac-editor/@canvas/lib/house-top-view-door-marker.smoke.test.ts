@@ -255,5 +255,43 @@ describe('house-top-view-door-marker.ts', () => {
     expect(bottomMarker.visible).toBe(false);
     expect(group.setCoords).toHaveBeenCalledTimes(1);
   });
-});
 
+  it('preserva a posição legada no refresh passivo e só reposiciona quando solicitado', () => {
+    const topMarker = {
+      isTopDoorMarker: true,
+      doorMarkerSide: 'top',
+      left: 17,
+      top: -91,
+      set(patch: Record<string, unknown>) {
+        Object.assign(this, patch);
+      },
+      setCoords: vi.fn(),
+      visible: true,
+      dirty: false,
+    };
+    const houseBody = {
+      isHouseBody: true,
+      width: 366,
+      height: 132,
+      scaleX: 1,
+      scaleY: 1,
+    };
+    const group = {
+      getObjects: () => [houseBody, topMarker],
+      setCoords: vi.fn(),
+    };
+    const baseParams = {
+      houseType: 'tipo6' as const,
+      sideMappings: {top: 'front' as const, bottom: null, left: null, right: null},
+      topViews: [{group: toCanvasGroup(group), instanceId: 'top_legacy'}],
+    };
+
+    refreshTopDoorMarkersInViews({...baseParams, reposition: false});
+    expect(topMarker.left).toBe(17);
+    expect(topMarker.top).toBe(-91);
+
+    refreshTopDoorMarkersInViews({...baseParams, reposition: true});
+    expect(topMarker.left).not.toBe(17);
+    expect(topMarker.top).not.toBe(-91);
+  });
+});
