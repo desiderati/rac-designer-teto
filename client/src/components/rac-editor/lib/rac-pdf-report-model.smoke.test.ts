@@ -452,8 +452,11 @@ describe('rac pdf report model', () => {
   });
 
   it('gera pagina extra com visualizacao 3D no mesmo formato do canvas principal', () => {
+    const constructionSite = createConstructionSiteState();
+    constructionSite.monitors = Array.from({length: 8}, (_, index) =>
+      createMonitor(`monitor-3d-${index + 1}`, `Monitor 3D ${index + 1}`, 'active'));
     const report = buildRacPdfReportModel({
-      constructionSite: createConstructionSiteState(),
+      constructionSite,
       canvasImageDataUrl: TINY_PNG_DATA_URL,
       canvasImageAspectRatio: CANVAS_WIDTH / CANVAS_HEIGHT,
       house3DImageDataUrl: TINY_PNG_DATA_URL,

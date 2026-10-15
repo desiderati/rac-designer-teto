@@ -231,6 +231,20 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
 
   });
 
+  it('mantém acesso ao conflito em fluxo enquanto o formulário da gestão continua acessível', async () => {
+    const onOpenRemoteSyncConflict = vi.fn();
+    renderPanel({hasRemoteSyncConflict: true, onOpenRemoteSyncConflict});
+    expect(screen.getByRole('button', {name: 'Resolver conflito'})).toBeVisible();
+    expect(screen.queryByRole('dialog', {name: 'Conflito de sincronização'})).not.toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', {name: '+ Adicionar Construção'}));
+    expect(screen.getByRole('button', {name: 'Resolver conflito'})).toBeVisible();
+    expect(screen.getByTestId('construction-form')).toBeVisible();
+    await user.click(screen.getByRole('button', {name: 'Resolver conflito'}));
+    expect(onOpenRemoteSyncConflict).toHaveBeenCalledOnce();
+  });
+
   it('dispara apenas o tour de adicionar construção quando a listagem está vazia', async () => {
     const constructionAddTour = listenGuidedTourEvent('rac:construction-add-tour-ready');
     const constructionActionsTour = listenGuidedTourEvent('rac:construction-actions-tour-ready');
@@ -2116,6 +2130,8 @@ type PanelTestInput = {
   summaries?: ConstructionSiteSummary[];
   actions?: ReturnType<typeof createActions>;
   canOpenRacEditor?: boolean;
+  hasRemoteSyncConflict?: boolean;
+  onOpenRemoteSyncConflict?: () => void;
   onBackToCanvas?: () => void;
   initialScreen?: 'house-create' | 'houses';
 };
@@ -2127,6 +2143,8 @@ function createPanelElement(input: PanelTestInput = {}) {
         constructionSite={'constructionSite' in input ? input.constructionSite ?? null : createConstructionSite()}
         summaries={input.summaries ?? createSummaries()}
         canOpenRacEditor={input.canOpenRacEditor}
+        hasRemoteSyncConflict={input.hasRemoteSyncConflict}
+        onOpenRemoteSyncConflict={input.onOpenRemoteSyncConflict}
         onBackToCanvas={input.onBackToCanvas}
         initialScreen={input.initialScreen}
         actions={(input.actions ?? createActions()) as never}

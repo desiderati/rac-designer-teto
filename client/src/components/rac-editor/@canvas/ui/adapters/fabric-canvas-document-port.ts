@@ -525,6 +525,7 @@ async function hydrateProtectedImages(payload: Record<string, unknown>): Promise
 }
 
 type FabricRuntimePayload = Record<string, unknown>;
+const canvasWithIncompleteDocument = new WeakMap<FabricCanvas, boolean>();
 
 /**
  * Tenta restaurar exatamente o conjunto recebido, sem deixar uma falha
@@ -552,12 +553,16 @@ async function tryLoadRuntimePayloads(
 async function recoverRuntimePayload(
   canvas: FabricCanvas,
   payload: FabricRuntimePayload,
-): Promise<FabricRuntimePayload | null> {
+): Promise<{payload: FabricRuntimePayload; omittedCount: number} | null> {
   if (!Array.isArray(payload.objects)) return null;
 
   const recoveredChildren: FabricRuntimePayload[] = [];
+  let omittedCount = 0;
   for (const child of payload.objects) {
-    if (!isRecord(child)) continue;
+    if (!isRecord(child)) {
+      omittedCount += 1;
+      continue;
+    }
     const childPayload = child as FabricRuntimePayload;
     if (await tryLoadRuntimePayloads(canvas, [childPayload])) {
       recoveredChildren.push(childPayload);
@@ -565,13 +570,16 @@ async function recoverRuntimePayload(
     }
 
     const recoveredChild = await recoverRuntimePayload(canvas, childPayload);
-    if (recoveredChild && await tryLoadRuntimePayloads(canvas, [recoveredChild])) {
-      recoveredChildren.push(recoveredChild);
+    if (recoveredChild && await tryLoadRuntimePayloads(canvas, [recoveredChild.payload])) {
+      recoveredChildren.push(recoveredChild.payload);
+      omittedCount += recoveredChild.omittedCount;
+    } else {
+      omittedCount += 1;
     }
   }
 
   return recoveredChildren.length > 0
-    ? {...payload, objects: recoveredChildren}
+    ? {payload: {...payload, objects: recoveredChildren}, omittedCount}
     : null;
 }
 
@@ -592,11 +600,9 @@ async function loadRuntimePayloadsWithRecovery(
     }
 
     const recovered = await recoverRuntimePayload(canvas, payload);
-    if (recovered && await tryLoadRuntimePayloads(canvas, [...recoveredPayloads, recovered])) {
-      recoveredPayloads.push(recovered);
-      omittedCount += Array.isArray(payload.objects)
-        ? payload.objects.length - (Array.isArray(recovered.objects) ? recovered.objects.length : 0)
-        : 0;
+    if (recovered && await tryLoadRuntimePayloads(canvas, [...recoveredPayloads, recovered.payload])) {
+      recoveredPayloads.push(recovered.payload);
+      omittedCount += recovered.omittedCount;
     } else {
       omittedCount += 1;
     }
@@ -1078,6 +1084,9 @@ async function exportSafeImageDataUrlWithStatus(canvas: FabricCanvas): Promise<{
 export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocumentPort {
   return {
     exportCanvasDocument: () => {
+      if (canvasWithIncompleteDocument.get(canvas)) {
+        throw new Error('O desenho não foi carregado por completo; recarregue o documento antes de salvar.');
+      }
       const objects = readCanvasObjectsForExport(canvas);
 
       return {
@@ -1089,6 +1098,10 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
     },
 
     loadCanvasDocument: async (document: HouseDrawingCanvasDocument) => {
+      // Uma tentativa pode limpar o Fabric antes de falhar. Enquanto ela não
+      // terminar com todos os objetos restaurados, nenhuma porta pode gravar
+      // o snapshot possivelmente vazio ou incompleto dessa instância.
+      canvasWithIncompleteDocument.set(canvas, true);
       if (!isHouseDrawingCanvasDocument(document)) return false;
 
       const objects = await Promise.all(document.objects.map(toRuntimePayload).map(hydrateProtectedImages));
@@ -1107,6 +1120,7 @@ export function createFabricCanvasDocumentPort(canvas: FabricCanvas): CanvasDocu
       setTimeout(() => {
         canvas.requestRenderAll();
       }, 100);
+      if (recovery.omittedCount === 0) canvasWithIncompleteDocument.delete(canvas);
       return true;
     },
 

@@ -358,38 +358,57 @@ export function useHouseDocumentLifecycle({
     runDocumentMutation(select, {forceSave: false})
   ), [runDocumentMutation]);
 
-  const runCanvasDocumentTransaction = useCallback((mutate: () => void) => runDocumentTransition(async () => {
-    // A casa preparada pode aparecer antes de uma hidratação Fabric lenta
-    // (especialmente quando há imagens protegidas). Aguarde a carga atual
-    // antes de inserir para que o comando não encontre o estado interno vazio
-    // nem seja apagado por um retry posterior.
-    const pendingDocument = pendingHouseDocumentRef.current;
-    cancelScheduledHydration();
-    if (pendingDocument && activeDocumentLoadRef.current?.document !== pendingDocument) {
-      const loaded = await loadHouseDocument(pendingDocument);
-      if (loaded) pendingHouseDocumentRef.current = null;
-    }
-    await waitForDocumentLoads();
-    await flushActiveHouseDocumentSave();
-    const previous = constructionSiteManagementPort.getActiveHouseDrawingDocument();
-    fieldAnalysisOpenRef.current = true;
-    try {
-      mutate();
-      const canvasDocument = canvasRef?.current?.createDocumentPort()?.exportCanvasDocument();
-      const document = canvasDocument && houseDrawingDocumentPort.exportHouseDrawingDocument(canvasDocument);
-      if (!document) throw new Error('Não foi possível salvar a inclusão da casa.');
-      constructionSiteManagementPort.saveActiveHouseDrawingDocument(document);
-      acknowledgeActiveHouseDocumentSaved();
-      canvasRef?.current?.saveHistory({notifyDocumentChange: false});
-    } catch (error) {
-      if (previous) await loadHouseDocument(previous);
-      acknowledgeActiveHouseDocumentSaved();
-      throw error;
-    } finally {
-      fieldAnalysisOpenRef.current = false;
-    }
-  }), [acknowledgeActiveHouseDocumentSaved, cancelScheduledHydration, canvasRef, constructionSiteManagementPort,
-    flushActiveHouseDocumentSave, houseDrawingDocumentPort, loadHouseDocument, runDocumentTransition,
+  const runCanvasDocumentTransaction = useCallback((mutate: () => void) => {
+    const startedWithActiveLoad = activeDocumentLoadRef.current;
+    return runDocumentTransition(async () => {
+      // A casa preparada pode aparecer antes de uma hidratação Fabric lenta
+      // (especialmente quando há imagens protegidas). Aguarde a carga atual
+      // antes de inserir para que o comando não encontre o estado interno vazio
+      // nem seja apagado por um retry posterior.
+      const pendingDocument = pendingHouseDocumentRef.current
+        ?? startedWithActiveLoad?.document
+        ?? activeDocumentLoadRef.current?.document;
+      cancelScheduledHydration();
+      if (pendingDocument) {
+        let loaded = false;
+        try {
+          loaded = startedWithActiveLoad?.document === pendingDocument
+            ? await startedWithActiveLoad.promise
+            : await loadHouseDocument(pendingDocument);
+        } catch (error) {
+          pendingHouseDocumentRef.current = pendingDocument;
+          hydrateActiveHouseDocument(pendingDocument);
+          throw error;
+        }
+        if (!loaded) {
+          pendingHouseDocumentRef.current = pendingDocument;
+          hydrateActiveHouseDocument(pendingDocument);
+          throw new Error('Não foi possível carregar o desenho antes de alterar a casa.');
+        }
+        if (pendingHouseDocumentRef.current === pendingDocument) pendingHouseDocumentRef.current = null;
+      }
+      await waitForDocumentLoads();
+      await flushActiveHouseDocumentSave();
+      const previous = constructionSiteManagementPort.getActiveHouseDrawingDocument();
+      fieldAnalysisOpenRef.current = true;
+      try {
+        mutate();
+        const canvasDocument = canvasRef?.current?.createDocumentPort()?.exportCanvasDocument();
+        const document = canvasDocument && houseDrawingDocumentPort.exportHouseDrawingDocument(canvasDocument);
+        if (!document) throw new Error('Não foi possível salvar a inclusão da casa.');
+        constructionSiteManagementPort.saveActiveHouseDrawingDocument(document);
+        acknowledgeActiveHouseDocumentSaved();
+        canvasRef?.current?.saveHistory({notifyDocumentChange: false});
+      } catch (error) {
+        if (previous) await loadHouseDocument(previous);
+        acknowledgeActiveHouseDocumentSaved();
+        throw error;
+      } finally {
+        fieldAnalysisOpenRef.current = false;
+      }
+    });
+  }, [acknowledgeActiveHouseDocumentSaved, cancelScheduledHydration, canvasRef, constructionSiteManagementPort,
+    flushActiveHouseDocumentSave, houseDrawingDocumentPort, hydrateActiveHouseDocument, loadHouseDocument, runDocumentTransition,
     waitForDocumentLoads]);
 
   const suspendForFieldAnalysis = useCallback(() => runDocumentTransition(async () => {

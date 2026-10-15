@@ -1,4 +1,4 @@
-import {useEffect, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {ArrowUpRight, LoaderCircle, Menu, RotateCw, X} from 'lucide-react';
 import {HoverCard, HoverCardContent, HoverCardTrigger} from '@/components/ui/hover-card.tsx';
 import {
@@ -33,42 +33,51 @@ export function HousePhotoPreviewTrigger({
   guidedTourId,
 }: HousePhotoPreviewTriggerProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [canvasImageDataUrl, setCanvasImageDataUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const previewIdentity = useMemo(() => ({houseId: house.id, document: house.drawingDocument}),
+    [house.id, house.updatedAt, house.version, house.drawingDocument]);
+  const [preview, setPreview] = useState({identity: previewIdentity, imageDataUrl: null as string | null, isLoading: false, loadError: false});
+  const requestGeneration = useRef(0);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const normalizedFamilyName = familyName.trim() || 'casa';
   const previewLabel = `Pré-visualizar Canvas da casa ${normalizedFamilyName}`;
   const hasPersistedDrawing = house.drawingDocument.canvas.objects.length > 0;
+  const currentPreview = preview.identity === previewIdentity
+    ? preview
+    : {identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: false};
+  const {imageDataUrl: canvasImageDataUrl, isLoading, loadError} = currentPreview;
 
   const loadCanvasPreview = async (force = false) => {
     if (isLoading || (canvasImageDataUrl && !force)) return;
 
     if (!hasPersistedDrawing) {
-      setLoadError(false);
+      setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: false});
       return;
     }
 
     if (force) clearHouseDrawingCanvasImageCache();
 
-    setIsLoading(true);
-    setLoadError(false);
+    const generation = ++requestGeneration.current;
+    setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: true, loadError: false});
     try {
       const result = await renderHouseDrawingCanvasImageDataUrl(house);
-      setCanvasImageDataUrl(result.imageDataUrl);
+      if (requestGeneration.current === generation) {
+        setPreview({identity: previewIdentity, imageDataUrl: result.imageDataUrl, isLoading: false, loadError: false});
+      }
     } catch (error) {
-      console.warn('[HousePhotoPreviewTrigger] Não foi possível renderizar a prévia do Canvas:', error);
-      setLoadError(true);
-    } finally {
-      setIsLoading(false);
+      if (requestGeneration.current === generation) {
+        console.warn('[HousePhotoPreviewTrigger] Não foi possível renderizar a prévia do Canvas:', error);
+        setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: true});
+      }
     }
   };
 
   useEffect(() => {
-    setCanvasImageDataUrl(null);
-    setLoadError(false);
+    ++requestGeneration.current;
+    setPreview({identity: previewIdentity, imageDataUrl: null, isLoading: false, loadError: false});
     setActionMenuOpen(false);
-  }, [house.id, house.updatedAt, house.version]);
+    if (dialogOpen) void loadCanvasPreview();
+    return () => { ++requestGeneration.current; };
+  }, [previewIdentity]);
 
   const handleOpenCanvas = async () => {
     if (!onOpenCanvas) return;
@@ -83,7 +92,6 @@ export function HousePhotoPreviewTrigger({
   };
 
   const retryCanvasPreview = () => {
-    setCanvasImageDataUrl(null);
     void loadCanvasPreview(true);
   };
 

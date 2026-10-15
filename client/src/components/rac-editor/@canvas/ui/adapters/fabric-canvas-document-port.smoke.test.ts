@@ -102,6 +102,83 @@ describe('fabric-canvas-document-port.ts', () => {
     expect(canvas.loadFromJSON).toHaveBeenLastCalledWith({objects: [expect.any(Object)]});
   });
 
+  it('bloqueia exportação após omissão no topo ou em grupo, inclusive por outra porta, até carga completa', async () => {
+    const hasLegacy = (objects: Array<Record<string, unknown>>): boolean => objects.some((object) =>
+      object.editorObjectId === 'legacy-object'
+      || (Array.isArray(object.objects) && hasLegacy(object.objects as Array<Record<string, unknown>>)));
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn(async ({objects}: {objects: Array<Record<string, unknown>>}) => {
+        if (hasLegacy(objects)) throw new Error('objeto legado incompatível');
+      }),
+      getObjects: vi.fn(() => []),
+      toJSON: vi.fn(() => ({objects: []})),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+    const port = createFabricCanvasDocumentPort(canvas as never);
+    const otherPort = createFabricCanvasDocumentPort(canvas as never);
+    const valid = {id: 'valid', kind: 'wall', shape: 'rect'} as const;
+    const legacy = {id: 'legacy-object', kind: 'pilotiNivelText', shape: 'itext'} as const;
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [valid, legacy],
+    })).resolves.toBe(true);
+    expect(canvas.loadFromJSON).toHaveBeenLastCalledWith({objects: [expect.objectContaining({editorObjectId: 'valid'})]});
+    expect(() => otherPort.exportCanvasDocument()).toThrow('não foi carregado por completo');
+
+    await expect(otherPort.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'group', kind: 'house', shape: 'group', children: [valid, legacy]}],
+    })).resolves.toBe(true);
+    expect(canvas.loadFromJSON).toHaveBeenLastCalledWith({objects: [
+      expect.objectContaining({objects: [expect.objectContaining({editorObjectId: 'valid'})]}),
+    ]});
+    expect(() => port.exportCanvasDocument()).toThrow('não foi carregado por completo');
+
+    await expect(port.loadCanvasDocument({
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [valid],
+    })).resolves.toBe(true);
+    expect(otherPort.exportCanvasDocument()).toEqual({schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, objects: []});
+  });
+
+  it('impede snapshot vazio após falha integral da carga, inclusive em porta recriada, até restaurar por completo', async () => {
+    const canvas = {
+      clear: vi.fn(),
+      loadFromJSON: vi.fn().mockRejectedValue(new Error('Fabric indisponível')),
+      getObjects: vi.fn(() => []),
+      toJSON: vi.fn(() => ({objects: []})),
+      renderAll: vi.fn(),
+      requestRenderAll: vi.fn(),
+    };
+    const document = {
+      schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION,
+      objects: [{id: 'valid', kind: 'wall', shape: 'rect'}],
+    } satisfies HouseDrawingCanvasDocument;
+    const port = createFabricCanvasDocumentPort(canvas as never);
+
+    const loading = port.loadCanvasDocument(document);
+    expect(() => createFabricCanvasDocumentPort(canvas as never).exportCanvasDocument())
+      .toThrow('não foi carregado por completo');
+    await expect(loading).resolves.toBe(false);
+    expect(canvas.clear).toHaveBeenCalled();
+    expect(() => createFabricCanvasDocumentPort(canvas as never).exportCanvasDocument())
+      .toThrow('não foi carregado por completo');
+    expect(canvas.toJSON).not.toHaveBeenCalled();
+
+    canvas.loadFromJSON.mockResolvedValue(undefined);
+    canvas.renderAll.mockImplementationOnce(() => {throw new Error('renderização interrompida');});
+    await expect(port.loadCanvasDocument(document)).rejects.toThrow('renderização interrompida');
+    expect(() => createFabricCanvasDocumentPort(canvas as never).exportCanvasDocument())
+      .toThrow('não foi carregado por completo');
+
+    await expect(port.loadCanvasDocument(document)).resolves.toBe(true);
+    expect(createFabricCanvasDocumentPort(canvas as never).exportCanvasDocument())
+      .toEqual({schemaVersion: HOUSE_DRAWING_CANVAS_SCHEMA_VERSION, objects: []});
+  });
+
   it('serializa o canvas como documento visual canônico', () => {
     const canvas = {
       toJSON: vi.fn(() => ({

@@ -1,4 +1,4 @@
-import {ArrowLeft, PanelsTopLeft} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, PanelsTopLeft} from 'lucide-react';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useConstructionSiteManagementNavigation} from '@/components/construction-site/hooks/useConstructionSiteManagementNavigation.ts';
 import {GRIDDED_WORKSPACE_STYLE} from '@/shared/ui/workspace-style.ts';
@@ -112,6 +112,8 @@ export interface ConstructionSiteManagementPanelProps {
   constructionSite: ConstructionSiteState | null;
   summaries: ConstructionSiteSummary[];
   canOpenRacEditor?: boolean;
+  hasRemoteSyncConflict?: boolean;
+  onOpenRemoteSyncConflict?: () => void;
   onBackToCanvas?: (preferSelectedHouse?: boolean) => void;
   onUnsavedChangesChange?: (hasUnsavedChanges: boolean) => void;
   actions: ConstructionSiteManagementActions;
@@ -139,6 +141,8 @@ export function ConstructionSiteManagementPanel({
   constructionSite,
   summaries,
   canOpenRacEditor = false,
+  hasRemoteSyncConflict = false,
+  onOpenRemoteSyncConflict,
   onBackToCanvas,
   onUnsavedChangesChange,
   actions,
@@ -420,6 +424,19 @@ export function ConstructionSiteManagementPanel({
         data-testid='construction-management-card'
         className='mx-auto flex min-h-full min-w-0 w-full max-w-none flex-col rounded-none border-0 bg-white p-4 shadow-none sm:min-h-[calc(100dvh-5rem)] sm:max-w-4xl sm:rounded-[24px] sm:border sm:border-slate-200/80 sm:p-6 sm:shadow-sm lg:p-8'
       >
+        {hasRemoteSyncConflict && onOpenRemoteSyncConflict ? (
+          <div role='status' className='mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950'>
+            <AlertTriangle className='h-5 w-5 shrink-0' aria-hidden='true'/>
+            <span className='min-w-0 flex-1'>Há um conflito de sincronização nesta construção.</span>
+            <button
+              type='button'
+              className='min-h-10 rounded-lg bg-amber-900 px-3 py-2 font-semibold text-white hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 focus-visible:ring-offset-2'
+              onClick={onOpenRemoteSyncConflict}
+            >
+              Resolver conflito
+            </button>
+          </div>
+        ) : null}
         {navigation.screen !== 'house-field-analysis' ? <header className='relative mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5'>
           <div
             data-testid='construction-management-header-row'

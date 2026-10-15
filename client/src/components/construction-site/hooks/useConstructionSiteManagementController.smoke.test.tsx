@@ -161,6 +161,99 @@ describe('useConstructionSiteManagementController.ts', () => {
     expect(managementPort.saveActiveHouseDrawingDocument).toHaveBeenCalled();
   });
 
+  it('não altera nem salva a casa quando a hidratação preparada retorna false, e permite retry', async () => {
+    vi.stubGlobal('requestAnimationFrame', vi.fn());
+    const document = createDrawingDocument('house_prepared', 'Família', {schemaVersion: 1, objects: []});
+    const loadCanvasDocument = vi.fn().mockResolvedValueOnce(false).mockResolvedValue(true);
+    const handle = {
+      createDocumentPort: () => ({exportCanvasDocument: vi.fn(() => document.canvas), loadCanvasDocument}),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const managementPort = createConstructionSiteManagementPort({getActiveHouseDrawingDocument: vi.fn(() => document)});
+    const ports = createEditorPorts({
+      constructionSiteManagementPort: managementPort,
+      houseDrawingDocumentPort: {exportHouseDrawingDocument: vi.fn(() => document), importHouseDrawingDocument: vi.fn()},
+    });
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef: {current: handle}}),
+      {wrapper: createWrapper(ports)},
+    );
+    const insert = vi.fn();
+
+    await act(async () => {
+      await expect(result.current.runCanvasDocumentTransaction(insert)).rejects.toThrow('Não foi possível carregar');
+    });
+    expect(insert).not.toHaveBeenCalled();
+    expect(managementPort.saveActiveHouseDrawingDocument).not.toHaveBeenCalled();
+    expect(loadCanvasDocument).toHaveBeenCalledTimes(1);
+
+    await act(async () => {await result.current.runCanvasDocumentTransaction(insert);});
+    expect(insert).toHaveBeenCalledOnce();
+    expect(loadCanvasDocument).toHaveBeenCalledTimes(2);
+    expect(managementPort.saveActiveHouseDrawingDocument).toHaveBeenCalledOnce();
+  });
+
+  it('aborta a transação quando uma hidratação Fabric já em andamento falha', async () => {
+    vi.stubGlobal('requestAnimationFrame', vi.fn());
+    const document = createDrawingDocument('house_prepared', 'Família', {schemaVersion: 1, objects: []});
+    let resolveLoad!: (loaded: boolean) => void;
+    const loadCanvasDocument = vi.fn(() => new Promise<boolean>((resolve) => {resolveLoad = resolve;}));
+    const handle = {
+      createDocumentPort: () => ({exportCanvasDocument: vi.fn(() => document.canvas), loadCanvasDocument}),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const managementPort = createConstructionSiteManagementPort({getActiveHouseDrawingDocument: vi.fn(() => document)});
+    const ports = createEditorPorts({
+      constructionSiteManagementPort: managementPort,
+      houseDrawingDocumentPort: {exportHouseDrawingDocument: vi.fn(() => document), importHouseDrawingDocument: vi.fn()},
+    });
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef: {current: handle}}),
+      {wrapper: createWrapper(ports)},
+    );
+    let loading!: Promise<boolean>;
+    act(() => {loading = result.current.loadHouseDocument(document);});
+    await waitFor(() => expect(loadCanvasDocument).toHaveBeenCalledOnce());
+    const insert = vi.fn();
+    let transaction!: Promise<void>;
+    act(() => {transaction = result.current.runCanvasDocumentTransaction(insert);});
+    resolveLoad(false);
+    await act(async () => {
+      await expect(transaction).rejects.toThrow('Não foi possível carregar');
+      await loading;
+    });
+    expect(loadCanvasDocument).toHaveBeenCalledTimes(1);
+    expect(insert).not.toHaveBeenCalled();
+    expect(managementPort.saveActiveHouseDrawingDocument).not.toHaveBeenCalled();
+  });
+
+  it('não sobrescreve o documento persistido quando a exportação visual da edição falha', async () => {
+    const document = createDrawingDocument('house_a', 'Família', {schemaVersion: 1, objects: []});
+    const exportCanvasDocument = vi.fn(() => {throw new Error('desenho restaurado parcialmente');});
+    const handle = {
+      createDocumentPort: () => ({exportCanvasDocument, loadCanvasDocument: vi.fn(async () => true)}),
+      saveHistory: vi.fn(),
+    } as unknown as CanvasHandle;
+    const managementPort = createConstructionSiteManagementPort({getActiveHouseDrawingDocument: vi.fn(() => document)});
+    const ports = createEditorPorts({
+      constructionSiteManagementPort: managementPort,
+      houseDrawingDocumentPort: {exportHouseDrawingDocument: vi.fn(() => document), importHouseDrawingDocument: vi.fn()},
+    });
+    const {result} = renderHook(
+      () => useConstructionSiteManagementController({canvasRef: {current: handle}}),
+      {wrapper: createWrapper(ports)},
+    );
+
+    let pending!: Promise<void>;
+    await act(async () => {
+      pending = result.current.notifyActiveHouseDocumentChanged();
+      await expect(result.current.flushActiveHouseDocumentSave()).rejects.toThrow('restaurado parcialmente');
+      await expect(pending).rejects.toThrow('restaurado parcialmente');
+    });
+    expect(result.current.documentSaveStatus).toBe('error');
+    expect(managementPort.saveActiveHouseDrawingDocument).not.toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     controllerMocks.buildRacPdfHouseExport.mockReset();
     controllerMocks.buildRacPdfZipExport.mockReset();

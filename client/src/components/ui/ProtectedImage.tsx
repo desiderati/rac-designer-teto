@@ -25,8 +25,6 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
     const cachedSource = getCachedProtectedImageSource(src);
     if (cachedSource) {
       setLoaded({source: src, data: cachedSource});
-      setNativeLoaded(true);
-      setLoadState('loaded');
       return;
     }
 
@@ -39,7 +37,6 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
       void resolveProtectedImageSource(src, controller.signal).then((data) => {
         if (!controller.signal.aborted) {
           setLoaded({source: src, data});
-          setLoadState('loaded');
         }
       }).catch(() => {
         if (controller.signal.aborted) return;
@@ -86,8 +83,10 @@ export function ProtectedImage({src, ...props}: ImgHTMLAttributes<HTMLImageEleme
       className={`relative inline-flex min-h-0 min-w-0 ${isRoundThumbnail ? 'overflow-hidden rounded-full' : ''} ${imageClassName ?? ''}`}
     >
       <img {...props} className={`${imageClassName ?? ''} ${hideUnresolvedProtectedImage ? 'opacity-0' : 'transition-opacity duration-150'}`} src={resolved} onError={handleError} onLoad={(event) => {
+        // O GIF só ocupa o lugar do src nativo após erro; não contém os pixels da foto.
+        if (protectedSource && event.currentTarget.getAttribute('src') === TRANSPARENT_IMAGE_DATA_URL) return;
         setNativeLoaded(true);
-        if (protectedSource && loaded?.source !== src) setLoadState('loaded');
+        if (protectedSource) setLoadState('loaded');
         props.onLoad?.(event);
       }}/>
       {showLoadingIndicator ? (

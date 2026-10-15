@@ -13,7 +13,7 @@ import {TerrainPhotoDescriptionProvider} from '@/contexts/TerrainPhotoDescriptio
 import {House3DImagePendingToast} from '@/components/rac-editor/@viewer-3d/ui/House3DImagePendingToast.tsx';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 import {clearLoginLock, startLogin} from '@/const.ts';
-import {RemoteSyncProvider} from '@/contexts/RemoteSyncContext.tsx';
+import {RemoteSyncProvider, type RemoteSyncConflict} from '@/contexts/RemoteSyncContext.tsx';
 import {useRemoteSync} from '@/contexts/RemoteSyncContext.tsx';
 import {useReportPwaUpdateSafety} from '@/components/pwa/PwaUpdateSafetyContext.ts';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
@@ -378,10 +378,11 @@ function RacEditorLoadingState() {
 
 function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
   const constructionSiteManagement = useConstructionSiteManagementController({});
-  const {status: syncStatus} = useRemoteSync();
+  const {status: syncStatus, conflict: syncConflict} = useRemoteSync();
   const reportUpdateSafety = useReportPwaUpdateSafety();
   const [documentSaveStatus, setDocumentSaveStatus] = useState<HouseDocumentSaveStatus>('saving');
   const [hasUnsavedFormChanges, setHasUnsavedFormChanges] = useState(false);
+  const [requestedConflict, setRequestedConflict] = useState<RemoteSyncConflict | null>(null);
   const [editorOpen, setEditorOpen] = useState(() => constructionSiteManagement.canOpenRacEditor
     && (typeof window === 'undefined' || !window.matchMedia(VIEWPORT.mobileMaxWidthQuery).matches));
   const isEditorVisible = editorOpen && constructionSiteManagement.canOpenRacEditor;
@@ -405,9 +406,11 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
     }
   }, [constructionSiteManagement.canOpenRacEditor]);
 
+  useEffect(() => setRequestedConflict(null), [syncConflict]);
+
   return (
     <>
-      <RemoteSyncStatus visible={isEditorVisible}/>
+      <RemoteSyncStatus visible={isEditorVisible || (Boolean(syncConflict) && requestedConflict === syncConflict)}/>
       {isEditorVisible ? (
         <RacEditorContent
           onExit={onLogout}
@@ -417,6 +420,8 @@ function RacEditorEntryPoint({onLogout}: {onLogout: () => Promise<void>}) {
         <div className='rac-min-width-shell relative h-full min-h-[480px] min-w-[420px] w-full overflow-hidden' style={CANVAS_WORKSPACE_STYLE}>
           <ConstructionSiteManagementPanel
             {...constructionSiteManagement}
+            hasRemoteSyncConflict={Boolean(syncConflict)}
+            onOpenRemoteSyncConflict={() => setRequestedConflict(syncConflict)}
             onBackToCanvas={openRacEditor}
             onUnsavedChangesChange={setHasUnsavedFormChanges}
           />

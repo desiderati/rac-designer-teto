@@ -44,10 +44,20 @@ export async function renderHouseDrawingCanvasImageDataUrl(house: PersistedHouse
   const cached = houseDrawingImageCache.get(cacheKey);
   if (cached) return cached;
 
-  const rendering = renderHouseDrawingCanvasImageDataUrlUncached(house).catch((error: unknown) => {
-    houseDrawingImageCache.delete(cacheKey);
-    throw error;
-  });
+  const rendering = renderHouseDrawingCanvasImageDataUrlUncached(house).then(
+    (capture) => {
+      if (capture.hasOmittedRasterSources && houseDrawingImageCache.get(cacheKey) === rendering) {
+        houseDrawingImageCache.delete(cacheKey);
+      }
+      return capture;
+    },
+    (error: unknown) => {
+      if (houseDrawingImageCache.get(cacheKey) === rendering) {
+        houseDrawingImageCache.delete(cacheKey);
+      }
+      throw error;
+    },
+  );
   if (houseDrawingImageCache.size >= MAX_HOUSE_DRAWING_CACHE_ENTRIES) {
     const oldestKey = houseDrawingImageCache.keys().next().value;
     if (oldestKey) houseDrawingImageCache.delete(oldestKey);

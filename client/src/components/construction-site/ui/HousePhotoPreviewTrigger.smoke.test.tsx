@@ -1,7 +1,31 @@
 import {expect, it, vi} from 'vitest';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import type {PersistedHouseRecord} from '@/shared/types/construction-site.ts';
+import {renderHouseDrawingCanvasImageDataUrl} from '@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts';
 import {HousePhotoPreviewTrigger} from './HousePhotoPreviewTrigger.tsx';
+
+vi.mock('@/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts', () => ({
+  renderHouseDrawingCanvasImageDataUrl: vi.fn(),
+  clearHouseDrawingCanvasImageCache: vi.fn(),
+}));
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return {promise, resolve, reject};
+}
+
+function drawnHouse(version: number): PersistedHouseRecord {
+  return {
+    ...house,
+    version,
+    drawingDocument: {...house.drawingDocument, canvas: {...house.drawingDocument.canvas, objects: [{id: `object-${version}`}]}},
+  } as PersistedHouseRecord;
+}
 
 const house = {
   id: 'house-1',
@@ -67,4 +91,39 @@ it('fecha a prévia pelo submenu sem acionar a navegação', () => {
   fireEvent.click(screen.getByRole('menuitem', {name: 'Fechar Modal'}));
 
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+});
+
+it('atualiza um modal aberto e ignora pixels da versão anterior concluídos fora de ordem', async () => {
+  const oldCapture = deferred<{imageDataUrl: string; hasOmittedRasterSources: boolean}>();
+  const currentCapture = deferred<{imageDataUrl: string; hasOmittedRasterSources: boolean}>();
+  vi.mocked(renderHouseDrawingCanvasImageDataUrl).mockReset()
+    .mockReturnValueOnce(oldCapture.promise).mockReturnValueOnce(currentCapture.promise);
+  const {rerender} = render(<HousePhotoPreviewTrigger house={drawnHouse(1)} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  fireEvent.click(screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Silva'}));
+  expect(within(screen.getByRole('dialog')).getByText('Carregando Canvas…')).toBeVisible();
+
+  // A identidade do documento também invalida a prévia quando a versão ainda não avançou.
+  rerender(<HousePhotoPreviewTrigger house={{...drawnHouse(2), version: 1}} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  await waitFor(() => expect(renderHouseDrawingCanvasImageDataUrl).toHaveBeenCalledTimes(2));
+  await act(async () => currentCapture.resolve({imageDataUrl: 'data:image/png;base64,new', hasOmittedRasterSources: false}));
+  expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,new');
+
+  await act(async () => oldCapture.resolve({imageDataUrl: 'data:image/png;base64,old', hasOmittedRasterSources: false}));
+  expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,new');
+});
+
+it('não substitui a prévia atual por falha tardia da versão anterior', async () => {
+  const oldCapture = deferred<{imageDataUrl: string; hasOmittedRasterSources: boolean}>();
+  const currentCapture = deferred<{imageDataUrl: string; hasOmittedRasterSources: boolean}>();
+  vi.mocked(renderHouseDrawingCanvasImageDataUrl).mockReset()
+    .mockReturnValueOnce(oldCapture.promise).mockReturnValueOnce(currentCapture.promise);
+  const {rerender} = render(<HousePhotoPreviewTrigger house={drawnHouse(1)} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  fireEvent.click(screen.getByRole('button', {name: 'Pré-visualizar Canvas da casa Silva'}));
+  rerender(<HousePhotoPreviewTrigger house={drawnHouse(2)} familyName='Silva'><span>thumbnail</span></HousePhotoPreviewTrigger>);
+  await waitFor(() => expect(renderHouseDrawingCanvasImageDataUrl).toHaveBeenCalledTimes(2));
+  await act(async () => currentCapture.resolve({imageDataUrl: 'data:image/png;base64,new', hasOmittedRasterSources: false}));
+  await act(async () => oldCapture.reject(new Error('prévia antiga indisponível')));
+
+  expect(within(screen.getByRole('dialog')).getByAltText('Canvas da casa Silva')).toHaveAttribute('src', 'data:image/png;base64,new');
+  expect(within(screen.getByRole('dialog')).queryByText('Não foi possível carregar o Canvas.')).not.toBeInTheDocument();
 });

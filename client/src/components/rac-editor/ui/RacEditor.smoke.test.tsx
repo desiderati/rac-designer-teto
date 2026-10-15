@@ -6,6 +6,8 @@ import {useRemoteConstructionSiteSessionStorage} from '@/bootstrap/useRemoteCons
 import {useConstructionSiteManagementController} from '@/components/construction-site/hooks/useConstructionSiteManagementController.ts';
 import {RacEditor} from '@/components/rac-editor/ui/RacEditor.tsx';
 import type {StoredConstructionSitesDocument} from '@/components/rac-editor/lib/construction-site-session.ts';
+import type {RemoteSyncConflict} from '@/contexts/RemoteSyncContext.tsx';
+import type {ConstructionSiteState} from '@/shared/types/construction-site.ts';
 import {useAuth} from '@/_core/hooks/useAuth.ts';
 
 vi.mock('@/bootstrap/useRemoteConstructionSiteSessionStorage.ts', () => ({
@@ -30,8 +32,12 @@ vi.mock('@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx',
     canOpenRacEditor,
     constructionSite,
     onBackToCanvas,
+    hasRemoteSyncConflict,
+    onOpenRemoteSyncConflict,
   }: ReturnType<typeof useConstructionSiteManagementController> & {
     onBackToCanvas?: () => void;
+    hasRemoteSyncConflict?: boolean;
+    onOpenRemoteSyncConflict?: () => void;
   }) => (
     <div>
       <p>Gestão {constructionSite?.constructionSite.externalCode ?? 'sem construção'}</p>
@@ -58,6 +64,7 @@ vi.mock('@/components/construction-site/ui/ConstructionSiteManagementPanel.tsx',
           Voltar ao Canvas
         </button>
       ) : null}
+      {hasRemoteSyncConflict ? <button type='button' onClick={onOpenRemoteSyncConflict}>Resolver conflito</button> : null}
     </div>
   ),
 }));
@@ -96,6 +103,21 @@ function createSync() {
     useRemoteVersion: vi.fn(),
     keepLocalVersion: vi.fn(),
     retry: vi.fn(),
+  };
+}
+
+function conflictForSite(): RemoteSyncConflict {
+  const state: ConstructionSiteState = {
+    constructionSite: {
+      id: 'site-1', externalCode: 'CC2603', constructionDate: '2026-05-11', communityId: 'community-1',
+      status: 'in_progress', documentVersion: 1, createdAt: '2026-05-11T10:00:00.000Z', updatedAt: '2026-05-11T10:00:00.000Z',
+    },
+    communities: [], families: [], monitors: [], houses: [],
+  };
+  return {
+    constructionSiteId: 'site-1', baseState: state, localState: state,
+    remoteState: {...state, constructionSite: {...state.constructionSite, documentVersion: 2}},
+    remoteVersion: 2, conflicts: [], remoteOnlyEntities: [],
   };
 }
 
@@ -170,5 +192,32 @@ describe('RacEditor.tsx', () => {
     await user.click(screen.getByRole('button', {name: 'Voltar ao Canvas'}));
 
     expect(await screen.findByText('Canvas carregado CC2603')).toBeVisible();
+  });
+
+  it('oferece resolução explícita na gestão sem casa e não abre novo conflito sem clique', async () => {
+    const user = userEvent.setup();
+    const storage = createConstructionSiteSessionStorage();
+    createConstructionSiteSession(storage).createConstructionSite({
+      externalCode: 'CC2603', constructionDate: '2026-05-11', communityName: 'Campo',
+    });
+    const firstConflict = conflictForSite();
+    const sync = {...createSync(), status: 'conflict' as const, conflict: firstConflict};
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({status: 'ready', storage, sync});
+    const {rerender} = render(<RacEditor/>);
+
+    expect(screen.getByText('Gestão CC2603')).toBeVisible();
+    expect(screen.queryByText('Canvas carregado CC2603')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', {name: 'Conflito de sincronização'})).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', {name: 'Resolver conflito'}));
+    expect(screen.getByRole('dialog', {name: 'Conflito de sincronização'})).toBeVisible();
+    await user.click(screen.getByRole('button', {name: 'Usar versão remota'}));
+    expect(sync.useRemoteVersion).toHaveBeenCalledOnce();
+
+    vi.mocked(useRemoteConstructionSiteSessionStorage).mockReturnValue({
+      status: 'ready', storage, sync: {...sync, conflict: {...firstConflict, remoteVersion: 3}},
+    });
+    rerender(<RacEditor/>);
+    await waitFor(() => expect(screen.queryByRole('dialog', {name: 'Conflito de sincronização'})).not.toBeInTheDocument());
+    expect(screen.getByRole('button', {name: 'Resolver conflito'})).toBeVisible();
   });
 });
