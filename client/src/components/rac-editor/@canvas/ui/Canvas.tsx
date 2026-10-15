@@ -370,7 +370,7 @@ export const Canvas =
               top: bounds.top,
               width: Math.max(1, bounds.right - bounds.left),
               height: Math.max(1, bounds.bottom - bounds.top),
-            });
+            }, force);
           }
         },
         fitContent: () => {
