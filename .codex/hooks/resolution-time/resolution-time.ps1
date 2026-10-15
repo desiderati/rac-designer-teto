@@ -193,18 +193,25 @@ function Remove-SessionState {
 function ConvertTo-DateTimeOffsetSafe {
     param(
         [AllowNull()]
-        [string]$Value
+        [object]$Value
     )
 
-    if ([string]::IsNullOrWhiteSpace($Value)) {
+    if ($null -eq $Value -or [string]::IsNullOrWhiteSpace([string]$Value)) {
         return $null
     }
 
     try {
+        if ($Value -is [DateTimeOffset]) {
+            return $Value.ToUniversalTime()
+        }
+        if ($Value -is [DateTime]) {
+            return ([DateTimeOffset]::new($Value)).ToUniversalTime()
+        }
         return [DateTimeOffset]::Parse(
-            $Value,
+            [string]$Value,
             [System.Globalization.CultureInfo]::InvariantCulture,
-            [System.Globalization.DateTimeStyles]::RoundtripKind
+            [System.Globalization.DateTimeStyles]::AssumeUniversal -bor
+            [System.Globalization.DateTimeStyles]::AdjustToUniversal
         )
     }
     catch {
@@ -233,7 +240,7 @@ function Get-TranscriptStartTime {
             continue
         }
 
-        $timestamp = ConvertTo-DateTimeOffsetSafe -Value ([string]$entry.timestamp)
+        $timestamp = ConvertTo-DateTimeOffsetSafe -Value $entry.timestamp
         if ($null -ne $timestamp) {
             return $timestamp
         }
@@ -420,7 +427,7 @@ function Handle-Stop {
 
     $startedAt = $null
     if ($null -ne $sessionState) {
-        $startedAt = ConvertTo-DateTimeOffsetSafe -Value ([string]$sessionState.started_at_utc)
+        $startedAt = ConvertTo-DateTimeOffsetSafe -Value $sessionState.started_at_utc
     }
 
     if ($null -eq $startedAt) {

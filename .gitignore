@@ -78,3 +78,4 @@ rtk/history.db
 /outputs/
 /.playwright-cli/
 /recovery-backups/
+.agents/skill-icon-candidates/
