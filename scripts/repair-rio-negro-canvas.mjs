@@ -20,6 +20,7 @@ const TARGET_FAMILY_NAMES = new Set([
   'Ana Beatriz',
   'Patrícia',
   'Rose',
+  'Teresinha do Carmo',
   'Vanderlei Norio',
 ]);
 
