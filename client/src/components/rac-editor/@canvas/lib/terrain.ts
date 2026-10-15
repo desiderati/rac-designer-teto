@@ -1,4 +1,4 @@
-import {Line, Pattern, Polygon, Polyline, Rect, Text} from 'fabric';
+import {Circle, Group as FabricGroup, Line, Polygon, Polyline, Rect, Text} from 'fabric';
 import {
   CANVAS_STYLE,
   HOUSE_2D_STYLE,
@@ -26,6 +26,7 @@ import {
 } from '@/shared/constants.ts';
 import {formatNivel} from '@/shared/types/piloti.ts';
 import {resolveHouseElevationCornerPilotiIds} from '@/domain/house/use-cases/house-view-orientation.use-case.ts';
+import {createRachaoStoneLayout} from '@/components/rac-editor/@canvas/lib/factory/elements/vector-textures.ts';
 
 export interface GroundLineAnchor {
   x: number;
@@ -318,12 +319,13 @@ export function createGroundElements(
       localTerrainElements.push(rightGravelObject);
     }
 
-    const rachaoLayer = new Rect({
-      left: pilotiLeft - gravelWidthPx,
-      top: rachaoTopY,
-      width: pilotiVisualWidth + (gravelWidthPx * 2) + (PILOTI_STYLE.strokeWidth * s),
+    const rachaoWidth = pilotiVisualWidth + (gravelWidthPx * 2) + (PILOTI_STYLE.strokeWidth * s);
+    const rachaoBase = new Rect({
+      width: rachaoWidth,
       height: rachaoDepthPx,
-      fill: createRachaoPattern(s),
+      originX: 'center',
+      originY: 'center',
+      fill: '#8d7559',
       stroke: '#6f5942',
       strokeWidth: HOUSE_2D_STYLE.outlineStrokeWidth * 2 * s,
       strokeUniform: true,
@@ -331,6 +333,29 @@ export function createGroundElements(
       evented: false,
       objectCaching: false,
       opacity: 0.95,
+    });
+    const rachaoStones = createRachaoStoneLayout(rachaoWidth, rachaoDepthPx, s).map((stone) =>
+      new Circle({
+        left: stone.left,
+        top: stone.top,
+        radius: stone.radius,
+        originX: 'center',
+        originY: 'center',
+        fill: stone.fill,
+        strokeWidth: 0,
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+      }),
+    );
+    const rachaoLayer = new FabricGroup([rachaoBase, ...rachaoStones], {
+      left: pilotiLeft - gravelWidthPx + rachaoWidth / 2,
+      top: rachaoTopY + rachaoDepthPx / 2,
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+      objectCaching: false,
     });
     const rachaoLayerObject = toCanvasObject(rachaoLayer);
     rachaoLayerObject.isGroundElement = true;
@@ -460,39 +485,6 @@ function seededRandom(seed: number): () => number {
 
 export function getTerrainRachaoThicknessCm(level: TerrainSolidityLevel): number {
   return TERRAIN_SOLIDITY.levels[level].rachao;
-}
-
-function createRachaoPattern(scale: number): Pattern {
-  const size = Math.max(14, Math.round(28 * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d')!;
-
-  ctx.fillStyle = '#8d7559';
-  ctx.fillRect(0, 0, size, size);
-
-  const stones = [
-    {x: size * 0.18, y: size * 0.25, r: size * 0.14, c: '#6f5942'},
-    {x: size * 0.48, y: size * 0.15, r: size * 0.12, c: '#9f8770'},
-    {x: size * 0.74, y: size * 0.33, r: size * 0.16, c: '#7a624a'},
-    {x: size * 0.34, y: size * 0.62, r: size * 0.15, c: '#b19a82'},
-    {x: size * 0.66, y: size * 0.68, r: size * 0.11, c: '#6f5942'},
-    {x: size * 0.20, y: size * 0.80, r: size * 0.10, c: '#9f8770'},
-    {x: size * 0.86, y: size * 0.80, r: size * 0.12, c: '#b19a82'},
-  ];
-
-  stones.forEach((stone) => {
-    ctx.beginPath();
-    ctx.fillStyle = stone.c;
-    ctx.arc(stone.x, stone.y, stone.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  return new Pattern({
-    source: canvas,
-    repeat: 'repeat',
-  });
 }
 
 export function sampleGroundYAtX(points: { x: number; y: number }[], targetX: number): number {

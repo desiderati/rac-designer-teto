@@ -1,4 +1,4 @@
-import {Canvas as FabricCanvas, Pattern, Polygon, Polyline, Rect} from 'fabric';
+import {Canvas as FabricCanvas, Path, Polygon, Polyline, Rect} from 'fabric';
 import {DEFAULT_HOUSE_PILOTI} from '@/shared/types/house.ts';
 import {
   HOUSE_DEFAULTS,
@@ -26,6 +26,7 @@ import {
   PILOTI_MASTER_STROKE_COLOR
 } from '@/shared/constants.ts';
 import {getPilotiVisualHeight} from '@/components/rac-editor/@canvas/lib/piloti-visual.ts';
+import {createDiagonalStripePathData} from '@/components/rac-editor/@canvas/lib/factory/elements/vector-textures.ts';
 
 export function createPilotis(
   elements: CanvasObject[],
@@ -138,7 +139,7 @@ export function createPilotiRect(
   return rectObj;
 }
 
-// Create a stripe overlay rect for the bottom 2/3 of a piloti rect
+// Create a vector stripe overlay for the bottom 2/3 of a piloti rect.
 export function createPilotiStripeOverlay(
   pilotiId: string,
   left: number,
@@ -150,14 +151,16 @@ export function createPilotiStripeOverlay(
   const stripeHeight = (fullHeight * 2) / 3;
   const stripeTop = top + fullHeight / 3;
 
-  const stripe = new Rect({
-    width,
-    height: stripeHeight,
-    fill: createDiagonalStripePattern(),
-    left,
-    top: stripeTop,
-    originY: 'top',
-    strokeWidth: 0,
+  const stripe = new Path(createDiagonalStripePathData(width, stripeHeight), {
+    left: left + width / 2,
+    top: stripeTop + stripeHeight / 2,
+    originX: 'center',
+    originY: 'center',
+    fill: 'transparent',
+    stroke: PILOTI_STYLE.stripeColor,
+    strokeWidth: 1.2,
+    strokeLineCap: 'butt',
+    strokeLineJoin: 'miter',
     selectable: false,
     evented: false,
     objectCaching: false,
@@ -168,40 +171,6 @@ export function createPilotiStripeOverlay(
   stripeObj.isPilotiStripe = true;
   stripeObj.pilotiId = pilotiId;
   return stripeObj;
-}
-
-// Create a diagonal stripe pattern for piloti fill (bottom 2/3)
-export function createDiagonalStripePattern(): Pattern {
-  const size = 10; // pattern tile size
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-
-  const ctx = canvas.getContext('2d')!;
-  ctx.clearRect(0, 0, size, size);
-  ctx.strokeStyle = PILOTI_STYLE.stripeColor;
-  ctx.lineWidth = 1.2;
-
-  // Draw diagonal line across the tile
-  ctx.beginPath();
-  ctx.moveTo(0, size);
-  ctx.lineTo(size, 0);
-  ctx.stroke();
-
-  // Extra line for seamless tiling
-  ctx.beginPath();
-  ctx.moveTo(-size, size);
-  ctx.lineTo(size, -size);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, 2 * size);
-  ctx.lineTo(2 * size, 0);
-  ctx.stroke();
-
-  return new Pattern({
-    source: canvas,
-    repeat: 'repeat',
-  });
 }
 
 // Get piloti IDs that actually exist inside a given house group, ordered like getAllPilotiIds()
@@ -296,8 +265,21 @@ export function updatePilotiHeight(group: CanvasGroup, pilotiId: string, newHeig
         const newVisualHeight = (pilotiRect.height ?? 0) as number;
         const stripeHeight = (newVisualHeight * 2) / 3;
 
-        obj.set({height: stripeHeight, top: (pilotiRect.top ?? 0) + newVisualHeight / 3});
-        obj.set('fill', createDiagonalStripePattern());
+        if (obj.type === 'path') {
+          const stripePath = obj as CanvasObject & {setDimensions?: () => void};
+          const pilotiWidth = Number(pilotiRect.width ?? 0);
+          stripePath.set('path', createDiagonalStripePathData(pilotiWidth, stripeHeight));
+          stripePath.setDimensions?.();
+          stripePath.set({
+            left: Number(pilotiRect.left ?? 0) + pilotiWidth / 2,
+            top: Number(pilotiRect.top ?? 0) + newVisualHeight / 3 + stripeHeight / 2,
+            fill: 'transparent',
+          });
+        } else {
+          // Compatibilidade visual para documentos antigos que ainda carregam
+          // um retângulo com Pattern; não há novo Pattern neste fluxo.
+          obj.set({height: stripeHeight, top: (pilotiRect.top ?? 0) + newVisualHeight / 3});
+        }
         obj.objectCaching = false;
 
         obj.setCoords();

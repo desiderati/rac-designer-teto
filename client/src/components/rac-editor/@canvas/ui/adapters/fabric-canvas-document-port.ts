@@ -9,6 +9,7 @@ import {
   toCanvasGroup,
 } from '@/components/rac-editor/@canvas/lib/canvas.ts';
 import {bindWallCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/wall.strategy.ts';
+import {bindStairsCanvasGroupScaling} from '@/components/rac-editor/@canvas/lib/factory/elements/stairs.strategy.ts';
 import {positionShapeLabel} from '@/components/rac-editor/@canvas/lib/factory/elements/shape-label-layout.ts';
 import type {CanvasDocumentPort} from '@/components/rac-editor/@canvas/ports/CanvasDocumentPort.ts';
 import {
@@ -657,6 +658,7 @@ function restoreCanvasRuntimeBehaviors(canvas: FabricCanvas): void {
     if (!group) return;
     const kind = group.myType;
     if (kind === 'wall') bindWallCanvasGroupScaling(group);
+    if (kind === 'stairs') bindStairsCanvasGroupScaling(group);
     if (kind === 'wall' || kind === 'square' || kind === 'circle' || kind === 'triangle') {
       positionShapeLabel(group, kind);
     }

@@ -9,7 +9,6 @@ import {
   buildPilotiObjectIndex,
   CanvasGroup,
   CanvasObject,
-  createDiagonalStripePattern,
   getCanvasGroupObjects,
   refreshHouseGroupRendering,
   updatePilotiHeight,
@@ -25,6 +24,7 @@ import {
 } from '@/shared/constants.ts';
 import {formatNivel, formatPilotiHeight} from '@/shared/types/piloti.ts';
 import {refreshTopSlopeIndicator} from '@/components/rac-editor/@canvas/lib/house-top-slope-indicator.ts';
+import {createDiagonalStripePathData} from '@/components/rac-editor/@canvas/lib/factory/elements/vector-textures.ts';
 
 export interface PilotiNivelTextPatch {
   text: string;
@@ -277,12 +277,28 @@ function applyPilotiStripeOverlays(
     const rect = pilotiObjectIndex[pilotiId]?.rect;
     if (!rect) return;
 
+    const rectWidth = Number(rect.width ?? 0);
     const geometry = calculatePilotiStripeGeometry({
       rectTop: Number(rect.top ?? 0),
       rectHeight: Number(rect.height ?? 0),
     });
-    canvasObject.set({height: geometry.height, top: geometry.top});
-    canvasObject.set('fill', createDiagonalStripePattern());
+    if (canvasObject.type === 'path') {
+      const pathObject = canvasObject as CanvasObject & {setDimensions?: () => void};
+      pathObject.set('path', createDiagonalStripePathData(
+        rectWidth,
+        geometry.height,
+      ));
+      pathObject.setDimensions?.();
+      pathObject.set({
+        left: Number(rect.left ?? 0) + rectWidth / 2,
+        top: geometry.top + geometry.height / 2,
+        fill: 'transparent',
+      });
+    } else {
+      // Compatibilidade visual para documentos antigos que ainda carregam o
+      // retângulo com Pattern; desenhos novos nunca entram neste caminho.
+      canvasObject.set({height: geometry.height, top: geometry.top});
+    }
     canvasObject.objectCaching = false;
     canvasObject.setCoords();
     canvasObject.dirty = true;
