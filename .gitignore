@@ -77,3 +77,4 @@ rtk/history.db
 .agents/skill-development-session/
 /outputs/
 /.playwright-cli/
+/recovery-backups/
