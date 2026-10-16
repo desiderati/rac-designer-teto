@@ -1,6 +1,7 @@
 import {expect, test, type Page} from '@playwright/test';
 import {deflateSync} from 'node:zlib';
 import {setupRacEditorPage} from './helpers/rac-editor.helpers';
+import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const SMALL_PNG = createPngBuffer(32, 24, false);
@@ -70,7 +71,9 @@ function crc32(bytes: Buffer): number {
 }
 
 async function openUploadDialog(page: Page) {
-  await page.getByRole('button', {name: 'Upload de Imagem'}).click();
+  const tools = page.getByRole('button', {name: 'Ferramentas do Canvas', exact: true});
+  if (await tools.isVisible()) await tools.tap();
+  await page.getByRole('button', {name: 'Upload de Imagem', exact: true}).click();
   const dialog = page.getByRole('dialog').filter({hasText: 'Inserir imagem'});
   await expect(dialog).toBeVisible();
   return dialog;
@@ -112,7 +115,7 @@ async function installStorageUploadMock(page: Page, holdResponse = false) {
 
 test.describe('Revisão de imagem — Dialog desktop', () => {
   test.beforeEach(async ({page}) => {
-    await setupRacEditorPage(page);
+    await setupRacEditorPage(page, {leaveMobileToolbarCollapsed: true});
   });
 
   test('abre o Dialog, mostra preview e retorna ao seletor ao cancelar', async ({page}) => {
@@ -125,7 +128,8 @@ test.describe('Revisão de imagem — Dialog desktop', () => {
 
     const reviewDialog = page.getByRole('dialog').filter({hasText: 'Revisar imagem para o Canvas'});
     await expect(reviewDialog).toBeVisible();
-    await expect(reviewDialog.getByRole('checkbox', {name: 'Manter qualidade original'})).toBeVisible();
+    await expect(reviewDialog.getByRole('checkbox', {name: 'Manter qualidade original'})).toHaveCount(0);
+    await expect(reviewDialog.getByRole('img', {name: 'Prévia da imagem que será enviada'})).toBeVisible();
     await expect(reviewDialog.getByRole('button', {name: 'Comparar original e otimizada'})).toHaveCount(0);
 
     await reviewDialog.getByRole('button', {name: 'Cancelar'}).click();
@@ -135,10 +139,10 @@ test.describe('Revisão de imagem — Dialog desktop', () => {
 });
 
 test.describe('Revisão de imagem — Drawer mobile', () => {
-  test.use({viewport: {width: 390, height: 844}, isMobile: true, hasTouch: true});
+  test.use({viewport: {width: 700, height: 420}, isMobile: true, hasTouch: true});
 
   test.beforeEach(async ({page}) => {
-    await setupRacEditorPage(page);
+    await setupSeededRacEditorPage(page, {insertInitialViews: true});
   });
 
   test('usa Drawer no mobile e preserva a escolha de qualidade', async ({page}) => {
@@ -146,7 +150,7 @@ test.describe('Revisão de imagem — Drawer mobile', () => {
     await uploadDrawer.getByLabel('Selecionar imagem para inserir no canvas').setInputFiles({
       name: 'terreno-mobile.png',
       mimeType: 'image/png',
-      buffer: SMALL_PNG,
+      buffer: createPngBuffer(1200, 900, true),
     });
 
     const reviewDrawer = page.getByRole('dialog').filter({hasText: 'Revisar imagem para o Canvas'});
@@ -162,7 +166,7 @@ test.describe('Revisão de imagem — Drawer mobile', () => {
 
 test.describe('Upload comprimido — fluxo completo', () => {
   test.beforeEach(async ({page}) => {
-    await setupRacEditorPage(page);
+    await setupRacEditorPage(page, {leaveMobileToolbarCollapsed: true});
   });
 
   test('prepara no cliente, mostra comparação, fecha a revisão e envia o arquivo otimizado', async ({page}) => {

@@ -2,6 +2,7 @@ import {expect, Page, test} from '@playwright/test';
 import {
   closePilotiEditorByDebug,
   createHouse,
+  showCanvasTopBar,
   expectNoConsoleErrors,
   getCanvasObjectsSummary,
   getCanvasPosition,
@@ -189,6 +190,7 @@ test.describe('RAC canvas interactions', () => {
   test('canvas: modo panning permite arrastar com o botão principal no desktop', async ({page}) => {
     await createHouse(page, 'tipo6');
 
+    await showCanvasTopBar(page);
     await page.getByRole('button', {name: /Zoom atual/}).click();
     await page.getByRole('button', {name: /Panning/}).click();
 
@@ -220,9 +222,9 @@ test.describe('RAC canvas interactions', () => {
   });
 
   test('canvas: mobile permite panning por toque e zoom por pinch', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
     await createHouse(page, 'tipo6');
-
+    await page.setViewportSize({width: 700, height: 420});
+    await showCanvasTopBar(page);
     await page.getByRole('button', {name: /Zoom atual/}).click();
     await page.getByRole('button', {name: /Panning/}).click();
 
@@ -259,6 +261,7 @@ test.describe('RAC canvas interactions', () => {
     await expect.poll(async () => (await getCanvasPosition(page))?.x ?? 0).toBeGreaterThan(0);
     await expect.poll(async () => (await getCanvasPosition(page))?.y ?? 0).toBeGreaterThan(0);
 
+    await showCanvasTopBar(page);
     await page.getByRole('button', {name: /Zoom atual/}).click();
     await page.getByRole('button', {name: /Seleção/}).click({force: true});
 

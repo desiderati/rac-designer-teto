@@ -32,7 +32,7 @@ const pdfExportSeed = {
     {name: 'John', phone: '(51) 99117-9216', status: 'active' as const},
   ],
   pilotis: {
-    piloti_0_0: {height: 1, nivel: 0.1, isMaster: true},
+    piloti_0_0: {height: 1, nivel: 0.2, isMaster: true},
     piloti_1_0: {height: 1.5, nivel: 0.3},
     piloti_3_2: {height: 2, nivel: 0.8},
   },
@@ -149,21 +149,20 @@ test.describe('Exportação PDF do RAC', () => {
     const documentAfterOpeningConstructionList = await readConstructionSiteDocument(page);
     expect(documentAfterOpeningConstructionList?.constructionSites[0]?.houses[0]?.status).toBe('rac_printed');
     await page.getByRole('row', {name: /CC2603.*Andamento/i})
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
       .click();
     const documentAfterOpeningHouseList = await readConstructionSiteDocument(page);
     expect(documentAfterOpeningHouseList?.constructionSites[0]?.houses[0]?.status).toBe('rac_printed');
-    await expect(page.getByRole('row', {name: /Família E2E.*Tipo 6.*RAC Impressa/i})).toBeVisible();
+    await expect(page.getByRole('row', {name: /Família E2E.*Tipo 6.*Impressa/i})).toBeVisible();
   });
 
   test('gera download pelo menu móvel da conta', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 700, height: 420});
     await setupSeededRacEditorPage(page, {
       ...pdfExportSeed,
       insertInitialViews: true,
     });
 
-    await expect(page.getByRole('button', {name: 'Exportar RAC em PDF'})).toHaveCount(0);
+    await expect(page.getByRole('button', {name: 'Exportar RAC em PDF'})).toBeHidden();
 
     await page.getByRole('button', {name: 'Abrir menu da conta'}).click();
     const exportButton = page.getByRole('button', {name: 'Exportar RAC em PDF'});
@@ -268,7 +267,7 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
 
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await expectPdfPreviewRendered(page);
     await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
   });
 
@@ -292,9 +291,9 @@ test.describe('Exportação PDF do RAC', () => {
       }],
     });
 
-    const imageDataUrl = await page.evaluate(async () => {
+    const capture = await page.evaluate(async () => {
       const {renderHouseDrawingCanvasImageDataUrl} = await import(
-        `${location.origin}/@fs/home/ubuntu/editor-planta-baixa/client/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
+        `${location.origin}/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
       );
 
       return renderHouseDrawingCanvasImageDataUrl({
@@ -313,7 +312,8 @@ test.describe('Exportação PDF do RAC', () => {
       } as never);
     });
 
-    expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
+    expect(capture.imageDataUrl).toMatch(/^data:image\/png;base64,/);
+    expect(capture.hasOmittedRasterSources).toBe(false);
   });
 
   test('renderer individual sanitiza Pattern legado sem CORS', async ({page}) => {
@@ -325,9 +325,9 @@ test.describe('Exportação PDF do RAC', () => {
     });
     await setupSeededRacEditorPage(page, pdfExportSeed);
 
-    const imageDataUrl = await page.evaluate(async () => {
+    const capture = await page.evaluate(async () => {
       const {renderHouseDrawingCanvasImageDataUrl} = await import(
-        `${location.origin}/@fs/home/ubuntu/editor-planta-baixa/client/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
+        `${location.origin}/src/components/rac-editor/@canvas/ui/adapters/render-house-drawing-canvas-image.ts`
       );
 
       return renderHouseDrawingCanvasImageDataUrl({
@@ -352,7 +352,8 @@ test.describe('Exportação PDF do RAC', () => {
       } as never);
     });
 
-    expect(imageDataUrl).toMatch(/^data:image\/png;base64,/);
+    expect(capture.imageDataUrl).toMatch(/^data:image\/png;base64,/);
+    expect(capture.hasOmittedRasterSources).toBe(false);
   });
 
   test('recria o Canvas descartável quando as duas primeiras capturas já estão tainted', async ({page}) => {
@@ -379,7 +380,7 @@ test.describe('Exportação PDF do RAC', () => {
     await page.getByRole('button', {name: 'Gerar PDF'}).click();
 
     await expect(page.getByRole('dialog', {name: 'Prévia da RAC em PDF'})).toBeVisible();
-    await expect(page.getByTitle('Prévia do PDF da RAC')).toBeVisible();
+    await expectPdfPreviewRendered(page);
     await expect(page.getByText(/^Falha ao .*PDF\.$/)).toHaveCount(0);
   });
 });

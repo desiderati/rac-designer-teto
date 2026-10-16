@@ -32,15 +32,15 @@ test.describe('Dificuldade da casa', () => {
 
     await page.getByRole('button', {name: /Editar perfil do solo/i}).click();
     await page.getByRole('menuitem', {name: 'Selecionar solo Lençol Freático / Água no Fundo'}).click();
-    await page.getByRole('button', {name: 'Obstáculos Hidráulicos'}).click();
-    await page.getByRole('button', {name: 'Obstáculos Subterrâneos'}).click();
-    await page.getByRole('button', {name: 'Obstáculos Elevados'}).click();
-    await page.getByRole('button', {name: 'Servidões Vizinhas'}).click();
-
-    await expect(page.getByRole('button', {name: 'Obstáculos Hidráulicos'})).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', {name: 'Obstáculos Subterrâneos'})).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', {name: 'Obstáculos Elevados'})).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('button', {name: 'Servidões Vizinhas'})).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', {name: 'Obstáculos', exact: true}).click();
+    const menu = page.getByRole('menu', {name: 'Obstáculos', exact: true});
+    for (const name of ['Obstáculos hidráulicos', 'Obstáculos subterrâneos', 'Obstáculos elevados', 'Servidões vizinhas']) {
+      const option = menu.getByRole('menuitemcheckbox', {name, exact: true});
+      await option.click();
+      await expect(option).toHaveAttribute('aria-checked', 'true');
+    }
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', {name: 'Obstáculos', exact: true})).toHaveAttribute('aria-pressed', 'true');
 
     const updatedScore = Number(await canvasMeter.getAttribute('aria-valuenow'));
     expect(updatedScore).toBeGreaterThan(initialScore);
@@ -48,7 +48,6 @@ test.describe('Dificuldade da casa', () => {
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
     await page.getByRole('row', {name: /CC2603.*Andamento/i})
-      .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
       .click();
 
     const tableMeter = page.getByTestId('house-table-difficulty-gauge')

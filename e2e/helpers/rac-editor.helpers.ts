@@ -86,7 +86,7 @@ export async function applyRacEditorInitScript(page: Page) {
       storage.setItem('guided-tour:rac-house-add:completed', 'true');
       storage.setItem('guided-tour:rac-house-add:completed:revision', 'house-add-v1');
       storage.setItem('guided-tour:rac-house-actions:completed', 'true');
-      storage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v2');
+      storage.setItem('guided-tour:rac-house-actions:completed:revision', 'house-actions-v3');
       storage.setItem('guided-tour:rac-tip:wall', 'true');
       storage.setItem('guided-tour:rac-tip:line', 'true');
       storage.setItem('guided-tour:rac-tip:arrow', 'true');
@@ -123,10 +123,11 @@ export async function setupRacEditorPage(
     await page.reload({waitUntil: 'domcontentloaded'});
     await page.waitForLoadState('networkidle', {timeout: 8000}).catch(() => undefined);
 
-    const openToolbar = page.getByRole('button', {name: 'Abrir menu lateral'});
-    if (await openToolbar.isVisible({timeout: 8000}).catch(() => false)) {
-      if (options.leaveMobileToolbarCollapsed) return;
-      await openToolbar.click();
+    const mobileTools = page.getByRole('button', {name: 'Ferramentas do Canvas', exact: true});
+    await expect(houseButton.or(mobileTools)).toBeVisible({timeout: 12000});
+    if (await mobileTools.isVisible()) {
+      if (!options.leaveMobileToolbarCollapsed) await mobileTools.click();
+      return;
     }
 
     if (await houseButton.isVisible({timeout: 8000}).catch(() => false)) {
@@ -445,4 +446,14 @@ export async function closePilotiEditorByDebug(page: Page): Promise<void> {
     const debug = (window as unknown as { __racDebug?: RacEditorDebugApi }).__racDebug;
     debug?.closePilotiEditor?.();
   });
+}
+
+/** A barra mobile recolhe automaticamente; reabrir pelo controle real antes de usá-la. */
+export async function showCanvasTopBar(page: Page) {
+  if ((page.viewportSize()?.width ?? 1280) <= 767) {
+    await expect(page.getByTestId('rac-radial-tools')).toBeVisible();
+  }
+  const reveal = page.getByRole('button', {name: 'Mostrar barra superior', exact: true});
+  if (!await page.getByRole('button', {name: 'Abrir menu principal'}).isVisible()) await reveal.click();
+  await expect(page.getByRole('button', {name: 'Abrir menu principal'})).toBeVisible();
 }

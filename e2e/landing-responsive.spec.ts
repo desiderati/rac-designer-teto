@@ -57,7 +57,7 @@ test.describe('Landing pré-login responsiva', () => {
       sectionsAreVertical: true,
       shellIsCentered: true,
       shellFits850: true,
-      minimumWidth: '420px',
+      minimumWidth: '360px',
       overflowX: false,
       overflowYMode: 'auto',
       calloutsBelowScreenshot: true,
@@ -142,7 +142,7 @@ test.describe('Landing pré-login responsiva', () => {
     await page.goto(landingPath);
     await page.waitForTimeout(750);
 
-    await expect(page.getByTestId('minimum-viewport-warning')).toContainText('pelo menos 420 px');
+    await expect(page.getByTestId('minimum-viewport-warning')).toBeHidden();
 
     const layout = await page.evaluate((selectors) => {
       const login = document.querySelector<HTMLElement>('.rac-login');
@@ -170,7 +170,7 @@ test.describe('Landing pré-login responsiva', () => {
 
     expect(layout).toEqual({
       sectionsAreVertical: true,
-      minimumWidth: '420px',
+      minimumWidth: '360px',
       overflowX: false,
       canScrollVertically: true,
       screenshotHasArea: true,

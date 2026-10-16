@@ -1,4 +1,4 @@
-import {expect, test} from '@playwright/test';
+import {expect, test, type Page} from '@playwright/test';
 import {
   expectNoConsoleErrors,
   startConsoleErrorCapture,
@@ -16,10 +16,10 @@ test.describe('Bloqueios por status', () => {
     expectNoConsoleErrors(page);
   });
 
-  test('casa construída bloqueia configuração e materiais extras até voltar para rascunho', async ({page}) => {
+  test('casa construída bloqueia configuração e materiais extras até liberar edição', async ({page}) => {
     await openHousesList(page);
 
-    await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})
+    await page.getByRole('row', {name: /Família E2E.*Tipo 6.*Definida/i})
       .getByRole('button', {name: 'Marcar casa Família E2E como construída'})
       .click();
     await expect(page.getByRole('heading', {name: 'Marcar casa como construída?'})).toBeVisible();
@@ -32,15 +32,16 @@ test.describe('Bloqueios por status', () => {
     await expect(page.getByRole('button', {name: 'Salvar Configurações'})).toBeDisabled();
 
     await page.getByRole('button', {name: 'Voltar'}).click();
-    await builtRow.getByRole('button', {name: 'Abrir materiais extras da casa Família E2E'}).click();
-    await expect(page.getByRole('heading', {name: 'Configurações da Casa', level: 1})).toBeVisible();
-    await expect(page.getByRole('button', {name: 'Salvar Materiais Extras'})).toBeDisabled();
+    await builtRow.click();
+    await expandSection(page, 'Materiais Extras');
+    await expect(page.getByLabel('Vigas p/ Escada')).toBeDisabled();
+    await expect(page.getByRole('button', {name: 'Salvar Configurações'})).toBeDisabled();
 
     await page.getByRole('button', {name: 'Voltar'}).click();
-    await builtRow.getByRole('button', {name: 'Voltar casa Família E2E para rascunho'}).click();
-    await expect(page.getByRole('heading', {name: 'Voltar casa para rascunho?'})).toBeVisible();
-    await page.getByRole('button', {name: 'Voltar para rascunho'}).click();
-    await expect(page.getByRole('row', {name: /Família E2E.*Tipo 6.*Rascunho/i})).toBeVisible();
+    await builtRow.getByRole('button', {name: 'Liberar edição da casa Família E2E'}).click();
+    await expect(page.getByRole('heading', {name: 'Liberar edição da casa?'})).toBeVisible();
+    await page.getByRole('button', {name: 'Liberar edição', exact: true}).click();
+    await expect(page.getByRole('row', {name: /Família E2E.*Tipo 6.*Definida/i})).toBeVisible();
   });
 
   test('construção arquivada exibe apenas desarquivar e não abre formulário', async ({page}) => {
@@ -66,8 +67,7 @@ test.describe('Bloqueios por status', () => {
     await page.getByRole('button', {name: 'Excluir definitivamente'}).click();
 
     await expect(page.getByRole('row', {name: /CC2603/i})).toHaveCount(0);
-    const document = await readConstructionSiteDocument(page);
-    expect(document?.constructionSites).toHaveLength(0);
+    await expect.poll(async () => (await readConstructionSiteDocument(page))?.constructionSites.length).toBe(0);
   });
 });
 
@@ -80,7 +80,11 @@ async function openConstructionList(page: Parameters<typeof setupSeededRacEditor
 async function openHousesList(page: Parameters<typeof setupSeededRacEditorPage>[0]) {
   await openConstructionList(page);
   await page.getByRole('row', {name: /CC2603.*Andamento/i})
-    .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
     .click();
   await expect(page.getByRole('heading', {name: /^Casas - CC2603/})).toBeVisible();
+}
+
+async function expandSection(page: Page, title: string) {
+  const trigger = page.getByRole('button', {name: `Alternar seção ${title}`});
+  if (await trigger.getAttribute('aria-expanded') !== 'true') await trigger.click();
 }

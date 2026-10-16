@@ -33,7 +33,7 @@ test.describe('RAC guided tour', () => {
     const topViewHighlight = await page.getByTestId('guided-tour-highlight').boundingBox();
     expect(topViewHighlight).not.toBeNull();
 
-    await topViewDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await topViewDialog.getByRole('button', {name: 'OK'}).click();
 
     const pilotiDialog = page.getByRole('dialog').filter({hasText: 'Na planta superior'});
     await expect(pilotiDialog).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('RAC guided tour', () => {
     expect(Math.abs(pilotiCenter.y - pilotiScreenPosition!.y)).toBeLessThanOrEqual(
       Math.max(12, pilotiHighlight!.height / 2 + 4)
     );
-    await pilotiDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await pilotiDialog.getByRole('button', {name: 'OK'}).click();
     await expect(pilotiDialog).toBeHidden();
 
     const elevationDialog = page.getByRole('dialog').filter({hasText: 'Vista Elevada'});
@@ -68,7 +68,7 @@ test.describe('RAC guided tour', () => {
     await expect(elevationDialog).toBeVisible();
     await expect(elevationDialog).toContainText('Vista Elevada');
 
-    await elevationDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await elevationDialog.getByRole('button', {name: 'OK'}).click();
     await expect(elevationDialog).toBeHidden();
   });
 
@@ -89,23 +89,23 @@ test.describe('RAC guided tour', () => {
     await expect(monitorsDialog).toBeVisible();
     await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(5);
 
-    await monitorsDialog.getByRole('button', {name: 'OK'}).click({force: true});
-    const housesDialog = page.getByRole('dialog').filter({hasText: 'Casas e Famílias'});
+    await monitorsDialog.getByRole('button', {name: 'OK'}).click();
+    const housesDialog = page.getByRole('dialog').filter({hasText: 'Editar Construção'});
     await expect(housesDialog).toBeVisible();
 
-    await housesDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await housesDialog.getByRole('button', {name: 'OK'}).click();
     const exportDialog = page.getByRole('dialog').filter({hasText: 'Exportar RACs'});
     await expect(exportDialog).toBeVisible();
 
-    await exportDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await exportDialog.getByRole('button', {name: 'OK'}).click();
     const completedDialog = page.getByRole('dialog').filter({hasText: 'Construção Concluída'});
     await expect(completedDialog).toBeVisible();
 
-    await completedDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await completedDialog.getByRole('button', {name: 'OK'}).click();
     const archiveDialog = page.getByRole('dialog').filter({hasText: 'Arquivar Construção'});
     await expect(archiveDialog).toBeVisible();
 
-    await archiveDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await archiveDialog.getByRole('button', {name: 'OK'}).click();
     await expect(archiveDialog).toBeHidden();
     await expect.poll(() => page.evaluate(() => (
       localStorage.getItem('guided-tour:rac-construction-actions:completed')
@@ -122,40 +122,47 @@ test.describe('RAC guided tour', () => {
 
     await page.getByRole('button', {name: 'Abrir menu principal'}).click();
     await page.getByRole('button', {name: 'Construções TETO'}).click();
-    await page.getByRole('button', {name: 'Gerenciar casas da construção CC2603'}).first().click();
+    await page.getByRole('row', {name: /CC2603.*Andamento/i}).click();
 
     const addDialog = page.getByRole('dialog').filter({hasText: 'Adicionar Casa'});
     await expect(addDialog).toBeVisible();
     await expect(addDialog).toContainText('Adicionar Casa');
     await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(0);
 
-    await addDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await addDialog.getByRole('button', {name: 'OK'}).click();
+    const previewDialog = page.getByRole('dialog', {name: 'Prévia do Canvas', exact: true});
+    await expect(previewDialog).toBeVisible();
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(8);
+    await previewDialog.getByRole('button', {name: 'OK'}).click();
     const statusDialog = page.getByRole('dialog').filter({hasText: 'Status da Casa'});
     await expect(statusDialog).toBeVisible();
-    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(6);
+    await expect(page.getByTestId('guided-tour-progress-dot')).toHaveCount(8);
 
-    await statusDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await statusDialog.getByRole('button', {name: 'OK'}).click();
     const difficultyDialog = page.getByRole('dialog').filter({hasText: 'Dificuldade'});
     await expect(difficultyDialog).toBeVisible();
 
-    await difficultyDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await difficultyDialog.getByRole('button', {name: 'OK'}).click();
     const materialsDialog = page.getByRole('dialog').filter({hasText: 'Materiais Extras'});
     await expect(materialsDialog).toBeVisible();
 
-    await materialsDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await materialsDialog.getByRole('button', {name: 'OK'}).click();
+    const pdfDialog = page.getByRole('dialog', {name: 'Exportar RAC PDF', exact: true});
+    await expect(pdfDialog).toBeVisible();
+    await pdfDialog.getByRole('button', {name: 'OK'}).click();
     const builtDialog = page.getByRole('dialog').filter({hasText: 'Casa Construída'});
     await expect(builtDialog).toBeVisible();
     await expect(builtDialog).toContainText('casa como construída');
 
-    await builtDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await builtDialog.getByRole('button', {name: 'OK'}).click();
     const archiveDialog = page.getByRole('dialog').filter({hasText: 'Arquivar Casa'});
     await expect(archiveDialog).toBeVisible();
 
-    await archiveDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await archiveDialog.getByRole('button', {name: 'OK'}).click();
     const backDialog = page.getByRole('dialog').filter({hasText: 'Voltar para Construções'});
     await expect(backDialog).toBeVisible();
 
-    await backDialog.getByRole('button', {name: 'OK'}).click({force: true});
+    await backDialog.getByRole('button', {name: 'OK'}).click();
     await expect(backDialog).toBeHidden();
     await expect.poll(() => page.evaluate(() => (
       localStorage.getItem('guided-tour:rac-house-actions:completed')

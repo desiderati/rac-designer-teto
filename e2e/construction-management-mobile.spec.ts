@@ -16,7 +16,7 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
         phone: '(41) 99999-8888',
         email: 'monitoria@example.com',
       }],
-    });
+    }, {initialScreen: 'management'});
   });
 
   test('cria Construção TETO ocupando a largura disponível', async ({page}) => {
@@ -42,12 +42,12 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     const dockBox = await page.getByTestId('construction-actions-grid').boundingBox();
     expect(dockBox).not.toBeNull();
-    expect(dockBox?.width).toBeGreaterThanOrEqual(420);
+    expect(dockBox?.width).toBeGreaterThanOrEqual(360);
   });
 
   test('edita Construção TETO ocupando a largura disponível', async ({page}) => {
     await openConstructionManagement(page);
-    await page.getByTestId('construction-mobile-card').filter({hasText: 'CC2603'}).click();
+    await page.getByRole('button', {name: 'Editar construção CC2603', exact: true}).click();
 
     await expect(page.getByRole('heading', {name: 'Editar Construção TETO'})).toBeVisible();
     await expectMobileFormToFit(page, 'construction-management-shell', 'form');
@@ -65,7 +65,7 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     await expect(page.getByRole('heading', {name: 'Configuração da Casa'})).toBeVisible();
     await expectMobileFormToFit(page, 'construction-management-shell', '[data-testid="house-configuration-form"]');
-    await expect(page.getByTestId('site-actions-grid')).toHaveClass(/sticky/);
+    await expect(page.getByTestId('site-actions-grid')).toHaveCSS('position', 'fixed');
 
     await page.getByRole('button', {name: 'Alternar seção Detalhes da Família'}).click();
     await expect(page.getByLabel('Nome da Família')).toBeHidden();
@@ -103,13 +103,13 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
     await expect(page.getByTestId('house-mobile-list').getByText('Família E2E Atualizada')).toBeVisible();
   });
 
-  test('mantém cards abaixo de 700px e tabela a partir de 700px', async ({page}) => {
+  test('mantém cards abaixo de 768px e tabela a partir de 768px', async ({page}) => {
     await openHouseManagement(page);
-    await page.setViewportSize({width: 699, height: 900});
+    await page.setViewportSize({width: 767, height: 900});
     await expect(page.getByTestId('house-mobile-list')).toBeVisible();
     await expect(page.getByTestId('house-desktop-table')).toBeHidden();
 
-    await page.setViewportSize({width: 700, height: 900});
+    await page.setViewportSize({width: 768, height: 900});
     await expect(page.getByTestId('house-mobile-list')).toBeHidden();
     await expect(page.getByTestId('house-desktop-table')).toBeVisible();
   });
@@ -142,7 +142,7 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 
     await expect(page.getByRole('heading', {name: 'Cadastrar Monitor'})).toBeVisible();
     await expectMobileFormToFit(page, 'construction-management-shell', '[data-testid="monitor-form"]');
-    await expect(page.getByTestId('monitor-actions-grid')).toHaveClass(/sticky/);
+    await expect(page.getByTestId('monitor-actions-grid')).toHaveCSS('position', 'fixed');
 
     await expect(page.getByLabel('Nome do Monitor')).toBeVisible();
     await page.getByRole('button', {name: 'Cadastrar Monitor'}).click();
@@ -173,15 +173,13 @@ test.describe('Gestão mobile sem overflow horizontal', () => {
 });
 
 async function openConstructionManagement(page: Page) {
-  await page.getByRole('button', {name: 'Abrir menu principal'}).click();
-  await page.getByRole('button', {name: 'Construções TETO'}).click();
+  await expect(page.getByRole('heading', {name: 'Construções TETO', exact: true})).toBeVisible();
   await expect(page.getByTestId('construction-mobile-list')).toBeVisible();
 }
 
 async function openHouseManagement(page: Page) {
   await openConstructionManagement(page);
   await page.getByTestId('construction-mobile-card').filter({hasText: 'CC2603'})
-    .getByRole('button', {name: 'Gerenciar casas da construção CC2603'})
     .click();
   await expect(page.getByTestId('house-mobile-list')).toBeVisible();
 }
@@ -222,7 +220,7 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
   }, {shellSelector, formSelector});
 
   expect(metrics).not.toBeNull();
-  const minimumSurfaceWidth = Math.max(metrics!.viewportWidth, 420);
+  const minimumSurfaceWidth = Math.max(metrics!.viewportWidth, 360);
   expect(metrics!.documentScrollWidth).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.bodyScrollWidth).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.shellWidth).toBeGreaterThanOrEqual(minimumSurfaceWidth - 1);
@@ -232,7 +230,8 @@ async function expectMobileFormToFit(page: Page, shellSelector: string, formSele
   expect(metrics!.formRight).toBeLessThanOrEqual(minimumSurfaceWidth + 1);
   expect(metrics!.formWidth).toBeGreaterThan(metrics!.viewportWidth * 0.8);
   if (metrics!.actionButtonRight !== null) {
-    expect(metrics!.actionButtonRight).toBeGreaterThanOrEqual(metrics!.viewportWidth - 1);
+    expect(metrics!.actionButtonRight).toBeGreaterThanOrEqual(metrics!.viewportWidth - 17);
+    expect(metrics!.actionButtonRight).toBeLessThanOrEqual(metrics!.viewportWidth + 1);
     expect(metrics!.actionButtonLeft).toBeGreaterThanOrEqual(0);
   }
 }
