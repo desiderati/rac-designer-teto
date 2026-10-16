@@ -21,6 +21,9 @@ permissions:
 jobs:
   sync-and-publish:
     name: Sync and publish Manus project
+    # Checkpoints/publicações do próprio Manus podem gerar um push de volta
+    # ao GitHub. Eles já estão publicados e não devem iniciar outro ciclo.
+    if: github.actor != 'manus-connector[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
