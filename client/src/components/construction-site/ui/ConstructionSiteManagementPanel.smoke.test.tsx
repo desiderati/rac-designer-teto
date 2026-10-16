@@ -711,14 +711,14 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(actions.activateConstructionSite).not.toHaveBeenCalled();
   });
 
-  it('oferece Análise de Campo apenas na lista mobile e explica o bloqueio da casa arquivada', async () => {
+  it('oferece Pilotis apenas na lista mobile e explica o bloqueio da casa arquivada', async () => {
     const actions = createActions();
     actions.openHouseFieldAnalysis = vi.fn(() => new Promise<never>(() => undefined));
     renderPanel({actions, initialScreen: 'houses'});
 
     const mobileList = screen.getByTestId('house-mobile-list');
-    const enabled = within(mobileList).getByRole('button', {name: 'Análise de Campo da casa Família Souza'});
-    const blocked = within(mobileList).getByRole('button', {name: 'Análise de Campo da casa Família Arquivada'});
+    const enabled = within(mobileList).getByRole('button', {name: 'Pilotis da casa Família Souza'});
+    const blocked = within(mobileList).getByRole('button', {name: 'Pilotis da casa Família Arquivada'});
     expect(enabled).toBeEnabled();
     expect(blocked).toBeDisabled();
     expect(blocked.parentElement).not.toHaveTextContent('A casa está bloqueada para edição.');
@@ -744,7 +744,7 @@ describe('ConstructionSiteManagementPanel.tsx', () => {
     expect(within(card).getByText(label)).toBeVisible();
     expect(within(card).queryByText(/A casa já foi inserida/)).not.toBeInTheDocument();
     expect(within(card).queryByText('Rascunho')).not.toBeInTheDocument();
-    const action = within(card).getByRole('button', {name: 'Análise de Campo da casa Família Souza'});
+    const action = within(card).getByRole('button', {name: 'Pilotis da casa Família Souza'});
     if (disabled) expect(action).toBeDisabled();
     else expect(action).toBeEnabled();
     fireEvent.click(screen.getByLabelText('Filtrar casas por status'));

@@ -2,7 +2,8 @@ import {ResetHouseDialog} from './ResetHouseDialog.tsx';
 import {isHouseDefinitionReady} from '@/components/construction-site/lib/house-definition.ts';
 import {ProtectedImage} from '@/components/ui/ProtectedImage.tsx';
 import {type KeyboardEvent, type MouseEvent, useEffect, useMemo, useState} from 'react';
-import {MapPinned, House, Download} from 'lucide-react';
+import {House, Download} from 'lucide-react';
+import {HouseCardActions, HouseCardActionLabel, HousePilotisMinimap} from './HouseCardActions.tsx';
 import type {
   ConstructionSiteState,
   PersistedHouseRecord,
@@ -285,8 +286,6 @@ export function HouseMobileCard({
   const fieldAnalysisDisabledReason = readOnly
     ? 'A construção está bloqueada para edição.'
     : getHouseFieldAnalysisDisabledReason(constructionSite, house);
-  const fieldAnalysisDisabledDescription = readOnly || constructionSite.constructionSite.status !== 'in_progress'
-    || house.status === 'built' || house.status === 'archived' ? fieldAnalysisDisabledReason : null;
   const exportRacPdfLabel = isExportingRacPdf
     ? `Gerando PDF da RAC da casa ${familyName}`
     : `Exportar RAC PDF da casa ${familyName}`;
@@ -363,19 +362,17 @@ export function HouseMobileCard({
         </div>
       </div>
       <div className='mt-4 flex items-center justify-between gap-3 rounded-xl bg-white/80 px-3 py-2'>
-        <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3'>
+        <div className='grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(64px,23%)] items-center gap-3'>
           <div className='min-w-0 text-xs font-medium text-slate-600'>
             <span className='block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400'>
               Última RAC exportada
             </span>
             {formatOptionalTimestampDate(house.lastRacExportedAt) ? (
               <span data-testid='house-mobile-last-rac-exported-at' className='block'>
-                <time dateTime={house.lastRacExportedAt} className='mt-0.5 block'>
-                  {formatOptionalTimestampDate(house.lastRacExportedAt)?.date}
-                </time>
-                <span className='block text-[11px] text-slate-400'>
+                <time dateTime={house.lastRacExportedAt} className='mt-0.5 block whitespace-nowrap tabular-nums'>
+                  {formatOptionalTimestampDate(house.lastRacExportedAt)?.date}{' '}
                   {formatOptionalTimestampDate(house.lastRacExportedAt)?.time}
-                </span>
+                </time>
               </span>
             ) : (
               <span data-testid='house-mobile-last-rac-exported-at' className='mt-0.5 block text-[11px] text-slate-400'>
@@ -395,49 +392,71 @@ export function HouseMobileCard({
           </span>
         </div>
       </div>
-      <div className='mt-3 flex min-h-11 items-center justify-around gap-0.5 rounded-xl bg-blue-50 [&_button]:h-11 [&_button]:w-11' onClick={(event) => event.stopPropagation()}>
-        {onOpenHouseFieldAnalysis ? <RoundIconActionButton label={`Análise de Campo da casa ${familyName}`} disabled={Boolean(fieldAnalysisDisabledReason)} onClick={() => void onOpenHouseFieldAnalysis(house.id)}><MapPinned className='h-4 w-4'/></RoundIconActionButton> : null}
-          <HouseMaterialsSummary house={house} familyName={familyName} materials={house.extraMaterials}
-            guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}/>
-          {house.status !== 'archived' ? (
-            <RoundIconActionButton
-              label={exportRacPdfLabel}
-              disabledReason={!isHouseDefinitionReady(house) ? 'Defina os pilotis e níveis da casa antes de exportar a RAC.' : undefined}
-              onClick={exportRacPdf}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-export-pdf' : undefined}
-              disabled={readOnly || isExportingRacPdf || !isHouseDefinitionReady(house)}
-            >
-              <Download className='h-4 w-4'/>
-            </RoundIconActionButton>
-          ) : null}
-          {house.status !== 'archived' ? (
-            <StatusActionButton
-              action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
-              label={house.status === 'built'
-                ? `Liberar edição da casa ${familyName}`
-                : `Marcar casa ${familyName} como construída`}
-              onClick={requestBuiltStatusChange}
-              guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
-              disabled={readOnly}
-            />
-          ) : null}
-          {house.status !== 'archived' && onResetHouse ? <RoundIconActionButton label={`Redefinir casa ${familyName}`} disabled={Boolean(fieldAnalysisDisabledReason)} onClick={(event) => {event.stopPropagation();setResetOpen(true);}}><House className='h-4 w-4'/></RoundIconActionButton> : null}
+      <HouseCardActions>
+        {onOpenHouseFieldAnalysis ? (
+          <RoundIconActionButton label={`Pilotis da casa ${familyName}`}
+            disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
+            onClick={() => void onOpenHouseFieldAnalysis(house.id)}>
+            <HousePilotisMinimap/>
+            <HouseCardActionLabel>Pilotis</HouseCardActionLabel>
+          </RoundIconActionButton>
+        ) : null}
+        <HouseMaterialsSummary house={house} familyName={familyName} materials={house.extraMaterials}
+          guidedTourId={showGuidedTourTargets ? 'rac-house-extra-materials' : undefined}>
+          <HouseCardActionLabel>Materiais</HouseCardActionLabel>
+        </HouseMaterialsSummary>
+        {house.status !== 'archived' ? (
+          <RoundIconActionButton
+            label={exportRacPdfLabel}
+            disabledReason={!isHouseDefinitionReady(house) ? 'Defina os pilotis e níveis da casa antes de exportar a RAC.' : undefined}
+            onClick={exportRacPdf}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-export-pdf' : undefined}
+            disabled={readOnly || isExportingRacPdf || !isHouseDefinitionReady(house)}
+          >
+            <Download className='h-4 w-4'/>
+            <HouseCardActionLabel shortLabel='RAC'>Exportar RAC</HouseCardActionLabel>
+          </RoundIconActionButton>
+        ) : null}
+        {house.status !== 'archived' ? (
           <StatusActionButton
-            action={house.status === 'archived' ? 'unarchive' : 'archive'}
-            label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
-            onClick={requestStatusChange}
-            guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
+            action={house.status === 'built' ? 'markDraft' : 'markBuilt'}
+            label={house.status === 'built'
+              ? `Liberar edição da casa ${familyName}`
+              : `Marcar casa ${familyName} como construída`}
+            onClick={requestBuiltStatusChange}
+            guidedTourId={showGuidedTourTargets ? 'rac-house-built' : undefined}
             disabled={readOnly}
-          />
-          {house.status === 'archived' ? (
-            <PermanentDeleteActionButton
-              label={`Excluir definitivamente casa ${familyName}`}
-              onClick={requestPermanentDelete}
-              disabled={readOnly}
-            />
-          ) : null}
-
-      </div>
+          >
+            <HouseCardActionLabel>{house.status === 'built' ? 'Liberar edição' : 'Construída'}</HouseCardActionLabel>
+          </StatusActionButton>
+        ) : null}
+        <StatusActionButton
+          action={house.status === 'archived' ? 'unarchive' : 'archive'}
+          label={house.status === 'archived' ? `Desarquivar casa ${familyName}` : `Arquivar casa ${familyName}`}
+          onClick={requestStatusChange}
+          guidedTourId={showGuidedTourTargets ? 'rac-house-archive' : undefined}
+          disabled={readOnly}
+        >
+          <HouseCardActionLabel>{house.status === 'archived' ? 'Desarquivar' : 'Arquivar'}</HouseCardActionLabel>
+        </StatusActionButton>
+        {house.status !== 'archived' && onResetHouse ? (
+          <RoundIconActionButton label={`Redefinir casa ${familyName}`}
+            disabled={Boolean(fieldAnalysisDisabledReason)} disabledReason={fieldAnalysisDisabledReason ?? undefined}
+            onClick={(event) => {event.stopPropagation(); setResetOpen(true);}}>
+            <House className='h-4 w-4'/>
+            <HouseCardActionLabel>Redefinir</HouseCardActionLabel>
+          </RoundIconActionButton>
+        ) : null}
+        {house.status === 'archived' ? (
+          <PermanentDeleteActionButton
+            label={`Excluir definitivamente casa ${familyName}`}
+            onClick={requestPermanentDelete}
+            disabled={readOnly}
+          >
+            <HouseCardActionLabel>Excluir</HouseCardActionLabel>
+          </PermanentDeleteActionButton>
+        ) : null}
+      </HouseCardActions>
       <ResetHouseDialog open={resetOpen} onOpenChange={setResetOpen} onConfirm={() => onResetHouse!(house.id)}/>
     </article>
   );

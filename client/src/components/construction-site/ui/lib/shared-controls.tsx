@@ -42,12 +42,14 @@ import {buildGoogleMapsEmbedUrl} from './view-model.ts';
 export function StatusActionButton({
   action,
   label,
+  children,
   onClick,
   guidedTourId,
   disabled = false,
 }: {
   action: StatusChangeAction;
   label: string;
+  children?: ReactNode;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
   guidedTourId?: string;
   disabled?: boolean;
@@ -69,6 +71,7 @@ export function StatusActionButton({
         {action === 'markBuilt' || action === 'markCompleted'
           ? <CheckCircle2 className='relative top-px h-4 w-4'/>
           : <RotateCcw className='h-4 w-4'/>}
+        {children}
       </RoundIconActionButton>
     );
   }
@@ -82,17 +85,20 @@ export function StatusActionButton({
       disabled={disabled}
     >
       {action === 'unarchive' ? <ArchiveRestore className='h-4 w-4'/> : <Archive className='h-4 w-4'/>}
+      {children}
     </RoundIconActionButton>
   );
 }
 
 export function PermanentDeleteActionButton({
   label,
+  children,
   onClick,
   guidedTourId,
   disabled = false,
 }: {
   label: string;
+  children?: ReactNode;
   onClick(event: MouseEvent<HTMLButtonElement>): void;
   guidedTourId?: string;
   disabled?: boolean;
@@ -106,6 +112,7 @@ export function PermanentDeleteActionButton({
       disabled={disabled}
     >
       <Trash2 className='h-4 w-4'/>
+      {children}
     </RoundIconActionButton>
   );
 }

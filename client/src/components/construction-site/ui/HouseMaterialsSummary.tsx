@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {type ReactNode, useState} from 'react';
 import {ClipboardList} from 'lucide-react';
 import type {PersistedHouseRecord, HouseExtraMaterials} from '@/shared/types/construction-site.ts';
 import {getExtraMaterialSummary} from '@/shared/lib/house-extra-materials.ts';
@@ -11,7 +11,7 @@ const MATERIAL_SECTIONS = [
   {title: 'Reparos Casa', labels: ['Contraventamento', 'Caibros', 'Secundárias', 'Mata-Juntas', 'Outros / Justificativas']},
 ] as const;
 
-export function HouseMaterialsSummary({familyName, materials, guidedTourId, house}: {familyName: string; materials?: HouseExtraMaterials; guidedTourId?: string; house?: PersistedHouseRecord}) {
+export function HouseMaterialsSummary({familyName, materials, guidedTourId, house, children}: {familyName: string; materials?: HouseExtraMaterials; guidedTourId?: string; house?: PersistedHouseRecord; children?: ReactNode}) {
   const [open, setOpen] = useState(false);
   const rows = getExtraMaterialSummary(materials);
   const pilotiCounts = Object.values(house?.drawingDocument.house?.pilotis ?? {}).reduce<Record<string, number>>((counts, piloti) => {
@@ -28,6 +28,7 @@ export function HouseMaterialsSummary({familyName, materials, guidedTourId, hous
             onKeyDown={(event) => event.stopPropagation()}
             className='grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full bg-transparent text-slate-400 transition-colors hover:bg-amber-100 hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'>
             <ClipboardList className='h-4 w-4' aria-hidden='true'/>
+            {children}
           </button>
         </TooltipTrigger>
         <TooltipContent side='top' collisionPadding={12} className='max-h-[50dvh] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl bg-white p-4 text-slate-900 shadow-lg' onClick={(event) => event.stopPropagation()}>
