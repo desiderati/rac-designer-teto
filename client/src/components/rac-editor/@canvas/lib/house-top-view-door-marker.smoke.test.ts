@@ -123,21 +123,21 @@ describe('house-top-view-door-marker.ts', () => {
     ).toEqual({doorMarkerSide: 'right', targetLeft: 100, targetTop: -50});
   });
 
-  it('encaixa o marcador dentro da borda sem alterar a posição longitudinal', () => {
+  it('centraliza o marcador na borda sem alterar a posição longitudinal', () => {
     expect(calculateTopDoorPlacement({
       doorMarkerSide: 'bottom', doorX: 195, doorWidth: 40,
-      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
-    })).toEqual({doorMarkerSide: 'bottom', targetLeft: 62.5, targetTop: 69.25});
+      bodyWidth: 305, bodyHeight: 150,
+    })).toEqual({doorMarkerSide: 'bottom', targetLeft: 62.5, targetTop: 75});
 
     expect(calculateTopDoorPlacement({
       doorMarkerSide: 'right', doorX: 87.5, doorWidth: 40,
-      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
-    })).toEqual({doorMarkerSide: 'right', targetLeft: 146.75, targetTop: -32.5});
+      bodyWidth: 305, bodyHeight: 150,
+    })).toEqual({doorMarkerSide: 'right', targetLeft: 152.5, targetTop: -32.5});
 
     expect(calculateTopDoorPlacement({
       doorMarkerSide: 'left', doorX: 87.5, doorWidth: 40,
-      bodyWidth: 305, bodyHeight: 150, markerThickness: 11.5,
-    })).toEqual({doorMarkerSide: 'left', targetLeft: -146.75, targetTop: 32.5});
+      bodyWidth: 305, bodyHeight: 150,
+    })).toEqual({doorMarkerSide: 'left', targetLeft: -152.5, targetTop: 32.5});
   });
 
   it('returns null placement when marker side is unknown', () => {
@@ -273,7 +273,7 @@ describe('house-top-view-door-marker.ts', () => {
     expect(group.setCoords).toHaveBeenCalledTimes(1);
   });
 
-  it('preserva a posição legada no refresh passivo e só reposiciona quando solicitado', () => {
+  it('preserva a posição longitudinal no refresh passivo e centraliza na borda', () => {
     const topMarker = {
       isTopDoorMarker: true,
       doorMarkerSide: 'top',
@@ -305,7 +305,7 @@ describe('house-top-view-door-marker.ts', () => {
 
     refreshTopDoorMarkersInViews({...baseParams, reposition: false});
     expect(topMarker.left).toBe(17);
-    expect(topMarker.top).toBe(-91);
+    expect(topMarker.top).toBe(-66);
 
     refreshTopDoorMarkersInViews({...baseParams, reposition: true});
     expect(topMarker.left).not.toBe(17);

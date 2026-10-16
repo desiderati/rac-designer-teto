@@ -169,7 +169,7 @@ describe('house-visual-effects.ts', () => {
     expect(requestRender).toHaveBeenCalledOnce();
   });
 
-  it('não reposiciona a porta de uma casa antiga durante refresh passivo', () => {
+  it('centraliza a porta legada na borda sem mover a posição longitudinal durante refresh passivo', () => {
     const topMarker = createCanvasObject({
       isTopDoorMarker: true,
       doorMarkerSide: 'top',
@@ -188,7 +188,7 @@ describe('house-visual-effects.ts', () => {
     refreshTopDoorMarkers({house, requestRender});
 
     expect(topMarker.left).toBe(17);
-    expect(topMarker.top).toBe(-91);
+    expect(topMarker.top).toBe(-66);
 
     refreshTopDoorMarkers({house, requestRender, reposition: true});
 

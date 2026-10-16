@@ -27,32 +27,34 @@ function createTopGroup() {
 }
 
 describe('house-top-view-door-marker Fabric geometry', () => {
-  it('encaixa a porta Tipo 6 dentro da borda inferior', () => {
-    const {group} = createTopGroup();
-    const changed = refreshTopDoorMarkersInViews({
-      houseType: 'tipo6',
-      sideMappings: {top: null, bottom: 'front', left: null, right: null},
-      topViews: [{instanceId: 'top_tipo6', group}],
-      reposition: true,
-    });
-    const marker = group.getObjects().find((object: any) => object.doorMarkerSide === 'bottom') as any;
-    expect(changed).toBe(true);
-    expect(marker.top).toBeCloseTo(69.25, 5);
-    expect(marker.left).toBeCloseTo(62.5, 5);
-    expect(marker.top + marker.height / 2).toBeCloseTo(75, 5);
-  });
+  const cases = (['tipo3', 'tipo6'] as const).flatMap((houseType) =>
+    (['top', 'bottom', 'left', 'right'] as const).map((side) => ({houseType, side})),
+  );
 
-  it('encaixa a porta Tipo 3 dentro da borda lateral direita', () => {
+  it.each(cases)('$houseType/$side centraliza na borda mantendo a posição longitudinal', ({houseType, side}) => {
     const {group} = createTopGroup();
-    refreshTopDoorMarkersInViews({
-      houseType: 'tipo3',
-      sideMappings: {top: null, bottom: null, left: null, right: 'side2'},
-      topViews: [{instanceId: 'top_tipo3', group}],
-      reposition: true,
-    });
-    const marker = group.getObjects().find((object: any) => object.doorMarkerSide === 'right') as any;
-    expect(marker.left).toBeCloseTo(146.75, 5);
-    expect(marker.top).toBeCloseTo(-32.5, 5);
-    expect(marker.left + marker.width / 2).toBeCloseTo(152.5, 5);
+    const marker = group.getObjects().find((object: any) => object.doorMarkerSide === side) as any;
+    const horizontal = side === 'top' || side === 'bottom';
+    const border = side === 'top' ? -75 : side === 'bottom' ? 75 : side === 'left' ? -152.5 : 152.5;
+    const inward = side === 'top' || side === 'left' ? 5.75 : -5.75;
+    marker.set(horizontal ? {left: 19, top: border + inward} : {left: border + inward, top: 19});
+    const params = {
+      houseType,
+      sideMappings: {top: null, bottom: null, left: null, right: null, [side]: houseType === 'tipo6' ? 'front' as const : 'side2' as const},
+      topViews: [{instanceId: 'top', group}],
+    };
+    refreshTopDoorMarkersInViews({...params, reposition: false});
+    expect(horizontal ? marker.top : marker.left).toBeCloseTo(border, 5);
+    expect(horizontal ? marker.left : marker.top).toBe(19);
+    // O marcador cruza a linha: metade dentro, metade fora.
+    const center = marker.getRelativeCenterPoint();
+    expect(horizontal ? center.y : center.x).toBeCloseTo(border, 5);
+
+    refreshTopDoorMarkersInViews({...params, reposition: true});
+    expect(horizontal ? marker.top : marker.left).toBeCloseTo(border, 5);
+    const longitudinal = side === 'top' ? -62.5 : side === 'bottom' ? 62.5 : side === 'left' ? 32.5 : -32.5;
+    expect(horizontal ? marker.left : marker.top).toBeCloseTo(longitudinal, 5);
+    refreshTopDoorMarkersInViews({...params, reposition: false});
+    expect(horizontal ? marker.left : marker.top).toBeCloseTo(longitudinal, 5);
   });
 });
