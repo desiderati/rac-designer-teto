@@ -1,3 +1,4 @@
+import {Canvas, IText} from 'fabric';
 import {describe, expect, it, vi} from 'vitest';
 import {bindEmptyFreeTextCleanup, removeEmptyFreeTextObject} from './free-text-cleanup.ts';
 import type {CanvasObject} from './canvas.ts';
@@ -48,7 +49,7 @@ describe('free-text-cleanup.ts', () => {
     expect(canvas.remove).not.toHaveBeenCalled();
   });
 
-  it('liga e desliga o cleanup ao evento de saída de edição de texto', () => {
+  it('agenda a limpeza após o evento de saída de edição de texto', async () => {
     const text = createTextObject('');
     const handlers = new Map<string, (event: unknown) => void>();
     const canvas = {
@@ -64,10 +65,37 @@ describe('free-text-cleanup.ts', () => {
     const unbind = bindEmptyFreeTextCleanup(canvas as never);
 
     handlers.get('text:editing:exited')?.({target: text});
+    expect(canvas.remove).not.toHaveBeenCalled();
+
+    await Promise.resolve();
     expect(canvas.remove).toHaveBeenCalledWith(text);
 
     unbind();
     expect(canvas.off).toHaveBeenCalledWith('text:editing:exited', expect.any(Function));
     expect(handlers.has('text:editing:exited')).toBe(false);
+  });
+
+  it('permite que o Fabric conclua a saída de IText vazio antes de removê-lo', async () => {
+    const element = document.createElement('canvas');
+    const canvas = new Canvas(element, {width: 240, height: 160, renderOnAddRemove: false});
+    const text = new IText('rascunho', {left: 16, top: 16});
+    Object.assign(text, {myType: 'text'});
+    canvas.add(text);
+    const unbind = bindEmptyFreeTextCleanup(canvas);
+
+    try {
+      text.enterEditing();
+      text.set('text', '');
+
+      expect(() => text.exitEditing()).not.toThrow();
+      expect(canvas.getObjects()).toContain(text);
+
+      await Promise.resolve();
+
+      expect(canvas.getObjects()).not.toContain(text);
+    } finally {
+      unbind();
+      await canvas.dispose();
+    }
   });
 });

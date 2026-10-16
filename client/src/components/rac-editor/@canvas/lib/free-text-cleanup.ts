@@ -26,13 +26,30 @@ export function removeEmptyFreeTextObject(
 }
 
 export function bindEmptyFreeTextCleanup(canvas: TextCleanupCanvas): () => void {
+  let isUnbound = false;
+  const pendingTargets = new Set<CanvasObject>();
+
   const handleTextEditingExited = (event: TextEditingExitedEvent) => {
-    removeEmptyFreeTextObject(canvas, event.target);
+    const target = event.target;
+    if (!target || pendingTargets.has(target)) return;
+
+    // O Fabric ainda pode emitir `object:modified` logo depois deste evento.
+    // Remover o IText aqui faz o Fabric desanexar `target.canvas` antes da
+    // emissão final e pode gerar `Cannot read properties of undefined (fire)`.
+    // A microtask mantém a limpeza no mesmo ciclo visual, mas somente após o
+    // Fabric concluir sua sequência interna de saída da edição.
+    pendingTargets.add(target);
+    queueMicrotask(() => {
+      pendingTargets.delete(target);
+      if (!isUnbound) removeEmptyFreeTextObject(canvas, target);
+    });
   };
 
   canvas.on('text:editing:exited', handleTextEditingExited);
 
   return () => {
+    isUnbound = true;
+    pendingTargets.clear();
     canvas.off('text:editing:exited', handleTextEditingExited);
   };
 }
