@@ -1,0 +1,50 @@
+flowchart TB
+  subgraph presentation["1 · APRESENTAÇÃO"]
+    SHELL["App + React Router<br/>UI Tailwind / shadcn / Radix<br/>tour guiado · avisos PWA"]
+    SITE["Construções TETO<br/>comunidades · famílias · monitores<br/>casas · avaliação do terreno"]
+    RAC["Editor RAC<br/>menus · modais · ferramentas"]
+    C2["Canvas 2D<br/>Fabric.js<br/>plantas e elevações"]
+    V3["Viewer 3D<br/>Three.js + React Three Fiber<br/>geometria e meshes"]
+    SHELL --> SITE
+    SHELL --> RAC
+    RAC --> C2
+    RAC --> V3
+  end
+  subgraph application["2 · COORDENAÇÃO E ESTADO"]
+    PORT["Bootstrap + contextos + ports<br/>composição e injeção de adapters"]
+    CTRL["EditorHouseController<br/>commands · queries · sessões<br/>bridge com Construção TETO"]
+    STATE["EditorStore + house-store<br/>seleção · interação · notificações"]
+    SYNC["Sessão de Construções<br/>estado de sync · conflitos<br/>expectedDocumentVersion"]
+    OUT["Exportação local<br/>relatório RAC em PDF · lote ZIP<br/>jsPDF + JSZip"]
+  end
+  subgraph domain["3 · DOMÍNIO E CONTRATOS"]
+    HOUSE["HouseAggregate + casos de uso<br/>casa · pilotis · vistas"]
+    CONTRACT["ConstructionSiteRepositoryPort<br/>HousePersistencePort<br/>tipos serializáveis compartilhados"]
+  end
+  subgraph infra["4 · INFRAESTRUTURA DO CLIENTE"]
+    MEMORY["Adapter de casa em memória<br/>estado da sessão de edição"]
+    REMOTE["RemoteConstructionSiteRepositoryAdapter<br/>tRPC · envio de imagens ao Storage"]
+    IDB["Adapter IndexedDB<br/>alternativa local / isolated / E2E"]
+  end
+  SITE --> PORT
+  RAC --> PORT
+  C2 <-->|"ports / projeções"| CTRL
+  V3 -. "snapshots / dados da casa" .-> CTRL
+  PORT --> CTRL
+  CTRL <--> STATE
+  CTRL --> HOUSE
+  CTRL <--> SYNC
+  SYNC --> CONTRACT
+  HOUSE --> CONTRACT
+  CTRL --> OUT
+  CONTRACT -. "implementado por" .-> MEMORY
+  CONTRACT -. "implementado por" .-> REMOTE
+  CONTRACT -. "implementado por" .-> IDB
+  classDef ui fill:#e6f4ff,stroke:#0284c7,color:#12344d;
+  classDef coord fill:#e7f6ee,stroke:#15803d,color:#123424;
+  classDef dom fill:#fff0dd,stroke:#c77911,color:#55370e;
+  classDef inf fill:#f0eaff,stroke:#7c3aed,color:#382259;
+  class SHELL,SITE,RAC,C2,V3 ui;
+  class PORT,CTRL,STATE,SYNC,OUT coord;
+  class HOUSE,CONTRACT dom;
+  class MEMORY,REMOTE,IDB inf;

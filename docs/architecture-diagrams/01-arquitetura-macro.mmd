@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph browser["NAVEGADOR · React + TypeScript"]
+    UI["Editor RAC e Construções TETO<br/>Canvas 2D · visualização 3D · formulários"]
+    CLIENT["Cliente tRPC + TanStack Query<br/>sincronização de documentos"]
+    CACHE["PWA / Service Worker<br/>cache dos arquivos da interface"]
+    LOCAL[("IndexedDB<br/>modo local / isolated / E2E")]
+    UI --> CLIENT
+    UI -. "alternativa local" .-> LOCAL
+    CACHE -. "carrega interface" .-> UI
+  end
+  subgraph app["SERVIDOR · Node.js + Express"]
+    WEB["Arquivos estáticos + API<br/>/api/trpc · HTTP interno<br/>HTTPS público via gateway TLS"]
+    API["tRPC + Zod + SuperJSON<br/>auth · constructionSites<br/>storage + IA · system"]
+    DATA["Persistência de documentos<br/>Drizzle ORM + mysql2<br/>controle otimista de versão"]
+    PROXY["Proxy de imagens<br/>/manus-storage/*"]
+    WEB --> API --> DATA
+    WEB --> PROXY
+  end
+  DB[("MySQL<br/>users<br/>construction_site_documents<br/>JSON + documentVersion")]
+  AUTH["Manus OAuth<br/>identidade e login"]
+  FORGE["Manus Forge<br/>URLs assinadas de storage<br/>IA: imagens e descrição de fotos"]
+  S3[("S3 / objetos<br/>fotos e ilustrações")]
+  CLIENT <-->|"HTTP(S) · /api/trpc<br/>batch · JSON/SuperJSON · cookie HttpOnly"| WEB
+  DATA <-->|"SQL · protocolo MySQL / TCP"| DB
+  UI <-->|"redirecionamentos OAuth"| AUTH
+  API <-->|"HTTP(S) · troca de código<br/>consulta de perfil"| AUTH
+  API <-->|"HTTP(S) · JSON<br/>imagens: Connect · descrição: chat/completions"| FORGE
+  API -->|"PUT por URL assinada · bytes"| S3
+  PROXY -->|"HTTP(S) · obter URL assinada"| FORGE
+  S3 -->|"GET assinado · bytes via proxy"| PROXY
+  PROXY -->|"imagem same-origin"| UI
+  classDef client fill:#e6f4ff,stroke:#0284c7,color:#12344d;
+  classDef server fill:#e7f6ee,stroke:#15803d,color:#123424;
+  classDef external fill:#fff0dd,stroke:#c77911,color:#55370e;
+  classDef store fill:#f0eaff,stroke:#7c3aed,color:#382259;
+  class UI,CLIENT,CACHE client;
+  class WEB,API,DATA,PROXY server;
+  class AUTH,FORGE external;
+  class DB,S3,LOCAL store;
