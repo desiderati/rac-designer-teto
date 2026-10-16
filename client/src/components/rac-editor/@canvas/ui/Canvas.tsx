@@ -70,6 +70,7 @@ interface CanvasProps {
   onTerrainSelect?: (selection: TerrainCanvasSelection | null) => void;
 
   showZoomControls?: boolean;
+  showToolMenuLabels?: boolean;
   showTips?: boolean;
   difficultyIndicator?: HouseDifficultyIndicator | null;
   siteAssessment?: SiteAssessment | null;
@@ -132,6 +133,7 @@ export const Canvas =
       onTerrainSelect,
 
       showZoomControls = true,
+      showToolMenuLabels = false,
       showTips = false,
       difficultyIndicator = null,
       siteAssessment = null,
@@ -732,6 +734,7 @@ export const Canvas =
             zoom={zoom}
             onZoomChange={handleZoomChange}
             showZoomControls={showZoomControls}
+            showToolMenuLabels={showToolMenuLabels}
             minimapObjects={minimapObjects}
             difficultyIndicator={difficultyIndicator}
             siteAssessment={siteAssessment}

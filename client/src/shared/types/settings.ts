@@ -8,6 +8,7 @@ export interface AppSettings {
   allowPilotiHeightDefinitionOnHouseInsert: boolean;
   showStairsOnTopView: boolean;
   showPilotiLabelsOnTopView: boolean;
+  showToolMenuLabels: boolean;
 }
 
 export type AppSettingKey = keyof AppSettings;

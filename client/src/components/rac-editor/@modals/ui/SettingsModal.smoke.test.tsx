@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {EditorPortsContext, type EditorPorts} from '@/bootstrap/editor-bootstrap.ts';
 import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
+import type {AppSettingKey, AppSettings} from '@/shared/types/settings.ts';
 import {SettingsModal} from '@/components/rac-editor/@modals/ui/SettingsModal.tsx';
 
 vi.mock('@/components/rac-editor/lib/use-mobile.tsx', () => ({
@@ -10,23 +11,18 @@ vi.mock('@/components/rac-editor/lib/use-mobile.tsx', () => ({
 }));
 
 function renderSettingsModal() {
-  const updateSetting = vi.fn();
-  const settingsPort = {
-    getSettings: () => APP_SETTINGS_DEFAULTS,
-    updateSetting,
-  };
-  const ports = {
-    settingsPort,
-  } as unknown as EditorPorts;
-
-  return {
-    updateSetting,
-    ...render(
-      <EditorPortsContext.Provider value={ports}>
-        <SettingsModal isOpen onOpenChange={vi.fn()}/>
-      </EditorPortsContext.Provider>,
-    ),
-  };
+  let settings: AppSettings = {...APP_SETTINGS_DEFAULTS};
+  const updateSetting = vi.fn((key: AppSettingKey, value: boolean) => {settings = {...settings, [key]: value};});
+  const settingsPort = {getSettings: () => settings, updateSetting};
+  const ports = {settingsPort} as unknown as EditorPorts;
+  const onOpenChange = vi.fn();
+  const onSettingsChange = vi.fn();
+  const node = (isOpen: boolean) => <EditorPortsContext.Provider value={ports}>
+    <SettingsModal isOpen={isOpen} onOpenChange={onOpenChange} onSettingsChange={onSettingsChange}/>
+  </EditorPortsContext.Provider>;
+  const view = render(node(true));
+  return {updateSetting, settingsPort, onOpenChange, onSettingsChange, ...view,
+    rerenderOpen: (isOpen: boolean) => view.rerender(node(isOpen))};
 }
 
 describe('SettingsModal.tsx', () => {
@@ -48,6 +44,7 @@ describe('SettingsModal.tsx', () => {
     )).not.toBeChecked();
     expect(screen.getByLabelText('Mostrar escada na vista planta')).not.toBeChecked();
     expect(screen.getByLabelText('Mostrar labels dos pilotis na vista planta')).toBeChecked();
+    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).toBeChecked();
   });
 
   it('mantém a configuração de recalcular alturas sem título ou subtexto auxiliar', () => {
@@ -67,4 +64,29 @@ describe('SettingsModal.tsx', () => {
 
     expect(updateSetting).toHaveBeenCalledWith('showPilotiLabelsOnTopView', false);
   });
+  it('salva a desativação dos rótulos somente ao confirmar e reapresenta a preferência persistida', async () => {
+    const user = userEvent.setup();
+    const {updateSetting, settingsPort, onSettingsChange, rerenderOpen} = renderSettingsModal();
+    await user.click(screen.getByLabelText('Mostrar rótulos nos menus (desktop)'));
+    expect(updateSetting).not.toHaveBeenCalled();
+    expect(settingsPort.getSettings().showToolMenuLabels).toBe(true);
+    await user.click(screen.getByRole('button', {name: 'Confirmar'}));
+    expect(updateSetting).toHaveBeenCalledWith('showToolMenuLabels', false);
+    expect(onSettingsChange).toHaveBeenCalledTimes(1);
+    rerenderOpen(false); rerenderOpen(true);
+    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).not.toBeChecked();
+  });
+
+  it('descarta o rascunho dos rótulos ao cancelar e reabre marcado', async () => {
+    const user = userEvent.setup();
+    const {updateSetting, settingsPort, onSettingsChange, rerenderOpen} = renderSettingsModal();
+    await user.click(screen.getByLabelText('Mostrar rótulos nos menus (desktop)'));
+    await user.click(screen.getByRole('button', {name: 'Cancelar'}));
+    expect(updateSetting).not.toHaveBeenCalled();
+    expect(onSettingsChange).not.toHaveBeenCalled();
+    expect(settingsPort.getSettings().showToolMenuLabels).toBe(true);
+    rerenderOpen(false); rerenderOpen(true);
+    expect(screen.getByLabelText('Mostrar rótulos nos menus (desktop)')).toBeChecked();
+  });
+
 });

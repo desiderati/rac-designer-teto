@@ -11,6 +11,7 @@ interface BuildRacEditorLayoutPropsArgs {
   activeSubmenu: LayoutProps['menus']['activeSubmenu'];
   showTips: LayoutProps['menus']['showTips'];
   showZoomControls: LayoutProps['menus']['showZoomControls'];
+  showToolMenuLabels?: LayoutProps['menus']['showToolMenuLabels'];
   isMenuOpen: LayoutProps['menus']['isMenuOpen'];
   currentHouseType: LayoutProps['menus']['houseType'];
   frontViewCount: LayoutProps['menus']['frontViewCount'];
@@ -129,6 +130,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       activeSubmenu: args.activeSubmenu,
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
+      showToolMenuLabels: args.showToolMenuLabels,
       isMenuOpen: args.isMenuOpen,
       houseType: args.currentHouseType,
       frontViewCount: args.frontViewCount,
@@ -149,6 +151,7 @@ export function buildRacEditorLayoutProps(args: BuildRacEditorLayoutPropsArgs): 
       activeHouseId: args.activeHouseId,
       showTips: args.showTips,
       showZoomControls: args.showZoomControls,
+      showToolMenuLabels: args.showToolMenuLabels,
       infoMessage: args.infoMessage,
       difficultyIndicator: args.difficultyIndicator,
       siteAssessment: args.siteAssessment,

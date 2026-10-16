@@ -1,4 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {STORAGE_KEYS} from '@/shared/config.ts';
 import {getSettings, updateSetting} from '@/components/rac-editor/store/editor-settings.ts';
 
 describe('editor-settings.ts', () => {
@@ -21,6 +22,7 @@ describe('editor-settings.ts', () => {
       allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
+      showToolMenuLabels: true,
     });
   });
 
@@ -36,6 +38,7 @@ describe('editor-settings.ts', () => {
       allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
+      showToolMenuLabels: true,
     });
   });
 
@@ -55,6 +58,21 @@ describe('editor-settings.ts', () => {
       allowPilotiHeightDefinitionOnHouseInsert: false,
       showStairsOnTopView: false,
       showPilotiLabelsOnTopView: true,
+      showToolMenuLabels: true,
     });
   });
+  it('habilita rótulos de ferramentas ao ler preferências anteriores sem essa opção', () => {
+    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({showPilotiLabelsOnTopView: false}));
+    expect(getSettings().showToolMenuLabels).toBe(true);
+    expect(getSettings().showPilotiLabelsOnTopView).toBe(false);
+  });
+
+  it('persiste a preferência explícita de rótulos entre leituras e permite desligar', () => {
+    updateSetting('showToolMenuLabels', true);
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.settings)!)).toMatchObject({showToolMenuLabels: true});
+    expect(getSettings().showToolMenuLabels).toBe(true);
+    updateSetting('showToolMenuLabels', false);
+    expect(getSettings().showToolMenuLabels).toBe(false);
+  });
+
 });

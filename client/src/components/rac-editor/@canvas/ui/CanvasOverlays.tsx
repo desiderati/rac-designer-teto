@@ -8,6 +8,7 @@ import {useCanvasMobileViewport} from '@/components/rac-editor/lib/use-canvas-mo
 
 interface CanvasOverlaysProps {
   showZoomControls: boolean;
+  showToolMenuLabels?: boolean;
   isPinching: boolean;
   zoom: number;
   onZoomChange: (value: number) => void;
@@ -40,6 +41,7 @@ interface CanvasOverlaysProps {
  */
 export function CanvasOverlays({
   showZoomControls,
+  showToolMenuLabels = false,
   isPinching,
   zoom,
   onZoomChange: _onZoomChange,
@@ -90,11 +92,12 @@ export function CanvasOverlays({
 
       {difficultyIndicator ? (
         landscape ? <HouseDifficultyControls indicator={difficultyIndicator} siteAssessment={siteAssessment}
-          onSiteAssessmentChange={onSiteAssessmentChange} enableMobileCollapse/> :
+          onSiteAssessmentChange={onSiteAssessmentChange} showToolMenuLabels={showToolMenuLabels} enableMobileCollapse/> :
         <>
           <div className='absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 min-[767px]:block'>
             <HouseDifficultyControls
               indicator={difficultyIndicator}
+              showToolMenuLabels={showToolMenuLabels}
               siteAssessment={siteAssessment}
               onSiteAssessmentChange={onSiteAssessmentChange}
             />
@@ -102,6 +105,7 @@ export function CanvasOverlays({
           <div className='absolute right-1 top-1/2 z-10 -translate-y-1/2 min-[767px]:hidden'>
             <HouseDifficultyControls
               indicator={difficultyIndicator}
+              showToolMenuLabels={showToolMenuLabels}
               siteAssessment={siteAssessment}
               onSiteAssessmentChange={onSiteAssessmentChange}
               enableMobileCollapse

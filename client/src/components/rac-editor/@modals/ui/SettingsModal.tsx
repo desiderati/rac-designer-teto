@@ -4,6 +4,7 @@ import {Label} from '@/components/ui/label.tsx';
 import {useIsMobile} from '@/components/rac-editor/lib/use-mobile.tsx';
 import {ConfirmDialogModal} from '@/components/rac-editor/@modals/ui/ConfirmDialogModal.tsx';
 import {useEditorPorts} from '@/bootstrap/editor-bootstrap.ts';
+import {APP_SETTINGS_DEFAULTS} from '@/shared/config.ts';
 import type {AppSettingKey} from '@/shared/types/settings.ts';
 
 interface SettingsModalProps {
@@ -46,6 +47,7 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
     );
     settingsPort.updateSetting('showStairsOnTopView', tempSettings.showStairsOnTopView);
     settingsPort.updateSetting('showPilotiLabelsOnTopView', tempSettings.showPilotiLabelsOnTopView);
+    settingsPort.updateSetting('showToolMenuLabels', tempSettings.showToolMenuLabels);
     onSettingsChange?.();
     onOpenChange(false);
   };
@@ -149,6 +151,15 @@ export function SettingsModal({isOpen, onOpenChange, onSettingsChange}: Settings
           id='show-piloti-labels-top-view'
           checked={tempSettings.showPilotiLabelsOnTopView}
           onCheckedChange={(v) => handleToggle('showPilotiLabelsOnTopView', v)}/>
+      </div>
+      <div className='flex items-start justify-between gap-4'>
+        <Label htmlFor='show-tool-menu-labels' className='text-sm leading-snug cursor-pointer flex-1'>
+          Mostrar rótulos nos menus (desktop)
+        </Label>
+        <Switch
+          id='show-tool-menu-labels'
+          checked={tempSettings.showToolMenuLabels ?? APP_SETTINGS_DEFAULTS.showToolMenuLabels}
+          onCheckedChange={(v) => handleToggle('showToolMenuLabels', v)}/>
       </div>
     </div>;
 

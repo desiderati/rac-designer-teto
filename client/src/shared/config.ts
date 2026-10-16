@@ -10,6 +10,7 @@ export const APP_SETTINGS_DEFAULTS = {
   allowPilotiHeightDefinitionOnHouseInsert: false,
   showStairsOnTopView: false,
   showPilotiLabelsOnTopView: true,
+  showToolMenuLabels: true,
 } as const;
 
 export const STORAGE_KEYS = {

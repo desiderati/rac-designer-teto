@@ -19,6 +19,7 @@ const defaultSettings: AppSettings = {
   allowPilotiHeightDefinitionOnHouseInsert: false,
   showStairsOnTopView: true,
   showPilotiLabelsOnTopView: true,
+  showToolMenuLabels: false,
 };
 
 const pilotis: Record<string, HousePiloti> = {

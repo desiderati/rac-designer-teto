@@ -18,6 +18,7 @@ interface RacEditorCanvasProps {
   activeHouseId?: string | null;
   showTips: boolean;
   showZoomControls: boolean;
+  showToolMenuLabels?: boolean;
   infoMessage: string;
   difficultyIndicator?: HouseDifficultyIndicator | null;
   siteAssessment?: SiteAssessment | null;
@@ -47,6 +48,7 @@ export function RacEditorCanvas({
   activeHouseId = null,
   showTips,
   showZoomControls,
+  showToolMenuLabels = false,
   infoMessage,
   difficultyIndicator = null,
   siteAssessment = null,
@@ -112,6 +114,7 @@ export function RacEditorCanvas({
         isAnyEditorOpen={isAnyEditorOpen}
         onDelete={readOnly ? undefined : onDelete}
         showZoomControls={showZoomControls}
+        showToolMenuLabels={showToolMenuLabels}
         isContraventamentoMode={readOnly ? false : isContraventamentoMode}
         isPilotiEligibleForContraventamento={readOnly ? neverEligibleForContraventamento : isPilotiEligibleForContraventamento}
         onContraventamentoPilotiClick={readOnly ? undefined : onContraventamentoPilotiClick}

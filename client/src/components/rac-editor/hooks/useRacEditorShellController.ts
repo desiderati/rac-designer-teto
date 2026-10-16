@@ -51,7 +51,7 @@ export function useRacEditorShellController({
     setHouseTypeSelectorOpen,
   });
 
-  const {handleSettingsChange} = useRacEditorSettingsActions({
+  const {handleSettingsChange, showToolMenuLabels} = useRacEditorSettingsActions({
     setShowZoomControls,
   });
 
@@ -80,6 +80,7 @@ export function useRacEditorShellController({
     handlePilotisSetupConfirm,
     handleRenameFamily,
     handleSettingsChange,
+    showToolMenuLabels,
     handleSetCanvasToolMode,
     handleFitToView,
     handleExit,

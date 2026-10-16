@@ -19,6 +19,7 @@ export function RacEditorMenus({
   isDrawing,
   activeSubmenu,
   showTips,
+  showToolMenuLabels = false,
   houseType,
   frontViewCount = {current: 0, max: 0},
   backViewCount = {current: 0, max: 0},
@@ -52,6 +53,7 @@ export function RacEditorMenus({
       <CanvasToolsMenu
         actions={actions}
         isDrawing={isDrawing}
+        showToolMenuLabels={showToolMenuLabels}
         activeSubmenu={activeSubmenu}
         houseType={houseType}
         frontViewCount={frontViewCount}

@@ -25,6 +25,17 @@ Definir como os menus e comandos do editor devem funcionar de forma simples e pr
 
 1. Menu principal
     - Acesso aos comandos de casa, elementos, linhas e mais opções.
+    - A janela existente de Configurações globais oferece `Mostrar rótulos nos menus (desktop)`,
+      marcado por padrão, inclusive ao carregar preferências salvas antes desta opção existir.
+      Uma escolha explícita já salva, inclusive desligada, é preservada.
+      A alteração só é aplicada e persistida por `Confirmar`; `Cancelar` descarta o rascunho.
+    - Com a opção desligada, preservar o visual atual dos menus de ferramentas, com cápsulas,
+      botões circulares e nomes por tooltip. Ligada no desktop, mostrar nomes curtos abaixo
+      dos ícones na barra esquerda, nos seus submenus e nos controles de solo/obstáculos,
+      usando contêineres e itens retangulares com cantos arredondados. Preservar nomes acessíveis,
+      ícones, ações, estados e listas internas dos seletores de solo/obstáculos.
+    - A preferência de rótulos desktop não altera os menus mobile, inclusive o radial e seus
+      nomes laterais persistentes. Os rótulos dos pilotis permanecem uma configuração independente.
     - Menus laterais devem usar um único tooltip visível por item, sem tooltip nativo duplicado do navegador.
     - Hovers do menu principal e dos submenus devem ser compactos e proporcionais ao formato de cápsula dos menus.
     - Em telas móveis, quando o menu lateral está aberto, a barra de recolhimento fica à direita do menu.
