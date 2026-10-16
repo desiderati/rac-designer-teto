@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/run.mjs dev",
     "dev:local": "node scripts/run.mjs dev:local",
-    "dev:isolated": "vite --mode isolated --host 127.0.0.1 --port 5200 --strictPort",
+    "dev:isolated": "node scripts/run.mjs dev:isolated",
     "build": "node scripts/run.mjs build",
     "build:dev": "vite build --mode development",
     "start": "node scripts/run.mjs start",

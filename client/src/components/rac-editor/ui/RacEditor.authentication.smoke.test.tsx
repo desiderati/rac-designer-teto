@@ -48,11 +48,11 @@ describe('RacEditor authentication landing', () => {
     expect(screen.getByLabelText('Recursos principais')).toHaveTextContent('Base global');
     expect(screen.getByRole('img', { name: /Editor RAC Designer TETO/i })).toHaveAttribute(
       'src',
-      '/api/public-assets/rac-editor-landing-screenshot-harmonized_95473d21.png',
+      '/landing/rac-editor-landing-screenshot-harmonized_95473d21.png',
     );
     expect(screen.getByRole('img', { name: /casa TETO elevada/i })).toHaveAttribute(
       'src',
-      '/api/public-assets/teto-house-linework-transparent-cropped_770579e2.png',
+      '/landing/teto-house-linework-transparent-cropped_770579e2.png',
     );
     expect(screen.queryByText('Imagens devem ser enviadas ao Storage do Manus')).not.toBeInTheDocument();
   });

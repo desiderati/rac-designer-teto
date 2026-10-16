@@ -192,14 +192,15 @@ trabalho.
     npm run dev -- --host 0.0.0.0
     ```
 
-   Para trabalhar apenas com dados de teste neste computador, use `npm run dev:isolated` e abra
+   Para trabalhar apenas com dados de teste neste computador, use `npm run dev:local` (ou seu alias
+   `npm run dev:isolated`) e abra
    `http://127.0.0.1:5200/`. Esse perfil serve somente o frontend em loopback, dispensa login Manus e
    guarda Construções TETO e fotos no IndexedDB `rac-designer-teto-isolated` deste navegador. Não há
    sincronização entre dispositivos; descrição de fotos e ilustrações por IA ficam indisponíveis.
    A visualização 3D e sua captura para PDF continuam locais. Limpar os dados do site no navegador
    remove os projetos desse perfil. O perfil `isolated` não pode ser usado para gerar um build.
 
-3. Desenvolvimento local para E2E:
+3. Desenvolvimento local sem integração Manus:
 
     ```bash
     npm run dev:local
@@ -227,7 +228,8 @@ trabalho.
     npm run test:coverage
     ```
 
-7. Testes E2E (requer `npm run dev:local` em `127.0.0.1:5200`):
+7. Testes E2E (o Playwright inicia seu próprio servidor com `VITE_E2E=true` em `127.0.0.1:5200`;
+   encerre o servidor de uso manual nessa porta antes de executar a suíte):
 
     ```bash
     npm run test:e2e

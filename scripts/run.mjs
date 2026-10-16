@@ -22,8 +22,12 @@ function run(script, args = [], environment = {}) {
 async function main() {
   const command = process.argv[2];
   switch (command) {
-    case 'dev':
     case 'dev:local':
+    case 'dev:isolated':
+      return run(cli('vite/bin/vite.js'), [
+        '--mode', 'isolated', '--host', '127.0.0.1', '--port', '5200', '--strictPort',
+      ], {NODE_ENV: 'development'});
+    case 'dev':
     case 'e2e-server': {
       const environment = {NODE_ENV: 'development'};
       if (command !== 'dev') environment.PORT = '5200';
