@@ -16,6 +16,8 @@ import {ZoomMenu} from './ZoomMenu.tsx';
 import type {CanvasToolMode, MenuActionMap, MenuConstructionGroup} from '../lib/menu-types.ts';
 import type {HouseDocumentSaveStatus} from '@/components/rac-editor/ports/HouseDocumentSaveStatus.ts';
 
+const MOBILE_TOP_BAR_VISIBLE_MS = 5_000;
+
 interface TopBarProps {
   actions: MenuActionMap;
   constructionGroups: MenuConstructionGroup[];
@@ -70,14 +72,26 @@ export function TopBar({
     ? 'Exportar RAC em PDF'
     : TOAST_MESSAGES.addHouseBeforePdfExport;
 
-  const {mobile: canvasMobile} = useCanvasMobileViewport();
+  const {mobile: canvasMobile, portrait} = useCanvasMobileViewport();
+  const showOrientationNotice = canvasMobile && portrait;
   const [resetOpen, setResetOpen] = useState(false);
   const [mobileTopBarOpen, setMobileTopBarOpen] = useState(false);
 
+  useEffect(() => {
+    if (!canvasMobile || showOrientationNotice) {
+      setMobileTopBarOpen(false);
+      return;
+    }
+    if (!mobileTopBarOpen) return;
+    const timeout = window.setTimeout(() => setMobileTopBarOpen(false), MOBILE_TOP_BAR_VISIBLE_MS);
+    return () => window.clearTimeout(timeout);
+  }, [canvasMobile, mobileTopBarOpen, showOrientationNotice]);
+
   return (
     <>
-    {canvasMobile ? <button type='button' aria-label={mobileTopBarOpen ? 'Ocultar barra superior' : 'Mostrar barra superior'} aria-expanded={mobileTopBarOpen} onClick={() => setMobileTopBarOpen((value) => !value)} className='fixed left-1/2 top-0 z-[60] grid h-7 w-32 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-24 rounded-full bg-slate-400/70'/></button> : null}
-    <div hidden={canvasMobile && !mobileTopBarOpen} data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[360px] w-full'>
+    {canvasMobile && !showOrientationNotice && !mobileTopBarOpen ? <button type='button' aria-label='Mostrar barra superior' aria-controls='canvas-top-bar' aria-expanded={false} onClick={() => setMobileTopBarOpen(true)} className='fixed left-1/2 top-0 z-[60] grid h-7 w-32 -translate-x-1/2 place-items-center rounded-b-xl bg-white/80 focus-visible:ring-2 focus-visible:ring-blue-500'><span className='h-3 w-24 rounded-full bg-slate-400/70'/></button> : null}
+    <div id='canvas-top-bar' hidden={showOrientationNotice || (canvasMobile && !mobileTopBarOpen)} data-testid='top-bar-layout' className='fixed left-0 top-4 z-50 h-12 min-w-[360px] w-full'>
+      {!showOrientationNotice && (!canvasMobile || mobileTopBarOpen) ? <>
       {/* Left: Menu + Family */}
       <div className='absolute left-4 top-0 z-50 flex items-center gap-3'>
         <HamburgerMenu
@@ -159,6 +173,7 @@ export function TopBar({
           onExit={actions.exit}
         />
       </div>
+      </> : null}
     </div>
     <ResetHouseDialog open={resetOpen} onOpenChange={setResetOpen} onConfirm={async () => { await actions.redefineHouse?.(); }}/>
     </>

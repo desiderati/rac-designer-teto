@@ -13,7 +13,8 @@ vi.mock('@/contexts/RemoteSyncContext.tsx', () => ({
 function createActions(): MenuActionMap {
   return {
     openHouseTypeSelector: vi.fn(), addHouseFront: vi.fn(), addHouseBack: vi.fn(), addHouseSide1: vi.fn(), addHouseSide2: vi.fn(),
-    addWall: vi.fn(), addStreetStraight: vi.fn(), addStreetCorner: vi.fn(), addDirtRoad: vi.fn(), addSquare: vi.fn(),
+    addWall: vi.fn(),
+  addSiteElement: vi.fn(), addStreetStraight: vi.fn(), addStreetCorner: vi.fn(), addDirtRoad: vi.fn(), addSquare: vi.fn(),
     addTriangle: vi.fn(), addCircle: vi.fn(), addDoor: vi.fn(), addStairs: vi.fn(), addTree: vi.fn(),
     addWater: vi.fn(), addFossa: vi.fn(), addLine: vi.fn(), addArrow: vi.fn(), addDistance: vi.fn(), toggleDrawMode: vi.fn(),
     addText: vi.fn(), openImageUpload: vi.fn(), openConstructionSites: vi.fn(), activateHouse: vi.fn().mockResolvedValue(undefined),
