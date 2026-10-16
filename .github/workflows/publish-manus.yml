@@ -164,36 +164,104 @@ jobs:
 
           validate_result() {
             local structured="$1"
-            local success value result_status result_sha result_project checkpoint_id published error_code
-            success=$(echo "$structured" | jq -r '.success // false')
-            if [ "$success" != "true" ]; then
-              echo "::error::A extração do resultado estruturado falhou."
-              echo "$structured" | jq -r '.error // "Erro sem detalhes adicionais."'
+            local value success extraction_error result_status result_sha result_project checkpoint_id published error_code
+
+            if ! echo "$structured" | jq -e 'type == "object"' >/dev/null 2>&1; then
+              echo "::error::Resultado estruturado não é um objeto JSON válido."
               exit 1
             fi
-            value=$(echo "$structured" | jq -c '.value')
-            result_status=$(echo "$value" | jq -r '.status // empty')
-            result_sha=$(echo "$value" | jq -r '.commit_sha // empty')
-            result_project=$(echo "$value" | jq -r '.webdev_project_id // empty')
+
+            # Formato envelopado: {success, value, error}.
+            # O valor pode ser uma falha operacional válida mesmo quando a
+            # extração do envelope vier com success=false.
+            if echo "$structured" | jq -e 'has("success")' >/dev/null 2>&1; then
+              if ! echo "$structured" | jq -e '.success | type == "boolean"' >/dev/null 2>&1; then
+                echo "::error::Envelope estruturado inválido: success deve ser booleano."
+                exit 1
+              fi
+              success=$(echo "$structured" | jq -r '.success // false')
+              extraction_error=$(echo "$structured" | jq -r '.error // empty')
+              value=$(echo "$structured" | jq -c '.value // {}')
+
+              if [ "$success" != "true" ]; then
+                if ! echo "$value" | jq -e '
+                  type == "object"
+                  and (has("status") and has("commit_sha") and has("webdev_project_id") and has("checkpoint_id") and has("published") and has("error_code"))
+                  and .status == "failure"
+                  and (.commit_sha | type == "string")
+                  and (.webdev_project_id | type == "string")
+                  and (.published | type == "boolean")
+                  and (.error_code == null or (.error_code | type == "string"))
+                ' >/dev/null 2>&1; then
+                  echo "::error::A extração do resultado estruturado falhou."
+                  if [ -n "$extraction_error" ]; then
+                    echo "::error::$extraction_error"
+                  else
+                    echo "::error::Erro sem detalhes adicionais."
+                  fi
+                  exit 1
+                fi
+              fi
+            # Payload legado observado: {value: {status, commit_sha, ...}},
+            # sem os campos success/error do envelope oficial.
+            elif echo "$structured" | jq -e '(.value | type) == "object" and (.value.status != null)' >/dev/null 2>&1; then
+              value=$(echo "$structured" | jq -c '.value')
+            # Formato direto: {status, commit_sha, webdev_project_id, ...}.
+            else
+              value="$structured"
+            fi
+
+            if ! echo "$value" | jq -e '
+              type == "object"
+              and (has("status") and has("commit_sha") and has("webdev_project_id") and has("checkpoint_id") and has("published") and has("error_code"))
+              and (.status | type == "string")
+              and (.commit_sha | type == "string")
+              and (.webdev_project_id | type == "string")
+              and (.checkpoint_id == null or (.checkpoint_id | type == "string"))
+              and (.published | type == "boolean")
+              and (.error_code == null or (.error_code | type == "string"))
+            ' >/dev/null 2>&1; then
+              echo "::error::Resultado estruturado inválido ou incompleto."
+              echo "$value" | jq -c .
+              exit 1
+            fi
+
+            result_status=$(echo "$value" | jq -r '.status')
+            result_sha=$(echo "$value" | jq -r '.commit_sha')
+            result_project=$(echo "$value" | jq -r '.webdev_project_id')
             checkpoint_id=$(echo "$value" | jq -r '.checkpoint_id // empty')
-            published=$(echo "$value" | jq -r '.published // false')
+            published=$(echo "$value" | jq -r '.published')
             error_code=$(echo "$value" | jq -r '.error_code // empty')
 
             if [ "$result_status" = "failure" ]; then
               echo "::error::Manus informou falha no fluxo WebDev: ${error_code:-sem código}."
+              echo "::error::commit=$result_sha project=$result_project published=$published"
               exit 1
             fi
-            if [ "$result_status" != "success" ] || [ "$result_sha" != "$COMMIT_SHA" ] || [ "$result_project" != "$MANUS_WEBDEV_PROJECT_ID" ] || [ -z "$checkpoint_id" ] || [ "$published" != "true" ]; then
-              echo "::error::Resultado WebDev inválido ou incompleto: status=$result_status sha=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published error_code=$error_code"
+
+            if [ "$result_status" != "success" ]; then
+              echo "::error::Status operacional inesperado: $result_status."
+              exit 1
+            fi
+            if [ "$result_sha" != "$COMMIT_SHA" ]; then
+              echo "::error::SHA divergente: esperado=$COMMIT_SHA recebido=$result_sha."
+              exit 1
+            fi
+            if [ "$result_project" != "$MANUS_WEBDEV_PROJECT_ID" ]; then
+              echo "::error::Projeto WebDev divergente: esperado=$MANUS_WEBDEV_PROJECT_ID recebido=$result_project."
+              exit 1
+            fi
+            if [ -z "$checkpoint_id" ] || [ "$published" != "true" ]; then
+              echo "::error::Resultado de publicação incompleto: checkpoint=$checkpoint_id published=$published."
               exit 1
             fi
             echo "WebDev publication confirmed: commit=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published"
             {
               echo '### Manus publication result'
-              echo "- Commit: \\`$result_sha\\`"
-              echo "- WebDev project: \\`$result_project\\`"
-              echo "- Checkpoint: \\`$checkpoint_id\\`"
-              echo "- Published: \\`$published\\`"
+              echo "- Commit: \`$result_sha\`"
+              echo "- WebDev project: \`$result_project\`"
+              echo "- Checkpoint: \`$checkpoint_id\`"
+              echo "- Published: \`$published\`"
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           }
