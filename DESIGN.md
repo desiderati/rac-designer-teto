@@ -279,12 +279,18 @@ the browser viewport is narrower than the editor's 360 px minimum surface.
 The family name is part of the active-house identity. It should read like a project label, not a page heading. Editing
 affordance can be subtle, but the active family must remain visible in the editor.
 
-### Left Tool Rail
+### Lateral Canvas Menus
 
-The side rail should remain narrow, vertical, and icon-first. Use compact grouping and clear active states. Avoid text
-labels in the rail unless a contextual submenu needs them.
-Both lateral toolbars expose a slim collapse handle below 767 px. Below 640 px they start collapsed; from 640 px through
-766 px they start expanded and remain collapsible. At 767 px and above they show without the mobile handle.
+Keep the drawing tools on the left and the soil, difficulty, and obstacle controls on the right. Both sides share
+compact white surfaces, slate icons, blue selection and focus states, and restrained shadows.
+On desktop, show small labels below the icons by default. The existing global setting can restore icon-only capsules;
+changing it must preserve actions, accessible names, and selection state. Labeled surfaces use rounded rectangles.
+In mobile landscape, use opposing hierarchical radial menus: the chosen parent moves to the center and its children
+open toward the interior of the screen. Keep labels beside the orbit buttons and the center icon-only.
+The mobile radial does not show the difficulty gauge. Keep it in the non-radial presentation.
+Use [UI-005 — Menus laterais do Canvas](docs/ui-definitions/UI-005-menus-laterais-canvas.md) for viewport conditions,
+non-radial fallback, geometry, animation, accessibility, and implementation references. Command semantics belong to
+[BUS-002 — Regras da Toolbar](docs/business-rules/BUS-002-toolbar.md).
 
 ### Zoom and Canvas Modes
 

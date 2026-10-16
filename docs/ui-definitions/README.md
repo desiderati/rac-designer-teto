@@ -28,3 +28,6 @@ especialmente em telas operacionais, tabelas, cards, formulários e exportaçõe
 
 - [UI-004 — Identidade visual e comportamento dos Toasts](UI-004-avisos-e-progresso-pdf.md)
     - Define anatomia, cores, ações, responsividade e reutilização de mensagens, tarefas PDF e imagem 3D.
+
+- [UI-005 — Menus laterais do Canvas](UI-005-menus-laterais-canvas.md)
+    - Consolida desktop e mobile dos dois menus, rótulos, navegação radial, geometria e responsabilidades compartilhadas.
