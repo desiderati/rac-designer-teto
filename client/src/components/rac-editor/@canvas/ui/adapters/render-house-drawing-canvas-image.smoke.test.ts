@@ -7,7 +7,10 @@ const mocks = vi.hoisted(() => ({
   FabricCanvas: vi.fn(),
 }));
 
-vi.mock('fabric', () => ({Canvas: mocks.FabricCanvas}));
+vi.mock('fabric', async (importOriginal) => ({
+  ...(await importOriginal()),
+  Canvas: mocks.FabricCanvas,
+}));
 vi.mock('./fabric-canvas-document-port.ts', () => ({
   createFabricCanvasDocumentPort: mocks.createPort,
   sanitizeCanvasDocumentForSafeExport: mocks.sanitize,
