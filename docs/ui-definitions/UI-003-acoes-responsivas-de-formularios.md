@@ -44,7 +44,7 @@ coluna. No Mobile, a ação segue a mesma regra de rodapé dos demais formulári
 
 - No Mobile, a área de ação respeita a área segura inferior do dispositivo.
 
-- O dock fixo mantém largura mínima de 420 px; o botão não se comprime quando a viewport é menor que essa largura.
+- O dock fixo mantém largura mínima de 360 px; o botão não se comprime quando a viewport é menor que essa largura.
 
 - O formulário reserva espaço ao final da rolagem para que o último campo e suas mensagens de erro
   possam ser vistos acima da ação fixa.
@@ -59,7 +59,7 @@ coluna. No Mobile, a ação segue a mesma regra de rodapé dos demais formulári
 4. O último campo, seus erros e o botão permanecem alcançáveis por rolagem e teclado.
 5. Materiais Extras mantém a apresentação de referência no Full e no Mobile.
 
-O editor e os formulários mantêm superfícies próprias com largura mínima de 420 px. A raiz do aplicativo
+O editor e os formulários mantêm superfícies próprias com largura mínima de 360 px. A raiz do aplicativo
 não impõe mais esse mínimo globalmente, permitindo que diálogos específicos, como o de conflito de
 sincronização, caibam em viewports menores. O aviso de largura mínima continua aplicável às superfícies
 do editor que ainda dependem desse limite.

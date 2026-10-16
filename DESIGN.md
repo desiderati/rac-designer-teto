@@ -241,7 +241,7 @@ structured fallback with a pin, grid, and precise explanation. Never leave an em
 Mobile must prioritize scannability and touch. Use cards, compact controls, stable pagination, and no bottom navigation
 unless the product adds a true global mobile nav. Do not introduce floating actions that compete with the return path or
 form actions.
-The fixed form action dock keeps the product's 420 px minimum usable width; narrower viewports must not squeeze its
+The fixed form action dock keeps the product's 360 px minimum usable width; narrower viewports must not squeeze its
 button or label.
 
 ## 9. Surface Rules: RAC Editor
@@ -264,7 +264,7 @@ The top bar has three zones:
 
 Keep these zones visually separated through placement, not heavy dividers. The top bar can use glassy white surfaces and
 soft blur because it floats over the canvas.
-Anchor all three zones to the editor's 420 px minimum-width surface so they do not overlap when the browser is narrower.
+Anchor all three zones to the editor's 360 px minimum-width surface so they do not overlap when the browser is narrower.
 
 ### Hamburger Menu
 
@@ -272,7 +272,7 @@ The hamburger menu is the bridge from the editor back to construction context. I
 then active constructions grouped by code and community, then houses under each construction. It must not become a
 generic overflow menu.
 Keep the construction and house selector at its full 14.5 rem width and aligned to the hamburger trigger, including when
-the browser viewport is narrower than the editor's 420 px minimum surface.
+the browser viewport is narrower than the editor's 360 px minimum surface.
 
 ### Family Name
 
@@ -290,7 +290,7 @@ Both lateral toolbars expose a slim collapse handle below 767 px. Below 640 px t
 
 Zoom, select, pan, and fit-to-view should feel like instrument controls. Show keyboard shortcuts only where they help
 desktop users and do not clutter mobile.
-Keep the zoom submenu centered on its trigger, even when the browser viewport is narrower than the editor's 420 px
+Keep the zoom submenu centered on its trigger, even when the browser viewport is narrower than the editor's 360 px
 minimum surface.
 
 ### 3D and Export
@@ -303,7 +303,7 @@ carry the strongest CTA treatment because it produces a deliverable.
 Contextual editors for pilotis, measures, lines, walls, and house settings should preserve the user's sense of where the
 selected object lives. Avoid large generic modals when a contextual panel or floating editor can keep continuity.
 
-Most editor dialogs and bottom drawers share the editor's 420 px minimum usable width. The synchronization conflict dialog
+Most editor dialogs and bottom drawers share the editor's 360 px minimum usable width. The synchronization conflict dialog
 is an exception: it fits narrow viewports, scrolls its comparison content, and keeps its actions in a separate footer.
 Below the editor's minimum width, show the existing viewport warning for editor surfaces. On phone and tablet widths below 768 px, two-action confirmation footers
 use the shared `ActionDock`: the actions remain together at the bottom, retain horizontal breathing room and safe-area
