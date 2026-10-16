@@ -25,21 +25,22 @@ jobs:
     # ao GitHub. Eles já estão publicados e não devem iniciar outro ciclo.
     if: github.actor != 'manus-connector[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     env:
       MANUS_API_URL: https://api.manus.ai
-      # Este é o ID do projeto WebDev, não o ID de um Manus Project.
+      # Projeto Manus: aplica as instruções duráveis às tarefas dedicadas de deploy.
+      MANUS_AUTOMATION_PROJECT_ID: nEpDoRMLEzAXVgR2GaMYC8
+      # Projeto WebDev e a sessão-fonte onde ele está anexado.
       MANUS_WEBDEV_PROJECT_ID: NTjLBNvKDjXznaYrpeVMoY
-      # ID da sessão persistente que mantém o projeto WebDev anexado.
-      # Não é credencial; o acesso continua protegido por MANUS_API_KEY.
-      MANUS_WEBDEV_TASK_ID: aG5BaRM3JRZoPIZ0e8Tmf9
+      MANUS_WEBDEV_SOURCE_TASK_ID: aG5BaRM3JRZoPIZ0e8Tmf9
       REPOSITORY: desiderati/rac-designer-teto
       BRANCH: main
 
     steps:
-      - name: Validate required secrets
+      - name: Validate required secret
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
+        shell: bash
         run: |
           set -euo pipefail
           if [ -z "$MANUS_API_KEY" ]; then
@@ -47,8 +48,7 @@ jobs:
             exit 1
           fi
 
-      - name: Validate WebDev session
-        id: webdev_session
+      - name: Validate WebDev source session
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
         shell: bash
@@ -58,24 +58,22 @@ jobs:
           trap 'rm -f "$response_file"' EXIT
           http_status=$(curl --silent --show-error \
             --output "$response_file" --write-out '%{http_code}' \
-            "$MANUS_API_URL/v2/website.status?task_id=$MANUS_WEBDEV_TASK_ID" \
+            "$MANUS_API_URL/v2/website.status?task_id=$MANUS_WEBDEV_SOURCE_TASK_ID" \
             -H "x-manus-api-key: $MANUS_API_KEY")
           if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
             error_code=$(jq -r '(.error.code // "não informado") | tostring | gsub("[^A-Za-z0-9_.-]"; "_") | .[0:120]' "$response_file" 2>/dev/null || echo "resposta_invalida")
-            echo "::error::A sessão WebDev não está disponível para a tarefa informada; HTTP $http_status; código: $error_code."
-            echo "::error::Projeto esperado: $MANUS_WEBDEV_PROJECT_ID; tarefa configurada: $MANUS_WEBDEV_TASK_ID."
+            echo "::error::A sessão-fonte do WebDev não está disponível; HTTP $http_status; código: $error_code."
+            echo "::error::Sessão esperada: $MANUS_WEBDEV_SOURCE_TASK_ID; projeto esperado: $MANUS_WEBDEV_PROJECT_ID."
             exit 1
           fi
           website_id=$(jq -r '.website_id // empty' "$response_file")
           if [ -z "$website_id" ]; then
-            echo "::error::A tarefa existe, mas não possui um website WebDev anexado."
-            echo "::error::Não será executado fetch, build, checkpoint ou publicação."
+            echo "::error::A sessão-fonte existe, mas não possui um WebDev anexado."
             exit 1
           fi
-          echo "WebDev session validated: task=$MANUS_WEBDEV_TASK_ID website=$website_id project=$MANUS_WEBDEV_PROJECT_ID"
-          echo "website_id=$website_id" >> "$GITHUB_OUTPUT"
+          echo "WebDev source validated: task=$MANUS_WEBDEV_SOURCE_TASK_ID website=$website_id project=$MANUS_WEBDEV_PROJECT_ID"
 
-      - name: Request Manus sync and publication
+      - name: Request dedicated Manus publication task
         id: manus_task
         env:
           MANUS_API_KEY: ${{ secrets.MANUS_API_KEY }}
@@ -101,23 +99,24 @@ jobs:
           JSON
           )
           prompt=$(cat <<EOF
-          Esta é uma sessão WebDev existente e já validada pelo workflow.
-          Projeto WebDev obrigatório: ${MANUS_WEBDEV_PROJECT_ID}
-          Tarefa/sessão WebDev: ${MANUS_WEBDEV_TASK_ID}
+          Sincronize e publique o projeto WebDev RAC Design TETO após um push externo ao Manus.
+
           Repositório fonte: ${REPOSITORY}
           Branch: ${BRANCH}
           Commit obrigatório: ${COMMIT_SHA}
           Mensagem do commit: ${COMMIT_MESSAGE}
-          Diretório do projeto WebDev: /home/ubuntu/editor-planta-baixa
+          Projeto WebDev obrigatório: ${MANUS_WEBDEV_PROJECT_ID}
+          Diretório esperado: /home/ubuntu/editor-planta-baixa
 
-          Execute exatamente este fluxo, sem pedir confirmação e sem criar alterações de produto:
-          1. Antes de qualquer operação Git, execute webdev_check_status e confirme que a sessão atual está anexada ao projeto WebDev ${MANUS_WEBDEV_PROJECT_ID}, no diretório /home/ubuntu/editor-planta-baixa. Se o projeto não estiver anexado, ou o projectId/path não corresponderem, não inicialize projeto novo, não use webdev_init_project, não faça fetch e não crie checkpoint; encerre com status failure e error_code WEBDEV_PROJECT_NOT_ATTACHED.
-          2. Faça fetch do remoto user_github para a branch main.
-          3. Verifique que o SHA de user_github/main corresponde ao commit obrigatório ${COMMIT_SHA}. Se não corresponder, faça fetch novamente e interrompa com status failure se o SHA não puder ser confirmado.
-          4. Alinhe o checkout ao SHA obrigatório com git reset --hard ${COMMIT_SHA}. Preserve arquivos locais de infraestrutura do WebDev que não são rastreados pelo Git; não use git clean.
-          5. Execute pnpm check e pnpm build. Se qualquer validação falhar, não publique e retorne status failure.
-          6. Salve um checkpoint do projeto WebDev ${MANUS_WEBDEV_PROJECT_ID} com uma mensagem que contenha o SHA ${COMMIT_SHA} e indique que a origem foi um push do GitHub.
-          7. Confirme o identificador do checkpoint e que a publicação foi iniciada ou concluída pelo WebDev. Não declare published=true sem evidência do WebDev.
+          A tarefa de origem ${MANUS_WEBDEV_SOURCE_TASK_ID} foi incluída em task_references e contém o WebDev autorizado. Execute exatamente este fluxo, sem pedir confirmação e sem criar alterações de produto:
+          1. Use a referência de sessão para localizar o projeto WebDev anexado e abra somente o projeto existente ${MANUS_WEBDEV_PROJECT_ID}. Não crie projeto novo. Não prossiga se não conseguir abrir o projeto referenciado.
+          2. Execute webdev_check_status. Confirme que projectId=${MANUS_WEBDEV_PROJECT_ID} e path=/home/ubuntu/editor-planta-baixa. Se algum valor divergir, não execute Git, build, checkpoint ou publicação; encerre com status=failure e error_code=WEBDEV_PROJECT_NOT_ATTACHED.
+          3. Faça fetch do remoto user_github para a branch main.
+          4. Verifique que user_github/main corresponde ao commit obrigatório ${COMMIT_SHA}. Se não corresponder, faça fetch novamente e encerre com status=failure se o SHA não puder ser confirmado.
+          5. Alinhe o checkout ao SHA obrigatório com git reset --hard ${COMMIT_SHA}. Preserve arquivos locais de infraestrutura do WebDev que não são rastreados pelo Git; não use git clean.
+          6. Execute pnpm check e pnpm build. Se qualquer validação falhar, não publique e retorne status=failure.
+          7. Salve um checkpoint do projeto WebDev ${MANUS_WEBDEV_PROJECT_ID} com uma mensagem que contenha o SHA ${COMMIT_SHA} e indique que a origem foi um push do GitHub.
+          8. Confirme o identificador do checkpoint e que a publicação foi iniciada ou concluída pelo WebDev. Não declare published=true sem evidência do WebDev.
 
           Não faça commit, push, alterações cosméticas, migrações ou mudanças fora desse fluxo.
           Ao terminar, produza um resultado estruturado com exatamente estes campos:
@@ -127,31 +126,40 @@ jobs:
           EOF
           )
           payload=$(jq -n \
-            --arg task_id "$MANUS_WEBDEV_TASK_ID" \
+            --arg project_id "$MANUS_AUTOMATION_PROJECT_ID" \
+            --arg title "Publish RAC Design TETO ${COMMIT_SHA:0:7}" \
             --arg content "$prompt" \
+            --arg source_task_id "$MANUS_WEBDEV_SOURCE_TASK_ID" \
             --argjson schema "$result_schema" \
             '{
-              task_id: $task_id,
-              message: {content: $content},
+              project_id: $project_id,
+              title: $title,
+              agent_profile: "lite",
+              interactive_mode: false,
+              hide_in_task_list: true,
+              message: {
+                content: $content,
+                task_references: [$source_task_id]
+              },
               structured_output_schema: $schema
             }')
           response_file=$(mktemp)
           trap 'rm -f "$response_file"' EXIT
           http_status=$(curl --silent --show-error \
             --output "$response_file" --write-out '%{http_code}' \
-            -X POST "$MANUS_API_URL/v2/task.sendMessage" \
+            -X POST "$MANUS_API_URL/v2/task.create" \
             -H "x-manus-api-key: $MANUS_API_KEY" \
             -H "Content-Type: application/json" \
             --data "$payload")
           if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
             error_code=$(jq -r '(.error.code // "não informado") | tostring | gsub("[^A-Za-z0-9_.-]"; "_") | .[0:120]' "$response_file" 2>/dev/null || echo "resposta_invalida")
             request_id=$(jq -r '(.request_id // "não informado") | tostring | gsub("[^A-Za-z0-9_.-]"; "_") | .[0:120]' "$response_file" 2>/dev/null || echo "resposta_invalida")
-            echo "::error::Manus retornou HTTP $http_status ao retomar a sessão WebDev; código: $error_code; request_id: $request_id."
+            echo "::error::Manus retornou HTTP $http_status ao criar a tarefa dedicada; código: $error_code; request_id: $request_id."
             exit 1
           fi
           task_id=$(jq -er '.task_id' "$response_file")
           echo "task_id=$task_id" >> "$GITHUB_OUTPUT"
-          echo "Resumed WebDev task: $task_id"
+          echo "Dedicated publication task: $task_id"
 
       - name: Wait for Manus publication
         env:
@@ -161,17 +169,53 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          finalization_attempts=0
-          for attempt in $(seq 1 135); do
+
+          validate_result() {
+            local structured="$1"
+            local success value result_status result_sha result_project checkpoint_id published error_code
+            success=$(echo "$structured" | jq -r '.success // false')
+            if [ "$success" != "true" ]; then
+              echo "::error::A extração do resultado estruturado falhou."
+              echo "$structured" | jq -r '.error // "Erro sem detalhes adicionais."'
+              exit 1
+            fi
+            value=$(echo "$structured" | jq -c '.value')
+            result_status=$(echo "$value" | jq -r '.status // empty')
+            result_sha=$(echo "$value" | jq -r '.commit_sha // empty')
+            result_project=$(echo "$value" | jq -r '.webdev_project_id // empty')
+            checkpoint_id=$(echo "$value" | jq -r '.checkpoint_id // empty')
+            published=$(echo "$value" | jq -r '.published // false')
+            error_code=$(echo "$value" | jq -r '.error_code // empty')
+            if [ "$result_status" != "success" ] || [ "$result_sha" != "$COMMIT_SHA" ] || [ "$result_project" != "$MANUS_WEBDEV_PROJECT_ID" ] || [ -z "$checkpoint_id" ] || [ "$published" != "true" ]; then
+              echo "::error::Resultado WebDev inválido ou incompleto: status=$result_status sha=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published error_code=$error_code"
+              exit 1
+            fi
+            echo "WebDev publication confirmed: commit=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published"
+            {
+              echo '### Manus publication result'
+              echo "- Commit: \\`$result_sha\\`"
+              echo "- WebDev project: \\`$result_project\\`"
+              echo "- Checkpoint: \\`$checkpoint_id\\`"
+              echo "- Published: \\`$published\\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+
+          for attempt in $(seq 1 150); do
             response=$(curl --fail-with-body --silent --show-error \
               "$MANUS_API_URL/v2/task.listMessages?task_id=$TASK_ID&limit=100&order=desc" \
               -H "x-manus-api-key: $MANUS_API_KEY")
+            structured=$(echo "$response" | jq -c '[.messages[] | select(.type == "structured_output_result") | .structured_output_result] | first // empty')
+            if [ -n "$structured" ]; then
+              validate_result "$structured"
+            fi
+
             status_update=$(echo "$response" | jq -c '[.messages[] | select(.type == "status_update" and .status_update.agent_status != null)] | first // {}')
             status=$(echo "$status_update" | jq -r '.status_update.agent_status // "unknown"')
             brief=$(echo "$status_update" | jq -r '.status_update.brief // empty')
             waiting_type=$(echo "$status_update" | jq -r '.status_update.status_detail.waiting_for_event_type // empty')
             waiting_description=$(echo "$status_update" | jq -r '.status_update.status_detail.waiting_description // empty')
-            echo "[$attempt/135] Manus: $status${brief:+ — $brief}${waiting_type:+ [event=$waiting_type]}"
+            echo "[$attempt/150] Manus: $status${brief:+ — $brief}${waiting_type:+ [event=$waiting_type]}"
 
             case "$status" in
               running)
@@ -205,49 +249,7 @@ jobs:
                   "$MANUS_API_URL/v2/task.detail?task_id=$TASK_ID" \
                   -H "x-manus-api-key: $MANUS_API_KEY")
                 background_jobs=$(echo "$detail" | jq -r 'if (.task | has("has_running_background_jobs")) then (.task.has_running_background_jobs | tostring) else "unknown" end')
-                if [ "$background_jobs" = "true" ]; then
-                  echo "Main agent stopped, but background jobs remain; continuing to poll."
-                elif [ "$background_jobs" = "unknown" ]; then
-                  echo "Main agent stopped, but background-job state is unknown; continuing to poll."
-                else
-                  finalization_attempts=$((finalization_attempts + 1))
-                  structured=$(echo "$response" | jq -c '[.messages[] | select(.type == "structured_output_result") | .structured_output_result] | first // empty')
-                  if [ -z "$structured" ]; then
-                    if [ "$finalization_attempts" -lt 6 ]; then
-                      echo "Task stopped without structured result; waiting for extraction (${finalization_attempts}/5)."
-                    else
-                      echo "::error::A tarefa parou sem produzir o resultado estruturado esperado."
-                      exit 1
-                    fi
-                  else
-                    success=$(echo "$structured" | jq -r '.success // false')
-                    if [ "$success" != "true" ]; then
-                      echo "::error::A extração do resultado estruturado falhou."
-                      echo "$structured" | jq -r '.error // "Erro sem detalhes adicionais."'
-                      exit 1
-                    fi
-                    value=$(echo "$structured" | jq -c '.value')
-                    result_status=$(echo "$value" | jq -r '.status // empty')
-                    result_sha=$(echo "$value" | jq -r '.commit_sha // empty')
-                    result_project=$(echo "$value" | jq -r '.webdev_project_id // empty')
-                    checkpoint_id=$(echo "$value" | jq -r '.checkpoint_id // empty')
-                    published=$(echo "$value" | jq -r '.published // false')
-                    error_code=$(echo "$value" | jq -r '.error_code // empty')
-                    if [ "$result_status" != "success" ] || [ "$result_sha" != "$COMMIT_SHA" ] || [ "$result_project" != "$MANUS_WEBDEV_PROJECT_ID" ] || [ -z "$checkpoint_id" ] || [ "$published" != "true" ]; then
-                      echo "::error::Resultado WebDev inválido ou incompleto: status=$result_status sha=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published error_code=$error_code"
-                      exit 1
-                    fi
-                    echo "WebDev publication confirmed: commit=$result_sha project=$result_project checkpoint=$checkpoint_id published=$published"
-                    {
-                      echo '### Manus publication result'
-                      echo "- Commit: \\`$result_sha\\`"
-                      echo "- WebDev project: \\`$result_project\\`"
-                      echo "- Checkpoint: \\`$checkpoint_id\\`"
-                      echo "- Published: \\`$published\\`"
-                    } >> "$GITHUB_STEP_SUMMARY"
-                    exit 0
-                  fi
-                fi
+                echo "Task stopped without a structured result; background jobs: $background_jobs. Continuing to poll."
                 ;;
               *)
                 echo "Unknown task status; continuing to poll."
@@ -255,5 +257,5 @@ jobs:
             esac
             sleep 20
           done
-          echo "::error::Timeout aguardando a sincronização/publicação do Manus."
+          echo "::error::Timeout aguardando o resultado estruturado da sincronização/publicação do Manus."
           exit 1
