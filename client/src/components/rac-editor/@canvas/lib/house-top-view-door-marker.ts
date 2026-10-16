@@ -224,6 +224,13 @@ export function refreshTopDoorMarkersInViews(params: {
       bodyHeight,
     });
 
+    // O layout do Fabric recentraliza os filhos ao acrescentar setas/legendas.
+    // As medidas da planta partem do corpo, não da origem variável do grupo.
+    const bodyCenter = canvasObjectHouseBody?.getRelativeCenterPoint?.()
+      ?? {x: canvasObjectHouseBody?.left ?? 0, y: canvasObjectHouseBody?.top ?? 0};
+    const targetLeft = placement.targetLeft === undefined ? undefined : bodyCenter.x + placement.targetLeft;
+    const targetTop = placement.targetTop === undefined ? undefined : bodyCenter.y + placement.targetTop;
+
     for (const canvasObjectMarker of topDoorMarker) {
       const markerMetadata = canvasObjectMarker as {
         markerSide?: HouseSide;
@@ -237,9 +244,9 @@ export function refreshTopDoorMarkersInViews(params: {
         markerCandidateSide: side,
         ...(params.reposition === false
           ? (side === 'top' || side === 'bottom'
-            ? {targetTop: placement.targetTop}
-            : {targetLeft: placement.targetLeft})
-          : {targetLeft: placement.targetLeft, targetTop: placement.targetTop}),
+            ? {targetTop}
+            : {targetLeft})
+          : {targetLeft, targetTop}),
       }));
       canvasObjectMarker.setCoords?.();
       canvasObjectMarker.dirty = true;

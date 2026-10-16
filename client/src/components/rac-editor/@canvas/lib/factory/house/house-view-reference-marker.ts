@@ -210,10 +210,10 @@ export function refreshHouseViewReferenceMarkersInViews(params: {
         group,
         createHousePlanReferenceMarker({
           label: reference.label,
-          left: getPlanMarkerLeft(reference.side, bodySize.bodyWidth, scale),
+          left: bodySize.centerX + getPlanMarkerLeft(reference.side, bodySize.bodyWidth, scale),
           sequence: reference.sequence,
           side: reference.side,
-          top: getPlanMarkerTop(reference.side, bodySize.bodyHeight, scale),
+          top: bodySize.centerY + getPlanMarkerTop(reference.side, bodySize.bodyHeight, scale),
           scale,
         }),
       );
@@ -264,9 +264,14 @@ function applyReferenceMarkerMetadata(
   return marker;
 }
 
-function calculateTopReferenceBodySize(group: CanvasGroup): { bodyHeight: number; bodyWidth: number } {
+function calculateTopReferenceBodySize(group: CanvasGroup): { bodyHeight: number; bodyWidth: number; centerX: number; centerY: number } {
   const houseBody = getCanvasGroupObjects(group).find((object) => object.isHouseBody);
+  // O centro local do corpo pode mudar quando o Fabric recalcula os limites do grupo.
+  const center = houseBody?.getRelativeCenterPoint?.()
+    ?? {x: houseBody?.left ?? 0, y: houseBody?.top ?? 0};
   return {
+    centerX: center.x,
+    centerY: center.y,
     bodyWidth: Math.max(Number(houseBody?.width ?? 0) * Number(houseBody?.scaleX ?? 1), 1),
     bodyHeight: Math.max(Number(houseBody?.height ?? 0) * Number(houseBody?.scaleY ?? 1), 1),
   };
