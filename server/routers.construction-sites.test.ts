@@ -181,7 +181,7 @@ describe('constructionSites procedures', () => {
   it('validates a PNG signature and delegates bytes to native storage', async () => {
     storage.storagePut.mockResolvedValue({
       key: 'rac-designer-teto/unassigned/photos/terreno_123.png',
-      url: '/manus-storage/rac-designer-teto/unassigned/photos/terreno_123.png',
+      url: '/api/private-storage/rac-designer-teto/unassigned/photos/terreno_123.png',
     });
     const caller = appRouter.createCaller(createContext());
     const base64 = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).toString('base64');
@@ -210,14 +210,14 @@ describe('constructionSites procedures', () => {
     });
     storage.storagePut.mockResolvedValue({
       key: 'rac-designer-teto/generated/house-illustration-processed.png',
-      url: '/manus-storage/rac-designer-teto/generated/house-illustration-processed.png',
+      url: '/api/private-storage/rac-designer-teto/generated/house-illustration-processed.png',
     });
     const caller = appRouter.createCaller(createContext());
 
     const base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     await expect(caller.storage.generateHouseIllustration({base64, wallColor: '#c4967a'}))
       .resolves.toMatchObject({
-        url: '/manus-storage/rac-designer-teto/generated/house-illustration-processed.png',
+        url: '/api/private-storage/rac-designer-teto/generated/house-illustration-processed.png',
         dataUrl: expect.stringMatching(/^data:image\/png;base64,/),
       });
     expect(storage.storagePut).toHaveBeenCalledWith(

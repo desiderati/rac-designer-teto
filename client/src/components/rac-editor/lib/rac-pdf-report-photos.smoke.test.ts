@@ -58,7 +58,7 @@ describe('preparação de fotos para o PDF', () => {
     const photos = await prepareRacPdfReportPhotos(constructionSite, 'house-2');
 
     expect(loadedSources).toEqual(expect.arrayContaining([expect.stringMatching(/^data:image\/png;base64,/), '/terrain-1.jpg', '/terrain-2.jpg']));
-    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/family-2.jpg', expect.objectContaining({credentials: 'include', cache: 'no-cache'}));
+    expect(fetchMock).toHaveBeenCalledWith('/api/private-storage/family-2.jpg', expect.objectContaining({credentials: 'include', cache: 'no-cache'}));
     expect(photos.familyPhotoImageDataUrl).toBe('data:image/jpeg;base64,/9j/');
     expect(photos.hasUnresolvedPhotoSources).toBe(false);
     expect(photos.terrainPhotoImageDataUrls).toEqual([

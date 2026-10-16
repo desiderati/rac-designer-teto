@@ -1,4 +1,4 @@
-import type {Express, Response} from 'express';
+import type {Express, Request, Response} from 'express';
 import {ENV} from './env';
 import {sdk} from './sdk';
 import {logSafeServerError} from './safe-error-log';
@@ -19,7 +19,7 @@ export function registerStorageProxy(app: Express) {
     await redirectToStorageAsset(asset, res, true);
   });
 
-  app.get('/manus-storage/*', async (req, res) => {
+  const handlePrivateStorage = async (req: Request, res: Response) => {
     res.set('Cache-Control', 'private, no-store');
     res.vary('Cookie');
     res.vary('Authorization');
@@ -37,7 +37,13 @@ export function registerStorageProxy(app: Express) {
     }
 
     await redirectToStorageAsset(key, res, false);
-  });
+  };
+
+  // Use an application-owned path for browsers outside the WebDev preview.
+  // Keep /manus-storage/* readable so already-persisted documents continue to
+  // work while they are hydrated and rewritten by the normal save flow.
+  app.get('/api/private-storage/*', handlePrivateStorage);
+  app.get('/manus-storage/*', handlePrivateStorage);
 }
 
 async function redirectToStorageAsset(key: string, res: Response, publicAsset: boolean) {

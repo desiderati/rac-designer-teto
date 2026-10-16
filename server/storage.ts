@@ -1,8 +1,11 @@
 // Preconfigured storage helpers for Manus WebDev templates
 // Uploads via Forge Server presigned URL to S3 (PUT direct).
-// Downloads return /manus-storage/{key} paths served pelo proxy same-origin.
+// Downloads return the application-owned private route. The old /manus-storage
+// route remains readable for documents created before this migration.
 
 import { ENV } from "./_core/env";
+
+export const PRIVATE_STORAGE_ROUTE = "/api/private-storage/";
 
 function getForgeConfig() {
   const forgeUrl = ENV.forgeApiUrl;
@@ -68,12 +71,12 @@ export async function storagePut(
     throw new Error(`Storage upload to S3 failed (${uploadResp.status})`);
   }
 
-  return { key, url: `/manus-storage/${key}` };
+  return { key, url: `${PRIVATE_STORAGE_ROUTE}${key}` };
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
   const key = normalizeKey(relKey);
-  return { key, url: `/manus-storage/${key}` };
+  return { key, url: `${PRIVATE_STORAGE_ROUTE}${key}` };
 }
 
 export async function storageGetSignedUrl(relKey: string): Promise<string> {

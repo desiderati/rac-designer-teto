@@ -717,13 +717,13 @@ describe('fabric-canvas-document-port.ts', () => {
       objects: [{
         type: 'image',
         src: expect.stringMatching(/^data:image\/png;base64,/),
-        storageUrl: 'https://legacy.example.test/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg',
+        storageUrl: '/api/private-storage/rac-designer-teto/unassigned/photos/foto.jpg',
         crossOrigin: 'anonymous',
         myType: 'image',
         editorObjectId: 'legacy-upload-1',
       }],
     });
-    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/rac-designer-teto/unassigned/photos/foto.jpg', expect.objectContaining({credentials: 'include', cache: 'no-cache'}));
+    expect(fetchMock).toHaveBeenCalledWith('/api/private-storage/rac-designer-teto/unassigned/photos/foto.jpg', expect.objectContaining({credentials: 'include', cache: 'no-cache'}));
   });
 
   it('serializa imagem baseada em canvas sem chamar toJSON ou toDataURL na fonte viva', () => {

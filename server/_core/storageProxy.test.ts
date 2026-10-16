@@ -74,6 +74,29 @@ describe('storageProxy', () => {
     expect(fetchMock.mock.calls[1]?.[0]).toBe('https://bucket.example.test/private/foto.png');
   });
 
+  it('serve a rota privada canônica da aplicação com a mesma proteção', async () => {
+    authenticateRequest.mockResolvedValue({id: 1});
+    const imageBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({url: 'https://bucket.example.test/private/casa.png'}), {
+        status: 200,
+        headers: {'content-type': 'application/json'},
+      }))
+      .mockResolvedValueOnce(new Response(imageBytes, {
+        status: 200,
+        headers: {'content-type': 'image/png'},
+      })));
+
+    const {response, body} = await requestStorageAsset('/api/private-storage/rac-designer-teto/temp/house-3d/casa.png', {
+      authorization: 'Bearer session-token',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('image/png');
+    expect(body).toEqual(Buffer.from(imageBytes));
+    expect(authenticateRequest).toHaveBeenCalledWith(expect.objectContaining({headers: expect.objectContaining({authorization: 'Bearer session-token'})}));
+  });
+
   it.each([undefined, {authorization: 'Bearer invalid-or-expired'}])('nega sessão ausente/inválida antes de consultar o Storage (%s)', async (headers) => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

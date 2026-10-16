@@ -2,7 +2,7 @@ import {Canvas as FabricCanvas, FabricImage, FabricObject, util} from 'fabric';
 import {isCanvasGroup} from '../../lib/canvas.ts';
 import {applyCurrentHouseDataToGroups} from '../../lib/house-visual-runtime.ts';
 import {applyFieldAnalysisContraventamentos} from '../../lib/field-analysis-contraventamentos.ts';
-import {isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
+import {canonicalizeProtectedImageSource, isProtectedImageSource, resolveProtectedImageSource} from '@/shared/lib/protected-image.ts';
 import {refreshHouseGroupsOnCanvas} from '@/components/rac-editor/@canvas/lib';
 import {
   type CanvasObject,
@@ -381,9 +381,7 @@ function readCanvasObjectsForExport(canvas: FabricCanvas): unknown[] {
 
 function normalizeStorageImageSource(source: unknown): unknown {
   if (typeof source !== 'string') return source;
-
-  const storagePathMatch = source.match(/(?:^|https?:\/\/[^/]+)(\/manus-storage\/[^?#]+)/i);
-  return storagePathMatch?.[1] ?? source;
+  return canonicalizeProtectedImageSource(source);
 }
 
 function isSameOriginSource(source: string): boolean {
@@ -507,6 +505,7 @@ function toRuntimePayload(document: HouseDrawingElementDocument): Record<string,
 
   if (document.shape === 'image') {
     payload.src = normalizeStorageImageSource(payload.src);
+    payload.storageUrl = normalizeStorageImageSource(payload.storageUrl);
     const source = payload.src;
     const hasExternalSource = typeof source === 'string' && !/^(data:|blob:)/i.test(source);
     if (hasExternalSource && (payload.crossOrigin === undefined || payload.crossOrigin === null || payload.crossOrigin === '')) {

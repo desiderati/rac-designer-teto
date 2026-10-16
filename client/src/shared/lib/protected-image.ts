@@ -4,6 +4,16 @@ const PROTECTED_IMAGE_CACHE_TTL_MS = 5 * 60 * 1000;
 let imageIdentity: string | null = null;
 let cacheGeneration = 0;
 const IMAGE_CACHE_PREFIX = 'rac-private-images-v1-';
+const LEGACY_STORAGE_PATH_PREFIX = '/manus-storage/';
+export const PRIVATE_STORAGE_PATH_PREFIX = '/api/private-storage/';
+
+/** Converte referências legadas e URLs absolutas para a rota same-origin da aplicação. */
+export function canonicalizeProtectedImageSource(source: string): string {
+  const match = source.match(/(?:^|https?:\/\/[^/]+)(\/manus-storage\/|\/api\/private-storage\/)([^?#]+)/i);
+  if (!match) return source;
+  return `${PRIVATE_STORAGE_PATH_PREFIX}${match[2]}`;
+}
+
 export function setProtectedImageIdentity(identity: string | number | null | undefined): void {
   const next = identity == null ? null : String(identity);
   if (next !== imageIdentity) { protectedImageCache.clear(); cacheGeneration++; imageIdentity = next; }
@@ -25,20 +35,24 @@ const protectedImageCache = new Map<string, ProtectedImageCacheEntry>();
 const imageListeners = new Map<string, Set<(value: string) => void>>();
 
 export function subscribeProtectedImage(source: string, listener: (value: string) => void): () => void {
-  const listeners = imageListeners.get(source) ?? new Set();
+  const cacheKey = canonicalizeProtectedImageSource(source);
+  const listeners = imageListeners.get(cacheKey) ?? new Set();
   listeners.add(listener);
-  imageListeners.set(source, listeners);
-  return () => { listeners.delete(listener); if (!listeners.size) imageListeners.delete(source); };
+  imageListeners.set(cacheKey, listeners);
+  return () => { listeners.delete(listener); if (!listeners.size) imageListeners.delete(cacheKey); };
 }
 
 function publishImage(source: string, value: string): void {
-  imageListeners.get(source)?.forEach((listener) => listener(value));
+  imageListeners.get(canonicalizeProtectedImageSource(source))?.forEach((listener) => listener(value));
 }
 
 export function isProtectedImageSource(source: string): boolean {
   try {
     const url = new URL(source, window.location.href);
-    return url.origin === window.location.origin && url.pathname.startsWith('/manus-storage/');
+    return url.origin === window.location.origin && (
+      url.pathname.startsWith(LEGACY_STORAGE_PATH_PREFIX)
+      || url.pathname.startsWith(PRIVATE_STORAGE_PATH_PREFIX)
+    );
   } catch {
     return false;
   }
@@ -86,6 +100,7 @@ function observeWithAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise
 }
 
 async function createProtectedImageRequest(source: string): Promise<string> {
+  source = canonicalizeProtectedImageSource(source);
   const generation = cacheGeneration;
   const cache = await persistentImageCache();
   const cached = await cache?.match(source).catch(() => undefined);
@@ -127,6 +142,7 @@ function asDataUrl(response: Response): Promise<string> {
 /** Retorna pixels já resolvidos sem iniciar uma nova requisição. */
 export function getCachedProtectedImageSource(source: string): string | null {
   if (!isProtectedImageSource(source)) return null;
+  source = canonicalizeProtectedImageSource(source);
   const now = Date.now();
   evictExpiredEntries(now);
   const entry = protectedImageCache.get(source);
@@ -149,6 +165,7 @@ export function clearProtectedImageCache(): void {
  */
 export async function resolveProtectedImageSource(source: string, signal?: AbortSignal): Promise<string> {
   if (!isProtectedImageSource(source)) return source;
+  source = canonicalizeProtectedImageSource(source);
   if (signal?.aborted) {
     throw signal.reason ?? new DOMException('A operação foi cancelada.', 'AbortError');
   }

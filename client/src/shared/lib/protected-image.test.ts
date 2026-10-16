@@ -1,6 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {COOKIE_NAME} from '@shared/const';
-import {clearProtectedImageCache, resolveProtectedImageSource, setProtectedImageIdentity, subscribeProtectedImage} from './protected-image.ts';
+import {canonicalizeProtectedImageSource, clearProtectedImageCache, resolveProtectedImageSource, setProtectedImageIdentity, subscribeProtectedImage} from './protected-image.ts';
 
 afterEach(() => {
   sessionStorage.clear();
@@ -40,7 +40,7 @@ describe('transporte de imagens protegidas', () => {
     vi.stubGlobal('fetch', fetchMock);
     const result = await resolveProtectedImageSource('/manus-storage/private/photo.png');
     expect(result).toMatch(/^data:image\/png;base64,/);
-    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/private/photo.png', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('/api/private-storage/private/photo.png', expect.objectContaining({
       credentials: 'include', headers: {Authorization: 'Bearer preview-token'}, cache: 'no-cache', redirect: 'error',
     }));
   });
@@ -49,7 +49,12 @@ describe('transporte de imagens protegidas', () => {
     const fetchMock = vi.fn().mockResolvedValue({ok: true, blob: async () => new Blob(['image'], {type: 'image/png'})});
     vi.stubGlobal('fetch', fetchMock);
     await resolveProtectedImageSource('/manus-storage/private/photo.png');
-    expect(fetchMock).toHaveBeenCalledWith('/manus-storage/private/photo.png', expect.objectContaining({credentials: 'include', headers: {}}));
+    expect(fetchMock).toHaveBeenCalledWith('/api/private-storage/private/photo.png', expect.objectContaining({credentials: 'include', headers: {}}));
+  });
+
+  it('converte uma URL absoluta legada para a rota privada do host atual', async () => {
+    expect(canonicalizeProtectedImageSource('https://old-preview.example.test/manus-storage/private/photo.png'))
+      .toBe('/api/private-storage/private/photo.png');
   });
 
   it.each([
