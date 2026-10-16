@@ -17,6 +17,7 @@ shortcuts with when-to-use guidance, simple examples, and the safety notes.
 | Shortcut            | When to use                                                                                                                                | Simple example                                                                                        |
 |---------------------|--------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
 | `!again`            | Alias for `!retry`; retry the last failed or blocked action with an explicit change.                                                       | "The install failed; try again after explaining what changes."                                        |
+| `!architecture`         | Document current architecture through `architecture-diagram.prompt.md` and `$architecture-diagram`; Mermaid-only by default.               | "!architecture: macro, layers/modules and persistence"                                                                          |
 | `!are-you-sure`     | Re-evaluate Codex's previous claims against available evidence, expose uncertainty, and correct unsupported claims.                        | "Are you really sure about the claims in your previous answer?"                                       |
 | `!auto-review`      | Use the preset League + `!loop` + `$code-review` over unpublished local Git changes.                                                       | "Review and repair every local change before push."                                                   |
 | `!authorized`       | Alias for `!confirm`; authorize only the exact action most recently proposed by Codex.                                                     | "Authorize the commit you just described."                                                            |
@@ -76,6 +77,15 @@ shortcuts with when-to-use guidance, simple examples, and the safety notes.
 | `!verify`           | Run or describe relevant verification; prefer `verification.prompt.md` when non-trivial or drift is plausible.                             | "Check whether the implementation satisfies the objective."                                           |
 
 ## Safety Notes
+
+### `!architecture`
+
+Load `.agents/prompts/architecture-diagram.prompt.md` and `$architecture-diagram`. Document the
+current repository application unless trailing text selects a narrower scope. The default is local
+Mermaid plus a README: macro architecture, layers/modules, and data/persistence. Do not require a
+visual model or generate model prompts/images by default. If the skill is missing, report the
+limitation without installing or synchronizing it. External generation, publication and Git actions
+require their own explicit authorization.
 
 - Treat all `!` shortcuts as intent signals for the current conversation, not as permission to
   bypass repository, production, external-mutation, or irreversible-action guardrails.

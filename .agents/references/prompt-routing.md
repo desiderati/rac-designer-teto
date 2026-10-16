@@ -207,6 +207,7 @@ current conversation, not as permission to skip safety checks or invent missing 
 | Shortcut            | Meaning                                                                                                           |
 |---------------------|-------------------------------------------------------------------------------------------------------------------|
 | `!again`            | Alias for `!retry`; retry only after explaining what failed and what will change.                                 |
+| `!architecture` | Document current architecture through `architecture-diagram.prompt.md` and `$architecture-diagram`; Mermaid-only by default. |
 | `!are-you-sure`     | Audit Codex's previous claims against available evidence and correct unsupported claims.                          |
 | `!auto-review`      | Expand the preset League + `!loop` + `$code-review` over unpublished local Git changes.                           |
 | `!authorized`       | Alias for `!confirm`; authorize the exact action most recently proposed by Codex.                                 |
