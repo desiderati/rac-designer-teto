@@ -1,11 +1,57 @@
 import {expect, test, type Page} from '@playwright/test';
 import {setupSeededRacEditorPage} from './helpers/construction-site.helpers';
-import {readConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
+import {readConstructionSiteDocument, seedConstructionSiteDocument} from './helpers/construction-site-storage.helpers';
+import {applyRacEditorInitScript, showCanvasTopBar} from './helpers/rac-editor.helpers';
 
 test.use({
   viewport: {width: 420, height: 844},
   isMobile: true,
   hasTouch: true,
+});
+
+test.describe('Primeira abertura diretamente no mobile', () => {
+  test.use({viewport: {width: 360, height: 844}});
+
+  test('abre a listagem antes do Canvas e permite acessar a casa pelos controles mobile', async ({page}) => {
+    // Preparar o IndexedDB na mesma origem sem carregar React nem passar pelo desktop.
+    const bootstrapPath = '**/__e2e/mobile-storage';
+    await page.route(bootstrapPath, (route) => route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html><head><title>Fixture local</title></head><body></body></html>',
+    }));
+    await page.goto('/__e2e/mobile-storage');
+    await seedConstructionSiteDocument(page, {insertInitialViews: true, primaryContactName: 'Maria E2E'});
+    await page.unroute(bootstrapPath);
+    await applyRacEditorInitScript(page);
+
+    await page.goto('/', {waitUntil: 'domcontentloaded'});
+
+    await expect(page.getByRole('heading', {name: 'Construções TETO', exact: true})).toBeVisible();
+    await expect(page.getByTestId('construction-mobile-list')).toBeVisible();
+    await expect(page.getByTestId('construction-desktop-table')).toBeHidden();
+    await expect(page.locator('canvas.upper-canvas')).toHaveCount(0);
+    await expect(page.getByTestId('rac-radial-tools')).toHaveCount(0);
+    await expect(page.getByText('Gire seu celular', {exact: true})).toBeHidden();
+    await expect(page.getByTestId('minimum-viewport-warning')).toBeHidden();
+
+    await page.getByTestId('construction-mobile-card').filter({hasText: 'CC2603'}).tap();
+    await expect(page.getByTestId('house-mobile-list')).toBeVisible();
+    await page.getByTestId('house-mobile-card').filter({hasText: 'Família E2E'}).tap();
+    await expect(page.getByRole('heading', {name: 'Configuração da Casa', exact: true})).toBeVisible();
+    await page.getByRole('button', {name: 'Abrir Canvas da casa', exact: true}).tap();
+
+    await expect(page.getByText('Gire seu celular', {exact: true})).toBeVisible();
+    await page.setViewportSize({width: 740, height: 420});
+    await expect(page.getByText('Gire seu celular', {exact: true})).toBeHidden();
+    await expect(page.locator('canvas.upper-canvas')).toBeVisible();
+    await expect(page.getByTestId('construction-management-shell')).toHaveCount(0);
+    await showCanvasTopBar(page);
+    await expect(page.getByRole('button', {name: 'Abrir menu principal', exact: true})).toBeVisible();
+    await expect(page.getByTestId('rac-radial-tools')
+      .getByRole('button', {name: 'Ferramentas do Canvas', exact: true})).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.getByTestId('house-difficulty-controls')
+      .getByRole('button', {name: 'Dificuldade da casa', exact: true})).toHaveAttribute('aria-expanded', 'false');
+  });
 });
 
 test.describe('Gestão mobile sem overflow horizontal', () => {
